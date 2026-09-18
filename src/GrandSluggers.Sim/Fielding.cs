@@ -210,13 +210,15 @@ public sealed class FieldingResolver
 
     /// <summary>
     /// The speed severity of a take (F693-02-recoil-severity-curve, #720): 0 at or below the shared onset, 1 at or above the full
-    /// speed, linear between. 0 whenever the rule is off (<c>recoil.onsetFtPerSec</c> 0, the shipped table).
+    /// speed, linear between. 0 whenever the rule is off (<c>recoil.onsetFtPerSec</c> 0, the shipped table). A catch in the air
+    /// (<paramref name="airborne"/>) reads the airborne pair (F693-02-grounded-air-catch-recoil), off at <c>airOnsetFtPerSec</c> 0.
     /// </summary>
-    public static double RecoilSeverity(double incomingFtPerSec, RulesTable? rules = null)
+    public static double RecoilSeverity(double incomingFtPerSec, RulesTable? rules = null, bool airborne = false)
     {
         var r = Rules.Or(rules).Fielding.Recoil;
-        if (!r.Active || r.FullFtPerSec <= r.OnsetFtPerSec) return 0;
-        return Math.Clamp((incomingFtPerSec - r.OnsetFtPerSec) / (r.FullFtPerSec - r.OnsetFtPerSec), 0, 1);
+        var (onset, full) = airborne ? (r.AirOnsetFtPerSec, r.AirFullFtPerSec) : (r.OnsetFtPerSec, r.FullFtPerSec);
+        if (onset <= 0 || full <= onset) return 0;
+        return Math.Clamp((incomingFtPerSec - onset) / (full - onset), 0, 1);
     }
 
     /// <summary>The Hands factor (F693-02-recoil-field-factors): <c>1 − handsCutPerPoint × (Hands − 1)</c>, never below 0 — 1 / 0.80 / 0.55 at Hands 1 / 5 / 10.</summary>
@@ -224,12 +226,12 @@ public sealed class FieldingResolver
         Math.Max(0, 1 - Rules.Or(rules).Fielding.Recoil.HandsCutPerPoint * (who.Stats.Hands - 1));
 
     /// <summary>The one weight <c>w = S × F</c> the recovery, the kick and the skid all read (F693-02-recoil-field-shaping: severity bounded first, then the hands).</summary>
-    public static double RecoilWeight(Character who, double incomingFtPerSec, RulesTable? rules = null) =>
-        RecoilSeverity(incomingFtPerSec, rules) * RecoilHandsFactor(who, rules);
+    public static double RecoilWeight(Character who, double incomingFtPerSec, RulesTable? rules = null, bool airborne = false) =>
+        RecoilSeverity(incomingFtPerSec, rules, airborne) * RecoilHandsFactor(who, rules);
 
     /// <summary>What this take costs these hands: <c>capSec × w</c> — 0.20 / 0.16 / 0.11 s at full severity for Hands 1 / 5 / 10, nothing for a routine arrival, nothing on the shipped table.</summary>
-    public static double RecoilSec(Character who, double incomingFtPerSec, RulesTable? rules = null) =>
-        Rules.Or(rules).Fielding.Recoil.CapSec * RecoilWeight(who, incomingFtPerSec, rules);
+    public static double RecoilSec(Character who, double incomingFtPerSec, RulesTable? rules = null, bool airborne = false) =>
+        Rules.Or(rules).Fielding.Recoil.CapSec * RecoilWeight(who, incomingFtPerSec, rules, airborne);
 
     /// <summary>The impact kick's initial speed, <c>kickFtPerSec × w</c> (F693-02-ordinary-recoil-motion-profile).</summary>
     public static double RecoilKickFtPerSec(double weight, RulesTable? rules = null) =>
