@@ -31,6 +31,17 @@
     "accelSec": 0,
     "brakeSec": 0
   },
+  // #718 (F693-02-pursuit-neutral-boundary, -analog-response, -arming, -calibration-policy, -calibration-samples): the human
+  // seat's pursuit stick. enterMag 0 is the stick the game shipped with — a Manhattan gate at feel.fieldAssistStick (0.35),
+  // the full stick vector as the asked velocity, no calibration, no arming. trials/c80 carries 0.20 / 0.15: the calibrated
+  // radial stick with hysteresis and the linear remap from leaveMag to 1. The calibration window is the accepted one in both.
+  "stick": {
+    "enterMag": 0,
+    "leaveMag": 0,
+    "calibrationSec": 0.50,
+    "centerOffsetMax": 0.10,
+    "sampleSpreadMax": 0.02
+  },
   "reaction": {
     "pitcherSec": 0.42,
     "catcherSec": 0.67,

@@ -64,7 +64,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -565,3 +565,37 @@ baseman walking a grounder to the bag at 27.0 ft/s against zig's 22.5 (`BallDash
 
 **What did not move.** `outfieldAirMul` / `infieldAirMul` (to #719 with the air-ball calibration), the analog
 thresholds and controller calibration (#718's last slice), the how-to book (the profile flip).
+
+---
+
+[#718](https://github.com/jackguillet/grand-sluggers/issues/718) — slice 4, the human seat (F693-02-pursuit-analog-response,
+-neutral-boundary, -calibration-policy, -arming, -calibration-samples). One file: `rules/fielding.json` gains a `stick`
+block in both roots; the trial moves its two gates.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `stick.enterMag`, `leaveMag` | 0, 0 — the stick the game shipped with: a Manhattan gate at `feel.fieldAssistStick` (0.35), the raw stick vector as the asked velocity, no calibration, no arming | **0.20, 0.15** — manual pursuit from 0.20 of the calibrated radial magnitude, back to assistance at 0.15, the owner kept between; the asked speed is `(magnitude − 0.15) / 0.85` of the glove speed, capped at 1 |
+| `stick.calibrationSec`, `centerOffsetMax`, `sampleSpreadMax` | 0.50, 0.10, 0.02 — the accepted window, inert on a stick that is never calibrated | 0.50, 0.10, 0.02 — a released-stick window on an input clock, adopted whole or not at all |
+
+**What the seat gets.** One read a frame (`LivePlaySystem.ReadPursuitStick`) that every stick site shares — the batted-ball
+steer, the walk with the ball, the loose-ball chase, the take of the glove, the neutral-stick auto-catch and auto-dive. On
+the trial the read is a `PursuitStick` per bound device (`LivePadInput.Device`): half the usable range asks half the speed,
+a diagonal past the ring still asks full, and the want goes through the response law like any other. The seat **arms** with
+a valid calibration and one neutral observation, owed again at every new half (`BeginLive`), on device recovery or
+replacement and after a successful recalibration; unarmed, every read is assistance and `PursuitUnready` is the client's
+tell. A fresh device is on the identity profile (what a keyboard reports); a client that binds an analog stick invalidates
+it and samples a 0.50-s window — mean centre within 0.10, every sample within 0.02 of it, inclusive — through
+`StickCalibration`, adopting only a complete valid window.
+
+**Control unchanged.** 20 `cli match` seeds and all 50 S-29 cohort games byte-identical to pristine `main`: at
+`enterMag` 0 the read is the Manhattan gate and the raw vector, the same doubles the sites read before.
+
+**What it does to a run.** Nothing the CPU plays: 0 of 48 trial seeds and 0 of 50 cohort games move against the Ball Dash
+slice, because the CPU has no stick. It shows on the human seat (`PursuitStickTests`): zig holding the ball runs at 11.24
+ft/s on a 0.575 stick and 22.48 on a full or diagonal one; a 0.18 stick from rest stands, 0.30 goes, 0.17 after that still
+goes, 0.10 stops; a stick held from the first frame never steers until it has been seen neutral once, and the assistance
+takes the grounder for it meanwhile.
+
+**Left to the Unity pass.** The pause-menu entry that runs a calibration window and the unready tell on the HUD; and
+Unity's default stick processor (a 0.125 dead zone) still sits in front of the coordinate the sim calibrates — it has to
+come off the defense pad's stick for the 0.20 / 0.15 gates to mean what they say.
