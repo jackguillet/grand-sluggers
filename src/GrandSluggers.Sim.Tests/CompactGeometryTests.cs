@@ -364,6 +364,7 @@ public sealed class CompactGeometryTests
                 "dash.chaseMul",
                 "park.pipeReachPadFt",
                 "reaction.catcherSec", "reaction.firstSec", "reaction.outfieldSec", "reaction.pitcherSec", "reaction.shortSec", "reaction.thirdSec",
+                "stick.enterMag", "stick.leaveMag",
                 "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.relayAutoContinue", "throw.relayBufferSec", "throw.releaseSec"
             ],
             moved);
@@ -377,6 +378,12 @@ public sealed class CompactGeometryTests
         // #718 (F693-02-ball-dash-carrier): the universal East-held sprint is retired on the trial; the ability's own multiple does not move.
         Assert.Equal(("1.35", "1.0"), (shippedLeaves["dash.chaseMul"], trialLeaves["dash.chaseMul"]));
         Assert.Equal(("1.20", "1.20"), (shippedLeaves["abilities.ballDashMul"], trialLeaves["abilities.ballDashMul"]));
+        // #718 (the human seat): the calibrated radial stick's gates; the calibration window is the accepted one in both roots.
+        Assert.Equal(("0", "0.20"), (shippedLeaves["stick.enterMag"], trialLeaves["stick.enterMag"]));
+        Assert.Equal(("0", "0.15"), (shippedLeaves["stick.leaveMag"], trialLeaves["stick.leaveMag"]));
+        Assert.Equal(shippedLeaves["stick.calibrationSec"], trialLeaves["stick.calibrationSec"]);
+        Assert.Equal(shippedLeaves["stick.centerOffsetMax"], trialLeaves["stick.centerOffsetMax"]);
+        Assert.Equal(shippedLeaves["stick.sampleSpreadMax"], trialLeaves["stick.sampleSpreadMax"]);
         Assert.Equal(("21", "12.4"), (shippedLeaves["chase.baseFtPerSec"], trialLeaves["chase.baseFtPerSec"]));
         Assert.Equal(("0", "0.20"), (shippedLeaves["chase.accelSec"], trialLeaves["chase.accelSec"]));
         Assert.Equal(("0", "0.10"), (shippedLeaves["chase.brakeSec"], trialLeaves["chase.brakeSec"]));

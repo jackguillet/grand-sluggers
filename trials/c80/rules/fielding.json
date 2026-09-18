@@ -32,6 +32,17 @@
     "accelSec": 0.20,
     "brakeSec": 0.10
   },
+  // #718: the calibrated radial pursuit stick. Manual pursuit from 0.20, back to assistance at 0.15, the owner kept between;
+  // the asked speed is (magnitude - 0.15) / 0.85 of the glove speed, capped at 1; a seat arms with a valid profile and one
+  // neutral observation on defensive-role entry, device recovery or recalibration. The 0.50 s window, 0.10 centre and 0.02
+  // spread are the accepted calibration criteria.
+  "stick": {
+    "enterMag": 0.20,
+    "leaveMag": 0.15,
+    "calibrationSec": 0.50,
+    "centerOffsetMax": 0.10,
+    "sampleSpreadMax": 0.02
+  },
   "reaction": {
     // #718 (the four read clocks): pitcher 0.35, catcher 0.45, one number for the infield four, outfield 0.40 — the
     // largest single change in the profile, and the one most likely to show in 3d.
