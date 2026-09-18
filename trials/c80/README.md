@@ -1119,7 +1119,7 @@ without its half of the guard.
 | Check | Result |
 | --- | --- |
 | `dotnet test GrandSluggers.sln -c Release` | 1323 of 1323 (1320 on main + these 3) |
-| `--filter "Rows=compact&Copy!=gap"` under the trial root | 304 of 304 (299 on main + these 5) |
+| `--filter "Rows=compact&Copy!=gap"` under the trial root | 378 of 378 (373 on main + these 5) |
 | Control, 20 seeds and the three cohorts | byte-identical to main (cohort JSON: the identity block's `moduleId` and `build` only); CPU games never hand a ring off inside a shipped dive |
 | Trial, 48 seeds | 0 of 48 move |
 | Trial cohorts | identical to main but for the identity block: S-29 2.46 / 2.36, harbor-calibration 2.10 / 2.16, harbor-validation 2.02 / 2.42 |
