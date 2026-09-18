@@ -365,10 +365,20 @@ public sealed class CompactGeometryTests
                 "dash.chaseMul",
                 "park.pipeReachPadFt",
                 "reaction.catcherSec", "reaction.firstSec", "reaction.outfieldSec", "reaction.pitcherSec", "reaction.shortSec", "reaction.thirdSec",
+                "recoil.fullFtPerSec", "recoil.onsetFtPerSec",
                 "stick.enterMag", "stick.leaveMag",
                 "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.relayAutoContinue", "throw.relayBufferSec", "throw.releaseSec"
             ],
             moved);
+        // #720 (slice 1): the ordinary impact recoil — the shipped knockback at onset 0, the measured anchors on the trial; the cap,
+        // the Hands cut and the kick are the accepted anchors in both roots, read only above onset 0. The knockback block does not move.
+        Assert.Equal(("0", "55"), (shippedLeaves["recoil.onsetFtPerSec"], trialLeaves["recoil.onsetFtPerSec"]));
+        Assert.Equal(("0", "75"), (shippedLeaves["recoil.fullFtPerSec"], trialLeaves["recoil.fullFtPerSec"]));
+        Assert.Equal(("0.20", "0.20"), (shippedLeaves["recoil.capSec"], trialLeaves["recoil.capSec"]));
+        Assert.Equal(("0.05", "0.05"), (shippedLeaves["recoil.handsCutPerPoint"], trialLeaves["recoil.handsCutPerPoint"]));
+        Assert.Equal(("10", "10"), (shippedLeaves["recoil.kickFtPerSec"], trialLeaves["recoil.kickFtPerSec"]));
+        Assert.Equal(shippedLeaves["knockback.minEnergy"], trialLeaves["knockback.minEnergy"]);
+        Assert.Equal(shippedLeaves["knockback.maxSec"], trialLeaves["knockback.maxSec"]);
         // #723: the abilities and the relay's ownership. snapReleaseSec does not move — 0.22 in both, inert beside the shipped release.
         Assert.Equal(("1.45", "1.25"), (shippedLeaves["abilities.laserMul"], trialLeaves["abilities.laserMul"]));
         Assert.Equal(("1.22", "1.0"), (shippedLeaves["abilities.snapThrowMul"], trialLeaves["abilities.snapThrowMul"]));

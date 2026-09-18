@@ -208,6 +208,40 @@ public sealed class FieldingResolver
         return c.DiveRecoverySec * Math.Max(0, 1 - c.DiveRecoveryFieldCut * (who.Stats.Field - 1));
     }
 
+    /// <summary>
+    /// The speed severity of a take (F693-02-recoil-severity-curve, #720): 0 at or below the shared onset, 1 at or above the full
+    /// speed, linear between. 0 whenever the rule is off (<c>recoil.onsetFtPerSec</c> 0, the shipped table).
+    /// </summary>
+    public static double RecoilSeverity(double incomingFtPerSec, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules).Fielding.Recoil;
+        if (!r.Active || r.FullFtPerSec <= r.OnsetFtPerSec) return 0;
+        return Math.Clamp((incomingFtPerSec - r.OnsetFtPerSec) / (r.FullFtPerSec - r.OnsetFtPerSec), 0, 1);
+    }
+
+    /// <summary>The Hands factor (F693-02-recoil-field-factors): <c>1 − handsCutPerPoint × (Hands − 1)</c>, never below 0 — 1 / 0.80 / 0.55 at Hands 1 / 5 / 10.</summary>
+    public static double RecoilHandsFactor(Character who, RulesTable? rules = null) =>
+        Math.Max(0, 1 - Rules.Or(rules).Fielding.Recoil.HandsCutPerPoint * (who.Stats.Hands - 1));
+
+    /// <summary>The one weight <c>w = S × F</c> the recovery, the kick and the skid all read (F693-02-recoil-field-shaping: severity bounded first, then the hands).</summary>
+    public static double RecoilWeight(Character who, double incomingFtPerSec, RulesTable? rules = null) =>
+        RecoilSeverity(incomingFtPerSec, rules) * RecoilHandsFactor(who, rules);
+
+    /// <summary>What this take costs these hands: <c>capSec × w</c> — 0.20 / 0.16 / 0.11 s at full severity for Hands 1 / 5 / 10, nothing for a routine arrival, nothing on the shipped table.</summary>
+    public static double RecoilSec(Character who, double incomingFtPerSec, RulesTable? rules = null) =>
+        Rules.Or(rules).Fielding.Recoil.CapSec * RecoilWeight(who, incomingFtPerSec, rules);
+
+    /// <summary>The impact kick's initial speed, <c>kickFtPerSec × w</c> (F693-02-ordinary-recoil-motion-profile).</summary>
+    public static double RecoilKickFtPerSec(double weight, RulesTable? rules = null) =>
+        Rules.Or(rules).Fielding.Recoil.KickFtPerSec * weight;
+
+    /// <summary>The skid the kick integrates to over the recovery, <c>K T / 2</c>: <c>w²</c> feet at 10 ft/s and 0.20 s, one foot at most (F693-02-ordinary-recoil-distance-cap).</summary>
+    public static double RecoilSkidFt(double weight, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules).Fielding.Recoil;
+        return r.KickFtPerSec * weight * r.CapSec * weight / 2;
+    }
+
     /// <summary>Stand-up plus <c>diveReachFt</c> — the rim. Past this is a drop.</summary>
     public static double DiveCatchFt(double catchRadius, RulesTable? rules = null) =>
         StandUpCatchFt(catchRadius) + Rules.Or(rules).Fielding.Catch.DiveReachFt;

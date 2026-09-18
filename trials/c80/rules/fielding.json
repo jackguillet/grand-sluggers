@@ -230,6 +230,23 @@
     "maxSec": 0.55,
     "minSec": 0.02
   },
+  // #720 (F693-02-ground-pickup-recoil-basis, -cap, -recoil-field-shaping, -recoil-field-factors, -recoil-severity-curve,
+  // -ordinary-recoil-actions, -ordinary-recoil-displacement, -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile):
+  // a ground pickup costs the hands what the ball's actual incoming speed says, deterministic — S = clamp((v − 55) / (75 − 55)),
+  // w = S × (1 − 0.05 × (Hands − 1)), the recovery 0.20 w s, a 10 w ft/s kick along the ball's travel slowing to rest over it
+  // (w² ft), steering and the throw start waiting, possession and the contact at the bag kept. The knockback block above is
+  // not read while onsetFtPerSec is above 0. The anchors are the measured ones (#720 slice 1, 48 cli matches on this copy,
+  // 464 ground pickups): the onset 55 ft/s is the 90th percentile of every ground pickup's incoming speed — the hottest tenth
+  // recoils, the rest is routine and costs nothing — and the full 75 ft/s is just past the hottest ball seen (73.0), so the cap
+  // binds only on a true rocket. 11 % of the copy's CPU pickups recoil, none at the cap, 0.034 s among them; the shipped
+  // knockback stops 41 % of grounder pickups for 0.078 s on average.
+  "recoil": {
+    "onsetFtPerSec": 55,
+    "fullFtPerSec": 75,
+    "capSec": 0.20,
+    "handsCutPerPoint": 0.05,
+    "kickFtPerSec": 10
+  },
   "park": {
     "emberNightFireMul": 1.6,
     // #732, #730 decision 4: the pad is the larger part of a barrel's capture disc (radius + pad), so it
