@@ -106,7 +106,9 @@ public enum LiveEvent
     /// <summary>A dive was committed — East, or the CPU's deliberate choice — and its recovery is owed (#719).</summary>
     DiveCommit,
     /// <summary>The glove took off on a normal jump (#719): the airborne clock started this frame.</summary>
-    JumpTakeoff
+    JumpTakeoff,
+    /// <summary>A hard ball's take cost the hands (#720): the ordinary impact recoil began this frame — the brace and the skid.</summary>
+    ImpactRecoil
 }
 
 /// <summary>
@@ -255,6 +257,17 @@ public sealed partial class LivePlaySystem
     public double JumpT { get; private set; }
     public double SwapLock { get; private set; }
     public double RecoilT { get; private set; }
+    /// <summary>
+    /// The ordinary impact recoil (#720) is what <see cref="RecoilT"/> counts down: the tick goes on, the body skids and brakes, and
+    /// only its own steering and throw start wait. False for the shipped knockback and the fumble, which hold the whole tick.
+    /// </summary>
+    public bool ImpactRecoil { get; private set; }
+    /// <summary>The full length the impact recovery started from (<c>recoil.capSec × w</c>); the kick's decay reads it. Kept to the play's end for the outcome.</summary>
+    public double RecoilDur { get; private set; }
+    /// <summary>The ball's speed the frame before the glove took the batted ball (F693-02-ground-pickup-recoil-basis), ft/s on the play clock; 0 until the take. Sampled on both tables.</summary>
+    public double IncomingFtPerSec { get; private set; }
+    /// <summary>The impact kick's velocity at the take, along the ball's horizontal travel.</summary>
+    (double X, double Z) _kick;
     public bool Bobbling { get; private set; }
     public bool PlayerBobble { get; private set; }
     public bool CatchDive { get; private set; }
@@ -382,7 +395,8 @@ public sealed partial class LivePlaySystem
     bool HumanGlove(string pos) => Seats.HumanFields && string.Equals(pos, GlovePos, StringComparison.OrdinalIgnoreCase);
     /// <summary>The body on the ball: the thrower while a throw is in the air (the YOU ring is already on the receiver), else the glove.</summary>
     string OnBallPos => Throwing && !string.IsNullOrEmpty(_throwerPos) ? _throwerPos : GlovePos;
-    bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos) && !(DiveRecoveryT > 0 && pos == DivingPos);
+    bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos) && !(DiveRecoveryT > 0 && pos == DivingPos)
+                                && !(ImpactRecoil && RecoilT > 0 && pos == GlovePos);
 
     // ---------------------------------------------------------------------------------
     // Begin
@@ -494,6 +508,10 @@ public sealed partial class LivePlaySystem
         DiveT = JumpT = SwapLock = RecoilT = 0;
         DiveRecoveryT = 0;
         DivingPos = "";
+        ImpactRecoil = false;
+        RecoilDur = 0;
+        IncomingFtPerSec = 0;
+        _kick = (0, 0);
         _ballPrev = null;
         _ballVel = (0, 0, 0);
         _recoveryPress = null;
@@ -657,16 +675,23 @@ public sealed partial class LivePlaySystem
         if (InClosePlay)
             return TickClosePlay(dt, field, run);
 
-        // The fumble (§8.6): the glove is out of the play for the fumble; the ball is loose on the ground.
+        // The fumble (§8.6) and the shipped knockback hold the whole tick: the glove is out of the play for it. The ordinary
+        // impact recoil (#720) is no stop — the world goes on, the body skids and brakes, and only its own steering and throw
+        // start wait (F693-02-ordinary-recoil-actions); the contact at the bag still counts in the branches below.
         if (RecoilT > 0 && !Throwing)
         {
-            RecoilT -= dt;
-            if (RecoilT <= 0) Bobbling = false;
-            ClampField();
-            if (Bobbling) return new LivePlayCommandResult(Snapshot);
-            if (HoldsBall && TickLiveContact(out var contactDone))
-                return contactDone;
-            if (RecoilT > 0) return new LivePlayCommandResult(Snapshot);
+            if (ImpactRecoil)
+                TickImpactRecoil(dt);
+            else
+            {
+                RecoilT -= dt;
+                if (RecoilT <= 0) Bobbling = false;
+                ClampField();
+                if (Bobbling) return new LivePlayCommandResult(Snapshot);
+                if (HoldsBall && TickLiveContact(out var contactDone))
+                    return contactDone;
+                if (RecoilT > 0) return new LivePlayCommandResult(Snapshot);
+            }
         }
 
         if (Throwing)
@@ -2394,9 +2419,11 @@ public sealed partial class LivePlaySystem
         // Nothing releases while the body recovers from a dive, or while it is still in the air after a jumping catch
         // (F693-02-jump-catch-throw-readiness): the landing comes first, and a press inside the buffer waits for it.
         var recovering = DiveRecoveryT > 0 && DivingPos == GlovePos;
-        if (recovering || Airborne)
+        var bracing = ImpactRecoil && RecoilT > 0;   // the ordinary impact recoil (#720) is the same wait
+        if (recovering || bracing || Airborne)
         {
-            var remaining = Math.Max(recovering ? DiveRecoveryT : 0, Airborne ? R.Fielding.Catch.JumpAirSec - JumpAirT : 0);
+            var remaining = Math.Max(Math.Max(recovering ? DiveRecoveryT : 0, bracing ? RecoilT : 0),
+                Airborne ? R.Fielding.Catch.JumpAirSec - JumpAirT : 0);
             if (pressed && R.Fielding.Throw.RelayBufferSec > 0 && remaining <= R.Fielding.Throw.RelayBufferSec + 1e-9)
             {
                 _recoveryPress = pad;
@@ -2986,7 +3013,9 @@ public sealed partial class LivePlaySystem
         var hit = Hit;
         var kind = LiveKind();
         var from = _firstGlove ?? GloveChar();
-        var knock = pre.Grounder && hit is not null ? InPlay.KnockbackSec(InPlay.Energy(hit, R), from, R) : 0;
+        var knock = pre.Grounder && hit is not null
+            ? (R.Fielding.Recoil.Active ? RecoilDur : InPlay.KnockbackSec(InPlay.Energy(hit, R), from, R))
+            : 0;
         // The catch feat is typed on the outcome (§8.4, §15): the stamp reads it, never the client's mirror.
         var feat = kind is PlayKind.FlyOut or PlayKind.GroundOut && _gloved
             ? FieldingResolver.PlayerCatchFeat(pre, Park, Buddy, CatchJump, CatchDive)
@@ -3034,6 +3063,13 @@ public sealed partial class LivePlaySystem
         _receivedClean = false;
         var first = !Caught;
         var wasLoose = _loose;
+        // The ball's speed the frame before the take (F693-02-ground-pickup-recoil-basis): the one input the recoil reads,
+        // sampled on both tables before possession attaches the ball to the glove.
+        if (first)
+        {
+            var (vx, vy, vz) = _ballVel;
+            IncomingFtPerSec = Math.Sqrt(vx * vx + vy * vy + vz * vz);
+        }
         CatchGlove();
         _cpuThrowAt = -1;
         _cpuDecided = false;
@@ -3046,12 +3082,25 @@ public sealed partial class LivePlaySystem
                 : FieldBounds.IsFair(BallX, BallZ) ? FairFoulCall.Fair
                 : FairFoulCall.Foul;
         }
-        if (!wasLoose) ArmRecoil();
+        // On the ground = a grounder, or any ball past its landing: what the impact recoil (#720) charges for a pickup.
+        var landed = Preview.Grounder || ElapsedSeconds > Hang + 1e-6;
+        if (!wasLoose) ArmRecoil(landed);
     }
 
-    void ArmRecoil()
+    void ArmRecoil(bool landed)
     {
-        if (_recoilArmed || Preview is null || !Preview.Grounder || Buddy) return;
+        if (_recoilArmed || Preview is null || Buddy) return;
+        if (!Preview.Grounder)
+        {
+            // A landed liner or fly picked up off the grass: no bobble roll today and none here. On the c80 copy the take still
+            // costs what its speed says (F693-02-ground-pickup-recoil-basis); the shipped table charges nothing, as it did.
+            if (landed && R.Fielding.Recoil.Active && Hit is not null)
+            {
+                _recoilArmed = true;
+                ArmImpact(GloveChar());
+            }
+            return;
+        }
         _recoilArmed = true;
         if (Hit is null) return;
         var who = GloveChar();
@@ -3079,8 +3128,67 @@ public sealed partial class LivePlaySystem
             _events.Add(LiveEvent.Bobble);
             Sub = $"{who.Name} bobbles it!";
         }
+        else if (R.Fielding.Recoil.Active)
+            ArmImpact(who);   // the ordinary impact recoil (#720): read off the ball's speed, never the contact's energy
         else if (knock > R.Fielding.Knockback.MinSec)
             RecoilT = knock;
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Recovery and recoil (#720: F693-02-ground-pickup-recoil-basis, -ground-pickup-recoil-cap, -recoil-field-shaping,
+    // -recoil-field-factors, -recoil-severity-curve, -ordinary-recoil-actions, -ordinary-recoil-displacement,
+    // -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// What this take costs the hands, read off the ball's actual incoming speed and the body's Hands: the same ball to the same
+    /// hands costs the same every time, and a routine arrival costs nothing at all. The recovery is <c>capSec × w</c>; the kick
+    /// is <c>kickFtPerSec × w</c> along the ball's horizontal travel, slowing linearly to rest over the recovery (<c>w²</c>
+    /// feet); a purely vertical arrival supplies no kick. Steering and the throw start wait for it; possession does not.
+    /// </summary>
+    void ArmImpact(Character who)
+    {
+        var w = FieldingResolver.RecoilWeight(who, IncomingFtPerSec, R);
+        if (w <= 0) return;
+        RecoilDur = R.Fielding.Recoil.CapSec * w;
+        RecoilT = RecoilDur;
+        ImpactRecoil = true;
+        var (vx, _, vz) = _ballVel;
+        var h = Math.Sqrt(vx * vx + vz * vz);
+        var kick = FieldingResolver.RecoilKickFtPerSec(w, R);
+        _kick = h > 1e-9 ? (vx / h * kick, vz / h * kick) : (0, 0);
+        _events.Add(LiveEvent.ImpactRecoil);
+    }
+
+    /// <summary>
+    /// One frame of the impact recoil: the clock runs down, and the kick's exact integral over the frame — <c>K (1 − t / T)</c>
+    /// from t to t + dt — moves the body and the ball in its glove: one path, on top of whatever the idle brake left of the
+    /// body's own locomotion (F693-02-ordinary-recoil-motion-profile). At readiness the intent resumes from the actual velocity.
+    /// </summary>
+    void TickImpactRecoil(double dt)
+    {
+        var t0 = Math.Clamp(RecoilDur - RecoilT, 0, RecoilDur);
+        RecoilT -= dt;
+        var t1 = Math.Clamp(RecoilDur - RecoilT, 0, RecoilDur);
+        if (RecoilDur > 0 && t1 > t0)
+        {
+            var s = (t1 - t0) - (t1 * t1 - t0 * t0) / (2 * RecoilDur);
+            var next = FieldBounds.Clamp(Park, GloveX + _kick.X * s, GloveZ + _kick.Z * s);
+            GloveX = next.X;
+            GloveZ = next.Z;
+            _fielders[GlovePos] = (GloveX, GloveZ);
+            if (HoldsBall)
+            {
+                BallX = GloveX;
+                BallZ = GloveZ;
+            }
+        }
+        if (RecoilT <= 1e-9)
+        {
+            RecoilT = 0;
+            ImpactRecoil = false;
+            _kick = (0, 0);
+        }
     }
 
     /// <summary>

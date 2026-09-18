@@ -230,6 +230,18 @@
     "maxSec": 0.55,
     "minSec": 0.02
   },
+  // #720 (F693-02-ground-pickup-recoil-*, -recoil-*, -ordinary-recoil-*): the ordinary impact recoil, read off the ball's actual
+  // incoming speed the frame before the take. onsetFtPerSec 0 keeps the knockback above, the rule the game shipped with; the
+  // c80 copy carries the measured anchors. capSec, handsCutPerPoint and kickFtPerSec are the accepted anchors (0.20 s at full
+  // severity for Hands 1, five points less per Hands point above 1, a 10 ft/s kick slowing to rest over the recovery = w² ft),
+  // read only above onset 0.
+  "recoil": {
+    "onsetFtPerSec": 0,
+    "fullFtPerSec": 0,
+    "capSec": 0.20,
+    "handsCutPerPoint": 0.05,
+    "kickFtPerSec": 10
+  },
   "park": {
     "emberNightFireMul": 1.6,
     "pipeReachPadFt": 8,
