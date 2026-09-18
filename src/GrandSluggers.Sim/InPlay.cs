@@ -60,23 +60,39 @@ public static class InPlay
     /// <summary>Named camera for the contact type. One table: <see cref="PlayCamera"/>.</summary>
     public static string TheaterShot(AtBatResult hit) => PlayCamera.FromHit(hit);
 
+    /// <summary>The middle of the 1–10 arm scale: the arm a throw with no thrower is read at, and the arm the comfortable range is authored for.</summary>
+    public const int NeutralArm = 5;
+
     /// <summary>
-    /// The one throw clock (spec §8.5, fielding.throw): release plus distance over the arm. It flies
-    /// the live ball and judges the bag, for every arm on the field including the catcher's gun;
-    /// the runner bodies race it (§9.1). <paramref name="thr"/> carries arm × chemistry × ability.
+    /// The one throw clock (spec §8.5, fielding.throw, F693-03-long-throw-numbers): release, plus the
+    /// flight — distance over the arm's speed, plus a smooth loss of pace past the arm's comfortable
+    /// range — with chemistry and ability dividing the whole flight once. It flies the live ball and
+    /// judges the bag, for every arm on the field including the catcher's gun; the runner bodies race
+    /// it (§9.1), and both CPU estimates read it. <paramref name="thr"/> carries arm × chemistry ×
+    /// ability in <see cref="ThrowResult.SpeedMul"/> and the thrower's <see cref="ThrowResult.Arm"/>.
+    /// With <c>longThrowLossSec</c> 0 the loss term is exactly 0.0 and this is the flat clock the game
+    /// shipped with, to the bit.
     /// </summary>
     public static double ThrowSec(double distFt, ThrowResult? thr, RulesTable? rules = null)
     {
         var t = Rules.Or(rules).Fielding.Throw;
         var fps = t.BaseFtPerSec * (thr?.SpeedMul ?? 1);
-        return t.ReleaseSec + distFt / Math.Max(t.MinFtPerSec, fps);
+        var flight = distFt / Math.Max(t.MinFtPerSec, fps);
+        var arm = thr?.Arm ?? NeutralArm;
+        var over = Math.Max(0, distFt - (t.ComfortableRangeFt + t.RangePerArmFt * (arm - NeutralArm))) / 80.0;
+        // The pair-and-ability factor alone: the arm is already in the speed, and the loss is divided by the rest.
+        var pair = (thr?.SpeedMul ?? 1) / ArmMul(arm, rules);
+        return (thr?.ReleaseSec ?? t.ReleaseSec) + flight + t.LongThrowLossSec * over * over / pair;
     }
 
     /// <summary>The thrower's arm (§8.5): <c>armBase + Arm × armPerField</c>. Arm seeds from Field until authored.</summary>
-    public static double ArmMul(Character who, RulesTable? rules = null)
+    public static double ArmMul(Character who, RulesTable? rules = null) => ArmMul(who.Stats.Arm, rules);
+
+    /// <summary>The arm multiplier for a rating: 1.0 at the neutral arm on the shipped table.</summary>
+    public static double ArmMul(int arm, RulesTable? rules = null)
     {
         var t = Rules.Or(rules).Fielding.Throw;
-        return Math.Max(0.1, t.ArmBase + who.Stats.Arm * t.ArmPerField);
+        return Math.Max(0.1, t.ArmBase + arm * t.ArmPerField);
     }
 
     /// <summary>The CPU fielder's delay between gaining the ball and throwing it (§8.8): <c>throwBaseSec − Field × throwPerFieldSec</c>, × the difficulty's reaction multiplier.</summary>
@@ -208,6 +224,15 @@ public static class InPlay
         var to = Diamond.Bag(bag);
         return ThrowSec(Diamond.Dist(fromX, fromZ, to.X, to.Z), thr, rules);
     }
+
+    /// <summary>
+    /// Whether the CPU throws through the cutoff (§8.7, #722): always beyond the ceiling
+    /// (<c>fielding.throw.onTheFlyFt</c>, <paramref name="forced"/>), otherwise when the relay beats the direct throw by
+    /// more than the rung's <c>cpu.*.relayBiasSec</c>. A bias no relay can save leaves the ceiling as the only reason,
+    /// which is the rule the game shipped with.
+    /// </summary>
+    public static bool RelayWins(double directSec, double relaySec, bool forced, double relayBiasSec) =>
+        forced || relaySec + relayBiasSec < directSec;
 
     /// <summary>
     /// Bags to throw in order on a hopper. Force at second, then first when the batter is out.

@@ -22,6 +22,7 @@ public static class Scheme
         new("swap", "Select", "R", "Click swap"),
         new("bunt", "West hold", "V", "Left Ctrl hold in the box"),
         new("cutoff", "LB", "X", "Click relay"),
+        new("cancel-throw", "RB (fielding)", ".", "Click cancel"),
         new("freeze", "LB+RB", "/", "Click freeze"),
         new("call-time", "Start", "H", "H"),
         new("how-to", "Esc", "Esc", "Esc"),

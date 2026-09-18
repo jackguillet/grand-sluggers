@@ -24,7 +24,12 @@
     // 0.45 2.64 / 2.32 and 2.16-2.72 a side over four seed sets with infield pops still caught (0.02-0.04 pop hits a
     // game); 0.4 2.72 / 2.12 and pops start to drop. A flat multiplier on every air ball drops liners in front of the
     // infield instead (hits inside the lip 0.04 -> 0.20 a game at 0.6).
-    "infieldAirMul": 0.45
+    "infieldAirMul": 0.45,
+    // #718 (F693-02-carry-movement-response): the response law. Seconds from rest to the rated speed, and from the rated
+    // speed to rest; a reversal is the brake and then the ramp. 0 / 0 is the instant step this table always had; trials/c80
+    // carries 0.20 / 0.10.
+    "accelSec": 0,
+    "brakeSec": 0
   },
   "reaction": {
     "pitcherSec": 0.42,
@@ -45,7 +50,12 @@
     "startSec": 0.23,
     "stopFt": 1.2,
     "radiusFt": 6,
-    "backupFt": 60
+    "backupFt": 60,
+    // #718: how much of a body's reaction lockout gates its cover walk, and how much of its own pursuit speed the walk
+    // uses instead of the flat ftPerSec. 1 and 0 are the rule the game shipped with (D11); trials/c80 carries 0 and 1 —
+    // cover, cutoff and backup walk at the body's own speed from contact.
+    "lockoutMul": 1,
+    "chaseSpeedWeight": 0
   },
   "dash": {
     "chaseMul": 1.35,
@@ -108,8 +118,14 @@
     "superJumpCatchBonusFt": 3,
     "superJumpFlyRangeFt": 22,
     "diveGroundRangeFt": 16,
+    // #723 (F693-03-snap-throw, -laser-throw): Snap Throw's release after a clean received throw, and whether Laser is confined to a
+    // throw home with a live runner on third. 0.22 equals this table's ordinary release, so the snap release is inert here, and
+    // laserHomeOnly 0 is the universal boost the game shipped with; trials/c80 carries 0.22 against a 0.30 release, laserMul 1.25,
+    // snapThrowMul 1.0 and laserHomeOnly 1.
     "laserMul": 1.45,
-    "snapThrowMul": 1.22
+    "snapThrowMul": 1.22,
+    "snapReleaseSec": 0.22,
+    "laserHomeOnly": 0
   },
   "throw": {
     "releaseSec": 0.22,
@@ -117,12 +133,24 @@
     "minFtPerSec": 32,
     "armBase": 0.85,
     "armPerField": 0.03,
+    // #722 (F693-03-long-throws): past comfortableRangeFt (+ rangePerArmFt per Arm point from 5) the flight gains
+    // longThrowLossSec x (feet over / 80)^2, divided by chemistry and ability with the rest of the flight. 0 here is
+    // the flat clock this table always had; trials/c80 carries the accepted 0.60.
+    "comfortableRangeFt": 160,
+    "rangePerArmFt": 5,
+    "longThrowLossSec": 0,
     "lateralSigmaPerFieldDeficitFt": 0.35,
     "lobMaxSec": 1.5,
+    // #722: the forced-relay ceiling. Beyond it a throw always goes through the cutoff; inside it the CPU relays only when
+    // the relay saves more than cpu.*.relayBiasSec, which the shipped rungs set to a value no relay can save. Today's rule.
     "onTheFlyFt": 200,
     "unassistedFt": 8,
     "handHeightFt": 3.2,
-    "bagHeightFt": 1.2
+    "bagHeightFt": 1.2,
+    // #723 (F693-03-relay-ownership, -input-buffer): a human's cutoff throws the armed onward leg for them (1), and an early
+    // press is remembered this long (0 = no queue). Today's rule; trials/c80 carries 0 and 0.25.
+    "relayAutoContinue": 1,
+    "relayBufferSec": 0
   },
   "overthrow": {
     "carryMul": 0.35,
@@ -139,6 +167,9 @@
   },
   "chem": {
     "goodSpeedMul": 1.30,
+    // #722 (F693-03-negative-chemistry): a bad pair's unslanted throw flies at this x the arm; 1.0 is today's ordinary
+    // throw, and trials/c80 carries 0.90 with slantChance 0.
+    "badSpeedMul": 1.0,
     "slantChance": 0.20,
     "slantSpeedMul": 0.70,
     "slantLateralMinFt": 10,
