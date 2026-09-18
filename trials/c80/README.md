@@ -1130,3 +1130,26 @@ without its half of the guard.
 The path is live in real games: in the 150 cohort games on the copy the ring left a recovering diver 15 times, 13 of them at
 557 to 598 ft/s. No result moved, because the diver owes his recovery and is in no cover, cutoff or backup while he slides. It
 was a picture defect: a body crossing the infield in a fifth of a second.
+
+---
+
+**The 3e deferred-work boundary (#715): two more scope calls, and the park's slow held on both roots.** Jack, September 18, 2026,
+recorded in `docs/plan-game-feel-693.md` beside the specials exclusion. No Sim source, no data.
+
+- **Movement/status interactions.** The ordinary piece is resolved by rows; the special-sourced statuses (burn, charm, a
+  special's freeze, an obstruction, cleansing, immunity, and the duration / refresh / stacking rules) are excluded from 3e with
+  the specials.
+- **Throw-before-cover.** Excluded from 3e. The rule is the same on both tables (`throw.lobMaxSec` 1.5 s: the ball hangs at an
+  uncovered bag, then drops, live). The copy changes the cover, not the rule: second base needs 2.7 s to reach first on a squared
+  bunt against 2.05 s shipped, so a human's early throw waits longer. It is on the Unity sitting list.
+
+`ParkSlowRowsTests` (`[Trait("Rows", "compact")]`, 4 rows, both roots) holds the one status the ordinary loop carries,
+`chase.frozenMul` 0.45, against the copy's new movement:
+
+| Row | Shipped | Compact |
+| --- | --- | --- |
+| The slow is one multiplier, and Burrow ignores it | 0.45 | 0.45 |
+| A fly into the Rink's deep freeze volume, CPU seat and human seat | lands at (10, 180); the chaser tops out at 0.45 of its Harbor speed | lands at (7, 126); the same, after the response law's ramp and the stick's six neutral frames |
+| A grounder into Ember's lava pit: what the take costs | lands at (38, 78); the knockback of the hit's energy | lands at (34, 69); `RecoilSec` of the ball's incoming speed (#720). No term for the slow in either |
+
+The copy's CI run is 382 rows.
