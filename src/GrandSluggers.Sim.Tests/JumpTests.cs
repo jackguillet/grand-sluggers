@@ -210,10 +210,13 @@ public sealed class JumpTests
         var fromRest = Diamond.Dist(start.Item1, start.Item2, landed.X, landed.Z);
         Assert.InRange(fromRest, 1.62 * 0.95, 1.62 * 1.08);
 
-        // From full speed: run in toward the infield for a second, then West with the stick reversed.
-        (match, hit, preview) = Fixture(Trial, "basil");
+        // From full speed: the accepted anchor is a reversal from 18 ft/s. Slice 3 recorded it on this centre fielder under the fly, when
+        // the outfield's air multiplier was 1.0; at 0.6 (Jack, 2026-09-18) he runs 10.8 ft/s there, so the body at the one speed under a
+        // ball in the air is now an infielder: grit (Run 5) at short under a pop, run for a second, then West with the stick reversed.
+        (match, hit, preview) = PopFixture(Trial);
         live = Begin(match, hit, preview);
-        Run(live, readyFrames, _ => LivePadInput.Dead);
+        var shortFrames = (int)Math.Round(match.Rules.Fielding.Reaction.ShortSec / Frame) - 1;
+        Run(live, shortFrames, _ => LivePadInput.Dead);
         Run(live, 60, _ => new LivePadInput(StickY: -1.0));
         var speed = Diamond.Dist(live.GloveX, live.GloveZ, _lastX, _lastZ) / Frame;
         Assert.InRange(speed, 18.0 * 0.97, 18.0 * 1.03);
@@ -224,6 +227,20 @@ public sealed class JumpTests
         // Continuous 7.56 ft; the frame sum is 10.8 − 18 × (1/60)² × 666 = 7.47.
         var forward = Diamond.Dist(at.Item1, at.Item2, down.X, down.Z);
         Assert.InRange(forward, 7.56 * 0.95, 7.56 * 1.05);
+
+        // And the centre fielder under the fly, at what the multiplier leaves him: 10.8 ft/s in, the brake still a tenth of the rated
+        // 18 ft/s body's — 18 ft/s² — so the reversal stops him in the 0.60 s of air: 3.24 ft (frame sum 6.48 − 18 × (1/60)² × 666 = 3.15).
+        (match, hit, preview) = Fixture(Trial, "basil");
+        live = Begin(match, hit, preview);
+        Run(live, readyFrames, _ => LivePadInput.Dead);
+        Run(live, 60, _ => new LivePadInput(StickY: -1.0));
+        var under = Diamond.Dist(live.GloveX, live.GloveZ, _lastX, _lastZ) / Frame;
+        Assert.InRange(under, 10.8 * 0.97, 10.8 * 1.03);
+        at = (live.GloveX, live.GloveZ);
+        airborneFrames = 0;
+        Run(live, 36, i => new LivePadInput(StickY: 1.0, WestDown: i == 0), afterEach: () => { if (live.Airborne) { airborneFrames++; down = (live.GloveX, live.GloveZ); } });
+        Assert.Equal(36, airborneFrames);
+        Assert.InRange(Diamond.Dist(at.Item1, at.Item2, down.X, down.Z), 3.24 * 0.93, 3.24 * 1.05);
     }
 
     // ---------------------------------------------------------------------------------
@@ -239,6 +256,19 @@ public sealed class JumpTests
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
+        return (match, hit, preview);
+    }
+
+    /// <summary>A 110-ft pop at 60° behind short on Harbor: grit (Run 5) is the shortstop under it, and the infield's air multiplier is 1.0 on the trial.</summary>
+    static (Match Match, AtBatResult Hit, FieldingPreview Preview) PopFixture(ContentCatalog content)
+    {
+        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "marlow", "grit", "vine", "moss", "hex");
+        var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "konga", "ashlord");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var hit = FlightFixtures.Landing(match.Park, 110, 60, -20, rules: match.Rules);
+        var preview = match.PreviewHit(hit);
+        Assert.Equal("SS", preview.Position);
+        Assert.Equal("grit", preview.Fielder.Id);
         return (match, hit, preview);
     }
 

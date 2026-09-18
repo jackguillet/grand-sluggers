@@ -19,7 +19,12 @@
     // and the launch mix moved it under 0.2: the 2.4 s read had been giving away liners, not flies.
     // #719 (Jack, 2026-09-17): one pursuit profile per body, in the air as on the dirt — the hit-class multipliers retire
     // with the reach. Shipped 0.6 (#609) and 0.45 (#636) were the S-29 levers of a full-size field and 30.5 ft/s legs.
-    "outfieldAirMul": 1.0,
+    // 3d (#715, PR #757, 2026-09-18) measured what that direction costs: at 1.0 the copy ran under the S-29 floor in every
+    // cohort (1.28 / 1.04 mixed parks, 1.22 / 1.38 and 0.92 / 1.20 on Harbor) — 18 ft/s legs cover 72 ft under a four-second
+    // fly — and this key alone brought every cohort into the 1.8–5 band at 0.6 (2.46 / 2.36, 2.10 / 2.16, 2.02 / 2.42); 0.7
+    // landed the away side only, 0.8 neither; the read, the fly stretch and the outfield depth did not get there. Jack set
+    // the outfield's multiplier back to the shipped 0.6 on 2026-09-18. The infield's stays 1.0.
+    "outfieldAirMul": 0.6,
     // #636: the other half of the lever. Once the infield -> outfield hand-off honours the infielder's route in the air
     // (D17, S-97), an infielder under a ball on the stretched clock (a fly or a pop, flight.timeScale 1.65) runs at the
     // one glove speed x this; on a liner (its own clock, 1.0) an infielder runs the one speed, so the rope SS reaches
