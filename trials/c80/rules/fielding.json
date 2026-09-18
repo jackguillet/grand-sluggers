@@ -120,8 +120,12 @@
     "superJumpCatchBonusFt": 3,
     "superJumpFlyRangeFt": 22,
     "diveGroundRangeFt": 16,
-    "laserMul": 1.45,
-    "snapThrowMul": 1.22
+    // #723: Laser is x1.25 and only on a throw home with a live runner on third or the third-home segment (a cutoff feed never
+    // carries it); Snap Throw is a 0.22 s release after a clean received teammate throw at x1.0 flight against the ordinary 0.30.
+    "laserMul": 1.25,
+    "snapThrowMul": 1.0,
+    "snapReleaseSec": 0.22,
+    "laserHomeOnly": 1
   },
   "throw": {
     // #722 (F693-03-release-clock, F693-03-travel-clock): 0.30 s release, 0.90 s of flight over 80 ft for the neutral arm.
@@ -144,7 +148,11 @@
     "onTheFlyFt": 9999,
     "unassistedFt": 8,
     "handHeightFt": 3.2,
-    "bagHeightFt": 1.2
+    "bagHeightFt": 1.2,
+    // #723 (F693-03-relay-ownership): each human relay leg needs its own command; an early press is remembered for 0.25 s of
+    // active play and fires at the catch; bag selectors retarget it; a fresh RB / period cancels it.
+    "relayAutoContinue": 0,
+    "relayBufferSec": 0.25
   },
   "overthrow": {
     "carryMul": 0.35,

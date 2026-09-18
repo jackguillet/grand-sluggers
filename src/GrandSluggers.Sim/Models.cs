@@ -461,4 +461,6 @@ public sealed record ThrowResult(
     double SpeedMul,
     bool Slanted,
     double LateralFt = 0,
-    int Arm = InPlay.NeutralArm);
+    int Arm = InPlay.NeutralArm,
+    /// <summary>A release for this throw other than the table's (#723): Snap Throw's after a clean received teammate throw. Null is the ordinary release.</summary>
+    double? ReleaseSec = null);

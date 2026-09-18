@@ -118,8 +118,14 @@
     "superJumpCatchBonusFt": 3,
     "superJumpFlyRangeFt": 22,
     "diveGroundRangeFt": 16,
+    // #723 (F693-03-snap-throw, -laser-throw): Snap Throw's release after a clean received throw, and whether Laser is confined to a
+    // throw home with a live runner on third. 0.22 equals this table's ordinary release, so the snap release is inert here, and
+    // laserHomeOnly 0 is the universal boost the game shipped with; trials/c80 carries 0.22 against a 0.30 release, laserMul 1.25,
+    // snapThrowMul 1.0 and laserHomeOnly 1.
     "laserMul": 1.45,
-    "snapThrowMul": 1.22
+    "snapThrowMul": 1.22,
+    "snapReleaseSec": 0.22,
+    "laserHomeOnly": 0
   },
   "throw": {
     "releaseSec": 0.22,
@@ -140,7 +146,11 @@
     "onTheFlyFt": 200,
     "unassistedFt": 8,
     "handHeightFt": 3.2,
-    "bagHeightFt": 1.2
+    "bagHeightFt": 1.2,
+    // #723 (F693-03-relay-ownership, -input-buffer): a human's cutoff throws the armed onward leg for them (1), and an early
+    // press is remembered this long (0 = no queue). Today's rule; trials/c80 carries 0 and 0.25.
+    "relayAutoContinue": 1,
+    "relayBufferSec": 0
   },
   "overthrow": {
     "carryMul": 0.35,
