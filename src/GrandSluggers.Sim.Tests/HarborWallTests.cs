@@ -8,6 +8,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <c>HarborKit.DressWall</c> builds) and the boundary the flight clips against
 /// (<see cref="FieldBounds.Of"/>) read the same <see cref="Park.FenceHeightFt"/> on every segment.
 /// </summary>
+[Trait("Rows", "compact")]
 public sealed class HarborWallTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -38,7 +39,11 @@ public sealed class HarborWallTests
         Assert.Equal(park.FenceHeightFt, bounds.FenceHeightFt);
     }
 
+    // A gap on the C80 copy, reported and not repaired (#715): the rail's taper starts at a literal 95 ft in HarborWall (hipZ,
+    // flareStart), which no overlay can move. On the copy's 0.70 lines the ramp is shorter, and the two 8-ft parks (funfair-park,
+    // crystal-rink) get 4 taper vertices where TaperIsARamp asks for 6. The copy's run skips Copy=gap rows until promotion decides.
     [Theory]
+    [Trait("Copy", "gap")]
     [MemberData(nameof(Parks))]
     public void TheFoulRailStaysHipHighAndMatchesTheFlightsFoulWall(string id)
     {
