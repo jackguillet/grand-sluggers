@@ -705,7 +705,7 @@ public sealed partial class LivePlaySystem
         // One glove speed for human and CPU (§8.1); the body moves once its reaction lockout is over (§8.2).
         if (steering && map.TryGetValue(GlovePos, out var glove) && stick >= stickTake && CanMove(GlovePos))
         {
-            var speed = FieldingResolver.ChaseSpeedFt(glove, GlovePos, pre, R, pad.EastHeld);
+            var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, pre, R, pad.EastHeld));
             var feet = StepStick(GlovePos, (GloveX, GloveZ), pad.StickX, pad.StickY, speed, dt);
             GloveX = feet.X;
             GloveZ = feet.Z;
@@ -1074,7 +1074,7 @@ public sealed partial class LivePlaySystem
     {
         if (Throwing || pad.StickMag < Feel.FieldAssistStick || !CanMove(GlovePos)) return;
         if (!map.TryGetValue(GlovePos, out var glove)) return;
-        var speed = FieldingResolver.ChaseSpeedFt(glove, GlovePos, _loose ? null : Preview, R, pad.EastHeld);
+        var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, _loose ? null : Preview, R, pad.EastHeld));
         var feet = StepStick(GlovePos, (GloveX, GloveZ), pad.StickX, pad.StickY, speed, dt);
         GloveX = feet.X;
         GloveZ = feet.Z;
@@ -1105,7 +1105,7 @@ public sealed partial class LivePlaySystem
     void WalkGloveTo((double X, double Z) goal, double dt)
     {
         var who = GloveChar();
-        var speed = FieldingResolver.ChaseSpeedFt(who, Preview?.Frozen ?? false, R);
+        var speed = CarrySpeed(who, FieldingResolver.ChaseSpeedFt(who, Preview?.Frozen ?? false, R));
         var next = StepTo(GlovePos, (GloveX, GloveZ), goal, speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         GloveX = next.X;
         GloveZ = next.Z;
@@ -1385,11 +1385,11 @@ public sealed partial class LivePlaySystem
         CpuThrowTo(bag);
     }
 
-    /// <summary>Seconds for this glove to carry the ball to <paramref name="bag"/> at the one chase speed (§8.1).</summary>
+    /// <summary>Seconds for this glove to carry the ball to <paramref name="bag"/> at its carry speed (§8.1; Ball Dash's boost included, #718).</summary>
     double CpuWalkSec(int bag)
     {
         var at = Diamond.Bag(bag);
-        var speed = FieldingResolver.ChaseSpeedFt(GloveChar(), Preview?.Frozen ?? false, R);
+        var speed = CarrySpeed(GloveChar(), FieldingResolver.ChaseSpeedFt(GloveChar(), Preview?.Frozen ?? false, R));
         return Diamond.Dist(GloveX, GloveZ, at.X, at.Z) / Math.Max(1, speed);
     }
 
@@ -1898,12 +1898,25 @@ public sealed partial class LivePlaySystem
     /// <summary>The response law is on when the table gives a ramp or a brake time; at 0 / 0 every step is the instant step the game shipped with.</summary>
     bool ResponseLaw => R.Fielding.Chase.AccelSec > 0 || R.Fielding.Chase.BrakeSec > 0;
 
-    /// <summary>The rated speed the response rates are measured against: the body's own pursuit top speed (§8.1), not the speed it happens to be asked for this frame.</summary>
+    /// <summary>
+    /// The rated speed the response rates are measured against: the body's own pursuit top speed (§8.1), never the speed it
+    /// happens to be asked for this frame — a Ball Dash carry raises the cap and not the rates (F693-02-carry-movement-response,
+    /// #718), so the boosted body takes 0.24 s to its 1.20 V and not 0.20. The asked speed stands in only for a body the
+    /// formation does not name.
+    /// </summary>
     double RatedSpeed(string pos, double asked)
     {
         var top = Assigned().TryGetValue(pos, out var who) ? FieldingResolver.ChaseSpeedFt(who, false, R) : asked;
-        return Math.Max(1, Math.Max(top, asked));
+        return Math.Max(1, top);
     }
+
+    /// <summary>
+    /// The glove's speed with the ball in its hand (F693-02-ordinary-carry-speed, -ball-dash-carrier, #718): the pursuit speed it
+    /// was asked for, × <c>abilities.ballDashMul</c> for a Ball Dash holder in secure possession — the ball caught or handed,
+    /// not in flight. Without the ball, or for any other body, it is the asked speed itself.
+    /// </summary>
+    double CarrySpeed(Character who, double asked) =>
+        HoldsBall && !Throwing ? FieldingResolver.CarrySpeedFt(who, asked, R) : asked;
 
     /// <summary>
     /// One frame of a body's velocity toward what it wants (#718): the component along its heading builds at the ramp rate

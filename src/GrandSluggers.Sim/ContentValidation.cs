@@ -12,7 +12,7 @@ public static class ContentDataValidator
     static readonly HashSet<string> Surfaces = new(StringComparer.Ordinal) { "grass", "dirt", "ice", "ash" };
     static readonly HashSet<string> FieldAbilityIds = new(StringComparer.Ordinal)
     {
-        "burrow", "clamber", "dive", "grow", "laser", "lick-catch",
+        "ball-dash", "burrow", "clamber", "dive", "grow", "laser", "lick-catch",
         "snap-throw", "spin-check", "super-jump", "withdraw"
     };
     static readonly HashSet<string> HazardTypes = new(StringComparer.Ordinal)

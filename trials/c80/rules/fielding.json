@@ -60,7 +60,8 @@
     "chaseSpeedWeight": 1
   },
   "dash": {
-    "chaseMul": 1.35,
+    // #718 (F693-02-ball-dash-carrier): the universal East-held sprint is retired; the only faster carry is Ball Dash's.
+    "chaseMul": 1.0,
     "buddyTossFt": 28,
     "kickFt": 22,
     "diveLungeFt": 10,
@@ -125,7 +126,10 @@
     "laserMul": 1.25,
     "snapThrowMul": 1.0,
     "snapReleaseSec": 0.22,
-    "laserHomeOnly": 1
+    "laserHomeOnly": 1,
+    // #718 (F693-02-ball-dash-carrier): dart, pip and jester (characters/role-players.json in this folder) carry the ball at x1.20
+    // of their pursuit speed, automatically; the rates stay the body's own, so the boosted body takes 0.24 s to its cap.
+    "ballDashMul": 1.20
   },
   "throw": {
     // #722 (F693-03-release-clock, F693-03-travel-clock): 0.30 s release, 0.90 s of flight over 80 ft for the neutral arm.

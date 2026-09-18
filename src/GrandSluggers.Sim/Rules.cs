@@ -1279,6 +1279,13 @@ public sealed class FieldAbilityRules
     [Positive] public double SnapReleaseSec { get; init; } = 0.22;
     /// <summary>How far Laser is confined to a throw home with a live runner on third or the third–home segment (F693-03-laser-throw, #723): 0 is the universal boost the game shipped with, 1 the c80 rule — a cutoff feed never carries it.</summary>
     [Chance] public double LaserHomeOnly { get; init; } = 0;
+    /// <summary>
+    /// Ball Dash's carry (F693-02-ball-dash-carrier, #718): a holder with the ball securely in the glove moves at this multiple
+    /// of its ordinary pursuit speed, automatically — no press, no timer, no cooldown — and the CPU's carry forecast reads the
+    /// same number. Only the cap moves: the response rates stay the body's own (F693-02-carry-movement-response). No shipped
+    /// body holds the ability, so the shipped table never reads it; the c80 roster gives it to dart, pip and jester.
+    /// </summary>
+    [Positive] public double BallDashMul { get; init; } = 1.20;
 }
 
 /// <summary>

@@ -50,18 +50,20 @@ public sealed class CompactGeometryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Twelve files, named. The tree is the declaration (#716), so this list is also the answer to
-    /// "what is this trial changing?" — and a slice that quietly carried a thirteenth would show up
+    /// Thirteen files, named. The tree is the declaration (#716), so this list is also the answer to
+    /// "what is this trial changing?" — and a slice that quietly carried a fourteenth would show up
     /// here rather than in a trace nobody could attribute. It was eight until #725 added the fielder
     /// starts, nine until #732 carried the fielding table for the hazard reach pad, ten until #722
-    /// carried the CPU table for the throw reads, and eleven until #732 carried the running table for
-    /// the tag-up race; the count is in the name so growing it is a rename somebody has to mean.
+    /// carried the CPU table for the throw reads, eleven until #732 carried the running table for
+    /// the tag-up race, and twelve until #718 carried the role players so three of them could hold
+    /// Ball Dash; the count is in the name so growing it is a rename somebody has to mean.
     /// </summary>
     [Fact]
-    public void TheTrialCarriesTwelveFilesAndNoOthers()
+    public void TheTrialCarriesThirteenFilesAndNoOthers()
     {
         Assert.Equal(
             [
+                "characters/role-players.json",
                 "parks/canopy-yard.json", "parks/crystal-rink.json", "parks/ember-keep.json",
                 "parks/funfair-park.json", "parks/harbor-diamond.json", "parks/rooftop-city.json",
                 "rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json",
@@ -166,10 +168,10 @@ public sealed class CompactGeometryTests
 
         // #729's own claim, which #725 and #732 did not change: the dress rides in infield.json rather
         // than a file of its own. Named rather than counted, because the total is
-        // TheTrialCarriesTwelveFilesAndNoOthers's to say — it went from eight to nine when #725 added
+        // TheTrialCarriesThirteenFilesAndNoOthers's to say — it went from eight to nine when #725 added
         // rules/fielders.json, to ten when #732 added rules/fielding.json, to eleven when #722 added
-        // rules/cpu.json and to twelve when #732 added rules/running.json, and this line used to assert
-        // that count a second time.
+        // rules/cpu.json, to twelve when #732 added rules/running.json and to thirteen when #718 added
+        // characters/role-players.json, and this line used to assert that count a second time.
         Assert.Equal(
             ["rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json", "rules/running.json"],
             Root.Overrides.Where(f => f.StartsWith("rules/", StringComparison.Ordinal)));
@@ -350,7 +352,8 @@ public sealed class CompactGeometryTests
         Assert.Equal(shippedLeaves.Keys, trialLeaves.Keys);
         var moved = shippedLeaves.Where(kv => trialLeaves[kv.Key] != kv.Value).Select(kv => kv.Key).ToList();
         // #732's pad; #722's throw clock (slice 1: release, travel, the long-throw loss, the bad pair's speed and
-        // no slant; slice 2: the forced-relay ceiling set to never); #718's speed, reads and cover at contact.
+        // no slant; slice 2: the forced-relay ceiling set to never); #718's speed, reads and cover at contact, and its
+        // retired universal sprint (Ball Dash's own multiple is 1.20 in both roots; the roster is what differs).
         // Nothing else in the table moves, and a new difference has to be named here.
         Assert.Equal(
             [
@@ -358,6 +361,7 @@ public sealed class CompactGeometryTests
                 "chase.accelSec", "chase.baseFtPerSec", "chase.brakeSec", "chase.ftPerSecPerRun", "chase.minFtPerSec",
                 "chem.badSpeedMul", "chem.slantChance",
                 "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
+                "dash.chaseMul",
                 "park.pipeReachPadFt",
                 "reaction.catcherSec", "reaction.firstSec", "reaction.outfieldSec", "reaction.pitcherSec", "reaction.shortSec", "reaction.thirdSec",
                 "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.relayAutoContinue", "throw.relayBufferSec", "throw.releaseSec"
@@ -370,6 +374,9 @@ public sealed class CompactGeometryTests
         Assert.Equal(shippedLeaves["abilities.snapReleaseSec"], trialLeaves["abilities.snapReleaseSec"]);
         Assert.Equal(("1", "0"), (shippedLeaves["throw.relayAutoContinue"], trialLeaves["throw.relayAutoContinue"]));
         Assert.Equal(("0", "0.25"), (shippedLeaves["throw.relayBufferSec"], trialLeaves["throw.relayBufferSec"]));
+        // #718 (F693-02-ball-dash-carrier): the universal East-held sprint is retired on the trial; the ability's own multiple does not move.
+        Assert.Equal(("1.35", "1.0"), (shippedLeaves["dash.chaseMul"], trialLeaves["dash.chaseMul"]));
+        Assert.Equal(("1.20", "1.20"), (shippedLeaves["abilities.ballDashMul"], trialLeaves["abilities.ballDashMul"]));
         Assert.Equal(("21", "12.4"), (shippedLeaves["chase.baseFtPerSec"], trialLeaves["chase.baseFtPerSec"]));
         Assert.Equal(("0", "0.20"), (shippedLeaves["chase.accelSec"], trialLeaves["chase.accelSec"]));
         Assert.Equal(("0", "0.10"), (shippedLeaves["chase.brakeSec"], trialLeaves["chase.brakeSec"]));

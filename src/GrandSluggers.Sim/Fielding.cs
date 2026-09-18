@@ -327,6 +327,14 @@ public sealed class FieldingResolver
         return c.FtPerSec + c.ChaseSpeedWeight * (ChaseSpeedFt(who, false, r) - c.FtPerSec);
     }
 
+    /// <summary>
+    /// The speed a body carries the ball (F693-02-ordinary-carry-speed, -ball-dash-carrier, #718): the pursuit speed it was
+    /// asked for, × <c>fielding.abilities.ballDashMul</c> for a Ball Dash holder. For every other body it is the asked speed
+    /// itself, not a product, so the walk the game shipped with is the same double it always was.
+    /// </summary>
+    public static double CarrySpeedFt(Character who, double pursuitFt, RulesTable? rules = null) =>
+        FieldAbilities.HasBallDash(who) ? pursuitFt * Rules.Or(rules).Fielding.Abilities.BallDashMul : pursuitFt;
+
     static double AirMul(string pos, FieldingPreview? pre, RulesTable? rules)
     {
         if (pre is not { Grounder: false }) return 1;

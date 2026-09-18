@@ -125,7 +125,11 @@
     "laserMul": 1.45,
     "snapThrowMul": 1.22,
     "snapReleaseSec": 0.22,
-    "laserHomeOnly": 0
+    "laserHomeOnly": 0,
+    // #718 (F693-02-ball-dash-carrier): a Ball Dash holder carries the ball at this multiple of its pursuit speed, automatically —
+    // no press, no timer. Only the cap moves; the response rates stay the body's own. No shipped body holds the ability, so this
+    // table never reads it; trials/c80 gives it to dart, pip and jester and retires the universal dash.chaseMul sprint.
+    "ballDashMul": 1.20
   },
   "throw": {
     "releaseSec": 0.22,
