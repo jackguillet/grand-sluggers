@@ -237,6 +237,40 @@ public sealed class FieldingResolver
     public static double RecoilKickFtPerSec(double weight, RulesTable? rules = null) =>
         Rules.Or(rules).Fielding.Recoil.KickFtPerSec * weight;
 
+    /// <summary>
+    /// The normalized difficulty of a ground-ball take (F693-02-awkward-hop-difficulty-source, #721): 0 for a roll, a falling ball
+    /// (the clean long hop) or a micro-bounce; on a rising ball, φ = y / (y + vy² / 2g) is how far up its hop the ball is, and the
+    /// difficulty is 1 at φ = 0.5, falling linearly to 0 <c>hopPhaseHalfWidth</c> either side, scaled from 0 at <c>hopMinApexFt</c>
+    /// to 1 at <c>hopFullApexFt</c> of projected apex. 0 whenever the rule is off.
+    /// </summary>
+    public static double HopDifficulty(double ballY, double ballVy, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var h = r.Fielding.Handling;
+        if (!h.Active || ballVy <= 0 || ballY <= 1e-9) return 0;
+        var apex = ballY + ballVy * ballVy / (2 * r.Flight.Gravity);
+        if (apex < h.HopMinApexFt) return 0;
+        var phi = ballY / apex;
+        var band = Math.Max(0, 1 - Math.Abs(phi - 0.5) / h.HopPhaseHalfWidth);
+        var height = h.HopFullApexFt <= h.HopMinApexFt ? 1 : Math.Clamp((apex - h.HopMinApexFt) / (h.HopFullApexFt - h.HopMinApexFt), 0, 1);
+        return band * height;
+    }
+
+    /// <summary>Normalized handling quality H (F693-02-ordinary-handling-chance-curve): the Hands trait plus the glove's help, 1 → 0 and 10 → 1.</summary>
+    public static double HandlingQuality(Character who, GloveItem? glove = null, RulesTable? rules = null)
+    {
+        var hands = who.Stats.Hands + (glove?.ErrorReduction ?? 0) * Rules.Or(rules).Fielding.Bobble.HandsPerGloveReduction;
+        return (Math.Clamp(hands, 1, 10) - 1) / 9.0;
+    }
+
+    /// <summary>The accepted curve, <c>p = cap × D × (1 − handsCut × H)</c>: 10 / 6 / 2 % at full difficulty for weak / middle / strong hands, zero for a routine take.</summary>
+    public static double HandlingErrorChance(double difficulty, double quality, RulesTable? rules = null)
+    {
+        var h = Rules.Or(rules).Fielding.Handling;
+        if (!h.Active || difficulty <= 0) return 0;
+        return Math.Clamp(h.ChanceCap * Math.Clamp(difficulty, 0, 1) * (1 - h.HandsCut * Math.Clamp(quality, 0, 1)), 0, h.ChanceCap);
+    }
+
     /// <summary>The skid the kick integrates to over the recovery, <c>K T / 2</c>: <c>w²</c> feet at 10 ft/s and 0.20 s, one foot at most (F693-02-ordinary-recoil-distance-cap).</summary>
     public static double RecoilSkidFt(double weight, RulesTable? rules = null)
     {

@@ -676,6 +676,12 @@ public sealed class Match
     internal bool RollBobble(double energy, Character who) =>
         InPlay.Bobbles(energy, who, _rng, DefenseGlove, Rules);
 
+    /// <summary>One authoritative handling outcome per qualifying take (#721, F693-02-ordinary-handling-error-chance): a draw only when there is a chance.</summary>
+    internal bool RollHandling(double chance) => chance > 0 && _rng.NextDouble() < chance;
+
+    /// <summary>One seeded directional result per failed contact (F693-02-uniform-error-direction): uniform in ±<paramref name="spreadDeg"/>.</summary>
+    internal double RollSpreadDeg(double spreadDeg) => (_rng.NextDouble() * 2 - 1) * spreadDeg;
+
     /// <summary>
     /// A drop on the catch is allowed only for star effects (§8.6, fielding.drops): a heatball, a
     /// phony swing, a frozen glove. Plain baseball never rolls a drop. One seeded stream (S-92).

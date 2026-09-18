@@ -268,6 +268,18 @@ public sealed partial class LivePlaySystem
     public double IncomingFtPerSec { get; private set; }
     /// <summary>The impact kick's velocity at the take, along the ball's horizontal travel.</summary>
     (double X, double Z) _kick;
+    /// <summary>The bobble's stun (#721, F693-02-bobble-stun-duration): this body neither steers nor takes until it runs out; the ball and every other body stay live.</summary>
+    public double StunT { get; private set; }
+    /// <summary>The body paying <see cref="StunT"/>, held across selection.</summary>
+    public string StunPos { get; private set; } = "";
+    /// <summary>The normalized difficulty of the last ground-ball take (F693-02-awkward-hop-difficulty-source): 0 for a routine one. Sampled on both tables.</summary>
+    public double HopDifficulty { get; private set; }
+    /// <summary>The chance the last take rolled against (F693-02-ordinary-handling-chance-curve); 0 = no roll at all.</summary>
+    public double HandlingChance { get; private set; }
+    // The local bobble's ball (F693-02-local-bobble-*): a vertical speed, whether it is in the air, and that this loose ball answers to the bobble's response.
+    double _looseVY;
+    bool _looseAir;
+    bool _looseLocal;
     public bool Bobbling { get; private set; }
     public bool PlayerBobble { get; private set; }
     public bool CatchDive { get; private set; }
@@ -396,7 +408,9 @@ public sealed partial class LivePlaySystem
     /// <summary>The body on the ball: the thrower while a throw is in the air (the YOU ring is already on the receiver), else the glove.</summary>
     string OnBallPos => Throwing && !string.IsNullOrEmpty(_throwerPos) ? _throwerPos : GlovePos;
     bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos) && !(DiveRecoveryT > 0 && pos == DivingPos)
-                                && !(ImpactRecoil && RecoilT > 0 && pos == GlovePos);
+                                && !(ImpactRecoil && RecoilT > 0 && pos == GlovePos) && !Stunned(pos);
+    /// <summary>The fumbler inside the bobble's stun (#721): no steering, no jump, no dive, no take.</summary>
+    bool Stunned(string pos) => StunT > 0 && pos == StunPos;
 
     // ---------------------------------------------------------------------------------
     // Begin
@@ -512,6 +526,13 @@ public sealed partial class LivePlaySystem
         RecoilDur = 0;
         IncomingFtPerSec = 0;
         _kick = (0, 0);
+        StunT = 0;
+        StunPos = "";
+        HopDifficulty = 0;
+        HandlingChance = 0;
+        _looseVY = 0;
+        _looseAir = false;
+        _looseLocal = false;
         _ballPrev = null;
         _ballVel = (0, 0, 0);
         _recoveryPress = null;
@@ -651,6 +672,15 @@ public sealed partial class LivePlaySystem
             {
                 DiveRecoveryT = 0;
                 DivingPos = "";
+            }
+        }
+        if (StunT > 0)
+        {
+            StunT -= dt;
+            if (StunT <= 1e-9)
+            {
+                StunT = 0;
+                StunPos = "";
             }
         }
         TickItems(dt);
@@ -2533,6 +2563,7 @@ public sealed partial class LivePlaySystem
     bool GloveMayTake(string pos)
     {
         if (_foil.ContainsKey(pos)) return false;
+        if (Stunned(pos)) return false;   // the fumbler waits out the stun (#721); a helper may take it first
         if (_powT > 0 && BallY < R.Fielding.Catch.TouchScoopY) return false;
         return true;
     }
@@ -2834,9 +2865,127 @@ public sealed partial class LivePlaySystem
         _trace?.Mark(PlayTraceMarkKind.LooseBall, ElapsedSeconds, GlovePos);
     }
 
+    // ---------------------------------------------------------------------------------
+    // Handling errors (#721: F693-02-handling-error-opportunities, -ordinary-handling-error-chance, -ordinary-handling-error-cap,
+    // -ordinary-handling-chance-curve, -awkward-hop-difficulty-source, -ordinary-bobble-outcome, -bobble-stun, -bobble-stun-duration,
+    // -bobble-recovery-reliability, -bobble-direction-spread, -uniform-error-direction, -local-bobble-*)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// The one roll an ordinary ground pickup can have (F693-02-ordinary-handling-error-chance): none at all unless the take is an
+    /// awkward in-between hop, then <c>chanceCap × D × (1 − handsCut × H)</c> once, on the seeded stream. True when the take fails
+    /// and the ball is loose as a local bobble.
+    /// </summary>
+    bool TryFumble(Character who)
+    {
+        var h = R.Fielding.Handling;
+        var quality = FieldingResolver.HandlingQuality(who, _match.DefenseGlove, R);
+        HandlingChance = FieldingResolver.HandlingErrorChance(HopDifficulty, quality, R);
+        if (!_match.RollHandling(HandlingChance)) return false;
+        LocalBobble(who, h);
+        return true;
+    }
+
+    /// <summary>
+    /// The failed take (F693-02-ordinary-bobble-outcome, -local-bobble-glove-release, -local-bobble-horizontal-retention,
+    /// -bobble-direction-spread): the ball spills down from where it met the glove with no vertical speed, a fifth of its horizontal
+    /// speed (six ft/s at most) along its travel turned a uniform ±30° — a ball with no horizontal travel spills away from the body —
+    /// and the fumbler is stunned <c>stunSec</c>. The fair / foul call was made by the touch; the ball stays live for everyone else.
+    /// </summary>
+    void LocalBobble(Character who, HandlingRules h)
+    {
+        _bobbled = true;
+        _receivedClean = false;
+        Caught = false;
+        PlayerBobble = true;
+        StunT = h.StunSec;
+        StunPos = GlovePos;
+        var (vx, _, vz) = _ballVel;
+        var speed = Math.Sqrt(vx * vx + vz * vz);
+        double dx, dz;
+        if (speed > 1e-9) (dx, dz) = (vx / speed, vz / speed);
+        else
+        {
+            var ax = BallX - GloveX;
+            var az = BallZ - GloveZ;
+            var len = Math.Sqrt(ax * ax + az * az);
+            (dx, dz) = len > 1e-9 ? (ax / len, az / len) : (0, 1);
+        }
+        var turn = _match.RollSpreadDeg(h.BobbleSpreadDeg) * Math.PI / 180.0;
+        var (cx, cz) = (Math.Cos(turn), Math.Sin(turn));
+        var (ox, oz) = (dx * cx - dz * cz, dx * cz + dz * cx);
+        var s = Math.Min(h.BobbleRetain * speed, h.BobbleCapFtPerSec);
+        _loose = true;
+        _looseLocal = true;
+        _looseAir = BallY > 1e-9;
+        _heldSince = -1;
+        _looseVX = ox * s;
+        _looseVZ = oz * s;
+        _looseVY = 0;
+        _looseRestAt = -1;
+        _trace?.Mark(PlayTraceMarkKind.LooseBall, ElapsedSeconds, GlovePos);
+        _events.Add(LiveEvent.Bobble);
+        Sub = $"{who.Name} bobbles it!";
+    }
+
+    /// <summary>
+    /// The local bobble's ball (F693-02-local-bobble-vertical-shape, -rebound-ceiling, -restitution, -settling, -ground-horizontal,
+    /// -rolling-deceleration): falls under gravity from the contact, rebounds at 35 % of its downward speed under a six-inch ceiling,
+    /// settles when the next rise would be three inches or less, keeps 90 % of its roll at each impact, and slows at 6 ft/s² on the
+    /// ground to rest. The park's edge stops it.
+    /// </summary>
+    void TickLocalBobble(double dt)
+    {
+        var h = R.Fielding.Handling;
+        var g = R.Flight.Gravity;
+        var nx = BallX + _looseVX * dt;
+        var nz = BallZ + _looseVZ * dt;
+        if (_looseAir)
+        {
+            _looseVY -= g * dt;
+            var ny = BallY + _looseVY * dt;
+            if (ny <= 0)
+            {
+                ny = 0;
+                var up = -_looseVY * h.BobbleRestitution;
+                up = Math.Min(up, Math.Sqrt(2 * g * Math.Max(0, h.BobbleReboundCapFt)));
+                if (up * up / (2 * g) <= h.BobbleSettleFt) up = 0;
+                _looseVX *= h.BobbleGroundRetain;
+                _looseVZ *= h.BobbleGroundRetain;
+                _looseVY = up;
+                _looseAir = up > 0;
+            }
+            BallY = ny;
+        }
+        else
+        {
+            var speed = Math.Sqrt(_looseVX * _looseVX + _looseVZ * _looseVZ);
+            var next = Math.Max(0, speed - h.BobbleDecelFtPerSec2 * dt);
+            nx = BallX + (speed > 0 ? _looseVX / speed * (speed + next) * 0.5 * dt : 0);
+            nz = BallZ + (speed > 0 ? _looseVZ / speed * (speed + next) * 0.5 * dt : 0);
+            _looseVX = speed > 0 ? _looseVX / speed * next : 0;
+            _looseVZ = speed > 0 ? _looseVZ / speed * next : 0;
+            BallY = 0;
+        }
+        var inside = FieldBounds.Clamp(Park, nx, nz);
+        if (Math.Abs(inside.X - nx) > 1e-6 || Math.Abs(inside.Z - nz) > 1e-6) _looseVX = _looseVZ = 0;
+        BallX = inside.X;
+        BallZ = inside.Z;
+        if (!_looseAir && _looseVX == 0 && _looseVZ == 0)
+        {
+            if (_looseRestAt < 0) _looseRestAt = ElapsedSeconds;
+        }
+        else _looseRestAt = -1;
+    }
+
     /// <summary>A loose ball rolls to a stop (fielding.overthrow) inside the park.</summary>
     void TickLooseBall(double dt)
     {
+        if (_looseLocal)
+        {
+            TickLocalBobble(dt);
+            return;
+        }
         var speed = Math.Sqrt(_looseVX * _looseVX + _looseVZ * _looseVZ);
         if (speed <= 0)
         {
@@ -3084,12 +3233,29 @@ public sealed partial class LivePlaySystem
         }
         // On the ground = a grounder, or any ball past its landing: what the impact recoil (#720) charges for a pickup.
         var landed = Preview.Grounder || ElapsedSeconds > Hang + 1e-6;
+        // The take's difficulty (F693-02-awkward-hop-difficulty-source, #721): the hop the ball is in, read off its height and rise. Sampled on both tables.
+        HopDifficulty = landed && !wasLoose ? FieldingResolver.HopDifficulty(BallY, _ballVel.Y, R) : 0;
         if (!wasLoose) ArmRecoil(landed);
     }
 
     void ArmRecoil(bool landed)
     {
         if (_recoilArmed || Preview is null || Buddy) return;
+        // The c80 copy (#721): a legal routine pickup never rolls; an awkward in-between hop rolls once, and a failed take is a
+        // local bobble. A clean take then pays the impact recoil (#720) as any other. The energy roll below is the shipped rule.
+        if (landed && R.Fielding.Handling.Active && Hit is not null)
+        {
+            _recoilArmed = true;
+            var taker = GloveChar();
+            if (TryFumble(taker)) return;
+            if (R.Fielding.Recoil.Active) ArmImpact(taker);
+            else if (Preview.Grounder)
+            {
+                var k = InPlay.KnockbackSec(InPlay.Energy(Hit, R), taker, R);
+                if (k > R.Fielding.Knockback.MinSec) RecoilT = k;
+            }
+            return;
+        }
         if (!Preview.Grounder)
         {
             // A landed liner or fly picked up off the grass: no bobble roll today and none here. On the c80 copy the take still
