@@ -66,11 +66,14 @@ public sealed class CatchReachTests
     }
 
     [Fact]
-    public void AnOutfielderUnderAFlyRunsAtTheOneSpeedOnTheTrial()
+    public void AnOutfielderUnderAFlyRunsAtTheAirMultiplierOnBothTables()
     {
         Assert.Equal((0.6, 0.45), (Control.Rules.Fielding.Chase.OutfieldAirMul, Control.Rules.Fielding.Chase.InfieldAirMul));
-        Assert.Equal((1.0, 1.0), (Trial.Rules.Fielding.Chase.OutfieldAirMul, Trial.Rules.Fielding.Chase.InfieldAirMul));
-        foreach (var (content, mul) in new[] { (Control, 0.6), (Trial, 1.0) })
+        // #719 slice 1 recorded (1.0, 1.0) here — one pursuit profile per body. 3d (#757) measured the copy under the S-29 floor in
+        // every cohort with the outfield's multiplier at 1.0, and Jack set it back to the shipped 0.6 on 2026-09-18; the infield's stays 1.0.
+        Assert.Equal((0.6, 1.0), (Trial.Rules.Fielding.Chase.OutfieldAirMul, Trial.Rules.Fielding.Chase.InfieldAirMul));
+        // Slice 1 recorded the trial's centre fielder at the one speed (× 1.0, 18 ft/s) under this fly; at 0.6 he runs 10.8.
+        foreach (var (content, mul) in new[] { (Control, 0.6), (Trial, 0.6) })
         {
             var match = Match.Exhibition(content, "rio", "ashlord", 3, 1, parkId: "harbor-diamond");
             var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);

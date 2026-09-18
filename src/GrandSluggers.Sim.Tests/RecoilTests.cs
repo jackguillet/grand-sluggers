@@ -163,14 +163,15 @@ public sealed class RecoilTests
     }
 
     /// <summary>
-    /// A 125-mph liner at 10° into right lands at 1.74 s and skids to hex (Hands 4) at 63 ft/s: a ground pickup, so the trial charges
+    /// A 130-mph liner at 10° into right lands at 1.79 s and skids to hex (Hands 4) at 63 ft/s: a ground pickup, so the trial charges
     /// it what its speed says even though no bobble is ever rolled on a liner; the shipped table, which charged grounders alone,
-    /// charges nothing.
+    /// charges nothing. (#720 recorded this on a 125-mph / 22° ball with the outfield's air multiplier at 1.0; at 0.6 the right
+    /// fielder is elsewhere when that one lands, and this ball is the same play.)
     /// </summary>
     [Fact]
     public void ALandedLinerPickedUpOffTheGrassCostsOnTheTrialAndNothingShipped()
     {
-        var trial = RunCpu(Trial, 125, 10, 22, ContactQuality.Perfect);
+        var trial = RunCpu(Trial, 130, 10, 25, ContactQuality.Perfect);
         Assert.Equal("RF", trial.Pos);
         Assert.True(trial.TakeAt > trial.Hang, "the liner landed before the take");
         Assert.InRange(trial.Speed, 55.01, 75);
@@ -178,7 +179,7 @@ public sealed class RecoilTests
         Assert.Equal(FieldingResolver.RecoilSec(Trial.Must("hex"), trial.Speed, Trial.Rules), trial.Dur, 9);
         Assert.True(trial.Dur > 0.05);
 
-        var shipped = RunCpu(Control, 125, 10, 22, ContactQuality.Perfect);
+        var shipped = RunCpu(Control, 130, 10, 25, ContactQuality.Perfect);
         Assert.Equal(0, shipped.RecoilFrames);
         Assert.Equal(0, shipped.Dur);
         Assert.Equal(0, shipped.Events);

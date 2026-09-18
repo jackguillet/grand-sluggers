@@ -43,7 +43,7 @@ public sealed class DiveTests
     [Fact]
     public void TheTrialCpuCommitsOnTheLiveBallPaysAndTakesTheLiner()
     {
-        var control = RunCpu(Control, out var controlCommits);
+        var control = RunCpu(Control, out var controlCommits, carry: 280);
         Assert.Empty(controlCommits);
         Assert.Equal(0, control.MaxRecovery);
 
@@ -82,7 +82,9 @@ public sealed class DiveTests
     {
         var content = root == "trial" ? Trial : Control;
         // The shipped table's own diving liner: 250 ft at 12° into the left-field gap, which its left fielder reaches only at the rim.
-        var (match, hit, preview) = root == "trial" ? Fixture(content) : Fixture(content, carry: 250, spray: -18);
+        // The trial's own ball for this seat: a 120-mph liner at 16° over second, which the assistance's legs do not reach standing (the
+        // 130-mph liner of the other tests they do — the human seat reads 0.40 s where the CPU's glove reads it × cpu.reactionMul).
+        var (match, hit, preview) = root == "trial" ? Fixture(content, ball: (120, 16, 0)) : Fixture(content, carry: 250, spray: -18);
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
         PlayEvent? play = null;
@@ -156,24 +158,30 @@ public sealed class DiveTests
     // Harness
     // ---------------------------------------------------------------------------------
 
-    /// <summary>A 280-ft liner at 12° into the left-centre gap on Harbor; moss (Field 4) in centre, the offence without him.</summary>
-    static (Match Match, AtBatResult Hit, FieldingPreview Preview) Fixture(ContentCatalog content, double carry = 280, double spray = -8)
+    /// <summary>
+    /// The shipped table's liner is 280 ft at 12° into the left-centre gap on Harbor. The trial's is a 130-mph liner at 18° just left of second:
+    /// #719 slice 2 recorded its dives on the 280-ft ball with the outfield's air multiplier at 1.0; at 0.6 (Jack, 2026-09-18) the centre
+    /// fielder covers 10.8 ft/s under a ball in the air and that one is out of reach, so the trial's fixture is the ball he can still
+    /// dive for. moss (Field 4) in centre, the offence without him.
+    /// </summary>
+    static (Match Match, AtBatResult Hit, FieldingPreview Preview) Fixture(ContentCatalog content, double carry = 0, double spray = -8, (double Exit, double Launch, double Spray)? ball = null)
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
         var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
-        var hit = FlightFixtures.Landing(match.Park, carry, 12, spray, rules: match.Rules);
+        var hit = carry > 0 ? FlightFixtures.Landing(match.Park, carry, 12, spray, rules: match.Rules)
+            : FlightFixtures.Hit(match.Park, ball?.Exit ?? 130, ball?.Launch ?? 18, ball?.Spray ?? -6, rules: match.Rules);
         var preview = match.PreviewHit(hit);
-        Assert.False(preview.Grounder);   // the shipped preview names SS first and hands to centre; the trial's names CF
+        Assert.False(preview.Grounder);   // the preview names an infielder first and hands to centre
         return (match, hit, preview);
     }
 
     sealed record Commit(double T, string Pos, double Cost);
     sealed record CpuRun(PlayEvent Play, double PossessionAt, double MaxRecovery, bool DiverHeld);
 
-    static CpuRun RunCpu(ContentCatalog content, out List<Commit> commits, (double X, double Z)? nudgeOnCommit = null)
+    static CpuRun RunCpu(ContentCatalog content, out List<Commit> commits, (double X, double Z)? nudgeOnCommit = null, double carry = 0)
     {
-        var (match, hit, preview) = Fixture(content);
+        var (match, hit, preview) = Fixture(content, carry);
         var live = match.LivePlay;
         live.Recording = true;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);

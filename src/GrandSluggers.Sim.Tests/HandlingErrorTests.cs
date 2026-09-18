@@ -97,48 +97,56 @@ public sealed class HandlingErrorTests
     }
 
     /// <summary>
-    /// A 120-mph liner at 12° into left lands and comes up at vine 1.3 ft off the grass, rising 9.8 ft/s: 98 % of the way to the
-    /// hardest ball. Hands 8 with the glove faces 3.3 %; authored Hands 1 faces 9.4 %, and nothing faces more than 10 %. The chance
-    /// is what the curve says of the take, the same every time; the shipped table has no such roll and stuns nobody.
+    /// A 100-mph liner at 20° into left lands and comes up at vine 0.9 ft off the grass and rising: 97 % of the way to the hardest ball.
+    /// Hands 8 with the glove faces 3.3 %; authored Hands 1 faces 9.3 %, and nothing faces more than 10 %. The chance is what the curve
+    /// says of the take, the same every time; the shipped table has no such roll and stuns nobody. (#721 recorded this on a 120-mph / 12°
+    /// liner with the outfield's air multiplier at 1.0; at 0.6 the left fielder meets that one on the way down, and this is the ball he
+    /// meets mid-hop.)
     /// </summary>
     [Fact]
     public void TheAwkwardHopCarriesTheCurvesChanceAndTheCapBinds()
     {
-        var run = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 1);
+        var run = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1);
         Assert.Equal("LF", run.Pos);
         Assert.InRange(run.Difficulty, 0.95, 1.0);
         var vine = Trial.Must("vine");
         Assert.Equal(FieldingResolver.HandlingErrorChance(run.Difficulty, FieldingResolver.HandlingQuality(vine, run.Glove, Trial.Rules), Trial.Rules), run.Chance, 12);
         Assert.InRange(run.Chance, 0.03, 0.04);
-        var weak = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 1, lfHands: 1);
+        var weak = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1, lfHands: 1);
         Assert.Equal(run.Difficulty, weak.Difficulty);
         Assert.InRange(weak.Chance, 0.09, 0.10);
         Assert.True(weak.Chance <= 0.10 + 1e-12);
-        var strong = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 1, lfHands: 10);
+        var strong = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1, lfHands: 10);
         Assert.InRange(strong.Chance, 0.015, 0.025);
-        var again = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 1);
+        var again = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1);
         Assert.Equal((run.Difficulty, run.Chance, run.TakeAt), (again.Difficulty, again.Chance, again.TakeAt));
 
         // On the shipped field the same swing is a liner caught in the air; with a runner on first the catch is not the completing frame. No roll, no stun.
-        var shipped = Drive(Control, 120, 12, -25, ContactQuality.Perfect, seed: 1, runnerOnFirst: true);
+        var shipped = Drive(Control, 100, 20, -25, ContactQuality.Perfect, seed: 1, runnerOnFirst: true);
         Assert.Equal(0, shipped.Chance);
         Assert.Equal(0, shipped.StunFrames);
     }
 
     /// <summary>
-    /// Seed 35 is the one in thirty where vine's 3.3 % comes up. Slice 1 recorded this failed take as a local bobble (six ft/s out
-    /// inside ±30°, 3.2 ft of travel, recovered at 0.64 s, a double); slice 2 (F693-02-error-outcome-selection) reads the contact —
-    /// the ring met the ball at its edge, obstruction 0.03, and the ball came in at 59.5 ft/s, past the hot line — so the ball gets
-    /// past instead: `DeflectionTests` has its numbers. What holds either way: one roll, one bobble, the 24-frame stun, the same seed
-    /// twice the same play to the mark, seed 34 the same ball taken clean, and a bobble is not by itself the error.
+    /// Seed 35 is the one in thirty where vine's 3.3 % comes up on the 100-mph liner: it came in at 52 ft/s, under the hot line, so the
+    /// failed take is the knockdown — the ball never above where it met the glove, six ft/s out inside ±30°, rebounds under six inches,
+    /// rests 3.1 ft away; vine is stunned 24 frames and does not walk; he picks it up himself 0.65 s later with no second roll, and a bobble
+    /// is not by itself the error. Seed 34 is the same ball taken clean; the same seed twice is the same play to the mark. (Slice 1
+    /// recorded this on the 120-mph / 12° liner — a double; slice 2 turned that hot ball into the one that gets past; with the outfield's
+    /// air multiplier at 0.6 neither liner is met mid-hop, and the local bobble's real-table case is this one.)
     /// </summary>
     [Fact]
     public void TheFailedTakeIsOneRollOneBobbleOneStunAndAReliableRecovery()
     {
-        var run = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 35);
+        var run = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 35);
         Assert.Equal(1, run.Bobbles);
         Assert.Equal("LF", run.Pos);
         Assert.InRange(run.Chance, 0.03, 0.04);
+        Assert.True(run.LooseMaxY <= run.ContactY + 1e-9, $"the ball rose to {run.LooseMaxY:0.00} from a contact at {run.ContactY:0.00}");
+        Assert.True(run.ReboundMaxY <= 0.50 + 1e-6, $"a rebound of {run.ReboundMaxY:0.00} ft");
+        Assert.InRange(run.LooseSpeed, 5.9, 6.01);
+        Assert.InRange(run.DirOffsetDeg, -30, 30);
+        Assert.InRange(run.Travel, 2.0, 3.5);
         Assert.Equal(24, run.StunFrames);
         Assert.True(run.StunMove < 1.0, $"the stunned body moved {run.StunMove:0.00} ft");
         Assert.Equal("LF", run.RecoverPos);
@@ -146,24 +154,30 @@ public sealed class HandlingErrorTests
         Assert.Equal(1, run.Rolls);
         Assert.False(run.Play.Outcome?.Error ?? true, "a bobble is not by itself the error (§8.6)");
 
-        var again = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 35);
+        var again = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 35);
         Assert.Equal(run.Marks, again.Marks);
         Assert.Equal(run.DirOffsetDeg, again.DirOffsetDeg);
 
-        var clean = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 34);
+        var clean = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 34);
         Assert.Equal(0, clean.Bobbles);
         Assert.Equal(run.Chance, clean.Chance);
-        Assert.Equal(PlayKind.Single, clean.Play.Kind);
     }
 
-    /// <summary>The direction is one seeded draw, uniform inside the branch's spread: four seeds that fail on the hot liner get past (slice 2) with four different offsets, none outside ±15°; slice 1 read the same four as local bobbles inside ±30°.</summary>
+    /// <summary>
+    /// The direction is one seeded draw, uniform inside the branch's spread: four seeds that fail on the 100-mph liner are knockdowns with
+    /// four different offsets inside ±30°; four that fail on the hot 120-mph liner get past with four different offsets inside ±15°.
+    /// </summary>
     [Fact]
     public void TheErrorsDirectionIsOneUniformDrawInsideItsSpread()
     {
-        var runs = new[] { 14, 16, 35, 58 }.Select(seed => Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
-        Assert.True(runs.Count >= 3, $"only {runs.Count} of the four seeds bobbled");
-        Assert.All(runs, r => Assert.InRange(r.DirOffsetDeg, -15, 15));
-        Assert.True(runs.Select(r => r.DirOffsetDeg).Distinct().Count() == runs.Count, "the offsets are one draw each, not one value");
+        var local = new[] { 14, 16, 35, 37 }.Select(seed => Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
+        Assert.True(local.Count >= 3, $"only {local.Count} of the four seeds bobbled on the ordinary liner");
+        Assert.All(local, r => Assert.InRange(r.DirOffsetDeg, -30, 30));
+        Assert.True(local.Select(r => r.DirOffsetDeg).Distinct().Count() == local.Count, "the offsets are one draw each, not one value");
+        var past = new[] { 14, 35, 37, 58 }.Select(seed => Drive(Trial, 120, 16, -18, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
+        Assert.True(past.Count >= 3, $"only {past.Count} of the four seeds failed on the hot liner");
+        Assert.All(past, r => Assert.InRange(r.DirOffsetDeg, -15, 15));
+        Assert.True(past.Select(r => r.DirOffsetDeg).Distinct().Count() == past.Count, "the offsets are one draw each, not one value");
     }
 
     /// <summary>Every rising take fails on a copy with the cap at 1 and the bands wide open: an ordinary-speed grounder (40 ft/s, under the hot line) is the knockdown — the physics to the number, 6 ft/s out, rest in 1.0 s over 3.0 ft of roll once down, and the take-again never rolls.</summary>
