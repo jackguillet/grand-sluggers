@@ -1074,6 +1074,7 @@ public sealed class FieldingRules
         RulesValidation.Order(source, "fielding.recoil.airOnsetFtPerSec", Recoil.AirOnsetFtPerSec, Recoil.AirFullFtPerSec, errors);
         RulesValidation.Order(source, "fielding.handling.hopMinApexFt", Handling.HopMinApexFt, Handling.HopFullApexFt, errors);
         RulesValidation.Order(source, "fielding.handling.bobbleSettleFt", Handling.BobbleSettleFt, Handling.BobbleReboundCapFt, errors);
+        RulesValidation.Order(source, "fielding.handling.deflectRetainMin", Handling.DeflectRetainMin, Handling.DeflectRetainMax, errors);
         if (Recoil.AirActive && Recoil.AirFullFtPerSec <= Recoil.AirOnsetFtPerSec)
             errors.Add($"{source}: fielding.recoil.airFullFtPerSec must exceed airOnsetFtPerSec while the airborne recoil is on; got {Recoil.AirFullFtPerSec} <= {Recoil.AirOnsetFtPerSec}");
     }
@@ -1502,7 +1503,12 @@ public sealed class RecoilRules
 /// at most) inside ±<c>bobbleSpreadDeg</c> of its travel, rebounds at <c>bobbleRestitution</c> under a <c>bobbleReboundCapFt</c>
 /// ceiling, settles below <c>bobbleSettleFt</c>, keeps <c>bobbleGroundRetain</c> of its roll per impact and slows at
 /// <c>bobbleDecelFtPerSec2</c>; the fumbler is stunned <c>stunSec</c> — no steering, no take — while the ball and every other
-/// body stay live, and the recovery never rolls again.
+/// body stay live, and the recovery never rolls again. Or (F693-02-expanded-ordinary-error-outcomes, -error-outcome-selection,
+/// -continuing-error-*) the ball gets past: how squarely the ring met the ball — the obstruction, 1 at the body, 0 at the edge of
+/// the take — and the ball's speed decide, never a second roll. Below <c>deflectObstruction</c> and at or above
+/// <c>deflectMinFtPerSec</c> coming in, the ball carries on with <c>deflectRetainMax</c> → <c>deflectRetainMin</c> of its horizontal
+/// and signed vertical speed inside ±<c>deflectSpreadDeg</c> of its travel on the shared batted-ball ground physics; the same stun,
+/// the same reliable recovery, another body's if it reaches it first.
 /// </summary>
 public sealed class HandlingRules
 {
@@ -1523,6 +1529,13 @@ public sealed class HandlingRules
     public double BobbleSettleFt { get; init; } = 0.25;
     [Chance] public double BobbleGroundRetain { get; init; } = 0.90;
     public double BobbleDecelFtPerSec2 { get; init; } = 6;
+    public double DeflectSpreadDeg { get; init; } = 15;
+    [Chance] public double DeflectRetainMax { get; init; } = 0.80;
+    [Chance] public double DeflectRetainMin { get; init; } = 0.50;
+    /// <summary>The obstruction at and above which a failed take is a knockdown (the local bobble); below it the ball glances on.</summary>
+    [Chance] public double DeflectObstruction { get; init; } = 0.5;
+    /// <summary>A glancing touch sends the ball on only when it came in at least this fast — the hot ball of the recoil's onset; a slower one drops at the feet.</summary>
+    public double DeflectMinFtPerSec { get; init; } = 55;
     /// <summary>The routine pickup never rolls; the awkward hop is the one difficulty.</summary>
     public bool Active => AwkwardHop > 0;
 }

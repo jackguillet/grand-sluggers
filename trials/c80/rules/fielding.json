@@ -267,7 +267,12 @@
   // South-press take can meet any hop.A failed take is a local bobble: the ball spills down from the
   // contact with a fifth of its horizontal speed (six ft/s at most) inside ±30° of its travel, rebounds at 35 % under a six-inch
   // ceiling, settles below three inches, keeps 90 % of its roll per impact and slows at 6 ft/s²; the fumbler is stunned 0.40 s
-  // while the ball and every other body stay live, and picking it up again never rolls. The bobble block above is not read.
+  // while the ball and every other body stay live, and picking it up again never rolls. Or (slice 2) the ball gets past: the
+  // obstruction is how squarely the ring met the ball (1 at the body, 0 at the edge of the take's window); below 0.5 on a ball
+  // that came in at 55 ft/s or more (the recoil's hot line), the ball carries on with 0.80 → 0.50 of its horizontal and signed
+  // vertical speed inside ±15° of its travel on the shared batted-ball ground physics — the contact and the speed decide, never
+  // a second roll. The CPU takes at the edge of the ring, so its rare fumble on a hot ball is the ball getting past and on an
+  // ordinary one the knockdown; the seat's own take at the body is always the knockdown. The bobble block above is not read.
   "handling": {
     "awkwardHop": 1,
     "chanceCap": 0.10,
@@ -283,7 +288,12 @@
     "bobbleReboundCapFt": 0.50,
     "bobbleSettleFt": 0.25,
     "bobbleGroundRetain": 0.90,
-    "bobbleDecelFtPerSec2": 6
+    "bobbleDecelFtPerSec2": 6,
+    "deflectSpreadDeg": 15,
+    "deflectRetainMax": 0.80,
+    "deflectRetainMin": 0.50,
+    "deflectObstruction": 0.5,
+    "deflectMinFtPerSec": 55
   },
   "park": {
     "emberNightFireMul": 1.6,
