@@ -952,3 +952,40 @@ untouched; each compact fixture sits beside its shipped one with the reason.
 `HarborWallTests`, `BallFlightTests`, and one each in `PitchTests`, `NightTests`, `FlightScenarioTests`, `FeelInfraTests`,
 `BroadcastHudTests`, `AtBatFeelTests`) and the seats, bunts, runners and steals (6). 122 tests fail under the overlay today;
 the other hundred name the shipped table on purpose and are restructured at promotion.
+
+---
+
+**The compact scenario rows, slice 3 — the flights, parks and geometry values (#715, ahead of 3e).** Tests, docs and one CI
+filter: no Sim source, no data. Ten more classes carry `[Trait("Rows", "compact")]`: `MatchTests`, `AtBatTests`,
+`HarborWallTests`, `BallFlightTests`, `PitchTests`, `NightTests`, `FlightScenarioTests`, `FeelInfraTests`, `BroadcastHudTests`,
+`AtBatFeelTests`. 13 of the 16 rows the copy had broken now hold on both roots; the other 3 are two named gaps (below). The
+second CI run is 299 rows.
+
+| Row | Shipped | Compact | Why |
+| --- | --- | --- | --- |
+| S-59 the ground-rule double | 101 mph at 32°, stick from frame 0 | 101 mph at 44°, six neutral frames first | drag 0.0040 brings the 32° fly down too flat to hop the 12-ft wall; only flies from 42° up do. Without the neutral frames the copy's pursuit stick (#718) never takes CF and the CPU catches the fly |
+| Carry of the 95 mph / 28° fly (three rows) | 300 to 450 ft | 210 to 315 ft | it carries 233 ft on the copy; the same band at 0.70 |
+| The fastball at halfway | 26 to 34 ft | 23 to 30 ft | the rubber is at 53.78 ft; the same band at 8/9 |
+| Harbor and Ember fences | 400 / 408 | 280 / 286 | the fences at 0.70 (#717) |
+| Ember's lava pit, the Rink's freeze volume, Rooftop's star sign | (38, 78), (40, 70), (−80, 240) | (34, 69), (36, 62), (−56, 168) | the hazards at the field's scale (#732) |
+| Ember's fire breath at night | 250 ft and 270 ft | 175 ft and 189 ft | the mouth at 0.70, the same 20 ft past it at 0.70 |
+| Runner pips along the path | 45 ft is half, 30 ft a third, 9 ft overrun is 1.1 | 40 ft, 26.67 ft, 8 ft | the 80-ft path |
+| The fielder's dash | `dash.chaseMul` above 1 | exactly 1.0 | the copy's dash is the Ball Dash carrier's, no free chase multiplier (#718) |
+
+**Two gaps, reported and not repaired.** Each is a value in feet the copy does not carry. Their rows are tagged
+`[Trait("Copy", "gap")]`; the copy's CI run is `--filter "Rows=compact&Copy!=gap"`, so they stay red under the overlay, by name,
+until promotion decides them. `dotnet test --filter "Copy=gap"` under the overlay lists them.
+
+1. **The mound camera.** `data/feel/shots.json` authors the mound shot at z 72, 11.5 ft behind the shipped rubber. The copy's
+   rubber is at 53.78 ft, so the over-the-shoulder window there is 61.78 to 69.78 ft and the camera stands 2.2 ft behind it
+   (18.2 ft behind the pitcher). An overlay copy of `feel/shots.json` could move it; where it goes is a look decision.
+2. **The foul rail's taper.** `HarborWall` starts the rail's ramp at a literal 95 ft (`hipZ`, `flareStart`), which no overlay
+   can move. On the copy's 0.70 lines the ramp is shorter: the two 8-ft parks (`funfair-park`, `crystal-rink`) get 4 taper
+   vertices where `TaperIsARamp` asks for 6 (7 and 6 shipped); the other four parks still pass. Presentation only.
+
+Also seen: ground-rule doubles are rarer on the copy. In the same probe grid Harbor gives 338 where the shipped table gives
+1 382, because the steeper descent under the higher drag seldom hops a 12-ft wall.
+
+**Left.** 6 rows: the seats, bunts, runners and steals (`SeatOwnershipTests` 2, `BuntScenarioTests` 2, `StealScenarioTests` 1,
+`RunnerScenarioTests` 1). 109 tests fail under the overlay today: those 6, the 3 gap rows, and the hundred that name the
+shipped table on purpose and are restructured at promotion.
