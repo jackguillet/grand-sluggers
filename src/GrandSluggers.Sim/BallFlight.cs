@@ -43,20 +43,48 @@ public static class BallFlight
         var vy = v * Math.Sin(a);
         var wx = windMph * MphToFtPerSec * f.WindMul * windDir.X;
         var wz = windMph * MphToFtPerSec * f.WindMul * windDir.Z;
-        var x = 0.0;
-        var z = 0.0;
-        var y = f.PlateHeightFt;
-        var dt = 1.0 / f.SampleHz;
-        var rolling = false;
-        var grounded = false;
-        var gone = false;
         var skid = launchDeg >= f.Skid.LaunchMinDeg && launchDeg < f.Skid.LaunchMaxDeg;
         var scale = f.TimeScaleFor(launchDeg, exitMph, rules);
-        var list = new List<Sample>(512) { new(0, 0, y, 0, 0) };
+        var list = new List<Sample>(512) { new(0, 0, f.PlateHeightFt, 0, 0) };
+        Run(list, f, walls, 0.0, 0.0, f.PlateHeightFt, 0.0, vx, vy, vz, wx, wz, skid, scale, rolling: false, grounded: false);
+        return list;
+    }
+
+    /// <summary>
+    /// The batted ball from a state (#721, F693-02-continuing-error-ground-response): the path's samples before <paramref name="fromT"/>
+    /// kept as they were, then the shared flight and ground physics — drag, the park's wind, gravity, the bounce, the roll, the walls —
+    /// run on from (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>) at (<paramref name="vx"/>, <paramref name="vy"/>,
+    /// <paramref name="vz"/>) on the same clock and the same time scale the hit had. A deflected ball is a batted ball still.
+    /// </summary>
+    public static IReadOnlyList<Sample> Continue(IReadOnlyList<Sample> path, double fromT, double x, double y, double z,
+        double vx, double vy, double vz, double launchDeg, double exitMph, Park park, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var f = r.Flight;
+        var wx = park.WindMph * MphToFtPerSec * f.WindMul * park.WindDirection.X;
+        var wz = park.WindMph * MphToFtPerSec * f.WindMul * park.WindDirection.Z;
+        var skid = launchDeg >= f.Skid.LaunchMinDeg && launchDeg < f.Skid.LaunchMaxDeg;
+        var scale = f.TimeScaleFor(launchDeg, exitMph, r);
+        var list = new List<Sample>(512);
+        foreach (var s in path)
+            if (s.T < fromT - 1e-9) list.Add(s);
+        var y0 = Math.Max(0, y);
+        list.Add(new Sample(fromT, Math.Sqrt(x * x + z * z), y0, x, z));
+        var rolling = y0 <= 1e-9 && Math.Abs(vy) < 1e-9;
+        Run(list, f, FieldBounds.Of(park), fromT, x, y0, z, vx, vy, vz, wx, wz, skid, scale, rolling, grounded: true);
+        return list;
+    }
+
+    /// <summary>One integration of the flight and ground physics, appending to <paramref name="list"/> from the given state until the ball rests or the clock runs out.</summary>
+    static void Run(List<Sample> list, FlightRules f, FieldBounds.Boundary? walls, double t0, double x, double y, double z,
+        double vx, double vy, double vz, double wx, double wz, bool skid, double scale, bool rolling, bool grounded)
+    {
+        var dt = 1.0 / f.SampleHz;
+        var gone = false;
         var steps = (int)(f.SampleHz * f.MaxSeconds);
         for (var i = 0; i < steps; i++)
         {
-            var t = (i + 1) * dt * scale;
+            var t = t0 + (i + 1) * dt * scale;
             if (rolling)
             {
                 var speed = Math.Sqrt(vx * vx + vz * vz);
@@ -149,7 +177,6 @@ public static class BallFlight
             z = nz;
             list.Add(new Sample(t, Math.Sqrt(x * x + z * z), Math.Max(0, y), x, z, evt));
         }
-        return list;
     }
 
     /// <summary>Mirror the horizontal velocity off the wall's normal (flight.wall) and start the ball just inside.</summary>

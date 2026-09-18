@@ -264,7 +264,12 @@
     "bobbleReboundCapFt": 0.50,
     "bobbleSettleFt": 0.25,
     "bobbleGroundRetain": 0.90,
-    "bobbleDecelFtPerSec2": 6
+    "bobbleDecelFtPerSec2": 6,
+    "deflectSpreadDeg": 15,
+    "deflectRetainMax": 0.80,
+    "deflectRetainMin": 0.50,
+    "deflectObstruction": 0.5,
+    "deflectMinFtPerSec": 55
   },
   "park": {
     "emberNightFireMul": 1.6,

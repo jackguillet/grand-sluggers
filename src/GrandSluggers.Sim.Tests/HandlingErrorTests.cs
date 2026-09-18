@@ -126,29 +126,24 @@ public sealed class HandlingErrorTests
     }
 
     /// <summary>
-    /// Seed 35 is the one in a hundred where vine's 3.3 % comes up: the ball spills from where it met the glove, never higher, kicked
-    /// inside ±30° of its travel at six ft/s and no more, rebounds under six inches, rolls to rest inside 3.5 ft; vine is stunned 24
-    /// frames and does not walk; he picks it up himself 0.64 s later with no second roll and no second bobble, and the batter has
-    /// his double. Seed 34 is the same ball taken clean. The same seed twice is the same play to the mark.
+    /// Seed 35 is the one in thirty where vine's 3.3 % comes up. Slice 1 recorded this failed take as a local bobble (six ft/s out
+    /// inside ±30°, 3.2 ft of travel, recovered at 0.64 s, a double); slice 2 (F693-02-error-outcome-selection) reads the contact —
+    /// the ring met the ball at its edge, obstruction 0.03, and the ball came in at 59.5 ft/s, past the hot line — so the ball gets
+    /// past instead: `DeflectionTests` has its numbers. What holds either way: one roll, one bobble, the 24-frame stun, the same seed
+    /// twice the same play to the mark, seed 34 the same ball taken clean, and a bobble is not by itself the error.
     /// </summary>
     [Fact]
-    public void TheFailedTakeIsALocalBobbleWithAStunAndAReliableRecovery()
+    public void TheFailedTakeIsOneRollOneBobbleOneStunAndAReliableRecovery()
     {
         var run = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 35);
         Assert.Equal(1, run.Bobbles);
         Assert.Equal("LF", run.Pos);
         Assert.InRange(run.Chance, 0.03, 0.04);
-        Assert.True(run.LooseMaxY <= run.ContactY + 1e-9, $"the ball rose to {run.LooseMaxY:0.00} from a contact at {run.ContactY:0.00}");
-        Assert.True(run.ReboundMaxY <= 0.50 + 1e-6, $"a rebound of {run.ReboundMaxY:0.00} ft");
-        Assert.InRange(run.LooseSpeed, 5.9, 6.01);
-        Assert.InRange(run.DirOffsetDeg, -30, 30);
-        Assert.InRange(run.Travel, 2.0, 3.5);
         Assert.Equal(24, run.StunFrames);
         Assert.True(run.StunMove < 1.0, $"the stunned body moved {run.StunMove:0.00} ft");
         Assert.Equal("LF", run.RecoverPos);
-        Assert.InRange(run.RecoverAt - run.TakeAt, 0.40, 0.80);
+        Assert.InRange(run.RecoverAt - run.TakeAt, 0.40 - 1e-9, 0.80);
         Assert.Equal(1, run.Rolls);
-        Assert.Equal(PlayKind.Double, run.Play.Kind);
         Assert.False(run.Play.Outcome?.Error ?? true, "a bobble is not by itself the error (§8.6)");
 
         var again = Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed: 35);
@@ -161,17 +156,17 @@ public sealed class HandlingErrorTests
         Assert.Equal(PlayKind.Single, clean.Play.Kind);
     }
 
-    /// <summary>The direction is one seeded draw, uniform in ±30°: four seeds that bobble give four different offsets, none outside the band.</summary>
+    /// <summary>The direction is one seeded draw, uniform inside the branch's spread: four seeds that fail on the hot liner get past (slice 2) with four different offsets, none outside ±15°; slice 1 read the same four as local bobbles inside ±30°.</summary>
     [Fact]
-    public void TheBobblesDirectionIsOneUniformDrawInsideTheSpread()
+    public void TheErrorsDirectionIsOneUniformDrawInsideItsSpread()
     {
-        var offsets = new[] { 14, 16, 35, 58 }.Select(seed => Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).Select(r => r.DirOffsetDeg).ToList();
-        Assert.True(offsets.Count >= 3, $"only {offsets.Count} of the four seeds bobbled");
-        Assert.All(offsets, o => Assert.InRange(o, -30, 30));
-        Assert.True(offsets.Distinct().Count() == offsets.Count, "the offsets are one draw each, not one value");
+        var runs = new[] { 14, 16, 35, 58 }.Select(seed => Drive(Trial, 120, 12, -25, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
+        Assert.True(runs.Count >= 3, $"only {runs.Count} of the four seeds bobbled");
+        Assert.All(runs, r => Assert.InRange(r.DirOffsetDeg, -15, 15));
+        Assert.True(runs.Select(r => r.DirOffsetDeg).Distinct().Count() == runs.Count, "the offsets are one draw each, not one value");
     }
 
-    /// <summary>Every rising take fails on a copy with the cap at 1 and the bands wide open: the physics to the number — 6 ft/s out, rest in 1.0 s over 3.0 ft of roll once down, and the take-again never rolls.</summary>
+    /// <summary>Every rising take fails on a copy with the cap at 1 and the bands wide open: an ordinary-speed grounder (40 ft/s, under the hot line) is the knockdown — the physics to the number, 6 ft/s out, rest in 1.0 s over 3.0 ft of roll once down, and the take-again never rolls.</summary>
     [Fact]
     public void TheLocalBobblesPhysicsToTheNumberOnACertainFumble()
     {
@@ -238,7 +233,8 @@ public sealed class HandlingErrorTests
                     contactY = live.BallY; at = (live.BallX, live.BallZ); stunAt = (live.GloveX, live.GloveZ); inDir = (live.BallX - prev.X, live.BallZ - prev.Z);
                 }
             }
-            if (bobbles > 0 && recoverAt < 0 && live.LooseBall)
+            // The failed take's ball, loose (the local bobble) or carried on (the deflection, slice 2), until somebody has it again.
+            if (bobbles > 0 && recoverAt < 0)
             {
                 looseMaxY = Math.Max(looseMaxY, live.BallY);
                 if (live.BallY <= 1e-9) grounded = true;
