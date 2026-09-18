@@ -358,7 +358,7 @@ public sealed class CompactGeometryTests
         Assert.Equal(
             [
                 "abilities.laserHomeOnly", "abilities.laserMul", "abilities.snapThrowMul",
-                "catch.autoDive", "catch.diveRecoveryFieldCut", "catch.diveRecoverySec", "catch.standUpReachFt",
+                "catch.autoDive", "catch.diveRecoveryFieldCut", "catch.diveRecoverySec", "catch.jumpAirSec", "catch.jumpBufferSec", "catch.jumpReachFt", "catch.standUpReachFt",
                 "chase.accelSec", "chase.baseFtPerSec", "chase.brakeSec", "chase.ftPerSecPerRun", "chase.infieldAirMul", "chase.minFtPerSec", "chase.outfieldAirMul",
                 "chem.badSpeedMul", "chem.slantChance",
                 "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
@@ -379,6 +379,13 @@ public sealed class CompactGeometryTests
         // #718 (F693-02-ball-dash-carrier): the universal East-held sprint is retired on the trial; the ability's own multiple does not move.
         Assert.Equal(("1.35", "1.0"), (shippedLeaves["dash.chaseMul"], trialLeaves["dash.chaseMul"]));
         Assert.Equal(("1.20", "1.20"), (shippedLeaves["abilities.ballDashMul"], trialLeaves["abilities.ballDashMul"]));
+        // #719 (slice 3): the normal jump — a physical arc on the trial, the arm window shipped; the rise and the air response are the accepted anchors in both.
+        Assert.Equal(("0", "0.60"), (shippedLeaves["catch.jumpAirSec"], trialLeaves["catch.jumpAirSec"]));
+        Assert.Equal(("0", "0.10"), (shippedLeaves["catch.jumpBufferSec"], trialLeaves["catch.jumpBufferSec"]));
+        Assert.Equal(("8", "0"), (shippedLeaves["catch.jumpReachFt"], trialLeaves["catch.jumpReachFt"]));
+        Assert.Equal(("2.0", "2.0"), (shippedLeaves["catch.jumpRiseFt"], trialLeaves["catch.jumpRiseFt"]));
+        Assert.Equal(("0.10", "0.10"), (shippedLeaves["catch.jumpAirResponseMul"], trialLeaves["catch.jumpAirResponseMul"]));
+        Assert.Equal(shippedLeaves["catch.jumpArmSec"], trialLeaves["catch.jumpArmSec"]);
         // #719 (slice 2): nobody dives for free — the automatic dive off, the recovery cost on.
         Assert.Equal(("1", "0"), (shippedLeaves["catch.autoDive"], trialLeaves["catch.autoDive"]));
         Assert.Equal(("0", "0.60"), (shippedLeaves["catch.diveRecoverySec"], trialLeaves["catch.diveRecoverySec"]));

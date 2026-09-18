@@ -91,7 +91,8 @@
     // the catch radius, and the rim is diveReachFt (#669).
     "windowPadFt": 4,
     "diveReachFt": 8,
-    "jumpReachFt": 8,
+    // #719: the jump is the arc below, not eight feet of horizontal reach.
+    "jumpReachFt": 0,
     "diveMaxBallY": 7.5,
     "needsJumpReachFt": 22,
     "jumpRobFt": 4,
@@ -124,7 +125,14 @@
     // 0.465 at Field 10 before the diver moves or throws.
     "autoDive": 0,
     "diveRecoverySec": 0.60,
-    "diveRecoveryFieldCut": 0.025
+    "diveRecoveryFieldCut": 0.025,
+    // #719: the normal jump. A fresh eligible West press takes off at once: 2.0 ft of root rise over 0.60 s (apex at 0.30),
+    // the same for every character, one profile per press; a press blocked by the read or a recovery is remembered 0.10 s;
+    // airborne the stick works at a tenth of the ground rates and a neutral body coasts; a jumping catch throws after it lands.
+    "jumpAirSec": 0.60,
+    "jumpRiseFt": 2.0,
+    "jumpBufferSec": 0.10,
+    "jumpAirResponseMul": 0.10
   },
   "drops": {
     "heatball": 0.35,
