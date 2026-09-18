@@ -1306,7 +1306,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-51 | Runner on 1st sent on contact, liner to SS caught | CPU SS | SS steps on 1B or throws: runner doubled off if arrival wins |
 | S-52 | Runner on 2nd off the bag, liner to CF caught, throw to 2B | | Doubled off / safe by arrival |
 | S-53 | Runner on 3rd holding on the bag, liner caught | | One out; runner stays |
-| S-54 | Runner on 3rd tags on a 220 ft fly to LF (arm Field 9), goes | | Throw home; out or safe by arrival; a close-play icon only if within 0.25 s |
+| S-54 | Runner on 3rd tags on a 220 ft fly to LF (arm Field 9), goes (on the `c80` copy the runner reads the race and holds on that fly; the compact row is a 250 ft fly, #715) | | Throw home; out or safe by arrival; a close-play icon only if within 0.25 s |
 | S-55 | Bases loaded, pop to SS dropped on purpose | CPU runners | Runners on bags; force at home only |
 | S-55b | Runner on 3rd tags on a caught fly; the relay then loses the ball (sail, uncovered lob, or item) | CPU runners | The catch is the out and is never re-read as a drop: no second retouch, so no force back at the bag he legally left. His fate from there is geometry — he scores, or the recovered ball beats him to the plate (#692) |
 | S-56 | Fly 12 ft over the fence, CF Super Jump in the window at the wall | West | Robbed, out |
