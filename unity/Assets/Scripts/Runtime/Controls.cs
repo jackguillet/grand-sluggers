@@ -82,6 +82,9 @@ namespace GrandSluggers.UnityClient
             readonly int _index;
             readonly bool _keys;
 
+            /// <summary>Which bound device this pad is (#718): the sim keeps a pursuit-stick calibration and arming per device.</summary>
+            public int Index => _index;
+
             public Pad(int index, bool keys)
             {
                 _index = index;
