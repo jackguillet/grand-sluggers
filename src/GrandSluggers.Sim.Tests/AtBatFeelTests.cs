@@ -3,6 +3,7 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
+[Trait("Rows", "compact")]
 public class AtBatFeelTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -420,7 +421,9 @@ public class AtBatFeelTests
         var dash = RunnerSystem.SpeedFtPerSec(dart, 1);
         Assert.True(dash > still, $"dash {dash} vs {still}");
         Assert.True(dash < still * 1.3, "dash is not a teleport");
-        Assert.True(FieldDash.ChaseMul() > 1);
+        // The C80 copy (#718): the fielder's dash is no free chase multiplier (dash.chaseMul 1.0); it is the Ball Dash carrier's.
+        if (TestRoot.Compact) Assert.Equal(1.0, FieldDash.ChaseMul());
+        else Assert.True(FieldDash.ChaseMul() > 1);
         var rio = _content.Must("rio");
         var nico = _content.Must("nico");
         Assert.True(FieldDash.BuddyTossOffered(_content.Chemistry.Between(rio, nico), 12)

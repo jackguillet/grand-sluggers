@@ -3,6 +3,7 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
+[Trait("Rows", "compact")]
 public class MatchTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -472,7 +473,9 @@ public class MatchTests
         var match = Match.Slice(_content, seed: 1, parkId: "crystal-rink");
         Assert.Equal("crystal-rink", match.Park.Id);
         Assert.Equal("ice", match.Park.Surface);
-        Assert.True(ParkHazards.InFreeze(match.Park, 40, 70));
+        // The C80 copy carries the hazards at the field's scale (#732): this volume stands at (36, 62).
+        var (iceX, iceZ) = TestRoot.Pick((40.0, 70.0), (36.0, 62.0));
+        Assert.True(ParkHazards.InFreeze(match.Park, iceX, iceZ));
         Assert.False(ParkHazards.InFreeze(match.Park, 0, 0));
     }
 
@@ -518,7 +521,9 @@ public class MatchTests
         Assert.Equal("dirt", park.Surface);
         Assert.Contains(park.Hazards, h => h.Type == "billboard");
         Assert.Contains(park.Hazards, h => h.Type == "ac_unit");
-        Assert.True(ParkHazards.HitStarSign(park, -80, 240));
+        // The C80 copy carries the hazards at the field's scale (#732): this sign stands at (-56, 168).
+        var (signX, signZ) = TestRoot.Pick((-80.0, 240.0), (-56.0, 168.0));
+        Assert.True(ParkHazards.HitStarSign(park, signX, signZ));
         Assert.False(ParkHazards.HitStarSign(park, 0, 0));
     }
 
@@ -570,7 +575,9 @@ public class MatchTests
         Assert.Contains(park.Hazards, h => h.Type == "lava_pit");
         Assert.Contains(park.Hazards, h => h.Type == "fire_breath");
         Assert.Contains(park.Hazards, h => h.Type == "statue");
-        Assert.True(ParkHazards.InSlow(park, 38, 78));
+        // The C80 copy carries the hazards at the field's scale (#732): this pit stands at (34, 69).
+        var (pitX, pitZ) = TestRoot.Pick((38.0, 78.0), (34.0, 69.0));
+        Assert.True(ParkHazards.InSlow(park, pitX, pitZ));
         Assert.False(ParkHazards.InSlow(park, 0, 0));
         Assert.Equal("ember-keep", PresetTeams.HomeParkId("ashlord"));
         Assert.Equal("canopy-yard", PresetTeams.HomeParkId("konga"));
