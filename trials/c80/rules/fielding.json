@@ -118,7 +118,13 @@
     "hoverMinSec": 0.25,
     "jumpArmSec": 0.55,
     "wallJumpArmSec": 0.7,
-    "diveArmSec": 0.5
+    "diveArmSec": 0.5,
+    // #719: nobody dives for free. No assistance dive on a neutral stick, no unconditional CPU dive; the CPU commits on the live
+    // ball at the last makeable moment and can miss. Every dive, caught or missed, human or CPU, costs 0.60 s at Field 1 down to
+    // 0.465 at Field 10 before the diver moves or throws.
+    "autoDive": 0,
+    "diveRecoverySec": 0.60,
+    "diveRecoveryFieldCut": 0.025
   },
   "drops": {
     "heatball": 0.35,
