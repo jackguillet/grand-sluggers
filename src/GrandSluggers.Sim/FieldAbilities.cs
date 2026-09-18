@@ -41,6 +41,14 @@ public static class FieldAbilities
         };
     }
 
+    /// <summary>Ball Dash (F693-02-ball-dash-carrier, #718): the one ability that is about the body's own feet with the ball in its glove.</summary>
+    public static bool HasBallDash(Character c) =>
+        c.FieldAbility.Equals("ball-dash", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>What a body carries the ball at, as a multiple of its pursuit speed: <c>fielding.abilities.ballDashMul</c> for a Ball Dash holder, 1 for everyone else.</summary>
+    public static double CarryMul(Character c, RulesTable? rules = null) =>
+        HasBallDash(c) ? Rules.Or(rules).Fielding.Abilities.BallDashMul : 1.0;
+
     public static bool IgnoresParkSlow(Character c) =>
         c.FieldAbility.Equals("burrow", StringComparison.OrdinalIgnoreCase);
 
