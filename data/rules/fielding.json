@@ -45,7 +45,12 @@
     "startSec": 0.23,
     "stopFt": 1.2,
     "radiusFt": 6,
-    "backupFt": 60
+    "backupFt": 60,
+    // #718: how much of a body's reaction lockout gates its cover walk, and how much of its own pursuit speed the walk
+    // uses instead of the flat ftPerSec. 1 and 0 are the rule the game shipped with (D11); trials/c80 carries 0 and 1 —
+    // cover, cutoff and backup walk at the body's own speed from contact.
+    "lockoutMul": 1,
+    "chaseSpeedWeight": 0
   },
   "dash": {
     "chaseMul": 1.35,

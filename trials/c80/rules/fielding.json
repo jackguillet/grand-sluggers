@@ -1,9 +1,11 @@
 {
   "chase": {
-    "baseFtPerSec": 21,
-    "ftPerSecPerRun": 1.9,
+    // #718 (F693-02-pursuit-*): the whole speed curve x 18 / 30.5, so a Run-5 body runs 18.0 ft/s where it ran 30.5 and the
+    // spread between characters is kept (1.12 / 12.4 against the shipped 1.9 / 21). The floor scales with it.
+    "baseFtPerSec": 12.4,
+    "ftPerSecPerRun": 1.12,
     "frozenMul": 0.45,
-    "minFtPerSec": 8,
+    "minFtPerSec": 4.72,
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
     "swapLockSec": 0.7,
@@ -27,25 +29,31 @@
     "infieldAirMul": 0.45
   },
   "reaction": {
-    "pitcherSec": 0.42,
-    "catcherSec": 0.67,
-    "firstSec": 0.27,
+    // #718 (the four read clocks): pitcher 0.35, catcher 0.45, one number for the infield four, outfield 0.40 — the
+    // largest single change in the profile, and the one most likely to show in 3d.
+    "pitcherSec": 0.35,
+    "catcherSec": 0.45,
+    "firstSec": 0.25,
     "secondSec": 0.25,
-    "thirdSec": 0.30,
-    "shortSec": 0.28,
+    "thirdSec": 0.25,
+    "shortSec": 0.25,
     // #609: the reference's 50 frames (P7 had 2.4 to hold S-29). The human glove waits it at every rung; CPU
     // bodies wait it x cpu.reactionMul; a ball in the air caps every lockout at its hang.
-    "outfieldSec": 0.83,
+    "outfieldSec": 0.40,
     "throwBaseSec": 0.35,
     "throwPerFieldSec": 0.02,
     "throwMinSec": 0.08
   },
   "cover": {
+    // #718 (F693-02-coverage-budget): cover, cutoff and backup walk at the body's own pursuit speed (chaseSpeedWeight 1;
+    // ftPerSec is inert here) from contact with no read (startSec 0, lockoutMul 0). Retained in feet: stopFt, radiusFt, backupFt.
     "ftPerSec": 28,
-    "startSec": 0.23,
+    "startSec": 0,
     "stopFt": 1.2,
     "radiusFt": 6,
-    "backupFt": 60
+    "backupFt": 60,
+    "lockoutMul": 0,
+    "chaseSpeedWeight": 1
   },
   "dash": {
     "chaseMul": 1.35,

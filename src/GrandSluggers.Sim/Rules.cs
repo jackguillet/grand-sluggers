@@ -1099,17 +1099,27 @@ public sealed class ReactionRules
     };
 }
 
-/// <summary>Cover, cutoff and backup bodies (§8.7): a flat speed (D11) after a start delay; a throw is caught inside the cover radius of its target.</summary>
+/// <summary>
+/// Cover, cutoff and backup bodies (§8.7): on the shipped table a flat speed (D11) after a start delay, gated by the
+/// body's reaction lockout; on the c80 copy the body's own pursuit speed from contact with no read
+/// (F693-02-coverage-budget, #718) — covering is a known assignment to a fixed spot, not the recognition of where a
+/// ball went. A throw is caught inside the cover radius of its target.
+/// </summary>
 public sealed class CoverRules
 {
+    /// <summary>The flat cover speed (D11); <see cref="ChaseSpeedWeight"/> blends the body's own speed over it.</summary>
     [Positive] public double FtPerSec { get; init; } = 28;
-    /// <summary>Cover starts walking this long after contact.</summary>
+    /// <summary>Cover starts walking this long after contact. 0 is at contact.</summary>
     public double StartSec { get; init; } = 0.23;
     public double StopFt { get; init; } = 1.2;
     /// <summary>A throw landing farther than this from the receiver is not caught: it skips past, live (§8.5).</summary>
     [Positive] public double RadiusFt { get; init; } = 6;
     /// <summary>The backup body stands this far behind a throw's target, on its line.</summary>
     [Positive] public double BackupFt { get; init; } = 60;
+    /// <summary>How much of the body's reaction lockout (§8.2) gates its cover walk: 1 is the shipped rule, 0 the c80 rule (#718).</summary>
+    [Chance] public double LockoutMul { get; init; } = 1;
+    /// <summary>How much of the body's own pursuit speed (<c>fielding.chase</c>) a cover, cutoff or backup walk uses in place of <see cref="FtPerSec"/>: 0 is the flat speed exactly, 1 the body's speed (#718).</summary>
+    [Chance] public double ChaseSpeedWeight { get; init; } = 0;
 }
 
 /// <summary>

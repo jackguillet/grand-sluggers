@@ -61,7 +61,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, and the forced-relay ceiling `throw.onTheFlyFt` set to never. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -424,3 +424,42 @@ home goes 11 → 9 and the fly-out double play 2 → 0. The control is unchanged
 
 **What is deliberately not here.** A runner on first has no race (the threshold is infinite); the late break on
 a throw to the cutoff is shut by design; both are new behaviour for their own rows if wanted.
+
+---
+
+[#718](https://github.com/jackguillet/grand-sluggers/issues/718) slice 1 — the pursuit contract's speed, its
+four read clocks, and cover at contact (F693-02-pursuit-speed, the read clocks, F693-02-coverage-budget). All in
+`rules/fielding.json`; the shipped table gains two cover switches at the values that are today's rule.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `chase.baseFtPerSec` + `ftPerSecPerRun` × Run | 21 + 1.9 × Run (30.5 at Run 5) | **12.4 + 1.12 × Run** (18.0 at Run 5, the spread kept to half a percent); floor 8 → 4.72 |
+| `reaction` P / C / 1B 2B 3B SS / OF | 0.42 / 0.67 / 0.27 0.25 0.30 0.28 / 0.83 | **0.35 / 0.45 / 0.25 × 4 / 0.40** |
+| `cover.startSec`, `lockoutMul`, `chaseSpeedWeight` | 0.23, 1, 0 — D11's flat 28 ft/s after the start and the body's read | **0, 0, 1** — cover, cutoff and backup walk at the body's own pursuit speed from contact, no read |
+
+`FieldingResolver.CoverSpeedFt` is one function for the live walks, the CPU's cover-arrival estimate and the bunt
+square's cover walk; at weight 0 it returns `cover.ftPerSec` itself, so the shipped walk is the same double it always
+was — 20 `cli match` seeds and all 50 S-29 cohort games identical to pristine `main`.
+
+**What it does to a run.** This is the slice the tracker said would show: every one of the 48 trial seeds diverges
+from slice 3 and 39 scorelines change. Legs at 18 ft/s instead of 30.5 outweigh the faster reads —
+
+| 48 trial seeds | slice 3 | #718 slice 1 |
+| --- | --- | --- |
+| fly outs | 701 | **551** |
+| singles / doubles / triples | 110 / 9 / 0 | **201 / 52 / 13** |
+| home runs | 75 | 63 |
+
+— and S-29 under the trial goes **0.90 / 1.24 → 1.74 / 1.56** runs a side, the first time the compact profile has
+been near its 1.8 floor. Read the direction, not the digits: the pursuit speed and the reads are accepted anchors, and
+3d bands the whole profile once catch, dive and the response law have landed on top of them.
+
+**Reported, not repaired.** `chase.outfieldAirMul` 0.6 and `infieldAirMul` 0.45 — the S-29 levers of #609 and #636
+— still multiply the new speed, so an outfielder under a fly runs 10.8 ft/s at Run 5; #718 does not name them and
+this slice leaves them for the calibration that decides the air balls. The pursuit planner's travel estimate assumes
+the body is at speed from its first step, which is true until slice 2's acceleration ramp. The in-process scenario
+that pins cover-at-contact stands the bodies on the shipped spots.
+
+**What slice 2 does.** The response law — a 0.20 s ramp to speed, a 0.10 s brake, reversal as brake then ramp —
+and the carry: ordinary carry at the pursuit top speed, the universal activated sprint retired in favour of a
+1.20× Ball Dash for the ability's carriers, of whom the roster currently has none.

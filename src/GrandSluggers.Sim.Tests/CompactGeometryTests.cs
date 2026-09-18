@@ -349,12 +349,26 @@ public sealed class CompactGeometryTests
         var trialLeaves = Leaves(Path.Combine(Overlay, "rules", "fielding.json"));
         Assert.Equal(shippedLeaves.Keys, trialLeaves.Keys);
         var moved = shippedLeaves.Where(kv => trialLeaves[kv.Key] != kv.Value).Select(kv => kv.Key).ToList();
-        // #732's pad and #722's throw clock (slice 1: release, travel, the long-throw loss, the bad pair's
-        // speed and no slant; slice 2: the forced-relay ceiling set to never). Nothing else in the table
-        // moves, and a new difference has to be named here.
+        // #732's pad; #722's throw clock (slice 1: release, travel, the long-throw loss, the bad pair's speed and
+        // no slant; slice 2: the forced-relay ceiling set to never); #718's speed, reads and cover at contact.
+        // Nothing else in the table moves, and a new difference has to be named here.
         Assert.Equal(
-            ["chem.badSpeedMul", "chem.slantChance", "park.pipeReachPadFt", "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.releaseSec"],
+            [
+                "chase.baseFtPerSec", "chase.ftPerSecPerRun", "chase.minFtPerSec",
+                "chem.badSpeedMul", "chem.slantChance",
+                "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
+                "park.pipeReachPadFt",
+                "reaction.catcherSec", "reaction.firstSec", "reaction.outfieldSec", "reaction.pitcherSec", "reaction.shortSec", "reaction.thirdSec",
+                "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.releaseSec"
+            ],
             moved);
+        Assert.Equal(("21", "12.4"), (shippedLeaves["chase.baseFtPerSec"], trialLeaves["chase.baseFtPerSec"]));
+        Assert.Equal(("0.83", "0.40"), (shippedLeaves["reaction.outfieldSec"], trialLeaves["reaction.outfieldSec"]));
+        Assert.Equal(("0.23", "0"), (shippedLeaves["cover.startSec"], trialLeaves["cover.startSec"]));
+        Assert.Equal(("1", "0"), (shippedLeaves["cover.lockoutMul"], trialLeaves["cover.lockoutMul"]));
+        Assert.Equal(("0", "1"), (shippedLeaves["cover.chaseSpeedWeight"], trialLeaves["cover.chaseSpeedWeight"]));
+        // secondSec was already 0.25 and does not move: the infield's one number is the number second already had.
+        Assert.Equal(shippedLeaves["reaction.secondSec"], trialLeaves["reaction.secondSec"]);
         Assert.Equal(("200", "9999"), (shippedLeaves["throw.onTheFlyFt"], trialLeaves["throw.onTheFlyFt"]));
         Assert.Equal(("8", "5.6"), (shippedLeaves["park.pipeReachPadFt"], trialLeaves["park.pipeReachPadFt"]));
         Assert.Equal(("0.22", "0.30"), (shippedLeaves["throw.releaseSec"], trialLeaves["throw.releaseSec"]));

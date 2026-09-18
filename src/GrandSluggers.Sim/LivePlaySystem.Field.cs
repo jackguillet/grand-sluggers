@@ -1377,7 +1377,7 @@ public sealed partial class LivePlaySystem
             return double.PositiveInfinity;
         var cover = R.Fielding.Cover;
         var at = Diamond.Bag(bag);
-        var walk = Math.Max(0, Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) - cover.RadiusFt) / Math.Max(1, cover.FtPerSec);
+        var walk = Math.Max(0, Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) - cover.RadiusFt) / Math.Max(1, CoverSpeed(coverPos, Assigned()));
         return Math.Max(CpuThrowArrivalSec(bag), walk);
     }
 
@@ -1784,11 +1784,23 @@ public sealed partial class LivePlaySystem
         return true;
     }
 
-    /// <summary>Cover bodies walk to their bags at the flat cover speed after the start delay (§8.7, D11).</summary>
+    /// <summary>
+    /// The speed the body at <paramref name="pos"/> walks to a bag, the throw line or a backup spot (§8.7): the flat cover
+    /// speed on the shipped table, the body's own pursuit speed as far as the c80 copy reads it (#718).
+    /// </summary>
+    double CoverSpeed(string pos, IReadOnlyDictionary<string, Character> bodies) =>
+        bodies.TryGetValue(pos, out var who) ? FieldingResolver.CoverSpeedFt(who, R) : R.Fielding.Cover.FtPerSec;
+
+    /// <summary>
+    /// Cover bodies walk to their bags (§8.7): on the shipped table at the flat cover speed after the start delay and the
+    /// body's reaction lockout (D11); on the c80 copy at the body's own pursuit speed from contact, with no read
+    /// (F693-02-coverage-budget, #718) — <c>cover.lockoutMul</c> 0 and <c>cover.startSec</c> 0.
+    /// </summary>
     void TickCoverBags(double dt)
     {
         if (Preview is null && !RunnerPlay) return;
         var cover = R.Fielding.Cover;
+        var bodies = Assigned();
         var onBall = OnBallPos;
         var map = CoverMapNow();
         var squared = !RunnerPlay && BuntDefense.Squared(Swing);
@@ -1798,12 +1810,12 @@ public sealed partial class LivePlaySystem
             if (string.IsNullOrEmpty(pos) || pos == onBall || pos == _cutoffPos || pos == _backupPos || Coasting(pos)) continue;
             // A body already walking on the square keeps walking through the crack (§7.3); the rest wait the cover start.
             var onSquare = squared && BuntDefense.CoverBag(pos, R.Fielding.Bunt) == kv.Key;
-            if (!RunnerPlay && !onSquare && ElapsedSeconds < Math.Max(cover.StartSec, ReadyAt(pos))) continue;
+            if (!RunnerPlay && !onSquare && ElapsedSeconds < Math.Max(cover.StartSec, cover.LockoutMul * ReadyAt(pos))) continue;
             // A charge body converges on the bunt instead of covering an idle bag (ChargeBunt).
             if (!HoldsBall && !Throwing && !_loose && BuntChargeBody(pos, map)) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             var goal = Diamond.Bag(kv.Key);
-            _fielders[pos] = StepFlat(at, goal, cover.FtPerSec, cover.StopFt, dt);
+            _fielders[pos] = StepFlat(at, goal, CoverSpeed(pos, bodies), cover.StopFt, dt);
         }
     }
 
@@ -1831,18 +1843,19 @@ public sealed partial class LivePlaySystem
         }
     }
 
-    /// <summary>The cutoff walks to the throw line and the backup to its spot behind the target (§8.7).</summary>
+    /// <summary>The cutoff walks to the throw line and the backup to its spot behind the target (§8.7), at the cover speed the table gives their bodies (#718).</summary>
     void TickCutoffAndBackup(double dt)
     {
         var cover = R.Fielding.Cover;
+        var bodies = Assigned();
         // The cutoff walks to the line while the ball is in the air, YOU ring or not (the ring is handed to
         // the receiver at release, §8.5); once they hold it the spot is cleared.
         if (!string.IsNullOrEmpty(_cutoffPos) && _cutoffSpot is { } spot && (Throwing || _cutoffPos != GlovePos)
             && _fielders.TryGetValue(_cutoffPos, out var cutAt) && CanMove(_cutoffPos) && !Coasting(_cutoffPos))
-            _fielders[_cutoffPos] = StepFlat(cutAt, spot, cover.FtPerSec, cover.StopFt, dt);
+            _fielders[_cutoffPos] = StepFlat(cutAt, spot, CoverSpeed(_cutoffPos, bodies), cover.StopFt, dt);
         if (!string.IsNullOrEmpty(_backupPos) && _backupPos != GlovePos
             && _fielders.TryGetValue(_backupPos, out var backAt) && CanMove(_backupPos) && !Coasting(_backupPos))
-            _fielders[_backupPos] = StepFlat(backAt, _backupSpot, cover.FtPerSec, cover.StopFt, dt);
+            _fielders[_backupPos] = StepFlat(backAt, _backupSpot, CoverSpeed(_backupPos, bodies), cover.StopFt, dt);
     }
 
     (double X, double Z) StepFlat((double X, double Z) at, (double X, double Z) goal, double speed, double stopFt, double dt)
