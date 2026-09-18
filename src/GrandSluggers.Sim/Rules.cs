@@ -1222,6 +1222,13 @@ public sealed class CatchRules
 {
     [Positive] public double RadiusBaseFt { get; init; } = 10;
     public double RadiusPerField { get; init; } = 0.6;
+    /// <summary>
+    /// The authored stand-up reach every body without its own <see cref="Character.ReachFt"/> gets (F693-02-catch-reach-envelope,
+    /// #719): roughly what the visible glove covers from a planted stance, independent of ratings. 0 keeps the legacy
+    /// <c>radiusBaseFt + Field × radiusPerField</c> the game shipped with; the c80 copy carries 6.0. A character's authored
+    /// <c>reachFt</c> wins over both, and the ability bonuses add to whichever applies.
+    /// </summary>
+    public double StandUpReachFt { get; init; } = 0;
     public double ClamberRadiusFt { get; init; } = 6;
     public double WindowPadFt { get; init; } = 4;
     public double DiveReachFt { get; init; } = 8;
