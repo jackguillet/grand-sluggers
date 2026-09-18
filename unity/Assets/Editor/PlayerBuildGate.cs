@@ -151,6 +151,14 @@ namespace GrandSluggers.EditorTools
 
             WriteDone(temp, ok, exe, err, revision);
             Debug.Log("Grand Sluggers player gate: " + (ok ? "ok " + exe : err));
+            // Only the owned delivery editor opts in; manual menu builds and failed builds stay open.
+            // Exit in this update: a background GUI editor on macOS can stop ticking after the build,
+            // so a delayCall exit may never run (2026-09-18).
+            if (ok && Environment.GetEnvironmentVariable("GS_BUILD_QUIT_WHEN_DONE") == "1")
+            {
+                Debug.Log("Grand Sluggers player gate: exiting the owned build editor.");
+                EditorApplication.Exit(0);
+            }
         }
 
         static bool Mac(string json)
@@ -189,9 +197,6 @@ namespace GrandSluggers.EditorTools
             destination = Path.GetFullPath(destination);
             Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
             File.WriteAllText(destination, JsonUtility.ToJson(evidence, true));
-            // Only the owned delivery editor opts in; manual menu builds stay open.
-            if (Environment.GetEnvironmentVariable("GS_BUILD_QUIT_WHEN_DONE") == "1")
-                EditorApplication.delayCall += () => EditorApplication.Exit(ok ? 0 : 1);
         }
 
         [Serializable]
