@@ -16,10 +16,12 @@ public static class FieldingPursuit
         double SpeedFtPerSec,
         double AvailableSec,
         bool Reachable,
-        bool AirCatch)
+        bool AirCatch,
+        /// <summary>Seconds the body loses getting to speed (#718): half the ramp, charged once to the route. 0 on the shipped table.</summary>
+        double RampSec = 0)
     {
-        public double TravelTimeSec => TravelFt / Math.Max(0.01, SpeedFtPerSec);
-        public double MissFt => Math.Max(0, TravelFt - SpeedFtPerSec * AvailableSec);
+        public double TravelTimeSec => TravelFt / Math.Max(0.01, SpeedFtPerSec) + RampSec;
+        public double MissFt => Math.Max(0, TravelFt - SpeedFtPerSec * Math.Max(0, AvailableSec - RampSec));
     }
 
     public readonly record struct Choice(Character Fielder, string Position, Route Route);
@@ -135,8 +137,10 @@ public static class FieldingPursuit
         var travel = Diamond.Dist(fromX, fromZ, x, z);
         var available = Math.Max(0, meetSec - nowSec);
         var speed = Math.Max(0, speedFtPerSec);
+        // The response law (#718): a body from rest reaches its speed over accelSec, which costs it half that ramp of travel.
+        var ramp = rules.Fielding.Chase.AccelSec / 2;
         return new Route(x, z, meetSec, travel, speed, available,
-            travel <= speed * available + rules.Fielding.Chase.ReachSlackFt, airCatch);
+            travel <= speed * Math.Max(0, available - ramp) + rules.Fielding.Chase.ReachSlackFt, airCatch, ramp);
     }
 
     /// <summary>

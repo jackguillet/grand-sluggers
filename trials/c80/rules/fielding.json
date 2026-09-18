@@ -1,9 +1,11 @@
 {
   "chase": {
-    "baseFtPerSec": 21,
-    "ftPerSecPerRun": 1.9,
+    // #718 (F693-02-pursuit-*): the whole speed curve x 18 / 30.5, so a Run-5 body runs 18.0 ft/s where it ran 30.5 and the
+    // spread between characters is kept (1.12 / 12.4 against the shipped 1.9 / 21). The floor scales with it.
+    "baseFtPerSec": 12.4,
+    "ftPerSecPerRun": 1.12,
     "frozenMul": 0.45,
-    "minFtPerSec": 8,
+    "minFtPerSec": 4.72,
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
     "swapLockSec": 0.7,
@@ -24,28 +26,38 @@
     // 0.45 2.64 / 2.32 and 2.16-2.72 a side over four seed sets with infield pops still caught (0.02-0.04 pop hits a
     // game); 0.4 2.72 / 2.12 and pops start to drop. A flat multiplier on every air ball drops liners in front of the
     // infield instead (hits inside the lip 0.04 -> 0.20 a game at 0.6).
-    "infieldAirMul": 0.45
+    "infieldAirMul": 0.45,
+    // #718 (F693-02-carry-movement-response): rest to the rated speed in 0.20 s, the rated speed to rest in 0.10 s; a reversal
+    // is the brake and then the ramp. The pursuit planner charges half the ramp to every route.
+    "accelSec": 0.20,
+    "brakeSec": 0.10
   },
   "reaction": {
-    "pitcherSec": 0.42,
-    "catcherSec": 0.67,
-    "firstSec": 0.27,
+    // #718 (the four read clocks): pitcher 0.35, catcher 0.45, one number for the infield four, outfield 0.40 — the
+    // largest single change in the profile, and the one most likely to show in 3d.
+    "pitcherSec": 0.35,
+    "catcherSec": 0.45,
+    "firstSec": 0.25,
     "secondSec": 0.25,
-    "thirdSec": 0.30,
-    "shortSec": 0.28,
+    "thirdSec": 0.25,
+    "shortSec": 0.25,
     // #609: the reference's 50 frames (P7 had 2.4 to hold S-29). The human glove waits it at every rung; CPU
     // bodies wait it x cpu.reactionMul; a ball in the air caps every lockout at its hang.
-    "outfieldSec": 0.83,
+    "outfieldSec": 0.40,
     "throwBaseSec": 0.35,
     "throwPerFieldSec": 0.02,
     "throwMinSec": 0.08
   },
   "cover": {
+    // #718 (F693-02-coverage-budget): cover, cutoff and backup walk at the body's own pursuit speed (chaseSpeedWeight 1;
+    // ftPerSec is inert here) from contact with no read (startSec 0, lockoutMul 0). Retained in feet: stopFt, radiusFt, backupFt.
     "ftPerSec": 28,
-    "startSec": 0.23,
+    "startSec": 0,
     "stopFt": 1.2,
     "radiusFt": 6,
-    "backupFt": 60
+    "backupFt": 60,
+    "lockoutMul": 0,
+    "chaseSpeedWeight": 1
   },
   "dash": {
     "chaseMul": 1.35,
@@ -108,21 +120,39 @@
     "superJumpCatchBonusFt": 3,
     "superJumpFlyRangeFt": 22,
     "diveGroundRangeFt": 16,
-    "laserMul": 1.45,
-    "snapThrowMul": 1.22
+    // #723: Laser is x1.25 and only on a throw home with a live runner on third or the third-home segment (a cutoff feed never
+    // carries it); Snap Throw is a 0.22 s release after a clean received teammate throw at x1.0 flight against the ordinary 0.30.
+    "laserMul": 1.25,
+    "snapThrowMul": 1.0,
+    "snapReleaseSec": 0.22,
+    "laserHomeOnly": 1
   },
   "throw": {
-    "releaseSec": 0.22,
-    "baseFtPerSec": 100,
+    // #722 (F693-03-release-clock, F693-03-travel-clock): 0.30 s release, 0.90 s of flight over 80 ft for the neutral arm.
+    "releaseSec": 0.30,
+    "baseFtPerSec": 88.89,
     "minFtPerSec": 32,
     "armBase": 0.85,
     "armPerField": 0.03,
+    // #722 (F693-03-long-throw-numbers): R = 160 + 5 (Arm - 5); flight += 0.60 x ((d - R) / 80)^2 past it, divided by
+    // chemistry and ability with the rest. An Arm 5 throw is 4.80 s from 280 ft and 10.20 s from 400; a relay through
+    // SS on the compact centre line arrives first beyond 221 / 237 / 258 / 272 ft for an Arm 3 / 5 / 8 / 10 thrower.
+    "comfortableRangeFt": 160,
+    "rangePerArmFt": 5,
+    "longThrowLossSec": 0.60,
     "lateralSigmaPerFieldDeficitFt": 0.35,
     "lobMaxSec": 1.5,
-    "onTheFlyFt": 200,
+    // #722 (decision 6 of #730): never forced. The CPU relays when the relay arrives first by the rung's relayBiasSec in
+    // rules/cpu.json, and for no other reason. On this clock a relay through SS on the centre line wins beyond 221 / 237 /
+    // 258 / 272 ft for an Arm 3 / 5 / 8 / 10 thrower.
+    "onTheFlyFt": 9999,
     "unassistedFt": 8,
     "handHeightFt": 3.2,
-    "bagHeightFt": 1.2
+    "bagHeightFt": 1.2,
+    // #723 (F693-03-relay-ownership): each human relay leg needs its own command; an early press is remembered for 0.25 s of
+    // active play and fires at the catch; bag selectors retarget it; a fresh RB / period cancels it.
+    "relayAutoContinue": 0,
+    "relayBufferSec": 0.25
   },
   "overthrow": {
     "carryMul": 0.35,
@@ -139,7 +169,9 @@
   },
   "chem": {
     "goodSpeedMul": 1.30,
-    "slantChance": 0.20,
+    // #722 (F693-03-negative-chemistry): a bad pair is slow, not random. 0.90 x the arm on every bad throw, no slant.
+    "badSpeedMul": 0.90,
+    "slantChance": 0,
     "slantSpeedMul": 0.70,
     "slantLateralMinFt": 10,
     "slantLateralMaxFt": 14
@@ -169,8 +201,9 @@
     // #732, #730 decision 4: the pad is the larger part of a barrel's capture disc (radius + pad), so it
     // takes the fence scale with the radii in the park files. 8 x 0.70 = 5.60: a Canopy barrel's disc is
     // 3.50 + 5.60 = 9.10 ft, exactly 0.70 of the shipped 13.00; scaling the radius alone would have left it
-    // at 11.50. emberNightFireMul is dimensionless and does not move. Every other value in this file is
-    // the shipped table, byte for byte; this copy exists for this one number.
+    // at 11.50. emberNightFireMul is dimensionless and does not move. Apart from this line and the #722
+    // throw clock above (throw.releaseSec / baseFtPerSec / longThrowLossSec, chem.badSpeedMul / slantChance),
+    // every value in this file is the shipped table, byte for byte.
     "pipeReachPadFt": 5.6,
     "shellWarpChance": 0.6
   },

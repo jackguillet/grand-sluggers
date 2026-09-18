@@ -20,7 +20,9 @@ public sealed record LivePadInput(
     /// <summary>RB held on the offense pad: every runner comes back. A tap while they run halts them.</summary>
     bool AllReturn = false,
     /// <summary>Both shoulders: halt every runner; with the stick toward a bag, only that runner.</summary>
-    bool Freeze = false)
+    bool Freeze = false,
+    /// <summary>RB / period on the defense pad (#723, F693-03-throw-cancel): cancels a queued onward throw. Read as a fresh press, never a held shoulder.</summary>
+    bool Cancel = false)
 {
     public static LivePadInput Dead { get; } = new();
 
@@ -94,7 +96,11 @@ public enum LiveEvent
     /// <summary>An out was recorded this frame (§15, #690): OUT / DIVE / JUMP at the glove or bag.</summary>
     StampOut,
     /// <summary>A runner crossed the plate this frame (§15, #690): SCORE at home.</summary>
-    StampScore
+    StampScore,
+    /// <summary>A human's onward-throw press was remembered while the ball flies to their receiver (#723): the queue tell.</summary>
+    ThrowQueued,
+    /// <summary>The remembered press was cancelled or expired (#723): the tell clears.</summary>
+    ThrowQueueCleared
 }
 
 /// <summary>
@@ -138,6 +144,10 @@ public sealed partial class LivePlaySystem
     string _coastPos = "";
     (double X, double Z) _coastVel;
     double _coastT;
+    /// <summary>Each body's velocity under the response law (#718), ft/s. Empty on the shipped table, whose steps are instantaneous.</summary>
+    readonly Dictionary<string, (double X, double Z)> _vel = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>The bodies a walker stepped this frame; the rest brake to a stop at the start of the next.</summary>
+    readonly HashSet<string> _stepped = new(StringComparer.OrdinalIgnoreCase);
 
     // A ball on the ground in nobody's glove and off its batted path: a fumble, an overthrow, a drop at an uncovered bag.
     bool _loose;
@@ -153,6 +163,12 @@ public sealed partial class LivePlaySystem
     (double X, double Z) _backupSpot;
     double _lobT;
     int _relayBag;
+    /// <summary>The glove holds a ball it received cleanly from a teammate's throw (#723): Snap Throw's eligibility. A pickup, a bobble, a sail or a hand-off clears it.</summary>
+    bool _receivedClean;
+    /// <summary>A human's onward-throw command remembered while the ball is in flight to their receiver (#723), and its age in active seconds.</summary>
+    bool _queuePending;
+    double _queueAge;
+    bool _cancelWasDown;
 
     // The CPU glove's decision clock (§8.8): the throw waits for the reaction, then the table runs once per possession.
     double _cpuThrowAt = -1;
@@ -458,6 +474,12 @@ public sealed partial class LivePlaySystem
         _coastPos = "";
         _coastVel = (0, 0);
         _coastT = 0;
+        _vel.Clear();
+        _stepped.Clear();
+        _receivedClean = false;
+        _queuePending = false;
+        _queueAge = 0;
+        _cancelWasDown = false;
         _throwerPos = "";
         _cutoffPos = "";
         _cutoffSpot = null;
@@ -515,6 +537,10 @@ public sealed partial class LivePlaySystem
             : (0, 0);
         _gloveLast = (GlovePos, GloveX, GloveZ);
         _lastDt = dt;
+        // The response law (#718): a body nobody stepped last frame brakes to a stop; then this frame's steps begin.
+        TickIdleBrakes(dt);
+        // A human's onward-throw press while the ball is in flight to their receiver (#723): remembered, retargeted or cancelled.
+        TickThrowQueue(field, dt);
 
         // Dash: mash South on the offense pad (running.dash).
         if (run.SouthDown) Dash01 = Math.Min(R.Running.Dash.MaxDash, Dash01 + R.Running.Dash.PerPress);
@@ -680,9 +706,7 @@ public sealed partial class LivePlaySystem
         if (steering && map.TryGetValue(GlovePos, out var glove) && stick >= stickTake && CanMove(GlovePos))
         {
             var speed = FieldingResolver.ChaseSpeedFt(glove, GlovePos, pre, R, pad.EastHeld);
-            GloveX += pad.StickX * speed * dt;
-            GloveZ += pad.StickY * speed * dt;
-            var feet = FieldBounds.Clamp(Park, GloveX, GloveZ);
+            var feet = StepStick(GlovePos, (GloveX, GloveZ), pad.StickX, pad.StickY, speed, dt);
             GloveX = feet.X;
             GloveZ = feet.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1051,7 +1075,7 @@ public sealed partial class LivePlaySystem
         if (Throwing || pad.StickMag < Feel.FieldAssistStick || !CanMove(GlovePos)) return;
         if (!map.TryGetValue(GlovePos, out var glove)) return;
         var speed = FieldingResolver.ChaseSpeedFt(glove, GlovePos, _loose ? null : Preview, R, pad.EastHeld);
-        var feet = FieldBounds.Clamp(Park, GloveX + pad.StickX * speed * dt, GloveZ + pad.StickY * speed * dt);
+        var feet = StepStick(GlovePos, (GloveX, GloveZ), pad.StickX, pad.StickY, speed, dt);
         GloveX = feet.X;
         GloveZ = feet.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1082,7 +1106,7 @@ public sealed partial class LivePlaySystem
     {
         var who = GloveChar();
         var speed = FieldingResolver.ChaseSpeedFt(who, Preview?.Frozen ?? false, R);
-        var next = FieldingResolver.StepToward(GloveX, GloveZ, goal.X, goal.Z, speed, dt, Park, R);
+        var next = StepTo(GlovePos, (GloveX, GloveZ), goal, speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         GloveX = next.X;
         GloveZ = next.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1377,40 +1401,125 @@ public sealed partial class LivePlaySystem
             return double.PositiveInfinity;
         var cover = R.Fielding.Cover;
         var at = Diamond.Bag(bag);
-        var walk = Math.Max(0, Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) - cover.RadiusFt) / Math.Max(1, cover.FtPerSec);
+        var walk = Math.Max(0, Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) - cover.RadiusFt) / Math.Max(1, CoverSpeed(coverPos, Assigned()));
         return Math.Max(CpuThrowArrivalSec(bag), walk);
     }
 
     /// <summary>Seconds until this glove can have the ball at <paramref name="bag"/> by the quicker of its legs and a throw (§8.8).</summary>
     double CpuPlayArrivalSec(int bag) => Math.Min(CpuWalkSec(bag), CpuThrowReadySec(bag));
 
-    /// <summary>Seconds from now until a throw from this glove would land at <paramref name="bag"/>, through the cutoff when the arm cannot reach on the fly.</summary>
-    double CpuThrowArrivalSec(int bag)
+    /// <summary>
+    /// The CPU's read of a throw to a bag (§8.7, §8.8, #722): straight, or through the cutoff on the line, each on the
+    /// one clock with the real arms and the rung's read of the pair chemistry — and which leg it takes. Beyond
+    /// <c>fielding.throw.onTheFlyFt</c> the relay is forced, whatever the clock says; inside it the relay is taken when it
+    /// beats the direct throw by more than the rung's <c>cpu.*.relayBiasSec</c>. The shipped table's bias is a value no
+    /// relay can save, so there the ceiling alone decides, which is the rule the game shipped with.
+    /// </summary>
+    readonly record struct ThrowPlan(double DirectSec, double RelaySec, (string Pos, double X, double Z)? Cut, bool Forced, bool UseRelay)
     {
-        var to = Diamond.Bag(bag);
-        var thr = ArmOnly(GloveChar());
-        var dist = Diamond.Dist(GloveX, GloveZ, to.X, to.Z);
-        var cut = CutoffFor(bag);
-        if (cut is null) return InPlay.ThrowSec(dist, thr, R);
-        var (cutPos, cx, cz) = cut.Value;
-        var cutter = Assigned()[cutPos];
-        return InPlay.ThrowSec(Diamond.Dist(GloveX, GloveZ, cx, cz), thr, R)
-               + InPlay.ThrowReactionSec(cutter, R)
-               + InPlay.ThrowSec(Diamond.Dist(cx, cz, to.X, to.Z), ArmOnly(cutter), R);
+        /// <summary>Seconds until the ball is at the bag by the leg the CPU takes.</summary>
+        public double Sec => UseRelay ? RelaySec : DirectSec;
     }
 
-    /// <summary>The arm alone (no chemistry roll): the fielder's own estimate of a throw.</summary>
-    ThrowResult ArmOnly(Character who) =>
-        new(Chemistry.Neutral, InPlay.ArmMul(who, R) * FieldAbilities.ThrowMul(who, R), false);
+    ThrowPlan PlanThrow(double fromX, double fromZ, Character thrower, string throwerPos, int bag)
+    {
+        var level = R.Cpu.Active;
+        var to = Diamond.Bag(bag);
+        var map = Assigned();
+        var coverPos = CoverOf(bag);
+        var cover = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
+        var dist = Diamond.Dist(fromX, fromZ, to.X, to.Z);
+        var holding = throwerPos == GlovePos && _receivedClean;
+        var direct = InPlay.ThrowSec(dist, Forecast(thrower, cover, level.ReadsChemistry, bag, holding), R);
+        var forced = dist > R.Fielding.Throw.OnTheFlyFt;
+        var cut = InPlay.CutoffFor(fromX, fromZ, to.X, to.Z, _fielders, throwerPos, coverPos);
+        if (cut is null || !map.TryGetValue(cut.Value.Pos, out var cutter))
+            return new ThrowPlan(direct, direct, null, forced, false);
+        var (_, cx, cz) = cut.Value;
+        // The cutter will hold a received ball, so its leg gets Snap Throw's release if it carries the ability.
+        var relay = InPlay.ThrowSec(Diamond.Dist(fromX, fromZ, cx, cz), Forecast(thrower, cutter, level.ReadsChemistry, 0, holding), R)
+                    + InPlay.ThrowReactionSec(cutter, R)
+                    + InPlay.ThrowSec(Diamond.Dist(cx, cz, to.X, to.Z), Forecast(cutter, cover, level.ReadsChemistry, bag, true), R);
+        return new ThrowPlan(direct, relay, cut, forced, InPlay.RelayWins(direct, relay, forced, level.RelayBiasSec));
+    }
 
-    /// <summary>The CPU throws to <paramref name="bag"/>: straight when the arm reaches, through the cutoff on the line otherwise (§8.7).</summary>
+    /// <summary>Seconds from now until a throw from this glove would land at <paramref name="bag"/>, by the leg the CPU would take (§8.7).</summary>
+    double CpuThrowArrivalSec(int bag) => PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag).Sec;
+
+    /// <summary>The arm alone (no chemistry roll): the fielder's own estimate of a throw to <paramref name="bag"/> (0 for a cutoff feed), with the ability the command allows there and Snap Throw's release when the thrower holds a received ball (#723).</summary>
+    ThrowResult ArmOnly(Character who, int bag, bool receivedClean) =>
+        new(Chemistry.Neutral, InPlay.ArmMul(who, R) * AbilityMul(who, bag), false, Arm: who.Stats.Arm, ReleaseSec: SnapRelease(who, receivedClean));
+
+    /// <summary>
+    /// The CPU's forecast of a throw from <paramref name="from"/> to <paramref name="to"/>: the arm and ability exactly, and
+    /// the pair chemistry as far as the rung reads it (<c>cpu.*.readsChemistry</c>) — the deterministic pair factor, never a
+    /// sampled roll (F693-03-good-chemistry). At 0 it is the arm alone, which is what the shipped CPU forecasts.
+    /// </summary>
+    ThrowResult Forecast(Character from, Character? to, double chemistryRead, int bag, bool receivedClean)
+    {
+        var thr = ArmOnly(from, bag, receivedClean);
+        if (to is null || chemistryRead <= 0) return thr;
+        var chem = R.Fielding.Chem;
+        var pair = _match.Chemistry.Between(from, to) switch
+        {
+            Chemistry.Good => chem.GoodSpeedMul,
+            Chemistry.Bad => chem.BadSpeedMul,
+            _ => 1.0
+        };
+        return thr with { SpeedMul = thr.SpeedMul * (1 + chemistryRead * (pair - 1)) };
+    }
+
+    /// <summary>
+    /// The CPU runner's read of a throw released at (<paramref name="fromX"/>, <paramref name="fromZ"/>) by
+    /// <paramref name="thrower"/> to <paramref name="bag"/> (§9.9, #722): the fielder's own plan, with the rung's read of
+    /// the arm (<c>cpu.*.runnerReadsArm</c>), of the relay (<c>runnerReadsRelay</c>) and of the chemistry
+    /// (<c>readsChemistry</c>). At the shipped rungs' zeros it is the neutral flat throw the runner always read: a speed
+    /// multiplier of exactly 1 and no relay.
+    /// </summary>
+    double RunnerThrowSec(double fromX, double fromZ, Character? thrower, string throwerPos, int bag)
+    {
+        if (thrower is null) return InPlay.ThrowArrivalSec(fromX, fromZ, bag, null, R);
+        var level = R.Cpu.Active;
+        var to = Diamond.Bag(bag);
+        var map = Assigned();
+        var coverPos = CoverOf(bag);
+        var cover = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
+        var direct = InPlay.ThrowSec(Diamond.Dist(fromX, fromZ, to.X, to.Z), Read(thrower, cover, level, bag), R);
+        if (level.RunnerReadsRelay <= 0) return direct;
+        var plan = PlanThrow(fromX, fromZ, thrower, throwerPos, bag);
+        if (!plan.UseRelay || plan.Cut is not { } cut || !map.TryGetValue(cut.Pos, out var cutter)) return direct;
+        var relay = InPlay.ThrowSec(Diamond.Dist(fromX, fromZ, cut.X, cut.Z), Read(thrower, cutter, level, 0), R)
+                    + InPlay.ThrowReactionSec(cutter, R)
+                    + InPlay.ThrowSec(Diamond.Dist(cut.X, cut.Z, to.X, to.Z), Read(cutter, cover, level, bag), R);
+        return direct + level.RunnerReadsRelay * (relay - direct);
+    }
+
+    /// <summary>A throw as the CPU runner reads it: the neutral arm at <c>runnerReadsArm</c> 0, the real arm and ability at 1, the range rounded to the arm read; the chemistry as <see cref="Forecast"/> reads it.</summary>
+    ThrowResult Read(Character who, Character? to, CpuLevelRules level, int bag)
+    {
+        var real = Forecast(who, to, level.ReadsChemistry, bag, false);
+        var armPart = InPlay.ArmMul(who, R) * AbilityMul(who, bag);
+        var pairPart = real.SpeedMul / armPart;
+        var speed = (1 + level.RunnerReadsArm * (armPart - 1)) * pairPart;
+        var arm = (int)Math.Round(InPlay.NeutralArm + level.RunnerReadsArm * (who.Stats.Arm - InPlay.NeutralArm));
+        return new ThrowResult(Chemistry.Neutral, speed, false, Arm: arm);
+    }
+
+    /// <summary>The runner's clock (§9.9): <see cref="RunnerThrowSec"/> with the body at <paramref name="pos"/> as the thrower — whoever holds the ball next.</summary>
+    Func<double, double, int, double> RunnerClock(string pos)
+    {
+        var who = Assigned().TryGetValue(pos, out var body) ? body : null;
+        return (x, z, bag) => RunnerThrowSec(x, z, who, pos, bag);
+    }
+
+    /// <summary>The CPU throws to <paramref name="bag"/>: straight, or through the cutoff on the line when the relay is the leg the plan takes (§8.7).</summary>
     void CpuThrowTo(int bag)
     {
-        var cut = CutoffFor(bag);
-        if (cut is not null)
+        var plan = PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag);
+        if (plan.UseRelay && plan.Cut is { } cut)
         {
             _relayBag = bag;
-            BeginThrowToCutoff(cut.Value.Pos, cut.Value.X, cut.Value.Z);
+            BeginThrowToCutoff(cut.Pos, cut.X, cut.Z);
             return;
         }
         BeginThrowToBag(bag);
@@ -1425,27 +1534,24 @@ public sealed partial class LivePlaySystem
         var lead = Runners.Where(r => r.Live).OrderByDescending(r => r.Progress).FirstOrDefault();
         var bag = lead is null ? 2 : Math.Min(4, lead.Advancing ? lead.DestBag : lead.Bag + 1);
         if (bag == 4 && lead is { Bag: 3, Advancing: false }) bag = 3;
-        var cut = CutoffFor(bag);
-        if (cut is not null)
+        var plan = PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag);
+        if (plan.UseRelay && plan.Cut is { } cut)
         {
             _relayBag = 0; // the cutoff decides again from the infield
-            BeginThrowToCutoff(cut.Value.Pos, cut.Value.X, cut.Value.Z);
+            BeginThrowToCutoff(cut.Pos, cut.X, cut.Z);
             return;
         }
         BeginThrowToBag(bag);
     }
 
-    /// <summary>The cutoff on the line from the glove to <paramref name="bag"/> when the throw is longer than the arm's fly reach (§8.7).</summary>
-    (string Pos, double X, double Z)? CutoffFor(int bag)
-    {
-        var to = Diamond.Bag(bag);
-        if (Diamond.Dist(GloveX, GloveZ, to.X, to.Z) <= R.Fielding.Throw.OnTheFlyFt) return null;
-        var cover = CoverOf(bag);
-        return InPlay.CutoffFor(GloveX, GloveZ, to.X, to.Z, _fielders, GlovePos, cover);
-    }
+    /// <summary>
+    /// The runner's read of the ball this frame (§9.9), exactly as <see cref="RunnerAi"/> would be handed it now — the
+    /// clock the ball carries included — for traces and tests. Not the catch event itself; that flag is the tick's.
+    /// </summary>
+    public RunnerAiContext RunnerRead(double dash01) => AiContext(dash01);
 
     /// <summary>The runner AI's read of the ball this frame (§9.9): who has it or will, and when.</summary>
-    RunnerAiContext AiContext(double dash01)
+    RunnerAiContext AiContext(double dash01, bool atCatch = false)
     {
         BallSituation ball;
         var carry = Hit?.CarryFt ?? 0;
@@ -1484,13 +1590,15 @@ public sealed partial class LivePlaySystem
             ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
                 FieldingResolver.OutfieldGrass(route.X, route.Z, R), Preview.LandingX, Preview.LandingZ, carry);
         }
-        // A bunt (§7.3): the runner from third holds at contact unless the offense sent them.
-        ball = ball with { Bunt = Ball is { Shape: BattedBallClass.Bunt } };
+        // A bunt (§7.3): the runner from third holds at contact unless the offense sent them. The clock the runner reads
+        // (#722) is the defense's own plan from whoever holds the ball next: the receiver of a throw in the air, else the glove.
+        var nextHolder = Throwing ? (ThrowBag is >= 1 and <= 4 ? CoverPos : _cutoffPos) : GlovePos;
+        ball = ball with { Bunt = Ball is { Shape: BattedBallClass.Bunt }, ThrowClock = RunnerClock(nextHolder) };
         var trailing = _match.Inning >= _match.Innings
             ? (_match.Top ? _match.HomeScore - _match.AwayScore : _match.AwayScore - _match.HomeScore)
             : int.MinValue;
         // The outs the runner reads are the count at contact: the two-out contact play does not begin when the batter is retired mid-play.
-        return new RunnerAiContext(ElapsedSeconds, OutsAtOpen, trailing, Fly, ball, dash01);
+        return new RunnerAiContext(ElapsedSeconds, OutsAtOpen, trailing, Fly, ball, dash01, atCatch);
     }
 
     /// <summary>
@@ -1543,7 +1651,7 @@ public sealed partial class LivePlaySystem
             if (!CanMove(GlovePos)) return;
             var chaser = map.TryGetValue(GlovePos, out var lc) ? lc : pre.Fielder;
             var run = FieldingResolver.ChaseSpeedFt(chaser, pre.Frozen, R);
-            var step = FieldingResolver.StepToward(GloveX, GloveZ, BallX, BallZ, run, dt, Park, R);
+            var step = StepTo(GlovePos, (GloveX, GloveZ), (BallX, BallZ), run, R.Fielding.Chase.StepStopFt, dt, flat: false);
             GloveX = step.X;
             GloveZ = step.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1558,7 +1666,7 @@ public sealed partial class LivePlaySystem
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
         var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
-        var next = FieldingResolver.StepToward(GloveX, GloveZ, route.X, route.Z, speed, dt, Park, R);
+        var next = StepTo(GlovePos, (GloveX, GloveZ), (route.X, route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         GloveX = next.X;
         GloveZ = next.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1611,6 +1719,7 @@ public sealed partial class LivePlaySystem
     void HandGloveTo(string pos, bool coast = true)
     {
         if (pos == GlovePos) return;
+        _receivedClean = false;
         _fielders[GlovePos] = (GloveX, GloveZ);
         if (coast && (_gloveVel.X != 0 || _gloveVel.Z != 0))
         {
@@ -1647,6 +1756,12 @@ public sealed partial class LivePlaySystem
         var step = Math.Min(dt, _coastT);
         _fielders[_coastPos] = FieldBounds.Clamp(Park, at.X + _coastVel.X * step, at.Z + _coastVel.Z * step);
         _coastT -= dt;
+        if (ResponseLaw)
+        {
+            // The body's velocity is the coast's, so when the coast ends it brakes rather than stopping dead (#718).
+            _vel[_coastPos] = _coastVel;
+            _stepped.Add(_coastPos);
+        }
     }
 
     bool Coasting(string pos) => _coastT > 0 && pos == _coastPos;
@@ -1671,7 +1786,7 @@ public sealed partial class LivePlaySystem
         if (!CanMove(of.Position)) return;
         if (!_fielders.TryGetValue(of.Position, out var at)) return;
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, of.Position, Preview, R);
-        _fielders[of.Position] = FieldingResolver.StepToward(at.X, at.Z, of.Route.X, of.Route.Z, speed, dt, Park, R);
+        _fielders[of.Position] = StepTo(of.Position, at, (of.Route.X, of.Route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
     }
 
     /// <summary>
@@ -1702,11 +1817,23 @@ public sealed partial class LivePlaySystem
         return true;
     }
 
-    /// <summary>Cover bodies walk to their bags at the flat cover speed after the start delay (§8.7, D11).</summary>
+    /// <summary>
+    /// The speed the body at <paramref name="pos"/> walks to a bag, the throw line or a backup spot (§8.7): the flat cover
+    /// speed on the shipped table, the body's own pursuit speed as far as the c80 copy reads it (#718).
+    /// </summary>
+    double CoverSpeed(string pos, IReadOnlyDictionary<string, Character> bodies) =>
+        bodies.TryGetValue(pos, out var who) ? FieldingResolver.CoverSpeedFt(who, R) : R.Fielding.Cover.FtPerSec;
+
+    /// <summary>
+    /// Cover bodies walk to their bags (§8.7): on the shipped table at the flat cover speed after the start delay and the
+    /// body's reaction lockout (D11); on the c80 copy at the body's own pursuit speed from contact, with no read
+    /// (F693-02-coverage-budget, #718) — <c>cover.lockoutMul</c> 0 and <c>cover.startSec</c> 0.
+    /// </summary>
     void TickCoverBags(double dt)
     {
         if (Preview is null && !RunnerPlay) return;
         var cover = R.Fielding.Cover;
+        var bodies = Assigned();
         var onBall = OnBallPos;
         var map = CoverMapNow();
         var squared = !RunnerPlay && BuntDefense.Squared(Swing);
@@ -1716,12 +1843,12 @@ public sealed partial class LivePlaySystem
             if (string.IsNullOrEmpty(pos) || pos == onBall || pos == _cutoffPos || pos == _backupPos || Coasting(pos)) continue;
             // A body already walking on the square keeps walking through the crack (§7.3); the rest wait the cover start.
             var onSquare = squared && BuntDefense.CoverBag(pos, R.Fielding.Bunt) == kv.Key;
-            if (!RunnerPlay && !onSquare && ElapsedSeconds < Math.Max(cover.StartSec, ReadyAt(pos))) continue;
+            if (!RunnerPlay && !onSquare && ElapsedSeconds < Math.Max(cover.StartSec, cover.LockoutMul * ReadyAt(pos))) continue;
             // A charge body converges on the bunt instead of covering an idle bag (ChargeBunt).
             if (!HoldsBall && !Throwing && !_loose && BuntChargeBody(pos, map)) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             var goal = Diamond.Bag(kv.Key);
-            _fielders[pos] = StepFlat(at, goal, cover.FtPerSec, cover.StopFt, dt);
+            _fielders[pos] = StepTo(pos, at, goal, CoverSpeed(pos, bodies), cover.StopFt, dt, flat: true);
         }
     }
 
@@ -1745,22 +1872,219 @@ public sealed partial class LivePlaySystem
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             if (Diamond.Dist(at.X, at.Z, BallX, BallZ) <= b.ChargeStopFt) continue;
             var speed = FieldingResolver.ChaseSpeedFt(who, pos, Preview, R);
-            _fielders[pos] = FieldingResolver.StepToward(at.X, at.Z, BallX, BallZ, speed, dt, Park, R);
+            _fielders[pos] = StepTo(pos, at, (BallX, BallZ), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         }
     }
 
-    /// <summary>The cutoff walks to the throw line and the backup to its spot behind the target (§8.7).</summary>
+    /// <summary>The cutoff walks to the throw line and the backup to its spot behind the target (§8.7), at the cover speed the table gives their bodies (#718).</summary>
     void TickCutoffAndBackup(double dt)
     {
         var cover = R.Fielding.Cover;
+        var bodies = Assigned();
         // The cutoff walks to the line while the ball is in the air, YOU ring or not (the ring is handed to
         // the receiver at release, §8.5); once they hold it the spot is cleared.
         if (!string.IsNullOrEmpty(_cutoffPos) && _cutoffSpot is { } spot && (Throwing || _cutoffPos != GlovePos)
             && _fielders.TryGetValue(_cutoffPos, out var cutAt) && CanMove(_cutoffPos) && !Coasting(_cutoffPos))
-            _fielders[_cutoffPos] = StepFlat(cutAt, spot, cover.FtPerSec, cover.StopFt, dt);
+            _fielders[_cutoffPos] = StepTo(_cutoffPos, cutAt, spot, CoverSpeed(_cutoffPos, bodies), cover.StopFt, dt, flat: true);
         if (!string.IsNullOrEmpty(_backupPos) && _backupPos != GlovePos
             && _fielders.TryGetValue(_backupPos, out var backAt) && CanMove(_backupPos) && !Coasting(_backupPos))
-            _fielders[_backupPos] = StepFlat(backAt, _backupSpot, cover.FtPerSec, cover.StopFt, dt);
+            _fielders[_backupPos] = StepTo(_backupPos, backAt, _backupSpot, CoverSpeed(_backupPos, bodies), cover.StopFt, dt, flat: true);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // The response law (#718, F693-02-carry-movement-response)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>The response law is on when the table gives a ramp or a brake time; at 0 / 0 every step is the instant step the game shipped with.</summary>
+    bool ResponseLaw => R.Fielding.Chase.AccelSec > 0 || R.Fielding.Chase.BrakeSec > 0;
+
+    /// <summary>The rated speed the response rates are measured against: the body's own pursuit top speed (§8.1), not the speed it happens to be asked for this frame.</summary>
+    double RatedSpeed(string pos, double asked)
+    {
+        var top = Assigned().TryGetValue(pos, out var who) ? FieldingResolver.ChaseSpeedFt(who, false, R) : asked;
+        return Math.Max(1, Math.Max(top, asked));
+    }
+
+    /// <summary>
+    /// One frame of a body's velocity toward what it wants (#718): the component along its heading builds at the ramp rate
+    /// and dies at the brake rate; the component across it builds at the ramp rate. So a reversal is the brake and then the
+    /// ramp, a stop is the brake, and an angled turn is continuous correction through the same two rates. Rest to the rated
+    /// speed takes <c>chase.accelSec</c>; the rated speed to rest takes <c>chase.brakeSec</c>.
+    /// </summary>
+    (double X, double Z) Respond(string pos, (double X, double Z) want, double asked, double dt)
+    {
+        var c = R.Fielding.Chase;
+        var top = RatedSpeed(pos, asked);
+        var accel = c.AccelSec > 0 ? top / c.AccelSec : double.PositiveInfinity;
+        var brake = c.BrakeSec > 0 ? top / c.BrakeSec : double.PositiveInfinity;
+        var v = _vel.TryGetValue(pos, out var cur) ? cur : (X: 0.0, Z: 0.0);
+        var dvx = want.X - v.X;
+        var dvz = want.Z - v.Z;
+        var speed = Math.Sqrt(v.X * v.X + v.Z * v.Z);
+        double nx, nz;
+        if (speed < 1e-9)
+        {
+            var dv = Math.Sqrt(dvx * dvx + dvz * dvz);
+            if (dv < 1e-12) (nx, nz) = want;
+            else
+            {
+                var step = Math.Min(dv, accel * dt);
+                (nx, nz) = (v.X + dvx / dv * step, v.Z + dvz / dv * step);
+            }
+        }
+        else
+        {
+            var ux = v.X / speed;
+            var uz = v.Z / speed;
+            var along = dvx * ux + dvz * uz;
+            var px = dvx - along * ux;
+            var pz = dvz - along * uz;
+            var across = Math.Sqrt(px * px + pz * pz);
+            var alongStep = Math.Clamp(along, -brake * dt, accel * dt);
+            var acrossStep = across > 1e-12 ? Math.Min(across, accel * dt) / across : 0;
+            nx = v.X + alongStep * ux + px * acrossStep;
+            nz = v.Z + alongStep * uz + pz * acrossStep;
+        }
+        _vel[pos] = (nx, nz);
+        _stepped.Add(pos);
+        return (nx, nz);
+    }
+
+    /// <summary>
+    /// A body's step toward a goal this frame (§8.1): on the shipped table the flat cover step or <see cref="FieldingResolver.StepToward"/>,
+    /// exactly as before; under the response law the body wants the goal at <paramref name="speed"/> (rest inside the stop radius),
+    /// its velocity answers through <see cref="Respond"/>, and it moves on that velocity.
+    /// </summary>
+    (double X, double Z) StepTo(string pos, (double X, double Z) at, (double X, double Z) goal, double speed, double stopFt, double dt, bool flat)
+    {
+        if (!ResponseLaw)
+            return flat ? StepFlat(at, goal, speed, stopFt, dt) : FieldingResolver.StepToward(at.X, at.Z, goal.X, goal.Z, speed, dt, Park, R);
+        var dx = goal.X - at.X;
+        var dz = goal.Z - at.Z;
+        var dist = Math.Sqrt(dx * dx + dz * dz);
+        var want = dist <= stopFt || dist < 1e-9
+            ? (X: 0.0, Z: 0.0)
+            : (X: dx / dist * Math.Min(speed, dist / dt), Z: dz / dist * Math.Min(speed, dist / dt));
+        var v = Respond(pos, want, speed, dt);
+        return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
+    }
+
+    /// <summary>The stick's step (§8.1): today's proportional step on the shipped table; under the response law the same want, answered through the body's velocity.</summary>
+    (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt)
+    {
+        if (!ResponseLaw) return FieldBounds.Clamp(Park, at.X + stickX * speed * dt, at.Z + stickY * speed * dt);
+        var v = Respond(pos, (stickX * speed, stickY * speed), speed, dt);
+        return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
+    }
+
+    /// <summary>Bodies nobody stepped last frame brake to a stop (#718), and the frame's step record is cleared. Nothing to do on the shipped table.</summary>
+    void TickIdleBrakes(double dt)
+    {
+        if (!ResponseLaw)
+        {
+            _stepped.Clear();
+            return;
+        }
+        var idle = _vel.Keys.Where(pos => !_stepped.Contains(pos)).ToList();
+        _stepped.Clear();
+        foreach (var pos in idle)
+        {
+            var v = _vel[pos];
+            if (Math.Abs(v.X) < 1e-9 && Math.Abs(v.Z) < 1e-9 || !_fielders.TryGetValue(pos, out var at))
+            {
+                _vel.Remove(pos);
+                continue;
+            }
+            var nv = Respond(pos, (0, 0), 0, dt);
+            var next = FieldBounds.Clamp(Park, at.X + nv.X * dt, at.Z + nv.Z * dt);
+            _fielders[pos] = next;
+            if (pos == GlovePos && !Throwing)
+            {
+                GloveX = next.X;
+                GloveZ = next.Z;
+            }
+        }
+        _stepped.Clear();
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Throw commands (#723): the relay is player-owned, a press is remembered, a cancel is a verb
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>Whether a queued onward throw waits for the receiver's catch (#723): the HUD's queue tell.</summary>
+    public bool ThrowQueued => _queuePending;
+
+    /// <summary>The bag a queued onward throw would go to — the armed bag, home by default — or 0 when nothing is queued.</summary>
+    public int QueuedThrowBag => _queuePending ? (_relayBag is >= 1 and <= 4 ? _relayBag : 4) : 0;
+
+    /// <summary>
+    /// While a human's throw flies to the cutoff (F693-03-relay-ownership, -input-buffer, -throw-cancel): a fresh South press is
+    /// remembered for <c>fielding.throw.relayBufferSec</c> of active play and fires at the catch; the bag selectors retarget the
+    /// armed bag without refreshing the press's age; a fresh RB / period clears it. Nothing here on the shipped table, whose
+    /// buffer is 0 and whose cutoff throws the armed leg for the player.
+    /// </summary>
+    void TickThrowQueue(LivePadInput field, double dt)
+    {
+        var cancel = field.Cancel && !_cancelWasDown;
+        _cancelWasDown = field.Cancel;
+        var t = R.Fielding.Throw;
+        if (t.RelayBufferSec <= 0 || !Seats.HumanOwnsThrow)
+        {
+            _queuePending = false;
+            return;
+        }
+        if (_queuePending)
+        {
+            _queueAge += dt;
+            if (cancel || _queueAge > t.RelayBufferSec)
+            {
+                _queuePending = false;
+                _events.Add(LiveEvent.ThrowQueueCleared);
+            }
+        }
+        if (!Throwing || ThrowBag is >= 1 and <= 4) return;
+        var stick = field.StickBag > 0 ? field.StickBag : field.ArrowBag;
+        var armed = InPlay.ArmedBag(field.KeysBag, stick, false);
+        if (armed > 0) _relayBag = armed;
+        if (field.SouthDown && !cancel)
+        {
+            _queuePending = true;
+            _queueAge = 0;
+            _events.Add(LiveEvent.ThrowQueued);
+        }
+    }
+
+    /// <summary>Whether a throw to <paramref name="bag"/> is the one Laser is for (F693-03-laser-throw): home, with a live runner on third or on the third–home segment.</summary>
+    bool LaserEligible(int bag) => bag == 4 && Runners.Any(r => r.Live && !r.IsBatter && r.Bag == 3);
+
+    /// <summary>
+    /// The thrower's ability on a throw to <paramref name="bag"/> (§8.5, #723): the table's multiplier, except that when
+    /// <c>abilities.laserHomeOnly</c> is on, a Laser holder's boost is taken back off any throw that is not home with a runner —
+    /// a cutoff feed (bag 0) first of all. On the shipped table nothing is taken off.
+    /// </summary>
+    double AbilityMul(Character who, int bag)
+    {
+        var mul = FieldAbilities.ThrowMul(who, R);
+        var a = R.Fielding.Abilities;
+        if (a.LaserHomeOnly > 0 && HasAbility(who, "laser") && !LaserEligible(bag)) mul /= a.LaserMul;
+        return mul;
+    }
+
+    static bool HasAbility(Character who, string id) => who.FieldAbility.Equals(id, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Snap Throw's release for <paramref name="who"/> when they hold a clean received throw (F693-03-snap-throw); null is the ordinary release.</summary>
+    double? SnapRelease(Character who, bool receivedClean) =>
+        receivedClean && HasAbility(who, "snap-throw") ? R.Fielding.Abilities.SnapReleaseSec : null;
+
+    /// <summary>A built throw with the command's rules on it (#723): the Laser boost confined, the Snap release when it applies.</summary>
+    ThrowResult WithCommand(ThrowResult thr, Character from, int bag)
+    {
+        var a = R.Fielding.Abilities;
+        if (a.LaserHomeOnly > 0 && HasAbility(from, "laser") && !LaserEligible(bag))
+            thr = thr with { SpeedMul = thr.SpeedMul / a.LaserMul };
+        var release = SnapRelease(from, _receivedClean);
+        if (release is { } sec) thr = thr with { ReleaseSec = sec };
+        return thr;
     }
 
     (double X, double Z) StepFlat((double X, double Z) at, (double X, double Z) goal, double speed, double stopFt, double dt)
@@ -1990,7 +2314,7 @@ public sealed partial class LivePlaySystem
         var coverPos = CoverOf(bag);
         var from = map.TryGetValue(GlovePos, out var glove) ? glove : PlayFielder();
         var cut = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
-        var thr = cut is not null ? _match.ThrowBetween(from, cut) : ArmOnly(from);
+        var thr = WithCommand(cut is not null ? _match.ThrowBetween(from, cut) : ArmOnly(from, bag, _receivedClean), from, bag);
         if (speedMul < 1) thr = thr with { SpeedMul = thr.SpeedMul * speedMul };
         ArmedThrow = thr;
         ArmedCut = cut;
@@ -2008,7 +2332,7 @@ public sealed partial class LivePlaySystem
             BeginThrowToBag(Math.Max(1, _relayBag));
             return;
         }
-        var thr = _match.ThrowBetween(from, cutter);
+        var thr = WithCommand(_match.ThrowBetween(from, cutter), from, 0);
         ArmedThrow = thr;
         ArmedCut = cutter;
         _cutoffPos = cutPos;
@@ -2111,15 +2435,30 @@ public sealed partial class LivePlaySystem
         _cutoffPos = "";
         _cutoffSpot = null;
         CatchGlove();
+        _receivedClean = true;
         if (PlayerFielding || Seats.HumanOwnsThrow)
         {
-            if (_relayBag is >= 1 and <= 4)
+            if (_relayBag is >= 1 and <= 4 && R.Fielding.Throw.RelayAutoContinue > 0)
             {
+                // The armed onward leg is thrown for the player: the rule the game shipped with.
                 var bag = _relayBag;
                 _relayBag = 0;
                 BeginThrowToBag(bag);
                 return true;
             }
+            // The relay is player-owned (F693-03-relay-ownership, #723): the cutoff holds until commanded. A press remembered
+            // inside fielding.throw.relayBufferSec fires now; otherwise the armed bag stays armed for the next press.
+            if (_queuePending)
+            {
+                var bag = _relayBag is >= 1 and <= 4 ? _relayBag : 4;
+                _queuePending = false;
+                _relayBag = 0;
+                ThrowBag = bag;
+                BeginThrowToBag(bag);
+                return true;
+            }
+            if (_relayBag is >= 1 and <= 4) ThrowBag = _relayBag;
+            _relayBag = 0;
             return false;
         }
         _cpuThrowAt = -1;
@@ -2131,6 +2470,7 @@ public sealed partial class LivePlaySystem
     void SailThrow(string receiverPos)
     {
         _sailed = true;
+        _receivedClean = false;
         Throwing = false;
         Caught = false;
         Buddy = false;
@@ -2208,6 +2548,7 @@ public sealed partial class LivePlaySystem
         _cutoffPos = "";
         _cutoffSpot = null;
         CatchGlove();
+        _receivedClean = true;
 
         InPlay.GroundThrowStep? step = null;
         if (bag is >= 1 and <= 4)
@@ -2385,6 +2726,7 @@ public sealed partial class LivePlaySystem
     /// <summary>A glove takes a thrown or loose ball: no fair / foul call, no bobble roll.</summary>
     void TakeBall()
     {
+        _receivedClean = false;
         CatchGlove();
         _cpuThrowAt = -1;
         _cpuDecided = false;
@@ -2398,6 +2740,7 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void TakeBattedBall()
     {
+        _receivedClean = false;
         var first = !Caught;
         var wasLoose = _loose;
         CatchGlove();
@@ -2431,6 +2774,7 @@ public sealed partial class LivePlaySystem
         {
             // The fumble (§8.6): the ball scatters loose; the glove is out of it for the fumble, then chases.
             _bobbled = true;
+            _receivedClean = false;
             Bobbling = true;
             Caught = false;
             RecoilT = rules.FumbleSec;

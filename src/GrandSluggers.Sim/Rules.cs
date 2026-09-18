@@ -1099,17 +1099,27 @@ public sealed class ReactionRules
     };
 }
 
-/// <summary>Cover, cutoff and backup bodies (§8.7): a flat speed (D11) after a start delay; a throw is caught inside the cover radius of its target.</summary>
+/// <summary>
+/// Cover, cutoff and backup bodies (§8.7): on the shipped table a flat speed (D11) after a start delay, gated by the
+/// body's reaction lockout; on the c80 copy the body's own pursuit speed from contact with no read
+/// (F693-02-coverage-budget, #718) — covering is a known assignment to a fixed spot, not the recognition of where a
+/// ball went. A throw is caught inside the cover radius of its target.
+/// </summary>
 public sealed class CoverRules
 {
+    /// <summary>The flat cover speed (D11); <see cref="ChaseSpeedWeight"/> blends the body's own speed over it.</summary>
     [Positive] public double FtPerSec { get; init; } = 28;
-    /// <summary>Cover starts walking this long after contact.</summary>
+    /// <summary>Cover starts walking this long after contact. 0 is at contact.</summary>
     public double StartSec { get; init; } = 0.23;
     public double StopFt { get; init; } = 1.2;
     /// <summary>A throw landing farther than this from the receiver is not caught: it skips past, live (§8.5).</summary>
     [Positive] public double RadiusFt { get; init; } = 6;
     /// <summary>The backup body stands this far behind a throw's target, on its line.</summary>
     [Positive] public double BackupFt { get; init; } = 60;
+    /// <summary>How much of the body's reaction lockout (§8.2) gates its cover walk: 1 is the shipped rule, 0 the c80 rule (#718).</summary>
+    [Chance] public double LockoutMul { get; init; } = 1;
+    /// <summary>How much of the body's own pursuit speed (<c>fielding.chase</c>) a cover, cutoff or backup walk uses in place of <see cref="FtPerSec"/>: 0 is the flat speed exactly, 1 the body's speed (#718).</summary>
+    [Chance] public double ChaseSpeedWeight { get; init; } = 0;
 }
 
 /// <summary>
@@ -1174,6 +1184,13 @@ public sealed class ChaseRules
     /// balls on the dirt run the one speed the §10.4 double-play rows were tuned on.
     /// </summary>
     [Positive] public double InfieldAirMul { get; init; } = 0.45;
+    /// <summary>
+    /// The response law (#718, F693-02-carry-movement-response): seconds from rest to the body's rated speed, a linear ramp.
+    /// 0 is the instant step the game shipped with; the c80 copy carries 0.20. The pursuit planner charges half of it to a route.
+    /// </summary>
+    public double AccelSec { get; init; } = 0;
+    /// <summary>Seconds from the rated speed to rest, a constant deceleration; a reversal is this brake and then the ramp. 0 is the instant stop; the c80 copy carries 0.10.</summary>
+    public double BrakeSec { get; init; } = 0;
 }
 
 public sealed class CatchRules
@@ -1254,12 +1271,24 @@ public sealed class FieldAbilityRules
     public double DiveGroundRangeFt { get; init; } = 16;
     [Positive] public double LaserMul { get; init; } = 1.45;
     [Positive] public double SnapThrowMul { get; init; } = 1.22;
+    /// <summary>
+    /// Snap Throw's release after a clean received teammate throw (F693-03-snap-throw, #723). On the shipped table it equals
+    /// the ordinary release, so it is inert beside the ×1.22 flight; the c80 copy keeps 0.22 against an ordinary 0.30 and
+    /// sets the flight boost to 1.0. A pickup, a bobble, a sail or a hand-off clears the eligibility.
+    /// </summary>
+    [Positive] public double SnapReleaseSec { get; init; } = 0.22;
+    /// <summary>How far Laser is confined to a throw home with a live runner on third or the third–home segment (F693-03-laser-throw, #723): 0 is the universal boost the game shipped with, 1 the c80 rule — a cutoff feed never carries it.</summary>
+    [Chance] public double LaserHomeOnly { get; init; } = 0;
 }
 
 /// <summary>
-/// The one throw model (§8.5): <c>throwSec = releaseSec + dist / (baseFtPerSec × arm × chem × ability)</c>
-/// with <c>arm = armBase + Field × armPerField</c>. It flies the ball and judges the bag, for every
-/// arm on the field, the catcher's gun included. Lateral error σ = (11 − Field) × lateralSigmaPerFieldDeficitFt.
+/// The one throw model (§8.5, F693-03-long-throw-numbers):
+/// <c>throwSec = releaseSec + [dist / (baseFtPerSec × arm) + longThrowLossSec × (max(0, dist − range) / 80)²] / (chem × ability)</c>
+/// with <c>arm = armBase + Arm × armPerField</c> and <c>range = comfortableRangeFt + rangePerArmFt × (Arm − 5)</c>.
+/// It flies the ball and judges the bag, for every arm on the field, the catcher's gun included, and it
+/// is the arithmetic both CPU estimates read. With <c>longThrowLossSec</c> 0 it is the flat clock the game
+/// shipped with, byte for byte; the c80 copy carries the accepted curve (#722). Lateral error
+/// σ = (11 − Arm) × lateralSigmaPerFieldDeficitFt.
 /// </summary>
 public sealed class ThrowRules
 {
@@ -1268,15 +1297,30 @@ public sealed class ThrowRules
     [Positive] public double MinFtPerSec { get; init; } = 32;
     [Positive] public double ArmBase { get; init; } = 0.85;
     public double ArmPerField { get; init; } = 0.03;
+    /// <summary>The neutral arm's comfortable range (F693-03-long-throws): inside it a throw is the flat clock; past it the flight loses pace, smoothly.</summary>
+    [Positive] public double ComfortableRangeFt { get; init; } = 160;
+    /// <summary>The range shifts this much per Arm point either side of the neutral arm (<see cref="InPlay.NeutralArm"/>).</summary>
+    public double RangePerArmFt { get; init; } = 5;
+    /// <summary>Seconds added to the flight per (feet past the range / 80)², before chemistry and ability divide it. 0 is the flat clock; the accepted trial value is 0.60.</summary>
+    public double LongThrowLossSec { get; init; } = 0;
     public double LateralSigmaPerFieldDeficitFt { get; init; } = 0.35;
     /// <summary>A throw to an uncovered bag hangs as a lob this long for the cover; then it drops at the bag, live.</summary>
     [Positive] public double LobMaxSec { get; init; } = 1.5;
-    /// <summary>A throw longer than this goes through the cutoff on the line (§8.7); the relay continues with the cutoff's arm.</summary>
+    /// <summary>
+    /// The forced-relay ceiling (§8.7, #722): a throw longer than this always goes through the cutoff on the line, whatever
+    /// the clock says, and the relay continues with the cutoff's arm. Inside it the CPU relays only when the relay arrives
+    /// first by more than the rung's <c>cpu.*.relayBiasSec</c>. Shipped 200 beside a bias no relay can save is the rule the
+    /// game shipped with; the c80 copy sets the ceiling to 9999 so time alone decides.
+    /// </summary>
     [Positive] public double OnTheFlyFt { get; init; } = 200;
     /// <summary>A fielder holding the ball this close to a force bag steps on it instead of throwing (§10.4, S-41).</summary>
     [Positive] public double UnassistedFt { get; init; } = 8;
     public double HandHeightFt { get; init; } = 3.2;
     public double BagHeightFt { get; init; } = 1.2;
+    /// <summary>A human's cutoff throws the armed onward leg for them (§8.7): 1 is the rule the game shipped with; 0 is F693-03-relay-ownership (#723), where each relay leg needs its own command.</summary>
+    [Chance] public double RelayAutoContinue { get; init; } = 1;
+    /// <summary>An early onward-throw press is remembered this long of active play and fires when the receiver has the ball (F693-03-input-buffer, #723). 0 is no queue; the c80 copy carries 0.25.</summary>
+    public double RelayBufferSec { get; init; } = 0;
 }
 
 /// <summary>The CPU catcher's release on a steal (§11.3): <c>base − Field × perField ± noise / 2</c>, clamped, × the difficulty's reaction. The gun itself is the one throw model (<see cref="ThrowRules"/>); the out is the tag at the bag (§10.3).</summary>
@@ -1293,12 +1337,16 @@ public sealed class CatcherRules
 
 /// <summary>
 /// Chemistry on a throw (§8.5): good is faster; bad has a chance of a slanted throw — slower and
-/// off the cover by a lateral miss the receiver cannot reach — and is ordinary otherwise. The roll
-/// is on the input; the outcome is still the ball missing the cover.
+/// off the cover by a lateral miss the receiver cannot reach — and flies at <see cref="BadSpeedMul"/>
+/// otherwise. The roll is on the input; the outcome is still the ball missing the cover. The shipped
+/// table keeps the slant and a bad speed of 1.0; the c80 copy is F693-03-negative-chemistry — 0.90 and
+/// no slant, slow rather than random (#722).
 /// </summary>
 public sealed class ThrowChemistryRules
 {
     [Positive] public double GoodSpeedMul { get; init; } = 1.30;
+    /// <summary>A bad pair's unslanted throw flies at this multiple of the arm's speed; 1.0 is today's ordinary throw.</summary>
+    [Positive] public double BadSpeedMul { get; init; } = 1.0;
     [Chance] public double SlantChance { get; init; } = 0.20;
     [Positive] public double SlantSpeedMul { get; init; } = 0.70;
     [Positive] public double SlantLateralMinFt { get; init; } = 10;
@@ -1489,10 +1537,18 @@ public sealed class CpuRunnerRules
     public double DesperateSec { get; init; } = 0.2;
     /// <summary>A runner already this far along a segment keeps going rather than turning back.</summary>
     [Chance] public double CommitFraction { get; init; } = 0.4;
-    /// <summary>Runner on third tags on a caught fly this deep with fewer than two outs.</summary>
+    /// <summary>Runner on third tags on a caught fly this deep with fewer than two outs. The shipped rule; the c80 copy sets it to never and races instead (#732).</summary>
     public double TagThirdMinCarryFt { get; init; } = 200;
-    /// <summary>Runner on second tags for third on a caught fly to right this deep.</summary>
+    /// <summary>Runner on second tags for third on a caught fly to right this deep. The shipped rule; the c80 copy sets it to never and races instead (#732).</summary>
     public double TagSecondMinCarryFt { get; init; } = 250;
+    /// <summary>
+    /// The race from third (#732, decision 5 of #730): at the catch, the runner goes home when <c>margin(home)</c> — the
+    /// defense's estimated arrival minus the runner's — clears this plus the rung's <c>runnerMarginSec</c>. 99 is a margin
+    /// no play reaches, so the shipped table decides by the carry gate alone; the c80 copy authors the number.
+    /// </summary>
+    [Signed] public double TagUpHomeMarginSec { get; init; } = 99;
+    /// <summary>The race from second to third at the catch, on the same terms as <see cref="TagUpHomeMarginSec"/>.</summary>
+    [Signed] public double TagUpThirdMarginSec { get; init; } = 99;
     /// <summary>The CPU steal table (§11.6): base chance by Run, 0 at or below <see cref="StealMinRun"/>, linear between the anchors.</summary>
     public int StealMinRun { get; init; } = 4;
     [Chance] public double StealBaseRun6 { get; init; } = 0.06;
@@ -1661,4 +1717,16 @@ public sealed class CpuLevelRules
     [Chance] public double PickoffChance { get; init; } = 0.06;
     /// <summary>Added to every CPU baserunner threshold (§9.9): easy hesitates, hard goes.</summary>
     [Signed] public double RunnerMarginSec { get; init; } = 0;
+    /// <summary>
+    /// The CPU fielder throws through the cutoff only when the relay beats the direct throw by more than this (§8.7, #722) —
+    /// the total-time read, graded by rung. 99, a value no relay can save, leaves <see cref="ThrowRules.OnTheFlyFt"/> as the
+    /// only reason to relay, which is the rule the game shipped with.
+    /// </summary>
+    public double RelayBiasSec { get; init; } = 99;
+    /// <summary>How much of the thrower's real arm and ability the CPU runner reads (§9.9): 0 assumes the neutral arm, as the shipped runner does; 1 reads the arm the ball will fly on.</summary>
+    [Chance] public double RunnerReadsArm { get; init; } = 0;
+    /// <summary>How much of the fielder's relay the CPU runner reads: 0 assumes a direct throw; 1 reads the leg the fielder will actually take.</summary>
+    [Chance] public double RunnerReadsRelay { get; init; } = 0;
+    /// <summary>How much of the pair chemistry the CPU forecasts, fielder and runner alike (F693-03-good-chemistry): 0 ignores it, 1 is the deterministic pair factor, never a sampled roll.</summary>
+    [Chance] public double ReadsChemistry { get; init; } = 0;
 }

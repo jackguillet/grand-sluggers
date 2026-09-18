@@ -50,16 +50,18 @@ Three rules. Each is checked when the overlay is read, not left to care:
 ## What is here now
 
 [#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
-ball that fits it. #717 landed eight files in one commit — the folder carries ten now — because
+ball that fits it. #717 landed eight files in one commit — the folder carries twelve now — because
 **drag is global and park dimensions are not**:
 at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
 poles is a game with no home runs in it, and the parks alone are a derby.
 
 | File | What it changes |
 | --- | --- |
+| `rules/cpu.json` | the CPU's read of a throw (#722): `relayBiasSec` 0.3 / 0.1 / 0 by rung, `runnerReadsArm` 0.5 / 1 / 1, `runnerReadsRelay` 0 / 1 / 1, `readsChemistry` 0 / 1 / 1. Nothing else in the table; the rung stays normal. |
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
+| `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732): the pad that decides a barrel's real catch, on the fence scale with the radii. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -86,8 +88,9 @@ code and overturned that; #732 scaled them, in its own section below.) Harbor ha
 reference park is untouched either way.
 
 **The runner clock is not retuned here.** Elapsed pace is the C80 anchor, so a Run-5 bag stays
-2.95 s and linear speed falls from 30.51 to 27.12 ft/s on the shorter path. `running.json` is not
-carried.
+2.95 s and linear speed falls from 30.51 to 27.12 ft/s on the shorter path. `running.json` was not
+carried by this slice; #732 carried it later for the tag-up race with every clock key byte-identical,
+which keeps the anchor (its section is below).
 
 **What this slice left to other issues, and what it cost.** `Diamond.Positions` stood the nine
 fielders at their 90-ft spots — they were C# literals, not data, so no overlay could move them.
@@ -290,3 +293,234 @@ and the shipped file no longer does. That makes #730 decision 6, should it proce
 radii 16 / 18 / 16) are C# literals and did not scale, as their positions did not in #717 — recorded,
 not repaired. `pipeReachPadFt` carries no `[Positive]` validator in `Rules.cs`; adding one is a sealed-
 source edit and was left for a slice that already has to regenerate the packets.
+
+---
+
+[#722](https://github.com/jackguillet/grand-sluggers/issues/722) slice 1 — the throw clock becomes the
+accepted curve (F693-03-release-clock, -travel-clock, -long-throws, -long-throw-numbers, -good-chemistry,
+-negative-chemistry). One function, `InPlay.ThrowSec`, flies the live ball and feeds both CPU estimates:
+
+```
+throwSec = releaseSec + [ d / (baseFtPerSec × arm) + longThrowLossSec × (max(0, d − R) / 80)² ] / (chem × ability)
+arm      = armBase + armPerField × Arm            R = comfortableRangeFt + rangePerArmFt × (Arm − 5)
+```
+
+`rules/fielding.json` carries `releaseSec` **0.30**, `baseFtPerSec` **88.89** (0.90 s over 80 ft),
+`comfortableRangeFt` 160, `rangePerArmFt` 5, `longThrowLossSec` **0.60**, `chem.badSpeedMul` **0.90**
+and `chem.slantChance` **0**. The shipped table gained the three new keys at 160 / 5 / **0** and
+`badSpeedMul` **1.0**: with the loss at zero the loss term is exactly 0.0 and the clock is the flat one
+the game always had, to the bit — checked on 20 `cli match` seeds and all 50 S-29 cohort games against
+pristine `main`. The switch is the table, nothing else.
+
+**What the curve gives, neutral chemistry, command to arrival.** konga's third→home is 3.31 s.
+
+| From | Arm 3 | Arm 5 | Arm 8 | Arm 10 |
+| --- | --- | --- | --- | --- |
+| 160 ft | 2.22 | 2.10 | 1.95 | 1.87 |
+| 220 ft | 3.39 | 3.11 | 2.76 | 2.57 |
+| 280 ft | 5.24 | 4.80 | 4.22 | 3.89 |
+
+A relay through SS on the compact centre line (second leg 104.89 ft) arrives first beyond **221 / 237 /
+258 / 272 ft** for an Arm 3 / 5 / 8 / 10 thrower against an Arm 5 cutter; an Arm 8 cutter pulls each in
+by 11–13 ft. On the shipped clock the relay never arrives first anywhere inside 400 ft, which is why that
+table keeps its 200-ft gate. Good chemistry divides the whole flight by 1.30 once, the loss included:
+280 ft is 4.80 → 3.76. A bad pair is 0.90 on every throw and never slanted; its lateral spread is the
+thrower's Field accuracy alone.
+
+**What it does to a run.** The trial now throws on a different clock, so most seeds diverge: 33 of the
+48 (seeds 1–8 × six parks) against the PR #740 state, 15 scorelines. S-29 under the trial moves
+**1.00 / 1.20 → 1.06 / 1.34** runs a side (home / away). That is still under the 1.8 floor — it was
+under it before this slice, and the whole compact profile is what 3d bands, not one clock. Read the
+direction, not the digits.
+
+**What this slice leaves to slice 2.** The CPU still relays by the 200-ft gate on both roots and the
+runner's estimate still reads a null arm; slice 2 makes both read this clock — `direct` against
+`relay = leg + transfer + leg` with real arms and pair chemistry — and re-describes `onTheFlyFt` as the
+forced-relay ceiling the trial sets to never. Laser and Snap Throw keep their multipliers until #723.
+
+---
+
+[#722](https://github.com/jackguillet/grand-sluggers/issues/722) slice 2 — the CPU relays by total time
+(decision 6 of [#730](https://github.com/jackguillet/grand-sluggers/issues/730)). `rules/cpu.json` joins the
+overlay as the eleventh file, and `rules/fielding.json` sets the forced-relay ceiling `throw.onTheFlyFt` to
+never (9999).
+
+**The rule.** For a throw to a bag the CPU computes `direct` and `relay = leg + the cutoff's reaction + leg`,
+each on the one clock with the real arms and the rung's read of the pair chemistry, and takes the relay when
+it saves more than the rung's `relayBiasSec`. Beyond the ceiling it always relays. The shipped table keeps
+the 200-ft ceiling beside a bias no relay can save (99), so a no-overlay run relays exactly when it did
+before — checked on 20 `cli match` seeds and all 50 S-29 cohort games against pristine `main`.
+
+**The runner reads the same plan.** `RunnerAi.ThrowArrivalSec` takes the clock the live ball carries
+(`BallSituation.ThrowClock`): the fielder's own plan from whoever holds the ball next, with the rung's read of
+the arm, the relay and the chemistry. The shipped rungs read none of it, which is the neutral flat throw the
+runner always read.
+
+| Rung | `relayBiasSec` | `runnerReadsArm` | `runnerReadsRelay` | `readsChemistry` |
+| --- | --- | --- | --- | --- |
+| easy | 0.3 | 0.5 | 0 | 0 |
+| normal | 0.1 | 1 | 1 | 1 |
+| hard | 0 | 1 | 1 | 1 |
+| shipped, every rung | 99 | 0 | 0 | 0 |
+
+**What it does to a run.** Forty-eight trial seeds (1–8 × six parks), slice 1 → slice 2, read from the live
+traces: outfield throws through the cutoff **14 → 2** and direct **102 → 112**. The fourteen that used to relay
+left from 206–251 ft from home, all just past the old gate; the two that still do leave from 250 ft. 12 of the
+48 seeds diverge. S-29 under the trial: **1.06 / 1.34 → 0.82 / 1.30** runs a side; the control is unchanged.
+On the compact field most outfield releases are 154–265 ft from home and the break-even for most arms is
+221–272 ft, so the relay is now the deep play and the direct throw the ordinary one — which is what the
+decision asked for. How often that is the right call is 3d's to judge, not this slice's.
+
+**Tests.** `RelayDecisionTests`: the arithmetic, the rungs' reads, the runner's clock, and six live scenarios
+with konga tagging from third on a 245-ft fly to centre. On the control both arms relay (forced); on the
+trial moss (Arm 4) relays, vine (Arm 8) throws home direct, and an Arm 5 relays on hard but not on easy —
+each checked against the plan recomputed from the live positions at the release frame. The in-process trial
+stands the bodies on the shipped spots (`Diamond` reads the shipped root), so these are decision tests, not
+geometry.
+
+**What slice 3 does.** The two tag-up carry gates become margins on this estimate, and `running.json`
+enters the overlay with its clock keys byte-identical.
+
+---
+
+[#732](https://github.com/jackguillet/grand-sluggers/issues/732) — the tag-up as a race (decision 5 of
+[#730](https://github.com/jackguillet/grand-sluggers/issues/730)). `rules/running.json` joins the overlay as
+the twelfth file. Its two carry gates go to never and two new thresholds are authored; **every clock key is the
+shipped value, byte for byte**, because the runner clock is the C80 anchor, and a test now checks that on the
+values rather than on the file's absence.
+
+**The rule.** At the catch — once — a CPU runner on third or second goes when `margin(next)` clears the bag's
+threshold plus the rung's `runnerMarginSec`. The margin is the same estimate every other CPU runner read uses:
+the defense's arrival at the bag, thrower's arm and the fielder's relay read since #722, minus the runner's own.
+A body held at the catch is not sent by a later event. The shipped table sets the thresholds to 99, a margin no
+play reaches, so it decides by the two carry gates exactly as it always did — 20 `cli match` seeds and all 50
+S-29 cohort games identical to pristine `main`.
+
+**Where the numbers come from.** A sweep under this overlay with the thresholds at −99, so every runner raced:
+konga, cinder and dart on third and on second, flies to left (vine, Arm 8), centre (moss, Arm 4) and right (hex,
+Arm 4 with Laser), six depths from 185 to 260 ft — 108 races. Read margin against outcome:
+
+| Race | every OUT was read at or below | every safe at or above | crossover |
+| --- | --- | --- | --- |
+| third → home | +0.114 | −0.037 | about +0.10 |
+| second → third | −0.099 | −0.111 | about −0.08 |
+
+The thresholds are **0.25 home / 0.07 third**: the hard rung (−0.15) sits on the crossover, because a race has a
+right answer and the best judge should be on it; normal holds 0.15 s longer and easy 0.30 s longer while reading
+half the arm and no relay. Verified under the overlay on each rung:
+
+| Rung | home: sent / safe / out | third: sent / safe / out |
+| --- | --- | --- |
+| hard | 31 / 30 / 1 | 8 / 8 / 0 |
+| normal | 28 / 28 / 0 (holds 4 who were safe) | 8 / 8 / 0 |
+| easy | 29 / 29 / 0 | 11 / 9 / 2 (its worse read) |
+
+For normal on the crossover instead, author 0.10 and −0.08. S-54's own play at 215 ft to left under normal: konga
+reads −0.25 and holds, cinder +0.11 and holds, dart +0.59 and goes; the shipped rule sent all three.
+
+**What it does to a run.** 2 of 48 trial seeds diverge from slice 2; the S-29 cohort under the trial moves
+**0.82 / 1.30 → 0.90 / 1.24** with 47 of 50 scorelines unchanged; across the 48 seeds the runner tagged out at
+home goes 11 → 9 and the fly-out double play 2 → 0. The control is unchanged.
+
+**What is deliberately not here.** A runner on first has no race (the threshold is infinite); the late break on
+a throw to the cutoff is shut by design; both are new behaviour for their own rows if wanted.
+
+---
+
+[#718](https://github.com/jackguillet/grand-sluggers/issues/718) slice 1 — the pursuit contract's speed, its
+four read clocks, and cover at contact (F693-02-pursuit-speed, the read clocks, F693-02-coverage-budget). All in
+`rules/fielding.json`; the shipped table gains two cover switches at the values that are today's rule.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `chase.baseFtPerSec` + `ftPerSecPerRun` × Run | 21 + 1.9 × Run (30.5 at Run 5) | **12.4 + 1.12 × Run** (18.0 at Run 5, the spread kept to half a percent); floor 8 → 4.72 |
+| `reaction` P / C / 1B 2B 3B SS / OF | 0.42 / 0.67 / 0.27 0.25 0.30 0.28 / 0.83 | **0.35 / 0.45 / 0.25 × 4 / 0.40** |
+| `cover.startSec`, `lockoutMul`, `chaseSpeedWeight` | 0.23, 1, 0 — D11's flat 28 ft/s after the start and the body's read | **0, 0, 1** — cover, cutoff and backup walk at the body's own pursuit speed from contact, no read |
+
+`FieldingResolver.CoverSpeedFt` is one function for the live walks, the CPU's cover-arrival estimate and the bunt
+square's cover walk; at weight 0 it returns `cover.ftPerSec` itself, so the shipped walk is the same double it always
+was — 20 `cli match` seeds and all 50 S-29 cohort games identical to pristine `main`.
+
+**What it does to a run.** This is the slice the tracker said would show: every one of the 48 trial seeds diverges
+from slice 3 and 39 scorelines change. Legs at 18 ft/s instead of 30.5 outweigh the faster reads —
+
+| 48 trial seeds | slice 3 | #718 slice 1 |
+| --- | --- | --- |
+| fly outs | 701 | **551** |
+| singles / doubles / triples | 110 / 9 / 0 | **201 / 52 / 13** |
+| home runs | 75 | 63 |
+
+— and S-29 under the trial goes **0.90 / 1.24 → 1.74 / 1.56** runs a side, the first time the compact profile has
+been near its 1.8 floor. Read the direction, not the digits: the pursuit speed and the reads are accepted anchors, and
+3d bands the whole profile once catch, dive and the response law have landed on top of them.
+
+**Reported, not repaired.** `chase.outfieldAirMul` 0.6 and `infieldAirMul` 0.45 — the S-29 levers of #609 and #636
+— still multiply the new speed, so an outfielder under a fly runs 10.8 ft/s at Run 5; #718 does not name them and
+this slice leaves them for the calibration that decides the air balls. The pursuit planner's travel estimate assumes
+the body is at speed from its first step, which is true until slice 2's acceleration ramp. The in-process scenario
+that pins cover-at-contact stands the bodies on the shipped spots.
+
+**What slice 2 does.** The response law — a 0.20 s ramp to speed, a 0.10 s brake, reversal as brake then ramp —
+and the carry: ordinary carry at the pursuit top speed, the universal activated sprint retired in favour of a
+1.20× Ball Dash for the ability's carriers, of whom the roster currently has none.
+
+---
+
+[#718](https://github.com/jackguillet/grand-sluggers/issues/718) slice 2 — the response law
+(F693-02-carry-movement-response). `rules/fielding.json` carries `chase.accelSec` **0.20** and `brakeSec` **0.10**;
+the shipped table gains both at **0 / 0**, and at 0 / 0 every step in the live field is the instant step the game
+always had — the same code path, not a product by one.
+
+**The law.** Every body keeps a velocity. Each frame it wants a velocity toward its goal at its commanded speed (rest
+inside the stop radius; the stick's proportional want for the human glove), and its velocity answers through one
+function: the component along its heading builds at the ramp rate (rest to the body's rated speed in `accelSec`) and
+dies at the brake rate (the rated speed to rest in `brakeSec`); the component across it builds at the ramp rate. So a
+stop is the brake, a reversal is the brake and then the ramp, and an angled turn is continuous correction through the
+same two rates. A body nobody steps brakes to rest; a body the ring left keeps coasting for `handoffCoastSec` and then
+brakes instead of stopping dead. The rates are measured against the body's own pursuit top speed, not the speed it is
+asked for this frame, so an outfielder under a fly (× 0.6) ramps like the body it is.
+
+**The planner knows.** `FieldingPursuit.Route` carries the ramp's half-time: travel takes it, and a body that could
+just reach a sample at speed cannot once it must get to speed first. At 0 the arithmetic is the old one exactly.
+
+**What it does to a run.** 33 of 48 trial seeds diverge from slice 1, 21 scorelines. S-29 under the trial:
+**1.74 / 1.56 → 1.70 / 1.64**; 25 of 50 cohort scorelines unchanged. Read the direction: a tenth of a second at
+every start and stop, on every body, is what the accepted law costs, and it lands on top of legs that already run
+at 18 ft/s. The control is unchanged — 20 seeds and all 50 cohort games identical.
+
+**What this slice leaves.** The analog stick's enter / leave thresholds (0.20 / 0.15) and controller calibration
+are the human seat's feel and are not here (`Feel.FieldAssistStick` 0.35 stays the one threshold). The carry — the
+universal activated sprint retired for a 1.20× Ball Dash — waits on a roster body that carries Ball Dash; there is
+none today. Both are #718's remaining slice.
+
+---
+
+[#723](https://github.com/jackguillet/grand-sluggers/issues/723) — throw commands and abilities (F693-03-relay-ownership,
+-input-buffer, -throw-cancel, -laser-throw, -snap-throw). All in `rules/fielding.json`; the shipped table gains four
+keys at the values that are today's rule.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `throw.relayAutoContinue` | 1 — a human's cutoff throws the armed onward leg for them | **0** — each relay leg needs its own command; the cutoff holds |
+| `throw.relayBufferSec` | 0 — no queue | **0.25** — an early press is remembered that long of active play and fires at the catch; bag selectors retarget it without refreshing its age; a fresh RB / period cancels it (`LivePadInput.Cancel`, the `cancel-throw` verb) |
+| `abilities.laserMul`, `laserHomeOnly` | 1.45, 0 — the boost on every throw | **1.25, 1** — only on a throw home with a live runner on third or the third–home segment; a cutoff feed never carries it, and the CPU's own forecast strips it the same way |
+| `abilities.snapThrowMul`, `snapReleaseSec` | 1.22, 0.22 — a faster ball; the snap release equals the ordinary release, so it is inert | **1.0, 0.22** — a 0.22 s release against the ordinary 0.30, after a clean received teammate throw only; a pickup, a bobble, a sail or a hand-off clears it |
+
+The CPU never queues or cancels, and the shipped abilities are untouched, so a no-overlay run is the game it always
+was — 20 `cli match` seeds and all 50 S-29 cohort games identical to pristine `main`.
+
+**What it does to a run.** The CPU's Laser holders (hex, boom, nugget, brondo) lose the boost on every throw but the
+one home with a runner on third, and its Snap holders (pip, frost, pewter, vale) release a received ball in 0.22 s
+against 0.30: 22 of 48 trial seeds diverge from #718 slice 2, 10 scorelines, and S-29 under the trial moves
+**1.70 / 1.64 → 1.80 / 1.64** — home on the floor for the first time, away still under it — with 46 of 50 cohort
+scorelines unchanged.
+
+**What the human seat gets.** Tested on the human seat with a Snap holder at the cutoff: on the control the armed
+leg fires at the catch and a press in flight is nothing; on the trial the cutoff holds a full second until South
+is pressed, a press 0.15 s before the catch fires at the catch, a press 0.50 s before expires, and a remembered press
+cancelled by a fresh RB is gone — and the onward throw the Snap holder makes leaves 0.08 s sooner than an ordinary
+release would. `LivePlaySystem.ThrowQueued` / `QueuedThrowBag` and `LiveEvent.ThrowQueued` / `ThrowQueueCleared`
+are the HUD's tells; Unity maps RB / period on the defense pad to the cancel.
+
+**Left to the book pass.** The how-to page's row for the cancel verb (its pixel budget is P8's), and the queue's
+visible feedback.

@@ -314,6 +314,19 @@ public sealed class FieldingResolver
     public static double ChaseSpeedFt(Character fielder, string pos, FieldingPreview? pre, RulesTable? rules = null, bool dash = false) =>
         ChaseSpeedFt(fielder, pre?.Frozen ?? false, rules, dash) * AirMul(pos, pre, rules);
 
+    /// <summary>
+    /// The speed a body walks to a bag, the throw line or a backup spot (§8.7, #718): the flat cover speed on the
+    /// shipped table, the body's own pursuit speed as far as <c>fielding.cover.chaseSpeedWeight</c> reads it. At 0 it
+    /// is <c>cover.ftPerSec</c> itself, not a product, so the shipped walk is the same double it always was.
+    /// </summary>
+    public static double CoverSpeedFt(Character who, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var c = r.Fielding.Cover;
+        if (c.ChaseSpeedWeight <= 0) return c.FtPerSec;
+        return c.FtPerSec + c.ChaseSpeedWeight * (ChaseSpeedFt(who, false, r) - c.FtPerSec);
+    }
+
     static double AirMul(string pos, FieldingPreview? pre, RulesTable? rules)
     {
         if (pre is not { Grounder: false }) return 1;

@@ -66,7 +66,7 @@ public static class BuntDefense
             {
                 var goal = Diamond.Bag(bag);
                 var dist = Diamond.Dist(at.X, at.Z, goal.X, goal.Z);
-                at = Toward(at, goal, Math.Min(Math.Max(0, dist - cover.StopFt), cover.FtPerSec * held));
+                at = Toward(at, goal, Math.Min(Math.Max(0, dist - cover.StopFt), FieldingResolver.CoverSpeedFt(kv.Value, r) * held));
             }
             spots[pos] = at;
         }

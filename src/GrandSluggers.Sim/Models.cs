@@ -452,11 +452,15 @@ public readonly record struct Sample(double T, double Dist, double Height, doubl
 
 /// <summary>
 /// One throw's input (§8.5): the pair's chemistry, the speed multiplier (arm × chemistry × ability)
-/// the one throw clock flies it on, whether bad chemistry slanted it, and the signed lateral miss
-/// in feet at the target. Whether it is caught is the receiver's radius, decided where it lands.
+/// the one throw clock flies it on, whether bad chemistry slanted it, the signed lateral miss in
+/// feet at the target, and the thrower's Arm rating, which sets the comfortable range the long-throw
+/// loss is measured from (#722). Whether it is caught is the receiver's radius, decided where it lands.
 /// </summary>
 public sealed record ThrowResult(
     Chemistry Relation,
     double SpeedMul,
     bool Slanted,
-    double LateralFt = 0);
+    double LateralFt = 0,
+    int Arm = InPlay.NeutralArm,
+    /// <summary>A release for this throw other than the table's (#723): Snap Throw's after a clean received teammate throw. Null is the ordinary release.</summary>
+    double? ReleaseSec = null);
