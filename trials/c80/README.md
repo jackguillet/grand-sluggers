@@ -873,3 +873,34 @@ the dive tests (a 130-mph liner at 18° in place of the 280-ft gap liner, which 
 10°), the awkward hop (a 100-mph liner at 20° — D 0.97 and under the hot line, so the real-table bobble is the knockdown again),
 the ball that gets past (120 mph at 16°, 59 ft/s in), and the jump's reversal anchor, which moves to the shortstop under a pop at
 the one speed while the centre fielder under the fly shows the same tenth-of-the-rates brake from 10.8 ft/s (3.24 ft).
+
+---
+
+**The compact scenario rows, slice 1 — the outs (#715, ahead of 3e).** No data changes; this is the test side of the copy.
+The diamond is process-wide (`Diamond` reads the one default table), so a scenario row is only honest on this copy in a process
+whose data root is the copy. `TestRoot.Compact` says which diamond the process plays, `TestRoot.Pick(shipped, compact)` takes
+the row's fixture for it, and classes whose every row holds on both roots carry `[Trait("Rows", "compact")]`; CI runs those a
+second time with `GRAND_SLUGGERS_TRIAL=trials/c80`. The shipped rows are untouched and still run on the shipped diamond; each
+compact row sits beside its shipped row, shares its assertions, and says in a comment why the 80-ft diamond needs another ball.
+
+`OutsScenarioTests` is the first class through: 37 of 37 on both roots, 19 of them rows the copy had broken.
+
+| Row | Shipped ball | Compact ball | Why |
+| --- | --- | --- | --- |
+| S-41 4-6-3 | 120 ft / 4° / 5° | 105 / 4° / 9° | the second baseman starts at (37, 105), not (42, 118); the shipped ball is past him |
+| S-43, S-48 3 then the tag | 92 / 4° / 41° | 70 / 4° / 43° | the shipped ball is taken 16 ft in front of the 80-ft bag |
+| S-44 3-6-3 | 110 / 4° / 38° | 95 / 4° / 38° | at 110 ft the line runs between first and second and the preview names second |
+| S-46 5 unassisted then 3 | 92 / 4° / −44° | 85 / 3° / −44° | from the shipped ball the CPU's second out goes to second and the batter reaches |
+| S-54 the tag-up race | 222 / 34° / −30° | 250 / 34° / −26° | the runner reads the race (#732) and holds on the shipped fly |
+| S-55 the pop dropped on purpose | 120 / 62° / −12° | 107 / 62° / −16°, six neutral frames | the shortstop's pop; the copy's stick takes the glove only after it is seen at neutral (#718) |
+| S-55b the lost relay | seed 33, 210 ft | seed 33, 235 ft | the fly deep enough that the runner tags on the race and the relay still loses the ball |
+| S-73 the throw well ahead | 90 mph / 30° | 90 mph / 26° | on 80-ft paths the 30° ball leaves the throw inside the margin |
+| S-74, S-75 inside the margin | order 7 | order 5 | the Run-5 body the dash lands inside the margin |
+| S-76 the rundown | 92 / 4° / 41° | 80 / 4° / 43° | the ball the first baseman takes on the bag |
+| The triple play | CPU seat, 92 / 4° / −44° | human seat, 80 / 3° / −44° | three forces are still there; the CPU's table takes the sure out at first after the step on third |
+| The rundown AI | 40 ft and 70 ft along the path | the same fractions of 80 ft | the runner covers 27.1 ft/s on the copy, 30.5 shipped |
+
+**Left.** 44 more rows across three families, each its own slice: the control and fielding scenes (the hand-offs, the liner
+past the lip, the roller to the grass — 23), the flights, parks and geometry values (fences, carries, the mound, the hazards —
+16), and the seats, bunts, runners and steals (5). About a hundred more tests fail under the overlay because they name the
+shipped table on purpose; those are not rows and are restructured at promotion.
