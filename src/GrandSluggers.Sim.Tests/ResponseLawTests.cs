@@ -84,6 +84,57 @@ public sealed class ResponseLawTests
         Assert.InRange(Speed(track.Count - 2), 0, 0.5);
     }
 
+    /// <summary>
+    /// The body the ring leaves on a hand-off (§8.9): SS runs at a liner up the middle, the ring goes to CF, and SS keeps its
+    /// velocity for exactly <c>chase.handoffCoastSec</c> and then brakes over <c>chase.brakeSec</c>. No frame is faster than the
+    /// coast (the idle brake does not step a coasting body), the brake begins on the frame after the coast's last step (no
+    /// standing frame between them), and at an uneven frame time the coast's last frame is part coast, part brake.
+    /// </summary>
+    [Theory]
+    [InlineData(1.0 / 60.0)]
+    [InlineData(0.021)]
+    public void TheBodyTheRingLeavesCoastsThenBrakesWithNoFasterFrameAndNoStandingFrame(double dt)
+    {
+        var home = Trial.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = Trial.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(Trial, home, away, 3, 1, parkId: "harbor-diamond");
+        var hit = FlightFixtures.Hit(match.Park, 90, 10, -8);
+        var preview = match.PreviewHit(hit);
+        var chase = match.Rules.Fielding.Chase;
+        var live = match.LivePlay;
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
+        Assert.Equal("SS", live.GlovePos);
+        var track = new List<(string Glove, (double X, double Z) At)> { (live.GlovePos, live.Fielders["SS"]) };
+        for (var i = 0; i < 200 && live.Active; i++)
+        {
+            live.Apply(LivePlayCommand.Tick(dt, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu));
+            if (live.Active) track.Add((live.GlovePos, live.Fielders["SS"]));
+        }
+        double Speed(int frame) => Diamond.Dist(track[frame - 1].At.X, track[frame - 1].At.Z, track[frame].At.X, track[frame].At.Z) / dt;
+
+        var h = track.FindIndex(f => f.Glove != "SS");
+        Assert.True(h > 2 && track[h].Glove == "CF", "the ring left SS for CF");
+        var v = Speed(h - 1);
+        Assert.True(v > 10, $"SS was running when the ring left ({v:0.0} ft/s)");
+        Assert.Equal(0, Speed(h), 6);   // the hand-off frame: nobody steps the body the ring left (§8.9, as shipped)
+
+        var window = (int)Math.Ceiling((chase.HandoffCoastSec + chase.BrakeSec) / dt) + 8;
+        var speeds = Enumerable.Range(h + 1, window).Select(Speed).ToList();
+        Assert.All(speeds, s => Assert.True(s <= v * 1.001, $"a frame at {s:0.0} ft/s inside a {v:0.0} ft/s coast"));
+        var coastFrames = (int)Math.Floor(chase.HandoffCoastSec / dt + 1e-9);
+        Assert.All(speeds.Take(coastFrames), s => Assert.Equal(v, s, 3));
+        for (var i = 1; i < speeds.Count; i++)
+            Assert.True(speeds[i] <= speeds[i - 1] + 1e-6, $"the body sped up after the coast ({speeds[i - 1]:0.0} → {speeds[i]:0.0} ft/s)");
+        var rest = speeds.FindIndex(s => s < 1e-6);
+        Assert.InRange(rest, coastFrames + 1, window - 1);
+        Assert.True(speeds[coastFrames] > 0 && speeds[coastFrames] < v, "the brake begins on the frame after the coast's last full step");
+
+        // The whole slide: the coast, plus the brake's v² / (2 a) less at most the one frame a stepped brake gives up.
+        var slid = Diamond.Dist(track[h].At.X, track[h].At.Z, track[h + window].At.X, track[h + window].At.Z);
+        var ideal = v * chase.HandoffCoastSec + v * chase.BrakeSec / 2;
+        Assert.InRange(slid, ideal - v * dt, ideal + 0.01);
+    }
+
     /// <summary>The control's cover body is at the flat speed on its very first step: the law's code path is not taken at 0 / 0.</summary>
     [Fact]
     public void TheControlsFirstStepIsAlreadyAtSpeed()
