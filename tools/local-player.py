@@ -20,13 +20,41 @@ def log(message):
     print(message, flush=True)
 
 
-def wait_for_editor_shutdown(process):
-    """Owned build editors request their own exit; never turn cleanup into a crash."""
+def request_normal_quit(pid):
+    """Ask the app with this exact PID to quit normally: the quit Apple Event that Quit sends, not a signal."""
+    script = ('ObjC.import("AppKit");'
+              'var app = $.NSRunningApplication.runningApplicationWithProcessIdentifier(' + str(int(pid)) + ');'
+              'app.isNil() ? "missing" : (app.terminate, "asked")')
+    try:
+        reply = subprocess.run(['osascript', '-l', 'JavaScript', '-e', script],
+                               capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    # The caller's wait decides whether Unity quit, not terminate's return value.
+    return reply.stdout.strip() == 'asked'
+
+
+def wait_for_editor_shutdown(process, build_ok):
+    """Owned build editors exit by themselves after a good build; never turn cleanup into a crash.
+
+    A background editor can idle instead of exiting, so after good evidence it gets one normal quit
+    request. A failed or unfinished build stays open for inspection."""
     if process.poll() is not None:
         return
     try:
         process.wait(timeout=20)
+        return
     except subprocess.TimeoutExpired:
+        pass
+    if build_ok:
+        log('Build editor is still open after a good build; asking it to quit normally…')
+        if request_normal_quit(process.pid):
+            try:
+                process.wait(timeout=120)
+                return
+            except subprocess.TimeoutExpired:
+                pass
+    if process.poll() is None:
         log('Build editor is still open for inspection; quit it normally. It has not been terminated.')
 
 
@@ -106,6 +134,7 @@ def deliver(args):
                                     '-executeMethod', 'GrandSluggers.EditorTools.PlayerBuildGate.MenuBuildMac',
                                     '-logFile', str(build_log)],
                                    stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, env=build_env)
+        build_ok = False
         try:
             deadline = time.monotonic() + args.timeout
             next_status = time.monotonic() + 30
@@ -121,12 +150,13 @@ def deliver(args):
                     next_status += 30
                 time.sleep(1)
             result = json.loads(done.read_text())
+            build_ok = result.get('ok') is True
             validate_build_evidence(result, revision)
             built = Path(result['exe'])
             if built != project / 'Builds/osx/GrandSluggers.app' or not (built / 'Contents/MacOS/Grand Sluggers').is_file():
                 raise RuntimeError('Build result does not contain the expected Mac player.')
         finally:
-            wait_for_editor_shutdown(process)
+            wait_for_editor_shutdown(process, build_ok)
 
         release = state / 'releases' / (label + '-' + revision[:10] + '-' + str(time.time_ns()))
         release.mkdir(parents=True)
