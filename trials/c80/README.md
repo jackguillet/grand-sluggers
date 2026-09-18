@@ -1086,11 +1086,12 @@ lunged (`_lungePos`). No data change. The second half repairs the shipped table 
 **The defect.** The coast (§8.9) keeps "the glove's velocity": the last frame's displacement over the frame. Under the copy's
 deliberate dive (#719) that last frame can be the lunge, 9.8 ft in one frame, which reads as about 590 ft/s. When the dive
 misses and `TryHandoffOutfield` moves the ring on the next frame, the diver slid 9.87 ft a frame for the coast's 12 frames
-while his recovery was still running, stood two frames, then "braked" from 590 ft/s under the response law (#718).
+while his recovery was still running, then "braked" from 590 ft/s under the response law (#718). This is the finding the
+section above left as its own change; the numbers here are measured on main after that section's repair.
 
 | Fixture (CPU seats, Harbor, the `ResponseLawTests` teams) | Root | Ring | Before | After |
 | --- | --- | --- | --- | --- |
-| 70 mph / 20° / −8° | the copy | SS → LF, frame 140 | SS ends behind the plate; the three copy rows are 145.8 to 151.9 ft from the lunge | under 1.5 ft |
+| 70 mph / 20° / −8° | the copy | SS → LF, frame 140 | SS ends behind the plate; the three copy rows are 146.1 to 152.0 ft from the lunge | under 1.5 ft |
 | 70 mph / 20° / −32° | the copy | SS → LF | the same | under 1.5 ft |
 | 70 mph / 20° / 0° | the copy | 2B → CF | the same | under 1.5 ft |
 | 80 mph / 14° / −18° | the hybrid (plain process) | SS → LF, frame 51 | 151.0 ft | under 1.5 ft |
@@ -1117,7 +1118,7 @@ without its half of the guard.
 
 | Check | Result |
 | --- | --- |
-| `dotnet test GrandSluggers.sln -c Release` | 1321 of 1321 |
+| `dotnet test GrandSluggers.sln -c Release` | 1323 of 1323 (1320 on main + these 3) |
 | `--filter "Rows=compact&Copy!=gap"` under the trial root | 304 of 304 (299 on main + these 5) |
 | Control, 20 seeds and the three cohorts | byte-identical to main (cohort JSON: the identity block's `moduleId` and `build` only); CPU games never hand a ring off inside a shipped dive |
 | Trial, 48 seeds | 0 of 48 move |
