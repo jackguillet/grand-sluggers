@@ -138,6 +138,10 @@ public sealed partial class LivePlaySystem
     string _coastPos = "";
     (double X, double Z) _coastVel;
     double _coastT;
+    /// <summary>Each body's velocity under the response law (#718), ft/s. Empty on the shipped table, whose steps are instantaneous.</summary>
+    readonly Dictionary<string, (double X, double Z)> _vel = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>The bodies a walker stepped this frame; the rest brake to a stop at the start of the next.</summary>
+    readonly HashSet<string> _stepped = new(StringComparer.OrdinalIgnoreCase);
 
     // A ball on the ground in nobody's glove and off its batted path: a fumble, an overthrow, a drop at an uncovered bag.
     bool _loose;
@@ -458,6 +462,8 @@ public sealed partial class LivePlaySystem
         _coastPos = "";
         _coastVel = (0, 0);
         _coastT = 0;
+        _vel.Clear();
+        _stepped.Clear();
         _throwerPos = "";
         _cutoffPos = "";
         _cutoffSpot = null;
@@ -515,6 +521,8 @@ public sealed partial class LivePlaySystem
             : (0, 0);
         _gloveLast = (GlovePos, GloveX, GloveZ);
         _lastDt = dt;
+        // The response law (#718): a body nobody stepped last frame brakes to a stop; then this frame's steps begin.
+        TickIdleBrakes(dt);
 
         // Dash: mash South on the offense pad (running.dash).
         if (run.SouthDown) Dash01 = Math.Min(R.Running.Dash.MaxDash, Dash01 + R.Running.Dash.PerPress);
@@ -680,9 +688,7 @@ public sealed partial class LivePlaySystem
         if (steering && map.TryGetValue(GlovePos, out var glove) && stick >= stickTake && CanMove(GlovePos))
         {
             var speed = FieldingResolver.ChaseSpeedFt(glove, GlovePos, pre, R, pad.EastHeld);
-            GloveX += pad.StickX * speed * dt;
-            GloveZ += pad.StickY * speed * dt;
-            var feet = FieldBounds.Clamp(Park, GloveX, GloveZ);
+            var feet = StepStick(GlovePos, (GloveX, GloveZ), pad.StickX, pad.StickY, speed, dt);
             GloveX = feet.X;
             GloveZ = feet.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1051,7 +1057,7 @@ public sealed partial class LivePlaySystem
         if (Throwing || pad.StickMag < Feel.FieldAssistStick || !CanMove(GlovePos)) return;
         if (!map.TryGetValue(GlovePos, out var glove)) return;
         var speed = FieldingResolver.ChaseSpeedFt(glove, GlovePos, _loose ? null : Preview, R, pad.EastHeld);
-        var feet = FieldBounds.Clamp(Park, GloveX + pad.StickX * speed * dt, GloveZ + pad.StickY * speed * dt);
+        var feet = StepStick(GlovePos, (GloveX, GloveZ), pad.StickX, pad.StickY, speed, dt);
         GloveX = feet.X;
         GloveZ = feet.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1082,7 +1088,7 @@ public sealed partial class LivePlaySystem
     {
         var who = GloveChar();
         var speed = FieldingResolver.ChaseSpeedFt(who, Preview?.Frozen ?? false, R);
-        var next = FieldingResolver.StepToward(GloveX, GloveZ, goal.X, goal.Z, speed, dt, Park, R);
+        var next = StepTo(GlovePos, (GloveX, GloveZ), goal, speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         GloveX = next.X;
         GloveZ = next.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1625,7 +1631,7 @@ public sealed partial class LivePlaySystem
             if (!CanMove(GlovePos)) return;
             var chaser = map.TryGetValue(GlovePos, out var lc) ? lc : pre.Fielder;
             var run = FieldingResolver.ChaseSpeedFt(chaser, pre.Frozen, R);
-            var step = FieldingResolver.StepToward(GloveX, GloveZ, BallX, BallZ, run, dt, Park, R);
+            var step = StepTo(GlovePos, (GloveX, GloveZ), (BallX, BallZ), run, R.Fielding.Chase.StepStopFt, dt, flat: false);
             GloveX = step.X;
             GloveZ = step.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1640,7 +1646,7 @@ public sealed partial class LivePlaySystem
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
         var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
-        var next = FieldingResolver.StepToward(GloveX, GloveZ, route.X, route.Z, speed, dt, Park, R);
+        var next = StepTo(GlovePos, (GloveX, GloveZ), (route.X, route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         GloveX = next.X;
         GloveZ = next.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1729,6 +1735,12 @@ public sealed partial class LivePlaySystem
         var step = Math.Min(dt, _coastT);
         _fielders[_coastPos] = FieldBounds.Clamp(Park, at.X + _coastVel.X * step, at.Z + _coastVel.Z * step);
         _coastT -= dt;
+        if (ResponseLaw)
+        {
+            // The body's velocity is the coast's, so when the coast ends it brakes rather than stopping dead (#718).
+            _vel[_coastPos] = _coastVel;
+            _stepped.Add(_coastPos);
+        }
     }
 
     bool Coasting(string pos) => _coastT > 0 && pos == _coastPos;
@@ -1753,7 +1765,7 @@ public sealed partial class LivePlaySystem
         if (!CanMove(of.Position)) return;
         if (!_fielders.TryGetValue(of.Position, out var at)) return;
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, of.Position, Preview, R);
-        _fielders[of.Position] = FieldingResolver.StepToward(at.X, at.Z, of.Route.X, of.Route.Z, speed, dt, Park, R);
+        _fielders[of.Position] = StepTo(of.Position, at, (of.Route.X, of.Route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
     }
 
     /// <summary>
@@ -1815,7 +1827,7 @@ public sealed partial class LivePlaySystem
             if (!HoldsBall && !Throwing && !_loose && BuntChargeBody(pos, map)) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             var goal = Diamond.Bag(kv.Key);
-            _fielders[pos] = StepFlat(at, goal, CoverSpeed(pos, bodies), cover.StopFt, dt);
+            _fielders[pos] = StepTo(pos, at, goal, CoverSpeed(pos, bodies), cover.StopFt, dt, flat: true);
         }
     }
 
@@ -1839,7 +1851,7 @@ public sealed partial class LivePlaySystem
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             if (Diamond.Dist(at.X, at.Z, BallX, BallZ) <= b.ChargeStopFt) continue;
             var speed = FieldingResolver.ChaseSpeedFt(who, pos, Preview, R);
-            _fielders[pos] = FieldingResolver.StepToward(at.X, at.Z, BallX, BallZ, speed, dt, Park, R);
+            _fielders[pos] = StepTo(pos, at, (BallX, BallZ), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         }
     }
 
@@ -1852,10 +1864,126 @@ public sealed partial class LivePlaySystem
         // the receiver at release, §8.5); once they hold it the spot is cleared.
         if (!string.IsNullOrEmpty(_cutoffPos) && _cutoffSpot is { } spot && (Throwing || _cutoffPos != GlovePos)
             && _fielders.TryGetValue(_cutoffPos, out var cutAt) && CanMove(_cutoffPos) && !Coasting(_cutoffPos))
-            _fielders[_cutoffPos] = StepFlat(cutAt, spot, CoverSpeed(_cutoffPos, bodies), cover.StopFt, dt);
+            _fielders[_cutoffPos] = StepTo(_cutoffPos, cutAt, spot, CoverSpeed(_cutoffPos, bodies), cover.StopFt, dt, flat: true);
         if (!string.IsNullOrEmpty(_backupPos) && _backupPos != GlovePos
             && _fielders.TryGetValue(_backupPos, out var backAt) && CanMove(_backupPos) && !Coasting(_backupPos))
-            _fielders[_backupPos] = StepFlat(backAt, _backupSpot, CoverSpeed(_backupPos, bodies), cover.StopFt, dt);
+            _fielders[_backupPos] = StepTo(_backupPos, backAt, _backupSpot, CoverSpeed(_backupPos, bodies), cover.StopFt, dt, flat: true);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // The response law (#718, F693-02-carry-movement-response)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>The response law is on when the table gives a ramp or a brake time; at 0 / 0 every step is the instant step the game shipped with.</summary>
+    bool ResponseLaw => R.Fielding.Chase.AccelSec > 0 || R.Fielding.Chase.BrakeSec > 0;
+
+    /// <summary>The rated speed the response rates are measured against: the body's own pursuit top speed (§8.1), not the speed it happens to be asked for this frame.</summary>
+    double RatedSpeed(string pos, double asked)
+    {
+        var top = Assigned().TryGetValue(pos, out var who) ? FieldingResolver.ChaseSpeedFt(who, false, R) : asked;
+        return Math.Max(1, Math.Max(top, asked));
+    }
+
+    /// <summary>
+    /// One frame of a body's velocity toward what it wants (#718): the component along its heading builds at the ramp rate
+    /// and dies at the brake rate; the component across it builds at the ramp rate. So a reversal is the brake and then the
+    /// ramp, a stop is the brake, and an angled turn is continuous correction through the same two rates. Rest to the rated
+    /// speed takes <c>chase.accelSec</c>; the rated speed to rest takes <c>chase.brakeSec</c>.
+    /// </summary>
+    (double X, double Z) Respond(string pos, (double X, double Z) want, double asked, double dt)
+    {
+        var c = R.Fielding.Chase;
+        var top = RatedSpeed(pos, asked);
+        var accel = c.AccelSec > 0 ? top / c.AccelSec : double.PositiveInfinity;
+        var brake = c.BrakeSec > 0 ? top / c.BrakeSec : double.PositiveInfinity;
+        var v = _vel.TryGetValue(pos, out var cur) ? cur : (X: 0.0, Z: 0.0);
+        var dvx = want.X - v.X;
+        var dvz = want.Z - v.Z;
+        var speed = Math.Sqrt(v.X * v.X + v.Z * v.Z);
+        double nx, nz;
+        if (speed < 1e-9)
+        {
+            var dv = Math.Sqrt(dvx * dvx + dvz * dvz);
+            if (dv < 1e-12) (nx, nz) = want;
+            else
+            {
+                var step = Math.Min(dv, accel * dt);
+                (nx, nz) = (v.X + dvx / dv * step, v.Z + dvz / dv * step);
+            }
+        }
+        else
+        {
+            var ux = v.X / speed;
+            var uz = v.Z / speed;
+            var along = dvx * ux + dvz * uz;
+            var px = dvx - along * ux;
+            var pz = dvz - along * uz;
+            var across = Math.Sqrt(px * px + pz * pz);
+            var alongStep = Math.Clamp(along, -brake * dt, accel * dt);
+            var acrossStep = across > 1e-12 ? Math.Min(across, accel * dt) / across : 0;
+            nx = v.X + alongStep * ux + px * acrossStep;
+            nz = v.Z + alongStep * uz + pz * acrossStep;
+        }
+        _vel[pos] = (nx, nz);
+        _stepped.Add(pos);
+        return (nx, nz);
+    }
+
+    /// <summary>
+    /// A body's step toward a goal this frame (§8.1): on the shipped table the flat cover step or <see cref="FieldingResolver.StepToward"/>,
+    /// exactly as before; under the response law the body wants the goal at <paramref name="speed"/> (rest inside the stop radius),
+    /// its velocity answers through <see cref="Respond"/>, and it moves on that velocity.
+    /// </summary>
+    (double X, double Z) StepTo(string pos, (double X, double Z) at, (double X, double Z) goal, double speed, double stopFt, double dt, bool flat)
+    {
+        if (!ResponseLaw)
+            return flat ? StepFlat(at, goal, speed, stopFt, dt) : FieldingResolver.StepToward(at.X, at.Z, goal.X, goal.Z, speed, dt, Park, R);
+        var dx = goal.X - at.X;
+        var dz = goal.Z - at.Z;
+        var dist = Math.Sqrt(dx * dx + dz * dz);
+        var want = dist <= stopFt || dist < 1e-9
+            ? (X: 0.0, Z: 0.0)
+            : (X: dx / dist * Math.Min(speed, dist / dt), Z: dz / dist * Math.Min(speed, dist / dt));
+        var v = Respond(pos, want, speed, dt);
+        return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
+    }
+
+    /// <summary>The stick's step (§8.1): today's proportional step on the shipped table; under the response law the same want, answered through the body's velocity.</summary>
+    (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt)
+    {
+        if (!ResponseLaw) return FieldBounds.Clamp(Park, at.X + stickX * speed * dt, at.Z + stickY * speed * dt);
+        var v = Respond(pos, (stickX * speed, stickY * speed), speed, dt);
+        return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
+    }
+
+    /// <summary>Bodies nobody stepped last frame brake to a stop (#718), and the frame's step record is cleared. Nothing to do on the shipped table.</summary>
+    void TickIdleBrakes(double dt)
+    {
+        if (!ResponseLaw)
+        {
+            _stepped.Clear();
+            return;
+        }
+        var idle = _vel.Keys.Where(pos => !_stepped.Contains(pos)).ToList();
+        _stepped.Clear();
+        foreach (var pos in idle)
+        {
+            var v = _vel[pos];
+            if (Math.Abs(v.X) < 1e-9 && Math.Abs(v.Z) < 1e-9 || !_fielders.TryGetValue(pos, out var at))
+            {
+                _vel.Remove(pos);
+                continue;
+            }
+            var nv = Respond(pos, (0, 0), 0, dt);
+            var next = FieldBounds.Clamp(Park, at.X + nv.X * dt, at.Z + nv.Z * dt);
+            _fielders[pos] = next;
+            if (pos == GlovePos && !Throwing)
+            {
+                GloveX = next.X;
+                GloveZ = next.Z;
+            }
+        }
+        _stepped.Clear();
     }
 
     (double X, double Z) StepFlat((double X, double Z) at, (double X, double Z) goal, double speed, double stopFt, double dt)

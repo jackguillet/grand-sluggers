@@ -24,7 +24,12 @@
     // 0.45 2.64 / 2.32 and 2.16-2.72 a side over four seed sets with infield pops still caught (0.02-0.04 pop hits a
     // game); 0.4 2.72 / 2.12 and pops start to drop. A flat multiplier on every air ball drops liners in front of the
     // infield instead (hits inside the lip 0.04 -> 0.20 a game at 0.6).
-    "infieldAirMul": 0.45
+    "infieldAirMul": 0.45,
+    // #718 (F693-02-carry-movement-response): the response law. Seconds from rest to the rated speed, and from the rated
+    // speed to rest; a reversal is the brake and then the ramp. 0 / 0 is the instant step this table always had; trials/c80
+    // carries 0.20 / 0.10.
+    "accelSec": 0,
+    "brakeSec": 0
   },
   "reaction": {
     "pitcherSec": 0.42,

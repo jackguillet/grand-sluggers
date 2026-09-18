@@ -61,7 +61,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -463,3 +463,32 @@ that pins cover-at-contact stands the bodies on the shipped spots.
 **What slice 2 does.** The response law — a 0.20 s ramp to speed, a 0.10 s brake, reversal as brake then ramp —
 and the carry: ordinary carry at the pursuit top speed, the universal activated sprint retired in favour of a
 1.20× Ball Dash for the ability's carriers, of whom the roster currently has none.
+
+---
+
+[#718](https://github.com/jackguillet/grand-sluggers/issues/718) slice 2 — the response law
+(F693-02-carry-movement-response). `rules/fielding.json` carries `chase.accelSec` **0.20** and `brakeSec` **0.10**;
+the shipped table gains both at **0 / 0**, and at 0 / 0 every step in the live field is the instant step the game
+always had — the same code path, not a product by one.
+
+**The law.** Every body keeps a velocity. Each frame it wants a velocity toward its goal at its commanded speed (rest
+inside the stop radius; the stick's proportional want for the human glove), and its velocity answers through one
+function: the component along its heading builds at the ramp rate (rest to the body's rated speed in `accelSec`) and
+dies at the brake rate (the rated speed to rest in `brakeSec`); the component across it builds at the ramp rate. So a
+stop is the brake, a reversal is the brake and then the ramp, and an angled turn is continuous correction through the
+same two rates. A body nobody steps brakes to rest; a body the ring left keeps coasting for `handoffCoastSec` and then
+brakes instead of stopping dead. The rates are measured against the body's own pursuit top speed, not the speed it is
+asked for this frame, so an outfielder under a fly (× 0.6) ramps like the body it is.
+
+**The planner knows.** `FieldingPursuit.Route` carries the ramp's half-time: travel takes it, and a body that could
+just reach a sample at speed cannot once it must get to speed first. At 0 the arithmetic is the old one exactly.
+
+**What it does to a run.** 33 of 48 trial seeds diverge from slice 1, 21 scorelines. S-29 under the trial:
+**1.74 / 1.56 → 1.70 / 1.64**; 25 of 50 cohort scorelines unchanged. Read the direction: a tenth of a second at
+every start and stop, on every body, is what the accepted law costs, and it lands on top of legs that already run
+at 18 ft/s. The control is unchanged — 20 seeds and all 50 cohort games identical.
+
+**What this slice leaves.** The analog stick's enter / leave thresholds (0.20 / 0.15) and controller calibration
+are the human seat's feel and are not here (`Feel.FieldAssistStick` 0.35 stays the one threshold). The carry — the
+universal activated sprint retired for a 1.20× Ball Dash — waits on a roster body that carries Ball Dash; there is
+none today. Both are #718's remaining slice.

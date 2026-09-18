@@ -128,9 +128,11 @@ public sealed class PursuitContractTests
         if (root == "control") Assert.InRange(movedAt, 0.27 - 1e-9, 0.27 + 2 * Frame);
         else Assert.InRange(movedAt, Frame - 1e-9, 2 * Frame + 1e-9);
 
-        // The speed over the next five frames, once walking and well short of the bag.
-        var a = track[firstMove];
-        var b = track[firstMove + 5];
+        // The speed over five frames, once walking and well short of the bag: from the first step on the control, whose step is
+        // instantaneous; after the response law's 0.20-s ramp on the trial (#718 slice 2), where the first frames are the build-up.
+        var settle = root == "control" ? 0 : (int)Math.Ceiling(match.Rules.Fielding.Chase.AccelSec / Frame) + 2;
+        var a = track[firstMove + settle];
+        var b = track[firstMove + settle + 5];
         var speed = Diamond.Dist(a.X, a.Z, b.X, b.Z) / (b.T - a.T);
         Assert.InRange(speed, FieldingResolver.CoverSpeedFt(lace, match.Rules) * 0.97, FieldingResolver.CoverSpeedFt(lace, match.Rules) * 1.03);
         if (root == "control") Assert.InRange(speed, 27.2, 28.8);

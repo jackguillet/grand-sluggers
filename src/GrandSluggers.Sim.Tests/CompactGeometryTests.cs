@@ -354,7 +354,7 @@ public sealed class CompactGeometryTests
         // Nothing else in the table moves, and a new difference has to be named here.
         Assert.Equal(
             [
-                "chase.baseFtPerSec", "chase.ftPerSecPerRun", "chase.minFtPerSec",
+                "chase.accelSec", "chase.baseFtPerSec", "chase.brakeSec", "chase.ftPerSecPerRun", "chase.minFtPerSec",
                 "chem.badSpeedMul", "chem.slantChance",
                 "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
                 "park.pipeReachPadFt",
@@ -363,6 +363,8 @@ public sealed class CompactGeometryTests
             ],
             moved);
         Assert.Equal(("21", "12.4"), (shippedLeaves["chase.baseFtPerSec"], trialLeaves["chase.baseFtPerSec"]));
+        Assert.Equal(("0", "0.20"), (shippedLeaves["chase.accelSec"], trialLeaves["chase.accelSec"]));
+        Assert.Equal(("0", "0.10"), (shippedLeaves["chase.brakeSec"], trialLeaves["chase.brakeSec"]));
         Assert.Equal(("0.83", "0.40"), (shippedLeaves["reaction.outfieldSec"], trialLeaves["reaction.outfieldSec"]));
         Assert.Equal(("0.23", "0"), (shippedLeaves["cover.startSec"], trialLeaves["cover.startSec"]));
         Assert.Equal(("1", "0"), (shippedLeaves["cover.lockoutMul"], trialLeaves["cover.lockoutMul"]));
