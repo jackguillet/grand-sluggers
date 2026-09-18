@@ -363,6 +363,7 @@ public sealed class CompactGeometryTests
                 "chem.badSpeedMul", "chem.slantChance",
                 "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
                 "dash.chaseMul",
+                "handling.awkwardHop",
                 "park.pipeReachPadFt",
                 "reaction.catcherSec", "reaction.firstSec", "reaction.outfieldSec", "reaction.pitcherSec", "reaction.shortSec", "reaction.thirdSec",
                 "recoil.airFullFtPerSec", "recoil.airOnsetFtPerSec", "recoil.fullFtPerSec", "recoil.onsetFtPerSec",
@@ -374,6 +375,12 @@ public sealed class CompactGeometryTests
         // the Hands cut and the kick are the accepted anchors in both roots, read only above onset 0. The knockback block does not move.
         Assert.Equal(("0", "55"), (shippedLeaves["recoil.onsetFtPerSec"], trialLeaves["recoil.onsetFtPerSec"]));
         Assert.Equal(("0", "75"), (shippedLeaves["recoil.fullFtPerSec"], trialLeaves["recoil.fullFtPerSec"]));
+        // #721 (slice 1): the awkward hop is the one difficulty — the switch moves, every other handling key is an accepted anchor in both roots.
+        Assert.Equal(("0", "1"), (shippedLeaves["handling.awkwardHop"], trialLeaves["handling.awkwardHop"]));
+        foreach (var key in new[] { "handling.chanceCap", "handling.handsCut", "handling.hopMinApexFt", "handling.hopFullApexFt", "handling.hopPhaseHalfWidth", "handling.stunSec", "handling.bobbleSpreadDeg", "handling.bobbleRetain", "handling.bobbleCapFtPerSec", "handling.bobbleRestitution", "handling.bobbleReboundCapFt", "handling.bobbleSettleFt", "handling.bobbleGroundRetain", "handling.bobbleDecelFtPerSec2" })
+            Assert.Equal(shippedLeaves[key], trialLeaves[key]);
+        Assert.Equal(("0.10", "0.40"), (trialLeaves["handling.chanceCap"], trialLeaves["handling.stunSec"]));
+        Assert.Equal(shippedLeaves["bobble.fumbleSec"], trialLeaves["bobble.fumbleSec"]);
         // #720 (slice 2): the airborne pair for a hard catch in the air by a grounded body — its own anchors, off shipped.
         Assert.Equal(("0", "80"), (shippedLeaves["recoil.airOnsetFtPerSec"], trialLeaves["recoil.airOnsetFtPerSec"]));
         Assert.Equal(("0", "115"), (shippedLeaves["recoil.airFullFtPerSec"], trialLeaves["recoil.airFullFtPerSec"]));
