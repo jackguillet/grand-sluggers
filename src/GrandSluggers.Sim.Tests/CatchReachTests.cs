@@ -44,7 +44,8 @@ public sealed class CatchReachTests
         Assert.Equal(6.0, FieldingResolver.StandUpCatchFt(standUp), 9);
         Assert.Equal(10.0, FieldingResolver.CatchWindowFt(standUp, dive: false, jump: false, r), 9);   // the 4-ft dirt pad
         Assert.Equal(14.0, FieldingResolver.DiveCatchFt(standUp, r), 9);                              // the earned dive
-        Assert.Equal(18.0, FieldingResolver.CatchWindowFt(standUp, dive: false, jump: true, r), 9);   // the legacy jump allowance, slice 3's to reconcile
+        // Was 18 with the legacy 8-ft jump allowance; slice 3 made the jump the arc (catch.jumpReachFt 0), so the armed window is the dirt pad alone.
+        Assert.Equal(10.0, FieldingResolver.CatchWindowFt(standUp, dive: false, jump: true, r), 9);
         // A glove 7 ft off the plant is under the ring on the shipped reach and not on the trial's.
         Assert.True(FlyCatch.Under(7, 0, 0, 0, 0, 0, FieldingResolver.CatchRadiusFt(Control.Must("ashlord"), null, Control.Rules), false, Control.Rules));
         Assert.False(FlyCatch.Under(7, 0, 0, 0, 0, 0, standUp, false, r));
