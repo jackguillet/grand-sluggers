@@ -1,0 +1,614 @@
+{
+  "schemaVersion": 1,
+  "what": "#715 step 3d: S-29 and Harbor cohorts on the shipped table, the c80 copy as landed, and the copy with one key moved per variant (a trial copy in a scratch overlay; no shipped or checked-in value changed). Means are runs per side per game over 50 three-inning CPU games; the accepted band is 1.8\u20135 for home and away separately (F693-06 / F693-06-H).",
+  "rows": [
+    {
+      "variant": "control",
+      "change": {
+        "root": "shipped"
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.9,
+      "meanAwayRuns": 1.92,
+      "inBand": true,
+      "outcomes": {
+        "TakeBall": 1734,
+        "TakeStrike": 612,
+        "Double": 72,
+        "Single": 187,
+        "SwingMiss": 569,
+        "Pickoff": 109,
+        "Foul": 183,
+        "Walk": 143,
+        "FlyOut": 500,
+        "Strikeout": 159,
+        "GroundOut": 221,
+        "CaughtStealing": 19,
+        "HomeRun": 64,
+        "StolenBase": 4,
+        "Triple": 12
+      },
+      "multipleOutPlays": 9
+    },
+    {
+      "variant": "control",
+      "change": {
+        "root": "shipped"
+      },
+      "cohort": "harbor-calibration",
+      "games": 50,
+      "meanHomeRuns": 1.9,
+      "meanAwayRuns": 1.38,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1757,
+        "TakeStrike": 591,
+        "Double": 55,
+        "Single": 174,
+        "SwingMiss": 588,
+        "Pickoff": 99,
+        "Foul": 184,
+        "Walk": 146,
+        "FlyOut": 507,
+        "Strikeout": 168,
+        "GroundOut": 224,
+        "CaughtStealing": 29,
+        "HomeRun": 58,
+        "StolenBase": 5,
+        "Triple": 12
+      },
+      "multipleOutPlays": 12
+    },
+    {
+      "variant": "control",
+      "change": {
+        "root": "shipped"
+      },
+      "cohort": "harbor-validation",
+      "games": 50,
+      "meanHomeRuns": 1.6,
+      "meanAwayRuns": 2.3,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1886,
+        "FlyOut": 528,
+        "SwingMiss": 660,
+        "Strikeout": 188,
+        "TakeStrike": 634,
+        "Foul": 180,
+        "Double": 67,
+        "GroundOut": 231,
+        "Walk": 153,
+        "Single": 191,
+        "Pickoff": 107,
+        "CaughtStealing": 28,
+        "HomeRun": 56,
+        "Triple": 16,
+        "StolenBase": 1
+      },
+      "multipleOutPlays": 8
+    },
+    {
+      "variant": "trial",
+      "change": {
+        "root": "c80"
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.28,
+      "meanAwayRuns": 1.04,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1743,
+        "TakeStrike": 607,
+        "Single": 168,
+        "SwingMiss": 578,
+        "GroundOut": 198,
+        "CaughtStealing": 22,
+        "Double": 24,
+        "FlyOut": 574,
+        "Foul": 147,
+        "Walk": 137,
+        "Strikeout": 180,
+        "HomeRun": 52,
+        "Pickoff": 85,
+        "StolenBase": 3
+      },
+      "multipleOutPlays": 2
+    },
+    {
+      "variant": "trial",
+      "change": {
+        "root": "c80"
+      },
+      "cohort": "harbor-calibration",
+      "games": 50,
+      "meanHomeRuns": 1.22,
+      "meanAwayRuns": 1.38,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1903,
+        "TakeStrike": 658,
+        "Single": 186,
+        "SwingMiss": 616,
+        "GroundOut": 203,
+        "CaughtStealing": 31,
+        "Double": 19,
+        "FlyOut": 596,
+        "Foul": 175,
+        "Walk": 170,
+        "Strikeout": 193,
+        "HomeRun": 54,
+        "Pickoff": 113,
+        "StolenBase": 2,
+        "Triple": 1
+      },
+      "multipleOutPlays": 3
+    },
+    {
+      "variant": "trial",
+      "change": {
+        "root": "c80"
+      },
+      "cohort": "harbor-validation",
+      "games": 50,
+      "meanHomeRuns": 0.92,
+      "meanAwayRuns": 1.2,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1959,
+        "FlyOut": 636,
+        "SwingMiss": 651,
+        "Strikeout": 199,
+        "TakeStrike": 627,
+        "Single": 201,
+        "GroundOut": 194,
+        "Pickoff": 113,
+        "HomeRun": 36,
+        "Foul": 158,
+        "CaughtStealing": 31,
+        "Walk": 161,
+        "Double": 29,
+        "StolenBase": 8,
+        "Triple": 4
+      },
+      "multipleOutPlays": 5
+    },
+    {
+      "variant": "read-060",
+      "change": {
+        "reaction.outfieldSec": 0.6
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.38,
+      "meanAwayRuns": 1.12,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1682,
+        "TakeStrike": 593,
+        "Single": 187,
+        "SwingMiss": 553,
+        "GroundOut": 213,
+        "CaughtStealing": 26,
+        "Double": 34,
+        "FlyOut": 535,
+        "Foul": 155,
+        "Walk": 134,
+        "Strikeout": 173,
+        "HomeRun": 52,
+        "Pickoff": 97,
+        "StolenBase": 4,
+        "Triple": 1
+      },
+      "multipleOutPlays": 2
+    },
+    {
+      "variant": "read-083",
+      "change": {
+        "reaction.outfieldSec": 0.83
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.3,
+      "meanAwayRuns": 1.82,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1833,
+        "TakeStrike": 631,
+        "Single": 182,
+        "SwingMiss": 605,
+        "GroundOut": 196,
+        "CaughtStealing": 30,
+        "Double": 54,
+        "FlyOut": 511,
+        "Foul": 167,
+        "Walk": 153,
+        "Strikeout": 185,
+        "Pickoff": 128,
+        "HomeRun": 55,
+        "Triple": 3,
+        "StolenBase": 6
+      },
+      "multipleOutPlays": 1
+    },
+    {
+      "variant": "air-080",
+      "change": {
+        "chase.outfieldAirMul": 0.8
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.64,
+      "meanAwayRuns": 1.56,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1841,
+        "TakeStrike": 614,
+        "Double": 41,
+        "Single": 196,
+        "SwingMiss": 621,
+        "Foul": 162,
+        "Walk": 152,
+        "HomeRun": 62,
+        "FlyOut": 539,
+        "Pickoff": 106,
+        "GroundOut": 211,
+        "Strikeout": 183,
+        "Triple": 8,
+        "StolenBase": 3,
+        "CaughtStealing": 26
+      },
+      "multipleOutPlays": 2
+    },
+    {
+      "variant": "air-070",
+      "change": {
+        "chase.outfieldAirMul": 0.7
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.66,
+      "meanAwayRuns": 2.02,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1803,
+        "TakeStrike": 591,
+        "Double": 82,
+        "Single": 172,
+        "SwingMiss": 619,
+        "Foul": 153,
+        "Walk": 140,
+        "HomeRun": 61,
+        "FlyOut": 503,
+        "Pickoff": 104,
+        "GroundOut": 211,
+        "Strikeout": 193,
+        "Triple": 12,
+        "CaughtStealing": 18,
+        "StolenBase": 4
+      },
+      "multipleOutPlays": 4
+    },
+    {
+      "variant": "air-070",
+      "change": {
+        "chase.outfieldAirMul": 0.7
+      },
+      "cohort": "harbor-calibration",
+      "games": 50,
+      "meanHomeRuns": 1.6,
+      "meanAwayRuns": 2.22,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 2072,
+        "TakeStrike": 697,
+        "Double": 109,
+        "Single": 174,
+        "SwingMiss": 669,
+        "Foul": 160,
+        "Walk": 160,
+        "HomeRun": 58,
+        "FlyOut": 559,
+        "Pickoff": 128,
+        "GroundOut": 213,
+        "Strikeout": 214,
+        "Triple": 12,
+        "CaughtStealing": 32,
+        "StolenBase": 4
+      },
+      "multipleOutPlays": 3
+    },
+    {
+      "variant": "air-070",
+      "change": {
+        "chase.outfieldAirMul": 0.7
+      },
+      "cohort": "harbor-validation",
+      "games": 50,
+      "meanHomeRuns": 1.62,
+      "meanAwayRuns": 2.04,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1669,
+        "FlyOut": 500,
+        "SwingMiss": 573,
+        "Strikeout": 173,
+        "TakeStrike": 576,
+        "GroundOut": 185,
+        "HomeRun": 59,
+        "Foul": 154,
+        "Walk": 121,
+        "Double": 81,
+        "Pickoff": 76,
+        "StolenBase": 2,
+        "Triple": 17,
+        "Single": 157,
+        "CaughtStealing": 27
+      },
+      "multipleOutPlays": 1
+    },
+    {
+      "variant": "air-060",
+      "change": {
+        "chase.outfieldAirMul": 0.6
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 2.46,
+      "meanAwayRuns": 2.36,
+      "inBand": true,
+      "outcomes": {
+        "TakeBall": 1929,
+        "TakeStrike": 623,
+        "Double": 107,
+        "Single": 190,
+        "SwingMiss": 596,
+        "Pickoff": 115,
+        "Foul": 182,
+        "Walk": 163,
+        "FlyOut": 481,
+        "GroundOut": 215,
+        "Strikeout": 179,
+        "Triple": 25,
+        "HomeRun": 69,
+        "CaughtStealing": 31,
+        "StolenBase": 3
+      },
+      "multipleOutPlays": 8
+    },
+    {
+      "variant": "air-060",
+      "change": {
+        "chase.outfieldAirMul": 0.6
+      },
+      "cohort": "harbor-calibration",
+      "games": 50,
+      "meanHomeRuns": 2.1,
+      "meanAwayRuns": 2.16,
+      "inBand": true,
+      "outcomes": {
+        "TakeBall": 1733,
+        "TakeStrike": 584,
+        "Double": 108,
+        "Single": 156,
+        "SwingMiss": 577,
+        "Pickoff": 128,
+        "Foul": 167,
+        "Walk": 140,
+        "FlyOut": 474,
+        "GroundOut": 187,
+        "Strikeout": 185,
+        "Triple": 28,
+        "HomeRun": 56,
+        "CaughtStealing": 31,
+        "StolenBase": 2
+      },
+      "multipleOutPlays": 6
+    },
+    {
+      "variant": "air-060",
+      "change": {
+        "chase.outfieldAirMul": 0.6
+      },
+      "cohort": "harbor-validation",
+      "games": 50,
+      "meanHomeRuns": 2.02,
+      "meanAwayRuns": 2.42,
+      "inBand": true,
+      "outcomes": {
+        "TakeBall": 1726,
+        "FlyOut": 508,
+        "SwingMiss": 604,
+        "Strikeout": 176,
+        "TakeStrike": 593,
+        "Double": 115,
+        "HomeRun": 66,
+        "Foul": 150,
+        "Single": 167,
+        "GroundOut": 191,
+        "Pickoff": 78,
+        "Walk": 121,
+        "CaughtStealing": 28,
+        "Triple": 26
+      },
+      "multipleOutPlays": 2
+    },
+    {
+      "variant": "airboth-060-045",
+      "change": {
+        "chase.outfieldAirMul": 0.6,
+        "chase.infieldAirMul": 0.45
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 2.88,
+      "meanAwayRuns": 2.7,
+      "inBand": true,
+      "outcomes": {
+        "TakeBall": 1920,
+        "TakeStrike": 611,
+        "Double": 105,
+        "Single": 197,
+        "SwingMiss": 611,
+        "Pickoff": 134,
+        "Foul": 172,
+        "Walk": 166,
+        "FlyOut": 424,
+        "GroundOut": 226,
+        "HomeRun": 79,
+        "CaughtStealing": 35,
+        "Strikeout": 188,
+        "Triple": 30,
+        "StolenBase": 8
+      },
+      "multipleOutPlays": 6
+    },
+    {
+      "variant": "fly-140",
+      "change": {
+        "flight.timeScale": 1.4
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.3,
+      "meanAwayRuns": 1.02,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1697,
+        "TakeStrike": 569,
+        "Single": 185,
+        "SwingMiss": 588,
+        "GroundOut": 192,
+        "CaughtStealing": 24,
+        "Double": 27,
+        "FlyOut": 575,
+        "Foul": 158,
+        "Walk": 129,
+        "Strikeout": 180,
+        "HomeRun": 54,
+        "Pickoff": 89,
+        "StolenBase": 2,
+        "HitByPitch": 1
+      },
+      "multipleOutPlays": 2
+    },
+    {
+      "variant": "fly-110",
+      "change": {
+        "flight.timeScale": 1.1
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.4,
+      "meanAwayRuns": 1.58,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1812,
+        "TakeStrike": 615,
+        "Single": 191,
+        "SwingMiss": 593,
+        "GroundOut": 212,
+        "CaughtStealing": 33,
+        "Double": 40,
+        "FlyOut": 538,
+        "Foul": 162,
+        "Walk": 144,
+        "Strikeout": 197,
+        "StolenBase": 6,
+        "HomeRun": 61,
+        "Pickoff": 112,
+        "Triple": 2
+      },
+      "multipleOutPlays": 4
+    },
+    {
+      "variant": "of-deep-110",
+      "change": {
+        "fielders outfield starts radial": 1.1
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.1,
+      "meanAwayRuns": 1.18,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1869,
+        "TakeStrike": 613,
+        "Single": 210,
+        "SwingMiss": 653,
+        "GroundOut": 242,
+        "CaughtStealing": 31,
+        "Double": 31,
+        "FlyOut": 554,
+        "Foul": 167,
+        "Walk": 158,
+        "Strikeout": 185,
+        "HomeRun": 47,
+        "Pickoff": 123,
+        "StolenBase": 4,
+        "Triple": 4
+      },
+      "multipleOutPlays": 2
+    },
+    {
+      "variant": "of-shallow-090",
+      "change": {
+        "fielders outfield starts radial": 0.9
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.24,
+      "meanAwayRuns": 1.66,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1734,
+        "TakeStrike": 618,
+        "FlyOut": 567,
+        "SwingMiss": 552,
+        "Walk": 146,
+        "Single": 139,
+        "Pickoff": 90,
+        "GroundOut": 158,
+        "Foul": 148,
+        "Strikeout": 169,
+        "Double": 38,
+        "HomeRun": 60,
+        "StolenBase": 4,
+        "CaughtStealing": 15,
+        "Triple": 3
+      },
+      "multipleOutPlays": 2
+    },
+    {
+      "variant": "legs-16",
+      "change": {
+        "chase.baseFtPerSec": 11.0
+      },
+      "cohort": "s29",
+      "games": 50,
+      "meanHomeRuns": 1.48,
+      "meanAwayRuns": 1.32,
+      "inBand": false,
+      "outcomes": {
+        "TakeBall": 1699,
+        "TakeStrike": 602,
+        "Single": 208,
+        "SwingMiss": 578,
+        "GroundOut": 176,
+        "CaughtStealing": 24,
+        "Double": 33,
+        "FlyOut": 564,
+        "Foul": 162,
+        "Walk": 136,
+        "Strikeout": 177,
+        "Pickoff": 99,
+        "HomeRun": 52,
+        "StolenBase": 4,
+        "Triple": 2
+      },
+      "multipleOutPlays": 3
+    }
+  ]
+}

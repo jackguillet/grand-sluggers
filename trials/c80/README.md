@@ -840,3 +840,13 @@ gives the shipped path byte for byte.
 
 **With this, every Sim item of #721 is landed or in PR.** The Unity pass owes the stun pose and a tell for the ball that gets past
 (`Deflected`; the `Bobble` event fires for both outcomes).
+
+---
+
+**Step 3d — the whole-race measurement (#715), September 18, 2026.** The copy as landed, run through the #702 instrumentation
+against the shipped table on the same inputs and seeds: [docs/research-game-feel-3d.md](../../docs/research-game-feel-3d.md). The
+finding carried from #719 is now a number: the copy runs under the S-29 floor in every cohort (1.28 / 1.04 mixed parks, 1.22 / 1.38
+and 0.92 / 1.20 on Harbor), and `chase.outfieldAirMul` alone — 0.6 in place of this copy's 1.0 — puts every cohort in band
+(2.46 / 2.36, 2.10 / 2.16, 2.02 / 2.42); 0.7 lands the away side only; the read at 0.83, the fly stretch and the outfield depth do
+not get there on their own. Nothing in this copy changed for the measurement; the variants were scratch overlays. The choice is
+Jack's, and it is a choice about the one-profile direction, not a tuning.
