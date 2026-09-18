@@ -1044,6 +1044,7 @@ public sealed class FieldingRules
     public ChaseRules Chase { get; init; } = new();
     public ReactionRules Reaction { get; init; } = new();
     public CoverRules Cover { get; init; } = new();
+    public FieldStickRules Stick { get; init; } = new();
     public FieldDashRules Dash { get; init; } = new();
     public CatchRules Catch { get; init; } = new();
     public DropRules Drops { get; init; } = new();
@@ -1063,7 +1064,31 @@ public sealed class FieldingRules
         RulesValidation.Order(source, "fielding.catcher.cpuReleaseMinSec", Catcher.CpuReleaseMinSec, Catcher.CpuReleaseMaxSec, errors);
         RulesValidation.Order(source, "fielding.chem.slantLateralMinFt", Chem.SlantLateralMinFt, Chem.SlantLateralMaxFt, errors);
         RulesValidation.Order(source, "fielding.throw.minFtPerSec", Throw.MinFtPerSec, Throw.BaseFtPerSec, errors);
+        RulesValidation.Order(source, "fielding.stick.leaveMag", Stick.LeaveMag, Stick.EnterMag, errors);
+        RulesValidation.Order(source, "fielding.stick.leaveMag", Stick.LeaveMag, 0.99, errors);
     }
+}
+
+/// <summary>
+/// The human seat's pursuit stick (#718: F693-02-pursuit-analog-response, -neutral-boundary, -calibration-policy,
+/// -arming, -calibration-samples). At <c>enterMag</c> 0 the stick is the one the game shipped with — a Manhattan gate
+/// at <c>feel.fieldAssistStick</c>, the full stick vector as the asked velocity, no calibration, no arming. Above 0 it
+/// is the calibrated radial stick: manual pursuit from <c>enterMag</c>, back to assistance at <c>leaveMag</c>, the owner
+/// kept between the two, and the asked speed the linear remap of the magnitude from <c>leaveMag</c> to 1 (half the
+/// usable range asks half the speed). A seat arms with a valid profile plus one neutral observation (≤ <c>leaveMag</c>)
+/// on defensive-role entry, device recovery or recalibration, and stays armed through the half. The calibration window
+/// is <c>calibrationSec</c> of released-stick samples on an input clock with a mean centre offset ≤ <c>centerOffsetMax</c>
+/// and every sample ≤ <c>sampleSpreadMax</c> from that mean, inclusive; only a complete valid window is adopted.
+/// </summary>
+public sealed class FieldStickRules
+{
+    [Chance] public double EnterMag { get; init; } = 0;
+    [Chance] public double LeaveMag { get; init; } = 0;
+    [Positive] public double CalibrationSec { get; init; } = 0.50;
+    [Chance] public double CenterOffsetMax { get; init; } = 0.10;
+    [Chance] public double SampleSpreadMax { get; init; } = 0.02;
+    /// <summary>The calibrated radial stick is on above <c>enterMag</c> 0; at 0 every read is the shipped Manhattan gate.</summary>
+    public bool Radial => EnterMag > 0;
 }
 
 /// <summary>

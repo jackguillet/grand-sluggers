@@ -39,7 +39,8 @@ namespace GrandSluggers.UnityClient
                 pad.SouthDown, pad.WestDown, pad.EastDown, pad.EastHeld,
                 pad.Cutoff, pad.SwapPitcher, pad.Item, pad.Attack,
                 pad.ThrowBag, pad.StickBag, pad.ArrowBag,
-                Cancel: pad.AllReturn);
+                Cancel: pad.AllReturn,
+                Device: pad.Index);
         }
 
         /// <summary>The offense pad as the sim's runner verbs see it (spec §9.3): the bodies are moved in the sim, never here.</summary>

@@ -455,7 +455,7 @@
   ],
   "sourceSha256": {
     "data/rules/flight.json": "eac7f7a0989ad07a0203d758b6720e5763951a15e5ec56c4b912b048bd1ba911",
-    "data/rules/fielding.json": "2a4c14b5ba6a8d6af475c2b2ed93a7cb0e5a2695e9b0040daad57927f8df3b8a",
+    "data/rules/fielding.json": "c8261b834b661e6e1775b54d6ae9c70f68123361d5343809c37b0ff1c8d39dc2",
     "data/rules/running.json": "5a736876c601a44e838ceb3f9e2da622f2c5ee5f070a01a0394ef28e9e68a08d",
     "trials/c80/rules/infield.json": "b707b088da3066d409317e4ab53ee86c503d43fd1bdae70b443cd45d2b5b1bc4",
     "trials/c80/rules/flight.json": "3c50289b434b40c36bea5a3569fb86f28fc9cd9baad7536789df184203891328",

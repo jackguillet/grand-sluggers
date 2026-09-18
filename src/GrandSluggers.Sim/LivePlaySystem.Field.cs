@@ -22,7 +22,9 @@ public sealed record LivePadInput(
     /// <summary>Both shoulders: halt every runner; with the stick toward a bag, only that runner.</summary>
     bool Freeze = false,
     /// <summary>RB / period on the defense pad (#723, F693-03-throw-cancel): cancels a queued onward throw. Read as a fresh press, never a held shoulder.</summary>
-    bool Cancel = false)
+    bool Cancel = false,
+    /// <summary>Which bound device this pad is (#718): the pursuit stick's calibration and arming are per device. 0 for a single seat.</summary>
+    int Device = 0)
 {
     public static LivePadInput Dead { get; } = new();
 
@@ -158,6 +160,11 @@ public sealed partial class LivePlaySystem
     // The throw in flight: who threw it, who receives it, who backs it up.
     string _throwerPos = "";
     string _cutoffPos = "";
+    // The human seat's pursuit stick (#718): one model per bound device, read once a frame; the arming outlives the play.
+    readonly Dictionary<int, PursuitStick> _sticks = new();
+    StickRead _stick = StickRead.Assist;
+    int _stickDevice;
+    (int Inning, bool Top)? _stickHalf;
     (double X, double Z)? _cutoffSpot;
     string _backupPos = "";
     (double X, double Z) _backupSpot;
@@ -371,6 +378,13 @@ public sealed partial class LivePlaySystem
         Preview = command.Preview;
         Field = command.Field;
         Seats = command.Seats ?? LiveSeats.CpuOnly;
+        // Defensive-role entry (#718, F693-02-pursuit-arming): a new half owes every seat's pursuit stick one neutral observation before it steers.
+        var half = (_match.Inning, _match.Top);
+        if (_stickHalf != half)
+        {
+            foreach (var s in _sticks.Values) s.EnterDefense();
+            _stickHalf = half;
+        }
         Ball = Preview?.Ball ?? BattedBall.Of(Hit, Park, R);
         Path = Ball.Samples;
         CoverBallX = Preview?.LandingX ?? Ball.LandingX;
@@ -539,6 +553,8 @@ public sealed partial class LivePlaySystem
         _lastDt = dt;
         // The response law (#718): a body nobody stepped last frame brakes to a stop; then this frame's steps begin.
         TickIdleBrakes(dt);
+        // The pursuit stick (#718): one read a frame — the owner and the asked velocity every stick site below shares.
+        _stick = ReadPursuitStick(field);
         // A human's onward-throw press while the ball is in flight to their receiver (#723): remembered, retargeted or cancelled.
         TickThrowQueue(field, dt);
 
@@ -690,23 +706,21 @@ public sealed partial class LivePlaySystem
         var plant = FlyCatch.ChaseTarget(pre, Park, R);
         var who = map.TryGetValue(GlovePos, out var gloveNow) ? gloveNow : pre.Fielder;
         BuddyWindow = buddyOn && FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-        var stickTake = Feel.FieldAssistStick;
         var catchRules = R.Fielding.Catch;
 
         NoteSwitchHint(map, pre, pad);
         if (SelectTakes(pad, buddyOn)) TakeSelect(map, pad);
 
-        var stick = pad.StickMag;
         var steering = (chasing || HoldsBall) && !Throwing;
-        var dead = FieldAssist.StickDead(pad.StickX, pad.StickY, stickTake);
+        var dead = !_stick.Manual;
         if (SwapLock <= 0 && FieldAssist.CpuChases(HoldsBall, Throwing, dead))
             ChaseGlove(dt, pre);
 
         // One glove speed for human and CPU (§8.1); the body moves once its reaction lockout is over (§8.2).
-        if (steering && map.TryGetValue(GlovePos, out var glove) && stick >= stickTake && CanMove(GlovePos))
+        if (steering && map.TryGetValue(GlovePos, out var glove) && _stick.Manual && CanMove(GlovePos))
         {
             var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, pre, R, pad.EastHeld));
-            var feet = StepStick(GlovePos, (GloveX, GloveZ), pad.StickX, pad.StickY, speed, dt);
+            var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt);
             GloveX = feet.X;
             GloveZ = feet.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -801,9 +815,9 @@ public sealed partial class LivePlaySystem
                 var buddyRob = buddyOn && distPlant < catchRules.BuddyPlantFt;
                 var canRob = !needsJump || FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyRob, R);
                 // Dead stick = CPU runs the glove (§8.2): stand-up under the ring, dive at the rim (#669).
-                if (stick < stickTake && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
+                if (dead && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
                     TakeBattedBall();
-                if (stick < stickTake && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R))
+                if (dead && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R))
                 {
                     LungeToward(pre, plant);
                     DiveT = catchRules.DiveArmSec;
@@ -879,7 +893,8 @@ public sealed partial class LivePlaySystem
         if (Seats.PlayerMustField) return;
         if (PlayerFielding || HoldsBall || Throwing) return;
         if (Hit is null || Preview is null) return;
-        if (!FieldAssist.StickTakesGlove(pad.StickX, pad.StickY, Feel.FieldAssistStick, pad.Swap))
+        // The take is manual pursuit's entry (#718): the shipped Manhattan gate at feel.fieldAssistStick, the calibrated radial enterMag on the trial; Select takes regardless.
+        if (!(pad.Swap || _stick.Manual))
             return;
         PlayerFielding = true;
         // The take is not a re-pick (D16, D18): the stick takes the body wearing the ring; Select is the switch, with its lock (§8.9).
@@ -1072,10 +1087,10 @@ public sealed partial class LivePlaySystem
     /// <summary>The human glove walks with the stick at the one chase speed (§8.1) once its lockout is over (§8.2).</summary>
     void WalkGloveWithStick(double dt, Dictionary<string, Character> map, LivePadInput pad)
     {
-        if (Throwing || pad.StickMag < Feel.FieldAssistStick || !CanMove(GlovePos)) return;
+        if (Throwing || !_stick.Manual || !CanMove(GlovePos)) return;
         if (!map.TryGetValue(GlovePos, out var glove)) return;
         var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, _loose ? null : Preview, R, pad.EastHeld));
-        var feet = StepStick(GlovePos, (GloveX, GloveZ), pad.StickX, pad.StickY, speed, dt);
+        var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt);
         GloveX = feet.X;
         GloveZ = feet.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1088,7 +1103,7 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void ChaseLooseBall(double dt, Dictionary<string, Character> map, LivePadInput pad)
     {
-        var dead = FieldAssist.StickDead(pad.StickX, pad.StickY, Feel.FieldAssistStick);
+        var dead = !_stick.Manual;
         if (!dead)
             WalkGloveWithStick(dt, map, pad);
         else if (SwapLock <= 0 && FieldAssist.CpuChases(HoldsBall, Throwing, dead))
@@ -1917,6 +1932,37 @@ public sealed partial class LivePlaySystem
     /// </summary>
     double CarrySpeed(Character who, double asked) =>
         HoldsBall && !Throwing ? FieldingResolver.CarrySpeedFt(who, asked, R) : asked;
+
+    // ---------------------------------------------------------------------------------
+    // The pursuit stick (#718, F693-02-pursuit-neutral-boundary, -analog-response, -arming)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>The pursuit stick of a bound device; created armed-off, on the identity profile, the first time it is asked for.</summary>
+    public PursuitStick FieldStick(int device = 0)
+    {
+        if (!_sticks.TryGetValue(device, out var stick)) _sticks[device] = stick = new PursuitStick();
+        return stick;
+    }
+
+    /// <summary>The seat steers the body this frame (the stick past the gate); false is the assistance.</summary>
+    public bool PursuitManual => _stick.Manual;
+
+    /// <summary>The calibrated radial stick is on and the fielding seat has not armed: the body is the assistance's until the stick is seen neutral once, and the client should say so.</summary>
+    public bool PursuitUnready => R.Fielding.Stick.Radial && Seats.HumanFields && !FieldStick(_stickDevice).Armed;
+
+    /// <summary>
+    /// One read a frame of the defense pad's stick. At <c>fielding.stick.enterMag</c> 0 it is the stick the game shipped
+    /// with: manual past the Manhattan gate at <c>feel.fieldAssistStick</c>, the raw stick vector as the asked velocity —
+    /// the same doubles every site read before. Above 0 it is the device's calibrated radial stick with its hysteresis,
+    /// its arming and the linear remap.
+    /// </summary>
+    StickRead ReadPursuitStick(LivePadInput pad)
+    {
+        _stickDevice = pad.Device;
+        var s = R.Fielding.Stick;
+        if (!s.Radial) return new StickRead(pad.StickMag >= Feel.FieldAssistStick, pad.StickX, pad.StickY);
+        return FieldStick(pad.Device).Read(pad.StickX, pad.StickY, s);
+    }
 
     /// <summary>
     /// One frame of a body's velocity toward what it wants (#718): the component along its heading builds at the ramp rate
