@@ -263,6 +263,28 @@ public sealed class FieldingResolver
         return (Math.Clamp(hands, 1, 10) - 1) / 9.0;
     }
 
+    /// <summary>
+    /// How squarely the ring met the ball (F693-02-error-outcome-selection under F693-02-arcade-fielding-simplification, #721): 1 with
+    /// the ball at the body, 0 at the edge of the take's window — the one contact fact the resolved take has.
+    /// </summary>
+    public static double Obstruction(double distFt, double windowFt) =>
+        windowFt <= 0 ? 1 : Math.Clamp(1 - distFt / windowFt, 0, 1);
+
+    /// <summary>What a continuing deflection keeps of the ball's speed (F693-02-continuing-error-speed-retention): <c>retainMax</c> for a glancing touch, down to <c>retainMin</c> at the knockdown boundary.</summary>
+    public static double DeflectionRetention(double obstruction, RulesTable? rules = null)
+    {
+        var h = Rules.Or(rules).Fielding.Handling;
+        var c = h.DeflectObstruction <= 0 ? 1 : Math.Clamp(obstruction / h.DeflectObstruction, 0, 1);
+        return h.DeflectRetainMax - (h.DeflectRetainMax - h.DeflectRetainMin) * c;
+    }
+
+    /// <summary>The failed take carries on rather than dropping at the feet when the touch was glancing and the ball came in hot (F693-02-error-outcome-selection, -expanded-ordinary-error-outcomes): the contact and the speed decide, never a second roll.</summary>
+    public static bool DeflectionContinues(double obstruction, double incomingFtPerSec, RulesTable? rules = null)
+    {
+        var h = Rules.Or(rules).Fielding.Handling;
+        return obstruction < h.DeflectObstruction && incomingFtPerSec >= h.DeflectMinFtPerSec;
+    }
+
     /// <summary>The accepted curve, <c>p = cap × D × (1 − handsCut × H)</c>: 10 / 6 / 2 % at full difficulty for weak / middle / strong hands, zero for a routine take.</summary>
     public static double HandlingErrorChance(double difficulty, double quality, RulesTable? rules = null)
     {

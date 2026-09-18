@@ -276,6 +276,10 @@ public sealed partial class LivePlaySystem
     public double HopDifficulty { get; private set; }
     /// <summary>The chance the last take rolled against (F693-02-ordinary-handling-chance-curve); 0 = no roll at all.</summary>
     public double HandlingChance { get; private set; }
+    /// <summary>The last failed take got past the body (#721 slice 2): the ball carried on as a batted ball, not a local bobble.</summary>
+    public bool Deflected { get; private set; }
+    /// <summary>How squarely the ring met the ball at the last failed take, 1 at the body, 0 at the edge; the branch's fact.</summary>
+    public double ErrorObstruction { get; private set; }
     // The local bobble's ball (F693-02-local-bobble-*): a vertical speed, whether it is in the air, and that this loose ball answers to the bobble's response.
     double _looseVY;
     bool _looseAir;
@@ -530,6 +534,8 @@ public sealed partial class LivePlaySystem
         StunPos = "";
         HopDifficulty = 0;
         HandlingChance = 0;
+        Deflected = false;
+        ErrorObstruction = 0;
         _looseVY = 0;
         _looseAir = false;
         _looseLocal = false;
@@ -2882,8 +2888,50 @@ public sealed partial class LivePlaySystem
         var quality = FieldingResolver.HandlingQuality(who, _match.DefenseGlove, R);
         HandlingChance = FieldingResolver.HandlingErrorChance(HopDifficulty, quality, R);
         if (!_match.RollHandling(HandlingChance)) return false;
-        LocalBobble(who, h);
+        // The outcome is the contact's, never a second roll (F693-02-error-outcome-selection): how squarely the ring met the ball and how
+        // much speed the ball keeps. A glancing touch on a ball with pace gets past; anything else drops at the feet.
+        var (vx, vy, vz) = _ballVel;
+        var speed = Math.Sqrt(vx * vx + vz * vz);
+        var window = FieldingResolver.CatchWindowFt(CatchRadius(Assigned()), dive: CatchDive, jump: false, R);
+        ErrorObstruction = FieldingResolver.Obstruction(Diamond.Dist(GloveX, GloveZ, BallX, BallZ), window);
+        var retention = FieldingResolver.DeflectionRetention(ErrorObstruction, R);
+        if (FieldingResolver.DeflectionContinues(ErrorObstruction, speed, R))
+            ContinuingDeflection(who, h, retention, vx, vy, vz);
+        else
+            LocalBobble(who, h);
         return true;
+    }
+
+    /// <summary>
+    /// The ball gets past (F693-02-expanded-ordinary-error-outcomes, -continuing-error-direction, -speed-retention, -vertical-retention,
+    /// -ground-response, -reaction, -recovery): it keeps <paramref name="retention"/> of its horizontal and signed vertical speed, turns a
+    /// uniform ±<c>deflectSpreadDeg</c> off its travel, and is a batted ball from there on the shared flight and ground physics — the
+    /// path continued from the contact, the ball reread for what it decides next. The fumbler is stunned the same 0.40 s; whoever
+    /// reaches it takes it without a roll (the take's arming is spent).
+    /// </summary>
+    void ContinuingDeflection(Character who, HandlingRules h, double retention, double vx, double vy, double vz)
+    {
+        _bobbled = true;
+        _receivedClean = false;
+        Caught = false;
+        PlayerBobble = true;
+        Deflected = true;
+        StunT = h.StunSec;
+        StunPos = GlovePos;
+        var speed = Math.Sqrt(vx * vx + vz * vz);
+        var (dx, dz) = (vx / speed, vz / speed);
+        var turn = _match.RollSpreadDeg(h.DeflectSpreadDeg) * Math.PI / 180.0;
+        var (cx, cz) = (Math.Cos(turn), Math.Sin(turn));
+        var (ox, oz) = (dx * cx - dz * cz, dx * cz + dz * cx);
+        var s = retention * speed;
+        if (Path is not null && Hit is not null)
+        {
+            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
+            if (Ball is not null) Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
+            _ballPrev = null;
+        }
+        _events.Add(LiveEvent.Bobble);
+        Sub = $"{who.Name} can't handle it!";
     }
 
     /// <summary>
