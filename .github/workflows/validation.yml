@@ -21,6 +21,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes zsh
       - run: dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj
+      # The diamond is process-wide, so a scenario row is only honest on the C80 copy in a process whose data root
+      # is the copy (#715). Classes whose every row holds on both roots carry [Trait("Rows", "compact")]; this run
+      # plays them on the compact diamond, where TestRoot.Pick takes each row's compact fixture.
+      - name: The scenario rows hold on the C80 copy
+        run: dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj --no-build --filter "Rows=compact"
+        env:
+          GRAND_SLUGGERS_TRIAL: trials/c80
       - run: dotnet run --project src/GrandSluggers.Cli -- art
       - run: python3 -m unittest discover -s tools/tests -p 'test_*.py'
       # Both research evidence files seal the sources they were derived from.

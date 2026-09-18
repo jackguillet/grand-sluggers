@@ -11,6 +11,7 @@ namespace GrandSluggers.Sim.Tests;
 /// short of the bag as the ball landed: two outs only if both arrivals win, otherwise one out
 /// and the fielder's choice.
 /// </summary>
+[Trait("Rows", "compact")]
 public sealed class OutsScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -32,14 +33,20 @@ public sealed class OutsScenarioTests
     public static IEnumerable<object[]> DpRows()
     {
         yield return [new DpRow("S-40 6-4-3", 118, 4, -18, [1], 0, [2, 1], "SS")];
-        yield return [new DpRow("S-41 4-6-3 / unassisted", 120, 4, 5, [1], 0, [0, 1], "2B")];
+        // The C80 copy (#715): the second baseman stands at (37, 105) not (42, 118), and the 120-ft ball up the middle is past him — the
+        // compact 4-6-3 is 105 ft at 9°.
+        yield return [TestRoot.Pick(new DpRow("S-41 4-6-3 / unassisted", 120, 4, 5, [1], 0, [0, 1], "2B"), new DpRow("S-41 4-6-3 / unassisted", 105, 4, 9, [1], 0, [0, 1], "2B"))];
         yield return [new DpRow("S-42 5-4-3", 100, 4, -40, [1], 0, [2, 1], "3B")];
-        yield return [new DpRow("S-43 3 then the tag", 92, 4, 41, [1], 0, [0, 2], "1B")];
-        yield return [new DpRow("S-44 3-6-3", 110, 4, 38, [1], 0, [2, 1], "1B")];
+        // C80: the 92-ft ball is taken 16 ft in front of the 80-ft bag, a throw away from it; the ball the first baseman takes beside the bag is 70 ft at 43°.
+        yield return [TestRoot.Pick(new DpRow("S-43 3 then the tag", 92, 4, 41, [1], 0, [0, 2], "1B"), new DpRow("S-43 3 then the tag", 70, 4, 43, [1], 0, [0, 2], "1B"))];
+        // C80: at 110 ft the ball's line passes between the compact first and second basemen and the preview names second; 95 ft is the first baseman's.
+        yield return [TestRoot.Pick(new DpRow("S-44 3-6-3", 110, 4, 38, [1], 0, [2, 1], "1B"), new DpRow("S-44 3-6-3", 95, 4, 38, [1], 0, [2, 1], "1B"))];
         yield return [new DpRow("S-45 1-6-3", 62, 3, 1, [1], 0, [2, 1], "P")];
-        yield return [new DpRow("S-46 5 unassisted then 3", 92, 4, -44, [1, 2], 0, [0, 1], "3B")];
+        // C80: from the 92-ft ball the CPU's second out goes to second and the batter reaches; 85 ft at 3° is the step on third then the throw to first.
+        yield return [TestRoot.Pick(new DpRow("S-46 5 unassisted then 3", 92, 4, -44, [1, 2], 0, [0, 1], "3B"), new DpRow("S-46 5 unassisted then 3", 85, 3, -44, [1, 2], 0, [0, 1], "3B"))];
         yield return [new DpRow("S-47 1-2-3", 38, 3, -6, [1, 2, 3], 0, [4, 1], "P")];
-        yield return [new DpRow("S-48 3 then the tag at the plate", 92, 4, 41, [1, 2, 3], 0, [0, 4], "1B")];
+        // C80: the same ball as S-43's compact row — beside the bag.
+        yield return [TestRoot.Pick(new DpRow("S-48 3 then the tag at the plate", 92, 4, 41, [1, 2, 3], 0, [0, 4], "1B"), new DpRow("S-48 3 then the tag at the plate", 70, 4, 43, [1, 2, 3], 0, [0, 4], "1B"))];
         yield return [new DpRow("S-50 two outs", 118, 4, -18, [1], 2, [2], "SS")];
     }
 
@@ -268,7 +275,14 @@ public sealed class OutsScenarioTests
     [InlineData("konga")]
     [InlineData("cinder")]
     [InlineData("dart")]
-    public void S54_TagUpFromThirdOnADeepFlyIsARaceHomeAndTheIconOnlyInsideTheMargin(string who)
+    public void S54_TagUpFromThirdOnADeepFlyIsARaceHomeAndTheIconOnlyInsideTheMargin(string who) =>
+        S54_Row(who, TestRoot.Pick(S54Shipped, S54Compact));
+
+    static readonly (double Carry, double Launch, double Spray) S54Shipped = (222, 34, -30);
+    /// <summary>C80 (#715): the runner reads the race now (#732), and against a 222-ft fly and vine's arm he holds; 250 ft at −26° is the fly he tags on.</summary>
+    static readonly (double Carry, double Launch, double Spray) S54Compact = (250, 34, -26);
+
+    void S54_Row(string who, (double Carry, double Launch, double Spray) fly)
     {
         // The roster's best outfield arm is Field 8 (vine in left); the spec row names 9. The relay comes
         // through the cutoff (§8.7); a run at stake is thrown for when the ball can land inside the margin.
@@ -276,7 +290,7 @@ public sealed class OutsScenarioTests
         var runner = _content.Must(who);
         Assert.NotEqual(runner.Id, match.Batter.Id);
         Assert.True(match.StationRunner(3, runner));
-        var hit = FlightFixtures.Landing(match.Park, 222, 34, -30);
+        var hit = FlightFixtures.Landing(match.Park, fly.Carry, fly.Launch, fly.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal("LF", preview.Position);
         var run = Run(match, hit, preview, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
@@ -303,12 +317,20 @@ public sealed class OutsScenarioTests
     }
 
     [Fact]
-    public void S55_PopDroppedOnPurposeWithTheBasesLoadedIsLiveWithTheForceAtHomeOnly()
+    public void S55_PopDroppedOnPurposeWithTheBasesLoadedIsLiveWithTheForceAtHomeOnly() =>
+        S55_Row(TestRoot.Pick(S55Shipped, S55Compact), S55NeutralFrames);
+
+    static readonly (double Carry, double Launch, double Spray) S55Shipped = (120, 62, -12);
+    /// <summary>C80 (#715): a 107-ft pop at −16° is the shortstop's; and the copy's pursuit stick takes the glove only after it has been seen at neutral (#718), so the seat waits six frames before it steps off.</summary>
+    static readonly (double Carry, double Launch, double Spray) S55Compact = (107, 62, -16);
+    static int S55NeutralFrames => TestRoot.Pick(0, 6);
+
+    void S55_Row((double Carry, double Launch, double Spray) pop, int neutralFrames = 0)
     {
         var match = Defense("cinder");
         Station(match, [1, 2, 3]);
         var third = match.Third!;
-        var hit = FlightFixtures.Landing(match.Park, 120, 62, -12);
+        var hit = FlightFixtures.Landing(match.Park, pop.Carry, pop.Launch, pop.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var homeForced = false;
@@ -318,6 +340,7 @@ public sealed class OutsScenarioTests
             fieldPad: (i, live) =>
             {
                 // Step off the landing until the ball is on the ground, pick it up, then the throw home.
+                if (i < neutralFrames) return LivePadInput.Dead;
                 if (live.Fly == FlyState.InAir && !live.HoldsBall) return new LivePadInput(StickX: 1);
                 if (!live.HoldsBall)
                 {
@@ -351,12 +374,19 @@ public sealed class OutsScenarioTests
     /// retired the runner at the bag he had legally left — one run wiped and stamped DOUBLE PLAY.
     /// </summary>
     [Fact]
-    public void S55b_ACaughtFlyIsNotReReadAsADropWhenTheRelayLosesTheBall()
+    public void S55b_ACaughtFlyIsNotReReadAsADropWhenTheRelayLosesTheBall() =>
+        S55b_Row(TestRoot.Pick(S55bShipped, S55bCompact));
+
+    static readonly (int Seed, double Carry, double Launch, double Spray) S55bShipped = (33, 210, 34, 34);
+    /// <summary>C80 (#715): the same seed and line, 235 ft — the fly deep enough that the runner tags on the race and the relay still loses the ball.</summary>
+    static readonly (int Seed, double Carry, double Launch, double Spray) S55bCompact = (33, 235, 34, 34);
+
+    void S55b_Row((int Seed, double Carry, double Launch, double Spray) row)
     {
-        var match = Defense("cinder", seed: 33);
+        var match = Defense("cinder", seed: row.Seed);
         Station(match, [3]);
         var runner = match.Third!;
-        var hit = FlightFixtures.Landing(match.Park, 210, 34, 34);
+        var hit = FlightFixtures.Landing(match.Park, row.Carry, row.Launch, row.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal("RF", preview.Position);
 
@@ -395,10 +425,16 @@ public sealed class OutsScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S73_ThrowWellAheadOfTheRunnerAtThirdIsATagWithNoIcon()
+    public void S73_ThrowWellAheadOfTheRunnerAtThirdIsATagWithNoIcon() =>
+        S73_Row(TestRoot.Pick(S73Shipped, S73Compact));
+
+    static readonly (int OrderIndex, double Exit, double Spray) S73Shipped = (2, 90, 30);
+    /// <summary>C80 (#715): on 80-ft paths the 30° ball leaves the throw 0.20 s ahead, inside the margin; at 26° it is well ahead again.</summary>
+    static readonly (int OrderIndex, double Exit, double Spray) S73Compact = (2, 90, 26);
+
+    void S73_Row((int OrderIndex, double Exit, double Spray) row)
     {
-        var (match, runner, hit, preview) = ThirdBaseRace(orderIndex: 2, spray: 30);
-        Assert.Equal(4, runner.Stats.Run);
+        var (match, runner, hit, preview) = ThirdBaseRace(row.OrderIndex, row.Spray, row.Exit);
         var run = Run(match, hit, preview, HumanRunners, LivePlayCommandSource.Human,
             runPad: (i, _) => i < 3 ? new LivePadInput(AllAdvance: true) : LivePadInput.Dead);
         var third = Assert.Single(run.Throws, t => t.Bag == 3 && t.Landed);
@@ -412,11 +448,17 @@ public sealed class OutsScenarioTests
     [Theory]
     [InlineData(2, true)]
     [InlineData(45, false)]
-    public void S74_ThrowJustAheadOfTheRunnerRunsTheMashAndTheFirstPressWins(int pressFramesAfterIcon, bool safe)
+    public void S74_ThrowJustAheadOfTheRunnerRunsTheMashAndTheFirstPressWins(int pressFramesAfterIcon, bool safe) =>
+        S74_Row(pressFramesAfterIcon, safe, TestRoot.Pick(S74Shipped, S74Compact));
+
+    static readonly (int OrderIndex, double Exit, double Spray) S74Shipped = (7, 90, 38);
+    /// <summary>C80 (#715): the same ball; the Run-5 body that lands inside the margin with the dash is the fifth in the order, not the seventh.</summary>
+    static readonly (int OrderIndex, double Exit, double Spray) S74Compact = (5, 90, 38);
+
+    void S74_Row(int pressFramesAfterIcon, bool safe, (int OrderIndex, double Exit, double Spray) row)
     {
         // The dash puts the body inside the margin; the offense's press after the icon races the CPU glove's reaction.
-        var (match, runner, hit, preview) = ThirdBaseRace(orderIndex: 7, spray: 38);
-        Assert.Equal(5, runner.Stats.Run);
+        var (match, runner, hit, preview) = ThirdBaseRace(row.OrderIndex, row.Spray, row.Exit);
         var iconAt = -1;
         var pressed = false;
         var run = Run(match, hit, preview, HumanRunners, LivePlayCommandSource.Human,
@@ -451,9 +493,12 @@ public sealed class OutsScenarioTests
     }
 
     [Fact]
-    public void S75_NobodyPressesAndTheCpuReactionDecides()
+    public void S75_NobodyPressesAndTheCpuReactionDecides() =>
+        S75_Row(TestRoot.Pick(S74Shipped, S74Compact));
+
+    void S75_Row((int OrderIndex, double Exit, double Spray) row)
     {
-        var (match, runner, hit, preview) = ThirdBaseRace(orderIndex: 7, spray: 38);
+        var (match, runner, hit, preview) = ThirdBaseRace(row.OrderIndex, row.Spray, row.Exit);
         var run = Run(match, hit, preview, HumanRunners, LivePlayCommandSource.Human,
             runPad: (i, live) =>
             {
@@ -473,14 +518,21 @@ public sealed class OutsScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S76_RunnerOffFirstWithTheBallInTheGloveNearbyIsARundownEndedByTagBagOrOverthrow()
+    public void S76_RunnerOffFirstWithTheBallInTheGloveNearbyIsARundownEndedByTagBagOrOverthrow() =>
+        S76_Row(TestRoot.Pick(S76Shipped, S76Compact));
+
+    static readonly (double Carry, double Launch, double Spray) S76Shipped = (92, 4, 41);
+    /// <summary>C80 (#715): the ball the first baseman takes on the 80-ft bag is 80 ft at 43°.</summary>
+    static readonly (double Carry, double Launch, double Spray) S76Compact = (80, 4, 43);
+
+    void S76_Row((double Carry, double Launch, double Spray) ball)
     {
         // Grounder to the first baseman on the bag: the batter is retired there, the force is gone, and the
         // human's runner, sent at contact and turned back once the batter is out, is caught between the bags.
         var match = Defense("cinder");
         Station(match, [1]);
         var runner = match.First!;
-        var hit = FlightFixtures.Landing(match.Park, 92, 4, 41);
+        var hit = FlightFixtures.Landing(match.Park, ball.Carry, ball.Launch, ball.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal("1B", preview.Position);
         var rundownFrames = 0;
@@ -538,7 +590,7 @@ public sealed class OutsScenarioTests
         runner.Send(2);
         // Past the commit fraction (running.cpu.commitFraction): the ordinary read keeps a body this far along going.
         RunnerSystem.Tick([runner], 1.5, new RunnerTickContext(1.5, 0, FlyState.None, 0, _ => false, _ => false));
-        Assert.True(runner.Feet > 40 && runner.DestBag == 2);
+        Assert.True(runner.Feet > Diamond.Baseline * 40 / 90 && runner.DestBag == 2);   // 40 ft of 90 shipped; the same fraction of the C80 path
         runner.MarkRundown(true);
         var second = Diamond.Bag(2);
         var first = Diamond.Bag(1);
@@ -555,7 +607,7 @@ public sealed class OutsScenarioTests
         // Beaten both ways (#640): the ball lands at second before a body 15 ft short of it could get back to first
         // (the throw's next leg beats them there too), so it keeps going and takes the tag at the bag.
         RunnerSystem.Tick([runner], 1.0, new RunnerTickContext(2.5, 0, FlyState.None, 0, _ => false, _ => false));
-        Assert.True(runner.Feet > 70 && runner.DestBag == 2);
+        Assert.True(runner.Feet > Diamond.Baseline * 70 / 90 && runner.DestBag == 2);   // 70 ft of 90 shipped; 62.2 of 80 on the C80 copy
         runner.MarkRundown(true);
         RunnerAi.Decide([runner], new RunnerAiContext(2.5, 0, int.MinValue, FlyState.None,
             new BallSituation(false, true, 2, 2.8, second.X, second.Z, 2.5, false, 60, 70, 90), 0), _ => false);
@@ -567,16 +619,28 @@ public sealed class OutsScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void TriplePlayIsReachableThroughTheForcesAloneAndStampsTriplePlay()
+    public void TriplePlayIsReachableThroughTheForcesAloneAndStampsTriplePlay() =>
+        TriplePlay_Row(TestRoot.Pick(TriplePlayShipped, TriplePlayCompact), human: TestRoot.Compact);
+
+    static readonly (double Carry, double Launch, double Spray) TriplePlayShipped = (92, 4, -44);
+    /// <summary>
+    /// C80 (#715): three forces are still there on the 80-ft diamond — 80 ft at 3° beside third — but the CPU's table takes the sure out at
+    /// first after the step on third, so the compact row turns it from the human seat: the step, the throw to second, the throw to first.
+    /// </summary>
+    static readonly (double Carry, double Launch, double Spray) TriplePlayCompact = (80, 3, -44);
+
+    void TriplePlay_Row((double Carry, double Launch, double Spray) ball, string leadoff = "cinder", bool human = false)
     {
         // Runners on first and second, a hard grounder to the third baseman beside the bag: step on
         // third, the force at second, the throw to first — three bodies short of their bags (§10.7).
-        var match = Defense("cinder");
+        var match = Defense(leadoff);
         Station(match, [1, 2]);
-        var hit = FlightFixtures.Landing(match.Park, 92, 4, -44);
+        var hit = FlightFixtures.Landing(match.Park, ball.Carry, ball.Launch, ball.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal("3B", preview.Position);
-        var run = Run(match, hit, preview, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
+        var script = new DefenseScript([0, 2, 1]);
+        var run = human ? Run(match, hit, preview, HumanGlove, LivePlayCommandSource.Human, fieldPad: (i, live) => script.Next(live, match))
+            : Run(match, hit, preview, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
         var outs = run.Play.Outcome!.OutsMade;
         Assert.Equal(3, outs.Count);
         Assert.Equal((OutType.Force, 3, 2), (outs[0].Type, outs[0].Bag, outs[0].FromBag));
@@ -758,12 +822,12 @@ public sealed class OutsScenarioTests
     }
 
     /// <summary>Runner on second sent at contact on a sharp grounder to the right side; the CPU glove throws to third (S-37).</summary>
-    (Match Match, Character Runner, AtBatResult Hit, FieldingPreview Preview) ThirdBaseRace(int orderIndex, double spray)
+    (Match Match, Character Runner, AtBatResult Hit, FieldingPreview Preview) ThirdBaseRace(int orderIndex, double spray, double exit = 90)
     {
         var scenario = new Scenario(_content, seed: 5).Runner(2, orderIndex);
         var match = scenario.Match;
         var runner = match.Second!;
-        var hit = FlightFixtures.Hit(match.Park, 90, 3, spray);
+        var hit = FlightFixtures.Hit(match.Park, exit, 3, spray);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Position is "1B" or "2B", preview.Position);
         return (match, runner, hit, preview);
@@ -784,5 +848,7 @@ public sealed class OutsScenarioTests
         foreach (var bag in bags)
             Assert.True(match.StationRunner(bag, roster[bag + 1]), $"station bag {bag}");
     }
+
+
 
 }
