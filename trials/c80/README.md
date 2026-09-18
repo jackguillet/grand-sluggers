@@ -64,7 +64,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0; and the impact recoil (#720): `recoil.onsetFtPerSec` 55, `fullFtPerSec` 75 — the knockback block is not read. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -694,3 +694,42 @@ and the two air anchors at Run 5.
 **Left to the Unity pass.** The root rise (`JumpHeightFt`) on the hero, the recovering-diver pose, and the `JumpTakeoff` /
 `DiveCommit` tells. **Left to 3d:** the calibration finding of slices 1–2 — S-29 1.62 / 1.06 with the legs, not the reach or
 the dive, as the coverage.
+
+---
+
+[#720](https://github.com/jackguillet/grand-sluggers/issues/720) — slice 1, the ground pickup's recoil (F693-02-clean-ground-pickup-readiness,
+-ground-pickup-recoil-basis, -ground-pickup-recoil-cap, -recoil-field-shaping, -recoil-field-factors, -recoil-severity-curve,
+-ordinary-recoil-actions, -ordinary-recoil-displacement, -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile). One
+file, `rules/fielding.json`: a new `recoil` block in both roots, two of its five keys moved.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `recoil.onsetFtPerSec`, `fullFtPerSec` | 0, 0 — the recoil is the `knockback` block the game shipped with: a stop off the contact's energy and the Hands deficit (up to 0.55 s), the whole tick held for it, grounders only | **55, 75** — a ground pickup costs what the ball's actual incoming speed says: `S = clamp((v − 55) / 20, 0, 1)`, zero through the onset, one past the full speed; the `knockback` block is not read |
+| `recoil.capSec`, `handsCutPerPoint`, `kickFtPerSec` | 0.20, 0.05, 10 — the accepted anchors, read only above onset 0 | 0.20, 0.05, 10 — `w = S × (1 − 0.05 × (Hands − 1))`, the recovery `0.20 w` s (0.20 / 0.16 / 0.11 at Hands 1 / 5 / 10 on a rocket), a `10 w` ft/s kick along the ball's travel slowing linearly to rest over it — `w²` ft, one foot at most |
+
+**Where the anchors come from.** The decision left the speeds unselected pending event-sided evidence, so this slice measured
+first: a probe at the take over 48 `cli match` runs on this copy (and 20 on the shipped table) recorded every batted ball's
+incoming speed the frame before possession. On this copy the 464 ground pickups — grounders, and liners or flies picked up
+after landing — arrive at p50 43, p90 55, p99 71, max 73 ft/s; the horizontal component is the speed (vertical share 0.11 at
+the median). The onset **55** is that 90th percentile: the hottest tenth recoils, the rest is routine and costs nothing. The
+full speed **75** sits just past the hottest ball seen, so the cap binds only on a true rocket — a 125-mph comebacker reaches
+the mound in half a second at 91 ft/s. On the copy's own CPU play 11 % of ground pickups recoil, none at the cap, 0.034 s among
+them; the shipped knockback stops 41 % of grounder pickups for 0.078 s on average, up to 0.32 s. Liners caught in the air
+arrive at p50 77 / p90 91 / max 110 ft/s and flies at 36–41 with a 0.59 vertical share — slice 2's anchors, left unselected here.
+
+**What the seat gets.** The take samples `LivePlaySystem.IncomingFtPerSec` on both tables. On this copy a routine pickup arms
+nothing — no clock, no event, the play's marks the same to the frame as with the rule off. A hot one arms `RecoilT` for
+`0.20 w` with `ImpactRecoil` set, and the world goes on: the body's steering and throw start wait (`CanMove`, `ThrowPress` — a
+South inside the last `throw.relayBufferSec` is remembered and fires at readiness), the CPU glove waits at its decision, the
+contact at the bag still counts, and the body skids `w²` ft along the ball's travel on top of whatever the idle brake leaves of
+its own run — one path, the ball in the glove. A landed liner picked up off the grass is a ground pickup and costs the same way,
+though no bobble is ever rolled on it; a catch in the air costs nothing yet. The shipped knockback and the fumble keep the
+whole-tick stop they always had. `LiveEvent.ImpactRecoil` is the client's tell; `RecoilT` still drives the pose.
+
+**Control unchanged.** 20 `cli match` seeds and all 50 S-29 cohort games byte-identical to pristine `main`.
+
+**What it does to a run.** 5 of 48 trial seeds diverge from #752 (2 scorelines); across the 48 the tallies barely move — hits 298 → 299, fly outs 534 → 521 on 1376 → 1343 plate appearances, the fly-out rate 38.8 % both ways. S-29 on the copy: **1.62 / 1.06 → 1.74 / 1.06**, 3 of 50 cohort games change. That is the hottest tenth of ground pickups paying 0.03 s on average and a bang-bang play flipping now and then; the calibration finding of #719 stands — the legs are the coverage, and this slice is not a lever on it.
+
+**Left.** Slice 2: the hard airborne catch by a grounded fielder (F693-02-grounded-air-catch-recoil) with its own anchor pair.
+The specials — composition, resistance, pushback possession, repeat eligibility — stay unwritten until
+F693-02-special-attack-contracts. The Unity pass owes the `ImpactRecoil` tell.

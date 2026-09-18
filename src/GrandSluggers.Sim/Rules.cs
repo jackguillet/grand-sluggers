@@ -1056,6 +1056,7 @@ public sealed class FieldingRules
     public ThrowChemistryRules Chem { get; init; } = new();
     public BobbleRules Bobble { get; init; } = new();
     public KnockbackRules Knockback { get; init; } = new();
+    public RecoilRules Recoil { get; init; } = new();
     public ParkHazardRules Park { get; init; } = new();
     public BuntDefenseRules Bunt { get; init; } = new();
 
@@ -1066,6 +1067,9 @@ public sealed class FieldingRules
         RulesValidation.Order(source, "fielding.throw.minFtPerSec", Throw.MinFtPerSec, Throw.BaseFtPerSec, errors);
         RulesValidation.Order(source, "fielding.stick.leaveMag", Stick.LeaveMag, Stick.EnterMag, errors);
         RulesValidation.Order(source, "fielding.stick.leaveMag", Stick.LeaveMag, 0.99, errors);
+        RulesValidation.Order(source, "fielding.recoil.onsetFtPerSec", Recoil.OnsetFtPerSec, Recoil.FullFtPerSec, errors);
+        if (Recoil.Active && Recoil.FullFtPerSec <= Recoil.OnsetFtPerSec)
+            errors.Add($"{source}: fielding.recoil.fullFtPerSec must exceed onsetFtPerSec while the recoil is on; got {Recoil.FullFtPerSec} <= {Recoil.OnsetFtPerSec}");
     }
 }
 
@@ -1436,6 +1440,10 @@ public sealed class BobbleRules
     public double RecoilFtPerSec { get; init; } = 14;
 }
 
+/// <summary>
+/// The shipped recoil: a stop read off the contact's energy and the Hands deficit, the whole tick held for it. Read only
+/// while <see cref="RecoilRules.OnsetFtPerSec"/> is 0; above it the ordinary impact recoil (<see cref="RecoilRules"/>) replaces it.
+/// </summary>
 public sealed class KnockbackRules
 {
     public double MinEnergy { get; init; } = 72;
@@ -1443,6 +1451,28 @@ public sealed class KnockbackRules
     [Positive] public double EnergySpan { get; init; } = 90;
     public double MaxSec { get; init; } = 0.55;
     public double MinSec { get; init; } = 0.02;
+}
+
+/// <summary>
+/// What the ball costs the hands that take it (#720: F693-02-ground-pickup-recoil-basis, -ground-pickup-recoil-cap,
+/// -recoil-field-shaping, -recoil-field-factors, -recoil-severity-curve, -ordinary-recoil-actions, -ordinary-recoil-displacement,
+/// -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile). At <c>onsetFtPerSec</c> 0 the recoil is the one the game
+/// shipped with (<see cref="KnockbackRules"/>). Above 0 it is read off the ball's actual incoming speed the frame before the
+/// take, deterministic: severity <c>S = clamp((v − onset) / (full − onset), 0, 1)</c>, the weight <c>w = S × (1 −
+/// handsCutPerPoint × (Hands − 1))</c>, the recovery <c>capSec × w</c>, an impact kick of <c>kickFtPerSec × w</c> along the
+/// ball's horizontal travel slowing linearly to rest over the recovery (<c>w²</c> feet at the accepted 10 ft/s and 0.20 s).
+/// A routine arrival at or below the onset costs nothing. The body's steering and throw start wait; possession and the contact
+/// at the bag do not. The c80 copy carries the measured anchors; the shipped table carries 0 / 0.
+/// </summary>
+public sealed class RecoilRules
+{
+    public double OnsetFtPerSec { get; init; } = 0;
+    public double FullFtPerSec { get; init; } = 0;
+    [Positive] public double CapSec { get; init; } = 0.20;
+    [Chance] public double HandsCutPerPoint { get; init; } = 0.05;
+    public double KickFtPerSec { get; init; } = 10;
+    /// <summary>The speed-read recoil is on; the shipped knockback is not read.</summary>
+    public bool Active => OnsetFtPerSec > 0;
 }
 
 public sealed class ParkHazardRules
