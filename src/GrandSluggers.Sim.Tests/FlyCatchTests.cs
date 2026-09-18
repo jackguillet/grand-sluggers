@@ -3,6 +3,7 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
+[Trait("Rows", "compact")]
 public class FlyCatchTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -42,8 +43,10 @@ public class FlyCatchTests
         var match = Match.Slice(content);
         var park = match.Park;
         // In the open this carries a few feet past Harbor's 400; in the park it meets the 8-ft wall below the top (§6.1).
-        Assert.True(BallFlight.CarryFeet(110, 35, 0) > park.CenterFenceFt, "in the open this lands past Harbor's 400");
-        var ball = BattedBall.Of(110, 35, 0, park);
+        // The C80 copy: the fence is 280 and the drag is 0.0040, so 110 mph dies at 277. 111.7 mph carries 281, a foot past the fence.
+        var exit = TestRoot.Pick(110, 111.7);
+        Assert.True(BallFlight.CarryFeet(exit, 35, 0) > park.CenterFenceFt, "in the open this lands past Harbor's 400");
+        var ball = BattedBall.Of(exit, 35, 0, park);
         Assert.Equal(BattedBallClass.Wall, ball.Class);
         Assert.False(ball.HomeRun);
         Assert.NotNull(ball.WallT);
@@ -53,7 +56,7 @@ public class FlyCatchTests
         var afterWall = ball.Samples.Where(s => s.T > ball.WallT + 0.5).ToArray();
         Assert.NotEmpty(afterWall);
         Assert.All(afterWall, s => Assert.True(s.Dist < park.CenterFenceFt - 1, "the carom comes back into the park"));
-        var hit = FlightFixtures.Hit(park, 110, 35, 0, ContactQuality.Perfect);
+        var hit = FlightFixtures.Hit(park, exit, 35, 0, ContactQuality.Perfect);
         var pre = match.PreviewHit(hit);
         Assert.Equal(BattedBallClass.Wall, pre.Class);
         var plant = FlyCatch.ChaseTarget(pre, park);
@@ -115,13 +118,16 @@ public class FlyCatchTests
         Assert.Equal(4, c.WindowPadFt);
         Assert.Equal(8, c.DiveReachFt);
         Assert.Equal(7.5, c.DiveMaxBallY);
+        // The C80 copy (#719): every unauthored body stands up at the table's one reach, catch.standUpReachFt 6.0, not at
+        // radiusBaseFt + Field x radiusPerField. The ring, the rim and the dive past it are the same rule on both tables.
+        Assert.Equal(TestRoot.Pick(0, 6.0), c.StandUpReachFt);
         var rio = _content.Must("rio");
         var ashlord = _content.Must("ashlord");
         var park = Harbor;
         var rioRadius = FieldingResolver.CatchRadiusFt(rio, park);
         var ashRadius = FieldingResolver.CatchRadiusFt(ashlord, park);
-        Assert.Equal(c.RadiusBaseFt + rio.Stats.Field * c.RadiusPerField + FieldAbilities.CatchBonus(rio), rioRadius);
-        Assert.Equal(c.RadiusBaseFt + ashlord.Stats.Field * c.RadiusPerField, ashRadius);
+        Assert.Equal(TestRoot.Pick(c.RadiusBaseFt + rio.Stats.Field * c.RadiusPerField, c.StandUpReachFt) + FieldAbilities.CatchBonus(rio), rioRadius);
+        Assert.Equal(TestRoot.Pick(c.RadiusBaseFt + ashlord.Stats.Field * c.RadiusPerField, c.StandUpReachFt), ashRadius);
         var standUp = FieldingResolver.StandUpCatchFt(rioRadius);
         var diveWin = FieldingResolver.DiveCatchFt(rioRadius);
         Assert.Equal(rioRadius, standUp);
