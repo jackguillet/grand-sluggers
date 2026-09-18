@@ -266,6 +266,8 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 **Pending special completion — F693-02-special-attack-contracts:** individual attack lifetimes/values/permissions, repeated impulse composition, dislodging/multi-hit exceptions and independent-attack chains must be reviewed before implementation; returning to routine fielding does not approve these gaps.
 
+**Scope decision, September 18, 2026 — specials are excluded from 3e.** Jack excluded the special attacks from the 3e validation scope (see 3e below). This contract stays pending and unimplemented; the exclusion approves none of it.
+
 The parent issue description was condensed after preserving its full history through 9ca738e in the [versioned tracker archive](research/game-feel-693-tracker-history.md); current statuses live here and in #708.
 
 ### F693-04 — Contact-class motion
@@ -386,6 +388,8 @@ These tasks are tracked in `implementationReadiness` and `F693-02-error-response
 **3e. Default promotion — a separate explicit decision.** A complete prototype and successful model checks do not authorize a default flip. Report the whole-race results, align presentation/kit and couch instructions in their own children, and obtain the required human acceptance before shipping the selected contract. No agent passes the sitting or look gates.
 
 **Deferred work has a boundary, not an exemption.** Individual special attacks, remaining movement/status interactions and throw-before-cover may remain outside a scoped parity or ordinary-loop prototype. They must be resolved or explicitly excluded from an affected validation scope before claiming the full contract complete or promoting its default. No special values or behavior are inferred while they wait.
+
+**Explicit exclusion — Jack, September 18, 2026: the special attacks are outside the 3e validation scope.** 3e validates and, if accepted, promotes the *ordinary loop* of the C80 copy: geometry and drag, movement and reads, catch / dive / jump, ordinary recovery and recoil, ordinary handling errors, the throw clock and the throw commands (#716 … #723), as measured in 3d. Excluded, by name: `F693-02-special-attack-contracts` (pending: individual attack lifetimes, values and permissions, repeated impulse composition, dislodging and multi-hit exceptions, independent-attack chains) and the accepted-but-unbuilt special rails that compose against it — `F693-02-special-recovery-composition`, `-special-impact-motion-composition`, `-special-impact-field-resistance`, `-special-pushback-possession`, `-special-pushback-actions`, `-repeated-impact-recovery` and `-special-impact-repeat-eligibility` (#720 built the ordinary path only and left these hooks unimplemented, with no dead parameters in `data/rules/`). What the exclusion means: the copy carries no special-attack change (`rules/stars.json` is not overlaid), so a special does on the copy what it does on the shipped table; no special value or behaviour is inferred; a promotion under this scope is a promotion of the ordinary loop and does **not** claim the full #693 contract complete; and the special contracts remain owed as their own design pass before that claim is made. The other two deferred families named above (remaining movement/status interactions, throw-before-cover) are not covered by this exclusion and still need their own resolve-or-exclude call before 3e.
 
 ### R4 — Present the approved race
 
