@@ -107,6 +107,10 @@ public sealed record BattedBall(
         return Read(samples, exitMph, launchDeg, bunt, park, r);
     }
 
+    /// <summary>The same reading of a path that has been continued from a state (#721): what the deflected ball decides from here — the wall, the fence, the stands.</summary>
+    public static BattedBall Reread(IReadOnlyList<Sample> samples, double exitMph, double launchDeg, bool bunt, Park park, RulesTable? rules = null) =>
+        Read(samples, exitMph, launchDeg, bunt, park, Rules.Or(rules));
+
     static BattedBall Read(IReadOnlyList<Sample> samples, double exitMph, double launchDeg, bool bunt, Park park, RulesTable rules)
     {
         var c = rules.Flight.Classes;
