@@ -64,7 +64,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -663,3 +663,34 @@ starting depth — and this folder reports the number rather than moving one of 
 
 **Left to slice 3 and the Unity pass.** The normal jump; a recovering-diver pose (`LivePlaySystem.DiveRecoveryT`,
 `DivingPos`) and the `DiveCommit` tell.
+
+---
+
+[#719](https://github.com/jackguillet/grand-sluggers/issues/719) — slice 3, the normal jump (F693-02-normal-jump-input-profile,
+-takeoff-ownership, -arc-trial, -air-response-trial, -startup-trial, -input-buffer, -character-profile, -catch-input, and
+F693-02-jump-catch-throw-readiness). One file, `rules/fielding.json`: four new keys in both roots, one existing key moved.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `catch.jumpAirSec` | 0 — West arms a window (`jumpArmSec` 0.55, 0.7 at the wall) and the body never leaves the ground | **0.60** — a fresh eligible West press is a takeoff with no added startup; the body is airborne 0.60 s with a root rise of `4 H u (1 − u)`, apex 2.0 ft at 0.30 s, the same for every character, one profile per press — no hold, no cut, no repeat while held |
+| `catch.jumpRiseFt`, `jumpAirResponseMul` | 2.0, 0.10 — the accepted anchors, read only above `jumpAirSec` 0 | 2.0, 0.10 — airborne the stick works at a tenth of the ground rates and a neutral body coasts: 1.62 ft from rest, 7.56 ft against a full reversal from 18 ft/s |
+| `catch.jumpBufferSec` | 0 — no buffer | **0.10** — a grounded press blocked by the read or a recovery is remembered, bound to its body, and takes off at the first eligible instant; a throw or a dive already committed prevents it; airborne presses queue nothing |
+| `catch.jumpReachFt` | 8 — eight feet of horizontal reach in the armed window | **0** — the jump is the arc, reconciled away |
+
+**What the seat gets.** The catch is the jump alone: airborne, the ball high enough, under the ring, in the window — a press too
+early lands before the ball, a press too late misses the window, and geometry decides. A jumping catch releases nothing until
+the body has landed: a South in the air is dropped except in the last `throw.relayBufferSec`, where it is remembered and fires
+on the first grounded frame; a grounded catch adds nothing. `LivePlaySystem.Airborne`, `JumpAirT`, `JumpHeightFt`,
+`JumpPending` and the `JumpTakeoff` event are the client's; `JumpT` is set to the airtime at takeoff so the pose and the buddy
+leap read as before. The CPU's wall leap is untouched on both roots.
+
+**Control unchanged.** 20 `cli match` seeds and all 50 S-29 cohort games byte-identical to pristine `main`.
+
+**What it does to a run.** Nothing the CPU plays: 0 of 48 trial seeds and 0 of 50 cohort games move against #751 — the CPU
+never jumps except at the wall, and that leap is unchanged. It shows on the human seat (`JumpTests`): the arc to the frame,
+the catch that comes only in the air, the throw that leaves at takeoff + 0.60, the 0.10-s buffer, one takeoff per held press,
+and the two air anchors at Run 5.
+
+**Left to the Unity pass.** The root rise (`JumpHeightFt`) on the hero, the recovering-diver pose, and the `JumpTakeoff` /
+`DiveCommit` tells. **Left to 3d:** the calibration finding of slices 1–2 — S-29 1.62 / 1.06 with the legs, not the reach or
+the dive, as the coverage.
