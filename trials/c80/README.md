@@ -61,7 +61,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -492,3 +492,35 @@ at 18 ft/s. The control is unchanged — 20 seeds and all 50 cohort games identi
 are the human seat's feel and are not here (`Feel.FieldAssistStick` 0.35 stays the one threshold). The carry — the
 universal activated sprint retired for a 1.20× Ball Dash — waits on a roster body that carries Ball Dash; there is
 none today. Both are #718's remaining slice.
+
+---
+
+[#723](https://github.com/jackguillet/grand-sluggers/issues/723) — throw commands and abilities (F693-03-relay-ownership,
+-input-buffer, -throw-cancel, -laser-throw, -snap-throw). All in `rules/fielding.json`; the shipped table gains four
+keys at the values that are today's rule.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `throw.relayAutoContinue` | 1 — a human's cutoff throws the armed onward leg for them | **0** — each relay leg needs its own command; the cutoff holds |
+| `throw.relayBufferSec` | 0 — no queue | **0.25** — an early press is remembered that long of active play and fires at the catch; bag selectors retarget it without refreshing its age; a fresh RB / period cancels it (`LivePadInput.Cancel`, the `cancel-throw` verb) |
+| `abilities.laserMul`, `laserHomeOnly` | 1.45, 0 — the boost on every throw | **1.25, 1** — only on a throw home with a live runner on third or the third–home segment; a cutoff feed never carries it, and the CPU's own forecast strips it the same way |
+| `abilities.snapThrowMul`, `snapReleaseSec` | 1.22, 0.22 — a faster ball; the snap release equals the ordinary release, so it is inert | **1.0, 0.22** — a 0.22 s release against the ordinary 0.30, after a clean received teammate throw only; a pickup, a bobble, a sail or a hand-off clears it |
+
+The CPU never queues or cancels, and the shipped abilities are untouched, so a no-overlay run is the game it always
+was — 20 `cli match` seeds and all 50 S-29 cohort games identical to pristine `main`.
+
+**What it does to a run.** The CPU's Laser holders (hex, boom, nugget, brondo) lose the boost on every throw but the
+one home with a runner on third, and its Snap holders (pip, frost, pewter, vale) release a received ball in 0.22 s
+against 0.30: 22 of 48 trial seeds diverge from #718 slice 2, 10 scorelines, and S-29 under the trial moves
+**1.70 / 1.64 → 1.80 / 1.64** — home on the floor for the first time, away still under it — with 46 of 50 cohort
+scorelines unchanged.
+
+**What the human seat gets.** Tested on the human seat with a Snap holder at the cutoff: on the control the armed
+leg fires at the catch and a press in flight is nothing; on the trial the cutoff holds a full second until South
+is pressed, a press 0.15 s before the catch fires at the catch, a press 0.50 s before expires, and a remembered press
+cancelled by a fresh RB is gone — and the onward throw the Snap holder makes leaves 0.08 s sooner than an ordinary
+release would. `LivePlaySystem.ThrowQueued` / `QueuedThrowBag` and `LiveEvent.ThrowQueued` / `ThrowQueueCleared`
+are the HUD's tells; Unity maps RB / period on the defense pad to the cancel.
+
+**Left to the book pass.** The how-to page's row for the cancel verb (its pixel budget is P8's), and the queue's
+visible feedback.

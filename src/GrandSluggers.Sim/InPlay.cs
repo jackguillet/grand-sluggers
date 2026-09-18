@@ -82,7 +82,7 @@ public static class InPlay
         var over = Math.Max(0, distFt - (t.ComfortableRangeFt + t.RangePerArmFt * (arm - NeutralArm))) / 80.0;
         // The pair-and-ability factor alone: the arm is already in the speed, and the loss is divided by the rest.
         var pair = (thr?.SpeedMul ?? 1) / ArmMul(arm, rules);
-        return t.ReleaseSec + flight + t.LongThrowLossSec * over * over / pair;
+        return (thr?.ReleaseSec ?? t.ReleaseSec) + flight + t.LongThrowLossSec * over * over / pair;
     }
 
     /// <summary>The thrower's arm (§8.5): <c>armBase + Arm × armPerField</c>. Arm seeds from Field until authored.</summary>

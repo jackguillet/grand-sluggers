@@ -354,14 +354,22 @@ public sealed class CompactGeometryTests
         // Nothing else in the table moves, and a new difference has to be named here.
         Assert.Equal(
             [
+                "abilities.laserHomeOnly", "abilities.laserMul", "abilities.snapThrowMul",
                 "chase.accelSec", "chase.baseFtPerSec", "chase.brakeSec", "chase.ftPerSecPerRun", "chase.minFtPerSec",
                 "chem.badSpeedMul", "chem.slantChance",
                 "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
                 "park.pipeReachPadFt",
                 "reaction.catcherSec", "reaction.firstSec", "reaction.outfieldSec", "reaction.pitcherSec", "reaction.shortSec", "reaction.thirdSec",
-                "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.releaseSec"
+                "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.relayAutoContinue", "throw.relayBufferSec", "throw.releaseSec"
             ],
             moved);
+        // #723: the abilities and the relay's ownership. snapReleaseSec does not move — 0.22 in both, inert beside the shipped release.
+        Assert.Equal(("1.45", "1.25"), (shippedLeaves["abilities.laserMul"], trialLeaves["abilities.laserMul"]));
+        Assert.Equal(("1.22", "1.0"), (shippedLeaves["abilities.snapThrowMul"], trialLeaves["abilities.snapThrowMul"]));
+        Assert.Equal(("0", "1"), (shippedLeaves["abilities.laserHomeOnly"], trialLeaves["abilities.laserHomeOnly"]));
+        Assert.Equal(shippedLeaves["abilities.snapReleaseSec"], trialLeaves["abilities.snapReleaseSec"]);
+        Assert.Equal(("1", "0"), (shippedLeaves["throw.relayAutoContinue"], trialLeaves["throw.relayAutoContinue"]));
+        Assert.Equal(("0", "0.25"), (shippedLeaves["throw.relayBufferSec"], trialLeaves["throw.relayBufferSec"]));
         Assert.Equal(("21", "12.4"), (shippedLeaves["chase.baseFtPerSec"], trialLeaves["chase.baseFtPerSec"]));
         Assert.Equal(("0", "0.20"), (shippedLeaves["chase.accelSec"], trialLeaves["chase.accelSec"]));
         Assert.Equal(("0", "0.10"), (shippedLeaves["chase.brakeSec"], trialLeaves["chase.brakeSec"]));

@@ -1271,6 +1271,14 @@ public sealed class FieldAbilityRules
     public double DiveGroundRangeFt { get; init; } = 16;
     [Positive] public double LaserMul { get; init; } = 1.45;
     [Positive] public double SnapThrowMul { get; init; } = 1.22;
+    /// <summary>
+    /// Snap Throw's release after a clean received teammate throw (F693-03-snap-throw, #723). On the shipped table it equals
+    /// the ordinary release, so it is inert beside the ×1.22 flight; the c80 copy keeps 0.22 against an ordinary 0.30 and
+    /// sets the flight boost to 1.0. A pickup, a bobble, a sail or a hand-off clears the eligibility.
+    /// </summary>
+    [Positive] public double SnapReleaseSec { get; init; } = 0.22;
+    /// <summary>How far Laser is confined to a throw home with a live runner on third or the third–home segment (F693-03-laser-throw, #723): 0 is the universal boost the game shipped with, 1 the c80 rule — a cutoff feed never carries it.</summary>
+    [Chance] public double LaserHomeOnly { get; init; } = 0;
 }
 
 /// <summary>
@@ -1309,6 +1317,10 @@ public sealed class ThrowRules
     [Positive] public double UnassistedFt { get; init; } = 8;
     public double HandHeightFt { get; init; } = 3.2;
     public double BagHeightFt { get; init; } = 1.2;
+    /// <summary>A human's cutoff throws the armed onward leg for them (§8.7): 1 is the rule the game shipped with; 0 is F693-03-relay-ownership (#723), where each relay leg needs its own command.</summary>
+    [Chance] public double RelayAutoContinue { get; init; } = 1;
+    /// <summary>An early onward-throw press is remembered this long of active play and fires when the receiver has the ball (F693-03-input-buffer, #723). 0 is no queue; the c80 copy carries 0.25.</summary>
+    public double RelayBufferSec { get; init; } = 0;
 }
 
 /// <summary>The CPU catcher's release on a steal (§11.3): <c>base − Field × perField ± noise / 2</c>, clamped, × the difficulty's reaction. The gun itself is the one throw model (<see cref="ThrowRules"/>); the out is the tag at the bag (§10.3).</summary>
