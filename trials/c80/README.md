@@ -989,3 +989,60 @@ Also seen: ground-rule doubles are rarer on the copy. In the same probe grid Har
 **Left.** 6 rows: the seats, bunts, runners and steals (`SeatOwnershipTests` 2, `BuntScenarioTests` 2, `StealScenarioTests` 1,
 `RunnerScenarioTests` 1). 109 tests fail under the overlay today: those 6, the 3 gap rows, and the hundred that name the
 shipped table on purpose and are restructured at promotion.
+
+---
+
+**The hand-off coast runs straight into the brake (#718 slice 2's defect, found by the slice-2 rows; trial only).** Finding 2
+of slice 2, repaired. The body the ring leaves is not stepped on the hand-off frame, so the response law's idle brake took it for an
+idle body at the top of the next tick and stepped it (0.23 ft at 16.9 ft/s) before the coast stepped it too; and the coast's
+clock ended on float dust (0.2 − 12/60 ≈ 5e-17), so a thirteenth, empty coast frame marked the body stepped and the brake came
+two standing frames late. Three changes, all inside the `ResponseLaw` branches of `LivePlaySystem.Field.cs`:
+
+- `TickIdleBrakes` skips `Coasting(pos)`: the coast is that body's step.
+- The coast's last step (clock ≤ 1e-9) ends the coast and names the body for `TickCoastBrake`, which runs after the walks
+  (`TickHandoffCoast`, `ChargeBunt`, then it): what the coast left of its last frame is braked at once, and on every later
+  frame the body brakes unless a walk has already stepped it that frame, the ring is back on it, or it is at rest. The walks
+  that waited for the coast still take the body at the velocity it has — a cover walk that wants it on the first frame after
+  the coast gets it with one step, not the idle brake's step and then its own.
+- `BrakeStep` is the idle brake's body, shared by both.
+
+SS across the hand-off in S-97 on the copy (ft moved per frame, h = the hand-off frame):
+
+| Frames | Before | After |
+| --- | --- | --- |
+| h | 0 | 0 (as shipped: nobody steps the body the ring left on that frame) |
+| h+1 | **0.516** (30.9 ft/s) | 0.281 (16.9 ft/s) |
+| h+2 … h+12 | 0.281 | 0.281 |
+| h+13, h+14 | **0, 0** | 0.234, 0.188 |
+| then | 0.234, 0.188, 0.141, 0.094, 0.047, 0 | 0.141, 0.094, 0.047, 0 |
+| Coast (h → h+12) | 3.610 ft | **3.376 ft** = 16.88 ft/s × 0.2 s |
+| At rest | h+20, 4.314 ft on | h+18, 4.079 ft on |
+
+At an uneven frame the coast's last frame is part coast, part brake (at 0.021 s: nine frames at 18.0 ft/s, then 17.1, 12.4, 8.6,
+4.9, 1.1, 0). A probe of 1 700 CPU balls on the copy, each at both frame times, found 234 hand-offs from a moving body: none with a
+frame faster than the coast, none with a standing frame before the brake.
+
+**Tests.** The compact half of S-97 now pins the exact coast (speed × coast within 0.05 ft, every coast frame at the coast's
+step to 0.001 ft) and the brake frame by frame from h+13 (`speed − k × Frame × rated / brakeSec`, then rest) in place of bounds
+that held with and without the overlap. `ResponseLawTests.TheBodyTheRingLeavesCoastsThenBrakesWithNoFasterFrameAndNoStandingFrame`
+runs a CPU hand-off (SS → CF, 90 mph / 10° / −8°) at 1/60 s and at 0.021 s in the ordinary test run; both fail on the old code
+(28.9 and 28.2 ft/s frames). 1 320 tests pass; 299 of 299 compact rows under `GRAND_SLUGGERS_TRIAL=trials/c80` (the CI filter, after slice 3); the
+overlay's count of failing tests is unchanged at 109.
+
+**Control unchanged.** `ResponseLaw` is off on the shipped table and nothing outside its branches moved: 20 `cli match` seeds
+and all 150 cohort games (S-29, Harbor calibration, Harbor validation) byte-identical to pristine `main` (the cohort JSON differs
+only in the build's `moduleId`). The sealed packets regenerate with one line moved, the sha of `LivePlaySystem.Field.cs`.
+
+**What it does to a run.** Almost nothing the CPU plays: **1 of 48 trial seeds diverges from #760 (1 scoreline; #762 moved no Sim source and no data)** and 0 of 150
+cohort games — S-29 stays **2.46 / 2.36**, Harbor calibration **2.10 / 2.16**, Harbor validation **2.02 / 2.42**. Every game's
+bodies differ from the first hand-off on (0.2 to 0.3 ft where the coasting body comes to rest), and one play in 48 games sat on
+that edge: seed 41, bottom of the first, a ball to right with two on. 2B hands the ring to RF at 1.72 s, coasts, and stands
+0.27 ft from where it stood before; it takes RF's relay at 7.3 s either way, and where the old run played on to a double
+(a 45-second play) the new one has 2B tag Grit at 14.35 s. Across the 48: singles 181 → 180, doubles 129 → 126, fly outs
+448 → 446, ground outs 192 → 194; triples 38, home runs 78, strikeouts 184 and walks 143 do not move.
+
+**One finding, reported and not repaired.** A hand-off on the frame after a dive's lunge coasts the diver at the lunge's
+velocity (trial only, #719's deliberate dive under #718's §8.9 coast): `_gloveVel` is the glove's displacement over the last
+frame, the CPU's lunge is 9.9 ft in that frame, so the body the ring leaves slides 9.9 ft a frame for 0.2 s — about 118 ft at
+590 ft/s — and then brakes from there. Seen on the copy on 70 mph / 20° flies at sprays −32°, −8° (SS → LF) and 0° (2B → CF),
+3 of those 1 700 balls. It is the coast's velocity source, not the brake, and it is its own change.
