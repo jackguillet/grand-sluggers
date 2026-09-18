@@ -11,6 +11,7 @@ namespace GrandSluggers.Sim.Tests;
 /// holding the ball. Headless on <see cref="LivePlaySystem"/>, the human seat's pad scripted per frame, both seats where
 /// the row lives on one (S-94 / S-95).
 /// </summary>
+[Trait("Rows", "compact")]
 public sealed class ControlScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -122,9 +123,17 @@ public sealed class ControlScenarioTests
     [InlineData(false)]  // the CPU seat, the same guard
     public void S96_ARollerReachesTheGrassBeforeSecondMeetsItAndSecondKeepsTheGloveWhileTheRouteReaches(bool human)
     {
+        // The C80 copy: the lip is 137.78 ft and the legs are slower, so the shipped roller is past 2B before it can turn. The
+        // high hopper at 9° is the one 2B runs down a foot onto the grass (138.7 ft, 2.06 s) before RF's route gets there (2.75 s).
+        var (carry, launch, spray) = TestRoot.Pick((190.0, 5.0, 14.0), (150.0, 9.0, 14.0));
+        S96_Row(human, carry, launch, spray);
+    }
+
+    void S96_Row(bool human, double carry, double launch, double spray)
+    {
         var (match, seats) = human ? HumanDefense(true) : CpuDefense();
         // A ground ball through the right side: 2B's route meets it past the infield lip, before any outfielder's.
-        var hit = FlightFixtures.Landing(match.Park, 190, 5, 14);
+        var hit = FlightFixtures.Landing(match.Park, carry, launch, spray);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Grounder);
         Assert.Equal("2B", preview.Position);
@@ -248,6 +257,24 @@ public sealed class ControlScenarioTests
         var ssAtHandoff = at.At["SS"];
         Assert.Equal(ssBefore, ssAtHandoff);
         var ssAfterCoast = frames[h + coastFrames].At["SS"];
+        if (TestRoot.Compact)
+        {
+            // The C80 copy's response law (#718): the body keeps the coast's velocity, then brakes over chase.brakeSec instead of
+            // stopping dead. Seen here and reported, not repaired: the idle brake also steps the coasting body once on the coast's
+            // first frame (0.23 ft, so 3.61 ft where speed x coast is 3.38), and the body stands for two frames between the coast
+            // and the brake. The bounds hold with and without those two.
+            var coasted = Diamond.Dist(ssAtHandoff.X, ssAtHandoff.Z, ssAfterCoast.X, ssAfterCoast.Z);
+            Assert.InRange(coasted, speed * coast - 0.05, speed * coast + speed * Frame + 0.05);
+            var off = Math.Abs((ssAfterCoast.X - ssAtHandoff.X) * vZ - (ssAfterCoast.Z - ssAtHandoff.Z) * vX) / speed;
+            Assert.True(off < 0.05, $"SS coasts along its last heading ({off:0.00} ft off the line)");
+            var atRest = frames[h + coastFrames + 12].At["SS"];
+            var stillThere = frames[Math.Min(frames.Count - 1, h + coastFrames + 24)].At["SS"];
+            Assert.Equal(atRest.X, stillThere.X, 3);
+            Assert.Equal(atRest.Z, stillThere.Z, 3);
+            Assert.True(Diamond.Dist(ssAfterCoast.X, ssAfterCoast.Z, atRest.X, atRest.Z) <= speed * rules.Fielding.Chase.BrakeSec,
+                "the brake after the coast is shorter than a full-speed run of chase.brakeSec");
+            return;
+        }
         Assert.Equal(speed * coast, Diamond.Dist(ssAtHandoff.X, ssAtHandoff.Z, ssAfterCoast.X, ssAfterCoast.Z), 1);
         Assert.Equal(ssAtHandoff.X + vX * coast, ssAfterCoast.X, 1);
         Assert.Equal(ssAtHandoff.Z + vZ * coast, ssAfterCoast.Z, 1);
@@ -263,14 +290,48 @@ public sealed class ControlScenarioTests
     [InlineData(false)]  // the CPU seat
     public void S97_ALinerTheShortstopReachesPastTheLipIsNeverHandedOffAndShortCatchesIt(bool human)
     {
+        // The C80 copy has no such ball: across the liners planted within 10 ft past its 137.78 ft lip, SS reaches none (the
+        // nearest misses by 2.8 ft), so the position-only hand-off never argues with SS's route there. The row on the copy is the
+        // deepest rope SS does reach (74 mph at 15°, planted 132.9 ft out): never handed off, and SS catches it. The tripwire
+        // below says when a ball past the lip exists again; then this row takes it.
+        var (exit, launch, spray) = TestRoot.Pick((88.0, 10.0, -18.0), (74.0, 15.0, -18.0));
+        S97_PastTheLip_Row(human, exit, launch, spray, pastTheLip: !TestRoot.Compact);
+        if (TestRoot.Compact) Assert.Empty(LinersShortReachesPastTheLip());
+    }
+
+    /// <summary>The liners to SS's side whose plant is on the grass and that SS's route reaches from its start: none on the C80 copy.</summary>
+    List<string> LinersShortReachesPastTheLip()
+    {
+        var (match, _) = CpuDefense();
+        var rules = match.Rules;
+        var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
+        var start = Diamond.Positions["SS"];
+        var found = new List<string>();
+        for (var exit = 74.0; exit <= 78; exit += 1)
+        for (var launch = 14.0; launch <= 18; launch += 0.5)
+        foreach (var spray in new[] { -14.0, -18.0, -22.0 })
+        {
+            var preview = match.PreviewHit(FlightFixtures.Hit(match.Park, exit, launch, spray));
+            if (!preview.Line || preview.Position != "SS") continue;
+            var plant = FlyCatch.ChaseTarget(preview, match.Park, rules);
+            if (!FieldingResolver.OutfieldGrass(plant.X, plant.Z, rules)) continue;
+            var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, start.X, start.Z,
+                FieldingResolver.ChaseSpeedFt(map["SS"], "SS", preview, rules), rules, rules.Fielding.Reaction.LockoutSec("SS"));
+            if (route.Reachable) found.Add($"{exit}/{launch}/{spray}");
+        }
+        return found;
+    }
+
+    void S97_PastTheLip_Row(bool human, double exit, double launch, double spray, bool pastTheLip)
+    {
         var (match, seats) = human ? HumanDefense(true) : CpuDefense();
-        var hit = FlightFixtures.Hit(match.Park, 88, 10, -18);
+        var hit = FlightFixtures.Hit(match.Park, exit, launch, spray);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Line);
         Assert.Equal("SS", preview.Position);
         var rules = match.Rules;
         var plant = FlyCatch.ChaseTarget(preview, match.Park, rules);
-        Assert.True(FieldingResolver.OutfieldGrass(plant.X, plant.Z, rules), "the fixture: the plant is past the lip, where a position-only hand-off fires");
+        Assert.True(FieldingResolver.OutfieldGrass(plant.X, plant.Z, rules) == pastTheLip, "the fixture: the plant is past the lip, where a position-only hand-off fires");
         var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
         var start = Diamond.Positions["SS"];
         var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, start.X, start.Z,
@@ -301,8 +362,15 @@ public sealed class ControlScenarioTests
     [Fact]
     public void S97_SouthOnALinerAtTheInterceptIsACatchNotAScoop()
     {
+        // The same rope on both roots. The C80 copy's pursuit stick (#718) takes the glove only after it has been seen at
+        // neutral, so the pad there is dead for six frames before it runs SS at the intercept.
+        S97_South_Row(88, 10, -18, TestRoot.Pick(0, 6));
+    }
+
+    void S97_South_Row(double exit, double launch, double spray, int neutralFrames)
+    {
         var (match, seats) = HumanDefense(true);
-        var hit = FlightFixtures.Hit(match.Park, 88, 10, -18);
+        var hit = FlightFixtures.Hit(match.Park, exit, launch, spray);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Line);
         Assert.Equal("SS", preview.Position);
@@ -314,9 +382,10 @@ public sealed class ControlScenarioTests
 
         var onTheBall = false;
         var play = Run(match, seats, hit,
-            (live, _) =>
+            (live, i) =>
             {
                 if (live.HoldsBall && !live.Throwing) return new LivePadInput(KeysBag: 1, SouthDown: true);
+                if (i < neutralFrames) return LivePadInput.Dead;
                 return Toward(live, intercept.X, intercept.Z) with { SouthDown = true };
             },
             (live, _) =>

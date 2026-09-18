@@ -904,3 +904,51 @@ compact row sits beside its shipped row, shares its assertions, and says in a co
 past the lip, the roller to the grass — 23), the flights, parks and geometry values (fences, carries, the mound, the hazards —
 16), and the seats, bunts, runners and steals (5). About a hundred more tests fail under the overlay because they name the
 shipped table on purpose; those are not rows and are restructured at promotion.
+
+---
+
+**The compact scenario rows, slice 2 — the control and fielding scenes (#715, ahead of 3e).** Tests only: no Sim source, no
+data, no CI change. Eight more classes carry `[Trait("Rows", "compact")]`: `ControlScenarioTests`, `FieldingSceneTests`,
+`FieldingPursuitTests`, `FieldingScenarioTests`, `LiveBallScenarioTests`, `PlayTraceTests`, `BodyFacingTests`, `FlyCatchTests`.
+102 of 102 on both roots, 22 of them rows the copy had broken; the second CI run is now 139 rows. The shipped rows are
+untouched; each compact fixture sits beside its shipped one with the reason.
+
+| Row | Shipped | Compact | Why |
+| --- | --- | --- | --- |
+| S-96 the roller 2B meets on the grass (both seats) | 190 ft / 5° / 14° | 150 / 9° / 14° | the lip is 137.78 ft and the legs are slower; the high hopper is the one 2B runs down at 138.7 ft (2.06 s) before RF's route (2.75 s) |
+| S-97 the liner over SS: the coast | speed x 0.2 s, then a dead stop | the same coast, then the #718 brake | the response law brakes a body instead of stopping it dead; see the finding below |
+| S-97 the liner SS reaches past the lip (both seats) | 88 mph / 10° / −18° | 74 / 15° / −18°, planted 132.9 ft, on the dirt | no such ball on the copy; see the finding below |
+| S-97 South on the rope at the intercept | the pad runs SS from frame 0 | six neutral frames first | the copy's pursuit stick takes the glove only after it is seen at neutral (#718) |
+| The human stick runs the glove at the one speed | stick from frame 0 | six neutral frames first | the same |
+| S-35 bad chemistry across 100 seeds | 8 to 40 errors, each a slanted throw | 0 errors, no slant, the pair's part x0.90 | the copy's bad pair is slow, not random (#722) |
+| Bad chemistry slants a share of throws | 12 to 30 % slanted, the rest x1.0 | 0 slanted, the rest x0.90 | the same |
+| The close play at third against the CPU glove | 90 mph / 3° / 30° | 90 / 3° / 36° | at 30° the second baseman's route meets it first on the 8/9 infield |
+| The traced grounder: glove meets ball | under 1 ft on the take's tick | inside the 6 ft reach on the take's tick, under 1 ft the next | the copy takes the ball from the stand-up reach (#719) |
+| #576 the glove under a fly does not spin | 250 / 335 / 270 ft | 175 / 235 / 190 ft | CF stands at 213.5 ft under a 280 ft fence; the same three balls at 0.70 |
+| The gap liner that rolls to the wall is CF's | 90 mph, 10° to 18° | 78 mph, 8° to 12° | the shipped ball at 14° beats CF to the wall in every park (13 to 26 ft short); CF is still the choice |
+| Ground-ball routes are reachable within the slack | 0.02 s | `reachSlackFt` over the speed | 0.35 ft of slack is more time at the copy's legs |
+| The play glove hands the hop to the outfield | balls at 120 / 140 / 200 ft | 107 / 124 / 178 ft | the lip and the infield depth at 8/9 |
+| The outfielder charges the ball in the grass | (−80, 180) | (−56, 126) | LF starts at (−77, 175), on top of the shipped ball |
+| The glove chases the landing on a fly | a 280 ft fly | 196 ft | 280 ft is Harbor's fence on the copy |
+| Field bounds use each park's fence | 400 / 378 / 408 | 280 / 265 / 286 | the fences at 0.70 (#717) |
+| The near-wall flight meets the wall | 110 mph at 35° | 111.7 mph | drag 0.0040 and a 280 ft fence: 110 mph dies at 277 ft |
+| The catch ring: stand-up, rim, dive | 10 + 0.6 x Field | `standUpReachFt` 6.0 | the one authored reach (#719) |
+| Dive and jump extend the window | jump reach 8 ft | 0 | the copy's jump is a leap of the body (#719) |
+
+**Two findings, reported and not repaired.**
+
+1. **No liner past the lip for the shortstop.** Across 1 257 liners planted within 10 ft past the copy's lip, SS's route reaches
+   none; the nearest misses by 2.8 ft, and the deepest rope SS reaches plants 132.9 ft out, 4.9 ft short of the lip. The #636
+   in-air guard (a position-only hand-off must not take a rope SS still reaches) has nothing to guard on the copy with this
+   roster. The compact row keeps the behaviour half (never handed off, SS catches it) on the deepest rope, and a small grid
+   fails the day a ball past the lip exists, so the real row comes back then.
+2. **The hand-off coast and the idle brake overlap (#718, trial only).** The body the ring leaves is not stepped on the hand-off
+   frame, so the next frame's idle brake steps it once (0.23 ft) on top of the coast's first step: one frame at 30.9 ft/s in a
+   16.9 ft/s coast, 3.61 ft travelled where speed x coast is 3.38. After the coast the body stands for two frames, then brakes
+   over 0.1 s. Nothing teleports (the largest step is 0.52 ft) and the shipped table is not touched (`ResponseLaw` is off
+   there). The compact row's bounds hold with and without the overlap.
+
+**Left.** 22 rows in two families: the flights, parks and geometry values (16: `MatchTests` hazards, `AtBatTests`,
+`HarborWallTests`, `BallFlightTests`, and one each in `PitchTests`, `NightTests`, `FlightScenarioTests`, `FeelInfraTests`,
+`BroadcastHudTests`, `AtBatFeelTests`) and the seats, bunts, runners and steals (6). 122 tests fail under the overlay today;
+the other hundred name the shipped table on purpose and are restructured at promotion.
