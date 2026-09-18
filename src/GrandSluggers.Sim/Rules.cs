@@ -1184,6 +1184,13 @@ public sealed class ChaseRules
     /// balls on the dirt run the one speed the §10.4 double-play rows were tuned on.
     /// </summary>
     [Positive] public double InfieldAirMul { get; init; } = 0.45;
+    /// <summary>
+    /// The response law (#718, F693-02-carry-movement-response): seconds from rest to the body's rated speed, a linear ramp.
+    /// 0 is the instant step the game shipped with; the c80 copy carries 0.20. The pursuit planner charges half of it to a route.
+    /// </summary>
+    public double AccelSec { get; init; } = 0;
+    /// <summary>Seconds from the rated speed to rest, a constant deceleration; a reversal is this brake and then the ramp. 0 is the instant stop; the c80 copy carries 0.10.</summary>
+    public double BrakeSec { get; init; } = 0;
 }
 
 public sealed class CatchRules
