@@ -22,6 +22,7 @@ public sealed class TutorialAdvancedFieldTests
         var jumped = false;
         var wallSeen = false;
         var relayStage = 0;
+        var laserArmed = false;
         for (var i = 0; i < 1900 && run.Phase == TutorialPhase.Attempt; i++)
         {
             var live = run.Match.LivePlay;
@@ -34,12 +35,15 @@ public sealed class TutorialAdvancedFieldTests
             else if (act && run.Lesson.Id == "T-F13" && live.HoldsBall && !live.Throwing)
                 pad = new(StickY: 1);
             else if (act && run.Lesson.Id == "T-F15" && live.HoldsBall && live.GlovePos == "CF" && !live.Throwing)
-                pad = new(KeysBag: 4, SouthDown: true);
-            else if (act && run.Lesson.Id is "T-F07" or "T-F14")
+            {
+                pad = laserArmed ? new(SouthDown: true) : new(KeysBag: 4);
+                laserArmed = true;
+            }
+            else if (act && run.Lesson.Id is "T-F07" or "T-F14" or "T-F08" or "T-F08-R" or "T-F08-C")
             {
                 if (relayStage == 0 && live.HoldsBall && live.GlovePos == "CF")
                 {
-                    pad = new(KeysBag: 4);
+                    pad = new(KeysBag: run.Lesson.Id == "T-F08-R" ? 3 : 4);
                     relayStage = 1;
                 }
                 else if (relayStage == 1)
@@ -53,6 +57,16 @@ public sealed class TutorialAdvancedFieldTests
                 {
                     pad = new(SouthDown: true);
                     relayStage = 3;
+                }
+                else if (relayStage == 3 && live.ThrowQueued && run.Lesson.Id == "T-F08-R")
+                {
+                    pad = new(KeysBag: 4);
+                    relayStage = 4;
+                }
+                else if (relayStage == 3 && live.ThrowQueued && run.Lesson.Id == "T-F08-C")
+                {
+                    pad = new(Cancel: true);
+                    relayStage = 4;
                 }
             }
             else if (act && run.Lesson.Id == "T-F12" && live.Preview is { } fly)
@@ -203,5 +217,63 @@ public sealed class TutorialAdvancedFieldTests
         var cpu = Start("T-F15");
         Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
         Assert.Equal(0, cpu.Successes);
+    }
+
+    [Fact]
+    public void PressingThrowAfterAnExistingFlightDoesNotClaimTheLaserRelease()
+    {
+        var run = Start("T-F15");
+        var pressedDuringFlight = false;
+        var armThird = false;
+        var sentThird = false;
+        for (var i = 0; i < 1900 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var live = run.Match.LivePlay;
+            var late = sentThird && !pressedDuringFlight && live.Throwing;
+            var pad = LivePadInput.Dead;
+            if (!armThird && live.HoldsBall && live.GlovePos == "CF")
+            {
+                pad = new LivePadInput(KeysBag: 3);
+                armThird = true;
+            }
+            else if (armThird && !sentThird && live.HoldsBall && live.GlovePos == "CF")
+            {
+                pad = new LivePadInput(SouthDown: true);
+                sentThird = true;
+            }
+            else if (late) pad = new LivePadInput(SouthDown: true);
+            run.Tick(Frame, pad);
+            pressedDuringFlight |= late;
+        }
+        Assert.True(pressedDuringFlight);
+        Assert.Equal(0, run.Successes);
+    }
+
+    [Theory]
+    [InlineData("T-F08", "relay-buffered")]
+    [InlineData("T-F08-R", "relay-retargeted")]
+    [InlineData("T-F08-C", "relay-cancelled")]
+    public void BufferedRelayQueueEditsNeedHumanEvidence(string id, string code)
+    {
+        if (!TestRoot.Compact) return;
+        var run = Start(id);
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.Equal(code, run.Feedback?.Code);
+            Assert.Equal(attempt, run.Successes);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var dead = Start(id);
+        Drive(dead, act: false);
+        Assert.Equal(0, dead.Successes);
+        var cpu = Start(id);
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.Equal(0, cpu.Successes);
+        var noQueue = Start(id);
+        Drive(noQueue, act: true, skipOnward: true);
+        Assert.Equal(0, noQueue.Successes);
     }
 }

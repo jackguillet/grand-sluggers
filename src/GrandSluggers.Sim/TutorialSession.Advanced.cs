@@ -10,6 +10,13 @@ public sealed partial class TutorialSession
     bool _relayHumanFeed;
     bool _relayHumanOnward;
     bool _laserHumanThrow;
+    bool _laserWasThrowing;
+    bool _bufferQueued;
+    bool _bufferRetargeted;
+    bool _bufferCancelled;
+    double _bufferReceiverHeldAt;
+    double _bufferQueuedAt;
+    int _bufferInitialBag;
 
     partial void ResetAdvancedEvidence()
     {
@@ -20,16 +27,73 @@ public sealed partial class TutorialSession
         _relayHumanFeed = false;
         _relayHumanOnward = false;
         _laserHumanThrow = false;
+        _laserWasThrowing = false;
+        _bufferQueued = false;
+        _bufferRetargeted = false;
+        _bufferCancelled = false;
+        _bufferReceiverHeldAt = 0;
+        _bufferQueuedAt = 0;
+        _bufferInitialBag = 0;
     }
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
+        if (Lesson.Objective is "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay")
+        {
+            var input = _inputs[^1];
+            var owned = input.Source == LivePlayCommandSource.Human && !Demonstration;
+            var pad = input.Field;
+            if (owned && pad?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 0)
+                _relayHumanFeed = true;
+            if (owned && pad?.SouthDown == true && live.Events.Contains(LiveEvent.ThrowQueued))
+            {
+                _bufferQueued = true;
+                _bufferQueuedAt = Elapsed;
+                _bufferInitialBag = live.QueuedThrowBag;
+            }
+            if (_bufferQueued && _bufferInitialBag == 3 && owned && pad?.KeysBag == 4
+                && live.ThrowQueued && live.QueuedThrowBag == 4)
+                _bufferRetargeted = true;
+            if (_bufferQueued && owned && pad?.Cancel == true && live.Events.Contains(LiveEvent.ThrowQueueCleared)
+                && Elapsed - _bufferQueuedAt <= Match.Rules.Fielding.Throw.RelayBufferSec + 1e-9)
+                _bufferCancelled = true;
+            if (Lesson.Objective == "human-cancelled-relay" && _bufferCancelled)
+            {
+                if (live.HoldsBall && live.GlovePos != "CF" && !live.Throwing && !live.ThrowQueued)
+                {
+                    if (_bufferReceiverHeldAt <= 0) _bufferReceiverHeldAt = Elapsed;
+                    if (Elapsed - _bufferReceiverHeldAt >= .30)
+                        Finish(true, "relay-cancelled", "Your cancel cleared the queued throw; the receiver held the ball.");
+                }
+                if (result.CompletedPlay is not null)
+                    Finish(false, "relay-cancel-missed", "Cancel the queued onward throw before the receiver releases it.");
+                return;
+            }
+            if (result.CompletedPlay is not { } bufferedPlay) return;
+            var marks = live.TakeTrace(bufferedPlay).Marks ?? [];
+            var releases = marks.Where(m => m.Kind == PlayTraceMarkKind.ThrowRelease && m.Flight is not null).ToArray();
+            var feed = releases.FirstOrDefault(m => m.Flight is { FromPos: "CF", Bag: 0 });
+            var cutter = feed?.Flight?.ReceiverPos;
+            var handoff = cutter is not null && marks.Any(m => m.Kind == PlayTraceMarkKind.Reception
+                && m.Fielder == cutter && m.T >= feed!.T);
+            var onward = handoff && releases.Any(m => m.Flight is { Bag: 4 }
+                && m.Flight.FromPos == cutter && m.T >= feed!.T);
+            var success = _relayHumanFeed && _bufferQueued && !_bufferCancelled && onward
+                && (Lesson.Objective != "human-retargeted-relay" || _bufferRetargeted);
+            Finish(success, success ? Lesson.Objective == "human-retargeted-relay" ? "relay-retargeted" : "relay-buffered"
+                : "relay-buffer-missed", success ? "Your buffered throw was received and sent to the chosen bag."
+                    : "Queue the onward throw while the feed flies; retarget or cancel as the lesson asks.");
+            return;
+        }
         if (Lesson.Objective == "human-laser-home")
         {
             var input = _inputs[^1];
             if (input.Source == LivePlayCommandSource.Human && !Demonstration
-                && input.Field is { SouthDown: true, KeysBag: 4 } && live.Throwing)
+                && input.Field is { SouthDown: true } && !_laserWasThrowing
+                && live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 4
+                && _throws.LastOrDefault() == 4)
                 _laserHumanThrow = true;
+            _laserWasThrowing = live.Throwing;
             if (result.CompletedPlay is not { } laserPlay) return;
             var marks = live.TakeTrace(laserPlay).Marks ?? [];
             var release = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease

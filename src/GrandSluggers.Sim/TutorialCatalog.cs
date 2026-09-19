@@ -26,11 +26,16 @@ public sealed class TutorialCatalog
         "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide",
+<<<<<<< HEAD
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense"];
 
+=======
+        "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay"];
+    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne"];
+>>>>>>> f1158012 (Teach buffered relay queue, retarget, and cancel with live evidence)
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
     TutorialCatalog(TutorialMechanicFile mechanics, TutorialLessonFile lessons, TutorialMigrationFile migration, string profile)
@@ -137,7 +142,7 @@ public sealed class TutorialCatalog
                     or "human-choice-second" or "human-ball-dash")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
-                    or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home"), l.Id + " setup/objective mismatch");
+                    or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay"), l.Id + " setup/objective mismatch");
             if (l.Objective is "break-strike" or "rubber-strike" or "box-perfect-fair" or "grounder-fair" or "fly-fair")
                 Require(setup.MinMovement01 > 0, l.Id + " needs a meaningful movement threshold");
             if (l.Objective is "pull-fair" or "push-fair")
