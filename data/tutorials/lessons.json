@@ -1,0 +1,2176 @@
+{
+  "version": 1,
+  "lessons": [
+    {
+      "id": "T-P01",
+      "revision": 1,
+      "mechanics": [
+        "pitching.01"
+      ],
+      "title": "strikes",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-P01",
+      "objective": "called-strike",
+      "controls": [
+        "control:pitching/Normal pitch"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-P02",
+      "revision": 1,
+      "mechanics": [
+        "pitching.02"
+      ],
+      "title": "aim/location and balls versus strikes",
+      "category": "pitching",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-P03",
+      "revision": 1,
+      "mechanics": [
+        "pitching.03"
+      ],
+      "title": "changeup",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-P03",
+      "objective": "changeup-strike",
+      "controls": [
+        "control:pitching/Changeup"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-P04",
+      "revision": 1,
+      "mechanics": [
+        "pitching.04"
+      ],
+      "title": "charge/MAX",
+      "category": "pitching",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-P05",
+      "revision": 1,
+      "mechanics": [
+        "pitching.05"
+      ],
+      "title": "break after release",
+      "category": "pitching",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-P06",
+      "revision": 1,
+      "mechanics": [
+        "pitching.06"
+      ],
+      "title": "rubber positioning",
+      "category": "pitching",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-P07",
+      "revision": 1,
+      "mechanics": [
+        "pitching.07"
+      ],
+      "title": "stamina/pitcher substitution",
+      "category": "pitching",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-P08",
+      "revision": 1,
+      "mechanics": [
+        "pitching.08"
+      ],
+      "title": "pickoff",
+      "category": "pitching",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-P09",
+      "revision": 1,
+      "mechanics": [
+        "pitching.09"
+      ],
+      "title": "star pitch (scope dependent)",
+      "category": "pitching",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-B01",
+      "revision": 1,
+      "mechanics": [
+        "batting.01"
+      ],
+      "title": "slap contact",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-B01",
+      "objective": "slap-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-B02",
+      "revision": 1,
+      "mechanics": [
+        "batting.02"
+      ],
+      "title": "cursor/sweet spot",
+      "category": "batting",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-B03",
+      "revision": 1,
+      "mechanics": [
+        "batting.03"
+      ],
+      "title": "early/late direction",
+      "category": "batting",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-B04",
+      "revision": 1,
+      "mechanics": [
+        "batting.04"
+      ],
+      "title": "charged swing",
+      "category": "batting",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-B05",
+      "revision": 1,
+      "mechanics": [
+        "batting.05"
+      ],
+      "title": "box positioning",
+      "category": "batting",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-B06",
+      "revision": 1,
+      "mechanics": [
+        "batting.06"
+      ],
+      "title": "launch direction",
+      "category": "batting",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-B07",
+      "revision": 1,
+      "mechanics": [
+        "batting.07"
+      ],
+      "title": "bunt and foul-bunt risk",
+      "category": "batting",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-B08",
+      "revision": 1,
+      "mechanics": [
+        "batting.08"
+      ],
+      "title": "recognize/take a ball",
+      "category": "batting",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-B09",
+      "revision": 1,
+      "mechanics": [
+        "batting.09"
+      ],
+      "title": "star swing (scope dependent)",
+      "category": "batting",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F01",
+      "revision": 1,
+      "mechanics": [
+        "fielding.01"
+      ],
+      "title": "manual pursuit/ground pickup",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F01",
+      "objective": "manual-ground-possession",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-F02",
+      "revision": 1,
+      "mechanics": [
+        "fielding.02"
+      ],
+      "title": "assistance and taking control",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F03",
+      "revision": 1,
+      "mechanics": [
+        "fielding.03"
+      ],
+      "title": "throw to a named bag",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F04",
+      "revision": 1,
+      "mechanics": [
+        "fielding.04"
+      ],
+      "title": "fly/liner catch",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F05",
+      "revision": 1,
+      "mechanics": [
+        "fielding.05"
+      ],
+      "title": "dive",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F05",
+      "objective": "human-dive-out",
+      "controls": [
+        "control:fielding/Dive"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-F06",
+      "revision": 1,
+      "mechanics": [
+        "fielding.06"
+      ],
+      "title": "jump",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F07",
+      "revision": 1,
+      "mechanics": [
+        "fielding.07"
+      ],
+      "title": "relay/cutoff and receiver handoff",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F08",
+      "revision": 1,
+      "mechanics": [
+        "fielding.08"
+      ],
+      "title": "buffered throw, retarget and cancel",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F09",
+      "revision": 1,
+      "mechanics": [
+        "fielding.09"
+      ],
+      "title": "recovery/bobble/loose-ball chase",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F10",
+      "revision": 1,
+      "mechanics": [
+        "fielding.10"
+      ],
+      "title": "coverage and an uncovered bag",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F11",
+      "revision": 1,
+      "mechanics": [
+        "fielding.11"
+      ],
+      "title": "wall carom",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F12",
+      "revision": 1,
+      "mechanics": [
+        "fielding.12"
+      ],
+      "title": "buddy jump/wall rob (ability dependent)",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F13",
+      "revision": 1,
+      "mechanics": [
+        "fielding.13"
+      ],
+      "title": "Ball Dash",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F14",
+      "revision": 1,
+      "mechanics": [
+        "fielding.14"
+      ],
+      "title": "Snap Throw",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F15",
+      "revision": 1,
+      "mechanics": [
+        "fielding.15"
+      ],
+      "title": "Laser Throw",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-F16",
+      "revision": 1,
+      "mechanics": [
+        "fielding.16"
+      ],
+      "title": "other enabled fielding abilities, split into one lesson per distinct action/effect during the catalog audit",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-D01",
+      "revision": 1,
+      "mechanics": [
+        "outs.01"
+      ],
+      "title": "force versus tag",
+      "category": "outs",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-D02",
+      "revision": 1,
+      "mechanics": [
+        "outs.02"
+      ],
+      "title": "two-throw ground-ball double play",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D02",
+      "objective": "human-double-play",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-D03",
+      "revision": 1,
+      "mechanics": [
+        "outs.03"
+      ],
+      "title": "fielder's choice/which out to take",
+      "category": "outs",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-D04",
+      "revision": 1,
+      "mechanics": [
+        "outs.04"
+      ],
+      "title": "doubled-off runner and return throw",
+      "category": "outs",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-D05",
+      "revision": 1,
+      "mechanics": [
+        "outs.05"
+      ],
+      "title": "tag/rundown",
+      "category": "outs",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-D06",
+      "revision": 1,
+      "mechanics": [
+        "outs.06"
+      ],
+      "title": "close-play offense and defense",
+      "category": "outs",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-D07",
+      "revision": 1,
+      "mechanics": [
+        "outs.07"
+      ],
+      "title": "third-out/scoring consequences",
+      "category": "outs",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-D08",
+      "revision": 1,
+      "mechanics": [
+        "outs.08"
+      ],
+      "title": "triple-play opportunity, after prerequisite lessons exist",
+      "category": "outs",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-R01",
+      "revision": 1,
+      "mechanics": [
+        "running.01"
+      ],
+      "title": "select one runner/send/hold/return",
+      "category": "running",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-R02",
+      "revision": 1,
+      "mechanics": [
+        "running.02"
+      ],
+      "title": "all-runner commands and avoiding shared bags",
+      "category": "running",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-R03",
+      "revision": 1,
+      "mechanics": [
+        "running.03"
+      ],
+      "title": "dash/rounding",
+      "category": "running",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-R04",
+      "revision": 1,
+      "mechanics": [
+        "running.04"
+      ],
+      "title": "slide",
+      "category": "running",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-R05",
+      "revision": 1,
+      "mechanics": [
+        "running.05"
+      ],
+      "title": "fly-ball return and tag-up",
+      "category": "running",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-R06",
+      "revision": 1,
+      "mechanics": [
+        "running.06"
+      ],
+      "title": "arm steal and release timing",
+      "category": "running",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-R07",
+      "revision": 1,
+      "mechanics": [
+        "running.07"
+      ],
+      "title": "multi-runner steal/steal home",
+      "category": "running",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-R08",
+      "revision": 1,
+      "mechanics": [
+        "running.08"
+      ],
+      "title": "defend a steal with the catcher",
+      "category": "running",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-G01",
+      "revision": 1,
+      "mechanics": [
+        "game.01"
+      ],
+      "title": "lineup/positions/handedness",
+      "category": "game",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-G02",
+      "revision": 1,
+      "mechanics": [
+        "game.02"
+      ],
+      "title": "chemistry on actual throw pairs",
+      "category": "game",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-G03",
+      "revision": 1,
+      "mechanics": [
+        "game.03"
+      ],
+      "title": "stars and resources",
+      "category": "game",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-G04",
+      "revision": 1,
+      "mechanics": [
+        "game.04"
+      ],
+      "title": "counts/outs/innings/fair-foul",
+      "category": "game",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-G05",
+      "revision": 1,
+      "mechanics": [
+        "game.05"
+      ],
+      "title": "controller roles and a second pad",
+      "category": "game",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-G06",
+      "revision": 1,
+      "mechanics": [
+        "game.06"
+      ],
+      "title": "pause/book/restart and controller recovery/calibration",
+      "category": "game",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-X01",
+      "revision": 1,
+      "mechanics": [
+        "special.01"
+      ],
+      "title": "items, one exercise per distinct enabled item",
+      "category": "special",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-X02",
+      "revision": 1,
+      "mechanics": [
+        "special.02"
+      ],
+      "title": "counterplay and fielding a special hit",
+      "category": "special",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-X03",
+      "revision": 1,
+      "mechanics": [
+        "special.03"
+      ],
+      "title": "park effects, only when those parks become product scope",
+      "category": "special",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial migration backlog",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-A-burrow",
+      "revision": 1,
+      "mechanics": [
+        "ability.burrow"
+      ],
+      "title": "burrow",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial ability migration",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "burrow"
+      ],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-A-grow",
+      "revision": 1,
+      "mechanics": [
+        "ability.grow"
+      ],
+      "title": "grow",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial ability migration",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "grow"
+      ],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-A-lick-catch",
+      "revision": 1,
+      "mechanics": [
+        "ability.lick-catch"
+      ],
+      "title": "lick-catch",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial ability migration",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "lick-catch"
+      ],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-A-spin-check",
+      "revision": 1,
+      "mechanics": [
+        "ability.spin-check"
+      ],
+      "title": "spin-check",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial ability migration",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "spin-check"
+      ],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-A-withdraw",
+      "revision": 1,
+      "mechanics": [
+        "ability.withdraw"
+      ],
+      "title": "withdraw",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 770,
+      "reason": "Initial ability migration",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "withdraw"
+      ],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-heatball",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.heatball"
+      ],
+      "title": "heatball",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-charmball",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.charmball"
+      ],
+      "title": "charmball",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-prismball",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.prismball"
+      ],
+      "title": "prismball",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-phonyball",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.phonyball"
+      ],
+      "title": "phonyball",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-caskball",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.caskball"
+      ],
+      "title": "caskball",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-skullball",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.skullball"
+      ],
+      "title": "skullball",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-fogball",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.fogball"
+      ],
+      "title": "fogball",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-fastball",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.fastball"
+      ],
+      "title": "fastball",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-changeup",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.changeup"
+      ],
+      "title": "changeup",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SP-breaker",
+      "revision": 1,
+      "mechanics": [
+        "star-pitch.breaker"
+      ],
+      "title": "breaker",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-heat-swing",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.heat-swing"
+      ],
+      "title": "heat-swing",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-heart-swing",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.heart-swing"
+      ],
+      "title": "heart-swing",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-shell-swing",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.shell-swing"
+      ],
+      "title": "shell-swing",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-phony-swing",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.phony-swing"
+      ],
+      "title": "phony-swing",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-cask-swing",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.cask-swing"
+      ],
+      "title": "cask-swing",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-furnace",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.furnace"
+      ],
+      "title": "furnace",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-staff-swing",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.staff-swing"
+      ],
+      "title": "staff-swing",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-ground",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.ground"
+      ],
+      "title": "ground",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-fly",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.fly"
+      ],
+      "title": "fly",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-SS-line",
+      "revision": 1,
+      "mechanics": [
+        "star-swing.line"
+      ],
+      "title": "line",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-I-banana",
+      "revision": 1,
+      "mechanics": [
+        "item.banana"
+      ],
+      "title": "banana",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-I-rocket",
+      "revision": 1,
+      "mechanics": [
+        "item.rocket"
+      ],
+      "title": "rocket",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-I-pow",
+      "revision": 1,
+      "mechanics": [
+        "item.pow"
+      ],
+      "title": "pow",
+      "category": "special",
+      "status": "blocked",
+      "issue": 770,
+      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    }
+  ],
+  "setups": [
+    {
+      "id": "T-P01",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-P03",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-B01",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-F01",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F05",
+      "policy": "liner",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "grit",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "marlow",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 250,
+          "exitMph": 0,
+          "launchDeg": 12,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 120,
+          "launchDeg": 16,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-D02",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    }
+  ]
+}

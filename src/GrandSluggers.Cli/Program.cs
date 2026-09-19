@@ -22,6 +22,29 @@ var cmd = args.Length > 0 ? args[0] : "help";
 
 switch (cmd)
 {
+    case "tutorials":
+        try
+        {
+            var tutorials = TutorialCatalog.Load(content);
+            if (args.Length == 3 && args[1] == "--replay")
+            {
+                var recording = System.Text.Json.JsonSerializer.Deserialize<TutorialRecording>(File.ReadAllText(args[2]));
+                if (recording is null) throw new InvalidDataException("Empty tutorial recording.");
+                var run = TutorialSession.Replay(content, tutorials, recording);
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new { tutorials.Profile, run.Lesson.Id, run.Phase, run.Feedback, run.HumanThrows }));
+                Environment.ExitCode = run.Feedback?.Success == true ? 0 : 1;
+            }
+            else if (args.Length == 1)
+            {
+                Console.WriteLine($"TUTORIALS {tutorials.Profile} — {tutorials.Mechanics.Length} mechanics; {tutorials.Lessons.Count(l => l.Status == "implemented")} headless lessons (human learning gate separate)");
+                foreach (var lesson in tutorials.Lessons)
+                    Console.WriteLine($"{lesson.Id,-22} {lesson.Status,-12} #{lesson.Issue} {lesson.Title}");
+            }
+            else throw new InvalidDataException("Use tutorials [--replay recording.json].");
+        }
+        catch (Exception e) when (e is IOException or System.Text.Json.JsonException or ArgumentException or InvalidOperationException)
+        { Console.Error.WriteLine("tutorials: " + e.Message); Environment.ExitCode = 1; }
+        break;
     case "team":
         PrintTeam(content, args.ElementAtOrDefault(1) ?? "spark-allstars");
         break;
@@ -71,6 +94,7 @@ switch (cmd)
     default:
         Console.WriteLine("""
             Grand Sluggers sim
+              tutorials [--replay recording.json]
               roster
               team [spark-allstars|ember-court|mixed-rivals|rio|vale|zig|brondo|konga|ashlord]
               chem <character-id>
