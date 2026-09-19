@@ -400,19 +400,19 @@ namespace GrandSluggers.UnityClient
             {
                 _lineupTouched = true;
                 if (_lineup.Step == LineupStep.TeamSetup) _lineup.RandomFill(seat);
-                else if (_lineup.CycleGlove(seat) && GuidedAttempt("T-G01"))
+                else if (_lineup.CycleGlove(seat) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
                     GuidedObserve(GuidedAction.GlovePositionChanged);
             }
             if (pad.AllAdvanceDown)
             {
                 _lineupTouched = true;
-                if (_lineup.StepBatting(seat, -1) && GuidedAttempt("T-G01"))
+                if (_lineup.StepBatting(seat, -1) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
                     GuidedObserve(GuidedAction.BattingOrderChanged);
             }
             if (pad.EastDown)
             {
                 _lineupTouched = true;
-                if (_lineup.StepBatting(seat, 1) && GuidedAttempt("T-G01"))
+                if (_lineup.StepBatting(seat, 1) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
                     GuidedObserve(GuidedAction.BattingOrderChanged);
             }
             if (pad.SouthDown)
@@ -423,7 +423,7 @@ namespace GrandSluggers.UnityClient
                     var pool = _lineup.Pool;
                     var who = pool.Count == 0 ? null : pool[Mathf.Clamp(_lineup.PoolOf(seat), 0, pool.Count - 1)];
                     var dropped = _lineup.South(seat);
-                    GuidedLineupDrop(who, dropped && _lineup.Step == LineupStep.TeamSetup);
+                    GuidedLineupDrop(seat, who, dropped && _lineup.Step == LineupStep.TeamSetup);
                 }
                 else ConfirmDraft();
             }
