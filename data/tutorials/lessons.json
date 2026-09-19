@@ -168,47 +168,55 @@
     },
     {
       "id": "T-P07",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.07"
       ],
       "title": "stamina/pitcher substitution",
       "category": "pitching",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless SET action lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-P07",
+      "objective": "tired-pitcher-swap",
+      "controls": [
+        "control:pitching/Swap pitcher"
+      ],
+      "tests": [
+        "TutorialSetTests"
+      ]
     },
     {
       "id": "T-P08",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.08"
       ],
       "title": "pickoff",
       "category": "pitching",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless SET action lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-P08",
+      "objective": "human-pickoff",
+      "controls": [
+        "control:pitching/Pickoff"
+      ],
+      "tests": [
+        "TutorialSetTests"
+      ]
     },
     {
       "id": "T-P09",
@@ -3374,6 +3382,68 @@
           "sprayDeg": -18
         }
       }
+    },
+    {
+      "id": "T-P07",
+      "policy": "pitcher-swap",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-P08",
+      "policy": "pickoff",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "konga",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {}
     }
   ]
 }
