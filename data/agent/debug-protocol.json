@@ -299,7 +299,7 @@
       "stage": "sitting",
       "cause": "Controls.SouthDown aliases MouseLeftDown. Tutorial modal Update dispatched primary confirm before IMGUI button mouse-up.",
       "fix": "TutorialDirector excludes PointerDown from modal primary confirm. Uses Controls.PointerDown/GuiMouse and shared HowToPlay hit rectangles, like Call time. Draw-only IMGUI labels do not depend on legacy mouse-up events. Pad/keyboard confirm and in-play mouse baseball stay unchanged.",
-      "promoted": "Standalone tutorial pointer path: row, Start, Retry, Next, Lessons, Title.",
+      "promoted": "TutorialNavigationTests.FooterRoutesToItsNamedAction",
       "issue": "#776",
       "pr": ""
     }
