@@ -95,4 +95,27 @@ public static partial class HowToPlay
             _ => (p.X + 16, p.Y + 92, p.W - 32, p.H - 180)
         };
     }
+    public static (float X, float Y, float W, float H) TutorialRow(float w, float h, int index, int count)
+    {
+        var r = TutorialRegion(w, h, 1); var rowH = r.H / count;
+        return (r.X, r.Y + index * rowH, r.W, rowH - 4);
+    }
+    public static (float X, float Y, float W, float H) TutorialAction(float w, float h, int index, int count)
+    {
+        var r = TutorialRegion(w, h, 3); var width = r.W / count;
+        return (r.X + index * width, r.Y, width - 8, r.H);
+    }
+    public static int TutorialHit(float x, float y, float w, float h, bool menu, int rows, bool feedback)
+    {
+        bool In((float X, float Y, float W, float H) r) => x >= r.X && x < r.X + r.W && y >= r.Y && y < r.Y + r.H;
+        if (menu)
+            for (var i = 0; i < rows; i++)
+                if (In(TutorialRow(w, h, i, rows))) return i;
+        var count = !menu && feedback ? 3 : 2;
+        for (var i = 0; i < count; i++)
+            if (In(TutorialAction(w, h, i, count)))
+                return i == 0 ? -2 : i == count - 1 ? menu ? -4 : -3 : -5;
+        return -1;
+    }
+
 }
