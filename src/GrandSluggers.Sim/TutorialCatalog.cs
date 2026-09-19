@@ -22,8 +22,10 @@ public sealed class TutorialCatalog
     public TutorialSetup[] Setups { get; }
     public IReadOnlyDictionary<string, int> Migration { get; }
     public string Profile { get; }
-    public static readonly string[] Objectives = [.. TutorialPlateObjectives.PitchIds, .. TutorialPlateObjectives.SwingIds, "manual-ground-possession", "human-dive-out", "human-double-play"];
-    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner"];
+    public static readonly string[] Objectives = [.. TutorialPlateObjectives.PitchIds, .. TutorialPlateObjectives.SwingIds,
+        "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
+        "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play"];
+    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne"];
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
     TutorialCatalog(TutorialMechanicFile mechanics, TutorialLessonFile lessons, TutorialMigrationFile migration, string profile)
@@ -106,8 +108,10 @@ public sealed class TutorialCatalog
             Require((setup.Policy == "cpu-take" && TutorialPlateObjectives.PitchIds.Contains(l.Objective))
                 || (setup.Policy == "cpu-strike" && TutorialPlateObjectives.SwingIds.Contains(l.Objective) && l.Objective != "take-ball")
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
-                || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "human-double-play")
-                || (setup.Policy == "liner" && l.Objective == "human-dive-out"), l.Id + " setup/objective mismatch");
+                || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "manual-takeover" or "human-double-play"
+                    or "throw-bag-1" or "throw-bag-2" or "throw-bag-3" or "throw-bag-4")
+                || (setup.Policy == "liner" && l.Objective == "human-dive-out")
+                || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"), l.Id + " setup/objective mismatch");
             if (l.Objective is "break-strike" or "rubber-strike" or "box-perfect-fair" or "grounder-fair" or "fly-fair")
                 Require(setup.MinMovement01 > 0, l.Id + " needs a meaningful movement threshold");
             if (l.Objective is "pull-fair" or "push-fair")
@@ -116,7 +120,7 @@ public sealed class TutorialCatalog
                 Require(setup.Pitch is not null && Math.Abs(PitchFlight.Crossing(setup.Pitch, rules: content.Rules).X) >= setup.MinMovement01 * HomeSet.BatterWalk,
                     l.Id + " needs an offset pitch for box movement");
             if (l.Objective == "bunt-fair") Require(setup.Strikes == 2, l.Id + " must teach the two-strike bunt risk");
-            if (setup.Policy is "grounder" or "liner")
+            if (setup.Policy is "grounder" or "liner" or "airborne")
                 Require(l.Profiles.All(setup.Balls.ContainsKey), l.Id + " lacks a profile ball fixture");
         }
         bool Cycle(string id, HashSet<string> path)

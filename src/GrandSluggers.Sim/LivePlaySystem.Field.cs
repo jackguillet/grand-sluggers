@@ -236,6 +236,9 @@ public sealed partial class LivePlaySystem
     public string GlovePos { get; private set; } = "P";
     public double GloveX { get; private set; }
     public double GloveZ { get; private set; }
+    /// <summary>Observation for tutorial ownership: the body whose assisted route actually advanced this frame.
+    /// Passive braking/coast is not an assisted route.</summary>
+    internal string TutorialAssistedPursuitGloveId { get; private set; } = "";
     public bool PlayerFielding { get; private set; }
     public bool Caught { get; private set; }
     public bool Buddy { get; private set; }
@@ -624,6 +627,7 @@ public sealed partial class LivePlaySystem
     {
         _events.Clear();
         _stamps.Clear();
+        TutorialAssistedPursuitGloveId = "";
         var dt = command.DeltaSeconds;
         // Ownership of a press is decided here, once, from the seats: the offense pad never
         // reaches the gloves and the defense pad never reaches the runners (spec §0.4, #579).
@@ -1815,6 +1819,8 @@ public sealed partial class LivePlaySystem
             var chaser = map.TryGetValue(GlovePos, out var lc) ? lc : pre.Fielder;
             var run = FieldingResolver.ChaseSpeedFt(chaser, pre.Frozen, R);
             var step = StepTo(GlovePos, (GloveX, GloveZ), (BallX, BallZ), run, R.Fielding.Chase.StepStopFt, dt, flat: false);
+            if (Diamond.Dist(GloveX, GloveZ, step.X, step.Z) > 1e-6)
+                TutorialAssistedPursuitGloveId = chaser.Id;
             GloveX = step.X;
             GloveZ = step.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1830,6 +1836,8 @@ public sealed partial class LivePlaySystem
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
         var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
         var next = StepTo(GlovePos, (GloveX, GloveZ), (route.X, route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
+        if (Diamond.Dist(GloveX, GloveZ, next.X, next.Z) > 1e-6)
+            TutorialAssistedPursuitGloveId = who.Id;
         GloveX = next.X;
         GloveZ = next.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
