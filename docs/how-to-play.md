@@ -168,6 +168,19 @@ On contact the camera holds the SET shot for a beat (0.42 s, `contactCutSeconds`
 
 Good throws are gold/purple and fast. Bad throws are muddy, and one in five of them slants past the cover.
 
+A glove that **fumbles** throws its arms out (the spin take) for as long as the fumble holds — never the batter's miss, which carried the bat.
+
+#### On the c80 trial copy (not the shipped game)
+
+The window plays the copy only when a run names it: `GRAND_SLUGGERS_TRIAL=trials/c80`, or `python3 tools/local-player.py --preview <worktree> --trial trials/c80`. **Call time** names the profile (**TRIAL trials/c80**). The book below this paragraph is still the shipped game's; 3e aligns it if the copy is promoted.
+
+- **The stick is calibrated per controller** (#718). A seated controller starts a match with no centre: at SET or the result beat the HUD reads **LET GO OF THE STICK** (**P1** / **P2** when two play) with a bar that fills over half a second of a released stick. Moving it starts the bar over. Keyboard seats never wait. Nothing is sampled while the ball is live. **Call time → Reset stick** runs the same half second for every seated controller; East / Esc / right click backs out and the old centre stays. The analog stick reaches the game before any dead zone: past **0.20** you steer, back under **0.15** the glove runs on its own, and the speed grows smoothly from there.
+- **LET GO OF THE STICK TO STEER** during a live ball: your seat has not been seen at rest since it took the field (a new half, a reconnect, a reset). The glove runs on its own until the stick is at rest once.
+- **Jump** (West) lifts the body two feet over 0.60 s, the same for everyone; the body reaches up while it is in the air, and dirt kicks at the takeoff.
+- **Dive** (East) costs a recovery. The diver lies laid out, then gets up in the last fifth of a second (crouch), caught or missed, whoever holds the ring meanwhile — and still after a diving catch ends the play.
+- **A hard ball** braces the glove: the body squashes and skids a little, harder for a harder ball, and eases back as the recovery runs out. A routine ball costs nothing and shows nothing.
+- **A fumble** stuns the body that fumbled for 0.40 s (arms out). A ball that **gets past** kicks dirt at the fumbler's feet and keeps going as a live batted ball.
+
 ---
 
 ## Practice (Harbor)

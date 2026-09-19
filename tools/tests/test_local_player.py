@@ -95,6 +95,33 @@ class MainDeliveryTests(unittest.TestCase):
 
 
 
+class TrialOverlayTests(unittest.TestCase):
+    """The window can play a trial overlay (#715) — only one the built revision carries, named as the game names it."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.source = Path(self.temp.name)
+        (self.source / "trials" / "c80" / "rules").mkdir(parents=True)
+
+    def test_no_trial_is_the_shipped_data(self):
+        self.assertIsNone(player.trial_overlay(self.source, None))
+        self.assertIsNone(player.trial_overlay(self.source, ""))
+
+    def test_a_trial_the_revision_carries_is_named_as_the_game_names_it(self):
+        self.assertEqual("trials/c80", player.trial_overlay(self.source, "trials/c80"))
+        self.assertEqual("trials/c80", player.trial_overlay(self.source, "trials/c80/"))
+
+    def test_a_missing_trial_stops_before_anything_restarts(self):
+        with self.assertRaises(RuntimeError):
+            player.trial_overlay(self.source, "trials/c70")
+
+    def test_only_a_folder_under_trials_is_an_overlay(self):
+        for name in ("data", "/tmp/trials/c80", "trials/../data", "c80", "trials"):
+            with self.subTest(name=name), self.assertRaises(RuntimeError):
+                player.trial_overlay(self.source, name)
+
+
 class EditorShutdownTests(unittest.TestCase):
     def editor(self, pid=4242):
         process = Mock()

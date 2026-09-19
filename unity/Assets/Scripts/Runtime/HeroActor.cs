@@ -42,6 +42,8 @@ namespace GrandSluggers.UnityClient
         readonly BodyHeading _heading = new();
         BodyFacing.Rates _facing = BodyFacing.Rates.Default;
         Vector3 _baseScale = Vector3.one;
+        /// <summary>The impact recoil's brace (#720): a squash on the wrapper, never on a bone. One when nothing is owed.</summary>
+        Vector3 _brace = Vector3.one;
         Vector3 _ground;
         bool _hasGround;
         float _speed;
@@ -107,6 +109,9 @@ namespace GrandSluggers.UnityClient
         }
 
         public void SetGrow(bool on) => _grow = on;
+
+        /// <summary>This frame's brace (#720, <see cref="FielderTells.Brace"/>): scale on the presentation wrapper, eased by the lerp below.</summary>
+        public void SetBrace(Vector3 squash) => _brace = squash;
 
         public void SetHighlight(bool on) => _lit = on;
 
@@ -195,8 +200,10 @@ namespace GrandSluggers.UnityClient
                     var s = SwingPresentation.RootSquash(AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec));
                     squash = new Vector3((float)s.X, (float)s.Y, (float)s.Z);
                 }
-                var want = Vector3.Scale(_baseScale * g, squash);
+                var want = Vector3.Scale(Vector3.Scale(_baseScale * g, squash), _brace);
                 _body.localScale = _snap ? want : Vector3.Lerp(_body.localScale, want, 0.22f);
+                // One frame's: the director sets it again while the debt lasts, so a body that leaves the defense never keeps it.
+                _brace = Vector3.one;
             }
             PlaceRing();
             Animate(dt);

@@ -172,6 +172,33 @@ namespace GrandSluggers.UnityClient
                 }
             }
 
+            /// <summary>
+            /// The pursuit stick (#718): the controller's normalized device coordinate read before any dead zone — Unity's stick
+            /// processor and StickPlay's .32 both stand aside — plus WASD and player 1's mouse stick, each axis capped at 1. Only
+            /// the calibrated radial stick reads it (the sim centres, arms, gates and remaps it once); every other verb keeps
+            /// <see cref="StickX"/> / <see cref="StickY"/> and their protections. A held key counts from the frame it is down:
+            /// the sim's arming, not a catch at SET, is what keeps an old direction from steering a new half.
+            /// </summary>
+            public float PursuitX => Pursuit.x;
+
+            /// <inheritdoc cref="PursuitX"/>
+            public float PursuitY => Pursuit.y;
+
+            Vector2 Pursuit
+            {
+                get
+                {
+                    var pad = Device;
+                    var v = pad == null ? Vector2.zero : pad.leftStick.ReadUnprocessedValue();
+                    if (KeysEnabled)
+                    {
+                        v.x += (Kb(Key.D) ? 1f : 0f) - (Kb(Key.A) ? 1f : 0f) + MouseStickX;
+                        v.y += (Kb(Key.W) ? 1f : 0f) - (Kb(Key.S) ? 1f : 0f) + MouseStickY;
+                    }
+                    return new Vector2(Mathf.Clamp(v.x, -1f, 1f), Mathf.Clamp(v.y, -1f, 1f));
+                }
+            }
+
             StickPlay.Pad PlayPad =>
                 _index >= 0 && _index < _pads.Length ? _pads[_index] : default;
 
@@ -383,6 +410,20 @@ namespace GrandSluggers.UnityClient
             }
             return false;
         }
+
+        /// <summary>
+        /// The controller seated at pad <paramref name="index"/> for this match (#718: the pursuit stick's device identity), or
+        /// null when that seat is keyboard and mouse or empty. Before the match binds, the connected pad at that index.
+        /// </summary>
+        public static int? SeatDeviceId(int index)
+        {
+            if (index < 0) return null;
+            if (!_matchDevicesBound) return DeviceForIndex(index)?.deviceId;
+            return _matchDevices?.DeviceId(index == 1 ? LineupSeat.Pad2 : LineupSeat.Pad1);
+        }
+
+        /// <summary>Player 1 plays on keyboard and mouse (#718: a digital stick, the identity calibration).</summary>
+        public static bool SeatUsesKeyboard(int index) => index == 0 && KeyboardMouseEnabled;
 
         public static Pad Of(LineupSeat seat) => seat switch
         {
