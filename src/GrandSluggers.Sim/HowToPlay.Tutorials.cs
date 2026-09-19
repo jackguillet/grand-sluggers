@@ -120,6 +120,8 @@ public static partial class HowToPlay
         "swap-missed" => "Choose a fresh eligible fielder and confirm the pitcher change.",
         "pickoff-checked" => "Your pickoff throw reached the receiver at first. A runner on the bag is safe.",
         "pickoff-safe" or "pickoff-no-runner" => "Select first for this runner and make the pickoff throw before the opportunity ends.",
+        "ball-dash-carried" => "Ball Dash sped up your fielder while you carried the secured ball.",
+        "ball-dash-not-carried" => "Collect the ball with the Ball Dash fielder, then steer at full speed while holding it.",
         "carom-returned" => "You read the wall bounce and your throw reached third.",
         "wrong-carom-bag" => "After the wall bounce, select third before throwing.",
         "carom-not-returned" => "Collect the rebound and send the ball to the receiver at third.",

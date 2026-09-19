@@ -41,7 +41,7 @@ public static partial class HowToPlay
             "Let the gloves reach the wall play. Press F in the jump window."),
         "T-F13" => new("Run with Ball Dash", "Carry the ball with a fielder who has Ball Dash.",
             "Ball Dash changes movement while this fielder securely holds the ball. Take control after collecting it.",
-            "Collect the ball, then use the left stick to run with it.",
+            "Collect the ball, then push the left stick fully to run with it.",
             "Collect the ball, then use WASD to run with it."),
         "T-F14" => new("Make a Snap Throw", "Receive a clean throw, then send the ball on with Snap Throw.",
             "This receiver has Snap Throw. Use the handoff to make the next throw quickly.",
