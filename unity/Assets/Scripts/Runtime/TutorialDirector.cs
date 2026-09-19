@@ -154,7 +154,13 @@ namespace GrandSluggers.UnityClient
             }
             if (_guided != null && _guided.Phase == TutorialPhase.Feedback)
             {
-                if (confirm || click == -2) PrepareTutorial(_guided.Lesson.Id);
+                if (confirm || click == -2)
+                {
+                    var continuePractice = !_guided.Passed;
+                    var id = _guided.Lesson.Id;
+                    PrepareTutorial(id);
+                    if (continuePractice) BeginGuidedAttempt();
+                }
                 else if (Controls.WestDown || click == -5)
                 {
                     var next = (Array.FindIndex(_tutorialAll, l => l.Id == _guided.Lesson.Id) + 1) % _tutorialAll.Length;
