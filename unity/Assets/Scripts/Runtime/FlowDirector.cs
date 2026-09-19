@@ -29,6 +29,7 @@ namespace GrandSluggers.UnityClient
 
         void TickResult()
         {
+            if (TutorialOn) return;
             var hold = _last != null
                 ? (float)PlayStamp.HoldSeconds(_last.Kind, _feel)
                 : (float)_feel.AfterOutSeconds;
@@ -84,18 +85,9 @@ namespace GrandSluggers.UnityClient
                 Innings = Innings == 3 ? 6 : Innings == 6 ? 9 : 3;
             if (Controls.CycleDifficulty && _mode == PlayMode.Exhibition)
                 Difficulty = CpuRules.Next(Difficulty);
-            if (_mode == PlayMode.Training)
-            {
-                if (Key(KeyCode.A) || Key(KeyCode.LeftArrow) || Key(KeyCode.W) || Key(KeyCode.UpArrow))
-                    PracticePick = Training.Shift(PracticePick, -1);
-                if (Key(KeyCode.D) || Key(KeyCode.RightArrow) || Key(KeyCode.S) || Key(KeyCode.DownArrow))
-                    PracticePick = Training.Shift(PracticePick, 1);
-                if (Controls.Skip)
-                    PracticePick = PracticeLesson.Fielding;
-            }
             if (Controls.WestDown || (_mode == PlayMode.Training && Controls.SouthDown && _t > 0.15f))
             {
-                BeginTraining();
+                OpenTutorials();
                 return;
             }
             if (_mode != PlayMode.Training && Controls.NightToggle)
@@ -108,7 +100,7 @@ namespace GrandSluggers.UnityClient
             {
                 if (_mode == PlayMode.Training)
                 {
-                    BeginTraining();
+                    OpenTutorials();
                     return;
                 }
                 _match = NewMatch();

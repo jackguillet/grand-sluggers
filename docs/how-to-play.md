@@ -183,16 +183,15 @@ The window plays the copy only when a run names it: `GRAND_SLUGGERS_TRIAL=trials
 
 ---
 
-## Practice (Harbor)
+## Tutorials and free practice (Harbor)
 
-Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free and **South** starts that lesson. **East / G** from pitching **skips to Fielding** (scoop), not the title. You are not trapped painting pitch types.
+From title, **West** on a pad or **F** on keyboard opens **Tutorials**. Use the stick / W and S to choose, then **South / Space** (or click) to read the goal and start. Tutorials are player 1 versus a controlled CPU setup; a second pad does not take over the teaching opponent.
 
-1. **Pitching** — throw; charge at MAX (rings line up); changeup / break; star
-2. **Batting** — walk the oval onto the ball; charge at MAX
-3. **Fielding** — catch, jump a fly, throw a named bag, **turn two** (second, then first), dash, buddy toss
-4. **Running** — pick a runner, steal, dash
-5. **Special** — star pitch / star swing
-6. **Free practice** — any verb, no gate
+The first lessons are **Throw a strike**, **Throw a changeup**, **Slap hit**, **Field a ground ball**, **Dive for an out**, and **Turn a double play**. Each shows its goal, setup, and controls for the active input scheme before the attempt. Pitching lessons have a batter who takes; batting gets a repeatable middle fastball; fielding lessons start from authored contact and base occupancy. Real baseball rules resolve every attempt.
+
+Feedback explains what happened. **South / Space** retries a fresh copy of that setup; **West / F** moves to the next lesson; **East / G** returns to lessons. Checkmarks save successful player-owned attempts locally, separately from Exhibition. Automatic assistance and demonstrations do not earn completion. Call time / How to play still works during an attempt. Restart resets that lesson; Title leaves it.
+
+**Free practice** remains the final menu choice for ungated Harbor play. New mechanics and future lessons are tracked in `data/tutorials/`; unavailable lessons are not presented as playable.
 
 ---
 

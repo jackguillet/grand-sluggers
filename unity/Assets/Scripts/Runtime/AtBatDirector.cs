@@ -198,7 +198,7 @@ namespace GrandSluggers.UnityClient
                     BeginPickoff(pickoffBag);
                     return;
                 }
-                Launch(_match.CpuPitch());
+                Launch((TutorialOn && HumanBats ? _coach.Tutorial.CpuPitch : _match.CpuPitch()));
             }
         }
 
@@ -420,7 +420,7 @@ namespace GrandSluggers.UnityClient
             // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9).
             if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
                 _swing = WithSquare(AtBatMotion.CommitCpuSwing(
-                    _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch)),
+                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch))),
                     _pitchDur, _match.Rules));
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt, _match.Rules))
@@ -431,7 +431,7 @@ namespace GrandSluggers.UnityClient
             if (u < 1) return;
             _swing ??= WithSquare(HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
-                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch)));
+                : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch))));
             Resolve();
         }
 
@@ -478,7 +478,7 @@ namespace GrandSluggers.UnityClient
 
         void Resolve()
         {
-            if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
+            if (!ResolveTutorialOrAtBat(out var hit, out var finished))
             {
                 _last = finished;
                 NoteTrainingPitch();
@@ -514,14 +514,14 @@ namespace GrandSluggers.UnityClient
             StartFly(hit);
         }
 
-        void StartFly(AtBatResult hit)
+        void StartFly(AtBatResult hit, bool alreadyLive = false)
         {
             _phase = Phase.InPlay;
             _t = 0;
             _path = null;
             // Every batted ball — foul territory included (§7.11) — is one live ball the sim plays out.
             var seat = _match.LivePlay.Source;
-            _match.LivePlay.Apply(LivePlayCommand.BeginLive(
+            if (!alreadyLive) _match.LivePlay.Apply(LivePlayCommand.BeginLive(
                 _pitch, _swing, hit, _preview, _cpuField, LiveSeatsNow(), _dash01, seat));
             SyncFromLive();
             // The contact word comes from the typed zone, never from the release (#578).

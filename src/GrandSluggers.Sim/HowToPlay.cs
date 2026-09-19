@@ -124,7 +124,7 @@ public static class PauseMenu
     }
 }
 
-public static class HowToPlay
+public static partial class HowToPlay
 {
     public sealed record Page(
         string Id,
@@ -406,12 +406,12 @@ public static class HowToPlay
         [
             "Start    call time. Esc    this book from title and a pitch.",
             "South ok. East resume.",
-            "Title West    Training. F1 F2 F3 stay debug, not this page.",
+            "Title West    Tutorials. Pick a lesson, read the goal, then South starts.",
         ],
         [
             "H    call time. Esc    this book from title and a pitch.",
             "Space / left click ok. G / right click resume.",
-            "Title F    Training. F1 F2 F3 stay debug, not this page.",
+            "Title F    Tutorials. Pick a lesson, read the goal, then Space starts.",
         ]),
     ];
 

@@ -99,3 +99,9 @@ GRAND_SLUGGERS_TRIAL=trials/c80 dotnet test src/GrandSluggers.Sim.Tests --filter
 ```
 
 The authored grounder reuses S-40's 118-foot/4-degree/-18-degree opportunity. The shipped dive is a 250-foot, 12-degree, -18-degree ball; C80 uses a 120-mph, 16-degree, straight-ahead liner. These are lesson inputs, resolved through production flight and rules. They are not replacement trajectories or easier catch windows. Positive dive tests steer and commit; a dead-stick assisted dive fails.
+
+## Standalone teaching flow (#774)
+
+Title West / F opens the lesson list; each available lesson has a brief, attempt, specific feedback, retry, next, and return to lessons. Free practice stays available. The teaching seat follows the player's role (away for batting, home for pitching/fielding), even with a second pad connected. Saved checkmarks use profile + lesson id + revision. Menus freeze attempts; Call time and How to play remain available. Presentation delegates outcomes to `TutorialSession` and reuses the normal Harbor cameras, actors, input, and live-play view.
+
+The first six are available for preview, not human-accepted. Standalone pad/keyboard learning and transfer to Exhibition remain the gate in #770/#774. No art is added by this slice.

@@ -11,6 +11,16 @@ namespace GrandSluggers.UnityClient
         TextMesh _verb;
 
         public Training Session { get; private set; }
+        public TutorialSession Tutorial { get; private set; }
+        public void BeginTutorial(ContentCatalog content, TutorialCatalog catalog, string id, TutorialProgress progress)
+        {
+            Stop();
+            Tutorial = new TutorialSession(content, catalog, id, progress);
+            Session = Training.Start(content);
+            Session.Choose(Tutorial.IsFieldLesson ? PracticeLesson.Fielding
+                : Tutorial.Lesson.Category == "pitching" ? PracticeLesson.Pitching : PracticeLesson.Batting);
+        }
+
         public bool Active => Session != null && !Session.Finished;
 
         public void Begin(ContentCatalog content, PracticeLesson lesson = PracticeLesson.Pitching)
@@ -23,12 +33,14 @@ namespace GrandSluggers.UnityClient
 
         public void Stop()
         {
+            Tutorial?.Exit();
+            Tutorial = null;
             Session = null;
             if (_board != null) _board.gameObject.SetActive(false);
         }
 
         public Match MakeMatch(ContentCatalog content, int seed) =>
-            Session != null ? Session.MakeMatch(content, seed) : Match.Exhibition(content, parkId: Training.ParkId, seed: seed);
+            Tutorial != null ? Tutorial.Match : Session != null ? Session.MakeMatch(content, seed) : Match.Exhibition(content, parkId: Training.ParkId, seed: seed);
 
         public bool PlayerPitches => Active && Session.Lesson == PracticeLesson.Pitching;
         public bool PlayerBats => Active && Session.Lesson == PracticeLesson.Batting;
@@ -37,25 +49,25 @@ namespace GrandSluggers.UnityClient
 
         public void OnPitch(PitchCommand pitch, Match match)
         {
-            if (Session == null || Session.Lesson != PracticeLesson.Pitching) return;
+            if (Tutorial != null || Session == null || Session.Lesson != PracticeLesson.Pitching) return;
             Session.RecordPitch(pitch, match);
         }
 
         public void OnSwing(SwingCommand swing, AtBatResult hit)
         {
-            if (Session == null || Session.Lesson != PracticeLesson.Batting) return;
+            if (Tutorial != null || Session == null || Session.Lesson != PracticeLesson.Batting) return;
             Session.RecordSwing(swing, hit);
         }
 
         public void OnRun(Match match)
         {
-            if (Session == null || Session.Lesson != PracticeLesson.Running) return;
+            if (Tutorial != null || Session == null || Session.Lesson != PracticeLesson.Running) return;
             Session.RecordRun(match);
         }
 
         public void OnField(FieldingResult field, Match match)
         {
-            if (Session == null) return;
+            if (Tutorial != null || Session == null) return;
             if (Session.Lesson == PracticeLesson.Fielding)
             {
                 if (!Session.RecordFielding(field))
@@ -69,12 +81,13 @@ namespace GrandSluggers.UnityClient
 
         public void TickSkip()
         {
-            if (Session == null || Session.Finished) return;
+            if (Tutorial != null || Session == null || Session.Finished) return;
             if (Controls.Skip) Session.Skip();
         }
 
         public void Tick(Camera cam)
         {
+            if (Tutorial != null) return;
             TickSkip();
             if (_board == null) return;
             if (Session == null)
