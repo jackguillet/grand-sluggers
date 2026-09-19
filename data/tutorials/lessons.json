@@ -805,25 +805,29 @@
     },
     {
       "id": "T-F08",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.08"
       ],
-      "title": "buffered throw, retarget and cancel",
+      "title": "buffer an onward throw",
       "category": "fielding",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
       "profiles": [
-        "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F08",
+      "objective": "human-buffered-relay",
+      "controls": [
+        "control:fielding/Throw",
+        "control:fielding/Cutoff / relay"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-F09",
@@ -2318,6 +2322,58 @@
       "objective": "",
       "controls": [],
       "tests": []
+    },
+    {
+      "id": "T-F08-R",
+      "revision": 2,
+      "mechanics": [
+        "fielding.08"
+      ],
+      "title": "retarget a buffered throw",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F08-R",
+      "objective": "human-retargeted-relay",
+      "controls": [
+        "control:fielding/Throw",
+        "control:fielding/Cutoff / relay"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F08-C",
+      "revision": 2,
+      "mechanics": [
+        "fielding.08"
+      ],
+      "title": "cancel a buffered throw",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F08-C",
+      "objective": "human-cancelled-relay",
+      "controls": [
+        "control:fielding/Throw",
+        "control:fielding/Cutoff / relay"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     }
   ],
   "setups": [
@@ -3806,6 +3862,7 @@
       }
     },
     {
+<<<<<<< HEAD
       "id": "T-R06",
       "policy": "steal-offense",
       "seed": 1,
@@ -3882,10 +3939,17 @@
       "policy": "steal-defense",
       "seed": 1,
       "timeoutSec": 45,
+=======
+      "id": "T-F08",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+>>>>>>> f1158012 (Teach buffered relay queue, retarget, and cancel with live evidence)
       "home": [
         "vale",
         "pewter",
         "lace",
+<<<<<<< HEAD
         "frost",
         "basil",
         "ashlord",
@@ -3909,6 +3973,115 @@
       ],
       "balls": {},
       "seat": "defense"
+=======
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F08-R",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F08-C",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+>>>>>>> f1158012 (Teach buffered relay queue, retarget, and cancel with live evidence)
     }
   ]
 }
