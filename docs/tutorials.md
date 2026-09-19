@@ -1,6 +1,6 @@
 # Tutorials — every mechanic has a playable lesson
 
-Status: **thirteen lessons implemented; plate expansion UI and human learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778; its counter/Continue/save presentation is #780. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
+Status: **26 lessons implemented in the headless runner; standalone learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778; its counter/Continue/save presentation is #780. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
 
 ## Product contract
 
@@ -50,7 +50,7 @@ These acceptance contracts are exercised by `TutorialSessionTests` on shipped an
 
 ## Coverage backlog
 
-The first six ids and the seven plate-fundamental ids in #782 are **implemented in the headless runner**. The other ids remain planned or blocked; `cli tutorials` is the current coverage report. Existing broad Practice behavior is partial reuse, not tutorial completion. This is the initial inventory; the catalog implementation must reconcile it against every player-facing spec section, control verb, ability and enabled feature. No unsupported future mechanic is enabled by appearing here.
+The first six ids, thirteen plate-decision ids and seven fielding ids are **implemented in the headless runner**. The other ids remain planned or blocked; `cli tutorials` is the current coverage report. Existing broad Practice behavior is partial reuse, not tutorial completion. This is the initial inventory; the catalog implementation must reconcile it against every player-facing spec section, control verb, ability and enabled feature. No unsupported future mechanic is enabled by appearing here.
 
 - **Pitching:** T-P01 strikes; T-P02 aim/location and balls versus strikes; T-P03 changeup; T-P04 charge/MAX; T-P05 break after release; T-P06 rubber positioning; T-P07 stamina/pitcher substitution; T-P08 pickoff; T-P09 star pitch (scope dependent).
 - **Batting:** T-B01 slap contact; T-B02 cursor/sweet spot; T-B03 early/late direction; T-B04 charged swing; T-B05 box positioning; T-B06 launch direction; T-B07 bunt and foul-bunt risk; T-B08 recognize/take a ball; T-B09 star swing (scope dependent).
@@ -157,3 +157,14 @@ These use existing rules, not altered timing windows or manufactured outcomes. T
 The six exercises from #786 have standalone titles, goals, authored setup explanations, controls for both schemes, and corrective feedback. Early and late timing remain distinct lessons, as do grounder and fly launch. The book explicitly says Down/S recenters during SET but controls loft during the pitch. The browser now contains 19 implemented lessons; batting exercises span two six-row pages. Three-success progress and CPU scenarios use the shared runner unchanged.
 
 Agent checks verify rendering and navigation separately from the pending physical-pad and human learning/transfer gates. No artwork or baseball rules change in this presentation child.
+
+## Fielding fundamentals (#790)
+
+Seven headless exercises use the existing Harbor live-play rules and the same three-success `TutorialProgress` ledger. Each retry rebuilds the seeded match, clears command receipts, and replays literal pad input. Shipped and C80 run separate rule profiles. `implemented` here is automated evidence; pad and keyboard coaching, physical standalone sitting, and Exhibition transfer remain human gates.
+
+- **T-F02 takeover:** the 118-ft, 4°, −18° routine grounder starts on an assisted glove. The player steers that glove and secures the ball on the dirt. Immediate manual takeover is valid. The receipt needs actual manual glove movement and possession by that glove; if assisted pursuit moves the glove after the player's last steering step, the pickup is `assisted-pickup`. A manually positioned glove can wait still for the ball. T-F01 uses the same corrected ownership check and advances to revision 3 so earlier mastery is refreshed.
+- **T-F03 / T-F03-2 / T-F03-3 / T-F03-H named throws:** the same grounder supplies secure possession. The player arms first/second/third/home with D-pad or number key, then presses South. `ThrowPop` from a human release (or a human-buffered release) records the bag. Success waits for a live receiver holding the ball at the named bag; the first-base batter force may complete on that same reception frame, so its real `ThrowOutAtFirst` is the receipt. Choosing another bag is `wrong-bag`; a release that never arrives is `throw-not-received`; arming without South earns nothing. Second, third and home teach throwing to a named target without promising an out when no runner is there.
+- **T-F04 ordinary aerial catch:** an 88-mph, 32° center fly. The controlled glove needs a human South press on the actual airborne take and a completed geometric catch out with no dive or jump feat. A CPU stand-up catch or South after the bounce fails as `no-aerial-out`.
+- **T-F06 jump catch:** a 245-ft, 34° center fly with Basil in center. The player takes the glove and presses West; shipped rules arm a jump ahead of contact, while C80 executes its physical arc. The command must belong to that manual glove and the completed play must record its `Jump` catch out. An early leap that misses, an assisted catch, or South alone fails as `no-jumping-out`.
+
+The test runner drives ordinary `LivePadInput` and checks three earned attempts, wrong/dead/CPU input, receiver timing across later nonhuman ticks, demonstrations, retries, and exact deterministic replay on both profiles. These fixtures author opportunities, not catches, throws, outs, or changed rule windows.

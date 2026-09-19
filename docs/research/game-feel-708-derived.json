@@ -130,7 +130,7 @@
     "data/art/clips.json": "204c3ec5effacb462a72f7f518cf117d21141645498e7c83244b31ebc4c293ff",
     "data/art/baseball-takes.json": "0686b49e4b9721a39801b4d89f37f6911992b29a5060e5558df8b7708643e7e0",
     "src/GrandSluggers.Sim/InPlay.cs": "be4b1855a0aad59e149a7e387d4fc3026375eda230a693b566df29df53adfdb4",
-    "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "624546a71e9f6bd954b237e6de72f73e4cec7ae15cf04a087513960f34aef98e",
+    "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "abf9acc786b9765134eb03ac369db783bb32d250c81331c0899711321ada199c",
     "src/GrandSluggers.Sim/BodyFacing.cs": "c2b715ea80796a97bf9086010ec92226472360f19738b72290b281b523dfda64",
     "src/GrandSluggers.Sim/FieldAssist.cs": "8aa56d8c6677c064ef6198aabf4350e94da09f20382858307f17d84b73727b6c",
     "src/GrandSluggers.Sim/StickPlay.cs": "c6c5e72f138579bfe88c1a7fd4e4dd31247e1e883715820102d8f57a77ea44d3",

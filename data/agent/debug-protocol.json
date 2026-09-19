@@ -302,6 +302,16 @@
       "promoted": "TutorialNavigationTests.FooterRoutesToItsNamedAction",
       "issue": "#776",
       "pr": ""
+    },
+    {
+      "id": "tutorial-manual-credit-after-assisted-chase",
+      "signature": "A tutorial fielding attempt gets manual-pickup credit after one human steering frame followed by dead input while assistance chases and takes the ball.",
+      "stage": "sim",
+      "cause": "TutorialSession kept the first human movement in _manualGloves for the entire attempt and did not distinguish later assisted route movement from a player-positioned glove waiting still.",
+      "fix": "Observe the actual assisted ChaseGlove step separately from passive brake/coast. Clear manual pickup ownership when that route moves the glove after the last human steering step; retaking it can restore ownership. Advance T-F01's lesson revision.",
+      "promoted": "TutorialFieldTests.OneSteeringFrameThenAssistedPursuitCannotEarnManualPickup",
+      "issue": "#790",
+      "pr": ""
     }
   ]
 }

@@ -50,8 +50,13 @@ public sealed class TutorialSession
     readonly TutorialSetup _setup;
     readonly List<TutorialInput> _inputs = [];
     readonly HashSet<string> _manualGloves = [];
+    readonly HashSet<string> _assistedSinceManual = [];
     readonly Dictionary<string, double> _divers = [];
     readonly List<int> _throws = [];
+    readonly HashSet<string> _humanJumpPresses = [];
+    int _queuedHumanThrowBag;
+    bool _manualTakeoverMoved;
+    string _humanAerialCatcher = "";
     string _firstRunner = "";
     string _batter = "";
     public TutorialLesson Lesson { get; }
@@ -70,7 +75,7 @@ public sealed class TutorialSession
     public string InputsHash { get; private set; } = "";
     public IReadOnlyList<TutorialInput> Inputs => _inputs;
     public IReadOnlyList<int> HumanThrows => _throws;
-    public bool IsFieldLesson => _setup.Policy is "grounder" or "liner";
+    public bool IsFieldLesson => _setup.Policy is "grounder" or "liner" or "airborne";
     public PitchCommand CpuPitch => _setup.Pitch ?? new("fastball", 0, false);
     static readonly SwingCommand Take = new(false, 0, 0, false);
     static readonly SwingCommand Contact = new(true, 0, 0, false);
@@ -96,7 +101,10 @@ public sealed class TutorialSession
             Match.BeginAtBat(new PitchCommand("fastball", 0, false), Take, out _, out _);
         InputsHash = PlayTraceIdentity.Capture(Match).Sha256;
         _firstRunner = Match.First?.Id ?? ""; _batter = Match.Batter.Id;
-        _inputs.Clear(); _manualGloves.Clear(); _divers.Clear(); _throws.Clear();
+        _inputs.Clear(); _manualGloves.Clear(); _assistedSinceManual.Clear(); _divers.Clear(); _throws.Clear(); _humanJumpPresses.Clear();
+        _manualTakeoverMoved = false;
+        _humanAerialCatcher = "";
+        _queuedHumanThrowBag = 0;
         Elapsed = 0; LastPlay = null; LastHit = null; LastTickResult = null; Feedback = null; Paused = false;
     }
 
@@ -172,6 +180,18 @@ public sealed class TutorialSession
         var result = live.Apply(LivePlayCommand.Tick(seconds, pad, LivePadInput.Dead, false, source));
         LastTickResult = result;
         var owned = source == LivePlayCommandSource.Human && !Demonstration;
+        // Shipped West arms ahead of contact; C80 takes off immediately. The completed Jump catch below proves
+        // that this human press, on the manually controlled glove, actually met the ball.
+        if (owned && live.PursuitManual && pad.WestDown)
+            _humanJumpPresses.Add(who);
+        var moved = Math.Abs(live.GloveX - x) + Math.Abs(live.GloveZ - z) > 1e-6;
+        if (live.TutorialAssistedPursuitGloveId.Length > 0)
+            _assistedSinceManual.Add(live.TutorialAssistedPursuitGloveId);
+        if (owned && live.GlovePos == pos && moved && live.PursuitManual)
+        {
+            _manualTakeoverMoved = true;
+            _assistedSinceManual.Remove(who);
+        }
         if (owned && live.PursuitManual && live.GlovePos == pos && (Math.Abs(live.GloveX - x) + Math.Abs(live.GloveZ - z) > 1e-6))
             _manualGloves.Add(who);
         var divingOut = result.CompletedPlay?.Outcome?.DefensiveFeat == DefensiveFeat.Dive;
@@ -181,11 +201,24 @@ public sealed class TutorialSession
             _divers[who] = Elapsed + Match.Rules.Fielding.Catch.DiveArmSec;
         // Human-owned defense never supplies its own throw. ThrowPop is emitted once when the actual throw begins,
         // including an earlier accepted buffer; CPU submissions above are replaced with dead input.
-        if (owned && live.Events.Contains(LiveEvent.ThrowPop)) _throws.Add(live.ThrowBag);
+        if (live.Events.Contains(LiveEvent.ThrowQueueCleared)) _queuedHumanThrowBag = 0;
+        if (owned && live.Events.Contains(LiveEvent.ThrowQueued))
+            _queuedHumanThrowBag = live.QueuedThrowBag is >= 1 and <= 4
+                ? live.QueuedThrowBag : live.CommitBagFor(pad); // C80 recovery buffer has no onward-throw queue.
+        if (live.Events.Contains(LiveEvent.ThrowPop))
+        {
+            if (owned || _queuedHumanThrowBag == live.ThrowBag) _throws.Add(live.ThrowBag);
+            _queuedHumanThrowBag = 0;
+        }
+        if (owned && live.Events.Contains(LiveEvent.Glove) && live.Caught && live.PursuitManual)
+        {
+            if (pad.SouthDown && !live.CatchJump && !live.CatchDive) _humanAerialCatcher = live.TutorialFirstGloveId;
+        }
         LastPlay = result.CompletedPlay;
         if (Lesson.Objective == "manual-ground-possession" && live.HoldsBall && live.Preview?.Grounder == true)
         {
-            var manual = _manualGloves.Contains(live.TutorialFirstGloveId);
+            var manual = _manualGloves.Contains(live.TutorialFirstGloveId)
+                && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
             Finish(manual, manual ? "ground-possession" : "assisted-pickup", manual ? "You moved to the ground ball and secured it." : "The assistance collected that ball. Retry and move the glove yourself.");
         }
         else if (Lesson.Objective == "human-dive-out")
@@ -209,8 +242,73 @@ public sealed class TutorialSession
                 && _throws.SequenceEqual(new[] { 2, 1 });
             Finish(correct, correct ? "turned-two" : "double-play-missed", correct ? "Your two throws beat both runners: second, then first." : "Make the force at second, then command the throw to first before the batter arrives.");
         }
+        else EvaluateExpandedFieldObjective(live, result);
         if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
             Finish(false, "timeout", "The opportunity ended. Retry the same setup.");
+    }
+
+    /// <summary>Expansion field lessons read accepted human commands and the resulting live glove/throw/out state.</summary>
+    void EvaluateExpandedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
+    {
+        if (Lesson.Objective == "manual-takeover")
+        {
+            if (!live.HoldsBall || live.Preview?.Grounder != true) return;
+            var playerTookOver = _manualTakeoverMoved
+                && _manualGloves.Contains(live.TutorialFirstGloveId)
+                && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
+            Finish(playerTookOver, playerTookOver ? "manual-takeover" : "assisted-pickup",
+                playerTookOver ? "You took the glove and secured the ground ball."
+                    : "The helper kept the glove, or you did not move it to the ball after taking control.");
+            return;
+        }
+        var namedBag = Lesson.Objective switch
+        {
+            "throw-bag-1" => 1, "throw-bag-2" => 2, "throw-bag-3" => 3, "throw-bag-4" => 4, _ => 0
+        };
+        if (namedBag > 0)
+        {
+            if (_throws.Count > 0 && _throws[0] != namedBag)
+            {
+                Finish(false, "wrong-bag", "That throw went to a different bag. Arm the named bag, then throw.");
+                return;
+            }
+            var at = Diamond.Bag(namedBag);
+            var received = _throws.Count == 1 && live.FirstThrowBag == namedBag && live.ThrowBag == namedBag
+                && !live.Throwing && live.HoldsBall && live.GlovePos == live.CoverPos
+                && Diamond.Dist(live.GloveX, live.GloveZ, at.X, at.Z) <= Match.Rules.Fielding.Cover.RadiusFt;
+            // A force at first can complete on the reception frame, clearing the live glove before it can be inspected.
+            received |= namedBag == 1 && _throws.SequenceEqual(new[] { 1 })
+                && result.CompletedPlay?.Outcome?.OutsMade.Any(o => o.Type == OutType.ThrowOutAtFirst && o.Bag == 1) == true;
+            if (received)
+            {
+                Finish(true, "throw-" + new[] { "", "first", "second", "third", "home" }[namedBag],
+                    "Your throw reached the named bag and its receiver secured the ball.");
+                return;
+            }
+            if (result.CompletedPlay is not null)
+                Finish(false, _throws.Count == 0 ? "no-throw" : "throw-not-received",
+                    "The play ended before your throw was received at the named bag.");
+            return;
+        }
+        if (Lesson.Objective is not ("human-aerial-out" or "human-jump-out") || result.CompletedPlay is not { } play)
+            return;
+        var catchOut = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true;
+        if (Lesson.Objective == "human-aerial-out")
+        {
+            var success = catchOut && _humanAerialCatcher.Length > 0
+                && play.Fielder?.Id == _humanAerialCatcher && play.Outcome?.DefensiveFeat == DefensiveFeat.None;
+            Finish(success, success ? "aerial-out" : "no-aerial-out",
+                success ? "Your South press secured the airborne ball for an out."
+                    : "Catch the ball in the air with your own South press while controlling the glove.");
+        }
+        else
+        {
+            var success = catchOut && play.Fielder is { } jumper && _humanJumpPresses.Contains(jumper.Id)
+                && play.Outcome?.DefensiveFeat == DefensiveFeat.Jump;
+            Finish(success, success ? "jumping-out" : "no-jumping-out",
+                success ? "Your West press timed a jumping catch for an out."
+                    : "Take the glove and press West in the jump window to catch the airborne ball.");
+        }
     }
 
     public TutorialRecording Recording() => new(1, Lesson.Id, Lesson.Revision, _catalog.Profile, InputsHash, Demonstration, _inputs.ToArray());
