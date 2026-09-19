@@ -141,9 +141,10 @@ public sealed class TutorialSession
         if (!Accepts(source) || _setup.Policy is not ("cpu-strike" or "cpu-ball")) return false;
         command = command with { Human = true };
         _inputs.Add(new(Elapsed, source, Swing: command));
+        var bats = Match.Batter.Bats;
         Match.BeginAtBat(CpuPitch, command, out var hit, out var play);
         LastHit = hit; LastPlay = play;
-        var verdict = TutorialPlateObjectives.Swing(Lesson.Objective, command, hit, play);
+        var verdict = TutorialPlateObjectives.Swing(Lesson.Objective, _setup, bats, command, hit, play);
         Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
     }

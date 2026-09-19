@@ -35,19 +35,26 @@
       ],
       "title": "aim/location and balls versus strikes",
       "category": "pitching",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-P01"
+      ],
+      "setup": "T-P02",
+      "objective": "called-ball",
+      "controls": [
+        "control:pitching/Move pitcher",
+        "control:pitching/Normal pitch"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
     },
     {
       "id": "T-P03",
@@ -285,21 +292,55 @@
       "mechanics": [
         "batting.03"
       ],
-      "title": "early/late direction",
+      "title": "early pull",
       "category": "batting",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B03",
+      "objective": "pull-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
+    },
+    {
+      "id": "T-B03-L",
+      "revision": 1,
+      "mechanics": [
+        "batting.03"
+      ],
+      "title": "late push",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B03-L",
+      "objective": "push-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
     },
     {
       "id": "T-B04",
@@ -337,19 +378,26 @@
       ],
       "title": "box positioning",
       "category": "batting",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B05",
+      "objective": "box-perfect-fair",
+      "controls": [
+        "control:batting/Move batter",
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
     },
     {
       "id": "T-B06",
@@ -357,21 +405,55 @@
       "mechanics": [
         "batting.06"
       ],
-      "title": "launch direction",
+      "title": "grounder launch",
       "category": "batting",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B06",
+      "objective": "grounder-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
+    },
+    {
+      "id": "T-B06-F",
+      "revision": 1,
+      "mechanics": [
+        "batting.06"
+      ],
+      "title": "fly launch",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B06-F",
+      "objective": "fly-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
     },
     {
       "id": "T-B07",
@@ -2432,6 +2514,197 @@
         "star": false,
         "aimY": 2
       }
+    },
+    {
+      "id": "T-P02",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-B03",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minTimingFrames": 1
+    },
+    {
+      "id": "T-B03-L",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minTimingFrames": 1
+    },
+    {
+      "id": "T-B05",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.2,
+      "pitch": {
+        "type": "fastball",
+        "charge01": 0,
+        "star": false,
+        "aimX": 0.4
+      }
+    },
+    {
+      "id": "T-B06",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.75
+    },
+    {
+      "id": "T-B06-F",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.75
     }
   ]
 }

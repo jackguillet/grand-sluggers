@@ -70,7 +70,7 @@ public sealed class TutorialMasteryTests
         progress.RestorePractice([
             new("T-P01", 1, c.Profile, 3), new("T-P01", run.Lesson.Revision, "invalid", 3),
             new("T-P01", run.Lesson.Revision, c.Profile, 99), new("T-P01", run.Lesson.Revision, c.Profile, -1),
-            new("T-P02", 1, c.Profile, 3), new("missing", 2, c.Profile, 3)
+            new(c.Lessons.First(l => l.Status == "planned").Id, 1, c.Profile, 3), new("missing", 2, c.Profile, 3)
         ], c);
         Assert.Equal(1, progress.Count(run.Lesson, c.Profile)); Assert.Empty(progress.Completed);
         Assert.Equal(0, progress.Count(c.Lesson("T-P03"), c.Profile));
