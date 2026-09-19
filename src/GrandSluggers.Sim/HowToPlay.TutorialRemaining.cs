@@ -5,7 +5,7 @@ public static partial class HowToPlay
     // Copy belongs to the book. The lesson runner owns the actions and verdicts.
     sealed record TutorialCopy(string Title, string Goal, string Setup, string Pad, string Keys);
 
-    static TutorialCopy? RemainingTutorial(string id) => id switch
+    static TutorialCopy? RemainingTutorial(string id, string profile = "shipped") => id switch
     {
         "T-P07" => new("Replace a tired pitcher", "Replace the tired starter with a fresh arm.",
             "The starter is tired. Open the ordinary pitcher picker and choose a fielder to take the mound.",
@@ -15,10 +15,13 @@ public static partial class HowToPlay
             "A runner is on first and ready to break. Select first and throw from the rubber. A runner who stays on the bag is safe.",
             "During SET, D-pad Right selects first. Tap South to make the pickoff throw.",
             "During SET, 1 selects first. Tap Space to make the pickoff throw."),
-        "T-F07" => new("Throw through the cutoff", "Get the ball to the cutoff and on to the target bag.",
-            "A long throw can use an infielder as a relay. Watch the ball and the highlighted receiving glove.",
-            "Collect the ball, then press LB for the cutoff. Watch the receiving glove for the next throw.",
-            "Collect the ball, then press X for the cutoff. Watch the receiving glove for the next throw."),
+        "T-F07" => new("Throw through the cutoff", "Feed the cutoff and send the relay to home plate.",
+            profile == "c80" ? "Collect the fly, arm home and feed the cutoff. The receiver waits for your second throw command. Press again near the catch."
+                : "Collect the fly, arm home and feed the cutoff. The receiver automatically sends the next leg to home.",
+            profile == "c80" ? "D-pad Down arms home; LB feeds the cutoff. Tap South again as the receiver catches."
+                : "D-pad Down arms home; LB feeds the cutoff. The receiver sends it home.",
+            profile == "c80" ? "4 arms home; X feeds the cutoff. Tap Space again as the receiver catches."
+                : "4 arms home; X feeds the cutoff. The receiver sends it home."),
         "T-F08" => new("Queue the next throw", "Prepare a throw before the receiver catches the ball.",
             "The receiver can remember a recent throw press. Select the destination before the catch and time your press near the handoff.",
             "D-pad selects the bag. Tap South just before the catch. RB cancels the queued throw.",
@@ -43,10 +46,13 @@ public static partial class HowToPlay
             "Ball Dash changes movement while this fielder securely holds the ball. Take control after collecting it.",
             "Collect the ball, then push the left stick fully to run with it.",
             "Collect the ball, then use WASD to run with it."),
-        "T-F14" => new("Make a Snap Throw", "Receive a clean throw, then send the ball on with Snap Throw.",
-            "This receiver has Snap Throw. Use the handoff to make the next throw quickly.",
-            "Select the next bag with the D-pad. Press South as the receiver takes possession.",
-            "Select the next bag with 1/2/3/4. Press Space as the receiver takes possession."),
+        "T-F14" => new("Make a Snap Throw", "Feed a clean throw to a Snap Throw receiver and send it home.",
+            profile == "c80" ? "Snap Throw shortens this receiver's release after a clean catch. Feed the cutoff and command the onward throw near the catch."
+                : "Snap Throw speeds up this receiver's onward throw. Feed the cutoff and watch the clean handoff to home.",
+            profile == "c80" ? "D-pad Down arms home; LB feeds the cutoff. South near the catch sends the next leg."
+                : "D-pad Down arms home; LB feeds the cutoff. Watch the receiver's Snap Throw.",
+            profile == "c80" ? "4 arms home; X feeds the cutoff. Space near the catch sends the next leg."
+                : "4 arms home; X feeds the cutoff. Watch the receiver's Snap Throw."),
         "T-F15" => new("Fire a Laser Throw", "Use a Laser fielder to send the ball home.",
             "The runner threatens home. Collect the ball with the Laser fielder and make the throw to the catcher.",
             "Collect the ball. D-pad Down selects home; South throws.",

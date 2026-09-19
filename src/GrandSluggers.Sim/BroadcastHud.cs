@@ -54,6 +54,9 @@ public static class BroadcastHud
         HudRect PitcherCard,
         HudRect Banner);
 
+    // Coaching must leave the ordinary score, bases and player cards readable.
+    public static readonly HudRect TutorialCoach = new(0.02, 0.018, 0.65, 0.19);
+
     /// <summary>
     /// SMS information architecture: score top-right with S/B/O + diamond on the panel,
     /// batter card bottom-left, pitcher card bottom-right. Seat count must not move them.

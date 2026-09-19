@@ -6,6 +6,33 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class TutorialNavigationTests
 {
     [Fact]
+    public void CoachingDoesNotHideTheOrdinaryGameplayReadouts()
+    {
+        var coach = BroadcastHud.TutorialCoach;
+        foreach (var seats in new[] { 1, 2 })
+        {
+            var layout = BroadcastHud.Layout(seats);
+            foreach (var readout in new[] { layout.Score, layout.BatterCard, layout.PitcherCard })
+                Assert.True(coach.Right <= readout.X || readout.Right <= coach.X
+                    || coach.Bottom <= readout.Y || readout.Bottom <= coach.Y);
+        }
+    }
+
+    [Theory]
+    [InlineData("T-F07")]
+    [InlineData("T-F14")]
+    public void RelayInstructionsMatchTheActiveProfilesOnwardThrowOwnership(string id)
+    {
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+        {
+            Assert.NotEqual(HowToPlay.TutorialControls(id, scheme, "shipped"), HowToPlay.TutorialControls(id, scheme, "c80"));
+            Assert.Contains("receiver", HowToPlay.TutorialSetup(id, "c80"));
+        }
+        Assert.Contains("automatically", HowToPlay.TutorialSetup("T-F07", "shipped"));
+        Assert.Contains("second throw", HowToPlay.TutorialSetup("T-F07", "c80"));
+    }
+
+    [Fact]
     public void EveryRunnableLessonHasTeachingCopyForBothSchemes()
     {
         var catalog = TutorialCatalog.Load(ContentCatalog.Load());
@@ -13,9 +40,9 @@ public sealed class TutorialNavigationTests
         {
             Assert.NotEqual(lesson.Id, HowToPlay.TutorialTitle(lesson.Id));
             Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialGoal(lesson.Id)), lesson.Id + " needs a goal");
-            Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialSetup(lesson.Id)), lesson.Id + " needs a setup");
+            Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialSetup(lesson.Id, catalog.Profile)), lesson.Id + " needs a setup");
             foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-                Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialControls(lesson.Id, scheme)), lesson.Id + " needs " + scheme + " controls");
+                Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialControls(lesson.Id, scheme, catalog.Profile)), lesson.Id + " needs " + scheme + " controls");
         }
     }
 

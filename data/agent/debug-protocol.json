@@ -322,6 +322,16 @@
       "promoted": "TutorialFieldTests.NeutralStickWestStillOwnsTheCompletedJumpCatch",
       "issue": "#790",
       "pr": ""
+    },
+    {
+      "id": "tutorial-hides-live-readouts",
+      "signature": "Tutorial pitcher swap opens but the selected candidate and tired arm are invisible; tutorial overlay replaces all normal match HUD.",
+      "stage": "unity-console",
+      "cause": "HudView.Draw returned from TrainingPlay before Play could draw the pitcher/batter cards, scorebug and bases.",
+      "fix": "Draw the ordinary match readouts during training and put coaching in BroadcastHud.TutorialCoach, clear of the score and player cards. Tutorial choices remain readable through the same live HUD used by Exhibition.",
+      "promoted": "TutorialNavigationTests.CoachingDoesNotHideTheOrdinaryGameplayReadouts",
+      "issue": "#795",
+      "pr": ""
     }
   ]
 }

@@ -57,7 +57,7 @@ public static partial class HowToPlay
         "T-D02" => "Force the runner at second, then throw to first for two outs.",
         _ => RemainingTutorial(id)?.Goal ?? TutorialGuidedGoal(id)
     };
-    public static string TutorialSetup(string id) => id switch
+    public static string TutorialSetup(string id, string profile = "shipped") => id switch
     {
         "T-P02" => "The batter takes. Moving farther on the rubber carries the crossing outside the zone. A strike or hit batter does not count.",
         "T-B03" or "T-B03-L" => "The CPU repeats a middle fastball. Timing steers the hit: early pulls, late pushes. The sides reverse for a left-handed batter. Keep the stick centered.",
@@ -76,9 +76,9 @@ public static partial class HowToPlay
         "T-F01" => "A ground ball comes to the left side. Follow the ball with the highlighted glove.",
         "T-F05" => "A low fly heads toward your glove. Get close, then dive just before it lands.",
         "T-D02" => "A runner starts on first. Field the grounder, throw to second, then throw from that glove to first.",
-        _ => RemainingTutorial(id)?.Setup ?? TutorialGuidedSetup(id)
+        _ => RemainingTutorial(id, profile)?.Setup ?? TutorialGuidedSetup(id)
     };
-    public static string TutorialControls(string id, InputScheme scheme)
+    public static string TutorialControls(string id, InputScheme scheme, string profile = "shipped")
     {
         var pad = scheme == InputScheme.Pad;
         return id switch
@@ -110,7 +110,7 @@ public static partial class HowToPlay
             "T-F05" => pad ? "Left stick moves your glove. East dives toward the ball." : "WASD moves your glove. G dives toward the ball.",
             "T-D02" => pad ? "D-pad Up + South throws to second. Then Right + South throws to first."
                 : "2 + Space throws to second. Then 1 + Space throws to first.",
-            _ => (pad ? RemainingTutorial(id)?.Pad : RemainingTutorial(id)?.Keys) ?? TutorialGuidedControls(id, scheme)
+            _ => (pad ? RemainingTutorial(id, profile)?.Pad : RemainingTutorial(id, profile)?.Keys) ?? TutorialGuidedControls(id, scheme)
         };
     }
     public static string TutorialFeedbackText(string code) => code switch
@@ -122,6 +122,9 @@ public static partial class HowToPlay
         "pickoff-safe" or "pickoff-no-runner" => "Select first for this runner and make the pickoff throw before the opportunity ends.",
         "ball-dash-carried" => "Ball Dash sped up your fielder while you carried the secured ball.",
         "ball-dash-not-carried" => "Collect the ball with the Ball Dash fielder, then steer at full speed while holding it.",
+        "relay-handoff" => "Your cutoff feed and the onward throw completed the relay home.",
+        "snap-relay" => "The clean handoff used the receiver's Snap Throw on the onward leg.",
+        "relay-not-completed" => "Arm home, feed the cutoff and finish the onward throw for this rules profile.",
         "carom-returned" => "You read the wall bounce and your throw reached third.",
         "wrong-carom-bag" => "After the wall bounce, select third before throwing.",
         "carom-not-returned" => "Collect the rebound and send the ball to the receiver at third.",
