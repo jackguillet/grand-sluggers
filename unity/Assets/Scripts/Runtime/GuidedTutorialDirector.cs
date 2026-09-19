@@ -63,9 +63,9 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void GuidedLineupDrop(Character before, bool accepted)
+        void GuidedLineupDrop(LineupSeat seat, Character before, bool accepted)
         {
-            if (GuidedAttempt("T-G01") && accepted && before != null && before.Bats == Hand.L)
+            if (GuidedAttempt("T-G01") && seat == LineupSeat.Pad1 && accepted && before != null && before.Bats == Hand.L)
                 GuidedObserve(GuidedAction.LeftHandedRosterDrop);
         }
 
