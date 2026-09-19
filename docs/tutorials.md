@@ -168,3 +168,9 @@ Seven headless exercises use the existing Harbor live-play rules and the same th
 - **T-F06 jump catch:** a 245-ft, 34° center fly with Basil in center. The player takes the glove and presses West; shipped rules arm a jump ahead of contact, while C80 executes its physical arc. The command must belong to that manual glove and the completed play must record its `Jump` catch out. An early leap that misses, an assisted catch, or South alone fails as `no-jumping-out`.
 
 The test runner drives ordinary `LivePadInput` and checks three earned attempts, wrong/dead/CPU input, receiver timing across later nonhuman ticks, demonstrations, retries, and exact deterministic replay on both profiles. These fixtures author opportunities, not catches, throws, outs, or changed rule windows.
+
+## Fielding teaching flow (#791)
+
+The standalone browser presents the seven field fundamentals from #790 with separate brief, goal, setup, controls and feedback for each. The four named bags remain separate lessons, so each requires three successful throws. Fielding now spans two pages. Copy distinguishes a throw received at a bag from an out, a catch in the air from a scoop after a bounce, and a jump catch from a standing catch or dive.
+
+The existing live-field input, camera and feedback path serves every exercise. How to play includes the same bag, catch and jump controls for both schemes. Agent UI verification is separate from the pending human learning/transfer and physical-controller gates.
