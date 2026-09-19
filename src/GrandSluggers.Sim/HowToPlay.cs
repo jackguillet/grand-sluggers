@@ -407,13 +407,13 @@ public static partial class HowToPlay
             "Start    call time. Esc    this book from title and a pitch.",
             "South ok. East resume.",
             "Title West    Tutorials. Left/right categories, up/down lessons across pages. Three successes pass.",
-            "Field lessons    South catches; West jumps; D-pad + South throws to the named bag.",
+            "Field lessons    Steer + South catches; West jumps; D-pad + South throws to the named bag.",
         ],
         [
             "H    call time. Esc    this book from title and a pitch.",
             "Space / left click ok. G / right click resume.",
             "Title F    Tutorials. A/D categories, W/S lessons across pages. Three successes pass.",
-            "Field lessons    Space catches; F jumps; 1/2/3/4 + Space throws to the named bag.",
+            "Field lessons    WASD + Space catches; F jumps; 1/2/3/4 + Space throws to the named bag.",
         ]),
     ];
 
