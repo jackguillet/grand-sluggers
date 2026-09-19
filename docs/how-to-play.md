@@ -198,7 +198,7 @@ Each lesson shows its goal, setup, and controls for the active input scheme befo
 
 Early/late timing and grounder/fly launch are separate lessons, so each action requires its own three successes. Timing mirrors the batter’s handedness. For grounder/fly lessons, hold **stick up/W** or **stick down/S** during the pitch while tapping the swing; down during SET only recenters the box. Batting spans two pages; moving past the last visible row reveals the next page.
 
-Fielding lessons teach manual takeover, throws to each named base, ordinary airborne catches, and jump catches as separate actions. Select a bag with **D-pad Right/Up/Left/Down** or **1/2/3/4**, then throw with **South/Space**. Catch with **South/Space**; jump with **West/F**. A throw needs a real receiver, and an airborne catch must happen before the bounce.
+Fielding lessons teach manual takeover, throws to each named base, ordinary airborne catches, and jump catches as separate actions. Select a bag with **D-pad Right/Up/Left/Down** or **1/2/3/4**, then throw with **South/Space**. For the ordinary airborne-catch lesson, keep steering with **stick/WASD** while pressing **South/Space**; a neutral stick hands the catch to assistance. Jump with **West/F**. A throw needs a real receiver, and an airborne catch must happen before the bounce.
 
 Every lesson requires **three successful attempts**. The counter shows 0/3 through 3/3 in the list, brief, play HUD and feedback. Failures keep earlier successes, and partial progress is saved when you leave or close the game. Old one-success passes do not satisfy this requirement.
 
