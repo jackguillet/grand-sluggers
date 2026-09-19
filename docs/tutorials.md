@@ -1,6 +1,6 @@
 # Tutorials — every mechanic has a playable lesson
 
-Status: **product requirement and implementation plan**, September 19, 2026. No new tutorial runtime ships with this document. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
+Status: **gameplay core implemented; presentation and human learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen remains a separate presentation child. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
 
 ## Product contract
 
@@ -39,7 +39,7 @@ The lesson supplies a situation, the CPU supplies an opportunity, and the player
 
 ## First six lessons
 
-These are planned acceptance contracts, not a claim that the current Practice code meets them. “Slap hit” names the game's existing uncharged swing (the brief's “slap shot”). Existing S-ids are reusable regression anchors; add lesson-specific tests for setup, ownership, failure and retry.
+These acceptance contracts are exercised by `TutorialSessionTests` on shipped and C80 roots. They are headless lessons; the legacy Practice screen does not yet expose them. “Slap hit” names the game's existing uncharged swing (the brief's “slap shot”). Existing S-ids are reusable regression anchors; add lesson-specific tests for setup, ownership, failure and retry.
 
 1. **T-P01 — Throw a strike.** Human pitches; CPU takes. Reset to a fresh count, a consistent batter and neutral pitcher stamina. Pass on the player's delivery producing a called strike through the normal plate crossing. An out-of-zone delivery fails even if another CPU policy would chase it. Anchors: spec §4.4, S-01/S-02.
 2. **T-P03 — Throw a changeup.** Human pitches; CPU takes; show the active changeup binding. Pass only when a player-commanded changeup crosses the intended in-zone target through the real flight. A fastball strike cannot pass. Teach the timing contrast against an ordinary pitch without inventing a second speed curve. Anchors: §4.1–4.4 and the existing changeup flight tests.
@@ -50,7 +50,7 @@ These are planned acceptance contracts, not a claim that the current Practice co
 
 ## Coverage backlog
 
-All ids below are **planned**, including the six first lessons. Existing broad Practice behavior is partial reuse, not tutorial completion. This is the initial inventory; the catalog implementation must reconcile it against every player-facing spec section, control verb, ability and enabled feature. No unsupported future mechanic is enabled by appearing here.
+The first six ids are **implemented in the headless runner**. The other ids remain planned or blocked; `cli tutorials` is the current coverage report. Existing broad Practice behavior is partial reuse, not tutorial completion. This is the initial inventory; the catalog implementation must reconcile it against every player-facing spec section, control verb, ability and enabled feature. No unsupported future mechanic is enabled by appearing here.
 
 - **Pitching:** T-P01 strikes; T-P02 aim/location and balls versus strikes; T-P03 changeup; T-P04 charge/MAX; T-P05 break after release; T-P06 rubber positioning; T-P07 stamina/pitcher substitution; T-P08 pickoff; T-P09 star pitch (scope dependent).
 - **Batting:** T-B01 slap contact; T-B02 cursor/sweet spot; T-B03 early/late direction; T-B04 charged swing; T-B05 box positioning; T-B06 launch direction; T-B07 bunt and foul-bunt risk; T-B08 recognize/take a ball; T-B09 star swing (scope dependent).
@@ -62,7 +62,7 @@ All ids below are **planned**, including the six first lessons. Existing broad P
 
 ## Coverage that stays current
 
-The first implementation slice creates a versioned catalog (proposed home: `data/tutorials/`) and loader/validator in Sim. Avoid a growing `PracticeLesson` switch as the content registry. The catalog must carry:
+The versioned catalog lives in `data/tutorials/`: `mechanics.json` is the independent inventory, `lessons.json` carries lesson/setup definitions, and `migration.json` explicitly owns initial coverage debt. `TutorialCatalog` loads/validates it in Sim; `cli tutorials` and CI run the coverage gate. Avoid a growing `PracticeLesson` switch as the content registry. The catalog must carry:
 
 - Stable mechanic and lesson ids, title/category and lesson revision.
 - Spec/control/ability references and regression scenario/test references.
@@ -84,3 +84,18 @@ Unit/scenario tests must include successful input, no input, wrong input, CPU-on
 5. **Human learning gate.** In the Mac standalone, Jack selects an unfamiliar lesson, completes and retries it with keyboard/mouse and a pad, then performs the same action in Exhibition without external instructions. Check two-pad ownership where supported, small/large captains and both hands. Record build, data profile and remaining findings. Agents do not pass this gate.
 
 Continue the ordinary-loop C80 sitting and Harbor Exhibition gates while building this foundation. Tutorials can expose bad rules or unreadable plays; file those under their owning epics. Artwork follows a stable, learnable game.
+
+## Running and verifying the core (#772)
+
+`dotnet run --project src/GrandSluggers.Cli -- tutorials` validates and reports the active profile. Implemented means headless; it does not mean a human learning gate passed. Each item/star and each distinct field ability has its own inventory reference, so new runtime content cannot disappear into a generic Special lesson.
+
+`TutorialSession` accepts ordinary pitch, swing and field-pad commands. It recreates the seeded match on retry, keeps progress by lesson revision/profile, rejects CPU credit, and reports typed feedback. `Recording()` captures literal inputs plus the effective gameplay-input hash. `cli tutorials --replay recording.json` replays that recording and rejects a changed lesson revision/profile/input identity. Replays are diagnostic evidence, not proof a person learned the mechanic.
+
+Regression commands (run profiles in separate processes because the diamond is process-wide):
+
+```bash
+dotnet test src/GrandSluggers.Sim.Tests --filter FullyQualifiedName~Tutorial
+GRAND_SLUGGERS_TRIAL=trials/c80 dotnet test src/GrandSluggers.Sim.Tests --filter FullyQualifiedName~Tutorial
+```
+
+The authored grounder reuses S-40's 118-foot/4-degree/-18-degree opportunity. The shipped dive is a 250-foot, 12-degree, -18-degree ball; C80 uses a 120-mph, 16-degree, straight-ahead liner. These are lesson inputs, resolved through production flight and rules. They are not replacement trajectories or easier catch windows. Positive dive tests steer and commit; a dead-stick assisted dive fails.

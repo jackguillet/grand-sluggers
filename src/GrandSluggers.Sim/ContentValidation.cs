@@ -15,6 +15,8 @@ public static class ContentDataValidator
         "ball-dash", "burrow", "clamber", "dive", "grow", "laser", "lick-catch",
         "snap-throw", "spin-check", "super-jump", "withdraw"
     };
+    public static IReadOnlyCollection<string> TutorialFieldAbilities => FieldAbilityIds;
+
     static readonly HashSet<string> HazardTypes = new(StringComparer.Ordinal)
     {
         "ac_unit", "barrel", "billboard", "climb_wall", "fire_breath",
