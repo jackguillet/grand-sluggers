@@ -84,19 +84,21 @@ namespace GrandSluggers.UnityClient
             if (!_tutorialWasModal) { _tutorialUiAge = 0; _tutorialWasModal = true; }
             if (_tutorialUiAge < .2f) return true;
             var click = _tutorialClick; _tutorialClick = -1;
+            // Pointer actions belong to their IMGUI button on mouse-up, not the South alias on mouse-down.
+            var confirm = Controls.SouthDown && !Controls.PointerDown;
             if (_tutorialMenu)
             {
                 var count = _tutorialChoices.Length + 1; // preserve the existing free-practice escape hatch
                 var step = _tutorialY.Tick(Controls.MenuY, Controls.MenuTapY, dt);
                 if (step != 0) _tutorialPick = (_tutorialPick - step % count + count) % count;
                 if (click >= 0) { _tutorialPick = click; ChooseTutorialMenu(); }
-                else if (Controls.SouthDown) ChooseTutorialMenu();
+                else if (confirm) ChooseTutorialMenu();
                 else if (Controls.EastDown || click == -4) { _tutorialMenu = false; _mode = PlayMode.Exhibition; _t = 0; }
                 return true;
             }
             if (_coach.Tutorial.Phase == TutorialPhase.Brief)
             {
-                if (Controls.SouthDown || click == -2) BeginTutorialAttempt();
+                if (confirm || click == -2) BeginTutorialAttempt();
                 else if (Controls.EastDown || click == -3) OpenTutorials();
                 return true;
             }
@@ -107,7 +109,7 @@ namespace GrandSluggers.UnityClient
                     PlayerPrefs.SetInt(TutorialSaveKey(_coach.Tutorial.Lesson), 1);
                     PlayerPrefs.Save(); _tutorialSaved = true;
                 }
-                if (Controls.SouthDown || click == -2) PrepareTutorial(_coach.Tutorial.Lesson.Id);
+                if (confirm || click == -2) PrepareTutorial(_coach.Tutorial.Lesson.Id);
                 else if (Controls.WestDown || click == -5)
                 {
                     var next = (Array.FindIndex(_tutorialChoices, l => l.Id == _coach.Tutorial.Lesson.Id) + 1) % _tutorialChoices.Length;
