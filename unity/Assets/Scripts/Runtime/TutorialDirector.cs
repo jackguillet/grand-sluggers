@@ -192,7 +192,7 @@ namespace GrandSluggers.UnityClient
         LivePlayCommandResult TickTutorialField(float dt)
         {
             var run = _coach.Tutorial;
-            var pad = FieldInput();
+            var pad = run.IsOffenseLesson ? RunInput() : FieldInput();
             // Preserve simulation time through a long rendering frame without repeating edge-triggered commands.
             var left = (double)dt;
             LivePlayCommandResult result = new LivePlayCommandResult(_match.LivePlay.Snapshot);

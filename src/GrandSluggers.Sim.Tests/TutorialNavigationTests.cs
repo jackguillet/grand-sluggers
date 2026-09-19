@@ -5,6 +5,20 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class TutorialNavigationTests
 {
+    [Fact]
+    public void EveryRunnableLessonHasTeachingCopyForBothSchemes()
+    {
+        var catalog = TutorialCatalog.Load(ContentCatalog.Load());
+        foreach (var lesson in catalog.Lessons.Where(l => l.Status == "implemented" && l.Profiles.Contains(catalog.Profile)))
+        {
+            Assert.NotEqual(lesson.Id, HowToPlay.TutorialTitle(lesson.Id));
+            Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialGoal(lesson.Id)), lesson.Id + " needs a goal");
+            Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialSetup(lesson.Id)), lesson.Id + " needs a setup");
+            foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+                Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialControls(lesson.Id, scheme)), lesson.Id + " needs " + scheme + " controls");
+        }
+    }
+
     [Theory]
     [InlineData(1280, 800)]
     [InlineData(1920, 1080)]
