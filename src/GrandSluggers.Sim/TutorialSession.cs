@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 public enum TutorialPhase { Brief, Attempt, Feedback, Exited }
 public sealed record TutorialFeedback(bool Success, string Code, string Detail);
 public sealed record TutorialInput(double Time, LivePlayCommandSource Source, PitchCommand? Pitch = null,
-    SwingCommand? Swing = null, LivePadInput? Field = null);
+    SwingCommand? Swing = null, LivePadInput? Field = null, int PickoffBag = 0, string? SwapPitcherId = null);
 public sealed record TutorialRecording(int Version, string Lesson, int Revision, string Profile, string InputsHash, bool Demonstration, TutorialInput[] Inputs);
 public sealed record TutorialCompletion(string Lesson, int Revision, string Profile);
 
@@ -101,6 +101,7 @@ public sealed partial class TutorialSession
                 throw new InvalidDataException("Cannot station tutorial runner.");
         for (var strike = 0; strike < _setup.Strikes; strike++)
             Match.BeginAtBat(new PitchCommand("fastball", 0, false), Take, out _, out _);
+        PrepareSetOpportunity();
         InputsHash = PlayTraceIdentity.Capture(Match).Sha256;
         _firstRunner = Match.First?.Id ?? ""; _batter = Match.Batter.Id;
         _inputs.Clear(); _manualGloves.Clear(); _assistedSinceManual.Clear(); _divers.Clear(); _throws.Clear(); _humanJumpPresses.Clear();
@@ -172,7 +173,7 @@ public sealed partial class TutorialSession
         Elapsed += seconds;
         var pad = Accepts(source) ? input ?? LivePadInput.Dead : LivePadInput.Dead;
         _inputs.Add(new(Elapsed, source, Field: pad));
-        if (!IsFieldLesson)
+        if (!IsFieldLesson && !Match.LivePlay.Active)
         {
             if (Elapsed >= _setup.TimeoutSec) Finish(false, "timeout", "No completed attempt. Retry when ready.");
             return;
@@ -260,6 +261,7 @@ public sealed partial class TutorialSession
                 && _throws.SequenceEqual(new[] { 2, 1 });
             Finish(correct, correct ? "turned-two" : "double-play-missed", correct ? "Your two throws beat both runners: second, then first." : "Make the force at second, then command the throw to first before the batter arrives.");
         }
+        else if (Lesson.Objective == "human-pickoff") EvaluateSetPlay(result);
         else if (Lesson.Objective == "human-choice-second") EvaluateOutObjective(result);
         else EvaluateExpandedFieldObjective(live, result);
         if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
@@ -348,13 +350,17 @@ public sealed partial class TutorialSession
         foreach (var input in recording.Inputs)
         {
             if (input is null || !double.IsFinite(input.Time) || input.Time < run.Elapsed || run.Phase != TutorialPhase.Attempt
-                || new[] { input.Pitch is not null, input.Swing is not null, input.Field is not null }.Count(b => b) != 1)
+                || new[] { input.Pitch is not null, input.Swing is not null, input.Field is not null,
+                    input.PickoffBag > 0, input.SwapPitcherId is not null }.Count(b => b) != 1)
                 throw new InvalidDataException("Invalid tutorial input timeline.");
             if (input.Field is not null) run.Tick(input.Time - run.Elapsed, input.Field, input.Source);
             else
             {
                 if (input.Time != run.Elapsed) throw new InvalidDataException("Tutorial input omitted clock frames.");
-                var accepted = input.Pitch is not null ? run.Pitch(input.Pitch, input.Source) : run.Swing(input.Swing!, input.Source);
+                var accepted = input.Pitch is not null ? run.Pitch(input.Pitch, input.Source)
+                    : input.Swing is not null ? run.Swing(input.Swing, input.Source)
+                    : input.PickoffBag > 0 ? run.Pickoff(input.PickoffBag, input.Source)
+                    : run.SwapPitcher(input.SwapPitcherId!, input.Source);
                 if (!accepted) throw new InvalidDataException("Tutorial input does not belong to the teaching role.");
             }
         }
