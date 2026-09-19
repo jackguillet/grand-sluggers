@@ -11,17 +11,21 @@ public sealed partial class TutorialSession
     bool _runnerReturned;
     bool _humanDashed;
     double _furthestRunnerFeet;
+    bool _allSent;
+    bool _allReturned;
+    bool _humanSlide;
 
     void ResetRunningEvidence()
     {
         _lessonRunner = ""; _runnerSelected = false; _runnerSent = false;
         _runnerHeld = false; _runnerReturned = false; _humanDashed = false;
         _furthestRunnerFeet = 0;
+        _allSent = false; _allReturned = false; _humanSlide = false;
     }
 
     RunnerBefore? CaptureRunnerBefore()
     {
-        var runner = Match.RunnerAt(Lesson.Objective == "runner-send-halt-return" ? 2 : 0);
+        var runner = Match.RunnerAt(Lesson.Objective is "runner-send-halt-return" or "all-runner-return" ? 2 : 0);
         return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held);
     }
 
@@ -31,6 +35,23 @@ public sealed partial class TutorialSession
         var runner = Match.Runners.FirstOrDefault(r => r.Who.Id == before.Id);
         if (runner is null) return;
         _lessonRunner = before.Id;
+        if (Lesson.Objective == "all-runner-return")
+        {
+            var ahead = Match.RunnerAt(3);
+            if (ahead is null) return;
+            if (owned && pad.AllAdvance && Match.SendAll && runner.HumanSent && ahead.HumanSent
+                && runner.Phase == RunnerPhase.Advancing && ahead.Phase == RunnerPhase.Advancing)
+                _allSent = true;
+            if (owned && _allSent && pad.AllReturn && !Match.SendAll
+                && runner.Phase == RunnerPhase.Returning && ahead.Phase == RunnerPhase.Returning)
+                _allReturned = true;
+            if (_allReturned && runner.Bag == 2 && ahead.Bag == 3
+                && runner.Feet <= 1e-6 && ahead.Feet <= 1e-6
+                && runner.Phase is RunnerPhase.Returning or RunnerPhase.OnBag
+                && ahead.Phase is RunnerPhase.Returning or RunnerPhase.OnBag)
+                Finish(true, "all-runners-returned", "Both runners advanced and returned to their own bags.");
+            return;
+        }
         if (Lesson.Objective == "runner-send-halt-return")
         {
             // Each bit is a human order accepted by the same runner on the live basepath.
@@ -39,7 +60,8 @@ public sealed partial class TutorialSession
             if (owned && _runnerSelected && pad.StickBag == 3 && runner.HumanSent
                 && runner.Phase == RunnerPhase.Advancing && runner.Feet > before.Feet)
                 _runnerSent = true;
-            if (owned && _runnerSent && pad.Freeze && runner.Held && runner.Feet > 0)
+            if (owned && _runnerSent && pad.Freeze && pad.StickBag == runner.NextBag
+                && runner.Held && runner.Feet > 0)
                 _runnerHeld = true;
             if (owned && _runnerHeld && pad.StickBag == 2 && runner.Phase == RunnerPhase.Returning)
                 _runnerReturned = true;
@@ -54,7 +76,14 @@ public sealed partial class TutorialSession
             if (owned && pad.SouthDown && Match.LivePlay.Dash01 > 0) _humanDashed = true;
             _furthestRunnerFeet = Math.Max(_furthestRunnerFeet, runner.Feet);
             if (_humanDashed && _furthestRunnerFeet >= 30 && runner.Phase == RunnerPhase.Advancing)
-                Finish(true, "dashed-to-first", "Your dash accelerated the batter-runner along the first-base path.");
+                Finish(true, "runner-dashed", "Your dash accelerated the batter-runner along the first-base path.");
+        }
+        else if (Lesson.Objective == "human-slide")
+        {
+            if (owned && pad.WestDown && runner.ForceSlide && runner.Phase == RunnerPhase.Sliding)
+                _humanSlide = true;
+            if (_humanSlide && runner.Phase == RunnerPhase.Sliding && runner.Feet > before.Feet)
+                Finish(true, "slid-to-first", "Your runner slid along the first-base path near the bag.");
         }
     }
 }

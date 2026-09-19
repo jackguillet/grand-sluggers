@@ -1198,25 +1198,30 @@
     },
     {
       "id": "T-R02",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.02"
       ],
       "title": "all-runner commands and avoiding shared bags",
       "category": "running",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live runner lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-R02",
+      "objective": "all-runner-return",
+      "controls": [
+        "control:running/All advance",
+        "control:running/All return"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
     },
     {
       "id": "T-R03",
@@ -1270,25 +1275,29 @@
     },
     {
       "id": "T-R04",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.04"
       ],
       "title": "slide",
       "category": "running",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live runner lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-R04",
+      "objective": "human-slide",
+      "controls": [
+        "control:running/Close play"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
     },
     {
       "id": "T-R05",
@@ -3222,6 +3231,97 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": 32
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-R02",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        2,
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-R04",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "dart",
+        "cinder",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
         }
       },
       "seat": "offense"

@@ -198,7 +198,8 @@ public sealed partial class TutorialSession
         // West belongs to the defense seat even with a neutral pursuit stick. Shipped rules arm the jump;
         // C80 raises JumpTakeoff. A same-tick completed catch may reset both live flags, so use its typed feat.
         var acceptedJump = live.JumpT > 0 || live.Events.Contains(LiveEvent.JumpTakeoff)
-            || result.CompletedPlay?.Outcome?.DefensiveFeat == DefensiveFeat.Jump;
+            || result.CompletedPlay?.Fielder?.Id == who && result.CompletedPlay?.Outcome?.DefensiveFeat is
+                DefensiveFeat.Jump or DefensiveFeat.BuddyJump or DefensiveFeat.SuperJump or DefensiveFeat.Clamber;
         if (owned && pad.WestDown && acceptedJump)
             _humanJumpPresses.Add(who);
         var moved = Math.Abs(live.GloveX - x) + Math.Abs(live.GloveZ - z) > 1e-6;
