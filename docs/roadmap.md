@@ -4,17 +4,21 @@ The sim is a product. Unity is still a prototype skin on Harbor. Super Sluggers 
 
 This is the production plan **after** feel infrastructure (#107) and art rails (#118). Living specs: `data/feel/`, `data/art/`, `dotnet run --project src/GrandSluggers.Cli -- art`. Play: Unity `HarborDiamond.unity`. **Rules: [gameplay-spec.md](gameplay-spec.md).** **Agents: [agent-rails.md](agent-rails.md)** (#647).
 
-## Where we actually are (2026-09)
+## Where we actually are (reviewed 2026-09-19 at `05471a60`)
 
 **Shipped (do not rebuild as new work).** Rules, hops, tags, lines, scoops, Exhibition front-of-house, toon fill, named cameras, directors, HarborKit (diamond + dress), feel tables, F2 overlay, art catalog, HUD-off specials as catalog VFX events, audio buses with authored bat / glove / crowd, scorebug that mutes during spectacle, the How to play book, one shared rig with baked takes for every captain. Six captains, 18 role players, six park **JSON**s. Challenge exists as a session loop and stays later. **Agent rails** (#647): session split, debug protocol, play traces, dual stills, stage-save DCC, distill — R5 Unity CLI stays later. **Shared baseball body** (#628 / #627): default takes, handed equipment; extras stripped to size + color (#687 / #698).
 
 **Phase P shipped (2026-09-12, one day, nine sessions).** Every play is now decided by geometry from `data/rules/` tables: the cursor decides contact quality and timing decides direction; the flight has a fence, a wall, and foul lines; runners are bodies on the basepath with no lead-offs; the infield out is a race, not a roll; double plays, fielder's choices, close plays inside the margin, and rundowns follow spec §10; steals break at release and a pickoff catches only a runner who broke; the CPU pitcher, batter, fielder, runner, and steal decisions are tables with an EASY / NORMAL / HARD ladder; stamps and cameras come from typed outcomes; the book follows the verbs. `cli match` over fifty seeds sits in the spec band (S-29 in CI: 2.5–2.7 runs a side, singles over doubles, ~1.3 HR). What was true in the morning — the roll at `Fielding.cs:146`, the runner lookup table, the synthetic double play, the free base on a missed pickoff — is gone.
 
-**The gap now.** Phase P is still not done — agents do not pass the sittings. Parity **#534 has been run twice** (2026-09-13 on `95026535d3`; re-sit 2026-09-14 on `850dd95` with the #628 body). First-sitting children all landed. Re-sit children: six shipped, five still open (table below). **D7 wait** until the next re-sit (#677). Then the narrated half and #346. Until those gates pass, do not start Phase T.
+**The gameplay mapping has advanced.** The C80 trial now includes the overlay, geometry/drag, movement/read clocks, catch/dive/jump, recovery/recoil, handling errors, throw clocks, and throw commands/abilities (#716–#723). Their sim slices are merged; #769 adds the fielding chain's Unity input and body tells. Whole-race measurements and the accepted outfield calibration are in [research-game-feel-3d.md](research-game-feel-3d.md). These are substantial foundations, not an artwork pass. C80 remains a selectable trial; the shipped default has not been promoted.
+
+**The gap now.** Harbor still needs the human parity, narrated-half and book gates (#534 / #209 / #346), the ordinary-loop C80 sitting and explicit default-promotion decision under #715, and remaining open gameplay findings including #684 and #688. The tracker closes #690 (live stamps), #692 (CPU fly return), and the original #693 research issue; its ongoing compact-profile work remains under #715/#708 and the [decision plan](plan-game-feel-693.md). Geometry/scaling questions #730/#732 remain open. Closed implementation issues do not pass the human gates. Special-attack/status work excluded from the ordinary C80 validation remains separate debt.
+
+**Tutorials are part of the bones.** Jack's September 19 direction is to keep building gameplay foundations before generating artwork and to provide a playable tutorial for every mechanic. [tutorials.md](tutorials.md), tracked in [#770](https://github.com/jackguillet/grand-sluggers/issues/770), defines the coverage contract, the first six lessons, controlled CPU setups, and implementation slices. Existing Practice has five broad categories plus Free Practice; it does not yet satisfy mechanic-level coverage. Tutorial coverage grows with each feature rather than becoming a documentation sweep at the end.
 
 **Definition of Nintendo-level for this game (unchanged).** Couch, gamepad, three innings at Harbor. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race. You want to play again.
 
-**Sequence from here.** Remaining re-sit children (#684, #688, #690, #692, #693), rebuild, re-sit #534 and call D7, narrated half, #346 book, skeptic pass, then Phase T. Phases A–E stay the presentation plan they always were.
+**Sequence from here.** Continue the C80/Exhibition gameplay gates and sitting-found fixes; establish tutorial coverage and a reusable lesson runner; connect the Tutorials section in a separate presentation session; expand lessons with each mechanic. Complete parity/D7, the narrated half, and the #346 learning gate. Artwork/Phase T stays behind this learnable gameplay foundation; tutorials do not start deferred modes.
 
 Tracker #39 is the older checklist. Many of its children shipped as first-pass. This doc is the sequence from **now**.
 
@@ -22,7 +26,7 @@ Tracker #39 is the older checklist. Many of its children shipped as first-pass. 
 
 ## Scale and pace foundation (#693)
 
-The sitting found contact and throws too fast. This is a coupled game contract, not a local park shrink. [Research](research-game-feel-693.md), [decision register and staged work](plan-game-feel-693.md), and [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693) govern this work. Compare Wii and GameCube before choosing; collect proportions and full race timings, then accept targets, calibrate gameplay, present the approved race, and re-sit in the standalone. Reference measurements, target approval, and human acceptance remain open. Harbor Exhibition retains priority; this does not start more parks or deferred modes.
+The sitting found contact and throws too fast. This is a coupled game contract, not a local park shrink. [Research](research-game-feel-693.md), [decision register and staged work](plan-game-feel-693.md), and [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693) govern this work. Compare Wii and GameCube before choosing; collect proportions and full race timings, then accept targets, calibrate gameplay, present the approved race, and re-sit in the standalone. Many trial anchors and their implementations have since landed; the decision plan distinguishes accepted, measured and deferred work. Final promotion and human acceptance remain open. Harbor Exhibition retains priority; this does not start more parks or deferred modes.
 
 ## How we use coding agents
 
@@ -127,10 +131,10 @@ What sticks becomes a sitting-found child. Distill: file, append `data/agent/deb
 | #687 | Strip extras; size + color only | ✅ #698 |
 | #688 | Runners cannot share a bag; per-runner send/hold | open |
 | #689 | Yellow throw-destination line | ✅ #699 |
-| #690 | Stamp each event when it happens | open |
+| #690 | Stamp each event when it happens | closed; typed live stamps landed |
 | #691 | Infielders scale up holding the ball | ✅ #700 |
-| #692 | CPU doubled off on a clear fly out | open |
-| #693 | Research Sluggers field proportions; bat/throws too fast | open |
+| #692 | CPU doubled off on a clear fly out | closed; caught-fly state preserved |
+| #693 | Research Sluggers field proportions; bat/throws too fast | closed research tracker; C80 work/gates continue in #715/#708 |
 
 Also landed beside: plate bat (#560 / #671), turntable (#559 / #664), Esc/H (#629 / #663), shadow code (#646; visibility gate #645 still open), shared body (#628).
 
@@ -225,15 +229,13 @@ Only if A–C stills exist and Phase P has exited. Rule: **three good parks beat
 
 ## Recommended next move
 
-**Close the open re-sit children, rebuild, re-sit #534, call D7, then the other two gates.**
+**Finish the learnable ordinary game, with tutorial coverage, before more artwork.**
 
-Open: **#684** foul behind home · **#688** share a bag / per-runner · **#690** live stamps · **#692** CPU doubled off on a fly · **#693** research Sluggers proportions (before any speed/scale number).
-
-1. One worktree per child. Session kind on the issue. #693 is research first.
-2. `python3 tools/local-player.py`, **re-sit #534**, then D7 keep / speed up / middle. Do not retune `arcadeScale` from an older sitting.
-3. Narrated half, then #346. Call time → How to play must be enough.
-4. Skeptic pass: Exhibition → pitch → swing → grounder → throw → steal; S-29 (`cli match --trace`).
-5. **Phase T (#246)** only after those gates. Do not start R5.
+1. Continue #715's C80 standalone sitting and explicit promotion decision; preserve the shipped/trial distinction and the documented special/status exclusions. Resolve #730/#732 scaling questions through their existing owners.
+2. Work the remaining Exhibition findings, including #684 and #688, in dedicated worktrees. Re-sit #534 and call D7 from that sitting; do not retune pitch pace from an older one.
+3. Build [tutorials.md](tutorials.md) in order: mechanic coverage catalog → shared sim lesson runner and six first lessons → Tutorials UI/book in a separate presentation child. Every new mechanic carries tutorial coverage in its own PR.
+4. Narrated half, #346 book-to-play gate, and the tutorial learning/transfer check in the Mac standalone. Record build and profile; agents do not pass these.
+5. Skeptic pass on the named Exhibition path and lesson retries. Phase T (#246) follows the gameplay/learning gates. R5, extra parks and deferred modes stay later.
 
 Command to keep agents honest:
 
