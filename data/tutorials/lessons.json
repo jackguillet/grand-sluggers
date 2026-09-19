@@ -873,7 +873,7 @@
       "title": "wall carom",
       "category": "fielding",
       "status": "implemented",
-      "issue": 794,
+      "issue": 797,
       "reason": "Headless live-play exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
@@ -899,7 +899,7 @@
       "title": "buddy jump/wall rob (ability dependent)",
       "category": "fielding",
       "status": "implemented",
-      "issue": 794,
+      "issue": 797,
       "reason": "Headless live-play exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
@@ -918,25 +918,30 @@
     },
     {
       "id": "T-F13",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.13"
       ],
       "title": "Ball Dash",
       "category": "fielding",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only Ball Dash carrier; no shipped roster holder; standalone learning gate pending",
       "profiles": [
-        "shipped",
         "c80"
       ],
-      "requires": [],
+      "requires": [
+        "ball-dash"
+      ],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F13",
+      "objective": "human-ball-dash",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-F14",
@@ -3589,6 +3594,49 @@
           "exitMph": 120,
           "launchDeg": 30,
           "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F13",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "dart",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "nico",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
         }
       }
     }

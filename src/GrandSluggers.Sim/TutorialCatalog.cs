@@ -26,7 +26,7 @@ public sealed class TutorialCatalog
         "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide",
-        "human-wall-carom", "human-buddy-rob", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
+        "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap"];
 
@@ -131,7 +131,7 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "manual-takeover" or "human-double-play"
                     or "throw-bag-1" or "throw-bag-2" or "throw-bag-3" or "throw-bag-4"
                     or "runner-send-halt-return" or "human-dash-run" or "all-runner-return" or "human-slide"
-                    or "human-choice-second")
+                    or "human-choice-second" or "human-ball-dash")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
                     or "human-wall-carom" or "human-buddy-rob"), l.Id + " setup/objective mismatch");

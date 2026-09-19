@@ -4,6 +4,17 @@ namespace GrandSluggers.Sim;
 public sealed partial class TutorialSession
 {
     bool _wallCaromSeen;
+    double _dashLastTime;
+    double _dashLastX;
+    double _dashLastZ;
+
+    partial void ResetAdvancedEvidence()
+    {
+        _wallCaromSeen = false;
+        _dashLastTime = 0;
+        _dashLastX = 0;
+        _dashLastZ = 0;
+    }
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
@@ -24,6 +35,34 @@ public sealed partial class TutorialSession
             else if (result.CompletedPlay is not null)
                 Finish(false, _wallCaromSeen ? "carom-not-returned" : "no-carom",
                     "The ball must hit the wall before your throw reaches third.");
+            return;
+        }
+
+        if (Lesson.Objective == "human-ball-dash")
+        {
+            var previousTime = _dashLastTime;
+            var previousX = _dashLastX;
+            var previousZ = _dashLastZ;
+            _dashLastTime = Elapsed;
+            _dashLastX = live.GloveX;
+            _dashLastZ = live.GloveZ;
+            var input = _inputs[^1];
+            var pad = input.Field;
+            if (live.HoldsBall && !live.Throwing && input.Source == LivePlayCommandSource.Human && !Demonstration
+                && pad is { StickX: var sx, StickY: var sz } && sx * sx + sz * sz >= .95 * .95
+                && previousTime > 0 && Elapsed > previousTime)
+            {
+                var carrier = _content.Must(live.TutorialGloveId);
+                var ordinary = FieldingResolver.ChaseSpeedFt(carrier, live.GlovePos, live.Preview, Match.Rules);
+                var actual = Diamond.Dist(previousX, previousZ, live.GloveX, live.GloveZ) / (Elapsed - previousTime);
+                if (FieldAbilities.HasBallDash(carrier) && actual >= ordinary * 1.15)
+                {
+                    Finish(true, "ball-dash-carried", "You carried the live ball at Ball Dash speed.");
+                    return;
+                }
+            }
+            if (result.CompletedPlay is not null)
+                Finish(false, "ball-dash-not-carried", "Secure the ball with a Ball Dash holder, then steer that glove at full speed.");
             return;
         }
 
