@@ -1,6 +1,6 @@
 # Tutorials — every mechanic has a playable lesson
 
-Status: **gameplay core implemented; presentation and human learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen remains a separate presentation child. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
+Status: **first six lessons implemented in preview; expansion and human learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778 and its separate presentation child. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
 
 ## Product contract
 
@@ -33,7 +33,7 @@ The lesson supplies a situation, the CPU supplies an opportunity, and the player
 
 **Evidence.** A named objective evaluator reads typed sim facts and the teaching seat's accepted command history. Counts/captions alone are insufficient. State whether the objective is contact, a fair hit, a catch, an out, or a particular sequence. Feedback explains the decisive miss (outside the zone, late swing, missed catch, wrong bag, runner beat the throw). Numeric tolerances come from the active rules or an explicitly authored lesson target, never a hidden easier baseball model.
 
-**Lifecycle.** Select → brief → optional demonstration → ready → attempt → feedback → retry / next / exit. Retry restores all relevant state: count, outs, runners, ball, fielders, selection, pending commands, recovery/status timers, stars/stamina, RNG, and lesson counters. No prior success can satisfy the next attempt. Support immediate retry, pause, skipping, and direct lesson selection; no long compulsory sequence. Save learning progress separately from match state, with lesson-version identity so changed objectives can be marked for refresh without erasing unrelated progress.
+**Lifecycle.** Select → brief → optional demonstration → ready → attempt → feedback → retry / next / exit. Retry restores all relevant state: count, outs, runners, ball, fielders, selection, pending commands, recovery/status timers, stars/stamina, RNG, and per-attempt evidence. Every tutorial passes only after three distinct successful attempts. A failure does not remove an earlier success. Persist 0/3, 1/3, 2/3, and 3/3 by lesson revision/profile; retries and leaving/reopening a lesson keep earned progress. Duplicate input/results, CPU-only attempts, and demonstrations never add credit. Old single-success completion is retired through a lesson revision bump. No prior play evidence can satisfy the next attempt. Support immediate retry, pause, skipping, and direct lesson selection; no long compulsory sequence. Save learning progress separately from match state, with lesson-version identity so changed objectives can be marked for refresh without erasing unrelated progress.
 
 **Transfer.** First offer a stable setup; then a small authored set of variations (side, pitch location, runner speed, character/handedness) and free practice. Expose prerequisites as recommendations, not mandatory locks. A player should recognize the same action in Exhibition afterward.
 
@@ -105,3 +105,17 @@ The authored grounder reuses S-40's 118-foot/4-degree/-18-degree opportunity. Th
 Title West / F opens the lesson list; each available lesson has a brief, attempt, specific feedback, retry, next, and return to lessons. Free practice stays available. The teaching seat follows the player's role (away for batting, home for pitching/fielding), even with a second pad connected. Saved checkmarks use profile + lesson id + revision. Menus freeze attempts; Call time and How to play remain available. Presentation delegates outcomes to `TutorialSession` and reuses the normal Harbor cameras, actors, input, and live-play view.
 
 The first six are available for preview, not human-accepted. Standalone pad/keyboard learning and transfer to Exhibition remain the gate in #770/#774. No art is added by this slice.
+
+
+## Expansion sequence after the three-success rail
+
+All remaining mechanics already have stable catalog entries. Implement the accepted ordinary rules in these groups, with a gameplay child and then a presentation child for each. Each lesson needs a reproducible opportunity, player-owned command evidence, specific failure feedback, and three separate successes. Coverage is not complete just because an entry exists.
+
+1. **Pitching and batting fundamentals:** location/balls, charge/MAX, break, rubber/box positioning, cursor contact, early/late direction, launch direction, bunt/foul-bunt and taking a ball (T-P02/P04–P06; T-B02–B08). Reuse plate commands and the real crossing/contact resolver.
+2. **Fielding and throws:** takeover, named bags, fly/liner catch, jump, receiver handoff/cutoff, buffering/retarget/cancel, loose balls/recovery and uncovered bags (T-F02–F04/F06–F10). Reuse live glove/throw state, with separate single-action lessons before combined plays.
+3. **Running and steals:** individual/all-runner orders, dash/rounding, slides, fly return/tag-up, steals and catcher defense (T-R01–R08). Control opposing throws/runners to produce repeatable opportunities; the teaching seat owns its runner or catcher.
+4. **Outs and decisions:** force/tag distinctions, choosing the out, doubled-off runners, rundowns, close plays, scoring at the third out, then triple plays (T-D01/D03–D08). Prerequisites come from the earlier verbs; outcomes require the right runner/bag identities.
+5. **Team and game literacy:** substitutions/stamina, lineup/handedness, chemistry, resources, counts/innings, two-controller roles and recovery/pause/book (T-P07, T-G01–G06). Repeated guided decisions in the existing screens count as attempts; a controls-page visit does not.
+6. **Abilities and special interactions:** individual enabled field abilities, star moves, item use/counterplay, wall plays and pickoffs. Keep catalog profile/dependency restrictions explicit. Mechanics with unresolved design remain blocked; extra parks and deferred modes are not unlocked by tutorial work.
+
+Human learning gates remain pending while Jack is unavailable. Continue mapping, headless implementation and agent UI checks; do not claim human acceptance or merge gated presentation to bypass the sitting.

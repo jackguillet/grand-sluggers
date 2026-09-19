@@ -31,7 +31,7 @@ switch (cmd)
                 var recording = System.Text.Json.JsonSerializer.Deserialize<TutorialRecording>(File.ReadAllText(args[2]));
                 if (recording is null) throw new InvalidDataException("Empty tutorial recording.");
                 var run = TutorialSession.Replay(content, tutorials, recording);
-                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new { tutorials.Profile, run.Lesson.Id, run.Phase, run.Feedback, run.HumanThrows }));
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new { tutorials.Profile, run.Lesson.Id, run.Phase, run.Feedback, run.Successes, requiredSuccesses = TutorialProgress.RequiredSuccesses, run.Passed, run.HumanThrows }));
                 Environment.ExitCode = run.Feedback?.Success == true ? 0 : 1;
             }
             else if (args.Length == 1)

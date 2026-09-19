@@ -29,7 +29,8 @@ public sealed class TutorialSessionTests
         Assert.Empty(run.Inputs);
         Assert.True(run.Pitch(new("fastball", 0, false, Changeup: changeup)));
         Assert.True(run.Feedback!.Success, run.Feedback.Detail);
-        Assert.True(run.Progress.Has(run.Lesson, TutorialCatalog.Load(_content).Profile));
+        Assert.Equal(1, run.Successes);
+        Assert.False(run.Passed);
     }
 
     [Fact]
@@ -135,7 +136,7 @@ public sealed class TutorialSessionTests
         Assert.False(demoReplay.Feedback!.Success);Assert.Empty(demoReplay.Progress.Completed);
         run.Progress.Restore([new("T-P01",999,catalog.Profile)],catalog);
         Assert.Empty(run.Progress.Completed);
-        run.Retry();run.Pitch(new("fastball",0,false));Assert.Single(run.Progress.Completed);
+        run.Retry();run.Pitch(new("fastball",0,false));Assert.Equal(1, run.Successes);Assert.Empty(run.Progress.Completed);
     }
 
     [Theory]
