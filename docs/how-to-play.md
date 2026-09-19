@@ -187,9 +187,18 @@ The window plays the copy only when a run names it: `GRAND_SLUGGERS_TRIAL=trials
 
 From title, **West** on a pad or **F** on keyboard opens **Tutorials**. Use left/right on the stick or **A/D** for categories, and up/down or **W/S** for lessons. Click a category tab or lesson to select it. Lists show at most six lessons per page; keep moving up/down or click the page arrows to browse. Use **South / Space** (or click) to read the goal and start. Tutorials are player 1 versus a controlled CPU setup; a second pad does not take over the teaching opponent.
 
-The nineteen lessons cover **Throw a strike**, **Throw a ball**, **Throw a changeup**, **MAX pitch**, **Bend a pitch**, **Move on the rubber**, **Slap hit**, **Find the sweet spot**, **Pull an early hit**, **Push a late hit**, **Move in the box**, **Hit a grounder**, **Lift a fly ball**, **MAX swing**, **Bunt with two strikes**, **Take a ball**, **Field a ground ball**, **Dive for an out**, and **Turn a double play**. Each shows its goal, setup, and controls for the active input scheme before the attempt. Pitching lessons have a batter who takes; batting gets a repeatable middle fastball, except Take a ball gets a high ball and Move in the box gets an offset strike; bunting begins with two strikes; fielding lessons start from authored contact and base occupancy. Real baseball rules resolve every attempt.
+The 26 lessons are grouped by skill:
+
+- **Pitching:** strike, called ball, changeup, MAX pitch, break, and rubber positioning.
+- **Batting:** slap, sweet spot, early pull, late push, MAX swing, box positioning, grounder, fly ball, two-strike bunt, and taking a ball.
+- **Fielding:** ground pickup, manual takeover, throws to first/second/third/home, airborne catch, dive, and jump catch.
+- **Outs:** turn a double play.
+
+Each lesson shows its goal, setup, and controls for the active input scheme before the attempt. Pitching lessons use a batter who takes. Batting gets a repeatable middle fastball, except Take a ball gets a high ball and Move in the box gets an offset strike; bunting begins with two strikes. Fielding starts from authored contact and base occupancy. Real baseball rules resolve every attempt.
 
 Early/late timing and grounder/fly launch are separate lessons, so each action requires its own three successes. Timing mirrors the batter’s handedness. For grounder/fly lessons, hold **stick up/W** or **stick down/S** during the pitch while tapping the swing; down during SET only recenters the box. Batting spans two pages; moving past the last visible row reveals the next page.
+
+Fielding lessons teach manual takeover, throws to each named base, ordinary airborne catches, and jump catches as separate actions. Select a bag with **D-pad Right/Up/Left/Down** or **1/2/3/4**, then throw with **South/Space**. Catch with **South/Space**; jump with **West/F**. A throw needs a real receiver, and an airborne catch must happen before the bounce.
 
 Every lesson requires **three successful attempts**. The counter shows 0/3 through 3/3 in the list, brief, play HUD and feedback. Failures keep earlier successes, and partial progress is saved when you leave or close the game. Old one-success passes do not satisfy this requirement.
 

@@ -102,4 +102,28 @@ public sealed class TutorialNavigationTests
         Assert.NotEmpty(HowToPlay.TutorialControls(id, InputScheme.Keys));
     }
 
+    [Theory]
+    [InlineData("T-F02")][InlineData("T-F03")][InlineData("T-F03-2")][InlineData("T-F03-3")]
+    [InlineData("T-F03-H")][InlineData("T-F04")][InlineData("T-F06")]
+    public void FieldLessonsExplainTheGoalSetupAndBothControlSchemes(string id)
+    {
+        Assert.NotEqual(id, HowToPlay.TutorialTitle(id));
+        Assert.NotEmpty(HowToPlay.TutorialGoal(id));
+        Assert.NotEmpty(HowToPlay.TutorialSetup(id));
+        Assert.NotEmpty(HowToPlay.TutorialControls(id, InputScheme.Keys));
+        Assert.NotEmpty(HowToPlay.TutorialControls(id, InputScheme.Pad));
+    }
+
+    [Theory]
+    [InlineData("T-F03", "first", "Right", "1")]
+    [InlineData("T-F03-2", "second", "Up", "2")]
+    [InlineData("T-F03-3", "third", "Left", "3")]
+    [InlineData("T-F03-H", "home", "Down", "4")]
+    public void NamedThrowLessonsTeachTheCorrespondingBagInput(string id, string bag, string direction, string key)
+    {
+        Assert.Contains(bag, HowToPlay.TutorialGoal(id).ToLowerInvariant());
+        Assert.Contains("D-pad " + direction, HowToPlay.TutorialControls(id, InputScheme.Pad));
+        Assert.Contains(key + " selects", HowToPlay.TutorialControls(id, InputScheme.Keys));
+    }
+
 }
