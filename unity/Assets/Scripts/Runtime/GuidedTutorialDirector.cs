@@ -24,7 +24,8 @@ namespace GrandSluggers.UnityClient
             _mode = PlayMode.Exhibition;
             _versusWanted = false;
             HomeCaptain = _guidedHomeCaptain; AwayCaptain = _guidedAwayCaptain;
-            ParkId = _guidedPark; Night = _guidedNight; Pad1Home = _guidedPad1Home; Seed = _guidedSeed;
+            ParkId = lesson.Id.StartsWith("T-G06", StringComparison.Ordinal) ? Training.ParkId : _guidedPark;
+            Night = _guidedNight; Pad1Home = _guidedPad1Home; Seed = _guidedSeed;
             _guided = new GuidedTutorialSession(lesson, _tutorials.Profile, _tutorialProgress);
             _tutorialSaved = false; _tutorialMenu = false; _tutorialUiAge = 0; _tutorialWasModal = true;
             _match = NewMatch();
@@ -34,10 +35,18 @@ namespace GrandSluggers.UnityClient
 
         void BeginGuidedAttempt()
         {
+            var onSet = _guided.Lesson.Id.StartsWith("T-G06", StringComparison.Ordinal);
+            var needsPad = _guided.Lesson.Id is "T-G06-R" or "T-G06-C";
+            if (needsPad && (Controls.PadCount == 0 || Controls.Player1InputMode == Controls.P1InputMode.KeyboardMouse))
+                return;
             _guided.Begin();
             _tutorialUiAge = 0;
             Controls.CatchPlay();
-            OpenSelect();
+            if (!onSet) { OpenSelect(); return; }
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
+            _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
+            _clip = null; _hlPath = null;
+            BeginSet();
         }
 
         void GuidedObserve(GuidedAction action)

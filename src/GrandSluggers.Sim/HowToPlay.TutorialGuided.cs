@@ -21,8 +21,8 @@ public static partial class HowToPlay
         "T-G01" => "Use the ordinary Exhibition team and defense screens. A real roster drop, order change, and glove change must all stick. Each attempt starts fresh.",
         "T-G05" => "Two distinct physical gamepads are required. Keyboard and mouse can only take Player 1. Confirm the seats through the ordinary Select screen.",
         "T-G06" => "Use the ordinary Call time menu in an Exhibition play. Restart begins the same tutorial setup again.",
-        "T-G06-R" => "Use a gamepad in an Exhibition play. Disconnect it; the game pauses. Reconnect it or take that same seat with an unseated pad. Keyboard and mouse can recover Player 1.",
-        "T-G06-C" => "On the c80 radial pursuit profile, use an active physical gamepad in an Exhibition play. In Call time choose Reset stick and release the stick until the new centre is adopted.",
+        "T-G06-R" => "Connect a gamepad and set F6 input to Controller or Auto before starting. The prepared Harbor play begins at SET. Disconnect the active pad; the game pauses. Reconnect it or take that same seat with an unseated pad. Keyboard and mouse can recover Player 1.",
+        "T-G06-C" => "On the c80 radial pursuit profile, connect a gamepad and set F6 input to Controller or Auto before starting. The prepared Harbor play begins at SET. In Call time choose Reset stick and release the stick until the new centre is adopted.",
         _ => ""
     };
     public static string TutorialGuidedControls(string id, InputScheme scheme) => id switch
