@@ -6,19 +6,40 @@ namespace GrandSluggers.UnityClient
     public static partial class HudView
     {
         public static void Tutorials(bool menu, TutorialLesson[] lessons, int pick,
-            TutorialSession run, TutorialProgress progress, string profile)
+            TutorialSession run, TutorialProgress progress, string profile,
+            string[] categories, int category, int page, int pages)
         {
             Ensure();
             var scheme = BookScheme.Current;
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _bookBack);
-            Rect Region(int n) { var r = HowToPlay.TutorialRegion(Screen.width, Screen.height, n); return new Rect(r.X, r.Y, r.W, r.H); }
+            Rect Region(int n) { var r = menu ? HowToPlay.TutorialBrowseRegion(Screen.width, Screen.height, n) : HowToPlay.TutorialRegion(Screen.width, Screen.height, n); return new Rect(r.X, r.Y, r.W, r.H); }
             var header = Region(0); var left = Region(1); var right = Region(2); var footer = Region(3);
             if (menu)
             {
-                GUI.Label(header, HowToPlay.TutorialMenuTitle, _bookTitle);
-                for (var i = 0; i <= lessons.Length; i++)
+                GUI.Label(new Rect(header.x, header.y, header.width * .30f, header.height), HowToPlay.TutorialMenuTitle, _bookTitle);
+                GUI.Label(new Rect(header.x + header.width * .30f, header.y, header.width * .52f, header.height),
+                    HowToPlay.TutorialBrowseHint(scheme), _bookTab);
+                for (var i = 0; i < categories.Length; i++)
                 {
-                    var bounds = HowToPlay.TutorialRow(Screen.width, Screen.height, i, lessons.Length + 1);
+                    var b = HowToPlay.TutorialTab(Screen.width, Screen.height, i, categories.Length);
+                    var tab = new Rect(b.X, b.Y, b.W, b.H);
+                    GUI.DrawTexture(tab, i == category ? _ink : _bookCard);
+                    GUI.Label(tab, HowToPlay.TutorialCategoryTitle(categories[i]), i == category ? _bookTabSelected : _bookTab);
+                }
+                if (pages > 1)
+                {
+                    foreach (var direction in new[] { -1, 1 })
+                    {
+                        var b = HowToPlay.TutorialPageButton(Screen.width, Screen.height, direction);
+                        var button = new Rect(b.X, b.Y, b.W, b.H);
+                        GUI.DrawTexture(button, _ink);
+                        GUI.Label(button, direction < 0 ? "‹" : "›", _bookTabSelected);
+                    }
+                    GUI.Label(new Rect(header.xMax - 128, header.y, 72, 54), $"{page + 1}/{pages}", _bookTab);
+                }
+                for (var i = 0; i < Mathf.Max(1, lessons.Length); i++)
+                {
+                    var bounds = HowToPlay.TutorialRow(Screen.width, Screen.height, i, Mathf.Max(1, lessons.Length));
                     var row = new Rect(bounds.X, bounds.Y, bounds.W, bounds.H);
                     var title = i == lessons.Length ? HowToPlay.TutorialFree : HowToPlay.TutorialTitle(lessons[i].Id);
                     if (i < lessons.Length)

@@ -14,11 +14,11 @@ This is the production plan **after** feel infrastructure (#107) and art rails (
 
 **The gap now.** Harbor still needs the human parity, narrated-half and book gates (#534 / #209 / #346), the ordinary-loop C80 sitting and explicit default-promotion decision under #715, and remaining open gameplay findings including #684 and #688. The tracker closes #690 (live stamps), #692 (CPU fly return), and the original #693 research issue; its ongoing compact-profile work remains under #715/#708 and the [decision plan](plan-game-feel-693.md). Geometry/scaling questions #730/#732 remain open. Closed implementation issues do not pass the human gates. Special-attack/status work excluded from the ordinary C80 validation remains separate debt.
 
-**Tutorials are part of the bones.** Jack's September 19 direction is to keep building gameplay foundations before generating artwork and to provide a playable tutorial for every mechanic. [tutorials.md](tutorials.md), tracked in [#770](https://github.com/jackguillet/grand-sluggers/issues/770), defines the coverage contract, the first six lessons, controlled CPU setups, and implementation slices. Existing Practice has five broad categories plus Free Practice; it does not yet satisfy mechanic-level coverage. Tutorial coverage grows with each feature rather than becoming a documentation sweep at the end.
+**Tutorials are part of the bones.** Jack's September 19 direction is to keep building gameplay foundations before generating artwork and to provide a playable tutorial for every mechanic. [tutorials.md](tutorials.md), tracked in [#770](https://github.com/jackguillet/grand-sluggers/issues/770), defines the coverage contract, controlled CPU setups, and implementation slices. The preview now has 13 mechanic-level lessons, category navigation and three-success completion; the remaining catalog is the expansion backlog. Tutorial coverage grows with each feature rather than becoming a documentation sweep at the end.
 
 **Definition of Nintendo-level for this game (unchanged).** Couch, gamepad, three innings at Harbor. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race. You want to play again.
 
-**Sequence from here.** Continue the C80/Exhibition gameplay gates and sitting-found fixes; establish tutorial coverage and a reusable lesson runner; connect the Tutorials section in a separate presentation session; expand lessons with each mechanic. Complete parity/D7, the narrated half, and the #346 learning gate. Artwork/Phase T stays behind this learnable gameplay foundation; tutorials do not start deferred modes.
+**Sequence from here.** Continue the C80/Exhibition gameplay gates and sitting-found fixes; expand the existing tutorial runner and Tutorials section with each mechanic. Complete parity/D7, the narrated half, and the #346 learning gate. Artwork/Phase T stays behind this learnable gameplay foundation; tutorials do not start deferred modes.
 
 Tracker #39 is the older checklist. Many of its children shipped as first-pass. This doc is the sequence from **now**.
 
@@ -233,7 +233,7 @@ Only if A–C stills exist and Phase P has exited. Rule: **three good parks beat
 
 1. Continue #715's C80 standalone sitting and explicit promotion decision; preserve the shipped/trial distinction and the documented special/status exclusions. Resolve #730/#732 scaling questions through their existing owners.
 2. Work the remaining Exhibition findings, including #684 and #688, in dedicated worktrees. Re-sit #534 and call D7 from that sitting; do not retune pitch pace from an older one.
-3. Build [tutorials.md](tutorials.md) in order: mechanic coverage catalog → shared sim lesson runner and six first lessons → Tutorials UI/book in a separate presentation child. Every new mechanic carries tutorial coverage in its own PR.
+3. Continue [tutorials.md](tutorials.md) from the 13-lesson preview: finish ordinary plate coverage, then fielding/throws and running. Keep gameplay and presentation in separate children. Every new mechanic carries tutorial coverage in its own PR.
 4. Narrated half, #346 book-to-play gate, and the tutorial learning/transfer check in the Mac standalone. Record build and profile; agents do not pass these.
 5. Skeptic pass on the named Exhibition path and lesson retries. Phase T (#246) follows the gameplay/learning gates. R5, extra parks and deferred modes stay later.
 

@@ -185,15 +185,15 @@ The window plays the copy only when a run names it: `GRAND_SLUGGERS_TRIAL=trials
 
 ## Tutorials and free practice (Harbor)
 
-From title, **West** on a pad or **F** on keyboard opens **Tutorials**. Use the stick / W and S to choose, then **South / Space** (or click) to read the goal and start. Tutorials are player 1 versus a controlled CPU setup; a second pad does not take over the teaching opponent.
+From title, **West** on a pad or **F** on keyboard opens **Tutorials**. Use left/right on the stick or **A/D** for categories, and up/down or **W/S** for lessons. Click a category tab or lesson to select it. Lists show at most six lessons per page; keep moving up/down or click the page arrows to browse. Use **South / Space** (or click) to read the goal and start. Tutorials are player 1 versus a controlled CPU setup; a second pad does not take over the teaching opponent.
 
-The first lessons are **Throw a strike**, **Throw a changeup**, **Slap hit**, **Field a ground ball**, **Dive for an out**, and **Turn a double play**. Each shows its goal, setup, and controls for the active input scheme before the attempt. Pitching lessons have a batter who takes; batting gets a repeatable middle fastball; fielding lessons start from authored contact and base occupancy. Real baseball rules resolve every attempt.
+The thirteen lessons cover **Throw a strike**, **Throw a changeup**, **MAX pitch**, **Bend a pitch**, **Move on the rubber**, **Slap hit**, **Find the sweet spot**, **MAX swing**, **Bunt with two strikes**, **Take a ball**, **Field a ground ball**, **Dive for an out**, and **Turn a double play**. Each shows its goal, setup, and controls for the active input scheme before the attempt. Pitching lessons have a batter who takes; batting gets a repeatable middle fastball, except Take a ball gets a high ball; bunting begins with two strikes; fielding lessons start from authored contact and base occupancy. Real baseball rules resolve every attempt.
 
 Every lesson requires **three successful attempts**. The counter shows 0/3 through 3/3 in the list, brief, play HUD and feedback. Failures keep earlier successes, and partial progress is saved when you leave or close the game. Old one-success passes do not satisfy this requirement.
 
 Feedback explains what happened. **South / Space** continues with a fresh setup after success 1 or 2, or retries after a failure; **West / F** moves to the next lesson; **East / G** returns to lessons. Checkmarks appear only at 3/3, separately from Exhibition. Automatic assistance and demonstrations do not earn completion. Call time / How to play still works during an attempt. Restart resets that lesson; Title leaves it.
 
-**Free practice** remains the final menu choice for ungated Harbor play. New mechanics and future lessons are tracked in `data/tutorials/`; unavailable lessons are not presented as playable.
+**Free practice** lives in the **Free play** category for ungated Harbor play. New mechanics and future lessons are tracked in `data/tutorials/`; unavailable lessons are not presented as playable.
 
 ---
 
