@@ -105,7 +105,7 @@ namespace GrandSluggers.UnityClient
             if (!TutorialModal)
             {
                 _tutorialWasModal = false;
-                if (!_coach.Tutorial.IsFieldLesson && _coach.Tutorial.Phase == TutorialPhase.Attempt)
+                if (!_coach.Tutorial.IsFieldLesson && !_match.LivePlay.Active && _coach.Tutorial.Phase == TutorialPhase.Attempt)
                 {
                     var left = (double)dt;
                     while (left > 0) { var step = Math.Min(left, .05); _coach.Tutorial.Tick(step); left -= step; }

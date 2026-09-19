@@ -25,7 +25,7 @@ public static partial class HowToPlay
         "T-F02" => "Take the glove", "T-F03" => "Throw to first", "T-F03-2" => "Throw to second",
         "T-F03-3" => "Throw to third", "T-F03-H" => "Throw home", "T-F04" => "Catch an airborne ball", "T-F06" => "Jump for a catch",
         "T-F01" => "Field a ground ball", "T-F05" => "Dive for an out", "T-D02" => "Turn a double play",
-        _ => RemainingTutorial(id)?.Title ?? id
+        _ => RemainingTutorial(id)?.Title ?? (TutorialGuidedTitle(id) is { Length: > 0 } guided ? guided : id)
     };
     public static string TutorialGoal(string id) => id switch
     {
@@ -55,7 +55,7 @@ public static partial class HowToPlay
         "T-F01" => "Move your glove to the ground ball and scoop it up.",
         "T-F05" => "Move your glove and dive to catch the ball before it lands.",
         "T-D02" => "Force the runner at second, then throw to first for two outs.",
-        _ => RemainingTutorial(id)?.Goal ?? ""
+        _ => RemainingTutorial(id)?.Goal ?? TutorialGuidedGoal(id)
     };
     public static string TutorialSetup(string id) => id switch
     {
@@ -76,7 +76,7 @@ public static partial class HowToPlay
         "T-F01" => "A ground ball comes to the left side. Follow the ball with the highlighted glove.",
         "T-F05" => "A low fly heads toward your glove. Get close, then dive just before it lands.",
         "T-D02" => "A runner starts on first. Field the grounder, throw to second, then throw from that glove to first.",
-        _ => RemainingTutorial(id)?.Setup ?? ""
+        _ => RemainingTutorial(id)?.Setup ?? TutorialGuidedSetup(id)
     };
     public static string TutorialControls(string id, InputScheme scheme)
     {
@@ -110,11 +110,26 @@ public static partial class HowToPlay
             "T-F05" => pad ? "Left stick moves your glove. East dives toward the ball." : "WASD moves your glove. G dives toward the ball.",
             "T-D02" => pad ? "D-pad Up + South throws to second. Then Right + South throws to first."
                 : "2 + Space throws to second. Then 1 + Space throws to first.",
-            _ => pad ? RemainingTutorial(id)?.Pad ?? "" : RemainingTutorial(id)?.Keys ?? ""
+            _ => (pad ? RemainingTutorial(id)?.Pad : RemainingTutorial(id)?.Keys) ?? TutorialGuidedControls(id, scheme)
         };
     }
     public static string TutorialFeedbackText(string code) => code switch
     {
+        "guided-complete" => "You completed the steps on the game screens.",
+        "fresh-pitcher" => "The tired pitcher is out and your fresh arm is on the mound.",
+        "swap-missed" => "Choose a fresh eligible fielder and confirm the pitcher change.",
+        "pickoff-checked" => "Your pickoff throw reached the receiver at first. A runner on the bag is safe.",
+        "pickoff-safe" or "pickoff-no-runner" => "Select first for this runner and make the pickoff throw before the opportunity ends.",
+        "carom-returned" => "You read the wall bounce and your throw reached third.",
+        "wrong-carom-bag" => "After the wall bounce, select third before throwing.",
+        "carom-not-returned" => "Collect the rebound and send the ball to the receiver at third.",
+        "no-carom" => "This attempt ended before a wall rebound. Retry the wall setup.",
+        "wall-rob" => "Your buddy jump caught the would-be home run at the wall.",
+        "wall-rob-missed" => "Reach the wall play with your partner and press jump in the window.",
+        "choice-at-second" => "Your throw forced the lead runner at second while the batter reached first.",
+        "choice-missed" => "Make your first throw to second and beat the lead runner to the bag.",
+        "all-runners-returned" => "Both runners advanced and returned safely to their own bags.",
+        "runner-slid" or "slid-to-first" => "You started a slide as the runner approached first.",
         "runner-returned" => "You sent the selected runner, halted, and returned safely to second.",
         "runner-dashed" or "dashed-to-first" => "Your dash accelerated the batter-runner along the path to first.",
         "running-opportunity-ended" => "The play ended before you completed the runner sequence. Follow each step in the setup.",

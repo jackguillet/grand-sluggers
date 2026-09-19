@@ -327,7 +327,8 @@ namespace GrandSluggers.UnityClient
         void TickStealThrow(float dt)
         {
             var live = _match.LivePlay;
-            var result = live.Apply(LivePlayCommand.Tick(dt, FieldInput(), RunInput(), false, live.Source));
+            var result = TutorialOn ? TickTutorialField(dt)
+                : live.Apply(LivePlayCommand.Tick(dt, FieldInput(), RunInput(), false, live.Source));
             SyncFromLive();
             PlayLiveCues(result);
             AimLive();
