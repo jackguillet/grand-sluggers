@@ -42,7 +42,7 @@ public sealed class TutorialSetTests
     }
 
     [Fact]
-    public void PickoffAtOccupiedBagMustProduceTagOnOriginalRunner()
+    public void HumanPickoffChecksExposedRunnerWithRealFirstBaseReception()
     {
         var run = Start("T-P08");
         for (var n = 1; n <= 3; n++)
