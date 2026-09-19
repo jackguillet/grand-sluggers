@@ -189,7 +189,9 @@ From title, **West** on a pad or **F** on keyboard opens **Tutorials**. Use the 
 
 The first lessons are **Throw a strike**, **Throw a changeup**, **Slap hit**, **Field a ground ball**, **Dive for an out**, and **Turn a double play**. Each shows its goal, setup, and controls for the active input scheme before the attempt. Pitching lessons have a batter who takes; batting gets a repeatable middle fastball; fielding lessons start from authored contact and base occupancy. Real baseball rules resolve every attempt.
 
-Feedback explains what happened. **South / Space** retries a fresh copy of that setup; **West / F** moves to the next lesson; **East / G** returns to lessons. Checkmarks save successful player-owned attempts locally, separately from Exhibition. Automatic assistance and demonstrations do not earn completion. Call time / How to play still works during an attempt. Restart resets that lesson; Title leaves it.
+Every lesson requires **three successful attempts**. The counter shows 0/3 through 3/3 in the list, brief, play HUD and feedback. Failures keep earlier successes, and partial progress is saved when you leave or close the game. Old one-success passes do not satisfy this requirement.
+
+Feedback explains what happened. **South / Space** continues with a fresh setup after success 1 or 2, or retries after a failure; **West / F** moves to the next lesson; **East / G** returns to lessons. Checkmarks appear only at 3/3, separately from Exhibition. Automatic assistance and demonstrations do not earn completion. Call time / How to play still works during an attempt. Restart resets that lesson; Title leaves it.
 
 **Free practice** remains the final menu choice for ungated Harbor play. New mechanics and future lessons are tracked in `data/tutorials/`; unavailable lessons are not presented as playable.
 

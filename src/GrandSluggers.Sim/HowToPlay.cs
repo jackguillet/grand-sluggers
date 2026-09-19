@@ -406,12 +406,12 @@ public static partial class HowToPlay
         [
             "Start    call time. Esc    this book from title and a pitch.",
             "South ok. East resume.",
-            "Title West    Tutorials. Pick a lesson, read the goal, then South starts.",
+            "Title West    Tutorials. Three successes pass a lesson. South starts.",
         ],
         [
             "H    call time. Esc    this book from title and a pitch.",
             "Space / left click ok. G / right click resume.",
-            "Title F    Tutorials. Pick a lesson, read the goal, then Space starts.",
+            "Title F    Tutorials. Three successes pass a lesson. Space starts.",
         ]),
     ];
 

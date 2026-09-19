@@ -22,7 +22,7 @@ namespace GrandSluggers.UnityClient
             && (_coach.Tutorial.IsFieldLesson || !_coach.PlayerBats || _phase == Phase.Result || _coach.Tutorial.Feedback.Code == "timeout");
         bool TutorialModal => _tutorialMenu || TutorialOn && (_coach.Tutorial.Phase == TutorialPhase.Brief || TutorialFeedbackReady);
 
-        string TutorialSaveKey(TutorialLesson lesson) => "tutorial.v1." + _tutorials.Profile + "." + lesson.Id + "." + lesson.Revision;
+        string TutorialSaveKey(TutorialLesson lesson) => "tutorial.v2." + _tutorials.Profile + "." + lesson.Id + "." + lesson.Revision;
 
         void OpenTutorials()
         {
@@ -30,8 +30,8 @@ namespace GrandSluggers.UnityClient
             ReleaseMatchSeats();
             _tutorials ??= TutorialCatalog.Load(_content);
             _tutorialChoices = _tutorials.Lessons.Where(l => l.Status == "implemented" && l.Profiles.Contains(_tutorials.Profile)).ToArray();
-            _tutorialProgress.Restore(_tutorialChoices.Where(l => PlayerPrefs.GetInt(TutorialSaveKey(l), 0) == 1)
-                .Select(l => new TutorialCompletion(l.Id, l.Revision, _tutorials.Profile)), _tutorials);
+            _tutorialProgress.RestorePractice(_tutorialChoices.Select(l => new TutorialPracticeProgress(
+                l.Id, l.Revision, _tutorials.Profile, PlayerPrefs.GetInt(TutorialSaveKey(l), 0))), _tutorials);
             _tutorialMenu = true; _tutorialUiAge = 0;
             _tutorialY.Catch(Controls.MenuY);
             _phase = Phase.Title; _cam.Play("title");
@@ -70,6 +70,11 @@ namespace GrandSluggers.UnityClient
         {
             if (!_tutorialMenu && !TutorialOn) return false;
             _tutorialUiAge += dt;
+            if (TutorialOn && _coach.Tutorial.Feedback?.Success == true && !_tutorialSaved)
+            {
+                PlayerPrefs.SetInt(TutorialSaveKey(_coach.Tutorial.Lesson), _coach.Tutorial.Successes);
+                PlayerPrefs.Save(); _tutorialSaved = true;
+            }
             if (!TutorialModal)
             {
                 _tutorialWasModal = false;
@@ -105,12 +110,12 @@ namespace GrandSluggers.UnityClient
             }
             if (TutorialFeedbackReady)
             {
-                if (_coach.Tutorial.Feedback.Success && !_tutorialSaved)
+                if (confirm || click == -2)
                 {
-                    PlayerPrefs.SetInt(TutorialSaveKey(_coach.Tutorial.Lesson), 1);
-                    PlayerPrefs.Save(); _tutorialSaved = true;
+                    var continuePractice = _coach.Tutorial.Feedback.Success && !_coach.Tutorial.Passed;
+                    PrepareTutorial(_coach.Tutorial.Lesson.Id);
+                    if (continuePractice) BeginTutorialAttempt();
                 }
-                if (confirm || click == -2) PrepareTutorial(_coach.Tutorial.Lesson.Id);
                 else if (Controls.WestDown || click == -5)
                 {
                     var next = (Array.FindIndex(_tutorialChoices, l => l.Id == _coach.Tutorial.Lesson.Id) + 1) % _tutorialChoices.Length;
