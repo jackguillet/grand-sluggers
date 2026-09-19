@@ -54,6 +54,8 @@ namespace GrandSluggers.UnityClient
             }
             if (training)
             {
+                Play(match, pitcherExtra, star, steal, item, charge, timing, showTiming, null, null, seats,
+                    humanPitches, humanBats, starPitch, starSwing, bunt);
                 TrainingPlay(banner, sub, drillProgress);
                 return;
             }
@@ -904,13 +906,11 @@ namespace GrandSluggers.UnityClient
 
         static void TrainingPlay(string banner, string sub, string progress)
         {
-            var w = 560;
-            GUI.DrawTexture(new Rect(Screen.width / 2 - w / 2, 24, w, 86), _panel);
-            GUI.Label(new Rect(Screen.width / 2 - w / 2 + 16, 32, w - 32, 40), banner ?? "", _h1);
-            if (!string.IsNullOrEmpty(progress))
-                GUI.Label(new Rect(Screen.width / 2 - w / 2 + 16, 72, w - 32, 24), progress, _tiny);
-            if (!string.IsNullOrEmpty(sub))
-                GUI.Label(new Rect(48, Screen.height - 52, Screen.width - 96, 28), sub, _gold);
+            var r = Px(BroadcastHud.TutorialCoach);
+            GUI.DrawTexture(r, _panel);
+            GUI.Label(new Rect(r.x + 16, r.y + 8, r.width - 32, 40), banner ?? "", _h1);
+            GUI.Label(new Rect(r.x + 16, r.y + 52, r.width - 32, r.height - 60),
+                string.IsNullOrEmpty(sub) ? progress ?? "" : sub, new GUIStyle(_gold) { wordWrap = true });
         }
 
         static void Lineup(Match match)

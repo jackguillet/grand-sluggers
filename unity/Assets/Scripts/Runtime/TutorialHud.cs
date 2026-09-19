@@ -51,7 +51,7 @@ namespace GrandSluggers.UnityClient
                 var id = pick < lessons.Length ? lessons[pick].Id : null;
                 TutorialText(right, id == null ? HowToPlay.TutorialFree : HowToPlay.TutorialTitle(id),
                     id == null ? HowToPlay.TutorialFreeGoal : HowToPlay.TutorialGoal(id),
-                    id == null ? "" : HowToPlay.TutorialControls(id, scheme));
+                    id == null ? "" : HowToPlay.TutorialControls(id, scheme, profile));
                 TutorialButton(0, 2, HowToPlay.TutorialButton(-2, scheme));
                 TutorialButton(1, 2, HowToPlay.TutorialButton(-4, scheme));
             }
@@ -61,9 +61,9 @@ namespace GrandSluggers.UnityClient
                 GUI.Label(header, feedback ? HowToPlay.TutorialResultTitle(run.Feedback.Success, run.Successes)
                     : HowToPlay.TutorialAttemptTitle(run.Lesson.Id, run.Successes), _bookTitle);
                 TutorialText(left, HowToPlay.TutorialTitle(run.Lesson.Id), HowToPlay.TutorialGoal(run.Lesson.Id),
-                    HowToPlay.TutorialControls(run.Lesson.Id, scheme));
+                    HowToPlay.TutorialControls(run.Lesson.Id, scheme, profile));
                 TutorialText(right, feedback ? "" : "THE SETUP", feedback
-                    ? HowToPlay.TutorialFeedbackText(run.Feedback.Code) : HowToPlay.TutorialSetup(run.Lesson.Id), feedback ? "" : HowToPlay.TutorialRule);
+                    ? HowToPlay.TutorialFeedbackText(run.Feedback.Code) : HowToPlay.TutorialSetup(run.Lesson.Id, profile), feedback ? "" : HowToPlay.TutorialRule);
                 var n = feedback ? 3 : 2;
                 TutorialButton(0, n, HowToPlay.TutorialButton(feedback ? run.Feedback.Success && !run.Passed ? -7 : -6 : -2, scheme));
                 if (feedback) TutorialButton(1, n, HowToPlay.TutorialButton(-5, scheme));
