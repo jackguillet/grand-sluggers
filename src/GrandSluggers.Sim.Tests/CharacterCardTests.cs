@@ -22,9 +22,20 @@ public class CharacterCardTests
         Assert.Equal("Heat Ball", card.StarPitch);
         Assert.Equal("Heat Swing", card.StarSwing);
         Assert.Equal("Grow", card.FieldVerb);
+        Assert.Equal(Hand.R, card.Bats);
+        Assert.Equal("BATS RIGHT", HowToPlay.CardBatHand(card.Bats));
         Assert.Equal(0.7, CharacterCard.BarFill(7), 3);
         Assert.Equal(0, CharacterCard.BarFill(-2), 3);
         Assert.Equal(1, CharacterCard.BarFill(12), 3);
+    }
+
+    [Fact]
+    public void LineupCardNamesTheHandOfALeftHandedPoolBatter()
+    {
+        var zig = _content.Must("zig");
+        var card = CharacterCard.Of(zig);
+        Assert.Equal(Hand.L, card.Bats);
+        Assert.Equal("BATS LEFT", HowToPlay.CardBatHand(card.Bats));
     }
 
     [Fact]

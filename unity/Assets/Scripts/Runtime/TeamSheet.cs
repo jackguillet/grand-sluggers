@@ -45,7 +45,7 @@ namespace GrandSluggers.UnityClient
 
             var card = lineup.HighlightCard();
             if (card.HasValue)
-                HudView.Card(card.Value, w - 340, h * 0.5f - 116);
+                HudView.Card(card.Value, w - 340, h * 0.5f - HudView.CharacterCardHeight * 0.5f);
 
             GUI.Label(ScreenRect(LineupLayout.Help), lineup.Help, _gold);
         }

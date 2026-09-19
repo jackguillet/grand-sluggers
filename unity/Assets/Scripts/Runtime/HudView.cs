@@ -8,6 +8,7 @@ namespace GrandSluggers.UnityClient
 {
     public static partial class HudView
     {
+        public const float CharacterCardHeight = 232f;
         static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine,
             _bookHead, _bookHeader, _bookHeaderNumber, _bookNumber, _bookTab, _bookTabSelected, _bookBadge,
             _bookChip, _bookFooter, _bookLineCompact, _stamp;
@@ -126,7 +127,7 @@ namespace GrandSluggers.UnityClient
         {
             Ensure();
             const float w = 312f;
-            const float h = 232f;
+            const float h = CharacterCardHeight;
             GUI.DrawTexture(new Rect(x, y, w, h), _panel);
             GUI.Label(new Rect(x + 18, y + 8, w - 56, 28), card.Name.ToUpperInvariant(), _h1);
             ChemPip(x + w - 34, y + 14, card.VsCaptain);
@@ -136,7 +137,8 @@ namespace GrandSluggers.UnityClient
             StatRow(x + 14, y + 108, "RUN", card.Stats.Run);
             GUI.Label(new Rect(x + 14, y + 136, w - 28, 24), card.StarPitch, _body);
             GUI.Label(new Rect(x + 14, y + 160, w - 28, 24), card.StarSwing, _body);
-            GUI.Label(new Rect(x + 14, y + 186, w - 28, 24), card.FieldVerb, _tiny);
+            GUI.Label(new Rect(x + 14, y + 184, w - 28, 20), card.FieldVerb, _tiny);
+            GUI.Label(new Rect(x + 14, y + 209, w - 28, 20), HowToPlay.CardBatHand(card.Bats), _gold);
         }
 
         static void StatRow(float x, float y, string label, int n)

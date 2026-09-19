@@ -2,6 +2,7 @@ namespace GrandSluggers.Sim;
 
 public static partial class HowToPlay
 {
+    public static string CardBatHand(Hand hand) => hand == Hand.L ? "BATS LEFT" : "BATS RIGHT";
     public static string TutorialGuidedTitle(string id) => id switch
     {
         "T-G01" => "Build your lineup", "T-G05" => "Seat two players", "T-G06" => "Call time",
