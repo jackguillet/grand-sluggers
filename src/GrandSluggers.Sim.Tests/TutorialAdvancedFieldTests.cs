@@ -16,10 +16,12 @@ public sealed class TutorialAdvancedFieldTests
         return run;
     }
 
-    static void Drive(TutorialSession run, bool act, LivePlayCommandSource source = LivePlayCommandSource.Human, bool wrongBag = false)
+    static void Drive(TutorialSession run, bool act, LivePlayCommandSource source = LivePlayCommandSource.Human,
+        bool wrongBag = false, bool skipOnward = false)
     {
         var jumped = false;
         var wallSeen = false;
+        var relayStage = 0;
         for (var i = 0; i < 1900 && run.Phase == TutorialPhase.Attempt; i++)
         {
             var live = run.Match.LivePlay;
@@ -31,6 +33,26 @@ public sealed class TutorialAdvancedFieldTests
                 pad = new(StickX: -1, StickY: 0);
             else if (act && run.Lesson.Id == "T-F13" && live.HoldsBall && !live.Throwing)
                 pad = new(StickY: 1);
+            else if (act && run.Lesson.Id is "T-F07" or "T-F14")
+            {
+                if (relayStage == 0 && live.HoldsBall && live.GlovePos == "CF")
+                {
+                    pad = new(KeysBag: 4);
+                    relayStage = 1;
+                }
+                else if (relayStage == 1)
+                {
+                    pad = new(Cutoff: true);
+                    relayStage = 2;
+                }
+                else if (!skipOnward && relayStage == 2 && live.Throwing && live.ThrowBag == 0
+                    && run.Match.Rules.Fielding.Throw.RelayAutoContinue == 0
+                    && live.ThrowDur - live.ThrowT <= .15)
+                {
+                    pad = new(SouthDown: true);
+                    relayStage = 3;
+                }
+            }
             else if (act && run.Lesson.Id == "T-F12" && live.Preview is { } fly)
             {
                 var plant = FlyCatch.WallPlant(fly, run.Match.Park, run.Match.Rules);
@@ -128,5 +150,34 @@ public sealed class TutorialAdvancedFieldTests
         var dead = Start("T-F13");
         Drive(dead, act: false);
         Assert.Equal(0, dead.Successes);
+    }
+
+    [Theory]
+    [InlineData("T-F07")]
+    [InlineData("T-F14")]
+    public void CutoffReceiverAndOnwardThrowUseTheRealRelay(string id)
+    {
+        var run = Start(id);
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.True(run.Feedback?.Success == true, $"{id}: {run.Feedback}; play {run.LastPlay?.Kind}; throws {string.Join(',', run.HumanThrows)}");
+            Assert.Equal(attempt, run.Successes);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var dead = Start(id);
+        Drive(dead, act: false);
+        Assert.False(dead.Feedback?.Success ?? false);
+        var cpu = Start(id);
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.False(cpu.Feedback?.Success ?? false);
+        if (TestRoot.Compact)
+        {
+            var noSecond = Start(id);
+            Drive(noSecond, act: true, skipOnward: true);
+            Assert.Equal("relay-not-completed", noSecond.Feedback?.Code);
+        }
     }
 }

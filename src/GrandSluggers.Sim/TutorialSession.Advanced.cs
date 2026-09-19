@@ -7,6 +7,8 @@ public sealed partial class TutorialSession
     double _dashLastTime;
     double _dashLastX;
     double _dashLastZ;
+    bool _relayHumanFeed;
+    bool _relayHumanOnward;
 
     partial void ResetAdvancedEvidence()
     {
@@ -14,10 +16,67 @@ public sealed partial class TutorialSession
         _dashLastTime = 0;
         _dashLastX = 0;
         _dashLastZ = 0;
+        _relayHumanFeed = false;
+        _relayHumanOnward = false;
     }
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
+        if (Lesson.Objective is "human-relay" or "human-snap-relay")
+        {
+            var input = _inputs[^1];
+            var owned = input.Source == LivePlayCommandSource.Human && !Demonstration;
+            var pad = input.Field;
+            if (owned && pad?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 0)
+                _relayHumanFeed = true;
+            if (live.Events.Contains(LiveEvent.ThrowQueueCleared)) _relayHumanOnward = false;
+            if (owned && pad?.SouthDown == true &&
+                (live.Events.Contains(LiveEvent.ThrowQueued) && live.QueuedThrowBag == 4
+                 || live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 4))
+                _relayHumanOnward = true;
+            if (result.CompletedPlay is not { } relayPlay) return;
+            var marks = live.TakeTrace(relayPlay).Marks ?? [];
+            var feed = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease
+                && m.Flight is { FromPos: "CF", Bag: 0 });
+            var cutter = feed?.Flight?.ReceiverPos;
+            var handoff = cutter is not null && marks.Any(m => m.Kind == PlayTraceMarkKind.Reception
+                && m.Fielder == cutter && m.T >= feed!.T);
+            var onward = handoff ? marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease
+                && m.Flight is { Bag: 4 } && m.Flight.FromPos == cutter && m.T >= feed!.T) : null;
+            var playerOwned = _relayHumanFeed && (Match.Rules.Fielding.Throw.RelayAutoContinue > 0 || _relayHumanOnward);
+            var success = playerOwned && handoff && onward?.Flight is not null;
+            if (Lesson.Objective == "human-snap-relay" && success)
+            {
+                var flight = onward!.Flight!;
+                var snap = live.TutorialFielderAt(flight.FromPos);
+                var receiver = live.TutorialFielderAt(flight.ReceiverPos);
+                var at = Diamond.Bag(4);
+                var distance = Diamond.Dist(flight.FromX, flight.FromZ, at.X, at.Z);
+                var abilities = Match.Rules.Fielding.Abilities;
+                success = snap?.FieldAbility == "snap-throw" && receiver is not null;
+                if (success && abilities.SnapThrowMul > 1)
+                {
+                    var pair = _content.Chemistry.Between(snap!, receiver!) switch
+                    {
+                        Chemistry.Good => Match.Rules.Fielding.Chem.GoodSpeedMul,
+                        Chemistry.Bad => Match.Rules.Fielding.Chem.BadSpeedMul,
+                        _ => 1.0
+                    };
+                    success = Math.Abs(flight.SpeedMul - InPlay.ArmMul(snap!, Match.Rules) * pair * abilities.SnapThrowMul) <= 1e-5;
+                }
+                else if (success)
+                {
+                    var expected = InPlay.ThrowSec(distance,
+                        new ThrowResult(Chemistry.Neutral, flight.SpeedMul, false, Arm: snap!.Stats.Arm,
+                            ReleaseSec: abilities.SnapReleaseSec), Match.Rules);
+                    success = Math.Abs(flight.DurationSec - expected) <= 1e-5;
+                }
+            }
+            Finish(success, success ? Lesson.Objective == "human-snap-relay" ? "snap-relay" : "relay-handoff" : "relay-not-completed",
+                success ? "Your cutoff feed was received and the ball went on toward home."
+                    : "Catch the fly, send it through the cutoff, and complete the onward throw toward home.");
+            return;
+        }
         if (Lesson.Objective == "human-wall-carom")
         {
             _wallCaromSeen |= live.Events.Contains(LiveEvent.WallCarom);
@@ -77,4 +136,9 @@ public sealed partial class TutorialSession
             succeeded ? "Your jump took a ball that would have cleared the wall for an out."
                 : "Take the outfield glove and press West in the wall window. The ball must be caught for an out.");
     }
+}
+
+public sealed partial class LivePlaySystem
+{
+    internal Character? TutorialFielderAt(string position) => Assigned().GetValueOrDefault(position);
 }
