@@ -17,6 +17,8 @@ public static partial class HowToPlay
         ? "Harbor · South opens tutorials" : "Harbor · Space opens tutorials";
     public static string TutorialTitle(string id) => id switch
     {
+        "T-P02" => "Throw a ball", "T-B03" => "Pull an early hit", "T-B03-L" => "Push a late hit",
+        "T-B05" => "Move in the box", "T-B06" => "Hit a grounder", "T-B06-F" => "Lift a fly ball",
         "T-P01" => "Throw a strike", "T-P03" => "Throw a changeup", "T-B01" => "Slap hit",
         "T-P04" => "MAX pitch", "T-P05" => "Bend a pitch", "T-P06" => "Move on the rubber",
         "T-B02" => "Find the sweet spot", "T-B04" => "MAX swing", "T-B07" => "Bunt with two strikes", "T-B08" => "Take a ball",
@@ -25,6 +27,12 @@ public static partial class HowToPlay
     };
     public static string TutorialGoal(string id) => id switch
     {
+        "T-P02" => "Place a pitch outside the strike zone without hitting the batter.",
+        "T-B03" => "Swing a little early and pull a fair slap hit toward the batter's side.",
+        "T-B03-L" => "Swing a little late and push a fair slap hit toward the opposite side.",
+        "T-B05" => "Move the batter to meet the offset pitch with Perfect fair slap contact.",
+        "T-B06" => "Hold up at contact and slap a fair ground ball.",
+        "T-B06-F" => "Hold down at contact and slap a fair fly ball.",
         "T-P01" => "Put a pitch in the strike zone.",
         "T-P03" => "Throw a changeup for a strike.",
         "T-P04" => "Release a fully charged pitch for a strike.",
@@ -42,6 +50,10 @@ public static partial class HowToPlay
     };
     public static string TutorialSetup(string id) => id switch
     {
+        "T-P02" => "The batter takes. Moving farther on the rubber carries the crossing outside the zone. A strike or hit batter does not count.",
+        "T-B03" or "T-B03-L" => "The CPU repeats a middle fastball. Timing steers the hit: early pulls, late pushes. The sides reverse for a left-handed batter. Keep the stick centered.",
+        "T-B05" => "The CPU repeats a strike off the middle. Move the oval toward it before swinging. Your box position resets for every attempt.",
+        "T-B06" or "T-B06-F" => "The CPU repeats a middle fastball. Up tops the ball; down lifts it. Hold the direction during the pitch. A charged swing does not count.",
         "T-P01" or "T-P03" or "T-P04" => "The batter will take your pitch. Aim inside the zone.",
         "T-P05" => "The batter takes. Tap a normal pitch, then hold a direction after it leaves your hand. Charge and changeup barely bend.",
         "T-P06" => "The batter takes. Your position moves the pitch's crossing. A small step can stay in the zone; a big step can miss it.",
@@ -58,6 +70,12 @@ public static partial class HowToPlay
         var pad = scheme == InputScheme.Pad;
         return id switch
         {
+            "T-P02" => pad ? "Stick left/right moves the pitcher. Tap South to pitch. Down recenters." : "A/D moves the pitcher. Tap Space to pitch. S recenters.",
+            "T-B03" => pad ? "Keep the stick centered. Tap South a little early; too early misses or goes foul." : "Keep the mouse still. Tap Space a little early; too early misses or goes foul.",
+            "T-B03-L" => pad ? "Keep the stick centered. Tap South a little late; too late misses or goes foul." : "Keep the mouse still. Tap Space a little late; too late misses or goes foul.",
+            "T-B05" => pad ? "Stick left/right moves the batter and oval. Center the oval on the pitch, then tap South." : "A/D or mouse moves the batter and oval. Center it on the pitch, then tap Space.",
+            "T-B06" => pad ? "As the pitch approaches, hold stick up and tap South. Keep up held through release." : "As the pitch approaches, hold W and tap Space. Keep W held through release.",
+            "T-B06-F" => pad ? "After the pitcher starts, hold stick down and tap South. Keep down held through release." : "After the pitcher starts, hold S and tap Space. Keep S held through release.",
             "T-P01" => pad ? "Stick aims. Tap South to pitch." : "Mouse aims. Tap Space or left click to pitch.",
             "T-P03" => pad ? "Stick aims. Hold West while you tap South." : "Mouse aims. Hold V while you tap Space or left click.",
             "T-P04" => pad ? "Hold South until MAX, then release. Keep the pitch in the zone." : "Hold Space or left click until MAX, then release.",
@@ -77,6 +95,13 @@ public static partial class HowToPlay
     }
     public static string TutorialFeedbackText(string code) => code switch
     {
+        "pitched-ball" => "Your pitch passed outside the zone for a called ball.",
+        "pitch-outside" => "That was not a called ball. Move farther from center and miss the zone without hitting the batter.",
+        "move-box" => "Move the batter and oval toward the offset pitch before swinging.",
+        "swing-earlier" => "Pull the ball with an earlier tap. Keep the stick centered; aim alone does not teach timing.",
+        "swing-later" => "Push the ball with a later tap. Keep the stick centered; aim alone does not teach timing.",
+        "hit-grounder" => "Hold up as you tap and release the swing. The fair ball must travel on the ground.",
+        "lift-ball" => "Hold down as you tap and release the swing. Lift the fair ball into a fly, not a low liner.",
         "use-max-pitch" => "Build the pitch to MAX and release. Use an ordinary pitch; leave changeup and star off.",
         "use-break" => "Tap a normal pitch, then hold a direction after release. Keep steering long enough for the ball to bend.",
         "move-rubber" => "That pitch stayed too close to the middle. Take a small step on the rubber before throwing.",

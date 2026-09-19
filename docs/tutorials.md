@@ -151,3 +151,9 @@ Six more exercises bring the implemented catalog to 19 lessons. Timing direction
 - **T-B06 grounder / T-B06-F fly:** hold at least 0.75 normalized up/down at contact, respectively, and produce the corresponding real dirt/fly ball class with an ordinary fair slap. A miss, foul, charged swing or accidental launch from neutral input cannot pass.
 
 These use existing rules, not altered timing windows or manufactured outcomes. The six setups reset identically on retry; replay and CPU/demo exclusion remain mandatory. The human learning gate is still pending.
+
+## Ordinary plate decision presentation (#788)
+
+The six exercises from #786 have standalone titles, goals, authored setup explanations, controls for both schemes, and corrective feedback. Early and late timing remain distinct lessons, as do grounder and fly launch. The book explicitly says Down/S recenters during SET but controls loft during the pitch. The browser now contains 19 implemented lessons; batting exercises span two six-row pages. Three-success progress and CPU scenarios use the shared runner unchanged.
+
+Agent checks verify rendering and navigation separately from the pending physical-pad and human learning/transfer gates. No artwork or baseball rules change in this presentation child.
