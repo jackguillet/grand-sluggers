@@ -21,16 +21,19 @@ namespace GrandSluggers.UnityClient
         MenuNav.Gate _tutorialY;
         bool _tutorialSaved;
         bool _tutorialWasModal;
+        GuidedTutorialSession _guided;
         bool TutorialOn => _coach != null && _coach.Tutorial != null;
         bool TutorialFeedbackReady => TutorialOn && _coach.Tutorial.Phase == TutorialPhase.Feedback
             && (_coach.Tutorial.IsFieldLesson || !_coach.PlayerBats || _phase == Phase.Result || _coach.Tutorial.Feedback.Code == "timeout");
-        bool TutorialModal => _tutorialMenu || TutorialOn && (_coach.Tutorial.Phase == TutorialPhase.Brief || TutorialFeedbackReady);
+        bool TutorialModal => _tutorialMenu || TutorialOn && (_coach.Tutorial.Phase == TutorialPhase.Brief || TutorialFeedbackReady)
+            || _guided != null && _guided.Phase is TutorialPhase.Brief or TutorialPhase.Feedback;
 
         string TutorialSaveKey(TutorialLesson lesson) => "tutorial.v2." + _tutorials.Profile + "." + lesson.Id + "." + lesson.Revision;
 
         void OpenTutorials()
         {
-            var selected = TutorialOn ? _coach.Tutorial.Lesson.Id : null;
+            var selected = _guided?.Lesson.Id ?? (TutorialOn ? _coach.Tutorial.Lesson.Id : null);
+            _guided?.Exit(); _guided = null;
             _coach?.Stop();
             ReleaseMatchSeats();
             _tutorials ??= TutorialCatalog.Load(_content);
@@ -55,6 +58,7 @@ namespace GrandSluggers.UnityClient
         void PrepareTutorial(string id)
         {
             var lesson = _tutorialAll.First(l => l.Id == id);
+            if (GuidedLesson(id)) { PrepareGuidedTutorial(lesson); return; }
             SelectTutorialCategory(Array.IndexOf(_tutorialCategories, lesson.Category), id);
             ReleaseMatchSeats();
             _mode = PlayMode.Training; ParkId = Training.ParkId;
@@ -85,7 +89,13 @@ namespace GrandSluggers.UnityClient
 
         bool TickTutorialUi(float dt)
         {
-            if (!_tutorialMenu && !TutorialOn) return false;
+            if (!_tutorialMenu && !TutorialOn && _guided == null) return false;
+            if (_guided != null && _guided.Phase == TutorialPhase.Attempt) return false;
+            if (_guided != null && _guided.Phase == TutorialPhase.Feedback && !_tutorialSaved)
+            {
+                PlayerPrefs.SetInt(TutorialSaveKey(_guided.Lesson), _guided.Successes);
+                PlayerPrefs.Save(); _tutorialSaved = true;
+            }
             _tutorialUiAge += dt;
             if (TutorialOn && _coach.Tutorial.Feedback?.Success == true && !_tutorialSaved)
             {
@@ -135,6 +145,23 @@ namespace GrandSluggers.UnityClient
                 else if (Controls.EastDown || click == -4) { _tutorialMenu = false; _mode = PlayMode.Exhibition; _t = 0; }
                 return true;
             }
+            if (_guided != null && _guided.Phase == TutorialPhase.Brief)
+            {
+                if (confirm || click == -2) BeginGuidedAttempt();
+                else if (Controls.EastDown || click == -3) OpenTutorials();
+                return true;
+            }
+            if (_guided != null && _guided.Phase == TutorialPhase.Feedback)
+            {
+                if (confirm || click == -2) PrepareTutorial(_guided.Lesson.Id);
+                else if (Controls.WestDown || click == -5)
+                {
+                    var next = (Array.FindIndex(_tutorialAll, l => l.Id == _guided.Lesson.Id) + 1) % _tutorialAll.Length;
+                    PrepareTutorial(_tutorialAll[next].Id);
+                }
+                else if (Controls.EastDown || click == -3) OpenTutorials();
+                return true;
+            }
             if (_coach.Tutorial.Phase == TutorialPhase.Brief)
             {
                 if (confirm || click == -2) BeginTutorialAttempt();
@@ -172,6 +199,11 @@ namespace GrandSluggers.UnityClient
         bool DrawTutorialUi()
         {
             if (!TutorialModal) return false;
+            if (_guided != null)
+            {
+                HudView.GuidedTutorial(_guided);
+                return true;
+            }
             var start = HowToPlay.TutorialPageStart(_tutorialPick);
             HudView.Tutorials(_tutorialMenu, _tutorialChoices.Skip(start).Take(HowToPlay.TutorialPageSize).ToArray(), _tutorialPick - start,
                 TutorialOn ? _coach.Tutorial : null, _tutorialProgress, _tutorials.Profile,

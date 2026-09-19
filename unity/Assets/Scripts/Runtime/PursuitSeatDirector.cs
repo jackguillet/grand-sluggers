@@ -67,6 +67,7 @@ namespace GrandSluggers.UnityClient
         /// <summary>The card, inside Call time: back out keeps the old centre; a full set of adopted windows closes it.</summary>
         void TickStickReset()
         {
+            var calibrated = _pursuit.Recalibrated;
             if (_pursuit.Recalibrated)
             {
                 _stickResetShown += Time.unscaledDeltaTime;
@@ -77,6 +78,7 @@ namespace GrandSluggers.UnityClient
             _pursuit.Close();
             _stickReset = false;
             _t = 0;
+            if (calibrated && GuidedAttempt("T-G06-C")) GuidedObserve(GuidedAction.StickRecalibrated);
         }
 
         /// <summary>A seat's tell outside live play: let go while it has no profile, at SET and the result beat — where it is sampled.</summary>

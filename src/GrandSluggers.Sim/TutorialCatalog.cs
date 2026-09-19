@@ -26,8 +26,10 @@ public sealed class TutorialCatalog
         "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide",
-        "human-wall-carom", "human-buddy-rob", "human-choice-second", "human-pickoff", "tired-pitcher-swap"];
+        "human-wall-carom", "human-buddy-rob", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap"];
+
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
     TutorialCatalog(TutorialMechanicFile mechanics, TutorialLessonFile lessons, TutorialMigrationFile migration, string profile)
@@ -103,7 +105,21 @@ public sealed class TutorialCatalog
             Require(l.Status is "planned" or "blocked" or "implemented", l.Id + " has unknown status (human acceptance is recorded separately)");
             if (l.Status != "implemented") continue;
             Require(Objectives.Contains(l.Objective), l.Id + " has unknown objective");
-            Require(l.Tests.Length > 0 && l.Controls.Length > 0, l.Id + " needs regression evidence and controls");
+            var guided = l.Objective is "guided-lineup" or "guided-seats" or "guided-pause" or "guided-recovery" or "guided-calibration";
+            Require(l.Tests.Length > 0 && (guided || l.Controls.Length > 0), l.Id + " needs regression evidence and controls");
+            if (guided)
+            {
+                Require((l.Id, l.Objective) is ("T-G01", "guided-lineup") or ("T-G05", "guided-seats")
+                    or ("T-G06", "guided-pause") or ("T-G06-R", "guided-recovery") or ("T-G06-C", "guided-calibration"),
+                    l.Id + " has unknown guided objective");
+                if (l.Objective == "guided-calibration")
+                {
+                    Require(l.Profiles.Length == 1 && l.Profiles[0] == "c80", l.Id + " requires the radial pursuit profile");
+                    if (Profile == "c80") Require(content.Rules.Fielding.Stick.Radial, l.Id + " profile does not offer Reset stick");
+                }
+                Require(l.Setup == "", l.Id + " guided lesson must use existing screens");
+                continue;
+            }
             var setup = Setups.FirstOrDefault(s => s.Id == l.Setup);
             Require(setup is not null, l.Id + " has unknown setup");
             if (setup is null) continue;
