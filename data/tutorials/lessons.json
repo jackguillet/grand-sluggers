@@ -220,25 +220,29 @@
     },
     {
       "id": "T-P09",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.09"
       ],
-      "title": "star pitch (scope dependent)",
+      "title": "Star pitch: charmball",
       "category": "pitching",
-      "status": "planned",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Initial migration backlog",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-P09",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-B01",
@@ -521,25 +525,29 @@
     },
     {
       "id": "T-B09",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.09"
       ],
-      "title": "star swing (scope dependent)",
+      "title": "Star swing: shell-swing",
       "category": "batting",
-      "status": "planned",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Initial migration backlog",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-B09",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-F01",
@@ -1819,443 +1827,523 @@
     },
     {
       "id": "T-SP-heatball",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.heatball"
       ],
-      "title": "heatball",
+      "title": "Star pitch: heatball",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-heatball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-charmball",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.charmball"
       ],
-      "title": "charmball",
+      "title": "Star pitch: charmball",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-charmball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-prismball",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.prismball"
       ],
-      "title": "prismball",
+      "title": "Star pitch: prismball",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-prismball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-phonyball",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.phonyball"
       ],
-      "title": "phonyball",
+      "title": "Star pitch: phonyball",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-phonyball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-caskball",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.caskball"
       ],
-      "title": "caskball",
+      "title": "Star pitch: caskball",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-caskball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-skullball",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.skullball"
       ],
-      "title": "skullball",
+      "title": "Star pitch: skullball",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-skullball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-fogball",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.fogball"
       ],
-      "title": "fogball",
+      "title": "Star pitch: fogball",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-fogball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-fastball",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.fastball"
       ],
-      "title": "fastball",
+      "title": "Star pitch: fastball",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-fastball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-changeup",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.changeup"
       ],
-      "title": "changeup",
+      "title": "Star pitch: changeup",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-changeup",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SP-breaker",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-pitch.breaker"
       ],
-      "title": "breaker",
+      "title": "Star pitch: breaker",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SP-breaker",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-heat-swing",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.heat-swing"
       ],
-      "title": "heat-swing",
+      "title": "Star swing: heat-swing",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-heat-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-heart-swing",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.heart-swing"
       ],
-      "title": "heart-swing",
+      "title": "Star swing: heart-swing",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-heart-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-shell-swing",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.shell-swing"
       ],
-      "title": "shell-swing",
+      "title": "Star swing: shell-swing",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-shell-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-phony-swing",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.phony-swing"
       ],
-      "title": "phony-swing",
+      "title": "Star swing: phony-swing",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-phony-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-cask-swing",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.cask-swing"
       ],
-      "title": "cask-swing",
+      "title": "Star swing: cask-swing",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-cask-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-furnace",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.furnace"
       ],
-      "title": "furnace",
+      "title": "Star swing: furnace",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-furnace",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-staff-swing",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.staff-swing"
       ],
-      "title": "staff-swing",
+      "title": "Star swing: staff-swing",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-staff-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-ground",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.ground"
       ],
-      "title": "ground",
+      "title": "Star swing: ground",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-ground",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-fly",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.fly"
       ],
-      "title": "fly",
+      "title": "Star swing: fly",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-fly",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-SS-line",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "star-swing.line"
       ],
-      "title": "line",
+      "title": "Star swing: line",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-SS-line",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-I-banana",
@@ -4082,6 +4170,741 @@
           "sprayDeg": 0
         }
       }
+    },
+    {
+      "id": "T-P09",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "charmball"
+    },
+    {
+      "id": "T-B09",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "shell-swing",
+      "seat": "offense",
+      "batterId": "zig"
+    },
+    {
+      "id": "T-SP-heatball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "rio"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "heatball",
+      "pitcherId": "rio"
+    },
+    {
+      "id": "T-SP-charmball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "charmball"
+    },
+    {
+      "id": "T-SP-prismball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "zig"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "prismball",
+      "pitcherId": "zig"
+    },
+    {
+      "id": "T-SP-phonyball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "brondo"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "phonyball",
+      "pitcherId": "brondo"
+    },
+    {
+      "id": "T-SP-caskball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "konga"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "caskball",
+      "pitcherId": "konga"
+    },
+    {
+      "id": "T-SP-skullball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "skullball",
+      "pitcherId": "ashlord"
+    },
+    {
+      "id": "T-SP-fogball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "fenn"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "fogball",
+      "pitcherId": "fenn"
+    },
+    {
+      "id": "T-SP-fastball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "nico"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "fastball",
+      "pitcherId": "nico"
+    },
+    {
+      "id": "T-SP-changeup",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "pip"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "changeup",
+      "pitcherId": "pip"
+    },
+    {
+      "id": "T-SP-breaker",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "marlow"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "breaker",
+      "pitcherId": "marlow"
+    },
+    {
+      "id": "T-SS-heat-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "heat-swing",
+      "batterId": "rio",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-heart-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "vale"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "heart-swing",
+      "batterId": "vale",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-shell-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "shell-swing",
+      "seat": "offense",
+      "batterId": "zig"
+    },
+    {
+      "id": "T-SS-phony-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "brondo"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "phony-swing",
+      "batterId": "brondo",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-cask-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "cask-swing",
+      "batterId": "konga",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-furnace",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "furnace",
+      "batterId": "ashlord",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-staff-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "fenn"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "staff-swing",
+      "batterId": "fenn",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-ground",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "pip"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "ground",
+      "batterId": "dart",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-fly",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "marlow"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "fly",
+      "batterId": "cinder",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-line",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "nico"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "line",
+      "batterId": "grit",
+      "seat": "offense"
     }
   ]
 }

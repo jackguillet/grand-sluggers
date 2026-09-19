@@ -9,7 +9,8 @@ public sealed record TutorialLesson(string Id, int Revision, string[] Mechanics,
 public sealed record TutorialBall(double CarryFt, double ExitMph, double LaunchDeg, double SprayDeg);
 public sealed record TutorialSetup(string Id, string Policy, int Seed, double TimeoutSec, string[] Home,
     string[] Away, int[] Runners, Dictionary<string, TutorialBall> Balls, PitchCommand? Pitch = null,
-    double MinMovement01 = 0, int Strikes = 0, double MinTimingFrames = 0, string Seat = "defense");
+    double MinMovement01 = 0, int Strikes = 0, double MinTimingFrames = 0, string Seat = "defense", double StartingStars = 0,
+    string Skill = "", string PitcherId = "", string BatterId = "");
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -29,7 +30,7 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -126,7 +127,9 @@ public sealed class TutorialCatalog
             Require(setup is not null, l.Id + " has unknown setup");
             if (setup is null) continue;
             Require((setup.Policy == "cpu-take" && TutorialPlateObjectives.PitchIds.Contains(l.Objective))
+                || (setup.Policy == "cpu-take" && l.Objective == "star-pitch")
                 || (setup.Policy == "cpu-strike" && TutorialPlateObjectives.SwingIds.Contains(l.Objective) && l.Objective != "take-ball")
+                || (setup.Policy == "cpu-strike" && l.Objective == "star-swing")
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
                 || (setup.Policy == "pickoff" && l.Objective == "human-pickoff")
                 || (setup.Policy == "pitcher-swap" && l.Objective == "tired-pitcher-swap")
@@ -147,6 +150,16 @@ public sealed class TutorialCatalog
                 Require(setup.Pitch is not null && Math.Abs(PitchFlight.Crossing(setup.Pitch, rules: content.Rules).X) >= setup.MinMovement01 * HomeSet.BatterWalk,
                     l.Id + " needs an offset pitch for box movement");
             if (l.Objective == "bunt-fair") Require(setup.Strikes == 2, l.Id + " must teach the two-strike bunt risk");
+            if (l.Objective == "star-pitch") Require((l.Id == "T-P09" || l.Id == "T-SP-" + setup.Skill)
+                && content.StarSkills.Pitches.ContainsKey(setup.Skill)
+                && setup.Home.Contains(setup.PitcherId.Length > 0 ? setup.PitcherId : setup.Home[0])
+                && content.Characters[setup.PitcherId.Length > 0 ? setup.PitcherId : setup.Home[0]].StarPitch == setup.Skill
+                && setup.StartingStars >= content.Rules.Stars.Costs.Own, l.Id + " requires the named pitcher and meter");
+            if (l.Objective == "star-swing") Require((l.Id == "T-B09" || l.Id == "T-SS-" + setup.Skill)
+                && content.StarSkills.Swings.ContainsKey(setup.Skill)
+                && setup.Away.Contains(setup.BatterId.Length > 0 ? setup.BatterId : setup.Away[0])
+                && content.Characters[setup.BatterId.Length > 0 ? setup.BatterId : setup.Away[0]].StarSwing == setup.Skill
+                && setup.StartingStars >= content.Rules.Stars.Costs.Own, l.Id + " requires the named batter and meter");
             if (setup.Policy is "grounder" or "liner" or "airborne")
                 Require(l.Profiles.All(setup.Balls.ContainsKey), l.Id + " lacks a profile ball fixture");
         }
@@ -161,6 +174,10 @@ public sealed class TutorialCatalog
         foreach (var s in Setups)
         {
             Require(s.Seat is "offense" or "defense", s.Id + " has unknown teaching seat");
+            Require((s.PitcherId.Length == 0 || s.Home.Contains(s.PitcherId))
+                && (s.BatterId.Length == 0 || s.Away.Contains(s.BatterId)), s.Id + " has a skill player outside its team");
+            Require(double.IsFinite(s.StartingStars) && s.StartingStars >= 0 && s.StartingStars <= content.Rules.Stars.MeterMax,
+                s.Id + " has invalid starting stars");
             Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
             Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball"), s.Id + " has invalid starting strikes");
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");

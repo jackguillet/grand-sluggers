@@ -101,7 +101,16 @@ public sealed partial class TutorialSession
     {
         var home = _content.Team("Tutorial defense", _setup.Home[0], _setup.Home.Skip(1).ToArray());
         var away = _content.Team("Tutorial offense", _setup.Away[0], _setup.Away.Skip(1).ToArray());
+        if (_setup.PitcherId.Length > 0) home = home with { Starter = home.Roster.Single(c => c.Id == _setup.PitcherId) };
+        if (_setup.BatterId.Length > 0)
+            away = away with { Order = [away.Roster.Single(c => c.Id == _setup.BatterId),
+                .. away.Roster.Where(c => c.Id != _setup.BatterId)] };
         Match = Match.Exhibition(_content, home, away, 3, _setup.Seed, parkId: Training.ParkId);
+        if (_setup.StartingStars > 0)
+        {
+            if (_setup.Seat == "offense") Match.GiveOffenseStars(_setup.StartingStars);
+            else Match.GiveDefenseStars(_setup.StartingStars);
+        }
         foreach (var bag in _setup.Runners)
             if (!Match.StationRunner(bag, Match.Away.Roster[bag + 1]))
                 throw new InvalidDataException("Cannot station tutorial runner.");
@@ -151,9 +160,14 @@ public sealed partial class TutorialSession
     {
         if (!Accepts(source) || _setup.Policy != "cpu-take") return false;
         _inputs.Add(new(Elapsed, source, Pitch: command));
+        var beforeStars = Match.DefenseStars;
+        var beforeCost = Match.PitchStarCost;
+        var hadMeter = Match.CanStarPitch;
         Match.BeginAtBat(command, Take, out var hit, out var play);
         LastHit = hit; LastPlay = play;
-        var verdict = TutorialPlateObjectives.Pitch(Lesson.Objective, _setup, command, play);
+        var verdict = Lesson.Objective == "star-pitch"
+            ? EvaluateStarPitch(command, play, beforeStars, beforeCost, hadMeter)
+            : TutorialPlateObjectives.Pitch(Lesson.Objective, _setup, command, play);
         Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
     }
@@ -164,9 +178,14 @@ public sealed partial class TutorialSession
         command = command with { Human = true };
         _inputs.Add(new(Elapsed, source, Swing: command));
         var bats = Match.Batter.Bats;
+        var beforeStars = Match.OffenseStars;
+        var beforeCost = Match.SwingStarCost;
+        var hadMeter = Match.CanStarSwing;
         Match.BeginAtBat(CpuPitch, command, out var hit, out var play);
         LastHit = hit; LastPlay = play;
-        var verdict = TutorialPlateObjectives.Swing(Lesson.Objective, _setup, bats, command, hit, play);
+        var verdict = Lesson.Objective == "star-swing"
+            ? EvaluateStarSwing(command, hit, beforeStars, beforeCost, hadMeter)
+            : TutorialPlateObjectives.Swing(Lesson.Objective, _setup, bats, command, hit, play);
         Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
     }
