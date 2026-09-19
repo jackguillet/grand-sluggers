@@ -274,6 +274,7 @@ namespace GrandSluggers.UnityClient
             if (openedHowTo || openedPause)
             {
                 _match.SetPaused(true);
+                if (openedPause && GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.CallTimeOpened);
                 _pauseItem = openedHowTo ? 2 : 0;
                 _pauseHowTo = openedHowTo;
                 _pauseFromHowTo = openedHowTo;
@@ -336,7 +337,10 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             if (_phase == Phase.Select || _phase == Phase.Field || (_phase == Phase.Lineup && _lineup != null))
+            {
+                HudView.GuidedHint(_guided);
                 return;
+            }
             var ui = _phase switch
             {
                 Phase.Title => PhaseUi.Title,
@@ -440,6 +444,7 @@ namespace GrandSluggers.UnityClient
                     _feelSlow, _freezeCam,
                     _spec != null ? _spec.CurrentEvent : "");
             }
+            HudView.GuidedHint(_guided);
         }
 
         void TickPause()
@@ -520,6 +525,7 @@ namespace GrandSluggers.UnityClient
                         break;
                     case PauseMenu.Item.HowToPlay:
                         _pauseHowTo = true;
+                        if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.BookOpened);
                         _pausePage = 0;
                         _menuX.Catch(Controls.MenuX);
                         _wheelSpin = true;
@@ -541,7 +547,7 @@ namespace GrandSluggers.UnityClient
         void RestartFromPause()
         {
             if (TutorialOn) { PrepareTutorial(_coach.Tutorial.Lesson.Id); return; }
-            Seed++;
+            if (!GuidedAttempt("T-G06")) Seed++;
             _match = NewMatch();
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec.Build(transform);
@@ -551,11 +557,17 @@ namespace GrandSluggers.UnityClient
             _hlPath = null;
             BeginSet();
             _match.SetPaused(false);
+            if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.MatchRestarted);
         }
 
         void PauseToTitle()
         {
             _match.SetPaused(false);
+            if (_guided != null)
+            {
+                OpenTutorials();
+                return;
+            }
             _tutorialMenu = false;
             if (TrainingOn) _coach.Stop();
             ReleaseMatchSeats();
@@ -593,14 +605,17 @@ namespace GrandSluggers.UnityClient
             {
                 _deviceRecovery.WaitFor(missing, _match.Paused);
                 _match.SetPaused(true);
+                GuidedSeatLost(missing);
                 Controls.TryRecoverMatchSeat(missing);
                 return true;
             }
             if (!_deviceRecovery.Active) return false;
             var resume = _deviceRecovery.ResumeWhenReady;
+            var recoveredSeat = _deviceRecovery.MissingSeat;
             _deviceRecovery.Complete();
             if (resume) _match.SetPaused(false);
             Controls.CatchPlay();
+            GuidedSeatRecovered(recoveredSeat);
             return true;
         }
 

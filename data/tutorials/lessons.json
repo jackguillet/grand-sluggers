@@ -1401,15 +1401,15 @@
     },
     {
       "id": "T-G01",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.01"
       ],
       "title": "lineup/positions/handedness",
       "category": "game",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
       "profiles": [
         "shipped",
         "c80"
@@ -1417,9 +1417,11 @@
       "requires": [],
       "prerequisites": [],
       "setup": "",
-      "objective": "",
+      "objective": "guided-lineup",
       "controls": [],
-      "tests": []
+      "tests": [
+        "GuidedTutorialTests"
+      ]
     },
     {
       "id": "T-G02",
@@ -1489,15 +1491,15 @@
     },
     {
       "id": "T-G05",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.05"
       ],
       "title": "controller roles and a second pad",
       "category": "game",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
       "profiles": [
         "shipped",
         "c80"
@@ -1505,21 +1507,70 @@
       "requires": [],
       "prerequisites": [],
       "setup": "",
-      "objective": "",
+      "objective": "guided-seats",
       "controls": [],
-      "tests": []
+      "tests": [
+        "GuidedTutorialTests"
+      ]
     },
     {
       "id": "T-G06",
+      "revision": 2,
+      "mechanics": [
+        "game.06"
+      ],
+      "title": "pause/book/restart",
+      "category": "game",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "guided-pause",
+      "controls": [],
+      "tests": [
+        "GuidedTutorialTests"
+      ]
+    },
+    {
+      "id": "T-G06-C",
       "revision": 1,
       "mechanics": [
         "game.06"
       ],
-      "title": "pause/book/restart and controller recovery/calibration",
+      "title": "pursuit stick calibration",
       "category": "game",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "guided-calibration",
+      "controls": [],
+      "tests": [
+        "GuidedTutorialTests"
+      ]
+    },
+    {
+      "id": "T-G06-R",
+      "revision": 1,
+      "mechanics": [
+        "game.06"
+      ],
+      "title": "controller recovery",
+      "category": "game",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
       "profiles": [
         "shipped",
         "c80"
@@ -1527,9 +1578,11 @@
       "requires": [],
       "prerequisites": [],
       "setup": "",
-      "objective": "",
+      "objective": "guided-recovery",
       "controls": [],
-      "tests": []
+      "tests": [
+        "GuidedTutorialTests"
+      ]
     },
     {
       "id": "T-X01",
