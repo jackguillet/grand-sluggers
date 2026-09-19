@@ -260,6 +260,7 @@ public sealed partial class TutorialSession
                 && _throws.SequenceEqual(new[] { 2, 1 });
             Finish(correct, correct ? "turned-two" : "double-play-missed", correct ? "Your two throws beat both runners: second, then first." : "Make the force at second, then command the throw to first before the batter arrives.");
         }
+        else if (Lesson.Objective == "human-choice-second") EvaluateOutObjective(result);
         else EvaluateExpandedFieldObjective(live, result);
         if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
             Finish(false, "timeout", "The opportunity ended. Retry the same setup.");

@@ -1038,25 +1038,29 @@
     },
     {
       "id": "T-D03",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.03"
       ],
       "title": "fielder's choice/which out to take",
       "category": "outs",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless geometric choice lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-D03",
+      "objective": "human-choice-second",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     },
     {
       "id": "T-D04",
@@ -3325,6 +3329,51 @@
         }
       },
       "seat": "offense"
+    },
+    {
+      "id": "T-D03",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
     }
   ]
 }

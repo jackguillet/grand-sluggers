@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>Runner lessons observe the production offense pad and runner bodies after each live tick.</summary>
 public sealed partial class TutorialSession
 {
-    sealed record RunnerBefore(string Id, int Bag, double Feet, RunnerPhase Phase, bool Held);
+    sealed record RunnerBefore(string Id, int Bag, double Feet, RunnerPhase Phase, bool Held, bool ForceSlide);
     string _lessonRunner = "";
     bool _runnerSelected;
     bool _runnerSent;
@@ -26,7 +26,7 @@ public sealed partial class TutorialSession
     RunnerBefore? CaptureRunnerBefore()
     {
         var runner = Match.RunnerAt(Lesson.Objective is "runner-send-halt-return" or "all-runner-return" ? 2 : 0);
-        return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held);
+        return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held, runner.ForceSlide);
     }
 
     void ObserveRunning(LivePadInput pad, bool owned, RunnerBefore? before, LivePlayCommandResult result)
@@ -80,10 +80,11 @@ public sealed partial class TutorialSession
         }
         else if (Lesson.Objective == "human-slide")
         {
-            if (owned && pad.WestDown && runner.ForceSlide && runner.Phase == RunnerPhase.Sliding)
+            if (owned && (pad.WestDown || pad.SouthDown) && !before.ForceSlide
+                && before.Phase != RunnerPhase.Sliding && runner.ForceSlide && runner.Phase == RunnerPhase.Sliding)
                 _humanSlide = true;
             if (_humanSlide && runner.Phase == RunnerPhase.Sliding && runner.Feet > before.Feet)
-                Finish(true, "slid-to-first", "Your runner slid along the first-base path near the bag.");
+                Finish(true, "runner-slid", "Your runner slid along the first-base path near the bag.");
         }
     }
 }
