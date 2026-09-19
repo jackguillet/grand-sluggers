@@ -866,47 +866,55 @@
     },
     {
       "id": "T-F11",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.11"
       ],
       "title": "wall carom",
       "category": "fielding",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live-play exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F11",
+      "objective": "human-wall-carom",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-F12",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.12"
       ],
       "title": "buddy jump/wall rob (ability dependent)",
       "category": "fielding",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live-play exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F12",
+      "objective": "human-buddy-rob",
+      "controls": [
+        "control:fielding/Jump"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-F13",
@@ -3497,6 +3505,92 @@
         1
       ],
       "balls": {}
+    },
+    {
+      "id": "T-F11",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "konga",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 110,
+          "launchDeg": 35,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 120,
+          "launchDeg": 25,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F12",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "grit",
+        "marlow",
+        "gull",
+        "nico",
+        "dart"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "konga",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 420,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 120,
+          "launchDeg": 30,
+          "sprayDeg": 0
+        }
+      }
     }
   ]
 }
