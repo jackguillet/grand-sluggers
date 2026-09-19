@@ -778,25 +778,30 @@
     },
     {
       "id": "T-F07",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.07"
       ],
       "title": "relay/cutoff and receiver handoff",
       "category": "fielding",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live relay exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F07",
+      "objective": "human-relay",
+      "controls": [
+        "control:fielding/Cutoff / relay",
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-F08",
@@ -945,25 +950,32 @@
     },
     {
       "id": "T-F14",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.14"
       ],
       "title": "Snap Throw",
       "category": "fielding",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live relay exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
-      "requires": [],
+      "requires": [
+        "snap-throw"
+      ],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F14",
+      "objective": "human-snap-relay",
+      "controls": [
+        "control:fielding/Cutoff / relay",
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-F15",
@@ -3637,6 +3649,96 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F07",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F14",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
         }
       }
     }
