@@ -187,12 +187,15 @@ The window plays the copy only when a run names it: `GRAND_SLUGGERS_TRIAL=trials
 
 From title, **West** on a pad or **F** on keyboard opens **Tutorials**. Use left/right on the stick or **A/D** for categories, and up/down or **W/S** for lessons. Click a category tab or lesson to select it. Lists show at most six lessons per page; keep moving up/down or click the page arrows to browse. Use **South / Space** (or click) to read the goal and start. Tutorials are player 1 versus a controlled CPU setup; a second pad does not take over the teaching opponent.
 
-The 26 lessons are grouped by skill:
+The lessons are grouped by skill:
 
 - **Pitching:** strike, called ball, changeup, MAX pitch, break, and rubber positioning.
 - **Batting:** slap, sweet spot, early pull, late push, MAX swing, box positioning, grounder, fly ball, two-strike bunt, and taking a ball.
 - **Fielding:** ground pickup, manual takeover, throws to first/second/third/home, airborne catch, dive, and jump catch.
 - **Outs:** turn a double play.
+- **Running:** send, halt and return one runner; dash along the first-base path.
+
+Running lessons give you the offense controls while the CPU fields. For Send, hold and return, select the runner on second, send toward third, halt that runner, then return to second. On a pad: D-pad Up, stick left, left + LB + RB to halt, then stick up. On keyboard: 2, A, A + slash to halt, then W. Dash toward first asks for repeated South / Space presses while the batter-runner moves.
 
 Each lesson shows its goal, setup, and controls for the active input scheme before the attempt. Pitching lessons use a batter who takes. Batting gets a repeatable middle fastball, except Take a ball gets a high ball and Move in the box gets an offset strike; bunting begins with two strikes. Fielding starts from authored contact and base occupancy. Real baseball rules resolve every attempt.
 

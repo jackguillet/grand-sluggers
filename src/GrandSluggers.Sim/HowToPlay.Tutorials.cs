@@ -25,7 +25,7 @@ public static partial class HowToPlay
         "T-F02" => "Take the glove", "T-F03" => "Throw to first", "T-F03-2" => "Throw to second",
         "T-F03-3" => "Throw to third", "T-F03-H" => "Throw home", "T-F04" => "Catch an airborne ball", "T-F06" => "Jump for a catch",
         "T-F01" => "Field a ground ball", "T-F05" => "Dive for an out", "T-D02" => "Turn a double play",
-        _ => id
+        _ => RemainingTutorial(id)?.Title ?? id
     };
     public static string TutorialGoal(string id) => id switch
     {
@@ -55,7 +55,7 @@ public static partial class HowToPlay
         "T-F01" => "Move your glove to the ground ball and scoop it up.",
         "T-F05" => "Move your glove and dive to catch the ball before it lands.",
         "T-D02" => "Force the runner at second, then throw to first for two outs.",
-        _ => ""
+        _ => RemainingTutorial(id)?.Goal ?? ""
     };
     public static string TutorialSetup(string id) => id switch
     {
@@ -76,7 +76,7 @@ public static partial class HowToPlay
         "T-F01" => "A ground ball comes to the left side. Follow the ball with the highlighted glove.",
         "T-F05" => "A low fly heads toward your glove. Get close, then dive just before it lands.",
         "T-D02" => "A runner starts on first. Field the grounder, throw to second, then throw from that glove to first.",
-        _ => ""
+        _ => RemainingTutorial(id)?.Setup ?? ""
     };
     public static string TutorialControls(string id, InputScheme scheme)
     {
@@ -110,11 +110,14 @@ public static partial class HowToPlay
             "T-F05" => pad ? "Left stick moves your glove. East dives toward the ball." : "WASD moves your glove. G dives toward the ball.",
             "T-D02" => pad ? "D-pad Up + South throws to second. Then Right + South throws to first."
                 : "2 + Space throws to second. Then 1 + Space throws to first.",
-            _ => ""
+            _ => pad ? RemainingTutorial(id)?.Pad ?? "" : RemainingTutorial(id)?.Keys ?? ""
         };
     }
     public static string TutorialFeedbackText(string code) => code switch
     {
+        "runner-returned" => "You sent the selected runner, halted, and returned safely to second.",
+        "runner-dashed" or "dashed-to-first" => "Your dash accelerated the batter-runner along the path to first.",
+        "running-opportunity-ended" => "The play ended before you completed the runner sequence. Follow each step in the setup.",
         "pitched-ball" => "Your pitch passed outside the zone for a called ball.",
         "pitch-outside" => "That was not a called ball. Move farther from center and miss the zone without hitting the batter.",
         "move-box" => "Move the batter and oval toward the offset pitch before swinging.",

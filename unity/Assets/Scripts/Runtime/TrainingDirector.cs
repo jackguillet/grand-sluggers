@@ -17,7 +17,8 @@ namespace GrandSluggers.UnityClient
             Stop();
             Tutorial = new TutorialSession(content, catalog, id, progress);
             Session = Training.Start(content);
-            Session.Choose(Tutorial.IsFieldLesson ? PracticeLesson.Fielding
+            Session.Choose(Tutorial.IsOffenseLesson ? PracticeLesson.Running
+                : Tutorial.IsFieldLesson ? PracticeLesson.Fielding
                 : Tutorial.Lesson.Category == "pitching" ? PracticeLesson.Pitching : PracticeLesson.Batting);
         }
 
