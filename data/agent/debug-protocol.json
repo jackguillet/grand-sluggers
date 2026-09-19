@@ -282,6 +282,16 @@
       "promoted": "EditorShutdownTests.test_idle_editor_after_a_good_build_gets_one_normal_quit",
       "issue": "#765",
       "pr": "#766"
+    },
+    {
+      "id": "fumble-holds-a-bat",
+      "signature": "a fielder who bobbles the ball swings a bat; the fumbling glove plays the batter's miss follow-through, the bat appears and the glove vanishes",
+      "stage": "still-gate",
+      "cause": "ActorDirector mapped LivePlaySystem.Bobbling to Motion.Verb.Miss. Motion.UsesBattingHand(Miss) is true, so HeroActor turned the bat on, the glove off and played the batting hand's miss take on a fielder. Found in the #718-#721 Unity pass audit, not a sitting.",
+      "fix": "A body's debt picks its take in one place, FielderTells.Verb, per body (the ring can leave it): the shipped whole-tick fumble on the glove and the c80 stun on StunPos both play the spin take, never a batting verb. Poses stay the takes'; the director only chooses.",
+      "promoted": "FielderTellsTests.TheShippedFumbleShowsTheStunNotTheBattersMiss",
+      "issue": "#721",
+      "pr": ""
     }
   ]
 }

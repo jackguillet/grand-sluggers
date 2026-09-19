@@ -81,6 +81,21 @@ def sync_main(main):
     return revision
 
 
+def trial_overlay(source, name):
+    """The trial overlay the window plays, as the game names it (trials/c80), or None for the shipped data.
+
+    It must be a folder under trials/ in the revision being built: the game refuses a named overlay it cannot find,
+    and a window that quietly played the shipped table under a trial's name would be worse."""
+    if not name:
+        return None
+    relative = Path(name)
+    if relative.is_absolute() or '..' in relative.parts or len(relative.parts) < 2 or relative.parts[0] != 'trials':
+        raise RuntimeError('Name a trial overlay under trials/, such as trials/c80: ' + name)
+    if not (source / relative).is_dir():
+        raise RuntimeError('Revision has no trial overlay ' + name + '; nothing was restarted.')
+    return relative.as_posix()
+
+
 def deliver(args):
     repo = Path(__file__).resolve().parents[1]
     common = Path(run('git', 'rev-parse', '--path-format=absolute', '--git-common-dir', cwd=repo))
@@ -107,6 +122,7 @@ def deliver(args):
         source = main.parent / 'scratchpad' / ('wt-player-' + revision[:10] + '-' + str(time.time_ns()))
         source.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(['git', 'worktree', 'add', '--detach', str(source), revision], cwd=main, check=True)
+        trial = trial_overlay(source, args.trial)
 
         version = (source / 'unity/ProjectSettings/ProjectVersion.txt').read_text().splitlines()[0].split(':', 1)[1].strip()
         editor = Path('/Applications/Unity/Hub/Editor') / version / 'Unity.app/Contents/MacOS/Unity'
@@ -164,7 +180,12 @@ def deliver(args):
         shutil.copytree(built, app, symlinks=True)
         # Application.dataPath is <app>/Contents; the game loads ../../data.
         shutil.copytree(source / 'data', release / 'data')
-        (release / 'revision.json').write_text(json.dumps(dict(revision=revision, kind=label, source=str(source)), indent=2))
+        if trial:
+            # A trial overlay resolves beside data/ (GRAND_SLUGGERS_TRIAL=trials/c80 names <release>/trials/c80).
+            shutil.copytree(source / trial, release / trial)
+        profile = trial or 'shipped'
+        (release / 'revision.json').write_text(json.dumps(dict(revision=revision, kind=label, source=str(source),
+                                                               dataProfile=profile), indent=2))
         (release / 'build-evidence.json').write_text(json.dumps(result, indent=2))
         # Quit only this project's old standalone player, after the new build/data exist.
         old_main = main / 'unity/Builds/osx/GrandSluggers.app/Contents/MacOS/Grand Sluggers'
@@ -188,20 +209,27 @@ def deliver(args):
                     raise RuntimeError('Old game did not quit; not force-killing it. New app: ' + str(app))
         executable = app / 'Contents/MacOS/Grand Sluggers'
         player_log = release / 'player.log'
+        player_env = os.environ.copy()
+        player_env.pop('GRAND_SLUGGERS_TRIAL', None)
+        player_env.pop('GRAND_SLUGGERS_DATA', None)
+        if trial:
+            player_env['GRAND_SLUGGERS_TRIAL'] = trial
         child = subprocess.Popen([str(executable), '-screen-fullscreen', '0', '-screen-width', '1280',
                                   '-screen-height', '800', '-logFile', str(player_log)],
-                                 stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, start_new_session=True)
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, start_new_session=True, env=player_env)
         time.sleep(3)
         if child.poll() is not None:
             raise RuntimeError('New player exited. Previous builds are retained. See ' + str(player_log))
         launch = dict(ok=True, kind='launch-only', revision=revision, scene=result['scene'], app=str(app), pid=child.pid,
-                     observedSeconds=3, playerLog=str(player_log), utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+                     dataProfile=profile, observedSeconds=3, playerLog=str(player_log),
+                     utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
         launch_path = release / 'launch-evidence.json'
         launch_path.write_text(json.dumps(launch, indent=2))
         (state / 'current.json').write_text(json.dumps(dict(revision=revision, kind=label, app=str(app), pid=child.pid,
-                                                            log=str(player_log), buildEvidence=str(release / 'build-evidence.json'),
+                                                            dataProfile=profile, log=str(player_log),
+                                                            buildEvidence=str(release / 'build-evidence.json'),
                                                             launchEvidence=str(launch_path)), indent=2))
-        log('Running ' + label + ' ' + revision[:10] + ' in its own window: ' + str(app))
+        log('Running ' + label + ' ' + revision[:10] + ' on the ' + profile + ' data in its own window: ' + str(app))
         log('Build worktree retained for diagnostics: ' + str(source))
 
 
@@ -209,6 +237,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--preview', metavar='WORKTREE', help='Build a committed worktree without updating main.')
     parser.add_argument('--timeout', type=int, default=900, help='Build timeout in seconds (default: 900).')
+    parser.add_argument('--trial', metavar='OVERLAY',
+                        help='Play a trial overlay over the shipped data, e.g. trials/c80 (GRAND_SLUGGERS_TRIAL).')
     args = parser.parse_args()
     if sys.platform != 'darwin':
         parser.error('Standalone local delivery currently supports macOS only.')

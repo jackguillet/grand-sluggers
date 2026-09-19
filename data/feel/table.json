@@ -25,5 +25,9 @@
     "heightRangeFt": 60.0,
     "surfaceLiftFt": 0.04,
     "opacity": 0.65
+  },
+  "fieldTells": {
+    "diveGetUpSec": 0.20,
+    "braceSquash": 0.16
   }
 }

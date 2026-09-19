@@ -63,6 +63,7 @@ namespace GrandSluggers.UnityClient
             _coverPos = "";
             _recoilT = 0;
             _bobbling = false;
+            _owed = FielderTells.Owed.None;
             _diveT = _jumpT = _swapLock = 0;
             _gloveAt.Clear();
             _resultBodies = null;
