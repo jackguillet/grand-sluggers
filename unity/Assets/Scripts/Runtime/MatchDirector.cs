@@ -190,8 +190,10 @@ namespace GrandSluggers.UnityClient
         void Start()
         {
             Controls.Initialize();
-            var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
-            _content = ContentCatalog.Load(data);
+            var data = DataProfile.ShippedRoot;
+            // The shipped root, or a trial named in GRAND_SLUGGERS_TRIAL laid over it (#715): the window plays what cli match plays.
+            _content = ContentCatalog.Load(DataProfile.Root);
+            Debug.Log("GS data " + DataProfile.Root.Provenance);
             ArtBinder.Bind(_content.Art);
             _coach = gameObject.AddComponent<TrainingDirector>();
             _match = NewMatch();
@@ -235,6 +237,8 @@ namespace GrandSluggers.UnityClient
         {
             Controls.Tick(Time.unscaledDeltaTime);
             if (_match == null) return;
+            // The pursuit stick's seats (#718) bind every frame, recovery and Call time included, on the input clock.
+            TickPursuitSeats();
             if (TickDeviceRecovery())
             {
                 _actors.Draw(0f);
@@ -320,7 +324,8 @@ namespace GrandSluggers.UnityClient
                 TeamSheet.Draw(_match, _lineup);
             if (_match.Paused && _phase is Phase.Select or Phase.Field or Phase.Lineup)
             {
-                HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
+                if (_stickReset) DrawStickReset();
+                else HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, OffersStickReset, DataProfile.Label);
                 return;
             }
             if (_phase == Phase.Select || _phase == Phase.Field || (_phase == Phase.Lineup && _lineup != null))
@@ -362,6 +367,11 @@ namespace GrandSluggers.UnityClient
                 HudView.Pause(_pauseItem, true, _pausePage);
                 return;
             }
+            if (_match.Paused && _stickReset)
+            {
+                DrawStickReset();
+                return;
+            }
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
                 _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
@@ -381,9 +391,10 @@ namespace GrandSluggers.UnityClient
                     BroadcastHud.Stamp(StampAnchor.Dirt));
             if (_match.Paused)
             {
-                HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
+                HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, OffersStickReset, DataProfile.Label);
                 return;
             }
+            if (!mutePlay) DrawStickTells();
             if (_closePlay)
                 HudView.ClosePlay(_closeBag, _closeIcon);
             if (!mutePlay && _phase == Phase.InPlay && HumanOwnsThrow)
@@ -398,6 +409,8 @@ namespace GrandSluggers.UnityClient
                     HudView.SwitchTell(_glovePos, _switchPos, hint != null ? hint.Name : "", false);
                 }
             }
+            if (!mutePlay && _phase is Phase.InPlay or Phase.StealThrow)
+                DrawUnreadyTell();
             if (!mutePlay && ItemOffered && _itemTarget != null)
                 HudView.ItemPointer(_itemTarget.Name);
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
@@ -426,6 +439,11 @@ namespace GrandSluggers.UnityClient
         {
             var dt = Time.unscaledDeltaTime;
             if (_pauseStick > 0) _pauseStick -= dt;
+            if (_stickReset)
+            {
+                TickStickReset();
+                return;
+            }
             var mouse = Controls.GuiMouse;
             if (_pauseHowTo)
             {
@@ -464,27 +482,28 @@ namespace GrandSluggers.UnityClient
                 }
                 return;
             }
-            var hit = PauseMenu.HitItem(mouse.x, mouse.y, Screen.width, Screen.height);
+            var stick = OffersStickReset;
+            var hit = PauseMenu.HitItem(mouse.x, mouse.y, Screen.width, Screen.height, stick);
             if (hit >= 0) _pauseItem = hit;
             if (Controls.MenuDown)
             {
-                _pauseItem = PauseMenu.Wrap(_pauseItem, 1);
+                _pauseItem = PauseMenu.Wrap(_pauseItem, 1, stick);
                 _pauseStick = 0.22f;
             }
             else if (Controls.MenuUp)
             {
-                _pauseItem = PauseMenu.Wrap(_pauseItem, -1);
+                _pauseItem = PauseMenu.Wrap(_pauseItem, -1, stick);
                 _pauseStick = 0.22f;
             }
             else
             {
                 var dy = _pauseY.Tick(Controls.MenuY, Controls.MenuTapY, dt);
                 if (dy != 0)
-                    _pauseItem = PauseMenu.Wrap(_pauseItem, dy > 0 ? -1 : 1);
+                    _pauseItem = PauseMenu.Wrap(_pauseItem, dy > 0 ? -1 : 1, stick);
             }
             if (Controls.SouthDown)
             {
-                switch (PauseMenu.At(_pauseItem))
+                switch (PauseMenu.At(_pauseItem, stick))
                 {
                     case PauseMenu.Item.Resume:
                         _match.SetPaused(false);
@@ -498,6 +517,9 @@ namespace GrandSluggers.UnityClient
                         _menuX.Catch(Controls.MenuX);
                         _wheelSpin = true;
                         BookScheme.Open();
+                        break;
+                    case PauseMenu.Item.ResetStick:
+                        OpenStickReset();
                         break;
                     case PauseMenu.Item.Title:
                         PauseToTitle();

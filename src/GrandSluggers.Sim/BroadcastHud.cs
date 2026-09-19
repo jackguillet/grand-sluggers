@@ -83,6 +83,12 @@ public static class BroadcastHud
     public static readonly HudRect ItemTell = new(0.750, 0.850, 0.221875, 0.045);
 
     /// <summary>
+    /// The pursuit stick's tell (#718): top centre under the banner, clear of the scorebug, the cards and the throw pips the
+    /// client anchors to the bottom edge. Same recipe 1P and 1v1; the copy names the player when two play.
+    /// </summary>
+    public static readonly HudRect StickTell = new(0.330, 0.125, 0.340, 0.045);
+
+    /// <summary>
     /// Live-event dirt stickers (§15, #690). Same recipe 1P and 1v1. None is the old
     /// screen-center card (0.50, 0.40): they sit on the dirt, the glove, or the plate.
     /// </summary>
@@ -304,6 +310,27 @@ public static class BroadcastHud
         if (dive) s += "  DIVE";
         return s;
     }
+
+    /// <summary>
+    /// What a seat is told about its pursuit stick (#718, F693-02-pursuit-calibration-policy, -arming): let go while the seat has
+    /// no profile or Call time is taking one, and that it took. Empty when there is nothing to say. Numbered only when two play.
+    /// </summary>
+    public static string StickLine(PursuitReadiness.Tell tell, int seat, bool twoPlayers, bool keyboard = false)
+    {
+        var who = twoPlayers ? $"P{seat + 1}  ·  " : "";
+        return tell switch
+        {
+            PursuitReadiness.Tell.LetGo => who + (keyboard ? "HANDS OFF THE KEYS" : "LET GO OF THE STICK"),
+            PursuitReadiness.Tell.Reset => who + "STICK RESET",
+            _ => ""
+        };
+    }
+
+    /// <summary>
+    /// A live ball the fielding seat cannot steer yet (#718, <see cref="LivePlaySystem.PursuitUnready"/>): the glove runs on its
+    /// own until the stick has been seen at rest once since the seat took the field.
+    /// </summary>
+    public const string UnreadyTell = "LET GO OF THE STICK TO STEER";
 
     /// <summary>Smart switch tell. Empty when the hint is you, or you have the ball.</summary>
     public static string SwitchTell(string current, string hint, string? hintName, bool hasBall)

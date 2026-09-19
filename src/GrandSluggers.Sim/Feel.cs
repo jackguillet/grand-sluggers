@@ -154,6 +154,9 @@ public sealed class FeelTable
 
     public BallShadowFeel BallShadow { get; private init; } = new();
 
+    /// <summary>How a fielding body shows what the ball cost it (#719–#721): the dive's get-up and the impact brace.</summary>
+    public FieldTellsFeel FieldTells { get; private init; } = new();
+
     public static FeelTable Load(DataRoot dataRoot)
     {
         var path = dataRoot.Resolve("feel", "table.json");
@@ -168,6 +171,7 @@ public sealed class FeelTable
         if (dto.PitchChargeSeconds <= 0 || dto.SmashFreeze <= 0)
             throw new InvalidDataException("Feel table charge and smash freeze must be positive");
         dto.BallShadow.Validate();
+        dto.FieldTells.Validate();
         var assist = dto.FieldAssistStick > 0 ? dto.FieldAssistStick : 0.35;
         var ready = dto.PitcherReadySeconds > 0 ? dto.PitcherReadySeconds : 0.55;
         var after = dto.AfterOutSeconds > 0 ? dto.AfterOutSeconds : 1.35;
@@ -193,6 +197,7 @@ public sealed class FeelTable
             hold)
         {
             BallShadow = dto.BallShadow,
+            FieldTells = dto.FieldTells,
             BodyTurnDegPerSec = dto.BodyTurnDegPerSec > 0 ? dto.BodyTurnDegPerSec : 720,
             HeadingSmoothSec = dto.HeadingSmoothSec >= 0 ? dto.HeadingSmoothSec : 0.08,
             HeadingTeleportFtPerSec = dto.HeadingTeleportFtPerSec > 0 ? dto.HeadingTeleportFtPerSec : 90,
@@ -205,6 +210,7 @@ public sealed class FeelTable
     sealed class FeelDto
     {
         public BallShadowFeel BallShadow { get; set; } = new();
+        public FieldTellsFeel FieldTells { get; set; } = new();
         public double PitchChargeSeconds { get; set; }
         public double SwingChargeSeconds { get; set; }
         public double SmashFreeze { get; set; }

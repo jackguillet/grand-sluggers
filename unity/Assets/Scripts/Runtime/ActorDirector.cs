@@ -17,6 +17,11 @@ namespace GrandSluggers.UnityClient
     public sealed partial class MatchDirector
     {
         float _committedSwingT = (float)AtBatMotion.SwingNotStarted;
+        /// <summary>
+        /// What the live ball owes each body this frame (#719–#721): the stun, the dive's recovery, the brace, the jump's
+        /// airtime. Mirrored while the ball is live and aged through the result beat, since the completing frame resets the field.
+        /// </summary>
+        FielderTells.Owed _owed = FielderTells.Owed.None;
         /// <summary>Seconds from the press to the committed take's Contact mark (D13); NaN until a swing commits.</summary>
         float _swingContactSec = float.NaN;
 
@@ -66,6 +71,8 @@ namespace GrandSluggers.UnityClient
             }
             TeamSheet.HideBoard();
             _chem?.Hide();
+            // A debt the play ended on runs out in the result beat: the diver gets up, the jumper lands, the fumbler recovers.
+            if (_phase == Phase.Result) _owed = _owed.Aged(dt);
             // The result beat draws the play's own bodies (§10.6, #574): the defense that made the play,
             // where each glove stood at Time, whatever the match flipped to after the third out.
             var resultBodies = _phase == Phase.Result ? _resultBodies : null;
@@ -115,11 +122,10 @@ namespace GrandSluggers.UnityClient
                     x = _fx;
                     z = _fz;
                     if (_throwing) pose = Motion.Verb.Catch;
-                    else if (_bobbling) pose = Motion.Verb.Miss;
-                    else if (_recoilT > 0) pose = Motion.Verb.Dive;
+                    // The shipped knockback lays the body down; the ordinary impact recoil (#720) is a brace on the take's own pose.
+                    else if (_recoilT > 0 && !_owed.Bracing) pose = Motion.Verb.Dive;
                     else if (_jumpT > 0) pose = who.FieldAbility == "clamber" ? Motion.Verb.Clamber : Motion.Verb.Jump;
-                    else if ((_caught || _buddy) && !_throwing &&
-                             Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY) >= 0.35f)
+                    else if ((_caught || _buddy) && !_throwing && CarryingOnTheStick(kv.Key))
                         pose = Motion.Verb.Run;
                     else if (_caught && _preview != null && _preview.Grounder) pose = Motion.Verb.Scoop;
                     else if (_caught || _buddy) pose = Motion.Verb.Catch;
@@ -174,6 +180,11 @@ namespace GrandSluggers.UnityClient
                     pose = Motion.Verb.Throw;
                 if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
                     pose = Motion.Verb.Catch;
+                // A body paying for the ball shows it whoever holds the ring (#719–#721): the fumbler's stun (never the
+                // batter's miss, which carries the bat), the diver down then up, the jumper reaching while the root rises.
+                if (_phase is Phase.InPlay or Phase.StealThrow or Phase.Result
+                    && FielderTells.Verb(_owed, kv.Key, _feel.FieldTells) is { } owedVerb)
+                    pose = owedVerb;
                 var hero = Hero(who);
                 var holdBall = _caught || _buddy;
                 hero.SetGrow(BodyScale.GrowOn(who.FieldAbility, playGlove: who.Id == litId, holdBall: holdBall));
@@ -189,9 +200,13 @@ namespace GrandSluggers.UnityClient
                 hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _pitchCharge : 0f);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.SetHeld(false, true);
+                var brace = FielderTells.Brace(_owed, kv.Key, _match.Rules.Fielding.Recoil.CapSec, _feel.FieldTells);
+                hero.SetBrace(new Vector3((float)brace.X, (float)brace.Y, (float)brace.Z));
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     x += _match.PitcherOffsetX * HomeSet.PitcherWalk;
-                hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z),
+                // The normal jump's root rise is the sim's (#719): two feet over the airtime, the ring left on the dirt.
+                var rise = (float)FielderTells.RiseFt(_owed, kv.Key);
+                hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z) + rise, (float)z),
                     DefenseFacing(kv.Key, x, z, highlighted && !buddyPartner));
                 if (pose == Motion.Verb.ThrowPitch && _phase == Phase.Flight)
                     hero.SampleMotion((float)Motion.PitchRelease + _flight, dt);
@@ -386,6 +401,17 @@ namespace GrandSluggers.UnityClient
             var plant = fly ? FlyCatch.ChaseTarget(_preview, _match.Park, _match.Rules) : default;
             return BodyFacing.Fielder(x, z, _ball.x, _ball.z, releasing, _throwTo.x, _throwTo.z,
                 fly, plant.X, plant.Z, BodyFacing.Rates.Of(_content.Feel));
+        }
+
+        /// <summary>
+        /// The glove runs with the ball on the stick: the sim's own owner on the calibrated stick (#718), the Manhattan gate it
+        /// shipped with otherwise. Never while the brace holds the body (#720): the skid is not a run.
+        /// </summary>
+        bool CarryingOnTheStick(string pos)
+        {
+            if (FielderTells.Braced(_owed, pos)) return false;
+            if (RadialStick) return _match.LivePlay.PursuitManual;
+            return Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY) >= (float)_feel.FieldAssistStick;
         }
 
         static Motion.Verb FieldPose(Character who, FieldingPreview pre, bool caught)
