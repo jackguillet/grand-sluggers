@@ -3,7 +3,8 @@ namespace GrandSluggers.Sim;
 public enum TutorialPhase { Brief, Attempt, Feedback, Exited }
 public sealed record TutorialFeedback(bool Success, string Code, string Detail);
 public sealed record TutorialInput(double Time, LivePlayCommandSource Source, PitchCommand? Pitch = null,
-    SwingCommand? Swing = null, LivePadInput? Field = null, int PickoffBag = 0, string? SwapPitcherId = null);
+    SwingCommand? Swing = null, LivePadInput? Field = null, int PickoffBag = 0, string? SwapPitcherId = null,
+    int StealBag = 0);
 public sealed record TutorialRecording(int Version, string Lesson, int Revision, string Profile, string InputsHash, bool Demonstration, TutorialInput[] Inputs);
 public sealed record TutorialCompletion(string Lesson, int Revision, string Profile);
 
@@ -78,6 +79,11 @@ public sealed partial class TutorialSession
     public bool IsFieldLesson => _setup.Policy is "grounder" or "liner" or "airborne";
     public bool IsRunningLesson => Lesson.Category == "running";
     public bool IsOffenseLesson => _setup.Seat == "offense";
+    public bool IsDefenseLesson => _setup.Policy == "steal-defense" || IsFieldLesson && !IsOffenseLesson;
+    public bool IsStealLesson => _setup.Policy is "steal-offense" or "steal-defense";
+    public double StealWindupStartsAt => _content.Feel.PitcherReadySeconds;
+    public bool IsStealWindup => _setup.Policy == "steal-offense" && Phase == TutorialPhase.Attempt
+        && !Match.LivePlay.Active && Elapsed >= StealWindupStartsAt;
     public PitchCommand CpuPitch => _setup.Pitch ?? new("fastball", 0, false);
     static readonly SwingCommand Take = new(false, 0, 0, false);
     static readonly SwingCommand Contact = new(true, 0, 0, false);
@@ -109,6 +115,7 @@ public sealed partial class TutorialSession
         _humanAerialCatcher = "";
         _queuedHumanThrowBag = 0;
         ResetRunningEvidence();
+        ResetStealEvidence();
         ResetAdvancedEvidence();
         Elapsed = 0; LastPlay = null; LastHit = null; LastTickResult = null; Feedback = null; Paused = false;
     }
@@ -117,6 +124,7 @@ public sealed partial class TutorialSession
     {
         if (Phase != TutorialPhase.Brief) throw new InvalidOperationException("Begin requires the lesson brief.");
         Demonstration = demonstration; Phase = TutorialPhase.Attempt;
+        if (_setup.Policy == "steal-defense") { BeginStealDefense(); return; }
         if (!IsFieldLesson) return;
         var ball = _setup.Balls[_catalog.Profile];
         var hit = TutorialContact.Create(Match.Park, ball, Match.Rules);
@@ -174,6 +182,18 @@ public sealed partial class TutorialSession
         Elapsed += seconds;
         var pad = Accepts(source) ? input ?? LivePadInput.Dead : LivePadInput.Dead;
         _inputs.Add(new(Elapsed, source, Field: pad));
+        var plateArrival = StealWindupStartsAt + Motion.PitchRelease
+            + PitchFlight.AirSeconds(Match.PitchSpeedMph(CpuPitch), Match.Rules);
+        if (_setup.Policy == "steal-offense" && !Match.LivePlay.Active && Elapsed >= plateArrival)
+        {
+            if (Match.StealOn) BeginStealPitch(new LiveSeats(true, false, false, false));
+            else
+            {
+                Match.BeginAtBat(CpuPitch, Take, out _, out var pitchPlay);
+                LastPlay = pitchPlay;
+                Finish(false, "steal-not-armed", "The pitch was released before you armed a runner.");
+            }
+        }
         if (!IsFieldLesson && !Match.LivePlay.Active)
         {
             if (Elapsed >= _setup.TimeoutSec) Finish(false, "timeout", "No completed attempt. Retry when ready.");
@@ -184,12 +204,14 @@ public sealed partial class TutorialSession
         var couldDive = live.TutorialCanDive;
         var previousDive = live.DiveT;
         var runnerBefore = IsOffenseLesson ? CaptureRunnerBefore() : null;
+        var thirdWasOnBag = Lesson.Objective == "human-double-steal" && Match.Runners.Any(r => r.Bag == 3 && r.Phase == RunnerPhase.OnBag);
         var result = live.Apply(LivePlayCommand.Tick(seconds,
             IsOffenseLesson ? LivePadInput.Dead : pad,
             IsOffenseLesson ? pad : LivePadInput.Dead, false, source));
         LastTickResult = result;
         var owned = source == LivePlayCommandSource.Human && !Demonstration;
-        if (IsOffenseLesson)
+        ObserveDelayedHomeSend(pad, owned, thirdWasOnBag);
+        if (IsOffenseLesson && IsFieldLesson)
         {
             ObserveRunning(pad, owned, runnerBefore, result);
             LastPlay = result.CompletedPlay;
@@ -227,7 +249,8 @@ public sealed partial class TutorialSession
                 ? live.QueuedThrowBag : live.CommitBagFor(pad); // C80 recovery buffer has no onward-throw queue.
         if (live.Events.Contains(LiveEvent.ThrowPop))
         {
-            if (owned || _queuedHumanThrowBag == live.ThrowBag) _throws.Add(live.ThrowBag);
+            if ((owned && !IsOffenseLesson && (pad.SouthDown || pad.Cutoff))
+                || _queuedHumanThrowBag == live.ThrowBag) _throws.Add(live.ThrowBag);
             _queuedHumanThrowBag = 0;
         }
         if (owned && live.Events.Contains(LiveEvent.Glove) && live.Caught && live.PursuitManual)
@@ -262,6 +285,7 @@ public sealed partial class TutorialSession
                 && _throws.SequenceEqual(new[] { 2, 1 });
             Finish(correct, correct ? "turned-two" : "double-play-missed", correct ? "Your two throws beat both runners: second, then first." : "Make the force at second, then command the throw to first before the batter arrives.");
         }
+        else if (_setup.Policy is "steal-offense" or "steal-defense") EvaluateStealPlay(result);
         else if (Lesson.Objective == "human-pickoff") EvaluateSetPlay(result);
         else if (Lesson.Objective == "human-choice-second") EvaluateOutObjective(result);
         else EvaluateExpandedFieldObjective(live, result);
@@ -337,6 +361,7 @@ public sealed partial class TutorialSession
     }
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result);
+    partial void ResetAdvancedEvidence();
 
     partial void ResetAdvancedEvidence();
 
@@ -354,7 +379,7 @@ public sealed partial class TutorialSession
         {
             if (input is null || !double.IsFinite(input.Time) || input.Time < run.Elapsed || run.Phase != TutorialPhase.Attempt
                 || new[] { input.Pitch is not null, input.Swing is not null, input.Field is not null,
-                    input.PickoffBag > 0, input.SwapPitcherId is not null }.Count(b => b) != 1)
+                    input.PickoffBag > 0, input.SwapPitcherId is not null, input.StealBag > 0 }.Count(b => b) != 1)
                 throw new InvalidDataException("Invalid tutorial input timeline.");
             if (input.Field is not null) run.Tick(input.Time - run.Elapsed, input.Field, input.Source);
             else
@@ -363,6 +388,7 @@ public sealed partial class TutorialSession
                 var accepted = input.Pitch is not null ? run.Pitch(input.Pitch, input.Source)
                     : input.Swing is not null ? run.Swing(input.Swing, input.Source)
                     : input.PickoffBag > 0 ? run.Pickoff(input.PickoffBag, input.Source)
+                    : input.StealBag > 0 ? run.ArmSteal(input.StealBag, input.Source)
                     : run.SwapPitcher(input.SwapPitcherId!, input.Source);
                 if (!accepted) throw new InvalidDataException("Tutorial input does not belong to the teaching role.");
             }

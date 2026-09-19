@@ -27,8 +27,9 @@ public sealed class TutorialCatalog
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide",
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
+        "human-steal", "human-double-steal", "human-catcher-tag",
         "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration"];
-    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap"];
+    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
@@ -128,6 +129,8 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
                 || (setup.Policy == "pickoff" && l.Objective == "human-pickoff")
                 || (setup.Policy == "pitcher-swap" && l.Objective == "tired-pitcher-swap")
+                || (setup.Policy == "steal-offense" && l.Objective is "human-steal" or "human-double-steal")
+                || (setup.Policy == "steal-defense" && l.Objective == "human-catcher-tag")
                 || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "manual-takeover" or "human-double-play"
                     or "throw-bag-1" or "throw-bag-2" or "throw-bag-3" or "throw-bag-4"
                     or "runner-send-halt-return" or "human-dash-run" or "all-runner-return" or "human-slide"
@@ -172,6 +175,10 @@ public sealed class TutorialCatalog
                 Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy == "cpu-strike"), s.Id + " CPU pitch disagrees with strike/ball policy");
                 Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, hand, content.Rules)), s.Id + " CPU pitch hits the batter");
             }
+            else if (s.Policy is "steal-offense" or "steal-defense")
+                Require(s.Pitch is null || (s.Pitch.Type is "fastball" or "changeup" && !s.Pitch.Star
+                    && double.IsFinite(s.Pitch.Charge01) && s.Pitch.Charge01 is >= 0 and <= 1),
+                    s.Id + " has invalid scripted steal pitch");
             else Require(s.Pitch is null, s.Id + " CPU pitch is not used by this policy");
             Require(Policies.Contains(s.Policy), s.Id + " has unknown CPU/setup policy");
             Require(double.IsFinite(s.TimeoutSec) && s.TimeoutSec > 0 && s.TimeoutSec <= 120, s.Id + " has invalid timeout");

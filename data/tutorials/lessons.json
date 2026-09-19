@@ -198,7 +198,7 @@
       "mechanics": [
         "pitching.08"
       ],
-      "title": "pickoff",
+      "title": "Check an exposed runner at first",
       "category": "pitching",
       "status": "implemented",
       "issue": 794,
@@ -1366,69 +1366,81 @@
     },
     {
       "id": "T-R06",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.06"
       ],
       "title": "arm steal and release timing",
       "category": "running",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless real runner-play lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-R06",
+      "objective": "human-steal",
+      "controls": [
+        "control:running/Steal"
+      ],
+      "tests": [
+        "TutorialStealTests"
+      ]
     },
     {
       "id": "T-R07",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.07"
       ],
-      "title": "multi-runner steal/steal home",
+      "title": "Double steal and challenge home",
       "category": "running",
       "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "issue": 794,
+      "reason": "A human-controlled delayed break must score at home after a real catcher throw to second; the current CPU catcher holds or tags home",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-R07",
+      "objective": "human-double-steal",
+      "controls": [
+        "control:running/Steal"
+      ],
+      "tests": [
+        "TutorialStealTests"
+      ]
     },
     {
       "id": "T-R08",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.08"
       ],
-      "title": "defend a steal with the catcher",
+      "title": "Catcher throw against a steal",
       "category": "running",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless real runner-play lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-R08",
+      "objective": "human-catcher-tag",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialStealTests"
+      ]
     },
     {
       "id": "T-G01",
@@ -3792,6 +3804,111 @@
           "sprayDeg": 0
         }
       }
+    },
+    {
+      "id": "T-R06",
+      "policy": "steal-offense",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "soot",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "cinder",
+        "zig",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {},
+      "seat": "offense"
+    },
+    {
+      "id": "T-R07",
+      "policy": "steal-offense",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "soot",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "cinder",
+        "dart",
+        "jester",
+        "zig",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        1,
+        3
+      ],
+      "balls": {},
+      "seat": "offense",
+      "pitch": {
+        "type": "changeup",
+        "charge01": 0,
+        "star": false
+      }
+    },
+    {
+      "id": "T-R08",
+      "policy": "steal-defense",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "konga",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {},
+      "seat": "defense"
     }
   ]
 }

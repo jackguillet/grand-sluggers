@@ -45,7 +45,7 @@ public sealed partial class TutorialSession
         if (!Accepts(source) || _setup.Policy != "pickoff" || bag is < 1 or > 3) return false;
         _inputs.Add(new(Elapsed, source, PickoffBag: bag));
         _humanPickoffBag = source == LivePlayCommandSource.Human && !Demonstration ? bag : 0;
-        var started = Match.BeginPickoff(bag, LiveSeats.CpuOnly, out var dead, source);
+        var started = Match.BeginPickoff(bag, new LiveSeats(false, true, true, false), out var dead, source);
         if (!started)
         {
             LastPlay = dead;
@@ -56,13 +56,21 @@ public sealed partial class TutorialSession
 
     void EvaluateSetPlay(LivePlayCommandResult result)
     {
-        if (result.CompletedPlay is not { } play) return;
-        var target = play.Outcome?.OutsMade.Any(o => o.Runner.Id == _firstRunner
-            && o.Type == OutType.Tag && o.Bag is 1 or 2) == true;
-        var picked = _humanPickoffBag == 1 && play.Outcome?.RunnerResult == RunnerPlayResult.PickedOff
-            && target && play.Outcome?.ThrowEndpoint == new ThrowEndpoint(ThrowOrigin.PitcherRubber, 1);
-        Finish(picked, picked ? "picked-off" : "pickoff-safe",
-            picked ? "Your pickoff caught the runner between bags and the defense made the tag."
-                : "The runner escaped the pickoff; choose the occupied bag while the runner is exposed.");
+        var live = Match.LivePlay;
+        var received = _humanPickoffBag == 1 && live.PickoffBag == 1
+            && live.FirstThrowBag == 1 && live.TutorialPickoffReceivedAtFirst;
+        if (received)
+        {
+            Finish(true, "pickoff-checked", "Your pickoff reached first while the runner had broken from the bag.");
+            return;
+        }
+        if (result.CompletedPlay is not null)
+            Finish(false, "pickoff-missed", "The pickoff did not reach the named receiver while the runner was exposed.");
     }
+}
+
+public sealed partial class LivePlaySystem
+{
+    internal bool TutorialPickoffReceivedAtFirst => _receivedClean && HoldsBall && GlovePos == CoverPos
+        && Diamond.Dist(GloveX, GloveZ, Diamond.First.X, Diamond.First.Z) <= R.Fielding.Cover.RadiusFt;
 }
