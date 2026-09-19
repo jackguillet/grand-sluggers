@@ -312,6 +312,16 @@
       "promoted": "TutorialFieldTests.OneSteeringFrameThenAssistedPursuitCannotEarnManualPickup",
       "issue": "#790",
       "pr": ""
+    },
+    {
+      "id": "tutorial-neutral-west-jump-uncredited",
+      "signature": "A neutral-stick human West press arms/takes off on the selected fielding glove and completes a Jump catch out, but T-F06 reports no-jumping-out.",
+      "stage": "sim",
+      "cause": "TutorialSession required PursuitManual on the West frame even though jump ownership is a button action that the live sim accepts with a neutral stick.",
+      "fix": "Record a human West press only when the live jump arm/takeoff accepts it (or the same tick completes a Jump catch), and pair that selected glove with the completed geometric Jump out. Manual steering is not required on the press.",
+      "promoted": "TutorialFieldTests.NeutralStickWestStillOwnsTheCompletedJumpCatch",
+      "issue": "#790",
+      "pr": ""
     }
   ]
 }
