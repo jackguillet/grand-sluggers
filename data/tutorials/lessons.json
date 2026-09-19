@@ -83,19 +83,25 @@
       ],
       "title": "charge/MAX",
       "category": "pitching",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-P01"
+      ],
+      "setup": "T-P04",
+      "objective": "max-pitch-strike",
+      "controls": [
+        "control:pitching/Charge pitch"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-P05",
@@ -105,19 +111,25 @@
       ],
       "title": "break after release",
       "category": "pitching",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-P01"
+      ],
+      "setup": "T-P05",
+      "objective": "break-strike",
+      "controls": [
+        "control:pitching/Break"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-P06",
@@ -127,19 +139,25 @@
       ],
       "title": "rubber positioning",
       "category": "pitching",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-P01"
+      ],
+      "setup": "T-P06",
+      "objective": "rubber-strike",
+      "controls": [
+        "control:pitching/Move pitcher"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-P07",
@@ -241,19 +259,25 @@
       ],
       "title": "cursor/sweet spot",
       "category": "batting",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B02",
+      "objective": "perfect-slap-fair",
+      "controls": [
+        "control:batting/Move batter"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-B03",
@@ -285,19 +309,25 @@
       ],
       "title": "charged swing",
       "category": "batting",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B04",
+      "objective": "max-swing-fair",
+      "controls": [
+        "control:batting/Charge swing"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-B05",
@@ -351,19 +381,25 @@
       ],
       "title": "bunt and foul-bunt risk",
       "category": "batting",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B07",
+      "objective": "bunt-fair",
+      "controls": [
+        "control:batting/Bunt"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-B08",
@@ -373,19 +409,25 @@
       ],
       "title": "recognize/take a ball",
       "category": "batting",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B08",
+      "objective": "take-ball",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-B09",
@@ -2170,6 +2212,225 @@
           "launchDeg": 4,
           "sprayDeg": -18
         }
+      }
+    },
+    {
+      "id": "T-P04",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-P05",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.5
+    },
+    {
+      "id": "T-P06",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.15
+    },
+    {
+      "id": "T-B02",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-B04",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-B07",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "strikes": 2
+    },
+    {
+      "id": "T-B08",
+      "policy": "cpu-ball",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "pitch": {
+        "type": "fastball",
+        "charge01": 0,
+        "star": false,
+        "aimY": 2
       }
     }
   ]

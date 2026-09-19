@@ -8,7 +8,8 @@ public sealed record TutorialLesson(string Id, int Revision, string[] Mechanics,
     string Setup, string Objective, string[] Controls, string[] Tests);
 public sealed record TutorialBall(double CarryFt, double ExitMph, double LaunchDeg, double SprayDeg);
 public sealed record TutorialSetup(string Id, string Policy, int Seed, double TimeoutSec, string[] Home,
-    string[] Away, int[] Runners, Dictionary<string, TutorialBall> Balls);
+    string[] Away, int[] Runners, Dictionary<string, TutorialBall> Balls, PitchCommand? Pitch = null,
+    double MinMovement01 = 0, int Strikes = 0);
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -21,8 +22,8 @@ public sealed class TutorialCatalog
     public TutorialSetup[] Setups { get; }
     public IReadOnlyDictionary<string, int> Migration { get; }
     public string Profile { get; }
-    public static readonly string[] Objectives = ["called-strike", "changeup-strike", "slap-fair", "manual-ground-possession", "human-dive-out", "human-double-play"];
-    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "grounder", "liner"];
+    public static readonly string[] Objectives = [.. TutorialPlateObjectives.PitchIds, .. TutorialPlateObjectives.SwingIds, "manual-ground-possession", "human-dive-out", "human-double-play"];
+    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner"];
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
     TutorialCatalog(TutorialMechanicFile mechanics, TutorialLessonFile lessons, TutorialMigrationFile migration, string profile)
@@ -102,10 +103,14 @@ public sealed class TutorialCatalog
             var setup = Setups.FirstOrDefault(s => s.Id == l.Setup);
             Require(setup is not null, l.Id + " has unknown setup");
             if (setup is null) continue;
-            Require((setup.Policy == "cpu-take" && l.Objective is "called-strike" or "changeup-strike")
-                || (setup.Policy == "cpu-strike" && l.Objective == "slap-fair")
+            Require((setup.Policy == "cpu-take" && TutorialPlateObjectives.PitchIds.Contains(l.Objective))
+                || (setup.Policy == "cpu-strike" && TutorialPlateObjectives.SwingIds.Contains(l.Objective) && l.Objective != "take-ball")
+                || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
                 || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "human-double-play")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out"), l.Id + " setup/objective mismatch");
+            if (l.Objective is "break-strike" or "rubber-strike")
+                Require(setup.MinMovement01 > 0, l.Id + " needs a meaningful movement threshold");
+            if (l.Objective == "bunt-fair") Require(setup.Strikes == 2, l.Id + " must teach the two-strike bunt risk");
             if (setup.Policy is "grounder" or "liner")
                 Require(l.Profiles.All(setup.Balls.ContainsKey), l.Id + " lacks a profile ball fixture");
         }
@@ -119,6 +124,21 @@ public sealed class TutorialCatalog
         foreach (var lesson in Lessons) Require(!Cycle(lesson.Id, []), lesson.Id + " prerequisite cycle");
         foreach (var s in Setups)
         {
+            Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball"), s.Id + " has invalid starting strikes");
+            Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
+            if (s.Policy is "cpu-strike" or "cpu-ball")
+            {
+                var pitch = s.Pitch ?? new PitchCommand("fastball", 0, false);
+                Require(pitch.Type is "fastball" or "changeup" && !pitch.Star && !pitch.DeliveryPrepared
+                    && new[] { pitch.Charge01, pitch.AimX, pitch.AimY, pitch.BreakX, pitch.RubberX, pitch.BreakMul }.All(double.IsFinite)
+                    && pitch.Charge01 is >= 0 and <= 1 && Math.Abs(pitch.BreakX) <= 1 && Math.Abs(pitch.RubberX) <= 1
+                    && Math.Abs(pitch.AimX) <= 4 && Math.Abs(pitch.AimY) <= 4 && pitch.BreakMul == 1,
+                    s.Id + " has invalid CPU pitch");
+                var crossing = PitchFlight.Crossing(pitch, rules: content.Rules);
+                Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy == "cpu-strike"), s.Id + " CPU pitch disagrees with strike/ball policy");
+                Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, hand, content.Rules)), s.Id + " CPU pitch hits the batter");
+            }
+            else Require(s.Pitch is null, s.Id + " CPU pitch is not used by this policy");
             Require(Policies.Contains(s.Policy), s.Id + " has unknown CPU/setup policy");
             Require(double.IsFinite(s.TimeoutSec) && s.TimeoutSec > 0 && s.TimeoutSec <= 120, s.Id + " has invalid timeout");
             Require(s.Home.Length == 9 && s.Away.Length == 9 && s.Home.Distinct().Count() == 9 && s.Away.Distinct().Count() == 9
