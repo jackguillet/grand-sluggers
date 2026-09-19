@@ -10,6 +10,10 @@ namespace GrandSluggers.UnityClient
     {
         TutorialCatalog _tutorials;
         TutorialProgress _tutorialProgress = new TutorialProgress();
+        TutorialLesson[] _tutorialAll = Array.Empty<TutorialLesson>();
+        string[] _tutorialCategories = Array.Empty<string>();
+        int _tutorialCategory;
+        MenuNav.Gate _tutorialX;
         TutorialLesson[] _tutorialChoices = Array.Empty<TutorialLesson>();
         bool _tutorialMenu;
         int _tutorialPick;
@@ -26,19 +30,32 @@ namespace GrandSluggers.UnityClient
 
         void OpenTutorials()
         {
+            var selected = TutorialOn ? _coach.Tutorial.Lesson.Id : null;
             _coach?.Stop();
             ReleaseMatchSeats();
             _tutorials ??= TutorialCatalog.Load(_content);
-            _tutorialChoices = _tutorials.Lessons.Where(l => l.Status == "implemented" && l.Profiles.Contains(_tutorials.Profile)).ToArray();
-            _tutorialProgress.RestorePractice(_tutorialChoices.Select(l => new TutorialPracticeProgress(
+            _tutorialAll = _tutorials.Lessons.Where(l => l.Status == "implemented" && l.Profiles.Contains(_tutorials.Profile)).ToArray();
+            _tutorialProgress.RestorePractice(_tutorialAll.Select(l => new TutorialPracticeProgress(
                 l.Id, l.Revision, _tutorials.Profile, PlayerPrefs.GetInt(TutorialSaveKey(l), 0))), _tutorials);
+            _tutorialCategories = HowToPlay.TutorialCategories(_tutorialAll);
+            SelectTutorialCategory(_tutorialCategory, selected);
             _tutorialMenu = true; _tutorialUiAge = 0;
             _tutorialY.Catch(Controls.MenuY);
             _phase = Phase.Title; _cam.Play("title");
         }
 
+        void SelectTutorialCategory(int category, string selected = null)
+        {
+            _tutorialCategory = (category % _tutorialCategories.Length + _tutorialCategories.Length) % _tutorialCategories.Length;
+            _tutorialChoices = _tutorialAll.Where(l => l.Category == _tutorialCategories[_tutorialCategory]).ToArray();
+            _tutorialPick = Math.Max(0, Array.FindIndex(_tutorialChoices, l => l.Id == selected));
+            _tutorialX.Catch(Controls.MenuX); _tutorialY.Catch(Controls.MenuY);
+        }
+
         void PrepareTutorial(string id)
         {
+            var lesson = _tutorialAll.First(l => l.Id == id);
+            SelectTutorialCategory(Array.IndexOf(_tutorialCategories, lesson.Category), id);
             ReleaseMatchSeats();
             _mode = PlayMode.Training; ParkId = Training.ParkId;
             if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
@@ -88,16 +105,32 @@ namespace GrandSluggers.UnityClient
             if (!_tutorialWasModal) { _tutorialUiAge = 0; _tutorialWasModal = true; }
             if (_tutorialUiAge < .2f) return true;
             var mouse = Controls.GuiMouse;
+            var pageStart = HowToPlay.TutorialPageStart(_tutorialPick);
+            var rows = Math.Max(1, Math.Min(HowToPlay.TutorialPageSize, _tutorialChoices.Length - pageStart));
             var click = Controls.PointerDown ? HowToPlay.TutorialHit(mouse.x, mouse.y, Screen.width, Screen.height,
-                _tutorialMenu, _tutorialChoices.Length + 1, TutorialFeedbackReady) : -1;
+                _tutorialMenu, rows, TutorialFeedbackReady) : -1;
             // Use the same Input System pointer and hit rectangles as the book/Call time menus.
             var confirm = Controls.SouthDown && !Controls.PointerDown;
             if (_tutorialMenu)
             {
-                var count = _tutorialChoices.Length + 1; // preserve the existing free-practice escape hatch
+                var categoryStep = _tutorialX.Tick(Controls.MenuX, Controls.MenuTapX, dt);
+                if (categoryStep != 0) { SelectTutorialCategory(_tutorialCategory + categoryStep); return true; }
+                if (Controls.PointerDown)
+                {
+                    var tab = HowToPlay.TutorialTabHit(mouse.x, mouse.y, Screen.width, Screen.height, _tutorialCategories.Length);
+                    if (tab >= 0) { SelectTutorialCategory(tab); return true; }
+                    var pages = HowToPlay.TutorialPages(_tutorialChoices.Length);
+                    var direction = HowToPlay.TutorialPageHit(mouse.x, mouse.y, Screen.width, Screen.height);
+                    if (pages > 1 && direction != 0)
+                    {
+                        var page = (pageStart / HowToPlay.TutorialPageSize + direction + pages) % pages;
+                        _tutorialPick = page * HowToPlay.TutorialPageSize; return true;
+                    }
+                }
+                var count = Math.Max(1, _tutorialChoices.Length);
                 var step = _tutorialY.Tick(Controls.MenuY, Controls.MenuTapY, dt);
                 if (step != 0) _tutorialPick = (_tutorialPick - step % count + count) % count;
-                if (click >= 0) { _tutorialPick = click; ChooseTutorialMenu(); }
+                if (click >= 0) { _tutorialPick = pageStart + click; ChooseTutorialMenu(); }
                 else if (confirm || click == -2) ChooseTutorialMenu();
                 else if (Controls.EastDown || click == -4) { _tutorialMenu = false; _mode = PlayMode.Exhibition; _t = 0; }
                 return true;
@@ -118,8 +151,8 @@ namespace GrandSluggers.UnityClient
                 }
                 else if (Controls.WestDown || click == -5)
                 {
-                    var next = (Array.FindIndex(_tutorialChoices, l => l.Id == _coach.Tutorial.Lesson.Id) + 1) % _tutorialChoices.Length;
-                    _tutorialPick = next; PrepareTutorial(_tutorialChoices[next].Id);
+                    var next = (Array.FindIndex(_tutorialAll, l => l.Id == _coach.Tutorial.Lesson.Id) + 1) % _tutorialAll.Length;
+                    PrepareTutorial(_tutorialAll[next].Id);
                 }
                 else if (Controls.EastDown || click == -3) OpenTutorials();
                 return true;
@@ -129,7 +162,7 @@ namespace GrandSluggers.UnityClient
 
         void ChooseTutorialMenu()
         {
-            if (_tutorialPick == _tutorialChoices.Length)
+            if (_tutorialChoices.Length == 0)
             {
                 _tutorialMenu = false; PracticePick = PracticeLesson.Free; BeginTraining();
             }
@@ -139,8 +172,10 @@ namespace GrandSluggers.UnityClient
         bool DrawTutorialUi()
         {
             if (!TutorialModal) return false;
-            HudView.Tutorials(_tutorialMenu, _tutorialChoices, _tutorialPick,
-                TutorialOn ? _coach.Tutorial : null, _tutorialProgress, _tutorials.Profile);
+            var start = HowToPlay.TutorialPageStart(_tutorialPick);
+            HudView.Tutorials(_tutorialMenu, _tutorialChoices.Skip(start).Take(HowToPlay.TutorialPageSize).ToArray(), _tutorialPick - start,
+                TutorialOn ? _coach.Tutorial : null, _tutorialProgress, _tutorials.Profile,
+                _tutorialCategories, _tutorialCategory, start / HowToPlay.TutorialPageSize, HowToPlay.TutorialPages(_tutorialChoices.Length));
             return true;
         }
 

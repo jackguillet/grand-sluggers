@@ -134,3 +134,9 @@ Seven existing catalog entries now have production-runner exercises. All inherit
 - **T-B08 take a ball:** the authored ordinary fastball has normalized aimY 2 (2 × PlateScaleY above the zone center), validated outside the zone and clear of either batter's body. A human-ready attempt takes the real delivered pitch; swinging or squaring fails. Merely advancing the lesson clock without resolving a pitch times out and earns nothing.
 
 `TutorialPlateObjectives` evaluates normal commands and typed results. Setup policy validates CPU pitch geometry, count and movement thresholds. New headless tests execute all seven lessons three times on both profiles and replay their inputs. This is implementation evidence, not a human learning gate.
+
+## Plate lesson presentation (#784)
+
+The standalone browser now groups the 13 implemented lessons by category, with left/right or A/D to switch categories and up/down or W/S to select lessons. Pointer tabs use the same authored hit rectangles as rendering. A category displays at most six lessons per page; selection crosses page boundaries and pointer arrows select adjacent pages. Free practice has its own Free play tab. Next follows the whole implemented catalog across category boundaries; returning to lessons keeps the current lesson selected.
+
+The seven plate briefs describe the controlled setup, the required action, and both input schemes. Feedback distinguishes undercharging, failing to bend or reposition, missing the sweet spot, bunting foul with two strikes, and chasing the high ball. Three-success progress, saved partial attempts and profile isolation are shared with the earlier lessons. Human learning and controller checks remain pending.
