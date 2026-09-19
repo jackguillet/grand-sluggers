@@ -28,25 +28,41 @@ public sealed class TutorialRunningTests
                 {
                     pad = runner.Held ? new(StickBag: 2)
                         : runner.Phase == RunnerPhase.Returning ? LivePadInput.Dead
-                        : runner.Feet > 8 ? new(Freeze: true)
+                        : runner.Feet > 8 ? new(Freeze: true, StickBag: 3)
                         : new(KeysBag: 2, StickBag: 3);
                 }
             }
+            else if (run.Lesson.Id == "T-R02")
+            {
+                var lead = run.Match.RunnerAt(2);
+                pad = lead is null ? LivePadInput.Dead
+                    : lead.Phase == RunnerPhase.Returning ? LivePadInput.Dead
+                    : lead.Feet > 5 ? new(AllReturn: true)
+                    : new(AllAdvance: true);
+            }
             else if (run.Lesson.Id == "T-R03") pad = new(SouthDown: true);
+            else if (run.Lesson.Id == "T-R04")
+            {
+                var runner = run.Match.RunnerAt(0);
+                pad = runner is not null && runner.FeetTo(runner.NextBag) <= run.Match.Rules.Running.Bags.SlideFt
+                    ? new(WestDown: true) : LivePadInput.Dead;
+            }
             run.Tick(Frame, pad, source);
         }
     }
 
     [Theory]
     [InlineData("T-R01")]
+    [InlineData("T-R02")]
     [InlineData("T-R03")]
+    [InlineData("T-R04")]
     public void HumanCommandsAndRunnerGeometryEarnThreeDistinctAttempts(string id)
     {
         var run = Start(id);
         for (var n = 1; n <= 3; n++)
         {
             Drive(run);
-            Assert.True(run.Feedback?.Success == true, $"{id}: {run.Feedback} at {run.Elapsed:0.00}; play {run.LastPlay?.Kind}");
+            Assert.True(run.Feedback?.Success == true, $"{id}: {run.Feedback} at {run.Elapsed:0.00}; play {run.LastPlay?.Kind}; runners {string.Join(';',run.Match.Runners.Select(r => $"{r.FromBag}:{r.Bag}/{r.Feet:0.0}/{r.Phase}/{r.Held}"))}");
             Assert.Equal(n, run.Successes);
             Assert.Equal(n == 3, run.Passed);
             var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
@@ -57,7 +73,9 @@ public sealed class TutorialRunningTests
 
     [Theory]
     [InlineData("T-R01")]
+    [InlineData("T-R02")]
     [InlineData("T-R03")]
+    [InlineData("T-R04")]
     public void CpuOrdersAndDeadInputCannotEarnCredit(string id)
     {
         var run = Start(id);
