@@ -205,6 +205,11 @@ namespace GrandSluggers.UnityClient
         /// <summary>The pickoff (§4.5, D3): a runner on the bag is the beat; a runner who broke is the live runner play.</summary>
         void BeginPickoff(int bag)
         {
+            if (TutorialOn && _coach.Tutorial.Pickoff(bag))
+            {
+                if (_match.LivePlay.Active) StartRunnerPlay(null);
+                return;
+            }
             if (_match.BeginPickoff(bag, LiveSeatsNow(), out var dead, _match.LivePlay.Source))
             {
                 StartRunnerPlay(null);
@@ -246,7 +251,8 @@ namespace GrandSluggers.UnityClient
             }
             if (mound.SwapPitcher)
             {
-                _swapPick.Confirm(_match);
+                if (!TutorialOn || !_coach.Tutorial.SwapPitcher(_swapPick.Current.Who.Id))
+                    _swapPick.Confirm(_match);
                 _swapPick = null;
                 return;
             }
