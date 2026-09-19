@@ -1170,25 +1170,31 @@
     },
     {
       "id": "T-R01",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.01"
       ],
       "title": "select one runner/send/hold/return",
       "category": "running",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live runner lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-R01",
+      "objective": "runner-send-halt-return",
+      "controls": [
+        "control:running/Select runner",
+        "control:running/Send",
+        "control:running/Halt"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
     },
     {
       "id": "T-R02",
@@ -1214,21 +1220,49 @@
     },
     {
       "id": "T-R03",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.03"
       ],
-      "title": "dash/rounding",
+      "title": "dash along the first-base path",
       "category": "running",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live runner lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
+      "setup": "T-R03",
+      "objective": "human-dash-run",
+      "controls": [
+        "control:running/Dash"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
+      "id": "T-R09",
+      "revision": 1,
+      "mechanics": [
+        "running.09"
+      ],
+      "title": "round first and take the next bag",
+      "category": "running",
+      "status": "planned",
+      "issue": 794,
+      "reason": "Rounding requires a separate geometric arrival objective and makeable gap fixture",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-R03"
+      ],
       "setup": "",
       "objective": "",
       "controls": [],
@@ -3101,6 +3135,96 @@
           "sprayDeg": 0
         }
       }
+    },
+    {
+      "id": "T-R01",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        2
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-R03",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 140,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": 32
+        },
+        "c80": {
+          "carryFt": 140,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": 32
+        }
+      },
+      "seat": "offense"
     }
   ]
 }

@@ -43,7 +43,7 @@ public sealed class TutorialProgress
 }
 
 /// <summary>Owns a fresh match per attempt. The opponent/setup is scripted; player actions and verdicts use Exhibition's sim.</summary>
-public sealed class TutorialSession
+public sealed partial class TutorialSession
 {
     readonly ContentCatalog _content;
     readonly TutorialCatalog _catalog;
@@ -76,6 +76,8 @@ public sealed class TutorialSession
     public IReadOnlyList<TutorialInput> Inputs => _inputs;
     public IReadOnlyList<int> HumanThrows => _throws;
     public bool IsFieldLesson => _setup.Policy is "grounder" or "liner" or "airborne";
+    public bool IsRunningLesson => Lesson.Category == "running";
+    public bool IsOffenseLesson => _setup.Seat == "offense";
     public PitchCommand CpuPitch => _setup.Pitch ?? new("fastball", 0, false);
     static readonly SwingCommand Take = new(false, 0, 0, false);
     static readonly SwingCommand Contact = new(true, 0, 0, false);
@@ -105,6 +107,7 @@ public sealed class TutorialSession
         _manualTakeoverMoved = false;
         _humanAerialCatcher = "";
         _queuedHumanThrowBag = 0;
+        ResetRunningEvidence();
         Elapsed = 0; LastPlay = null; LastHit = null; LastTickResult = null; Feedback = null; Paused = false;
     }
 
@@ -116,11 +119,12 @@ public sealed class TutorialSession
         var ball = _setup.Balls[_catalog.Profile];
         var hit = TutorialContact.Create(Match.Park, ball, Match.Rules);
         var preview = Match.PreviewHit(hit);
-        if ((_setup.Policy == "grounder") != preview.Grounder || hit.Foul || hit.HomeRun)
+        if ((_setup.Policy == "grounder") != preview.Grounder || hit.Foul
+            || (hit.HomeRun && Lesson.Objective is not ("human-wall-rob" or "human-buddy-rob" or "human-super-rob")))
             throw new InvalidDataException("Tutorial setup no longer produces its intended ball class: " + Lesson.Id);
         LastHit = hit;
         Match.LivePlay.Recording = true;
-        var seats = new LiveSeats(false, true, true, false);
+        var seats = IsOffenseLesson ? new LiveSeats(true, false, false, false) : new LiveSeats(false, true, true, false);
         var result = Match.LivePlay.Apply(LivePlayCommand.BeginLive(CpuPitch, Contact, hit, preview, null, seats, 0, LivePlayCommandSource.System));
         if (!result.Snapshot.Active) throw new InvalidDataException("Tutorial setup did not start a live play.");
     }
@@ -177,9 +181,20 @@ public sealed class TutorialSession
         var pos = live.GlovePos; var who = live.TutorialGloveId; var x = live.GloveX; var z = live.GloveZ;
         var couldDive = live.TutorialCanDive;
         var previousDive = live.DiveT;
-        var result = live.Apply(LivePlayCommand.Tick(seconds, pad, LivePadInput.Dead, false, source));
+        var runnerBefore = IsOffenseLesson ? CaptureRunnerBefore() : null;
+        var result = live.Apply(LivePlayCommand.Tick(seconds,
+            IsOffenseLesson ? LivePadInput.Dead : pad,
+            IsOffenseLesson ? pad : LivePadInput.Dead, false, source));
         LastTickResult = result;
         var owned = source == LivePlayCommandSource.Human && !Demonstration;
+        if (IsOffenseLesson)
+        {
+            ObserveRunning(pad, owned, runnerBefore, result);
+            LastPlay = result.CompletedPlay;
+            if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
+                Finish(false, "running-opportunity-ended", "The run ended before the requested runner action. Retry the same play.");
+            return;
+        }
         // West belongs to the defense seat even with a neutral pursuit stick. Shipped rules arm the jump;
         // C80 raises JumpTakeoff. A same-tick completed catch may reset both live flags, so use its typed feat.
         var acceptedJump = live.JumpT > 0 || live.Events.Contains(LiveEvent.JumpTakeoff)
@@ -293,7 +308,10 @@ public sealed class TutorialSession
             return;
         }
         if (Lesson.Objective is not ("human-aerial-out" or "human-jump-out") || result.CompletedPlay is not { } play)
+        {
+            EvaluateAdvancedFieldObjective(live, result);
             return;
+        }
         var catchOut = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true;
         if (Lesson.Objective == "human-aerial-out")
         {
@@ -312,6 +330,8 @@ public sealed class TutorialSession
                     : "Take the glove and press West in the jump window to catch the airborne ball.");
         }
     }
+
+    partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result);
 
     public TutorialRecording Recording() => new(1, Lesson.Id, Lesson.Revision, _catalog.Profile, InputsHash, Demonstration, _inputs.ToArray());
 
