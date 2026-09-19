@@ -979,25 +979,31 @@
     },
     {
       "id": "T-F15",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.15"
       ],
       "title": "Laser Throw",
       "category": "fielding",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless Laser throw exercise; profile-specific range rule and standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
-      "requires": [],
+      "requires": [
+        "laser"
+      ],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F15",
+      "objective": "human-laser-home",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-F16",
@@ -3711,6 +3717,51 @@
         "frost",
         "basil",
         "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F15",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "hex",
         "gull"
       ],
       "away": [

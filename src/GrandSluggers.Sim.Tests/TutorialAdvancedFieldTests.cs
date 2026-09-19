@@ -33,6 +33,8 @@ public sealed class TutorialAdvancedFieldTests
                 pad = new(StickX: -1, StickY: 0);
             else if (act && run.Lesson.Id == "T-F13" && live.HoldsBall && !live.Throwing)
                 pad = new(StickY: 1);
+            else if (act && run.Lesson.Id == "T-F15" && live.HoldsBall && live.GlovePos == "CF" && !live.Throwing)
+                pad = new(KeysBag: 4, SouthDown: true);
             else if (act && run.Lesson.Id is "T-F07" or "T-F14")
             {
                 if (relayStage == 0 && live.HoldsBall && live.GlovePos == "CF")
@@ -179,5 +181,27 @@ public sealed class TutorialAdvancedFieldTests
             Drive(noSecond, act: true, skipOnward: true);
             Assert.Equal("relay-not-completed", noSecond.Feedback?.Code);
         }
+    }
+
+    [Fact]
+    public void LaserHolderMustReceiveAHumanHomeThrowCommandAndTheRealBoost()
+    {
+        var run = Start("T-F15");
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.True(run.Feedback?.Success == true, $"{run.Feedback}; play {run.LastPlay?.Kind}");
+            Assert.Equal("laser-home", run.Feedback?.Code);
+            Assert.Equal(attempt, run.Successes);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var dead = Start("T-F15");
+        Drive(dead, act: false);
+        Assert.Equal(0, dead.Successes);
+        var cpu = Start("T-F15");
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.Equal(0, cpu.Successes);
     }
 }
