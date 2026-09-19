@@ -547,6 +547,13 @@ namespace GrandSluggers.UnityClient
         void RestartFromPause()
         {
             if (TutorialOn) { PrepareTutorial(_coach.Tutorial.Lesson.Id); return; }
+            if (_guided != null && _guided.Phase == TutorialPhase.Attempt && _guided.Lesson.Id != "T-G06")
+            {
+                var lesson = _guided.Lesson;
+                PrepareGuidedTutorial(lesson);
+                BeginGuidedAttempt();
+                return;
+            }
             if (!GuidedAttempt("T-G06")) Seed++;
             _match = NewMatch();
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
