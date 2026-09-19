@@ -71,7 +71,7 @@ public sealed class TutorialSession
     public IReadOnlyList<TutorialInput> Inputs => _inputs;
     public IReadOnlyList<int> HumanThrows => _throws;
     public bool IsFieldLesson => _setup.Policy is "grounder" or "liner";
-    public PitchCommand CpuPitch { get; } = new("fastball", 0, false);
+    public PitchCommand CpuPitch => _setup.Pitch ?? new("fastball", 0, false);
     static readonly SwingCommand Take = new(false, 0, 0, false);
     static readonly SwingCommand Contact = new(true, 0, 0, false);
 
@@ -92,6 +92,8 @@ public sealed class TutorialSession
         foreach (var bag in _setup.Runners)
             if (!Match.StationRunner(bag, Match.Away.Roster[bag + 1]))
                 throw new InvalidDataException("Cannot station tutorial runner.");
+        for (var strike = 0; strike < _setup.Strikes; strike++)
+            Match.BeginAtBat(new PitchCommand("fastball", 0, false), Take, out _, out _);
         InputsHash = PlayTraceIdentity.Capture(Match).Sha256;
         _firstRunner = Match.First?.Id ?? ""; _batter = Match.Batter.Id;
         _inputs.Clear(); _manualGloves.Clear(); _divers.Clear(); _throws.Clear();
@@ -129,27 +131,20 @@ public sealed class TutorialSession
         _inputs.Add(new(Elapsed, source, Pitch: command));
         Match.BeginAtBat(command, Take, out var hit, out var play);
         LastHit = hit; LastPlay = play;
-        var strike = play?.Kind == PlayKind.TakeStrike;
-        if (Lesson.Objective == "changeup-strike" && !command.IsChangeup)
-            Finish(false, "use-changeup", "Use the changeup command, then put it in the strike zone.");
-        else Finish(strike, strike ? "strike" : "outside-zone", strike ? "The pitch crossed the strike zone." : "The pitch missed the strike zone. Adjust its location and retry.");
+        var verdict = TutorialPlateObjectives.Pitch(Lesson.Objective, _setup, command, play);
+        Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
     }
 
     public bool Swing(SwingCommand command, LivePlayCommandSource source = LivePlayCommandSource.Human)
     {
-        if (!Accepts(source) || _setup.Policy != "cpu-strike") return false;
+        if (!Accepts(source) || _setup.Policy is not ("cpu-strike" or "cpu-ball")) return false;
         command = command with { Human = true };
         _inputs.Add(new(Elapsed, source, Swing: command));
         Match.BeginAtBat(CpuPitch, command, out var hit, out var play);
         LastHit = hit; LastPlay = play;
-        if (command.Bunt || command.Star || ChargeFeel.IsCharge(command.Charge01))
-            Finish(false, "use-slap", "Use an ordinary uncharged swing for this lesson.");
-        else if (!command.Swing || hit.Quality == ContactQuality.Miss)
-            Finish(false, "miss", "Meet the pitch with the cursor and swing as it reaches the bat.");
-        else if (hit.Foul || !hit.InPlay)
-            Finish(false, "foul", "Contact was foul. Adjust your timing to put the ball in fair territory.");
-        else Finish(true, "fair-contact", "Your slap swing made fair contact.");
+        var verdict = TutorialPlateObjectives.Swing(Lesson.Objective, command, hit, play);
+        Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
     }
 

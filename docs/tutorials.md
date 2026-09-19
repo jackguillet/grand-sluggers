@@ -1,6 +1,6 @@
 # Tutorials — every mechanic has a playable lesson
 
-Status: **first six lessons implemented in preview; expansion and human learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778; its counter/Continue/save presentation is #780. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
+Status: **thirteen lessons implemented; plate expansion UI and human learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778; its counter/Continue/save presentation is #780. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
 
 ## Product contract
 
@@ -50,7 +50,7 @@ These acceptance contracts are exercised by `TutorialSessionTests` on shipped an
 
 ## Coverage backlog
 
-The first six ids are **implemented in the headless runner**. The other ids remain planned or blocked; `cli tutorials` is the current coverage report. Existing broad Practice behavior is partial reuse, not tutorial completion. This is the initial inventory; the catalog implementation must reconcile it against every player-facing spec section, control verb, ability and enabled feature. No unsupported future mechanic is enabled by appearing here.
+The first six ids and the seven plate-fundamental ids in #782 are **implemented in the headless runner**. The other ids remain planned or blocked; `cli tutorials` is the current coverage report. Existing broad Practice behavior is partial reuse, not tutorial completion. This is the initial inventory; the catalog implementation must reconcile it against every player-facing spec section, control verb, ability and enabled feature. No unsupported future mechanic is enabled by appearing here.
 
 - **Pitching:** T-P01 strikes; T-P02 aim/location and balls versus strikes; T-P03 changeup; T-P04 charge/MAX; T-P05 break after release; T-P06 rubber positioning; T-P07 stamina/pitcher substitution; T-P08 pickoff; T-P09 star pitch (scope dependent).
 - **Batting:** T-B01 slap contact; T-B02 cursor/sweet spot; T-B03 early/late direction; T-B04 charged swing; T-B05 box positioning; T-B06 launch direction; T-B07 bunt and foul-bunt risk; T-B08 recognize/take a ball; T-B09 star swing (scope dependent).
@@ -119,3 +119,18 @@ All remaining mechanics already have stable catalog entries. Implement the accep
 6. **Abilities and special interactions:** individual enabled field abilities, star moves, item use/counterplay, wall plays and pickoffs. Keep catalog profile/dependency restrictions explicit. Mechanics with unresolved design remain blocked; extra parks and deferred modes are not unlocked by tutorial work.
 
 Human learning gates remain pending while Jack is unavailable. Continue mapping, headless implementation and agent UI checks; do not claim human acceptance or merge gated presentation to bypass the sitting.
+
+
+## Plate fundamentals batch (#782)
+
+Seven existing catalog entries now have production-runner exercises. All inherit the three-success rule, revision/profile progress and CPU/demo exclusion.
+
+- **T-P04 MAX pitch:** ordinary, non-changeup/non-star pitch released at effective charge 1.0, with a real called strike. A partial/decayed charge or ball fails.
+- **T-P05 break:** normal, uncharged pitch with at least 0.5 normalized accumulated break, followed by a called strike. Charging or holding changeup cannot substitute for normal break.
+- **T-P06 rubber movement:** move at least 0.15 normalized rubber units from center and throw a called strike. A central strike alone does not teach repositioning. Thresholds live in the authored setup, not in Unity.
+- **T-B02 sweet spot:** ordinary slap with typed Perfect contact and fair territory. A fair sour/nice contact does not complete this goal.
+- **T-B04 MAX swing:** full effective charge 1.0 and fair contact; MAX with a miss/foul fails.
+- **T-B07 bunt:** start with two strikes, square, and bunt fair. Setup establishes the count through two ordinary taken strikes. Retry restores that count; foul-bunt/strikeout risk stays governed by the existing rules.
+- **T-B08 take a ball:** the authored ordinary fastball has normalized aimY 2 (2 × PlateScaleY above the zone center), validated outside the zone and clear of either batter's body. A human-ready attempt takes the real delivered pitch; swinging or squaring fails. Merely advancing the lesson clock without resolving a pitch times out and earns nothing.
+
+`TutorialPlateObjectives` evaluates normal commands and typed results. Setup policy validates CPU pitch geometry, count and movement thresholds. New headless tests execute all seven lessons three times on both profiles and replay their inputs. This is implementation evidence, not a human learning gate.
