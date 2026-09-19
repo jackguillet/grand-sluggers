@@ -376,12 +376,19 @@
     },
     {
       "id": "running.03",
-      "title": "dash/rounding",
+      "title": "dash along the basepath",
       "category": "running",
       "spec": "gameplay-spec:9",
       "sources": [
         "control:running/Dash"
       ]
+    },
+    {
+      "id": "running.09",
+      "title": "round first and take the next bag",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": []
     },
     {
       "id": "running.04",
