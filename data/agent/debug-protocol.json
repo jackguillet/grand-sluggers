@@ -292,6 +292,16 @@
       "promoted": "FielderTellsTests.TheShippedFumbleShowsTheStunNotTheBattersMiss",
       "issue": "#721",
       "pr": ""
+    },
+    {
+      "id": "tutorial-pointer-is-primary-confirm",
+      "signature": "Click Lessons starts attempt; click Next retries; click another lesson opens selected row",
+      "stage": "sitting",
+      "cause": "Controls.SouthDown aliases MouseLeftDown. Tutorial modal Update dispatched primary confirm before IMGUI button mouse-up.",
+      "fix": "TutorialDirector excludes PointerDown from modal primary confirm. The clicked IMGUI button owns pointer dispatch; pad/keyboard confirm and in-play mouse baseball stay unchanged.",
+      "promoted": "Standalone tutorial pointer path: row, Start, Retry, Next, Lessons, Title.",
+      "issue": "#776",
+      "pr": ""
     }
   ]
 }
