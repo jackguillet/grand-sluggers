@@ -6,10 +6,19 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class PauseMenu
 {
-    public enum Item { Resume, Restart, HowToPlay, Title }
+    public enum Item { Resume, Restart, HowToPlay, Title, ResetStick }
 
     public static readonly IReadOnlyList<Item> Items =
         [Item.Resume, Item.Restart, Item.HowToPlay, Item.Title];
+
+    /// <summary>
+    /// Call time on the calibrated pursuit stick with a seated controller (#718, F693-02-pursuit-calibration-policy): the
+    /// explicit recalibration sits between the book and Title, so the book keeps its row and Title stays last.
+    /// </summary>
+    public static readonly IReadOnlyList<Item> ItemsWithStick =
+        [Item.Resume, Item.Restart, Item.HowToPlay, Item.ResetStick, Item.Title];
+
+    public static IReadOnlyList<Item> ItemsFor(bool stick) => stick ? ItemsWithStick : Items;
 
     public static string Label(Item item) => item switch
     {
@@ -17,16 +26,30 @@ public static class PauseMenu
         Item.Restart => "Restart",
         Item.HowToPlay => "How to play",
         Item.Title => "Title",
+        Item.ResetStick => "Reset stick",
         _ => item.ToString()
     };
 
-    public static int Wrap(int index, int dir)
+    public static int Wrap(int index, int dir) => Wrap(index, dir, false);
+
+    public static int Wrap(int index, int dir, bool stick)
     {
-        var n = Items.Count;
+        var n = ItemsFor(stick).Count;
         return (index + dir % n + n) % n;
     }
 
-    public static Item At(int index) => Items[Wrap(index, 0)];
+    public static Item At(int index) => At(index, false);
+
+    public static Item At(int index, bool stick) => ItemsFor(stick)[Wrap(index, 0, stick)];
+
+    /// <summary>The Reset stick card (#718): the release-stick instruction while each seated controller samples its window.</summary>
+    public const string StickResetTitle = "RESET STICK";
+
+    public static readonly IReadOnlyList<string> StickResetLines =
+    [
+        "Let go of the stick for half a second.",
+        "East / Esc / right click back — the old centre stays."
+    ];
 
     public const float Debounce = 0.2f;
 
@@ -51,41 +74,52 @@ public static class PauseMenu
         "Esc / East / right click resume"
     ];
 
-    public static (float X, float Y, float W, float H) Panel(float screenW, float screenH)
+    public static (float X, float Y, float W, float H) Panel(float screenW, float screenH) => Panel(screenW, screenH, false);
+
+    public static (float X, float Y, float W, float H) Panel(float screenW, float screenH, bool stick)
     {
         var w = Math.Min(PanelW, Math.Max(16f, screenW - 16f));
-        var mh = 64f + Items.Count * ItemH + FooterH + 16f;
+        var mh = 64f + ItemsFor(stick).Count * ItemH + FooterH + 16f;
         var x = screenW * 0.5f - w * 0.5f;
         var y = Math.Max(8f, screenH * 0.5f - mh * 0.5f);
         return (x, y, w, mh);
     }
 
-    public static (float X, float Y, float W, float H) FooterRect(float screenW, float screenH)
+    public static (float X, float Y, float W, float H) FooterRect(float screenW, float screenH) => FooterRect(screenW, screenH, false);
+
+    public static (float X, float Y, float W, float H) FooterRect(float screenW, float screenH, bool stick)
     {
-        var p = Panel(screenW, screenH);
+        var p = Panel(screenW, screenH, stick);
         return (p.X + 24f, p.Y + p.H - FooterH - 8f, p.W - 48f, FooterH);
     }
 
-    public static (float X, float Y, float W, float H) ItemRect(int index, float screenW, float screenH)
+    public static (float X, float Y, float W, float H) ItemRect(int index, float screenW, float screenH) =>
+        ItemRect(index, screenW, screenH, false);
+
+    public static (float X, float Y, float W, float H) ItemRect(int index, float screenW, float screenH, bool stick)
     {
-        var p = Panel(screenW, screenH);
+        var p = Panel(screenW, screenH, stick);
         return (p.X + 24, p.Y + 56 + index * ItemH, p.W - 48, 36);
     }
 
-    public static int HitItem(float mx, float my, float screenW, float screenH)
+    public static int HitItem(float mx, float my, float screenW, float screenH) => HitItem(mx, my, screenW, screenH, false);
+
+    public static int HitItem(float mx, float my, float screenW, float screenH, bool stick)
     {
-        for (var i = 0; i < Items.Count; i++)
+        for (var i = 0; i < ItemsFor(stick).Count; i++)
         {
-            var r = ItemRect(i, screenW, screenH);
+            var r = ItemRect(i, screenW, screenH, stick);
             if (mx >= r.X && mx <= r.X + r.W && my >= r.Y && my <= r.Y + r.H)
                 return i;
         }
         return -1;
     }
 
-    public static bool Contains(float mx, float my, float screenW, float screenH)
+    public static bool Contains(float mx, float my, float screenW, float screenH) => Contains(mx, my, screenW, screenH, false);
+
+    public static bool Contains(float mx, float my, float screenW, float screenH, bool stick)
     {
-        var p = Panel(screenW, screenH);
+        var p = Panel(screenW, screenH, stick);
         return mx >= p.X && mx <= p.X + p.W && my >= p.Y && my <= p.Y + p.H;
     }
 }

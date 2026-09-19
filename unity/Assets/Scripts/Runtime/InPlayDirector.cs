@@ -34,8 +34,11 @@ namespace GrandSluggers.UnityClient
         LivePadInput FieldInput()
         {
             var pad = FieldPad;
+            // The calibrated radial stick (#718) reads the device coordinate before any dead zone; the shipped Manhattan gate
+            // keeps the stick it always read. One coordinate per table, handed to the sim once.
+            var radial = _match != null && _match.Rules.Fielding.Stick.Radial;
             return new LivePadInput(
-                pad.StickX, pad.StickY,
+                radial ? pad.PursuitX : pad.StickX, radial ? pad.PursuitY : pad.StickY,
                 pad.SouthDown, pad.WestDown, pad.EastDown, pad.EastHeld,
                 pad.Cutoff, pad.SwapPitcher, pad.Item, pad.Attack,
                 pad.ThrowBag, pad.StickBag, pad.ArrowBag,
@@ -117,6 +120,9 @@ namespace GrandSluggers.UnityClient
             _swapLock = (float)live.SwapLock;
             _recoilT = (float)live.RecoilT;
             _bobbling = live.Bobbling;
+            // What each body owes (#719–#721), while the ball is live; the completing frame resets the field, so the last
+            // live frame's debts carry into the result beat and run out there (ActorDirector ages them).
+            if (live.Active) _owed = FielderTells.Owed.Of(live, _match.Rules);
             _closePlay = live.InClosePlay;
             _closeBag = live.CloseBag;
             _closeIcon = live.CloseIcon;
@@ -174,15 +180,38 @@ namespace GrandSluggers.UnityClient
                         _park.Ball.ContactPuff(_ball);
                         break;
                     case LiveEvent.Bobble:
-                        // The fumble (§8.6): the ball scatters on the dirt; the glove chases it.
+                        // The fumble (§8.6): the ball scatters on the dirt; the glove chases it. A ball that got past (#721)
+                        // kicks the dirt at the fumbler's feet instead and carries on as a batted ball, its trail on.
                         _park.Ball.Release();
-                        _park.Ball.ContactPuff(_ball);
+                        if (live.Deflected) DustAt(live.StunPos);
+                        else _park.Ball.ContactPuff(_ball);
+                        break;
+                    case LiveEvent.JumpTakeoff:
+                        // The normal jump leaves the ground this frame (#719): dirt at the feet; the rise is the sim's arc.
+                        DustAt(live.GlovePos);
+                        break;
+                    case LiveEvent.DiveCommit:
+                        // The dive is committed and its recovery owed (#719): the diver hits the dirt where the lunge put it.
+                        DustAt(live.DivingPos);
+                        break;
+                    case LiveEvent.ImpactRecoil:
+                        // A hard ball costs the hands (#720): the brace squashes the body and the skid kicks dirt at its feet.
+                        DustAt(live.GlovePos);
                         break;
                 }
             }
             if (result.Throw is { } step && !string.IsNullOrEmpty(step.Caption))
                 _sub = step.Caption;
             if (_bobbling) _park.Ball.Release();
+        }
+
+        /// <summary>A kick of dirt at a body's feet (#719–#721): the live glove where the ring is, else the body's own spot.</summary>
+        void DustAt(string pos)
+        {
+            var at = pos == _glovePos ? (X: _fx, Z: _fz)
+                : !string.IsNullOrEmpty(pos) && _gloveAt.TryGetValue(pos, out var body) ? body
+                : (X: _fx, Z: _fz);
+            _park.Ball.ContactPuff(new Vector3((float)at.X, 0f, (float)at.Z));
         }
 
         void FinishLive(PlayEvent play, FieldingResult fieldResult)

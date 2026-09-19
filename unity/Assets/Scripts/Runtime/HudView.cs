@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using GrandSluggers.Sim;
 using UnityEngine;
@@ -219,7 +220,7 @@ namespace GrandSluggers.UnityClient
                 GUI.Label(new Rect(x + 28, y + 82 + i * 36, w - 56, 32), lines[i], i == 0 ? _gold : _body);
         }
 
-        public static void Pause(int item, bool howTo, int page)
+        public static void Pause(int item, bool howTo, int page, bool stick = false, string profile = null)
         {
             Ensure();
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), howTo ? _bookBack : _panel);
@@ -228,22 +229,66 @@ namespace GrandSluggers.UnityClient
                 Book(page);
                 return;
             }
-            var panel = PauseMenu.Panel(Screen.width, Screen.height);
+            var panel = PauseMenu.Panel(Screen.width, Screen.height, stick);
             GUI.DrawTexture(new Rect(panel.X, panel.Y, panel.W, panel.H), _panel);
             GUI.Label(new Rect(panel.X + 24, panel.Y + 16, panel.W - 48, 32), "CALL TIME", _h1);
-            for (var i = 0; i < PauseMenu.Items.Count; i++)
+            // A trial overlay names itself (#715): the sitting must know which table it is playing.
+            if (!string.IsNullOrEmpty(profile))
+                GUI.Label(new Rect(panel.X + panel.W * 0.5f, panel.Y + 22, panel.W * 0.5f - 24, 24), profile, _tiny);
+            var items = PauseMenu.ItemsFor(stick);
+            for (var i = 0; i < items.Count; i++)
             {
-                var label = PauseMenu.Label(PauseMenu.Items[i]);
-                var ir = PauseMenu.ItemRect(i, Screen.width, Screen.height);
+                var label = PauseMenu.Label(items[i]);
+                var ir = PauseMenu.ItemRect(i, Screen.width, Screen.height, stick);
                 var r = new Rect(ir.X, ir.Y, ir.W, ir.H);
                 if (i == item)
                     GUI.DrawTexture(r, _ink);
                 GUI.Label(r, label, i == item ? _h1 : _body);
             }
-            var foot = PauseMenu.FooterRect(Screen.width, Screen.height);
+            var foot = PauseMenu.FooterRect(Screen.width, Screen.height, stick);
             var lineH = foot.H / Mathf.Max(1, PauseMenu.FooterLines.Count);
             for (var i = 0; i < PauseMenu.FooterLines.Count; i++)
                 GUI.Label(new Rect(foot.X, foot.Y + i * lineH, foot.W, lineH), PauseMenu.FooterLines[i], _tiny);
+        }
+
+        /// <summary>
+        /// Call time's Reset stick card (#718): the release-stick instruction, then one line per seated controller with its
+        /// window filling (a refused window starts the bar over) until it reads STICK RESET.
+        /// </summary>
+        public static void StickReset(IReadOnlyList<(string Text, float Progress)> seats)
+        {
+            Ensure();
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _panel);
+            var rows = Mathf.Max(1, seats.Count);
+            var w = Mathf.Min(PauseMenu.PanelW, Screen.width - 16f);
+            var h = 64f + PauseMenu.StickResetLines.Count * 32f + rows * 48f + 24f;
+            var x = (Screen.width - w) * 0.5f;
+            var y = Mathf.Max(8f, (Screen.height - h) * 0.5f);
+            GUI.DrawTexture(new Rect(x, y, w, h), _panel);
+            GUI.Label(new Rect(x + 24, y + 16, w - 48, 32), PauseMenu.StickResetTitle, _h1);
+            var at = y + 56f;
+            for (var i = 0; i < PauseMenu.StickResetLines.Count; i++, at += 32f)
+                GUI.Label(new Rect(x + 24, at, w - 48, 28), PauseMenu.StickResetLines[i], i == 0 ? _gold : _tiny);
+            for (var i = 0; i < seats.Count; i++, at += 48f)
+            {
+                GUI.Label(new Rect(x + 24, at, w - 48, 28), seats[i].Text, _body);
+                Bar(x + 24, at + 32f, w - 48, seats[i].Progress);
+            }
+        }
+
+        /// <summary>
+        /// The pursuit stick's tell (#718) at <see cref="BroadcastHud.StickTell"/>: let go of the stick, with the calibration
+        /// window's progress under it while one is filling.
+        /// </summary>
+        public static void StickTell(string label, float progress)
+        {
+            if (string.IsNullOrEmpty(label)) return;
+            Ensure();
+            var r = Px(BroadcastHud.StickTell);
+            GUI.DrawTexture(r, _panel);
+            GUI.Label(new Rect(r.x + 12, r.y + 4, r.width - 16, r.height - 6), label, _gold);
+            if (progress > 0f)
+                Bar(r.x + 12, r.y + r.height - 10, r.width - 24, progress);
         }
 
         static void Book(int page)
