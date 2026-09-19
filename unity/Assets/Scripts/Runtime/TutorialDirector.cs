@@ -58,8 +58,9 @@ namespace GrandSluggers.UnityClient
         void PrepareTutorial(string id)
         {
             var lesson = _tutorialAll.First(l => l.Id == id);
-            if (GuidedLesson(id)) { PrepareGuidedTutorial(lesson); return; }
             SelectTutorialCategory(Array.IndexOf(_tutorialCategories, lesson.Category), id);
+            if (GuidedLesson(id)) { PrepareGuidedTutorial(lesson); return; }
+            _guided?.Exit(); _guided = null;
             ReleaseMatchSeats();
             _mode = PlayMode.Training; ParkId = Training.ParkId;
             if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
