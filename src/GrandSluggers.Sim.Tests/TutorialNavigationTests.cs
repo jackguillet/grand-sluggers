@@ -31,4 +31,17 @@ public sealed class TutorialNavigationTests
         var r = HowToPlay.TutorialAction(1280, 800, button, !menu && feedback ? 3 : 2);
         Assert.Equal(action, HowToPlay.TutorialHit(r.X + r.W / 2, r.Y + r.H / 2, 1280, 800, menu, 7, feedback));
     }
+    [Theory]
+    [InlineData(1, false)]
+    [InlineData(2, false)]
+    [InlineData(3, true)]
+    public void FeedbackCallsTheLessonCompleteOnlyAfterThreeSuccesses(int successes, bool passed)
+    {
+        var title = HowToPlay.TutorialResultTitle(true, successes);
+        Assert.Equal(passed, title.Contains(HowToPlay.TutorialComplete));
+        Assert.Contains($"{successes}/3", title);
+        Assert.Contains($"{successes}/3", HowToPlay.TutorialAttemptTitle("T-P01", successes));
+        Assert.DoesNotContain(HowToPlay.TutorialComplete, HowToPlay.TutorialResultTitle(false, successes));
+    }
+
 }

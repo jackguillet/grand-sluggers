@@ -360,7 +360,7 @@ namespace GrandSluggers.UnityClient
             var sub = _sub;
             if (TrainingOn && _phase != Phase.Result)
             {
-                banner = TutorialOn ? HowToPlay.TutorialTitle(_coach.Tutorial.Lesson.Id) : _coach.Session.Caption;
+                banner = TutorialOn ? HowToPlay.TutorialAttemptTitle(_coach.Tutorial.Lesson.Id, _coach.Tutorial.Successes) : _coach.Session.Caption;
                 sub = TutorialOn ? HowToPlay.TutorialControls(_coach.Tutorial.Lesson.Id, BookScheme.Current) : _coach.Session.Verb;
             }
             var stamp = _phase == Phase.Result && _last != null && PlayStamp.ShowsAtTime(_last)

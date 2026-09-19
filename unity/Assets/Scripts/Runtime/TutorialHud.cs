@@ -21,7 +21,9 @@ namespace GrandSluggers.UnityClient
                     var bounds = HowToPlay.TutorialRow(Screen.width, Screen.height, i, lessons.Length + 1);
                     var row = new Rect(bounds.X, bounds.Y, bounds.W, bounds.H);
                     var title = i == lessons.Length ? HowToPlay.TutorialFree : HowToPlay.TutorialTitle(lessons[i].Id);
-                    if (i < lessons.Length && progress.Has(lessons[i], profile)) title = "✓ " + title;
+                    if (i < lessons.Length)
+                        title = (progress.Has(lessons[i], profile) ? "✓ " : "") + title
+                            + " · " + HowToPlay.TutorialCount(progress.Count(lessons[i], profile));
                     GUI.DrawTexture(row, i == pick ? _ink : _bookCard);
                     GUI.Label(row, title, i == pick ? _bookTabSelected : _bookTab);
                 }
@@ -35,14 +37,14 @@ namespace GrandSluggers.UnityClient
             else
             {
                 var feedback = run.Phase == TutorialPhase.Feedback;
-                GUI.Label(header, feedback ? run.Feedback.Success ? HowToPlay.TutorialComplete : HowToPlay.TutorialRetry
-                    : HowToPlay.TutorialTitle(run.Lesson.Id), _bookTitle);
+                GUI.Label(header, feedback ? HowToPlay.TutorialResultTitle(run.Feedback.Success, run.Successes)
+                    : HowToPlay.TutorialAttemptTitle(run.Lesson.Id, run.Successes), _bookTitle);
                 TutorialText(left, HowToPlay.TutorialTitle(run.Lesson.Id), HowToPlay.TutorialGoal(run.Lesson.Id),
                     HowToPlay.TutorialControls(run.Lesson.Id, scheme));
                 TutorialText(right, feedback ? "" : "THE SETUP", feedback
-                    ? HowToPlay.TutorialFeedbackText(run.Feedback.Code) : HowToPlay.TutorialSetup(run.Lesson.Id), "");
+                    ? HowToPlay.TutorialFeedbackText(run.Feedback.Code) : HowToPlay.TutorialSetup(run.Lesson.Id), feedback ? "" : HowToPlay.TutorialRule);
                 var n = feedback ? 3 : 2;
-                TutorialButton(0, n, HowToPlay.TutorialButton(feedback ? -6 : -2, scheme));
+                TutorialButton(0, n, HowToPlay.TutorialButton(feedback ? run.Feedback.Success && !run.Passed ? -7 : -6 : -2, scheme));
                 if (feedback) TutorialButton(1, n, HowToPlay.TutorialButton(-5, scheme));
                 TutorialButton(n - 1, n, HowToPlay.TutorialButton(-3, scheme));
             }

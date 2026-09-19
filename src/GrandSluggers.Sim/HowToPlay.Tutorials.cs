@@ -7,6 +7,12 @@ public static partial class HowToPlay
     public const string TutorialFreeGoal = "Keep playing in Harbor. Try any verb without a lesson goal.";
     public const string TutorialComplete = "LESSON COMPLETE";
     public const string TutorialRetry = "TRY AGAIN";
+    public const string TutorialRule = "Do it successfully three times to pass. Failures keep your earlier successes.";
+    public static string TutorialCount(int successes) => $"{successes}/{TutorialProgress.RequiredSuccesses}";
+    public static string TutorialAttemptTitle(string id, int successes) => TutorialTitle(id) + " · " + TutorialCount(successes);
+    public static string TutorialResultTitle(bool success, int successes) =>
+        (success ? successes >= TutorialProgress.RequiredSuccesses ? TutorialComplete : "GOOD!" : TutorialRetry)
+        + " · " + TutorialCount(successes);
     public static string TutorialTitleHint(InputScheme scheme) => scheme == InputScheme.Pad
         ? "Harbor · South opens tutorials" : "Harbor · Space opens tutorials";
     public static string TutorialTitle(string id) => id switch
@@ -79,6 +85,7 @@ public static partial class HowToPlay
             -4 => pad ? "East · Title" : "G · Title",
             -5 => pad ? "West · Next" : "F · Next",
             -6 => pad ? "South · Retry" : "Space · Retry",
+            -7 => pad ? "South · Continue" : "Space · Continue",
             _ => ""
         };
     }
