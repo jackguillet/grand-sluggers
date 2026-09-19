@@ -1562,9 +1562,9 @@
       ],
       "title": "park effects, only when those parks become product scope",
       "category": "special",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "blocked",
+      "issue": 37,
+      "reason": "Harbor has no park hazard; extra parks are outside Exhibition product scope (#37). Add distinct park-effect exercises only when an extra park enters product scope.",
       "profiles": [
         "shipped",
         "c80"
