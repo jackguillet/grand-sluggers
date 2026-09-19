@@ -9,7 +9,7 @@ public sealed record TutorialLesson(string Id, int Revision, string[] Mechanics,
 public sealed record TutorialBall(double CarryFt, double ExitMph, double LaunchDeg, double SprayDeg);
 public sealed record TutorialSetup(string Id, string Policy, int Seed, double TimeoutSec, string[] Home,
     string[] Away, int[] Runners, Dictionary<string, TutorialBall> Balls, PitchCommand? Pitch = null,
-    double MinMovement01 = 0, int Strikes = 0);
+    double MinMovement01 = 0, int Strikes = 0, double MinTimingFrames = 0);
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -108,8 +108,13 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
                 || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "human-double-play")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out"), l.Id + " setup/objective mismatch");
-            if (l.Objective is "break-strike" or "rubber-strike")
+            if (l.Objective is "break-strike" or "rubber-strike" or "box-perfect-fair" or "grounder-fair" or "fly-fair")
                 Require(setup.MinMovement01 > 0, l.Id + " needs a meaningful movement threshold");
+            if (l.Objective is "pull-fair" or "push-fair")
+                Require(setup.MinTimingFrames > 0, l.Id + " needs a meaningful timing threshold");
+            if (l.Objective == "box-perfect-fair")
+                Require(setup.Pitch is not null && Math.Abs(PitchFlight.Crossing(setup.Pitch, rules: content.Rules).X) >= setup.MinMovement01 * HomeSet.BatterWalk,
+                    l.Id + " needs an offset pitch for box movement");
             if (l.Objective == "bunt-fair") Require(setup.Strikes == 2, l.Id + " must teach the two-strike bunt risk");
             if (setup.Policy is "grounder" or "liner")
                 Require(l.Profiles.All(setup.Balls.ContainsKey), l.Id + " lacks a profile ball fixture");
@@ -124,6 +129,7 @@ public sealed class TutorialCatalog
         foreach (var lesson in Lessons) Require(!Cycle(lesson.Id, []), lesson.Id + " prerequisite cycle");
         foreach (var s in Setups)
         {
+            Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
             Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball"), s.Id + " has invalid starting strikes");
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
             if (s.Policy is "cpu-strike" or "cpu-ball")

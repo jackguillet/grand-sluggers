@@ -140,3 +140,14 @@ Seven existing catalog entries now have production-runner exercises. All inherit
 The standalone browser now groups the 13 implemented lessons by category, with left/right or A/D to switch categories and up/down or W/S to select lessons. Pointer tabs use the same authored hit rectangles as rendering. A category displays at most six lessons per page; selection crosses page boundaries and pointer arrows select adjacent pages. Free practice has its own Free play tab. Next follows the whole implemented catalog across category boundaries; returning to lessons keeps the current lesson selected.
 
 The seven plate briefs describe the controlled setup, the required action, and both input schemes. Feedback distinguishes undercharging, failing to bend or reposition, missing the sweet spot, bunting foul with two strikes, and chasing the high ball. Three-success progress, saved partial attempts and profile isolation are shared with the earlier lessons. Human learning and controller checks remain pending.
+
+## Ordinary plate decisions (#786)
+
+Six more exercises bring the implemented catalog to 19 lessons. Timing directions and launch directions have separate stable lesson ids so a player earns three successes in each action, rather than passing a combined lesson by repeating only one side.
+
+- **T-P02 called ball:** a real TakeBall earns the attempt. A called strike or hit-by-pitch does not. The controlled batter takes; rubber movement creates the opportunity using ordinary pitch geometry.
+- **T-B03 pull / T-B03-L push:** ordinary fair slap contact with at least one frame of early/late input respectively, and a real spray on that handedness-relative side. Neutral timing or opposite-side contact does not count. No absolute left/right assumption.
+- **T-B05 box positioning:** CPU aimX 0.4 produces a crossing 0.74 ft off center. Move at least 0.2 normalized box units and produce Perfect fair slap contact; moving without meeting the sweet spot is insufficient. The minimum movement and authored CPU pitch are validated together. Default box center cannot pass.
+- **T-B06 grounder / T-B06-F fly:** hold at least 0.75 normalized up/down at contact, respectively, and produce the corresponding real dirt/fly ball class with an ordinary fair slap. A miss, foul, charged swing or accidental launch from neutral input cannot pass.
+
+These use existing rules, not altered timing windows or manufactured outcomes. The six setups reset identically on retry; replay and CPU/demo exclusion remain mandatory. The human learning gate is still pending.
