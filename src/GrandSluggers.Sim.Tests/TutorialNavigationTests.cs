@@ -80,6 +80,12 @@ public sealed class TutorialNavigationTests
     }
 
     [Theory]
+    [InlineData("T-P02")]
+    [InlineData("T-B03")]
+    [InlineData("T-B03-L")]
+    [InlineData("T-B05")]
+    [InlineData("T-B06")]
+    [InlineData("T-B06-F")]
     [InlineData("T-P04")]
     [InlineData("T-P05")]
     [InlineData("T-P06")]
