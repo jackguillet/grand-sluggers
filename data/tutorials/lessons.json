@@ -3,7 +3,7 @@
   "lessons": [
     {
       "id": "T-P01",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.01"
       ],
@@ -51,7 +51,7 @@
     },
     {
       "id": "T-P03",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.03"
       ],
@@ -209,7 +209,7 @@
     },
     {
       "id": "T-B01",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.01"
       ],
@@ -411,7 +411,7 @@
     },
     {
       "id": "T-F01",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.01"
       ],
@@ -503,7 +503,7 @@
     },
     {
       "id": "T-F05",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.05"
       ],
@@ -793,7 +793,7 @@
     },
     {
       "id": "T-D02",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.02"
       ],

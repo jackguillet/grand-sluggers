@@ -7,18 +7,38 @@ public sealed record TutorialInput(double Time, LivePlayCommandSource Source, Pi
 public sealed record TutorialRecording(int Version, string Lesson, int Revision, string Profile, string InputsHash, bool Demonstration, TutorialInput[] Inputs);
 public sealed record TutorialCompletion(string Lesson, int Revision, string Profile);
 
-/// <summary>Learning progress is separate from match state; a changed lesson revision needs a fresh completion.</summary>
+public sealed record TutorialPracticeProgress(string Lesson, int Revision, string Profile, int Successes);
+
+/// <summary>Three distinct successful attempts earn mastery. Failures/reset do not erase practice already earned.</summary>
 public sealed class TutorialProgress
 {
-    readonly HashSet<TutorialCompletion> _completed = [];
-    public IReadOnlyCollection<TutorialCompletion> Completed => _completed;
-    public bool Has(TutorialLesson lesson, string profile) => _completed.Contains(new(lesson.Id, lesson.Revision, profile));
-    internal void Record(TutorialLesson lesson, string profile) => _completed.Add(new(lesson.Id, lesson.Revision, profile));
-    public void Restore(IEnumerable<TutorialCompletion> completions, TutorialCatalog catalog)
+    public const int RequiredSuccesses = 3;
+    readonly Dictionary<TutorialCompletion, int> _successes = [];
+    public IReadOnlyCollection<TutorialCompletion> Completed => _successes
+        .Where(p => p.Value == RequiredSuccesses).Select(p => p.Key).ToArray();
+    public IReadOnlyCollection<TutorialPracticeProgress> Saved => _successes
+        .Select(p => new TutorialPracticeProgress(p.Key.Lesson, p.Key.Revision, p.Key.Profile, p.Value)).ToArray();
+    public int Count(TutorialLesson lesson, string profile) => _successes.GetValueOrDefault(new(lesson.Id, lesson.Revision, profile));
+    public bool Has(TutorialLesson lesson, string profile) => Count(lesson, profile) == RequiredSuccesses;
+    internal void Record(TutorialLesson lesson, string profile) =>
+        _successes[new(lesson.Id, lesson.Revision, profile)] = Math.Min(RequiredSuccesses, Count(lesson, profile) + 1);
+
+    // Compatibility for callers holding explicit completion records. Old single-success lessons have a retired revision.
+    public void Restore(IEnumerable<TutorialCompletion> completions, TutorialCatalog catalog) =>
+        RestorePractice(completions.Where(c => c is not null)
+            .Select(c => new TutorialPracticeProgress(c.Lesson, c.Revision, c.Profile, RequiredSuccesses)), catalog);
+
+    public void RestorePractice(IEnumerable<TutorialPracticeProgress> saved, TutorialCatalog catalog)
     {
-        foreach (var c in completions)
-            if (c is not null && catalog.Lessons.Any(l => l.Status == "implemented" && l.Id == c.Lesson && l.Revision == c.Revision && l.Profiles.Contains(c.Profile)))
-                _completed.Add(c);
+        foreach (var row in saved)
+        {
+            if (row is null || row.Successes < 1 || row.Successes > RequiredSuccesses) continue;
+            var lesson = catalog.Lessons.FirstOrDefault(l => l.Status == "implemented" && l.Id == row.Lesson
+                && l.Revision == row.Revision && l.Profiles.Contains(row.Profile));
+            if (lesson is null) continue;
+            var key = new TutorialCompletion(row.Lesson, row.Revision, row.Profile);
+            _successes[key] = Math.Max(_successes.GetValueOrDefault(key), row.Successes);
+        }
     }
 }
 
@@ -36,6 +56,8 @@ public sealed class TutorialSession
     string _batter = "";
     public TutorialLesson Lesson { get; }
     public TutorialProgress Progress { get; }
+    public int Successes => Progress.Count(Lesson, _catalog.Profile);
+    public bool Passed => Progress.Has(Lesson, _catalog.Profile);
     public Match Match { get; private set; } = null!;
     public TutorialPhase Phase { get; private set; } = TutorialPhase.Brief;
     public TutorialFeedback? Feedback { get; private set; }
@@ -223,6 +245,7 @@ public sealed class TutorialSession
 
     void Finish(bool success, string code, string detail)
     {
+        if (Phase != TutorialPhase.Attempt) return;
         if (Demonstration) { success = false; code = "demonstration"; detail = "Demonstration finished. Retry to perform the skill yourself."; }
         Feedback = new(success, code, detail); Phase = TutorialPhase.Feedback;
         if (success) Progress.Record(Lesson, _catalog.Profile);
