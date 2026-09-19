@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
-    public static class HudView
+    public static partial class HudView
     {
         static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine,
             _bookHead, _bookHeader, _bookHeaderNumber, _bookNumber, _bookTab, _bookTabSelected, _bookBadge,
@@ -75,15 +75,15 @@ namespace GrandSluggers.UnityClient
                     GUI.Label(new Rect(44, 124, 640, 22), setup, _gold);
             }
             else
-                Sticker(training ? "TRAINING" : "CHALLENGE", 44, 88, 420, 32, _h1);
+                Sticker(training ? HowToPlay.TutorialMenuTitle : "CHALLENGE", 44, 88, 420, 32, _h1);
             if (training)
-                GUI.Label(new Rect(44, 124, 640, 22), "Harbor  ·  stick lesson  ·  South start  ·  East skip to field", _tiny);
+                GUI.Label(new Rect(44, 124, 640, 22), HowToPlay.TutorialTitleHint(BookScheme.Current), _tiny);
             else if (challenge)
                 GUI.Label(new Rect(44, 124, 640, 22), "South / Space  ·  next match", _gold);
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                $"South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings    X / LB difficulty    F6 input: {Controls.Player1InputLabel}", _tiny);
+                $"South pick captain    West / F tutorials    Esc how to play    Start / H mode    Tab innings    X / LB difficulty    F6 input: {Controls.Player1InputLabel}", _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,

@@ -153,7 +153,7 @@ namespace GrandSluggers.UnityClient
 
         bool TrainingOn => _coach != null && _coach.Session != null;
         Seats SelectedSeats =>
-            TrainingOn || _mode != PlayMode.Exhibition
+            TutorialOn ? (_coach.PlayerBats ? Seats.AwayOne : Seats.One) : TrainingOn || _mode != PlayMode.Exhibition
                 ? Seats.One
                 : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
         Seats LiveSeats => _matchSeats.Current(SelectedSeats);
@@ -291,6 +291,12 @@ namespace GrandSluggers.UnityClient
                 _actors.Draw(0f);
                 return;
             }
+            if (TickTutorialUi(Time.unscaledDeltaTime))
+            {
+                _actors.Draw(0f);
+                if (!_freezeCam) _rig.Tick(dt);
+                return;
+            }
             if (!_gateHold)
             {
                 _flow.Tick();
@@ -315,6 +321,7 @@ namespace GrandSluggers.UnityClient
                 HudView.DeviceRecovery(_deviceRecovery.MissingSeat);
                 return;
             }
+            if (!_match.Paused && DrawTutorialUi()) return;
             if (_phase == Phase.Select)
                 HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
                     _versusWanted, Controls.Pad2.Present);
@@ -353,8 +360,8 @@ namespace GrandSluggers.UnityClient
             var sub = _sub;
             if (TrainingOn && _phase != Phase.Result)
             {
-                banner = _coach.Session.Caption;
-                sub = _coach.Session.Verb;
+                banner = TutorialOn ? HowToPlay.TutorialTitle(_coach.Tutorial.Lesson.Id) : _coach.Session.Caption;
+                sub = TutorialOn ? HowToPlay.TutorialControls(_coach.Tutorial.Lesson.Id, BookScheme.Current) : _coach.Session.Verb;
             }
             var stamp = _phase == Phase.Result && _last != null && PlayStamp.ShowsAtTime(_last)
                 ? banner : "";
@@ -375,7 +382,7 @@ namespace GrandSluggers.UnityClient
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
                 _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
-                _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
+                _mode == PlayMode.Training, TutorialOn ? HowToPlay.TutorialGoal(_coach.Tutorial.Lesson.Id) : TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, SquaredNow,
@@ -533,6 +540,7 @@ namespace GrandSluggers.UnityClient
 
         void RestartFromPause()
         {
+            if (TutorialOn) { PrepareTutorial(_coach.Tutorial.Lesson.Id); return; }
             Seed++;
             _match = NewMatch();
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
@@ -548,6 +556,7 @@ namespace GrandSluggers.UnityClient
         void PauseToTitle()
         {
             _match.SetPaused(false);
+            _tutorialMenu = false;
             if (TrainingOn) _coach.Stop();
             ReleaseMatchSeats();
             _phase = Phase.Title;
