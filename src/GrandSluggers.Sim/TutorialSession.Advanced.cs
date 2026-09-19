@@ -9,6 +9,7 @@ public sealed partial class TutorialSession
     double _dashLastZ;
     bool _relayHumanFeed;
     bool _relayHumanOnward;
+    bool _laserHumanThrow;
 
     partial void ResetAdvancedEvidence()
     {
@@ -18,10 +19,43 @@ public sealed partial class TutorialSession
         _dashLastZ = 0;
         _relayHumanFeed = false;
         _relayHumanOnward = false;
+        _laserHumanThrow = false;
     }
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-laser-home")
+        {
+            var input = _inputs[^1];
+            if (input.Source == LivePlayCommandSource.Human && !Demonstration
+                && input.Field is { SouthDown: true, KeysBag: 4 } && live.Throwing)
+                _laserHumanThrow = true;
+            if (result.CompletedPlay is not { } laserPlay) return;
+            var marks = live.TakeTrace(laserPlay).Marks ?? [];
+            var release = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease
+                && m.Flight is { FromPos: "CF" });
+            var flight = release?.Flight;
+            var thrower = flight is null ? null : live.TutorialFielderAt(flight.FromPos);
+            var receiver = flight is null ? null : live.TutorialFielderAt(flight.ReceiverPos);
+            var eligibleBag = Match.Rules.Fielding.Abilities.LaserHomeOnly == 0 || flight?.Bag == 4;
+            var success = _laserHumanThrow && flight is not null && thrower?.FieldAbility == "laser"
+                && receiver is not null && eligibleBag;
+            if (success)
+            {
+                var chem = _content.Chemistry.Between(thrower!, receiver!) switch
+                {
+                    Chemistry.Good => Match.Rules.Fielding.Chem.GoodSpeedMul,
+                    Chemistry.Bad => Match.Rules.Fielding.Chem.BadSpeedMul,
+                    _ => 1.0
+                };
+                var expected = InPlay.ArmMul(thrower!, Match.Rules) * chem * Match.Rules.Fielding.Abilities.LaserMul;
+                success = Math.Abs(flight!.SpeedMul - expected) <= 1e-5;
+            }
+            Finish(success, success ? "laser-home" : "laser-not-used",
+                success ? "Your Laser throw carried its ability boost toward home."
+                    : "Catch with a Laser glove, then command a throw home while the runner is on third.");
+            return;
+        }
         if (Lesson.Objective is "human-relay" or "human-snap-relay")
         {
             var input = _inputs[^1];
