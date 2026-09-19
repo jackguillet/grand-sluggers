@@ -21,7 +21,7 @@ public sealed class TutorialFieldTests
         "T-F03" => 1, "T-F03-2" => 2, "T-F03-3" => 3, "T-F03-H" => 4, _ => 0
     };
 
-    static void Drive(TutorialSession run, bool wrong = false, bool noHuman = false, bool noAction = false)
+    static void Drive(TutorialSession run, bool wrong = false, bool noHuman = false, bool noAction = false, bool neutralJump = false)
     {
         var jumped = false;
         for (var i = 0; i < 1900 && run.Phase == TutorialPhase.Attempt; i++)
@@ -52,6 +52,7 @@ public sealed class TutorialFieldTests
                         pad = new(StickX: dx / len * mag, StickY: dz / len * mag,
                             SouthDown: (run.Lesson.Id == "T-F04" && !wrong || run.Lesson.Id == "T-F06" && wrong) && live.ElapsedSeconds >= hang - .6,
                             WestDown: (run.Lesson.Id == "T-F06" && !wrong || run.Lesson.Id == "T-F04" && wrong) && !jumped && live.ElapsedSeconds >= hang - .3);
+                        if (neutralJump && pad.WestDown) pad = pad with { StickX = 0, StickY = 0 };
                         if (pad.WestDown) jumped = true;
                     }
                 }
@@ -119,6 +120,19 @@ public sealed class TutorialFieldTests
         Drive(run, wrong: true);
         Assert.False(run.Feedback?.Success ?? false);
         Assert.Equal(0, run.Successes);
+    }
+
+    [Fact]
+    public void NeutralStickWestStillOwnsTheCompletedJumpCatch()
+    {
+        var run = Start("T-F06");
+        Drive(run, neutralJump: true);
+        Assert.Contains(run.Inputs, input => input.Field is { WestDown: true, StickX: 0, StickY: 0 });
+        Assert.Equal(DefensiveFeat.Jump, run.LastPlay?.Outcome?.DefensiveFeat);
+        Assert.Equal("jumping-out", run.Feedback?.Code);
+        Assert.True(run.Feedback!.Success);
+        var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+        Assert.Equal(run.Feedback, replay.Feedback);
     }
 
     [Fact]
