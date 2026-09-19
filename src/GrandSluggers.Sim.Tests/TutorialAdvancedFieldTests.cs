@@ -29,6 +29,8 @@ public sealed class TutorialAdvancedFieldTests
                 pad = new(KeysBag: wrongBag ? 2 : 3, SouthDown: true);
             else if (act && run.Lesson.Id == "T-F11" && !wallSeen && live.ElapsedSeconds > .5)
                 pad = new(StickX: -1, StickY: 0);
+            else if (act && run.Lesson.Id == "T-F13" && live.HoldsBall && !live.Throwing)
+                pad = new(StickY: 1);
             else if (act && run.Lesson.Id == "T-F12" && live.Preview is { } fly)
             {
                 var plant = FlyCatch.WallPlant(fly, run.Match.Park, run.Match.Rules);
@@ -85,5 +87,46 @@ public sealed class TutorialAdvancedFieldTests
         Drive(run, act: true, wrongBag: true);
         Assert.Equal("wrong-carom-bag", run.Feedback?.Code);
         Assert.Equal(0, run.Successes);
+    }
+
+    [Fact]
+    public void RetryNeedsAFreshWallCaromEvent()
+    {
+        if (TestRoot.Compact) return; // On C80 the unattended contact also reaches the wall.
+        var run = Start("T-F11");
+        Drive(run, act: true);
+        Assert.Equal("carom-returned", run.Feedback?.Code);
+        Assert.Equal(1, run.Successes);
+        run.Retry();
+        Drive(run, act: false);
+        Assert.Equal("no-carom", run.Feedback?.Code);
+        Assert.Equal(1, run.Successes);
+    }
+
+    [Fact]
+    public void BallDashIsEarnedOnlyByHumanCarryOnTheProfileWithAnEligibleHolder()
+    {
+        if (!TestRoot.Compact)
+        {
+            Assert.DoesNotContain(_content.Characters.Values, FieldAbilities.HasBallDash);
+            return;
+        }
+        var run = Start("T-F13");
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.Equal("ball-dash-carried", run.Feedback?.Code);
+            Assert.True(run.Feedback!.Success);
+            Assert.Equal(attempt, run.Successes);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var cpu = Start("T-F13");
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.Equal(0, cpu.Successes);
+        var dead = Start("T-F13");
+        Drive(dead, act: false);
+        Assert.Equal(0, dead.Successes);
     }
 }
