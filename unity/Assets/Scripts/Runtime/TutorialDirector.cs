@@ -14,7 +14,6 @@ namespace GrandSluggers.UnityClient
         bool _tutorialMenu;
         int _tutorialPick;
         float _tutorialUiAge;
-        int _tutorialClick = -1;
         MenuNav.Gate _tutorialY;
         bool _tutorialSaved;
         bool _tutorialWasModal;
@@ -33,7 +32,7 @@ namespace GrandSluggers.UnityClient
             _tutorialChoices = _tutorials.Lessons.Where(l => l.Status == "implemented" && l.Profiles.Contains(_tutorials.Profile)).ToArray();
             _tutorialProgress.Restore(_tutorialChoices.Where(l => PlayerPrefs.GetInt(TutorialSaveKey(l), 0) == 1)
                 .Select(l => new TutorialCompletion(l.Id, l.Revision, _tutorials.Profile)), _tutorials);
-            _tutorialMenu = true; _tutorialUiAge = 0; _tutorialClick = -1;
+            _tutorialMenu = true; _tutorialUiAge = 0;
             _tutorialY.Catch(Controls.MenuY);
             _phase = Phase.Title; _cam.Play("title");
         }
@@ -49,7 +48,7 @@ namespace GrandSluggers.UnityClient
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
             _clip = null; _hlPath = null;
-            _tutorialMenu = false; _tutorialUiAge = 0; _tutorialClick = -1;
+            _tutorialMenu = false; _tutorialUiAge = 0;
             _tutorialSaved = false; _tutorialWasModal = true;
             BeginSet();
         }
@@ -83,8 +82,10 @@ namespace GrandSluggers.UnityClient
             }
             if (!_tutorialWasModal) { _tutorialUiAge = 0; _tutorialWasModal = true; }
             if (_tutorialUiAge < .2f) return true;
-            var click = _tutorialClick; _tutorialClick = -1;
-            // Pointer actions belong to their IMGUI button on mouse-up, not the South alias on mouse-down.
+            var mouse = Controls.GuiMouse;
+            var click = Controls.PointerDown ? HowToPlay.TutorialHit(mouse.x, mouse.y, Screen.width, Screen.height,
+                _tutorialMenu, _tutorialChoices.Length + 1, TutorialFeedbackReady) : -1;
+            // Use the same Input System pointer and hit rectangles as the book/Call time menus.
             var confirm = Controls.SouthDown && !Controls.PointerDown;
             if (_tutorialMenu)
             {
@@ -92,7 +93,7 @@ namespace GrandSluggers.UnityClient
                 var step = _tutorialY.Tick(Controls.MenuY, Controls.MenuTapY, dt);
                 if (step != 0) _tutorialPick = (_tutorialPick - step % count + count) % count;
                 if (click >= 0) { _tutorialPick = click; ChooseTutorialMenu(); }
-                else if (confirm) ChooseTutorialMenu();
+                else if (confirm || click == -2) ChooseTutorialMenu();
                 else if (Controls.EastDown || click == -4) { _tutorialMenu = false; _mode = PlayMode.Exhibition; _t = 0; }
                 return true;
             }
@@ -133,9 +134,8 @@ namespace GrandSluggers.UnityClient
         bool DrawTutorialUi()
         {
             if (!TutorialModal) return false;
-            var click = HudView.Tutorials(_tutorialMenu, _tutorialChoices, _tutorialPick,
+            HudView.Tutorials(_tutorialMenu, _tutorialChoices, _tutorialPick,
                 TutorialOn ? _coach.Tutorial : null, _tutorialProgress, _tutorials.Profile);
-            if (click != -1) _tutorialClick = click;
             return true;
         }
 
