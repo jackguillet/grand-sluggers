@@ -271,3 +271,5 @@ The baseball lessons practice a full sequence per success: build a 1–1 count w
 For the triple-play lesson, catch the fly and return the ball to second, then first, before the two early runners retouch. Select the bag with D-pad Up then Right (2 then 1 on keyboard), and press South/Space for each throw after possession reaches the receiver. All three actual outs and both player throws are required.
 
 C80 bobble recovery starts with the helper's real ground-ball error. Wait for the bobble, then use the stick/WASD to chase and scoop the loose ball. A single steering input followed by an assisted pickup does not count, for either bobbles or wall caroms.
+
+Dash around first teaches the actual turn: after touching first, select the runner with D-pad Right/1, send toward second with stick up/W, then tap South/Space as the runner turns. The drill checks progress beyond first and a dash during the turn; reaching second safely is a separate outcome.
