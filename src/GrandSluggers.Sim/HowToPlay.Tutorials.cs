@@ -191,6 +191,7 @@ public static partial class HowToPlay
         "choice-missed" => "Make your first throw to second and beat the lead runner to the bag.",
         "all-runners-returned" => "Both runners advanced and returned safely to their own bags.",
         "runner-slid" or "slid-to-first" => "You started a slide as the runner approached first.",
+        "runner-rounded-dashed" => "You sent the runner beyond first and dashed through the turn toward second.",
         "runner-returned" => "You sent the selected runner, halted, and returned safely to second.",
         "runner-dashed" or "dashed-to-first" => "Your dash accelerated the batter-runner along the path to first.",
         "running-opportunity-ended" => "The play ended before you completed the runner sequence. Follow each step in the setup.",
