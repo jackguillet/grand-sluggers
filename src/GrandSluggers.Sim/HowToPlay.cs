@@ -300,11 +300,13 @@ public static partial class HowToPlay
         new("tutorial-field-plays", "Fielding scenario lessons", "training",
         [
             "Force home: bases loaded, collect, then D-pad Down + South. With two outs, this force ends the half with no run.",
+            "Third force: let the runner cross home, then D-pad Up + South forces second. The earlier run is cancelled.",
             "Rundown: D-pad Right + South checks first. Once trapped, D-pad Up + South throws ahead for the tag.",
             "Close third: send and dash on offense; throw to third on defense. Press South fresh when the close-play icon appears.",
         ],
         [
             "Force home: bases loaded, collect, then 4 and Space. With two outs, this force ends the half with no run.",
+            "Third force: let the runner cross home, then 2 and Space forces second. The earlier run is cancelled.",
             "Rundown: 1 and Space checks first. Once trapped, 2 and Space throws ahead for the tag.",
             "Close third: send and dash on offense; throw to third on defense. Press Space fresh when the close-play icon appears.",
         ]),

@@ -279,3 +279,5 @@ Return on a fly is separate from tagging up: select third with D-pad Left/3, sen
 The standard-rules fumble lesson adds the return throw: after the helper's fumble, steer through the manual scoop, then select first (D-pad Right/1) and throw (South/Space). The scoop alone does not pass; the throw must also be yours.
 
 The in-game book separates recovery/reach, fielding scenarios, live-ball running, and item lessons into short pages so the instructions fit at couch text size.
+
+Cancel a run with a force starts with two outs and runners at first and third. Collect the grounder, let the fast runner cross home, then force the slower runner at second (D-pad Up/2 and South/Space). A third force out cancels that earlier crossing. This is distinct from forcing home before the run arrives.
