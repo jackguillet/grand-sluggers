@@ -280,4 +280,6 @@ The standard-rules fumble lesson adds the return throw: after the helper's fumbl
 
 The in-game book separates recovery/reach, fielding scenarios, live-ball running, and item lessons into short pages so the instructions fit at couch text size.
 
-Cancel a run with a force starts with two outs and runners at first and third. Collect the grounder, let the fast runner cross home, then force the slower runner at second (D-pad Up/2 and South/Space). A third force out cancels that earlier crossing. This is distinct from forcing home before the run arrives.
+Cancel a run with a force starts with two outs and runners at first and third. Collect the grounder and throw as the fast runner nears home, so the crossing precedes the force on the slower runner at second (D-pad Up/2 and South/Space). A third force out cancels that earlier crossing. This is distinct from forcing home before the run arrives.
+
+See a run count before a tag contrasts that force: two outs, runners on second and third. Collect and throw to third as the lead runner approaches home (D-pad Left/3 and South/Space); press South/Space freshly at the close-play icon. The lead runner must cross before the actual nonforce tag. This time the earlier run counts.
