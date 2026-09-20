@@ -300,15 +300,24 @@ public static partial class HowToPlay
         new("tutorial-field-plays", "Fielding scenario lessons", "training",
         [
             "Force home: bases loaded, collect, then D-pad Down + South. With two outs, this force ends the half with no run.",
-            "Third force: let the runner cross home, then D-pad Up + South forces second. The earlier run is cancelled.",
             "Rundown: D-pad Right + South checks first. Once trapped, D-pad Up + South throws ahead for the tag.",
             "Close third: send and dash on offense; throw to third on defense. Press South fresh when the close-play icon appears.",
         ],
         [
             "Force home: bases loaded, collect, then 4 and Space. With two outs, this force ends the half with no run.",
-            "Third force: let the runner cross home, then 2 and Space forces second. The earlier run is cancelled.",
             "Rundown: 1 and Space checks first. Once trapped, 2 and Space throws ahead for the tag.",
             "Close third: send and dash on offense; throw to third on defense. Press Space fresh when the close-play icon appears.",
+        ]),
+        new("tutorial-scoring", "Third outs and runs", "training",
+        [
+            "Two outs: collect, then throw as the lead runner nears home. The crossing must happen before the out.",
+            "Force lesson: D-pad Up + South forces second. A third force out cancels the earlier run.",
+            "Tag lesson: D-pad Left + South throws to third. Press South at the close-play icon. A nonforce third tag keeps the earlier run.",
+        ],
+        [
+            "Two outs: collect, then throw as the lead runner nears home. The crossing must happen before the out.",
+            "Force lesson: 2 and Space forces second. A third force out cancels the earlier run.",
+            "Tag lesson: 3 and Space throws to third. Press Space at the close-play icon. A nonforce third tag keeps the earlier run.",
         ]),
         new("tutorial-live-plays", "Live-ball lessons", "training",
         [
