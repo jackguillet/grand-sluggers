@@ -4,7 +4,7 @@ public enum TutorialPhase { Brief, Attempt, Feedback, Exited }
 public sealed record TutorialFeedback(bool Success, string Code, string Detail);
 public sealed record TutorialInput(double Time, LivePlayCommandSource Source, PitchCommand? Pitch = null,
     SwingCommand? Swing = null, LivePadInput? Field = null, int PickoffBag = 0, string? SwapPitcherId = null,
-    int StealBag = 0);
+    int StealBag = 0, string? ItemId = null, string? ItemTargetId = null);
 public sealed record TutorialRecording(int Version, string Lesson, int Revision, string Profile, string InputsHash, bool Demonstration, TutorialInput[] Inputs);
 public sealed record TutorialCompletion(string Lesson, int Revision, string Profile);
 
@@ -77,6 +77,7 @@ public sealed partial class TutorialSession
     public IReadOnlyList<TutorialInput> Inputs => _inputs;
     public IReadOnlyList<int> HumanThrows => _throws;
     public bool IsFieldLesson => _setup.Policy is "grounder" or "liner" or "airborne";
+    public bool IsItemLesson => _setup.Policy == "cpu-item";
     public bool IsRunningLesson => Lesson.Category == "running";
     public bool IsOffenseLesson => _setup.Seat == "offense";
     public bool IsDefenseLesson => _setup.Policy == "steal-defense" || IsFieldLesson && !IsOffenseLesson;
@@ -104,7 +105,8 @@ public sealed partial class TutorialSession
         if (_setup.PitcherId.Length > 0) home = home with { Starter = home.Roster.Single(c => c.Id == _setup.PitcherId) };
         if (_setup.BatterId.Length > 0)
             away = away with { Order = [away.Roster.Single(c => c.Id == _setup.BatterId),
-                .. away.Roster.Where(c => c.Id != _setup.BatterId)] };
+                .. away.Roster.Where(c => c.Id == _setup.OnDeckId),
+                .. away.Roster.Where(c => c.Id != _setup.BatterId && c.Id != _setup.OnDeckId)] };
         Match = Match.Exhibition(_content, home, away, 3, _setup.Seed, parkId: Training.ParkId);
         if (_setup.StartingStars > 0)
         {
@@ -179,7 +181,7 @@ public sealed partial class TutorialSession
 
     public bool Swing(SwingCommand command, LivePlayCommandSource source = LivePlayCommandSource.Human)
     {
-        if (!Accepts(source) || _setup.Policy is not ("cpu-strike" or "cpu-ball")) return false;
+        if (!Accepts(source) || _setup.Policy is not ("cpu-strike" or "cpu-ball" or "cpu-item")) return false;
         command = command with { Human = true };
         _inputs.Add(new(Elapsed, source, Swing: command));
         var bats = Match.Batter.Bats;
@@ -188,6 +190,19 @@ public sealed partial class TutorialSession
         var hadMeter = Match.CanStarSwing;
         Match.BeginAtBat(CpuPitch, command, out var hit, out var play);
         LastHit = hit; LastPlay = play;
+        if (IsItemLesson)
+        {
+            if (!hit.InPlay || hit.Foul || !hit.ChemistryItemOffered)
+                Finish(false, "no-item-offer", "Make fair contact with a good-chemistry teammate on deck to earn an item.");
+            else
+            {
+                var preview = Match.PreviewHit(hit, command);
+                Match.LivePlay.Recording = true;
+                Match.LivePlay.Apply(LivePlayCommand.BeginLive(CpuPitch, command, hit, preview, null,
+                    new LiveSeats(true, false, false, false), 0, LivePlayCommandSource.System));
+            }
+            return true;
+        }
         var verdict = Lesson.Objective == "star-swing"
             ? EvaluateStarSwing(command, hit, beforeStars, beforeCost, hadMeter)
             : TutorialPlateObjectives.Swing(Lesson.Objective, _setup, bats, command, hit, play);
@@ -240,6 +255,14 @@ public sealed partial class TutorialSession
         ObserveDelayedHomeSend(pad, owned, thirdWasOnBag);
         if (IsOffenseLesson && IsFieldLesson)
         {
+            if (IsItemLesson)
+            {
+                ObserveSpecialItem(live, result);
+                LastPlay = result.CompletedPlay;
+                if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
+                    Finish(false, "item-opportunity-ended", "The live ball ended before the chosen item took effect.");
+                return;
+            }
             ObserveRunning(pad, owned, runnerBefore, result);
             LastPlay = result.CompletedPlay;
             if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
@@ -405,7 +428,7 @@ public sealed partial class TutorialSession
         {
             if (input is null || !double.IsFinite(input.Time) || input.Time < run.Elapsed || run.Phase != TutorialPhase.Attempt
                 || new[] { input.Pitch is not null, input.Swing is not null, input.Field is not null,
-                    input.PickoffBag > 0, input.SwapPitcherId is not null, input.StealBag > 0 }.Count(b => b) != 1)
+                    input.PickoffBag > 0, input.SwapPitcherId is not null, input.StealBag > 0, input.ItemId is not null }.Count(b => b) != 1)
                 throw new InvalidDataException("Invalid tutorial input timeline.");
             if (input.Field is not null) run.Tick(input.Time - run.Elapsed, input.Field, input.Source);
             else
@@ -415,6 +438,7 @@ public sealed partial class TutorialSession
                     : input.Swing is not null ? run.Swing(input.Swing, input.Source)
                     : input.PickoffBag > 0 ? run.Pickoff(input.PickoffBag, input.Source)
                     : input.StealBag > 0 ? run.ArmSteal(input.StealBag, input.Source)
+                    : input.ItemId is not null ? run.Item(input.ItemId, input.ItemTargetId!, input.Source)
                     : run.SwapPitcher(input.SwapPitcherId!, input.Source);
                 if (!accepted) throw new InvalidDataException("Tutorial input does not belong to the teaching role.");
             }

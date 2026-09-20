@@ -3,7 +3,39 @@ namespace GrandSluggers.Sim;
 public sealed partial class TutorialSession
 {
     bool _earnedStarThisAttempt;
-    void ResetSpecialEvidence() => _earnedStarThisAttempt = false;
+    string _humanItemId = "";
+    string _humanItemTarget = "";
+    void ResetSpecialEvidence()
+    {
+        _earnedStarThisAttempt = false;
+        _humanItemId = "";
+        _humanItemTarget = "";
+    }
+
+    public bool Item(string itemId, string targetId, LivePlayCommandSource source = LivePlayCommandSource.Human)
+    {
+        if (!Accepts(source) || !IsItemLesson || LastHit?.ChemistryItemOffered != true
+            || !Match.LivePlay.Active || _humanItemId.Length > 0 || !ErrorItems.Known(itemId)) return false;
+        var target = Match.DefenseRoster.FirstOrDefault(c => c.Id == targetId);
+        if (target is null) return false;
+        _inputs.Add(new(Elapsed, source, ItemId: itemId, ItemTargetId: targetId));
+        _humanItemId = itemId;
+        _humanItemTarget = targetId;
+        Match.LivePlay.Apply(LivePlayCommand.ApplyItem(itemId, target, source));
+        if (itemId != _setup.Skill)
+            Finish(false, "wrong-item", "Choose the named item for this lesson.");
+        return true;
+    }
+
+    void ObserveSpecialItem(LivePlaySystem live, LivePlayCommandResult result)
+    {
+        if (_humanItemId.Length == 0 || _humanItemId != _setup.Skill || !live.ItemLanded) return;
+        var field = live.Field;
+        if (field is not { ItemHit: true } || field.Item != _setup.Skill
+            || field.ItemTarget?.Id != _humanItemTarget || !live.TutorialItemEffectActive(_setup.Skill, _humanItemTarget)) return;
+        Finish(true, "item-effect-" + _setup.Skill,
+            "Your " + _setup.Skill + " landed and its field effect became active.");
+    }
 
     TutorialFeedback? EvaluateStarResource(PitchCommand command, PlayEvent? play,
         double beforeStars, int cost, bool hadMeter)

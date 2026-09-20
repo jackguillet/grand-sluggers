@@ -12,8 +12,11 @@ public sealed class TutorialSpecialTests
         "T-SP-skullball", "T-SP-fogball", "T-SP-fastball", "T-SP-changeup", "T-SP-breaker",
         "T-SS-heat-swing", "T-SS-heart-swing", "T-SS-shell-swing", "T-SS-phony-swing",
         "T-SS-cask-swing", "T-SS-furnace", "T-SS-staff-swing", "T-SS-ground", "T-SS-fly", "T-SS-line"];
+    static readonly string[] ItemLessons = ["T-X01", "T-I-banana", "T-I-rocket", "T-I-pow"];
     public static IEnumerable<object[]> Cases => from profile in new[] { "shipped", "c80" }
         from lesson in StarLessons select new object[] { profile, lesson };
+    public static IEnumerable<object[]> ItemCases => from profile in new[] { "shipped", "c80" }
+        from lesson in ItemLessons select new object[] { profile, lesson };
 
     static (ContentCatalog Content, TutorialCatalog Catalog) Load(string profile)
     {
@@ -104,6 +107,49 @@ public sealed class TutorialSpecialTests
         run = new TutorialSession(content, catalog, "T-G03"); run.Begin(demonstration: true);
         Assert.True(run.Pitch(new("fastball", 0, false), LivePlayCommandSource.Cpu));
         Assert.True(run.Pitch(new("fastball", 0, true), LivePlayCommandSource.Cpu));
+        Assert.Equal("demonstration", run.Feedback!.Code);
+        Assert.Equal(0, run.Successes);
+    }
+
+    [Theory, MemberData(nameof(ItemCases))]
+    public void ItemNeedsHumanOfferedContactThrowAndRealEffectThreeTimes(string profile, string id)
+    {
+        var (content, catalog) = Load(profile);
+        var run = new TutorialSession(content, catalog, id); run.Begin();
+        var named = catalog.Setups.Single(s => s.Id == id).Skill;
+        for (var n = 1; n <= 3; n++)
+        {
+            Assert.True(run.Swing(new(true, 0, 0, false)));
+            Assert.True(run.LastHit!.ChemistryItemOffered);
+            Assert.True(run.Match.LivePlay.Active);
+            var target = run.Match.LivePlay.Preview!.Fielder!.Id;
+            Assert.True(run.Item(named, target));
+            for (var t = 0; t < 600 && run.Phase == TutorialPhase.Attempt; t++) run.Tick(.05);
+            Assert.True(run.Feedback!.Success, id + "/" + profile + ": " + run.Feedback.Detail);
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(content, catalog, run.Recording()).Feedback);
+            run.Retry();
+        }
+        Assert.True(run.Passed);
+    }
+
+    [Theory, MemberData(nameof(ItemCases))]
+    public void WrongItemCpuThrowAndDemoDoNotCredit(string profile, string id)
+    {
+        var (content, catalog) = Load(profile);
+        var named = catalog.Setups.Single(s => s.Id == id).Skill;
+        var run = new TutorialSession(content, catalog, id); run.Begin();
+        Assert.False(run.Item(named, run.Match.DefenseRoster[0].Id));
+        Assert.True(run.Swing(new(true, 0, 0, false)));
+        var target = run.Match.LivePlay.Preview!.Fielder!.Id;
+        Assert.False(run.Item(named, target, LivePlayCommandSource.Cpu));
+        Assert.True(run.Item(named == "banana" ? "rocket" : "banana", target));
+        Assert.Equal("wrong-item", run.Feedback!.Code);
+        Assert.Equal(0, run.Successes);
+        run = new TutorialSession(content, catalog, id); run.Begin(demonstration: true);
+        Assert.True(run.Swing(new(true, 0, 0, false), LivePlayCommandSource.Cpu));
+        Assert.True(run.Item(named, run.Match.LivePlay.Preview!.Fielder!.Id, LivePlayCommandSource.Cpu));
+        for (var t = 0; t < 600 && run.Phase == TutorialPhase.Attempt; t++) run.Tick(.05, source: LivePlayCommandSource.Cpu);
         Assert.Equal("demonstration", run.Feedback!.Code);
         Assert.Equal(0, run.Successes);
     }
