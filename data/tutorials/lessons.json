@@ -1238,6 +1238,23 @@
       ]
     },
     {
+      "id": "T-D07-T",
+      "revision": 1,
+      "mechanics": ["outs.07"],
+      "title": "Run timing on a third force versus third tag",
+      "category": "outs",
+      "status": "planned",
+      "issue": 794,
+      "reason": "Owner #794: author a live contact where a runner crosses home before the human-made third out, then prove the run is canceled by a force but counts before a nonforce tag. T-D07 only proves a zero-run force at home; no crossed-run contrast is staged yet.",
+      "profiles": ["shipped", "c80"],
+      "requires": [],
+      "prerequisites": ["T-D07"],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
       "id": "T-D08",
       "revision": 2,
       "mechanics": [

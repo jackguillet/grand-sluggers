@@ -83,4 +83,19 @@ public sealed class TutorialCatalogTests
         Assert.Contains(c.Validate(_content),e=>e.Contains("uncovered mechanic new-feature"));
         Assert.Contains(c.Validate(_content),e=>e.Contains("unowned migration debt new-feature"));
     }
+
+    [Fact]
+    public void ThirdOutScoringContrastRemainsExplicitlyUncredited()
+    {
+        var c = Load();
+        var force = c.Lesson("T-D07");
+        var contrast = c.Lesson("T-D07-T");
+        Assert.Equal("implemented", force.Status);
+        Assert.Equal("human-third-force-zero-run", force.Objective);
+        Assert.Equal("planned", contrast.Status);
+        Assert.Equal(794, contrast.Issue);
+        Assert.Contains("T-D07", contrast.Prerequisites);
+        Assert.Empty(contrast.Tests);
+        Assert.Empty(contrast.Objective);
+    }
 }
