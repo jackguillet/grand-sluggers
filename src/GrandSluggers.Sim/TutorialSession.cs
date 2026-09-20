@@ -208,7 +208,8 @@ public sealed partial class TutorialSession
             + PitchFlight.AirSeconds(Match.PitchSpeedMph(CpuPitch), Match.Rules);
         if (_setup.Policy == "steal-offense" && !Match.LivePlay.Active && Elapsed >= plateArrival)
         {
-            if (Match.StealOn) BeginStealPitch(new LiveSeats(true, false, false, false));
+            if (Match.StealOn) BeginStealPitch(Lesson.Objective == "human-double-steal"
+                ? new LiveSeats(true, true, true, true) : new LiveSeats(true, false, false, false));
             else
             {
                 Match.BeginAtBat(CpuPitch, Take, out _, out var pitchPlay);
@@ -222,6 +223,7 @@ public sealed partial class TutorialSession
             return;
         }
         var live = Match.LivePlay;
+        TickDelayedStealOpponent(seconds);
         var pos = live.GlovePos; var who = live.TutorialGloveId; var x = live.GloveX; var z = live.GloveZ;
         var couldDive = live.TutorialCanDive;
         var previousDive = live.DiveT;

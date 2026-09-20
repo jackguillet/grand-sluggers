@@ -1408,11 +1408,11 @@
       "mechanics": [
         "running.07"
       ],
-      "title": "Double steal and challenge home",
+      "title": "Delay the break for home",
       "category": "running",
-      "status": "planned",
+      "status": "implemented",
       "issue": 794,
-      "reason": "A human-controlled delayed break must score at home after a real catcher throw to second; the current CPU catcher holds or tags home",
+      "reason": "Headless delayed double-steal lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"

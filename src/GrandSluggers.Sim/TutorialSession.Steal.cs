@@ -7,12 +7,13 @@ public sealed partial class TutorialSession
     string _stealRunner = "";
     string _homeStealRunner = "";
     bool _humanHomeSend;
+    bool _tutorialCatcherThrewSecond;
 
     void ResetStealEvidence()
     {
         _humanStealArms.Clear();
         _stealRunner = ""; _homeStealRunner = Lesson.Objective == "human-double-steal" ? Match.Third?.Id ?? "" : "";
-        _humanHomeSend = false;
+        _humanHomeSend = false; _tutorialCatcherThrewSecond = false;
     }
 
     void BeginStealDefense()
@@ -50,6 +51,18 @@ public sealed partial class TutorialSession
         Match.LivePlay.Recording = true;
     }
 
+    void TickDelayedStealOpponent(double seconds)
+    {
+        if (Lesson.Objective != "human-double-steal" || _tutorialCatcherThrewSecond) return;
+        var live = Match.LivePlay;
+        if (!live.Active || !live.HoldsBall || live.Throwing || live.GlovePos != "C") return;
+        // The tutorial opponent commits one ordinary catcher command to second. The separate CPU
+        // source keeps that throw out of human evidence; subsequent defense remains uncommanded.
+        live.Apply(LivePlayCommand.Tick(seconds, new LivePadInput(KeysBag: 2, SouthDown: true),
+            LivePadInput.Dead, false, LivePlayCommandSource.Cpu));
+        _tutorialCatcherThrewSecond = live.Throwing && live.ThrowBag == 2;
+    }
+
     void ObserveDelayedHomeSend(LivePadInput pad, bool owned, bool thirdWasOnBag)
     {
         if (!owned || Lesson.Objective != "human-double-steal" || !thirdWasOnBag
@@ -74,7 +87,7 @@ public sealed partial class TutorialSession
         else if (Lesson.Objective == "human-double-steal")
         {
             var firstMoved = outcome?.Moves.Any(m => m.Runner.Id == _stealRunner && m.FromBag == 1 && m.ToBag == 2) == true;
-            var homeScored = play.RunsScored > 0 && play.Scorers.Contains(_homeStealRunner);
+            var homeScored = play.RunsScored > 0 && play.Scorers.Contains(_content.Must(_homeStealRunner).Name);
             var success = _humanStealArms.Contains(1) && _humanHomeSend && firstMoved
                 && homeScored;
             Finish(success, success ? "double-steal-resolved" : "double-steal-missed",
