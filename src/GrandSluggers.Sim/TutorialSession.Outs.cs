@@ -7,14 +7,14 @@ public sealed partial class TutorialSession
     bool _rundownSeen;
     bool _humanCloseOffPress;
     bool _humanCloseDefPress;
-    int _closeOpponentFrame;
+    double _nextOpponentDashAt;
 
     void ResetOutEvidence()
     {
         _opponentLeftEarly = false;
         _rundownSeen = false;
         _humanCloseOffPress = false;
-        _humanCloseDefPress = false; _closeOpponentFrame = 0;
+        _humanCloseDefPress = false; _nextOpponentDashAt = 5.0 / 60;
         if (Lesson.Objective == "human-double-off") _lessonRunner = Match.Second?.Id ?? "";
     }
 
@@ -37,10 +37,13 @@ public sealed partial class TutorialSession
     {
         if (Lesson.Objective != "human-close-defense" || !Match.LivePlay.Active) return;
         var live = Match.LivePlay;
-        var pad = _closeOpponentFrame < 3 ? new LivePadInput(AllAdvance: true)
-            : _closeOpponentFrame < 20 && _closeOpponentFrame % 4 == 0 && !live.InClosePlay
-                ? new LivePadInput(SouthDown: true) : LivePadInput.Dead;
-        _closeOpponentFrame++;
+        var pad = Elapsed <= 3.0 / 60 + 1e-9 ? new LivePadInput(AllAdvance: true) : LivePadInput.Dead;
+        if (pad == LivePadInput.Dead && Elapsed >= _nextOpponentDashAt - 1e-9
+            && Elapsed <= 20.0 / 60 + 1e-9 && !live.InClosePlay)
+        {
+            pad = new LivePadInput(SouthDown: true);
+            _nextOpponentDashAt += 4.0 / 60;
+        }
         if (pad != LivePadInput.Dead)
             live.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead, pad, false, LivePlayCommandSource.Cpu));
     }
