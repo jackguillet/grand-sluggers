@@ -273,6 +273,17 @@ public static partial class HowToPlay
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
+        new("tutorial-live-plays", "Live-ball lessons", "training",
+        [
+            "Tag up from third: wait for the catch, then hold LB to send home. Double off: catch, then D-pad Up and South return to second.",
+            "Item lesson: hit fair first. RB cycles; stick aims. LT + RB or LT + South throws the selected item.",
+            "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
+        ],
+        [
+            "Tag up from third: wait for the catch, then hold comma to send home. Double off: catch, then 2 and Space return to second.",
+            "Item lesson: hit fair first. Tab cycles; WASD aims. E throws the selected item.",
+            "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
+        ]),
         new("tutorial-sequences", "Steals and star lessons", "training",
         [
             "Steal: D-pad Right selects first; L3 arms before release. Reach second safely.",
