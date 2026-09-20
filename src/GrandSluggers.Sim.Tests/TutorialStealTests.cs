@@ -40,6 +40,7 @@ public sealed class TutorialStealTests
 
     [Theory]
     [InlineData("T-R06")]
+    [InlineData("T-R07")]
     [InlineData("T-R08")]
     public void HumanStealAndCatcherCommandsMeetGeometricRunnerOutcomeThreeTimes(string id)
     {
@@ -48,6 +49,13 @@ public sealed class TutorialStealTests
         {
             Drive(run);
             Assert.True(run.Feedback?.Success == true, $"{id}: {run.Feedback}; play {run.LastPlay?.Kind}; moves {string.Join(',',run.LastPlay?.Outcome?.Moves.Select(m => $"{m.FromBag}-{m.ToBag}") ?? [])}; throws {string.Join(',',run.HumanThrows)}");
+            if (id == "T-R07")
+            {
+                Assert.Equal(2, run.LastPlay?.Outcome?.ThrowEndpoint?.DestinationBag);
+                Assert.Equal(1, run.LastPlay?.RunsScored);
+                Assert.Contains("Zig", run.LastPlay!.Scorers);
+                Assert.Empty(run.HumanThrows); // the scripted opponent throw is never human evidence
+            }
             Assert.Equal(n, run.Successes);
             Assert.Equal(n == 3, run.Passed);
             var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
@@ -58,6 +66,7 @@ public sealed class TutorialStealTests
 
     [Theory]
     [InlineData("T-R06")]
+    [InlineData("T-R07")]
     [InlineData("T-R08")]
     public void CpuSourceCannotEarnStealLesson(string id)
     {
