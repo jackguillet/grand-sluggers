@@ -155,6 +155,8 @@ public static partial class HowToPlay
         _ when code.StartsWith("ability-reach-") => "Your controlled fielder secured a ball beyond an ordinary glove's reach.",
         "close-runner-safe" => "Your close-play press beat the tag and the runner reached third safely.",
         "close-runner-out" => "Send and dash early, then react with a fresh press when the close-play icon appears.",
+        "close-runner-tagged" => "Your throw and close-play press tagged the runner at third.",
+        "close-tag-missed" => "Throw to third, then react with a fresh press at the close-play icon.",
         "guided-complete" => "You completed the steps on the game screens.",
         "fresh-pitcher" => "The tired pitcher is out and your fresh arm is on the mound.",
         "swap-missed" => "Choose a fresh eligible fielder and confirm the pitcher change.",

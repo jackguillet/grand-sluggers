@@ -277,13 +277,13 @@ public static partial class HowToPlay
         [
             "Force home: bases loaded, collect with the pitcher, then D-pad Down + South before the runner arrives.",
             "Rundown: D-pad Right + South checks first. Once trapped, D-pad Up + South throws ahead for the tag.",
-            "Wall recovery: chase the rebound yourself. Cover first: throw promptly and watch the receiver arrive.",
+            "Close third: send and dash on offense; throw to third on defense. Press South fresh when the close-play icon appears.",
             "Ability reach: move to the landing ring's edge, then South catches beyond ordinary reach. Burrow scoops a grounder at its reach edge.",
         ],
         [
             "Force home: bases loaded, collect with the pitcher, then 4 and Space before the runner arrives.",
             "Rundown: 1 and Space checks first. Once trapped, 2 and Space throws ahead for the tag.",
-            "Wall recovery: chase the rebound yourself. Cover first: throw promptly and watch the receiver arrive.",
+            "Close third: send and dash on offense; throw to third on defense. Press Space fresh when the close-play icon appears.",
             "Ability reach: move to the landing ring's edge, then Space catches beyond ordinary reach. Burrow scoops a grounder at its reach edge.",
         ]),
         new("tutorial-live-plays", "Live-ball lessons", "training",
