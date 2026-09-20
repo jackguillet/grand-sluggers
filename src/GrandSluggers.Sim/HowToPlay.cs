@@ -273,6 +273,19 @@ public static partial class HowToPlay
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
+        new("tutorial-baseball", "Counts, fouls and halves", "training",
+        [
+            "Build 1–1: walk left to the rubber's edge, release the stick, and tap South for a ball. Next SET, stick down resets; South throws the strike.",
+            "Foul then fair: hold stick left and tap South early. Next pitch, center the stick and time South for fair contact.",
+            "Finish the half: two outs, two strikes. A centered called strike changes sides and resets the outs.",
+            "Each complete sequence earns one success. Three successes pass; failed attempts keep earlier successes.",
+        ],
+        [
+            "Build 1–1: walk left to the rubber's edge, release the key, and tap Space for a ball. Next SET, S resets; Space throws the strike.",
+            "Foul then fair: hold A and tap Space early. Next pitch, release A and time Space for fair contact.",
+            "Finish the half: two outs, two strikes. A centered called strike changes sides and resets the outs.",
+            "Each complete sequence earns one success. Three successes pass; failed attempts keep earlier successes.",
+        ]),
         new("tutorial-field-plays", "Fielding scenario lessons", "training",
         [
             "Force home: bases loaded, collect, then D-pad Down + South. With two outs, this force ends the half with no run.",

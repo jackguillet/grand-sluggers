@@ -7,6 +7,18 @@ public static partial class HowToPlay
 
     static TutorialCopy? RemainingTutorial(string id, string profile = "shipped") => id switch
     {
+        "T-G04" => new("Build a 1–1 count", "Pitch a ball, then a called strike to make the count 1–1.",
+            "The batter takes both pitches. Move left to the rubber's edge for the ball, then recenter for the strike. The count stays visible.",
+            "During SET, walk left to the rubber's edge; release the stick and tap South. Next pitch, stick down resets; South throws a strike.",
+            "During SET, walk left to the rubber's edge; release the key and tap Space. Next pitch, S resets; Space throws a strike."),
+        "T-G04-F" => new("Hit foul, then fair", "Hit a foul ball for a strike, then put the next pitch fair.",
+            "The CPU throws ordinary strikes. Aim left and swing early to pull the first ball foul. Center your aim and time the next swing for fair contact.",
+            "Hold stick left and tap South early at contact. On the next pitch, center the stick and time South with the ball.",
+            "Hold A and tap Space early at contact. On the next pitch, release A and time Space with the ball."),
+        "T-G04-H" => new("Finish the half inning", "Throw a called third strike for the third out and change sides.",
+            "Two outs, two strikes. The CPU takes. Your third strike ends the top half and resets the out count for the bottom half.",
+            "Keep the pitch centered and tap South. Watch the third out change sides.",
+            "Keep the pitch centered and tap Space. Watch the third out change sides."),
         "T-P07" => new("Replace a tired pitcher", "Replace the tired starter with a fresh arm.",
             "The starter is tired. Open the ordinary pitcher picker and choose a fielder to take the mound.",
             "Select opens the pitcher picker. Left/right picks a fielder. Select confirms.",

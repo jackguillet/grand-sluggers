@@ -520,7 +520,7 @@ namespace GrandSluggers.UnityClient
                     _cpuField = _match.ApplyOffenseItem(hit, _cpuField, null);
             }
             _park.Ball.Release();
-            StartFly(hit, alreadyLive: TutorialOn && _coach.Tutorial.IsItemLesson && _match.LivePlay.Active);
+            StartFly(hit, alreadyLive: TutorialOn && (_coach.Tutorial.IsItemLesson || _coach.Tutorial.IsGameContactLesson) && _match.LivePlay.Active);
         }
 
         void StartFly(AtBatResult hit, bool alreadyLive = false)
