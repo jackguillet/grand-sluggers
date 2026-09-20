@@ -190,22 +190,26 @@ public sealed class TutorialOutsTests
         Assert.False(run.Feedback?.Success ?? false);
     }
 
-    [Fact]
-    public void HumanFielderWinsCloseTagAtThirdThreeTimes()
+    [Theory]
+    [InlineData(1.0 / 30)]
+    [InlineData(1.0 / 60)]
+    [InlineData(1.0 / 120)]
+    public void HumanFielderWinsCloseTagAtThirdThreeTimes(double frame)
     {
         var run = Start("T-D09");
         for (var n = 1; n <= 3; n++)
         {
-            var iconAt = -1;
-            for (var i = 0; i < 2100 && run.Phase == TutorialPhase.Attempt; i++)
+            var iconAt = -1.0;
+            for (var i = 0; i < 70 / frame && run.Phase == TutorialPhase.Attempt; i++)
             {
                 var live = run.Match.LivePlay;
-                if (iconAt < 0 && live.CloseIcon) iconAt = i;
-                var pad = iconAt >= 0 && i == iconAt + 2 ? new LivePadInput(SouthDown: true)
+                if (iconAt < 0 && live.CloseIcon) iconAt = run.Elapsed;
+                var pad = iconAt >= 0 && run.Elapsed >= iconAt + 2.0 / 60
+                    && run.Elapsed < iconAt + 2.0 / 60 + frame ? new LivePadInput(SouthDown: true)
                     : live.HoldsBall && !live.Throwing && run.HumanThrows.Count == 0
                         && run.Match.Runners.Any(r => r.FromBag == 2 && r.Feet > (TestRoot.Compact ? 35 : 45))
                         ? new LivePadInput(KeysBag: 3, SouthDown: true) : LivePadInput.Dead;
-                run.Tick(Frame, pad);
+                run.Tick(frame, pad);
             }
             Assert.True(run.Feedback?.Success == true, $"{run.Feedback}; icon {iconAt}; play {run.LastPlay?.Kind}; outs {string.Join(',',run.LastPlay?.Outcome?.OutsMade.Select(o => $"{o.Runner.Id}:{o.Type}:{o.Bag}") ?? [])}; throws {string.Join(',',run.HumanThrows)}");
             Assert.Equal(n, run.Successes);
