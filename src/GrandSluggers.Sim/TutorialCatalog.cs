@@ -30,7 +30,7 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -141,10 +141,14 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "manual-takeover" or "human-double-play"
                     or "throw-bag-1" or "throw-bag-2" or "throw-bag-3" or "throw-bag-4"
                     or "runner-send-halt-return" or "human-dash-run" or "all-runner-return" or "human-slide"
-                    or "human-choice-second" or "human-ball-dash" or "human-uncovered-receiver" or "human-force-home")
+                    or "human-choice-second" or "human-ball-dash" or "human-uncovered-receiver" or "human-force-home" or "human-ability-reach")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
-                    or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw" or "human-tag-up" or "human-double-off" or "human-loose-recovery"), l.Id + " setup/objective mismatch");
+                    or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw" or "human-tag-up" or "human-double-off" or "human-loose-recovery" or "human-ability-reach"), l.Id + " setup/objective mismatch");
+            if (l.Objective == "human-ability-reach") Require((l.Id == "T-F16" || l.Id == "T-A-" + setup.Skill)
+                && l.Requires.Contains(setup.Skill)
+                && setup.Home.Any(id => content.Characters[id].FieldAbility == setup.Skill),
+                l.Id + " needs the named ability fielder in its home nine");
             if (l.Objective is "break-strike" or "rubber-strike" or "box-perfect-fair" or "grounder-fair" or "fly-fair")
                 Require(setup.MinMovement01 > 0, l.Id + " needs a meaningful movement threshold");
             if (l.Objective is "pull-fair" or "push-fair")
