@@ -49,7 +49,7 @@ public sealed partial class TutorialSession
         }
         var thirdOut = beforeOuts == 2 && beforeStrikes == 2 && beforeInning == 1 && beforeTop
             && play?.Kind == PlayKind.Strikeout && Match.Outs == 0 && Match.Inning == 1 && !Match.Top;
-        Finish(thirdOut, thirdOut ? "half-changed" : "third-out-missed",
+        Finish(thirdOut, thirdOut ? "half-changed" : "game-half-third-out-missed",
             thirdOut ? "Your called third strike made the third out and moved the game to the bottom of the inning."
                 : "Put the called third strike in the zone to make the third out and change sides.");
     }

@@ -18,6 +18,25 @@ public sealed class TutorialGameTests
         return (content, TutorialCatalog.Load(content));
     }
 
+    [Theory]
+    [InlineData("shipped")]
+    [InlineData("c80")]
+    public void CountBallUsesReachableMoundCameraStickAndRubberWalk(string profile)
+    {
+        var (content, catalog) = Load(profile);
+        var world = AtBatControl.WorldHorizontal(-1, content.Shots.Must(AtBatShots.Mound));
+        Assert.Equal(1, world);
+        foreach (var rubber in new[] { -1.0, 1.0 })
+        {
+            var run = new TutorialSession(content, catalog, "T-G04"); run.Begin();
+            Assert.True(run.Match.WalkPitcher(rubber));
+            Assert.Equal(rubber, run.Match.PitcherOffsetX);
+            Assert.True(run.Pitch(new("fastball", 0, false, RubberX: run.Match.PitcherOffsetX)));
+            Assert.Equal(PlayKind.TakeBall, run.LastPlay?.Kind);
+            Assert.Equal(1, run.Match.Balls);
+        }
+    }
+
     static void Drain(TutorialSession run, LivePlayCommandSource source)
     {
         for (var i = 0; i < 2400 && run.Match.LivePlay.Active && run.Phase == TutorialPhase.Attempt; i++)
@@ -73,8 +92,11 @@ public sealed class TutorialGameTests
         var (content, catalog) = Load(profile);
         var run = new TutorialSession(content, catalog, id); run.Begin();
         if (id == "T-G04-F") { run.Swing(new(true, 0, 0, false)); Drain(run, LivePlayCommandSource.Human); }
-        else run.Pitch(new("fastball", 0, false, AimX: 4));
+        else if (id == "T-G04") run.Pitch(new("fastball", 0, false));
+        else run.Pitch(new("fastball", 0, false, RubberX: 1));
         Assert.False(run.Feedback?.Success ?? false);
+        if (id == "T-G04-H") Assert.Equal("game-half-third-out-missed", run.Feedback?.Code);
+        if (id == "T-G04") Assert.Equal("wrong-count", run.Feedback?.Code);
         Assert.Equal(0, run.Successes);
         run = new TutorialSession(content, catalog, id); run.Begin();
         if (id == "T-G04-F") Assert.False(run.Swing(new(true, 0, -4, false, SprayAimDeg: AtBatResolver.SprayAimDeg(-1)), LivePlayCommandSource.Cpu));
