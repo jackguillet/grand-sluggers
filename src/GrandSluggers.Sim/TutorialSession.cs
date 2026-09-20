@@ -124,6 +124,7 @@ public sealed partial class TutorialSession
         _humanAerialCatcher = "";
         _queuedHumanThrowBag = 0;
         ResetRunningEvidence();
+        ResetOutEvidence();
         ResetStealEvidence();
         ResetAdvancedEvidence();
         ResetSpecialEvidence();
@@ -144,7 +145,8 @@ public sealed partial class TutorialSession
             throw new InvalidDataException("Tutorial setup no longer produces its intended ball class: " + Lesson.Id);
         LastHit = hit;
         Match.LivePlay.Recording = true;
-        var seats = IsOffenseLesson ? new LiveSeats(true, false, false, false) : new LiveSeats(false, true, true, false);
+        var seats = Lesson.Objective == "human-double-off" ? new LiveSeats(true, true, true, true)
+            : IsOffenseLesson ? new LiveSeats(true, false, false, false) : new LiveSeats(false, true, true, false);
         var result = Match.LivePlay.Apply(LivePlayCommand.BeginLive(CpuPitch, Contact, hit, preview, null, seats, 0, LivePlayCommandSource.System));
         if (!result.Snapshot.Active) throw new InvalidDataException("Tutorial setup did not start a live play.");
     }
@@ -223,6 +225,7 @@ public sealed partial class TutorialSession
             return;
         }
         var live = Match.LivePlay;
+        TickDoubledOffOpponent();
         TickDelayedStealOpponent(seconds);
         var pos = live.GlovePos; var who = live.TutorialGloveId; var x = live.GloveX; var z = live.GloveZ;
         var couldDive = live.TutorialCanDive;
@@ -311,7 +314,7 @@ public sealed partial class TutorialSession
         }
         else if (_setup.Policy is "steal-offense" or "steal-defense") EvaluateStealPlay(result);
         else if (Lesson.Objective == "human-pickoff") EvaluateSetPlay(result);
-        else if (Lesson.Objective == "human-choice-second") EvaluateOutObjective(result);
+        else if (Lesson.Objective is "human-choice-second" or "human-double-off") EvaluateOutObjective(result);
         else EvaluateExpandedFieldObjective(live, result);
         if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
             Finish(false, "timeout", "The opportunity ended. Retry the same setup.");
