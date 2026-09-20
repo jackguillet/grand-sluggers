@@ -11,7 +11,7 @@ public sealed record TutorialSetup(string Id, string Policy, int Seed, double Ti
     string[] Away, int[] Runners, Dictionary<string, TutorialBall> Balls, PitchCommand? Pitch = null,
     double MinMovement01 = 0, int Strikes = 0, double MinTimingFrames = 0, string Seat = "defense", double StartingStars = 0,
     string Skill = "", string PitcherId = "", string BatterId = "", string OnDeckId = "", double OpponentStars = 0,
-    Dictionary<string, string[]>? RunnerIdsByProfile = null);
+    Dictionary<string, string[]>? RunnerIdsByProfile = null, int Outs = 0);
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -31,7 +31,7 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -142,7 +142,7 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "manual-takeover" or "human-double-play"
                     or "throw-bag-1" or "throw-bag-2" or "throw-bag-3" or "throw-bag-4"
                     or "runner-send-halt-return" or "human-dash-run" or "all-runner-return" or "human-slide"
-                    or "human-choice-second" or "human-ball-dash" or "human-uncovered-receiver" or "human-force-home" or "human-ability-reach" or "human-close-offense" or "human-close-defense")
+                    or "human-choice-second" or "human-ball-dash" or "human-uncovered-receiver" or "human-force-home" or "human-ability-reach" or "human-close-offense" or "human-close-defense" or "human-third-force-zero-run")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
                     or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw" or "human-tag-up" or "human-double-off" or "human-loose-recovery" or "human-ability-reach"), l.Id + " setup/objective mismatch");
@@ -203,6 +203,7 @@ public sealed class TutorialCatalog
                 s.Id + " has invalid opponent stars");
             Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
             Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball" or "cpu-take"), s.Id + " has invalid starting strikes");
+            Require(s.Outs is >= 0 and <= 2, s.Id + " has invalid starting outs");
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
             if (s.Policy is "cpu-strike" or "cpu-ball" or "cpu-item")
             {

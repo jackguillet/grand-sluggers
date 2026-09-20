@@ -109,5 +109,16 @@ public sealed partial class TutorialSession
                 success ? "You caught the fly and threw behind the runner before they retouched second."
                     : "Catch the fly, then throw back to second before the runner returns.");
         }
+        else if (Lesson.Objective == "human-third-force-zero-run")
+        {
+            var thirdOut = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Force && o.Bag == 4
+                && o.Runner.Id == _thirdRunner) == true;
+            var inningChanged = play.OutsAfter == 0 && play.Context is { } before
+                && play.NextState is { } after && before.Top != after.Top;
+            var success = _throws.FirstOrDefault() == 4 && thirdOut && inningChanged && play.RunsScored == 0;
+            Finish(success, success ? "third-force-no-run" : "third-out-missed",
+                success ? "Your force at home made the third out; the run did not count and the inning changed."
+                    : "With two outs, throw home for the third force out before the runner scores.");
+        }
     }
 }

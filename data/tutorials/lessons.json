@@ -1213,25 +1213,29 @@
     },
     {
       "id": "T-D07",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.07"
       ],
-      "title": "third-out/scoring consequences",
+      "title": "Third force out ends the inning",
       "category": "outs",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless third-force-out and zero-run lesson; time-play scoring contrast pending separate drill",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-D07",
+      "objective": "human-third-force-zero-run",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     },
     {
       "id": "T-D08",
@@ -5869,6 +5873,54 @@
           "exitMph": 90,
           "launchDeg": 3,
           "sprayDeg": 38
+        }
+      }
+    },
+    {
+      "id": "T-D07",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "konga",
+        "soot",
+        "boom",
+        "nugget",
+        "grit"
+      ],
+      "runners": [
+        1,
+        2,
+        3
+      ],
+      "outs": 2,
+      "balls": {
+        "shipped": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        },
+        "c80": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
         }
       }
     }
