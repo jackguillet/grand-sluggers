@@ -847,7 +847,7 @@
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
-      "reason": "Headless live wall-carom recovery exercise; separate ordinary-bobble drill and standalone learning gate pending",
+      "reason": "Headless live wall-carom recovery; ordinary bobble and fumble recovery are taught in T-F09-B and T-F09-S; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
@@ -2605,7 +2605,7 @@
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
-      "reason": "C80-only headless local ordinary bobble and human-controlled loose-ball recovery; shipped handling-error recovery and standalone learning gate pending",
+      "reason": "C80-only headless local ordinary bobble and human-controlled loose-ball recovery; shipped fumble recovery is T-F09-S; standalone learning gate pending",
       "profiles": [
         "c80"
       ],
