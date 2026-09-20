@@ -18,6 +18,7 @@ public sealed class TutorialRunningTests
 
     static void Drive(TutorialSession run, LivePlayCommandSource source = LivePlayCommandSource.Human)
     {
+        var returningEarlyFly = false;
         for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
         {
             var pad = LivePadInput.Dead;
@@ -51,6 +52,15 @@ public sealed class TutorialRunningTests
             }
             else if (run.Lesson.Id == "T-R05" && run.Match.LivePlay.Caught)
                 pad = new(AllAdvance: true);
+            else if (run.Lesson.Id == "T-R10")
+            {
+                var runner = run.Match.RunnerAt(3);
+                if (runner is { Feet: > 12 }) returningEarlyFly = true;
+                pad = runner is null || run.Match.LivePlay.Caught ? LivePadInput.Dead
+                    : returningEarlyFly && runner.Feet > 0 ? new(AllReturn: true)
+                    : returningEarlyFly ? LivePadInput.Dead
+                    : new(KeysBag: 3, StickBag: 4);
+            }
             else if (run.Lesson.Id == "T-R04")
             {
                 var runner = run.Match.RunnerAt(0);
@@ -68,6 +78,7 @@ public sealed class TutorialRunningTests
     [InlineData("T-R09")]
     [InlineData("T-R04")]
     [InlineData("T-R05")]
+    [InlineData("T-R10")]
     public void HumanCommandsAndRunnerGeometryEarnThreeDistinctAttempts(string id)
     {
         var run = Start(id);
@@ -90,6 +101,7 @@ public sealed class TutorialRunningTests
     [InlineData("T-R09")]
     [InlineData("T-R04")]
     [InlineData("T-R05")]
+    [InlineData("T-R10")]
     public void CpuOrdersAndDeadInputCannotEarnCredit(string id)
     {
         var run = Start(id);
@@ -115,6 +127,19 @@ public sealed class TutorialRunningTests
                 : LivePadInput.Dead;
             run.Tick(Frame, pad);
         }
+        Assert.False(run.Feedback?.Success ?? false);
+    }
+
+    [Fact]
+    public void EarlyFlySendWithoutReturnDoesNotEarnSafeRetouch()
+    {
+        var run = Start("T-R10");
+        for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+            run.Tick(Frame, new LivePadInput(KeysBag: 3, StickBag: 4));
+        Assert.False(run.Feedback?.Success ?? false);
+        run.Retry();
+        for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+            run.Tick(Frame, new LivePadInput(AllReturn: true));
         Assert.False(run.Feedback?.Success ?? false);
     }
 }

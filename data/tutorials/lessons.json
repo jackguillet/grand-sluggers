@@ -2696,6 +2696,36 @@
       "objective": "",
       "controls": [],
       "tests": []
+    },
+    {
+      "id": "T-R10",
+      "revision": 1,
+      "mechanics": [
+        "running.05"
+      ],
+      "title": "Return an early runner on a fly",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Separate early-return half of fly-ball running; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-R05"
+      ],
+      "setup": "T-R05",
+      "objective": "human-early-fly-return",
+      "controls": [
+        "control:running/Select runner",
+        "control:running/Send",
+        "control:running/All return"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
     }
   ],
   "setups": [
