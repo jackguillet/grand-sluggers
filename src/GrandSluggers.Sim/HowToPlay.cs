@@ -273,6 +273,19 @@ public static partial class HowToPlay
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
+        new("tutorial-field-plays", "Fielding scenario lessons", "training",
+        [
+            "Force home: bases loaded, collect with the pitcher, then D-pad Down + South before the runner arrives.",
+            "Rundown: D-pad Right + South checks first. Once trapped, D-pad Up + South throws ahead for the tag.",
+            "Wall recovery: chase the rebound yourself. Cover first: throw promptly and watch the receiver arrive.",
+            "Ability reach: move to the landing ring's edge, then South catches beyond ordinary reach. Burrow scoops a grounder at its reach edge.",
+        ],
+        [
+            "Force home: bases loaded, collect with the pitcher, then 4 and Space before the runner arrives.",
+            "Rundown: 1 and Space checks first. Once trapped, 2 and Space throws ahead for the tag.",
+            "Wall recovery: chase the rebound yourself. Cover first: throw promptly and watch the receiver arrive.",
+            "Ability reach: move to the landing ring's edge, then Space catches beyond ordinary reach. Burrow scoops a grounder at its reach edge.",
+        ]),
         new("tutorial-live-plays", "Live-ball lessons", "training",
         [
             "Tag up from third: wait for the catch, then hold LB to send home. Double off: catch, then D-pad Up and South return to second.",
