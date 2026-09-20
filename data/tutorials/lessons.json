@@ -1574,25 +1574,29 @@
     },
     {
       "id": "T-G04",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.04"
       ],
-      "title": "counts/outs/innings/fair-foul",
+      "title": "Read the 1\u20131 count",
       "category": "game",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 800,
+      "reason": "Headless live Match count sequence; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-G04",
+      "objective": "game-count-sequence",
+      "controls": [
+        "control:pitching/Normal pitch"
+      ],
+      "tests": [
+        "TutorialGameTests"
+      ]
     },
     {
       "id": "T-G05",
@@ -2601,6 +2605,62 @@
       ],
       "tests": [
         "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-G04-F",
+      "revision": 1,
+      "mechanics": [
+        "game.04"
+      ],
+      "title": "Foul then fair",
+      "category": "game",
+      "status": "implemented",
+      "issue": 800,
+      "reason": "Headless live Match count and inning sequence; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-G04"
+      ],
+      "setup": "T-G04-F",
+      "objective": "game-foul-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialGameTests"
+      ]
+    },
+    {
+      "id": "T-G04-H",
+      "revision": 1,
+      "mechanics": [
+        "game.04"
+      ],
+      "title": "Make the third out",
+      "category": "game",
+      "status": "implemented",
+      "issue": 800,
+      "reason": "Headless live Match count and inning sequence; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-G04"
+      ],
+      "setup": "T-G04-H",
+      "objective": "game-half-change",
+      "controls": [
+        "control:pitching/Normal pitch"
+      ],
+      "tests": [
+        "TutorialGameTests"
       ]
     }
   ],
@@ -5923,6 +5983,102 @@
           "sprayDeg": -6
         }
       }
+    },
+    {
+      "id": "T-G04",
+      "policy": "game-count",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "defense",
+      "strikes": 0
+    },
+    {
+      "id": "T-G04-F",
+      "policy": "game-contact",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "strikes": 0
+    },
+    {
+      "id": "T-G04-H",
+      "policy": "game-half",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "defense",
+      "strikes": 2
     }
   ]
 }

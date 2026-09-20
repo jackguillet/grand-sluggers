@@ -31,8 +31,8 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run"];
-    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run", "game-count-sequence", "game-foul-fair", "game-half-change"];
+    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground", "game-count", "game-contact", "game-half"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
@@ -133,6 +133,9 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "cpu-strike" && TutorialPlateObjectives.SwingIds.Contains(l.Objective) && l.Objective != "take-ball")
                 || (setup.Policy == "cpu-strike" && l.Objective == "star-swing")
                 || (setup.Policy == "cpu-item" && l.Objective == "item-effect")
+                || (setup.Policy == "game-count" && l.Objective == "game-count-sequence")
+                || (setup.Policy == "game-contact" && l.Objective == "game-foul-fair")
+                || (setup.Policy == "game-half" && l.Objective == "game-half-change")
                 || (setup.Policy == "cpu-special-ground" && l.Objective == "human-special-ground")
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
                 || (setup.Policy == "pickoff" && l.Objective is "human-pickoff" or "human-rundown-tag")
@@ -146,6 +149,10 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
                     or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw" or "human-tag-up" or "human-double-off" or "human-loose-recovery" or "human-ability-reach"), l.Id + " setup/objective mismatch");
+            if (l.Objective is "game-count-sequence" or "game-half-change" or "game-foul-fair")
+                Require((l.Id is "T-G04" or "T-G04-F" or "T-G04-H") && setup.Seat == (l.Objective == "game-foul-fair" ? "offense" : "defense")
+                    && setup.Strikes == (l.Objective == "game-half-change" ? 2 : 0) && setup.Runners.Length == 0,
+                    l.Id + " needs its teaching seat, count and empty bases");
             if (l.Objective == "human-ability-reach") Require((l.Id == "T-F16" || l.Id == "T-A-" + setup.Skill)
                 && l.Requires.Contains(setup.Skill)
                 && setup.Home.Any(id => content.Characters[id].FieldAbility == setup.Skill),
@@ -202,10 +209,10 @@ public sealed class TutorialCatalog
             Require(double.IsFinite(s.OpponentStars) && s.OpponentStars >= 0 && s.OpponentStars <= content.Rules.Stars.MeterMax,
                 s.Id + " has invalid opponent stars");
             Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
-            Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball" or "cpu-take"), s.Id + " has invalid starting strikes");
+            Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball" or "cpu-take" or "game-half"), s.Id + " has invalid starting strikes");
             Require(s.Outs is >= 0 and <= 2, s.Id + " has invalid starting outs");
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
-            if (s.Policy is "cpu-strike" or "cpu-ball" or "cpu-item")
+            if (s.Policy is "cpu-strike" or "cpu-ball" or "cpu-item" or "game-contact")
             {
                 var pitch = s.Pitch ?? new PitchCommand("fastball", 0, false);
                 Require(pitch.Type is "fastball" or "changeup" && !pitch.Star && !pitch.DeliveryPrepared
@@ -214,7 +221,7 @@ public sealed class TutorialCatalog
                     && Math.Abs(pitch.AimX) <= 4 && Math.Abs(pitch.AimY) <= 4 && pitch.BreakMul == 1,
                     s.Id + " has invalid CPU pitch");
                 var crossing = PitchFlight.Crossing(pitch, rules: content.Rules);
-                Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy is "cpu-strike" or "cpu-item"), s.Id + " CPU pitch disagrees with strike/ball policy");
+                Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy is "cpu-strike" or "cpu-item" or "game-contact"), s.Id + " CPU pitch disagrees with strike/ball policy");
                 Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, hand, content.Rules)), s.Id + " CPU pitch hits the batter");
             }
             else if (s.Policy is "steal-offense" or "steal-defense")

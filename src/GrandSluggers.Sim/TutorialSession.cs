@@ -80,6 +80,7 @@ public sealed partial class TutorialSession
     public IReadOnlyList<int> HumanThrows => _throws;
     public bool IsFieldLesson => _setup.Policy is "grounder" or "liner" or "airborne" or "cpu-special-ground";
     public bool IsItemLesson => _setup.Policy == "cpu-item";
+    public bool IsGameContactLesson => _setup.Policy == "game-contact";
     public bool IsRunningLesson => Lesson.Category == "running";
     public bool IsOffenseLesson => _setup.Seat == "offense";
     public bool IsDefenseLesson => _setup.Policy == "steal-defense" || IsFieldLesson && !IsOffenseLesson;
@@ -117,6 +118,7 @@ public sealed partial class TutorialSession
         }
         if (_setup.OpponentStars > 0) Match.GiveOffenseStars(_setup.OpponentStars);
         if (!Match.SetOuts(_setup.Outs)) throw new InvalidDataException("Cannot stage tutorial outs.");
+        if (_setup.Policy == "game-half") PrepareGameHalf();
         var namedRunners = _setup.RunnerIdsByProfile?.GetValueOrDefault(_catalog.Profile);
         for (var i = 0; i < _setup.Runners.Length; i++)
         {
@@ -141,6 +143,7 @@ public sealed partial class TutorialSession
         ResetAdvancedEvidence();
         ResetSpecialEvidence();
         ResetAbilityEvidence();
+        ResetGameEvidence();
         Elapsed = 0; LastPlay = null; LastHit = null; LastTickResult = null; Feedback = null; Paused = false;
     }
 
@@ -179,8 +182,9 @@ public sealed partial class TutorialSession
 
     public bool Pitch(PitchCommand command, LivePlayCommandSource source = LivePlayCommandSource.Human)
     {
-        if (!Accepts(source) || _setup.Policy != "cpu-take") return false;
+        if (!Accepts(source) || _setup.Policy is not ("cpu-take" or "game-count" or "game-half")) return false;
         _inputs.Add(new(Elapsed, source, Pitch: command));
+        if (_setup.Policy is "game-count" or "game-half") { PitchGame(command); return true; }
         var beforeStars = Match.DefenseStars;
         var beforeCost = Match.PitchStarCost;
         var hadMeter = Match.CanStarPitch;
@@ -197,9 +201,10 @@ public sealed partial class TutorialSession
 
     public bool Swing(SwingCommand command, LivePlayCommandSource source = LivePlayCommandSource.Human)
     {
-        if (!Accepts(source) || _setup.Policy is not ("cpu-strike" or "cpu-ball" or "cpu-item")) return false;
+        if (!Accepts(source) || _setup.Policy is not ("cpu-strike" or "cpu-ball" or "cpu-item" or "game-contact")) return false;
         command = command with { Human = true };
         _inputs.Add(new(Elapsed, source, Swing: command));
+        if (_setup.Policy == "game-contact") { SwingGame(command); return true; }
         var bats = Match.Batter.Bats;
         var beforeStars = Match.OffenseStars;
         var beforeCost = Match.SwingStarCost;
@@ -270,6 +275,7 @@ public sealed partial class TutorialSession
             IsOffenseLesson ? LivePadInput.Dead : pad,
             IsOffenseLesson ? pad : LivePadInput.Dead, false, source));
         LastTickResult = result;
+        if (IsGameContactLesson) { ObserveGameContact(result); return; }
         var owned = source == LivePlayCommandSource.Human && !Demonstration;
         ObserveCloseOffense(closeIconBefore, pad, owned, result);
         ObserveCloseDefense(closeIconBefore, pad, owned, result);
