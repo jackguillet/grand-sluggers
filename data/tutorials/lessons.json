@@ -1356,25 +1356,29 @@
     },
     {
       "id": "T-R05",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.05"
       ],
-      "title": "fly-ball return and tag-up",
+      "title": "tag up from third after the catch",
       "category": "running",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live caught-fly tag-up lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-R05",
+      "objective": "human-tag-up",
+      "controls": [
+        "control:running/All advance"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
     },
     {
       "id": "T-R06",
@@ -4993,6 +4997,52 @@
           "sprayDeg": 0
         }
       }
+    },
+    {
+      "id": "T-R05",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "cinder",
+        "dart",
+        "jester",
+        "zig",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 222,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": -30
+        },
+        "c80": {
+          "carryFt": 250,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": -26
+        }
+      },
+      "seat": "offense"
     }
   ]
 }
