@@ -43,6 +43,8 @@ public sealed class TutorialAdvancedFieldTests
                 pad = new(StickX: -1, StickY: 0);
             else if (act && run.Lesson.Id == "T-F13" && live.HoldsBall && !live.Throwing)
                 pad = new(StickY: 1);
+            else if (act && run.Lesson.Id == "T-F10" && live.HoldsBall && !live.Throwing)
+                pad = new(KeysBag: wrongBag ? 2 : 1, SouthDown: true);
             else if (act && run.Lesson.Id == "T-F15" && live.HoldsBall && live.GlovePos == "CF" && !live.Throwing)
             {
                 pad = laserArmed ? new(SouthDown: true) : new(KeysBag: 4);
@@ -326,5 +328,29 @@ public sealed class TutorialAdvancedFieldTests
         var cpu = Start("T-F09");
         Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
         Assert.Equal(0, cpu.Successes);
+    }
+
+    [Fact]
+    public void ThrowToUncoveredFirstWaitsForActualCoverReceiver()
+    {
+        var run = Start("T-F10");
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.Equal("cover-arrived", run.Feedback?.Code);
+            Assert.Equal(attempt, run.Successes);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var dead = Start("T-F10");
+        Drive(dead, act: false);
+        Assert.Equal(0, dead.Successes);
+        var cpu = Start("T-F10");
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.Equal(0, cpu.Successes);
+        var wrong = Start("T-F10");
+        Drive(wrong, act: true, wrongBag: true);
+        Assert.Equal(0, wrong.Successes);
     }
 }
