@@ -15,6 +15,8 @@ public sealed partial class TutorialSession
     bool _allReturned;
     bool _humanSlide;
     bool _humanTaggedUp;
+    bool _humanCornerSend;
+    bool _cornerDash;
 
     void ResetRunningEvidence()
     {
@@ -22,13 +24,15 @@ public sealed partial class TutorialSession
         _runnerHeld = false; _runnerReturned = false; _humanDashed = false;
         _furthestRunnerFeet = 0;
         _allSent = false; _allReturned = false; _humanSlide = false; _humanTaggedUp = false;
+        _humanCornerSend = false; _cornerDash = false;
     }
 
     RunnerBefore? CaptureRunnerBefore()
     {
         var bag = Lesson.Objective is "runner-send-halt-return" or "all-runner-return" ? 2
             : Lesson.Objective == "human-tag-up" ? 3 : 0;
-        var runner = Match.RunnerAt(bag);
+        var runner = Lesson.Objective == "human-corner-dash" && _lessonRunner.Length > 0
+            ? Match.Runners.FirstOrDefault(r => r.Who.Id == _lessonRunner) : Match.RunnerAt(bag);
         return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held, runner.ForceSlide);
     }
 
@@ -107,6 +111,20 @@ public sealed partial class TutorialSession
                 _humanSlide = true;
             if (_humanSlide && runner.Phase == RunnerPhase.Sliding && runner.Feet > before.Feet)
                 Finish(true, "runner-slid", "Your runner slid along the first-base path near the bag.");
+        }
+        else if (Lesson.Objective == "human-corner-dash")
+        {
+            if (owned && pad.KeysBag == 1 && pad.StickBag == 2 && before.Bag == 1
+                && runner.DestBag >= 2 && runner.HumanSent)
+                _humanCornerSend = true;
+            // The same body has touched first and turned toward second; a straight-path mash does not count.
+            if (owned && _humanCornerSend && pad.SouthDown && before.Bag == 1 && before.Feet <= 10
+                && runner.Bag == 1 && runner.DestBag >= 2 && !runner.Overrunning
+                && Match.LivePlay.Dash01 > 0 && runner.Feet > before.Feet)
+                _cornerDash = true;
+            if (_cornerDash && runner.Bag == 1 && runner.Feet >= 25 && runner.DestBag >= 2
+                && runner.Phase == RunnerPhase.Advancing)
+                Finish(true, "runner-rounded-dashed", "You sent the runner beyond first and dashed along the turn toward second.");
         }
     }
 }

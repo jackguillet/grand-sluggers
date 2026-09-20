@@ -1346,15 +1346,15 @@
     },
     {
       "id": "T-R09",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.09"
       ],
-      "title": "round first and take the next bag",
+      "title": "Send beyond first and dash through the turn",
       "category": "running",
-      "status": "planned",
+      "status": "implemented",
       "issue": 794,
-      "reason": "Rounding requires a separate geometric arrival objective and makeable gap fixture",
+      "reason": "Headless human send plus corner-dash lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
@@ -1363,10 +1363,16 @@
       "prerequisites": [
         "T-R03"
       ],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-R09",
+      "objective": "human-corner-dash",
+      "controls": [
+        "control:running/Select runner",
+        "control:running/Send",
+        "control:running/Dash"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
     },
     {
       "id": "T-R04",
@@ -6201,6 +6207,50 @@
         }
       },
       "seat": "assisted-defense"
+    },
+    {
+      "id": "T-R09",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 100,
+          "launchDeg": 35,
+          "sprayDeg": -15
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 100,
+          "launchDeg": 35,
+          "sprayDeg": -15
+        }
+      },
+      "seat": "offense"
     }
   ]
 }
