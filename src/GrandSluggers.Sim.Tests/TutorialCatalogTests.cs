@@ -85,7 +85,7 @@ public sealed class TutorialCatalogTests
     }
 
     [Fact]
-    public void ThirdOutScoringContrastRemainsExplicitlyUncredited()
+    public void BothThirdOutScoringContrastsHaveSeparateLiveObjectives()
     {
         var c = Load();
         var force = c.Lesson("T-D07");
@@ -95,10 +95,10 @@ public sealed class TutorialCatalogTests
         Assert.Equal("human-third-force-zero-run", force.Objective);
         Assert.Equal("implemented", forceContrast.Status);
         Assert.Equal("human-third-force-cancels-run", forceContrast.Objective);
-        Assert.Equal("planned", tagContrast.Status);
+        Assert.Equal("implemented", tagContrast.Status);
         Assert.Equal(794, tagContrast.Issue);
         Assert.Contains("T-D07-T", tagContrast.Prerequisites);
-        Assert.Empty(tagContrast.Tests);
-        Assert.Empty(tagContrast.Objective);
+        Assert.Equal("human-third-tag-counts-run", tagContrast.Objective);
+        Assert.NotEmpty(tagContrast.Tests);
     }
 }
