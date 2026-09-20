@@ -259,7 +259,7 @@ public sealed partial class TutorialSession
         LastTickResult = result;
         var owned = source == LivePlayCommandSource.Human && !Demonstration;
         ObserveDelayedHomeSend(pad, owned, thirdWasOnBag);
-        if (IsOffenseLesson && IsFieldLesson)
+        if (IsOffenseLesson && (IsFieldLesson || IsItemLesson))
         {
             if (IsItemLesson)
             {

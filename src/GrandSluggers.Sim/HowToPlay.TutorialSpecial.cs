@@ -8,6 +8,18 @@ public static partial class HowToPlay
             "The batter has two strikes. Throw an ordinary strike to earn meter. Against the next batter, turn on the star pitch and throw it.",
             "Tap South for the third strike. Next batter: North selects the star pitch; South throws.",
             "Tap Space for the third strike. Next batter: Q selects the star pitch; Space throws.");
+        if (id == "T-X02") return new("Field a star grounder", "Move your glove to the opponent's star grounder and secure it yourself.",
+            "The CPU uses a real star ground swing. Take control and move into the ball's path; an assisted pickup does not count.",
+            "Use the left stick to take control and reach the ground ball.",
+            "Use WASD to take control and reach the ground ball.");
+        if (id is "T-X01" or "T-I-banana" or "T-I-rocket" or "T-I-pow")
+        {
+            var item = id == "T-I-rocket" ? "Rocket" : id == "T-I-pow" ? "POW" : "Banana";
+            return new("Use " + item, "Make fair contact, then land " + item + " on your selected defender.",
+                "Your batting pair offers an item after contact. Hit the strike fair, choose " + item + ", aim at a defender and throw while the play is live.",
+                "South hits. RB cycles items; hold LT to aim with the stick. LT + RB or LT + South throws.",
+                "Space hits. Tab cycles items; aim toward a defender with WASD. E throws.");
+        }
         var pitch = id == "T-P09" || id.StartsWith("T-SP-");
         var skill = id switch
         {

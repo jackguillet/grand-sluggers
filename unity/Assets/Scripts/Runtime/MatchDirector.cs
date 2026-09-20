@@ -727,7 +727,11 @@ namespace GrandSluggers.UnityClient
                 _sub = ErrorItems.All[_itemPick].ToUpperInvariant() + "  ·  stick aim  ·  E throw";
             if (!pad.ItemConfirm || _itemTarget == null) return;
             var id = ErrorItems.All[_itemPick];
-            _match.LivePlay.Apply(LivePlayCommand.ApplyItem(id, _itemTarget, _match.LivePlay.Source));
+            if (TutorialOn && _coach.Tutorial.IsItemLesson)
+            {
+                if (!_coach.Tutorial.Item(id, _itemTarget.Id)) return;
+            }
+            else _match.LivePlay.Apply(LivePlayCommand.ApplyItem(id, _itemTarget, _match.LivePlay.Source));
             _itemThrown = true;
             _itemFlying = true;
             _itemFly = 0;
