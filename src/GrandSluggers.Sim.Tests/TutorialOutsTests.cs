@@ -81,6 +81,52 @@ public sealed class TutorialOutsTests
     }
 
     [Fact]
+    public void CatchAndTwoHumanReturnThrowsMakeThreeRealOuts()
+    {
+        var run = Start("T-D08");
+        for (var n = 1; n <= 3; n++)
+        {
+            for (var i = 0; i < 2400 && run.Phase == TutorialPhase.Attempt; i++)
+            {
+                var live = run.Match.LivePlay;
+                var bag = run.HumanThrows.Count switch { 0 => 2, 1 => 1, _ => 0 };
+                var pad = bag > 0 && live.HoldsBall && !live.Throwing
+                    ? new LivePadInput(KeysBag: bag, SouthDown: true) : LivePadInput.Dead;
+                run.Tick(Frame, pad);
+            }
+            Assert.True(run.Feedback?.Success == true, $"{run.Feedback}; {run.LastPlay?.Kind}; outs {string.Join(',', run.LastPlay?.Outcome?.OutsMade.Select(o => $"{o.Runner.Id}:{o.Type}:{o.Bag}") ?? [])}; throws {string.Join(',', run.HumanThrows)}");
+            Assert.Equal(3, run.LastPlay?.Outcome?.OutsMade.Count);
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(n == 3, run.Passed);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+            run.Retry();
+        }
+    }
+
+    [Fact]
+    public void OneReturnThrowOrCpuThrowsCannotEarnTriplePlay()
+    {
+        var run = Start("T-D08");
+        for (var i = 0; i < 2400 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var live = run.Match.LivePlay;
+            var pad = run.HumanThrows.Count == 0 && live.HoldsBall && !live.Throwing
+                ? new LivePadInput(KeysBag: 2, SouthDown: true) : LivePadInput.Dead;
+            run.Tick(Frame, pad);
+        }
+        Assert.False(run.Feedback?.Success ?? false);
+        run.Retry();
+        for (var i = 0; i < 2400 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var live = run.Match.LivePlay;
+            var bag = live.HoldsBall && !live.Throwing ? (live.FirstThrowBag == 0 ? 2 : 1) : 0;
+            run.Tick(Frame, bag > 0 ? new LivePadInput(KeysBag: bag, SouthDown: true) : LivePadInput.Dead,
+                LivePlayCommandSource.Cpu);
+        }
+        Assert.False(run.Feedback?.Success ?? false);
+    }
+
+    [Fact]
     public void BasesLoadedHumanThrowForcesOriginalRunnerAtHomeThreeTimes()
     {
         var run = Start("T-D01");

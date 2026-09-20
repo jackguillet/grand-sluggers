@@ -1239,25 +1239,29 @@
     },
     {
       "id": "T-D08",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.08"
       ],
-      "title": "triple-play opportunity, after prerequisite lessons exist",
+      "title": "Catch and double off two early runners",
       "category": "outs",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless three-out caught-fly lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-D08",
+      "objective": "human-triple-off",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     },
     {
       "id": "T-R01",
@@ -6079,6 +6083,62 @@
       "balls": {},
       "seat": "defense",
       "strikes": 2
+    },
+    {
+      "id": "T-D08",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 40,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        1,
+        2
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "konga",
+          "jester"
+        ],
+        "c80": [
+          "konga",
+          "jester"
+        ]
+      },
+      "balls": {
+        "shipped": {
+          "carryFt": 240,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 2
+        },
+        "c80": {
+          "carryFt": 240,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 2
+        }
+      }
     }
   ]
 }
