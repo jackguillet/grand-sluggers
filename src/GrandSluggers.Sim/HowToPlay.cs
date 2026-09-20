@@ -273,6 +273,19 @@ public static partial class HowToPlay
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
+        new("relay-control", "Relay and queued throws", "fielding",
+        [
+            "Arm the destination with the D-pad. LB feeds the cutoff. Standard play sends the receiver's next leg automatically.",
+            "In the C80 trial, the receiver waits for you: South sends the next leg. A press just before the catch can wait for the receiver.",
+            "Change the D-pad target to retarget a waiting throw. Changing the target does not extend the press's short lifetime.",
+            "In the C80 trial, tap RB to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
+        ],
+        [
+            "Arm the destination with 1/2/3/4. X feeds the cutoff. Standard play sends the receiver's next leg automatically.",
+            "In the C80 trial, the receiver waits for you: Space sends the next leg. A press just before the catch can wait for the receiver.",
+            "Change the 1/2/3/4 target to retarget a waiting throw. Changing the target does not extend the press's short lifetime.",
+            "In the C80 trial, tap period to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
+        ]),
         new("exhibition", "Captain and field", "exhibition",
         [
             "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield, left to right. No captain on the title.",
