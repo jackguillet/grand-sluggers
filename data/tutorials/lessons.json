@@ -1034,7 +1034,7 @@
       "title": "Ability reach: grow",
       "category": "fielding",
       "status": "implemented",
-      "issue": 770,
+      "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
@@ -1768,7 +1768,7 @@
       "title": "Ability reach: burrow",
       "category": "fielding",
       "status": "implemented",
-      "issue": 770,
+      "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
@@ -1797,7 +1797,7 @@
       "title": "Ability reach: grow",
       "category": "fielding",
       "status": "implemented",
-      "issue": 770,
+      "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
@@ -1826,7 +1826,7 @@
       "title": "Ability reach: lick-catch",
       "category": "fielding",
       "status": "implemented",
-      "issue": 770,
+      "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
@@ -1855,8 +1855,8 @@
       "title": "spin-check",
       "category": "fielding",
       "status": "planned",
-      "issue": 770,
-      "reason": "Initial ability migration",
+      "issue": 799,
+      "reason": "Spin Check extra-base result helper is not wired to live runner decisions; accepted commitment and geometry contract needs definition",
       "profiles": [
         "shipped",
         "c80"
@@ -1879,7 +1879,7 @@
       "title": "Ability reach: withdraw",
       "category": "fielding",
       "status": "implemented",
-      "issue": 770,
+      "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
