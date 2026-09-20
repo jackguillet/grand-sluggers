@@ -342,6 +342,16 @@
       "promoted": "TutorialAdvancedFieldTests.AssistedScoopAfterOneHumanBobbleStepDoesNotEarnCredit",
       "issue": "#797",
       "pr": ""
+    },
+    {
+      "id": "book-copy-center-is-enter",
+      "signature": "SchemeTests rejects pad-only instructions containing center as mixed keyboard/controller copy.",
+      "stage": "sim",
+      "cause": "HowToPlay.MixesHardware searched keyboard names as substrings, so center matched Enter.",
+      "fix": "Match complete key names with the same word-boundary rule used for controller labels; keep real mixed instructions rejected.",
+      "promoted": "HowToPlayTests.HardwareCopyChecksWholeKeyNames",
+      "issue": "#795",
+      "pr": ""
     }
 
   ]

@@ -9,6 +9,14 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public class HowToPlayTests
 {
+    [Theory]
+    [InlineData("Center the stick, then tap South.", false)]
+    [InlineData("Tap South or Enter.", true)]
+    [InlineData("Tap South/Space.", true)]
+    [InlineData("Press Enter to continue.", false)]
+    public void HardwareCopyChecksWholeKeyNames(string copy, bool mixed) =>
+        Assert.Equal(mixed, HowToPlay.MixesHardware(copy));
+
     static IEnumerable<string> EveryLine =>
         HowToPlay.Pages.SelectMany(p => p.Lines.Concat(p.KeyLines ?? []).Append(p.Title))
             .Concat(RoleTables.Pad.Concat(RoleTables.Keys).SelectMany(b => b.Rows).SelectMany(r => new[] { r.Verb, r.Press }))
