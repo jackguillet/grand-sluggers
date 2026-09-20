@@ -53,4 +53,30 @@ public sealed class TutorialOutsTests
         Drive(run, 2, LivePlayCommandSource.Cpu);
         Assert.False(run.Feedback?.Success ?? false);
     }
+
+    [Fact]
+    public void HumanReturnThrowDoublesOffEarlyRunnerThreeTimes()
+    {
+        var run = Start("T-D04");
+        for (var n = 1; n <= 3; n++)
+        {
+            Drive(run, 2);
+            Assert.True(run.Feedback?.Success == true, $"{run.Feedback}; {run.LastPlay?.Kind}; throws {string.Join(',',run.HumanThrows)}");
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(n == 3, run.Passed);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+            run.Retry();
+        }
+    }
+
+    [Fact]
+    public void WrongBagOrCpuReturnThrowCannotDoubleOffForHuman()
+    {
+        var run = Start("T-D04");
+        Drive(run, 3);
+        Assert.False(run.Feedback?.Success ?? false);
+        run.Retry();
+        Drive(run, 2, LivePlayCommandSource.Cpu);
+        Assert.False(run.Feedback?.Success ?? false);
+    }
 }

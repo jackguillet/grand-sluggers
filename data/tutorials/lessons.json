@@ -1115,25 +1115,29 @@
     },
     {
       "id": "T-D04",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.04"
       ],
       "title": "doubled-off runner and return throw",
       "category": "outs",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless caught-fly return-throw lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-D04",
+      "objective": "human-double-off",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     },
     {
       "id": "T-D05",
@@ -5043,6 +5047,51 @@
         }
       },
       "seat": "offense"
+    },
+    {
+      "id": "T-D04",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 40,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        2
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 280,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 2
+        },
+        "c80": {
+          "carryFt": 280,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 2
+        }
+      }
     }
   ]
 }
