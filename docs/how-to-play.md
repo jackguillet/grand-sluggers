@@ -269,3 +269,5 @@ Make the third force out starts with bases loaded and two outs. Field and throw 
 The baseball lessons practice a full sequence per success: build a 1–1 count with a ball from the rubber's edge, then a centered called strike (down/S resets the pitcher during SET); pull an early left-aimed swing foul, then center and time the next swing fair; or finish a two-out, two-strike half with a called third strike. South/Space pitches and swings. Watch the ordinary count and out readouts. Each sequence must succeed three times.
 
 For the triple-play lesson, catch the fly and return the ball to second, then first, before the two early runners retouch. Select the bag with D-pad Up then Right (2 then 1 on keyboard), and press South/Space for each throw after possession reaches the receiver. All three actual outs and both player throws are required.
+
+C80 bobble recovery starts with the helper's real ground-ball error. Wait for the bobble, then use the stick/WASD to chase and scoop the loose ball. A single steering input followed by an assisted pickup does not count, for either bobbles or wall caroms.
