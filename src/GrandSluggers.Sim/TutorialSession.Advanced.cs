@@ -4,6 +4,14 @@ namespace GrandSluggers.Sim;
 public sealed partial class TutorialSession
 {
     bool _wallCaromSeen;
+    bool _looseSeen;
+    bool _looseHumanChase;
+    double _looseLastX;
+    double _looseLastZ;
+    double _looseLastBallX;
+    double _looseLastBallZ;
+    bool _looseTracked;
+    string _looseChaserId = "";
     double _dashLastTime;
     double _dashLastX;
     double _dashLastZ;
@@ -23,6 +31,11 @@ public sealed partial class TutorialSession
     partial void ResetAdvancedEvidence()
     {
         _wallCaromSeen = false;
+        _looseSeen = false;
+        _looseHumanChase = false;
+        _looseLastX = _looseLastZ = _looseLastBallX = _looseLastBallZ = 0;
+        _looseTracked = false;
+        _looseChaserId = "";
         _dashLastTime = 0;
         _dashLastX = 0;
         _dashLastZ = 0;
@@ -42,6 +55,35 @@ public sealed partial class TutorialSession
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-loose-recovery")
+        {
+            _looseSeen |= live.Events.Contains(LiveEvent.WallCarom);
+            var input = _inputs[^1];
+            if (_looseSeen && !live.HoldsBall && input.Source == LivePlayCommandSource.Human && !Demonstration
+                && input.Field is { StickX: var sx, StickY: var sz } && sx * sx + sz * sz >= .25
+                && live.PursuitManual && _looseTracked
+                && (live.GloveX - _looseLastX) * (_looseLastBallX - _looseLastX)
+                    + (live.GloveZ - _looseLastZ) * (_looseLastBallZ - _looseLastZ) > 1e-5)
+            {
+                _looseHumanChase = true;
+                _looseChaserId = live.TutorialGloveId;
+            }
+            if (_looseSeen)
+            {
+                _looseLastX = live.GloveX; _looseLastZ = live.GloveZ;
+                _looseLastBallX = live.BallX; _looseLastBallZ = live.BallZ;
+                _looseTracked = true;
+            }
+            if (_looseSeen && _looseHumanChase && live.HoldsBall
+                && live.Events.Contains(LiveEvent.Glove) && live.TutorialGloveId == _looseChaserId)
+            {
+                Finish(true, "loose-recovered", "You chased the wall carom and scooped the live loose ball.");
+                return;
+            }
+            if (result.CompletedPlay is not null)
+                Finish(false, "loose-not-recovered", "Chase the loose wall carom with the glove and secure it yourself.");
+            return;
+        }
         if (Lesson.Objective == "human-chemistry-throw")
         {
             var input = _inputs[^1];

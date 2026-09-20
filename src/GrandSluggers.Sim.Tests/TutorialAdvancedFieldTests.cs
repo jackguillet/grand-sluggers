@@ -32,6 +32,15 @@ public sealed class TutorialAdvancedFieldTests
                 pad = new(KeysBag: wrongBag ? 2 : 3, SouthDown: true);
             else if (act && run.Lesson.Id == "T-F11" && !wallSeen && live.ElapsedSeconds > .5)
                 pad = new(StickX: -1, StickY: 0);
+            else if (act && run.Lesson.Id == "T-F09" && wallSeen && !live.HoldsBall)
+            {
+                var dx = live.BallX - live.GloveX;
+                var dz = live.BallZ - live.GloveZ;
+                var length = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
+                pad = new(StickX: dx / length, StickY: dz / length);
+            }
+            else if (act && run.Lesson.Id == "T-F09" && !wallSeen && live.ElapsedSeconds > .5)
+                pad = new(StickX: -1, StickY: 0);
             else if (act && run.Lesson.Id == "T-F13" && live.HoldsBall && !live.Throwing)
                 pad = new(StickY: 1);
             else if (act && run.Lesson.Id == "T-F15" && live.HoldsBall && live.GlovePos == "CF" && !live.Throwing)
@@ -294,6 +303,27 @@ public sealed class TutorialAdvancedFieldTests
         Drive(dead, act: false);
         Assert.Equal(0, dead.Successes);
         var cpu = Start("T-G02");
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.Equal(0, cpu.Successes);
+    }
+
+    [Fact]
+    public void LooseWallBallRequiresHumanChaseAndActualScoop()
+    {
+        var run = Start("T-F09");
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.True(run.Feedback?.Code == "loose-recovered", run.Feedback?.ToString());
+            Assert.Equal(attempt, run.Successes);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var dead = Start("T-F09");
+        Drive(dead, act: false);
+        Assert.Equal(0, dead.Successes);
+        var cpu = Start("T-F09");
         Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
         Assert.Equal(0, cpu.Successes);
     }
