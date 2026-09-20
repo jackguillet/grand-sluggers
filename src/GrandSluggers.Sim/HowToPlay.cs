@@ -286,37 +286,47 @@ public static partial class HowToPlay
             "Finish the half: two outs, two strikes. A centered called strike changes sides and resets the outs.",
             "Each complete sequence earns one success. Three successes pass; failed attempts keep earlier successes.",
         ]),
+        new("tutorial-recovery", "Recovery and reach", "training",
+        [
+            "Standard fumble: steer through the scoop after the error, then D-pad Right + South throws to first. Assistance cannot finish the pickup for you.",
+            "C80 bobble: wait for the helper's error, then steer with the stick through the loose-ball scoop.",
+            "Ability reach: move to the landing ring's edge, then South catches beyond ordinary reach. Burrow scoops at its reach edge.",
+        ],
+        [
+            "Standard fumble: steer through the scoop after the error, then 1 and Space throws to first. Assistance cannot finish the pickup for you.",
+            "C80 bobble: wait for the helper's error, then steer with WASD through the loose-ball scoop.",
+            "Ability reach: move to the landing ring's edge, then Space catches beyond ordinary reach. Burrow scoops at its reach edge.",
+        ]),
         new("tutorial-field-plays", "Fielding scenario lessons", "training",
         [
-            "Standard fumble: steer through the scoop after the error, then select first and throw. Assistance cannot finish the pickup for you.",
-            "C80 bobble recovery: wait for the helper's error, then steer with the stick through the loose-ball scoop.",
             "Force home: bases loaded, collect, then D-pad Down + South. With two outs, this force ends the half with no run.",
             "Rundown: D-pad Right + South checks first. Once trapped, D-pad Up + South throws ahead for the tag.",
             "Close third: send and dash on offense; throw to third on defense. Press South fresh when the close-play icon appears.",
-            "Ability reach: move to the landing ring's edge, then South catches beyond ordinary reach. Burrow scoops a grounder at its reach edge.",
         ],
         [
-            "Standard fumble: steer through the scoop after the error, then select first and throw. Assistance cannot finish the pickup for you.",
-            "C80 bobble recovery: wait for the helper's error, then steer with WASD through the loose-ball scoop.",
             "Force home: bases loaded, collect, then 4 and Space. With two outs, this force ends the half with no run.",
             "Rundown: 1 and Space checks first. Once trapped, 2 and Space throws ahead for the tag.",
             "Close third: send and dash on offense; throw to third on defense. Press Space fresh when the close-play icon appears.",
-            "Ability reach: move to the landing ring's edge, then Space catches beyond ordinary reach. Burrow scoops a grounder at its reach edge.",
         ]),
         new("tutorial-live-plays", "Live-ball lessons", "training",
         [
-            "Return on a fly: send off third, then hold return before the catch. Stay safely on third instead of tagging up.",
-            "Round first: select the runner at first, send toward second, then dash during the turn. An early dash on the straight does not count.",
-            "Tag up from third: wait for the catch, then hold LB to send home. Double off: catch, then D-pad Up and South return to second.",
+            "Return on a fly: send off third, then hold RB before the catch. Stay safely on third instead of tagging up.",
+            "Round first: choose first, send toward second, then dash during the turn. An early dash on the straight does not count.",
+            "Tag up: wait on third for the catch, then hold LB to send home. Double off: catch, then D-pad Up + South returns to second.",
             "Triple play: catch the fly, then return to second and first before both early runners retouch.",
+        ],
+        [
+            "Return on a fly: send off third, then hold period before the catch. Stay safely on third instead of tagging up.",
+            "Round first: choose first, send toward second, then dash during the turn. An early dash on the straight does not count.",
+            "Tag up: wait on third for the catch, then hold comma to send home. Double off: catch, then 2 and Space returns to second.",
+            "Triple play: catch the fly, then return to second and first before both early runners retouch.",
+        ]),
+        new("tutorial-items", "Items and star grounders", "training",
+        [
             "Item lesson: hit fair first. RB cycles; stick aims. LT + RB or LT + South throws the selected item.",
             "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
         ],
         [
-            "Return on a fly: send off third, then hold return before the catch. Stay safely on third instead of tagging up.",
-            "Round first: select the runner at first, send toward second, then dash during the turn. An early dash on the straight does not count.",
-            "Tag up from third: wait for the catch, then hold comma to send home. Double off: catch, then 2 and Space return to second.",
-            "Triple play: catch the fly, then return to second and first before both early runners retouch.",
             "Item lesson: hit fair first. Tab cycles; WASD aims. E throws the selected item.",
             "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
         ]),
@@ -515,7 +525,7 @@ public static partial class HowToPlay
         var pad = PadHardware.Any(w => ContainsWord(line, w));
         var stripped = line.Replace("Dead stick", "", StringComparison.OrdinalIgnoreCase);
         if (stripped.Contains("stick", StringComparison.OrdinalIgnoreCase)) pad = true;
-        var keys = KeyHardware.Any(w => line.Contains(w, StringComparison.OrdinalIgnoreCase));
+        var keys = KeyHardware.Any(w => ContainsWord(line, w));
         if (line.Contains("mouse", StringComparison.OrdinalIgnoreCase)
             && !line.Contains("player 1 only", StringComparison.OrdinalIgnoreCase))
             keys = true;
