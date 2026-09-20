@@ -192,7 +192,7 @@ namespace GrandSluggers.UnityClient
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
             {
                 // The CPU pitcher's pickoff read (§4.5, §4.8): a runner who armed in SET is between bags on the motion.
-                var pickoffBag = _match.CpuPickoffBag();
+                var pickoffBag = TutorialOn ? 0 : _match.CpuPickoffBag();
                 if (pickoffBag > 0)
                 {
                     BeginPickoff(pickoffBag);
@@ -381,7 +381,7 @@ namespace GrandSluggers.UnityClient
             AimSetCamera();
             _flight += dt;
             var swingButton = default(ChargeButtonStep);
-            if (HumanBats && !_swung)
+            if (HumanBats && !_swung && !(TutorialOn && _coach.Tutorial.IsStealLesson))
             {
                 var box = BatPad;
                 swingButton = TickChargeButton(dt, _feel.SwingChargeSeconds, BatPad,
@@ -405,7 +405,10 @@ namespace GrandSluggers.UnityClient
                 // the clip left the ball in the glove while the count ticked.
                 var due = (float)Motion.PitchRelease;
                 if (_flight < 0)
+                {
+                    if (TutorialOn && _coach.Tutorial.IsStealLesson) TickBaserunning(dt);
                     return;
+                }
                 PitcherHero()?.SampleMotion(due);
                 CaptureReleaseFromHand();
                 _park.Ball.Release();
@@ -434,7 +437,7 @@ namespace GrandSluggers.UnityClient
                 _swung = true;
                 _swingContactSec = SwingContactSec(_swing);
             }
-            if (u < 1) return;
+            if (u < 1 || TutorialOn && _coach.Tutorial.IsStealLesson) return;
             _swing ??= WithSquare(HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
                 : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch))));

@@ -80,6 +80,7 @@ namespace GrandSluggers.UnityClient
             var run = _coach.Tutorial;
             run.Begin(); _tutorialUiAge = 0;
             Controls.CatchPlay();
+            if (run.IsStealLesson && _match.LivePlay.Active) { StartRunnerPlay(null); return; }
             if (!run.IsFieldLesson) return;
             _pending = run.LastHit; _preview = _match.LivePlay.Preview;
             _pitch = _match.LivePlay.Pitch; _swing = _match.LivePlay.Swing;
@@ -109,7 +110,9 @@ namespace GrandSluggers.UnityClient
                 if (!_coach.Tutorial.IsFieldLesson && !_match.LivePlay.Active && _coach.Tutorial.Phase == TutorialPhase.Attempt)
                 {
                     var left = (double)dt;
-                    while (left > 0) { var step = Math.Min(left, .05); _coach.Tutorial.Tick(step); left -= step; }
+                    while (left > 0 && !_match.LivePlay.Active) { var step = Math.Min(left, .05); _coach.Tutorial.Tick(step); left -= step; }
+                    if (_coach.Tutorial.IsStealLesson && _match.LivePlay.Active)
+                    { StartRunnerPlay(null); return true; }
                 }
                 return false;
             }

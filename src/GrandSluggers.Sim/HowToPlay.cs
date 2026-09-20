@@ -273,6 +273,19 @@ public static partial class HowToPlay
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
+        new("tutorial-sequences", "Steals and star lessons", "training",
+        [
+            "Steal: D-pad Right selects first; L3 arms before release. Reach second safely.",
+            "Delayed home steal: arm first, then D-pad Left and stick down send third home as the catcher throw passes the mound.",
+            "Star lessons: North selects the named skill; South delivers it. Star swings need fair contact.",
+            "Earn and spend: ordinary third strike, then star pitch against the next batter. Three complete sequences pass.",
+        ],
+        [
+            "Steal: 1 selects first; Z arms before release. Reach second safely.",
+            "Delayed home steal: arm first, then 3 and S send third home as the catcher throw passes the mound.",
+            "Star lessons: Q selects the named skill; Space delivers it. Star swings need fair contact.",
+            "Earn and spend: ordinary third strike, then star pitch against the next batter. Three complete sequences pass.",
+        ]),
         new("relay-control", "Relay and queued throws", "fielding",
         [
             "Arm the destination with the D-pad. LB feeds the cutoff. Standard play sends the receiver's next leg automatically.",
