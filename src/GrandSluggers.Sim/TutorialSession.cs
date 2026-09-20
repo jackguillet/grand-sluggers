@@ -60,6 +60,7 @@ public sealed partial class TutorialSession
     string _humanAerialCatcher = "";
     string _firstRunner = "";
     string _thirdRunner = "";
+    string _secondRunner = "";
     string _batter = "";
     public TutorialLesson Lesson { get; }
     public TutorialProgress Progress { get; }
@@ -115,14 +116,20 @@ public sealed partial class TutorialSession
             else Match.GiveDefenseStars(_setup.StartingStars);
         }
         if (_setup.OpponentStars > 0) Match.GiveOffenseStars(_setup.OpponentStars);
-        foreach (var bag in _setup.Runners)
-            if (!Match.StationRunner(bag, Match.Away.Roster[bag + 1]))
+        var namedRunners = _setup.RunnerIdsByProfile?.GetValueOrDefault(_catalog.Profile);
+        for (var i = 0; i < _setup.Runners.Length; i++)
+        {
+            var bag = _setup.Runners[i];
+            var who = namedRunners is null ? Match.Away.Roster[bag + 1] : _content.Must(namedRunners[i]);
+            if (!Match.StationRunner(bag, who))
                 throw new InvalidDataException("Cannot station tutorial runner.");
+        }
         for (var strike = 0; strike < _setup.Strikes; strike++)
             Match.BeginAtBat(new PitchCommand("fastball", 0, false), Take, out _, out _);
         PrepareSetOpportunity();
         InputsHash = PlayTraceIdentity.Capture(Match).Sha256;
-        _firstRunner = Match.First?.Id ?? ""; _thirdRunner = Match.Third?.Id ?? ""; _batter = Match.Batter.Id;
+        _firstRunner = Match.First?.Id ?? ""; _secondRunner = Match.Second?.Id ?? "";
+        _thirdRunner = Match.Third?.Id ?? ""; _batter = Match.Batter.Id;
         _inputs.Clear(); _manualGloves.Clear(); _assistedSinceManual.Clear(); _divers.Clear(); _throws.Clear(); _humanJumpPresses.Clear();
         _manualTakeoverMoved = false;
         _humanAerialCatcher = "";
@@ -249,6 +256,7 @@ public sealed partial class TutorialSession
         }
         var live = Match.LivePlay;
         ObserveRundown();
+        var closeIconBefore = live.CloseIcon;
         TickDoubledOffOpponent();
         TickDelayedStealOpponent(seconds);
         var pos = live.GlovePos; var who = live.TutorialGloveId; var x = live.GloveX; var z = live.GloveZ;
@@ -261,6 +269,7 @@ public sealed partial class TutorialSession
             IsOffenseLesson ? pad : LivePadInput.Dead, false, source));
         LastTickResult = result;
         var owned = source == LivePlayCommandSource.Human && !Demonstration;
+        ObserveCloseOffense(closeIconBefore, pad, owned, result);
         ObserveDelayedHomeSend(pad, owned, thirdWasOnBag);
         if (IsOffenseLesson && (IsFieldLesson || IsItemLesson))
         {

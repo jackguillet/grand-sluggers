@@ -1187,25 +1187,29 @@
     },
     {
       "id": "T-D06",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.06"
       ],
-      "title": "close-play offense and defense",
+      "title": "Win the runner's close play",
       "category": "outs",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless runner-side close-play lesson; defender-side practice pending separate drill",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-D06",
+      "objective": "human-close-offense",
+      "controls": [
+        "control:running/Close play"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     },
     {
       "id": "T-D07",
@@ -5732,6 +5736,60 @@
         }
       },
       "skill": "burrow"
+    },
+    {
+      "id": "T-D06",
+      "policy": "grounder",
+      "seed": 5,
+      "timeoutSec": 35,
+      "home": [
+        "rio",
+        "nico",
+        "pip",
+        "marlow",
+        "vale",
+        "lace",
+        "zig",
+        "dart",
+        "vine"
+      ],
+      "away": [
+        "ashlord",
+        "cinder",
+        "soot",
+        "grit",
+        "boom",
+        "konga",
+        "frost",
+        "brondo",
+        "hex"
+      ],
+      "runners": [
+        2
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "grit"
+        ],
+        "c80": [
+          "konga"
+        ]
+      },
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 3,
+          "sprayDeg": 38
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 3,
+          "sprayDeg": 38
+        }
+      },
+      "seat": "offense"
     }
   ]
 }
