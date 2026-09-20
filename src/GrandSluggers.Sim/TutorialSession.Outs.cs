@@ -5,15 +5,30 @@ public sealed partial class TutorialSession
 {
     bool _opponentLeftEarly;
     bool _rundownSeen;
+    bool _humanCloseOffPress;
 
     void ResetOutEvidence()
     {
         _opponentLeftEarly = false;
         _rundownSeen = false;
+        _humanCloseOffPress = false;
         if (Lesson.Objective == "human-double-off") _lessonRunner = Match.Second?.Id ?? "";
     }
 
     void ObserveRundown() { if (Lesson.Objective == "human-rundown-tag" && Match.LivePlay.InRundown) _rundownSeen = true; }
+
+    void ObserveCloseOffense(bool iconBefore, LivePadInput pad, bool owned, LivePlayCommandResult result)
+    {
+        if (Lesson.Objective != "human-close-offense") return;
+        if (owned && iconBefore && pad.SouthDown) _humanCloseOffPress = true;
+        if (result.CompletedPlay is not { } play) return;
+        var runnerSafe = play.Outcome?.Moves.Any(m => m.Runner.Id == _secondRunner && m.FromBag == 2 && m.ToBag == 3) == true
+            && play.Outcome.OutsMade.All(o => o.Runner.Id != _secondRunner);
+        var success = _humanCloseOffPress && runnerSafe;
+        Finish(success, success ? "close-runner-safe" : "close-runner-out",
+            success ? "Your press won the close play and the runner reached third safely."
+                : "Send the runner, then press as the close-play icon appears to beat the tag.");
+    }
 
     void TickDoubledOffOpponent()
     {
