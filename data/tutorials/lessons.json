@@ -2563,25 +2563,28 @@
     },
     {
       "id": "T-F09-B",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.09"
       ],
       "title": "recover an ordinary bobble",
       "category": "fielding",
-      "status": "planned",
+      "status": "implemented",
       "issue": 797,
-      "reason": "Needs a deterministic production-rule awkward-hop bobble and human-controlled same-glove recovery; wall-carom recovery T-F09 does not exercise the handling-error branch",
+      "reason": "C80-only headless local ordinary bobble and human-controlled loose-ball recovery; shipped handling-error recovery and standalone learning gate pending",
       "profiles": [
-        "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F09-B",
+      "objective": "human-bobble-recovery",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-D09",
@@ -2666,6 +2669,27 @@
       "tests": [
         "TutorialGameTests"
       ]
+    },
+    {
+      "id": "T-F09-S",
+      "revision": 1,
+      "mechanics": [
+        "fielding.09"
+      ],
+      "title": "recover after a shipped fumble",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 797,
+      "reason": "The shipped error retains the ball during its fumble interval; needs a separate player-owned recovery/throw exercise, unlike the C80 local loose-ball outcome",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
     }
   ],
   "setups": [
@@ -6139,6 +6163,44 @@
           "sprayDeg": 2
         }
       }
+    },
+    {
+      "id": "T-F09-B",
+      "policy": "grounder",
+      "seed": 146,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "dart",
+        "basil",
+        "grit",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "konga",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "marlow",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 55,
+          "launchDeg": 10,
+          "sprayDeg": 25
+        }
+      },
+      "seat": "assisted-defense"
     }
   ]
 }

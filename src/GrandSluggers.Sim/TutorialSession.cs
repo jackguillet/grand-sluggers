@@ -167,7 +167,7 @@ public sealed partial class TutorialSession
         LastHit = hit;
         Match.LivePlay.Recording = true;
         var seats = Lesson.Objective is "human-double-off" or "human-triple-off" or "human-close-defense" ? new LiveSeats(true, true, true, true)
-            : IsOffenseLesson ? new LiveSeats(true, false, false, false) : new LiveSeats(false, true, true, false);
+            : IsOffenseLesson ? new LiveSeats(true, false, false, false) : new LiveSeats(false, true, _setup.Seat != "assisted-defense", false);
         var result = Match.LivePlay.Apply(LivePlayCommand.BeginLive(CpuPitch, Contact, hit, preview, null, seats, 0, LivePlayCommandSource.System));
         if (!result.Snapshot.Active) throw new InvalidDataException("Tutorial setup did not start a live play.");
     }
