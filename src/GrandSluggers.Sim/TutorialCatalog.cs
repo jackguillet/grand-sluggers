@@ -30,7 +30,7 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -128,6 +128,7 @@ public sealed class TutorialCatalog
             if (setup is null) continue;
             Require((setup.Policy == "cpu-take" && TutorialPlateObjectives.PitchIds.Contains(l.Objective))
                 || (setup.Policy == "cpu-take" && l.Objective == "star-pitch")
+                || (setup.Policy == "cpu-take" && l.Objective == "star-resource")
                 || (setup.Policy == "cpu-strike" && TutorialPlateObjectives.SwingIds.Contains(l.Objective) && l.Objective != "take-ball")
                 || (setup.Policy == "cpu-strike" && l.Objective == "star-swing")
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
@@ -150,6 +151,9 @@ public sealed class TutorialCatalog
                 Require(setup.Pitch is not null && Math.Abs(PitchFlight.Crossing(setup.Pitch, rules: content.Rules).X) >= setup.MinMovement01 * HomeSet.BatterWalk,
                     l.Id + " needs an offset pitch for box movement");
             if (l.Objective == "bunt-fair") Require(setup.Strikes == 2, l.Id + " must teach the two-strike bunt risk");
+            if (l.Objective == "star-resource") Require(l.Id == "T-G03" && setup.Strikes == 2
+                && setup.Skill == content.Characters[setup.Home[0]].StarPitch && setup.StartingStars > 0,
+                l.Id + " needs a two-strike star gain/spend setup");
             if (l.Objective == "star-pitch") Require((l.Id == "T-P09" || l.Id == "T-SP-" + setup.Skill)
                 && content.StarSkills.Pitches.ContainsKey(setup.Skill)
                 && setup.Home.Contains(setup.PitcherId.Length > 0 ? setup.PitcherId : setup.Home[0])
@@ -179,7 +183,7 @@ public sealed class TutorialCatalog
             Require(double.IsFinite(s.StartingStars) && s.StartingStars >= 0 && s.StartingStars <= content.Rules.Stars.MeterMax,
                 s.Id + " has invalid starting stars");
             Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
-            Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball"), s.Id + " has invalid starting strikes");
+            Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball" or "cpu-take"), s.Id + " has invalid starting strikes");
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
             if (s.Policy is "cpu-strike" or "cpu-ball")
             {

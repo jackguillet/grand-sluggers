@@ -59,4 +59,52 @@ public sealed class TutorialSpecialTests
         Assert.Equal("demonstration", run.Feedback!.Code);
         Assert.Equal(0, run.Successes);
     }
+
+    [Theory]
+    [InlineData("shipped")][InlineData("c80")]
+    public void ResourceLessonRequiresEarnThenSpendAcrossThreeFreshAtBats(string profile)
+    {
+        var (content, catalog) = Load(profile);
+        var run = new TutorialSession(content, catalog, "T-G03"); run.Begin();
+        for (var n = 1; n <= 3; n++)
+        {
+            Assert.Equal(2, run.Match.Strikes);
+            var before = run.Match.DefenseStars;
+            Assert.True(run.Pitch(new("fastball", 0, false)));
+            Assert.Equal(PlayKind.Strikeout, run.LastPlay!.Kind);
+            Assert.True(run.Match.DefenseStars > before);
+            Assert.Equal(TutorialPhase.Attempt, run.Phase);
+            Assert.Equal(n - 1, run.Successes);
+            var earned = run.Match.DefenseStars;
+            Assert.True(run.Pitch(new("fastball", 0, true)));
+            Assert.Equal(earned - run.Match.PitchStarCost, run.Match.DefenseStars, 5);
+            Assert.True(run.Feedback!.Success, run.Feedback.Detail);
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(content, catalog, run.Recording()).Feedback);
+            run.Retry();
+        }
+        Assert.True(run.Passed);
+    }
+
+    [Theory]
+    [InlineData("shipped")][InlineData("c80")]
+    public void ResourceLessonRejectsOutOfOrderAndCpuOrDemoGains(string profile)
+    {
+        var (content, catalog) = Load(profile);
+        var run = new TutorialSession(content, catalog, "T-G03"); run.Begin();
+        Assert.False(run.Pitch(new("fastball", 0, false), LivePlayCommandSource.Cpu));
+        Assert.True(run.Pitch(new("fastball", 0, true)));
+        Assert.Equal("no-star-earned", run.Feedback!.Code);
+        Assert.Equal(0, run.Successes);
+        run.Retry();
+        Assert.True(run.Pitch(new("fastball", 0, false)));
+        Assert.True(run.Pitch(new("fastball", 0, false)));
+        Assert.Equal("no-star-spent", run.Feedback!.Code);
+        Assert.Equal(0, run.Successes);
+        run = new TutorialSession(content, catalog, "T-G03"); run.Begin(demonstration: true);
+        Assert.True(run.Pitch(new("fastball", 0, false), LivePlayCommandSource.Cpu));
+        Assert.True(run.Pitch(new("fastball", 0, true), LivePlayCommandSource.Cpu));
+        Assert.Equal("demonstration", run.Feedback!.Code);
+        Assert.Equal(0, run.Successes);
+    }
 }

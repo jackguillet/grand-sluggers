@@ -2,6 +2,28 @@ namespace GrandSluggers.Sim;
 
 public sealed partial class TutorialSession
 {
+    bool _earnedStarThisAttempt;
+    void ResetSpecialEvidence() => _earnedStarThisAttempt = false;
+
+    TutorialFeedback? EvaluateStarResource(PitchCommand command, PlayEvent? play,
+        double beforeStars, int cost, bool hadMeter)
+    {
+        if (!_earnedStarThisAttempt)
+        {
+            var earned = !command.Star && play?.Kind == PlayKind.Strikeout
+                && Match.DefenseStars > beforeStars;
+            if (!earned) return new(false, "no-star-earned", "Get the called third strike to earn stars first.");
+            _earnedStarThisAttempt = true;
+            return null;
+        }
+        var spent = beforeStars - Match.DefenseStars;
+        var used = command.Star && hadMeter && play?.Pitch.Star == true
+            && Match.Pitcher.StarPitch == _setup.Skill && Math.Abs(spent - cost) < 0.0001;
+        return used
+            ? new(true, "earned-and-spent-stars", "Your strikeout earned meter, then your star pitch spent it.")
+            : new(false, "no-star-spent", "Spend the earned meter on your star pitch.");
+    }
+
     TutorialFeedback EvaluateStarPitch(PitchCommand command, PlayEvent? play,
         double beforeStars, int cost, bool hadMeter)
     {
