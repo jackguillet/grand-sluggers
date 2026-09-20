@@ -116,6 +116,7 @@ public sealed partial class TutorialSession
             else Match.GiveDefenseStars(_setup.StartingStars);
         }
         if (_setup.OpponentStars > 0) Match.GiveOffenseStars(_setup.OpponentStars);
+        if (!Match.SetOuts(_setup.Outs)) throw new InvalidDataException("Cannot stage tutorial outs.");
         var namedRunners = _setup.RunnerIdsByProfile?.GetValueOrDefault(_catalog.Profile);
         for (var i = 0; i < _setup.Runners.Length; i++)
         {
@@ -359,7 +360,8 @@ public sealed partial class TutorialSession
         }
         else if (_setup.Policy is "steal-offense" or "steal-defense") EvaluateStealPlay(result);
         else if (Lesson.Objective is "human-pickoff" or "human-rundown-tag") EvaluateSetPlay(result);
-        else if (Lesson.Objective is "human-choice-second" or "human-double-off" or "human-force-home") EvaluateOutObjective(result);
+        else if (Lesson.Objective is "human-choice-second" or "human-double-off" or "human-force-home"
+            or "human-third-force-zero-run") EvaluateOutObjective(result);
         else EvaluateExpandedFieldObjective(live, result);
         if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
             Finish(false, "timeout", "The opportunity ended. Retry the same setup.");

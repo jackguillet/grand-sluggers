@@ -233,4 +233,31 @@ public sealed class TutorialOutsTests
             run.Tick(Frame, new LivePadInput(KeysBag: 3, SouthDown: true), LivePlayCommandSource.Cpu);
         Assert.False(run.Feedback?.Success ?? false);
     }
+
+    [Fact]
+    public void ThirdForceOutChangesHalfWithoutARecordedRunThreeTimes()
+    {
+        var run = Start("T-D07");
+        for (var n = 1; n <= 3; n++)
+        {
+            Drive(run, 4);
+            Assert.True(run.Feedback?.Success == true, $"{run.Feedback}; {run.LastPlay?.Kind}; outs {string.Join(',',run.LastPlay?.Outcome?.OutsMade.Select(o => $"{o.Runner.Id}:{o.Type}:{o.Bag}") ?? [])}");
+            Assert.Equal(0, run.LastPlay?.RunsScored);
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(n == 3, run.Passed);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+            run.Retry();
+        }
+    }
+
+    [Fact]
+    public void WrongBagAndCpuThirdOutDoNotEarnScoringLesson()
+    {
+        var run = Start("T-D07");
+        Drive(run, 1);
+        Assert.False(run.Feedback?.Success ?? false);
+        run.Retry();
+        Drive(run, 4, LivePlayCommandSource.Cpu);
+        Assert.False(run.Feedback?.Success ?? false);
+    }
 }
