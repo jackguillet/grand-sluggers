@@ -126,6 +126,7 @@ public sealed partial class TutorialSession
         ResetRunningEvidence();
         ResetStealEvidence();
         ResetAdvancedEvidence();
+        ResetSpecialEvidence();
         Elapsed = 0; LastPlay = null; LastHit = null; LastTickResult = null; Feedback = null; Paused = false;
     }
 
@@ -165,10 +166,12 @@ public sealed partial class TutorialSession
         var hadMeter = Match.CanStarPitch;
         Match.BeginAtBat(command, Take, out var hit, out var play);
         LastHit = hit; LastPlay = play;
-        var verdict = Lesson.Objective == "star-pitch"
+        var verdict = Lesson.Objective == "star-resource"
+            ? EvaluateStarResource(command, play, beforeStars, beforeCost, hadMeter)
+            : Lesson.Objective == "star-pitch"
             ? EvaluateStarPitch(command, play, beforeStars, beforeCost, hadMeter)
             : TutorialPlateObjectives.Pitch(Lesson.Objective, _setup, command, play);
-        Finish(verdict.Success, verdict.Code, verdict.Detail);
+        if (verdict is not null) Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
     }
 

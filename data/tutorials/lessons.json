@@ -1502,25 +1502,30 @@
     },
     {
       "id": "T-G03",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.03"
       ],
-      "title": "stars and resources",
+      "title": "Earn and spend stars",
       "category": "game",
-      "status": "planned",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Initial migration backlog",
+      "reason": "Headless authored resource exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-G03",
+      "objective": "star-resource",
+      "controls": [
+        "control:pitching/Normal pitch",
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-G04",
@@ -4905,6 +4910,39 @@
       "skill": "line",
       "batterId": "grit",
       "seat": "offense"
+    },
+    {
+      "id": "T-G03",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "strikes": 2,
+      "startingStars": 1,
+      "skill": "charmball"
     }
   ]
 }
