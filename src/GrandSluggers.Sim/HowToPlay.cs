@@ -276,13 +276,13 @@ public static partial class HowToPlay
         new("tutorial-baseball", "Counts, fouls and halves", "training",
         [
             "Build 1–1: walk left to the rubber's edge, release the stick, and tap South for a ball. Next SET, stick down resets; South throws the strike.",
-            "Foul then fair: hold stick left and tap South early. Next pitch, center the stick and time South for fair contact.",
+            "Foul then fair: stay centered in SET; after release, hold stick left and tap South early. Next pitch, center the stick and time South for fair contact.",
             "Finish the half: two outs, two strikes. A centered called strike changes sides and resets the outs.",
             "Each complete sequence earns one success. Three successes pass; failed attempts keep earlier successes.",
         ],
         [
             "Build 1–1: walk left to the rubber's edge, release the key, and tap Space for a ball. Next SET, S resets; Space throws the strike.",
-            "Foul then fair: hold A and tap Space early. Next pitch, release A and time Space for fair contact.",
+            "Foul then fair: stay centered in SET; after release, hold A and tap Space early. Next pitch, release A and time Space for fair contact.",
             "Finish the half: two outs, two strikes. A centered called strike changes sides and resets the outs.",
             "Each complete sequence earns one success. Three successes pass; failed attempts keep earlier successes.",
         ]),

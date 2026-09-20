@@ -266,7 +266,7 @@ Close plays have separate runner and defender lessons at third. Offense: send fr
 
 Make the third force out starts with bases loaded and two outs. Field and throw home before the forced runner arrives: the third out ends the half and the teams change sides. This is a separate lesson from making the same force while other outs remain.
 
-The baseball lessons practice a full sequence per success: build a 1–1 count with a ball from the rubber's edge, then a centered called strike (down/S resets the pitcher during SET); pull an early left-aimed swing foul, then center and time the next swing fair; or finish a two-out, two-strike half with a called third strike. South/Space pitches and swings. Watch the ordinary count and out readouts. Each sequence must succeed three times.
+The baseball lessons practice a full sequence per success: build a 1–1 count with a ball from the rubber's edge, then a centered called strike (down/S resets the pitcher during SET); stay centered in SET, then after release pull an early left-aimed swing foul, then center and time the next swing fair; or finish a two-out, two-strike half with a called third strike. South/Space pitches and swings. Watch the ordinary count and out readouts. Each sequence must succeed three times.
 
 For the triple-play lesson, catch the fly and return the ball to second, then first, before the two early runners retouch. Select the bag with D-pad Up then Right (2 then 1 on keyboard), and press South/Space for each throw after possession reaches the receiver. All three actual outs and both player throws are required.
 
