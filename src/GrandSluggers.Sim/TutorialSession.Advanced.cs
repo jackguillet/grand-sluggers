@@ -12,6 +12,7 @@ public sealed partial class TutorialSession
     double _looseLastBallZ;
     bool _looseTracked;
     string _looseChaserId = "";
+    bool _coverHumanThrow;
     double _dashLastTime;
     double _dashLastX;
     double _dashLastZ;
@@ -36,6 +37,7 @@ public sealed partial class TutorialSession
         _looseLastX = _looseLastZ = _looseLastBallX = _looseLastBallZ = 0;
         _looseTracked = false;
         _looseChaserId = "";
+        _coverHumanThrow = false;
         _dashLastTime = 0;
         _dashLastX = 0;
         _dashLastZ = 0;
@@ -55,6 +57,29 @@ public sealed partial class TutorialSession
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-uncovered-receiver")
+        {
+            var input = _inputs[^1];
+            if (input.Source == LivePlayCommandSource.Human && !Demonstration
+                && input.Field?.SouthDown == true && live.Events.Contains(LiveEvent.ThrowPop)
+                && live.ThrowBag == 1 && _throws.LastOrDefault() == 1)
+                _coverHumanThrow = true;
+            if (result.CompletedPlay is not { } coverPlay) return;
+            var marks = live.TakeTrace(coverPlay).Marks ?? [];
+            var release = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease
+                && m.Flight is { FromPos: "1B", Bag: 1 });
+            var wait = release is null ? null : marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.UncoveredWait
+                && m.Leg == release.Leg && m.T >= release.T
+                && m.Geometry?.ReceiverInReach == false);
+            var reception = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.Reception
+                && m.Leg == release?.Leg && m.Fielder == release?.Flight?.ReceiverPos
+                && m.T >= (wait?.T ?? double.PositiveInfinity));
+            var success = _coverHumanThrow && release is not null && wait is not null && reception is not null;
+            Finish(success, success ? "cover-arrived" : "cover-not-seen",
+                success ? "Your throw waited at first until the covering fielder arrived and received it."
+                    : "Throw to first before its cover arrives, then watch the receiver take the live ball.");
+            return;
+        }
         if (Lesson.Objective == "human-loose-recovery")
         {
             _looseSeen |= live.Events.Contains(LiveEvent.WallCarom);
