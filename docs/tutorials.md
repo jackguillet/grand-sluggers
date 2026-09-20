@@ -1,6 +1,6 @@
 # Tutorials — every mechanic has a playable lesson
 
-Status: **100 lessons implemented in the catalog and runner; final subskills in progress; standalone learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778; its counter/Continue/save presentation is #780. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
+Status: **101 lessons implemented in the catalog and runner; three explicit coverage gaps remain; standalone learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778; its counter/Continue/save presentation is #780. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
 
 ## Product contract
 
@@ -179,7 +179,7 @@ The existing live-field input, camera and feedback path serves every exercise. H
 
 ## September 19 expansion verification
 
-The prepared scenarios use the ordinary rules and typed outcomes. Three-success persistence is shared by every runnable lesson; guided screen lessons use ordered receipts from the real screens. Profile-only lessons remain visible only in their supported profile. The catalog keeps specific unfinished subskills (such as ordinary bobble recovery) separate when a narrower lesson becomes playable.
+The prepared scenarios use the ordinary rules and typed outcomes. Three-success persistence is shared by every runnable lesson; guided screen lessons use ordered receipts from the real screens. Profile-only lessons remain visible only in their supported profile. The catalog keeps specific unfinished subskills (such as the third-out scoring contrast) separate when a narrower lesson becomes playable.
 
 Standalone preview `8dd6520468` was rendered and exercised on keyboard: Call time began directly in prepared Harbor SET, its real menu → book → restart sequence reached 2/3 and then 3/3 through Continue; Time a steal armed the first runner and reached second for 1/3; Earn and spend stars progressed from an ordinary strikeout to the next batter's star pitch for 1/3. The pitcher picker showed the candidate and stamina beneath coaching, and confirmation earned progress. The preview returned to title with automatic input selection. These are agent smoke checks, not Jack's human learning gate or physical two-pad/recovery/calibration acceptance.
 

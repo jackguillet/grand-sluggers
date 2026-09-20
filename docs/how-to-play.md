@@ -275,3 +275,5 @@ C80 bobble recovery starts with the helper's real ground-ball error. Wait for th
 Dash around first teaches the actual turn: after touching first, select the runner with D-pad Right/1, send toward second with stick up/W, then tap South/Space as the runner turns. The drill checks progress beyond first and a dash during the turn; reaching second safely is a separate outcome.
 
 Return on a fly is separate from tagging up: select third with D-pad Left/3, send home with stick down/S while the ball is airborne, then hold RB/period to return safely before the catch. The attempt requires both your early send and your return; simply staying on the bag does not pass.
+
+The standard-rules fumble lesson adds the return throw: after the helper's fumble, steer through the manual scoop, then select first (D-pad Right/1) and throw (South/Space). The scoop alone does not pass; the throw must also be yours.
