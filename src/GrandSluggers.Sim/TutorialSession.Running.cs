@@ -17,6 +17,8 @@ public sealed partial class TutorialSession
     bool _humanTaggedUp;
     bool _humanCornerSend;
     bool _cornerDash;
+    bool _earlyFlySent;
+    bool _earlyFlyReturned;
 
     void ResetRunningEvidence()
     {
@@ -25,12 +27,13 @@ public sealed partial class TutorialSession
         _furthestRunnerFeet = 0;
         _allSent = false; _allReturned = false; _humanSlide = false; _humanTaggedUp = false;
         _humanCornerSend = false; _cornerDash = false;
+        _earlyFlySent = false; _earlyFlyReturned = false;
     }
 
     RunnerBefore? CaptureRunnerBefore()
     {
         var bag = Lesson.Objective is "runner-send-halt-return" or "all-runner-return" ? 2
-            : Lesson.Objective == "human-tag-up" ? 3 : 0;
+            : Lesson.Objective is "human-tag-up" or "human-early-fly-return" ? 3 : 0;
         var runner = Lesson.Objective == "human-corner-dash" && _lessonRunner.Length > 0
             ? Match.Runners.FirstOrDefault(r => r.Who.Id == _lessonRunner) : Match.RunnerAt(bag);
         return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held, runner.ForceSlide);
@@ -38,6 +41,30 @@ public sealed partial class TutorialSession
 
     void ObserveRunning(LivePadInput pad, bool owned, RunnerBefore? before, LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-early-fly-return")
+        {
+            if (before is not null) _lessonRunner = before.Id;
+            var flyRunner = Match.Runners.FirstOrDefault(r => r.Who.Id == _lessonRunner);
+            if (owned && before is { Bag: 3 } && !Match.LivePlay.Caught
+                && pad.KeysBag == 3 && pad.StickBag == 4
+                && flyRunner is { HumanSent: true, Phase: RunnerPhase.Advancing } && flyRunner.Feet > before.Feet)
+                _earlyFlySent = true;
+            if (owned && _earlyFlySent && before is { Bag: 3, Feet: > 0 } && !Match.LivePlay.Caught
+                && (pad.AllReturn || pad.StickBag == 3)
+                && flyRunner is { Phase: RunnerPhase.Returning } && flyRunner.Feet < before.Feet)
+                _earlyFlyReturned = true;
+            if (result.CompletedPlay is { } fly)
+            {
+                var catchOut = fly.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true;
+                var runnerSafe = fly.Outcome?.OutsMade.All(o => o.Runner.Id != _lessonRunner) == true
+                    && Match.Third?.Id == _lessonRunner && Match.RunnerAt(3)?.Feet <= 1e-6;
+                var success = _earlyFlySent && _earlyFlyReturned && catchOut && runnerSafe;
+                Finish(success, success ? "early-runner-returned" : "early-return-missed",
+                    success ? "You sent the runner on the fly, then returned them safely to third before the defense could double them off."
+                        : "Send the runner on the fly, then return them to third before the caught ball can expose them.");
+            }
+            return;
+        }
         if (Lesson.Objective == "human-tag-up")
         {
             if (before is not null) _lessonRunner = before.Id;
