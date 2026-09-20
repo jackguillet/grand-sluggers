@@ -332,6 +332,17 @@
       "promoted": "TutorialNavigationTests.CoachingDoesNotHideTheOrdinaryGameplayReadouts",
       "issue": "#795",
       "pr": ""
+    },
+    {
+      "id": "tutorial-loose-chase-latch",
+      "signature": "Wall-carom recovery gives credit after one steering frame followed by an assisted scoop.",
+      "stage": "sim",
+      "cause": "TutorialSession.Advanced latched _looseHumanChase without checking who finished the pickup after later assistance.",
+      "fix": "Require actual human steering and pursuit ownership at recovery and exclude assistance since the last manual command. Ordinary C80 bobbles use the same ownership evidence plus real Bobble, LooseBall and Possession trace marks.",
+      "promoted": "TutorialAdvancedFieldTests.AssistedScoopAfterOneHumanBobbleStepDoesNotEarnCredit",
+      "issue": "#797",
+      "pr": ""
     }
+
   ]
 }
