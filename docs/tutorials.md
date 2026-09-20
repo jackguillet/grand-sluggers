@@ -1,6 +1,6 @@
 # Tutorials — every mechanic has a playable lesson
 
-Status: **90 lessons implemented in the catalog and runner; remaining scenarios in progress; standalone learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778; its counter/Continue/save presentation is #780. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
+Status: **91 lessons implemented in the catalog and runner; remaining scenarios in progress; standalone learning gates pending**, September 19, 2026. Gameplay child #772 implements the catalog and six headless lessons; the Tutorials screen is #774, with pointer correction #776. Three-success mastery is #778; its counter/Continue/save presentation is #780. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
 
 ## Product contract
 
@@ -10,7 +10,7 @@ A new or changed mechanic must update its tutorial coverage in the same PR: stab
 
 Tutorials support the existing Harbor Exhibition slice. They do not unlock Challenge, extra parks, new characters, another input toolkit, or an art-generation pass. Keep the existing characters, field, cameras, and input path; improve them in their owning sessions when a learning check exposes a failure.
 
-## What exists at the reviewed revision
+## Original Practice baseline
 
 Reviewed `05471a60`, including PR #769, against the current GitHub tracker. This is a source review and headless baseline, not a standalone sitting.
 
@@ -176,3 +176,11 @@ The test runner drives ordinary `LivePadInput` and checks three earned attempts,
 The standalone browser presents the seven field fundamentals from #790 with separate brief, goal, setup, controls and feedback for each. The four named bags remain separate lessons, so each requires three successful throws. Fielding now spans two pages. Copy distinguishes a throw received at a bag from an out, a catch in the air from a scoop after a bounce, and a jump catch from a standing catch or dive.
 
 The existing live-field input, camera and feedback path serves every exercise. How to play includes the same bag, catch and jump controls for both schemes. Agent UI verification is separate from the pending human learning/transfer and physical-controller gates.
+
+## September 19 expansion verification
+
+The prepared scenarios use the ordinary rules and typed outcomes. Three-success persistence is shared by every runnable lesson; guided screen lessons use ordered receipts from the real screens. Profile-only lessons remain visible only in their supported profile. The catalog keeps specific unfinished subskills (such as ordinary bobble recovery) separate when a narrower lesson becomes playable.
+
+Standalone preview `8dd6520468` was rendered and exercised on keyboard: Call time began directly in prepared Harbor SET, its real menu → book → restart sequence reached 2/3 and then 3/3 through Continue; Time a steal armed the first runner and reached second for 1/3; Earn and spend stars progressed from an ordinary strikeout to the next batter's star pitch for 1/3. The pitcher picker showed the candidate and stamina beneath coaching, and confirmation earned progress. The preview returned to title with automatic input selection. These are agent smoke checks, not Jack's human learning gate or physical two-pad/recovery/calibration acceptance.
+
+At that preview checkpoint the full regression suite passed 1,678 tests, catalog/protocol/match CLI checks passed, and the Unity narrow compiler plus GUI player build succeeded. Subsequent fielding/ability integration passed 361 focused tests under both shipped and C80 profiles. Later commits require their own final validation; these results are revision-scoped evidence, not a blanket pass for future changes.

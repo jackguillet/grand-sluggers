@@ -153,6 +153,8 @@ public static partial class HowToPlay
         "cover-not-seen" => "Throw to first promptly after fielding, before its covering glove reaches the bag.",
         "assisted-ability-catch" or "ability-opportunity-ended" => "Take control and secure the ball at the edge where the extra ability reach is needed.",
         _ when code.StartsWith("ability-reach-") => "Your controlled fielder secured a ball beyond an ordinary glove's reach.",
+        "close-runner-safe" => "Your close-play press beat the tag and the runner reached third safely.",
+        "close-runner-out" => "Send and dash early, then react with a fresh press when the close-play icon appears.",
         "guided-complete" => "You completed the steps on the game screens.",
         "fresh-pitcher" => "The tired pitcher is out and your fresh arm is on the mound.",
         "swap-missed" => "Choose a fresh eligible fielder and confirm the pitcher change.",
