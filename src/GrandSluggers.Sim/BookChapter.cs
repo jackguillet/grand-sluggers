@@ -29,6 +29,7 @@ public static class BookChapter
             ["tutorial-sequences"] = "rio",
             ["tutorial-live-plays"] = "vale",
             ["tutorial-field-plays"] = "ashlord",
+            ["tutorial-baseball"] = "rio",
             ["exhibition"] = "rio",
             ["lineup"] = "vale",
             ["two-pads"] = "zig",

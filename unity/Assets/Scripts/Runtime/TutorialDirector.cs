@@ -228,7 +228,8 @@ namespace GrandSluggers.UnityClient
             if (_coach.PlayerPitches) run.Pitch(_pitch);
             else run.Swing(_swing);
             hit = run.LastHit; finished = run.LastPlay;
-            return hit != null && hit.InPlay && finished == null;
+            return run.IsGameContactLesson ? run.Match.LivePlay.Active
+                : hit != null && hit.InPlay && finished == null;
         }
 
         LivePlayCommandResult TickTutorialField(float dt)

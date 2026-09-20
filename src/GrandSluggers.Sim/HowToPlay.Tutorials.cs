@@ -115,6 +115,12 @@ public static partial class HowToPlay
     }
     public static string TutorialFeedbackText(string code) => code switch
     {
+        "one-and-one" => "Your ball and called strike built a 1–1 count.",
+        "wrong-count" => "Follow the count sequence: ball first, then a called strike.",
+        "half-changed" => "Your third strike made the third out and changed sides.",
+        "game-half-third-out-missed" => "Keep the pitch centered for the called third strike that ends this half.",
+        "foul-then-fair" => "Your foul added a strike, then your fair hit completed the at-bat.",
+        "wrong-territory" or "foul-not-called" or "fair-not-called" => "First pull an early hit foul; then center your aim and time a fair hit.",
         "relay-buffered" => "Your queued throw released after the receiver caught the ball.",
         "relay-retargeted" => "You changed the pending throw from third to home before the catch.",
         "relay-cancelled" => "You cancelled the pending throw and the receiver kept the ball.",

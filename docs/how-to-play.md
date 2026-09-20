@@ -265,3 +265,5 @@ The fielding scenarios include a bases-loaded force at home (collect, select hom
 Close plays have separate runner and defender lessons at third. Offense: send from second, dash, then press South / Space when the close-play icon appears. Defense: throw to third, then make a fresh South / Space press at the icon. The actual safe arrival or tag decides the lesson; each side requires three successes.
 
 Make the third force out starts with bases loaded and two outs. Field and throw home before the forced runner arrives: the third out ends the half and the teams change sides. This is a separate lesson from making the same force while other outs remain.
+
+The baseball lessons practice a full sequence per success: build a 1–1 count with a ball from the rubber's edge, then a centered called strike (down/S resets the pitcher during SET); pull an early left-aimed swing foul, then center and time the next swing fair; or finish a two-out, two-strike half with a called third strike. South/Space pitches and swings. Watch the ordinary count and out readouts. Each sequence must succeed three times.

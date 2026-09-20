@@ -60,7 +60,7 @@ namespace GrandSluggers.UnityClient
             var live = _match.LivePlay;
             if (_path == null || _path.Length == 0) { BeginResult(); return; }
             TickItem(dt);
-            var result = TutorialOn && (_coach.Tutorial.IsFieldLesson || _coach.Tutorial.IsItemLesson)
+            var result = TutorialOn && (_coach.Tutorial.IsFieldLesson || _coach.Tutorial.IsItemLesson || _coach.Tutorial.IsGameContactLesson)
                 ? TickTutorialField(dt)
                 : live.Apply(LivePlayCommand.Tick(dt, FieldInput(), RunInput(), _itemFlying, live.Source));
             SyncFromLive();
