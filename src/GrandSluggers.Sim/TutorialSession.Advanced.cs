@@ -42,6 +42,28 @@ public sealed partial class TutorialSession
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-chemistry-throw")
+        {
+            var input = _inputs[^1];
+            if (input.Source == LivePlayCommandSource.Human && !Demonstration
+                && input.Field?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 0)
+                _relayHumanFeed = true;
+            if (result.CompletedPlay is not { } chemistryPlay) return;
+            var marks = live.TakeTrace(chemistryPlay).Marks ?? [];
+            var feed = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease
+                && m.Flight is { FromPos: "CF", Bag: 0 });
+            var flight = feed?.Flight;
+            var from = flight is null ? null : live.TutorialFielderAt(flight.FromPos);
+            var to = flight is null ? null : live.TutorialFielderAt(flight.ReceiverPos);
+            var success = _relayHumanFeed && flight is not null && from is not null && to is not null
+                && _content.Chemistry.Between(from, to) == Chemistry.Good
+                && Math.Abs(flight.SpeedMul - InPlay.ArmMul(from, Match.Rules)
+                    * Match.Rules.Fielding.Chem.GoodSpeedMul) <= 1e-5;
+            Finish(success, success ? "chemistry-throw" : "chemistry-not-seen",
+                success ? "Your cutoff feed used the good chemistry between its thrower and receiver."
+                    : "Send the live fly ball through the good-chemistry cutoff pair.");
+            return;
+        }
         if (Lesson.Objective is "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay")
         {
             var input = _inputs[^1];
