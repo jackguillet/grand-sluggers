@@ -201,6 +201,8 @@ public sealed partial class LivePlaySystem
     double _powT;
     /// <summary>A thrown item landed this play and took effect (a peel down, a body dazed, the dirt hopping).</summary>
     public bool ItemLanded { get; private set; }
+    /// <summary>Observation of a real glove take made possible by this fielder's authored reach bonus.</summary>
+    public string TutorialAbilityReachUsed { get; private set; } = "";
     internal bool TutorialItemEffectActive(string item, string targetId) => item switch
     {
         "banana" => _peel is not null && _peelT > 0,
@@ -609,6 +611,7 @@ public sealed partial class LivePlaySystem
         _peelT = 0;
         _powT = 0;
         ItemLanded = false;
+        TutorialAbilityReachUsed = "";
         _itemLandAt = -1;
         AwaitingRelay = false;
         InClosePlay = false;
@@ -3330,6 +3333,24 @@ public sealed partial class LivePlaySystem
         _receivedClean = false;
         var first = !Caught;
         var wasLoose = _loose;
+        if (first && !wasLoose && Preview is { } preview)
+        {
+            var who = GloveChar();
+            var bonus = FieldAbilities.CatchBonus(who, R)
+                + (preview.Grounder ? FieldAbilities.GroundRangeBonus(who, R) : 0);
+            if (bonus > 0)
+            {
+                var ordinary = CatchRadius(Assigned()) - bonus;
+                var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
+                var ordinaryCouldTake = preview.Grounder
+                    ? d < FieldingResolver.CatchWindowFt(ordinary, CatchDive, CatchJump, R)
+                    : FlyCatch.InPosition(preview, GloveX, GloveZ, BallX, BallZ, BallY,
+                        FlyCatch.ChaseTarget(preview, Park, R).X, FlyCatch.ChaseTarget(preview, Park, R).Z,
+                        CatchDive ? FieldingResolver.DiveCatchFt(ordinary, R) : ordinary,
+                        ElapsedSeconds, Hang, FlyCatch.NeedsJump(preview), R);
+                if (!ordinaryCouldTake) TutorialAbilityReachUsed = who.FieldAbility;
+            }
+        }
         // The ball's speed the frame before the take (F693-02-ground-pickup-recoil-basis): the one input the recoil reads,
         // sampled on both tables before possession attaches the ball to the glove.
         if (first)

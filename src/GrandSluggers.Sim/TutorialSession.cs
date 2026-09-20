@@ -132,6 +132,7 @@ public sealed partial class TutorialSession
         ResetStealEvidence();
         ResetAdvancedEvidence();
         ResetSpecialEvidence();
+        ResetAbilityEvidence();
         Elapsed = 0; LastPlay = null; LastHit = null; LastTickResult = null; Feedback = null; Paused = false;
     }
 
@@ -323,6 +324,7 @@ public sealed partial class TutorialSession
             Finish(manual, manual ? "ground-possession" : "assisted-pickup", manual ? "You moved to the ground ball and secured it." : "The assistance collected that ball. Retry and move the glove yourself.");
         }
         else if (Lesson.Objective == "human-special-ground") EvaluateSpecialGround(live, result);
+        else if (Lesson.Objective == "human-ability-reach") EvaluateAbilityReach(live, result);
         else if (Lesson.Objective == "human-dive-out")
         {
             var caughtOut = result.CompletedPlay?.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true
