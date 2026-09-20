@@ -89,13 +89,16 @@ public sealed class TutorialCatalogTests
     {
         var c = Load();
         var force = c.Lesson("T-D07");
-        var contrast = c.Lesson("T-D07-T");
+        var forceContrast = c.Lesson("T-D07-T");
+        var tagContrast = c.Lesson("T-D07-C");
         Assert.Equal("implemented", force.Status);
         Assert.Equal("human-third-force-zero-run", force.Objective);
-        Assert.Equal("planned", contrast.Status);
-        Assert.Equal(794, contrast.Issue);
-        Assert.Contains("T-D07", contrast.Prerequisites);
-        Assert.Empty(contrast.Tests);
-        Assert.Empty(contrast.Objective);
+        Assert.Equal("implemented", forceContrast.Status);
+        Assert.Equal("human-third-force-cancels-run", forceContrast.Objective);
+        Assert.Equal("planned", tagContrast.Status);
+        Assert.Equal(794, tagContrast.Issue);
+        Assert.Contains("T-D07-T", tagContrast.Prerequisites);
+        Assert.Empty(tagContrast.Tests);
+        Assert.Empty(tagContrast.Objective);
     }
 }

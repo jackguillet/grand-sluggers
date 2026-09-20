@@ -301,6 +301,52 @@ public sealed class TutorialOutsTests
     }
 
     [Fact]
+    public void CrossedRunIsCanceledByLaterHumanThirdForce()
+    {
+        var run = Start("T-D07-T");
+        for (var n = 1; n <= 3; n++)
+        {
+            var crossed = false;
+            for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+            {
+                var live = run.Match.LivePlay;
+                crossed |= run.Match.Runners.Any(r => r.FromBag == 3 && r.Phase == RunnerPhase.Scored);
+                var scorerNearHome = run.Match.Runners.Any(r => r.FromBag == 3
+                    && r.Phase == RunnerPhase.Advancing && r.Feet / r.SegmentFt >= 0.82);
+                var pad = scorerNearHome && live.HoldsBall && !live.Throwing && run.HumanThrows.Count == 0
+                    ? new LivePadInput(KeysBag: 2, SouthDown: true) : LivePadInput.Dead;
+                run.Tick(Frame, pad);
+            }
+            Assert.True(run.Feedback?.Success == true,
+                $"{run.Feedback}; crossed {crossed}; play {run.LastPlay?.Kind}; throws {string.Join(',',run.HumanThrows)}; outs {string.Join(',',run.LastPlay?.Outcome?.OutsMade.Select(o => $"{o.Runner.Id}:{o.Type}:{o.Bag}") ?? [])}; runners {string.Join(',',run.Match.Runners.Select(r => $"{r.Who.Id}:{r.Bag}:{r.Feet:0.0}:{r.Phase}"))}");
+            Assert.Equal(0, run.LastPlay?.RunsScored);
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(n == 3, run.Passed);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+            run.Retry();
+        }
+    }
+
+    [Fact]
+    public void EarlyOrCpuForceDoesNotEarnCrossedRunLesson()
+    {
+        var run = Start("T-D07-T");
+        Drive(run, 2);
+        Assert.False(run.Feedback?.Success ?? false);
+        run.Retry();
+        for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var live = run.Match.LivePlay;
+            var scorerNearHome = run.Match.Runners.Any(r => r.FromBag == 3
+                && r.Phase == RunnerPhase.Advancing && r.Feet / r.SegmentFt >= 0.82);
+            var pad = scorerNearHome && live.HoldsBall && !live.Throwing
+                ? new LivePadInput(KeysBag: 2, SouthDown: true) : LivePadInput.Dead;
+            run.Tick(Frame, pad, LivePlayCommandSource.Cpu);
+        }
+        Assert.False(run.Feedback?.Success ?? false);
+    }
+
+    [Fact]
     public void WrongBagAndCpuThirdOutDoNotEarnScoringLesson()
     {
         var run = Start("T-D07");
