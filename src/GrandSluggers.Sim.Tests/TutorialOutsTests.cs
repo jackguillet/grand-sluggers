@@ -347,6 +347,58 @@ public sealed class TutorialOutsTests
     }
 
     [Fact]
+    public void CrossedRunCountsBeforeLaterHumanNonforceThirdTag()
+    {
+        var run = Start("T-D07-C");
+        for (var n = 1; n <= 3; n++)
+        {
+            var crossed = false;
+            var iconSeen = false;
+            for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+            {
+                var live = run.Match.LivePlay;
+                crossed |= run.Match.Runners.Any(r => r.FromBag == 3 && r.Phase == RunnerPhase.Scored);
+                iconSeen |= live.CloseIcon;
+                var scorerNearHome = run.Match.Runners.Any(r => r.FromBag == 3
+                    && r.Phase == RunnerPhase.Advancing && r.Feet / r.SegmentFt >= 0.82);
+                var pad = live.CloseIcon ? new LivePadInput(SouthDown: true)
+                    : scorerNearHome && live.HoldsBall && !live.Throwing && run.HumanThrows.Count == 0
+                        ? new LivePadInput(KeysBag: 3, SouthDown: true) : LivePadInput.Dead;
+                run.Tick(Frame, pad);
+            }
+            Assert.True(run.Feedback?.Success == true,
+                $"{run.Feedback}; crossed {crossed}; icon {iconSeen}; play {run.LastPlay?.Kind}; throws {string.Join(',',run.HumanThrows)}; outs {string.Join(',',run.LastPlay?.Outcome?.OutsMade.Select(o => $"{o.Runner.Id}:{o.Type}:{o.Bag}") ?? [])}; runners {string.Join(',',run.Match.Runners.Select(r => $"{r.Who.Id}:{r.Bag}:{r.Feet:0.0}:{r.Phase}"))}");
+            Assert.Equal(1, run.LastPlay?.RunsScored);
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(n == 3, run.Passed);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+            run.Retry();
+        }
+    }
+
+    [Fact]
+    public void WrongBagOrCpuTagCannotEarnCrossedRunCount()
+    {
+        var run = Start("T-D07-C");
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+            {
+                var live = run.Match.LivePlay;
+                var scorerNearHome = run.Match.Runners.Any(r => r.FromBag == 3
+                    && r.Phase == RunnerPhase.Advancing && r.Feet / r.SegmentFt >= 0.82);
+                var pad = live.CloseIcon ? new LivePadInput(SouthDown: true)
+                    : scorerNearHome && live.HoldsBall && !live.Throwing && live.FirstThrowBag == 0
+                        ? new LivePadInput(KeysBag: attempt == 0 ? 2 : 3, SouthDown: true)
+                        : LivePadInput.Dead;
+                run.Tick(Frame, pad, attempt == 0 ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu);
+            }
+            Assert.False(run.Feedback?.Success ?? false);
+            run.Retry();
+        }
+    }
+
+    [Fact]
     public void WrongBagAndCpuThirdOutDoNotEarnScoringLesson()
     {
         var run = Start("T-D07");
