@@ -169,6 +169,8 @@ public static partial class HowToPlay
         "close-runner-out" => "Send and dash early, then react with a fresh press when the close-play icon appears.",
         "close-runner-tagged" => "Your throw and close-play press tagged the runner at third.",
         "close-tag-missed" => "Throw to third, then react with a fresh press at the close-play icon.",
+        "crossed-run-canceled" => "The runner crossed home first, but your third force out cancelled the run.",
+        "force-timing-missed" => "Collect, wait for the runner to cross home, then force the trailing runner at second.",
         "third-force-no-run" => "Your third force out kept the run off the board and changed sides.",
         "third-out-missed" => "With two outs, collect and throw home before the forced runner arrives.",
         "guided-complete" => "You completed the steps on the game screens.",
