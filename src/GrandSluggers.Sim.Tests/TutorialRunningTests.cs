@@ -41,6 +41,14 @@ public sealed class TutorialRunningTests
                     : new(AllAdvance: true);
             }
             else if (run.Lesson.Id == "T-R03") pad = new(SouthDown: true);
+            else if (run.Lesson.Id == "T-R09")
+            {
+                var runner = run.Match.Runners.FirstOrDefault(r => r.IsBatter);
+                if (runner is { Bag: 1, DestBag: < 2 })
+                    pad = new(KeysBag: 1, StickBag: 2);
+                else if (runner is { Bag: 1, Feet: <= 10, DestBag: >= 2 } && !runner.Overrunning)
+                    pad = new(SouthDown: true);
+            }
             else if (run.Lesson.Id == "T-R05" && run.Match.LivePlay.Caught)
                 pad = new(AllAdvance: true);
             else if (run.Lesson.Id == "T-R04")
@@ -57,6 +65,7 @@ public sealed class TutorialRunningTests
     [InlineData("T-R01")]
     [InlineData("T-R02")]
     [InlineData("T-R03")]
+    [InlineData("T-R09")]
     [InlineData("T-R04")]
     [InlineData("T-R05")]
     public void HumanCommandsAndRunnerGeometryEarnThreeDistinctAttempts(string id)
@@ -65,7 +74,7 @@ public sealed class TutorialRunningTests
         for (var n = 1; n <= 3; n++)
         {
             Drive(run);
-            Assert.True(run.Feedback?.Success == true, $"{id}: {run.Feedback} at {run.Elapsed:0.00}; play {run.LastPlay?.Kind}; runners {string.Join(';',run.Match.Runners.Select(r => $"{r.FromBag}:{r.Bag}/{r.Feet:0.0}/{r.Phase}/{r.Held}"))}");
+            Assert.True(run.Feedback?.Success == true, $"{id}: {run.Feedback} at {run.Elapsed:0.00}; play {run.LastPlay?.Kind}; presses {run.Inputs.Count(x => x.Field?.SouthDown == true)}; runners {string.Join(';',run.Match.Runners.Select(r => $"{r.FromBag}:{r.Bag}/{r.Feet:0.0}/{r.Phase}/{r.Held}"))}");
             Assert.Equal(n, run.Successes);
             Assert.Equal(n == 3, run.Passed);
             var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
@@ -78,6 +87,7 @@ public sealed class TutorialRunningTests
     [InlineData("T-R01")]
     [InlineData("T-R02")]
     [InlineData("T-R03")]
+    [InlineData("T-R09")]
     [InlineData("T-R04")]
     [InlineData("T-R05")]
     public void CpuOrdersAndDeadInputCannotEarnCredit(string id)
@@ -87,6 +97,24 @@ public sealed class TutorialRunningTests
         Assert.False(run.Feedback?.Success ?? false);
         run.Retry();
         for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++) run.Tick(Frame);
+        Assert.False(run.Feedback?.Success ?? false);
+    }
+
+    [Fact]
+    public void EarlyOrUnsentDashDoesNotEarnCornerTurn()
+    {
+        var run = Start("T-R09");
+        for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+            run.Tick(Frame, new LivePadInput(SouthDown: true));
+        Assert.False(run.Feedback?.Success ?? false);
+        run.Retry();
+        for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var batter = run.Match.Runners.FirstOrDefault(r => r.IsBatter);
+            var pad = batter is { Bag: 1, DestBag: < 2 } ? new LivePadInput(KeysBag: 1, StickBag: 2)
+                : LivePadInput.Dead;
+            run.Tick(Frame, pad);
+        }
         Assert.False(run.Feedback?.Success ?? false);
     }
 }
