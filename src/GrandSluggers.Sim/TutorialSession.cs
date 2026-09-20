@@ -76,7 +76,7 @@ public sealed partial class TutorialSession
     public string InputsHash { get; private set; } = "";
     public IReadOnlyList<TutorialInput> Inputs => _inputs;
     public IReadOnlyList<int> HumanThrows => _throws;
-    public bool IsFieldLesson => _setup.Policy is "grounder" or "liner" or "airborne";
+    public bool IsFieldLesson => _setup.Policy is "grounder" or "liner" or "airborne" or "cpu-special-ground";
     public bool IsItemLesson => _setup.Policy == "cpu-item";
     public bool IsRunningLesson => Lesson.Category == "running";
     public bool IsOffenseLesson => _setup.Seat == "offense";
@@ -113,6 +113,7 @@ public sealed partial class TutorialSession
             if (_setup.Seat == "offense") Match.GiveOffenseStars(_setup.StartingStars);
             else Match.GiveDefenseStars(_setup.StartingStars);
         }
+        if (_setup.OpponentStars > 0) Match.GiveOffenseStars(_setup.OpponentStars);
         foreach (var bag in _setup.Runners)
             if (!Match.StationRunner(bag, Match.Away.Roster[bag + 1]))
                 throw new InvalidDataException("Cannot station tutorial runner.");
@@ -139,6 +140,11 @@ public sealed partial class TutorialSession
         Demonstration = demonstration; Phase = TutorialPhase.Attempt;
         if (_setup.Policy == "steal-defense") { BeginStealDefense(); return; }
         if (!IsFieldLesson) return;
+        if (_setup.Policy == "cpu-special-ground")
+        {
+            BeginSpecialGround();
+            return;
+        }
         var ball = _setup.Balls[_catalog.Profile];
         var hit = TutorialContact.Create(Match.Park, ball, Match.Rules);
         var preview = Match.PreviewHit(hit);
@@ -314,6 +320,7 @@ public sealed partial class TutorialSession
                 && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
             Finish(manual, manual ? "ground-possession" : "assisted-pickup", manual ? "You moved to the ground ball and secured it." : "The assistance collected that ball. Retry and move the glove yourself.");
         }
+        else if (Lesson.Objective == "human-special-ground") EvaluateSpecialGround(live, result);
         else if (Lesson.Objective == "human-dive-out")
         {
             var caughtOut = result.CompletedPlay?.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true

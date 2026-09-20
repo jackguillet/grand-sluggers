@@ -2,6 +2,38 @@ namespace GrandSluggers.Sim;
 
 public sealed partial class TutorialSession
 {
+    void BeginSpecialGround()
+    {
+        var swing = new SwingCommand(true, 0, 0, true);
+        var beforeStars = Match.OffenseStars;
+        var cost = Match.SwingStarCost;
+        if (!Match.CanStarSwing) throw new InvalidDataException("Special ground opponent lacks stars.");
+        var liveBall = Match.BeginAtBat(CpuPitch, swing, out var hit, out var play);
+        var preview = liveBall ? Match.PreviewHit(hit, swing) : null;
+        if (!liveBall || hit.Foul || hit.StarSwingUsed != _setup.Skill || preview?.Grounder != true
+            || Math.Abs(beforeStars - Match.OffenseStars - cost) > 0.0001)
+            throw new InvalidDataException("Special ground fixture no longer yields a fair funded star grounder.");
+        LastHit = hit;
+        Match.LivePlay.Recording = true;
+        var result = Match.LivePlay.Apply(LivePlayCommand.BeginLive(CpuPitch, swing, hit, preview, null,
+            new LiveSeats(false, true, true, false), 0, LivePlayCommandSource.Cpu));
+        if (!result.Snapshot.Active) throw new InvalidDataException("Special ground fixture did not start live play.");
+    }
+
+    void EvaluateSpecialGround(LivePlaySystem live, LivePlayCommandResult result)
+    {
+        if (live.HoldsBall && LastHit?.StarSwingUsed == _setup.Skill && live.Preview?.Grounder == true)
+        {
+            var manual = _manualGloves.Contains(live.TutorialFirstGloveId)
+                && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
+            Finish(manual, manual ? "special-ground-fielded" : "assisted-special-field",
+                manual ? "You moved your glove to the star grounder and secured it."
+                    : "The helper took the special grounder. Move the glove to the ball yourself.");
+        }
+        else if (result.CompletedPlay is not null)
+            Finish(false, "special-ground-escaped", "The star grounder ended before your glove secured it.");
+    }
+
     bool _earnedStarThisAttempt;
     string _humanItemId = "";
     string _humanItemTarget = "";

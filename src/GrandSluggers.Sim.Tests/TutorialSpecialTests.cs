@@ -153,4 +153,55 @@ public sealed class TutorialSpecialTests
         Assert.Equal("demonstration", run.Feedback!.Code);
         Assert.Equal(0, run.Successes);
     }
+
+    static void ChaseSpecialGround(TutorialSession run, LivePlayCommandSource source, bool move)
+    {
+        for (var t = 0; t < 1800 && run.Phase == TutorialPhase.Attempt; t++)
+        {
+            var live = run.Match.LivePlay;
+            var pad = LivePadInput.Dead;
+            if (move && live.ElapsedSeconds >= .4 && !live.HoldsBall)
+            {
+                var dx = live.BallX - live.GloveX;
+                var dz = live.BallZ - live.GloveZ;
+                var len = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
+                pad = new(StickX: dx / len, StickY: dz / len, SouthDown: true);
+            }
+            run.Tick(1.0 / 60, pad, source);
+        }
+    }
+
+    [Theory]
+    [InlineData("shipped")][InlineData("c80")]
+    public void CounterplayFieldsRealCpuStarGrounderWithHumanGloveThreeTimes(string profile)
+    {
+        var (content, catalog) = Load(profile);
+        var run = new TutorialSession(content, catalog, "T-X02"); run.Begin();
+        for (var n = 1; n <= 3; n++)
+        {
+            Assert.Equal("ground", run.LastHit!.StarSwingUsed);
+            Assert.True(run.Match.LivePlay.Preview!.Grounder);
+            ChaseSpecialGround(run, LivePlayCommandSource.Human, move: true);
+            Assert.True(run.Feedback!.Success, profile + ": " + run.Feedback.Detail);
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(content, catalog, run.Recording()).Feedback);
+            run.Retry();
+        }
+        Assert.True(run.Passed);
+    }
+
+    [Theory]
+    [InlineData("shipped")][InlineData("c80")]
+    public void CounterplayRejectsCpuAssistAndDemonstration(string profile)
+    {
+        var (content, catalog) = Load(profile);
+        var run = new TutorialSession(content, catalog, "T-X02"); run.Begin();
+        ChaseSpecialGround(run, LivePlayCommandSource.Cpu, move: true);
+        Assert.False(run.Feedback!.Success);
+        Assert.Equal(0, run.Successes);
+        run = new TutorialSession(content, catalog, "T-X02"); run.Begin(demonstration: true);
+        ChaseSpecialGround(run, LivePlayCommandSource.Cpu, move: true);
+        Assert.Equal("demonstration", run.Feedback!.Code);
+        Assert.Equal(0, run.Successes);
+    }
 }

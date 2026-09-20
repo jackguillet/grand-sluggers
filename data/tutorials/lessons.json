@@ -1685,25 +1685,29 @@
     },
     {
       "id": "T-X02",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "special.02"
       ],
-      "title": "counterplay and fielding a special hit",
+      "title": "Field a star grounder",
       "category": "special",
-      "status": "planned",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Initial migration backlog",
+      "reason": "Headless opponent special-hit counterplay; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-X02",
+      "objective": "human-special-ground",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-X03",
@@ -5244,6 +5248,39 @@
       "skill": "pow",
       "batterId": "zig",
       "onDeckId": "jester"
+    },
+    {
+      "id": "T-X02",
+      "policy": "cpu-special-ground",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "skill": "ground",
+      "batterId": "dart",
+      "opponentStars": 1
     }
   ]
 }
