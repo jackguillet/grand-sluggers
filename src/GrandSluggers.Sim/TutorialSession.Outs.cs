@@ -25,6 +25,18 @@ public sealed partial class TutorialSession
 
     void EvaluateOutObjective(LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-force-home")
+        {
+            var moment = Match.LivePlay.LastMoment;
+            var named = Match.Runners.FirstOrDefault(r => r.Who.Id == _thirdRunner);
+            var success = _throws.FirstOrDefault() == 4 && moment is { Verdict: InPlay.ThrowVerdict.ForceOut, Bag: 4 }
+                && moment.Runner?.Id == _thirdRunner && named?.Phase == RunnerPhase.Out;
+            if (success || result.CompletedPlay is not null)
+                Finish(success, success ? "forced-home" : "force-home-missed",
+                    success ? "Your throw reached home before the forced runner from third."
+                        : "With every bag occupied, throw home while the force is still live.");
+            return;
+        }
         if (result.CompletedPlay is not { } play) return;
         if (Lesson.Objective == "human-choice-second")
         {

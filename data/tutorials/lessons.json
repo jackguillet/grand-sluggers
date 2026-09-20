@@ -1049,25 +1049,29 @@
     },
     {
       "id": "T-D01",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.01"
       ],
-      "title": "force versus tag",
+      "title": "Force the runner at home",
       "category": "outs",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless home-force lesson; the complementary tag is taught in D05",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-D01",
+      "objective": "human-force-home",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     },
     {
       "id": "T-D02",
@@ -5395,6 +5399,53 @@
           "exitMph": 88,
           "launchDeg": 4,
           "sprayDeg": 35
+        }
+      }
+    },
+    {
+      "id": "T-D01",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "konga",
+        "soot",
+        "boom",
+        "nugget",
+        "grit"
+      ],
+      "runners": [
+        1,
+        2,
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        },
+        "c80": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
         }
       }
     }

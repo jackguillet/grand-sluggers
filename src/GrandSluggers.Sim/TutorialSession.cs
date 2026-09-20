@@ -59,6 +59,7 @@ public sealed partial class TutorialSession
     bool _manualTakeoverMoved;
     string _humanAerialCatcher = "";
     string _firstRunner = "";
+    string _thirdRunner = "";
     string _batter = "";
     public TutorialLesson Lesson { get; }
     public TutorialProgress Progress { get; }
@@ -121,7 +122,7 @@ public sealed partial class TutorialSession
             Match.BeginAtBat(new PitchCommand("fastball", 0, false), Take, out _, out _);
         PrepareSetOpportunity();
         InputsHash = PlayTraceIdentity.Capture(Match).Sha256;
-        _firstRunner = Match.First?.Id ?? ""; _batter = Match.Batter.Id;
+        _firstRunner = Match.First?.Id ?? ""; _thirdRunner = Match.Third?.Id ?? ""; _batter = Match.Batter.Id;
         _inputs.Clear(); _manualGloves.Clear(); _assistedSinceManual.Clear(); _divers.Clear(); _throws.Clear(); _humanJumpPresses.Clear();
         _manualTakeoverMoved = false;
         _humanAerialCatcher = "";
@@ -344,7 +345,7 @@ public sealed partial class TutorialSession
         }
         else if (_setup.Policy is "steal-offense" or "steal-defense") EvaluateStealPlay(result);
         else if (Lesson.Objective == "human-pickoff") EvaluateSetPlay(result);
-        else if (Lesson.Objective is "human-choice-second" or "human-double-off") EvaluateOutObjective(result);
+        else if (Lesson.Objective is "human-choice-second" or "human-double-off" or "human-force-home") EvaluateOutObjective(result);
         else EvaluateExpandedFieldObjective(live, result);
         if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))
             Finish(false, "timeout", "The opportunity ended. Retry the same setup.");
