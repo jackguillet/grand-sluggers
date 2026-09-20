@@ -1240,15 +1240,22 @@
     {
       "id": "T-D07-T",
       "revision": 1,
-      "mechanics": ["outs.07"],
+      "mechanics": [
+        "outs.07"
+      ],
       "title": "Run timing on a third force versus third tag",
       "category": "outs",
       "status": "planned",
       "issue": 794,
       "reason": "Owner #794: author a live contact where a runner crosses home before the human-made third out, then prove the run is canceled by a force but counts before a nonforce tag. T-D07 only proves a zero-run force at home; no crossed-run contrast is staged yet.",
-      "profiles": ["shipped", "c80"],
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
       "requires": [],
-      "prerequisites": ["T-D07"],
+      "prerequisites": [
+        "T-D07"
+      ],
       "setup": "",
       "objective": "",
       "controls": [],
@@ -2695,24 +2702,29 @@
     },
     {
       "id": "T-F09-S",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.09"
       ],
       "title": "recover after a shipped fumble",
       "category": "fielding",
-      "status": "planned",
+      "status": "implemented",
       "issue": 797,
-      "reason": "The shipped error retains the ball during its fumble interval; needs a separate player-owned recovery/throw exercise, unlike the C80 local loose-ball outcome",
+      "reason": "Shipped headless handling fumble scatters a loose ball; human takes the glove and recovers it after the CPU error, then throws to first; standalone learning gate pending",
       "profiles": [
         "shipped"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F09-S",
+      "objective": "human-fumble-recovery",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-R10",
@@ -6298,6 +6310,44 @@
         }
       },
       "seat": "offense"
+    },
+    {
+      "id": "T-F09-S",
+      "policy": "grounder",
+      "seed": 14,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "boom",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "konga",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "marlow",
+        "ashlord",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 4,
+          "sprayDeg": -19
+        }
+      },
+      "seat": "assisted-defense"
     }
   ]
 }

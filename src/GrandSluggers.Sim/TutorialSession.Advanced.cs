@@ -22,6 +22,7 @@ public sealed partial class TutorialSession
     double _bobbleLastBallX;
     double _bobbleLastBallZ;
     bool _bobbleHeldBefore;
+    bool _fumbleScooped;
     double _dashLastTime;
     double _dashLastX;
     double _dashLastZ;
@@ -51,6 +52,7 @@ public sealed partial class TutorialSession
         _bobbleChaserId = "";
         _bobbleLastX = _bobbleLastZ = _bobbleLastBallX = _bobbleLastBallZ = 0;
         _bobbleHeldBefore = false;
+        _fumbleScooped = false;
         _dashLastTime = 0;
         _dashLastX = 0;
         _dashLastZ = 0;
@@ -70,10 +72,10 @@ public sealed partial class TutorialSession
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
-        if (Lesson.Objective == "human-bobble-recovery")
+        if (Lesson.Objective is "human-bobble-recovery" or "human-fumble-recovery")
         {
             if (live.Events.Contains(LiveEvent.Bobble) && live.LooseBall && !live.Deflected
-                && live.HandlingChance > 0)
+                && (Match.Rules.Fielding.Handling.Active ? live.HandlingChance > 0 : live.Bobbling))
             {
                 _bobbleSeen = true;
             }
@@ -106,12 +108,25 @@ public sealed partial class TutorialSession
                 if (loose is not null && marks.Any(m => m.Kind == PlayTraceMarkKind.Possession
                     && m.T > loose.T && m.Fielder == live.GlovePos))
                 {
-                    Finish(true, "bobble-recovered", "You took the glove after the ordinary bobble and scooped its loose ball.");
-                    return;
+                    if (Lesson.Objective == "human-bobble-recovery")
+                    {
+                        Finish(true, "bobble-recovered", "You took the glove after the bobble and scooped its loose ball.");
+                        return;
+                    }
+                    _fumbleScooped = true;
                 }
             }
+            if (_fumbleScooped && live.Events.Contains(LiveEvent.ThrowPop)
+                && live.ThrowBag == 1 && _throws.LastOrDefault() == 1)
+            {
+                Finish(true, "fumble-recovered", "You recovered the fumble and threw to first.");
+                return;
+            }
             if (result.CompletedPlay is not null)
-                Finish(false, "bobble-not-recovered", "Take a glove, chase the ordinary bobble and scoop its loose ball yourself.");
+                Finish(false, Lesson.Objective == "human-fumble-recovery" ? "fumble-not-returned" : "bobble-not-recovered",
+                    Lesson.Objective == "human-fumble-recovery"
+                        ? "Take the glove, scoop the fumble yourself, then throw to first."
+                        : "Take a glove, chase the ordinary bobble and scoop its loose ball yourself.");
             return;
         }
         if (Lesson.Objective == "human-uncovered-receiver")

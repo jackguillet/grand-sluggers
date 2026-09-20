@@ -43,7 +43,9 @@ public sealed class TutorialAdvancedFieldTests
             }
             else if (act && run.Lesson.Id == "T-F09" && !wallSeen && live.ElapsedSeconds > .5)
                 pad = new(StickX: -1, StickY: 0);
-            else if (act && run.Lesson.Id == "T-F09-B" && bobbleSeen && !live.HoldsBall)
+            else if (act && !skipOnward && run.Lesson.Id == "T-F09-S" && bobbleSeen && live.HoldsBall && !live.Throwing)
+                pad = new(KeysBag: 1, SouthDown: true);
+            else if (act && run.Lesson.Id is ("T-F09-B" or "T-F09-S") && bobbleSeen && !live.HoldsBall)
             {
                 var dx = live.BallX - live.GloveX;
                 var dz = live.BallZ - live.GloveZ;
@@ -390,10 +392,38 @@ public sealed class TutorialAdvancedFieldTests
     }
 
     [Fact]
-    public void AssistedScoopAfterOneHumanBobbleStepDoesNotEarnCredit()
+    public void ShippedFumbleNeedsHumanTakeoverAndLiveScoop()
     {
-        if (!TestRoot.Compact) return;
-        var run = Start("T-F09-B");
+        if (TestRoot.Compact) return;
+        var run = Start("T-F09-S");
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.Equal("fumble-recovered", run.Feedback?.Code);
+            Assert.Equal(attempt, run.Successes);
+            Assert.Contains(1, run.HumanThrows);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var dead = Start("T-F09-S");
+        Drive(dead, act: false);
+        Assert.Equal(0, dead.Successes);
+        var cpu = Start("T-F09-S");
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.Equal(0, cpu.Successes);
+        var scoopOnly = Start("T-F09-S");
+        Drive(scoopOnly, act: true, skipOnward: true);
+        Assert.Equal(0, scoopOnly.Successes);
+    }
+
+    [Theory]
+    [InlineData("T-F09-B")]
+    [InlineData("T-F09-S")]
+    public void AssistedScoopAfterOneHumanBobbleStepDoesNotEarnCredit(string id)
+    {
+        if (TestRoot.Compact != (id == "T-F09-B")) return;
+        var run = Start(id);
         var bobbled = false;
         var stepped = false;
         for (var i = 0; i < 1900 && run.Phase == TutorialPhase.Attempt; i++)
