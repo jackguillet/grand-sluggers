@@ -723,7 +723,8 @@
       "category": "special",
       "spec": "gameplay-spec:12",
       "sources": [
-        "item:banana"
+        "item:banana",
+        "control:running/Throw item"
       ]
     },
     {

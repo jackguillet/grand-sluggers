@@ -99,6 +99,7 @@ public static class RoleTables
             new("Dash", "Mash South"),
             new("Close play", "First South, at third or home"),
             new("Rundown", "Stick back or forward turns you"),
+            new("Throw item", "LT + RB / South + LT after contact"),
         ]),
     ];
 
@@ -148,6 +149,7 @@ public static class RoleTables
             new("Dash", "Mash Space / left click"),
             new("Close play", "First Space / left click, at third or home"),
             new("Rundown", "WASD back or forward turns you"),
+            new("Throw item", "E after contact"),
         ]),
     ];
 

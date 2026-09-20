@@ -201,6 +201,13 @@ public sealed partial class LivePlaySystem
     double _powT;
     /// <summary>A thrown item landed this play and took effect (a peel down, a body dazed, the dirt hopping).</summary>
     public bool ItemLanded { get; private set; }
+    internal bool TutorialItemEffectActive(string item, string targetId) => item switch
+    {
+        "banana" => _peel is not null && _peelT > 0,
+        "rocket" => Field?.ItemTarget?.Id == targetId && _foil.Values.Any(t => t > 0),
+        "pow" => _powT > 0,
+        _ => false
+    };
     double _itemLandAt = -1;
 
     // ---- What Unity draws. Read after every Apply; never written from outside. ----

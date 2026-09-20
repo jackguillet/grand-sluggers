@@ -1659,25 +1659,29 @@
     },
     {
       "id": "T-X01",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "special.01"
       ],
-      "title": "items, one exercise per distinct enabled item",
+      "title": "Throw banana item",
       "category": "special",
-      "status": "planned",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Initial migration backlog",
+      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-X01",
+      "objective": "item-effect",
+      "controls": [
+        "control:running/Throw item"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-X02",
@@ -2365,69 +2369,81 @@
     },
     {
       "id": "T-I-banana",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "item.banana"
       ],
-      "title": "banana",
+      "title": "Throw banana item",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-I-banana",
+      "objective": "item-effect",
+      "controls": [
+        "control:running/Throw item"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-I-rocket",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "item.rocket"
       ],
-      "title": "rocket",
+      "title": "Throw rocket item",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-I-rocket",
+      "objective": "item-effect",
+      "controls": [
+        "control:running/Throw item"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-I-pow",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "item.pow"
       ],
-      "title": "pow",
+      "title": "Throw pow item",
       "category": "special",
-      "status": "blocked",
+      "status": "implemented",
       "issue": 770,
-      "reason": "Special interaction lesson awaits its accepted scope and authored exercise",
+      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-I-pow",
+      "objective": "item-effect",
+      "controls": [
+        "control:running/Throw item"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
     },
     {
       "id": "T-F08-R",
@@ -5092,6 +5108,142 @@
           "sprayDeg": 2
         }
       }
+    },
+    {
+      "id": "T-X01",
+      "policy": "cpu-item",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "skill": "banana",
+      "batterId": "zig",
+      "onDeckId": "jester"
+    },
+    {
+      "id": "T-I-banana",
+      "policy": "cpu-item",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "skill": "banana",
+      "batterId": "zig",
+      "onDeckId": "jester"
+    },
+    {
+      "id": "T-I-rocket",
+      "policy": "cpu-item",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "skill": "rocket",
+      "batterId": "zig",
+      "onDeckId": "jester"
+    },
+    {
+      "id": "T-I-pow",
+      "policy": "cpu-item",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "skill": "pow",
+      "batterId": "zig",
+      "onDeckId": "jester"
     }
   ]
 }

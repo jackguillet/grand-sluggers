@@ -10,7 +10,7 @@ public sealed record TutorialBall(double CarryFt, double ExitMph, double LaunchD
 public sealed record TutorialSetup(string Id, string Policy, int Seed, double TimeoutSec, string[] Home,
     string[] Away, int[] Runners, Dictionary<string, TutorialBall> Balls, PitchCommand? Pitch = null,
     double MinMovement01 = 0, int Strikes = 0, double MinTimingFrames = 0, string Seat = "defense", double StartingStars = 0,
-    string Skill = "", string PitcherId = "", string BatterId = "");
+    string Skill = "", string PitcherId = "", string BatterId = "", string OnDeckId = "");
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -30,8 +30,8 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw"];
-    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect"];
+    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
@@ -131,6 +131,7 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "cpu-take" && l.Objective == "star-resource")
                 || (setup.Policy == "cpu-strike" && TutorialPlateObjectives.SwingIds.Contains(l.Objective) && l.Objective != "take-ball")
                 || (setup.Policy == "cpu-strike" && l.Objective == "star-swing")
+                || (setup.Policy == "cpu-item" && l.Objective == "item-effect")
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
                 || (setup.Policy == "pickoff" && l.Objective == "human-pickoff")
                 || (setup.Policy == "pitcher-swap" && l.Objective == "tired-pitcher-swap")
@@ -154,6 +155,11 @@ public sealed class TutorialCatalog
             if (l.Objective == "star-resource") Require(l.Id == "T-G03" && setup.Strikes == 2
                 && setup.Skill == content.Characters[setup.Home[0]].StarPitch && setup.StartingStars > 0,
                 l.Id + " needs a two-strike star gain/spend setup");
+            if (l.Objective == "item-effect") Require((l.Id == "T-X01" || l.Id == "T-I-" + setup.Skill)
+                && ErrorItems.Known(setup.Skill) && setup.Seat == "offense"
+                && setup.Away.Contains(setup.BatterId) && setup.Away.Contains(setup.OnDeckId)
+                && content.Chemistry.ChemistryItemOffered(content.Characters[setup.BatterId], content.Characters[setup.OnDeckId]),
+                l.Id + " needs an offered item and named item fixture");
             if (l.Objective == "star-pitch") Require((l.Id == "T-P09" || l.Id == "T-SP-" + setup.Skill)
                 && content.StarSkills.Pitches.ContainsKey(setup.Skill)
                 && setup.Home.Contains(setup.PitcherId.Length > 0 ? setup.PitcherId : setup.Home[0])
@@ -179,13 +185,14 @@ public sealed class TutorialCatalog
         {
             Require(s.Seat is "offense" or "defense", s.Id + " has unknown teaching seat");
             Require((s.PitcherId.Length == 0 || s.Home.Contains(s.PitcherId))
-                && (s.BatterId.Length == 0 || s.Away.Contains(s.BatterId)), s.Id + " has a skill player outside its team");
+                && (s.BatterId.Length == 0 || s.Away.Contains(s.BatterId))
+                && (s.OnDeckId.Length == 0 || s.Away.Contains(s.OnDeckId)), s.Id + " has a skill player outside its team");
             Require(double.IsFinite(s.StartingStars) && s.StartingStars >= 0 && s.StartingStars <= content.Rules.Stars.MeterMax,
                 s.Id + " has invalid starting stars");
             Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
             Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball" or "cpu-take"), s.Id + " has invalid starting strikes");
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
-            if (s.Policy is "cpu-strike" or "cpu-ball")
+            if (s.Policy is "cpu-strike" or "cpu-ball" or "cpu-item")
             {
                 var pitch = s.Pitch ?? new PitchCommand("fastball", 0, false);
                 Require(pitch.Type is "fastball" or "changeup" && !pitch.Star && !pitch.DeliveryPrepared
@@ -194,7 +201,7 @@ public sealed class TutorialCatalog
                     && Math.Abs(pitch.AimX) <= 4 && Math.Abs(pitch.AimY) <= 4 && pitch.BreakMul == 1,
                     s.Id + " has invalid CPU pitch");
                 var crossing = PitchFlight.Crossing(pitch, rules: content.Rules);
-                Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy == "cpu-strike"), s.Id + " CPU pitch disagrees with strike/ball policy");
+                Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy is "cpu-strike" or "cpu-item"), s.Id + " CPU pitch disagrees with strike/ball policy");
                 Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, hand, content.Rules)), s.Id + " CPU pitch hits the batter");
             }
             else if (s.Policy is "steal-offense" or "steal-defense")
