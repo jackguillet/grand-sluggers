@@ -28,6 +28,7 @@ public static class BookChapter
             ["relay-control"] = "ashlord",
             ["tutorial-sequences"] = "rio",
             ["tutorial-live-plays"] = "vale",
+            ["tutorial-field-plays"] = "ashlord",
             ["exhibition"] = "rio",
             ["lineup"] = "vale",
             ["two-pads"] = "zig",
