@@ -288,6 +288,7 @@ public static partial class HowToPlay
         ]),
         new("tutorial-field-plays", "Fielding scenario lessons", "training",
         [
+            "Standard fumble: steer through the scoop after the error, then select first and throw. Assistance cannot finish the pickup for you.",
             "C80 bobble recovery: wait for the helper's error, then steer with the stick through the loose-ball scoop.",
             "Force home: bases loaded, collect, then D-pad Down + South. With two outs, this force ends the half with no run.",
             "Rundown: D-pad Right + South checks first. Once trapped, D-pad Up + South throws ahead for the tag.",
@@ -295,6 +296,7 @@ public static partial class HowToPlay
             "Ability reach: move to the landing ring's edge, then South catches beyond ordinary reach. Burrow scoops a grounder at its reach edge.",
         ],
         [
+            "Standard fumble: steer through the scoop after the error, then select first and throw. Assistance cannot finish the pickup for you.",
             "C80 bobble recovery: wait for the helper's error, then steer with WASD through the loose-ball scoop.",
             "Force home: bases loaded, collect, then 4 and Space. With two outs, this force ends the half with no run.",
             "Rundown: 1 and Space checks first. Once trapped, 2 and Space throws ahead for the tag.",

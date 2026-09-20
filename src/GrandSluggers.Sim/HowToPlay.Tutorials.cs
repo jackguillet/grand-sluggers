@@ -155,6 +155,8 @@ public static partial class HowToPlay
         "force-home-missed" => "Collect the grounder and throw home before the forced runner arrives.",
         "rundown-tag" => "Your pickoff and follow-up throw tagged the trapped runner at second.",
         "rundown-missed" => "Pick off first, then throw ahead to second while the runner is trapped.",
+        "fumble-recovered" => "You scooped the fumble yourself and made the return throw to first.",
+        "fumble-not-returned" => "Take over after the fumble, scoop manually, then select first and throw.",
         "bobble-recovered" => "You took control after the bobble and scooped its loose ball yourself.",
         "bobble-not-recovered" => "Wait for the bobble, then steer through the loose-ball scoop; assisted recovery does not count.",
         "loose-recovered" => "You chased and scooped the live wall carom yourself.",
