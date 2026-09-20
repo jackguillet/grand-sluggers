@@ -14,23 +14,45 @@ public sealed partial class TutorialSession
     bool _allSent;
     bool _allReturned;
     bool _humanSlide;
+    bool _humanTaggedUp;
 
     void ResetRunningEvidence()
     {
         _lessonRunner = ""; _runnerSelected = false; _runnerSent = false;
         _runnerHeld = false; _runnerReturned = false; _humanDashed = false;
         _furthestRunnerFeet = 0;
-        _allSent = false; _allReturned = false; _humanSlide = false;
+        _allSent = false; _allReturned = false; _humanSlide = false; _humanTaggedUp = false;
     }
 
     RunnerBefore? CaptureRunnerBefore()
     {
-        var runner = Match.RunnerAt(Lesson.Objective is "runner-send-halt-return" or "all-runner-return" ? 2 : 0);
+        var bag = Lesson.Objective is "runner-send-halt-return" or "all-runner-return" ? 2
+            : Lesson.Objective == "human-tag-up" ? 3 : 0;
+        var runner = Match.RunnerAt(bag);
         return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held, runner.ForceSlide);
     }
 
     void ObserveRunning(LivePadInput pad, bool owned, RunnerBefore? before, LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-tag-up")
+        {
+            if (before is not null) _lessonRunner = before.Id;
+            var tagRunner = Match.Runners.FirstOrDefault(r => r.Who.Id == _lessonRunner);
+            if (owned && pad.AllAdvance && Match.LivePlay.Caught && before is { Bag: 3, Feet: <= 1e-6 }
+                && tagRunner is { HumanSent: true, Phase: RunnerPhase.Advancing })
+                _humanTaggedUp = true;
+            if (result.CompletedPlay is { } fly)
+            {
+                var scored = fly.RunsScored > 0 && fly.Outcome?.Moves.Any(m => m.Runner.Id == _lessonRunner
+                    && m.FromBag == 3 && m.ToBag == 4 && fly.Scorers.Contains(m.Runner.Name)) == true;
+                var catchOut = fly.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true;
+                var success = _humanTaggedUp && scored && catchOut;
+                Finish(success, success ? "tagged-up-scored" : "tag-up-missed",
+                    success ? "Your runner waited for the catch, tagged at third, and scored."
+                        : "Wait for the catch, then send the runner from third toward home.");
+            }
+            return;
+        }
         if (before is null) return;
         var runner = Match.Runners.FirstOrDefault(r => r.Who.Id == before.Id);
         if (runner is null) return;

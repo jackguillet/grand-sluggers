@@ -26,11 +26,17 @@ public sealed class TutorialCatalog
     public static readonly string[] Objectives = [.. TutorialPlateObjectives.PitchIds, .. TutorialPlateObjectives.SwingIds,
         "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
+<<<<<<< HEAD
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide",
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
         "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw"];
+=======
+        "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide", "human-tag-up",
+        "human-wall-carom", "human-buddy-rob", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
+        "human-steal", "human-double-steal", "human-catcher-tag", "human-ball-dash"];
+>>>>>>> 70b0fcc0 (Teach human tag-up scoring after caught fly)
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -142,7 +148,11 @@ public sealed class TutorialCatalog
                     or "human-choice-second" or "human-ball-dash")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
+<<<<<<< HEAD
                     or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw"), l.Id + " setup/objective mismatch");
+=======
+                    or "human-wall-carom" or "human-buddy-rob" or "human-tag-up"), l.Id + " setup/objective mismatch");
+>>>>>>> 70b0fcc0 (Teach human tag-up scoring after caught fly)
             if (l.Objective is "break-strike" or "rubber-strike" or "box-perfect-fair" or "grounder-fair" or "fly-fair")
                 Require(setup.MinMovement01 > 0, l.Id + " needs a meaningful movement threshold");
             if (l.Objective is "pull-fair" or "push-fair")

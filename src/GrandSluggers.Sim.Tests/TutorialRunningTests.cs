@@ -41,6 +41,8 @@ public sealed class TutorialRunningTests
                     : new(AllAdvance: true);
             }
             else if (run.Lesson.Id == "T-R03") pad = new(SouthDown: true);
+            else if (run.Lesson.Id == "T-R05" && run.Match.LivePlay.Caught)
+                pad = new(AllAdvance: true);
             else if (run.Lesson.Id == "T-R04")
             {
                 var runner = run.Match.RunnerAt(0);
@@ -56,6 +58,7 @@ public sealed class TutorialRunningTests
     [InlineData("T-R02")]
     [InlineData("T-R03")]
     [InlineData("T-R04")]
+    [InlineData("T-R05")]
     public void HumanCommandsAndRunnerGeometryEarnThreeDistinctAttempts(string id)
     {
         var run = Start(id);
@@ -76,6 +79,7 @@ public sealed class TutorialRunningTests
     [InlineData("T-R02")]
     [InlineData("T-R03")]
     [InlineData("T-R04")]
+    [InlineData("T-R05")]
     public void CpuOrdersAndDeadInputCannotEarnCredit(string id)
     {
         var run = Start(id);
