@@ -122,6 +122,8 @@ public static partial class HowToPlay
         "pickoff-safe" or "pickoff-no-runner" => "Select first for this runner and make the pickoff throw before the opportunity ends.",
         "ball-dash-carried" => "Ball Dash sped up your fielder while you carried the secured ball.",
         "ball-dash-not-carried" => "Collect the ball with the Ball Dash fielder, then steer at full speed while holding it.",
+        "laser-home" => "Your throw used the Laser speed boost toward home.",
+        "laser-not-used" => "Collect the ball with the Laser fielder and command a throw home while the runner is on third.",
         "relay-handoff" => "Your cutoff feed and the onward throw completed the relay home.",
         "snap-relay" => "The clean handoff used the receiver's Snap Throw on the onward leg.",
         "relay-not-completed" => "Arm home, feed the cutoff and finish the onward throw for this rules profile.",

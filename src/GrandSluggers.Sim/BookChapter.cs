@@ -25,6 +25,7 @@ public static class BookChapter
             ["the-box"] = "brondo",
             ["running"] = "konga",
             ["fielding"] = "ashlord",
+            ["relay-control"] = "ashlord",
             ["exhibition"] = "rio",
             ["lineup"] = "vale",
             ["two-pads"] = "zig",
