@@ -166,7 +166,7 @@ public sealed partial class TutorialSession
             throw new InvalidDataException("Tutorial setup no longer produces its intended ball class: " + Lesson.Id);
         LastHit = hit;
         Match.LivePlay.Recording = true;
-        var seats = Lesson.Objective is "human-double-off" or "human-close-defense" ? new LiveSeats(true, true, true, true)
+        var seats = Lesson.Objective is "human-double-off" or "human-triple-off" or "human-close-defense" ? new LiveSeats(true, true, true, true)
             : IsOffenseLesson ? new LiveSeats(true, false, false, false) : new LiveSeats(false, true, true, false);
         var result = Match.LivePlay.Apply(LivePlayCommand.BeginLive(CpuPitch, Contact, hit, preview, null, seats, 0, LivePlayCommandSource.System));
         if (!result.Snapshot.Active) throw new InvalidDataException("Tutorial setup did not start a live play.");
@@ -366,7 +366,7 @@ public sealed partial class TutorialSession
         }
         else if (_setup.Policy is "steal-offense" or "steal-defense") EvaluateStealPlay(result);
         else if (Lesson.Objective is "human-pickoff" or "human-rundown-tag") EvaluateSetPlay(result);
-        else if (Lesson.Objective is "human-choice-second" or "human-double-off" or "human-force-home"
+        else if (Lesson.Objective is "human-choice-second" or "human-double-off" or "human-triple-off" or "human-force-home"
             or "human-third-force-zero-run") EvaluateOutObjective(result);
         else EvaluateExpandedFieldObjective(live, result);
         if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))

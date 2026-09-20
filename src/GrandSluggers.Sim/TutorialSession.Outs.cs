@@ -15,7 +15,7 @@ public sealed partial class TutorialSession
         _rundownSeen = false;
         _humanCloseOffPress = false;
         _humanCloseDefPress = false; _nextOpponentDashAt = 5.0 / 60;
-        if (Lesson.Objective == "human-double-off") _lessonRunner = Match.Second?.Id ?? "";
+        if (Lesson.Objective is "human-double-off" or "human-triple-off") _lessonRunner = Match.Second?.Id ?? "";
     }
 
     void ObserveRundown() { if (Lesson.Objective == "human-rundown-tag" && Match.LivePlay.InRundown) _rundownSeen = true; }
@@ -63,13 +63,16 @@ public sealed partial class TutorialSession
 
     void TickDoubledOffOpponent()
     {
-        if (Lesson.Objective != "human-double-off" || _opponentLeftEarly) return;
+        if (Lesson.Objective is not ("human-double-off" or "human-triple-off") || _opponentLeftEarly) return;
         var live = Match.LivePlay;
         if (!live.Active || Match.RunnerAt(2)?.Who.Id != _lessonRunner) return;
         // A tutorial opponent takes a real, early send on the fly. The player's defense seat
         // still owns the catch and the throw that may beat this body back to second.
         live.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead,
             new LivePadInput(KeysBag: 2, StickBag: 3), false, LivePlayCommandSource.Cpu));
+        if (Lesson.Objective == "human-triple-off")
+            live.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead,
+                new LivePadInput(KeysBag: 1, StickBag: 2), false, LivePlayCommandSource.Cpu));
         _opponentLeftEarly = true;
     }
 
@@ -111,6 +114,18 @@ public sealed partial class TutorialSession
             Finish(success, success ? "runner-doubled-off" : "double-off-missed",
                 success ? "You caught the fly and threw behind the runner before they retouched second."
                     : "Catch the fly, then throw back to second before the runner returns.");
+        }
+        else if (Lesson.Objective == "human-triple-off")
+        {
+            var outs = play.Outcome?.OutsMade;
+            var catchOut = outs?.Any(o => o.Type == OutType.Catch && o.Runner.Id == _batter) == true;
+            var secondOff = outs?.Any(o => o.Type == OutType.Force && o.Bag == 2 && o.Runner.Id == _lessonRunner) == true;
+            var firstOff = outs?.Any(o => o.Type == OutType.Force && o.Bag == 1 && o.Runner.Id == _firstRunner) == true;
+            var success = _opponentLeftEarly && _throws.Count >= 2 && _throws[0] == 2 && _throws[1] == 1
+                && catchOut && secondOff && firstOff && outs?.Count == 3;
+            Finish(success, success ? "triple-play" : "triple-play-missed",
+                success ? "You caught the fly and threw behind both early runners for three outs."
+                    : "Catch the fly, then throw to second and first before either runner retouches.");
         }
         else if (Lesson.Objective == "human-third-force-zero-run")
         {
