@@ -204,7 +204,8 @@ public sealed partial class LivePlaySystem
     internal bool TutorialItemEffectActive(string item, string targetId) => item switch
     {
         "banana" => _peel is not null && _peelT > 0,
-        "rocket" => Field?.ItemTarget?.Id == targetId && _foil.Values.Any(t => t > 0),
+        "rocket" => Field?.ItemTarget is { } target && target.Id == targetId
+            && _foil.TryGetValue(PosOf(Assigned(), target), out var daze) && daze > 0,
         "pow" => _powT > 0,
         _ => false
     };

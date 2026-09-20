@@ -48,6 +48,7 @@ public sealed partial class TutorialSession
     {
         if (!Accepts(source) || !IsItemLesson || LastHit?.ChemistryItemOffered != true
             || !Match.LivePlay.Active || _humanItemId.Length > 0 || !ErrorItems.Known(itemId)) return false;
+        itemId = itemId.Trim().ToLowerInvariant();
         var target = Match.DefenseRoster.FirstOrDefault(c => c.Id == targetId);
         if (target is null) return false;
         _inputs.Add(new(Elapsed, source, ItemId: itemId, ItemTargetId: targetId));
