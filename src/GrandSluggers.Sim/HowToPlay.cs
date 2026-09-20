@@ -303,6 +303,7 @@ public static partial class HowToPlay
         ]),
         new("tutorial-live-plays", "Live-ball lessons", "training",
         [
+            "Return on a fly: send off third, then hold return before the catch. Stay safely on third instead of tagging up.",
             "Round first: select the runner at first, send toward second, then dash during the turn. An early dash on the straight does not count.",
             "Tag up from third: wait for the catch, then hold LB to send home. Double off: catch, then D-pad Up and South return to second.",
             "Triple play: catch the fly, then return to second and first before both early runners retouch.",
@@ -310,6 +311,7 @@ public static partial class HowToPlay
             "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
         ],
         [
+            "Return on a fly: send off third, then hold return before the catch. Stay safely on third instead of tagging up.",
             "Round first: select the runner at first, send toward second, then dash during the turn. An early dash on the straight does not count.",
             "Tag up from third: wait for the catch, then hold comma to send home. Double off: catch, then 2 and Space return to second.",
             "Triple play: catch the fly, then return to second and first before both early runners retouch.",
