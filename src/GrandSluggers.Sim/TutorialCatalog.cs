@@ -30,7 +30,7 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -134,7 +134,7 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "cpu-item" && l.Objective == "item-effect")
                 || (setup.Policy == "cpu-special-ground" && l.Objective == "human-special-ground")
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
-                || (setup.Policy == "pickoff" && l.Objective == "human-pickoff")
+                || (setup.Policy == "pickoff" && l.Objective is "human-pickoff" or "human-rundown-tag")
                 || (setup.Policy == "pitcher-swap" && l.Objective == "tired-pitcher-swap")
                 || (setup.Policy == "steal-offense" && l.Objective is "human-steal" or "human-double-steal")
                 || (setup.Policy == "steal-defense" && l.Objective == "human-catcher-tag")

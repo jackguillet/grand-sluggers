@@ -56,6 +56,18 @@ public sealed partial class TutorialSession
 
     void EvaluateSetPlay(LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-rundown-tag")
+        {
+            if (result.CompletedPlay is not { } rundown) return;
+            var tagged = rundown.Outcome?.OutsMade.Any(o => o.Type == OutType.Tag
+                && o.Runner.Id == _firstRunner && o.Bag == 2) == true;
+            var success = _humanPickoffBag == 1 && _rundownSeen && _throws.Contains(2) && tagged
+                && rundown.Outcome?.RunnerResult == RunnerPlayResult.PickedOff;
+            Finish(success, success ? "rundown-tag" : "rundown-missed",
+                success ? "Your pickoff trapped the runner; your follow-up throw made the tag at second."
+                    : "Pick off the exposed runner, then send the ball ahead for the tag at second.");
+            return;
+        }
         var live = Match.LivePlay;
         var received = _humanPickoffBag == 1 && live.PickoffBag == 1
             && live.FirstThrowBag == 1 && live.TutorialPickoffReceivedAtFirst;

@@ -105,4 +105,39 @@ public sealed class TutorialOutsTests
         Drive(run, 4, LivePlayCommandSource.Cpu);
         Assert.False(run.Feedback?.Success ?? false);
     }
+
+    [Fact]
+    public void HumanPickoffAndFollowUpThrowTagOriginalRunnerThreeTimes()
+    {
+        var run = Start("T-D05");
+        for (var n = 1; n <= 3; n++)
+        {
+            Assert.True(run.Pickoff(1));
+            for (var i = 0; i < 2700 && run.Phase == TutorialPhase.Attempt; i++)
+            {
+                var live = run.Match.LivePlay;
+                var pad = live.HoldsBall && !live.Throwing && live.GlovePos == "1B" && run.HumanThrows.Count == 0
+                    ? new LivePadInput(KeysBag: 2, SouthDown: true) : LivePadInput.Dead;
+                run.Tick(Frame, pad);
+            }
+            Assert.True(run.Feedback?.Success == true, $"{run.Feedback}; {run.LastPlay?.Kind}; outs {string.Join(',',run.LastPlay?.Outcome?.OutsMade.Select(o => $"{o.Runner.Id}:{o.Type}:{o.Bag}") ?? [])}; throws {string.Join(',',run.HumanThrows)}");
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(n == 3, run.Passed);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+            run.Retry();
+        }
+    }
+
+    [Fact]
+    public void WrongPickoffBagAndDeadFollowUpDoNotEarnRundownTag()
+    {
+        var run = Start("T-D05");
+        Assert.False(run.Pickoff(1, LivePlayCommandSource.Cpu));
+        Assert.True(run.Pickoff(2));
+        Assert.False(run.Feedback?.Success ?? false);
+        run.Retry();
+        Assert.True(run.Pickoff(1));
+        for (var i = 0; i < 2700 && run.Phase == TutorialPhase.Attempt; i++) run.Tick(Frame);
+        Assert.False(run.Feedback?.Success ?? false);
+    }
 }

@@ -247,6 +247,7 @@ public sealed partial class TutorialSession
             return;
         }
         var live = Match.LivePlay;
+        ObserveRundown();
         TickDoubledOffOpponent();
         TickDelayedStealOpponent(seconds);
         var pos = live.GlovePos; var who = live.TutorialGloveId; var x = live.GloveX; var z = live.GloveZ;
@@ -344,7 +345,7 @@ public sealed partial class TutorialSession
             Finish(correct, correct ? "turned-two" : "double-play-missed", correct ? "Your two throws beat both runners: second, then first." : "Make the force at second, then command the throw to first before the batter arrives.");
         }
         else if (_setup.Policy is "steal-offense" or "steal-defense") EvaluateStealPlay(result);
-        else if (Lesson.Objective == "human-pickoff") EvaluateSetPlay(result);
+        else if (Lesson.Objective is "human-pickoff" or "human-rundown-tag") EvaluateSetPlay(result);
         else if (Lesson.Objective is "human-choice-second" or "human-double-off" or "human-force-home") EvaluateOutObjective(result);
         else EvaluateExpandedFieldObjective(live, result);
         if (Phase == TutorialPhase.Attempt && (result.CompletedPlay is not null || Elapsed >= _setup.TimeoutSec))

@@ -1153,25 +1153,30 @@
     },
     {
       "id": "T-D05",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.05"
       ],
-      "title": "tag/rundown",
+      "title": "Trap and tag an exposed runner",
       "category": "outs",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live pickoff rundown/tag lesson; standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-D05",
+      "objective": "human-rundown-tag",
+      "controls": [
+        "control:pitching/Pickoff",
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     },
     {
       "id": "T-D06",
@@ -5448,6 +5453,38 @@
           "sprayDeg": -6
         }
       }
+    },
+    {
+      "id": "T-D05",
+      "policy": "pickoff",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "konga",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "dart"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {}
     }
   ]
 }

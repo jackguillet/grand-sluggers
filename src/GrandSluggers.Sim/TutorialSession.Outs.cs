@@ -4,12 +4,16 @@ namespace GrandSluggers.Sim;
 public sealed partial class TutorialSession
 {
     bool _opponentLeftEarly;
+    bool _rundownSeen;
 
     void ResetOutEvidence()
     {
         _opponentLeftEarly = false;
+        _rundownSeen = false;
         if (Lesson.Objective == "human-double-off") _lessonRunner = Match.Second?.Id ?? "";
     }
+
+    void ObserveRundown() { if (Lesson.Objective == "human-rundown-tag" && Match.LivePlay.InRundown) _rundownSeen = true; }
 
     void TickDoubledOffOpponent()
     {
