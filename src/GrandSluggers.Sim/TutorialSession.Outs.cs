@@ -169,7 +169,7 @@ public sealed partial class TutorialSession
         }
         else if (Lesson.Objective == "human-third-tag-counts-run")
         {
-            var tagged = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Tag
+            var tagged = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Tag && o.Bag == 3
                 && o.Runner.Id == _secondRunner) == true;
             var success = _scoringOpponentSent && _thirdCrossedBeforeOut && _throws.Contains(3)
                 && tagged && play.RunsScored == 1 && play.Context?.OutsBefore == 2;
