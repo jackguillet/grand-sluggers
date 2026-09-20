@@ -13,6 +13,15 @@ public sealed partial class TutorialSession
     bool _looseTracked;
     string _looseChaserId = "";
     bool _coverHumanThrow;
+    bool _bobbleSeen;
+    bool _bobbleHumanChase;
+    bool _bobbleTracked;
+    string _bobbleChaserId = "";
+    double _bobbleLastX;
+    double _bobbleLastZ;
+    double _bobbleLastBallX;
+    double _bobbleLastBallZ;
+    bool _bobbleHeldBefore;
     double _dashLastTime;
     double _dashLastX;
     double _dashLastZ;
@@ -38,6 +47,10 @@ public sealed partial class TutorialSession
         _looseTracked = false;
         _looseChaserId = "";
         _coverHumanThrow = false;
+        _bobbleSeen = _bobbleHumanChase = _bobbleTracked = false;
+        _bobbleChaserId = "";
+        _bobbleLastX = _bobbleLastZ = _bobbleLastBallX = _bobbleLastBallZ = 0;
+        _bobbleHeldBefore = false;
         _dashLastTime = 0;
         _dashLastX = 0;
         _dashLastZ = 0;
@@ -57,6 +70,50 @@ public sealed partial class TutorialSession
 
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
+        if (Lesson.Objective == "human-bobble-recovery")
+        {
+            if (live.Events.Contains(LiveEvent.Bobble) && live.LooseBall && !live.Deflected
+                && live.HandlingChance > 0)
+            {
+                _bobbleSeen = true;
+            }
+            var input = _inputs[^1];
+            var pad = input.Field;
+            var owned = input.Source == LivePlayCommandSource.Human && !Demonstration;
+            var recoveredNow = _bobbleSeen && !_bobbleHeldBefore && live.HoldsBall && !live.LooseBall;
+            _bobbleHeldBefore = live.HoldsBall;
+            var manual = owned && pad is { StickX: var sx, StickY: var sz }
+                && sx * sx + sz * sz >= .25 && live.PursuitManual;
+            if (_bobbleSeen && live.LooseBall && _bobbleTracked && manual
+                && (live.GloveX - _bobbleLastX) * (_bobbleLastBallX - _bobbleLastX)
+                    + (live.GloveZ - _bobbleLastZ) * (_bobbleLastBallZ - _bobbleLastZ) > 1e-5)
+            {
+                _bobbleHumanChase = true;
+                _bobbleChaserId = live.TutorialGloveId;
+            }
+            if (_bobbleSeen)
+            {
+                _bobbleLastX = live.GloveX; _bobbleLastZ = live.GloveZ;
+                _bobbleLastBallX = live.BallX; _bobbleLastBallZ = live.BallZ;
+                _bobbleTracked = true;
+            }
+            if (_bobbleSeen && _bobbleHumanChase && manual && recoveredNow
+                && live.TutorialGloveId == _bobbleChaserId
+                && !_assistedSinceManual.Contains(_bobbleChaserId))
+            {
+                var marks = live.TakeTrace().Marks ?? [];
+                var loose = marks.LastOrDefault(m => m.Kind == PlayTraceMarkKind.LooseBall);
+                if (loose is not null && marks.Any(m => m.Kind == PlayTraceMarkKind.Possession
+                    && m.T > loose.T && m.Fielder == live.GlovePos))
+                {
+                    Finish(true, "bobble-recovered", "You took the glove after the ordinary bobble and scooped its loose ball.");
+                    return;
+                }
+            }
+            if (result.CompletedPlay is not null)
+                Finish(false, "bobble-not-recovered", "Take a glove, chase the ordinary bobble and scoop its loose ball yourself.");
+            return;
+        }
         if (Lesson.Objective == "human-uncovered-receiver")
         {
             var input = _inputs[^1];
@@ -100,7 +157,10 @@ public sealed partial class TutorialSession
                 _looseTracked = true;
             }
             if (_looseSeen && _looseHumanChase && live.HoldsBall
-                && live.Events.Contains(LiveEvent.Glove) && live.TutorialGloveId == _looseChaserId)
+                && live.Events.Contains(LiveEvent.Glove) && live.TutorialGloveId == _looseChaserId
+                && input.Source == LivePlayCommandSource.Human && !Demonstration
+                && input.Field is { StickX: var takeX, StickY: var takeY } && takeX * takeX + takeY * takeY >= .25
+                && live.PursuitManual && !_assistedSinceManual.Contains(_looseChaserId))
             {
                 Finish(true, "loose-recovered", "You chased the wall carom and scooped the live loose ball.");
                 return;

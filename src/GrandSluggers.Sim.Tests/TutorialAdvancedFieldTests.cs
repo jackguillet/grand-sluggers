@@ -21,12 +21,14 @@ public sealed class TutorialAdvancedFieldTests
     {
         var jumped = false;
         var wallSeen = false;
+        var bobbleSeen = false;
         var relayStage = 0;
         var laserArmed = false;
         for (var i = 0; i < 1900 && run.Phase == TutorialPhase.Attempt; i++)
         {
             var live = run.Match.LivePlay;
             wallSeen |= live.Events.Contains(LiveEvent.WallCarom);
+            bobbleSeen |= live.Events.Contains(LiveEvent.Bobble);
             var pad = LivePadInput.Dead;
             if (act && run.Lesson.Id == "T-F11" && live.HoldsBall && !live.Throwing)
                 pad = new(KeysBag: wrongBag ? 2 : 3, SouthDown: true);
@@ -41,6 +43,13 @@ public sealed class TutorialAdvancedFieldTests
             }
             else if (act && run.Lesson.Id == "T-F09" && !wallSeen && live.ElapsedSeconds > .5)
                 pad = new(StickX: -1, StickY: 0);
+            else if (act && run.Lesson.Id == "T-F09-B" && bobbleSeen && !live.HoldsBall)
+            {
+                var dx = live.BallX - live.GloveX;
+                var dz = live.BallZ - live.GloveZ;
+                var length = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
+                pad = new(StickX: dx / length, StickY: dz / length, SouthDown: length <= 3.5);
+            }
             else if (act && run.Lesson.Id == "T-F13" && live.HoldsBall && !live.Throwing)
                 pad = new(StickY: 1);
             else if (act && run.Lesson.Id == "T-F10" && live.HoldsBall && !live.Throwing)
@@ -328,6 +337,82 @@ public sealed class TutorialAdvancedFieldTests
         var cpu = Start("T-F09");
         Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
         Assert.Equal(0, cpu.Successes);
+    }
+
+    [Fact]
+    public void OneHumanStepThenAssistedCaromPickupDoesNotEarnRecovery()
+    {
+        var run = Start("T-F09");
+        var sawWall = false;
+        var stepped = false;
+        var assisted = false;
+        for (var i = 0; i < 1900 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var live = run.Match.LivePlay;
+            sawWall |= live.Events.Contains(LiveEvent.WallCarom);
+            var pad = LivePadInput.Dead;
+            if (!sawWall && live.ElapsedSeconds > .5) pad = new(StickX: -1);
+            else if (sawWall && !stepped && !live.HoldsBall)
+            {
+                var dx = live.BallX - live.GloveX;
+                var dz = live.BallZ - live.GloveZ;
+                var length = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
+                pad = new(StickX: dx / length, StickY: dz / length);
+                stepped = true;
+            }
+            run.Tick(Frame, pad);
+            assisted |= stepped && !run.Match.LivePlay.PursuitManual && !run.Match.LivePlay.HoldsBall;
+        }
+        Assert.True(sawWall && stepped && assisted);
+        Assert.Equal(0, run.Successes);
+    }
+
+    [Fact]
+    public void OrdinaryLocalBobbleNeedsHumanTakeoverAndLiveScoop()
+    {
+        if (!TestRoot.Compact) return;
+        var run = Start("T-F09-B");
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.True(run.Feedback?.Code == "bobble-recovered", run.Feedback?.ToString());
+            Assert.Equal(attempt, run.Successes);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var dead = Start("T-F09-B");
+        Drive(dead, act: false);
+        Assert.Equal(0, dead.Successes);
+        var cpu = Start("T-F09-B");
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.Equal(0, cpu.Successes);
+    }
+
+    [Fact]
+    public void AssistedScoopAfterOneHumanBobbleStepDoesNotEarnCredit()
+    {
+        if (!TestRoot.Compact) return;
+        var run = Start("T-F09-B");
+        var bobbled = false;
+        var stepped = false;
+        for (var i = 0; i < 1900 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var live = run.Match.LivePlay;
+            bobbled |= live.Events.Contains(LiveEvent.Bobble) && live.LooseBall;
+            var pad = LivePadInput.Dead;
+            if (bobbled && !stepped && !live.HoldsBall)
+            {
+                var dx = live.BallX - live.GloveX;
+                var dz = live.BallZ - live.GloveZ;
+                var length = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
+                pad = new(StickX: dx / length, StickY: dz / length);
+                stepped = true;
+            }
+            run.Tick(Frame, pad);
+        }
+        Assert.True(bobbled && stepped);
+        Assert.Equal(0, run.Successes);
     }
 
     [Fact]
