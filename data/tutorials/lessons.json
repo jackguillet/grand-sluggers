@@ -3862,7 +3862,6 @@
       }
     },
     {
-<<<<<<< HEAD
       "id": "T-R06",
       "policy": "steal-offense",
       "seed": 1,
@@ -3939,17 +3938,10 @@
       "policy": "steal-defense",
       "seed": 1,
       "timeoutSec": 45,
-=======
-      "id": "T-F08",
-      "policy": "airborne",
-      "seed": 1,
-      "timeoutSec": 30,
->>>>>>> f1158012 (Teach buffered relay queue, retarget, and cancel with live evidence)
       "home": [
         "vale",
         "pewter",
         "lace",
-<<<<<<< HEAD
         "frost",
         "basil",
         "ashlord",
@@ -3973,7 +3965,16 @@
       ],
       "balls": {},
       "seat": "defense"
-=======
+    },
+    {
+      "id": "T-F08",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
         "marlow",
         "grit",
         "frost",
@@ -4081,7 +4082,6 @@
           "sprayDeg": 0
         }
       }
->>>>>>> f1158012 (Teach buffered relay queue, retarget, and cancel with live evidence)
     }
   ]
 }

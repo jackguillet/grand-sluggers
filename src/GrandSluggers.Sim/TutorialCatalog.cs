@@ -26,16 +26,12 @@ public sealed class TutorialCatalog
         "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide",
-<<<<<<< HEAD
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
+        "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
         "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense"];
 
-=======
-        "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay"];
-    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne"];
->>>>>>> f1158012 (Teach buffered relay queue, retarget, and cancel with live evidence)
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
     TutorialCatalog(TutorialMechanicFile mechanics, TutorialLessonFile lessons, TutorialMigrationFile migration, string profile)
