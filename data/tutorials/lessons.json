@@ -2570,6 +2570,34 @@
       "objective": "",
       "controls": [],
       "tests": []
+    },
+    {
+      "id": "T-D09",
+      "revision": 1,
+      "mechanics": [
+        "outs.06"
+      ],
+      "title": "Win the defender's close play",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless defender-side close-play lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-D06"
+      ],
+      "setup": "T-D09",
+      "objective": "human-close-defense",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     }
   ],
   "setups": [
@@ -5790,6 +5818,59 @@
         }
       },
       "seat": "offense"
+    },
+    {
+      "id": "T-D09",
+      "policy": "grounder",
+      "seed": 5,
+      "timeoutSec": 35,
+      "home": [
+        "rio",
+        "nico",
+        "pip",
+        "marlow",
+        "vale",
+        "lace",
+        "zig",
+        "dart",
+        "vine"
+      ],
+      "away": [
+        "ashlord",
+        "cinder",
+        "soot",
+        "grit",
+        "boom",
+        "konga",
+        "frost",
+        "brondo",
+        "hex"
+      ],
+      "runners": [
+        2
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "grit"
+        ],
+        "c80": [
+          "konga"
+        ]
+      },
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 3,
+          "sprayDeg": 38
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 3,
+          "sprayDeg": 38
+        }
+      }
     }
   ]
 }

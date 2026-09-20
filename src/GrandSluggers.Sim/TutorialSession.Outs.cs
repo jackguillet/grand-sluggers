@@ -6,12 +6,15 @@ public sealed partial class TutorialSession
     bool _opponentLeftEarly;
     bool _rundownSeen;
     bool _humanCloseOffPress;
+    bool _humanCloseDefPress;
+    int _closeOpponentFrame;
 
     void ResetOutEvidence()
     {
         _opponentLeftEarly = false;
         _rundownSeen = false;
         _humanCloseOffPress = false;
+        _humanCloseDefPress = false; _closeOpponentFrame = 0;
         if (Lesson.Objective == "human-double-off") _lessonRunner = Match.Second?.Id ?? "";
     }
 
@@ -28,6 +31,31 @@ public sealed partial class TutorialSession
         Finish(success, success ? "close-runner-safe" : "close-runner-out",
             success ? "Your press won the close play and the runner reached third safely."
                 : "Send the runner, then press as the close-play icon appears to beat the tag.");
+    }
+
+    void TickCloseOpponent()
+    {
+        if (Lesson.Objective != "human-close-defense" || !Match.LivePlay.Active) return;
+        var live = Match.LivePlay;
+        var pad = _closeOpponentFrame < 3 ? new LivePadInput(AllAdvance: true)
+            : _closeOpponentFrame < 20 && _closeOpponentFrame % 4 == 0 && !live.InClosePlay
+                ? new LivePadInput(SouthDown: true) : LivePadInput.Dead;
+        _closeOpponentFrame++;
+        if (pad != LivePadInput.Dead)
+            live.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead, pad, false, LivePlayCommandSource.Cpu));
+    }
+
+    void ObserveCloseDefense(bool iconBefore, LivePadInput pad, bool owned, LivePlayCommandResult result)
+    {
+        if (Lesson.Objective != "human-close-defense") return;
+        if (owned && iconBefore && pad.SouthDown) _humanCloseDefPress = true;
+        if (result.CompletedPlay is not { } play) return;
+        var tagged = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Tag && o.Bag == 3
+            && o.Runner.Id == _secondRunner) == true;
+        var success = _throws.Contains(3) && _humanCloseDefPress && tagged;
+        Finish(success, success ? "close-runner-tagged" : "close-tag-missed",
+            success ? "Your throw and press beat the runner to third for the tag."
+                : "Throw to third, then press when the close-play icon appears.");
     }
 
     void TickDoubledOffOpponent()

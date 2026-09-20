@@ -189,4 +189,48 @@ public sealed class TutorialOutsTests
         }
         Assert.False(run.Feedback?.Success ?? false);
     }
+
+    [Fact]
+    public void HumanFielderWinsCloseTagAtThirdThreeTimes()
+    {
+        var run = Start("T-D09");
+        for (var n = 1; n <= 3; n++)
+        {
+            var iconAt = -1;
+            for (var i = 0; i < 2100 && run.Phase == TutorialPhase.Attempt; i++)
+            {
+                var live = run.Match.LivePlay;
+                if (iconAt < 0 && live.CloseIcon) iconAt = i;
+                var pad = iconAt >= 0 && i == iconAt + 2 ? new LivePadInput(SouthDown: true)
+                    : live.HoldsBall && !live.Throwing && run.HumanThrows.Count == 0
+                        && run.Match.Runners.Any(r => r.FromBag == 2 && r.Feet > (TestRoot.Compact ? 35 : 45))
+                        ? new LivePadInput(KeysBag: 3, SouthDown: true) : LivePadInput.Dead;
+                run.Tick(Frame, pad);
+            }
+            Assert.True(run.Feedback?.Success == true, $"{run.Feedback}; icon {iconAt}; play {run.LastPlay?.Kind}; outs {string.Join(',',run.LastPlay?.Outcome?.OutsMade.Select(o => $"{o.Runner.Id}:{o.Type}:{o.Bag}") ?? [])}; throws {string.Join(',',run.HumanThrows)}");
+            Assert.Equal(n, run.Successes);
+            Assert.Equal(n == 3, run.Passed);
+            Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+            run.Retry();
+        }
+    }
+
+    [Fact]
+    public void ThrowWithoutHumanClosePressCannotEarnDefenderLesson()
+    {
+        var run = Start("T-D09");
+        for (var i = 0; i < 2100 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var live = run.Match.LivePlay;
+            var pad = live.HoldsBall && !live.Throwing && run.HumanThrows.Count == 0
+                && run.Match.Runners.Any(r => r.FromBag == 2 && r.Feet > (TestRoot.Compact ? 35 : 45))
+                ? new LivePadInput(KeysBag: 3, SouthDown: true) : LivePadInput.Dead;
+            run.Tick(Frame, pad);
+        }
+        Assert.False(run.Feedback?.Success ?? false);
+        run.Retry();
+        for (var i = 0; i < 2100 && run.Phase == TutorialPhase.Attempt; i++)
+            run.Tick(Frame, new LivePadInput(KeysBag: 3, SouthDown: true), LivePlayCommandSource.Cpu);
+        Assert.False(run.Feedback?.Success ?? false);
+    }
 }
