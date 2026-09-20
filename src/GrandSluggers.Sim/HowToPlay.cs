@@ -302,11 +302,13 @@ public static partial class HowToPlay
         new("tutorial-live-plays", "Live-ball lessons", "training",
         [
             "Tag up from third: wait for the catch, then hold LB to send home. Double off: catch, then D-pad Up and South return to second.",
+            "Triple play: catch the fly, then return to second and first before both early runners retouch.",
             "Item lesson: hit fair first. RB cycles; stick aims. LT + RB or LT + South throws the selected item.",
             "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
         ],
         [
             "Tag up from third: wait for the catch, then hold comma to send home. Double off: catch, then 2 and Space return to second.",
+            "Triple play: catch the fly, then return to second and first before both early runners retouch.",
             "Item lesson: hit fair first. Tab cycles; WASD aims. E throws the selected item.",
             "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
         ]),

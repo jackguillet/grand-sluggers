@@ -142,6 +142,8 @@ public static partial class HowToPlay
         _ when code.StartsWith("star-swing-") => "Your selected star swing made fair contact and spent its cost.",
         "tagged-up-scored" => "You waited for the catch and your runner scored from third.",
         "tag-up-missed" => "Stay on third until the catch, then send the runner home.",
+        "triple-play" => "The catch and your two return throws retired the batter and both early runners.",
+        "triple-play-missed" => "Catch the fly, then throw to second and first before both runners retouch.",
         "runner-doubled-off" => "The catch retired the batter and your return to second doubled off the runner.",
         "double-off-missed" => "Catch the fly and throw to second before the early runner gets back.",
         "special-ground-fielded" => "Your controlled glove secured the star grounder.",
