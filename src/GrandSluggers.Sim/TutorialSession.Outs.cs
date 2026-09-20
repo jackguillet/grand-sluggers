@@ -8,6 +8,8 @@ public sealed partial class TutorialSession
     bool _humanCloseOffPress;
     bool _humanCloseDefPress;
     double _nextOpponentDashAt;
+    bool _scoringOpponentSent;
+    bool _thirdCrossedBeforeOut;
 
     void ResetOutEvidence()
     {
@@ -15,6 +17,7 @@ public sealed partial class TutorialSession
         _rundownSeen = false;
         _humanCloseOffPress = false;
         _humanCloseDefPress = false; _nextOpponentDashAt = 5.0 / 60;
+        _scoringOpponentSent = false; _thirdCrossedBeforeOut = false;
         if (Lesson.Objective is "human-double-off" or "human-triple-off") _lessonRunner = Match.Second?.Id ?? "";
     }
 
@@ -46,6 +49,22 @@ public sealed partial class TutorialSession
         }
         if (pad != LivePadInput.Dead)
             live.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead, pad, false, LivePlayCommandSource.Cpu));
+    }
+
+    void TickScoringOpponent()
+    {
+        if (Lesson.Objective is not ("human-third-force-cancels-run" or "human-third-tag-counts-run")
+            || _scoringOpponentSent || !Match.LivePlay.Active) return;
+        Match.LivePlay.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead,
+            new LivePadInput(AllAdvance: true), false, LivePlayCommandSource.Cpu));
+        _scoringOpponentSent = true;
+    }
+
+    void ObserveScoringRunner()
+    {
+        if (Lesson.Objective is not ("human-third-force-cancels-run" or "human-third-tag-counts-run")) return;
+        if (Match.Runners.Any(r => r.Who.Id == _thirdRunner && r.Phase == RunnerPhase.Scored))
+            _thirdCrossedBeforeOut = true;
     }
 
     void ObserveCloseDefense(bool iconBefore, LivePadInput pad, bool owned, LivePlayCommandResult result)
@@ -137,6 +156,26 @@ public sealed partial class TutorialSession
             Finish(success, success ? "third-force-no-run" : "third-out-missed",
                 success ? "Your force at home made the third out; the run did not count and the inning changed."
                     : "With two outs, throw home for the third force out before the runner scores.");
+        }
+        else if (Lesson.Objective == "human-third-force-cancels-run")
+        {
+            var forced = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Force && o.Bag == 2
+                && o.Runner.Id == _firstRunner) == true;
+            var success = _scoringOpponentSent && _thirdCrossedBeforeOut && _throws.Contains(2)
+                && forced && play.RunsScored == 0 && play.Context?.OutsBefore == 2;
+            Finish(success, success ? "crossed-run-canceled" : "force-timing-missed",
+                success ? "The runner crossed home first, but your third force out at second erased that run."
+                    : "Let the lead runner cross home, then make the third force out at second.");
+        }
+        else if (Lesson.Objective == "human-third-tag-counts-run")
+        {
+            var tagged = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Tag
+                && o.Runner.Id == _secondRunner) == true;
+            var success = _scoringOpponentSent && _thirdCrossedBeforeOut && _throws.Contains(3)
+                && tagged && play.RunsScored == 1 && play.Context?.OutsBefore == 2;
+            Finish(success, success ? "crossed-run-counted" : "tag-timing-missed",
+                success ? "The runner crossed home before your nonforce third out, so the run counted."
+                    : "Let the lead runner cross home, then tag the trailing runner for the third out.");
         }
     }
 }

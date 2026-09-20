@@ -1239,15 +1239,15 @@
     },
     {
       "id": "T-D07-T",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.07"
       ],
-      "title": "Run timing on a third force versus third tag",
+      "title": "A third force cancels a run that crossed",
       "category": "outs",
-      "status": "planned",
+      "status": "implemented",
       "issue": 794,
-      "reason": "Owner #794: author a live contact where a runner crosses home before the human-made third out, then prove the run is canceled by a force but counts before a nonforce tag. T-D07 only proves a zero-run force at home; no crossed-run contrast is staged yet.",
+      "reason": "Headless crossed-run third-force lesson; complementary third-tag count remains separate",
       "profiles": [
         "shipped",
         "c80"
@@ -1256,10 +1256,14 @@
       "prerequisites": [
         "T-D07"
       ],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-D07-T",
+      "objective": "human-third-force-cancels-run",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
     },
     {
       "id": "T-D08",
@@ -2755,6 +2759,30 @@
       "tests": [
         "TutorialRunningTests"
       ]
+    },
+    {
+      "id": "T-D07-C",
+      "revision": 1,
+      "mechanics": [
+        "outs.07"
+      ],
+      "title": "A run counts before a third tag",
+      "category": "outs",
+      "status": "planned",
+      "issue": 794,
+      "reason": "Owner #794: stage a live runner crossing home before a human nonforce third-out tag on another runner; no safe geometry fixture yet.",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-D07-T"
+      ],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
     }
   ],
   "setups": [
@@ -6348,6 +6376,63 @@
         }
       },
       "seat": "assisted-defense"
+    },
+    {
+      "id": "T-D07-T",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "konga",
+        "soot",
+        "boom",
+        "nugget",
+        "grit"
+      ],
+      "runners": [
+        1,
+        3
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "konga",
+          "dart"
+        ],
+        "c80": [
+          "konga",
+          "dart"
+        ]
+      },
+      "outs": 2,
+      "balls": {
+        "shipped": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        },
+        "c80": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        }
+      }
     }
   ]
 }
