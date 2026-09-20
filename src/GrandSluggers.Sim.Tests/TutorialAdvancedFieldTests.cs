@@ -39,7 +39,7 @@ public sealed class TutorialAdvancedFieldTests
                 pad = laserArmed ? new(SouthDown: true) : new(KeysBag: 4);
                 laserArmed = true;
             }
-            else if (act && run.Lesson.Id is "T-F07" or "T-F14" or "T-F08" or "T-F08-R" or "T-F08-C")
+            else if (act && run.Lesson.Id is "T-F07" or "T-F14" or "T-F08" or "T-F08-R" or "T-F08-C" or "T-G02")
             {
                 if (relayStage == 0 && live.HoldsBall && live.GlovePos == "CF")
                 {
@@ -275,5 +275,26 @@ public sealed class TutorialAdvancedFieldTests
         var noQueue = Start(id);
         Drive(noQueue, act: true, skipOnward: true);
         Assert.Equal(0, noQueue.Successes);
+    }
+
+    [Fact]
+    public void GoodChemistryIsEarnedFromTheHumanCutoffFeedAndRealThrowSpeed()
+    {
+        var run = Start("T-G02");
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            Drive(run, act: true);
+            Assert.Equal("chemistry-throw", run.Feedback?.Code);
+            Assert.Equal(attempt, run.Successes);
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+            Assert.Equal(run.Feedback, replay.Feedback);
+            run.Retry();
+        }
+        var dead = Start("T-G02");
+        Drive(dead, act: false);
+        Assert.Equal(0, dead.Successes);
+        var cpu = Start("T-G02");
+        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
+        Assert.Equal(0, cpu.Successes);
     }
 }
