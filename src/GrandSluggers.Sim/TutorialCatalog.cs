@@ -10,7 +10,7 @@ public sealed record TutorialBall(double CarryFt, double ExitMph, double LaunchD
 public sealed record TutorialSetup(string Id, string Policy, int Seed, double TimeoutSec, string[] Home,
     string[] Away, int[] Runners, Dictionary<string, TutorialBall> Balls, PitchCommand? Pitch = null,
     double MinMovement01 = 0, int Strikes = 0, double MinTimingFrames = 0, string Seat = "defense", double StartingStars = 0,
-    string Skill = "", string PitcherId = "", string BatterId = "", string OnDeckId = "");
+    string Skill = "", string PitcherId = "", string BatterId = "", string OnDeckId = "", double OpponentStars = 0);
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -30,8 +30,8 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect"];
-    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground"];
+    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
@@ -132,6 +132,7 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "cpu-strike" && TutorialPlateObjectives.SwingIds.Contains(l.Objective) && l.Objective != "take-ball")
                 || (setup.Policy == "cpu-strike" && l.Objective == "star-swing")
                 || (setup.Policy == "cpu-item" && l.Objective == "item-effect")
+                || (setup.Policy == "cpu-special-ground" && l.Objective == "human-special-ground")
                 || (setup.Policy == "cpu-ball" && l.Objective == "take-ball")
                 || (setup.Policy == "pickoff" && l.Objective == "human-pickoff")
                 || (setup.Policy == "pitcher-swap" && l.Objective == "tired-pitcher-swap")
@@ -160,6 +161,10 @@ public sealed class TutorialCatalog
                 && setup.Away.Contains(setup.BatterId) && setup.Away.Contains(setup.OnDeckId)
                 && content.Chemistry.ChemistryItemOffered(content.Characters[setup.BatterId], content.Characters[setup.OnDeckId]),
                 l.Id + " needs an offered item and named item fixture");
+            if (l.Objective == "human-special-ground") Require(l.Id == "T-X02" && setup.Skill == "ground"
+                && setup.OpponentStars >= content.Rules.Stars.Costs.Own && setup.Away.Contains(setup.BatterId)
+                && content.Characters[setup.BatterId].StarSwing == setup.Skill,
+                l.Id + " needs a funded opponent star-ground swing");
             if (l.Objective == "star-pitch") Require((l.Id == "T-P09" || l.Id == "T-SP-" + setup.Skill)
                 && content.StarSkills.Pitches.ContainsKey(setup.Skill)
                 && setup.Home.Contains(setup.PitcherId.Length > 0 ? setup.PitcherId : setup.Home[0])
@@ -189,6 +194,8 @@ public sealed class TutorialCatalog
                 && (s.OnDeckId.Length == 0 || s.Away.Contains(s.OnDeckId)), s.Id + " has a skill player outside its team");
             Require(double.IsFinite(s.StartingStars) && s.StartingStars >= 0 && s.StartingStars <= content.Rules.Stars.MeterMax,
                 s.Id + " has invalid starting stars");
+            Require(double.IsFinite(s.OpponentStars) && s.OpponentStars >= 0 && s.OpponentStars <= content.Rules.Stars.MeterMax,
+                s.Id + " has invalid opponent stars");
             Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
             Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball" or "cpu-take"), s.Id + " has invalid starting strikes");
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
