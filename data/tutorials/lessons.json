@@ -839,25 +839,29 @@
     },
     {
       "id": "T-F09",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fielding.09"
       ],
-      "title": "recovery/bobble/loose-ball chase",
+      "title": "recover a live wall carom",
       "category": "fielding",
-      "status": "planned",
-      "issue": 770,
-      "reason": "Initial migration backlog",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live wall-carom recovery exercise; separate ordinary-bobble drill and standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
       ],
       "requires": [],
       "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-F09",
+      "objective": "human-loose-recovery",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
     },
     {
       "id": "T-F10",
@@ -5281,6 +5285,49 @@
       "skill": "ground",
       "batterId": "dart",
       "opponentStars": 1
+    },
+    {
+      "id": "T-F09",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "konga",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 110,
+          "launchDeg": 35,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 120,
+          "launchDeg": 25,
+          "sprayDeg": 0
+        }
+      }
     }
   ]
 }
