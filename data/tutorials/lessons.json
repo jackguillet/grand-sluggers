@@ -1221,7 +1221,7 @@
       "category": "outs",
       "status": "implemented",
       "issue": 794,
-      "reason": "Headless third-force-out and zero-run lesson; time-play scoring contrast pending separate drill",
+      "reason": "Headless third-force-out and zero-run lesson; crossed-run consequences are taught in T-D07-T and T-D07-C",
       "profiles": [
         "shipped",
         "c80"
@@ -1247,7 +1247,7 @@
       "category": "outs",
       "status": "implemented",
       "issue": 794,
-      "reason": "Headless crossed-run third-force lesson; complementary third-tag count remains separate",
+      "reason": "Headless crossed-run third-force lesson; complementary counted-run tag is T-D07-C",
       "profiles": [
         "shipped",
         "c80"
