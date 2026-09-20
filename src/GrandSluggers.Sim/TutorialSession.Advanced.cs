@@ -7,6 +7,8 @@ public sealed partial class TutorialSession
     double _dashLastTime;
     double _dashLastX;
     double _dashLastZ;
+    string _dashLastHolder = "";
+    bool _dashLastHeld;
     bool _relayHumanFeed;
     bool _relayHumanOnward;
     bool _laserHumanThrow;
@@ -24,6 +26,8 @@ public sealed partial class TutorialSession
         _dashLastTime = 0;
         _dashLastX = 0;
         _dashLastZ = 0;
+        _dashLastHolder = "";
+        _dashLastHeld = false;
         _relayHumanFeed = false;
         _relayHumanOnward = false;
         _laserHumanThrow = false;
@@ -200,13 +204,18 @@ public sealed partial class TutorialSession
             var previousTime = _dashLastTime;
             var previousX = _dashLastX;
             var previousZ = _dashLastZ;
+            var previousHolder = _dashLastHolder;
+            var previousHeld = _dashLastHeld;
             _dashLastTime = Elapsed;
             _dashLastX = live.GloveX;
             _dashLastZ = live.GloveZ;
+            _dashLastHolder = live.TutorialGloveId;
+            _dashLastHeld = live.HoldsBall && !live.Throwing;
             var input = _inputs[^1];
             var pad = input.Field;
             if (live.HoldsBall && !live.Throwing && input.Source == LivePlayCommandSource.Human && !Demonstration
                 && pad is { StickX: var sx, StickY: var sz } && sx * sx + sz * sz >= .95 * .95
+                && previousHeld && previousHolder == live.TutorialGloveId
                 && previousTime > 0 && Elapsed > previousTime)
             {
                 var carrier = _content.Must(live.TutorialGloveId);

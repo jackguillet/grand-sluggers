@@ -16,8 +16,14 @@ public sealed class TutorialCatalogTests
         Assert.Empty(c.Validate(_content));
         Assert.Subset(c.Mechanics.SelectMany(m=>m.Sources).ToHashSet(),TutorialCatalog.RuntimeSources(_content).ToHashSet());
         Assert.True(c.Lessons.Count(l=>l.Status=="implemented") >= 31);
-        foreach(var l in c.Lessons.Where(l=>l.Status=="implemented" && l.Id!="T-G06-C"))
-            Assert.Contains(c.Profile,l.Profiles);
+        foreach(var l in c.Lessons.Where(l=>l.Status=="implemented"))
+        {
+            Assert.NotEmpty(l.Profiles);
+            foreach (var profile in l.Profiles)
+                Assert.Contains(profile, new[] { "shipped", "c80" });
+        }
+        Assert.Contains(c.Lessons,l=>l.Id=="T-P01" && l.Status=="implemented" && l.Profiles.Contains(c.Profile));
+        Assert.Contains(c.Lessons,l=>l.Id=="T-F08" && l.Status=="implemented" && l.Profiles.SequenceEqual(new[] { "c80" }));
     }
 
     [Fact]
