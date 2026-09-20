@@ -387,7 +387,6 @@ public sealed partial class TutorialSession
     partial void EvaluateAdvancedFieldObjective(LivePlaySystem live, LivePlayCommandResult result);
     partial void ResetAdvancedEvidence();
 
-    partial void ResetAdvancedEvidence();
 
     public TutorialRecording Recording() => new(1, Lesson.Id, Lesson.Revision, _catalog.Profile, InputsHash, Demonstration, _inputs.ToArray());
 

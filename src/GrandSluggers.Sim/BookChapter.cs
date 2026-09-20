@@ -26,6 +26,7 @@ public static class BookChapter
             ["running"] = "konga",
             ["fielding"] = "ashlord",
             ["relay-control"] = "ashlord",
+            ["tutorial-sequences"] = "rio",
             ["exhibition"] = "rio",
             ["lineup"] = "vale",
             ["two-pads"] = "zig",

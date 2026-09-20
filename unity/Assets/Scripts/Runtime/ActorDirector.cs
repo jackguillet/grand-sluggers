@@ -509,6 +509,12 @@ namespace GrandSluggers.UnityClient
             var verb = Baserunning.StickVerb(stick, bag);
             // Seconds into the windup (§11.2, D2): SET is before it; the flight clock counts from the release.
             var windupSec = _phase == Phase.Flight ? _flight + (float)Motion.PitchRelease : -1f;
+            if (TutorialOn && _coach.Tutorial.IsStealLesson)
+            {
+                if (run.Steal || verb == RunStick.Steal && !_match.StealAttempt)
+                    _coach.Tutorial.ArmSteal(bag);
+                return;
+            }
             if (verb == RunStick.Steal && !_match.StealAttempt) _match.StartSteal(windupSec);
             else if (verb == RunStick.Return) _match.ReturnToBag();
             if (run.Steal) _match.ToggleSteal(windupSec);
