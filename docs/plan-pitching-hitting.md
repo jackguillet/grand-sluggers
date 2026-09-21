@@ -1,0 +1,326 @@
+# Pitching and hitting decision plan
+
+Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), serving #209 and coordinating #534. Session kind: **Gameplay research/documentation**. Baseline: `05471a6`. Research: [reference comparison](research-pitching-hitting.md). Canonical structured record: [pitching-hitting-decisions.json](research/pitching-hitting-decisions.json).
+
+## Current state
+
+Research foundation prepared; **20 choices open, no new mechanics or numbers accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; no individual rule has yet been superseded.
+
+This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
+
+## How we use this together
+
+1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Default first question: **PH-01**.
+2. Record Jack's answer in the JSON: selected option (or a clearly described custom answer), accepted scope, exact qualification, local date, author and a conversation/issue reference or quoted answer. Recommendation never counts as selection.
+3. Append history rather than erase a prior choice. Record supersession explicitly; link the replacement and named gameplay-spec decision affected.
+4. Direction acceptance selects intent only. Numeric targets stay null until a later scoped trial is accepted with units, conditions, rationale and evidence limits.
+5. Keep this readable plan synchronized with the canonical JSON and summarize current state in the GitHub tracker. The research report supplies evidence; gameplay-spec remains the shipping contract. Reconcile any changed spec rule before implementation.
+6. Open bounded implementation children only after their contract is ready. Link exact decision IDs, scenario requirements, PRs, tested revision and remaining human gate. Do not pre-file twenty speculative implementation tasks.
+
+Status progression: `open → direction-accepted → trial-accepted → implemented → validated → human-accepted`. `deferred`, `rejected` and `superseded` preserve alternatives/history. For nonnumeric decisions, record that a numeric trial is not applicable before moving to implementation. Automated validation never fills `human_acceptance`.
+
+## Discussion order
+
+- **Round 1 — the core duel:** PH-01, then PH-09 (hitting coverage) and PH-02 (pitch vocabulary), followed by PH-03/04 (location and steering). These determine which later choices are meaningful.
+- **Round 2 — commitments and tactics:** PH-05/06, PH-10–16, PH-08, PH-17/18. Consolidate consequences of accepted choices rather than ask Jack to approve every coefficient.
+- **Round 3 — measurable trials and acceptance:** PH-07 pace, PH-19 feedback/teaching and PH-20 delivery. Existing D7 requires a re-sit before pitch-speed tuning. Determine the acceptance process early even though its evidence is collected last.
+
+## Decision register
+
+Every entry below is **OPEN**. The recommendation is the author's proposal. No option is preselected, and each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
+
+### PH-01 — What should added depth primarily ask the player to do?
+
+Area: Direction. Depends on: none. Evidence: WII, SMB-EI, SHOW-H.
+
+- **A — Mario-style tactical depth:** Preserve positioning and charge; deepen pitch mixing, reads and situational choices.
+- **B — More precise execution:** Add target/reticle or release demands; more control, more practice required.
+- **C — Clarity and reliability first:** Keep the current choice set and improve consistency, teaching and feedback before expansion.
+
+**Recommendation:** A, with clarity and reliability required throughout. It best matches the stated affection for Sluggers; still only a proposal.
+
+**Existing contract:** Existing gameplay-spec principles remain; this choice authorizes a direction, not new controls or coefficients.
+
+**Acceptance:** A new player can put balls in play; a practiced player can explain a tactical advantage beyond simply reacting faster.
+
+### PH-02 — How many ordinary pitch families should each pitcher have?
+
+Area: Pitching. Depends on: PH-01. Evidence: GC, WII, SPORTS, SMB-EI.
+
+- **A — Current compact vocabulary:** Normal, charged and changeup with steering; lowest teaching cost.
+- **B — Small authored repertoire:** Add clearly distinct ordinary pitch shapes, with character-specific strengths and weaknesses.
+- **C — Broad baseball repertoire:** Many named pitches and detailed matchup selection; largest complexity and balance cost.
+
+**Recommendation:** B if PH-01 favors added tactics; define each pitch by a distinct response it demands before choosing a count or names.
+
+**Existing contract:** Current PitchFlight has fastball/changeup base shapes; stars are separate. No new pitch count is selected.
+
+**Acceptance:** Each pitch has a readable trajectory, tactical use, counterplay and reason not to throw it every time.
+
+### PH-03 — How does the pitcher choose location?
+
+Area: Pitching. Depends on: PH-01, PH-02. Evidence: WII, SMB-EI, SHOW-P.
+
+- **A — Mound and shape:** Keep horizontal mound positioning and pitch-defined height.
+- **B — Coarse zone intent:** Choose a broad region before delivery; execution and shape determine the actual crossing.
+- **C — Free two-dimensional target:** Place an exact intended endpoint; increases precision and aiming load.
+
+**Recommendation:** Compare A and B first. Choose together with PH-04 so aiming plus steering does not grant unlimited correction.
+
+**Existing contract:** Human pitching currently has no free vertical aim. CPU endpoint targeting is a baseline asymmetry to assess in PH-18.
+
+**Acceptance:** Both seats can intentionally seek a strike or chase pitch without the shared screen revealing the exact endpoint.
+
+### PH-04 — How much control remains after release?
+
+Area: Pitching. Depends on: PH-02, PH-03. Evidence: GC, WII.
+
+- **A — Live lateral steering:** Keep the familiar post-release duel; requires bounded break and a fair response opportunity.
+- **B — Committed shape:** Release locks the path; easier prediction and clearer pitch identity.
+- **C — Bounded early steering:** Allow a limited correction then commit; adds a timing boundary to teach.
+
+**Recommendation:** A as the first comparison baseline; evaluate B/C only against an observed readability or fairness problem.
+
+**Existing contract:** Current break is accumulated direction input, with charge/changeup damping. New caps and cutoffs remain unset.
+
+**Acceptance:** A legal late action can fool a committed swing but cannot create an unreadable unavoidable strike for a waiting hitter.
+
+### PH-05 — What makes a pitch well executed?
+
+Area: Pitching. Depends on: PH-03, PH-04. Evidence: WII, SMB-EI, SHOW-P.
+
+- **A — Existing charge/release:** Preserve a simple timing commitment with visible benefits and fatigue costs.
+- **B — Power versus command:** Use the same action to trade strength against controllability; adds a tactical risk.
+- **C — Separate accuracy task:** Meter, pulse or gesture execution; greater precision cost every pitch.
+
+**Recommendation:** A initially; consider B if it creates a clear choice. Avoid a second execution minigame unless PH-01 selects that emphasis.
+
+**Existing contract:** No charge timing, Nice multiplier or stamina number changes with this direction.
+
+**Acceptance:** A player can distinguish a poor release from a poor location choice; maximum power is not universally best.
+
+### PH-06 — What may the opponent see before committing?
+
+Area: Shared duel. Depends on: PH-03, PH-04. Evidence: WII, SMB-EI, SHOW-P.
+
+- **A — Body and ball tells:** Show preparation and trajectory but keep exact aim private.
+- **B — Broad intent tells:** Also reveal a pitch family or coarse region; easier reads, less deception.
+- **C — Explicit trajectory aid:** Show target/arrival guidance in training or named assistance; strongest help.
+
+**Recommendation:** A for the ordinary duel; C is useful in training. Choose any competitive assistance openly in PH-17.
+
+**Existing contract:** One shared screen and both controller seats must be considered. No new overlay is approved.
+
+**Acceptance:** Two people on one screen retain a mind game; a learner can identify the cue that gave them a chance to respond.
+
+### PH-07 — What reaction and between-pitch pace should we target?
+
+Area: Shared duel. Depends on: PH-04, PH-09, PH-11. Evidence: WII, GC, Legacy.
+
+- **A — Keep current pace:** Re-sit existing timing before changing the budget.
+- **B — Faster duel:** Increase urgency after measured evidence; raises accessibility demands.
+- **C — Selected middle ground:** Tune pitch families and reset rhythm to an explicit measured budget.
+
+**Recommendation:** A until the gameplay-spec D7 re-sit; then compare matched captures and authored trial intervals.
+
+**Existing contract:** D7 is a HOLD, not superseded by this brief. Air time, visual tell time, input lead and reset duration are separate clocks.
+
+**Acceptance:** Record release, readable cue, swing command and plate arrival; Jack compares pad, keyboard and two-pad play before numeric acceptance.
+
+### PH-08 — What should fatigue change during a short game?
+
+Area: Pitching. Depends on: PH-02, PH-05. Evidence: GC, SMB-EI.
+
+- **A — Current pitch-use resource:** Keep per-character fatigue and swaps; audit costs and tells.
+- **B — Visible effort economy:** Make high-effort choices the main cost, with gradual readable degradation.
+- **C — Minimal fatigue influence:** Keep the duel stable; removes some substitution and resource strategy.
+
+**Recommendation:** Compare A/B after the pitch vocabulary is chosen; no invisible sudden loss of control.
+
+**Existing contract:** Existing stamina costs stack; a changeup adds 3 to the ordinary cost of 4. No new fatigue thresholds selected.
+
+**Acceptance:** The player predicts when to change pitchers and understands why a tired delivery differs; swapping does not erase history.
+
+### PH-09 — What does the hitter position to cover the ball?
+
+Area: Hitting. Depends on: PH-01. Evidence: WII, GC, SHOW-H, SMB-EI.
+
+- **A — Batter-linked cursor:** Keep horizontal box movement and readable coverage; height comes from the existing contract.
+- **B — Position plus height intent:** Add a coarse high/low adjustment; more coverage decisions without a free cursor.
+- **C — Independent two-dimensional cursor:** Precise barrel aiming; strongest execution demand and largest control change.
+
+**Recommendation:** A first, with B as the smallest expansion to compare if pitch variety needs vertical counterplay. Do not assume C is necessary.
+
+**Existing contract:** Gameplay-spec D4/D12 apply. An independent cursor or persistent box position requires an explicit supersession.
+
+**Acceptance:** Inside/outside and high/low balls have understandable responses for both hands and small/large captains.
+
+### PH-10 — How should timing and barrel position determine contact quality?
+
+Area: Hitting. Depends on: PH-09. Evidence: GC, WII, SHOW-H, Legacy.
+
+- **A — Preserve the existing split:** Position primarily controls quality; timing controls direction/whiffs, with the current rim exception audited.
+- **B — Continuous combined quality:** Timing and spatial error both reduce quality; expressive but may punish one mistake twice.
+- **C — Timing-led assistance:** Timing drives the accessible mode with explicit spatial assistance; less direct coverage control.
+
+**Recommendation:** A as the baseline. Make the current timing-rim quality demotion explicit before deciding to retain or replace it.
+
+**Existing contract:** Gameplay-spec D4/D13 govern. Code demotes one tier at the outer timing rim; do not claim timing never affects quality today.
+
+**Acceptance:** Controlled early/late and centered/off-center trials explain quality and direction without guaranteed hits or arbitrary outs.
+
+### PH-11 — What is the tradeoff between a quick swing and charging?
+
+Area: Hitting. Depends on: PH-09, PH-10. Evidence: GC, WII, SMB-EI.
+
+- **A — One hold/release grammar:** Keep quick and charged versions of one action, including overcharge.
+- **B — Explicit contact/power choices:** Separate intent selection; easier intent clarity but more inputs.
+- **C — Minimal charging:** Emphasize timing/coverage with little load management; changes the Mario rhythm.
+
+**Recommendation:** A, provided quick swings retain useful situational advantages. Compare forgiveness, power and commitment as a package.
+
+**Existing contract:** Existing fill/MAX/decay values are a snapshot, not approved new targets; preserve D13 until explicitly amended.
+
+**Acceptance:** Quick swings remain useful with two strikes and awkward pitches; waiting fully charged is not a dominant strategy.
+
+### PH-12 — How deliberately can the hitter shape a batted ball?
+
+Area: Hitting. Depends on: PH-09, PH-10. Evidence: GC, SHOW-H.
+
+- **A — Current bounded influence:** Timing pulls/pushes; stick shifts direction and loft, with contact constraining the result.
+- **B — Preselected approach:** Choose grounder/liner/lift intent before commitment; more tactical clarity.
+- **C — Contact geometry alone:** Remove extra trajectory intent; simpler inputs but fewer deliberate situational choices.
+
+**Recommendation:** A first; retain meaningful influence without letting a stick command guarantee a hit class.
+
+**Existing contract:** Current Up lowers launch and Down lifts. Coordinate changed exit/launch distributions with #693/#708/#715.
+
+**Acceptance:** The same intent can succeed or fail because of actual contact; grounders, liners, flies and fouls remain distinct.
+
+### PH-13 — What happens when the hitter changes their mind?
+
+Area: Hitting. Depends on: PH-11. Evidence: WII, SHOW-H.
+
+- **A — Existing commitment:** Keep taking and committed swings; make release semantics clear.
+- **B — Deterministic check/cancel:** Add a taught cancel boundary before commitment; more plate discipline control.
+- **C — Assisted checking:** Infer hesitation and rescue some swings; easier but risks surprising judgments.
+
+**Recommendation:** A initially; B only if Jack wants checking as a core verb. Avoid hidden random check-swing outcomes.
+
+**Existing contract:** A release-based charge scheme needs an explicit distinction between canceling a load and swinging. No new binding selected.
+
+**Acceptance:** Take, load-cancel, bunt withdrawal and swing cannot conflict; balls/strikes follow the same geometric zone.
+
+### PH-14 — How much depth belongs in bunting?
+
+Area: Hitting. Depends on: PH-09, PH-13. Evidence: GC, WII, SMB-EI.
+
+- **A — Simple situational bunt:** Preserve existing square/contact behavior and teach placement and foul risk.
+- **B — Richer bunt control:** Add placement or timing demands for sacrifice/drag intent; increases state and input work.
+- **C — Defer expansion:** Keep the current verb while first settling ordinary swings.
+
+**Recommendation:** A/C during initial design, then test B only against a concrete situational need.
+
+**Existing contract:** Existing S-18/19 and two-strike foul-bunt rules remain; do not create a guaranteed CPU exploit.
+
+**Acceptance:** A bunt is a live ball with an earned outcome; both humans and CPU can defend it and a foul bunt with two strikes retires the batter.
+
+### PH-15 — How much should characters, hands and gear change the duel?
+
+Area: Roster. Depends on: PH-02, PH-10. Evidence: GC, WII.
+
+- **A — Shared verbs, stat strengths:** One core model with readable differences in power, coverage, break and endurance.
+- **B — Distinct repertoires/traits:** Different tools inside the same model; more identity and matchup teaching.
+- **C — Highly specialized mechanics:** Character-specific control or resolution rules; highest maintenance and fairness cost.
+
+**Recommendation:** A with selected B traits if the chosen repertoire supports them. Preserve the shared rig and systems.
+
+**Existing contract:** No new captain, second skeleton or one-captain resolver. Equipment and chemistry must be included in balance trials.
+
+**Acceptance:** Rio and Ashlord, both hands, contact/power archetypes and relevant gear all follow the same taught rules.
+
+### PH-16 — How should stars and chemistry affect plate decisions?
+
+Area: Resources. Depends on: PH-02, PH-10, PH-15. Evidence: GC, WII.
+
+- **A — Keep specials supplementary:** Ordinary baseball stays complete; specials briefly bend a readable rule.
+- **B — More central resource tactics:** Increase star/chemistry influence; adds draft and at-bat resource decisions.
+- **C — Ordinary duel first:** Evaluate baseline with specials off, then restore existing special interactions.
+
+**Recommendation:** C for isolation, A for integration; B requires explicit acceptance of how much the resource dominates.
+
+**Existing contract:** Gameplay-spec D6 prohibits free homers; no full-screen blinds or automatic outs. Existing systems remain until changed deliberately.
+
+**Acceptance:** Each special retains a response and an understandable resource cost, including a miss; baseline balance is tested without specials.
+
+### PH-17 — How should different skill levels share the same game?
+
+Area: Accessibility. Depends on: PH-09, PH-10. Evidence: GC, SMB4, SHOW-H.
+
+- **A — Shared rules with explicit assists:** Tune forgiveness and teaching while keeping common trajectory and judgment rules.
+- **B — Separate hitting interfaces:** Timing/position/zone modes; more preference coverage, more testing and fairness work.
+- **C — One fixed challenge:** Simplest balance surface; least support for mixed-skill couch play.
+
+**Recommendation:** A. Decide whether assists are per-seat and visible before numbers; do not silently rubber-band outcomes.
+
+**Existing contract:** Existing difficulty multipliers are baseline. Keyboard/mouse remains P1; pad 2 remains a real second gamepad.
+
+**Acceptance:** A new player and an experienced friend can play together and understand what help each receives.
+
+### PH-18 — What information and commitment rules may CPU players use?
+
+Area: CPU. Depends on: PH-03, PH-04, PH-06. Evidence: Legacy.
+
+- **A — Shared legal actions and bounded reads:** Use the same action limits, explicit observations and commitment windows; difficulty changes skill.
+- **B — Documented simulation shortcuts:** Permit limited headless approximations with separate validation of live fairness.
+- **C — Current policy pending audit:** Retain baseline until the live/headless input asymmetries are fully traced.
+
+**Recommendation:** A as the target; audit C first. Any B shortcut must not become a hidden advantage against a human.
+
+**Existing contract:** Current live CPU commits about .30 s before plate arrival, while final crossing judges contact; endpoint aiming also differs from human inputs.
+
+**Acceptance:** Late legal steering can defeat a committed CPU read; CPU cannot use future inputs, reserved human actions or impossible location access.
+
+### PH-19 — What feedback teaches the duel without giving it away?
+
+Area: Understanding. Depends on: PH-06, PH-10, PH-11. Evidence: SMB4, SHOW-H.
+
+- **A — Brief causal feedback:** Explain timing, coverage and charge after the pitch, with optional deeper practice detail.
+- **B — Continuous aim coaching:** Show substantial guidance during flight; easier learning, weaker deception.
+- **C — Minimal HUD explanation:** Rely on body, ball and sound; strongest immersion but harder diagnosis.
+
+**Recommendation:** A supported by readable body/ball cues. Training can expose more; ordinary play should not disclose private pitch targets.
+
+**Existing contract:** MAX describes charge; hit-quality words follow actual contact. Coordinate tutorials with #770 and paired HowToPlay/docs changes.
+
+**Acceptance:** A stranger can name why a miss or weak hit occurred and deliberately improve on the next attempt without external instructions.
+
+### PH-20 — What evidence will make the chosen system ready to ship?
+
+Area: Delivery. Depends on: PH-01. Evidence: Legacy.
+
+- **A — Serial trials and standalone sitting:** Approve concepts, then numeric trials, then test and let Jack accept actual play.
+- **B — Large combined redesign:** Evaluate many coupled changes at once; harder to attribute improvement or regression.
+- **C — Evidence-only first milestone:** Measure current play before any new mechanic trial; slower expansion with a clearer baseline.
+
+**Recommendation:** A, beginning with C for D7 and identified evidence gaps. Do not convert a recommendation or successful unit test into human acceptance.
+
+**Existing contract:** Existing #346/#534 gates stay open. One implementation child per bounded worktree; presentation and art remain separate.
+
+**Acceptance:** Named revision, both schemes, two pads, both hands, representative captains, ordinary/star cases, reproducible tests and Jack’s dated acceptance.
+
+## Work and acceptance checklist
+
+- [x] Inspect previous #693/#708 tracker conventions and existing #534 scope.
+- [x] Research both Mario titles separately using original manuals.
+- [x] Compare Super Mega Baseball, MLB The Show 25 and Wii Sports with edition-specific sources.
+- [x] Map the inspected Harbor baseline and preserve source hashes.
+- [x] Seed stable decision IDs with alternatives, dependencies and proposed acceptance.
+- [ ] Resolve PH-01 and subsequent material tradeoffs with Jack.
+- [ ] Collect matched reference observations and the required D7 standalone re-sit.
+- [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
+- [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
+- [ ] Run changed-mechanic scenarios, appropriate full regression/cohort checks and visual verification.
+- [ ] Jack accepts the named standalone revision with both schemes and two pads.
+
+A research-documentation merge may complete the foundation deliverable; it does not close the design tracker or #534/#346. No gameplay modification, standalone delivery, or passed human gate is claimed by this packet.

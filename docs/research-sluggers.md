@@ -4,6 +4,8 @@
 
 This doc is a systems teardown so Grand Sluggers can steal the *shape* of the game, not the IP.
 
+For the September 20 pitching/hitting design discussion, use the [new primary-source comparison](research-pitching-hitting.md) and [decision register](plan-pitching-hitting.md). They separate Wii and GameCube evidence, compare other baseball games, and preserve existing rules until Jack explicitly selects changes.
+
 Sources: Super Mario Wiki (game, Chemistry, Star Skill, stadium pages), instruction booklet summaries, contemporary and retrospective reviews.
 
 ## Scale and pace provenance (#693)
