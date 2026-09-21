@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-20",
+  "next_decision": "PH-02",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -1212,7 +1212,7 @@
       "id": "PH-20",
       "area": "Delivery",
       "question": "What evidence will make the chosen system ready to ship?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-01"
       ],
@@ -1239,16 +1239,36 @@
       "recommendation": "A, beginning with C for D7 and identified evidence gaps. Do not convert a recommendation or successful unit test into human acceptance.",
       "existing_contract": "Existing #346/#534 gates stay open. One implementation child per bounded worktree; presentation and art remain separate.",
       "acceptance": "Named revision, both schemes, two pads, both hands, representative captains, ordinary/star cases, reproducible tests and Jack\u2019s dated acceptance.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Proceed in small serial playable steps after required baseline checks: define each connected mechanic, establish scoped numeric trials where needed, implement and test it, then let Jack judge the named standalone revision. Complete D7 and other applicable evidence prerequisites before dependent tuning; do not expand this into a separate broader baseline-only milestone by default. Keep gameplay, presentation/book/tutorial and art work in their own bounded scopes and worktrees. Preserve existing human gates and require Jack\u2019s actual acceptance; this direction does not accept any exact mechanic, coefficient, runtime change, merge or playtest result. Resolve remaining contract details within the existing decision IDs before creating implementation children.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-20: How should we approach playable changes? 1. Small playable steps (recommended): after required baseline checks, define and test each connected mechanic, then have Jack judge it in the standalone game. 2. A baseline-only milestone first: complete a broader measurement and playtest pass before trying new mechanics. This is the last broad direction choice; detailed mechanics and tuning still follow. Presented option 1 maps to canonical A; option 2 maps to canonical C.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "Proceed in small serial playable steps after required baseline checks: define each connected mechanic, establish scoped numeric trials where needed, implement and test it, then let Jack judge the named standalone revision. Complete D7 and other applicable evidence prerequisites before dependent tuning; do not expand this into a separate broader baseline-only milestone by default. Keep gameplay, presentation/book/tutorial and art work in their own bounded scopes and worktrees. Preserve existing human gates and require Jack\u2019s actual acceptance; this direction does not accept any exact mechanic, coefficient, runtime change, merge or playtest result. Resolve remaining contract details within the existing decision IDs before creating implementation children."
+        }
+      ],
+      "validation_requirements": [
+        "Each playable step names its decisions, reconciled shipping contract, applicable baseline evidence, numeric trial if needed, reproducible checks and tested standalone revision.",
+        "Jack accepts actual play with the required schemes, seats and representative cases; tests and launches do not populate human acceptance.",
+        "Keep detailed mechanics and the PH-14 proposed contact-quality refinement open until explicitly resolved; do not equate the completed direction round with implementation readiness."
+      ]
     }
   ],
   "history": [
@@ -1331,6 +1351,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-07 option A with qualification: keep the current pace pending replay; if anything, slow the rhythm slightly to highlight character animations, highlights, side changes and special-ability clips. D7 remains in force; no flight or presentation duration is selected. One direction choice remains open: PH-20 delivery."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-20 option A: small serial playable steps after required baseline checks, with named standalone human acceptance. All 20 broad directions are accepted; detailed contracts, numbers and human gates remain open. Next PH-02 means refining the accepted repertoire direction with PH-15, not reopening or erasing its accepted history. The plan consolidates the proposed implementation sequence."
     }
   ]
 }
