@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-11",
+  "next_decision": "FD-14",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -757,7 +757,7 @@
       "id": "FD-11",
       "area": "Hazards",
       "question": "What may night change?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-08"
       ],
@@ -787,16 +787,31 @@
       "recommendation": "B. It is what the data already half does (`nightContactWindowMul`), made general and validated.",
       "existing_contract": "nightContactWindowMul is a park field (Crystal 0.85) read by ParkHazards.ContactWindowMul; the reference has no such at-bat rule and lost visibility is the most criticized pattern. Ember's night reach is fielding.park.emberNightFireMul 1.6. Funfair's chompers are night-only code. nightOnly / dayOnly are in every park file and read by nothing. The CLI cannot run a night game.",
       "acceptance": "No code path names a park id or the word night to pick a number. The night block is validated like the day block.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B",
+      "accepted_scope": "Night is a declared rule layer per park. A park may carry a night block that overrides named fields of the day park or adds hazard instances; everything the block does not name is the day park. The block is validated like the day block, and no code path picks a number by a park id or by the word night. Harbor's night stays a look only. The three night rules that exist today move into night blocks at parity: Crystal's contact window (nightContactWindowMul 0.85), Ember's breath reach (fielding.park.emberNightFireMul 1.6) and Funfair's chompers (code literals). Moving them does not endorse them: the contact-window rule acts on the at-bat and has no reference source, and it is reviewed when night blocks are written. Night hazard instances are hazards, so the FD-10 switch removes them; a night field override (air, light rule) is not a hazard and stays. nightOnly / dayOnly are wired or removed by the schema epic. The CLI gains a night flag so a night rule can be measured. No night value is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-11: presentation only / a declared rule layer per park / night is a second park",
+        "answer_quote": "b"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b",
+          "scope": "Night is a declared rule layer per park. A park may carry a night block that overrides named fields of the day park or adds hazard instances; everything the block does not name is the day park. The block is validated like the day block, and no code path picks a number by a park id or by the word night. Harbor's night stays a look only. The three night rules that exist today move into night blocks at parity: Crystal's contact window (nightContactWindowMul 0.85), Ember's breath reach (fielding.park.emberNightFireMul 1.6) and Funfair's chompers (code literals). Moving them does not endorse them: the contact-window rule acts on the at-bat and has no reference source, and it is reviewed when night blocks are written. Night hazard instances are hazards, so the FD-10 switch removes them; a night field override (air, light rule) is not a hazard and stays. nightOnly / dayOnly are wired or removed by the schema epic. The CLI gains a night flag so a night rule can be measured. No night value is selected."
+        }
+      ]
     },
     {
       "id": "FD-12",
@@ -1238,6 +1253,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-10 accepted by Jack: B, a hazards-off match option, default on. The park keeps its size, walls, air and ground. 5 choices remain open; next is FD-11."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-11 accepted by Jack: B, night is a declared rule layer per park. The three existing night rules move into night blocks at parity; moving them does not endorse them. 4 choices remain open; next is FD-14."
     }
   ]
 }

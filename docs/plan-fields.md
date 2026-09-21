@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). FD-06 is accepted: the fence may be a free polyline with a height per point and a material per span (C); the three-post arc stays the default. FD-07 is accepted: foul territory and outfield depth may differ by park (C), after a parity extraction. Round 3 is complete. FD-08 is accepted: park hazards may carry random party elements (C), drawn from the seeded match stream. FD-08-R1 is accepted: a draw decides what a hazard does, never a play's result. FD-19 is accepted: a hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags (B), enforced by the validator. FD-10 is accepted: a hazards-off match option, default on (B). The other 5 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-11. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). FD-06 is accepted: the fence may be a free polyline with a height per point and a material per span (C); the three-post arc stays the default. FD-07 is accepted: foul territory and outfield depth may differ by park (C), after a parity extraction. Round 3 is complete. FD-08 is accepted: park hazards may carry random party elements (C), drawn from the seeded match stream. FD-08-R1 is accepted: a draw decides what a hazard does, never a play's result. FD-19 is accepted: a hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags (B), enforced by the validator. FD-10 is accepted: a hazards-off match option, default on (B). FD-11 is accepted: night is a declared rule layer per park (B). The other 4 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-14. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -65,7 +65,7 @@ What a field can vary, where it lives today, and where this plan proposes it liv
 | Outfield depth (fielder starts) | one global set | `Diamond.Positions` | the three outfield starts may be named per park; default is the #730 fraction-of-fence rule | FD-07 ✅ |
 | Hazards | per park, eleven types, thin | `ParkHazards` (`Fielding.cs:645`) | pattern library + park instances | FD-08, FD-09, FD-19 |
 | Hazards on or off | always on | — | a match option, default on (an empty instance list) | FD-10 ✅ |
-| Night | one park number + two code rules | `Match.Night` | declared night block | FD-11 |
+| Night | one park number + two code rules | `Match.Night` | declared night block, validated like the day block | FD-11 ✅ |
 | Gravity, time scales, plate, infield, foul-line angle | global | — | **stay global** | — |
 | Look: kit, ground, wall skin, backdrop, light, sky, audio | code per park id | `ParkView`, `Look.Rig*` | kit slots in `data/art/parks.json` | FD-16 |
 
@@ -180,7 +180,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 to FD-10, FD-12, FD-16, FD-17 and FD-19 are **DIRECTION ACCEPTED**. The other 5 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 to FD-12, FD-16, FD-17 and FD-19 are **DIRECTION ACCEPTED**. The other 4 (FD-13, FD-14, FD-15, FD-18) are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -345,6 +345,8 @@ Area: Hazards. Depends on: FD-08. Evidence: MPT, MTA, MSC, MSBL, SSB.
 **Acceptance:** A friend on the couch can always play any park with no hazard. The park-factors report covers both states.
 
 ### FD-11 — What may night change?
+
+**Decision — Jack, September 21, 2026: B.** Reply "b" selects a declared night block per park: it overrides named fields of the day park or adds hazard instances; the rest is the day park. It is validated like the day block, and no code picks a number by a park id or by the word night. Harbor's night stays a look only. The three night rules that exist today move into night blocks **at parity**: Crystal's contact window (0.85), Ember's breath reach (1.6) and Funfair's chompers. **Moving them does not endorse them**: the contact-window rule acts on the at-bat and has no reference source; it is reviewed when night blocks are written. Night hazard instances are hazards, so the FD-10 switch removes them; a night field override stays. The CLI gains a night flag so a night rule can be measured. No night value is selected. Full provenance is in the canonical JSON.
 
 Area: Hazards. Depends on: FD-08. Evidence: MW-MSS, MW-PIG, MPT, THT-TWI.
 
