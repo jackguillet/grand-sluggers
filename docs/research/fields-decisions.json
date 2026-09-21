@@ -130,7 +130,14 @@
         "answer_quote": "A first, then B park by park"
       },
       "numeric_targets": "not applicable: a scope decision",
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F1-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/820",
+          "pr": null,
+          "status": "filed"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -1333,6 +1340,16 @@
     {
       "date": "2026-09-21",
       "event": "FD-18 accepted by Jack: A, Crystal Rink proves the rails first. All 19 directions and refinement FD-08-R1 are accepted. No numeric trial, implementation or human gate has passed. Next work: reconcile gameplay-spec (D15, section 6.1, section 14, section 16) and the owed F0 corrections, write the implementation map, then file one bounded child at a time."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Foundation PR #815 merged as 4dc31699. Gameplay-spec reconciled: D21, section 0.3, D15 amended, sections 6.1 / 14 / 16 tagged against d0c6e12c, Appendix A.10 (rows 79-92) and the SF-xx scenario block B.9. parks.md, systems.md and research-sluggers.md corrected. Implementation map written with twelve questions that stay Jack's; the first is the eight status volumes that sit on a running lane or a bag pad (FD-19)."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "F1-a filed as #820 (strict park schema; park list and home-park map from data). Zero behavior change; no human gate."
     }
-  ]
+  ],
+  "implementation_map": "../plan-fields-implementation.md",
+  "shipping_contract": "../gameplay-spec.md#03-fields--d21-814"
 }
