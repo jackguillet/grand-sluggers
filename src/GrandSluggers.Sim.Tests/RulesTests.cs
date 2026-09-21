@@ -110,6 +110,65 @@ public sealed class RulesTests
         Assert.Equal(RulesTable.Defaults.Running.Bags.TagReachFt, table.Running.Bags.TagReachFt);
     }
 
+    /// <summary>
+    /// The pitch family library is named rows, so every guard this file already has reaches inside
+    /// one: ranges, unknown keys, and the parity comparison (spec §4.3, #810). A row that slipped
+    /// into a Dictionary would load and be checked by nothing.
+    /// </summary>
+    [Theory]
+    [InlineData("fastball", "mph", 0, "pitching.families.fastball.mph must be greater than 0")]
+    [InlineData("changeup", "mph", -1, "pitching.families.changeup.mph must be greater than 0")]
+    [InlineData("changeup", "hangUntil", 1.2, "pitching.families.changeup.hangUntil must be between 0 and 1")]
+    [InlineData("changeup", "hangUntil", -0.1, "pitching.families.changeup.hangUntil must be between 0 and 1")]
+    [InlineData("changeup", "staminaCost", -3, "pitching.families.changeup.staminaCost must be finite and at least 0")]
+    [InlineData("fastball", "dropFt", -0.5, "pitching.families.fastball.dropFt must be finite and at least 0")]
+    public void AFamilyRowIsRangeCheckedLikeEveryOtherRule(string family, string field, double value, string expected)
+    {
+        using var fixture = new RulesFixture();
+        fixture.Change("pitching.json", json => json["families"]![family]![field] = value);
+
+        var errors = RulesTable.Validate(fixture.Root);
+        Assert.Contains(errors, e => e.Contains(expected, StringComparison.Ordinal)
+                                     && e.Contains(fixture.Path("pitching.json"), StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AnUnknownKeyInsideAFamilyRowIsAnError()
+    {
+        using var fixture = new RulesFixture();
+        fixture.Change("pitching.json", json => json["families"]!["changeup"]!["changeupDropFt"] = 0.9);
+
+        var errors = RulesTable.Validate(fixture.Root);
+        Assert.Contains(errors, e => e.Contains(
+            "pitching.families.changeup.changeupDropFt is not a rule this table owns", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AFamilyWhoseDropNeverReachesTheAimIsRefused()
+    {
+        // The cross-field rule the attributes cannot say (§4.3, #668): hang + dump must arrive by
+        // the plate, or the clamp at u=1 hides the miss as a snap.
+        using var fixture = new RulesFixture();
+        fixture.Change("pitching.json", json => json["families"]!["changeup"]!["dumpRate"] = 0.5);
+
+        var errors = RulesTable.Validate(fixture.Root);
+        Assert.Contains(errors, e => e.Contains(
+            "pitching.families.changeup must finish its drop in flight", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AFlippedFlagIsDriftTheParityComparisonCatches()
+    {
+        // The family rows are the first authored bools in data/rules; before #810 nothing compared
+        // a flag, so a JSON `offSpeed: false` beside a code `true` would have been invisible.
+        using var fixture = new RulesFixture();
+        fixture.Change("pitching.json", json => json["families"]!["changeup"]!["offSpeed"] = false);
+
+        var differences = new List<string>();
+        Compare(RulesTable.Load(new DataRoot(fixture.Root)), RulesTable.Defaults, "rules", differences);
+        Assert.Contains(differences, d => d.Contains("Pitching.Families.Changeup.OffSpeed: json False vs code True", StringComparison.Ordinal));
+    }
+
     [Theory]
     [InlineData("fielding.json", "chem", "slantChance", 1.4, "fielding.chem.slantChance must be between 0 and 1")]
     [InlineData("fielding.json", "throw", "baseFtPerSec", 0, "fielding.throw.baseFtPerSec must be greater than 0")]
@@ -174,7 +233,11 @@ public sealed class RulesTests
             var va = p.GetValue(a);
             var vb = p.GetValue(b);
             var name = path + "." + p.Name;
-            if (p.PropertyType == typeof(double) || p.PropertyType == typeof(int) || p.PropertyType == typeof(string))
+            // bool joined the leaves with the family library (#810: breakDamped, offSpeed). A flag
+            // the JSON and the code disagree on is the same drift as a number, and nothing compared
+            // it before there was one.
+            if (p.PropertyType == typeof(double) || p.PropertyType == typeof(int)
+                || p.PropertyType == typeof(string) || p.PropertyType == typeof(bool))
             {
                 if (!Equals(va, vb)) differences.Add($"{name}: json {va} vs code {vb}");
                 continue;

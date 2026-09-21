@@ -17,7 +17,7 @@ public sealed class TutorialMasteryTests
         run.Begin();
         for (var repetition = 1; repetition <= 4; repetition++)
         {
-            if (id is "T-P01" or "T-P03") run.Pitch(new("fastball", 0, false, Changeup: id == "T-P03"));
+            if (id is "T-P01" or "T-P03") run.Pitch(new(id == "T-P03" ? PitchFamily.Changeup : PitchFamily.Fastball, 0, false));
             else if (id == "T-B01") run.Swing(new(true, 0, 0, false));
             else TutorialSessionTests.Drive(run);
             Assert.True(run.Feedback!.Success, run.Feedback.Detail);
@@ -41,22 +41,22 @@ public sealed class TutorialMasteryTests
     {
         var c = TutorialCatalog.Load(_content); var progress = new TutorialProgress();
         var run = new TutorialSession(_content, c, "T-P03", progress); run.Begin();
-        run.Pitch(new("fastball", 0, false, Changeup: true));
+        run.Pitch(new(PitchFamily.Changeup, 0, false));
         run.Retry(); run.Pitch(new("fastball", 0, false));
         Assert.False(run.Feedback!.Success); Assert.Equal(1, run.Successes);
         run.Retry(); run.Pause(true);
-        Assert.False(run.Pitch(new("fastball", 0, false, Changeup: true)));
+        Assert.False(run.Pitch(new(PitchFamily.Changeup, 0, false)));
         run.Tick(.1); Assert.Equal(0, run.Elapsed); Assert.Equal(1, run.Successes);
         run.Pause(false);
-        Assert.False(run.Pitch(new("fastball", 0, false, Changeup: true), LivePlayCommandSource.Cpu));
+        Assert.False(run.Pitch(new(PitchFamily.Changeup, 0, false), LivePlayCommandSource.Cpu));
         Assert.Equal(1, run.Successes);
         run.Exit();
         var demo = new TutorialSession(_content, c, "T-P03", progress); demo.Begin(demonstration: true);
-        demo.Pitch(new("fastball", 0, false, Changeup: true), LivePlayCommandSource.Cpu);
+        demo.Pitch(new(PitchFamily.Changeup, 0, false), LivePlayCommandSource.Cpu);
         Assert.Equal(1, demo.Successes); Assert.False(demo.Passed);
         var resume = new TutorialSession(_content, c, "T-P03", progress); resume.Begin();
-        resume.Pitch(new("fastball", 0, false, Changeup: true)); Assert.Equal(2, resume.Successes);
-        resume.Retry(); resume.Pitch(new("fastball", 0, false, Changeup: true)); Assert.True(resume.Passed);
+        resume.Pitch(new(PitchFamily.Changeup, 0, false)); Assert.Equal(2, resume.Successes);
+        resume.Retry(); resume.Pitch(new(PitchFamily.Changeup, 0, false)); Assert.True(resume.Passed);
     }
 
     [Fact]

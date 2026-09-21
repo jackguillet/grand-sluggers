@@ -329,18 +329,19 @@ public sealed class AtBatResolver
         inZone && runnerOnFirst && outs < 2 && roll < Rules.Or(rules).Batting.Cpu.SacBuntChance;
 
     /// <summary>
-    /// Speed by shape, Pitch stat and charge (pitching.speed); a Nice! release adds
-    /// pitching.release.niceMul (spec §4.1); a star pitch multiplies by its skill's speedMul
-    /// (star-skills.json). <paramref name="mphPenalty"/> is the tired / exhausted arm (spec §4.7).
+    /// Speed by family, Pitch stat and charge: the family's row carries its own base mph and its own
+    /// charge mph (pitching.families), and pitching.speed carries the one coefficient they share. A
+    /// Nice! release adds pitching.release.niceMul (spec §4.1); a star pitch multiplies by its
+    /// skill's speedMul (star-skills.json). <paramref name="mphPenalty"/> is the tired / exhausted
+    /// arm (spec §4.7).
     /// </summary>
     public static double PitchSpeedMph(PitchCommand pitch, int pitchStat, RulesTable? rules = null,
         string? starPitchId = null, StarSkillTable? skills = null, double mphPenalty = 0)
     {
         var r = Rules.Or(rules);
         var sp = r.Pitching.Speed;
-        var changeup = pitch.IsChangeup;
-        var baseSpeed = changeup ? sp.ChangeupMph : sp.FastballMph;
-        var speed = baseSpeed + pitchStat * sp.MphPerPitchStat + (changeup ? pitch.Charge01 * sp.ChangeupChargeMph : pitch.Charge01 * sp.ChargeMph);
+        var row = r.Pitching.Families.Of(pitch.Type);
+        var speed = row.Mph + pitchStat * sp.MphPerPitchStat + pitch.Charge01 * row.ChargeMph;
         if (pitch.Nice) speed *= r.Pitching.Release.NiceMul;
         if (pitch.Star) speed *= StarSkills.PitchSpeedMul(starPitchId, skills);
         return Math.Max(r.Pitching.Flight.MinMph, speed - mphPenalty);

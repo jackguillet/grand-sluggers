@@ -517,7 +517,7 @@ public sealed class StealScenarioTests
         Assert.True(burner.StationRunner(3, _content.Must("zig")));
         Assert.True(burner.StartSteal(windupSec: 0.2));
         Assert.Equal(StealArm.Perfect, burner.RunnerAt(3)!.StealArm);
-        var slow = Scenario.PitchAt(0, StrikeZoneGeometry.CenterY, changeup: true);
+        var slow = Scenario.PitchAt(0, StrikeZoneGeometry.CenterY, family: PitchFamily.Changeup);
         var dash = RunSteal(burner, slow, Scenario.Take, HumanRunners, LivePlayCommandSource.Human,
             runPad: (i, _) => i % 4 == 0 ? new LivePadInput(SouthDown: true) : LivePadInput.Dead);
         var facts = dash.Play.Outcome!;

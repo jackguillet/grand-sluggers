@@ -490,7 +490,7 @@ namespace GrandSluggers.EditorTools
             Tick(play, "TickSet", padTwo ? State() : release, padTwo ? release : State());
             var pitch = Get<PitchCommand>(play, "_pitch");
             Require(Phase(play) == "Flight" && pitch != null, "Release with West held did not launch.");
-            Require(pitch.IsChangeup, "West held through the release was not a changeup.");
+            Require(pitch.Type == PitchFamily.Changeup, "West held through the release was not a changeup.");
             return new GateCase { name = padTwo ? "west-hold-changeup-pad2" : "west-hold-changeup-pad1", phase = Phase(play), charge = pitch.Charge01 };
         }
 

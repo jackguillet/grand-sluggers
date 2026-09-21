@@ -21,13 +21,13 @@ public sealed class TutorialSessionTests
     {
         var run = Start(id);
         var original = run.Match;
-        Assert.True(run.Pitch(new("fastball", 0, false, AimX: 4, Changeup: changeup)));
+        Assert.True(run.Pitch(new(changeup ? PitchFamily.Changeup : PitchFamily.Fastball, 0, false, AimX: 4)));
         Assert.False(run.Feedback!.Success);
         run.Retry();
         Assert.NotSame(original, run.Match);
         Assert.Equal(0, run.Match.Balls); Assert.Equal(0, run.Match.Strikes);
         Assert.Empty(run.Inputs);
-        Assert.True(run.Pitch(new("fastball", 0, false, Changeup: changeup)));
+        Assert.True(run.Pitch(new(changeup ? PitchFamily.Changeup : PitchFamily.Fastball, 0, false)));
         Assert.True(run.Feedback!.Success, run.Feedback.Detail);
         Assert.Equal(1, run.Successes);
         Assert.False(run.Passed);
@@ -145,7 +145,7 @@ public sealed class TutorialSessionTests
     public void LiteralInputsReplayWithTheSameEvidence(string id)
     {
         var run=Start(id);
-        if(id=="T-P01" || id=="T-P03")run.Pitch(new("fastball",0,false,Changeup:id=="T-P03"));
+        if(id=="T-P01" || id=="T-P03")run.Pitch(new(id == "T-P03" ? PitchFamily.Changeup : PitchFamily.Fastball, 0, false));
         else if(id=="T-B01")run.Swing(new(true,0,0,false));
         else Drive(run);
         var recording=run.Recording();

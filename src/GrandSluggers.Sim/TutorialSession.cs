@@ -128,7 +128,7 @@ public sealed partial class TutorialSession
                 throw new InvalidDataException("Cannot station tutorial runner.");
         }
         for (var strike = 0; strike < _setup.Strikes; strike++)
-            Match.BeginAtBat(new PitchCommand("fastball", 0, false), Take, out _, out _);
+            Match.BeginAtBat(new PitchCommand(PitchFamily.Fastball, 0, false), Take, out _, out _);
         PrepareSetOpportunity();
         InputsHash = PlayTraceIdentity.Capture(Match).Sha256;
         _firstRunner = Match.First?.Id ?? ""; _secondRunner = Match.Second?.Id ?? "";
