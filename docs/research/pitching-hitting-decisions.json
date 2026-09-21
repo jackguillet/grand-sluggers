@@ -1041,7 +1041,7 @@
       "existing_contract": "No new captain, second skeleton or one-captain resolver. Equipment and chemistry must be included in balance trials.",
       "acceptance": "Rio and Ashlord, both hands, contact/power archetypes and relevant gear all follow the same taught rules.",
       "selected_option": "B",
-      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model. Preserve the same controls and contact rules across characters so roster differences add matchup strategy without separate games to learn. Exact pitch selections, trait definitions, character assignments, numerical strengths and gear interactions remain open. This does not select unique character control schemes, separate contact resolvers, a new captain or a second rig. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. Exact character assignments, trait definitions, numerical strengths and gear interactions remain open. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1063,6 +1063,149 @@
           "choice": "B",
           "quote": "2",
           "scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model. Preserve the same controls and contact rules across characters so roster differences add matchup strategy without separate games to learn. Exact pitch selections, trait definitions, character assignments, numerical strengths and gear interactions remain open. This does not select unique character control schemes, separate contact resolvers, a new captain or a second rig. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-15-R1",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Every pitcher has a fastball plus exactly two character-specific choices from changeup, curveball, slider and sinker. Preserve the three-ordinary-pitch limit, shared controls/contact rules, charging as a modifier and Star Pitches outside the count. Universal fastball access does not require identical fastball strength across characters. Exact character assignments, traits, selection inputs and tuning remain open. This refines distinct repertoires within the shared model; no runtime change, numeric tuning trial or human acceptance."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-15-R1",
+          "question": "Should every pitcher have a fastball?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Fastball for everyone plus two character-specific pitches"
+            },
+            {
+              "id": "2",
+              "label": "Any three families; no mandatory pitch"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Every pitcher has a fastball plus exactly two character-specific choices from changeup, curveball, slider and sinker. Preserve the three-ordinary-pitch limit, shared controls/contact rules, charging as a modifier and Star Pitches outside the count. Universal fastball access does not require identical fastball strength across characters. Exact character assignments, traits, selection inputs and tuning remain open. This refines distinct repertoires within the shared model; no runtime change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "required_ordinary_pitch": "Fastball",
+            "additional_ordinary_pitch_count": 2,
+            "additional_pitch_pool": [
+              "Changeup",
+              "Curveball",
+              "Slider",
+              "Sinker"
+            ]
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-15 refinement: Should every pitcher have a fastball? 1. Yes (recommended): everyone has a familiar fastball plus two character-specific pitches from the other four families. 2. No mandatory pitch: characters can have any three, including unusual repertoires without a fastball. Option 1 keeps switching pitchers approachable while preserving distinct repertoires.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        }
+      ],
+      "discussion": [
+        {
+          "id": "PH-15-R2",
+          "date": "2026-09-21",
+          "status": "proposal",
+          "question": "Should these be the starting ordinary pitch assignments for the existing captains?",
+          "recommendation": "Use the proposed captain assignments as one coherent starting set; refine traits and tuning separately. Every entry includes the required fastball.",
+          "assignments": [
+            {
+              "character_id": "rio",
+              "name": "Rio Sparks",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Curveball"
+              ],
+              "rationale": "Balanced timing and movement choices."
+            },
+            {
+              "character_id": "vale",
+              "name": "Queen Vale",
+              "ordinary_pitches": [
+                "Fastball",
+                "Curveball",
+                "Slider"
+              ],
+              "rationale": "Two different breaking shapes for a pitching specialist."
+            },
+            {
+              "character_id": "zig",
+              "name": "Zig",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Slider"
+              ],
+              "rationale": "Timing changes and lateral movement for a tricky repertoire."
+            },
+            {
+              "character_id": "brondo",
+              "name": "Brondo",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Sinker"
+              ],
+              "rationale": "Slow/fast contrast with a dipping alternative."
+            },
+            {
+              "character_id": "konga",
+              "name": "Konga",
+              "ordinary_pitches": [
+                "Fastball",
+                "Curveball",
+                "Sinker"
+              ],
+              "rationale": "Contrasting arcing and faster dipping shapes."
+            },
+            {
+              "character_id": "ashlord",
+              "name": "Ashlord",
+              "ordinary_pitches": [
+                "Fastball",
+                "Slider",
+                "Sinker"
+              ],
+              "rationale": "Lateral and dipping movement alongside the fastball."
+            },
+            {
+              "character_id": "fenn",
+              "name": "Elder Fenn",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Curveball"
+              ],
+              "rationale": "Patient timing changes and a pronounced arc; shares Rio\u2019s families, with traits to distinguish later."
+            }
+          ],
+          "basis": [
+            "docs/roster.md",
+            "data/characters/rio.json",
+            "data/characters/vale.json",
+            "data/characters/zig.json",
+            "data/characters/brondo.json",
+            "data/characters/konga.json",
+            "data/characters/ashlord.json",
+            "data/characters/fenn.json"
+          ],
+          "limits": "Author proposal only, inferred from existing character identities, not an accepted allocation or proven balance. Seven existing captains share six possible non-fastball pairs, so Rio and Fenn share families; traits and tuning remain separate. Role-player assignments are not selected by this proposal. All pitch shapes must respect horizontal batting coverage and live steering; no guaranteed outcomes."
         }
       ]
     },
@@ -1474,6 +1617,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-02-R2 option 1: all five ordinary pitch families and their proposed game roles. Each pitcher still gets three. Next PH-15 refines repertoire composition: whether every pitcher has a fastball plus two others, or any three including sets without a fastball. Assignments and tuning remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-15-R1: every pitcher has a fastball plus two character-specific pitches. Prepared PH-15-R2 as an unaccepted seven-captain assignment proposal based on existing roster data; role-player assignments, traits and tuning remain open."
     }
   ]
 }
