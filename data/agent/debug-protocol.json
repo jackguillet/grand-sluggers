@@ -372,6 +372,16 @@
       "promoted": "tools/unity-compile.sh",
       "issue": "#810",
       "pr": "#811"
+    },
+    {
+      "id": "stored-double-pins-the-platform",
+      "signature": "A fixture of exact doubles passes on macOS and fails the portable CI job on Linux; every differing sample went through Math.Sin, Math.Cos, Math.Atan, Math.Exp or Math.Pow.",
+      "stage": "sim",
+      "cause": "Those libm functions are not correctly rounded and differ by about one ULP between macOS libm and glibc; IEEE only pins +, -, *, / and sqrt. PitchFlight.BreakShiftFt calls Math.Sin(u * PI) and the heatball/prismball/charmball wobbles call Math.Sin(u * hz), so the golden's X under break stored a macOS bit pattern (#810). The same class of drift is why the compact report is compared field by field (#736).",
+      "fix": "Store only the parts a golden can own: values reached by +, -, *, / and sqrt alone. For a value a libm call touches, store the libm-free part plus the inputs the change under test actually decides, and recompose the rest on the running platform in the production operation order, then assert bit equality against the real call. Exactness survives and the platform drops out, because both sides call the same libm.",
+      "promoted": "PitchFamilyGoldenTests.XIsStoredExactlyWhereverNoSineTouchesItAndComposedWhereverOneDoes",
+      "issue": "#810",
+      "pr": "#811"
     }
 
   ]
