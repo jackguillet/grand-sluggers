@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). The other 10 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-06. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). FD-06 is accepted: the fence may be a free polyline with a height per point and a material per span (C); the three-post arc stays the default. The other 9 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-07. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -51,9 +51,9 @@ What a field can vary, where it lives today, and where this plan proposes it liv
 | Lever | Today | Consumer today | Proposed home | Decides |
 | --- | --- | --- | --- | --- |
 | Fence distance (L / C / R) | per park | `AtBatResolver.FenceAt` | unchanged | — |
-| Fence height | per park, one number (D15) | `FieldBounds`, `BattedBall.FenceClearFt` | per wall segment | FD-06 |
-| Fence shape | circle through three posts | `AtBatResolver.RoundFence` | posts + named segments | FD-06 |
-| Wall material (carom, climbable) | global `flight.wall`; `climb_wall` is a park-wide flag | `BallFlight.cs:183`, `ParkHazards.CanClamber` | wall-material row per segment | FD-06 |
+| Fence height | per park, one number (D15) | `FieldBounds`, `BattedBall.FenceClearFt` | per fence point (FD-06 C); D15 is reconciled first | FD-06 ✅ |
+| Fence shape | circle through three posts | `AtBatResolver.RoundFence` | a free polyline, pole to pole; the three-post arc is the default | FD-06 ✅ |
+| Wall material (carom, climbable) | global `flight.wall`; `climb_wall` is a park-wide flag | `BallFlight.cs:183`, `ParkHazards.CanClamber` | wall-material row per fence span | FD-06 ✅ |
 | Wind speed and direction | per park | `BallFlight.cs:30` | unchanged | — |
 | Wind exposure (`windMul`) | global 0.35 | `BallFlight.cs:44` | park environment | FD-03 |
 | Air density (drag) | global 0.0019 (C80 0.0040) | `BallFlight.cs:118` | park environment, as a multiplier on the root's drag | FD-03 |
@@ -147,7 +147,7 @@ Serial by default. Each epic is filed only when the decisions it needs are accep
 | --- | --- | --- | --- | --- |
 | **F0** Reconcile the standing orders | docs | Scope line in AGENTS.md, roadmap.md and art-rails.md: **done with FD-01**. Still owed: the parks.md and spec §14 corrections listed in the research report | FD-01 ✅ | — |
 | **F1** Schema and catalog | Gameplay | strict park schema, dead fields resolved, park list from the catalog, unknown id is an error | FD-01 | FR-03, FR-04, FR-06, FR-16 |
-| **F2** Geometry owner | Gameplay | park-neutral boundary type; Harbor's numbers as defaults; lopsided parks draw true; parity | FD-06, FD-07; coordinate #732 | FR-05, FR-06 |
+| **F2** Geometry owner | Gameplay | park-neutral boundary type; Harbor's numbers as defaults; lopsided parks draw true; parity. Then the polyline fence: one distance per bearing, vertices kept in the clip polygon, height per point, material per span; D15 reconciled in the spec first | FD-06 ✅, FD-07; coordinate #732 | FR-05, FR-06 |
 | **F3** Environment table | Gameplay | `AtPark`; ground and wall-material libraries, ground rows carrying ball fields and body multipliers; every park still names nothing; then one lever at a time as a trial. The body effect needs the response law on (C80 today) | FD-03, FD-04, FD-05 | FR-01, FR-02, FR-06, FR-11 |
 | **F4** Hazard runtime | Gameplay | pattern library; live touch tests; typed events; CPU reads hazards; rolls removed | FD-08, FD-09, FD-10, FD-11, FD-14, FD-19 | FR-07, FR-08, FR-09, FR-12 |
 | **F5** Measurement | Gameplay | `park-factors` cohort, night flag in the CLI, declared park intents | FD-02, FD-13 | FR-10 |
@@ -179,7 +179,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 to FD-05, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 10 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 to FD-06, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 9 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -262,6 +262,8 @@ Area: Environment. Depends on: FD-03. Evidence: BROSNAN, MH-STAD.
 **Acceptance:** A ground id with no authored row stops the load and names the id. A ball crossing from dirt to grass changes its roll at the lip, in the trace.
 
 ### FD-06 — What shape may the outfield fence take?
+
+**Decision — Jack, September 21, 2026: C.** Reply "C" selects a free polyline: points from pole to pole, each with a height, so a park can have notches, porches and alleys. A span names a wall material, so B's benefits (a tall wall, a low corner, a climbable section) are included. **The three-post arc stays the default**: a park that lists no points plays and draws exactly as today. The author's recommendation was B. Contract work, not selected: the point format (FD-12 units), the validator's limits, and how the fielder-depth rule, the C80 migration, the track, the poles, the drawn wall and the `field` shot follow a free shape. Proposed guardrail: one fence distance per bearing from home, so `AtBatResolver.FenceAt` stays a function and its consumers keep working (`FieldBounds.Build` already clips the flight against a polygon sampled from it). **D15 changes form** and is reconciled in the spec before code: "one number" becomes "the drawn wall equals the flight wall on every span". Full provenance is in the canonical JSON.
 
 Area: Geometry. Depends on: FD-01. Evidence: MLB-FD, SI-WALLS, WP-GM, MH-STAD.
 
