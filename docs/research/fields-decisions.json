@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-02",
+  "next_decision": "FD-09",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -149,7 +149,7 @@
       "id": "FD-02",
       "area": "Direction",
       "question": "How strong may a park's effect on results be?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-01"
       ],
@@ -178,16 +178,31 @@
       "recommendation": "B, with the direction declared per park before any number is chosen. The band is measured as a park factor against Harbor on the same seeds.",
       "existing_contract": "S-29 is a mixed-park guardrail (1.8\u20135 mean runs per side, F693); 35 of its 50 games are not at Harbor. Harbor cohorts are the calibration reference. No per-park band exists. Measured today, unplanned: Crystal 1.31 and Funfair 1.35 on runs, 1.45 and 1.44 on home runs (docs/research/fields-park-baseline.json).",
       "acceptance": "Each park has a declared intent (for example 'fewer home runs, more triples') and a measured factor that lands inside the accepted band on predeclared seeds. S-29 and the Harbor cohorts stay green.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B",
+      "accepted_scope": "A park may move results noticeably against Harbor, in a direction the park declares before it gets any number: about 25 percent on runs and about 50 percent on home runs is the intended size. The figures describe the direction; they are not accepted numeric targets. Exact bounds, per-event bands (doubles, triples), seeds and cohort size stay null until a scoped trial is accepted. Today's unplanned factors (Crystal 1.31, Funfair 1.35 on runs) are findings, not targets, and this decision does not authorize tuning any park now (FD-13).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-02: subtle / noticeable / wild park effect",
+        "answer_quote": "b."
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b.",
+          "scope": "A park may move results noticeably against Harbor, in a direction the park declares before it gets any number: about 25 percent on runs and about 50 percent on home runs is the intended size. The figures describe the direction; they are not accepted numeric targets. Exact bounds, per-event bands (doubles, triples), seeds and cohort size stay null until a scoped trial is accepted. Today's unplanned factors (Crystal 1.31, Funfair 1.35 on runs) are findings, not targets, and this decision does not authorize tuning any park now (FD-13)."
+        }
+      ]
     },
     {
       "id": "FD-03",
@@ -924,6 +939,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-01 accepted by Jack: A first, then B park by park. The scope line was added to AGENTS.md, roadmap.md and art-rails.md in the same PR. 18 choices remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-02 accepted by Jack: B, a noticeable park effect in a declared direction. No numeric band accepted. 17 choices remain open; next is the engineering-rails set FD-09, FD-12, FD-16, FD-17."
     }
   ]
 }
