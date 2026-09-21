@@ -4,13 +4,13 @@ Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), servi
 
 ## Current state
 
-Research foundation prepared; **All 20 broad directions accepted (PH-01–20); PH-02-R1 fixes three ordinary pitches per pitcher and PH-02-R2 fixes a five-family library; PH-15-R1 requires a fastball plus two other pitches and PH-15-R2 sets the seven captain repertoires; remaining detailed contracts and tuning stay open. No new mechanics implemented or numerical tuning targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
+Research foundation prepared; **All 20 broad directions accepted (PH-01–20); PH-02-R1 fixes three ordinary pitches per pitcher and PH-02-R2 fixes a five-family library; PH-15-R1 requires a fastball plus two other pitches and PH-15-R2 sets the seven captain repertoires and PH-15-R3 selects individual role-player repertoires; remaining detailed contracts and tuning stay open. No new mechanics implemented or numerical tuning targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
 
 This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
 
 ## How we use this together
 
-1. Discuss the next ready question using a short player-facing example and two or three real alternatives. The broad direction round is complete. Next scoped discussion: **PH-15-R3**, decide whether role players share their faction captain’s pitch selection or have individually assigned repertoires. The seven captain starting repertoires are accepted under PH-15-R2. PH-15-R1 fixes a fastball plus two other pitches for every pitcher. The accepted library is fastball, changeup, curveball, slider and sinker; detailed weaknesses/counterplay and tuning still follow. PH-02-R1 fixes the count at three ordinary pitches per pitcher; charge is a modifier and stars are separate. This refines accepted directions rather than reopening them. PH-14 also retains Jack’s contact-quality follow-up and the proposed answer.
+1. Discuss the next ready question using a short player-facing example and two or three real alternatives. The broad direction round is complete. Next scoped discussion: **PH-15-R4**, review the proposed 18 role-player starting repertoires as one set. PH-15-R3 selects individually authored repertoires. The seven captain starting repertoires are accepted under PH-15-R2. PH-15-R1 fixes a fastball plus two other pitches for every pitcher. The accepted library is fastball, changeup, curveball, slider and sinker; detailed weaknesses/counterplay and tuning still follow. PH-02-R1 fixes the count at three ordinary pitches per pitcher; charge is a modifier and stars are separate. This refines accepted directions rather than reopening them. PH-14 also retains Jack’s contact-quality follow-up and the proposed answer.
 2. Record Jack's answer in the JSON: selected option (or a clearly described custom answer), accepted scope, exact qualification, local date, author and a conversation/issue reference or quoted answer. Recommendation never counts as selection.
 3. Append history rather than erase a prior choice. Record supersession explicitly; link the replacement and named gameplay-spec decision affected.
 4. Direction acceptance selects intent only. Numeric targets stay null until a later scoped trial is accepted with units, conditions, rationale and evidence limits.
@@ -265,6 +265,19 @@ Area: Hitting. Depends on: PH-09, PH-13. Evidence: GC, WII, SMB-EI.
 
 ### PH-15 — How much should characters, hands and gear change the duel?
 
+**Refinement PH-15-R3 — Jack, September 21, 2026: individual role-player repertoires.** Reply “2” selects an authored fastball-plus-two repertoire per role player instead of automatic faction-captain inheritance. Combinations may repeat; this does not require a unique pair for every character. Shared controls and the three-pitch limit remain, and role players gain no captain Star Pitches. Exact assignments, traits and tuning remain open. No runtime change or passed playtest. Full provenance is in the canonical JSON.
+
+**Proposal PH-15-R4 — pending Jack’s choice:** every role player gets a fastball plus the pair below. These are authored starting proposals informed by existing bios and roster roles; the rationales are design suggestions, not proven strengths.
+
+- **Spark League:** Nico — Changeup + Curveball; Pip — Changeup + Slider; Marlow — Curveball + Sinker; Gull — Slider + Sinker.
+- **Royal Rink:** Frost — Curveball + Slider; Lace — Changeup + Sinker; Pewter — Curveball + Sinker.
+- **Carnival Crew:** Dart — Changeup + Slider; Jester — Changeup + Curveball.
+- **Goldrush:** Boom — Slider + Sinker; Hex — Changeup + Curveball; Nugget — Changeup + Sinker.
+- **Canopy Clan:** Vine — Curveball + Slider; Moss — Curveball + Sinker; Basil — Changeup + Sinker.
+- **Ember Keep:** Cinder — Slider + Sinker; Grit — Changeup + Sinker; Soot — Curveball + Sinker.
+
+Review this as one batch. Detailed rationales and existing throwing hands are in the canonical JSON; no hand, trait, numeric strength or captain special changes are proposed.
+
 **Refinement PH-15-R1 — Jack, September 21, 2026: universal fastball.** Reply “1” selects a fastball for every pitcher plus exactly two character-specific choices from changeup, curveball, slider and sinker. Keep shared controls/contact rules; charge modifies a pitch and stars remain outside the count. Universal access does not imply identical fastball strengths. Character assignments, traits, inputs and tuning remain open; no runtime change or passed playtest. Full provenance and composition contract are in the canonical JSON.
 
 **Refinement PH-15-R2 — Jack, September 21, 2026: starting captain assignments accepted.** Reply “1” selects the seven assignments below, with a fastball added to each pair. These accept repertoire membership and its intended character roles, not exact traits or proven balance. Role-player assignments, controls, detailed weaknesses and tuning remain open. No runtime change or passed playtest. The original proposal and its resolution remain in the canonical JSON.
@@ -416,7 +429,8 @@ Do not postpone all teaching and playtests until step 4: its delivery requiremen
 - [x] Refine PH-02-R2: five-family library (fastball, changeup, curveball, slider, sinker) and proposed game roles (Jack, September 21).
 - [x] Refine PH-15-R1: every pitcher has a fastball plus two character-specific pitches (Jack, September 21).
 - [x] Refine PH-15-R2: accept the seven captain starting repertoires, including shared Rio/Fenn families (Jack, September 21).
-- [ ] Refine PH-15-R3 role-player repertoire policy; then traits, detailed weaknesses and input contracts, including the open PH-14 bunt-quality proposal.
+- [x] Refine PH-15-R3: individually authored role-player ordinary repertoires (Jack, September 21).
+- [ ] Review PH-15-R4 proposed role-player starting assignments as a batch; then traits, detailed weaknesses and input contracts, including the open PH-14 bunt-quality proposal.
 - [ ] Collect matched reference observations and the required D7 standalone re-sit.
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
 - [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
