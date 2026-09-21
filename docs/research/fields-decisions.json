@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-09",
+  "next_decision": "FD-03",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -473,7 +473,7 @@
       "id": "FD-09",
       "area": "Hazards",
       "question": "How are hazards built: one rule per hazard, or a small library of patterns?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-08"
       ],
@@ -501,16 +501,31 @@
       "recommendation": "B. It is the pitch-family rail (D20) applied to hazards: a closed library, authored rows, no silent fallback.",
       "existing_contract": "ParkHazards (Fielding.cs:645-729) is a set of type-string tests. statue, train, ac_unit and tree have no sim effect. climb_wall is a park-wide flag. Chompers are a code literal behind a park-id test (Fielding.cs:670-683). Hazard numbers sit in fielding.json 'park' under park names (emberNightFireMul).",
       "acceptance": "An unknown hazard type or a type with no authored row fails `cli art`. A new hazard that fits a pattern needs no new sim code.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "B",
+      "accepted_scope": "Hazards come from a small closed library of patterns. A hazard type is a data row that picks a pattern and its numbers; a park lists instances. An unknown type, or a type with no authored row, fails the load. The pattern list in the plan (status volume, ball redirect, solid body, timed mover, catch stealer, reward target, wall trait) is the starting proposal, not an accepted set: which patterns ship, their fairness contract (FD-08), their placement rule (FD-19) and every number stay open. The catch stealer's place in the game is not accepted by this decision.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "Engineering rails as one set: FD-09 B, FD-12 B, FD-16 B, FD-17 C",
+        "answer_quote": "accept all four recommendations"
+      },
+      "numeric_targets": "not applicable: an engineering pattern",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "accept all four recommendations",
+          "scope": "Hazards come from a small closed library of patterns. A hazard type is a data row that picks a pattern and its numbers; a park lists instances. An unknown type, or a type with no authored row, fails the load. The pattern list in the plan (status volume, ball redirect, solid body, timed mover, catch stealer, reward target, wall trait) is the starting proposal, not an accepted set: which patterns ship, their fairness contract (FD-08), their placement rule (FD-19) and every number stay open. The catch stealer's place in the game is not accepted by this decision."
+        }
+      ]
     },
     {
       "id": "FD-10",
@@ -607,7 +622,7 @@
       "id": "FD-12",
       "area": "Rails",
       "question": "How does a park file stay correct on both data roots (shipped and C80)?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-01"
       ],
@@ -632,16 +647,31 @@
       "recommendation": "B for positions, inside #716's whole-file rule. It removes the class of bug #730 and #732 found (absolute feet that do not scale).",
       "existing_contract": "Spec \u00a716 trial overlays: whole files, override never add. F693-04-park-migration: fences scale 0.70, wall heights unscaled, hazards scaled by the zone they sit in. trials/c80/parks carries all six parks.",
       "acceptance": "A park edit that forgets the trial copy fails a test by name. A hazard sits at the same place relative to the bags on both roots.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "B",
+      "accepted_scope": "Park positions (hazards, wall segments, any later placed feature) are authored relative to the diamond and the fence, so one authoring places a feature in the same spot on the shipped root and on a trial root, inside the #716 whole-file rule. The exact unit scheme (bearing plus a fraction of the basepath inside the lip and of the fence beyond it, or another scheme) is contract work that must reproduce F693-04-park-migration's by-zone result; #730 / #732 keep ownership of hazard radii, FoulOffset and flareStart until they close. No park file changes by this decision.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "Engineering rails as one set: FD-09 B, FD-12 B, FD-16 B, FD-17 C",
+        "answer_quote": "accept all four recommendations"
+      },
+      "numeric_targets": "not applicable: an engineering pattern",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "accept all four recommendations",
+          "scope": "Park positions (hazards, wall segments, any later placed feature) are authored relative to the diamond and the fence, so one authoring places a feature in the same spot on the shipped root and on a trial root, inside the #716 whole-file rule. The exact unit scheme (bearing plus a fraction of the basepath inside the lip and of the fence beyond it, or another scheme) is contract work that must reproduce F693-04-park-migration's by-zone result; #730 / #732 keep ownership of hazard radii, FoulOffset and flareStart until they close. No park file changes by this decision."
+        }
+      ]
     },
     {
       "id": "FD-13",
@@ -768,7 +798,7 @@
       "id": "FD-16",
       "area": "Presentation",
       "question": "What is a park kit, and what is shared?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-01"
       ],
@@ -793,22 +823,37 @@
       "recommendation": "B. Harbor becomes the first park to fill the slots, with no visual change, before any second park is drawn.",
       "existing_contract": "Two diamonds exist: HarborKit for Harbor, an older primitive diamond in ParkView for the rest (different bags, dirt, chalk, mound; no foul rail). Five looks are private ParkView methods; eleven light rigs are chosen by id (Look.cs:296-484). data/art/parks.json rows are {id, slot, placed}. art-rails.md rule 4 already says parks are kits, not ParkView methods.",
       "acceptance": "`cli art` lists every park's slots and what is missing. A park with empty slots draws a complete greybox from its data, not an error and not Harbor's dress.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "B",
+      "accepted_scope": "One park-neutral field kit draws the diamond, lines, bags, mound, wall and rail from the shared geometry owner. A park fills named slots; an empty slot draws a complete greybox from park data. Harbor fills the slots first with no visual change, and the ParkView fallback diamond and per-park dress methods retire after that. The slot list in the plan is the starting proposal; the exact slot schema and the order of retirement are contract work. No art is commissioned (FD-01).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "Engineering rails as one set: FD-09 B, FD-12 B, FD-16 B, FD-17 C",
+        "answer_quote": "accept all four recommendations"
+      },
+      "numeric_targets": "not applicable: an engineering pattern",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "accept all four recommendations",
+          "scope": "One park-neutral field kit draws the diamond, lines, bags, mound, wall and rail from the shared geometry owner. A park fills named slots; an empty slot draws a complete greybox from park data. Harbor fills the slots first with no visual change, and the ParkView fallback diamond and per-park dress methods retire after that. The slot list in the plan is the starting proposal; the exact slot schema and the order of retirement are contract work. No art is commissioned (FD-01)."
+        }
+      ]
     },
     {
       "id": "FD-17",
       "area": "Presentation",
       "question": "What gates a park's look, and in what order?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-16"
       ],
@@ -833,16 +878,31 @@
       "recommendation": "C. It is 'rails before artwork' and 'three good parks beat six ugly ones' written as a gate.",
       "existing_contract": "StillRequest has no park and no night. The DCC stage catalog and the dual-stills catalog have a Harbor lane only, fixed by their validators. harbor_kit.py reads no data; seven constants have drifted. #37: three parks at trailer quality before unlocking the rest.",
       "acceptance": "A park's PR trail shows the gates in order. No park mesh is commissioned for a park whose greybox sitting has not happened.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "C",
+      "accepted_scope": "A park's look is gated in order: rules green, greybox playable, Jack's greybox sitting, then the DCC stages and dual stills with named park shots. Only one park may be in the art stages at a time. StillRequest gains park and night, and the stage and dual-still catalogs gain a park lane, as rails. The sitting checklist and the named shots are contract work. Agents do not pass the greybox sitting or the look gate.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "Engineering rails as one set: FD-09 B, FD-12 B, FD-16 B, FD-17 C",
+        "answer_quote": "accept all four recommendations"
+      },
+      "numeric_targets": "not applicable: an engineering pattern",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "accept all four recommendations",
+          "scope": "A park's look is gated in order: rules green, greybox playable, Jack's greybox sitting, then the DCC stages and dual stills with named park shots. Only one park may be in the art stages at a time. StillRequest gains park and night, and the stage and dual-still catalogs gain a park lane, as rails. The sitting checklist and the named shots are contract work. Agents do not pass the greybox sitting or the look gate."
+        }
+      ]
     },
     {
       "id": "FD-18",
@@ -943,6 +1003,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-02 accepted by Jack: B, a noticeable park effect in a declared direction. No numeric band accepted. 17 choices remain open; next is the engineering-rails set FD-09, FD-12, FD-16, FD-17."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-09 (B), FD-12 (B), FD-16 (B) and FD-17 (C) accepted by Jack as one set: \"accept all four recommendations\". Engineering patterns only; no gameplay rule, number or art accepted. 13 choices remain open; next is FD-03."
     }
   ]
 }
