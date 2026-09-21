@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-08",
+  "next_decision": "PH-14",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -844,7 +844,7 @@
       "existing_contract": "Existing stamina costs stack; a changeup adds 3 to the ordinary cost of 4. No new fatigue thresholds selected.",
       "acceptance": "The player predicts when to change pitchers and understands why a tired delivery differs; swapping does not erase history.",
       "selected_option": "B",
-      "accepted_scope": "Use gradual, clearly visible, effort-driven pitcher fatigue. Ordinary pitching is relatively economical; repeatedly pushing for power wears the pitcher down faster. Effectiveness declines gradually rather than through an unexplained sudden loss of control. Exact stamina pools, action costs, fatigue curve, affected abilities, recovery/substitution details and numeric penalties remain open. Coordinate accumulated fatigue with PH-05\u2019s immediate power/control tradeoff and PH-15\u2019s character differences, without assuming a particular stacking formula. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Use gradual, clearly visible, effort-driven pitcher fatigue. Ordinary pitching stays relatively economical; repeated high-power pitching wears the pitcher down faster. PH-08-R1 accepts reduced available peak power as the primary effect. A small secondary steering-correction reduction is a tentative candidate, not an accepted mandatory penalty or amount. Exact costs, curves, recovery/substitution details and numeric penalties remain open. Coordinate accumulated fatigue with PH-05-R1 charge/control costs and PH-15 character differences without assuming a stacking formula; preserve predictable steering and D7. Direction acceptance only; no runtime change or human playtest acceptance. Original scope remains in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -866,6 +866,64 @@
           "choice": "B",
           "quote": "2",
           "scope": "Use gradual, clearly visible, effort-driven pitcher fatigue. Ordinary pitching is relatively economical; repeatedly pushing for power wears the pitcher down faster. Effectiveness declines gradually rather than through an unexplained sudden loss of control. Exact stamina pools, action costs, fatigue curve, affected abilities, recovery/substitution details and numeric penalties remain open. Coordinate accumulated fatigue with PH-05\u2019s immediate power/control tradeoff and PH-15\u2019s character differences, without assuming a particular stacking formula. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-08-R1",
+          "choice": "1 with tentative small secondary effect from 2",
+          "quote": "definitely 1, maybe a bit of 2",
+          "scope": "Make loss of available peak pitching power the primary accumulated-fatigue effect, with gradual visible decline driven mainly by high-effort pitching. Jack also expressed tentative interest in a small secondary reduction of steering correction. Preserve that as a candidate to evaluate, not acceptance of a mandatory second penalty, particular amount or stacking formula. Steering remains readable and predictable; do not turn fatigue into random errors or increasingly sensitive inputs. Coordinate any candidate correction loss with PH-05-R1\u2019s charge-related correction limit and PH-15 character differences. Exact fatigue costs, power response, correction effect, recovery and numerical curves remain open; respect D7 before tuning pitch travel time. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-08-R1",
+          "question": "What should accumulated fatigue primarily reduce?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Primarily reduce available peak power"
+            },
+            {
+              "id": "2",
+              "label": "Primarily reduce steering correction while retaining power"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Make loss of available peak pitching power the primary accumulated-fatigue effect, with gradual visible decline driven mainly by high-effort pitching. Jack also expressed tentative interest in a small secondary reduction of steering correction. Preserve that as a candidate to evaluate, not acceptance of a mandatory second penalty, particular amount or stacking formula. Steering remains readable and predictable; do not turn fatigue into random errors or increasingly sensitive inputs. Coordinate any candidate correction loss with PH-05-R1\u2019s charge-related correction limit and PH-15 character differences. Exact fatigue costs, power response, correction effect, recovery and numerical curves remain open; respect D7 before tuning pitch travel time. Direction refinement only; no runtime change, numerical trial or human acceptance.",
+          "contract": {
+            "primary_fatigue_effect": "gradual reduction in available peak pitching power",
+            "secondary_steering_penalty": "candidate only; not a required accepted effect"
+          },
+          "tentative_considerations": [
+            {
+              "status": "proposal",
+              "effect": "small secondary reduction in player steering correction",
+              "answer_quote": "maybe a bit of 2",
+              "limits": "Evaluate alongside the primary power decline and charge-related steering cost; neither inclusion nor amount is settled."
+            }
+          ],
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-08-R1: What should accumulated fatigue primarily reduce? 1. Peak power (recommended): a tired pitcher gradually loses their strongest delivery, while steering stays predictable. 2. Steering correction: a tired pitcher retains power but has progressively less room to adjust pitches. Both preserve gradual, visible fatigue driven mainly by high-effort pitching. Exact penalties remain for tuning.",
+            "answer_quote": "definitely 1, maybe a bit of 2"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Make the gradual power decline visible and distinguish it from a deliberate lower-charge pitch.",
+            "If evaluating the tentative small steering penalty, compare it with power-only fatigue and assess the combined effect with PH-05-R1; do not assume two full penalties stack.",
+            "Keep steering predictable and characteristic pitch identity readable. Respect D7 before selecting any flight-time effects."
+          ]
         }
       ]
     },
@@ -2587,6 +2645,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-05-R1 option 1: greater charge power reduces available player steering correction while preserving characteristic pitch movement and live steering. Next PH-08-R1 selects the main effect of accumulated fatigue; exact curves and combined tuning remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack answered PH-08-R1 \u201cdefinitely 1, maybe a bit of 2\u201d: peak-power decline is accepted as fatigue\u2019s primary effect; a small secondary correction penalty remains a candidate. No amount or stacking formula accepted. Next PH-14-R1 resolves the previously recorded contact-quality bunt response proposal."
     }
   ]
 }
