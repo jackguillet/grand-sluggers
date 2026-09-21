@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-07",
+  "next_decision": "FD-08",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -457,7 +457,7 @@
       "id": "FD-07",
       "area": "Geometry",
       "question": "May foul territory and outfield depth differ by park?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-01"
       ],
@@ -485,16 +485,31 @@
       "recommendation": "B now, C when a park's fence shape needs it. The extraction is the largest single rail and it is needed even if every park keeps Harbor's numbers.",
       "existing_contract": "`FieldBounds.Of(park)` builds the foul walls from `HarborWall` (FoulOffset 36 ft, flare start 95 ft, 4.2 ft rail). #732 owns those absolutes under #730. fielders.json is one global set (#730 decision 3).",
       "acceptance": "No Harbor-named class decides a rule in another park. Every park plays bit-identical until it names a difference.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "C",
+      "accepted_scope": "Foul territory and outfield depth may both differ by park. Order: first take the foul wrap, rail and backstop out of HarborWall into park-neutral boundary parameters with Harbor's values as the defaults, so every park plays bit-identical (parity); then a park may name its foul area and its outfield depth when its shape needs them. Outfield depth means the three outfield starts only: the infield four, the pitcher and the catcher stay the one global set. The default for a park that names no depth stays the #730 decision 3 rule (each outfielder keeps his bearing and his fraction of the fence at that bearing). #730 / #732 keep ownership of FoulOffset 36 ft and flareStart 95 ft until they close; a child is filed with those numbers banned or as their named successor. The original recommendation was B-then-C; it became C after FD-06 C. No foul-area or depth value is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-07: shared in every park / foul territory per park / foul territory and outfield depth per park",
+        "answer_quote": "C"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "C",
+          "scope": "Foul territory and outfield depth may both differ by park. Order: first take the foul wrap, rail and backstop out of HarborWall into park-neutral boundary parameters with Harbor's values as the defaults, so every park plays bit-identical (parity); then a park may name its foul area and its outfield depth when its shape needs them. Outfield depth means the three outfield starts only: the infield four, the pitcher and the catcher stay the one global set. The default for a park that names no depth stays the #730 decision 3 rule (each outfielder keeps his bearing and his fraction of the fence at that bearing). #730 / #732 keep ownership of FoulOffset 36 ft and flareStart 95 ft until they close; a child is filed with those numbers banned or as their named successor. The original recommendation was B-then-C; it became C after FD-06 C. No foul-area or depth value is selected."
+        }
+      ]
     },
     {
       "id": "FD-08",
@@ -1096,6 +1111,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-06 accepted by Jack: C, a free polyline fence with a height per point and a material per span; the three-post arc stays the default. The author's recommendation was B. Gameplay-spec D15 must be reconciled before implementation. 9 choices remain open; next is FD-07."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-07 accepted by Jack: C, foul territory and outfield depth per park, parity extraction first. Round 3 (what a park may change) is complete. 8 choices remain open; next is FD-08."
     }
   ]
 }

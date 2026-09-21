@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). FD-06 is accepted: the fence may be a free polyline with a height per point and a material per span (C); the three-post arc stays the default. The other 9 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-07. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). FD-06 is accepted: the fence may be a free polyline with a height per point and a material per span (C); the three-post arc stays the default. FD-07 is accepted: foul territory and outfield depth may differ by park (C), after a parity extraction. Round 3 is complete. The other 8 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-08. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -61,8 +61,8 @@ What a field can vary, where it lives today, and where this plan proposes it liv
 | Ground bounce (restitution, horizontal, skid) | global 0.48 / 0.82 | `BallFlight.cs:159` | ground row | FD-03, FD-05 |
 | Loose-ball grounds (overthrow decel, bobble decel) | global, two more models | `LivePlaySystem.Field.cs:3059-3126` | read the same ground row | FD-05 |
 | Body traction (brake, turn, slide) | global (#718 response law, `running.bags`); the law is off on the shipped root (0 / 0) | `LivePlaySystem.Field.cs:2231` | ground row: small multipliers on the response law and on slide / overrun (FD-04 B). Full traction is a held trial | FD-04 ✅ |
-| Foul territory (offset, flare, rail height, backstop) | `HarborWall` literals for every park | `FieldBounds.cs:105-188` | park boundary parameters | FD-07 |
-| Outfield depth (fielder starts) | one global set | `Diamond.Positions` | stays global unless FD-07 says C | FD-07 |
+| Foul territory (offset, flare, rail height, backstop) | `HarborWall` literals for every park | `FieldBounds.cs:105-188` | park boundary parameters, Harbor's values as defaults | FD-07 ✅ |
+| Outfield depth (fielder starts) | one global set | `Diamond.Positions` | the three outfield starts may be named per park; default is the #730 fraction-of-fence rule | FD-07 ✅ |
 | Hazards | per park, eleven types, thin | `ParkHazards` (`Fielding.cs:645`) | pattern library + park instances | FD-08, FD-09, FD-19 |
 | Hazards on or off | always on | — | a match option (an empty instance list) | FD-10 |
 | Night | one park number + two code rules | `Match.Night` | declared night block | FD-11 |
@@ -147,7 +147,7 @@ Serial by default. Each epic is filed only when the decisions it needs are accep
 | --- | --- | --- | --- | --- |
 | **F0** Reconcile the standing orders | docs | Scope line in AGENTS.md, roadmap.md and art-rails.md: **done with FD-01**. Still owed: the parks.md and spec §14 corrections listed in the research report | FD-01 ✅ | — |
 | **F1** Schema and catalog | Gameplay | strict park schema, dead fields resolved, park list from the catalog, unknown id is an error | FD-01 | FR-03, FR-04, FR-06, FR-16 |
-| **F2** Geometry owner | Gameplay | park-neutral boundary type; Harbor's numbers as defaults; lopsided parks draw true; parity. Then the polyline fence: one distance per bearing, vertices kept in the clip polygon, height per point, material per span; D15 reconciled in the spec first | FD-06 ✅, FD-07; coordinate #732 | FR-05, FR-06 |
+| **F2** Geometry owner | Gameplay | park-neutral boundary type; Harbor's numbers as defaults; lopsided parks draw true; parity. Then the polyline fence: one distance per bearing, vertices kept in the clip polygon, height per point, material per span; D15 reconciled in the spec first | FD-06 ✅, FD-07 ✅; coordinate #732. Per-park outfield starts must not read the process-wide `Diamond.Positions` | FR-05, FR-06 |
 | **F3** Environment table | Gameplay | `AtPark`; ground and wall-material libraries, ground rows carrying ball fields and body multipliers; every park still names nothing; then one lever at a time as a trial. The body effect needs the response law on (C80 today) | FD-03, FD-04, FD-05 | FR-01, FR-02, FR-06, FR-11 |
 | **F4** Hazard runtime | Gameplay | pattern library; live touch tests; typed events; CPU reads hazards; rolls removed | FD-08, FD-09, FD-10, FD-11, FD-14, FD-19 | FR-07, FR-08, FR-09, FR-12 |
 | **F5** Measurement | Gameplay | `park-factors` cohort, night flag in the CLI, declared park intents | FD-02, FD-13 | FR-10 |
@@ -179,7 +179,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 to FD-06, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 9 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 to FD-07, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 8 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -278,6 +278,8 @@ Area: Geometry. Depends on: FD-01. Evidence: MLB-FD, SI-WALLS, WP-GM, MH-STAD.
 **Acceptance:** The drawn wall equals the flight wall on every segment (the HarborWallTests rule, for every park). A segment's carom and rob behavior come from its material row.
 
 ### FD-07 — May foul territory and outfield depth differ by park?
+
+**Decision — Jack, September 21, 2026: C.** Reply "C" selects both. Order: take the foul wrap, rail and backstop out of `HarborWall` into park-neutral parameters with Harbor's values as defaults (parity); then a park may name its foul area and its outfield depth when its shape needs them. Depth means the three outfield starts only; the infield, pitcher and catcher stay global. A park that names no depth keeps the #730 decision 3 rule (bearing and fraction of the fence at that bearing). #730 / #732 keep the 36-ft and 95-ft numbers until they close. The recommendation became C after FD-06 C. No value is selected. Full provenance is in the canonical JSON.
 
 Area: Geometry. Depends on: FD-01. Evidence: FG-FOUL, FG-FOULHFA.
 
