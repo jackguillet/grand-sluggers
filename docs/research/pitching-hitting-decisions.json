@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-01",
+  "next_decision": "PH-09",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -41,7 +41,7 @@
       "id": "PH-01",
       "area": "Direction",
       "question": "What should added depth primarily ask the player to do?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [],
       "source_ids": [
         "WII",
@@ -68,16 +68,31 @@
       "recommendation": "A, with clarity and reliability required throughout. It best matches the stated affection for Sluggers; still only a proposal.",
       "existing_contract": "Existing gameplay-spec principles remain; this choice authorizes a direction, not new controls or coefficients.",
       "acceptance": "A new player can put balls in play; a practiced player can explain a tactical advantage beyond simply reacting faster.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A+C",
+      "accepted_scope": "Pursue Mario-style tactical depth together with reliability, consistency and clear teaching. Exact sequencing remains open. This does not select more demanding aiming/release controls, a specific mechanic, or numerical tuning.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-01: tactical depth / execution depth / reliability first",
+        "answer_quote": "Both 1 and 3."
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A+C",
+          "quote": "Both 1 and 3.",
+          "scope": "Pursue Mario-style tactical depth together with reliability, consistency and clear teaching. Exact sequencing remains open. This does not select more demanding aiming/release controls, a specific mechanic, or numerical tuning."
+        }
+      ]
     },
     {
       "id": "PH-02",
@@ -930,6 +945,10 @@
     {
       "date": "2026-09-20",
       "event": "Register created from the user brief; all 20 mechanic/design choices remain open. Existing gameplay-spec decisions remain in force."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-01 as A+C: tactical depth plus reliability/teaching. Nineteen choices remain open; no mechanics or numeric trials selected."
     }
   ]
 }
