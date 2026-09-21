@@ -309,6 +309,60 @@ public sealed class PitchSelectionScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
+    // S-106b  A lock exists only while the charge is armed, even if the caller skips a tick
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S106b_ALockWhoseButtonIsNoLongerArmedIsStaleSoASkippedReleaseCannotStrandTheSelection()
+    {
+        var rep = _content.Must("rio").Repertoire;
+        var mound = new Mound(rep, AllAuthored);
+
+        // The third pitch is showing and the charge arms on it.
+        mound.Tick(cycle: true);
+        mound.Tick(cycle: true);
+        mound.Tick(pressed: true, held: true);
+        Assert.Equal(new PitchSelectionState(2, true), mound.Selection);
+
+        // While the charge is genuinely armed, a cycle press is still ignored (the normal path).
+        var held = mound.Tick(cycle: true, held: true);
+        Assert.Equal(new PitchSelectionState(2, true), held.Next);
+        Assert.Equal(rep.Third, held.Family);
+
+        // Now SET returns early on the tick the charge goes away — the swap pick opens, the game
+        // pauses, a tutorial gate fires — so the button disarms but the selection step never runs
+        // and never sees the releasing edge. The state is left locked with a disarmed button.
+        mound.SkipTick(held: true, accepting: false);
+        Assert.False(mound.Button.Armed);
+        Assert.True(mound.Selection.Locked, "the skipped tick is exactly what strands the lock");
+
+        // The next tick reads that lock as stale: the press cycles instead of being swallowed.
+        var resumed = mound.Tick(cycle: true);
+        Assert.False(resumed.Next.Locked);
+        Assert.Equal(0, resumed.Next.Slot);
+        Assert.Equal(PitchFamily.Fastball, resumed.Family);
+
+        // And the next charge locks afresh, then throws what it locked.
+        var relocked = mound.Tick(cycle: true, pressed: true, held: true);
+        Assert.True(relocked.LockedThisTick);
+        Assert.Equal(1, relocked.Next.Slot);
+        var commit = mound.Tick(cycle: true, released: true);
+        Assert.True(commit.Committed);
+        Assert.Equal(rep.Second, commit.Family);
+        Assert.Equal(PitchSelectionState.Reset, commit.Next);
+
+        // A stale lock plus a same-tick press-and-release still locks and throws on that tick.
+        var stranded = new PitchSelectionState(2, true);
+        var atOnce = ChargeButton.Advance(default, pressed: true, held: true, released: true,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.55);
+        var thrown = PitchSelection.Advance(stranded, cyclePressed: false, selectable: true,
+            default, atOnce, rep, AllAuthored);
+        Assert.True(thrown.Committed);
+        Assert.True(thrown.LockedThisTick);
+        Assert.Equal(rep.Third, thrown.Family);
+    }
+
+    // ---------------------------------------------------------------------------------
     // Determinism (S-90 shape) and the defensive read
     // ---------------------------------------------------------------------------------
 
@@ -419,6 +473,24 @@ public sealed class PitchSelectionScenarioTests
                 repertoire, authored);
             Selection = Last.Next;
             return Last;
+        }
+
+        /// <summary>
+        /// A SET frame the caller returned early from: the button still ticks, the selection step
+        /// never runs. The selection keeps whatever the last tick left it, which is how a lock
+        /// outlives the charge that made it.
+        /// </summary>
+        public void SkipTick(
+            bool pressed = false,
+            bool held = false,
+            bool released = false,
+            bool accepting = true,
+            double deltaSeconds = 1.0 / 60,
+            double secondsToFull = 0.55)
+        {
+            LastButton = ChargeButton.Advance(Button, pressed, held, released, deltaSeconds,
+                secondsToFull, accepting);
+            Button = LastButton.Next;
         }
     }
 }
