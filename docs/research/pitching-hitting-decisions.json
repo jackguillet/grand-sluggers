@@ -1041,7 +1041,7 @@
       "existing_contract": "No new captain, second skeleton or one-captain resolver. Equipment and chemistry must be included in balance trials.",
       "acceptance": "Rio and Ashlord, both hands, contact/power archetypes and relevant gear all follow the same taught rules.",
       "selected_option": "B",
-      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. Exact character assignments, trait definitions, numerical strengths and gear interactions remain open. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
+      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. PH-15-R2 accepts the seven starting captain assignments recorded in its contract, including shared Rio/Fenn families. Role-player assignments, trait definitions, numerical strengths and gear interactions remain open. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1073,6 +1073,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Every pitcher has a fastball plus exactly two character-specific choices from changeup, curveball, slider and sinker. Preserve the three-ordinary-pitch limit, shared controls/contact rules, charging as a modifier and Star Pitches outside the count. Universal fastball access does not require identical fastball strength across characters. Exact character assignments, traits, selection inputs and tuning remain open. This refines distinct repertoires within the shared model; no runtime change, numeric tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-15-R2",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Accept the proposed starting ordinary repertoires for the seven existing captains: everyone has Fastball; Rio adds Changeup/Curveball, Vale Curveball/Slider, Zig Changeup/Slider, Brondo Changeup/Sinker, Konga Curveball/Sinker, Ashlord Slider/Sinker, and Fenn Changeup/Curveball. Rio and Fenn share pitch families; character traits and execution tuning remain separate work. Preserve three ordinary pitches, shared controls/contact rules, charging as a modifier and stars outside the count. Role-player assignments, traits, detailed weaknesses/counterplay, inputs and numerical tuning remain open. These are accepted starting assignments, not implemented or proven balance and not human playtest acceptance."
         }
       ],
       "refinements": [
@@ -1114,13 +1124,116 @@
           "implementation_issues": [],
           "validation_evidence": [],
           "human_acceptance": null
+        },
+        {
+          "id": "PH-15-R2",
+          "question": "Should these be the starting ordinary pitch assignments for the existing captains?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Use the proposed seven captain assignments"
+            },
+            {
+              "id": "2",
+              "label": "Revise specified captain assignments"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Accept the proposed starting ordinary repertoires for the seven existing captains: everyone has Fastball; Rio adds Changeup/Curveball, Vale Curveball/Slider, Zig Changeup/Slider, Brondo Changeup/Sinker, Konga Curveball/Sinker, Ashlord Slider/Sinker, and Fenn Changeup/Curveball. Rio and Fenn share pitch families; character traits and execution tuning remain separate work. Preserve three ordinary pitches, shared controls/contact rules, charging as a modifier and stars outside the count. Role-player assignments, traits, detailed weaknesses/counterplay, inputs and numerical tuning remain open. These are accepted starting assignments, not implemented or proven balance and not human playtest acceptance.",
+          "contract": {
+            "captain_assignments": [
+              {
+                "character_id": "rio",
+                "name": "Rio Sparks",
+                "ordinary_pitches": [
+                  "Fastball",
+                  "Changeup",
+                  "Curveball"
+                ],
+                "rationale": "Balanced timing and movement choices."
+              },
+              {
+                "character_id": "vale",
+                "name": "Queen Vale",
+                "ordinary_pitches": [
+                  "Fastball",
+                  "Curveball",
+                  "Slider"
+                ],
+                "rationale": "Two different breaking shapes for a pitching specialist."
+              },
+              {
+                "character_id": "zig",
+                "name": "Zig",
+                "ordinary_pitches": [
+                  "Fastball",
+                  "Changeup",
+                  "Slider"
+                ],
+                "rationale": "Timing changes and lateral movement for a tricky repertoire."
+              },
+              {
+                "character_id": "brondo",
+                "name": "Brondo",
+                "ordinary_pitches": [
+                  "Fastball",
+                  "Changeup",
+                  "Sinker"
+                ],
+                "rationale": "Slow/fast contrast with a dipping alternative."
+              },
+              {
+                "character_id": "konga",
+                "name": "Konga",
+                "ordinary_pitches": [
+                  "Fastball",
+                  "Curveball",
+                  "Sinker"
+                ],
+                "rationale": "Contrasting arcing and faster dipping shapes."
+              },
+              {
+                "character_id": "ashlord",
+                "name": "Ashlord",
+                "ordinary_pitches": [
+                  "Fastball",
+                  "Slider",
+                  "Sinker"
+                ],
+                "rationale": "Lateral and dipping movement alongside the fastball."
+              },
+              {
+                "character_id": "fenn",
+                "name": "Elder Fenn",
+                "ordinary_pitches": [
+                  "Fastball",
+                  "Changeup",
+                  "Curveball"
+                ],
+                "rationale": "Patient timing changes and a pronounced arc; shares Rio\u2019s families, with traits to distinguish later."
+              }
+            ]
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-15-R2: Proposed captain repertoires. Everyone gets a fastball, plus Rio: changeup + curveball (balanced); Vale: curveball + slider (movement specialist); Zig: changeup + slider (timing and lateral deception); Brondo: changeup + sinker (slow/fast contrast); Konga: curveball + sinker (contrasting drops); Ashlord: slider + sinker (lateral and dipping movement); Fenn: changeup + curveball (patient timing changes). Rio and Fenn share families; their traits can distinguish execution later. 1. Use these starting assignments (recommended). 2. Revise the assignments: tell me which characters you would change.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
         }
       ],
       "discussion": [
         {
           "id": "PH-15-R2",
           "date": "2026-09-21",
-          "status": "proposal",
+          "status": "direction-accepted",
           "question": "Should these be the starting ordinary pitch assignments for the existing captains?",
           "recommendation": "Use the proposed captain assignments as one coherent starting set; refine traits and tuning separately. Every entry includes the required fastball.",
           "assignments": [
@@ -1205,7 +1318,14 @@
             "data/characters/ashlord.json",
             "data/characters/fenn.json"
           ],
-          "limits": "Author proposal only, inferred from existing character identities, not an accepted allocation or proven balance. Seven existing captains share six possible non-fastball pairs, so Rio and Fenn share families; traits and tuning remain separate. Role-player assignments are not selected by this proposal. All pitch shapes must respect horizontal batting coverage and live steering; no guaranteed outcomes."
+          "limits": "Starting captain assignments accepted through refinement PH-15-R2 on September 21, 2026. Original proposal limits are preserved separately. Role-player assignments, traits and tuning remain open; no runtime change or proven balance.",
+          "original_proposal_limits": "Author proposal only, inferred from existing character identities, not an accepted allocation or proven balance. Seven existing captains share six possible non-fastball pairs, so Rio and Fenn share families; traits and tuning remain separate. Role-player assignments are not selected by this proposal. All pitch shapes must respect horizontal batting coverage and live steering; no guaranteed outcomes.",
+          "resolution": {
+            "date": "2026-09-21",
+            "author": "Jack",
+            "answer_quote": "1",
+            "refinement_id": "PH-15-R2"
+          }
         }
       ]
     },
@@ -1621,6 +1741,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-15-R1: every pitcher has a fastball plus two character-specific pitches. Prepared PH-15-R2 as an unaccepted seven-captain assignment proposal based on existing roster data; role-player assignments, traits and tuning remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-15-R2 option 1: the proposed seven captain starting repertoires. Proposal provenance is preserved with its acceptance resolution. Next PH-15-R3 discusses role-player pitch selection; traits, tuning and implementation remain open."
     }
   ]
 }
