@@ -1,0 +1,935 @@
+{
+  "schema_version": 1,
+  "title": "Pitching and hitting decision register",
+  "created_local_date": "2026-09-20",
+  "timezone": "America/Los_Angeles",
+  "session_kind": "Gameplay research/documentation",
+  "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
+  "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
+  "research": "../research-pitching-hitting.md",
+  "next_decision": "PH-01",
+  "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
+  "brief": {
+    "author": "Jack",
+    "scope": "Research both Mario baseball games and other baseball games, then prepare a tracker for choices we make together.",
+    "direction": "Loves Mario Super Sluggers and is open to greater robustness; no specific new mechanic or numerical target accepted."
+  },
+  "status_vocabulary": [
+    "open",
+    "direction-accepted",
+    "trial-accepted",
+    "implemented",
+    "validated",
+    "human-accepted",
+    "deferred",
+    "rejected",
+    "superseded"
+  ],
+  "baseline_sha256": {
+    "docs/gameplay-spec.md": "18cdd2f5c9347bde0af38723760c16a104a40cf32434c1ec557569fc1d282aa4",
+    "data/rules/pitching.json": "8856be62a6dadd4de2c2be1bb7a342899b63294fc1b51da118f9994229129e9b",
+    "data/rules/batting.json": "afde01a38bf13b1546b05021346664f7ae32fb1bd6f1aba3732f47857d61d878",
+    "data/feel/table.json": "52d8ca86d133b5fa050e52f0aa738c3978ddfd4149f4bc128cf7f79323e56e02",
+    "src/GrandSluggers.Sim/PitchFlight.cs": "2dd4e63c51bdeb8a4084f5bfdafeb38bf2afcfe38f5cae58dd377a3744bd0091",
+    "src/GrandSluggers.Sim/AtBatResolver.cs": "b909cd9578708568e5f7d7baad58c289579b2819e1b41062ad4e358bfffdce09",
+    "src/GrandSluggers.Sim/AtBatFeel.cs": "11afd94ea43a4ec4044a486723cacfc5ae9e94c173d8b7459462c6f359b738c1",
+    "src/GrandSluggers.Sim/Match.cs": "e1db0b2b74bedb954751a7b26ab6a99187b9812d1d80634eecf0a5293d54facf",
+    "unity/Assets/Scripts/Runtime/AtBatDirector.cs": "0a42eb1aa7cec3ff8212898be81f501b1d1a5b9addf8fd65eb1237b3112e75b9"
+  },
+  "decisions": [
+    {
+      "id": "PH-01",
+      "area": "Direction",
+      "question": "What should added depth primarily ask the player to do?",
+      "status": "open",
+      "depends_on": [],
+      "source_ids": [
+        "WII",
+        "SMB-EI",
+        "SHOW-H"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Mario-style tactical depth",
+          "tradeoff": "Preserve positioning and charge; deepen pitch mixing, reads and situational choices."
+        },
+        {
+          "id": "B",
+          "label": "More precise execution",
+          "tradeoff": "Add target/reticle or release demands; more control, more practice required."
+        },
+        {
+          "id": "C",
+          "label": "Clarity and reliability first",
+          "tradeoff": "Keep the current choice set and improve consistency, teaching and feedback before expansion."
+        }
+      ],
+      "recommendation": "A, with clarity and reliability required throughout. It best matches the stated affection for Sluggers; still only a proposal.",
+      "existing_contract": "Existing gameplay-spec principles remain; this choice authorizes a direction, not new controls or coefficients.",
+      "acceptance": "A new player can put balls in play; a practiced player can explain a tactical advantage beyond simply reacting faster.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-02",
+      "area": "Pitching",
+      "question": "How many ordinary pitch families should each pitcher have?",
+      "status": "open",
+      "depends_on": [
+        "PH-01"
+      ],
+      "source_ids": [
+        "GC",
+        "WII",
+        "SPORTS",
+        "SMB-EI"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Current compact vocabulary",
+          "tradeoff": "Normal, charged and changeup with steering; lowest teaching cost."
+        },
+        {
+          "id": "B",
+          "label": "Small authored repertoire",
+          "tradeoff": "Add clearly distinct ordinary pitch shapes, with character-specific strengths and weaknesses."
+        },
+        {
+          "id": "C",
+          "label": "Broad baseball repertoire",
+          "tradeoff": "Many named pitches and detailed matchup selection; largest complexity and balance cost."
+        }
+      ],
+      "recommendation": "B if PH-01 favors added tactics; define each pitch by a distinct response it demands before choosing a count or names.",
+      "existing_contract": "Current PitchFlight has fastball/changeup base shapes; stars are separate. No new pitch count is selected.",
+      "acceptance": "Each pitch has a readable trajectory, tactical use, counterplay and reason not to throw it every time.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-03",
+      "area": "Pitching",
+      "question": "How does the pitcher choose location?",
+      "status": "open",
+      "depends_on": [
+        "PH-01",
+        "PH-02"
+      ],
+      "source_ids": [
+        "WII",
+        "SMB-EI",
+        "SHOW-P"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Mound and shape",
+          "tradeoff": "Keep horizontal mound positioning and pitch-defined height."
+        },
+        {
+          "id": "B",
+          "label": "Coarse zone intent",
+          "tradeoff": "Choose a broad region before delivery; execution and shape determine the actual crossing."
+        },
+        {
+          "id": "C",
+          "label": "Free two-dimensional target",
+          "tradeoff": "Place an exact intended endpoint; increases precision and aiming load."
+        }
+      ],
+      "recommendation": "Compare A and B first. Choose together with PH-04 so aiming plus steering does not grant unlimited correction.",
+      "existing_contract": "Human pitching currently has no free vertical aim. CPU endpoint targeting is a baseline asymmetry to assess in PH-18.",
+      "acceptance": "Both seats can intentionally seek a strike or chase pitch without the shared screen revealing the exact endpoint.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-04",
+      "area": "Pitching",
+      "question": "How much control remains after release?",
+      "status": "open",
+      "depends_on": [
+        "PH-02",
+        "PH-03"
+      ],
+      "source_ids": [
+        "GC",
+        "WII"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Live lateral steering",
+          "tradeoff": "Keep the familiar post-release duel; requires bounded break and a fair response opportunity."
+        },
+        {
+          "id": "B",
+          "label": "Committed shape",
+          "tradeoff": "Release locks the path; easier prediction and clearer pitch identity."
+        },
+        {
+          "id": "C",
+          "label": "Bounded early steering",
+          "tradeoff": "Allow a limited correction then commit; adds a timing boundary to teach."
+        }
+      ],
+      "recommendation": "A as the first comparison baseline; evaluate B/C only against an observed readability or fairness problem.",
+      "existing_contract": "Current break is accumulated direction input, with charge/changeup damping. New caps and cutoffs remain unset.",
+      "acceptance": "A legal late action can fool a committed swing but cannot create an unreadable unavoidable strike for a waiting hitter.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-05",
+      "area": "Pitching",
+      "question": "What makes a pitch well executed?",
+      "status": "open",
+      "depends_on": [
+        "PH-03",
+        "PH-04"
+      ],
+      "source_ids": [
+        "WII",
+        "SMB-EI",
+        "SHOW-P"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Existing charge/release",
+          "tradeoff": "Preserve a simple timing commitment with visible benefits and fatigue costs."
+        },
+        {
+          "id": "B",
+          "label": "Power versus command",
+          "tradeoff": "Use the same action to trade strength against controllability; adds a tactical risk."
+        },
+        {
+          "id": "C",
+          "label": "Separate accuracy task",
+          "tradeoff": "Meter, pulse or gesture execution; greater precision cost every pitch."
+        }
+      ],
+      "recommendation": "A initially; consider B if it creates a clear choice. Avoid a second execution minigame unless PH-01 selects that emphasis.",
+      "existing_contract": "No charge timing, Nice multiplier or stamina number changes with this direction.",
+      "acceptance": "A player can distinguish a poor release from a poor location choice; maximum power is not universally best.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-06",
+      "area": "Shared duel",
+      "question": "What may the opponent see before committing?",
+      "status": "open",
+      "depends_on": [
+        "PH-03",
+        "PH-04"
+      ],
+      "source_ids": [
+        "WII",
+        "SMB-EI",
+        "SHOW-P"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Body and ball tells",
+          "tradeoff": "Show preparation and trajectory but keep exact aim private."
+        },
+        {
+          "id": "B",
+          "label": "Broad intent tells",
+          "tradeoff": "Also reveal a pitch family or coarse region; easier reads, less deception."
+        },
+        {
+          "id": "C",
+          "label": "Explicit trajectory aid",
+          "tradeoff": "Show target/arrival guidance in training or named assistance; strongest help."
+        }
+      ],
+      "recommendation": "A for the ordinary duel; C is useful in training. Choose any competitive assistance openly in PH-17.",
+      "existing_contract": "One shared screen and both controller seats must be considered. No new overlay is approved.",
+      "acceptance": "Two people on one screen retain a mind game; a learner can identify the cue that gave them a chance to respond.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-07",
+      "area": "Shared duel",
+      "question": "What reaction and between-pitch pace should we target?",
+      "status": "open",
+      "depends_on": [
+        "PH-04",
+        "PH-09",
+        "PH-11"
+      ],
+      "source_ids": [
+        "WII",
+        "GC",
+        "Legacy"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Keep current pace",
+          "tradeoff": "Re-sit existing timing before changing the budget."
+        },
+        {
+          "id": "B",
+          "label": "Faster duel",
+          "tradeoff": "Increase urgency after measured evidence; raises accessibility demands."
+        },
+        {
+          "id": "C",
+          "label": "Selected middle ground",
+          "tradeoff": "Tune pitch families and reset rhythm to an explicit measured budget."
+        }
+      ],
+      "recommendation": "A until the gameplay-spec D7 re-sit; then compare matched captures and authored trial intervals.",
+      "existing_contract": "D7 is a HOLD, not superseded by this brief. Air time, visual tell time, input lead and reset duration are separate clocks.",
+      "acceptance": "Record release, readable cue, swing command and plate arrival; Jack compares pad, keyboard and two-pad play before numeric acceptance.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-08",
+      "area": "Pitching",
+      "question": "What should fatigue change during a short game?",
+      "status": "open",
+      "depends_on": [
+        "PH-02",
+        "PH-05"
+      ],
+      "source_ids": [
+        "GC",
+        "SMB-EI"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Current pitch-use resource",
+          "tradeoff": "Keep per-character fatigue and swaps; audit costs and tells."
+        },
+        {
+          "id": "B",
+          "label": "Visible effort economy",
+          "tradeoff": "Make high-effort choices the main cost, with gradual readable degradation."
+        },
+        {
+          "id": "C",
+          "label": "Minimal fatigue influence",
+          "tradeoff": "Keep the duel stable; removes some substitution and resource strategy."
+        }
+      ],
+      "recommendation": "Compare A/B after the pitch vocabulary is chosen; no invisible sudden loss of control.",
+      "existing_contract": "Existing stamina costs stack; a changeup adds 3 to the ordinary cost of 4. No new fatigue thresholds selected.",
+      "acceptance": "The player predicts when to change pitchers and understands why a tired delivery differs; swapping does not erase history.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-09",
+      "area": "Hitting",
+      "question": "What does the hitter position to cover the ball?",
+      "status": "open",
+      "depends_on": [
+        "PH-01"
+      ],
+      "source_ids": [
+        "WII",
+        "GC",
+        "SHOW-H",
+        "SMB-EI"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Batter-linked cursor",
+          "tradeoff": "Keep horizontal box movement and readable coverage; height comes from the existing contract."
+        },
+        {
+          "id": "B",
+          "label": "Position plus height intent",
+          "tradeoff": "Add a coarse high/low adjustment; more coverage decisions without a free cursor."
+        },
+        {
+          "id": "C",
+          "label": "Independent two-dimensional cursor",
+          "tradeoff": "Precise barrel aiming; strongest execution demand and largest control change."
+        }
+      ],
+      "recommendation": "A first, with B as the smallest expansion to compare if pitch variety needs vertical counterplay. Do not assume C is necessary.",
+      "existing_contract": "Gameplay-spec D4/D12 apply. An independent cursor or persistent box position requires an explicit supersession.",
+      "acceptance": "Inside/outside and high/low balls have understandable responses for both hands and small/large captains.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-10",
+      "area": "Hitting",
+      "question": "How should timing and barrel position determine contact quality?",
+      "status": "open",
+      "depends_on": [
+        "PH-09"
+      ],
+      "source_ids": [
+        "GC",
+        "WII",
+        "SHOW-H",
+        "Legacy"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Preserve the existing split",
+          "tradeoff": "Position primarily controls quality; timing controls direction/whiffs, with the current rim exception audited."
+        },
+        {
+          "id": "B",
+          "label": "Continuous combined quality",
+          "tradeoff": "Timing and spatial error both reduce quality; expressive but may punish one mistake twice."
+        },
+        {
+          "id": "C",
+          "label": "Timing-led assistance",
+          "tradeoff": "Timing drives the accessible mode with explicit spatial assistance; less direct coverage control."
+        }
+      ],
+      "recommendation": "A as the baseline. Make the current timing-rim quality demotion explicit before deciding to retain or replace it.",
+      "existing_contract": "Gameplay-spec D4/D13 govern. Code demotes one tier at the outer timing rim; do not claim timing never affects quality today.",
+      "acceptance": "Controlled early/late and centered/off-center trials explain quality and direction without guaranteed hits or arbitrary outs.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-11",
+      "area": "Hitting",
+      "question": "What is the tradeoff between a quick swing and charging?",
+      "status": "open",
+      "depends_on": [
+        "PH-09",
+        "PH-10"
+      ],
+      "source_ids": [
+        "GC",
+        "WII",
+        "SMB-EI"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "One hold/release grammar",
+          "tradeoff": "Keep quick and charged versions of one action, including overcharge."
+        },
+        {
+          "id": "B",
+          "label": "Explicit contact/power choices",
+          "tradeoff": "Separate intent selection; easier intent clarity but more inputs."
+        },
+        {
+          "id": "C",
+          "label": "Minimal charging",
+          "tradeoff": "Emphasize timing/coverage with little load management; changes the Mario rhythm."
+        }
+      ],
+      "recommendation": "A, provided quick swings retain useful situational advantages. Compare forgiveness, power and commitment as a package.",
+      "existing_contract": "Existing fill/MAX/decay values are a snapshot, not approved new targets; preserve D13 until explicitly amended.",
+      "acceptance": "Quick swings remain useful with two strikes and awkward pitches; waiting fully charged is not a dominant strategy.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-12",
+      "area": "Hitting",
+      "question": "How deliberately can the hitter shape a batted ball?",
+      "status": "open",
+      "depends_on": [
+        "PH-09",
+        "PH-10"
+      ],
+      "source_ids": [
+        "GC",
+        "SHOW-H"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Current bounded influence",
+          "tradeoff": "Timing pulls/pushes; stick shifts direction and loft, with contact constraining the result."
+        },
+        {
+          "id": "B",
+          "label": "Preselected approach",
+          "tradeoff": "Choose grounder/liner/lift intent before commitment; more tactical clarity."
+        },
+        {
+          "id": "C",
+          "label": "Contact geometry alone",
+          "tradeoff": "Remove extra trajectory intent; simpler inputs but fewer deliberate situational choices."
+        }
+      ],
+      "recommendation": "A first; retain meaningful influence without letting a stick command guarantee a hit class.",
+      "existing_contract": "Current Up lowers launch and Down lifts. Coordinate changed exit/launch distributions with #693/#708/#715.",
+      "acceptance": "The same intent can succeed or fail because of actual contact; grounders, liners, flies and fouls remain distinct.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-13",
+      "area": "Hitting",
+      "question": "What happens when the hitter changes their mind?",
+      "status": "open",
+      "depends_on": [
+        "PH-11"
+      ],
+      "source_ids": [
+        "WII",
+        "SHOW-H"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Existing commitment",
+          "tradeoff": "Keep taking and committed swings; make release semantics clear."
+        },
+        {
+          "id": "B",
+          "label": "Deterministic check/cancel",
+          "tradeoff": "Add a taught cancel boundary before commitment; more plate discipline control."
+        },
+        {
+          "id": "C",
+          "label": "Assisted checking",
+          "tradeoff": "Infer hesitation and rescue some swings; easier but risks surprising judgments."
+        }
+      ],
+      "recommendation": "A initially; B only if Jack wants checking as a core verb. Avoid hidden random check-swing outcomes.",
+      "existing_contract": "A release-based charge scheme needs an explicit distinction between canceling a load and swinging. No new binding selected.",
+      "acceptance": "Take, load-cancel, bunt withdrawal and swing cannot conflict; balls/strikes follow the same geometric zone.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-14",
+      "area": "Hitting",
+      "question": "How much depth belongs in bunting?",
+      "status": "open",
+      "depends_on": [
+        "PH-09",
+        "PH-13"
+      ],
+      "source_ids": [
+        "GC",
+        "WII",
+        "SMB-EI"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Simple situational bunt",
+          "tradeoff": "Preserve existing square/contact behavior and teach placement and foul risk."
+        },
+        {
+          "id": "B",
+          "label": "Richer bunt control",
+          "tradeoff": "Add placement or timing demands for sacrifice/drag intent; increases state and input work."
+        },
+        {
+          "id": "C",
+          "label": "Defer expansion",
+          "tradeoff": "Keep the current verb while first settling ordinary swings."
+        }
+      ],
+      "recommendation": "A/C during initial design, then test B only against a concrete situational need.",
+      "existing_contract": "Existing S-18/19 and two-strike foul-bunt rules remain; do not create a guaranteed CPU exploit.",
+      "acceptance": "A bunt is a live ball with an earned outcome; both humans and CPU can defend it and a foul bunt with two strikes retires the batter.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-15",
+      "area": "Roster",
+      "question": "How much should characters, hands and gear change the duel?",
+      "status": "open",
+      "depends_on": [
+        "PH-02",
+        "PH-10"
+      ],
+      "source_ids": [
+        "GC",
+        "WII"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Shared verbs, stat strengths",
+          "tradeoff": "One core model with readable differences in power, coverage, break and endurance."
+        },
+        {
+          "id": "B",
+          "label": "Distinct repertoires/traits",
+          "tradeoff": "Different tools inside the same model; more identity and matchup teaching."
+        },
+        {
+          "id": "C",
+          "label": "Highly specialized mechanics",
+          "tradeoff": "Character-specific control or resolution rules; highest maintenance and fairness cost."
+        }
+      ],
+      "recommendation": "A with selected B traits if the chosen repertoire supports them. Preserve the shared rig and systems.",
+      "existing_contract": "No new captain, second skeleton or one-captain resolver. Equipment and chemistry must be included in balance trials.",
+      "acceptance": "Rio and Ashlord, both hands, contact/power archetypes and relevant gear all follow the same taught rules.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-16",
+      "area": "Resources",
+      "question": "How should stars and chemistry affect plate decisions?",
+      "status": "open",
+      "depends_on": [
+        "PH-02",
+        "PH-10",
+        "PH-15"
+      ],
+      "source_ids": [
+        "GC",
+        "WII"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Keep specials supplementary",
+          "tradeoff": "Ordinary baseball stays complete; specials briefly bend a readable rule."
+        },
+        {
+          "id": "B",
+          "label": "More central resource tactics",
+          "tradeoff": "Increase star/chemistry influence; adds draft and at-bat resource decisions."
+        },
+        {
+          "id": "C",
+          "label": "Ordinary duel first",
+          "tradeoff": "Evaluate baseline with specials off, then restore existing special interactions."
+        }
+      ],
+      "recommendation": "C for isolation, A for integration; B requires explicit acceptance of how much the resource dominates.",
+      "existing_contract": "Gameplay-spec D6 prohibits free homers; no full-screen blinds or automatic outs. Existing systems remain until changed deliberately.",
+      "acceptance": "Each special retains a response and an understandable resource cost, including a miss; baseline balance is tested without specials.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-17",
+      "area": "Accessibility",
+      "question": "How should different skill levels share the same game?",
+      "status": "open",
+      "depends_on": [
+        "PH-09",
+        "PH-10"
+      ],
+      "source_ids": [
+        "GC",
+        "SMB4",
+        "SHOW-H"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Shared rules with explicit assists",
+          "tradeoff": "Tune forgiveness and teaching while keeping common trajectory and judgment rules."
+        },
+        {
+          "id": "B",
+          "label": "Separate hitting interfaces",
+          "tradeoff": "Timing/position/zone modes; more preference coverage, more testing and fairness work."
+        },
+        {
+          "id": "C",
+          "label": "One fixed challenge",
+          "tradeoff": "Simplest balance surface; least support for mixed-skill couch play."
+        }
+      ],
+      "recommendation": "A. Decide whether assists are per-seat and visible before numbers; do not silently rubber-band outcomes.",
+      "existing_contract": "Existing difficulty multipliers are baseline. Keyboard/mouse remains P1; pad 2 remains a real second gamepad.",
+      "acceptance": "A new player and an experienced friend can play together and understand what help each receives.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-18",
+      "area": "CPU",
+      "question": "What information and commitment rules may CPU players use?",
+      "status": "open",
+      "depends_on": [
+        "PH-03",
+        "PH-04",
+        "PH-06"
+      ],
+      "source_ids": [
+        "Legacy"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Shared legal actions and bounded reads",
+          "tradeoff": "Use the same action limits, explicit observations and commitment windows; difficulty changes skill."
+        },
+        {
+          "id": "B",
+          "label": "Documented simulation shortcuts",
+          "tradeoff": "Permit limited headless approximations with separate validation of live fairness."
+        },
+        {
+          "id": "C",
+          "label": "Current policy pending audit",
+          "tradeoff": "Retain baseline until the live/headless input asymmetries are fully traced."
+        }
+      ],
+      "recommendation": "A as the target; audit C first. Any B shortcut must not become a hidden advantage against a human.",
+      "existing_contract": "Current live CPU commits about .30 s before plate arrival, while final crossing judges contact; endpoint aiming also differs from human inputs.",
+      "acceptance": "Late legal steering can defeat a committed CPU read; CPU cannot use future inputs, reserved human actions or impossible location access.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-19",
+      "area": "Understanding",
+      "question": "What feedback teaches the duel without giving it away?",
+      "status": "open",
+      "depends_on": [
+        "PH-06",
+        "PH-10",
+        "PH-11"
+      ],
+      "source_ids": [
+        "SMB4",
+        "SHOW-H"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Brief causal feedback",
+          "tradeoff": "Explain timing, coverage and charge after the pitch, with optional deeper practice detail."
+        },
+        {
+          "id": "B",
+          "label": "Continuous aim coaching",
+          "tradeoff": "Show substantial guidance during flight; easier learning, weaker deception."
+        },
+        {
+          "id": "C",
+          "label": "Minimal HUD explanation",
+          "tradeoff": "Rely on body, ball and sound; strongest immersion but harder diagnosis."
+        }
+      ],
+      "recommendation": "A supported by readable body/ball cues. Training can expose more; ordinary play should not disclose private pitch targets.",
+      "existing_contract": "MAX describes charge; hit-quality words follow actual contact. Coordinate tutorials with #770 and paired HowToPlay/docs changes.",
+      "acceptance": "A stranger can name why a miss or weak hit occurred and deliberately improve on the next attempt without external instructions.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    },
+    {
+      "id": "PH-20",
+      "area": "Delivery",
+      "question": "What evidence will make the chosen system ready to ship?",
+      "status": "open",
+      "depends_on": [
+        "PH-01"
+      ],
+      "source_ids": [
+        "Legacy"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Serial trials and standalone sitting",
+          "tradeoff": "Approve concepts, then numeric trials, then test and let Jack accept actual play."
+        },
+        {
+          "id": "B",
+          "label": "Large combined redesign",
+          "tradeoff": "Evaluate many coupled changes at once; harder to attribute improvement or regression."
+        },
+        {
+          "id": "C",
+          "label": "Evidence-only first milestone",
+          "tradeoff": "Measure current play before any new mechanic trial; slower expansion with a clearer baseline."
+        }
+      ],
+      "recommendation": "A, beginning with C for D7 and identified evidence gaps. Do not convert a recommendation or successful unit test into human acceptance.",
+      "existing_contract": "Existing #346/#534 gates stay open. One implementation child per bounded worktree; presentation and art remain separate.",
+      "acceptance": "Named revision, both schemes, two pads, both hands, representative captains, ordinary/star cases, reproducible tests and Jack\u2019s dated acceptance.",
+      "selected_option": null,
+      "accepted_scope": null,
+      "decided_by": null,
+      "decided_at": null,
+      "decision_evidence": null,
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": []
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-09-20",
+      "event": "Register created from the user brief; all 20 mechanic/design choices remain open. Existing gameplay-spec decisions remain in force."
+    }
+  ]
+}
