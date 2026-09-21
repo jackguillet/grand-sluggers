@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-04",
+  "next_decision": "PH-05",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -218,7 +218,7 @@
       "id": "PH-04",
       "area": "Pitching",
       "question": "How much control remains after release?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-02",
         "PH-03"
@@ -247,16 +247,31 @@
       "recommendation": "A as the first comparison baseline; evaluate B/C only against an observed readability or fairness problem.",
       "existing_contract": "Current break is accumulated direction input, with charge/changeup damping. New caps and cutoffs remain unset.",
       "acceptance": "A legal late action can fool a committed swing but cannot create an unreadable unavoidable strike for a waiting hitter.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Retain live left/right steering after release, with bounded, readable break that gives the hitter a fair opportunity to respond. Do not select a release-locked trajectory or an early-steering-only lockout. Exact break strength, response timing, per-pitch/charge differences and numerical limits remain open. This is direction acceptance only, with no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-04: 1. Keep live left/right steering with limits that give the hitter a readable chance to respond; 2. Lock the path at release; 3. Allow steering early, then lock it.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "Retain live left/right steering after release, with bounded, readable break that gives the hitter a fair opportunity to respond. Do not select a release-locked trajectory or an early-steering-only lockout. Exact break strength, response timing, per-pitch/charge differences and numerical limits remain open. This is direction acceptance only, with no runtime change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-05",
@@ -1006,6 +1021,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-03 option A: horizontal mound positioning and pitch-defined height. Sixteen choices remain open; post-release steering, exact pitch shapes and numbers remain unselected."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-04 option A: live left/right steering after release with readable, bounded break and a fair hitter response opportunity. Fifteen choices remain open; exact break strength and timing are unselected."
     }
   ]
 }
