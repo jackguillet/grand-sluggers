@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-11",
+  "next_decision": "PH-12",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -607,7 +607,7 @@
       "id": "PH-11",
       "area": "Hitting",
       "question": "What is the tradeoff between a quick swing and charging?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-09",
         "PH-10"
@@ -637,16 +637,31 @@
       "recommendation": "A, provided quick swings retain useful situational advantages. Compare forgiveness, power and commitment as a package.",
       "existing_contract": "Existing fill/MAX/decay values are a snapshot, not approved new targets; preserve D13 until explicitly amended.",
       "acceptance": "Quick swings remain useful with two strikes and awkward pitches; waiting fully charged is not a dominant strategy.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Keep quick and charged swings on one button using the same hold/release action. Quick release favors contact; holding and releasing favors power with more commitment, and holding too long loses charge. Quick swings must remain useful for two-strike protection and difficult pitches rather than being dominated by charging. Exact fill time, MAX hold, decay, forgiveness, power and commitment values remain open. Preserve the PH-09 cursor and PH-10 contact-quality direction, and existing D13 until explicitly amended. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-11: 1. One button, quick or charged: quick release favors contact, holding/releasing favors power with more commitment, holding too long loses charge; 2. Separate contact and power choices; 3. Reduce charging substantially. Quick swings should remain useful for two strikes and difficult pitches.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "Keep quick and charged swings on one button using the same hold/release action. Quick release favors contact; holding and releasing favors power with more commitment, and holding too long loses charge. Quick swings must remain useful for two-strike protection and difficult pitches rather than being dominated by charging. Exact fill time, MAX hold, decay, forgiveness, power and commitment values remain open. Preserve the PH-09 cursor and PH-10 contact-quality direction, and existing D13 until explicitly amended. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-12",
@@ -1082,6 +1097,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-10 option A: placement-led contact quality, timing-led direction with weak edge contact and misses outside the window. Twelve choices remain open; exact windows and edge penalties are unselected."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-11 option A: one-button quick/charged swings, overcharge decay and useful quick swings. Eleven choices remain open; exact timing, forgiveness and power values are unselected."
     }
   ]
 }
