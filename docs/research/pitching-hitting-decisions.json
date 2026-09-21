@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-17",
+  "next_decision": "PH-18",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -999,7 +999,7 @@
       "id": "PH-17",
       "area": "Accessibility",
       "question": "How should different skill levels share the same game?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-09",
         "PH-10"
@@ -1029,16 +1029,35 @@
       "recommendation": "A. Decide whether assists are per-seat and visible before numbers; do not silently rubber-band outcomes.",
       "existing_contract": "Existing difficulty multipliers are baseline. Keyboard/mouse remains P1; pad 2 remains a real second gamepad.",
       "acceptance": "A new player and an experienced friend can play together and understand what help each receives.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "C",
+      "accepted_scope": "Use one fixed pitching/hitting challenge for everyone, with identical difficulty and forgiveness and the shared batter-linked cursor. Do not introduce optional or per-seat mechanical assistance. The two-option conversation presented this as option 2, corresponding to canonical option C; separate hitting interfaces were not selected. Teaching and post-pitch feedback remain a separate PH-19 choice. Exact shared tuning and reconciliation of existing difficulty multipliers remain open; CPU observation/commitment policy follows in PH-18. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-17: How should different skill levels share the game? 1. Shared controls with optional, explicit assistance (recommended): help beginners with forgiveness and teaching while keeping the same core mechanics. 2. One fixed challenge: everyone uses identical difficulty and forgiveness. Neither option changes the chosen batter-linked cursor. Presented option 2 maps to canonical C.",
+        "answer_quote": "2"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "2",
+          "scope": "Use one fixed pitching/hitting challenge for everyone, with identical difficulty and forgiveness and the shared batter-linked cursor. Do not introduce optional or per-seat mechanical assistance. The two-option conversation presented this as option 2, corresponding to canonical option C; separate hitting interfaces were not selected. Teaching and post-pitch feedback remain a separate PH-19 choice. Exact shared tuning and reconciliation of existing difficulty multipliers remain open; CPU observation/commitment policy follows in PH-18. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ],
+      "validation_requirements": [
+        "Both human seats use the same difficulty and forgiveness with no optional or hidden mechanical assistance; preserve common contact and trajectory rules.",
+        "Audit existing difficulty multipliers against the fixed-challenge target before implementation. PH-19 teaching must respect PH-06 ordinary-play information limits."
+      ]
     },
     {
       "id": "PH-18",
@@ -1236,6 +1255,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-08 option B: gradual visible fatigue driven mainly by effort, with economical ordinary pitching and greater wear from repeated power. Five choices remain open; costs, curves and penalties remain unselected."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-17 option C through presented option 2: one fixed challenge with identical difficulty and forgiveness. Four choices remain open; next PH-18 CPU information and commitment policy."
     }
   ]
 }
