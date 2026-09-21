@@ -13,17 +13,20 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class Scenario
 {
-    public static readonly PitchCommand Paint = new("fastball", 0, false);
+    public static readonly PitchCommand Paint = new(PitchFamily.Fastball, 0, false);
     public static readonly SwingCommand Swing = new(true, 0, 0, false);
     public static readonly SwingCommand Take = new(false, 0, 0, false);
 
     /// <summary>
-    /// A normal fastball whose plate crossing is exactly (<paramref name="worldX"/>, <paramref name="worldY"/>)
-    /// in world feet — the point the umpire, the body, and the cursor read (spec §3, §4.4).
+    /// A pitch of <paramref name="family"/> — a <see cref="PitchFamily"/> id, the fastball unless a
+    /// row says otherwise — whose plate crossing is exactly (<paramref name="worldX"/>,
+    /// <paramref name="worldY"/>) in world feet: the point the umpire, the body, and the cursor read
+    /// (spec §3, §4.4).
     /// </summary>
-    public static PitchCommand PitchAt(double worldX, double worldY, double charge = 0, bool changeup = false) =>
+    public static PitchCommand PitchAt(double worldX, double worldY, double charge = 0,
+        string family = PitchFamily.Fastball) =>
         PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", charge, false, Changeup: changeup),
+            new PitchCommand(family, charge, false),
             worldX / PitchFlight.PlateScaleX,
             (worldY - PitchFlight.PlateY) / PitchFlight.PlateScaleY);
 

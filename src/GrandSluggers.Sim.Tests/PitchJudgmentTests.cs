@@ -50,7 +50,7 @@ public class PitchJudgmentTests
         foreach (var offset in new[] { -1.0, 0, 1.0 })
         foreach (var charge in new[] { 0.0, 1.0 })
         {
-            var pitch = new PitchCommand(type, charge, star != "", 0.2, -0.2, offset, false, offset * 0.3);
+            var pitch = new PitchCommand(type, charge, star != "", 0.2, -0.2, offset, offset * 0.3);
             var world = PitchFlight.Point(pitch, 1, star);
             var aim = PitchFlight.ContactAim(pitch, star);
             Assert.Equal(world.X, aim.X * PitchFlight.PlateScaleX, 10);
@@ -179,7 +179,7 @@ public class PitchJudgmentTests
         for (var i = 0; i < 5000; i++)
         {
             var pitch = match.CpuPitch();
-            var type = pitch.IsChangeup ? "changeup" : pitch.BreakX != 0 ? "break" : ChargeFeel.IsCharge(pitch.Charge01) ? "charge" : "fastball";
+            var type = pitch.Type == PitchFamily.Changeup ? "changeup" : pitch.BreakX != 0 ? "break" : ChargeFeel.IsCharge(pitch.Charge01) ? "charge" : "fastball";
             seen[type] = seen.GetValueOrDefault(type) + 1;
             if (AtBatResolver.PitchInZone(pitch, match.Pitcher.Stats.Pitch, match.Pitcher.StarPitch))
                 strikes[type] = strikes.GetValueOrDefault(type) + 1;

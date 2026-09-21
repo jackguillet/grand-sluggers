@@ -67,8 +67,10 @@ public sealed class PitchFamilyGoldenTests
                 RubberX: rubberX, Nice: nice),
             1 => new PitchCommand(PitchFamily.Changeup, charge, star, aimX, aimY, breakX,
                 RubberX: rubberX, Nice: nice),
-            _ => new PitchCommand(PitchFamily.Fastball, charge, star, aimX, aimY, breakX,
-                Changeup: true, RubberX: rubberX, Nice: nice)
+            // Was `Type: "fastball", Changeup: true` — the modifier spelling #810 deleted. The
+            // command it produced is this one, and the stored numbers say so.
+            _ => new PitchCommand(PitchFamily.Changeup, charge, star, aimX, aimY, breakX,
+                RubberX: rubberX, Nice: nice)
         };
 
     [Fact]

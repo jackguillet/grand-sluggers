@@ -16,7 +16,7 @@ public sealed class TutorialAttemptFlowTests
         var successes = 0;
         foreach (var changeup in new[] { false, true, false, true, false, true })
         {
-            Assert.True(run.Pitch(new("fastball", 0, false, Changeup: changeup)));
+            Assert.True(run.Pitch(new(changeup ? PitchFamily.Changeup : PitchFamily.Fastball, 0, false)));
             Assert.Equal(changeup, run.Feedback!.Success);
             if (changeup) successes++;
             Assert.Equal(successes, run.Successes);
