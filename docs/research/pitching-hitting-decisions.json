@@ -129,7 +129,7 @@
       "existing_contract": "Current PitchFlight has fastball/changeup base shapes; stars are separate. No new pitch count is selected.",
       "acceptance": "Each pitch has a readable trajectory, tactical use, counterplay and reason not to throw it every time.",
       "selected_option": "B",
-      "accepted_scope": "Develop a small set of distinct ordinary pitches, each with a clear tactical purpose, readable behavior and weakness. Exact pitch count, pitch names, character differences/allocation, selection inputs, location control, steering and numerical tuning remain open. This is direction acceptance, not implementation or human playtest acceptance.",
+      "accepted_scope": "Develop a small set of distinct ordinary pitches, each with a clear tactical purpose, readable behavior and weakness. PH-02-R1 accepts exactly three ordinary pitches per pitcher, drawn from a shared library with different character repertoires; charging modifies a pitch and Star Pitches sit outside the count. Exact library membership, pitch names, character assignments, selection inputs and numerical tuning remain open; location and steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. The original count-open scope is preserved in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -151,6 +151,53 @@
           "choice": "B",
           "quote": "2",
           "scope": "Develop a small set of distinct ordinary pitches, each with a clear tactical purpose, readable behavior and weakness. Exact pitch count, pitch names, character differences/allocation, selection inputs, location control, steering and numerical tuning remain open. This is direction acceptance, not implementation or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-02-R1",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Each pitcher has exactly three ordinary pitches drawn from a shared pitch library, with different character repertoires. Charging modifies an ordinary pitch rather than counting as another pitch choice; Star Pitches are outside the three-pitch count. Exact library membership, character assignments, selection bindings, shapes and tuning remain open. This refines the accepted small-repertoire direction; no runtime change, numerical tuning trial or human acceptance is selected."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-02-R1",
+          "question": "How many ordinary pitches should each pitcher have?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Three ordinary pitches per pitcher"
+            },
+            {
+              "id": "2",
+              "label": "Four ordinary pitches per pitcher"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Each pitcher has exactly three ordinary pitches drawn from a shared pitch library, with different character repertoires. Charging modifies an ordinary pitch rather than counting as another pitch choice; Star Pitches are outside the three-pitch count. Exact library membership, character assignments, selection bindings, shapes and tuning remain open. This refines the accepted small-repertoire direction; no runtime change, numerical tuning trial or human acceptance is selected.",
+          "contract": {
+            "ordinary_pitches_per_pitcher": 3,
+            "repertoire_source": "shared pitch library with character-specific selections",
+            "charge_is_additional_pitch": false,
+            "star_pitches_count_toward_ordinary_limit": false
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-02 refinement: How many ordinary pitches should each pitcher have? 1. Three (recommended): enough to mix speed and movement while keeping selection quick and readable. 2. Four: more combinations and matchup options, with another pitch to learn and select. Characters draw different repertoires from a shared pitch library. Charging modifies a pitch, and Star Pitches sit outside this count. After this, define the pitch library and each pitch\u2019s purpose and weakness together.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
         }
       ]
     },
@@ -1355,6 +1402,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-20 option A: small serial playable steps after required baseline checks, with named standalone human acceptance. All 20 broad directions are accepted; detailed contracts, numbers and human gates remain open. Next PH-02 means refining the accepted repertoire direction with PH-15, not reopening or erasing its accepted history. The plan consolidates the proposed implementation sequence."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-02-R1: exactly three ordinary pitches per pitcher from a shared library with different character repertoires; charging is a modifier and Star Pitches do not count. PH-02 remains next for library membership and pitch purposes; all 20 broad directions remain accepted. The pitch count is a contract refinement, not a measured tuning trial."
     }
   ]
 }
