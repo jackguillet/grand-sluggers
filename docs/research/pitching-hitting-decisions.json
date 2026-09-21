@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-10",
+  "next_decision": "PH-11",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -547,7 +547,7 @@
       "id": "PH-10",
       "area": "Hitting",
       "question": "How should timing and barrel position determine contact quality?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-09"
       ],
@@ -577,16 +577,31 @@
       "recommendation": "A as the baseline. Make the current timing-rim quality demotion explicit before deciding to retain or replace it.",
       "existing_contract": "Gameplay-spec D4/D13 govern. Code demotes one tier at the outer timing rim; do not claim timing never affects quality today.",
       "acceptance": "Controlled early/late and centered/off-center trials explain quality and direction without guaranteed hits or arbitrary outs.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Keep placement as the primary determinant of contact quality and timing as the determinant of pull/opposite-field direction within the contact window. Centered contact can remain strong when deliberately early or late, with weaker contact near the timing-window edges and a miss outside the window. Retain the timing-rim penalty concept rather than continuously reducing quality with every departure from ideal timing. Exact window widths, edge bands and penalty amounts remain unselected; existing gameplay-spec D4/D13 govern until explicitly amended. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-10: 1. Placement primarily controls quality; timing controls direction, weakens contact near the window edges and misses outside it; 2. Placement and timing both continuously control quality.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "Keep placement as the primary determinant of contact quality and timing as the determinant of pull/opposite-field direction within the contact window. Centered contact can remain strong when deliberately early or late, with weaker contact near the timing-window edges and a miss outside the window. Retain the timing-rim penalty concept rather than continuously reducing quality with every departure from ideal timing. Exact window widths, edge bands and penalty amounts remain unselected; existing gameplay-spec D4/D13 govern until explicitly amended. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-11",
@@ -1063,6 +1078,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-06 option A: ordinary play uses body and ball cues without explicit opponent pitch-type or destination guidance. Thirteen choices remain open; training/assistance details and numeric targets remain unselected. Next: PH-10 contact quality, following the planned discussion order."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-10 option A: placement-led contact quality, timing-led direction with weak edge contact and misses outside the window. Twelve choices remain open; exact windows and edge penalties are unselected."
     }
   ]
 }
