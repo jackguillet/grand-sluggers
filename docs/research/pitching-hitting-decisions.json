@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-02",
+  "next_decision": "PH-05",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -129,7 +129,7 @@
       "existing_contract": "Current PitchFlight has fastball/changeup base shapes; stars are separate. No new pitch count is selected.",
       "acceptance": "Each pitch has a readable trajectory, tactical use, counterplay and reason not to throw it every time.",
       "selected_option": "B",
-      "accepted_scope": "Develop distinct ordinary pitches with clear tactical purposes, readable behavior and weaknesses. PH-02-R1 fixes exactly three ordinary pitches per pitcher, with character-specific selections from a shared library; charging modifies a pitch and Star Pitches sit outside the count. PH-02-R2 fixes the library as fastball, changeup, curveball, slider and sinker with their recorded game roles. PH-15-R1/R2/R4 fix universal fastball access and starting assignments for all 25 existing characters. PH-02-R3 requires ordinary pitch selection before charge, with the type locked at charge start and a common charge/release action. PH-02-R4 selects one button cycling through the three ordinary pitches before charge. Exact binding, order, selection reset/persistence, feedback, detailed weaknesses/counterplay and numerical tuning remain open; location and live steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. Original scopes are preserved in history and each refinement.",
+      "accepted_scope": "Develop distinct ordinary pitches with clear tactical purposes, readable behavior and weaknesses. PH-02-R1 fixes exactly three ordinary pitches per pitcher, with character-specific selections from a shared library; charging modifies a pitch and Star Pitches sit outside the count. PH-02-R2 fixes the library as fastball, changeup, curveball, slider and sinker with their recorded game roles. PH-15-R1/R2/R4 fix universal fastball access and starting assignments for all 25 existing characters. PH-02-R3 requires ordinary pitch selection before charge, with the type locked at charge start and a common charge/release action. PH-02-R4 selects one button cycling through the three ordinary pitches before charge. PH-02-R5 sets RB/Tab cycling in accepted repertoire order, resets each new pitch to Fastball, retains common charge/release and displays the available pitch order without identifying the active selection. Detailed presentation, input/state edge handling, weaknesses/counterplay and numerical tuning remain open; location and live steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. Original scopes are preserved in history and each refinement.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -191,6 +191,16 @@
           "choice": "2",
           "quote": "2",
           "scope": "Use one selection button to cycle through the pitcher\u2019s three ordinary pitches before charging. Each press advances to the next choice and the cycle wraps; selecting a pitch does not start its delivery. Preserve PH-02-R3: starting the common charge/release action locks the selected family, so later cycle inputs cannot swap that delivery\u2019s type. Live steering remains after release. Exact hardware binding, cycle ordering, default/reset or persistence policy, feedback and simultaneous-input precedence remain open. Preserve PH-06 ordinary-play information limits and existing pickoff/bag controls. Direction refinement only; no runtime change, numeric tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-02-R5",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Use RB on controller or Tab on keyboard to cycle Fastball, second pitch, third pitch, then repeat, following each accepted repertoire\u2019s order. Every new pitch starts selected on Fastball, so zero, one or two presses select a known family. Keep the common South/Space/left-click charge/release action and existing Enter equivalent; starting charge locks the family. Show the three available pitches in order without highlighting or labeling the active selection on the shared screen. Preserve mound movement, D-pad bag/pickoff controls, live steering and PH-06 information limits. The prior West/changeup-through-release behavior must be reconciled in the shipping contract and paired teaching before implementation. Exact presentation, simultaneous-input precedence and state-transition handling remain implementation-contract work; no runtime/presentation change, numeric tuning trial or human acceptance."
         }
       ],
       "refinements": [
@@ -357,13 +367,59 @@
           "implementation_issues": [],
           "validation_evidence": [],
           "human_acceptance": null
+        },
+        {
+          "id": "PH-02-R5",
+          "question": "Which cycling flow should we use between pitches?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Reset to Fastball for each new pitch",
+              "tradeoff": "Known starting point; zero, one or two taps selects a pitch without a public active-type indicator."
+            },
+            {
+              "id": "2",
+              "label": "Remember the last selection between pitches",
+              "tradeoff": "Fewer taps for repetition; the pitcher must track the retained selection. A pitcher swap starts at Fastball."
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Use RB on controller or Tab on keyboard to cycle Fastball, second pitch, third pitch, then repeat, following each accepted repertoire\u2019s order. Every new pitch starts selected on Fastball, so zero, one or two presses select a known family. Keep the common South/Space/left-click charge/release action and existing Enter equivalent; starting charge locks the family. Show the three available pitches in order without highlighting or labeling the active selection on the shared screen. Preserve mound movement, D-pad bag/pickoff controls, live steering and PH-06 information limits. The prior West/changeup-through-release behavior must be reconciled in the shipping contract and paired teaching before implementation. Exact presentation, simultaneous-input precedence and state-transition handling remain implementation-contract work; no runtime/presentation change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "cycle_controller": "RB",
+            "cycle_keyboard": "Tab",
+            "cycle_order": "Fastball then the two alternatives in accepted repertoire order; wrap to Fastball",
+            "new_pitch_selection": "Fastball",
+            "charge_release": "South / Space / left click; existing Enter equivalent retained",
+            "type_locks_at": "start of charge",
+            "shared_display": "available pitches in order, with no active-selection highlight or label"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-02-R5: Proposed cycling flow. RB / Tab: fastball \u2192 second pitch \u2192 third pitch \u2192 repeat. South / Space / left click: charge and release; starting the charge locks the type. Show available pitches in order, without highlighting the active selection on the shared screen. Which default should this use? 1. Reset to fastball each pitch (recommended): zero, one, or two taps always selects a known pitch. 2. Remember the last selection: fewer taps when repeating pitches; switching pitchers resets to fastball.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "At a new-pitch boundary, zero/one/two cycle presses select Fastball/second/third, with the third press wrapping; holding the button does not count as repeated presses.",
+            "Charging freezes the selected family through release and late cycle/modifier inputs cannot swap it; steering remains legal after release.",
+            "In shared-screen play, roster/order information is visible but the active selection is not labeled or highlighted.",
+            "Both controller seats and P1 keyboard/mouse retain role-specific pickoff, movement and charge ownership; reconcile West/changeup behavior and paired HowToPlay/docs before implementation."
+          ]
         }
       ],
       "discussion": [
         {
           "id": "PH-02-R5",
           "date": "2026-09-21",
-          "status": "proposal",
+          "status": "direction-accepted",
           "question": "Which cycling flow should we use between pitches?",
           "recommendation": "Use the inspected RB/Tab cycle binding with a known fastball default each pitch, so a shared screen need not reveal the active selection.",
           "common_flow": [
@@ -385,7 +441,14 @@
               "tradeoff": "Fewer taps for repetition; the pitcher must track the retained selection. A pitcher swap starts at Fastball."
             }
           ],
-          "limits": "Entire flow remains a proposal pending Jack\u2019s answer. Existing Controls.CyclePitch exposes RB/Tab but does not prove live implementation. Shared-screen feedback must respect PH-06. This does not select a new aiming overlay, timing value, or numeric accuracy change."
+          "limits": "Flow and option 1 accepted through PH-02-R5 on September 21, 2026. RB/Tab cycle and Fastball reset are selected; original proposal limits remain separately preserved. No runtime/presentation change or passed human gate.",
+          "original_proposal_limits": "Entire flow remains a proposal pending Jack\u2019s answer. Existing Controls.CyclePitch exposes RB/Tab but does not prove live implementation. Shared-screen feedback must respect PH-06. This does not select a new aiming overlay, timing value, or numeric accuracy change.",
+          "resolution": {
+            "date": "2026-09-21",
+            "author": "Jack",
+            "answer_quote": "1",
+            "refinement_id": "PH-02-R5"
+          }
         }
       ]
     },
@@ -2463,6 +2526,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-02-R4 option 2: a single button cycles through the three ordinary pitches before charging. Prepared PH-02-R5 as a proposed RB/Tab cycling flow with a reset-versus-persistence choice and no shared-screen active-pitch disclosure. Binding and default policy remain unaccepted."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-02-R5 option 1 and proposed cycling flow: RB/Tab in repertoire order, Fastball reset each pitch, common charge/release, no active-type disclosure on the shared screen. Next PH-05-R1 refines how charge trades control for power; numeric tuning and implementation remain open."
     }
   ]
 }
