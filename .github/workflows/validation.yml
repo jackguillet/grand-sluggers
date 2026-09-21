@@ -31,6 +31,7 @@ jobs:
         env:
           GRAND_SLUGGERS_TRIAL: trials/c80
       - run: dotnet run --project src/GrandSluggers.Cli -- art
+      - run: dotnet run --project src/GrandSluggers.Cli -- tutorials
       - run: python3 -m unittest discover -s tools/tests -p 'test_*.py'
       # Both research evidence files seal the sources they were derived from.
       # Refresh order matters: the compact-field report asserts the flight seals

@@ -153,7 +153,7 @@ namespace GrandSluggers.UnityClient
 
         bool TrainingOn => _coach != null && _coach.Session != null;
         Seats SelectedSeats =>
-            TrainingOn || _mode != PlayMode.Exhibition
+            TutorialOn ? (_coach.PlayerBats || _coach.PlayerRuns ? Seats.AwayOne : Seats.One) : TrainingOn || _mode != PlayMode.Exhibition
                 ? Seats.One
                 : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
         Seats LiveSeats => _matchSeats.Current(SelectedSeats);
@@ -274,6 +274,7 @@ namespace GrandSluggers.UnityClient
             if (openedHowTo || openedPause)
             {
                 _match.SetPaused(true);
+                if (openedPause && GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.CallTimeOpened);
                 _pauseItem = openedHowTo ? 2 : 0;
                 _pauseHowTo = openedHowTo;
                 _pauseFromHowTo = openedHowTo;
@@ -289,6 +290,12 @@ namespace GrandSluggers.UnityClient
             {
                 if (!openedPause) TickPause();
                 _actors.Draw(0f);
+                return;
+            }
+            if (TickTutorialUi(Time.unscaledDeltaTime))
+            {
+                _actors.Draw(0f);
+                if (!_freezeCam) _rig.Tick(dt);
                 return;
             }
             if (!_gateHold)
@@ -315,6 +322,7 @@ namespace GrandSluggers.UnityClient
                 HudView.DeviceRecovery(_deviceRecovery.MissingSeat);
                 return;
             }
+            if (!_match.Paused && DrawTutorialUi()) return;
             if (_phase == Phase.Select)
                 HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
                     _versusWanted, Controls.Pad2.Present);
@@ -329,7 +337,10 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             if (_phase == Phase.Select || _phase == Phase.Field || (_phase == Phase.Lineup && _lineup != null))
+            {
+                HudView.GuidedHint(_guided);
                 return;
+            }
             var ui = _phase switch
             {
                 Phase.Title => PhaseUi.Title,
@@ -353,8 +364,8 @@ namespace GrandSluggers.UnityClient
             var sub = _sub;
             if (TrainingOn && _phase != Phase.Result)
             {
-                banner = _coach.Session.Caption;
-                sub = _coach.Session.Verb;
+                banner = TutorialOn ? HowToPlay.TutorialAttemptTitle(_coach.Tutorial.Lesson.Id, _coach.Tutorial.Successes) : _coach.Session.Caption;
+                sub = TutorialOn ? HowToPlay.TutorialAttemptHint(_coach.Tutorial.Lesson.Id, BookScheme.Current, _tutorials.Profile, _tutorialPreviousFeedback) : _coach.Session.Verb;
             }
             var stamp = _phase == Phase.Result && _last != null && PlayStamp.ShowsAtTime(_last)
                 ? banner : "";
@@ -375,7 +386,7 @@ namespace GrandSluggers.UnityClient
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
                 _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
-                _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
+                _mode == PlayMode.Training, TutorialOn ? HowToPlay.TutorialGoal(_coach.Tutorial.Lesson.Id) : TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, SquaredNow,
@@ -433,6 +444,7 @@ namespace GrandSluggers.UnityClient
                     _feelSlow, _freezeCam,
                     _spec != null ? _spec.CurrentEvent : "");
             }
+            HudView.GuidedHint(_guided);
         }
 
         void TickPause()
@@ -513,6 +525,7 @@ namespace GrandSluggers.UnityClient
                         break;
                     case PauseMenu.Item.HowToPlay:
                         _pauseHowTo = true;
+                        if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.BookOpened);
                         _pausePage = 0;
                         _menuX.Catch(Controls.MenuX);
                         _wheelSpin = true;
@@ -533,7 +546,15 @@ namespace GrandSluggers.UnityClient
 
         void RestartFromPause()
         {
-            Seed++;
+            if (TutorialOn) { PrepareTutorial(_coach.Tutorial.Lesson.Id); return; }
+            if (_guided != null && _guided.Phase == TutorialPhase.Attempt && _guided.Lesson.Id != "T-G06")
+            {
+                var lesson = _guided.Lesson;
+                PrepareGuidedTutorial(lesson);
+                BeginGuidedAttempt();
+                return;
+            }
+            if (!GuidedAttempt("T-G06")) Seed++;
             _match = NewMatch();
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec.Build(transform);
@@ -543,11 +564,18 @@ namespace GrandSluggers.UnityClient
             _hlPath = null;
             BeginSet();
             _match.SetPaused(false);
+            if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.MatchRestarted);
         }
 
         void PauseToTitle()
         {
             _match.SetPaused(false);
+            if (_guided != null)
+            {
+                OpenTutorials();
+                return;
+            }
+            _tutorialMenu = false;
             if (TrainingOn) _coach.Stop();
             ReleaseMatchSeats();
             _phase = Phase.Title;
@@ -584,14 +612,17 @@ namespace GrandSluggers.UnityClient
             {
                 _deviceRecovery.WaitFor(missing, _match.Paused);
                 _match.SetPaused(true);
+                GuidedSeatLost(missing);
                 Controls.TryRecoverMatchSeat(missing);
                 return true;
             }
             if (!_deviceRecovery.Active) return false;
             var resume = _deviceRecovery.ResumeWhenReady;
+            var recoveredSeat = _deviceRecovery.MissingSeat;
             _deviceRecovery.Complete();
             if (resume) _match.SetPaused(false);
             Controls.CatchPlay();
+            GuidedSeatRecovered(recoveredSeat);
             return true;
         }
 
@@ -696,7 +727,11 @@ namespace GrandSluggers.UnityClient
                 _sub = ErrorItems.All[_itemPick].ToUpperInvariant() + "  ·  stick aim  ·  E throw";
             if (!pad.ItemConfirm || _itemTarget == null) return;
             var id = ErrorItems.All[_itemPick];
-            _match.LivePlay.Apply(LivePlayCommand.ApplyItem(id, _itemTarget, _match.LivePlay.Source));
+            if (TutorialOn && _coach.Tutorial.IsItemLesson)
+            {
+                if (!_coach.Tutorial.Item(id, _itemTarget.Id)) return;
+            }
+            else _match.LivePlay.Apply(LivePlayCommand.ApplyItem(id, _itemTarget, _match.LivePlay.Source));
             _itemThrown = true;
             _itemFlying = true;
             _itemFly = 0;

@@ -67,6 +67,12 @@ End each session with a playable artifact of its kind before the next prompt: ga
 
 ---
 
+## 1.1 Tutorial coverage follows the mechanic
+
+Requirement added September 19, 2026; the runtime catalog, runner, coverage validator and three-success progression are implemented. [tutorials.md](tutorials.md) owns the lesson contract and migration backlog. Every new or changed player-facing mechanic updates its tutorial mapping in the same PR: stable ids, setup and CPU policy, required human command, typed success/failure, retry, profile support, regression evidence and implementation state. Existing broad Practice lessons do not establish complete coverage.
+
+Gameplay children own reusable sim setup, controlled CPU commands, objective evaluators and coverage validation. Presentation children own discovery, coaching, feedback, input-scheme copy and the paired `HowToPlay.cs` / `docs/how-to-play.md` updates. The lesson uses the real game; scripts manufacture an opportunity, never a credited player action or verdict. Planned/blocked coverage must name its owning issue. The catalog gate compares lessons to an independent mechanic inventory, so a feature omitted from both a lesson list and its tests is detectable. Human learning and transfer to Exhibition remain Jack's gate.
+
 ## 2. Debug protocol (remember)
 
 ✅ **R2 #649 / #656.** OpenGame's Debug Skill, as a catalog.

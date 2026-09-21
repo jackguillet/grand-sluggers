@@ -292,6 +292,77 @@
       "promoted": "FielderTellsTests.TheShippedFumbleShowsTheStunNotTheBattersMiss",
       "issue": "#721",
       "pr": ""
+    },
+    {
+      "id": "tutorial-pointer-is-primary-confirm",
+      "signature": "Click Lessons starts attempt; click Next retries; click another lesson opens selected row",
+      "stage": "sitting",
+      "cause": "Controls.SouthDown aliases MouseLeftDown. Tutorial modal Update dispatched primary confirm before IMGUI button mouse-up.",
+      "fix": "TutorialDirector excludes PointerDown from modal primary confirm. Uses Controls.PointerDown/GuiMouse and shared HowToPlay hit rectangles, like Call time. Draw-only IMGUI labels do not depend on legacy mouse-up events. Pad/keyboard confirm and in-play mouse baseball stay unchanged.",
+      "promoted": "TutorialNavigationTests.FooterRoutesToItsNamedAction",
+      "issue": "#776",
+      "pr": ""
+    },
+    {
+      "id": "tutorial-manual-credit-after-assisted-chase",
+      "signature": "A tutorial fielding attempt gets manual-pickup credit after one human steering frame followed by dead input while assistance chases and takes the ball.",
+      "stage": "sim",
+      "cause": "TutorialSession kept the first human movement in _manualGloves for the entire attempt and did not distinguish later assisted route movement from a player-positioned glove waiting still.",
+      "fix": "Observe the actual assisted ChaseGlove step separately from passive brake/coast. Clear manual pickup ownership when that route moves the glove after the last human steering step; retaking it can restore ownership. Advance T-F01's lesson revision.",
+      "promoted": "TutorialFieldTests.OneSteeringFrameThenAssistedPursuitCannotEarnManualPickup",
+      "issue": "#790",
+      "pr": ""
+    },
+    {
+      "id": "tutorial-neutral-west-jump-uncredited",
+      "signature": "A neutral-stick human West press arms/takes off on the selected fielding glove and completes a Jump catch out, but T-F06 reports no-jumping-out.",
+      "stage": "sim",
+      "cause": "TutorialSession required PursuitManual on the West frame even though jump ownership is a button action that the live sim accepts with a neutral stick.",
+      "fix": "Record a human West press only when the live jump arm/takeoff accepts it (or the same tick completes a Jump catch), and pair that selected glove with the completed geometric Jump out. Manual steering is not required on the press.",
+      "promoted": "TutorialFieldTests.NeutralStickWestStillOwnsTheCompletedJumpCatch",
+      "issue": "#790",
+      "pr": ""
+    },
+    {
+      "id": "tutorial-hides-live-readouts",
+      "signature": "Tutorial pitcher swap opens but the selected candidate and tired arm are invisible; tutorial overlay replaces all normal match HUD.",
+      "stage": "unity-console",
+      "cause": "HudView.Draw returned from TrainingPlay before Play could draw the pitcher/batter cards, scorebug and bases.",
+      "fix": "Draw the ordinary match readouts during training and put coaching in BroadcastHud.TutorialCoach, clear of the score and player cards. Tutorial choices remain readable through the same live HUD used by Exhibition.",
+      "promoted": "TutorialNavigationTests.CoachingDoesNotHideTheOrdinaryGameplayReadouts",
+      "issue": "#795",
+      "pr": ""
+    },
+    {
+      "id": "tutorial-loose-chase-latch",
+      "signature": "Wall-carom recovery gives credit after one steering frame followed by an assisted scoop.",
+      "stage": "sim",
+      "cause": "TutorialSession.Advanced latched _looseHumanChase without checking who finished the pickup after later assistance.",
+      "fix": "Require actual human steering and pursuit ownership at recovery and exclude assistance since the last manual command. Ordinary C80 bobbles use the same ownership evidence plus real Bobble, LooseBall and Possession trace marks.",
+      "promoted": "TutorialAdvancedFieldTests.AssistedScoopAfterOneHumanBobbleStepDoesNotEarnCredit",
+      "issue": "#797",
+      "pr": ""
+    },
+    {
+      "id": "book-copy-center-is-enter",
+      "signature": "SchemeTests rejects pad-only instructions containing center as mixed keyboard/controller copy.",
+      "stage": "sim",
+      "cause": "HowToPlay.MixesHardware searched keyboard names as substrings, so center matched Enter.",
+      "fix": "Match complete key names with the same word-boundary rule used for controller labels; keep real mixed instructions rejected.",
+      "promoted": "HowToPlayTests.HardwareCopyChecksWholeKeyNames",
+      "issue": "#795",
+      "pr": ""
+    },
+    {
+      "id": "tutorial-attempt-menu-interruption",
+      "signature": "A tutorial needs another Continue press after each success, and failures return to the briefing before the required three successes.",
+      "stage": "unity-console",
+      "cause": "The presentation treated every feedback phase as a blocking menu; retry skipped the briefing only on successful attempts and only after confirmation.",
+      "fix": "Save progress then rebuild and begin the same lesson on the next presentation tick below 3/3, for both gameplay and guided lessons. Skip play input on the reset frame and retain failed-attempt coaching without a modal.",
+      "promoted": "TutorialAttemptFlowTests.SuccessAndFailureBothRepeatUntilThreeEarnedSuccesses",
+      "issue": "#802",
+      "pr": ""
     }
+
   ]
 }

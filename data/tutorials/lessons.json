@@ -1,0 +1,6499 @@
+{
+  "version": 1,
+  "lessons": [
+    {
+      "id": "T-P01",
+      "revision": 2,
+      "mechanics": [
+        "pitching.01"
+      ],
+      "title": "strikes",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-P01",
+      "objective": "called-strike",
+      "controls": [
+        "control:pitching/Normal pitch"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-P02",
+      "revision": 1,
+      "mechanics": [
+        "pitching.02"
+      ],
+      "title": "aim/location and balls versus strikes",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-P01"
+      ],
+      "setup": "T-P02",
+      "objective": "called-ball",
+      "controls": [
+        "control:pitching/Move pitcher",
+        "control:pitching/Normal pitch"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
+    },
+    {
+      "id": "T-P03",
+      "revision": 2,
+      "mechanics": [
+        "pitching.03"
+      ],
+      "title": "changeup",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-P03",
+      "objective": "changeup-strike",
+      "controls": [
+        "control:pitching/Changeup"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-P04",
+      "revision": 1,
+      "mechanics": [
+        "pitching.04"
+      ],
+      "title": "charge/MAX",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-P01"
+      ],
+      "setup": "T-P04",
+      "objective": "max-pitch-strike",
+      "controls": [
+        "control:pitching/Charge pitch"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
+    },
+    {
+      "id": "T-P05",
+      "revision": 1,
+      "mechanics": [
+        "pitching.05"
+      ],
+      "title": "break after release",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-P01"
+      ],
+      "setup": "T-P05",
+      "objective": "break-strike",
+      "controls": [
+        "control:pitching/Break"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
+    },
+    {
+      "id": "T-P06",
+      "revision": 1,
+      "mechanics": [
+        "pitching.06"
+      ],
+      "title": "rubber positioning",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-P01"
+      ],
+      "setup": "T-P06",
+      "objective": "rubber-strike",
+      "controls": [
+        "control:pitching/Move pitcher"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
+    },
+    {
+      "id": "T-P07",
+      "revision": 2,
+      "mechanics": [
+        "pitching.07"
+      ],
+      "title": "stamina/pitcher substitution",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless SET action lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-P07",
+      "objective": "tired-pitcher-swap",
+      "controls": [
+        "control:pitching/Swap pitcher"
+      ],
+      "tests": [
+        "TutorialSetTests"
+      ]
+    },
+    {
+      "id": "T-P08",
+      "revision": 2,
+      "mechanics": [
+        "pitching.08"
+      ],
+      "title": "Check an exposed runner at first",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless SET action lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-P08",
+      "objective": "human-pickoff",
+      "controls": [
+        "control:pitching/Pickoff"
+      ],
+      "tests": [
+        "TutorialSetTests"
+      ]
+    },
+    {
+      "id": "T-P09",
+      "revision": 2,
+      "mechanics": [
+        "pitching.09"
+      ],
+      "title": "Star pitch: charmball",
+      "category": "pitching",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-P09",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-B01",
+      "revision": 2,
+      "mechanics": [
+        "batting.01"
+      ],
+      "title": "slap contact",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-B01",
+      "objective": "slap-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-B02",
+      "revision": 1,
+      "mechanics": [
+        "batting.02"
+      ],
+      "title": "cursor/sweet spot",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B02",
+      "objective": "perfect-slap-fair",
+      "controls": [
+        "control:batting/Move batter"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
+    },
+    {
+      "id": "T-B03",
+      "revision": 1,
+      "mechanics": [
+        "batting.03"
+      ],
+      "title": "early pull",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B03",
+      "objective": "pull-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
+    },
+    {
+      "id": "T-B03-L",
+      "revision": 1,
+      "mechanics": [
+        "batting.03"
+      ],
+      "title": "late push",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B03-L",
+      "objective": "push-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
+    },
+    {
+      "id": "T-B04",
+      "revision": 1,
+      "mechanics": [
+        "batting.04"
+      ],
+      "title": "charged swing",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B04",
+      "objective": "max-swing-fair",
+      "controls": [
+        "control:batting/Charge swing"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
+    },
+    {
+      "id": "T-B05",
+      "revision": 1,
+      "mechanics": [
+        "batting.05"
+      ],
+      "title": "box positioning",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B05",
+      "objective": "box-perfect-fair",
+      "controls": [
+        "control:batting/Move batter",
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
+    },
+    {
+      "id": "T-B06",
+      "revision": 1,
+      "mechanics": [
+        "batting.06"
+      ],
+      "title": "grounder launch",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B06",
+      "objective": "grounder-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
+    },
+    {
+      "id": "T-B06-F",
+      "revision": 1,
+      "mechanics": [
+        "batting.06"
+      ],
+      "title": "fly launch",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 786,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B06-F",
+      "objective": "fly-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialDirectionTests"
+      ]
+    },
+    {
+      "id": "T-B07",
+      "revision": 1,
+      "mechanics": [
+        "batting.07"
+      ],
+      "title": "bunt and foul-bunt risk",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B07",
+      "objective": "bunt-fair",
+      "controls": [
+        "control:batting/Bunt"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
+    },
+    {
+      "id": "T-B08",
+      "revision": 1,
+      "mechanics": [
+        "batting.08"
+      ],
+      "title": "recognize/take a ball",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 782,
+      "reason": "Headless plate exercise; human learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B01"
+      ],
+      "setup": "T-B08",
+      "objective": "take-ball",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
+    },
+    {
+      "id": "T-B09",
+      "revision": 2,
+      "mechanics": [
+        "batting.09"
+      ],
+      "title": "Star swing: shell-swing",
+      "category": "batting",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-B09",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-F01",
+      "revision": 3,
+      "mechanics": [
+        "fielding.01"
+      ],
+      "title": "manual pursuit/ground pickup",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F01",
+      "objective": "manual-ground-possession",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-F02",
+      "revision": 2,
+      "mechanics": [
+        "fielding.02"
+      ],
+      "title": "assistance and taking control",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 790,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F02",
+      "objective": "manual-takeover",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Swap"
+      ],
+      "tests": [
+        "TutorialFieldTests"
+      ]
+    },
+    {
+      "id": "T-F03",
+      "revision": 2,
+      "mechanics": [
+        "fielding.03"
+      ],
+      "title": "throw to first",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 790,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F03",
+      "objective": "throw-bag-1",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialFieldTests"
+      ]
+    },
+    {
+      "id": "T-F03-2",
+      "revision": 2,
+      "mechanics": [
+        "fielding.03"
+      ],
+      "title": "throw to second",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 790,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F03-2",
+      "objective": "throw-bag-2",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialFieldTests"
+      ]
+    },
+    {
+      "id": "T-F03-3",
+      "revision": 2,
+      "mechanics": [
+        "fielding.03"
+      ],
+      "title": "throw to third",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 790,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F03-3",
+      "objective": "throw-bag-3",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialFieldTests"
+      ]
+    },
+    {
+      "id": "T-F03-H",
+      "revision": 2,
+      "mechanics": [
+        "fielding.03"
+      ],
+      "title": "throw to home",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 790,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F03-H",
+      "objective": "throw-bag-4",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialFieldTests"
+      ]
+    },
+    {
+      "id": "T-F04",
+      "revision": 2,
+      "mechanics": [
+        "fielding.04"
+      ],
+      "title": "fly/liner catch",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 790,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F04",
+      "objective": "human-aerial-out",
+      "controls": [
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "TutorialFieldTests"
+      ]
+    },
+    {
+      "id": "T-F05",
+      "revision": 2,
+      "mechanics": [
+        "fielding.05"
+      ],
+      "title": "dive",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F05",
+      "objective": "human-dive-out",
+      "controls": [
+        "control:fielding/Dive"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-F06",
+      "revision": 2,
+      "mechanics": [
+        "fielding.06"
+      ],
+      "title": "jump",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 790,
+      "reason": "Headless exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F06",
+      "objective": "human-jump-out",
+      "controls": [
+        "control:fielding/Jump"
+      ],
+      "tests": [
+        "TutorialFieldTests"
+      ]
+    },
+    {
+      "id": "T-F07",
+      "revision": 2,
+      "mechanics": [
+        "fielding.07"
+      ],
+      "title": "relay/cutoff and receiver handoff",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live relay exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F07",
+      "objective": "human-relay",
+      "controls": [
+        "control:fielding/Cutoff / relay",
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F08",
+      "revision": 2,
+      "mechanics": [
+        "fielding.08"
+      ],
+      "title": "buffer an onward throw",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F08",
+      "objective": "human-buffered-relay",
+      "controls": [
+        "control:fielding/Throw",
+        "control:fielding/Cutoff / relay"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F09",
+      "revision": 2,
+      "mechanics": [
+        "fielding.09"
+      ],
+      "title": "recover a live wall carom",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live wall-carom recovery; ordinary bobble and fumble recovery are taught in T-F09-B and T-F09-S; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F09",
+      "objective": "human-loose-recovery",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F10",
+      "revision": 2,
+      "mechanics": [
+        "fielding.10"
+      ],
+      "title": "coverage and an uncovered bag",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless uncovered-bag throw and receiver coverage exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F10",
+      "objective": "human-uncovered-receiver",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F11",
+      "revision": 2,
+      "mechanics": [
+        "fielding.11"
+      ],
+      "title": "wall carom",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live-play exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F11",
+      "objective": "human-wall-carom",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F12",
+      "revision": 2,
+      "mechanics": [
+        "fielding.12"
+      ],
+      "title": "buddy jump/wall rob (ability dependent)",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live-play exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F12",
+      "objective": "human-buddy-rob",
+      "controls": [
+        "control:fielding/Jump"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F13",
+      "revision": 2,
+      "mechanics": [
+        "fielding.13"
+      ],
+      "title": "Ball Dash",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only Ball Dash carrier; no shipped roster holder; standalone learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [
+        "ball-dash"
+      ],
+      "prerequisites": [],
+      "setup": "T-F13",
+      "objective": "human-ball-dash",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F14",
+      "revision": 2,
+      "mechanics": [
+        "fielding.14"
+      ],
+      "title": "Snap Throw",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live relay exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "snap-throw"
+      ],
+      "prerequisites": [],
+      "setup": "T-F14",
+      "objective": "human-snap-relay",
+      "controls": [
+        "control:fielding/Cutoff / relay",
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F15",
+      "revision": 2,
+      "mechanics": [
+        "fielding.15"
+      ],
+      "title": "Laser Throw",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless Laser throw exercise; profile-specific range rule and standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "laser"
+      ],
+      "prerequisites": [],
+      "setup": "T-F15",
+      "objective": "human-laser-home",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F16",
+      "revision": 2,
+      "mechanics": [
+        "fielding.16"
+      ],
+      "title": "Ability reach: grow",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 799,
+      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "grow"
+      ],
+      "prerequisites": [],
+      "setup": "T-F16",
+      "objective": "human-ability-reach",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "TutorialAbilityTests"
+      ]
+    },
+    {
+      "id": "T-D01",
+      "revision": 2,
+      "mechanics": [
+        "outs.01"
+      ],
+      "title": "Force the runner at home",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless home-force lesson; the complementary tag is taught in D05",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D01",
+      "objective": "human-force-home",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-D02",
+      "revision": 2,
+      "mechanics": [
+        "outs.02"
+      ],
+      "title": "two-throw ground-ball double play",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 772,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D02",
+      "objective": "human-double-play",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialSessionTests"
+      ]
+    },
+    {
+      "id": "T-D03",
+      "revision": 2,
+      "mechanics": [
+        "outs.03"
+      ],
+      "title": "fielder's choice/which out to take",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless geometric choice lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D03",
+      "objective": "human-choice-second",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-D04",
+      "revision": 2,
+      "mechanics": [
+        "outs.04"
+      ],
+      "title": "doubled-off runner and return throw",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless caught-fly return-throw lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D04",
+      "objective": "human-double-off",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-D05",
+      "revision": 2,
+      "mechanics": [
+        "outs.05"
+      ],
+      "title": "Trap and tag an exposed runner",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live pickoff rundown/tag lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D05",
+      "objective": "human-rundown-tag",
+      "controls": [
+        "control:pitching/Pickoff",
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-D06",
+      "revision": 2,
+      "mechanics": [
+        "outs.06"
+      ],
+      "title": "Win the runner's close play",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless runner-side close-play lesson; defender-side practice pending separate drill",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D06",
+      "objective": "human-close-offense",
+      "controls": [
+        "control:running/Close play"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-D07",
+      "revision": 2,
+      "mechanics": [
+        "outs.07"
+      ],
+      "title": "Third force out ends the inning",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless third-force-out and zero-run lesson; crossed-run consequences are taught in T-D07-T and T-D07-C",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D07",
+      "objective": "human-third-force-zero-run",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-D07-T",
+      "revision": 2,
+      "mechanics": [
+        "outs.07"
+      ],
+      "title": "A third force cancels a run that crossed",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless crossed-run third-force lesson; complementary counted-run tag is T-D07-C",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-D07"
+      ],
+      "setup": "T-D07-T",
+      "objective": "human-third-force-cancels-run",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-D08",
+      "revision": 2,
+      "mechanics": [
+        "outs.08"
+      ],
+      "title": "Catch and double off two early runners",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless three-out caught-fly lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-D08",
+      "objective": "human-triple-off",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-R01",
+      "revision": 2,
+      "mechanics": [
+        "running.01"
+      ],
+      "title": "select one runner/send/hold/return",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live runner lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-R01",
+      "objective": "runner-send-halt-return",
+      "controls": [
+        "control:running/Select runner",
+        "control:running/Send",
+        "control:running/Halt"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
+      "id": "T-R02",
+      "revision": 2,
+      "mechanics": [
+        "running.02"
+      ],
+      "title": "all-runner commands and avoiding shared bags",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live runner lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-R02",
+      "objective": "all-runner-return",
+      "controls": [
+        "control:running/All advance",
+        "control:running/All return"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
+      "id": "T-R03",
+      "revision": 2,
+      "mechanics": [
+        "running.03"
+      ],
+      "title": "dash along the first-base path",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live runner lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-R03",
+      "objective": "human-dash-run",
+      "controls": [
+        "control:running/Dash"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
+      "id": "T-R09",
+      "revision": 2,
+      "mechanics": [
+        "running.09"
+      ],
+      "title": "Send beyond first and dash through the turn",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless human send plus corner-dash lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-R03"
+      ],
+      "setup": "T-R09",
+      "objective": "human-corner-dash",
+      "controls": [
+        "control:running/Select runner",
+        "control:running/Send",
+        "control:running/Dash"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
+      "id": "T-R04",
+      "revision": 2,
+      "mechanics": [
+        "running.04"
+      ],
+      "title": "slide",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live runner lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-R04",
+      "objective": "human-slide",
+      "controls": [
+        "control:running/Close play"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
+      "id": "T-R05",
+      "revision": 2,
+      "mechanics": [
+        "running.05"
+      ],
+      "title": "tag up from third after the catch",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless live caught-fly tag-up lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-R05",
+      "objective": "human-tag-up",
+      "controls": [
+        "control:running/All advance"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
+      "id": "T-R06",
+      "revision": 2,
+      "mechanics": [
+        "running.06"
+      ],
+      "title": "arm steal and release timing",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless real runner-play lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-R06",
+      "objective": "human-steal",
+      "controls": [
+        "control:running/Steal"
+      ],
+      "tests": [
+        "TutorialStealTests"
+      ]
+    },
+    {
+      "id": "T-R07",
+      "revision": 2,
+      "mechanics": [
+        "running.07"
+      ],
+      "title": "Delay the break for home",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless delayed double-steal lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-R07",
+      "objective": "human-double-steal",
+      "controls": [
+        "control:running/Steal"
+      ],
+      "tests": [
+        "TutorialStealTests"
+      ]
+    },
+    {
+      "id": "T-R08",
+      "revision": 2,
+      "mechanics": [
+        "running.08"
+      ],
+      "title": "Catcher throw against a steal",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless real runner-play lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-R08",
+      "objective": "human-catcher-tag",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialStealTests"
+      ]
+    },
+    {
+      "id": "T-G01",
+      "revision": 2,
+      "mechanics": [
+        "game.01"
+      ],
+      "title": "lineup/positions/handedness",
+      "category": "game",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "guided-lineup",
+      "controls": [],
+      "tests": [
+        "GuidedTutorialTests"
+      ]
+    },
+    {
+      "id": "T-G02",
+      "revision": 2,
+      "mechanics": [
+        "game.02"
+      ],
+      "title": "chemistry on actual throw pairs",
+      "category": "game",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Headless live good-chemistry throw exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-G02",
+      "objective": "human-chemistry-throw",
+      "controls": [
+        "control:fielding/Throw",
+        "control:fielding/Cutoff / relay"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-G03",
+      "revision": 2,
+      "mechanics": [
+        "game.03"
+      ],
+      "title": "Earn and spend stars",
+      "category": "game",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored resource exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-G03",
+      "objective": "star-resource",
+      "controls": [
+        "control:pitching/Normal pitch",
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-G04",
+      "revision": 2,
+      "mechanics": [
+        "game.04"
+      ],
+      "title": "Read the 1\u20131 count",
+      "category": "game",
+      "status": "implemented",
+      "issue": 800,
+      "reason": "Headless live Match count sequence; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-G04",
+      "objective": "game-count-sequence",
+      "controls": [
+        "control:pitching/Normal pitch"
+      ],
+      "tests": [
+        "TutorialGameTests"
+      ]
+    },
+    {
+      "id": "T-G05",
+      "revision": 2,
+      "mechanics": [
+        "game.05"
+      ],
+      "title": "controller roles and a second pad",
+      "category": "game",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "guided-seats",
+      "controls": [],
+      "tests": [
+        "GuidedTutorialTests"
+      ]
+    },
+    {
+      "id": "T-G06",
+      "revision": 2,
+      "mechanics": [
+        "game.06"
+      ],
+      "title": "pause/book/restart",
+      "category": "game",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "guided-pause",
+      "controls": [],
+      "tests": [
+        "GuidedTutorialTests"
+      ]
+    },
+    {
+      "id": "T-G06-C",
+      "revision": 1,
+      "mechanics": [
+        "game.06"
+      ],
+      "title": "pursuit stick calibration",
+      "category": "game",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "guided-calibration",
+      "controls": [],
+      "tests": [
+        "GuidedTutorialTests"
+      ]
+    },
+    {
+      "id": "T-G06-R",
+      "revision": 1,
+      "mechanics": [
+        "game.06"
+      ],
+      "title": "controller recovery",
+      "category": "game",
+      "status": "implemented",
+      "issue": 796,
+      "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "guided-recovery",
+      "controls": [],
+      "tests": [
+        "GuidedTutorialTests"
+      ]
+    },
+    {
+      "id": "T-X01",
+      "revision": 2,
+      "mechanics": [
+        "special.01"
+      ],
+      "title": "Throw banana item",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-X01",
+      "objective": "item-effect",
+      "controls": [
+        "control:running/Throw item"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-X02",
+      "revision": 2,
+      "mechanics": [
+        "special.02"
+      ],
+      "title": "Field a star grounder",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless opponent special-hit counterplay; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-X02",
+      "objective": "human-special-ground",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-X03",
+      "revision": 1,
+      "mechanics": [
+        "special.03"
+      ],
+      "title": "park effects, only when those parks become product scope",
+      "category": "special",
+      "status": "blocked",
+      "issue": 37,
+      "reason": "Harbor has no park hazard; extra parks are outside Exhibition product scope (#37). Add distinct park-effect exercises only when an extra park enters product scope.",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-A-burrow",
+      "revision": 2,
+      "mechanics": [
+        "ability.burrow"
+      ],
+      "title": "Ability reach: burrow",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 799,
+      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "burrow"
+      ],
+      "prerequisites": [],
+      "setup": "T-A-burrow",
+      "objective": "human-ability-reach",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Dive"
+      ],
+      "tests": [
+        "TutorialAbilityTests"
+      ]
+    },
+    {
+      "id": "T-A-grow",
+      "revision": 2,
+      "mechanics": [
+        "ability.grow"
+      ],
+      "title": "Ability reach: grow",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 799,
+      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "grow"
+      ],
+      "prerequisites": [],
+      "setup": "T-A-grow",
+      "objective": "human-ability-reach",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "TutorialAbilityTests"
+      ]
+    },
+    {
+      "id": "T-A-lick-catch",
+      "revision": 2,
+      "mechanics": [
+        "ability.lick-catch"
+      ],
+      "title": "Ability reach: lick-catch",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 799,
+      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "lick-catch"
+      ],
+      "prerequisites": [],
+      "setup": "T-A-lick-catch",
+      "objective": "human-ability-reach",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "TutorialAbilityTests"
+      ]
+    },
+    {
+      "id": "T-A-spin-check",
+      "revision": 1,
+      "mechanics": [
+        "ability.spin-check"
+      ],
+      "title": "spin-check",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 799,
+      "reason": "Spin Check extra-base result helper is not wired to live runner decisions; accepted commitment and geometry contract needs definition",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "spin-check"
+      ],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
+      "id": "T-A-withdraw",
+      "revision": 2,
+      "mechanics": [
+        "ability.withdraw"
+      ],
+      "title": "Ability reach: withdraw",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 799,
+      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [
+        "withdraw"
+      ],
+      "prerequisites": [],
+      "setup": "T-A-withdraw",
+      "objective": "human-ability-reach",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "TutorialAbilityTests"
+      ]
+    },
+    {
+      "id": "T-SP-heatball",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.heatball"
+      ],
+      "title": "Star pitch: heatball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-heatball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-charmball",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.charmball"
+      ],
+      "title": "Star pitch: charmball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-charmball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-prismball",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.prismball"
+      ],
+      "title": "Star pitch: prismball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-prismball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-phonyball",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.phonyball"
+      ],
+      "title": "Star pitch: phonyball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-phonyball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-caskball",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.caskball"
+      ],
+      "title": "Star pitch: caskball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-caskball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-skullball",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.skullball"
+      ],
+      "title": "Star pitch: skullball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-skullball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-fogball",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.fogball"
+      ],
+      "title": "Star pitch: fogball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-fogball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-fastball",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.fastball"
+      ],
+      "title": "Star pitch: fastball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-fastball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-changeup",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.changeup"
+      ],
+      "title": "Star pitch: changeup",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-changeup",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-breaker",
+      "revision": 2,
+      "mechanics": [
+        "star-pitch.breaker"
+      ],
+      "title": "Star pitch: breaker",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-breaker",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-heat-swing",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.heat-swing"
+      ],
+      "title": "Star swing: heat-swing",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-heat-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-heart-swing",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.heart-swing"
+      ],
+      "title": "Star swing: heart-swing",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-heart-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-shell-swing",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.shell-swing"
+      ],
+      "title": "Star swing: shell-swing",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-shell-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-phony-swing",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.phony-swing"
+      ],
+      "title": "Star swing: phony-swing",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-phony-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-cask-swing",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.cask-swing"
+      ],
+      "title": "Star swing: cask-swing",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-cask-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-furnace",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.furnace"
+      ],
+      "title": "Star swing: furnace",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-furnace",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-staff-swing",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.staff-swing"
+      ],
+      "title": "Star swing: staff-swing",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-staff-swing",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-ground",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.ground"
+      ],
+      "title": "Star swing: ground",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-ground",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-fly",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.fly"
+      ],
+      "title": "Star swing: fly",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-fly",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-line",
+      "revision": 2,
+      "mechanics": [
+        "star-swing.line"
+      ],
+      "title": "Star swing: line",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-line",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-I-banana",
+      "revision": 2,
+      "mechanics": [
+        "item.banana"
+      ],
+      "title": "Throw banana item",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-I-banana",
+      "objective": "item-effect",
+      "controls": [
+        "control:running/Throw item"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-I-rocket",
+      "revision": 2,
+      "mechanics": [
+        "item.rocket"
+      ],
+      "title": "Throw rocket item",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-I-rocket",
+      "objective": "item-effect",
+      "controls": [
+        "control:running/Throw item"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-I-pow",
+      "revision": 2,
+      "mechanics": [
+        "item.pow"
+      ],
+      "title": "Throw pow item",
+      "category": "special",
+      "status": "implemented",
+      "issue": 770,
+      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-I-pow",
+      "objective": "item-effect",
+      "controls": [
+        "control:running/Throw item"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-F08-R",
+      "revision": 2,
+      "mechanics": [
+        "fielding.08"
+      ],
+      "title": "retarget a buffered throw",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F08-R",
+      "objective": "human-retargeted-relay",
+      "controls": [
+        "control:fielding/Throw",
+        "control:fielding/Cutoff / relay"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F08-C",
+      "revision": 2,
+      "mechanics": [
+        "fielding.08"
+      ],
+      "title": "cancel a buffered throw",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F08-C",
+      "objective": "human-cancelled-relay",
+      "controls": [
+        "control:fielding/Throw",
+        "control:fielding/Cutoff / relay"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-F09-B",
+      "revision": 2,
+      "mechanics": [
+        "fielding.09"
+      ],
+      "title": "recover an ordinary bobble",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "C80-only headless local ordinary bobble and human-controlled loose-ball recovery; shipped fumble recovery is T-F09-S; standalone learning gate pending",
+      "profiles": [
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F09-B",
+      "objective": "human-bobble-recovery",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-D09",
+      "revision": 1,
+      "mechanics": [
+        "outs.06"
+      ],
+      "title": "Win the defender's close play",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless defender-side close-play lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-D06"
+      ],
+      "setup": "T-D09",
+      "objective": "human-close-defense",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    },
+    {
+      "id": "T-G04-F",
+      "revision": 1,
+      "mechanics": [
+        "game.04"
+      ],
+      "title": "Foul then fair",
+      "category": "game",
+      "status": "implemented",
+      "issue": 800,
+      "reason": "Headless live Match count and inning sequence; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-G04"
+      ],
+      "setup": "T-G04-F",
+      "objective": "game-foul-fair",
+      "controls": [
+        "control:batting/Normal swing"
+      ],
+      "tests": [
+        "TutorialGameTests"
+      ]
+    },
+    {
+      "id": "T-G04-H",
+      "revision": 1,
+      "mechanics": [
+        "game.04"
+      ],
+      "title": "Make the third out",
+      "category": "game",
+      "status": "implemented",
+      "issue": 800,
+      "reason": "Headless live Match count and inning sequence; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-G04"
+      ],
+      "setup": "T-G04-H",
+      "objective": "game-half-change",
+      "controls": [
+        "control:pitching/Normal pitch"
+      ],
+      "tests": [
+        "TutorialGameTests"
+      ]
+    },
+    {
+      "id": "T-F09-S",
+      "revision": 2,
+      "mechanics": [
+        "fielding.09"
+      ],
+      "title": "recover after a shipped fumble",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 797,
+      "reason": "Shipped headless handling fumble scatters a loose ball; human takes the glove and recovers it after the CPU error, then throws to first; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-F09-S",
+      "objective": "human-fumble-recovery",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
+      "id": "T-R10",
+      "revision": 1,
+      "mechanics": [
+        "running.05"
+      ],
+      "title": "Return an early runner on a fly",
+      "category": "running",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Separate early-return half of fly-ball running; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-R05"
+      ],
+      "setup": "T-R05",
+      "objective": "human-early-fly-return",
+      "controls": [
+        "control:running/Select runner",
+        "control:running/Send",
+        "control:running/All return"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
+      "id": "T-D07-C",
+      "revision": 2,
+      "mechanics": [
+        "outs.07"
+      ],
+      "title": "A run counts before a third tag",
+      "category": "outs",
+      "status": "implemented",
+      "issue": 794,
+      "reason": "Headless crossed-run nonforce third-tag lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-D07-T"
+      ],
+      "setup": "T-D07-C",
+      "objective": "human-third-tag-counts-run",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialOutsTests"
+      ]
+    }
+  ],
+  "setups": [
+    {
+      "id": "T-P01",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-P03",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-B01",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-F01",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F05",
+      "policy": "liner",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "grit",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "marlow",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 250,
+          "exitMph": 0,
+          "launchDeg": 12,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 120,
+          "launchDeg": 16,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-D02",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-P04",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-P05",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.5
+    },
+    {
+      "id": "T-P06",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.15
+    },
+    {
+      "id": "T-B02",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-B04",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-B07",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "strikes": 2
+    },
+    {
+      "id": "T-B08",
+      "policy": "cpu-ball",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "pitch": {
+        "type": "fastball",
+        "charge01": 0,
+        "star": false,
+        "aimY": 2
+      }
+    },
+    {
+      "id": "T-P02",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-B03",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minTimingFrames": 1
+    },
+    {
+      "id": "T-B03-L",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minTimingFrames": 1
+    },
+    {
+      "id": "T-B05",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.2,
+      "pitch": {
+        "type": "fastball",
+        "charge01": 0,
+        "star": false,
+        "aimX": 0.4
+      }
+    },
+    {
+      "id": "T-B06",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.75
+    },
+    {
+      "id": "T-B06-F",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "minMovement01": 0.75
+    },
+    {
+      "id": "T-F02",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F03",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F03-2",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F03-3",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F03-H",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F04",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F06",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "grit",
+        "marlow",
+        "vine",
+        "basil",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "konga",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-R01",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        2
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-R03",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 140,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": 32
+        },
+        "c80": {
+          "carryFt": 140,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": 32
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-R02",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        2,
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-R04",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "dart",
+        "cinder",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-D03",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-P07",
+      "policy": "pitcher-swap",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {}
+    },
+    {
+      "id": "T-P08",
+      "policy": "pickoff",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "konga",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {}
+    },
+    {
+      "id": "T-F11",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "konga",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 110,
+          "launchDeg": 35,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 120,
+          "launchDeg": 25,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F12",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "grit",
+        "marlow",
+        "gull",
+        "nico",
+        "dart"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "konga",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 420,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 120,
+          "launchDeg": 30,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F13",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "dart",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "nico",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      }
+    },
+    {
+      "id": "T-F07",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F14",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F15",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "hex",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-R06",
+      "policy": "steal-offense",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "soot",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "cinder",
+        "zig",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {},
+      "seat": "offense"
+    },
+    {
+      "id": "T-R07",
+      "policy": "steal-offense",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "soot",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "cinder",
+        "dart",
+        "jester",
+        "zig",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        1,
+        3
+      ],
+      "balls": {},
+      "seat": "offense",
+      "pitch": {
+        "type": "changeup",
+        "charge01": 0,
+        "star": false
+      }
+    },
+    {
+      "id": "T-R08",
+      "policy": "steal-defense",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "konga",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {},
+      "seat": "defense"
+    },
+    {
+      "id": "T-F08",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F08-R",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F08-C",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-P09",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "charmball"
+    },
+    {
+      "id": "T-B09",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "shell-swing",
+      "seat": "offense",
+      "batterId": "zig"
+    },
+    {
+      "id": "T-SP-heatball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "rio"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "heatball",
+      "pitcherId": "rio"
+    },
+    {
+      "id": "T-SP-charmball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "charmball"
+    },
+    {
+      "id": "T-SP-prismball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "zig"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "prismball",
+      "pitcherId": "zig"
+    },
+    {
+      "id": "T-SP-phonyball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "brondo"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "phonyball",
+      "pitcherId": "brondo"
+    },
+    {
+      "id": "T-SP-caskball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "konga"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "caskball",
+      "pitcherId": "konga"
+    },
+    {
+      "id": "T-SP-skullball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "skullball",
+      "pitcherId": "ashlord"
+    },
+    {
+      "id": "T-SP-fogball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "fenn"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "fogball",
+      "pitcherId": "fenn"
+    },
+    {
+      "id": "T-SP-fastball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "nico"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "fastball",
+      "pitcherId": "nico"
+    },
+    {
+      "id": "T-SP-changeup",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "pip"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "changeup",
+      "pitcherId": "pip"
+    },
+    {
+      "id": "T-SP-breaker",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "marlow"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "breaker",
+      "pitcherId": "marlow"
+    },
+    {
+      "id": "T-SS-heat-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "heat-swing",
+      "batterId": "rio",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-heart-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "vale"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "heart-swing",
+      "batterId": "vale",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-shell-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "shell-swing",
+      "seat": "offense",
+      "batterId": "zig"
+    },
+    {
+      "id": "T-SS-phony-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "brondo"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "phony-swing",
+      "batterId": "brondo",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-cask-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "cask-swing",
+      "batterId": "konga",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-furnace",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "furnace",
+      "batterId": "ashlord",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-staff-swing",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "fenn"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "staff-swing",
+      "batterId": "fenn",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-ground",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "pip"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "ground",
+      "batterId": "dart",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-fly",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "marlow"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "fly",
+      "batterId": "cinder",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-line",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "nico"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "line",
+      "batterId": "grit",
+      "seat": "offense"
+    },
+    {
+      "id": "T-G03",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "strikes": 2,
+      "startingStars": 1,
+      "skill": "charmball"
+    },
+    {
+      "id": "T-G02",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "vine",
+        "basil",
+        "moss",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-R05",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "cinder",
+        "dart",
+        "jester",
+        "zig",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 222,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": -30
+        },
+        "c80": {
+          "carryFt": 250,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": -26
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-D04",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 40,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        2
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 280,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 2
+        },
+        "c80": {
+          "carryFt": 280,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 2
+        }
+      }
+    },
+    {
+      "id": "T-X01",
+      "policy": "cpu-item",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "skill": "banana",
+      "batterId": "zig",
+      "onDeckId": "jester"
+    },
+    {
+      "id": "T-I-banana",
+      "policy": "cpu-item",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "skill": "banana",
+      "batterId": "zig",
+      "onDeckId": "jester"
+    },
+    {
+      "id": "T-I-rocket",
+      "policy": "cpu-item",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "skill": "rocket",
+      "batterId": "zig",
+      "onDeckId": "jester"
+    },
+    {
+      "id": "T-I-pow",
+      "policy": "cpu-item",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "skill": "pow",
+      "batterId": "zig",
+      "onDeckId": "jester"
+    },
+    {
+      "id": "T-X02",
+      "policy": "cpu-special-ground",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "skill": "ground",
+      "batterId": "dart",
+      "opponentStars": 1
+    },
+    {
+      "id": "T-F09",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "rio",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "konga",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 110,
+          "launchDeg": 35,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 120,
+          "launchDeg": 25,
+          "sprayDeg": 0
+        }
+      }
+    },
+    {
+      "id": "T-F10",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 4,
+          "sprayDeg": 35
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 4,
+          "sprayDeg": 35
+        }
+      }
+    },
+    {
+      "id": "T-D01",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "konga",
+        "soot",
+        "boom",
+        "nugget",
+        "grit"
+      ],
+      "runners": [
+        1,
+        2,
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        },
+        "c80": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        }
+      }
+    },
+    {
+      "id": "T-D05",
+      "policy": "pickoff",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "konga",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "dart"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {}
+    },
+    {
+      "id": "T-F16",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "rio",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        }
+      },
+      "skill": "grow"
+    },
+    {
+      "id": "T-A-grow",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "rio",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        }
+      },
+      "skill": "grow"
+    },
+    {
+      "id": "T-A-lick-catch",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "zig",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        }
+      },
+      "skill": "lick-catch"
+    },
+    {
+      "id": "T-A-withdraw",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "fenn",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 88,
+          "launchDeg": 32,
+          "sprayDeg": 0
+        }
+      },
+      "skill": "withdraw"
+    },
+    {
+      "id": "T-A-burrow",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "soot",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        },
+        "c80": {
+          "carryFt": 118,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -18
+        }
+      },
+      "skill": "burrow"
+    },
+    {
+      "id": "T-D06",
+      "policy": "grounder",
+      "seed": 5,
+      "timeoutSec": 35,
+      "home": [
+        "rio",
+        "nico",
+        "pip",
+        "marlow",
+        "vale",
+        "lace",
+        "zig",
+        "dart",
+        "vine"
+      ],
+      "away": [
+        "ashlord",
+        "cinder",
+        "soot",
+        "grit",
+        "boom",
+        "konga",
+        "frost",
+        "brondo",
+        "hex"
+      ],
+      "runners": [
+        2
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "grit"
+        ],
+        "c80": [
+          "konga"
+        ]
+      },
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 3,
+          "sprayDeg": 38
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 3,
+          "sprayDeg": 38
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-D09",
+      "policy": "grounder",
+      "seed": 5,
+      "timeoutSec": 35,
+      "home": [
+        "rio",
+        "nico",
+        "pip",
+        "marlow",
+        "vale",
+        "lace",
+        "zig",
+        "dart",
+        "vine"
+      ],
+      "away": [
+        "ashlord",
+        "cinder",
+        "soot",
+        "grit",
+        "boom",
+        "konga",
+        "frost",
+        "brondo",
+        "hex"
+      ],
+      "runners": [
+        2
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "grit"
+        ],
+        "c80": [
+          "konga"
+        ]
+      },
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 3,
+          "sprayDeg": 38
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 3,
+          "sprayDeg": 38
+        }
+      }
+    },
+    {
+      "id": "T-D07",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "konga",
+        "soot",
+        "boom",
+        "nugget",
+        "grit"
+      ],
+      "runners": [
+        1,
+        2,
+        3
+      ],
+      "outs": 2,
+      "balls": {
+        "shipped": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        },
+        "c80": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        }
+      }
+    },
+    {
+      "id": "T-G04",
+      "policy": "game-count",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "defense",
+      "strikes": 0
+    },
+    {
+      "id": "T-G04-F",
+      "policy": "game-contact",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "offense",
+      "strikes": 0
+    },
+    {
+      "id": "T-G04-H",
+      "policy": "game-half",
+      "seed": 1,
+      "timeoutSec": 45,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "defense",
+      "strikes": 2
+    },
+    {
+      "id": "T-D08",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 40,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "konga"
+      ],
+      "runners": [
+        1,
+        2
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "konga",
+          "jester"
+        ],
+        "c80": [
+          "konga",
+          "jester"
+        ]
+      },
+      "balls": {
+        "shipped": {
+          "carryFt": 240,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 2
+        },
+        "c80": {
+          "carryFt": 240,
+          "exitMph": 0,
+          "launchDeg": 30,
+          "sprayDeg": 2
+        }
+      }
+    },
+    {
+      "id": "T-F09-B",
+      "policy": "grounder",
+      "seed": 146,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "dart",
+        "basil",
+        "grit",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "konga",
+        "boom",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "marlow",
+        "ashlord"
+      ],
+      "runners": [],
+      "balls": {
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 55,
+          "launchDeg": 10,
+          "sprayDeg": 25
+        }
+      },
+      "seat": "assisted-defense"
+    },
+    {
+      "id": "T-R09",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 100,
+          "launchDeg": 35,
+          "sprayDeg": -15
+        },
+        "c80": {
+          "carryFt": 0,
+          "exitMph": 100,
+          "launchDeg": 35,
+          "sprayDeg": -15
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-F09-S",
+      "policy": "grounder",
+      "seed": 14,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "boom",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "konga",
+        "cinder",
+        "soot",
+        "nugget",
+        "nico",
+        "gull",
+        "marlow",
+        "ashlord",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 4,
+          "sprayDeg": -19
+        }
+      },
+      "seat": "assisted-defense"
+    },
+    {
+      "id": "T-D07-T",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "konga",
+        "soot",
+        "boom",
+        "nugget",
+        "grit"
+      ],
+      "runners": [
+        1,
+        3
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "konga",
+          "dart"
+        ],
+        "c80": [
+          "konga",
+          "dart"
+        ]
+      },
+      "outs": 2,
+      "balls": {
+        "shipped": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        },
+        "c80": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        }
+      }
+    },
+    {
+      "id": "T-D07-C",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "konga",
+        "soot",
+        "boom",
+        "nugget",
+        "grit"
+      ],
+      "runners": [
+        2,
+        3
+      ],
+      "runnerIdsByProfile": {
+        "shipped": [
+          "konga",
+          "dart"
+        ],
+        "c80": [
+          "konga",
+          "dart"
+        ]
+      },
+      "outs": 2,
+      "balls": {
+        "shipped": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        },
+        "c80": {
+          "carryFt": 38,
+          "exitMph": 0,
+          "launchDeg": 3,
+          "sprayDeg": -6
+        }
+      }
+    }
+  ]
+}

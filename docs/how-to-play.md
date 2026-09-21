@@ -176,6 +176,7 @@ The window plays the copy only when a run names it: `GRAND_SLUGGERS_TRIAL=trials
 
 - **The stick is calibrated per controller** (#718). A seated controller starts a match with no centre: at SET or the result beat the HUD reads **LET GO OF THE STICK** (**P1** / **P2** when two play) with a bar that fills over half a second of a released stick. Moving it starts the bar over. Keyboard seats never wait. Nothing is sampled while the ball is live. **Call time → Reset stick** runs the same half second for every seated controller; East / Esc / right click backs out and the old centre stays. The analog stick reaches the game before any dead zone: past **0.20** you steer, back under **0.15** the glove runs on its own, and the speed grows smoothly from there.
 - **LET GO OF THE STICK TO STEER** during a live ball: your seat has not been seen at rest since it took the field (a new half, a reconnect, a reset). The glove runs on its own until the stick is at rest once.
+- **Relay inputs:** standard play automatically sends the cutoff's onward throw. On C80, command that next leg with **South / Space**. A press just before the catch waits briefly for the receiver. Change the **D-pad / 1/2/3/4** target to retarget it without refreshing its lifetime; tap **RB / period** to cancel. An expired or cancelled press never throws. The book's Relay and queued throws page describes both profiles.
 - **Jump** (West) lifts the body two feet over 0.60 s, the same for everyone; the body reaches up while it is in the air, and dirt kicks at the takeoff.
 - **Dive** (East) costs a recovery. The diver lies laid out, then gets up in the last fifth of a second (crouch), caught or missed, whoever holds the ring meanwhile — and still after a diving catch ends the play.
 - **A hard ball** braces the glove: the body squashes and skids a little, harder for a harder ball, and eases back as the recovery runs out. A routine ball costs nothing and shows nothing.
@@ -183,16 +184,31 @@ The window plays the copy only when a run names it: `GRAND_SLUGGERS_TRIAL=trials
 
 ---
 
-## Practice (Harbor)
+## Tutorials and free practice (Harbor)
 
-Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free and **South** starts that lesson. **East / G** from pitching **skips to Fielding** (scoop), not the title. You are not trapped painting pitch types.
+From title, **West** on a pad or **F** on keyboard opens **Tutorials**. Use left/right on the stick or **A/D** for categories, and up/down or **W/S** for lessons. Click a category tab or lesson to select it. Lists show at most six lessons per page; keep moving up/down or click the page arrows to browse. Use **South / Space** (or click) to read the goal and start. Tutorials are player 1 versus a controlled CPU setup; a second pad does not take over the teaching opponent.
 
-1. **Pitching** — throw; charge at MAX (rings line up); changeup / break; star
-2. **Batting** — walk the oval onto the ball; charge at MAX
-3. **Fielding** — catch, jump a fly, throw a named bag, **turn two** (second, then first), dash, buddy toss
-4. **Running** — pick a runner, steal, dash
-5. **Special** — star pitch / star swing
-6. **Free practice** — any verb, no gate
+The lessons are grouped by skill:
+
+- **Pitching:** strike, called ball, changeup, MAX pitch, break, and rubber positioning.
+- **Batting:** slap, sweet spot, early pull, late push, MAX swing, box positioning, grounder, fly ball, two-strike bunt, and taking a ball.
+- **Fielding:** ground pickup, manual takeover, throws to first/second/third/home, airborne catch, dive, and jump catch.
+- **Outs:** turn a double play.
+- **Running:** send, halt and return one runner; dash along the first-base path.
+
+Running lessons give you the offense controls while the CPU fields. For Send, hold and return, select the runner on second, send toward third, halt that runner, then return to second. On a pad: D-pad Up, stick left, left + LB + RB to halt, then stick up. On keyboard: 2, A, A + slash to halt, then W. Dash toward first asks for repeated South / Space presses while the batter-runner moves.
+
+Each lesson shows its goal, setup, and controls for the active input scheme before the attempt. During practice, the ordinary scoreboard, occupied bases and player cards stay visible: the pitcher picker names the candidate, the arm card shows stamina, and the runner card shows steal state. The coaching panel sits clear of these readouts. Pitching lessons use a batter who takes. Batting gets a repeatable middle fastball, except Take a ball gets a high ball and Move in the box gets an offset strike; bunting begins with two strikes. Fielding starts from authored contact and base occupancy. Real baseball rules resolve every attempt.
+
+Early/late timing and grounder/fly launch are separate lessons, so each action requires its own three successes. Timing mirrors the batter’s handedness. For grounder/fly lessons, hold **stick up/W** or **stick down/S** during the pitch while tapping the swing; down during SET only recenters the box. Batting spans two pages; moving past the last visible row reveals the next page.
+
+Fielding lessons teach manual takeover, throws to each named base, ordinary airborne catches, and jump catches as separate actions. Select a bag with **D-pad Right/Up/Left/Down** or **1/2/3/4**, then throw with **South/Space**. For the ordinary airborne-catch lesson, keep steering with **stick/WASD** while pressing **South/Space**; a neutral stick hands the catch to assistance. Jump with **West/F**. A throw needs a real receiver, and an airborne catch must happen before the bounce.
+
+Every lesson requires **three successful attempts**. The counter shows 0/3 through 3/3 in the list, brief, play HUD and feedback. Failures keep earlier successes, and partial progress is saved when you leave or close the game. Old one-success passes do not satisfy this requirement.
+
+After a success or failure, the same lesson immediately starts a fresh attempt until you reach **3/3**. There is no Continue press or return to the briefing between attempts, including guided lessons. After a miss, the coaching panel keeps the correction alongside the controls during the next attempt. At 3/3 the completion screen offers **South / Space** to replay, **West / F** for the next lesson, and **East / G** to return to lessons. Checkmarks appear only at 3/3, separately from Exhibition. Automatic assistance and demonstrations do not earn completion. Call time / How to play still works during an attempt. Restart resets that lesson; Title leaves it.
+
+**Free practice** lives in the **Free play** category for ungated Harbor play. New mechanics and future lessons are tracked in `data/tutorials/`; unavailable lessons are not presented as playable.
 
 ---
 
@@ -232,3 +248,38 @@ Couch, controller, three innings. You can name the captain with the HUD off. A p
 **Now (Harbor Exhibition).** Title looks into the park. One controller: SET is over the pitcher’s shoulder looking at the box when you pitch (mound 3/4) and behind home when you hit (plate 3/4). Two controllers: SET stays behind home (plate 3/4). Two chalk boxes and a pentagon on packed dirt. The infield is grass with dirt paths and a mound hill. On contact the camera cuts to 45° on the dirt under the ball (CF at the top, home under second) and follows it through the throw; it cuts to the bag only on a close play. From those cameras Harbor is a place: outfield grass, a padded wall with ads, a scoreboard with numbers, a crowd of people not one card. Baseball is 0.62 ft. From the box the pitcher throws — windup, then the ball leaves that hand. Star specials own the ball or the field ~2 seconds HUD-off (Heatball/heat-swing core+embers on the body; Charm hearts; Prism ghosts; Phony grin decoy; Cask barrel; Skull; Furnace lava pool), then baseball. Scorebug mutes. Shared body is one chain with six SMS-ladder cuts (kid / pageant / speed / brick / ape / slug) so a HUD-off plate still names the type. Captain extras stay data. Still primitives, not a sculpted hero. Controller input uses the Input System: hold/release South charges and commits, South is a position on Xbox and Nintendo, rumble on contact and star. Keyboard and mouse are the same verbs (Space / left click hold/release, WASD / mouse run, 1–4 bags). Bat / glove / crowd bed are original wavs, not beeps. Still not a sculpted hero.
 
 **Not yet the reason people stay.** Scoop still, star-swing still you would show a friend, captains that read at gameplay distance. Do not start Challenge island or extra parks as products before that.
+# Guided team and controller lessons
+
+The Tutorials list includes Build your lineup, Seat two players, Call time, Recover your seat, and Reset the stick. Each opens the ordinary Exhibition screens and needs three separate successful attempts. Build your lineup asks you to drop a left-handed batter from the pool, change batting order, and change a field position. The shared character card names BATS LEFT or BATS RIGHT for the highlighted player on the lineup and captain screens. Seat two players asks you to connect two distinct gamepads, select 2 PLAYERS on captain select, and bind both seats. Keyboard and mouse can take Player 1 only. Call time begins in a prepared Harbor SET and asks you to open the menu, visit the book, and restart. Recover your seat and Reset the stick also begin at SET with a bound gamepad; choose Controller or Auto with F6 before starting. Recover your seat asks you to disconnect an active pad and recover that same player's seat. Reset the stick is available on the c80 radial pursuit profile and asks you to complete its calibration card. The first and third lessons can be practiced with keyboard and mouse or a pad; the others need the physical pads or pursuit controller their goals describe. The lesson banner names the next action still needed in the current attempt.
+
+### More scenario lessons
+
+The steal lessons use the normal runner controls. Time a steal: select first and arm before release, then beat the throw to second. Delay the break for home: arm first, wait for the catcher to throw to second, then select third and send home as the throw passes the mound. Catch a stealing runner: select second and make the catcher throw yourself. A runner being tagged at home does not pass the delayed-steal lesson.
+
+Each named star pitch and star swing has a prepared batter or pitcher with the matching skill and enough meter. North / Q selects the star; South / Space delivers it. A star swing needs fair contact. Earn and spend stars begins with two strikes: first finish the strikeout with an ordinary pitch, then use a star pitch against the next batter. One strikeout followed by one star pitch is one success; complete that sequence three times.
+
+Item lessons start with a chemistry pair that offers an item on fair contact. Hit first, cycle with RB / Tab, aim with the stick / WASD, then throw with LT + RB (or LT + South) / E. Each lesson checks its named item landed and affected the defender. Field a star grounder asks you to take over and collect the CPU's star hit yourself. Tag up from third asks you to hold the runner until the catch, then hold LB / comma to send home. Double off a runner asks you to catch the fly and return the throw to second before the early runner retouches.
+
+The fielding scenarios include a bases-loaded force at home (collect, select home, throw), a pickoff rundown (check first, then throw ahead to second), recovering a wall carom with your own movement, and throwing to first while its covering fielder arrives. Grow, Lick Catch and Withdraw lessons place you at the right edge of the landing ring: take over and catch at a distance that needs the ability's extra reach. Burrow teaches a ground pickup at the outer edge of its range. An ordinary catch or a helper-controlled pickup does not prove ability use.
+
+Close plays have separate runner and defender lessons at third. Offense: send from second, dash, then press South / Space when the close-play icon appears. Defense: throw to third, then make a fresh South / Space press at the icon. The actual safe arrival or tag decides the lesson; each side requires three successes.
+
+Make the third force out starts with bases loaded and two outs. Field and throw home before the forced runner arrives: the third out ends the half and the teams change sides. This is a separate lesson from making the same force while other outs remain.
+
+The baseball lessons practice a full sequence per success: build a 1–1 count with a ball from the rubber's edge, then a centered called strike (down/S resets the pitcher during SET); stay centered in SET, then after release pull an early left-aimed swing foul, then center and time the next swing fair; or finish a two-out, two-strike half with a called third strike. South/Space pitches and swings. Watch the ordinary count and out readouts. Each sequence must succeed three times.
+
+For the triple-play lesson, catch the fly and return the ball to second, then first, before the two early runners retouch. Select the bag with D-pad Up then Right (2 then 1 on keyboard), and press South/Space for each throw after possession reaches the receiver. All three actual outs and both player throws are required.
+
+C80 bobble recovery starts with the helper's real ground-ball error. Wait for the bobble, then use the stick/WASD to chase and scoop the loose ball. A single steering input followed by an assisted pickup does not count, for either bobbles or wall caroms.
+
+Dash around first teaches the actual turn: after touching first, select the runner with D-pad Right/1, send toward second with stick up/W, then tap South/Space as the runner turns. The drill checks progress beyond first and a dash during the turn; reaching second safely is a separate outcome.
+
+Return on a fly is separate from tagging up: select third with D-pad Left/3, send home with stick down/S while the ball is airborne, then hold RB/period to return safely before the catch. The attempt requires both your early send and your return; simply staying on the bag does not pass.
+
+The standard-rules fumble lesson adds the return throw: after the helper's fumble, steer through the manual scoop, then select first (D-pad Right/1) and throw (South/Space). The scoop alone does not pass; the throw must also be yours.
+
+The in-game book separates recovery/reach, fielding scenarios, live-ball running, and item lessons into short pages so the instructions fit at couch text size.
+
+Cancel a run with a force starts with two outs and runners at first and third. Collect the grounder and throw as the fast runner nears home, so the crossing precedes the force on the slower runner at second (D-pad Up/2 and South/Space). A third force out cancels that earlier crossing. This is distinct from forcing home before the run arrives.
+
+See a run count before a tag contrasts that force: two outs, runners on second and third. Collect and throw to third as the lead runner approaches home (D-pad Left/3 and South/Space); press South/Space freshly at the close-play icon. The lead runner must cross before the actual nonforce tag. This time the earlier run counts.

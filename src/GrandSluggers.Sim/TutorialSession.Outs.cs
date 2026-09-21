@@ -1,0 +1,181 @@
+namespace GrandSluggers.Sim;
+
+/// <summary>Choice lessons pair a player's bag command with the live out and runner identity.</summary>
+public sealed partial class TutorialSession
+{
+    bool _opponentLeftEarly;
+    bool _rundownSeen;
+    bool _humanCloseOffPress;
+    bool _humanCloseDefPress;
+    double _nextOpponentDashAt;
+    bool _scoringOpponentSent;
+    bool _thirdCrossedBeforeOut;
+
+    void ResetOutEvidence()
+    {
+        _opponentLeftEarly = false;
+        _rundownSeen = false;
+        _humanCloseOffPress = false;
+        _humanCloseDefPress = false; _nextOpponentDashAt = 5.0 / 60;
+        _scoringOpponentSent = false; _thirdCrossedBeforeOut = false;
+        if (Lesson.Objective is "human-double-off" or "human-triple-off") _lessonRunner = Match.Second?.Id ?? "";
+    }
+
+    void ObserveRundown() { if (Lesson.Objective == "human-rundown-tag" && Match.LivePlay.InRundown) _rundownSeen = true; }
+
+    void ObserveCloseOffense(bool iconBefore, LivePadInput pad, bool owned, LivePlayCommandResult result)
+    {
+        if (Lesson.Objective != "human-close-offense") return;
+        if (owned && iconBefore && pad.SouthDown) _humanCloseOffPress = true;
+        if (result.CompletedPlay is not { } play) return;
+        var runnerSafe = play.Outcome?.Moves.Any(m => m.Runner.Id == _secondRunner && m.FromBag == 2 && m.ToBag == 3) == true
+            && play.Outcome.OutsMade.All(o => o.Runner.Id != _secondRunner);
+        var success = _humanCloseOffPress && runnerSafe;
+        Finish(success, success ? "close-runner-safe" : "close-runner-out",
+            success ? "Your press won the close play and the runner reached third safely."
+                : "Send the runner, then press as the close-play icon appears to beat the tag.");
+    }
+
+    void TickCloseOpponent()
+    {
+        if (Lesson.Objective != "human-close-defense" || !Match.LivePlay.Active) return;
+        var live = Match.LivePlay;
+        var pad = Elapsed <= 3.0 / 60 + 1e-9 ? new LivePadInput(AllAdvance: true) : LivePadInput.Dead;
+        if (pad == LivePadInput.Dead && Elapsed >= _nextOpponentDashAt - 1e-9
+            && Elapsed <= 20.0 / 60 + 1e-9 && !live.InClosePlay)
+        {
+            pad = new LivePadInput(SouthDown: true);
+            _nextOpponentDashAt += 4.0 / 60;
+        }
+        if (pad != LivePadInput.Dead)
+            live.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead, pad, false, LivePlayCommandSource.Cpu));
+    }
+
+    void TickScoringOpponent()
+    {
+        if (Lesson.Objective is not ("human-third-force-cancels-run" or "human-third-tag-counts-run")
+            || _scoringOpponentSent || !Match.LivePlay.Active) return;
+        Match.LivePlay.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead,
+            new LivePadInput(AllAdvance: true), false, LivePlayCommandSource.Cpu));
+        _scoringOpponentSent = true;
+    }
+
+    void ObserveScoringRunner()
+    {
+        if (Lesson.Objective is not ("human-third-force-cancels-run" or "human-third-tag-counts-run")) return;
+        if (Match.Runners.Any(r => r.Who.Id == _thirdRunner && r.Phase == RunnerPhase.Scored))
+            _thirdCrossedBeforeOut = true;
+    }
+
+    void ObserveCloseDefense(bool iconBefore, LivePadInput pad, bool owned, LivePlayCommandResult result)
+    {
+        if (Lesson.Objective != "human-close-defense") return;
+        if (owned && iconBefore && pad.SouthDown) _humanCloseDefPress = true;
+        if (result.CompletedPlay is not { } play) return;
+        var tagged = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Tag && o.Bag == 3
+            && o.Runner.Id == _secondRunner) == true;
+        var success = _throws.Contains(3) && _humanCloseDefPress && tagged;
+        Finish(success, success ? "close-runner-tagged" : "close-tag-missed",
+            success ? "Your throw and press beat the runner to third for the tag."
+                : "Throw to third, then press when the close-play icon appears.");
+    }
+
+    void TickDoubledOffOpponent()
+    {
+        if (Lesson.Objective is not ("human-double-off" or "human-triple-off") || _opponentLeftEarly) return;
+        var live = Match.LivePlay;
+        if (!live.Active || Match.RunnerAt(2)?.Who.Id != _lessonRunner) return;
+        // A tutorial opponent takes a real, early send on the fly. The player's defense seat
+        // still owns the catch and the throw that may beat this body back to second.
+        live.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead,
+            new LivePadInput(KeysBag: 2, StickBag: 3), false, LivePlayCommandSource.Cpu));
+        if (Lesson.Objective == "human-triple-off")
+            live.Apply(LivePlayCommand.Tick(1e-6, LivePadInput.Dead,
+                new LivePadInput(KeysBag: 1, StickBag: 2), false, LivePlayCommandSource.Cpu));
+        _opponentLeftEarly = true;
+    }
+
+    void EvaluateOutObjective(LivePlayCommandResult result)
+    {
+        if (Lesson.Objective == "human-force-home")
+        {
+            var moment = Match.LivePlay.LastMoment;
+            var named = Match.Runners.FirstOrDefault(r => r.Who.Id == _thirdRunner);
+            var success = _throws.FirstOrDefault() == 4 && moment is { Verdict: InPlay.ThrowVerdict.ForceOut, Bag: 4 }
+                && moment.Runner?.Id == _thirdRunner && named?.Phase == RunnerPhase.Out;
+            if (success || result.CompletedPlay is not null)
+                Finish(success, success ? "forced-home" : "force-home-missed",
+                    success ? "Your throw reached home before the forced runner from third."
+                        : "With every bag occupied, throw home while the force is still live.");
+            return;
+        }
+        if (result.CompletedPlay is not { } play) return;
+        if (Lesson.Objective == "human-choice-second")
+        {
+            var outs = play.Outcome?.OutsMade;
+            var chosen = _throws.Count > 0 && _throws[0] == 2;
+            var forced = outs?.Any(o => o.Type == OutType.Force && o.Bag == 2
+                && o.Runner.Id == _firstRunner) == true;
+            var batterSafe = outs?.All(o => o.Runner.Id != _batter) == true
+                && play.Outcome?.BatterToBag >= 1;
+            var good = chosen && forced && batterSafe;
+            Finish(good, good ? "choice-at-second" : "choice-missed",
+                good ? "Your throw forced the lead runner at second while the batter reached first."
+                    : "Choose second for the force; the named lead runner must be retired there.");
+        }
+        else if (Lesson.Objective == "human-double-off")
+        {
+            var outs = play.Outcome?.OutsMade;
+            var catchOut = outs?.Any(o => o.Type == OutType.Catch && o.Runner.Id == _batter) == true;
+            var doubled = outs?.Any(o => o.Type == OutType.Force && o.Bag == 2
+                && o.Runner.Id == _lessonRunner && o.FromBag == 2) == true;
+            var success = _opponentLeftEarly && _throws.Contains(2) && catchOut && doubled;
+            Finish(success, success ? "runner-doubled-off" : "double-off-missed",
+                success ? "You caught the fly and threw behind the runner before they retouched second."
+                    : "Catch the fly, then throw back to second before the runner returns.");
+        }
+        else if (Lesson.Objective == "human-triple-off")
+        {
+            var outs = play.Outcome?.OutsMade;
+            var catchOut = outs?.Any(o => o.Type == OutType.Catch && o.Runner.Id == _batter) == true;
+            var secondOff = outs?.Any(o => o.Type == OutType.Force && o.Bag == 2 && o.Runner.Id == _lessonRunner) == true;
+            var firstOff = outs?.Any(o => o.Type == OutType.Force && o.Bag == 1 && o.Runner.Id == _firstRunner) == true;
+            var success = _opponentLeftEarly && _throws.Count >= 2 && _throws[0] == 2 && _throws[1] == 1
+                && catchOut && secondOff && firstOff && outs?.Count == 3;
+            Finish(success, success ? "triple-play" : "triple-play-missed",
+                success ? "You caught the fly and threw behind both early runners for three outs."
+                    : "Catch the fly, then throw to second and first before either runner retouches.");
+        }
+        else if (Lesson.Objective == "human-third-force-zero-run")
+        {
+            var thirdOut = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Force && o.Bag == 4
+                && o.Runner.Id == _thirdRunner) == true;
+            var inningChanged = play.OutsAfter == 0 && play.Context is { } before
+                && play.NextState is { } after && before.Top != after.Top;
+            var success = _throws.FirstOrDefault() == 4 && thirdOut && inningChanged && play.RunsScored == 0;
+            Finish(success, success ? "third-force-no-run" : "third-out-missed",
+                success ? "Your force at home made the third out; the run did not count and the inning changed."
+                    : "With two outs, throw home for the third force out before the runner scores.");
+        }
+        else if (Lesson.Objective == "human-third-force-cancels-run")
+        {
+            var forced = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Force && o.Bag == 2
+                && o.Runner.Id == _firstRunner) == true;
+            var success = _scoringOpponentSent && _thirdCrossedBeforeOut && _throws.Contains(2)
+                && forced && play.RunsScored == 0 && play.Context?.OutsBefore == 2;
+            Finish(success, success ? "crossed-run-canceled" : "force-timing-missed",
+                success ? "The runner crossed home first, but your third force out at second erased that run."
+                    : "Let the lead runner cross home, then make the third force out at second.");
+        }
+        else if (Lesson.Objective == "human-third-tag-counts-run")
+        {
+            var tagged = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Tag && o.Bag == 3
+                && o.Runner.Id == _secondRunner) == true;
+            var success = _scoringOpponentSent && _thirdCrossedBeforeOut && _throws.Contains(3)
+                && tagged && play.RunsScored == 1 && play.Context?.OutsBefore == 2;
+            Finish(success, success ? "crossed-run-counted" : "tag-timing-missed",
+                success ? "The runner crossed home before your nonforce third out, so the run counted."
+                    : "Let the lead runner cross home, then tag the trailing runner for the third out.");
+        }
+    }
+}

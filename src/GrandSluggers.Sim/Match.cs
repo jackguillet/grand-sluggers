@@ -220,6 +220,13 @@ public sealed class Match
         else HomeStars = Math.Max(HomeStars, n);
     }
 
+    public void GiveDefenseStars(double n)
+    {
+        n = Math.Clamp(n, 0, Rules.Stars.MeterMax);
+        if (Top) HomeStars = Math.Max(HomeStars, n);
+        else AwayStars = Math.Max(AwayStars, n);
+    }
+
     public Team Offense => Top ? Away : Home;
     public Team Defense => Top ? Home : Away;
     public Character Batter => (Top ? AwayOrder : HomeOrder)[Top ? AwayBatter : HomeBatter];

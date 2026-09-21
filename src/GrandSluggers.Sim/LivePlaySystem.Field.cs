@@ -201,6 +201,16 @@ public sealed partial class LivePlaySystem
     double _powT;
     /// <summary>A thrown item landed this play and took effect (a peel down, a body dazed, the dirt hopping).</summary>
     public bool ItemLanded { get; private set; }
+    /// <summary>Observation of a real glove take made possible by this fielder's authored reach bonus.</summary>
+    public string TutorialAbilityReachUsed { get; private set; } = "";
+    internal bool TutorialItemEffectActive(string item, string targetId) => item switch
+    {
+        "banana" => _peel is not null && _peelT > 0,
+        "rocket" => Field?.ItemTarget is { } target && target.Id == targetId
+            && _foil.TryGetValue(PosOf(Assigned(), target), out var daze) && daze > 0,
+        "pow" => _powT > 0,
+        _ => false
+    };
     double _itemLandAt = -1;
 
     // ---- What Unity draws. Read after every Apply; never written from outside. ----
@@ -236,6 +246,9 @@ public sealed partial class LivePlaySystem
     public string GlovePos { get; private set; } = "P";
     public double GloveX { get; private set; }
     public double GloveZ { get; private set; }
+    /// <summary>Observation for tutorial ownership: the body whose assisted route actually advanced this frame.
+    /// Passive braking/coast is not an assisted route.</summary>
+    internal string TutorialAssistedPursuitGloveId { get; private set; } = "";
     public bool PlayerFielding { get; private set; }
     public bool Caught { get; private set; }
     public bool Buddy { get; private set; }
@@ -598,6 +611,7 @@ public sealed partial class LivePlaySystem
         _peelT = 0;
         _powT = 0;
         ItemLanded = false;
+        TutorialAbilityReachUsed = "";
         _itemLandAt = -1;
         AwaitingRelay = false;
         InClosePlay = false;
@@ -624,6 +638,7 @@ public sealed partial class LivePlaySystem
     {
         _events.Clear();
         _stamps.Clear();
+        TutorialAssistedPursuitGloveId = "";
         var dt = command.DeltaSeconds;
         // Ownership of a press is decided here, once, from the seats: the offense pad never
         // reaches the gloves and the defense pad never reaches the runners (spec §0.4, #579).
@@ -1815,6 +1830,8 @@ public sealed partial class LivePlaySystem
             var chaser = map.TryGetValue(GlovePos, out var lc) ? lc : pre.Fielder;
             var run = FieldingResolver.ChaseSpeedFt(chaser, pre.Frozen, R);
             var step = StepTo(GlovePos, (GloveX, GloveZ), (BallX, BallZ), run, R.Fielding.Chase.StepStopFt, dt, flat: false);
+            if (Diamond.Dist(GloveX, GloveZ, step.X, step.Z) > 1e-6)
+                TutorialAssistedPursuitGloveId = chaser.Id;
             GloveX = step.X;
             GloveZ = step.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1830,6 +1847,8 @@ public sealed partial class LivePlaySystem
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
         var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
         var next = StepTo(GlovePos, (GloveX, GloveZ), (route.X, route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
+        if (Diamond.Dist(GloveX, GloveZ, next.X, next.Z) > 1e-6)
+            TutorialAssistedPursuitGloveId = who.Id;
         GloveX = next.X;
         GloveZ = next.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -3314,6 +3333,24 @@ public sealed partial class LivePlaySystem
         _receivedClean = false;
         var first = !Caught;
         var wasLoose = _loose;
+        if (first && !wasLoose && Preview is { } preview)
+        {
+            var who = GloveChar();
+            var bonus = FieldAbilities.CatchBonus(who, R)
+                + (preview.Grounder ? FieldAbilities.GroundRangeBonus(who, R) : 0);
+            if (bonus > 0)
+            {
+                var ordinary = CatchRadius(Assigned()) - bonus;
+                var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
+                var ordinaryCouldTake = preview.Grounder
+                    ? d < FieldingResolver.CatchWindowFt(ordinary, CatchDive, CatchJump, R)
+                    : FlyCatch.InPosition(preview, GloveX, GloveZ, BallX, BallZ, BallY,
+                        FlyCatch.ChaseTarget(preview, Park, R).X, FlyCatch.ChaseTarget(preview, Park, R).Z,
+                        CatchDive ? FieldingResolver.DiveCatchFt(ordinary, R) : ordinary,
+                        ElapsedSeconds, Hang, FlyCatch.NeedsJump(preview), R);
+                if (!ordinaryCouldTake) TutorialAbilityReachUsed = who.FieldAbility;
+            }
+        }
         // The ball's speed the frame before the take (F693-02-ground-pickup-recoil-basis): the one input the recoil reads,
         // sampled on both tables before possession attaches the ball to the glove.
         if (first)
