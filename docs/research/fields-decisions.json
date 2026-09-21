@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-03",
+  "next_decision": "FD-04",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -208,7 +208,7 @@
       "id": "FD-03",
       "area": "Environment",
       "question": "Which physical qualities may a park override?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-01"
       ],
@@ -238,16 +238,31 @@
       "recommendation": "A as the first slice, B only through FD-04 and FD-07. Gravity, timeScale, linerTimeScale, dirtTimeScale, plate geometry and the infield stay global in every option we recommend.",
       "existing_contract": "#713 names the candidates in data/rules/flight.json. The GameCube game varied first-bounce and rolling factors by park (MH-STAD). Spec \u00a716: the infield is one global set; 'outfield depth, the foul area and the park environment vary per park (#713)'.",
       "acceptance": "A park file names only what differs from Harbor. A test proves Harbor's resolved environment equals the global table bit for bit.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "A park may override the ball's environment from the #713 list: air drag, wind exposure (windMul), roll friction, rest speed, bounce (restitution, horizontal, skid) and wall carom, as overrides with fallback to the global table. Gravity, timeScale, linerTimeScale, dirtTimeScale, plate geometry, the foul-line angle and the infield stay global. Body traction and outfield depth are not opened by this decision; FD-04 and FD-07 decide them. Harbor names no override. No value is selected: every park number stays null until a scoped trial, and the #702 race rows are re-run per park before any number is accepted.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-03: the #713 list / plus bodies / anything in flight.json",
+        "answer_quote": "a"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "a",
+          "scope": "A park may override the ball's environment from the #713 list: air drag, wind exposure (windMul), roll friction, rest speed, bounce (restitution, horizontal, skid) and wall carom, as overrides with fallback to the global table. Gravity, timeScale, linerTimeScale, dirtTimeScale, plate geometry, the foul-line angle and the infield stay global. Body traction and outfield depth are not opened by this decision; FD-04 and FD-07 decide them. Harbor names no override. No value is selected: every park number stays null until a scoped trial, and the #702 race rows are re-run per park before any number is accepted."
+        }
+      ]
     },
     {
       "id": "FD-04",
@@ -1007,6 +1022,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-09 (B), FD-12 (B), FD-16 (B) and FD-17 (C) accepted by Jack as one set: \"accept all four recommendations\". Engineering patterns only; no gameplay rule, number or art accepted. 13 choices remain open; next is FD-03."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-03 accepted by Jack: A, the #713 ball-environment list. Gravity, time scales, plate and infield stay global. No value selected. 12 choices remain open; next is FD-04."
     }
   ]
 }
