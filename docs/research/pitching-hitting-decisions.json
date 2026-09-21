@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-05",
+  "next_decision": "PH-08",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -606,7 +606,7 @@
       "existing_contract": "No charge timing, Nice multiplier or stamina number changes with this direction.",
       "acceptance": "A player can distinguish a poor release from a poor location choice; maximum power is not universally best.",
       "selected_option": "B",
-      "accepted_scope": "Add a stronger power-versus-control tradeoff within the same charge/release controls: pursuing more pitch power makes the pitch harder to control. The form of the control challenge, affected pitches, exact charge/release behavior, fatigue interaction and numerical values remain open. This does not select a separate accuracy minigame or a particular random-error model. Preserve PH-03 mound/shape location and PH-04 live steering. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Add a stronger power-versus-control tradeoff within the same charge/release controls. PH-05-R1 selects less available player steering correction as charge power rises, preserving the pitch family\u2019s characteristic movement and live steering after release; it does not select more sensitive inputs. Exact limits, charge response, per-pitch/character effects, fatigue interaction and numerical values remain open. No separate accuracy minigame or random-error model is selected. Preserve PH-03 location, PH-04 readable steering and the D7 pace hold. Direction acceptance only; no runtime change or human playtest acceptance. Original scope remains in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -628,6 +628,59 @@
           "choice": "B",
           "quote": "2",
           "scope": "Add a stronger power-versus-control tradeoff within the same charge/release controls: pursuing more pitch power makes the pitch harder to control. The form of the control challenge, affected pitches, exact charge/release behavior, fatigue interaction and numerical values remain open. This does not select a separate accuracy minigame or a particular random-error model. Preserve PH-03 mound/shape location and PH-04 live steering. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-05-R1",
+          "choice": "1",
+          "quote": "1",
+          "scope": "As ordinary pitch power increases through charging, reduce the player\u2019s available steering correction around the pitch\u2019s natural path. Preserve the family\u2019s characteristic movement and live steering after release; a charged breaking pitch does not become a straight pitch just because correction is reduced. The chosen tradeoff is less correction room, not greater input sensitivity. Exact correction limits, charge-to-correction curve, per-pitch/character effects and interaction with accumulated fatigue remain open. This does not accept random misses, a separate execution minigame, a release lock or an early-only steering cutoff. Preserve PH-03 mound/shape location, PH-04 readable bounded steering and the D7 pace hold. Direction refinement only; no runtime change, numeric tuning trial or human acceptance."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-05-R1",
+          "question": "How should charging trade control for power?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Less available steering correction as power rises"
+            },
+            {
+              "id": "2",
+              "label": "More sensitive steering with retained correction range"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "As ordinary pitch power increases through charging, reduce the player\u2019s available steering correction around the pitch\u2019s natural path. Preserve the family\u2019s characteristic movement and live steering after release; a charged breaking pitch does not become a straight pitch just because correction is reduced. The chosen tradeoff is less correction room, not greater input sensitivity. Exact correction limits, charge-to-correction curve, per-pitch/character effects and interaction with accumulated fatigue remain open. This does not accept random misses, a separate execution minigame, a release lock or an early-only steering cutoff. Preserve PH-03 mound/shape location, PH-04 readable bounded steering and the D7 pace hold. Direction refinement only; no runtime change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "charge_control_tradeoff": "reduce available player steering correction as power rises",
+            "pitch_family_characteristic_movement": "preserved",
+            "live_steering_after_release": true,
+            "greater_input_sensitivity_selected": false
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-05-R1: How should charging trade control for power? 1. Less steering correction (recommended): more power leaves less room to adjust the pitch\u2019s natural path; its characteristic movement remains. 2. More sensitive steering: retain correction range, but stronger pitches require finer inputs to avoid oversteering. Both keep live steering after release. Exact strengths remain for tuning.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Distinguish authored pitch-family movement from player steering correction in the trajectory contract; reducing correction must not erase characteristic movement.",
+            "For matched family, character and fatigue state, greater charge power must not grant more correction range; exact curve and bounds require a scoped trial.",
+            "Retain live steering and a fair hitter response opportunity across both hands and seats; no hidden random miss or sensitivity increase is implied by this choice.",
+            "Evaluate immediate charge/control cost together with accumulated PH-08 fatigue before accepting their combined tuning."
+          ]
         }
       ]
     },
@@ -2530,6 +2583,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-02-R5 option 1 and proposed cycling flow: RB/Tab in repertoire order, Fastball reset each pitch, common charge/release, no active-type disclosure on the shared screen. Next PH-05-R1 refines how charge trades control for power; numeric tuning and implementation remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-05-R1 option 1: greater charge power reduces available player steering correction while preserving characteristic pitch movement and live steering. Next PH-08-R1 selects the main effect of accumulated fatigue; exact curves and combined tuning remain open."
     }
   ]
 }
