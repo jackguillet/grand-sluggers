@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-13",
+  "next_decision": "PH-14",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -732,7 +732,7 @@
       "id": "PH-13",
       "area": "Hitting",
       "question": "What happens when the hitter changes their mind?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-11"
       ],
@@ -760,16 +760,36 @@
       "recommendation": "A initially; B only if Jack wants checking as a core verb. Avoid hidden random check-swing outcomes.",
       "existing_contract": "A release-based charge scheme needs an explicit distinction between canceling a load and swinging. No new binding selected.",
       "acceptance": "Take, load-cancel, bunt withdrawal and swing cannot conflict; balls/strikes follow the same geometric zone.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B",
+      "accepted_scope": "Add a deliberate player-commanded cancel before swing commitment, allowing the hitter to abandon a charged swing and take the pitch. Once the swing is committed, it follows through. Keep cancel distinct from the existing release-to-swing action. The cancel input, exact commitment/cutoff boundary, input priority and subsequent rearming behavior remain open. This selects neither automatic hesitation detection nor a mid-swing rescue. Preserve PH-09\u2013PH-12 and existing geometric ball/strike judgment. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-13: 1. Keep release-to-commit with no separate cancel; 2. Add a deliberate cancel before commitment: abandon a charged swing and take the pitch, with committed swings following through; 3. Assisted checking that interprets hesitation.",
+        "answer_quote": "2"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "2",
+          "scope": "Add a deliberate player-commanded cancel before swing commitment, allowing the hitter to abandon a charged swing and take the pitch. Once the swing is committed, it follows through. Keep cancel distinct from the existing release-to-swing action. The cancel input, exact commitment/cutoff boundary, input priority and subsequent rearming behavior remain open. This selects neither automatic hesitation detection nor a mid-swing rescue. Preserve PH-09\u2013PH-12 and existing geometric ball/strike judgment. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ],
+      "validation_requirements": [
+        "A deliberate cancel before commitment takes the pitch and does not accidentally produce a swing when the canceled load button is released.",
+        "A cancel after commitment does not undo the swing, contact or its judgment.",
+        "Teach and test cancel versus swing release, taking and bunt withdrawal on pad, keyboard/mouse and both human seats; choose bindings and priorities before implementation."
+      ]
     },
     {
       "id": "PH-14",
@@ -1126,6 +1146,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-12 option C: no extra directional input for shaping ordinary hits; preserve horizontal batter movement and timing/contact/pitch/swing effects. Ten choices remain open. Direct stick spray/loft in spec sections 5.3\u20135.4 needs reconciliation before implementation."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-13 option B: deliberate cancellation of a loaded swing before commitment; committed swings follow through. Nine choices remain open; cancel input, exact cutoff and input priority remain unselected."
     }
   ]
 }
