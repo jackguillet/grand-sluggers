@@ -3033,7 +3033,7 @@
       "existing_contract": "Gameplay-spec D6 prohibits free homers; no full-screen blinds or automatic outs. Existing systems remain until changed deliberately.",
       "acceptance": "Each special retains a response and an understandable resource cost, including a miss; baseline balance is tested without specials.",
       "selected_option": "A",
-      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. PH-16-R1 keeps the ordinary timing window for Star Pitches, whose challenge comes from readable ball behavior. Existing timing-reducing Star Pitches require separately reviewed replacement effects and reconciliation before implementation. PH-16-R2 permits ability-specific Star Swing contact-area changes, including extra spatial forgiveness, while requiring actual geometric contact. Eligible abilities, regions and Contact/charge interactions remain separately reviewed; this is not a universal bonus. PH-16-R3 requires a missed Star Swing to spend its full normal resource cost, without a miss discount/refund. PH-16-R4 gives each team one shared resource pool for Star Pitches and Star Swings, independent of the opposing team. Exact capacity, starting amount, reset rules, earning rates, ability prices, deduction timing, cancellation/foul policy, chemistry bonuses, replacement effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. PH-16-R1 keeps the ordinary timing window for Star Pitches, whose challenge comes from readable ball behavior. Existing timing-reducing Star Pitches require separately reviewed replacement effects and reconciliation before implementation. PH-16-R2 permits ability-specific Star Swing contact-area changes, including extra spatial forgiveness, while requiring actual geometric contact. Eligible abilities, regions and Contact/charge interactions remain separately reviewed; this is not a universal bonus. PH-16-R3 requires a missed Star Swing to spend its full normal resource cost, without a miss discount/refund. PH-16-R4 gives each team one shared resource pool for Star Pitches and Star Swings, independent of the opposing team. PH-16-R5 grants both teams modest gains after completed plate appearances plus bonuses for successful plays. Exact capacity, starting amount, reset rules, base gains, bonus events/amounts, stacking rules, ability prices, deduction timing, cancellation/foul policy, chemistry bonuses, replacement effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -3096,6 +3096,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Each team owns one shared Star resource pool used by both Star Pitches and Star Swings. Spending on one reduces the resource available for the other; pitching and batting do not have separate pools. Opposing teams have independent pools. Exact capacity, starting amount, earning rates/events, prices, reset rules and UI remain open. Preserve supplementary special frequency, full normal cost for missed Star Swings, ability-specific contact-area permissions and ordinary timing windows for Star Pitches. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R5",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Both teams receive modest Star resource gains after completed plate appearances, supplemented by bonuses for successful plays. This provides steady access alongside performance rewards rather than earning only through successes. Credit each team its own shared pitching/batting pool; preserve supplementary special frequency. Exact base gains, eligible bonus events, bonus amounts, stacking/cap rules and completion-edge cases remain open. This does not select passive real-time regeneration, gains per pitch, starting resources, prices or a score-deficit comeback multiplier. Direction refinement only; no runtime change, numerical trial or human acceptance."
         }
       ],
       "refinements": [
@@ -3261,6 +3271,46 @@
             "A Star Pitch debit reduces the same team balance available for Star Swings, and vice versa; changing batting/pitching roles does not select separate balances.",
             "Spending affects only the acting team resource and honors the same ownership for human and CPU teams.",
             "Preserve full missed-Star-Swing cost and define authoritative earning/spending/reset events before implementation; no new numeric capacity or prices are implied."
+          ]
+        },
+        {
+          "id": "PH-16-R5",
+          "question": "How should teams earn Stars?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Completed-plate-appearance gains for both teams plus performance bonuses"
+            },
+            {
+              "id": "2",
+              "label": "Successful plays only"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Both teams receive modest Star resource gains after completed plate appearances, supplemented by bonuses for successful plays. This provides steady access alongside performance rewards rather than earning only through successes. Credit each team its own shared pitching/batting pool; preserve supplementary special frequency. Exact base gains, eligible bonus events, bonus amounts, stacking/cap rules and completion-edge cases remain open. This does not select passive real-time regeneration, gains per pitch, starting resources, prices or a score-deficit comeback multiplier. Direction refinement only; no runtime change, numerical trial or human acceptance.",
+          "contract": {
+            "base_gain_trigger": "completed plate appearance",
+            "base_gain_recipients": "both teams, each into its own shared Star pool",
+            "performance_bonuses": true,
+            "base_amount_bonus_events_amounts_and_stacking": "open"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-16-R5: How should teams earn Stars? 1. Steady access plus performance bonuses \u2014 recommended: both teams gain a modest amount after completed plate appearances, with extra rewards for successful plays. 2. Successful plays only: earn Stars through hits, outs, and other selected achievements. Exact gains and bonus events come later.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "An actual completed plate appearance credits each team base gain once, independent of which team succeeded; individual pitches, pauses and duplicate completion callbacks do not grant extra base gains.",
+            "Define completed-appearance edge cases and eligible performance bonuses/stacking before implementation; avoid duplicate awards from overlapping score/out events.",
+            "Verify the shared team resource ownership and combined earning/spending cadence for both seats and CPU while specials remain supplementary."
           ]
         }
       ]
@@ -3717,6 +3767,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-16-R4 option 1: one shared Star Pitch/Swing resource pool per team; opposing team pools are independent. Next PH-16-R5 compares modest gains for both teams on completed plate appearances plus performance bonuses with gains only for successful plays; neither earning policy is selected yet."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-16-R5 option 1: modest Star gains for both teams after completed plate appearances, plus performance bonuses. Exact amounts/events remain open. Next PH-16-R6 compares starting with a usable Star reserve against empty pools; neither starting-resource policy is selected yet."
     }
   ]
 }
