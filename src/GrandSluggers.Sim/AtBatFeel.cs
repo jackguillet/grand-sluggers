@@ -135,6 +135,208 @@ public static class ChargeButton
 }
 
 /// <summary>
+/// Which ordinary pitch the mound has selected, and whether the charge has locked it
+/// (spec §3, PH-02-R3/R4/R5). <see cref="Slot"/> indexes the pitcher's <see cref="Repertoire"/>:
+/// 0 is the fastball every pitcher throws, 1 the second pitch, 2 the third.
+///
+/// <c>default</c> is slot 0 (fastball), unlocked — the state every SET starts in.
+/// </summary>
+public readonly record struct PitchSelectionState(int Slot, bool Locked)
+{
+    /// <summary>
+    /// Fastball, unlocked (PH-02-R5). The selection returns here at <b>every</b> SET entry — the
+    /// first pitch of an at-bat, the SET after a pitch, after a dead pickoff, after a foul — and
+    /// after a pitcher swap, because nothing on the shared screen marks the active family and the
+    /// player counts presses from a known start. <see cref="PitchSelection.Advance"/> also resets
+    /// itself on the commit tick, so a caller that forgets is still on the fastball next SET.
+    /// </summary>
+    public static PitchSelectionState Reset => default;
+}
+
+/// <summary>
+/// One tick of the selection (<see cref="PitchSelection.Advance"/>).
+/// </summary>
+/// <param name="Next">The state to carry into the next tick; <see cref="PitchSelectionState.Reset"/> on the commit tick.</param>
+/// <param name="Family">
+/// The family id <see cref="Next"/> names, already resolved against the repertoire so a caller never
+/// indexes it — except on the commit tick, where it is the <b>locked</b> family of the delivery
+/// being committed (<see cref="Next"/> has already reset to the fastball for the next SET).
+/// </param>
+/// <param name="LockedThisTick">The charge armed on this tick and took the family with it.</param>
+/// <param name="Committed">The delivery left the hand on this tick; <see cref="Family"/> is what it throws.</param>
+public readonly record struct PitchSelectionStep(
+    PitchSelectionState Next,
+    string Family,
+    bool LockedThisTick,
+    bool Committed);
+
+/// <summary>
+/// The pre-charge pitch selection (spec §3, §4.3; PH-02-R3/R4/R5), beside
+/// <see cref="ChargeButton"/> because it is the same SET tick: one button cycles the pitcher's three
+/// ordinary families, the charge locks the one that is showing, and the commit resets to the fastball.
+///
+/// Pure: no allocation, no RNG, no clock, no <c>Rules.Default</c>. The caller owns the state and the
+/// table (<see cref="Match.SelectPitch"/> passes the current pitcher and the match's own rules).
+///
+/// The rules, in the order one tick applies them:
+/// <list type="number">
+/// <item><b>Cycle.</b> Unlocked, <c>selectable</c>, and a cycle press advances to the next
+/// <i>selectable</i> slot, wrapping 2 → 0. One press is one advance, never two.</item>
+/// <item><b>Lock.</b> The tick the charge button arms — including the same-tick press-and-release
+/// that commits at once — takes the slot <i>as it stands after the cycle</i>. Cycle, then lock: a
+/// press on the arming tick is never dropped.</item>
+/// <item><b>Commit.</b> The committed family is the locked one; nothing is re-polled at release.
+/// The state resets to fastball, unlocked.</item>
+/// <item><b>Disarm without a commit.</b> The charge went away without a delivery (the swap pick
+/// opening mid-hold makes the button non-accepting and discards the charge, §4.7): the lock
+/// releases and the slot is kept. This child adds no pitcher cancel (PH-02-R3 leaves it
+/// unselected); it only makes the edge that already exists deterministic.</item>
+/// </list>
+///
+/// A slot is <b>selectable</b> when its family has an authored row in the active table
+/// (<see cref="PitchFamilyTable.IsAuthored"/>, #810): an unauthored family is skipped, so zero, one
+/// or two presses always land on a pitch that can fly. <c>selectable</c> the parameter is the
+/// seat's gate — "in SET and the swap pick is closed", not "accepting": cycling before the
+/// pitcher-ready beat is allowed, because a selection is not a delivery.
+/// </summary>
+public static class PitchSelection
+{
+    /// <summary>
+    /// One SET tick of the selection, against the active family table.
+    /// </summary>
+    /// <param name="state">The selection as the previous tick left it.</param>
+    /// <param name="cyclePressed">The cycle button went down on this tick (<c>Controls.CyclePitch</c>).</param>
+    /// <param name="selectable">The seat may cycle: in SET with the swap pick closed (§4.7).</param>
+    /// <param name="prevButton">The charge button <i>before</i> <paramref name="buttonStep"/> ran: the arm edge is read from it.</param>
+    /// <param name="buttonStep">This tick's <see cref="ChargeButton.Advance"/> result.</param>
+    /// <param name="repertoire">The pitcher on the mound right now (§2, PH-15-R1).</param>
+    /// <param name="families">The match's own table, never <see cref="Rules.Default"/>.</param>
+    public static PitchSelectionStep Advance(
+        PitchSelectionState state,
+        bool cyclePressed,
+        bool selectable,
+        ChargeButtonState prevButton,
+        ChargeButtonStep buttonStep,
+        Repertoire repertoire,
+        PitchFamilyTable families) =>
+        Advance(state, cyclePressed, selectable, prevButton, buttonStep, repertoire,
+            (families ?? throw new ArgumentNullException(nameof(families))).Authored);
+
+    /// <summary>
+    /// The same tick against an explicit list of authored family ids, so a rules table that authors
+    /// more of the library than the shipped one does (P1-d) cycles through all of it without this
+    /// step knowing a number. <see cref="PitchFamilyTable.Authored"/> is the shipped list.
+    /// </summary>
+    public static PitchSelectionStep Advance(
+        PitchSelectionState state,
+        bool cyclePressed,
+        bool selectable,
+        ChargeButtonState prevButton,
+        ChargeButtonStep buttonStep,
+        Repertoire repertoire,
+        IReadOnlyList<string> authored)
+    {
+        if (repertoire is null) throw new ArgumentNullException(nameof(repertoire));
+        if (authored is null) throw new ArgumentNullException(nameof(authored));
+        RequireFastball(repertoire, authored);
+
+        var slot = Sound(state.Slot, repertoire, authored);
+        var locked = state.Locked;
+
+        // (a) Cycle, before the lock, so a press on the arming tick is never dropped.
+        if (!locked && selectable && cyclePressed)
+            slot = NextSelectable(slot, repertoire, authored);
+
+        // (b) The arm edge: the charge takes the family as it stands now. A press-and-release on one
+        // tick commits without ever reporting Armed, so the commit is an arm edge too.
+        var armedNow = !prevButton.Armed && (buttonStep.Next.Armed || buttonStep.Committed);
+        var lockedThisTick = armedNow && !locked;
+        if (armedNow) locked = true;
+
+        // (c) The delivery left: throw the locked family and start the next SET on the fastball.
+        if (buttonStep.Committed)
+            return new PitchSelectionStep(
+                PitchSelectionState.Reset, repertoire[slot], lockedThisTick, true);
+
+        // (d) The charge went away with no delivery: release the lock, keep the slot.
+        if (prevButton.Armed && !buttonStep.Next.Armed)
+            locked = false;
+
+        return new PitchSelectionStep(
+            new PitchSelectionState(slot, locked), repertoire[slot], lockedThisTick, false);
+    }
+
+    /// <summary>
+    /// The family id a state names, resolved against this pitcher and this table. Same defensive
+    /// reading as <see cref="Advance"/>: a slot this repertoire and table cannot throw reads as the
+    /// fastball rather than as a pitch that cannot fly.
+    /// </summary>
+    public static string FamilyAt(PitchSelectionState state, Repertoire repertoire, PitchFamilyTable families) =>
+        FamilyAt(state, repertoire, (families ?? throw new ArgumentNullException(nameof(families))).Authored);
+
+    /// <inheritdoc cref="FamilyAt(PitchSelectionState, Repertoire, PitchFamilyTable)"/>
+    public static string FamilyAt(PitchSelectionState state, Repertoire repertoire, IReadOnlyList<string> authored)
+    {
+        if (repertoire is null) throw new ArgumentNullException(nameof(repertoire));
+        if (authored is null) throw new ArgumentNullException(nameof(authored));
+        RequireFastball(repertoire, authored);
+        return repertoire[Sound(state.Slot, repertoire, authored)];
+    }
+
+    /// <summary>True when this pitcher's slot has an authored row: the slot a press may land on.</summary>
+    public static bool IsSelectable(int slot, Repertoire repertoire, IReadOnlyList<string> authored) =>
+        slot >= 0 && slot < Repertoire.Slots && Contains(authored, repertoire[slot]);
+
+    /// <summary>
+    /// A slot that can be read. A stored slot outside 0..2, or one whose family the active table no
+    /// longer authors — a pitcher swapped without a <see cref="PitchSelectionState.Reset"/>, a
+    /// trial overlay that drops a row — is the fastball, which every pitcher throws (PH-15-R1).
+    /// Silent because there is no honest alternative mid-tick: the slot is stale input, not a broken
+    /// table, and the fastball is the reset the next SET would have applied anyway.
+    /// </summary>
+    static int Sound(int slot, Repertoire repertoire, IReadOnlyList<string> authored) =>
+        IsSelectable(slot, repertoire, authored) ? slot : 0;
+
+    /// <summary>
+    /// One press: the next selectable slot, wrapping 2 → 0 (PH-02-R4/R5). Tries +1 then +2 and stops
+    /// at the first one that can fly, so a pitcher whose second and third families are unauthored
+    /// stays on the fastball instead of cycling through pitches that would stop the delivery.
+    /// </summary>
+    static int NextSelectable(int slot, Repertoire repertoire, IReadOnlyList<string> authored)
+    {
+        for (var step = 1; step < Repertoire.Slots; step++)
+        {
+            var candidate = (slot + step) % Repertoire.Slots;
+            if (Contains(authored, repertoire[candidate])) return candidate;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// The fastball is the one family every pitcher throws (PH-15-R1) and the slot every reset lands
+    /// on, so a table that does not author it has no selection at all. That is a broken table, not a
+    /// press: it stops by name instead of resolving to something that cannot fly.
+    /// </summary>
+    static void RequireFastball(Repertoire repertoire, IReadOnlyList<string> authored)
+    {
+        if (Contains(authored, repertoire[0])) return;
+        throw new InvalidOperationException(
+            $"the pitch family table authors no '{PitchFamily.Fastball}' row, so slot 0 — the family every "
+            + "pitcher throws and every SET resets to (PH-15-R1, PH-02-R5) — cannot be selected. Authored: "
+            + string.Join(", ", authored));
+    }
+
+    /// <summary>Ordinal membership over the ≤5 library ids, by hand: the hot path allocates nothing.</summary>
+    static bool Contains(IReadOnlyList<string> authored, string family)
+    {
+        for (var i = 0; i < authored.Count; i++)
+            if (string.Equals(authored[i], family, StringComparison.Ordinal))
+                return true;
+        return false;
+    }
+}
+
+/// <summary>
 /// The cursor (spec §5.2, D4): the bat drawn on the plate plane in world feet. It follows the
 /// batter (box walk moves it the same distance as the body, <see cref="HomeSet.BatterWalk"/>),
 /// never the pitch; it is as tall as the zone so any strike is hittable; along the barrel it is
