@@ -4,13 +4,13 @@ Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), servi
 
 ## Current state
 
-Research foundation prepared; **Nineteen directions accepted (PH-01–19); 1 choice open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
+Research foundation prepared; **All 20 broad directions accepted (PH-01–20); detailed contracts and tuning remain open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
 
 This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
 
 ## How we use this together
 
-1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-20**, delivery and acceptance sequence. PH-14 also retains Jack’s contact-quality follow-up and the proposed answer.
+1. Discuss the next ready question using a short player-facing example and two or three real alternatives. The broad direction round is complete. Next scoped discussion: **PH-02 with PH-15**, define the ordinary pitch repertoire and character differences. This refines accepted directions rather than reopening them. PH-14 also retains Jack’s contact-quality follow-up and the proposed answer.
 2. Record Jack's answer in the JSON: selected option (or a clearly described custom answer), accepted scope, exact qualification, local date, author and a conversation/issue reference or quoted answer. Recommendation never counts as selection.
 3. Append history rather than erase a prior choice. Record supersession explicitly; link the replacement and named gameplay-spec decision affected.
 4. Direction acceptance selects intent only. Numeric targets stay null until a later scoped trial is accepted with units, conditions, rationale and evidence limits.
@@ -27,7 +27,7 @@ Status progression: `open → direction-accepted → trial-accepted → implemen
 
 ## Decision register
 
-PH-01–19 are **DIRECTION ACCEPTED**; PH-20 remains **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
+PH-01–20 are **DIRECTION ACCEPTED**. Detailed contracts, numeric trials, implementation and human acceptance remain open. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
 
 ### PH-01 — What should added depth primarily ask the player to do?
 
@@ -341,6 +341,8 @@ Area: Understanding. Depends on: PH-06, PH-10, PH-11. Evidence: SMB4, SHOW-H.
 
 ### PH-20 — What evidence will make the chosen system ready to ship?
 
+**Decision — Jack, September 21, 2026: A.** Reply “1” selects small serial playable steps after required baseline checks: define and test each connected mechanic, then have Jack judge the named standalone revision. Preserve D7 and all applicable evidence prerequisites, scoped numeric trials and human acceptance. No broader baseline-only milestone is required by default. Keep gameplay, presentation/book/tutorial and art scopes separate; resolve the remaining detailed contracts before opening implementation children. This is delivery direction acceptance, not approval of an implementation, merge, coefficient or passed playtest. Evidence: this task’s PH-20 reply; full provenance is in the canonical JSON.
+
 Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 
 - **A — Serial trials and standalone sitting:** Approve concepts, then numeric trials, then test and let Jack accept actual play.
@@ -352,6 +354,17 @@ Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 **Existing contract:** Existing #346/#534 gates stay open. One implementation child per bounded worktree; presentation and art remain separate.
 
 **Acceptance:** Named revision, both schemes, two pads, both hands, representative captains, ordinary/star cases, reproducible tests and Jack’s dated acceptance.
+
+## Proposed sequence after the direction round
+
+The order below organizes the accepted small-step approach; it does not select unresolved mechanics or numerical targets. Each step gets a concrete contract and relevant evidence before implementation. Keep the existing IDs and append refinements to their history rather than starting another broad questionnaire.
+
+1. **Define the ordinary pitching duel (PH-02–06, PH-15, PH-18).** Specify a small repertoire by readable shape, tactical purpose and weakness; decide shared versus character-specific access and selection inputs. Consolidate mound/shape location, live steering, power/control behavior and equal CPU action limits into one reviewable contract. Audit current CPU endpoint targeting before deriving fair controls. Gather required baseline evidence, including the named D7 sitting before any pitch-speed tuning.
+2. **Define contact and swing commitment (PH-09–14, PH-17).** Preserve the batter-linked cursor, placement-led quality and timing-led direction. Specify cancel/rearm behavior, remove direct ordinary-hit spray/loft from the target contract, and settle the proposed contact-quality-driven bunt response. Reconcile existing difficulty multipliers with fixed forgiveness. Resolve the changed gameplay-spec sections before code; retain geometric judgments and live defense.
+3. **Integrate effort, character traits and specials (PH-05, PH-08, PH-15–16).** Trial immediate power/control costs and accumulated fatigue together so their interaction is understandable. Check distinct character strengths and supplementary specials against the ordinary duel, including counterplay. Pool sizes, costs and strengths remain proposals until scoped trial acceptance.
+4. **Present and judge each playable step (PH-07, PH-19–20).** Schedule separate presentation/book/tutorial work alongside the mechanic it teaches: actual causal feedback, readable animation and modest breathing room for highlights, side changes and special abilities. Keep pitch travel, reaction time and presentation durations distinct. Validate the named revision, then Jack judges the standalone with the required schemes, two pads, both hands and representative ordinary/special cases before the next coupled step.
+
+Do not postpone all teaching and playtests until step 4: its delivery requirements apply to every earlier playable step. No speculative implementation issues are opened by this sequence. The unresolved pitch specifications, input bindings, fatigue curves, bunt refinement, timing values and presentation treatments remain visible work, even though all 20 direction rows are accepted.
 
 ## Work and acceptance checklist
 
@@ -379,7 +392,9 @@ Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 - [x] Resolve PH-18: human-equivalent CPU action limits, bounded reads and committed swings (Jack, September 21).
 - [x] Resolve PH-19: brief causal post-pitch feedback with optional deeper practice detail (Jack, September 21).
 - [x] Resolve PH-07: keep pace pending replay, with slight breathing room for animations and game moments if needed; D7 remains (Jack, September 21).
-- [ ] Resolve PH-20 delivery with Jack; exact mechanics and the PH-14 bunt-quality proposal still need scoped follow-up after the direction round.
+- [x] Resolve PH-20: small serial playable steps after required baseline checks, with Jack’s standalone acceptance (September 21).
+- [x] Consolidate the proposed sequence and unresolved contracts after the broad direction round.
+- [ ] Refine PH-02/PH-15 repertoire, then remaining detailed contracts including the PH-14 bunt-quality proposal.
 - [ ] Collect matched reference observations and the required D7 standalone re-sit.
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
 - [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
