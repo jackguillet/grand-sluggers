@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-07",
+  "next_decision": "PH-20",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -397,7 +397,7 @@
       "id": "PH-07",
       "area": "Shared duel",
       "question": "What reaction and between-pitch pace should we target?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-04",
         "PH-09",
@@ -428,16 +428,36 @@
       "recommendation": "A until the gameplay-spec D7 re-sit; then compare matched captures and authored trial intervals.",
       "existing_contract": "D7 is a HOLD, not superseded by this brief. Air time, visual tell time, input lead and reset duration are separate clocks.",
       "acceptance": "Record release, readable cue, swing command and plate arrival; Jack compares pad, keyboard and two-pad play before numeric acceptance.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Keep the current pace until Jack replays it, with a preference for slightly slower overall rhythm if needed to let character animations, highlights, side changes and special-ability clips read. Do not pursue a faster duel by default. This qualifies option A with modest presentation breathing room, not a blanket slowdown or a selected pitch-flight change. Evaluate ball travel/reaction time separately from animation and transition durations. Preserve the D7 named standalone re-sit before numeric pitch-speed tuning; no timing values, clip cadence, camera treatment or final playtest acceptance are selected. Coordinate the existing F693-07 deliberate dead-ball pacing direction and presentation owners; keep live baseball judgment in Sim. Direction acceptance only; no runtime, presentation or art change.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-07: What pace should we pursue? 1. Keep current pace until you replay it (recommended): use that session to decide whether reaction time or between-pitch rhythm needs changing. 2. Explore a faster duel: aim for more urgency, then compare it against the current pace after that session. Existing D7 requires that play session before changing pitch-speed numbers. Presented option 1 maps to canonical A, qualified by Jack\u2019s preference for slightly slower pacing to highlight animations and game moments.",
+        "answer_quote": "1. if anything, it can slow down a hair to highlight character animations, highlights, changing sides, special ability clips, etc."
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1. if anything, it can slow down a hair to highlight character animations, highlights, changing sides, special ability clips, etc.",
+          "scope": "Keep the current pace until Jack replays it, with a preference for slightly slower overall rhythm if needed to let character animations, highlights, side changes and special-ability clips read. Do not pursue a faster duel by default. This qualifies option A with modest presentation breathing room, not a blanket slowdown or a selected pitch-flight change. Evaluate ball travel/reaction time separately from animation and transition durations. Preserve the D7 named standalone re-sit before numeric pitch-speed tuning; no timing values, clip cadence, camera treatment or final playtest acceptance are selected. Coordinate the existing F693-07 deliberate dead-ball pacing direction and presentation owners; keep live baseball judgment in Sim. Direction acceptance only; no runtime, presentation or art change."
+        }
+      ],
+      "validation_requirements": [
+        "Record pitch travel/reaction clocks separately from character-animation, highlight, side-change and special-ability presentation beats; do not infer a flight-speed change from this preference.",
+        "Compare modest presentation breathing room against the existing F693-07 deliberate dead-ball pacing contract and the overall rhythm of a played half. Jack judges whether the moments read.",
+        "Complete the D7 named standalone re-sit before any numeric pitch-speed tuning; no automated result passes that human gate."
+      ]
     },
     {
       "id": "PH-08",
@@ -1307,6 +1327,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-19 option A: brief causal post-pitch feedback with optional deeper practice detail, preserving ordinary-play information and fixed forgiveness. Two choices remain open: PH-07 pace under the D7 re-sit hold, then PH-20 delivery."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-07 option A with qualification: keep the current pace pending replay; if anything, slow the rhythm slightly to highlight character animations, highlights, side changes and special-ability clips. D7 remains in force; no flight or presentation duration is selected. One direction choice remains open: PH-20 delivery."
     }
   ]
 }
