@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-14",
+  "next_decision": "PH-13",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -1233,6 +1233,33 @@
         "A deliberate cancel before commitment takes the pitch and does not accidentally produce a swing when the canceled load button is released.",
         "A cancel after commitment does not undo the swing, contact or its judgment.",
         "Teach and test cancel versus swing release, taking and bunt withdrawal on pad, keyboard/mouse and both human seats; choose bindings and priorities before implementation."
+      ],
+      "discussion": [
+        {
+          "id": "PH-13-R1",
+          "date": "2026-09-21",
+          "status": "proposal",
+          "question": "How should a loaded ordinary swing transition into a bunt?",
+          "common_flow": [
+            "East / G cancels an uncommitted ordinary swing load, discarding its charge.",
+            "An ordinary swing commits when its charge/release button is released; a committed swing follows through.",
+            "After a cancel or switch to bunt, releasing the old swing hold cannot trigger a swing; a new ordinary swing requires release and a fresh press."
+          ],
+          "options": [
+            {
+              "id": "1",
+              "label": "Bunt hold replaces an uncommitted swing load",
+              "flow": "Pressing LT/J or RT/L during an uncommitted load discards charge and squares up toward that side; no separate cancel press required."
+            },
+            {
+              "id": "2",
+              "label": "Explicit cancel before switching to bunt",
+              "flow": "Cancel the load first with East/G, then use a directional bunt hold; bunt input alone does not replace an active swing load."
+            }
+          ],
+          "recommendation": "Option 1 makes a deliberate bunt input a direct change of intent before commitment, with no mid-swing rescue and no stored charge.",
+          "limits": "All binding, transition and commitment details in this packet are proposals pending Jack\u2019s choice. Preserve existing PH-13 deliberate cancellation, PH-14 held bunting and geometric judgments; do not silently authorize an automatic hesitation cancel."
+        }
       ]
     },
     {
@@ -1270,7 +1297,7 @@
       "existing_contract": "Existing S-18/19 and two-strike foul-bunt rules remain; do not create a guaranteed CPU exploit.",
       "acceptance": "A bunt is a live ball with an earned outcome; both humans and CPU can defend it and a foul bunt with two strikes retires the batter.",
       "selected_option": "A",
-      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. PH-14-R2 adds an explicit first-/third-base-side preference for bunts, separating intended direction from contact quality. It does not add directional shaping to ordinary swings or guarantee a landing or safe result. PH-14-R3 allows side changes while squared up until contact, with bat angle showing the current choice and no post-contact redirection. PH-14-R4 selects holding to square and make geometric contact without a separate timed swing press, with release before contact withdrawing the bat and no latched attempt. Exact bindings, input/rearming precedence, defaults, animation transitions, response curves and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
+      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. PH-14-R2 adds an explicit first-/third-base-side preference for bunts, separating intended direction from contact quality. It does not add directional shaping to ordinary swings or guarantee a landing or safe result. PH-14-R3 allows side changes while squared up until contact, with bat angle showing the current choice and no post-contact redirection. PH-14-R4 selects holding to square and make geometric contact without a separate timed swing press, with release before contact withdrawing the bat and no latched attempt. PH-14-R5 sets LT/J for third-base-side bunt and RT/L for first-base-side bunt, latest press winning while both are held, release of all holds withdrawing, and left stick/WASD retaining positioning. This replaces the target West/V/Ctrl bunt verb. Exact same-tick/transition/rearming behavior, animation transitions, response curves and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1332,6 +1359,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Hold the bunt action to remain squared up and position the bat to meet the pitch. While held, actual ball/bat contact resolves the bunt without a separate timed swing-button press. Releasing before contact withdraws the bat; releasing does not swing or preserve a latched bunt attempt. Contact still requires actual coverage and geometry, not merely holding a button. Retain side changes until contact, the visible bat-angle cue, contact-quality-driven softness/control, live defense and two-strike foul-bunt rules. Exact hardware bindings, transition/rearming precedence, animation timing and response curves remain open. Ordinary swings retain their accepted charge/release and timing rules. No runtime/presentation change, numeric tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-14-R5",
+          "choice": "1",
+          "quote": "1 ",
+          "scope": "Use two directional bunt holds: LT on controller or J on keyboard holds a third-base-side bunt; RT or L holds a first-base-side bunt. Change held side before contact to change intent; when both are held, the latest press determines the active side. Release all bunt holds before contact to withdraw. Left stick/WASD retains batter positioning. Preserve held geometric contact without a timed swing press, bat-angle intent cues, contact-quality execution and live defense. This replaces the target design\u2019s West/V/Ctrl held-bunt verb; reconcile the shipping controls and paired HowToPlay/docs/diagrams before implementation. Exact same-tick arbitration, trigger thresholds, swing-to-bunt interaction, animation transitions and response curves remain open. Audit existing trigger modifiers and rearming at live-play transitions; no second input toolkit, runtime change, numerical tuning trial or human acceptance."
         }
       ],
       "discussion": [
@@ -1362,7 +1399,7 @@
         {
           "id": "PH-14-R5",
           "date": "2026-09-21",
-          "status": "proposal",
+          "status": "direction-accepted",
           "question": "Should bunt posture and side use two directional hold inputs or retain a separate bunt button?",
           "recommendation": "Two directional holds: LT/keyboard J holds a third-base-side bunt; RT/keyboard L holds a first-base-side bunt. This combines square-up and side selection without requiring the right thumb to hold a face button and move the right stick simultaneously.",
           "options": [
@@ -1388,7 +1425,14 @@
               ]
             }
           ],
-          "limits": "Both layouts are unaccepted proposals. Option 1 would replace the existing West/V/Ctrl bunt verb, requiring paired HowToPlay/docs and diagrams before implementation. Triggers also participate in legacy action modifiers: audit role/phase ownership and require rearming across contact so a held bunt input cannot trigger a live-play action. No second toolkit, gameplay implementation, authored asset or new numerical value is approved."
+          "limits": "Option 1 directional holds accepted through PH-14-R5 on September 21, 2026. Original proposal limits remain separately preserved. Input arbitration, phase transitions and paired teaching still require implementation-contract work; no runtime change or human gate passed.",
+          "original_proposal_limits": "Both layouts are unaccepted proposals. Option 1 would replace the existing West/V/Ctrl bunt verb, requiring paired HowToPlay/docs and diagrams before implementation. Triggers also participate in legacy action modifiers: audit role/phase ownership and require rearming across contact so a held bunt input cannot trigger a live-play action. No second toolkit, gameplay implementation, authored asset or new numerical value is approved.",
+          "resolution": {
+            "date": "2026-09-21",
+            "author": "Jack",
+            "answer_quote": "1 ",
+            "refinement_id": "PH-14-R5"
+          }
         }
       ],
       "refinements": [
@@ -1556,6 +1600,68 @@
             "Releasing before contact withdraws the bat and cannot leave a stale bunt intent that contacts later or trigger an ordinary swing.",
             "Keep pose/contact/withdrawal presentation in agreement with the sim contract for both batting hands and input schemes; do not use Unity collision to decide baseball.",
             "Resolve contact, side preference, fair/foul and live defense normally; ordinary swing timing/charge rules remain separate."
+          ]
+        },
+        {
+          "id": "PH-14-R5",
+          "question": "Should bunt posture and side use two directional hold inputs or retain a separate bunt button?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Two directional bunt holds",
+              "flow": [
+                "Hold LT / J to bunt toward third-base side.",
+                "Hold RT / L to bunt toward first-base side.",
+                "Changing the held side changes intent before contact; if both are held, the most recently pressed side is active.",
+                "Release all bunt holds before contact to withdraw.",
+                "Left stick / WASD continues positioning; no timed swing press is required."
+              ]
+            },
+            {
+              "id": "2",
+              "label": "Retain the existing bunt button plus separate side inputs",
+              "flow": [
+                "Hold West / V / Left Ctrl to square up.",
+                "Use LT / J and RT / L as separate side selectors.",
+                "Release the bunt button before contact to withdraw.",
+                "Initial preference, simultaneous-input handling and exact side-selector persistence need a consolidated contract if selected."
+              ]
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Use two directional bunt holds: LT on controller or J on keyboard holds a third-base-side bunt; RT or L holds a first-base-side bunt. Change held side before contact to change intent; when both are held, the latest press determines the active side. Release all bunt holds before contact to withdraw. Left stick/WASD retains batter positioning. Preserve held geometric contact without a timed swing press, bat-angle intent cues, contact-quality execution and live defense. This replaces the target design\u2019s West/V/Ctrl held-bunt verb; reconcile the shipping controls and paired HowToPlay/docs/diagrams before implementation. Exact same-tick arbitration, trigger thresholds, swing-to-bunt interaction, animation transitions and response curves remain open. Audit existing trigger modifiers and rearming at live-play transitions; no second input toolkit, runtime change, numerical tuning trial or human acceptance.",
+          "contract": {
+            "third_base_bunt_hold": {
+              "controller": "LT",
+              "keyboard": "J"
+            },
+            "first_base_bunt_hold": {
+              "controller": "RT",
+              "keyboard": "L"
+            },
+            "both_held": "most recently pressed side is active",
+            "withdraw": "release all bunt holds before contact",
+            "batter_positioning": "left stick / WASD",
+            "separate_timed_swing_press_required": false
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-14-R5: Which control layout? 1. Two directional holds (recommended): hold LT/J to bunt toward third, or RT/L toward first; switch holds to change side; if both are held, the latest press wins; release both to withdraw. 2. Separate bunt button: hold West/V/Ctrl to bunt, then use LT/J or RT/L to select the side. Both keep left stick/WASD for batter positioning.",
+            "answer_quote": "1 "
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Direction and square-up share one held action per side; either side works for both batting hands without sacrificing horizontal coverage.",
+            "Latest press wins when both sides are held; releasing all withdraws before contact without leaving a latched bunt. Specify exact same-tick arbitration in the implementation contract.",
+            "A held bunt input must not leak into legacy trigger modifiers or a live-play action at contact; define rearming and role/phase ownership.",
+            "Update the shipping control contract, HowToPlay/docs and diagrams for both schemes before implementing the replacement of West/V/Ctrl bunting."
           ]
         }
       ]
@@ -2920,6 +3026,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-14-R4 option 1: hold to bunt, geometric contact, release before contact withdraws; no separately timed swing press. Prepared PH-14-R5 as a proposed complete directional-hold layout versus retaining a separate bunt button. Bindings and input arbitration remain unaccepted."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-14-R5 option 1: LT/J third-side and RT/L first-side bunt holds, latest press wins while both held, release all withdraws, left stick/WASD positions. Next proposed PH-13-R1 consolidates cancel and swing-to-bunt transitions; those new details remain unaccepted."
     }
   ]
 }
