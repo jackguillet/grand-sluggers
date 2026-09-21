@@ -1041,7 +1041,7 @@
       "existing_contract": "No new captain, second skeleton or one-captain resolver. Equipment and chemistry must be included in balance trials.",
       "acceptance": "Rio and Ashlord, both hands, contact/power archetypes and relevant gear all follow the same taught rules.",
       "selected_option": "B",
-      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. PH-15-R2 accepts the seven starting captain assignments recorded in its contract, including shared Rio/Fenn families. Role-player assignments, trait definitions, numerical strengths and gear interactions remain open. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
+      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. PH-15-R2 accepts the seven starting captain assignments recorded in its contract, including shared Rio/Fenn families. PH-15-R3 requires individually authored role-player repertoires within the fastball-plus-two composition, without granting captain Star Pitches. Exact role-player assignments, trait definitions, numerical strengths and gear interactions remain open. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1083,6 +1083,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Accept the proposed starting ordinary repertoires for the seven existing captains: everyone has Fastball; Rio adds Changeup/Curveball, Vale Curveball/Slider, Zig Changeup/Slider, Brondo Changeup/Sinker, Konga Curveball/Sinker, Ashlord Slider/Sinker, and Fenn Changeup/Curveball. Rio and Fenn share pitch families; character traits and execution tuning remain separate work. Preserve three ordinary pitches, shared controls/contact rules, charging as a modifier and stars outside the count. Role-player assignments, traits, detailed weaknesses/counterplay, inputs and numerical tuning remain open. These are accepted starting assignments, not implemented or proven balance and not human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-15-R3",
+          "choice": "2",
+          "quote": "2",
+          "scope": "Assign each role player an authored ordinary repertoire rather than automatically matching the faction captain. Every role player keeps a fastball plus two selections from changeup, curveball, slider and sinker, within the same three-pitch limit and shared controls/contact rules. Individual assignment permits repeated combinations across characters and does not require every repertoire to be unique or different from its captain. It grants no captain Star Pitch. Exact role-player assignments, traits, inputs, detailed weaknesses and tuning remain open. Direction refinement only; no runtime change, numeric tuning trial or human acceptance."
         }
       ],
       "refinements": [
@@ -1227,6 +1237,41 @@
           "implementation_issues": [],
           "validation_evidence": [],
           "human_acceptance": null
+        },
+        {
+          "id": "PH-15-R3",
+          "question": "How should role players get their pitches?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Match the faction captain\u2019s ordinary repertoire"
+            },
+            {
+              "id": "2",
+              "label": "Individually authored role-player repertoires"
+            }
+          ],
+          "selected_option": "2",
+          "accepted_scope": "Assign each role player an authored ordinary repertoire rather than automatically matching the faction captain. Every role player keeps a fastball plus two selections from changeup, curveball, slider and sinker, within the same three-pitch limit and shared controls/contact rules. Individual assignment permits repeated combinations across characters and does not require every repertoire to be unique or different from its captain. It grants no captain Star Pitch. Exact role-player assignments, traits, inputs, detailed weaknesses and tuning remain open. Direction refinement only; no runtime change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "role_player_repertoire_policy": "individually authored per character",
+            "required_ordinary_pitch": "Fastball",
+            "additional_ordinary_pitch_count": 2,
+            "inherits_captain_star_pitch": false
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-15-R3: How should role players get their pitches? 1. Match their faction captain (recommended): same three ordinary pitches, with individual strengths distinguished through traits; easier to learn each faction. 2. Individual repertoires: assign each role player their own fastball-plus-two combination, adding more lineup variety. This concerns ordinary pitches only; role players do not inherit captain Star Pitches.",
+            "answer_quote": "2"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
         }
       ],
       "discussion": [
@@ -1326,6 +1371,254 @@
             "answer_quote": "1",
             "refinement_id": "PH-15-R2"
           }
+        },
+        {
+          "id": "PH-15-R4",
+          "date": "2026-09-21",
+          "status": "proposal",
+          "question": "Should these be the starting ordinary repertoires for the 18 existing role players?",
+          "recommendation": "Review and accept or revise this entire starting set together rather than holding a separate vote for every character.",
+          "assignments": [
+            {
+              "character_id": "nico",
+              "name": "Nico",
+              "faction": "spark",
+              "faction_name": "Spark League",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Curveball"
+              ],
+              "rationale": "Balanced tempo and movement, sharing Rio\u2019s familiar combination."
+            },
+            {
+              "character_id": "pip",
+              "name": "Pip",
+              "faction": "spark",
+              "faction_name": "Spark League",
+              "throws": "L",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Slider"
+              ],
+              "rationale": "Timing and lateral choices for a pitching-focused lefty."
+            },
+            {
+              "character_id": "marlow",
+              "name": "Marlow",
+              "faction": "spark",
+              "faction_name": "Spark League",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Curveball",
+                "Sinker"
+              ],
+              "rationale": "Two distinct dropping shapes give the utility player a different option."
+            },
+            {
+              "character_id": "frost",
+              "name": "Frost",
+              "faction": "royal",
+              "faction_name": "Royal Rink",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Curveball",
+                "Slider"
+              ],
+              "rationale": "Preserve the curveball named in the existing bio, paired with lateral movement."
+            },
+            {
+              "character_id": "lace",
+              "name": "Lace",
+              "faction": "royal",
+              "faction_name": "Royal Rink",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Sinker"
+              ],
+              "rationale": "A timing change and dipping pitch distinguish the glove-first Royal."
+            },
+            {
+              "character_id": "dart",
+              "name": "Dart",
+              "faction": "carnival",
+              "faction_name": "Carnival Crew",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Slider"
+              ],
+              "rationale": "Timing and lateral deception for the fairground speedster."
+            },
+            {
+              "character_id": "boom",
+              "name": "Boom",
+              "faction": "goldrush",
+              "faction_name": "Goldrush",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Slider",
+                "Sinker"
+              ],
+              "rationale": "Lateral and faster dipping shapes alongside the fastball."
+            },
+            {
+              "character_id": "vine",
+              "name": "Vine",
+              "faction": "canopy",
+              "faction_name": "Canopy Clan",
+              "throws": "L",
+              "ordinary_pitches": [
+                "Fastball",
+                "Curveball",
+                "Slider"
+              ],
+              "rationale": "Two breaking shapes for this left-handed Canopy option."
+            },
+            {
+              "character_id": "cinder",
+              "name": "Cinder",
+              "faction": "ember",
+              "faction_name": "Ember Keep",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Slider",
+                "Sinker"
+              ],
+              "rationale": "Lateral and dipping movement retain a direct Ember option."
+            },
+            {
+              "character_id": "grit",
+              "name": "Grit",
+              "faction": "ember",
+              "faction_name": "Ember Keep",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Sinker"
+              ],
+              "rationale": "Speed variation and a dip suit a proposed innings-eating approach."
+            },
+            {
+              "character_id": "hex",
+              "name": "Hex",
+              "faction": "goldrush",
+              "faction_name": "Goldrush",
+              "throws": "L",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Curveball"
+              ],
+              "rationale": "Changeup and arcing curve suit the existing junkballer identity."
+            },
+            {
+              "character_id": "soot",
+              "name": "Soot",
+              "faction": "ember",
+              "faction_name": "Ember Keep",
+              "throws": "L",
+              "ordinary_pitches": [
+                "Fastball",
+                "Curveball",
+                "Sinker"
+              ],
+              "rationale": "Two drop profiles fit a proposed dirt-and-dip identity."
+            },
+            {
+              "character_id": "gull",
+              "name": "Gull",
+              "faction": "spark",
+              "faction_name": "Spark League",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Slider",
+                "Sinker"
+              ],
+              "rationale": "Sideways movement and a quicker dip distinguish him from other Spark players."
+            },
+            {
+              "character_id": "pewter",
+              "name": "Pewter",
+              "faction": "royal",
+              "faction_name": "Royal Rink",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Curveball",
+                "Sinker"
+              ],
+              "rationale": "Two drop profiles for a strong secondary pitcher."
+            },
+            {
+              "character_id": "jester",
+              "name": "Jester",
+              "faction": "carnival",
+              "faction_name": "Carnival Crew",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Curveball"
+              ],
+              "rationale": "Slow timing changes and a visible arc for a contrasting Carnival choice."
+            },
+            {
+              "character_id": "nugget",
+              "name": "Nugget",
+              "faction": "goldrush",
+              "faction_name": "Goldrush",
+              "throws": "R",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Sinker"
+              ],
+              "rationale": "Slow/fast contrast offers a different Goldrush combination."
+            },
+            {
+              "character_id": "moss",
+              "name": "Moss",
+              "faction": "canopy",
+              "faction_name": "Canopy Clan",
+              "throws": "L",
+              "ordinary_pitches": [
+                "Fastball",
+                "Curveball",
+                "Sinker"
+              ],
+              "rationale": "Arcing and faster dipping shapes provide vertical contrast."
+            },
+            {
+              "character_id": "basil",
+              "name": "Basil",
+              "faction": "canopy",
+              "faction_name": "Canopy Clan",
+              "throws": "L",
+              "ordinary_pitches": [
+                "Fastball",
+                "Changeup",
+                "Sinker"
+              ],
+              "rationale": "A timing-change option distinguishes the range glove from Canopy teammates."
+            }
+          ],
+          "basis": [
+            "data/characters/role-players.json",
+            "docs/roster.md"
+          ],
+          "limits": "Author proposal only, informed by existing bios and roster roles. Assignments are not accepted or implemented, and no exact traits or balance results are implied. All 18 retain Fastball plus two library choices; repeated pairs are intentional. No captain Star Pitches are granted. Throwing hands are existing data for context, not proposed changes."
         }
       ]
     },
@@ -1745,6 +2038,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-15-R2 option 1: the proposed seven captain starting repertoires. Proposal provenance is preserved with its acceptance resolution. Next PH-15-R3 discusses role-player pitch selection; traits, tuning and implementation remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-15-R3 option 2: individually authored role-player repertoires. Prepared PH-15-R4 as an unaccepted batch proposal for all 18 existing role players, based on existing bios and roles. Fastball-plus-two and captain-only Star Pitch constraints remain; traits and tuning are open."
     }
   ]
 }
