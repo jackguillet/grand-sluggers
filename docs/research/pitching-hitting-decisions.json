@@ -143,7 +143,9 @@
         "#807",
         "#809",
         "#810",
-        "#811"
+        "#811",
+        "#812",
+        "#813"
       ],
       "validation_evidence": [
         {
@@ -154,6 +156,15 @@
           "summary": "pitching.json gains a families table with one named row per authored family, and PitchCommand.Type is the family id: the shared library is now what flies, not just what a roster names. The fixture holds only values IEEE pins (+, -, *, /): Y, Z and mph outright, and for X the sin-free flight plus the damping decision, because Math.Sin differs by one ULP between macOS libm and glibc (#736); the test rebuilds X on the running platform and still asserts bit equality, verified green on both.",
           "numeric_trial": "not applicable (behaviour-identical refactor; today's fastball/changeup numbers moved, none authored). Curveball, slider and sinker are still unauthored and their numbers are P1-d's numeric trial.",
           "gate": "no human gate for this child; no player-facing change, and it does not move #534, #346 or D7. Status unchanged: the other three families still do not fly."
+        },
+        {
+          "kind": "implementation",
+          "issue": "#812",
+          "revision": "be94b6d1",
+          "test": "GrandSluggers.Sim.Tests.PitchSelectionScenarioTests",
+          "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
+          "numeric_trial": "not applicable (input/state contract; no number authored)",
+          "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
         }
       ],
       "human_acceptance": null,
@@ -387,8 +398,21 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#812",
+            "#813"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#812",
+              "revision": "be94b6d1",
+              "test": "GrandSluggers.Sim.Tests.PitchSelectionScenarioTests",
+              "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
+              "numeric_trial": "not applicable (input/state contract; no number authored)",
+              "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Changing pitch-selection inputs after charge starts cannot change the committed ordinary pitch family, including quick-tap delivery.",
@@ -427,8 +451,21 @@
             "answer_quote": "2"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#812",
+            "#813"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#812",
+              "revision": "be94b6d1",
+              "test": "GrandSluggers.Sim.Tests.PitchSelectionScenarioTests",
+              "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
+              "numeric_trial": "not applicable (input/state contract; no number authored)",
+              "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -467,8 +504,21 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#812",
+            "#813"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#812",
+              "revision": "be94b6d1",
+              "test": "GrandSluggers.Sim.Tests.PitchSelectionScenarioTests",
+              "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
+              "numeric_trial": "not applicable (input/state contract; no number authored)",
+              "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "At a new-pitch boundary, zero/one/two cycle presses select Fastball/second/third, with the third press wrapping; holding the button does not count as repeated presses.",
@@ -2062,7 +2112,9 @@
         "#807",
         "#809",
         "#810",
-        "#811"
+        "#811",
+        "#812",
+        "#813"
       ],
       "validation_evidence": [
         {
@@ -2073,6 +2125,15 @@
           "summary": "Every family a repertoire can name now has one place to carry its numbers, so the second and third pitch become rows rather than new branches. This child does not enforce repertoire membership (P1-e / P1-f). The fixture holds only values IEEE pins (+, -, *, /): Y, Z and mph outright, and for X the sin-free flight plus the damping decision, because Math.Sin differs by one ULP between macOS libm and glibc (#736); the test rebuilds X on the running platform and still asserts bit equality, verified green on both.",
           "numeric_trial": "not applicable (behaviour-identical refactor; today's fastball/changeup numbers moved, none authored). Curveball, slider and sinker are still unauthored and their numbers are P1-d's numeric trial.",
           "gate": "no human gate for this child; no player-facing change, and it does not move #534, #346 or D7. Status unchanged: the other three families still do not fly."
+        },
+        {
+          "kind": "implementation",
+          "issue": "#812",
+          "revision": "be94b6d1",
+          "test": "GrandSluggers.Sim.Tests.PitchSelectionScenarioTests",
+          "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
+          "numeric_trial": "not applicable (input/state contract; no number authored)",
+          "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
         }
       ],
       "human_acceptance": null,
@@ -2197,7 +2258,9 @@
             "#807",
             "#809",
             "#810",
-            "#811"
+            "#811",
+            "#812",
+            "#813"
           ],
           "validation_evidence": [
             {
@@ -2217,6 +2280,15 @@
               "summary": "The fastball is the authored row every pitcher throws and leads the library order; Training.CorePitches is derived from the authored rows rather than a second literal list. The fixture holds only values IEEE pins (+, -, *, /): Y, Z and mph outright, and for X the sin-free flight plus the damping decision, because Math.Sin differs by one ULP between macOS libm and glibc (#736); the test rebuilds X on the running platform and still asserts bit equality, verified green on both.",
               "numeric_trial": "not applicable (behaviour-identical refactor; today's fastball/changeup numbers moved, none authored). Curveball, slider and sinker are still unauthored and their numbers are P1-d's numeric trial.",
               "gate": "no human gate for this child; no player-facing change, and it does not move #534, #346 or D7. Status unchanged: the other three families still do not fly."
+            },
+            {
+              "kind": "implementation",
+              "issue": "#812",
+              "revision": "be94b6d1",
+              "test": "GrandSluggers.Sim.Tests.PitchSelectionScenarioTests",
+              "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
+              "numeric_trial": "not applicable (input/state contract; no number authored)",
+              "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
             }
           ],
           "human_acceptance": null
@@ -4457,6 +4529,10 @@
     {
       "date": "2026-09-21",
       "event": "P1-b (#810, #811) built the pitch family library table and moved the two shipped deliveries onto it without changing one flight: pitching.json families carries a named row per authored family (mph, chargeMph, hump, hangUntil, hangRate, dumpRate, dropFt, breakDamped, staminaCost, offSpeed), one PitchFlight.Shape evaluates every row, PitchCommand.Changeup and IsChangeup are gone and Type is the family id, and every read of the family - flight, speed, stamina, the off-speed batter reads - goes through PitchFamilyTable.Of, so curveball, slider and sinker stop the pitch by name instead of flying as a fastball. Bit-identity is pinned by a committed golden of 2715 exact-double samples captured before the edit; cli match --seed 7 is identical and the #708 derived evidence regenerated with source-hash changes only. No status change and no numeric trial: today's numbers moved, none were authored. Selection is P1-c, the other three rows are P1-d, repertoire enforcement and the CPU mix are P1-e / P1-g."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "P1-c (#812, #813) shipped the pre-charge pitch selection as a pure sim step: PitchSelectionState / PitchSelection.Advance sit beside ChargeButton, one button cycles the pitcher's three ordinary families in repertoire order and wraps, a family with no authored row is skipped so zero, one or two presses always land on a pitch that can fly, the family locks on the tick the charge arms (cycle first, then lock, on a shared tick), the commit throws the locked family and resets to fastball unlocked at every SET entry and after a pitcher swap, and a disarm without a delivery releases the lock while keeping the slot. Match.SelectPitch / FamilyAt resolve against the current pitcher and the match's own family table, never Rules.Default. Spec GS section 3 carries the rule with the same-tick order and the reset points, and Appendix B.1 gains S-101 to S-106. No status change and no numeric trial: the step authors no number and nothing in the running game reads it yet - the mound wiring and the family-blind SET are P1-f, the CPU's presses are P1-e, and the three unauthored families remain P1-d. Review hardening before merge: a lock exists only while the charge button is armed, so a caller that skips the releasing tick cannot strand the selection (S-106b)."
     }
   ]
 }
