@@ -3033,7 +3033,7 @@
       "existing_contract": "Gameplay-spec D6 prohibits free homers; no full-screen blinds or automatic outs. Existing systems remain until changed deliberately.",
       "acceptance": "Each special retains a response and an understandable resource cost, including a miss; baseline balance is tested without specials.",
       "selected_option": "A",
-      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. PH-16-R1 keeps the ordinary timing window for Star Pitches, whose challenge comes from readable ball behavior. Existing timing-reducing Star Pitches require separately reviewed replacement effects and reconciliation before implementation. PH-16-R2 permits ability-specific Star Swing contact-area changes, including extra spatial forgiveness, while requiring actual geometric contact. Eligible abilities, regions and Contact/charge interactions remain separately reviewed; this is not a universal bonus. PH-16-R3 requires a missed Star Swing to spend its full normal resource cost, without a miss discount/refund. PH-16-R4 gives each team one shared resource pool for Star Pitches and Star Swings, independent of the opposing team. PH-16-R5 grants both teams modest gains after completed plate appearances plus bonuses for successful plays. PH-16-R6 gives both teams a usable starting reserve so a special is available from the opening plate appearance. Exact capacity, starting amount, reset rules, base gains, bonus events/amounts, stacking rules, ability prices, deduction timing, cancellation/foul policy, chemistry bonuses, replacement effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. PH-16-R1 keeps the ordinary timing window for Star Pitches, whose challenge comes from readable ball behavior. Existing timing-reducing Star Pitches require separately reviewed replacement effects and reconciliation before implementation. PH-16-R2 permits ability-specific Star Swing contact-area changes, including extra spatial forgiveness, while requiring actual geometric contact. Eligible abilities, regions and Contact/charge interactions remain separately reviewed; this is not a universal bonus. PH-16-R3 requires a missed Star Swing to spend its full normal resource cost, without a miss discount/refund. PH-16-R4 gives each team one shared resource pool for Star Pitches and Star Swings, independent of the opposing team. PH-16-R5 grants both teams modest gains after completed plate appearances plus bonuses for successful plays. PH-16-R6 gives both teams a usable starting reserve so a special is available from the opening plate appearance. PH-16-R7 accepts a small set of ability cost tiers; higher-cost access for captains is tentative and exclusivity remains unselected. Exact tier count, prices/assignments, capacity, starting amount, reset rules, base gains, bonus events/amounts, stacking rules, ability prices, deduction timing, cancellation/foul policy, chemistry bonuses, replacement effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -3116,6 +3116,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Both teams begin the match with a usable Star reserve, allowing each side to use a special from the opening plate appearance rather than earning its first special from an empty pool. This is starting access, not a requirement to spend immediately or a guarantee that every ability is affordable. Exact starting amounts, capacity, ability prices, eligible opening options and later reset rules remain open and must be specified together. Preserve each team shared pitching/batting pool, completed-plate-appearance gains plus performance bonuses, full miss cost and supplementary special frequency. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R7",
+          "choice": "1 with tentative captain-access idea",
+          "quote": "okay sure. and maybe captains have access to the higher cost ones",
+          "scope": "Use a small set of ability cost tiers rather than one uniform special price; abilities may cost more or less according to their strength and utility. Jack expressed tentative interest in captains having access to higher-cost specials. Keep captain eligibility and exclusivity as a candidate for discussion, not an accepted restriction on role players or a finalized assignment. The Wide Barrel, Hook Pitch and Quake Swing explanation illustrated differing costs; it does not accept those abilities, their effects, three tiers or any prices. Exact tier count, prices, abilities, assignments and balance remain open. Preserve shared team pools, starting access, supplementary frequency, full normal miss cost, actual contact and counterplay. Direction refinement only; no runtime change, numerical trial or human acceptance."
         }
       ],
       "refinements": [
@@ -3361,6 +3371,56 @@
             "Verify each side has an affordable legal special option from the opening plate appearance under the eventual roster and price contract.",
             "Initialize each team shared pool for the match without treating inning changes, role changes or repeated initialization callbacks as new starting grants.",
             "Review starting reserve with capacity, prices and ongoing gains so specials stay supplementary; do not infer affordability of every ability or approved numeric values."
+          ]
+        },
+        {
+          "id": "PH-16-R7",
+          "question": "Should specials have different prices?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "A small set of ability cost tiers"
+            },
+            {
+              "id": "2",
+              "label": "One uniform price for every special"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Use a small set of ability cost tiers rather than one uniform special price; abilities may cost more or less according to their strength and utility. Jack expressed tentative interest in captains having access to higher-cost specials. Keep captain eligibility and exclusivity as a candidate for discussion, not an accepted restriction on role players or a finalized assignment. The Wide Barrel, Hook Pitch and Quake Swing explanation illustrated differing costs; it does not accept those abilities, their effects, three tiers or any prices. Exact tier count, prices, abilities, assignments and balance remain open. Preserve shared team pools, starting access, supplementary frequency, full normal miss cost, actual contact and counterplay. Direction refinement only; no runtime change, numerical trial or human acceptance.",
+          "contract": {
+            "pricing_structure": "small set of ability cost tiers",
+            "pricing_basis": "ability strength and utility",
+            "tier_count_prices_and_assignments": "open",
+            "captain_access_to_higher_cost_specials": "tentative candidate; exclusivity unselected"
+          },
+          "tentative_considerations": [
+            {
+              "status": "proposal",
+              "idea": "captains have access to higher-cost specials",
+              "answer_quote": "maybe captains have access to the higher cost ones",
+              "limits": "Captain access and any exclusion of role players require further discussion; no individual ability or roster assignment accepted."
+            }
+          ],
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-16-R7: Should specials have different prices? 1. A few cost tiers \u2014 recommended: different abilities can cost more or less based on their strength and utility. 2. One price for every special: balance all abilities around the same resource cost. Exact prices and ability assignments come later.",
+            "answer_quote": "okay sure. and maybe captains have access to the higher cost ones",
+            "clarification_question": "what is an example of specials that would have different tiers?",
+            "clarification_summary": "Assistant illustrated lower-cost Wide Barrel spatial forgiveness, medium-cost Hook Pitch readable late bend, and higher-cost Quake Swing contact-earned localized disruption. Examples were explicitly illustrative, not approved prices or ability designs. Tier count and example assignments remain unselected."
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Author ability prices using the eventual reviewed tier structure; full missed-Star-Swing cost uses the attempted ability actual normal price.",
+            "Review tier assignments against strength, utility and counterplay while preserving usable starting access and supplementary special cadence.",
+            "Keep illustrative examples and tentative captain eligibility out of implemented assignments until separately reviewed."
           ]
         }
       ]
@@ -3825,6 +3885,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-16-R6 option 1: usable starting Star reserves for both teams, enabling a special from the opening plate appearance. Exact amounts and prices remain open. Next PH-16-R7 compares a small set of ability cost tiers with one uniform price; neither pricing structure is selected yet."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-16-R7 tiered ability costs after illustrative examples, saying \"okay sure. and maybe captains have access to the higher cost ones\". Captain access is tentative; no role-player exclusion, example ability, tier count or price accepted. Next PH-16-R8 compares captain-exclusive highest-cost specials with allowing individually authored role-player access; neither eligibility policy is selected yet."
     }
   ]
 }
