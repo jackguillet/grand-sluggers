@@ -317,6 +317,12 @@ public sealed record AtBatResult(
 /// every read of the family goes through <see cref="PitchFamilyTable.Of"/> — the flight, the speed
 /// and the stamina — so an id with no authored row stops the pitch the first time anything asks what
 /// it does, and names itself while doing it (#810).
+///
+/// <paramref name="Throws"/> is the arm this delivery left, stamped by <see cref="Match.PreparePitch"/>
+/// from the pitcher on the mound and settable by a harness. It is the only thing the flight knows
+/// about the pitcher's hand, and it exists because a family's natural sweep mirrors with the arm
+/// (<see cref="PitchFlight.SweepShiftFt"/>, #818). It is last and defaulted so every positional call
+/// site and every stored command that predates it still reads, as a right-hander's.
 /// </summary>
 public sealed record PitchCommand(
     string Type,
@@ -328,7 +334,8 @@ public sealed record PitchCommand(
     double RubberX = 0,
     bool DeliveryPrepared = false,
     bool Nice = false,
-    double BreakMul = 1);
+    double BreakMul = 1,
+    Hand Throws = Hand.R);
 
 public sealed record SwingCommand(
     bool Swing,

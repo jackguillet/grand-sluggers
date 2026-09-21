@@ -931,8 +931,12 @@ public sealed class Match
     public PitchCommand PreparePitch(PitchCommand pitch)
     {
         if (pitch.DeliveryPrepared) return pitch;
+        // The arm is stamped from the pitcher on the mound, because the flight mirrors a family's
+        // natural sweep by it (#818). It rides on the command rather than being read from the match
+        // so that one delivery is one object: a trace, a harness and the Unity client all hold the
+        // same pitch, and the shipped families sweep 0, so this moves nothing that flies today.
         var ready = pitch with { RubberX = pitch.RubberX != 0 ? pitch.RubberX : PitcherOffsetX,
-            DeliveryPrepared = true };
+            DeliveryPrepared = true, Throws = Pitcher.Throws };
         if (PitcherTired)
         {
             // TIRED (spec §4.7): a crossing wobble in feet and less break; exhausted is worse.
