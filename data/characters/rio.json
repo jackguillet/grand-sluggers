@@ -9,6 +9,7 @@
   "run": 7,
   "bats": "R",
   "throws": "R",
+  "repertoire": ["changeup", "curveball"],
   "starPitch": "heatball",
   "starSwing": "heat-swing",
   "fieldAbility": "grow",

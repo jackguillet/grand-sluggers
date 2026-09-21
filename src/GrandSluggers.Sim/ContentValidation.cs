@@ -252,8 +252,52 @@ public static class ContentDataValidator
         Known(row.Source, $"character '{c.Id}' bats", c.Bats, Hands, errors);
         Known(row.Source, $"character '{c.Id}' throws", c.Throws, Hands, errors);
         Known(row.Source, $"character '{c.Id}' fieldAbility", c.FieldAbility, FieldAbilityIds, errors);
+        ValidateRepertoire(row.Source, c, errors);
         Reference(row.Source, $"character '{c.Id}' starPitch", c.StarPitch, pitches, errors);
         Reference(row.Source, $"character '{c.Id}' starSwing", c.StarSwing, swings, errors);
+    }
+
+    /// <summary>
+    /// The ordinary repertoire (spec §4.3, PH-15-R1): exactly two different assignable families
+    /// beside the implied fastball, in accepted order.
+    ///
+    /// Required rather than optional, because the character loader ignores keys it does not know:
+    /// a row that spells the key <c>repertoir</c> would load as a character with no repertoire and
+    /// quietly take the fixture default, so "missing" has to be an error of its own.
+    ///
+    /// Star pitch ids are a different namespace and are checked against
+    /// <c>data/abilities/star-skills.json</c> above. A star id that is not a family — <c>breaker</c>,
+    /// <c>heatball</c> — is refused here for the same reason any other unknown id is: it is not in
+    /// <see cref="PitchFamily.Assignable"/>.
+    /// </summary>
+    static void ValidateRepertoire(string source, CharacterDto c, List<string> errors)
+    {
+        var families = string.Join(", ", PitchFamily.Assignable);
+        var rows = c.Repertoire;
+        if (rows is null)
+        {
+            errors.Add($"{source}: character '{c.Id}' repertoire must list the two ordinary pitches "
+                + $"beside the fastball, each one of [{families}]; the key is missing");
+            return;
+        }
+        if (rows.Count != 2)
+        {
+            errors.Add($"{source}: character '{c.Id}' repertoire must name exactly 2 ordinary pitches "
+                + $"beside the fastball; got {rows.Count}");
+            return;
+        }
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var family = rows[i] ?? "";
+            if (string.Equals(family, PitchFamily.Fastball, StringComparison.Ordinal))
+                errors.Add($"{source}: character '{c.Id}' repertoire[{i}] must not name 'fastball'; "
+                    + "every pitcher throws it and it is never authored");
+            else if (!PitchFamily.IsAssignable(family))
+                errors.Add($"{source}: character '{c.Id}' repertoire[{i}] must be one of [{families}]; got '{family}'");
+        }
+        if (string.Equals(rows[0], rows[1], StringComparison.Ordinal))
+            errors.Add($"{source}: character '{c.Id}' repertoire names '{rows[0]}' twice; "
+                + "the two ordinary pitches beside the fastball are different families");
     }
 
     static void ValidatePark(Sourced<ParkDto> row, List<string> errors)
@@ -422,6 +466,15 @@ internal sealed class CharacterDto
 
     public string Bats { get; set; } = "";
     public string Throws { get; set; } = "";
+
+    /// <summary>
+    /// The two ordinary pitches beside the implied fastball (#807), lowercase family ids in accepted
+    /// order. Null means the row did not author the key at all, which is an error rather than a
+    /// default: the loader ignores unknown JSON keys, so a misspelled <c>repertoir</c> would
+    /// otherwise pass as a character with no repertoire.
+    /// </summary>
+    public List<string?>? Repertoire { get; set; }
+
     public string StarPitch { get; set; } = "";
     public string StarSwing { get; set; } = "";
     public string FieldAbility { get; set; } = "";
@@ -431,7 +484,23 @@ internal sealed class CharacterDto
         Id, Name, Faction, Captain,
         new Stats(Pitch, Bat, Field, Run) { Arm = Arm, Hands = Hands },
         ParseHand(Bats), ParseHand(Throws),
-        StarPitch, StarSwing, FieldAbility, Bio, ReachFt);
+        StarPitch, StarSwing, FieldAbility, Bio, ReachFt)
+    {
+        Repertoire = ParseRepertoire()
+    };
+
+    /// <summary>
+    /// Never falls back to <see cref="Sim.Repertoire.Default"/>: a catalog is only built after
+    /// <see cref="ContentDataValidator.Load"/> has reported every bad row by name, so a row that
+    /// reaches here without two families is a loader bug, not a roster that should quietly throw
+    /// somebody else's pitches.
+    /// </summary>
+    Repertoire ParseRepertoire() =>
+        Repertoire is { Count: 2 } rows && rows[0] is { } second && rows[1] is { } third
+            ? new Repertoire(second, third)
+            : throw new InvalidDataException(
+                $"character '{Id}' repertoire must name exactly two ordinary pitches; "
+                + "the content validator reports this before a catalog is built");
 
     static Hand ParseHand(string value) => value.Equals("L", StringComparison.OrdinalIgnoreCase) ? Hand.L : Hand.R;
 }
