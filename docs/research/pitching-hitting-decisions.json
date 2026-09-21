@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-16",
+  "next_decision": "PH-08",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -924,7 +924,7 @@
       "id": "PH-16",
       "area": "Resources",
       "question": "How should stars and chemistry affect plate decisions?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-02",
         "PH-10",
@@ -954,16 +954,31 @@
       "recommendation": "C for isolation, A for integration; B requires explicit acceptance of how much the resource dominates.",
       "existing_contract": "Gameplay-spec D6 prohibits free homers; no full-screen blinds or automatic outs. Existing systems remain until changed deliberately.",
       "acceptance": "Each special retains a response and an understandable resource cost, including a miss; baseline balance is tested without specials.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. Exact earning/spending rates, costs, chemistry bonuses, special effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-16: 1. Special moments supplement the duel: ordinary pitching/hitting stay satisfying on their own; 2. Stars/chemistry become a central resource strategy. Either retains counterplay and no guaranteed hits or outs.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. Exact earning/spending rates, costs, chemistry bonuses, special effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-17",
@@ -1198,6 +1213,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-15 option B: distinct repertoires and traits within shared controls and contact rules. Seven choices remain open; exact pitch/trait assignments, numbers and gear interactions remain unselected. PH-14\u2019s proposed bunt-quality refinement remains a separate discussion."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-16 option A: stars and chemistry supplement the ordinary duel, with counterplay and no guaranteed hits/outs. Six choices remain open; costs, rates, bonuses and frequency remain unselected. Next PH-08 fatigue follows the planned discussion order."
     }
   ]
 }
