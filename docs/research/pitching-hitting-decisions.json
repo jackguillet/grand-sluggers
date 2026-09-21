@@ -3033,7 +3033,7 @@
       "existing_contract": "Gameplay-spec D6 prohibits free homers; no full-screen blinds or automatic outs. Existing systems remain until changed deliberately.",
       "acceptance": "Each special retains a response and an understandable resource cost, including a miss; baseline balance is tested without specials.",
       "selected_option": "A",
-      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. PH-16-R1 keeps the ordinary timing window for Star Pitches, whose challenge comes from readable ball behavior. Existing timing-reducing Star Pitches require separately reviewed replacement effects and reconciliation before implementation. PH-16-R2 permits ability-specific Star Swing contact-area changes, including extra spatial forgiveness, while requiring actual geometric contact. Eligible abilities, regions and Contact/charge interactions remain separately reviewed; this is not a universal bonus. Exact earning/spending rates, costs, chemistry bonuses, replacement effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. PH-16-R1 keeps the ordinary timing window for Star Pitches, whose challenge comes from readable ball behavior. Existing timing-reducing Star Pitches require separately reviewed replacement effects and reconciliation before implementation. PH-16-R2 permits ability-specific Star Swing contact-area changes, including extra spatial forgiveness, while requiring actual geometric contact. Eligible abilities, regions and Contact/charge interactions remain separately reviewed; this is not a universal bonus. PH-16-R3 requires a missed Star Swing to spend its full normal resource cost, without a miss discount/refund. Exact earning rates, ability prices, deduction timing, cancellation/foul policy, chemistry bonuses, replacement effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -3076,6 +3076,16 @@
           "quote": "i mean 2. depending on the ability, it can impact contact area",
           "initial_quote": "1",
           "scope": "Individual Star Swing abilities may modify the spatial contact area, including granting extra contact forgiveness, depending on the ability. This is an ability-specific permission, not a universal contact bonus for every Star Swing. Actual geometric contact remains required; no automatic connection, guaranteed hit/out or free home run follows. Exact eligible abilities, region sizes/shapes, quality boundaries, visual representation, costs and interaction with Contact/charge remain separately reviewed. Preserve the ordinary Contact/charge rules unless an explicitly authored ability changes the contact area; this choice does not approve timing-window modifications or particular replacement Star Pitch effects. Jack corrected the initial reply 1 to option 2 before either was recorded; the correction is authoritative. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R3",
+          "choice": "1",
+          "quote": "1",
+          "scope": "A committed Star Swing that misses spends its full normal resource cost, with no miss discount or refund. The cost of the attempted ability is not reduced because it fails to make contact. Preserve ability-specific contact-area permission under PH-16-R2, actual geometric contact and supplementary specials with readable counterplay. Exact ability prices, deduction/reservation timing, pre-commit cancellation, foul policy and earning rates remain open. Reconcile the inspected baseline flat missed-star-swing cost where it differs from the ability normal cost before implementation. Direction refinement only; no runtime change, numerical trial or human acceptance."
         }
       ],
       "refinements": [
@@ -3161,6 +3171,46 @@
             "Only an explicitly authored ability changes contact area; other Star Swings retain their ordinary geometric contact rules.",
             "Demonstrate contact and misses against the actual ability-specific spatial region; no hit probability roll or automatic connection replaces geometry.",
             "Review each affected ability and its visible region, quality boundaries, Contact/charge interaction and cost before implementation; preserve D6 and human gates."
+          ]
+        },
+        {
+          "id": "PH-16-R3",
+          "question": "What should a missed Star Swing cost?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Full normal resource cost even on a miss"
+            },
+            {
+              "id": "2",
+              "label": "Reduced resource cost on a miss"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "A committed Star Swing that misses spends its full normal resource cost, with no miss discount or refund. The cost of the attempted ability is not reduced because it fails to make contact. Preserve ability-specific contact-area permission under PH-16-R2, actual geometric contact and supplementary specials with readable counterplay. Exact ability prices, deduction/reservation timing, pre-commit cancellation, foul policy and earning rates remain open. Reconcile the inspected baseline flat missed-star-swing cost where it differs from the ability normal cost before implementation. Direction refinement only; no runtime change, numerical trial or human acceptance.",
+          "contract": {
+            "missed_star_swing_cost": "full normal resource cost of the attempted ability",
+            "miss_discount_or_refund": false,
+            "exact_prices_and_deduction_timing": "open",
+            "precommit_cancellation_and_foul_policy": "not selected by this refinement"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-16-R3: What should a missed Star Swing cost? 1. Full cost \u2014 recommended: attempting the special spends its normal resource cost, even on a whiff. 2. Reduced cost on a miss: a whiff costs less than making contact. Exact prices come later.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "A committed Star Swing whiff costs the attempted ability normal price, including when different abilities or roster contexts have different prices.",
+            "Do not turn lack of contact into a discount/refund or debit the same attempt twice; define authoritative deduction timing before implementation.",
+            "Preserve actual geometric contact and ability-specific area rules, and reconcile the baseline flat miss cost without assuming new prices or cancellation policy."
           ]
         }
       ]
@@ -3609,6 +3659,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack corrected PH-16-R2 from the initial reply 1 to option 2: \"i mean 2. depending on the ability, it can impact contact area\". Record ability-specific spatial contact-area changes, not a universal Star Swing bonus; actual contact remains required. Next PH-16-R3 compares full versus reduced resource cost on a missed Star Swing; neither cost policy is selected yet."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-16-R3 option 1: missed Star Swings spend the attempted ability full normal resource cost, without a miss discount/refund. Exact prices and deduction/cancellation timing remain open. Next PH-16-R4 compares one shared team resource pool for Star Pitches/Swings with separate pitching and batting pools; neither pool policy is selected yet."
     }
   ]
 }
