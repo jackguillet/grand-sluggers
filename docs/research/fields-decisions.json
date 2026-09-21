@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-01",
+  "next_decision": "FD-02",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -92,7 +92,7 @@
       "id": "FD-01",
       "area": "Direction",
       "question": "What does the fields phase authorize?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [],
       "source_ids": [
         "MW-MSS",
@@ -119,16 +119,31 @@
       "recommendation": "A first, then B park by park. Rails and greybox only. AGENTS.md keeps 'extra parks as products (#37)' on the do-not-start list; this phase changes that line only to name the rails work as allowed.",
       "existing_contract": "AGENTS.md 'Do not start: extra parks as products (#37)'. Roadmap rule 4 and Phase D ('three good parks beat six ugly ones'). #713 is the existing park override rail issue. art-rails.md rule 4: parks are kits, other parks wait for #37.",
       "acceptance": "A written scope line in AGENTS.md and roadmap.md that an agent can obey without asking. No park art is commissioned by this decision.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "A, then B",
+      "accepted_scope": "Build the park rails at Harbor parity and prove them on one second park as a greybox (A). Then bring the other listed parks to a playable greybox one park at a time (B). No park art is authorized: art stays behind #37, Phase T and each park's greybox sitting. This selects no first park (FD-18), no park roster change, no lever, no hazard rule and no number.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-01: rails only on one park / rails then every park as a greybox / rails and art together",
+        "answer_quote": "A first, then B park by park"
+      },
+      "numeric_targets": "not applicable: a scope decision",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A, then B",
+          "quote": "A first, then B park by park",
+          "scope": "Build the park rails at Harbor parity and prove them on one second park as a greybox (A). Then bring the other listed parks to a playable greybox one park at a time (B). No park art is authorized: art stays behind #37, Phase T and each park's greybox sitting. This selects no first park (FD-18), no park roster change, no lever, no hazard rule and no number."
+        }
+      ]
     },
     {
       "id": "FD-02",
@@ -905,6 +920,10 @@
     {
       "date": "2026-09-21",
       "event": "Register created from the user brief; all 19 choices open. Existing gameplay-spec decisions (D15, D19, D20) and the #693 accepted decisions remain in force."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-01 accepted by Jack: A first, then B park by park. The scope line was added to AGENTS.md, roadmap.md and art-rails.md in the same PR. 18 choices remain open."
     }
   ]
 }

@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **All 19 decisions are open. Nothing is implemented. No number is accepted.** Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. The other 18 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-02. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -145,7 +145,7 @@ Serial by default. Each epic is filed only when the decisions it needs are accep
 
 | Epic | Kind | Delivers | Needs | Rails |
 | --- | --- | --- | --- | --- |
-| **F0** Reconcile the standing orders | docs | AGENTS.md, roadmap.md, art-rails.md, parks.md and spec §14 say what this phase allows and what stays behind #37 | FD-01 | — |
+| **F0** Reconcile the standing orders | docs | Scope line in AGENTS.md, roadmap.md and art-rails.md: **done with FD-01**. Still owed: the parks.md and spec §14 corrections listed in the research report | FD-01 ✅ | — |
 | **F1** Schema and catalog | Gameplay | strict park schema, dead fields resolved, park list from the catalog, unknown id is an error | FD-01 | FR-03, FR-04, FR-06, FR-16 |
 | **F2** Geometry owner | Gameplay | park-neutral boundary type; Harbor's numbers as defaults; lopsided parks draw true; parity | FD-06, FD-07; coordinate #732 | FR-05, FR-06 |
 | **F3** Environment table | Gameplay | `AtPark`; ground and wall-material libraries; every park still names nothing; then one lever at a time as a trial | FD-03, FD-04, FD-05 | FR-01, FR-02, FR-06, FR-11 |
@@ -162,7 +162,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 | Order | Where | What the plan does |
 | --- | --- | --- |
-| "Do not start: extra parks as products (#37)" | AGENTS.md, roadmap rule 4 | Keeps it. FD-01 asks Jack to name rails and greybox as allowed work. Park art stays behind #37 and F9's gates. |
+| "Do not start: extra parks as products (#37)" | AGENTS.md, roadmap rule 4 | Kept. FD-01 (accepted) names rails and greybox as allowed work, one park at a time. Park art stays behind #37 and F9's gates. |
 | "Other parks stay JSON until Exhibition is the reason people stay" | AGENTS.md Art | Same. The plan makes the JSON true and the greybox honest; it commissions no mesh. |
 | Phase D order: Crystal as a kit, then one gimmick park | roadmap.md | FD-18 recommends the same first park. |
 | #713 sequencing: "after the compact contract is validated" | #713 | Parity rails (F1, F2, F3 parity, F6, F7) move no number and can precede 3e. Any park number waits for FD-13. |
@@ -179,9 +179,11 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 to FD-19 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 is **DIRECTION ACCEPTED**. FD-02 to FD-19 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
+
+**Decision — Jack, September 21, 2026: A, then B.** "A first, then B park by park." Build the rails at Harbor parity and prove them on one second park as a greybox. Then bring the other listed parks to a playable greybox one at a time. No park art: it stays behind #37, Phase T and each park's greybox sitting. This selects no first park (FD-18), no lever, no hazard rule and no number. The scope line is in [AGENTS.md](../AGENTS.md), [roadmap.md](roadmap.md) and [art-rails.md](art-rails.md). Full provenance is in the canonical JSON.
 
 Area: Direction. Depends on: none. Evidence: MW-MSS, SMB-TG, MH-STAD.
 
