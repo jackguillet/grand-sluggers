@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-10",
+  "next_decision": "FD-11",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -696,7 +696,7 @@
       "id": "FD-10",
       "area": "Hazards",
       "question": "Can the players turn park hazards off?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-08"
       ],
@@ -727,16 +727,31 @@
       "recommendation": "B, default on, built after the hazard runtime. FD-08 C makes the switch more important: with random hazards in play, the switch is how two players choose a straight game at any park. With hazards as a list of instances the switch is an empty list, and the park keeps its size, air and ground.",
       "existing_contract": "Title has a night toggle. Exhibition options are innings and difficulty (title X / LB). No hazard switch is documented for either Mario baseball game; Harbor is the clean park today.",
       "acceptance": "A friend on the couch can always play any park with no hazard. The park-factors report covers both states.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "B",
+      "accepted_scope": "A match option turns park hazards off. Default on. With hazards off the park keeps everything else it names: size, fence shape, walls, air, wind, ground zones, foul territory and depth. The switch empties the hazard instance list for the match; it changes no other rule. It is built after the hazard runtime (epic F4) and the park-factors report covers both states. Open as contract work: where the option sits on the title and its binding (a Presentation child with the paired HowToPlay and docs/how-to-play.md update), whether a wall trait such as a climbable span counts as a hazard (FD-06 made it a wall property, so the proposal is that it stays on), whether a night rule layer follows the switch (FD-11), and the CLI flag. Both seats and the CPU get the same state.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-10: no toggle / a match option, hazards off / day is clean and night has hazards",
+        "answer_quote": "b"
+      },
+      "numeric_targets": "not applicable: a match option",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b",
+          "scope": "A match option turns park hazards off. Default on. With hazards off the park keeps everything else it names: size, fence shape, walls, air, wind, ground zones, foul territory and depth. The switch empties the hazard instance list for the match; it changes no other rule. It is built after the hazard runtime (epic F4) and the park-factors report covers both states. Open as contract work: where the option sits on the title and its binding (a Presentation child with the paired HowToPlay and docs/how-to-play.md update), whether a wall trait such as a climbable span counts as a hazard (FD-06 made it a wall property, so the proposal is that it stays on), whether a night rule layer follows the switch (FD-11), and the CLI flag. Both seats and the CPU get the same state."
+        }
+      ]
     },
     {
       "id": "FD-11",
@@ -1219,6 +1234,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-19 accepted by Jack: B, hazards may sit anywhere except the running lanes, the mound-to-plate lane and the bags, enforced by the validator on both roots. 6 choices remain open; next is FD-10."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-10 accepted by Jack: B, a hazards-off match option, default on. The park keeps its size, walls, air and ground. 5 choices remain open; next is FD-11."
     }
   ]
 }
