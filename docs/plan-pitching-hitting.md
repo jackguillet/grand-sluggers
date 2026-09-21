@@ -1,6 +1,6 @@
 # Pitching and hitting decision plan
 
-Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), serving #209 and coordinating #534. Session kind: **Gameplay research/documentation**. Baseline: `05471a6`. Research: [reference comparison](research-pitching-hitting.md). Canonical structured record: [pitching-hitting-decisions.json](research/pitching-hitting-decisions.json).
+Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), serving #209 and coordinating #534. Session kind: **Gameplay research/documentation**. Baseline: `05471a6`. Research: [reference comparison](research-pitching-hitting.md). Canonical structured record: [pitching-hitting-decisions.json](research/pitching-hitting-decisions.json). Implementation order, open contract items and the ledger: [plan-pitching-hitting-implementation.md](plan-pitching-hitting-implementation.md).
 
 ## Current state
 
