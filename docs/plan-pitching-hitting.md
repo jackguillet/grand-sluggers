@@ -4,13 +4,13 @@ Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), servi
 
 ## Current state
 
-Research foundation prepared; **PH-01, PH-09, PH-02, PH-03 and PH-04 directions accepted; 15 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; no individual rule has yet been superseded.
+Research foundation prepared; **Six directions accepted (PH-01–05 and PH-09); 14 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; no individual rule has yet been superseded.
 
 This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
 
 ## How we use this together
 
-1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-05**, pitch execution.
+1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-06**, what the opponent can read.
 2. Record Jack's answer in the JSON: selected option (or a clearly described custom answer), accepted scope, exact qualification, local date, author and a conversation/issue reference or quoted answer. Recommendation never counts as selection.
 3. Append history rather than erase a prior choice. Record supersession explicitly; link the replacement and named gameplay-spec decision affected.
 4. Direction acceptance selects intent only. Numeric targets stay null until a later scoped trial is accepted with units, conditions, rationale and evidence limits.
@@ -27,7 +27,7 @@ Status progression: `open → direction-accepted → trial-accepted → implemen
 
 ## Decision register
 
-PH-01, PH-09, PH-02, PH-03 and PH-04 are **DIRECTION ACCEPTED**; the other 15 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
+PH-01–05 and PH-09 are **DIRECTION ACCEPTED**; the other 14 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
 
 ### PH-01 — What should added depth primarily ask the player to do?
 
@@ -94,6 +94,8 @@ Area: Pitching. Depends on: PH-02, PH-03. Evidence: GC, WII.
 **Acceptance:** A legal late action can fool a committed swing but cannot create an unreadable unavoidable strike for a waiting hitter.
 
 ### PH-05 — What makes a pitch well executed?
+
+**Decision — Jack, September 20, 2026: B.** Reply “2” selects a stronger power-versus-control tradeoff using the same charge/release controls. Pursuing more power makes the pitch harder to control. The form and strength of that challenge, affected pitches, charge/release details, fatigue interaction and numbers remain open; no separate accuracy minigame or particular random-error model is selected. Preserve PH-03 mound/shape location and PH-04 live steering. Direction only; no runtime change or passed playtest. Evidence: this task’s PH-05 reply; full provenance is in the canonical JSON.
 
 Area: Pitching. Depends on: PH-03, PH-04. Evidence: WII, SMB-EI, SHOW-P.
 
@@ -331,7 +333,8 @@ Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 - [x] Resolve PH-02: a small set of distinct ordinary pitches with clear purposes and weaknesses (Jack, September 20).
 - [x] Resolve PH-03: horizontal mound positioning plus pitch-defined height (Jack, September 20).
 - [x] Resolve PH-04: live left/right steering after release with readable limits (Jack, September 20).
-- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-05.
+- [x] Resolve PH-05: stronger power-versus-control tradeoff within charge/release (Jack, September 20).
+- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-06.
 - [ ] Collect matched reference observations and the required D7 standalone re-sit.
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
 - [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
