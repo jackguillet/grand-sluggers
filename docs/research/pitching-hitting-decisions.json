@@ -129,7 +129,7 @@
       "existing_contract": "Current PitchFlight has fastball/changeup base shapes; stars are separate. No new pitch count is selected.",
       "acceptance": "Each pitch has a readable trajectory, tactical use, counterplay and reason not to throw it every time.",
       "selected_option": "B",
-      "accepted_scope": "Develop distinct ordinary pitches with clear tactical purposes, readable behavior and weaknesses. PH-02-R1 fixes exactly three ordinary pitches per pitcher, with character-specific selections from a shared library; charging modifies a pitch and Star Pitches sit outside the count. PH-02-R2 fixes the library as fastball, changeup, curveball, slider and sinker with their recorded game roles. PH-15-R1/R2/R4 fix universal fastball access and starting assignments for all 25 existing characters. PH-02-R3 requires ordinary pitch selection before charge, with the type locked at charge start and a common charge/release action. Exact selection bindings, detailed weaknesses/counterplay and numerical tuning remain open; location and live steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. Original scopes are preserved in history and each refinement.",
+      "accepted_scope": "Develop distinct ordinary pitches with clear tactical purposes, readable behavior and weaknesses. PH-02-R1 fixes exactly three ordinary pitches per pitcher, with character-specific selections from a shared library; charging modifies a pitch and Star Pitches sit outside the count. PH-02-R2 fixes the library as fastball, changeup, curveball, slider and sinker with their recorded game roles. PH-15-R1/R2/R4 fix universal fastball access and starting assignments for all 25 existing characters. PH-02-R3 requires ordinary pitch selection before charge, with the type locked at charge start and a common charge/release action. PH-02-R4 selects one button cycling through the three ordinary pitches before charge. Exact binding, order, selection reset/persistence, feedback, detailed weaknesses/counterplay and numerical tuning remain open; location and live steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. Original scopes are preserved in history and each refinement.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -181,6 +181,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Select the ordinary pitch type before starting the charge. Starting the common charge/release action locks that type for the delivery; changing a selection or modifier during the load cannot substitute another ordinary pitch at release. Preserve the common charge/release controls, power/control tradeoff and live steering after release. This locks pitch family, not the entire trajectory. Exact selection bindings, default/persistence behavior, confirmation feedback and pitcher cancellation/rearming rules remain open; PH-13 accepted a hitter cancel and does not by itself select a pitcher cancel. Ordinary-play feedback must preserve PH-06 opponent information limits. Direction refinement only; no runtime change, numeric tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-02-R4",
+          "choice": "2",
+          "quote": "2",
+          "scope": "Use one selection button to cycle through the pitcher\u2019s three ordinary pitches before charging. Each press advances to the next choice and the cycle wraps; selecting a pitch does not start its delivery. Preserve PH-02-R3: starting the common charge/release action locks the selected family, so later cycle inputs cannot swap that delivery\u2019s type. Live steering remains after release. Exact hardware binding, cycle ordering, default/reset or persistence policy, feedback and simultaneous-input precedence remain open. Preserve PH-06 ordinary-play information limits and existing pickoff/bag controls. Direction refinement only; no runtime change, numeric tuning trial or human acceptance."
         }
       ],
       "refinements": [
@@ -312,6 +322,70 @@
             "Charge/release and legal live steering remain active within the selected family; locking type does not freeze trajectory steering.",
             "Audit input precedence and shared-screen feedback across both seats and keyboard/mouse; retain D-pad bag/pickoff inputs and PH-06 ordinary-play information limits."
           ]
+        },
+        {
+          "id": "PH-02-R4",
+          "question": "How should you select among the three pitches?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Direct selection input for each pitch"
+            },
+            {
+              "id": "2",
+              "label": "One button cycles through the three pitches"
+            }
+          ],
+          "selected_option": "2",
+          "accepted_scope": "Use one selection button to cycle through the pitcher\u2019s three ordinary pitches before charging. Each press advances to the next choice and the cycle wraps; selecting a pitch does not start its delivery. Preserve PH-02-R3: starting the common charge/release action locks the selected family, so later cycle inputs cannot swap that delivery\u2019s type. Live steering remains after release. Exact hardware binding, cycle ordering, default/reset or persistence policy, feedback and simultaneous-input precedence remain open. Preserve PH-06 ordinary-play information limits and existing pickoff/bag controls. Direction refinement only; no runtime change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "ordinary_pitch_selection_method": "single-button cycle",
+            "selection_phase": "before charge",
+            "cycle_wraps": true,
+            "type_locks_at": "start of charge"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-02-R4: How should you select among the three pitches? 1. Direct selection (recommended): each pitch has its own selection button; one press selects a known pitch, then the common button charges/releases it. 2. Cycle selection: one button cycles through the three pitches; fewer bindings, but sometimes multiple presses. Exact controller and keyboard bindings follow this choice.",
+            "answer_quote": "2"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        }
+      ],
+      "discussion": [
+        {
+          "id": "PH-02-R5",
+          "date": "2026-09-21",
+          "status": "proposal",
+          "question": "Which cycling flow should we use between pitches?",
+          "recommendation": "Use the inspected RB/Tab cycle binding with a known fastball default each pitch, so a shared screen need not reveal the active selection.",
+          "common_flow": [
+            "RB on controller / Tab on keyboard cycles before charge.",
+            "Cycle order is Fastball, then the two alternatives in the accepted repertoire order, then Fastball.",
+            "South / Space / Enter / left click is the common charge/release action; charge start locks the pitch family.",
+            "The shared display may list all three available pitches and their order without highlighting or labeling the current selection.",
+            "Existing stick movement, D-pad bag/pickoff inputs and live steering retain their roles."
+          ],
+          "options": [
+            {
+              "id": "1",
+              "label": "Reset to Fastball for each new pitch",
+              "tradeoff": "Known starting point; zero, one or two taps selects a pitch without a public active-type indicator."
+            },
+            {
+              "id": "2",
+              "label": "Remember the last selection between pitches",
+              "tradeoff": "Fewer taps for repetition; the pitcher must track the retained selection. A pitcher swap starts at Fastball."
+            }
+          ],
+          "limits": "Entire flow remains a proposal pending Jack\u2019s answer. Existing Controls.CyclePitch exposes RB/Tab but does not prove live implementation. Shared-screen feedback must respect PH-06. This does not select a new aiming overlay, timing value, or numeric accuracy change."
         }
       ]
     },
@@ -2385,6 +2459,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-02-R3 option 1: select ordinary pitch type before charging and lock that family at charge start; retain common charge/release and live steering. Next PH-02-R4 compares direct pitch selection with cycling through the three choices. Exact bindings and feedback remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-02-R4 option 2: a single button cycles through the three ordinary pitches before charging. Prepared PH-02-R5 as a proposed RB/Tab cycling flow with a reset-versus-persistence choice and no shared-screen active-pitch disclosure. Binding and default policy remain unaccepted."
     }
   ]
 }
