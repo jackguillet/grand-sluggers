@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-19",
+  "next_decision": "PH-07",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -1127,7 +1127,7 @@
       "id": "PH-19",
       "area": "Understanding",
       "question": "What feedback teaches the duel without giving it away?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-06",
         "PH-10",
@@ -1157,16 +1157,36 @@
       "recommendation": "A supported by readable body/ball cues. Training can expose more; ordinary play should not disclose private pitch targets.",
       "existing_contract": "MAX describes charge; hit-quality words follow actual contact. Coordinate tutorials with #770 and paired HowToPlay/docs changes.",
       "acceptance": "A stranger can name why a miss or weak hit occurred and deliberately improve on the next attempt without external instructions.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Use brief causal feedback after the pitch to explain timing, contact placement or charge when relevant, with optional deeper practice detail. Feedback describes the actual result and supports deliberate improvement; MAX describes charge, and contact-quality labels require actual contact. Preserve PH-06 ordinary-play information rules and PH-17 identical gameplay difficulty/forgiveness. This does not select live opponent target or trajectory coaching, a mechanical assist, exact wording, layout, duration or practice interface. Coordinate implementation with the existing tutorial and paired HowToPlay/docs owners. Direction acceptance only; no runtime or presentation change and no human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-19: How should the game explain each pitch\u2019s result? 1. Brief feedback after the pitch (recommended): explain timing, contact placement, or charge when relevant, with optional deeper practice detail. 2. Minimal text: rely mainly on animation, ball movement, and sound; keep the screen cleaner, but mistakes may be harder to diagnose. Both preserve fixed forgiveness and ordinary-play information rules. Presented option 1 maps to canonical A; option 2 maps to canonical C.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "Use brief causal feedback after the pitch to explain timing, contact placement or charge when relevant, with optional deeper practice detail. Feedback describes the actual result and supports deliberate improvement; MAX describes charge, and contact-quality labels require actual contact. Preserve PH-06 ordinary-play information rules and PH-17 identical gameplay difficulty/forgiveness. This does not select live opponent target or trajectory coaching, a mechanical assist, exact wording, layout, duration or practice interface. Coordinate implementation with the existing tutorial and paired HowToPlay/docs owners. Direction acceptance only; no runtime or presentation change and no human playtest acceptance."
+        }
+      ],
+      "validation_requirements": [
+        "Explain actual timing, placement or charge causes without reporting charge as contact quality or attributing contact quality to a miss.",
+        "Ordinary-play feedback respects PH-06 information limits and changes no forgiveness under PH-17; optional practice detail remains explanatory.",
+        "Verify a learner can use the explanation to improve the next attempt; coordinate tutorial #770 and paired HowToPlay/docs updates in the appropriate implementation scope."
+      ]
     },
     {
       "id": "PH-20",
@@ -1283,6 +1303,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-18 option A: human-equivalent legal actions, bounded reads and committed swings; no future-input knowledge. Three choices remain open. Discuss PH-19 feedback next, then return to PH-07 pace under the D7 re-sit hold and PH-20 delivery."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-19 option A: brief causal post-pitch feedback with optional deeper practice detail, preserving ordinary-play information and fixed forgiveness. Two choices remain open: PH-07 pace under the D7 re-sit hold, then PH-20 delivery."
     }
   ]
 }

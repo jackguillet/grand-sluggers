@@ -4,13 +4,13 @@ Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), servi
 
 ## Current state
 
-Research foundation prepared; **Seventeen directions accepted (PH-01–06 and PH-08–18); 3 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
+Research foundation prepared; **Eighteen directions accepted (PH-01–06 and PH-08–19); 2 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
 
 This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
 
 ## How we use this together
 
-1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-19**, feedback and teaching; then return to PH-07 pace under the D7 re-sit hold. PH-14 also retains Jack’s contact-quality follow-up and the proposed answer.
+1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-07**, pace under the D7 re-sit hold. PH-14 also retains Jack’s contact-quality follow-up and the proposed answer.
 2. Record Jack's answer in the JSON: selected option (or a clearly described custom answer), accepted scope, exact qualification, local date, author and a conversation/issue reference or quoted answer. Recommendation never counts as selection.
 3. Append history rather than erase a prior choice. Record supersession explicitly; link the replacement and named gameplay-spec decision affected.
 4. Direction acceptance selects intent only. Numeric targets stay null until a later scoped trial is accepted with units, conditions, rationale and evidence limits.
@@ -27,7 +27,7 @@ Status progression: `open → direction-accepted → trial-accepted → implemen
 
 ## Decision register
 
-PH-01–06 and PH-08–18 are **DIRECTION ACCEPTED**; the other 3 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
+PH-01–06 and PH-08–19 are **DIRECTION ACCEPTED**; the other 2 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
 
 ### PH-01 — What should added depth primarily ask the player to do?
 
@@ -323,6 +323,8 @@ Area: CPU. Depends on: PH-03, PH-04, PH-06. Evidence: Legacy.
 
 ### PH-19 — What feedback teaches the duel without giving it away?
 
+**Decision — Jack, September 21, 2026: A.** Reply “1” selects brief causal feedback after the pitch, explaining timing, contact placement or charge when relevant, with optional deeper practice detail. Preserve PH-06’s ordinary-play information rules and PH-17’s identical forgiveness. Feedback must describe actual outcomes: MAX is charge, and contact-quality words require actual contact. Exact copy, layout, duration and practice interface remain open; coordinate #770 and the paired HowToPlay/docs changes. Direction only; no runtime/presentation change or passed playtest. Evidence: this task’s PH-19 reply; full provenance is in the canonical JSON.
+
 Area: Understanding. Depends on: PH-06, PH-10, PH-11. Evidence: SMB4, SHOW-H.
 
 - **A — Brief causal feedback:** Explain timing, coverage and charge after the pitch, with optional deeper practice detail.
@@ -373,7 +375,8 @@ Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 - [x] Resolve PH-08: gradual visible fatigue driven mainly by effort (Jack, September 20).
 - [x] Resolve PH-17: one fixed challenge with identical difficulty and forgiveness (Jack, September 21; presented option 2 = canonical C).
 - [x] Resolve PH-18: human-equivalent CPU action limits, bounded reads and committed swings (Jack, September 21).
-- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-19; pace remains in its later D7-gated discussion.
+- [x] Resolve PH-19: brief causal post-pitch feedback with optional deeper practice detail (Jack, September 21).
+- [ ] Resolve PH-07 pace under the D7 re-sit hold, then PH-20 delivery with Jack.
 - [ ] Collect matched reference observations and the required D7 standalone re-sit.
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
 - [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
