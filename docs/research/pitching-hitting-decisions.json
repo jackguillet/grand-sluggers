@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-15",
+  "next_decision": "PH-16",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -865,7 +865,7 @@
       "id": "PH-15",
       "area": "Roster",
       "question": "How much should characters, hands and gear change the duel?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-02",
         "PH-10"
@@ -894,16 +894,31 @@
       "recommendation": "A with selected B traits if the chosen repertoire supports them. Preserve the shared rig and systems.",
       "existing_contract": "No new captain, second skeleton or one-captain resolver. Equipment and chemistry must be included in balance trials.",
       "acceptance": "Rio and Ashlord, both hands, contact/power archetypes and relevant gear all follow the same taught rules.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B",
+      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model. Preserve the same controls and contact rules across characters so roster differences add matchup strategy without separate games to learn. Exact pitch selections, trait definitions, character assignments, numerical strengths and gear interactions remain open. This does not select unique character control schemes, separate contact resolvers, a new captain or a second rig. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-15: 1. Same tools, different stat strengths; 2. Distinct repertoires and traits, with shared controls and contact rules. Exact pitches and traits follow afterward.",
+        "answer_quote": "2"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "2",
+          "scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model. Preserve the same controls and contact rules across characters so roster differences add matchup strategy without separate games to learn. Exact pitch selections, trait definitions, character assignments, numerical strengths and gear interactions remain open. This does not select unique character control schemes, separate contact resolvers, a new captain or a second rig. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-16",
@@ -1179,6 +1194,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-14 option A: simple situational bunting, and asked about contact-quality-driven bunt quality. That follow-up and the bunt-specific control/deadening proposal are recorded separately. Eight choices remain open; no numeric target or new bunt response formula accepted."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-15 option B: distinct repertoires and traits within shared controls and contact rules. Seven choices remain open; exact pitch/trait assignments, numbers and gear interactions remain unselected. PH-14\u2019s proposed bunt-quality refinement remains a separate discussion."
     }
   ]
 }
