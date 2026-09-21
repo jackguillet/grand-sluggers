@@ -1765,7 +1765,7 @@
       "existing_contract": "No new captain, second skeleton or one-captain resolver. Equipment and chemistry must be included in balance trials.",
       "acceptance": "Rio and Ashlord, both hands, contact/power archetypes and relevant gear all follow the same taught rules.",
       "selected_option": "B",
-      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. PH-15-R2 accepts the seven starting captain assignments recorded in its contract, including shared Rio/Fenn families. PH-15-R3 requires individually authored role-player repertoires within the fastball-plus-two composition, without granting captain Star Pitches. PH-15-R4 accepts the 18 starting role-player assignments recorded in its contract. Trait definitions, numerical strengths, selection controls and gear interactions remain open. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
+      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. PH-15-R2 accepts the seven starting captain assignments recorded in its contract, including shared Rio/Fenn families. PH-15-R3 requires individually authored role-player repertoires within the fastball-plus-two composition, without granting captain Star Pitches. PH-15-R4 accepts the 18 starting role-player assignments recorded in its contract. PH-15-R5 separates independently authored batting Contact and Power. Exact attribute effects, rating scales/values, pitching attributes and gear interactions remain open; selection controls follow the accepted PH-02/PH-13/PH-14 refinements. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1827,6 +1827,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Accept the complete PH-15-R4 starting assignment set for the 18 existing role players, exactly as shown in the review canvas and recorded in the contract. Each has Fastball plus the two individually authored library choices; combinations may repeat and no captain Star Pitches are granted. Existing throwing hands are context only and are not changed by this acceptance. Role-player pitch membership is now selected; exact traits, pitch strengths, detailed weaknesses/counterplay, selection controls and tuning remain open. These are accepted starting design assignments, not runtime implementation, proven balance or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-15-R5",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Separate batting Contact and Power into independently authored character attributes. Contact represents contact reliability/forgiveness within the player-controlled geometric contact model; Power represents hitting strength. A contact hitter need not also hit hard, and a powerful hitter can have less forgiving contact. Exact effects on contact regions or timing, rating scale, per-character values, equipment interactions and migration from the existing Bat rating remain open. This does not select automatic hit probability, a new aiming control or a new HUD. Preserve shared controls, PH-10 contact/timing rules, PH-17 fixed human assistance policy and PH-14 bunt-specific softness/control. Direction refinement only; no runtime change, numeric tuning trial or human acceptance."
         }
       ],
       "refinements": [
@@ -2274,6 +2284,50 @@
           "implementation_issues": [],
           "validation_evidence": [],
           "human_acceptance": null
+        },
+        {
+          "id": "PH-15-R5",
+          "question": "Should batting Contact and Power be separate attributes?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Separate Contact and Power attributes"
+            },
+            {
+              "id": "2",
+              "label": "One broad Bat rating with character traits"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Separate batting Contact and Power into independently authored character attributes. Contact represents contact reliability/forgiveness within the player-controlled geometric contact model; Power represents hitting strength. A contact hitter need not also hit hard, and a powerful hitter can have less forgiving contact. Exact effects on contact regions or timing, rating scale, per-character values, equipment interactions and migration from the existing Bat rating remain open. This does not select automatic hit probability, a new aiming control or a new HUD. Preserve shared controls, PH-10 contact/timing rules, PH-17 fixed human assistance policy and PH-14 bunt-specific softness/control. Direction refinement only; no runtime change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "batting_attributes": [
+              "Contact",
+              "Power"
+            ],
+            "independently_authored": true,
+            "contact_role": "contact reliability/forgiveness within geometric player-controlled contact; exact mapping open",
+            "power_role": "hitting strength",
+            "rating_scale_and_values": "open"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-15-R5: Should batting Contact and Power be separate attributes? 1. Separate them (recommended): a hitter can make contact reliably without hitting hard, or hit hard with less forgiving contact. 2. Keep one broad Bat rating: use a few character traits to distinguish hitting styles. Both preserve player-controlled contact and the same batting controls. Exact ratings come later.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Allow independent Contact/Power authoring without deriving both from the old Bat field by default. Define migration and gear behavior before implementation.",
+            "Resolve hits through the same actual contact model, not a stat-based random successful-hit roll.",
+            "Distinguish high-Contact/low-Power and low-Contact/high-Power examples through the chosen contract once effects and values are specified; preserve bunt-specific quality response."
+          ]
         }
       ],
       "discussion": [
@@ -3099,6 +3153,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-13-R1 option 1 and common flow: East/G cancels uncommitted load, directional bunt hold directly replaces it, charge is discarded, swing-button release commits and old holds must be released/repressed after cancellation. Next PH-15-R5 discusses separating batting Contact and Power; exact stats and tuning remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-15-R5 option 1: separate independently authored batting Contact and Power; exact effects, ratings and migration remain open. Next PH-15-R6 compares separate pitching Velocity/Movement/Control/Endurance attributes with one broad Pitch rating plus traits."
     }
   ]
 }
