@@ -1270,7 +1270,7 @@
       "existing_contract": "Existing S-18/19 and two-strike foul-bunt rules remain; do not create a guaranteed CPU exploit.",
       "acceptance": "A bunt is a live ball with an earned outcome; both humans and CPU can defend it and a foul bunt with two strikes retires the batter.",
       "selected_option": "A",
-      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. This resolves the earlier quality question; response curves, placement controls and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
+      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. PH-14-R2 adds an explicit first-/third-base-side preference for bunts, separating intended direction from contact quality. It does not add directional shaping to ordinary swings or guarantee a landing or safe result. Exact bindings, commitment timing, defaults, response curves and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1302,6 +1302,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Use actual contact quality to govern both bunt softness/deadening and control through a bunt-specific response. Good contact favors a soft controlled bunt; poor contact can produce a popup, excessive pace or a foul according to contact and pitch geometry. Better bunt contact must not simply inherit the ordinary swing rule of greater exit power. Preserve simple square/contact behavior, ordinary legal contact judgment, live defensive resolution and the two-strike foul-bunt rule. No automatic successful sacrifice, safe/out result or separate quality meter is selected. Exact response curves, placement/directional controls, pitch-height interaction and numerical tuning remain open. This resolves Jack\u2019s earlier contact-quality question at the directional level; no runtime change, numeric tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-14-R2",
+          "choice": "2",
+          "quote": "option 2.",
+          "scope": "Give the batter an explicit first-base-side or third-base-side bunt preference, separate from earning contact quality through batter positioning and contact. PH-14-R1 quality determines how softly and accurately the bunt comes off; deliberate placement must not inherently require sacrificing centered contact. The preference biases the outgoing bunt, not an exact landing point or guaranteed fair ball, sacrifice or safe result. Preserve live defense, two-strike foul-bunt rules, horizontal batter-linked coverage and the PH-12 exclusion of extra directional shaping for ordinary swings. This direction control is bunt-specific. Exact bindings, side-change/commit timing, default selection, presentation and numerical response curves remain open. Direction refinement only; no runtime/presentation change, numeric tuning trial or human acceptance."
         }
       ],
       "discussion": [
@@ -1319,6 +1329,15 @@
             "answer_quote": "1",
             "refinement_id": "PH-14-R1"
           }
+        },
+        {
+          "date": "2026-09-21",
+          "refinement_id": "PH-14-R2",
+          "status": "direction-accepted",
+          "user_question": "how would option 1 work?",
+          "clarification": "The assistant explained that option 1 would need an authored off-center contact-to-direction response and would couple intended side to contact quality. It revised its recommendation from option 1 to option 2 before Jack selected option 2.",
+          "baseline_evidence": "At baseline 05471a6, AtBatResolver.cs:121\u2013128 suppresses timing spray for bunts and combines supplied SprayAimDeg with spread; it does not establish the proposed signed contact-offset direction mapping.",
+          "limits": "This is a design clarification and accepted side-preference direction, not proof of new runtime behavior. Exact aim controls and response curves remain open."
         }
       ],
       "refinements": [
@@ -1362,6 +1381,48 @@
             "Poor-contact outcomes follow the actual contact and pitch geometry; no random categorical safe/out or automatic sacrifice.",
             "A well-contacted bunt can still be fielded for an out; fair/foul, two-strike foul-bunt retirement and both human/CPU defense remain authoritative.",
             "Verify both batting hands and all accepted ordinary pitch families once the response curves and placement contract are specified."
+          ]
+        },
+        {
+          "id": "PH-14-R2",
+          "question": "How should the player direct a bunt?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Direction from positioning and contact, without extra aim"
+            },
+            {
+              "id": "2",
+              "label": "Explicit first-base-side or third-base-side preference"
+            }
+          ],
+          "selected_option": "2",
+          "accepted_scope": "Give the batter an explicit first-base-side or third-base-side bunt preference, separate from earning contact quality through batter positioning and contact. PH-14-R1 quality determines how softly and accurately the bunt comes off; deliberate placement must not inherently require sacrificing centered contact. The preference biases the outgoing bunt, not an exact landing point or guaranteed fair ball, sacrifice or safe result. Preserve live defense, two-strike foul-bunt rules, horizontal batter-linked coverage and the PH-12 exclusion of extra directional shaping for ordinary swings. This direction control is bunt-specific. Exact bindings, side-change/commit timing, default selection, presentation and numerical response curves remain open. Direction refinement only; no runtime/presentation change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "bunt_direction_control": "explicit first-base-side or third-base-side preference",
+            "quality_role": "softness/deadening and accuracy of execution",
+            "ordinary_swing_direction_control": "unchanged; PH-12 remains",
+            "landing_or_safe_result_guaranteed": false
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-14-R2: How should the player direct a bunt? 1. Positioning and contact (initial recommendation): batter positioning and actual contact determine direction without an extra aiming control. 2. Choose a side: add a first-base/third-base-side preference; contact quality still determines how well the bunt comes off. Neither guarantees a landing spot or reaching base. After Jack asked how option 1 would work, the assistant explained that its proposed off-center contact bias was not established in current code and would couple placement to worse contact quality, then revised its recommendation to option 2: choose the intended side and earn softness/accuracy through contact quality.",
+            "clarification_question_quote": "how would option 1 work?",
+            "answer_quote": "option 2."
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Allow a centered, well-contacted bunt toward either selected side without intentionally worsening contact quality just to choose direction.",
+            "Use side preference as an input to the actual outgoing ball calculation; landing, fair/foul and defensive outcome remain geometric.",
+            "Keep first-/third-base semantics consistent for both batting hands and controller seats; define the screen/control mapping in the paired teaching contract.",
+            "Bunt-side inputs must not restore direct spray/loft control to ordinary swings or conflict with horizontal coverage, withdrawal and baserunning."
           ]
         }
       ]
@@ -2714,6 +2775,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-14-R1 option 1: actual contact quality governs bunt-specific softness and control, resolving the earlier quality proposal. Poor contact can pop up, carry excessive pace or foul according to geometry; live defense and two-strike foul-bunt rules remain. Next PH-14-R2 settles directional placement controls; curves and tuning remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "After asking how PH-14-R2 option 1 would work and hearing the revised recommendation, Jack selected \u201coption 2.\u201d: an explicit first-/third-base-side bunt preference with softness/accuracy earned through contact quality. Next PH-14-R3 chooses when that preference can change; exact bindings and tuning remain open."
     }
   ]
 }
