@@ -140,6 +140,10 @@ public static class ChargeButton
 /// 0 is the fastball every pitcher throws, 1 the second pitch, 2 the third.
 ///
 /// <c>default</c> is slot 0 (fastball), unlocked — the state every SET starts in.
+///
+/// <b>A lock exists only while the charge button is armed</b>: <see cref="PitchSelection.Advance"/>
+/// reads a <see cref="Locked"/> state whose button is not armed as stale and clears it, so a caller
+/// that skips the tick the charge went away cannot strand the selection.
 /// </summary>
 public readonly record struct PitchSelectionState(int Slot, bool Locked)
 {
@@ -193,6 +197,13 @@ public readonly record struct PitchSelectionStep(
 /// unselected); it only makes the edge that already exists deterministic.</item>
 /// </list>
 ///
+/// The lock is held by an <b>invariant</b>, not only by that edge: a lock exists only while the
+/// charge button is armed. A caller that skips the tick the charge went away — an early return in
+/// SET for the swap pick, a pause, a tutorial gate — would otherwise strand the selection locked
+/// with a disarmed button, with no later tick able to see the releasing edge and every cycle press
+/// ignored until someone reset it. A locked state whose button is not armed is read as unlocked,
+/// so the next press cycles and the next charge locks afresh.
+///
 /// A slot is <b>selectable</b> when its family has an authored row in the active table
 /// (<see cref="PitchFamilyTable.IsAuthored"/>, #810): an unauthored family is skipped, so zero, one
 /// or two presses always land on a pitch that can fly. <c>selectable</c> the parameter is the
@@ -241,16 +252,22 @@ public static class PitchSelection
         RequireFastball(repertoire, authored);
 
         var slot = Sound(state.Slot, repertoire, authored);
-        var locked = state.Locked;
+
+        // The invariant: a lock exists only while the charge button is armed. A locked state with a
+        // disarmed button is a releasing edge the caller skipped (an early return in SET), not a
+        // charge; reading it as unlocked keeps the selection from stranding until the next Reset.
+        var locked = state.Locked && prevButton.Armed;
 
         // (a) Cycle, before the lock, so a press on the arming tick is never dropped.
         if (!locked && selectable && cyclePressed)
             slot = NextSelectable(slot, repertoire, authored);
 
         // (b) The arm edge: the charge takes the family as it stands now. A press-and-release on one
-        // tick commits without ever reporting Armed, so the commit is an arm edge too.
+        // tick commits without ever reporting Armed, so the commit is an arm edge too. An arm edge
+        // needs a disarmed button, and the invariant above means a disarmed button is never locked,
+        // so an edge always takes a fresh lock — including the one after a skipped release.
         var armedNow = !prevButton.Armed && (buttonStep.Next.Armed || buttonStep.Committed);
-        var lockedThisTick = armedNow && !locked;
+        var lockedThisTick = armedNow;
         if (armedNow) locked = true;
 
         // (c) The delivery left: throw the locked family and start the next SET on the fastball.
