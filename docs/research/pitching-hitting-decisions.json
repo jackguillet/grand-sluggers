@@ -1270,7 +1270,7 @@
       "existing_contract": "Existing S-18/19 and two-strike foul-bunt rules remain; do not create a guaranteed CPU exploit.",
       "acceptance": "A bunt is a live ball with an earned outcome; both humans and CPU can defend it and a foul bunt with two strikes retires the batter.",
       "selected_option": "A",
-      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. PH-14-R2 adds an explicit first-/third-base-side preference for bunts, separating intended direction from contact quality. It does not add directional shaping to ordinary swings or guarantee a landing or safe result. Exact bindings, commitment timing, defaults, response curves and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
+      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. PH-14-R2 adds an explicit first-/third-base-side preference for bunts, separating intended direction from contact quality. It does not add directional shaping to ordinary swings or guarantee a landing or safe result. PH-14-R3 allows side changes while squared up until contact, with bat angle showing the current choice and no post-contact redirection. Exact bindings, contact-action/withdrawal behavior, defaults, animation transitions, response curves and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1312,6 +1312,16 @@
           "choice": "2",
           "quote": "option 2.",
           "scope": "Give the batter an explicit first-base-side or third-base-side bunt preference, separate from earning contact quality through batter positioning and contact. PH-14-R1 quality determines how softly and accurately the bunt comes off; deliberate placement must not inherently require sacrificing centered contact. The preference biases the outgoing bunt, not an exact landing point or guaranteed fair ball, sacrifice or safe result. Preserve live defense, two-strike foul-bunt rules, horizontal batter-linked coverage and the PH-12 exclusion of extra directional shaping for ordinary swings. This direction control is bunt-specific. Exact bindings, side-change/commit timing, default selection, presentation and numerical response curves remain open. Direction refinement only; no runtime/presentation change, numeric tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-14-R3",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Allow the batter to change the first-/third-base-side bunt preference while squared up until contact. The bat angle visibly communicates the current choice so the defense can read it. Contact fixes the outgoing ball; later side inputs cannot redirect that ball. Preserve PH-14-R1 softness/control from actual contact quality and PH-14-R2 separation of placement intent from contact quality. This does not lock direction when first squaring up or guarantee a landing point. Exact bindings, contact-action/withdrawal behavior, default preference, animation transitions and numerical curves remain open. The bat-angle cue requires authored presentation in its own scope; no animation or runtime change is made here. Direction refinement only; no numeric tuning trial or human acceptance."
         }
       ],
       "discussion": [
@@ -1423,6 +1433,46 @@
             "Use side preference as an input to the actual outgoing ball calculation; landing, fair/foul and defensive outcome remain geometric.",
             "Keep first-/third-base semantics consistent for both batting hands and controller seats; define the screen/control mapping in the paired teaching contract.",
             "Bunt-side inputs must not restore direct spray/loft control to ordinary swings or conflict with horizontal coverage, withdrawal and baserunning."
+          ]
+        },
+        {
+          "id": "PH-14-R3",
+          "question": "When can you change the intended bunt side?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Change side while squared up until contact"
+            },
+            {
+              "id": "2",
+              "label": "Lock side when squaring up"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Allow the batter to change the first-/third-base-side bunt preference while squared up until contact. The bat angle visibly communicates the current choice so the defense can read it. Contact fixes the outgoing ball; later side inputs cannot redirect that ball. Preserve PH-14-R1 softness/control from actual contact quality and PH-14-R2 separation of placement intent from contact quality. This does not lock direction when first squaring up or guarantee a landing point. Exact bindings, contact-action/withdrawal behavior, default preference, animation transitions and numerical curves remain open. The bat-angle cue requires authored presentation in its own scope; no animation or runtime change is made here. Direction refinement only; no numeric tuning trial or human acceptance.",
+          "contract": {
+            "side_change_window": "while squared up until contact",
+            "side_locks_at": "contact",
+            "defensive_cue": "bat angle visibly shows current selected side",
+            "post_contact_redirection": false
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-14-R3: When can you change the intended side? 1. While squared up, until contact (recommended): react to the defense; the bat angle visibly shows your choice. 2. Lock it when you square up: earlier commitment gives the defense a more stable read. Neither option guarantees the ball reaches the intended spot.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Changing side before contact can change intended direction without reducing otherwise equivalent contact quality; after contact the ball trajectory is fixed.",
+            "Authored bat-angle presentation communicates the selected side and agrees with resolved direction intent for both hands and seats; no unseen direction flip or guaranteed landing marker.",
+            "Preserve actual fair/foul, live defense, two-strike foul-bunt rules and ordinary-swing direction policy."
           ]
         }
       ]
@@ -2779,6 +2829,10 @@
     {
       "date": "2026-09-21",
       "event": "After asking how PH-14-R2 option 1 would work and hearing the revised recommendation, Jack selected \u201coption 2.\u201d: an explicit first-/third-base-side bunt preference with softness/accuracy earned through contact quality. Next PH-14-R3 chooses when that preference can change; exact bindings and tuning remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-14-R3 option 1: change bunt side while squared up until contact, with visible bat-angle cue. Next PH-14-R4 consolidates the contact/withdrawal action: hold-to-bunt versus a separately timed bunt press. Exact bindings and authored presentation remain open."
     }
   ]
 }
