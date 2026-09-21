@@ -1,0 +1,1338 @@
+{
+  "schema_version": 1,
+  "title": "Fields decision register",
+  "created_local_date": "2026-09-21",
+  "timezone": "America/Los_Angeles",
+  "session_kind": "Gameplay research/documentation",
+  "baseline_revision": "d0c6e12c",
+  "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/814",
+  "research": "../research-fields.md",
+  "plan": "../plan-fields.md",
+  "code_maps": [
+    "fields-code-map-sim.md",
+    "fields-code-map-presentation.md"
+  ],
+  "measured_baseline": "fields-park-baseline.json",
+  "next_decision": null,
+  "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
+  "brief": {
+    "author": "Jack",
+    "date": "2026-09-21",
+    "scope": "Do for the fields what was done for gameplay and for pitching and hitting: thorough research, then planning matrices and documents, then implementation.",
+    "direction": "Harbor is the default. Give the other fields a unique look, potential hazards and qualities (size, air density, ground material, slickness). Establish rails and proper engineering patterns and processes before focusing on the artwork. No mechanic, park roster or number is accepted by the brief."
+  },
+  "status_vocabulary": [
+    "open",
+    "direction-accepted",
+    "trial-accepted",
+    "implemented",
+    "validated",
+    "human-accepted",
+    "deferred",
+    "rejected",
+    "superseded"
+  ],
+  "discussion_order": [
+    [
+      "FD-01",
+      "FD-02"
+    ],
+    [
+      "FD-09",
+      "FD-12",
+      "FD-16",
+      "FD-17"
+    ],
+    [
+      "FD-03",
+      "FD-04",
+      "FD-05",
+      "FD-06",
+      "FD-07"
+    ],
+    [
+      "FD-08",
+      "FD-19",
+      "FD-10",
+      "FD-11",
+      "FD-14"
+    ],
+    [
+      "FD-13",
+      "FD-15",
+      "FD-18"
+    ]
+  ],
+  "baseline_sha256": {
+    "docs/gameplay-spec.md": "c7095cc4a394c643788b0657a18bc944624154e99ad8761a2c794b5586f49f8d",
+    "docs/parks.md": "ac14d56c348154fb9806e2cbbe5f526d26fc74b6fc03fe6948e970db94f0734c",
+    "data/parks/harbor-diamond.json": "b8ea12521fa65d24c9bbc71d5521dad4c788f9626eefbdfd7ec3f7e1c1d06108",
+    "data/parks/crystal-rink.json": "52036c7dc16bb6c3046a0d653e9da6c7f7000ad964421fed4b8c2a77b5581384",
+    "data/parks/funfair-park.json": "b27c7e8c0e01de99e04b71e0dcc32d479e45c71d8de26c145ec0184264ae8a09",
+    "data/parks/rooftop-city.json": "58930f2c684d576d89eee7b0cac778270f3d7a33ca268af3fca6d0c6a79e5751",
+    "data/parks/canopy-yard.json": "ea99628926848231e30f34583a248b0e293363e2f62b5e9300578f19fd88a6c4",
+    "data/parks/ember-keep.json": "6160940910e093acaad1c62affef2b1f38d7433d988d3c75513758c1aeb868c8",
+    "data/rules/flight.json": "eac7f7a0989ad07a0203d758b6720e5763951a15e5ec56c4b912b048bd1ba911",
+    "data/rules/fielding.json": "743c80c95858ee82ac4c34d79e136cb6f1d890d5039a7b9fa962430e99f55608",
+    "data/art/parks.json": "72797d3c978442f9b87510c6bd8d1c4fdb81ba417654bcb3b999a8e4d133b32c",
+    "src/GrandSluggers.Sim/Models.cs": "0eb7668ec03f4c6bbe92e64a61cff1c5a71e31d76afb93b3ef52661cd5b24136",
+    "src/GrandSluggers.Sim/ContentValidation.cs": "4ee129fd2e16f2320d780bb7b92f2e146ebd0c681a4d766a015faf844f6aff22",
+    "src/GrandSluggers.Sim/Fielding.cs": "2e1d7cbcd9f1bf16ce67ddf1aded16f666c51fb0b7ca2cf37dbc2bcdc3f40f90",
+    "src/GrandSluggers.Sim/FieldBounds.cs": "8c50dfbf89fe00985701af04d4c6066460e2beedba157184f1dd168a7175290a",
+    "src/GrandSluggers.Sim/HarborWall.cs": "73b89434d3791dfe29a6eb79518c86647adae77b2ccc7b3472e5b9b86ad25404",
+    "src/GrandSluggers.Sim/BallFlight.cs": "5c762fe38f95993afa40fd2d737c29b926fd71e70a8fdd9bc8046de48d609f34",
+    "src/GrandSluggers.Sim/AtBatResolver.cs": "02566e5c112d89e7b858ad764bd5f5ae5455a6c5ec7e75262caf805eeea9eafd",
+    "src/GrandSluggers.Sim/Rules.cs": "e9c53fda3bce83381986b845e71a50aa61a0c6d42a96d8f1dde40da5173107c6",
+    "unity/Assets/Scripts/Runtime/ParkView.cs": "2c241b7fdaceb466401fa804397c52ee6840394146fb18c88f698c4da640f625",
+    "unity/Assets/Scripts/Runtime/HarborKit.cs": "c3cdb183124ce3f62d43ff5acd1157e20cba40e44f18c08d03372d55ad5b52b2",
+    "unity/Assets/Scripts/Runtime/Look.cs": "1d19852d45e741f63c9f4a4404c6ddc84a2b4467c78aec98bd2a16cd040f321e"
+  },
+  "decisions": [
+    {
+      "id": "FD-01",
+      "area": "Direction",
+      "question": "What does the fields phase authorize?",
+      "status": "direction-accepted",
+      "depends_on": [],
+      "source_ids": [
+        "MW-MSS",
+        "SMB-TG",
+        "MH-STAD"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Rails only, proven on one park",
+          "tradeoff": "Build the park rails at Harbor parity. Prove them on one second park as a greybox. No park art. Smallest scope; one proof may miss a rail a different park needs."
+        },
+        {
+          "id": "B",
+          "label": "Rails, then every listed park as a playable greybox",
+          "tradeoff": "Build the rails. Give all six park files their qualities and hazards in the sim. Draw each as a data-driven greybox. Art stays behind #37 and Phase T. More balance work before C80 is promoted."
+        },
+        {
+          "id": "C",
+          "label": "Rails and park art together",
+          "tradeoff": "Parks become products now. Conflicts with AGENTS.md, roadmap Phase D and #37."
+        }
+      ],
+      "recommendation": "A first, then B park by park. Rails and greybox only. AGENTS.md keeps 'extra parks as products (#37)' on the do-not-start list; this phase changes that line only to name the rails work as allowed.",
+      "existing_contract": "AGENTS.md 'Do not start: extra parks as products (#37)'. Roadmap rule 4 and Phase D ('three good parks beat six ugly ones'). #713 is the existing park override rail issue. art-rails.md rule 4: parks are kits, other parks wait for #37.",
+      "acceptance": "A written scope line in AGENTS.md and roadmap.md that an agent can obey without asking. No park art is commissioned by this decision.",
+      "selected_option": "A, then B",
+      "accepted_scope": "Build the park rails at Harbor parity and prove them on one second park as a greybox (A). Then bring the other listed parks to a playable greybox one park at a time (B). No park art is authorized: art stays behind #37, Phase T and each park's greybox sitting. This selects no first park (FD-18), no park roster change, no lever, no hazard rule and no number.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-01: rails only on one park / rails then every park as a greybox / rails and art together",
+        "answer_quote": "A first, then B park by park"
+      },
+      "numeric_targets": "not applicable: a scope decision",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A, then B",
+          "quote": "A first, then B park by park",
+          "scope": "Build the park rails at Harbor parity and prove them on one second park as a greybox (A). Then bring the other listed parks to a playable greybox one park at a time (B). No park art is authorized: art stays behind #37, Phase T and each park's greybox sitting. This selects no first park (FD-18), no park roster change, no lever, no hazard rule and no number."
+        }
+      ]
+    },
+    {
+      "id": "FD-02",
+      "area": "Direction",
+      "question": "How strong may a park's effect on results be?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-01"
+      ],
+      "source_ids": [
+        "SAVANT-PF",
+        "NATHAN-SC",
+        "MH-STAD"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Subtle",
+          "tradeoff": "A park moves runs and home runs by about 10 percent against Harbor. Safe for balance. A player may not feel the park."
+        },
+        {
+          "id": "B",
+          "label": "Noticeable",
+          "tradeoff": "A park moves runs by up to about 25 percent and home runs by up to about 50 percent, in a named direction. Real MLB parks span 0.83 to 1.25 on runs and 0.76 to 1.27 on home runs; 22 of 28 sit within 6 percent on runs. A player changes tactics by park."
+        },
+        {
+          "id": "C",
+          "label": "Wild",
+          "tradeoff": "A park may double a rate. Parks feel like modes. Every balance gate becomes per-park."
+        }
+      ],
+      "recommendation": "B, with the direction declared per park before any number is chosen. The band is measured as a park factor against Harbor on the same seeds.",
+      "existing_contract": "S-29 is a mixed-park guardrail (1.8\u20135 mean runs per side, F693); 35 of its 50 games are not at Harbor. Harbor cohorts are the calibration reference. No per-park band exists. Measured today, unplanned: Crystal 1.31 and Funfair 1.35 on runs, 1.45 and 1.44 on home runs (docs/research/fields-park-baseline.json).",
+      "acceptance": "Each park has a declared intent (for example 'fewer home runs, more triples') and a measured factor that lands inside the accepted band on predeclared seeds. S-29 and the Harbor cohorts stay green.",
+      "selected_option": "B",
+      "accepted_scope": "A park may move results noticeably against Harbor, in a direction the park declares before it gets any number: about 25 percent on runs and about 50 percent on home runs is the intended size. The figures describe the direction; they are not accepted numeric targets. Exact bounds, per-event bands (doubles, triples), seeds and cohort size stay null until a scoped trial is accepted. Today's unplanned factors (Crystal 1.31, Funfair 1.35 on runs) are findings, not targets, and this decision does not authorize tuning any park now (FD-13).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-02: subtle / noticeable / wild park effect",
+        "answer_quote": "b."
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b.",
+          "scope": "A park may move results noticeably against Harbor, in a direction the park declares before it gets any number: about 25 percent on runs and about 50 percent on home runs is the intended size. The figures describe the direction; they are not accepted numeric targets. Exact bounds, per-event bands (doubles, triples), seeds and cohort size stay null until a scoped trial is accepted. Today's unplanned factors (Crystal 1.31, Funfair 1.35 on runs) are findings, not targets, and this decision does not authorize tuning any park now (FD-13)."
+        }
+      ]
+    },
+    {
+      "id": "FD-03",
+      "area": "Environment",
+      "question": "Which physical qualities may a park override?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-01"
+      ],
+      "source_ids": [
+        "NATHAN-SC",
+        "NATHAN-CARRY",
+        "MH-STAD",
+        "SHOW-SZ"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "The #713 list",
+          "tradeoff": "Air drag, wind exposure, roll friction, rest speed, bounce, wall carom. Gravity and the time scales stay global."
+        },
+        {
+          "id": "B",
+          "label": "The #713 list plus bodies",
+          "tradeoff": "Also fielder and runner traction (FD-04) and outfield depth (FD-07)."
+        },
+        {
+          "id": "C",
+          "label": "Anything in flight.json",
+          "tradeoff": "Maximum freedom. A park could change gravity or the play clock. Breaks the one-clock rule."
+        }
+      ],
+      "recommendation": "A as the first slice, B only through FD-04 and FD-07. Gravity, timeScale, linerTimeScale, dirtTimeScale, plate geometry and the infield stay global in every option we recommend.",
+      "existing_contract": "#713 names the candidates in data/rules/flight.json. The GameCube game varied first-bounce and rolling factors by park (MH-STAD). Spec \u00a716: the infield is one global set; 'outfield depth, the foul area and the park environment vary per park (#713)'.",
+      "acceptance": "A park file names only what differs from Harbor. A test proves Harbor's resolved environment equals the global table bit for bit.",
+      "selected_option": "A",
+      "accepted_scope": "A park may override the ball's environment from the #713 list: air drag, wind exposure (windMul), roll friction, rest speed, bounce (restitution, horizontal, skid) and wall carom, as overrides with fallback to the global table. Gravity, timeScale, linerTimeScale, dirtTimeScale, plate geometry, the foul-line angle and the infield stay global. Body traction and outfield depth are not opened by this decision; FD-04 and FD-07 decide them. Harbor names no override. No value is selected: every park number stays null until a scoped trial, and the #702 race rows are re-run per park before any number is accepted.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-03: the #713 list / plus bodies / anything in flight.json",
+        "answer_quote": "a"
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "a",
+          "scope": "A park may override the ball's environment from the #713 list: air drag, wind exposure (windMul), roll friction, rest speed, bounce (restitution, horizontal, skid) and wall carom, as overrides with fallback to the global table. Gravity, timeScale, linerTimeScale, dirtTimeScale, plate geometry, the foul-line angle and the infield stay global. Body traction and outfield depth are not opened by this decision; FD-04 and FD-07 decide them. Harbor names no override. No value is selected: every park number stays null until a scoped trial, and the #702 race rows are re-run per park before any number is accepted."
+        }
+      ]
+    },
+    {
+      "id": "FD-04",
+      "area": "Environment",
+      "question": "Does a slick or soft ground act on bodies, or only on the ball?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-03"
+      ],
+      "source_ids": [
+        "MW-PIG",
+        "BYB-WP"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Ball only",
+          "tradeoff": "Ice makes a grounder run long. Fielders and runners move the same in every park. Keeps the accepted movement contract (#718) identical everywhere."
+        },
+        {
+          "id": "B",
+          "label": "Ball, plus a small body effect",
+          "tradeoff": "Ground also scales the fielder's brake and turn (the #718 response law) and the runner's slide. No skating, no loss of control. Needs per-park race checks."
+        },
+        {
+          "id": "C",
+          "label": "Full traction model",
+          "tradeoff": "Bodies slip. Breaks 'players do not skate' and multiplies every race calibration by the number of grounds."
+        }
+      ],
+      "recommendation": "A for the first slice. Re-open B only after a sitting says ice does not feel like ice.",
+      "existing_contract": "docs/parks.md Crystal Rink: 'we do not make players skate'. #718 response law and #761 coast/brake are one movement contract for every park. fielding.chase.frozenMul 0.45 is the only ordinary park status.",
+      "acceptance": "The same routine grounder is a routine out in every park. A probe shows the ball's roll differs by ground while the body's speed curve does not (option A).",
+      "selected_option": "B (C held as a trial candidate for the greybox sitting)",
+      "accepted_scope": "The ground acts on the ball and, in a small way, on bodies. A ground row may scale the fielder's start, brake and cut-back through the #718 response law, and the runner's slide and overrun lengths. The body always goes where the stick points: no skating, no loss of control, and the same routine grounder stays a routine out in every park. Option C (full traction: drift, slow steering, a runner who can overrun a bag) is held as a named trial candidate, to be judged by feel at the proving park's greybox sitting; it is not accepted and not rejected. The ground row is built so that C is an increment on the same rail. Known dependency: the shipped root has chase.accelSec 0 / brakeSec 0, so the body effect exists only where the response law is on (the C80 trial today). parks.md 'players do not skate' and the #693 'reliable routine defense' anchor stay in force. No multiplier is selected; every race row is re-run per ground before a number is accepted.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-04: ball only / ball plus a small body effect / full traction. Follow-up: record B with C held for the sitting, or C outright?",
+        "answer_quote": "b",
+        "earlier_quote": "I think B, maybe even C."
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "open",
+          "author": "Jack",
+          "choice": "lean B, possibly C",
+          "quote": "I think B, maybe even C.",
+          "scope": "A lean, not a selection. The author set out what separates B from C (control kept or lost, the missing runner momentum model, the two recorded calls C would supersede) and asked which to record."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B, C held for the sitting",
+          "quote": "b",
+          "scope": "The ground acts on the ball and, in a small way, on bodies. A ground row may scale the fielder's start, brake and cut-back through the #718 response law, and the runner's slide and overrun lengths. The body always goes where the stick points: no skating, no loss of control, and the same routine grounder stays a routine out in every park. Option C (full traction: drift, slow steering, a runner who can overrun a bag) is held as a named trial candidate, to be judged by feel at the proving park's greybox sitting; it is not accepted and not rejected. The ground row is built so that C is an increment on the same rail. Known dependency: the shipped root has chase.accelSec 0 / brakeSec 0, so the body effect exists only where the response law is on (the C80 trial today). parks.md 'players do not skate' and the #693 'reliable routine defense' anchor stay in force. No multiplier is selected; every race row is re-run per ground before a number is accepted."
+        }
+      ]
+    },
+    {
+      "id": "FD-05",
+      "area": "Environment",
+      "question": "Is the ground one material per park, or a map of zones?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-03"
+      ],
+      "source_ids": [
+        "BROSNAN",
+        "MH-STAD"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "One ground per park",
+          "tradeoff": "A park names one ground id. Simple. An ice park has an ice infield."
+        },
+        {
+          "id": "B",
+          "label": "Zones from the shared diamond",
+          "tradeoff": "Infield dirt, outfield, warning track and foul apron each name a ground id. The zones are the ones the diamond already has (infield lip, track). A park overrides a zone's ground."
+        },
+        {
+          "id": "C",
+          "label": "Painted regions",
+          "tradeoff": "A park draws free shapes with their own ground. Most expressive. Hardest to read and to test."
+        }
+      ],
+      "recommendation": "B. The zones already exist as geometry, so no new shape language is needed. The ground library is a closed table like the pitch families (D20).",
+      "existing_contract": "Roll friction is one number today (flight.json roll.friction 22). `surface` is a label with no gameplay effect (#713). The infield lip and the warning track are existing geometry.",
+      "acceptance": "A ground id with no authored row stops the load and names the id. A ball crossing from dirt to grass changes its roll at the lip, in the trace.",
+      "selected_option": "B",
+      "accepted_scope": "The ground is a map of zones taken from the shared diamond: infield dirt, outfield, warning track and foul apron each name a ground id from a closed library (FR-02). A park overrides a zone's ground; Harbor names none. The ball reads the zone it is on for roll and bounce, the three loose-ball ground models read the same row, and the FD-04 body multipliers read the zone the body stands in. The zone list is the starting proposal: the exact zones, their boundaries (the 155-ft infield lip and the track are #730 / #732 geometry) and the ground ids are contract work. No free-form painted region. No ground value is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-05: one ground per park / zones from the shared diamond / painted regions",
+        "answer_quote": "b"
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b",
+          "scope": "The ground is a map of zones taken from the shared diamond: infield dirt, outfield, warning track and foul apron each name a ground id from a closed library (FR-02). A park overrides a zone's ground; Harbor names none. The ball reads the zone it is on for roll and bounce, the three loose-ball ground models read the same row, and the FD-04 body multipliers read the zone the body stands in. The zone list is the starting proposal: the exact zones, their boundaries (the 155-ft infield lip and the track are #730 / #732 geometry) and the ground ids are contract work. No free-form painted region. No ground value is selected."
+        }
+      ]
+    },
+    {
+      "id": "FD-06",
+      "area": "Geometry",
+      "question": "What shape may the outfield fence take?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-01"
+      ],
+      "source_ids": [
+        "MLB-FD",
+        "SI-WALLS",
+        "WP-GM",
+        "MH-STAD"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Three posts, one height",
+          "tradeoff": "Today's rule: the circle through the left, center and right posts, one fence height. Asymmetry only through the posts."
+        },
+        {
+          "id": "B",
+          "label": "Posts plus wall segments",
+          "tradeoff": "Keep the three-post arc. Add named segments by bearing that change the height or the wall material (a tall left wall, a low corner, a climbable section)."
+        },
+        {
+          "id": "C",
+          "label": "Free polyline",
+          "tradeoff": "The fence is a list of points with a height each. Notches, porches and alleys. The fielder depth rule, the cameras and the kit must all follow a free shape."
+        }
+      ],
+      "recommendation": "B. It gives a park a landmark wall without changing how depth, cameras and the C80 migration read the fence.",
+      "existing_contract": "D15: fenceHeightFt is one number for the flight and the drawn wall. `AtBatResolver.RoundFence` / `FenceAt` is the three-post circle. Canopy's `climb_wall` hazard is a wall property written as a hazard.",
+      "acceptance": "The drawn wall equals the flight wall on every segment (the HarborWallTests rule, for every park). A segment's carom and rob behavior come from its material row.",
+      "selected_option": "C",
+      "accepted_scope": "A park's outfield fence may be a free polyline: a list of points from the left pole to the right pole, each with its own height, so a park can have notches, porches and alleys. A span between two points names a wall material, so the wall-segment benefits of option B (a tall wall, a low corner, a climbable section) are included. The three-post arc stays the default shape: a park that lists no points plays and draws exactly as today (parity). Contract work, not selected here: the point format (inside FD-12's diamond-relative units), the validator's limits, how the fielder-depth rule, the C80 migration, the warning track, the poles, the drawn wall and the 'field' camera follow a free shape, and whether outfield depth must become per park (FD-07). Author's proposed guardrail for that contract: the fence stays one distance per bearing as seen from home (no overhang, no fence behind a fence), so FenceAt(bearing) stays a function and every current consumer keeps working. D15 changes form and must be reconciled in gameplay-spec before code: 'one number' becomes 'the drawn wall equals the flight wall on every span'. The author's recommendation was B. No shape, height or material value is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-06: three posts and one height / posts plus wall segments / free polyline",
+        "answer_quote": "C"
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "C",
+          "scope": "A park's outfield fence may be a free polyline: a list of points from the left pole to the right pole, each with its own height, so a park can have notches, porches and alleys. A span between two points names a wall material, so the wall-segment benefits of option B (a tall wall, a low corner, a climbable section) are included. The three-post arc stays the default shape: a park that lists no points plays and draws exactly as today (parity). Contract work, not selected here: the point format (inside FD-12's diamond-relative units), the validator's limits, how the fielder-depth rule, the C80 migration, the warning track, the poles, the drawn wall and the 'field' camera follow a free shape, and whether outfield depth must become per park (FD-07). Author's proposed guardrail for that contract: the fence stays one distance per bearing as seen from home (no overhang, no fence behind a fence), so FenceAt(bearing) stays a function and every current consumer keeps working. D15 changes form and must be reconciled in gameplay-spec before code: 'one number' becomes 'the drawn wall equals the flight wall on every span'. The author's recommendation was B. No shape, height or material value is selected."
+        }
+      ],
+      "affects_spec_decisions": [
+        "D15"
+      ]
+    },
+    {
+      "id": "FD-07",
+      "area": "Geometry",
+      "question": "May foul territory and outfield depth differ by park?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-01"
+      ],
+      "source_ids": [
+        "FG-FOUL",
+        "FG-FOULHFA"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Shared in every park",
+          "tradeoff": "Every park keeps Harbor's foul wrap and the global fielder starts. Least work. #732 already shows the wrap cutting fair territory when fences shrink."
+        },
+        {
+          "id": "B",
+          "label": "Foul territory per park, depth shared",
+          "tradeoff": "Extract the wrap from HarborWall into park parameters. Parity first. A park may then ask for a wide or tight foul area."
+        },
+        {
+          "id": "C",
+          "label": "Foul territory and outfield depth per park",
+          "tradeoff": "Also let a park stand its outfield deeper or shallower (#730 decision 3 left this to #713)."
+        }
+      ],
+      "recommendation": "B now, C when a park's fence shape needs it. The extraction is the largest single rail and it is needed even if every park keeps Harbor's numbers.",
+      "existing_contract": "`FieldBounds.Of(park)` builds the foul walls from `HarborWall` (FoulOffset 36 ft, flare start 95 ft, 4.2 ft rail). #732 owns those absolutes under #730. fielders.json is one global set (#730 decision 3).",
+      "acceptance": "No Harbor-named class decides a rule in another park. Every park plays bit-identical until it names a difference.",
+      "selected_option": "C",
+      "accepted_scope": "Foul territory and outfield depth may both differ by park. Order: first take the foul wrap, rail and backstop out of HarborWall into park-neutral boundary parameters with Harbor's values as the defaults, so every park plays bit-identical (parity); then a park may name its foul area and its outfield depth when its shape needs them. Outfield depth means the three outfield starts only: the infield four, the pitcher and the catcher stay the one global set. The default for a park that names no depth stays the #730 decision 3 rule (each outfielder keeps his bearing and his fraction of the fence at that bearing). #730 / #732 keep ownership of FoulOffset 36 ft and flareStart 95 ft until they close; a child is filed with those numbers banned or as their named successor. The original recommendation was B-then-C; it became C after FD-06 C. No foul-area or depth value is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-07: shared in every park / foul territory per park / foul territory and outfield depth per park",
+        "answer_quote": "C"
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "C",
+          "scope": "Foul territory and outfield depth may both differ by park. Order: first take the foul wrap, rail and backstop out of HarborWall into park-neutral boundary parameters with Harbor's values as the defaults, so every park plays bit-identical (parity); then a park may name its foul area and its outfield depth when its shape needs them. Outfield depth means the three outfield starts only: the infield four, the pitcher and the catcher stay the one global set. The default for a park that names no depth stays the #730 decision 3 rule (each outfielder keeps his bearing and his fraction of the fence at that bearing). #730 / #732 keep ownership of FoulOffset 36 ft and flareStart 95 ft until they close; a child is filed with those numbers banned or as their named successor. The original recommendation was B-then-C; it became C after FD-06 C. No foul-area or depth value is selected."
+        }
+      ]
+    },
+    {
+      "id": "FD-08",
+      "area": "Hazards",
+      "question": "What fairness contract must every hazard obey?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-01"
+      ],
+      "source_ids": [
+        "MW-YP",
+        "MW-WC",
+        "MTA",
+        "SSB",
+        "PR-RULES"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Geometric, fixed and told",
+          "tradeoff": "A hazard is a fixed body or volume. Its effect is decided by geometry. The player sees it before it acts. No roll. A warp has a fixed, learnable exit."
+        },
+        {
+          "id": "B",
+          "label": "Geometric with seeded variety",
+          "tradeoff": "As A, but a hazard may choose among told outcomes with the match seed (a warp picks one of two exits). The choice shows before the ball arrives."
+        },
+        {
+          "id": "C",
+          "label": "Party chaos",
+          "tradeoff": "Hazards may surprise. Matches the reference most closely. Breaks 'a play is decided by geometry, never by a roll'."
+        }
+      ],
+      "recommendation": "A, with B allowed only where the choice is shown early enough to act on.",
+      "existing_contract": "AGENTS.md: a play is decided by geometry, never by a roll or a caption. Today every hazard is decided once, at the preview, from the ball's landing point (Fielding.cs:69-90). The warp exit is rng.Next (Fielding.cs:701). A slowed play adds a 0.4 drop roll (Match.cs:702). The slow lasts the whole play for every chaser. The reference's most criticized hazards are random ball output, lost visibility and stuns with no counter; fixed geometry gets the praise.",
+      "acceptance": "Both seats and the CPU read the same hazard facts. A scenario per hazard pattern proves the outcome from positions alone. A stranger can say why the hazard did what it did.",
+      "selected_option": "C",
+      "accepted_scope": "Park hazards may carry random party elements. This is permission, not a requirement: a hazard may be fixed, or it may surprise. The author's recommendation was A. Engineering rule that follows, not a tradeoff: every random hazard draw comes from the match's seeded stream and is emitted as a typed live event, so the same seed replays the same game and traces, cohorts, scenario tests and tutorials stay deterministic. The CPU gets no foresight of a draw (seat parity). Harbor stays the park with no hazard. This decision conflicts with the standing AGENTS.md rule 'a play is decided by geometry, never by a roll' and with the Phase P ban on rolls that produce a PlayEvent: the exception is scoped to park hazards only, and its exact wording waits for refinement FD-08-R1 (may a draw decide a play's result directly, or only what the hazard does). Which hazards are random, how often, and every number stay open.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-08: geometric, fixed and told / geometric with seeded variety / party chaos",
+        "answer_quote": "C. we can add random party elements for the hazards"
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "C. we can add random party elements for the hazards",
+          "scope": "Park hazards may carry random party elements. This is permission, not a requirement: a hazard may be fixed, or it may surprise. The author's recommendation was A. Engineering rule that follows, not a tradeoff: every random hazard draw comes from the match's seeded stream and is emitted as a typed live event, so the same seed replays the same game and traces, cohorts, scenario tests and tutorials stay deterministic. The CPU gets no foresight of a draw (seat parity). Harbor stays the park with no hazard. This decision conflicts with the standing AGENTS.md rule 'a play is decided by geometry, never by a roll' and with the Phase P ban on rolls that produce a PlayEvent: the exception is scoped to park hazards only, and its exact wording waits for refinement FD-08-R1 (may a draw decide a play's result directly, or only what the hazard does). Which hazards are random, how often, and every number stay open."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-08-R1: 1",
+          "quote": "1",
+          "scope": "Random world, geometric result. A hazard's draw may decide what the hazard does: when it fires, which exit it picks, where it sends the ball, which body it goes after. The ball and the bodies then decide the play as in every other play. No out, hit, drop or catch is awarded by chance. AGENTS.md's rule 'a play is decided by geometry, never by a roll' stays whole, with one clarifying sentence for park hazards. Consequence for the hazard runtime (epic F4): the park's use of the fielding.drops.frozen result roll retires; a special attack's use of the same table is outside this phase (the 3e specials boundary). The warp's random exit may stay, but the live ball must really travel there."
+        }
+      ],
+      "affects_standing_orders": [
+        "AGENTS.md 'Done means you played it': a play is decided by geometry, never by a roll or a caption",
+        "docs/roadmap.md Phase P ban: any Random that produces a PlayEvent",
+        "docs/plan-fields.md FR-07"
+      ],
+      "refinements": [
+        {
+          "id": "FD-08-R1",
+          "question": "May a random hazard draw decide a play's result directly, or only what the hazard does?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Random world, geometric result",
+              "tradeoff": "A draw decides what a hazard does: when it fires, which exit it picks, where it throws the ball. The ball and the bodies then decide the play as in every other play. No out, hit, drop or catch is awarded by chance. AGENTS.md's geometry rule stays whole; hazards add surprise to the world."
+            },
+            {
+              "id": "2",
+              "label": "Draws may also decide results",
+              "tradeoff": "A hazard may roll a result: a slowed fielder drops the catch 40 percent of the time (today's drops.frozen), a plant eats the ball or does not. Closest to the reference. AGENTS.md's rule gets a real exception, and a player can lose an out to a roll he could not answer."
+            }
+          ],
+          "recommendation": "1. It keeps the surprise Jack asked for and keeps every out explainable by what the player saw.",
+          "existing_contract": "Today both kinds exist: the warp exit is a draw on the world (Fielding.cs:701); drops.frozen 0.4 is a draw on the result (Match.cs:702).",
+          "selected_option": "1",
+          "accepted_scope": "Random world, geometric result. A hazard's draw may decide what the hazard does: when it fires, which exit it picks, where it sends the ball, which body it goes after. The ball and the bodies then decide the play as in every other play. No out, hit, drop or catch is awarded by chance. AGENTS.md's rule 'a play is decided by geometry, never by a roll' stays whole, with one clarifying sentence for park hazards. Consequence for the hazard runtime (epic F4): the park's use of the fielding.drops.frozen result roll retires; a special attack's use of the same table is outside this phase (the 3e specials boundary). The warp's random exit may stay, but the live ball must really travel there.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "FD-08-R1: random world, geometric result / draws may also decide results",
+            "answer_quote": "1"
+          },
+          "contract": {
+            "draw_source": "the match's seeded stream",
+            "draw_may_decide": [
+              "timing",
+              "selection among exits or targets",
+              "where the ball is sent"
+            ],
+            "draw_may_not_decide": [
+              "out",
+              "hit",
+              "drop",
+              "catch",
+              "safe or out at a bag"
+            ],
+            "draw_is_a_typed_live_event": true,
+            "cpu_foresight_of_draw": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "FD-09",
+      "area": "Hazards",
+      "question": "How are hazards built: one rule per hazard, or a small library of patterns?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-08"
+      ],
+      "source_ids": [
+        "MH-STAD",
+        "MW-MSS"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "One rule per hazard type",
+          "tradeoff": "Each new hazard is new sim code. Fast for the first few. The ninth park invents everything again."
+        },
+        {
+          "id": "B",
+          "label": "A closed pattern library",
+          "tradeoff": "A few patterns (status volume, ball redirect, solid body, timed mover, catch stealer, reward target, wall trait). A hazard type is a data row that picks a pattern and its numbers. A park lists instances."
+        },
+        {
+          "id": "C",
+          "label": "Scripted hazards",
+          "tradeoff": "A park carries its own script. Most freedom. No validator can reason about it."
+        }
+      ],
+      "recommendation": "B. It is the pitch-family rail (D20) applied to hazards: a closed library, authored rows, no silent fallback.",
+      "existing_contract": "ParkHazards (Fielding.cs:645-729) is a set of type-string tests. statue, train, ac_unit and tree have no sim effect. climb_wall is a park-wide flag. Chompers are a code literal behind a park-id test (Fielding.cs:670-683). Hazard numbers sit in fielding.json 'park' under park names (emberNightFireMul).",
+      "acceptance": "An unknown hazard type or a type with no authored row fails `cli art`. A new hazard that fits a pattern needs no new sim code.",
+      "selected_option": "B",
+      "accepted_scope": "Hazards come from a small closed library of patterns. A hazard type is a data row that picks a pattern and its numbers; a park lists instances. An unknown type, or a type with no authored row, fails the load. The pattern list in the plan (status volume, ball redirect, solid body, timed mover, catch stealer, reward target, wall trait) is the starting proposal, not an accepted set: which patterns ship, their fairness contract (FD-08), their placement rule (FD-19) and every number stay open. The catch stealer's place in the game is not accepted by this decision.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "Engineering rails as one set: FD-09 B, FD-12 B, FD-16 B, FD-17 C",
+        "answer_quote": "accept all four recommendations"
+      },
+      "numeric_targets": "not applicable: an engineering pattern",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "accept all four recommendations",
+          "scope": "Hazards come from a small closed library of patterns. A hazard type is a data row that picks a pattern and its numbers; a park lists instances. An unknown type, or a type with no authored row, fails the load. The pattern list in the plan (status volume, ball redirect, solid body, timed mover, catch stealer, reward target, wall trait) is the starting proposal, not an accepted set: which patterns ship, their fairness contract (FD-08), their placement rule (FD-19) and every number stay open. The catch stealer's place in the game is not accepted by this decision."
+        }
+      ]
+    },
+    {
+      "id": "FD-10",
+      "area": "Hazards",
+      "question": "Can the players turn park hazards off?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-08"
+      ],
+      "source_ids": [
+        "MPT",
+        "MTA",
+        "MSC",
+        "MSBL",
+        "SSB"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "No toggle",
+          "tradeoff": "The park is the park. Harbor is the no-hazard choice. One rule set to balance."
+        },
+        {
+          "id": "B",
+          "label": "A match option: hazards off",
+          "tradeoff": "Any park can be played for its size, air and ground alone. Doubles the states to balance and test."
+        },
+        {
+          "id": "C",
+          "label": "Day is clean, night has hazards",
+          "tradeoff": "Time of day is the toggle. Ties FD-11 to this choice."
+        }
+      ],
+      "recommendation": "B, default on, built after the hazard runtime. FD-08 C makes the switch more important: with random hazards in play, the switch is how two players choose a straight game at any park. With hazards as a list of instances the switch is an empty list, and the park keeps its size, air and ground.",
+      "existing_contract": "Title has a night toggle. Exhibition options are innings and difficulty (title X / LB). No hazard switch is documented for either Mario baseball game; Harbor is the clean park today.",
+      "acceptance": "A friend on the couch can always play any park with no hazard. The park-factors report covers both states.",
+      "selected_option": "B",
+      "accepted_scope": "A match option turns park hazards off. Default on. With hazards off the park keeps everything else it names: size, fence shape, walls, air, wind, ground zones, foul territory and depth. The switch empties the hazard instance list for the match; it changes no other rule. It is built after the hazard runtime (epic F4) and the park-factors report covers both states. Open as contract work: where the option sits on the title and its binding (a Presentation child with the paired HowToPlay and docs/how-to-play.md update), whether a wall trait such as a climbable span counts as a hazard (FD-06 made it a wall property, so the proposal is that it stays on), whether a night rule layer follows the switch (FD-11), and the CLI flag. Both seats and the CPU get the same state.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-10: no toggle / a match option, hazards off / day is clean and night has hazards",
+        "answer_quote": "b"
+      },
+      "numeric_targets": "not applicable: a match option",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b",
+          "scope": "A match option turns park hazards off. Default on. With hazards off the park keeps everything else it names: size, fence shape, walls, air, wind, ground zones, foul territory and depth. The switch empties the hazard instance list for the match; it changes no other rule. It is built after the hazard runtime (epic F4) and the park-factors report covers both states. Open as contract work: where the option sits on the title and its binding (a Presentation child with the paired HowToPlay and docs/how-to-play.md update), whether a wall trait such as a climbable span counts as a hazard (FD-06 made it a wall property, so the proposal is that it stays on), whether a night rule layer follows the switch (FD-11), and the CLI flag. Both seats and the CPU get the same state."
+        }
+      ]
+    },
+    {
+      "id": "FD-11",
+      "area": "Hazards",
+      "question": "What may night change?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-08"
+      ],
+      "source_ids": [
+        "MW-MSS",
+        "MW-PIG",
+        "MPT",
+        "THT-TWI"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Presentation only",
+          "tradeoff": "Night is light, sky and fireworks. Rules never change."
+        },
+        {
+          "id": "B",
+          "label": "A declared rule layer per park",
+          "tradeoff": "A park may carry a `night` block that overrides named fields or adds hazard instances (Crystal's window, Ember's breath reach, Funfair's chompers). Everything else is the day park."
+        },
+        {
+          "id": "C",
+          "label": "Night is a second park",
+          "tradeoff": "Day and night are separate park files. Doubles the authoring and the two-root mirroring."
+        }
+      ],
+      "recommendation": "B. It is what the data already half does (`nightContactWindowMul`), made general and validated.",
+      "existing_contract": "nightContactWindowMul is a park field (Crystal 0.85) read by ParkHazards.ContactWindowMul; the reference has no such at-bat rule and lost visibility is the most criticized pattern. Ember's night reach is fielding.park.emberNightFireMul 1.6. Funfair's chompers are night-only code. nightOnly / dayOnly are in every park file and read by nothing. The CLI cannot run a night game.",
+      "acceptance": "No code path names a park id or the word night to pick a number. The night block is validated like the day block.",
+      "selected_option": "B",
+      "accepted_scope": "Night is a declared rule layer per park. A park may carry a night block that overrides named fields of the day park or adds hazard instances; everything the block does not name is the day park. The block is validated like the day block, and no code path picks a number by a park id or by the word night. Harbor's night stays a look only. The three night rules that exist today move into night blocks at parity: Crystal's contact window (nightContactWindowMul 0.85), Ember's breath reach (fielding.park.emberNightFireMul 1.6) and Funfair's chompers (code literals). Moving them does not endorse them: the contact-window rule acts on the at-bat and has no reference source, and it is reviewed when night blocks are written. Night hazard instances are hazards, so the FD-10 switch removes them; a night field override (air, light rule) is not a hazard and stays. nightOnly / dayOnly are wired or removed by the schema epic. The CLI gains a night flag so a night rule can be measured. No night value is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-11: presentation only / a declared rule layer per park / night is a second park",
+        "answer_quote": "b"
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b",
+          "scope": "Night is a declared rule layer per park. A park may carry a night block that overrides named fields of the day park or adds hazard instances; everything the block does not name is the day park. The block is validated like the day block, and no code path picks a number by a park id or by the word night. Harbor's night stays a look only. The three night rules that exist today move into night blocks at parity: Crystal's contact window (nightContactWindowMul 0.85), Ember's breath reach (fielding.park.emberNightFireMul 1.6) and Funfair's chompers (code literals). Moving them does not endorse them: the contact-window rule acts on the at-bat and has no reference source, and it is reviewed when night blocks are written. Night hazard instances are hazards, so the FD-10 switch removes them; a night field override (air, light rule) is not a hazard and stays. nightOnly / dayOnly are wired or removed by the schema epic. The CLI gains a night flag so a night rule can be measured. No night value is selected."
+        }
+      ]
+    },
+    {
+      "id": "FD-12",
+      "area": "Rails",
+      "question": "How does a park file stay correct on both data roots (shipped and C80)?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-01"
+      ],
+      "source_ids": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "Two whole files per park, kept in step by hand",
+          "tradeoff": "Today's rule (#716: whole files, never fields). Every park edit is made twice. Twelve files for six parks."
+        },
+        {
+          "id": "B",
+          "label": "Positions in diamond-relative units",
+          "tradeoff": "A hazard or a wall segment is placed by bearing and by a fraction of the basepath or of the fence at that bearing. One authoring serves both roots; the trial keeps only what it truly changes."
+        },
+        {
+          "id": "C",
+          "label": "Wait for promotion",
+          "tradeoff": "Do no park work until one root is the default. Simplest. Blocks the phase on #715 3e."
+        }
+      ],
+      "recommendation": "B for positions, inside #716's whole-file rule. It removes the class of bug #730 and #732 found (absolute feet that do not scale).",
+      "existing_contract": "Spec \u00a716 trial overlays: whole files, override never add. F693-04-park-migration: fences scale 0.70, wall heights unscaled, hazards scaled by the zone they sit in. trials/c80/parks carries all six parks.",
+      "acceptance": "A park edit that forgets the trial copy fails a test by name. A hazard sits at the same place relative to the bags on both roots.",
+      "selected_option": "B",
+      "accepted_scope": "Park positions (hazards, wall segments, any later placed feature) are authored relative to the diamond and the fence, so one authoring places a feature in the same spot on the shipped root and on a trial root, inside the #716 whole-file rule. The exact unit scheme (bearing plus a fraction of the basepath inside the lip and of the fence beyond it, or another scheme) is contract work that must reproduce F693-04-park-migration's by-zone result; #730 / #732 keep ownership of hazard radii, FoulOffset and flareStart until they close. No park file changes by this decision.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "Engineering rails as one set: FD-09 B, FD-12 B, FD-16 B, FD-17 C",
+        "answer_quote": "accept all four recommendations"
+      },
+      "numeric_targets": "not applicable: an engineering pattern",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "accept all four recommendations",
+          "scope": "Park positions (hazards, wall segments, any later placed feature) are authored relative to the diamond and the fence, so one authoring places a feature in the same spot on the shipped root and on a trial root, inside the #716 whole-file rule. The exact unit scheme (bearing plus a fraction of the basepath inside the lip and of the fence beyond it, or another scheme) is contract work that must reproduce F693-04-park-migration's by-zone result; #730 / #732 keep ownership of hazard radii, FoulOffset and flareStart until they close. No park file changes by this decision."
+        }
+      ]
+    },
+    {
+      "id": "FD-13",
+      "area": "Rails",
+      "question": "When does per-park balance start, and against what?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-02"
+      ],
+      "source_ids": [
+        "SAVANT-PF"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Harbor is the only calibrated park; others are measured, not tuned",
+          "tradeoff": "Every park reports its factor against Harbor. Nothing is tuned to a park until C80 is promoted. Park numbers stay trial anchors."
+        },
+        {
+          "id": "B",
+          "label": "Tune each park as it lands",
+          "tradeoff": "Each park ships inside its band. Rework when C80 promotes or the flight budget moves."
+        },
+        {
+          "id": "C",
+          "label": "Tune on C80 only",
+          "tradeoff": "Treat the trial as the future default. Shipped parks stay as they are."
+        }
+      ],
+      "recommendation": "A. It follows #713's caution: once parks override physics the home-run economy is per-park and the work multiplies by six.",
+      "existing_contract": "F693: Harbor-specific cohorts plus the mixed-park S-29 guardrail, which has no per-park band and plays 35 of 50 games away from Harbor. `cli match --cohort s29|harbor-calibration|harbor-validation`. #713: 'keep Harbor as the only thing calibrated against until the compact profile has been through whole-race validation'.",
+      "acceptance": "A `park-factors` report exists for both roots and is part of the evidence for every park PR. No expectation is edited to make a park pass.",
+      "selected_option": "A",
+      "accepted_scope": "Harbor is the only calibrated park. Every other park is measured against Harbor on predeclared seeds, on both data roots, and reported; it is not tuned until C80 is promoted (or another single default exists). Park numbers land as trial anchors, never as shipping defaults. A park PR carries the park-factors report; a factor outside the FD-02 direction, or a movement of S-29, is a finding in the PR, not a tuning target for it, and no expectation is edited to make a park pass. The FD-02 numeric band waits for its own scoped trial. Left open for the tuning step: whether S-29 keeps pooling all six parks or becomes Harbor-only plus a per-park factor check.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-13: Harbor is the only calibrated park, others measured / tune each park as it lands / tune on C80 only",
+        "answer_quote": "A"
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "A",
+          "scope": "Harbor is the only calibrated park. Every other park is measured against Harbor on predeclared seeds, on both data roots, and reported; it is not tuned until C80 is promoted (or another single default exists). Park numbers land as trial anchors, never as shipping defaults. A park PR carries the park-factors report; a factor outside the FD-02 direction, or a movement of S-29, is a finding in the PR, not a tuning target for it, and no expectation is edited to make a park pass. The FD-02 numeric band waits for its own scoped trial. Left open for the tuning step: whether S-29 keeps pooling all six parks or becomes Harbor-only plus a per-park factor check."
+        }
+      ]
+    },
+    {
+      "id": "FD-14",
+      "area": "Rails",
+      "question": "Must the CPU know the park?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-08"
+      ],
+      "source_ids": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "Yes: one shared reading",
+          "tradeoff": "The CPU fielder's route, the CPU runner's margins and the CPU batter read the same resolved park the ball does. A CPU glove walks around a freezer or accepts the slow knowingly."
+        },
+        {
+          "id": "B",
+          "label": "No: the CPU plays Harbor everywhere",
+          "tradeoff": "Cheapest. The CPU walks into hazards and misjudges slow ground. Hazards become a human-only advantage."
+        }
+      ],
+      "recommendation": "A. It is the seat-parity rule the rest of the game already follows.",
+      "existing_contract": "CPU tables live in cpu.json and running.json `cpu`. The route planner and the makeable margin read the flight path; the code map records what they read of hazards.",
+      "acceptance": "A scenario pair per pattern: the CPU seat and the human seat get the same outcome from the same positions.",
+      "selected_option": "A",
+      "accepted_scope": "The CPU reads the same resolved park the ball flies in. The CPU fielder's route planner costs status volumes and solid bodies and plans with the ground's start and brake multipliers; the CPU runner's margins and the CPU batter use the park's air, ground and fence; outfield placement follows the park's depth. The CPU gets no foresight of a random hazard draw (FD-08): it sees the typed event when the human does. Every hazard pattern has a scenario pair, CPU seat and human seat, with the same outcome from the same positions and seed. The difficulty ladder keeps its multipliers; whether a rung reads hazards less well is not selected here. No CPU number is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-14: the CPU reads the resolved park / the CPU plays Harbor everywhere",
+        "answer_quote": "a"
+      },
+      "numeric_targets": null,
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "a",
+          "scope": "The CPU reads the same resolved park the ball flies in. The CPU fielder's route planner costs status volumes and solid bodies and plans with the ground's start and brake multipliers; the CPU runner's margins and the CPU batter use the park's air, ground and fence; outfield placement follows the park's depth. The CPU gets no foresight of a random hazard draw (FD-08): it sees the typed event when the human does. Every hazard pattern has a scenario pair, CPU seat and human seat, with the same outcome from the same positions and seed. The difficulty ladder keeps its multipliers; whether a rung reads hazards less well is not selected here. No CPU number is selected."
+        }
+      ]
+    },
+    {
+      "id": "FD-15",
+      "area": "Legibility",
+      "question": "How does a player learn what a park does?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-02",
+        "FD-08"
+      ],
+      "source_ids": [
+        "SHOW-SZ",
+        "SMB-TG"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "The field card",
+          "tradeoff": "The field pick shows size, air, ground and hazard as icons with one line each, from the park data."
+        },
+        {
+          "id": "B",
+          "label": "Card plus in-park tells",
+          "tradeoff": "Also a wind flag, a ground that looks like its row, a hazard tell before it acts, and a stamp when a park rule decides a play."
+        },
+        {
+          "id": "C",
+          "label": "Card, tells and a lesson per hazard",
+          "tradeoff": "Also a Practice lesson for every hazard pattern and every ground that changes the ball (AGENTS.md: every player-facing mechanic needs a tutorial)."
+        }
+      ],
+      "recommendation": "C, delivered in that order. The card and the tells are Presentation children; the lessons are Gameplay setup plus a Presentation child.",
+      "existing_contract": "docs/tutorials.md contract. `PlayStamp` stamps come from typed events. Field pick is part of the carnival front (#248).",
+      "acceptance": "A stranger picks a park, reads its card, and can say after one inning what the park did to a ball.",
+      "selected_option": "C",
+      "accepted_scope": "A player learns a park three ways, delivered in this order. One: a field card on the field pick that shows size, air, ground and hazards from the park data, replacing the per-id copy switch. Two: in-park tells \u2014 a wind flag, a ground that looks like its row, a tell when a hazard acts (and before it acts where the hazard is not a surprise), and a stamp from the typed event when a park rule decides a play. Three: a Practice lesson for every hazard pattern and every ground that changes the ball, under the docs/tutorials.md contract: repeatable setup, a player-owned action, real success and failure evidence. A lesson runs at a park that has the hazard; a random hazard's lesson uses a fixed seed so the opportunity repeats. The card and the tells are Presentation children; each lesson is a Gameplay setup child plus a Presentation child. The tutorials.md rows blocked by #37 are unblocked by FD-01 for rails and lessons, not for art. Icons, copy, tell design and lesson ids are contract work. Agents do not pass the learning gate.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-15: the field card / card plus in-park tells / card, tells and a lesson per hazard pattern and ground",
+        "answer_quote": "c"
+      },
+      "numeric_targets": "not applicable: presentation and tutorial coverage",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "c",
+          "scope": "A player learns a park three ways, delivered in this order. One: a field card on the field pick that shows size, air, ground and hazards from the park data, replacing the per-id copy switch. Two: in-park tells \u2014 a wind flag, a ground that looks like its row, a tell when a hazard acts (and before it acts where the hazard is not a surprise), and a stamp from the typed event when a park rule decides a play. Three: a Practice lesson for every hazard pattern and every ground that changes the ball, under the docs/tutorials.md contract: repeatable setup, a player-owned action, real success and failure evidence. A lesson runs at a park that has the hazard; a random hazard's lesson uses a fixed seed so the opportunity repeats. The card and the tells are Presentation children; each lesson is a Gameplay setup child plus a Presentation child. The tutorials.md rows blocked by #37 are unblocked by FD-01 for rails and lessons, not for art. Icons, copy, tell design and lesson ids are contract work. Agents do not pass the learning gate."
+        }
+      ]
+    },
+    {
+      "id": "FD-16",
+      "area": "Presentation",
+      "question": "What is a park kit, and what is shared?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-01"
+      ],
+      "source_ids": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "Copy HarborKit per park",
+          "tradeoff": "Each park gets its own builder. Fast start. Six builders drift."
+        },
+        {
+          "id": "B",
+          "label": "One field kit, park parts in slots",
+          "tradeoff": "The diamond, lines, bags, mound and wall builder become one park-neutral kit driven by park data. A park fills named slots: wall skin, backdrop, stands, light rig, sky, ground materials, hazard actors, audio bed, postcard."
+        },
+        {
+          "id": "C",
+          "label": "Hand-placed scenes per park",
+          "tradeoff": "Each park is its own Unity scene. Breaks 'one geometry owner feeds sim and kit'."
+        }
+      ],
+      "recommendation": "B. Harbor becomes the first park to fill the slots, with no visual change, before any second park is drawn.",
+      "existing_contract": "Two diamonds exist: HarborKit for Harbor, an older primitive diamond in ParkView for the rest (different bags, dirt, chalk, mound; no foul rail). Five looks are private ParkView methods; eleven light rigs are chosen by id (Look.cs:296-484). data/art/parks.json rows are {id, slot, placed}. art-rails.md rule 4 already says parks are kits, not ParkView methods.",
+      "acceptance": "`cli art` lists every park's slots and what is missing. A park with empty slots draws a complete greybox from its data, not an error and not Harbor's dress.",
+      "selected_option": "B",
+      "accepted_scope": "One park-neutral field kit draws the diamond, lines, bags, mound, wall and rail from the shared geometry owner. A park fills named slots; an empty slot draws a complete greybox from park data. Harbor fills the slots first with no visual change, and the ParkView fallback diamond and per-park dress methods retire after that. The slot list in the plan is the starting proposal; the exact slot schema and the order of retirement are contract work. No art is commissioned (FD-01).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "Engineering rails as one set: FD-09 B, FD-12 B, FD-16 B, FD-17 C",
+        "answer_quote": "accept all four recommendations"
+      },
+      "numeric_targets": "not applicable: an engineering pattern",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "accept all four recommendations",
+          "scope": "One park-neutral field kit draws the diamond, lines, bags, mound, wall and rail from the shared geometry owner. A park fills named slots; an empty slot draws a complete greybox from park data. Harbor fills the slots first with no visual change, and the ParkView fallback diamond and per-park dress methods retire after that. The slot list in the plan is the starting proposal; the exact slot schema and the order of retirement are contract work. No art is commissioned (FD-01)."
+        }
+      ]
+    },
+    {
+      "id": "FD-17",
+      "area": "Presentation",
+      "question": "What gates a park's look, and in what order?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-16"
+      ],
+      "source_ids": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "Art when ready",
+          "tradeoff": "No fixed order. A park may get meshes before its rules are proven."
+        },
+        {
+          "id": "B",
+          "label": "Greybox first, with its own gate",
+          "tradeoff": "A park must pass: rules green, greybox playable, a greybox sitting by Jack. Only then do the DCC stages (blocking, fill, export, still) start, with named park shots as dual stills."
+        },
+        {
+          "id": "C",
+          "label": "B, plus one park at a time",
+          "tradeoff": "As B, and only one park may be in the art stages at once."
+        }
+      ],
+      "recommendation": "C. It is 'rails before artwork' and 'three good parks beat six ugly ones' written as a gate.",
+      "existing_contract": "StillRequest has no park and no night. The DCC stage catalog and the dual-stills catalog have a Harbor lane only, fixed by their validators. harbor_kit.py reads no data; seven constants have drifted. #37: three parks at trailer quality before unlocking the rest.",
+      "acceptance": "A park's PR trail shows the gates in order. No park mesh is commissioned for a park whose greybox sitting has not happened.",
+      "selected_option": "C",
+      "accepted_scope": "A park's look is gated in order: rules green, greybox playable, Jack's greybox sitting, then the DCC stages and dual stills with named park shots. Only one park may be in the art stages at a time. StillRequest gains park and night, and the stage and dual-still catalogs gain a park lane, as rails. The sitting checklist and the named shots are contract work. Agents do not pass the greybox sitting or the look gate.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "Engineering rails as one set: FD-09 B, FD-12 B, FD-16 B, FD-17 C",
+        "answer_quote": "accept all four recommendations"
+      },
+      "numeric_targets": "not applicable: an engineering pattern",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "accept all four recommendations",
+          "scope": "A park's look is gated in order: rules green, greybox playable, Jack's greybox sitting, then the DCC stages and dual stills with named park shots. Only one park may be in the art stages at a time. StillRequest gains park and night, and the stage and dual-still catalogs gain a park lane, as rails. The sitting checklist and the named shots are contract work. Agents do not pass the greybox sitting or the look gate."
+        }
+      ]
+    },
+    {
+      "id": "FD-18",
+      "area": "Roster",
+      "question": "Which park proves the rails first?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-01",
+        "FD-09"
+      ],
+      "source_ids": [
+        "MW-PIG"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Crystal Rink",
+          "tradeoff": "Proves ground (ice), wall material (glass boards), a status volume and a night rule. Roadmap D2 already names it. Its hazard is the one pattern the sim already carries."
+        },
+        {
+          "id": "B",
+          "label": "Ember Keep",
+          "tradeoff": "Proves size (the deep park), hot air and status volumes. Little new ground behavior."
+        },
+        {
+          "id": "C",
+          "label": "Funfair Park",
+          "tradeoff": "Proves ball redirects and a timed mover. The hardest hazards first; the environment rails get little exercise."
+        }
+      ],
+      "recommendation": "A. It exercises the most environment levers with the least new hazard code, and it matches the roadmap.",
+      "existing_contract": "Roadmap Phase D: D2 Crystal Rink as a kit, D3 one gimmick park (Funfair or Ember).",
+      "acceptance": "The proving park needs no code that names it.",
+      "selected_option": "A",
+      "accepted_scope": "Crystal Rink is the first park taken through the rails: schema, geometry, the environment table with ground zones and the FD-04 body effect, wall material, the status-volume hazard pattern, a night block, the field kit greybox, the look gates and the lessons. It needs no code that names it. Jack judges FD-04's held option C (full traction) at Crystal's greybox sitting, and Crystal's night contact-window rule is reviewed when its night block is written. Crystal has no random hazard, so the seeded-draw rail (FD-08) stays unproven until a second park; Funfair Park is the expected second park for that reason, but this decision does not select it. No Crystal value is selected, and under FD-13 Crystal is measured against Harbor, not tuned.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-18: Crystal Rink / Ember Keep / Funfair Park as the proving park",
+        "answer_quote": "a"
+      },
+      "numeric_targets": "not applicable: an ordering decision",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "a",
+          "scope": "Crystal Rink is the first park taken through the rails: schema, geometry, the environment table with ground zones and the FD-04 body effect, wall material, the status-volume hazard pattern, a night block, the field kit greybox, the look gates and the lessons. It needs no code that names it. Jack judges FD-04's held option C (full traction) at Crystal's greybox sitting, and Crystal's night contact-window rule is reviewed when its night block is written. Crystal has no random hazard, so the seeded-draw rail (FD-08) stays unproven until a second park; Funfair Park is the expected second park for that reason, but this decision does not select it. No Crystal value is selected, and under FD-13 Crystal is measured against Harbor, not tuned."
+        }
+      ]
+    },
+    {
+      "id": "FD-19",
+      "area": "Hazards",
+      "question": "Where may a hazard sit?",
+      "status": "direction-accepted",
+      "depends_on": [
+        "FD-08"
+      ],
+      "source_ids": [
+        "MW-MSS",
+        "MH-STAD"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Outfield and foul corners only",
+          "tradeoff": "The reference's habit: almost every hazard is in the outfield, and the GameCube barrels never roll into the infield. Routine infield plays are the same in every park."
+        },
+        {
+          "id": "B",
+          "label": "Anywhere except the running lanes, the mound-to-plate lane and the bags",
+          "tradeoff": "Allows shallow ball redirects that can take a routine grounder (the reference's pipes). Keeps runners and the at-bat clean."
+        },
+        {
+          "id": "C",
+          "label": "Anywhere",
+          "tradeoff": "A hazard may sit on a basepath. No reference does this."
+        }
+      ],
+      "recommendation": "B, as a validator rule, so a park file cannot place a hazard on a lane.",
+      "existing_contract": "Funfair's cans sit at z 55\u201395 and Canopy's barrels at z 58\u2013102, inside or near the infield. No reference game has a runner hazard in normal play. No validator checks a hazard's place today.",
+      "acceptance": "cli art refuses a hazard whose disc crosses a running lane, a bag pad, the mound or the plate area, on both data roots.",
+      "selected_option": "B",
+      "accepted_scope": "A hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags. The content validator enforces it on both data roots: it refuses a hazard whose disc or body crosses a running lane, a bag pad, the mound or the plate area. A moving hazard obeys the same rule along its whole path. Shallow ball hazards that can take a routine grounder stay legal. The lane widths and pad sizes the validator uses are contract work and come from existing geometry (ParkDiamond path width and pads), not new numbers. Today's park files are checked against the rule when it lands; a hazard that fails it is a finding to bring back, not something to move silently. No hazard position is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-19: outfield and foul corners only / anywhere except the lanes, the mound-to-plate lane and the bags / anywhere",
+        "answer_quote": "b"
+      },
+      "numeric_targets": "not applicable: a placement rule from existing geometry",
+      "implementation_issues": [],
+      "validation_evidence": [],
+      "human_acceptance": null,
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b",
+          "scope": "A hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags. The content validator enforces it on both data roots: it refuses a hazard whose disc or body crosses a running lane, a bag pad, the mound or the plate area. A moving hazard obeys the same rule along its whole path. Shallow ball hazards that can take a routine grounder stay legal. The lane widths and pad sizes the validator uses are contract work and come from existing geometry (ParkDiamond path width and pads), not new numbers. Today's park files are checked against the rule when it lands; a hazard that fails it is a finding to bring back, not something to move silently. No hazard position is selected."
+        }
+      ]
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-09-21",
+      "event": "Register created from the user brief; all 19 choices open. Existing gameplay-spec decisions (D15, D19, D20) and the #693 accepted decisions remain in force."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-01 accepted by Jack: A first, then B park by park. The scope line was added to AGENTS.md, roadmap.md and art-rails.md in the same PR. 18 choices remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-02 accepted by Jack: B, a noticeable park effect in a declared direction. No numeric band accepted. 17 choices remain open; next is the engineering-rails set FD-09, FD-12, FD-16, FD-17."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-09 (B), FD-12 (B), FD-16 (B) and FD-17 (C) accepted by Jack as one set: \"accept all four recommendations\". Engineering patterns only; no gameplay rule, number or art accepted. 13 choices remain open; next is FD-03."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-03 accepted by Jack: A, the #713 ball-environment list. Gravity, time scales, plate and infield stay global. No value selected. 12 choices remain open; next is FD-04."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-04 accepted by Jack: B, the ground has a small effect on bodies with control kept; C (full traction) is held as a named trial candidate for the proving park's greybox sitting. The author's recommendation was A. No multiplier selected. 11 choices remain open; next is FD-05."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-05 accepted by Jack: B, ground zones from the shared diamond with a closed ground library. No ground value selected. 10 choices remain open; next is FD-06."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-06 accepted by Jack: C, a free polyline fence with a height per point and a material per span; the three-post arc stays the default. The author's recommendation was B. Gameplay-spec D15 must be reconciled before implementation. 9 choices remain open; next is FD-07."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-07 accepted by Jack: C, foul territory and outfield depth per park, parity extraction first. Round 3 (what a park may change) is complete. 8 choices remain open; next is FD-08."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-08 accepted by Jack: C, park hazards may carry random party elements. The author's recommendation was A. Draws come from the seeded match stream. The standing geometry rule gets an exception scoped to park hazards; its wording waits for refinement FD-08-R1. 7 choices and 1 refinement remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-08-R1 accepted by Jack: 1, random world, geometric result. A hazard draw never awards an out, hit, drop or catch. AGENTS.md gains one clarifying sentence; the geometry rule stays whole. 7 choices remain open; next is FD-19."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-19 accepted by Jack: B, hazards may sit anywhere except the running lanes, the mound-to-plate lane and the bags, enforced by the validator on both roots. 6 choices remain open; next is FD-10."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-10 accepted by Jack: B, a hazards-off match option, default on. The park keeps its size, walls, air and ground. 5 choices remain open; next is FD-11."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-11 accepted by Jack: B, night is a declared rule layer per park. The three existing night rules move into night blocks at parity; moving them does not endorse them. 4 choices remain open; next is FD-14."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-14 accepted by Jack: A, the CPU reads the same resolved park, with no foresight of a random draw. Round 4 (hazards) is complete. 3 choices remain open: FD-13, FD-15, FD-18."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-13 accepted by Jack: A, Harbor is the only calibrated park; other parks are measured and reported, not tuned, until a single default exists. 2 choices remain open: FD-15, FD-18."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-15 accepted by Jack: C, the field card, in-park tells and a Practice lesson per hazard pattern and per ground, delivered in that order. 1 choice remains open: FD-18."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-18 accepted by Jack: A, Crystal Rink proves the rails first. All 19 directions and refinement FD-08-R1 are accepted. No numeric trial, implementation or human gate has passed. Next work: reconcile gameplay-spec (D15, section 6.1, section 14, section 16) and the owed F0 corrections, write the implementation map, then file one bounded child at a time."
+    }
+  ]
+}
