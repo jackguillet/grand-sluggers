@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-11",
+  "next_decision": "PH-08",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -1082,7 +1082,7 @@
       "existing_contract": "Existing fill/MAX/decay values are a snapshot, not approved new targets; preserve D13 until explicitly amended.",
       "acceptance": "Quick swings remain useful with two strikes and awkward pitches; waiting fully charged is not a dominant strategy.",
       "selected_option": "A",
-      "accepted_scope": "Keep quick and charged swings on one button using the same hold/release action. Quick release favors contact; holding and releasing favors power with more commitment, and holding too long loses charge. Quick swings must remain useful for two-strike protection and difficult pitches rather than being dominated by charging. Exact fill time, MAX hold, decay, forgiveness, power and commitment values remain open. Preserve the PH-09 cursor and PH-10 contact-quality direction, and existing D13 until explicitly amended. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Keep quick and charged swings on one button using the same hold/release action. Quick release favors contact; holding and releasing favors power with more commitment, and holding too long loses charge. Quick swings must remain useful for two-strike protection and difficult pitches rather than being dominated by charging. PH-11-R1 makes charge trade spatial placement forgiveness for power while preserving the swing timing window, using the same rule for every hitter. Exact fill time, MAX hold, decay, spatial regions, power/forgiveness curves and values remain open; commitment/cancel/rearming follow PH-13-R1. Preserve the PH-09 cursor and PH-10 contact-quality direction, and existing D13 until explicitly amended. Direction acceptance only; no runtime change or human playtest acceptance.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1104,6 +1104,59 @@
           "choice": "A",
           "quote": "1",
           "scope": "Keep quick and charged swings on one button using the same hold/release action. Quick release favors contact; holding and releasing favors power with more commitment, and holding too long loses charge. Quick swings must remain useful for two-strike protection and difficult pitches rather than being dominated by charging. Exact fill time, MAX hold, decay, forgiveness, power and commitment values remain open. Preserve the PH-09 cursor and PH-10 contact-quality direction, and existing D13 until explicitly amended. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-11-R1",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Charging an ordinary swing trades spatial placement forgiveness for power: a charged swing requires more precise contact than a quick swing, while the swing timing window remains unchanged. Apply the same swing rule to every hitter and preserve PH-15-R7 spatial-only Contact, independent Power, PH-10 geometric placement-led quality and timing-led direction with shared edge weakening. Preserve one-button hold/release, charge buildup and overcharge, PH-13-R1 release commitment/cancel/rearming, and useful quick swings. Exact spatial regions, quality boundaries, charge-to-power/forgiveness curves, overcharge interaction, visible representation and values remain open. This does not select a narrower timing window, an extra input, automatic hit probability or guaranteed outcome. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-11-R1",
+          "question": "What forgiveness should charging a swing cost?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Less placement forgiveness; unchanged timing window"
+            },
+            {
+              "id": "2",
+              "label": "Less timing forgiveness; unchanged placement forgiveness"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Charging an ordinary swing trades spatial placement forgiveness for power: a charged swing requires more precise contact than a quick swing, while the swing timing window remains unchanged. Apply the same swing rule to every hitter and preserve PH-15-R7 spatial-only Contact, independent Power, PH-10 geometric placement-led quality and timing-led direction with shared edge weakening. Preserve one-button hold/release, charge buildup and overcharge, PH-13-R1 release commitment/cancel/rearming, and useful quick swings. Exact spatial regions, quality boundaries, charge-to-power/forgiveness curves, overcharge interaction, visible representation and values remain open. This does not select a narrower timing window, an extra input, automatic hit probability or guaranteed outcome. Direction refinement only; no runtime change, numerical trial or human acceptance.",
+          "contract": {
+            "charged_swing_cost": "reduced spatial placement forgiveness for increased power",
+            "charge_changes_timing_window": false,
+            "same_swing_rule_for_every_hitter": true,
+            "preserve_charge_buildup_and_overcharge": true,
+            "response_curves_regions_and_values": "open"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-11-R1: What forgiveness should charging a swing cost? 1. Less placement forgiveness \u2014 recommended: more power requires more precise contact; the timing window stays the same. 2. Less timing forgiveness: more power requires more precise timing; placement forgiveness stays the same. This swing rule would apply to every hitter. Existing charge buildup and overcharge remain.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Hold hitter, pitch and timing fixed and compare quick/charged swings: charge trades spatial forgiveness for power without changing timing eligibility or timing-edge rules.",
+            "Validate the shared charge response with high/low Contact and Power combinations; contact stays geometric and quick swings retain useful situational advantages.",
+            "Specify visible spatial regions, charge/overcharge curves and PH-13-R1 input arbitration before implementation; preserve bunt-specific response and human gates."
+          ]
         }
       ]
     },
@@ -3271,6 +3324,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-15-R7 option 1: Contact changes spatial placement forgiveness only; hitters share the same swing timing window. Next PH-11-R1 compares a smaller spatial margin with a narrower timing window as the charged swing forgiveness cost. Both remain proposals pending Jack; exact tuning stays open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-11-R1 option 1: charge trades spatial placement forgiveness for power with an unchanged timing window and shared hitter rule. Next PH-08-R2 compares no in-game pitcher fatigue recovery with gradual recovery while another teammate pitches; neither recovery policy is selected yet."
     }
   ]
 }
