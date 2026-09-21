@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-18",
+  "next_decision": "PH-19",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -1063,7 +1063,7 @@
       "id": "PH-18",
       "area": "CPU",
       "question": "What information and commitment rules may CPU players use?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-03",
         "PH-04",
@@ -1092,16 +1092,36 @@
       "recommendation": "A as the target; audit C first. Any B shortcut must not become a hidden advantage against a human.",
       "existing_contract": "Current live CPU commits about .30 s before plate arrival, while final crossing judges contact; endpoint aiming also differs from human inputs.",
       "acceptance": "Late legal steering can defeat a committed CPU read; CPU cannot use future inputs, reserved human actions or impossible location access.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "CPU opponents use the same legal action limits as humans, read available cues, and commit to swings that late legal steering can defeat. They cannot know future player inputs or use hidden pitch destinations, impossible location access, or privileged post-commit corrections. Exact observation model, reaction/commitment timing and CPU skill tuning remain open; this does not accept selectable difficulty or change PH-17 fixed human difficulty/forgiveness. Audit existing live/headless behavior and endpoint aiming before implementation. No simulation shortcut is newly approved. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-18: How should CPU opponents read and react? 1. Human-equivalent limits (recommended): CPU uses legal actions, reads available cues, and commits to swings; late steering can fool it and it cannot know future inputs. 2. Keep current CPU behavior pending further audit: decide its target rules after examining existing differences more closely. Presented option 1 maps to canonical A; option 2 maps to canonical C.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "CPU opponents use the same legal action limits as humans, read available cues, and commit to swings that late legal steering can defeat. They cannot know future player inputs or use hidden pitch destinations, impossible location access, or privileged post-commit corrections. Exact observation model, reaction/commitment timing and CPU skill tuning remain open; this does not accept selectable difficulty or change PH-17 fixed human difficulty/forgiveness. Audit existing live/headless behavior and endpoint aiming before implementation. No simulation shortcut is newly approved. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ],
+      "validation_requirements": [
+        "CPU decisions use only observations available by decision time; changing later human input cannot change an already committed CPU action. Final contact still uses actual ball geometry.",
+        "CPU pitching must obey the same mound/shape and bounded steering action limits as human pitching; audit existing compensated endpoint aiming.",
+        "Late legal steering can defeat a committed CPU read, and CPU skill tuning does not alter shared contact rules or human forgiveness."
+      ]
     },
     {
       "id": "PH-19",
@@ -1259,6 +1279,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-17 option C through presented option 2: one fixed challenge with identical difficulty and forgiveness. Four choices remain open; next PH-18 CPU information and commitment policy."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-18 option A: human-equivalent legal actions, bounded reads and committed swings; no future-input knowledge. Three choices remain open. Discuss PH-19 feedback next, then return to PH-07 pace under the D7 re-sit hold and PH-20 delivery."
     }
   ]
 }

@@ -4,13 +4,13 @@ Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), servi
 
 ## Current state
 
-Research foundation prepared; **Sixteen directions accepted (PH-01–06 and PH-08–17); 4 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
+Research foundation prepared; **Seventeen directions accepted (PH-01–06 and PH-08–18); 3 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
 
 This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
 
 ## How we use this together
 
-1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-18**, CPU information and commitment rules. PH-14 also retains Jack’s contact-quality follow-up and the proposed answer.
+1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-19**, feedback and teaching; then return to PH-07 pace under the D7 re-sit hold. PH-14 also retains Jack’s contact-quality follow-up and the proposed answer.
 2. Record Jack's answer in the JSON: selected option (or a clearly described custom answer), accepted scope, exact qualification, local date, author and a conversation/issue reference or quoted answer. Recommendation never counts as selection.
 3. Append history rather than erase a prior choice. Record supersession explicitly; link the replacement and named gameplay-spec decision affected.
 4. Direction acceptance selects intent only. Numeric targets stay null until a later scoped trial is accepted with units, conditions, rationale and evidence limits.
@@ -27,7 +27,7 @@ Status progression: `open → direction-accepted → trial-accepted → implemen
 
 ## Decision register
 
-PH-01–06 and PH-08–17 are **DIRECTION ACCEPTED**; the other 4 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
+PH-01–06 and PH-08–18 are **DIRECTION ACCEPTED**; the other 3 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
 
 ### PH-01 — What should added depth primarily ask the player to do?
 
@@ -307,6 +307,8 @@ Area: Accessibility. Depends on: PH-09, PH-10. Evidence: GC, SMB4, SHOW-H.
 
 ### PH-18 — What information and commitment rules may CPU players use?
 
+**Decision — Jack, September 21, 2026: A.** Reply “1” selects human-equivalent CPU limits: the same legal actions, available cues and committed swings that late legal steering can fool. No future-input knowledge, hidden destination access or privileged post-commit correction. Exact observation model, timing and CPU skill tuning remain open; selectable difficulty is not newly accepted and PH-17’s fixed human forgiveness remains. Audit current live/headless behavior and endpoint aiming before implementation. No simulation shortcut is approved by this choice. Direction only; no runtime change or passed playtest. Evidence: this task’s PH-18 reply; full provenance is in the canonical JSON.
+
 Area: CPU. Depends on: PH-03, PH-04, PH-06. Evidence: Legacy.
 
 - **A — Shared legal actions and bounded reads:** Use the same action limits, explicit observations and commitment windows; difficulty changes skill.
@@ -370,7 +372,8 @@ Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 - [x] Resolve PH-16: stars/chemistry supplement the ordinary duel and preserve counterplay (Jack, September 20).
 - [x] Resolve PH-08: gradual visible fatigue driven mainly by effort (Jack, September 20).
 - [x] Resolve PH-17: one fixed challenge with identical difficulty and forgiveness (Jack, September 21; presented option 2 = canonical C).
-- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-18; pace remains in its later D7-gated discussion.
+- [x] Resolve PH-18: human-equivalent CPU action limits, bounded reads and committed swings (Jack, September 21).
+- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-19; pace remains in its later D7-gated discussion.
 - [ ] Collect matched reference observations and the required D7 standalone re-sit.
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
 - [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
