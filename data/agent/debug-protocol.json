@@ -362,6 +362,16 @@
       "promoted": "TutorialAttemptFlowTests.SuccessAndFailureBothRepeatUntilThreeEarnedSuccesses",
       "issue": "#802",
       "pr": ""
+    },
+    {
+      "id": "unity-only-positional-sim-call",
+      "signature": "dotnet build GrandSluggers.sln and the full test suite are green after a sim signature changes, then tools/unity-compile.sh reports CS1503 'cannot convert from bool to double' in a unity/ file.",
+      "stage": "unity-console",
+      "cause": "The solution does not include unity/, so nothing in the .NET build sees a unity/ call site. Removing a parameter from a sim method silently re-aims every argument after it at a unity/ caller that passed them positionally — StillCapture.cs:780 kept PitchFlight.Point(..., 0, false, 0, from) when the changeup bool went away (#810).",
+      "fix": "When a sim signature loses or gains a parameter, grep unity/ for the method name and read the call sites, not only the named-argument spellings, and run tools/unity-compile.sh before opening the PR. A positional call in unity/ is only compiled by that gate.",
+      "promoted": "tools/unity-compile.sh",
+      "issue": "#810",
+      "pr": "#811"
     }
 
   ]
