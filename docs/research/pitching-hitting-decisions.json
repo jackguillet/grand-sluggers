@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-05",
+  "next_decision": "PH-06",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -277,7 +277,7 @@
       "id": "PH-05",
       "area": "Pitching",
       "question": "What makes a pitch well executed?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-03",
         "PH-04"
@@ -307,16 +307,31 @@
       "recommendation": "A initially; consider B if it creates a clear choice. Avoid a second execution minigame unless PH-01 selects that emphasis.",
       "existing_contract": "No charge timing, Nice multiplier or stamina number changes with this direction.",
       "acceptance": "A player can distinguish a poor release from a poor location choice; maximum power is not universally best.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B",
+      "accepted_scope": "Add a stronger power-versus-control tradeoff within the same charge/release controls: pursuing more pitch power makes the pitch harder to control. The form of the control challenge, affected pitches, exact charge/release behavior, fatigue interaction and numerical values remain open. This does not select a separate accuracy minigame or a particular random-error model. Preserve PH-03 mound/shape location and PH-04 live steering. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-05: 1. Keep simple charge/release; 2. Add a stronger power-versus-control tradeoff using the same controls; 3. Add a separate accuracy challenge.",
+        "answer_quote": "2"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "2",
+          "scope": "Add a stronger power-versus-control tradeoff within the same charge/release controls: pursuing more pitch power makes the pitch harder to control. The form of the control challenge, affected pitches, exact charge/release behavior, fatigue interaction and numerical values remain open. This does not select a separate accuracy minigame or a particular random-error model. Preserve PH-03 mound/shape location and PH-04 live steering. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-06",
@@ -1025,6 +1040,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-04 option A: live left/right steering after release with readable, bounded break and a fair hitter response opportunity. Fifteen choices remain open; exact break strength and timing are unselected."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-05 option B: a stronger power-versus-control tradeoff within the same charge/release controls. Fourteen choices remain open; the form and strength of the control challenge and numeric targets remain unselected."
     }
   ]
 }
