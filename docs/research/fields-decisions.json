@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-18",
+  "next_decision": null,
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -1148,7 +1148,7 @@
       "id": "FD-18",
       "area": "Roster",
       "question": "Which park proves the rails first?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-01",
         "FD-09"
@@ -1176,16 +1176,31 @@
       "recommendation": "A. It exercises the most environment levers with the least new hazard code, and it matches the roadmap.",
       "existing_contract": "Roadmap Phase D: D2 Crystal Rink as a kit, D3 one gimmick park (Funfair or Ember).",
       "acceptance": "The proving park needs no code that names it.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "A",
+      "accepted_scope": "Crystal Rink is the first park taken through the rails: schema, geometry, the environment table with ground zones and the FD-04 body effect, wall material, the status-volume hazard pattern, a night block, the field kit greybox, the look gates and the lessons. It needs no code that names it. Jack judges FD-04's held option C (full traction) at Crystal's greybox sitting, and Crystal's night contact-window rule is reviewed when its night block is written. Crystal has no random hazard, so the seeded-draw rail (FD-08) stays unproven until a second park; Funfair Park is the expected second park for that reason, but this decision does not select it. No Crystal value is selected, and under FD-13 Crystal is measured against Harbor, not tuned.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-18: Crystal Rink / Ember Keep / Funfair Park as the proving park",
+        "answer_quote": "a"
+      },
+      "numeric_targets": "not applicable: an ordering decision",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "a",
+          "scope": "Crystal Rink is the first park taken through the rails: schema, geometry, the environment table with ground zones and the FD-04 body effect, wall material, the status-volume hazard pattern, a night block, the field kit greybox, the look gates and the lessons. It needs no code that names it. Jack judges FD-04's held option C (full traction) at Crystal's greybox sitting, and Crystal's night contact-window rule is reviewed when its night block is written. Crystal has no random hazard, so the seeded-draw rail (FD-08) stays unproven until a second park; Funfair Park is the expected second park for that reason, but this decision does not select it. No Crystal value is selected, and under FD-13 Crystal is measured against Harbor, not tuned."
+        }
+      ]
     },
     {
       "id": "FD-19",
@@ -1314,6 +1329,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-15 accepted by Jack: C, the field card, in-park tells and a Practice lesson per hazard pattern and per ground, delivered in that order. 1 choice remains open: FD-18."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-18 accepted by Jack: A, Crystal Rink proves the rails first. All 19 directions and refinement FD-08-R1 are accepted. No numeric trial, implementation or human gate has passed. Next work: reconcile gameplay-spec (D15, section 6.1, section 14, section 16) and the owed F0 corrections, write the implementation map, then file one bounded child at a time."
     }
   ]
 }

@@ -4,9 +4,24 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). FD-06 is accepted: the fence may be a free polyline with a height per point and a material per span (C); the three-post arc stays the default. FD-07 is accepted: foul territory and outfield depth may differ by park (C), after a parity extraction. Round 3 is complete. FD-08 is accepted: park hazards may carry random party elements (C), drawn from the seeded match stream. FD-08-R1 is accepted: a draw decides what a hazard does, never a play's result. FD-19 is accepted: a hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags (B), enforced by the validator. FD-10 is accepted: a hazards-off match option, default on (B). FD-11 is accepted: night is a declared rule layer per park (B). FD-14 is accepted: the CPU reads the same resolved park, with no foresight of a random draw (A). Round 4 is complete. FD-13 is accepted: Harbor is the only calibrated park; the others are measured, not tuned, until a single default exists (A). FD-15 is accepted: the field card, in-park tells, and a Practice lesson per hazard pattern and per ground (C). FD-18 is open. Nothing is implemented. No number is accepted.** Next: FD-18. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **All 19 directions and refinement FD-08-R1 are accepted (Jack, September 21, 2026). Nothing is implemented. No number is accepted. No human gate has passed.** Jack's brief: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
+
+## Current agreed fields contract
+
+Directions only. Each line names its decision; the register below has the exact scope and what stays open.
+
+- **Scope (FD-01).** Rails at Harbor parity, proven on one park as a greybox, then the other listed parks one at a time. No park art before a park's rules are green and Jack has sat its greybox (#37).
+- **Strength (FD-02, FD-13).** A park's effect is noticeable, in a direction it declares first. Harbor is the only calibrated park; the others are measured against it on both roots and reported, not tuned, until a single default exists.
+- **What a park may name.** The ball's environment: air drag, wind exposure, roll, rest speed, bounce, wall carom (FD-03). Ground **zones** from the shared diamond, each naming a ground from a closed library (FD-05). A **small** body effect from the ground with control kept; full traction is a held trial for the first greybox sitting (FD-04). A **free polyline fence** with a height per point and a wall material per span; the three-post arc is the default (FD-06; spec D15 is reconciled first). Its **foul territory** and its **three outfield starts**, after a parity extraction from `HarborWall` (FD-07). Gravity, the time scales, the plate, the foul-line angle and the infield stay global.
+- **Hazards.** A closed **pattern library**; a hazard type is a data row (FD-09). Hazards are live and **may surprise**: a draw from the seeded match stream decides what a hazard *does*, never a play's result (FD-08, FD-08-R1). They stay off the running lanes, the mound-to-plate lane and the bags (FD-19). A **hazards-off** match option, default on (FD-10). **Night** is a declared rule layer per park (FD-11). The **CPU** reads the same resolved park, with no foresight of a draw (FD-14).
+- **Authoring.** Positions are relative to the diamond and the fence, so one authoring serves both data roots (FD-12).
+- **Look.** One park-neutral field kit; parks fill slots; empty slots draw a greybox from data (FD-16). Rules green → greybox → Jack's sitting → DCC stages and dual stills; one park in art at a time (FD-17).
+- **Learning (FD-15).** The field card, then in-park tells and stamps, then a Practice lesson per hazard pattern and per ground that changes the ball.
+- **Order (FD-18).** Crystal Rink proves the rails first. Funfair Park is the expected second park because it carries the first random hazard; it is not selected.
+
+**Next work.** Reconcile [gameplay-spec.md](gameplay-spec.md) (D15, §6.1, §14, §16) and finish the owed F0 corrections to [parks.md](parks.md). Write the implementation map. File one bounded child at a time, starting with F1.
 
 ## How we use this together
 
@@ -149,12 +164,12 @@ Serial by default. Each epic is filed only when the decisions it needs are accep
 | **F1** Schema and catalog | Gameplay | strict park schema, dead fields resolved, park list from the catalog, unknown id is an error | FD-01 | FR-03, FR-04, FR-06, FR-16 |
 | **F2** Geometry owner | Gameplay | park-neutral boundary type; Harbor's numbers as defaults; lopsided parks draw true; parity. Then the polyline fence: one distance per bearing, vertices kept in the clip polygon, height per point, material per span; D15 reconciled in the spec first | FD-06 ✅, FD-07 ✅; coordinate #732. Per-park outfield starts must not read the process-wide `Diamond.Positions` | FR-05, FR-06 |
 | **F3** Environment table | Gameplay | `AtPark`; ground and wall-material libraries, ground rows carrying ball fields and body multipliers; every park still names nothing; then one lever at a time as a trial. The body effect needs the response law on (C80 today) | FD-03, FD-04, FD-05 | FR-01, FR-02, FR-06, FR-11 |
-| **F4** Hazard runtime | Gameplay | pattern library; live touch tests; typed events; CPU reads hazards; rolls removed | FD-08, FD-09, FD-10, FD-11, FD-14, FD-19 | FR-07, FR-08, FR-09, FR-12 |
+| **F4** Hazard runtime | Gameplay, then a Presentation child for the title option | pattern library; live touch tests; typed events; seeded draws that decide what a hazard does and never a result; the park's `drops.frozen` roll retired; the placement validator; night blocks at parity; the hazards-off option; CPU reads hazards | FD-08, FD-09, FD-10, FD-11, FD-14, FD-19 | FR-07, FR-08, FR-09, FR-12 |
 | **F5** Measurement | Gameplay | `park-factors` cohort, night flag in the CLI, declared park intents | FD-02, FD-13 | FR-10 |
 | **F6** Field kit | Presentation | one builder, kit slots, Harbor refilled with no visual change, data-driven greybox for every park, light and sky as data | FD-16 | FR-13, FR-04 |
 | **F7** Look gates | Presentation / Art process | park and night in `StillRequest`, park lane in stages and dual stills, named park shots, greybox sitting checklist | FD-17 | FR-14 |
 | **F8** Legibility | Presentation + Gameplay setup | field card from data, tells and stamps from typed events, a lesson per pattern and per ground | FD-15 | FR-15 |
-| **F9** The proving park | Gameplay, then Presentation, then Art | the first non-Harbor park through every gate, with no code that names it | FD-18, FD-02 | all |
+| **F9** The proving park: **Crystal Rink** | Gameplay, then Presentation, then Art | Crystal through every gate, with no code that names it; the sitting judges FD-04's held option C. Funfair Park is the expected second park (first random hazard) | FD-18 ✅, FD-02 ✅ | all |
 
 F1, F2 and F5 can run beside the pitching and hitting children if their file lists do not overlap (`Models.cs`, `Rules.cs`, `Match.cs` are shared: serialize those). F6 and F7 touch no sim rule and can start after F2. Park art starts only inside F9, after the greybox sitting.
 
@@ -170,7 +185,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 | Sealed evidence | #708 packet, CI `--check` | FR-16. |
 | "A play is decided by geometry, never by a roll or a caption" | AGENTS.md; roadmap Phase P ban on a `Random` that produces a `PlayEvent` | **Kept whole.** FD-08 C with FD-08-R1: a park hazard may draw from the seeded stream to decide what the hazard does; it never awards an out, hit, drop or catch. One clarifying sentence is in AGENTS.md. |
 
-## Discussion order
+## Discussion order (complete, September 21, 2026)
 
 - **Round 1 — scope and strength:** FD-01, then FD-02. These decide whether the rest is worth asking.
 - **Round 2 — the engineering rails:** FD-09, FD-12, FD-16, FD-17. None changes how the game plays. One answer can accept all four recommendations.
@@ -180,7 +195,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 to FD-17 and FD-19 are **DIRECTION ACCEPTED**. FD-18 is **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 to FD-19 and refinement FD-08-R1 are **DIRECTION ACCEPTED**. Detailed contracts, numeric trials, implementation and human acceptance remain open. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -456,6 +471,8 @@ Area: Presentation. Depends on: FD-16. Evidence: code maps only.
 **Acceptance:** A park's PR trail shows the gates in order. No park mesh is commissioned for a park whose greybox sitting has not happened.
 
 ### FD-18 — Which park proves the rails first?
+
+**Decision — Jack, September 21, 2026: A.** Reply "a" selects Crystal Rink. It goes through every rail and needs no code that names it. Jack judges FD-04's held option C at Crystal's greybox sitting; Crystal's night contact-window rule is reviewed when its night block is written. Crystal has no random hazard, so the seeded-draw rail (FD-08) stays unproven until a second park; Funfair Park is the expected second park, not a selected one. Under FD-13 Crystal is measured against Harbor, not tuned. Full provenance is in the canonical JSON.
 
 Area: Roster. Depends on: FD-01, FD-09. Evidence: MW-PIG.
 
