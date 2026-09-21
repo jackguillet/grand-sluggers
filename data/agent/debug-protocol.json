@@ -362,6 +362,26 @@
       "promoted": "TutorialAttemptFlowTests.SuccessAndFailureBothRepeatUntilThreeEarnedSuccesses",
       "issue": "#802",
       "pr": ""
+    },
+    {
+      "id": "unity-only-positional-sim-call",
+      "signature": "dotnet build GrandSluggers.sln and the full test suite are green after a sim signature changes, then tools/unity-compile.sh reports CS1503 'cannot convert from bool to double' in a unity/ file.",
+      "stage": "unity-console",
+      "cause": "The solution does not include unity/, so nothing in the .NET build sees a unity/ call site. Removing a parameter from a sim method silently re-aims every argument after it at a unity/ caller that passed them positionally — StillCapture.cs:780 kept PitchFlight.Point(..., 0, false, 0, from) when the changeup bool went away (#810).",
+      "fix": "When a sim signature loses or gains a parameter, grep unity/ for the method name and read the call sites, not only the named-argument spellings, and run tools/unity-compile.sh before opening the PR. A positional call in unity/ is only compiled by that gate.",
+      "promoted": "tools/unity-compile.sh",
+      "issue": "#810",
+      "pr": "#811"
+    },
+    {
+      "id": "stored-double-pins-the-platform",
+      "signature": "A fixture of exact doubles passes on macOS and fails the portable CI job on Linux; every differing sample went through Math.Sin, Math.Cos, Math.Atan, Math.Exp or Math.Pow.",
+      "stage": "sim",
+      "cause": "Those libm functions are not correctly rounded and differ by about one ULP between macOS libm and glibc; IEEE only pins +, -, *, / and sqrt. PitchFlight.BreakShiftFt calls Math.Sin(u * PI) and the heatball/prismball/charmball wobbles call Math.Sin(u * hz), so the golden's X under break stored a macOS bit pattern (#810). The same class of drift is why the compact report is compared field by field (#736).",
+      "fix": "Store only the parts a golden can own: values reached by +, -, *, / and sqrt alone. For a value a libm call touches, store the libm-free part plus the inputs the change under test actually decides, and recompose the rest on the running platform in the production operation order, then assert bit equality against the real call. Exactness survives and the platform drops out, because both sides call the same libm.",
+      "promoted": "PitchFamilyGoldenTests.XIsStoredExactlyWhereverNoSineTouchesItAndComposedWhereverOneDoes",
+      "issue": "#810",
+      "pr": "#811"
     }
 
   ]

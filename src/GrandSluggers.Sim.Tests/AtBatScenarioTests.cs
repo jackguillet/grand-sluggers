@@ -546,8 +546,9 @@ public sealed class AtBatScenarioTests
         Assert.Equal(full - st.PitchCost, match.PitcherStamina);
         match.Play(Scenario.PitchAt(2.5, CenterY, charge: 1), Scenario.Take);
         Assert.Equal(full - 2 * st.PitchCost - st.ChargeCost, match.PitcherStamina);
-        match.Play(Scenario.PitchAt(2.5, CenterY, changeup: true), Scenario.Take);
-        Assert.Equal(full - 3 * st.PitchCost - st.ChargeCost - st.ChangeupCost, match.PitcherStamina);
+        match.Play(Scenario.PitchAt(2.5, CenterY, family: PitchFamily.Changeup), Scenario.Take);
+        Assert.Equal(full - 3 * st.PitchCost - st.ChargeCost
+            - _content.Rules.Pitching.Families.Of(PitchFamily.Changeup).StaminaCost, match.PitcherStamina);
         // A star costs its skill's staminaCost from star-skills.json, never a C# literal.
         var star = new Scenario(_content);
         var skill = StarSkills.StaminaCost(star.Match.Pitcher.StarPitch, _content.StarSkills);

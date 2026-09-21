@@ -214,18 +214,25 @@ public sealed class TutorialCatalog
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
             if (s.Policy is "cpu-strike" or "cpu-ball" or "cpu-item" or "game-contact")
             {
-                var pitch = s.Pitch ?? new PitchCommand("fastball", 0, false);
-                Require(pitch.Type is "fastball" or "changeup" && !pitch.Star && !pitch.DeliveryPrepared
+                var pitch = s.Pitch ?? new PitchCommand(PitchFamily.Fastball, 0, false);
+                // A scripted pitch names a family the library has numbers for: an unauthored or
+                // unknown id is a lesson that cannot be thrown, and it is reported here rather than
+                // thrown out of the flight below (#810).
+                var authored = content.Rules.Pitching.Families.IsAuthored(pitch.Type);
+                Require(authored && !pitch.Star && !pitch.DeliveryPrepared
                     && new[] { pitch.Charge01, pitch.AimX, pitch.AimY, pitch.BreakX, pitch.RubberX, pitch.BreakMul }.All(double.IsFinite)
                     && pitch.Charge01 is >= 0 and <= 1 && Math.Abs(pitch.BreakX) <= 1 && Math.Abs(pitch.RubberX) <= 1
                     && Math.Abs(pitch.AimX) <= 4 && Math.Abs(pitch.AimY) <= 4 && pitch.BreakMul == 1,
                     s.Id + " has invalid CPU pitch");
-                var crossing = PitchFlight.Crossing(pitch, rules: content.Rules);
-                Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy is "cpu-strike" or "cpu-item" or "game-contact"), s.Id + " CPU pitch disagrees with strike/ball policy");
-                Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, hand, content.Rules)), s.Id + " CPU pitch hits the batter");
+                if (authored)
+                {
+                    var crossing = PitchFlight.Crossing(pitch, rules: content.Rules);
+                    Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy is "cpu-strike" or "cpu-item" or "game-contact"), s.Id + " CPU pitch disagrees with strike/ball policy");
+                    Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, hand, content.Rules)), s.Id + " CPU pitch hits the batter");
+                }
             }
             else if (s.Policy is "steal-offense" or "steal-defense")
-                Require(s.Pitch is null || (s.Pitch.Type is "fastball" or "changeup" && !s.Pitch.Star
+                Require(s.Pitch is null || (content.Rules.Pitching.Families.IsAuthored(s.Pitch.Type) && !s.Pitch.Star
                     && double.IsFinite(s.Pitch.Charge01) && s.Pitch.Charge01 is >= 0 and <= 1),
                     s.Id + " has invalid scripted steal pitch");
             else Require(s.Pitch is null, s.Id + " CPU pitch is not used by this policy");

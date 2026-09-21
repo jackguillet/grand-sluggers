@@ -16,7 +16,7 @@ public sealed partial class TutorialSession
             throw new InvalidDataException("Tutorial pickoff runner could not arm in SET.");
         if (_setup.Policy != "pitcher-swap") return;
         // Repeated ordinary taken balls spend the starter's arm without recording a user pitch.
-        var outside = new PitchCommand("fastball", 0, false, AimX: 4);
+        var outside = new PitchCommand(PitchFamily.Fastball, 0, false, AimX: 4);
         for (var i = 0; i < 160 && !Match.PitcherTired && !Match.Over; i++)
             Match.Play(outside, Take);
         if (!Match.PitcherTired || !Match.CanSwapPitcher)

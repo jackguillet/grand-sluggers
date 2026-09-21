@@ -302,12 +302,21 @@ public sealed record AtBatResult(
     BattedBallClass Class = BattedBallClass.Fly);
 
 /// <summary>
-/// One pitch (spec §4.1 – §4.3). <paramref name="Type"/> is the shape id ("fastball" / "changeup";
-/// <paramref name="Changeup"/> says the same for a modifier). Location is the rubber walk
-/// (<paramref name="RubberX"/>, world feet per <see cref="HomeSet.PitcherWalk"/>) and the stick
-/// after release (<paramref name="BreakX"/>, −1..1, capped at half a zone); <paramref name="AimX"/> /
-/// <paramref name="AimY"/> are the CPU's plate-aim target and the tired wobble. <paramref name="Nice"/>
-/// is a release inside the Nice band of MAX (+5% mph).
+/// One pitch (spec §4.1 – §4.3). <paramref name="Type"/> is the <b>family id</b> from the shared
+/// library (<see cref="PitchFamily"/>): today <c>fastball</c> or <c>changeup</c>, tomorrow one of the
+/// other three. The name stays <c>Type</c> because it is what traces and the Unity client already
+/// serialize. Charge and break are modifiers on the family, never families of their own (PH-02-R1).
+/// Location is the rubber walk (<paramref name="RubberX"/>, world feet per
+/// <see cref="HomeSet.PitcherWalk"/>) and the stick after release (<paramref name="BreakX"/>, −1..1,
+/// capped at half a zone); <paramref name="AimX"/> / <paramref name="AimY"/> are the CPU's plate-aim
+/// target and the tired wobble. <paramref name="Nice"/> is a release inside the Nice band of MAX
+/// (+5% mph).
+///
+/// The id is <b>not</b> checked here. The record is deserialized from stored traces and built on the
+/// hot path, and a constructor that threw would turn reading an old stream into a crash; instead
+/// every read of the family goes through <see cref="PitchFamilyTable.Of"/> — the flight, the speed
+/// and the stamina — so an id with no authored row stops the pitch the first time anything asks what
+/// it does, and names itself while doing it (#810).
 /// </summary>
 public sealed record PitchCommand(
     string Type,
@@ -316,14 +325,10 @@ public sealed record PitchCommand(
     double AimX = 0,
     double AimY = 0,
     double BreakX = 0,
-    bool Changeup = false,
     double RubberX = 0,
     bool DeliveryPrepared = false,
     bool Nice = false,
-    double BreakMul = 1)
-{
-    public bool IsChangeup => Changeup || Type == "changeup";
-}
+    double BreakMul = 1);
 
 public sealed record SwingCommand(
     bool Swing,

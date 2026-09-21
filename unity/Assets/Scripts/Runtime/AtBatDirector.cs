@@ -268,7 +268,7 @@ namespace GrandSluggers.UnityClient
         /// <summary>The pitch as it stands in SET: the rubber, the changeup hold, the charge so far. Not committed.</summary>
         PitchCommand PreviewPitch() =>
             new(PitchPad.Changeup ? "changeup" : "fastball", EffectiveCharge(_pitchCharge, _pitchPast),
-                _starPitch && _match.CanStarPitch, Changeup: PitchPad.Changeup, RubberX: _match.PitcherOffsetX);
+                _starPitch && _match.CanStarPitch, RubberX: _match.PitcherOffsetX);
 
         /// <summary>
         /// The aim tell is the crossing of the pitch as it stands, from the one flight function the
@@ -325,7 +325,7 @@ namespace GrandSluggers.UnityClient
             return new PitchCommand(changeup ? "changeup" : "fastball",
                 EffectiveCharge((float)fill01, (float)secondsPastFull),
                 _starPitch && _match.CanStarPitch,
-                Changeup: changeup, RubberX: _match.PitcherOffsetX,
+                RubberX: _match.PitcherOffsetX,
                 Nice: ChargeFeel.NiceRelease(fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds, _match.Rules));
         }
 

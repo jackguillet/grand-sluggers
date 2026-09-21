@@ -773,7 +773,7 @@ public sealed class Match
         if (state is null) return false;
         var breaking = _runners.Where(r => r.Live && !r.Broke && StealBreak.BreaksOnPickoff(r.StealArm)).ToList();
         BeginPlay();
-        var fake = new PitchCommand("fastball", 0, false);
+        var fake = new PitchCommand(PitchFamily.Fastball, 0, false);
         var take = new SwingCommand(false, 0, 0, false);
         if (breaking.Count == 0)
         {
@@ -997,7 +997,7 @@ public sealed class Match
         var bat = OffenseBat;
         var input = new AtBatInput(
             Pitcher, Batter, OnDeck, RunnersOn().ToList(),
-            ChargeFeel.IsCharge(pitch.Charge01), pitch.Changeup || pitch.Type == "changeup",
+            ChargeFeel.IsCharge(pitch.Charge01), Rules.Pitching.Families.Of(pitch.Type).OffSpeed,
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             PitcherStamina,
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
@@ -1144,8 +1144,8 @@ public sealed class Match
         var breakX = verb == "break" ? (_rng.NextDouble() < 0.5 ? -1.0 : 1.0) : 0;
         var charge = charged ? 1.0 : c.TapMin + _rng.NextDouble() * c.TapSpan;
         var star = CanStarPitch && Pitcher.Captain && _rng.NextDouble() < row.StarChance;
-        var delivery = new PitchCommand(changeup ? "changeup" : "fastball", charge, star,
-            Changeup: changeup, BreakX: breakX, RubberX: PitcherOffsetX,
+        var delivery = new PitchCommand(changeup ? PitchFamily.Changeup : PitchFamily.Fastball, charge, star,
+            BreakX: breakX, RubberX: PitcherOffsetX,
             Nice: charged && _rng.NextDouble() < c.NiceChance);
         // The row names a crossing; the rubber and the break are compensated into the aim.
         return PitchFlight.AimForCrossing(delivery, tx / PitchFlight.PlateScaleX,
@@ -1240,11 +1240,12 @@ public sealed class Match
 
         var tracked = _rng.NextDouble() < c.TrackPerfectChance;
         var err = Gauss() * (11 - bat) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
-        if (!tracked && (pitch.IsChangeup || ChargeFeel.IsCharge(pitch.Charge01)))
+        var offSpeed = Rules.Pitching.Families.Of(pitch.Type).OffSpeed;
+        if (!tracked && (offSpeed || ChargeFeel.IsCharge(pitch.Charge01)))
         {
-            // Fooled: a changeup pulls the bat early past the ball (late), a charged pitch beats it (early).
+            // Fooled: an off-speed family pulls the bat early past the ball (late), a charged pitch beats it (early).
             var fooled = c.FooledMinFrames + _rng.NextDouble() * c.FooledSpanFrames;
-            err += pitch.IsChangeup ? fooled : -fooled;
+            err += offSpeed ? fooled : -fooled;
         }
         var box = tracked ? Math.Clamp(cx / HomeSet.BatterWalk, -1, 1) : CpuTrackedBox(cx, c, level);
         return new SwingCommand(true, charge, err, star, Gauss() * c.SpraySigmaDeg,
@@ -1972,7 +1973,7 @@ public sealed class Match
         var st = Rules.Pitching.Stamina;
         var cost = st.PitchCost
                    + (ChargeFeel.IsCharge(pitch.Charge01) ? st.ChargeCost : 0)
-                   + (pitch.IsChangeup ? st.ChangeupCost : 0)
+                   + Rules.Pitching.Families.Of(pitch.Type).StaminaCost
                    + (pitch.BreakX != 0 ? st.BreakCost : 0)
                    + (pitch.Star ? StarSkills.StaminaCost(Pitcher.StarPitch, Content.StarSkills) : 0);
         ChargeArm(Pitcher, cost);

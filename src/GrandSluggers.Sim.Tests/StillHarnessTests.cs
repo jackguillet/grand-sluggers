@@ -61,7 +61,7 @@ public class StillHarnessTests
             "14:16 PNG put the runner behind the camera");
         var rel = PitchFlight.Release();
         Assert.True(StillPose.PitchReleaseIsOnTheMound(rel.Z), $"release z={rel.Z}");
-        var ball = PitchFlight.Point("fastball", StillPose.PitchBallU, 0, 0, 0, false, 0, rel);
+        var ball = PitchFlight.Point(PitchFamily.Fastball, StillPose.PitchBallU, 0, 0, 0, 0, rel);
         Assert.True(StillPose.PitchBallIsOffTheHand(ball.Z),
             $"pitch still was a beach ball in the lens z={ball.Z}");
         Assert.False(StillPose.PitchReleaseIsOnTheMound(2), "home-plate from is not the hand");
