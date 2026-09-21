@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-14",
+  "next_decision": "FD-13",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -914,7 +914,7 @@
       "id": "FD-14",
       "area": "Rails",
       "question": "Must the CPU know the park?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-08"
       ],
@@ -934,16 +934,31 @@
       "recommendation": "A. It is the seat-parity rule the rest of the game already follows.",
       "existing_contract": "CPU tables live in cpu.json and running.json `cpu`. The route planner and the makeable margin read the flight path; the code map records what they read of hazards.",
       "acceptance": "A scenario pair per pattern: the CPU seat and the human seat get the same outcome from the same positions.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "The CPU reads the same resolved park the ball flies in. The CPU fielder's route planner costs status volumes and solid bodies and plans with the ground's start and brake multipliers; the CPU runner's margins and the CPU batter use the park's air, ground and fence; outfield placement follows the park's depth. The CPU gets no foresight of a random hazard draw (FD-08): it sees the typed event when the human does. Every hazard pattern has a scenario pair, CPU seat and human seat, with the same outcome from the same positions and seed. The difficulty ladder keeps its multipliers; whether a rung reads hazards less well is not selected here. No CPU number is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-14: the CPU reads the resolved park / the CPU plays Harbor everywhere",
+        "answer_quote": "a"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "a",
+          "scope": "The CPU reads the same resolved park the ball flies in. The CPU fielder's route planner costs status volumes and solid bodies and plans with the ground's start and brake multipliers; the CPU runner's margins and the CPU batter use the park's air, ground and fence; outfield placement follows the park's depth. The CPU gets no foresight of a random hazard draw (FD-08): it sees the typed event when the human does. Every hazard pattern has a scenario pair, CPU seat and human seat, with the same outcome from the same positions and seed. The difficulty ladder keeps its multipliers; whether a rung reads hazards less well is not selected here. No CPU number is selected."
+        }
+      ]
     },
     {
       "id": "FD-15",
@@ -1257,6 +1272,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-11 accepted by Jack: B, night is a declared rule layer per park. The three existing night rules move into night blocks at parity; moving them does not endorse them. 4 choices remain open; next is FD-14."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-14 accepted by Jack: A, the CPU reads the same resolved park, with no foresight of a random draw. Round 4 (hazards) is complete. 3 choices remain open: FD-13, FD-15, FD-18."
     }
   ]
 }
