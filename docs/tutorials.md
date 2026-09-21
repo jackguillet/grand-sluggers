@@ -200,3 +200,15 @@ Preview `27c7dea9d2` (101 lessons before the scoring extension) passed the full 
 Final expansion verification: **103 implemented lessons across the supported profiles (97 shipped, 102 C80)**. The 103-lesson integration passed all **1,748** full-suite tests. After tightening the scoring tag to require third base, the final source passed **443** focused tutorial/book/control checks in each profile. Catalog validation passes in both profiles; protocol, Harbor match, asset-slot validation, derived report and Unity compilation passed. The final standalone preview **`28d5be9733`** built and rendered at title with automatic input selection. Its scoring briefs and the new scoring book page were inspected in the preceding preview with identical presentation; both keyboard and controller text fit. No human success is claimed for the scoring drills.
 
 Only **T-A-spin-check (#799)** and **T-X03 (#37)** remain unrunnable for the specific feature/scope reasons above. The final notes commit corrects stale recovery catalog descriptions and records this evidence; it does not alter the running preview's gameplay. No merge or source upload was performed after automatic approval review rejected publication; local branches and their commits remain available for review.
+
+
+## Immediate attempt loop — #802 / #804 (September 20, 2026)
+
+Presentation revision `d88999de7a` saves earned progress and immediately rebuilds/begins the same lesson after success or failure below 3/3. Gameplay and guided lessons share the repeat decision. Only completion at 3/3 opens the result actions; the first briefing and deliberate replay remain available. The reset frame consumes no gameplay input, charge state starts unarmed, and a failed-attempt correction remains beside the controls in the next attempt.
+
+Verification on that revision:
+- All 1,756 full-suite tests passed on shipped data. 430 tutorial/book/input regression checks passed on shipped data and 430 passed with the C80 overlay. The new mixed success/failure sequence verifies retained progress, fresh matches/evidence, and the third-success stop; guided checks require the full ordered action sequence again on each attempt.
+- Unity C# compilation, tutorial catalog, debug protocol, art catalog, derived report checks, and `cli match --seed 7` passed.
+- The Mac standalone preview built and rendered. Keyboard/mouse `T-P03` returned directly to live SET after a wrong pitch at saved 1/3, retaining the correction and count. `T-P06` also reset after a missed objective and a timeout. `T-SP-heatball` advanced from 0/3 through 1/3 and 2/3 without a Continue press or briefing, then stopped on LESSON COMPLETE at 3/3 after the third Q + Space pitch. Call time still allowed leaving an unfinished lesson. These UI checks are agent evidence, not a human learning gate.
+- Separate sitting-found child #806 records the pre-existing title navigation footer disappearing after a pitch; no unrelated repair is included here.
+- Preview left at title; primary checkout and human/controller gates remain unchanged. Physical pads and live guided repetition were not exercised in this sitting.
