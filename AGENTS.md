@@ -53,6 +53,10 @@ A change is a **rail** — do this:
 
 Catalog first, files second. New clip / VFX / audio / skin = JSON slot + validator + empty folder, then the asset. Serial for feel (cameras, timing, in-play verbs). Parallel only for filling slots after the shared rig exists.
 
+## Tutorials grow with gameplay
+
+Every player-facing mechanic needs a playable tutorial, including repeatable setup and real success/failure evidence. Contract and migration backlog: `docs/tutorials.md`. New or changed mechanics update their tutorial coverage in the same PR (lesson id, setup/CPU policy, player-owned action, objective, regression evidence, profile support and status). Planned/blocked lessons are debt, not completed coverage. Script opportunities and opponents; never award success for a CPU-performed player action or force an out. Reuse the existing sim and Practice entry. Gameplay owns setup/objectives; a separate Presentation child owns the Tutorials UI and paired book updates. Keep building these bones before generating more artwork.
+
 ## Session kind
 
 Declare one kind per session. Mixing them is a patch (shrinking a mesh to save a camera, putting an out in Unity, posing in C#). Contract: `docs/agent-rails.md` §1. Tracker: #647.

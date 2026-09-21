@@ -1,0 +1,749 @@
+{
+  "version": 1,
+  "mechanics": [
+    {
+      "id": "pitching.01",
+      "title": "strikes",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": [
+        "control:pitching/Normal pitch"
+      ]
+    },
+    {
+      "id": "pitching.02",
+      "title": "aim/location and balls versus strikes",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": []
+    },
+    {
+      "id": "pitching.03",
+      "title": "changeup",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": [
+        "control:pitching/Changeup"
+      ]
+    },
+    {
+      "id": "pitching.04",
+      "title": "charge/MAX",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": [
+        "control:pitching/Charge pitch"
+      ]
+    },
+    {
+      "id": "pitching.05",
+      "title": "break after release",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": [
+        "control:pitching/Break"
+      ]
+    },
+    {
+      "id": "pitching.06",
+      "title": "rubber positioning",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": [
+        "control:pitching/Move pitcher"
+      ]
+    },
+    {
+      "id": "pitching.07",
+      "title": "stamina/pitcher substitution",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": [
+        "control:pitching/Swap pitcher"
+      ]
+    },
+    {
+      "id": "pitching.08",
+      "title": "pickoff",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": [
+        "control:pitching/Pickoff"
+      ]
+    },
+    {
+      "id": "pitching.09",
+      "title": "star pitch (scope dependent)",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": [
+        "control:pitching/Star pitch"
+      ]
+    },
+    {
+      "id": "batting.01",
+      "title": "slap contact",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": [
+        "control:batting/Normal swing"
+      ]
+    },
+    {
+      "id": "batting.02",
+      "title": "cursor/sweet spot",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": []
+    },
+    {
+      "id": "batting.03",
+      "title": "early/late direction",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": [
+        "control:batting/Spray"
+      ]
+    },
+    {
+      "id": "batting.04",
+      "title": "charged swing",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": [
+        "control:batting/Charge swing"
+      ]
+    },
+    {
+      "id": "batting.05",
+      "title": "box positioning",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": [
+        "control:batting/Move batter"
+      ]
+    },
+    {
+      "id": "batting.06",
+      "title": "launch direction",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": []
+    },
+    {
+      "id": "batting.07",
+      "title": "bunt and foul-bunt risk",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": [
+        "control:batting/Bunt"
+      ]
+    },
+    {
+      "id": "batting.08",
+      "title": "recognize/take a ball",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": []
+    },
+    {
+      "id": "batting.09",
+      "title": "star swing (scope dependent)",
+      "category": "batting",
+      "spec": "gameplay-spec:5",
+      "sources": [
+        "control:batting/Star swing"
+      ]
+    },
+    {
+      "id": "fielding.01",
+      "title": "manual pursuit/ground pickup",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": []
+    },
+    {
+      "id": "fielding.02",
+      "title": "assistance and taking control",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "control:fielding/Take the glove",
+        "control:fielding/Swap"
+      ]
+    },
+    {
+      "id": "fielding.03",
+      "title": "throw to a named bag",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "control:fielding/Throw"
+      ]
+    },
+    {
+      "id": "fielding.04",
+      "title": "fly/liner catch",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "control:fielding/Catch"
+      ]
+    },
+    {
+      "id": "fielding.05",
+      "title": "dive",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "control:fielding/Dive",
+        "ability:dive"
+      ]
+    },
+    {
+      "id": "fielding.06",
+      "title": "jump",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "control:fielding/Jump"
+      ]
+    },
+    {
+      "id": "fielding.07",
+      "title": "relay/cutoff and receiver handoff",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "control:fielding/Cutoff / relay"
+      ]
+    },
+    {
+      "id": "fielding.08",
+      "title": "buffered throw, retarget and cancel",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": []
+    },
+    {
+      "id": "fielding.09",
+      "title": "recovery/bobble/loose-ball chase",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": []
+    },
+    {
+      "id": "fielding.10",
+      "title": "coverage and an uncovered bag",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": []
+    },
+    {
+      "id": "fielding.11",
+      "title": "wall carom",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": []
+    },
+    {
+      "id": "fielding.12",
+      "title": "buddy jump/wall rob (ability dependent)",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "ability:clamber",
+        "ability:super-jump"
+      ]
+    },
+    {
+      "id": "fielding.13",
+      "title": "Ball Dash",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "ability:ball-dash"
+      ]
+    },
+    {
+      "id": "fielding.14",
+      "title": "Snap Throw",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "ability:snap-throw"
+      ]
+    },
+    {
+      "id": "fielding.15",
+      "title": "Laser Throw",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": [
+        "ability:laser"
+      ]
+    },
+    {
+      "id": "fielding.16",
+      "title": "other enabled fielding abilities, split into one lesson per distinct action/effect during the catalog audit",
+      "category": "fielding",
+      "spec": "gameplay-spec:8",
+      "sources": []
+    },
+    {
+      "id": "outs.01",
+      "title": "force versus tag",
+      "category": "outs",
+      "spec": "gameplay-spec:10",
+      "sources": [
+        "control:fielding/Tag"
+      ]
+    },
+    {
+      "id": "outs.02",
+      "title": "two-throw ground-ball double play",
+      "category": "outs",
+      "spec": "gameplay-spec:10",
+      "sources": []
+    },
+    {
+      "id": "outs.03",
+      "title": "fielder's choice/which out to take",
+      "category": "outs",
+      "spec": "gameplay-spec:10",
+      "sources": []
+    },
+    {
+      "id": "outs.04",
+      "title": "doubled-off runner and return throw",
+      "category": "outs",
+      "spec": "gameplay-spec:10",
+      "sources": []
+    },
+    {
+      "id": "outs.05",
+      "title": "tag/rundown",
+      "category": "outs",
+      "spec": "gameplay-spec:10",
+      "sources": [
+        "control:fielding/Rundown",
+        "control:running/Rundown"
+      ]
+    },
+    {
+      "id": "outs.06",
+      "title": "close-play offense and defense",
+      "category": "outs",
+      "spec": "gameplay-spec:10",
+      "sources": [
+        "control:running/Close play"
+      ]
+    },
+    {
+      "id": "outs.07",
+      "title": "third-out/scoring consequences",
+      "category": "outs",
+      "spec": "gameplay-spec:10",
+      "sources": []
+    },
+    {
+      "id": "outs.08",
+      "title": "triple-play opportunity, after prerequisite lessons exist",
+      "category": "outs",
+      "spec": "gameplay-spec:10",
+      "sources": []
+    },
+    {
+      "id": "running.01",
+      "title": "select one runner/send/hold/return",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": [
+        "control:running/Select runner",
+        "control:running/Send",
+        "control:running/Halt"
+      ]
+    },
+    {
+      "id": "running.02",
+      "title": "all-runner commands and avoiding shared bags",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": [
+        "control:running/All advance",
+        "control:running/All return"
+      ]
+    },
+    {
+      "id": "running.03",
+      "title": "dash along the basepath",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": [
+        "control:running/Dash"
+      ]
+    },
+    {
+      "id": "running.09",
+      "title": "round first and take the next bag",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": []
+    },
+    {
+      "id": "running.04",
+      "title": "slide",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": []
+    },
+    {
+      "id": "running.05",
+      "title": "fly-ball return and tag-up",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": []
+    },
+    {
+      "id": "running.06",
+      "title": "arm steal and release timing",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": [
+        "control:running/Steal"
+      ]
+    },
+    {
+      "id": "running.07",
+      "title": "multi-runner steal/steal home",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": []
+    },
+    {
+      "id": "running.08",
+      "title": "defend a steal with the catcher",
+      "category": "running",
+      "spec": "gameplay-spec:9",
+      "sources": []
+    },
+    {
+      "id": "game.01",
+      "title": "lineup/positions/handedness",
+      "category": "game",
+      "spec": "gameplay-spec:1",
+      "sources": []
+    },
+    {
+      "id": "game.02",
+      "title": "chemistry on actual throw pairs",
+      "category": "game",
+      "spec": "gameplay-spec:1",
+      "sources": []
+    },
+    {
+      "id": "game.03",
+      "title": "stars and resources",
+      "category": "game",
+      "spec": "gameplay-spec:1",
+      "sources": []
+    },
+    {
+      "id": "game.04",
+      "title": "counts/outs/innings/fair-foul",
+      "category": "game",
+      "spec": "gameplay-spec:1",
+      "sources": []
+    },
+    {
+      "id": "game.05",
+      "title": "controller roles and a second pad",
+      "category": "game",
+      "spec": "gameplay-spec:1",
+      "sources": []
+    },
+    {
+      "id": "game.06",
+      "title": "pause/book/restart and controller recovery/calibration",
+      "category": "game",
+      "spec": "gameplay-spec:1",
+      "sources": []
+    },
+    {
+      "id": "special.01",
+      "title": "items, one exercise per distinct enabled item",
+      "category": "special",
+      "spec": "gameplay-spec:12",
+      "sources": []
+    },
+    {
+      "id": "special.02",
+      "title": "counterplay and fielding a special hit",
+      "category": "special",
+      "spec": "gameplay-spec:12",
+      "sources": [
+        "control:fielding/Attack"
+      ]
+    },
+    {
+      "id": "special.03",
+      "title": "park effects, only when those parks become product scope",
+      "category": "special",
+      "spec": "gameplay-spec:12",
+      "sources": []
+    },
+    {
+      "id": "ability.burrow",
+      "title": "burrow",
+      "category": "fielding",
+      "spec": "gameplay-spec:8.4",
+      "sources": [
+        "ability:burrow"
+      ]
+    },
+    {
+      "id": "ability.grow",
+      "title": "grow",
+      "category": "fielding",
+      "spec": "gameplay-spec:8.4",
+      "sources": [
+        "ability:grow"
+      ]
+    },
+    {
+      "id": "ability.lick-catch",
+      "title": "lick-catch",
+      "category": "fielding",
+      "spec": "gameplay-spec:8.4",
+      "sources": [
+        "ability:lick-catch"
+      ]
+    },
+    {
+      "id": "ability.spin-check",
+      "title": "spin-check",
+      "category": "fielding",
+      "spec": "gameplay-spec:8.4",
+      "sources": [
+        "ability:spin-check"
+      ]
+    },
+    {
+      "id": "ability.withdraw",
+      "title": "withdraw",
+      "category": "fielding",
+      "spec": "gameplay-spec:8.4",
+      "sources": [
+        "ability:withdraw"
+      ]
+    },
+    {
+      "id": "star-pitch.heatball",
+      "title": "heatball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:heatball"
+      ]
+    },
+    {
+      "id": "star-pitch.charmball",
+      "title": "charmball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:charmball"
+      ]
+    },
+    {
+      "id": "star-pitch.prismball",
+      "title": "prismball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:prismball"
+      ]
+    },
+    {
+      "id": "star-pitch.phonyball",
+      "title": "phonyball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:phonyball"
+      ]
+    },
+    {
+      "id": "star-pitch.caskball",
+      "title": "caskball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:caskball"
+      ]
+    },
+    {
+      "id": "star-pitch.skullball",
+      "title": "skullball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:skullball"
+      ]
+    },
+    {
+      "id": "star-pitch.fogball",
+      "title": "fogball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:fogball"
+      ]
+    },
+    {
+      "id": "star-pitch.fastball",
+      "title": "fastball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:fastball"
+      ]
+    },
+    {
+      "id": "star-pitch.changeup",
+      "title": "changeup",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:changeup"
+      ]
+    },
+    {
+      "id": "star-pitch.breaker",
+      "title": "breaker",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:breaker"
+      ]
+    },
+    {
+      "id": "star-swing.heat-swing",
+      "title": "heat-swing",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:heat-swing"
+      ]
+    },
+    {
+      "id": "star-swing.heart-swing",
+      "title": "heart-swing",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:heart-swing"
+      ]
+    },
+    {
+      "id": "star-swing.shell-swing",
+      "title": "shell-swing",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:shell-swing"
+      ]
+    },
+    {
+      "id": "star-swing.phony-swing",
+      "title": "phony-swing",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:phony-swing"
+      ]
+    },
+    {
+      "id": "star-swing.cask-swing",
+      "title": "cask-swing",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:cask-swing"
+      ]
+    },
+    {
+      "id": "star-swing.furnace",
+      "title": "furnace",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:furnace"
+      ]
+    },
+    {
+      "id": "star-swing.staff-swing",
+      "title": "staff-swing",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:staff-swing"
+      ]
+    },
+    {
+      "id": "star-swing.ground",
+      "title": "ground",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:ground"
+      ]
+    },
+    {
+      "id": "star-swing.fly",
+      "title": "fly",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:fly"
+      ]
+    },
+    {
+      "id": "star-swing.line",
+      "title": "line",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:line"
+      ]
+    },
+    {
+      "id": "item.banana",
+      "title": "banana",
+      "category": "special",
+      "spec": "gameplay-spec:12",
+      "sources": [
+        "item:banana",
+        "control:running/Throw item"
+      ]
+    },
+    {
+      "id": "item.rocket",
+      "title": "rocket",
+      "category": "special",
+      "spec": "gameplay-spec:12",
+      "sources": [
+        "item:rocket"
+      ]
+    },
+    {
+      "id": "item.pow",
+      "title": "pow",
+      "category": "special",
+      "spec": "gameplay-spec:12",
+      "sources": [
+        "item:pow"
+      ]
+    }
+  ]
+}

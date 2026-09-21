@@ -29,6 +29,7 @@ namespace GrandSluggers.UnityClient
 
         void TickResult()
         {
+            if (TutorialOn && _coach.Tutorial.Phase != TutorialPhase.Attempt) return;
             var hold = _last != null
                 ? (float)PlayStamp.HoldSeconds(_last.Kind, _feel)
                 : (float)_feel.AfterOutSeconds;
@@ -84,18 +85,9 @@ namespace GrandSluggers.UnityClient
                 Innings = Innings == 3 ? 6 : Innings == 6 ? 9 : 3;
             if (Controls.CycleDifficulty && _mode == PlayMode.Exhibition)
                 Difficulty = CpuRules.Next(Difficulty);
-            if (_mode == PlayMode.Training)
-            {
-                if (Key(KeyCode.A) || Key(KeyCode.LeftArrow) || Key(KeyCode.W) || Key(KeyCode.UpArrow))
-                    PracticePick = Training.Shift(PracticePick, -1);
-                if (Key(KeyCode.D) || Key(KeyCode.RightArrow) || Key(KeyCode.S) || Key(KeyCode.DownArrow))
-                    PracticePick = Training.Shift(PracticePick, 1);
-                if (Controls.Skip)
-                    PracticePick = PracticeLesson.Fielding;
-            }
             if (Controls.WestDown || (_mode == PlayMode.Training && Controls.SouthDown && _t > 0.15f))
             {
-                BeginTraining();
+                OpenTutorials();
                 return;
             }
             if (_mode != PlayMode.Training && Controls.NightToggle)
@@ -108,7 +100,7 @@ namespace GrandSluggers.UnityClient
             {
                 if (_mode == PlayMode.Training)
                 {
-                    BeginTraining();
+                    OpenTutorials();
                     return;
                 }
                 _match = NewMatch();
@@ -200,6 +192,8 @@ namespace GrandSluggers.UnityClient
         void OpenField()
         {
             BindMatchSeats();
+            GuidedSeatsBound();
+            if (_guided?.Phase == TutorialPhase.Feedback) return;
             _phase = Phase.Field;
             _t = 0;
             _selectX.Catch(Controls.MenuX);
@@ -247,6 +241,11 @@ namespace GrandSluggers.UnityClient
 
         void OpenTitle()
         {
+            if (_guided != null)
+            {
+                OpenTutorials();
+                return;
+            }
             ReleaseMatchSeats();
             _phase = Phase.Title;
             _t = 0;
@@ -401,22 +400,31 @@ namespace GrandSluggers.UnityClient
             {
                 _lineupTouched = true;
                 if (_lineup.Step == LineupStep.TeamSetup) _lineup.RandomFill(seat);
-                else _lineup.CycleGlove(seat);
+                else if (_lineup.CycleGlove(seat) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
+                    GuidedObserve(GuidedAction.GlovePositionChanged);
             }
             if (pad.AllAdvanceDown)
             {
                 _lineupTouched = true;
-                _lineup.StepBatting(seat, -1);
+                if (_lineup.StepBatting(seat, -1) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
+                    GuidedObserve(GuidedAction.BattingOrderChanged);
             }
             if (pad.EastDown)
             {
                 _lineupTouched = true;
-                _lineup.StepBatting(seat, 1);
+                if (_lineup.StepBatting(seat, 1) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
+                    GuidedObserve(GuidedAction.BattingOrderChanged);
             }
             if (pad.SouthDown)
             {
                 _lineupTouched = true;
-                if (_lineup.Step == LineupStep.TeamSetup) _lineup.South(seat);
+                if (_lineup.Step == LineupStep.TeamSetup)
+                {
+                    var pool = _lineup.Pool;
+                    var who = pool.Count == 0 ? null : pool[Mathf.Clamp(_lineup.PoolOf(seat), 0, pool.Count - 1)];
+                    var dropped = _lineup.South(seat);
+                    GuidedLineupDrop(seat, who, dropped && _lineup.Step == LineupStep.TeamSetup);
+                }
                 else ConfirmDraft();
             }
         }

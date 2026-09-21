@@ -6,8 +6,9 @@ using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
-    public static class HudView
+    public static partial class HudView
     {
+        public const float CharacterCardHeight = 232f;
         static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine,
             _bookHead, _bookHeader, _bookHeaderNumber, _bookNumber, _bookTab, _bookTabSelected, _bookBadge,
             _bookChip, _bookFooter, _bookLineCompact, _stamp;
@@ -54,6 +55,8 @@ namespace GrandSluggers.UnityClient
             }
             if (training)
             {
+                Play(match, pitcherExtra, star, steal, item, charge, timing, showTiming, null, null, seats,
+                    humanPitches, humanBats, starPitch, starSwing, bunt);
                 TrainingPlay(banner, sub, drillProgress);
                 return;
             }
@@ -75,15 +78,15 @@ namespace GrandSluggers.UnityClient
                     GUI.Label(new Rect(44, 124, 640, 22), setup, _gold);
             }
             else
-                Sticker(training ? "TRAINING" : "CHALLENGE", 44, 88, 420, 32, _h1);
+                Sticker(training ? HowToPlay.TutorialMenuTitle : "CHALLENGE", 44, 88, 420, 32, _h1);
             if (training)
-                GUI.Label(new Rect(44, 124, 640, 22), "Harbor  ·  stick lesson  ·  South start  ·  East skip to field", _tiny);
+                GUI.Label(new Rect(44, 124, 640, 22), HowToPlay.TutorialTitleHint(BookScheme.Current), _tiny);
             else if (challenge)
                 GUI.Label(new Rect(44, 124, 640, 22), "South / Space  ·  next match", _gold);
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                $"South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings    X / LB difficulty    F6 input: {Controls.Player1InputLabel}", _tiny);
+                $"South pick captain    West / F tutorials    Esc how to play    Start / H mode    Tab innings    X / LB difficulty    F6 input: {Controls.Player1InputLabel}", _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,
@@ -124,7 +127,7 @@ namespace GrandSluggers.UnityClient
         {
             Ensure();
             const float w = 312f;
-            const float h = 232f;
+            const float h = CharacterCardHeight;
             GUI.DrawTexture(new Rect(x, y, w, h), _panel);
             GUI.Label(new Rect(x + 18, y + 8, w - 56, 28), card.Name.ToUpperInvariant(), _h1);
             ChemPip(x + w - 34, y + 14, card.VsCaptain);
@@ -134,7 +137,8 @@ namespace GrandSluggers.UnityClient
             StatRow(x + 14, y + 108, "RUN", card.Stats.Run);
             GUI.Label(new Rect(x + 14, y + 136, w - 28, 24), card.StarPitch, _body);
             GUI.Label(new Rect(x + 14, y + 160, w - 28, 24), card.StarSwing, _body);
-            GUI.Label(new Rect(x + 14, y + 186, w - 28, 24), card.FieldVerb, _tiny);
+            GUI.Label(new Rect(x + 14, y + 184, w - 28, 20), card.FieldVerb, _tiny);
+            GUI.Label(new Rect(x + 14, y + 209, w - 28, 20), HowToPlay.CardBatHand(card.Bats), _gold);
         }
 
         static void StatRow(float x, float y, string label, int n)
@@ -904,13 +908,11 @@ namespace GrandSluggers.UnityClient
 
         static void TrainingPlay(string banner, string sub, string progress)
         {
-            var w = 560;
-            GUI.DrawTexture(new Rect(Screen.width / 2 - w / 2, 24, w, 86), _panel);
-            GUI.Label(new Rect(Screen.width / 2 - w / 2 + 16, 32, w - 32, 40), banner ?? "", _h1);
-            if (!string.IsNullOrEmpty(progress))
-                GUI.Label(new Rect(Screen.width / 2 - w / 2 + 16, 72, w - 32, 24), progress, _tiny);
-            if (!string.IsNullOrEmpty(sub))
-                GUI.Label(new Rect(48, Screen.height - 52, Screen.width - 96, 28), sub, _gold);
+            var r = Px(BroadcastHud.TutorialCoach);
+            GUI.DrawTexture(r, _panel);
+            GUI.Label(new Rect(r.x + 16, r.y + 8, r.width - 32, 40), banner ?? "", _h1);
+            GUI.Label(new Rect(r.x + 16, r.y + 52, r.width - 32, r.height - 60),
+                string.IsNullOrEmpty(sub) ? progress ?? "" : sub, new GUIStyle(_gold) { wordWrap = true });
         }
 
         static void Lineup(Match match)

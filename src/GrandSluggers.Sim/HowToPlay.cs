@@ -124,7 +124,7 @@ public static class PauseMenu
     }
 }
 
-public static class HowToPlay
+public static partial class HowToPlay
 {
     public sealed record Page(
         string Id,
@@ -273,6 +273,100 @@ public static class HowToPlay
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
+        new("tutorial-baseball", "Counts, fouls and halves", "training",
+        [
+            "Build 1–1: walk left to the rubber's edge, release the stick, and tap South for a ball. Next SET, stick down resets; South throws the strike.",
+            "Foul then fair: stay centered in SET; after release, hold stick left and tap South early. Next pitch, center the stick and time South for fair contact.",
+            "Finish the half: two outs, two strikes. A centered called strike changes sides and resets the outs.",
+            "Each complete sequence earns one success. Three successes pass; failed attempts keep earlier successes.",
+        ],
+        [
+            "Build 1–1: walk left to the rubber's edge, release the key, and tap Space for a ball. Next SET, S resets; Space throws the strike.",
+            "Foul then fair: stay centered in SET; after release, hold A and tap Space early. Next pitch, release A and time Space for fair contact.",
+            "Finish the half: two outs, two strikes. A centered called strike changes sides and resets the outs.",
+            "Each complete sequence earns one success. Three successes pass; failed attempts keep earlier successes.",
+        ]),
+        new("tutorial-recovery", "Recovery and reach", "training",
+        [
+            "Standard fumble: steer through the scoop after the error, then D-pad Right + South throws to first. Assistance cannot finish the pickup for you.",
+            "C80 bobble: wait for the helper's error, then steer with the stick through the loose-ball scoop.",
+            "Ability reach: move to the landing ring's edge, then South catches beyond ordinary reach. Burrow scoops at its reach edge.",
+        ],
+        [
+            "Standard fumble: steer through the scoop after the error, then 1 and Space throws to first. Assistance cannot finish the pickup for you.",
+            "C80 bobble: wait for the helper's error, then steer with WASD through the loose-ball scoop.",
+            "Ability reach: move to the landing ring's edge, then Space catches beyond ordinary reach. Burrow scoops at its reach edge.",
+        ]),
+        new("tutorial-field-plays", "Fielding scenario lessons", "training",
+        [
+            "Force home: bases loaded, collect, then D-pad Down + South. With two outs, this force ends the half with no run.",
+            "Rundown: D-pad Right + South checks first. Once trapped, D-pad Up + South throws ahead for the tag.",
+            "Close third: send and dash on offense; throw to third on defense. Press South fresh when the close-play icon appears.",
+        ],
+        [
+            "Force home: bases loaded, collect, then 4 and Space. With two outs, this force ends the half with no run.",
+            "Rundown: 1 and Space checks first. Once trapped, 2 and Space throws ahead for the tag.",
+            "Close third: send and dash on offense; throw to third on defense. Press Space fresh when the close-play icon appears.",
+        ]),
+        new("tutorial-scoring", "Third outs and runs", "training",
+        [
+            "Two outs: collect, then throw as the lead runner nears home. The crossing must happen before the out.",
+            "Force lesson: D-pad Up + South forces second. A third force out cancels the earlier run.",
+            "Tag lesson: D-pad Left + South throws to third. Press South at the close-play icon. A nonforce third tag keeps the earlier run.",
+        ],
+        [
+            "Two outs: collect, then throw as the lead runner nears home. The crossing must happen before the out.",
+            "Force lesson: 2 and Space forces second. A third force out cancels the earlier run.",
+            "Tag lesson: 3 and Space throws to third. Press Space at the close-play icon. A nonforce third tag keeps the earlier run.",
+        ]),
+        new("tutorial-live-plays", "Live-ball lessons", "training",
+        [
+            "Return on a fly: send off third, then hold RB before the catch. Stay safely on third instead of tagging up.",
+            "Round first: choose first, send toward second, then dash during the turn. An early dash on the straight does not count.",
+            "Tag up: wait on third for the catch, then hold LB to send home. Double off: catch, then D-pad Up + South returns to second.",
+            "Triple play: catch the fly, then return to second and first before both early runners retouch.",
+        ],
+        [
+            "Return on a fly: send off third, then hold period before the catch. Stay safely on third instead of tagging up.",
+            "Round first: choose first, send toward second, then dash during the turn. An early dash on the straight does not count.",
+            "Tag up: wait on third for the catch, then hold comma to send home. Double off: catch, then 2 and Space returns to second.",
+            "Triple play: catch the fly, then return to second and first before both early runners retouch.",
+        ]),
+        new("tutorial-items", "Items and star grounders", "training",
+        [
+            "Item lesson: hit fair first. RB cycles; stick aims. LT + RB or LT + South throws the selected item.",
+            "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
+        ],
+        [
+            "Item lesson: hit fair first. Tab cycles; WASD aims. E throws the selected item.",
+            "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
+        ]),
+        new("tutorial-sequences", "Steals and star lessons", "training",
+        [
+            "Steal: D-pad Right selects first; L3 arms before release. Reach second safely.",
+            "Delayed home steal: arm first, then D-pad Left and stick down send third home as the catcher throw passes the mound.",
+            "Star lessons: North selects the named skill; South delivers it. Star swings need fair contact.",
+            "Earn and spend: ordinary third strike, then star pitch against the next batter. Three complete sequences pass.",
+        ],
+        [
+            "Steal: 1 selects first; Z arms before release. Reach second safely.",
+            "Delayed home steal: arm first, then 3 and S send third home as the catcher throw passes the mound.",
+            "Star lessons: Q selects the named skill; Space delivers it. Star swings need fair contact.",
+            "Earn and spend: ordinary third strike, then star pitch against the next batter. Three complete sequences pass.",
+        ]),
+        new("relay-control", "Relay and queued throws", "fielding",
+        [
+            "Arm the destination with the D-pad. LB feeds the cutoff. Standard play sends the receiver's next leg automatically.",
+            "In the C80 trial, the receiver waits for you: South sends the next leg. A press just before the catch can wait for the receiver.",
+            "Change the D-pad target to retarget a waiting throw. Changing the target does not extend the press's short lifetime.",
+            "In the C80 trial, tap RB to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
+        ],
+        [
+            "Arm the destination with 1/2/3/4. X feeds the cutoff. Standard play sends the receiver's next leg automatically.",
+            "In the C80 trial, the receiver waits for you: Space sends the next leg. A press just before the catch can wait for the receiver.",
+            "Change the 1/2/3/4 target to retarget a waiting throw. Changing the target does not extend the press's short lifetime.",
+            "In the C80 trial, tap period to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
+        ]),
         new("exhibition", "Captain and field", "exhibition",
         [
             "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield, left to right. No captain on the title.",
@@ -406,12 +500,16 @@ public static class HowToPlay
         [
             "Start    call time. Esc    this book from title and a pitch.",
             "South ok. East resume.",
-            "Title West    Training. F1 F2 F3 stay debug, not this page.",
+            "Title West    Tutorials. Left/right categories, up/down lessons across pages. Attempts repeat automatically until three successes.",
+            "Field lessons    Steer + South catches; West jumps; D-pad + South throws to the named bag.",
+            "Run lessons    D-pad selects; stick sends/returns; stick + LB + RB halts one. South dashes.",
         ],
         [
             "H    call time. Esc    this book from title and a pitch.",
             "Space / left click ok. G / right click resume.",
-            "Title F    Training. F1 F2 F3 stay debug, not this page.",
+            "Title F    Tutorials. A/D categories, W/S lessons across pages. Attempts repeat automatically until three successes.",
+            "Field lessons    WASD + Space catches; F jumps; 1/2/3/4 + Space throws to the named bag.",
+            "Run lessons    1/2/3/4 selects; WASD sends/returns; direction + slash halts one. Space dashes.",
         ]),
     ];
 
@@ -438,7 +536,7 @@ public static class HowToPlay
         var pad = PadHardware.Any(w => ContainsWord(line, w));
         var stripped = line.Replace("Dead stick", "", StringComparison.OrdinalIgnoreCase);
         if (stripped.Contains("stick", StringComparison.OrdinalIgnoreCase)) pad = true;
-        var keys = KeyHardware.Any(w => line.Contains(w, StringComparison.OrdinalIgnoreCase));
+        var keys = KeyHardware.Any(w => ContainsWord(line, w));
         if (line.Contains("mouse", StringComparison.OrdinalIgnoreCase)
             && !line.Contains("player 1 only", StringComparison.OrdinalIgnoreCase))
             keys = true;
