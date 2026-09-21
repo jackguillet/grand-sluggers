@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-15",
+  "next_decision": "PH-11",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -1765,7 +1765,7 @@
       "existing_contract": "No new captain, second skeleton or one-captain resolver. Equipment and chemistry must be included in balance trials.",
       "acceptance": "Rio and Ashlord, both hands, contact/power archetypes and relevant gear all follow the same taught rules.",
       "selected_option": "B",
-      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. PH-15-R2 accepts the seven starting captain assignments recorded in its contract, including shared Rio/Fenn families. PH-15-R3 requires individually authored role-player repertoires within the fastball-plus-two composition, without granting captain Star Pitches. PH-15-R4 accepts the 18 starting role-player assignments recorded in its contract. PH-15-R5 separates independently authored batting Contact and Power. PH-15-R6 separates independently authored pitching Velocity, Movement, Control and Endurance. Exact attribute effects, rating scales/values, charge/fatigue interactions, migration and gear remain open; selection controls follow the accepted PH-02/PH-13/PH-14 refinements. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
+      "accepted_scope": "Give characters distinct pitch repertoires and recognizable pitching/hitting traits within the shared gameplay model, with the same controls and contact rules. PH-15-R1 requires a fastball for every pitcher plus two character-specific choices from changeup, curveball, slider and sinker, preserving PH-02-R1/R2. PH-15-R2 accepts the seven starting captain assignments recorded in its contract, including shared Rio/Fenn families. PH-15-R3 requires individually authored role-player repertoires within the fastball-plus-two composition, without granting captain Star Pitches. PH-15-R4 accepts the 18 starting role-player assignments recorded in its contract. PH-15-R5 separates independently authored batting Contact and Power. PH-15-R6 separates independently authored pitching Velocity, Movement, Control and Endurance. PH-15-R7 maps Contact to spatial placement forgiveness only, with a shared swing timing window across hitters. Remaining attribute effects, rating scales/values, charge/fatigue interactions, migration and gear remain open; selection controls follow the accepted PH-02/PH-13/PH-14 refinements. No unique control schemes, separate contact resolvers, new captains or second rig. Direction acceptance only; no runtime change or human playtest acceptance. Original scope is preserved in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1847,6 +1847,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Separate pitching into independently authored Velocity (pitch speed), Movement (natural break), Control (player steering correction), and Endurance (resistance to fatigue). A pitcher can excel in one without automatically excelling in the others; natural movement remains distinct from player-added correction. Preserve shared pitching controls, accepted repertoire identities, PH-05-R1 charge/correction tradeoff, PH-08-R1 primary peak-power fatigue and tentative-only secondary steering penalty, and PH-18 CPU action limits. Exact rating scales, character values, formulas, charge/fatigue interactions, equipment, display and migration from the existing Pitch rating remain open. D7 still requires the named standalone re-sit before pitch-speed tuning. Direction refinement only; no runtime change, numerical tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-15-R7",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Higher Contact improves spatial placement forgiveness through the contact area/sweet spot, while all hitters share the same swing timing window. Contact does not widen the timing window or provide character-specific timing assistance. Preserve actual player-controlled geometric contact, PH-10 placement-led quality and timing-led direction with shared edge weakening, independent Power, PH-14 bunt-specific quality response and PH-17 fixed human assistance. Exact region sizes, shapes, quality boundaries, visible representation and numeric values remain open. This selects the character attribute mapping, not the unresolved PH-11 quick/charged swing forgiveness tradeoff. Direction refinement only; no runtime change, numeric trial or human acceptance."
         }
       ],
       "refinements": [
@@ -2382,6 +2392,47 @@
             "Demonstrate independently authored pitching strengths under shared controls and CPU action limits, preserving family identity.",
             "Distinguish natural break from player correction when combining character attributes with charge and fatigue; the secondary fatigue steering penalty remains tentative.",
             "Define migration, gear and response curves before implementation; preserve D7 before speed tuning."
+          ]
+        },
+        {
+          "id": "PH-15-R7",
+          "question": "How should higher Contact help a hitter?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Placement forgiveness only; shared swing timing window"
+            },
+            {
+              "id": "2",
+              "label": "Placement and timing forgiveness"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Higher Contact improves spatial placement forgiveness through the contact area/sweet spot, while all hitters share the same swing timing window. Contact does not widen the timing window or provide character-specific timing assistance. Preserve actual player-controlled geometric contact, PH-10 placement-led quality and timing-led direction with shared edge weakening, independent Power, PH-14 bunt-specific quality response and PH-17 fixed human assistance. Exact region sizes, shapes, quality boundaries, visible representation and numeric values remain open. This selects the character attribute mapping, not the unresolved PH-11 quick/charged swing forgiveness tradeoff. Direction refinement only; no runtime change, numeric trial or human acceptance.",
+          "contract": {
+            "contact_effect": "spatial placement forgiveness through contact area/sweet spot",
+            "contact_changes_timing_window": false,
+            "timing_window_shared_across_hitters": true,
+            "spatial_regions_and_values": "open",
+            "quick_charged_forgiveness_tradeoff": "remains PH-11 contract work"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-15-R7: How should higher Contact help a hitter? 1. Placement forgiveness only \u2014 recommended: a more forgiving contact area/sweet spot, while everyone shares the same swing timing window. 2. Placement and timing forgiveness: higher Contact also gives more time to connect with the pitch. Both preserve player-controlled contact and timing-led hit direction. Exact sizes and timing values come later.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Vary Contact while holding other inputs and attributes constant: spatial forgiveness changes but swing timing eligibility and timing-edge rules do not.",
+            "Contact remains geometric and its authored region must be represented honestly to the player; no successful-hit probability roll.",
+            "Preserve independent Power and bunt-specific softness/control; specify shared quick/charged response separately before implementation."
           ]
         }
       ],
@@ -3216,6 +3267,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-15-R6 option 1: separate Velocity, Movement, Control and Endurance pitching attributes. Exact effects and values remain open; D7 persists. Next PH-15-R7 compares spatial-only Contact forgiveness with spatial plus timing forgiveness; neither mapping is selected yet."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-15-R7 option 1: Contact changes spatial placement forgiveness only; hitters share the same swing timing window. Next PH-11-R1 compares a smaller spatial margin with a narrower timing window as the charged swing forgiveness cost. Both remain proposals pending Jack; exact tuning stays open."
     }
   ]
 }
