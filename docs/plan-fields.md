@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. The other 12 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-04. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. The other 11 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-05. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -60,7 +60,7 @@ What a field can vary, where it lives today, and where this plan proposes it liv
 | Ground roll (friction, rest speed) | global 22 / 1.4 | `BallFlight.cs:90` | ground row | FD-03, FD-05 |
 | Ground bounce (restitution, horizontal, skid) | global 0.48 / 0.82 | `BallFlight.cs:159` | ground row | FD-03, FD-05 |
 | Loose-ball grounds (overthrow decel, bobble decel) | global, two more models | `LivePlaySystem.Field.cs:3059-3126` | read the same ground row | FD-05 |
-| Body traction (brake, turn, slide) | global (#718 response law, `running.bags`) | `LivePlaySystem.Field.cs:2231` | stays global unless FD-04 says B | FD-04 |
+| Body traction (brake, turn, slide) | global (#718 response law, `running.bags`); the law is off on the shipped root (0 / 0) | `LivePlaySystem.Field.cs:2231` | ground row: small multipliers on the response law and on slide / overrun (FD-04 B). Full traction is a held trial | FD-04 ✅ |
 | Foul territory (offset, flare, rail height, backstop) | `HarborWall` literals for every park | `FieldBounds.cs:105-188` | park boundary parameters | FD-07 |
 | Outfield depth (fielder starts) | one global set | `Diamond.Positions` | stays global unless FD-07 says C | FD-07 |
 | Hazards | per park, eleven types, thin | `ParkHazards` (`Fielding.cs:645`) | pattern library + park instances | FD-08, FD-09, FD-19 |
@@ -148,7 +148,7 @@ Serial by default. Each epic is filed only when the decisions it needs are accep
 | **F0** Reconcile the standing orders | docs | Scope line in AGENTS.md, roadmap.md and art-rails.md: **done with FD-01**. Still owed: the parks.md and spec §14 corrections listed in the research report | FD-01 ✅ | — |
 | **F1** Schema and catalog | Gameplay | strict park schema, dead fields resolved, park list from the catalog, unknown id is an error | FD-01 | FR-03, FR-04, FR-06, FR-16 |
 | **F2** Geometry owner | Gameplay | park-neutral boundary type; Harbor's numbers as defaults; lopsided parks draw true; parity | FD-06, FD-07; coordinate #732 | FR-05, FR-06 |
-| **F3** Environment table | Gameplay | `AtPark`; ground and wall-material libraries; every park still names nothing; then one lever at a time as a trial | FD-03, FD-04, FD-05 | FR-01, FR-02, FR-06, FR-11 |
+| **F3** Environment table | Gameplay | `AtPark`; ground and wall-material libraries, ground rows carrying ball fields and body multipliers; every park still names nothing; then one lever at a time as a trial. The body effect needs the response law on (C80 today) | FD-03, FD-04, FD-05 | FR-01, FR-02, FR-06, FR-11 |
 | **F4** Hazard runtime | Gameplay | pattern library; live touch tests; typed events; CPU reads hazards; rolls removed | FD-08, FD-09, FD-10, FD-11, FD-14, FD-19 | FR-07, FR-08, FR-09, FR-12 |
 | **F5** Measurement | Gameplay | `park-factors` cohort, night flag in the CLI, declared park intents | FD-02, FD-13 | FR-10 |
 | **F6** Field kit | Presentation | one builder, kit slots, Harbor refilled with no visual change, data-driven greybox for every park, light and sky as data | FD-16 | FR-13, FR-04 |
@@ -179,7 +179,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01, FD-02, FD-03, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 12 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01, FD-02, FD-03, FD-04, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 11 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -230,6 +230,8 @@ Area: Environment. Depends on: FD-01. Evidence: NATHAN-SC, NATHAN-CARRY, MH-STAD
 **Acceptance:** A park file names only what differs from Harbor. A test proves Harbor's resolved environment equals the global table bit for bit.
 
 ### FD-04 — Does a slick or soft ground act on bodies, or only on the ball?
+
+**Decision — Jack, September 21, 2026: B, with C held for the sitting.** First reply: "I think B, maybe even C." After the B / C comparison, reply "b" selects a small body effect: a ground row may scale the fielder's start, brake and cut-back through the #718 response law, and the runner's slide and overrun. The body always goes where the stick points; a routine grounder stays a routine out in every park. **C (full traction) is a named trial candidate, judged by feel at the proving park's greybox sitting**; the ground row is built so C is an increment on the same rail. Dependency: the shipped root has `chase.accelSec` 0 / `brakeSec` 0, so the body effect exists only where the response law is on (C80 today). "Players do not skate" and the #693 reliable-routine-defense anchor stay in force. The author's recommendation was A. No multiplier is selected. Full provenance is in the canonical JSON.
 
 Area: Environment. Depends on: FD-03. Evidence: MW-PIG, BYB-WP.
 

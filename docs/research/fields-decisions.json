@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-04",
+  "next_decision": "FD-05",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -268,7 +268,7 @@
       "id": "FD-04",
       "area": "Environment",
       "question": "Does a slick or soft ground act on bodies, or only on the ball?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-03"
       ],
@@ -296,16 +296,41 @@
       "recommendation": "A for the first slice. Re-open B only after a sitting says ice does not feel like ice.",
       "existing_contract": "docs/parks.md Crystal Rink: 'we do not make players skate'. #718 response law and #761 coast/brake are one movement contract for every park. fielding.chase.frozenMul 0.45 is the only ordinary park status.",
       "acceptance": "The same routine grounder is a routine out in every park. A probe shows the ball's roll differs by ground while the body's speed curve does not (option A).",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B (C held as a trial candidate for the greybox sitting)",
+      "accepted_scope": "The ground acts on the ball and, in a small way, on bodies. A ground row may scale the fielder's start, brake and cut-back through the #718 response law, and the runner's slide and overrun lengths. The body always goes where the stick points: no skating, no loss of control, and the same routine grounder stays a routine out in every park. Option C (full traction: drift, slow steering, a runner who can overrun a bag) is held as a named trial candidate, to be judged by feel at the proving park's greybox sitting; it is not accepted and not rejected. The ground row is built so that C is an increment on the same rail. Known dependency: the shipped root has chase.accelSec 0 / brakeSec 0, so the body effect exists only where the response law is on (the C80 trial today). parks.md 'players do not skate' and the #693 'reliable routine defense' anchor stay in force. No multiplier is selected; every race row is re-run per ground before a number is accepted.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-04: ball only / ball plus a small body effect / full traction. Follow-up: record B with C held for the sitting, or C outright?",
+        "answer_quote": "b",
+        "earlier_quote": "I think B, maybe even C."
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "open",
+          "author": "Jack",
+          "choice": "lean B, possibly C",
+          "quote": "I think B, maybe even C.",
+          "scope": "A lean, not a selection. The author set out what separates B from C (control kept or lost, the missing runner momentum model, the two recorded calls C would supersede) and asked which to record."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B, C held for the sitting",
+          "quote": "b",
+          "scope": "The ground acts on the ball and, in a small way, on bodies. A ground row may scale the fielder's start, brake and cut-back through the #718 response law, and the runner's slide and overrun lengths. The body always goes where the stick points: no skating, no loss of control, and the same routine grounder stays a routine out in every park. Option C (full traction: drift, slow steering, a runner who can overrun a bag) is held as a named trial candidate, to be judged by feel at the proving park's greybox sitting; it is not accepted and not rejected. The ground row is built so that C is an increment on the same rail. Known dependency: the shipped root has chase.accelSec 0 / brakeSec 0, so the body effect exists only where the response law is on (the C80 trial today). parks.md 'players do not skate' and the #693 'reliable routine defense' anchor stay in force. No multiplier is selected; every race row is re-run per ground before a number is accepted."
+        }
+      ]
     },
     {
       "id": "FD-05",
@@ -1026,6 +1051,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-03 accepted by Jack: A, the #713 ball-environment list. Gravity, time scales, plate and infield stay global. No value selected. 12 choices remain open; next is FD-04."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-04 accepted by Jack: B, the ground has a small effect on bodies with control kept; C (full traction) is held as a named trial candidate for the proving park's greybox sitting. The author's recommendation was A. No multiplier selected. 11 choices remain open; next is FD-05."
     }
   ]
 }
