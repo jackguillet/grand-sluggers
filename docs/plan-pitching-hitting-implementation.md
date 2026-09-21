@@ -31,6 +31,8 @@ Three read-only maps (pitching code, batting / fatigue / Star code, spec and tea
 - **c80 parity.** `trials/c80` overlays whole files. A new required field in `role-players.json` or a rules file needs the same row there.
 - **Tutorial validator coupling.** `RoleTables` rows, `mechanics.json` and `lessons.json` move together or `cli tutorials` fails. A mechanic with no `RoleTables` row is invisible to the gate, so a new verb needs a row.
 - **Second client.** `src/GrandSluggers.Play` compiles against the sim. A signature change must keep it building.
+- **`unity/` is not in the solution.** `dotnet build` and the test suite cannot see a Unity call site. Only `tools/unity-compile.sh` does, and a positional argument hides from a grep for the parameter name (#811, `StillCapture.cs`).
+- **A stored double pins the platform.** `Math.Sin` differs by 1 ULP between macOS and glibc. A golden stores only libm-free bits and composes the rest on the running platform, still exact (#811). A child is not done until `portable` CI is green on its final head.
 - **Unity reads `Rules.Default`** in `PitchFlight` calls (`AtBatDirector.cs:337,355,425`). A family table must be read through the match's table or a trial overlay diverges.
 - **Register.** Each child appends its issue and PR to `implementation_issues`, adds `validation_evidence`, appends `history`, and never writes `human_acceptance`. Numbers need `trial-accepted` from Jack first.
 - **Session kinds.** Sim and data = Gameplay. Unity wiring, HUD, book pair, lesson copy = Presentation. Separate PRs. The book pair (`HowToPlay.cs` + `docs/how-to-play.md`) moves in the PR where the couch verb actually changes.
@@ -83,9 +85,9 @@ graph TD
 | --- | --- | --- | --- | --- |
 | **P1-a** #807 | Gameplay | Closed family id set. `repertoire` on all 25 characters, shipped and c80. Validator. Register provenance test. No behaviour change. | PH-15-R1..R4, PH-02-R1/R2 | Nothing |
 | P1-b #810 | Gameplay | One family row schema in `pitching.json` (named rows). Fastball and Changeup rows carry today's exact numbers; flights bit-identical. `PitchCommand` carries a family; the `Changeup` bool and the silent fastball fallback go. Per-family stamina cost key replaces `changeupCost`, same value. Reconcile GS:400 and §4.3 first. | PH-02-R2, PH-03, PH-15-R1 | Nothing |
-| P1-c | Gameplay | Pure sim selection step beside `ChargeButton`: cycle before arm, wrap, reset to Fastball each pitch and on a swap, lock on the arm edge, later cycle presses ignored. Same-tick rule written in the spec. Scenarios for every repertoire, both seats. | PH-02-R3/R4/R5 | Nothing. No pitcher cancel is added (PH-02-R3 leaves it unselected). |
+| P1-c #812 | Gameplay | Pure sim selection step beside `ChargeButton`: cycle before arm, wrap, reset to Fastball each pitch and on a swap, lock on the arm edge, later cycle presses ignored. Same-tick rule written in the spec. Scenarios for every repertoire, both seats. | PH-02-R3/R4/R5 | Nothing. No pitcher cancel is added (PH-02-R3 leaves it unselected). |
 | P1-d | Gameplay | Curveball, Slider, Sinker rows as a **scoped numeric trial**: units, conditions, rationale, headless evidence (crossing, drop, sweep by hand, air time). All speeds stay inside today's changeup–fastball envelope so D7 is untouched. | PH-02-R2, PH-03, PH-04 | **Trial acceptance.** See §5 Q1. |
-| P1-g | Gameplay | PH-18 audit turned into code: CPU aims through legal inputs, accumulates break, may combine verbs as a human can. | PH-18 | Nothing to start; re-report S-29. |
+| P1-g | Gameplay | PH-18 audit turned into code: CPU aims through legal inputs, accumulates break, may combine verbs as a human can. | PH-18 | **§5 Q8**: the CPU aims high and low today; a human cannot. Re-report S-29. |
 | P1-e | Gameplay | CPU picks a family from its repertoire with the presses a human has. Mix columns become family weights (named). S-27, S-28, S-67 follow. | PH-15, PH-18 | Nothing; re-report S-29. |
 | P1-f | Presentation | Mound reads `CyclePitch`; director builds the pitch from the locked family; West changeup retired; SET is family-blind (aim tell, pose, card, tint); three pitches shown in order with no active mark; book pair, `RoleTables`, `Scheme`, `ControlDiagram`; T-P03 reworked, cycle lesson added. | PH-02-R5, PH-06 | **Sitting 1**: both schemes, two pads. |
 
@@ -129,9 +131,18 @@ graph TD
 
 One child per reviewed ability or ability group, after P5. First: remove `batterWindowMul` from charmball, skullball and fogball with replacement effects Jack reviews (PH-16-R1); rule on the phonyball 40 % whiff roll; add an optional authored contact-area field for Star Swings (PH-16-R2). Each needs counterplay, geometry, data, validator and scenarios.
 
+### Notes carried to P1-f (from #813)
+
+- `prevButton` is `_pitchButton` read **before** `TickChargeButton` overwrites it. `buttonStep` is the existing step local. `cyclePressed` is `Controls.CyclePitch`.
+- `selectable` is `HumanPitches && _swapPick == null`. It is not the `accepting` expression: cycling before the pitcher-ready beat is legal.
+- Reset in `BeginSet()` beside `_pitchButton = default`, and again when the swap pick confirms (that path does not re-enter `BeginSet`).
+- `PlayerPitch` takes the family from the committed step. The West poll goes.
+- The step never returns an unauthored id. The lock lives only while the charge is armed, so a skipped tick cannot strand it.
+- P1-e: weight the CPU over *selectable* slots (`PitchSelection.IsSelectable`), not over 0 / 1 / 2, or it drifts to the fastball while rows are unauthored.
+
 ## 4. Scenario ids
 
-Free: S-83..S-89 and S-101 upward. Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
+Free: S-83..S-89 and S-107 upward (S-101 … S-106b are the selection step, #812). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
 
 ## 5. Questions that are Jack's
 
@@ -144,6 +155,7 @@ One at a time, in the order they start to block. None blocks P1-a, P1-b or P1-c.
 5. **Two chemistry edges PH-16-R14 did not name:** the on-deck item offer, and starting Stars set by captain chemistry. Blocks P2-e and P5-b.
 6. **The pale aim ring in SET** shows the crossing on the shared screen today. PH-06 says exact aim stays private. Keep, hide from the opponent's view, or remove? Blocks P1-f.
 7. **Replacement effects** for the three timing-window Star Pitches, and the phonyball whiff roll. Blocks Phase 6.
+8. **CPU height.** The CPU pitcher solves an endpoint with a height (`edge` and `waste` rows go high or low, plus vertical scatter; `Match.cs` `CpuPitchTarget`). A human has no vertical aim: height is the family (PH-03). Held to human inputs (PH-18), the CPU loses every high and low location until the new families supply height. Do that in one step with P1-d's shapes, or accept a flatter CPU in between? Blocks P1-g.
 
 ## 6. Ledger
 
@@ -152,4 +164,5 @@ One at a time, in the order they start to block. None blocks P1-a, P1-b or P1-c.
 | Foundation | #803 | #805 | `a9204a8c` | docs only | none |
 | Phase 0 audit and this map | #803 | — | — | `a9204a8c` | none |
 | P1-a family ids + 25 repertoires | #807 | #809 | `9b625591` | `cbc94d5d`: 1777 / 1777 tests, 721 / 721 c80 rows, seals hash-only, seed 7 identical | none (no player-facing change) |
-| P1-b family library rail | #810 | — | — | — | none (behaviour-identical) |
+| P1-b family library table; `PitchCommand.Type` is the family | #810 | #811 | `d0c6e12c` | `7bf73a54`: 1790 / 1790 on macOS and Linux, 721 / 721 c80 rows, seals hash-only, seed 7 identical, golden flight test exact on both platforms | none (behaviour-identical) |
+| P1-c sim selection step: cycle, Fastball reset, charge-start lock, self-healing lock | #812 | #813 | `42ee9d38` | `b1109f0a`: 1800 / 1800, 731 / 731 c80 rows, S-101 … S-106b, seals hash-only, seed 7 identical | none (mound not wired) |
