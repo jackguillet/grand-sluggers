@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). FD-06 is accepted: the fence may be a free polyline with a height per point and a material per span (C); the three-post arc stays the default. FD-07 is accepted: foul territory and outfield depth may differ by park (C), after a parity extraction. Round 3 is complete. FD-08 is accepted: park hazards may carry random party elements (C), drawn from the seeded match stream. FD-08-R1 is accepted: a draw decides what a hazard does, never a play's result. The other 7 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-19. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). FD-06 is accepted: the fence may be a free polyline with a height per point and a material per span (C); the three-post arc stays the default. FD-07 is accepted: foul territory and outfield depth may differ by park (C), after a parity extraction. Round 3 is complete. FD-08 is accepted: park hazards may carry random party elements (C), drawn from the seeded match stream. FD-08-R1 is accepted: a draw decides what a hazard does, never a play's result. FD-19 is accepted: a hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags (B), enforced by the validator. The other 6 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-10. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -180,7 +180,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 to FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 7 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 to FD-09, FD-12, FD-16, FD-17 and FD-19 are **DIRECTION ACCEPTED**. The other 6 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -460,6 +460,8 @@ Area: Roster. Depends on: FD-01, FD-09. Evidence: MW-PIG.
 **Acceptance:** The proving park needs no code that names it.
 
 ### FD-19 — Where may a hazard sit?
+
+**Decision — Jack, September 21, 2026: B.** Reply "b". A hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags. The content validator enforces it on both data roots, and a moving hazard obeys it along its whole path. Shallow ball hazards that can take a routine grounder stay legal. Lane widths and pad sizes come from existing geometry (`ParkDiamond`), not new numbers. A current hazard that fails the rule is a finding to bring back, not something to move silently. Full provenance is in the canonical JSON.
 
 Area: Hazards. Depends on: FD-08. Evidence: MW-MSS, MH-STAD.
 

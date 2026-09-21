@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-19",
+  "next_decision": "FD-10",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -1116,7 +1116,7 @@
       "id": "FD-19",
       "area": "Hazards",
       "question": "Where may a hazard sit?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-08"
       ],
@@ -1144,16 +1144,31 @@
       "recommendation": "B, as a validator rule, so a park file cannot place a hazard on a lane.",
       "existing_contract": "Funfair's cans sit at z 55\u201395 and Canopy's barrels at z 58\u2013102, inside or near the infield. No reference game has a runner hazard in normal play. No validator checks a hazard's place today.",
       "acceptance": "cli art refuses a hazard whose disc crosses a running lane, a bag pad, the mound or the plate area, on both data roots.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "B",
+      "accepted_scope": "A hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags. The content validator enforces it on both data roots: it refuses a hazard whose disc or body crosses a running lane, a bag pad, the mound or the plate area. A moving hazard obeys the same rule along its whole path. Shallow ball hazards that can take a routine grounder stay legal. The lane widths and pad sizes the validator uses are contract work and come from existing geometry (ParkDiamond path width and pads), not new numbers. Today's park files are checked against the rule when it lands; a hazard that fails it is a finding to bring back, not something to move silently. No hazard position is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-19: outfield and foul corners only / anywhere except the lanes, the mound-to-plate lane and the bags / anywhere",
+        "answer_quote": "b"
+      },
+      "numeric_targets": "not applicable: a placement rule from existing geometry",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b",
+          "scope": "A hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags. The content validator enforces it on both data roots: it refuses a hazard whose disc or body crosses a running lane, a bag pad, the mound or the plate area. A moving hazard obeys the same rule along its whole path. Shallow ball hazards that can take a routine grounder stay legal. The lane widths and pad sizes the validator uses are contract work and come from existing geometry (ParkDiamond path width and pads), not new numbers. Today's park files are checked against the rule when it lands; a hazard that fails it is a finding to bring back, not something to move silently. No hazard position is selected."
+        }
+      ]
     }
   ],
   "history": [
@@ -1200,6 +1215,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-08-R1 accepted by Jack: 1, random world, geometric result. A hazard draw never awards an out, hit, drop or catch. AGENTS.md gains one clarifying sentence; the geometry rule stays whole. 7 choices remain open; next is FD-19."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-19 accepted by Jack: B, hazards may sit anywhere except the running lanes, the mound-to-plate lane and the bags, enforced by the validator on both roots. 6 choices remain open; next is FD-10."
     }
   ]
 }
