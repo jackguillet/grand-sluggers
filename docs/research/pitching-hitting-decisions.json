@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-02",
+  "next_decision": "PH-03",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -98,7 +98,7 @@
       "id": "PH-02",
       "area": "Pitching",
       "question": "How many ordinary pitch families should each pitcher have?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-01"
       ],
@@ -128,16 +128,31 @@
       "recommendation": "B if PH-01 favors added tactics; define each pitch by a distinct response it demands before choosing a count or names.",
       "existing_contract": "Current PitchFlight has fastball/changeup base shapes; stars are separate. No new pitch count is selected.",
       "acceptance": "Each pitch has a readable trajectory, tactical use, counterplay and reason not to throw it every time.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B",
+      "accepted_scope": "Develop a small set of distinct ordinary pitches, each with a clear tactical purpose, readable behavior and weakness. Exact pitch count, pitch names, character differences/allocation, selection inputs, location control, steering and numerical tuning remain open. This is direction acceptance, not implementation or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-02: 1. Keep the current set; 2. Add a small set of distinct pitches, each with a clear purpose and weakness; 3. Use a broad baseball repertoire. Exact pitches and character differences follow afterward.",
+        "answer_quote": "2"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "2",
+          "scope": "Develop a small set of distinct ordinary pitches, each with a clear tactical purpose, readable behavior and weakness. Exact pitch count, pitch names, character differences/allocation, selection inputs, location control, steering and numerical tuning remain open. This is direction acceptance, not implementation or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-03",
@@ -968,6 +983,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-09 option A: retain the batter-linked horizontal cursor. Eighteen choices remain open; no numeric trials or human acceptance selected."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-02 option B: a small set of distinct ordinary pitches with clear purposes and weaknesses. Seventeen choices remain open; exact pitches, character differences, steering and numbers remain unselected."
     }
   ]
 }
