@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-06",
+  "next_decision": "PH-10",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -337,7 +337,7 @@
       "id": "PH-06",
       "area": "Shared duel",
       "question": "What may the opponent see before committing?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-03",
         "PH-04"
@@ -367,16 +367,31 @@
       "recommendation": "A for the ordinary duel; C is useful in training. Choose any competitive assistance openly in PH-17.",
       "existing_contract": "One shared screen and both controller seats must be considered. No new overlay is approved.",
       "acceptance": "Two people on one screen retain a mind game; a learner can identify the cue that gave them a chance to respond.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "For ordinary play, the hitter reads the pitcher\u2019s body, windup/charge/release and actual ball movement, without explicit pitch-family or destination guidance to the opponent. Preserve a readable response opportunity and the shared-screen mind game. Stronger training/assistance guidance remains a separate open choice under PH-17/PH-19; exact cues and timing remain open. Direction acceptance only; no runtime/presentation change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-06: 1. Body and ball cues in ordinary play, without explicit pitch-type or destination hints; 2. Add a broad hint; 3. Show target or arrival guidance. Stronger training guidance was recommended separately.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "For ordinary play, the hitter reads the pitcher\u2019s body, windup/charge/release and actual ball movement, without explicit pitch-family or destination guidance to the opponent. Preserve a readable response opportunity and the shared-screen mind game. Stronger training/assistance guidance remains a separate open choice under PH-17/PH-19; exact cues and timing remain open. Direction acceptance only; no runtime/presentation change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-07",
@@ -1044,6 +1059,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-05 option B: a stronger power-versus-control tradeoff within the same charge/release controls. Fourteen choices remain open; the form and strength of the control challenge and numeric targets remain unselected."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-06 option A: ordinary play uses body and ball cues without explicit opponent pitch-type or destination guidance. Thirteen choices remain open; training/assistance details and numeric targets remain unselected. Next: PH-10 contact quality, following the planned discussion order."
     }
   ]
 }
