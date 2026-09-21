@@ -86,20 +86,20 @@ graph TD
 | **P1-a** #807 | Gameplay | Closed family id set. `repertoire` on all 25 characters, shipped and c80. Validator. Register provenance test. No behaviour change. | PH-15-R1..R4, PH-02-R1/R2 | Nothing |
 | P1-b #810 | Gameplay | One family row schema in `pitching.json` (named rows). Fastball and Changeup rows carry today's exact numbers; flights bit-identical. `PitchCommand` carries a family; the `Changeup` bool and the silent fastball fallback go. Per-family stamina cost key replaces `changeupCost`, same value. Reconcile GS:400 and §4.3 first. | PH-02-R2, PH-03, PH-15-R1 | Nothing |
 | P1-c #812 | Gameplay | Pure sim selection step beside `ChargeButton`: cycle before arm, wrap, reset to Fastball each pitch and on a swap, lock on the arm edge, later cycle presses ignored. Same-tick rule written in the spec. Scenarios for every repertoire, both seats. | PH-02-R3/R4/R5 | Nothing. No pitcher cancel is added (PH-02-R3 leaves it unselected). |
-| P1-d | Gameplay | Curveball, Slider, Sinker rows as a **scoped numeric trial**: units, conditions, rationale, headless evidence (crossing, drop, sweep by hand, air time). All speeds stay inside today's changeup–fastball envelope so D7 is untouched. | PH-02-R2, PH-03, PH-04 | **Trial acceptance.** See §5 Q1. |
-| P1-g | Gameplay | PH-18 audit turned into code: CPU aims through legal inputs, accumulates break, may combine verbs as a human can. | PH-18 | **§5 Q8**: the CPU aims high and low today; a human cannot. Re-report S-29. |
+| P1-d | Gameplay | Curveball, Slider, Sinker rows as a **scoped numeric trial**: units, conditions, rationale, headless evidence (crossing, drop, sweep by hand, air time). All speeds stay inside today's changeup–fastball envelope so D7 is untouched. | PH-02-R2, PH-03, PH-04, PH-20-R1 | **Trial acceptance** in the preview sitting (Q1 answered: trial window). |
+| P1-g | Gameplay | PH-18 audit turned into code: CPU aims through legal inputs, accumulates break, may combine verbs as a human can. | PH-18, PH-18-R1 | Q8 answered: converts in the same trial as P1-d. Re-report S-29. |
 | P1-e | Gameplay | CPU picks a family from its repertoire with the presses a human has. Mix columns become family weights (named). S-27, S-28, S-67 follow. | PH-15, PH-18 | Nothing; re-report S-29. |
-| P1-f | Presentation | Mound reads `CyclePitch`; director builds the pitch from the locked family; West changeup retired; SET is family-blind (aim tell, pose, card, tint); three pitches shown in order with no active mark; book pair, `RoleTables`, `Scheme`, `ControlDiagram`; T-P03 reworked, cycle lesson added. | PH-02-R5, PH-06 | **Sitting 1**: both schemes, two pads. |
+| P1-f | Presentation | Mound reads `CyclePitch`; director builds the pitch from the locked family; West changeup retired; SET is family-blind (aim tell, pose, card, tint); three pitches shown in order with no active mark; book pair, `RoleTables`, `Scheme`, `ControlDiagram`; T-P03 reworked, cycle lesson added. | PH-02-R5, PH-06, PH-06-R1 | Q6 answered: rubber-only ring. **Sitting 1**: both schemes, two pads. |
 
 ### Phase 2 — ordinary batting
 
 | Child | Kind | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- | --- |
 | P2-a | Gameplay | `contact` and `power` on every character, seeded from `bat`; resolver, CPU reads, `Teams`, CLI read the right one. Behaviour-identical. Reconcile GS:334. | PH-15-R5 | Nothing. Authored values later. |
-| P2-b | Gameplay | One timing window for every hitter, swing type and difficulty: remove `chargeFrames` vs `slapFrames`, `framesPerContact`, `humanWindowMul` from the window. S-10 and S-30 rewritten. | PH-11-R1, PH-15-R7, PH-17 | **The one window value** (§5 Q2). Park night multiplier stays (not selected). |
+| P2-b | Gameplay | One timing window for every hitter, swing type and difficulty: remove `chargeFrames` vs `slapFrames`, `framesPerContact`, `humanWindowMul` from the window. S-10 and S-30 rewritten. | PH-11-R1, PH-15-R7, PH-17, PH-10-R1 | Q2 answered: start at 9 frames. Sitting 2 judges it. Park night multiplier stays. |
 | P2-c | Gameplay | Ordinary swings ignore stick spray and loft. Invariance scenario replaces S-13. CPU aim sigmas go (re-report S-29). Bunt direction stays on the stick until P4-b. T-B06 / T-B06-F retire with their lesson rows. | PH-12 | Nothing |
 | P2-d | Gameplay | Charge narrows the spatial barrel only (already `chargeMul`); Contact scales the spatial barrel only. Pins for PH-09-R1. One sim helper for the drawn oval so Unity stops re-deriving it. | PH-11-R1, PH-15-R7, PH-09-R1 | Nothing |
-| P2-e | Gameplay | Remove buddies-on-base widen and charge power. | PH-16-R14 | **Two edges** (§5 Q5). |
+| P2-e | Gameplay | Remove buddies-on-base widen and charge power. | PH-16-R14, PH-16-R15 | Q5a answered: the on-deck item offer goes too; items dormant. |
 | P2-f | Presentation | Book pair, card bars for Contact / Power, difficulty copy. | PH-15-R5, PH-17 | **Sitting 2** |
 
 ### Phase 3 — pitching attributes and fatigue
@@ -117,15 +117,15 @@ graph TD
 | --- | --- | --- | --- | --- |
 | P4-a | Gameplay | `ChargeButton` gains cancelled and must-release states. Cancel before commit takes the pitch; the old hold's release cannot swing; no banked charge. Same-tick order written in the spec. | PH-13, PH-13-R1 | Nothing |
 | P4-b | Gameplay | Bunt is a held side, latest press wins, changeable until contact, release-all withdraws, contact is geometric with no timed press. Side becomes a typed fact for the defense and the CPU sac bunt. Response curve is a trial. | PH-14-R1..R5 | **Trial acceptance** for the curve |
-| P4-c | Presentation | `Controls` gains RT, J, L and the East cancel. Leak guards: LT into the item modifier, East into the Training skip and the dive. Editor gates, book pair, lessons. Both schemes, both hands, two pads. | PH-13-R1, PH-14-R5 | **LT ruling** (§5 Q4); **Sitting 4** |
+| P4-c | Presentation | `Controls` gains RT, J, L and the East cancel. Leak guards: LT into the item modifier, East into the Training skip and the dive. Editor gates, book pair, lessons. Both schemes, both hands, two pads. | PH-13-R1, PH-14-R5, PH-14-R6 | Q4 answered: fresh press after contact. **Sitting 4** |
 
 ### Phase 5 — Star resource and special-action contract
 
 | Child | Kind | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- | --- |
 | P5-a | Gameplay | `Match` checks affordability: unaffordable special = the ordinary action, no spend, a typed event. Cost tiers in data; top tier captain-only by validator. Missed Star Swing pays the ability's full cost. | PH-16-R3, R7, R8, R9, R12, R13 | Tier count and prices (trial) |
-| P5-b | Gameplay | Usable starting reserve. Gain for both teams at the completed-plate-appearance seam (`NextBatter`, with the caught-stealing third-out edge named). Performance bonuses. | PH-16-R4, R5, R6 | Amounts (trial); captain-chemistry start (§5 Q5) |
-| P5-c | Presentation | Held modifier, sampled at action release. Feedback for the fallback. Book pair, lessons. | PH-16-R10, R11, R12 | **Modifier binding** (§5 Q3); **Sitting 5** |
+| P5-b | Gameplay | Usable starting reserve. Gain for both teams at the completed-plate-appearance seam (`NextBatter`, with the caught-stealing third-out edge named). Performance bonuses. | PH-16-R4, R5, R6, R16 | Amounts (trial). Q5b answered: fixed and equal start. |
+| P5-c | Presentation | Held modifier, sampled at action release. Feedback for the fallback. Book pair, lessons. | PH-16-R10, R11, R12, R17 | Q3 answered: LB held, Q on keyboard. **Sitting 5** |
 
 ### Phase 6 — ability-specific effects
 
@@ -144,18 +144,30 @@ One child per reviewed ability or ability group, after P5. First: remove `batter
 
 Free: S-83..S-89 and S-107 upward (S-101 … S-106b are the selection step, #812). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
 
-## 5. Questions that are Jack's
+## 5. Questions that were Jack's — answered September 21, 2026
 
-One at a time, in the order they start to block. None blocks P1-a, P1-b or P1-c.
+Asked one at a time, with options. Provenance and Jack's words are in the register. None of these is a passed playtest.
 
-1. **How do you want to judge the three new pitch shapes?** Recommended: the numbers live in a trial overlay, you throw them in a `local-player --trial` window, and they move to the shipped table only after you accept. Blocks P1-d.
-2. **The one shared timing window.** Today a slap has 9 frames and a charge has 7, plus 0.4 per Contact point. One value has to replace them. Blocks P2-b.
-3. **The special modifier binding.** Today North / Q toggles. Blocks P5-c.
-4. **LT as third-side bunt collides with LT as the item modifier.** Options: move the item modifier, or guard the hold across contact. Blocks P4-c.
-5. **Two chemistry edges PH-16-R14 did not name:** the on-deck item offer, and starting Stars set by captain chemistry. Blocks P2-e and P5-b.
-6. **The pale aim ring in SET** shows the crossing on the shared screen today. PH-06 says exact aim stays private. Keep, hide from the opponent's view, or remove? Blocks P1-f.
-7. **Replacement effects** for the three timing-window Star Pitches, and the phonyball whiff roll. Blocks Phase 6.
-8. **CPU height.** The CPU pitcher solves an endpoint with a height (`edge` and `waste` rows go high or low, plus vertical scatter; `Match.cs` `CpuPitchTarget`). A human has no vertical aim: height is the family (PH-03). Held to human inputs (PH-18), the CPU loses every high and low location until the new families supply height. Do that in one step with P1-d's shapes, or accept a flatter CPU in between? Blocks P1-g.
+| # | Question | Jack's answer | Register | Unblocks |
+| --- | --- | --- | --- | --- |
+| Q1 | How to judge the three new pitch shapes | Trial window: numbers in a trial overlay, judged in a preview with the RB/Tab verb, promoted only after acceptance | PH-20-R1 | P1-d, then P1-e, P1-f |
+| Q8 | CPU height: when the CPU pitches with human inputs only | With the new shapes, in the same trial; no interim flat CPU | PH-18-R1 | P1-g |
+| Q6 | The pale aim ring in SET | Rubber-only ring at mid-zone height, hidden at release; full ring only in practice | PH-06-R1 | P1-f |
+| Q2 | The one shared timing window | 9 frames at 60 Hz, total width: a trial start value (trial-accepted) | PH-10-R1 | P2-b |
+| Q4 | LT bunt vs LT item modifier | Fresh press after contact; no binding moves | PH-14-R6 | P4-c |
+| Q5a | The on-deck chemistry item offer | Remove it; items dormant until a non-chemistry source is accepted | PH-16-R15 | P2-e |
+| Q5b | Starting Stars | Fixed and equal for both teams; amount is a trial number | PH-16-R16 | P5-b |
+| Q3 | The special modifier | LB held on both seats, Q on keyboard, read at South release. Jack ruled out thumb buttons; RT collides with PH-14-R5. During the pitch LB stops being all-advance | PH-16-R17 | P5-c |
+| Q7a | Charmball, Skullball, Fogball | Remove the window multipliers; speed and path only until each is reviewed | PH-16-R18 | Phase 6 first child |
+| Q7b | Phonyball whiff roll | Remove the roll; the decoy path is the effect | PH-16-R19 | same child as Q7a |
+
+Consequences for the map:
+
+- **P1-d, P1-g, P1-e and P1-f form one trial stack.** Shapes, the legal CPU, the CPU repertoire mix and the verb PR are built on a trial overlay plus a preview branch, and Jack judges them in one sitting (sitting 1). Nothing in that stack merges to the shipped default before he accepts.
+- **P2-b has its start value** (9 frames). It still re-reports S-29 and waits for the batting sitting.
+- **P2-e grows**: it removes the buddies-on-base bonuses and the on-deck item offer, marks the item lessons blocked with an owning issue, and leaves item code and data dormant. A new tracker question owns the future item source.
+- **P5-c binds LB** and reconciles gameplay-spec §3 (LB all-advance during the pitch) with the book pair.
+- **Phase 6 starts with one removal child** (PH-16-R18 + R19), then one reviewed proposal per ability.
 
 ## 6. Ledger
 
