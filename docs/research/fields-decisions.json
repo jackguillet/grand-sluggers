@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-15",
+  "next_decision": "FD-18",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -979,7 +979,7 @@
       "id": "FD-15",
       "area": "Legibility",
       "question": "How does a player learn what a park does?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-02",
         "FD-08"
@@ -1008,16 +1008,31 @@
       "recommendation": "C, delivered in that order. The card and the tells are Presentation children; the lessons are Gameplay setup plus a Presentation child.",
       "existing_contract": "docs/tutorials.md contract. `PlayStamp` stamps come from typed events. Field pick is part of the carnival front (#248).",
       "acceptance": "A stranger picks a park, reads its card, and can say after one inning what the park did to a ball.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
-      "numeric_targets": null,
+      "selected_option": "C",
+      "accepted_scope": "A player learns a park three ways, delivered in this order. One: a field card on the field pick that shows size, air, ground and hazards from the park data, replacing the per-id copy switch. Two: in-park tells \u2014 a wind flag, a ground that looks like its row, a tell when a hazard acts (and before it acts where the hazard is not a surprise), and a stamp from the typed event when a park rule decides a play. Three: a Practice lesson for every hazard pattern and every ground that changes the ball, under the docs/tutorials.md contract: repeatable setup, a player-owned action, real success and failure evidence. A lesson runs at a park that has the hazard; a random hazard's lesson uses a fixed seed so the opportunity repeats. The card and the tells are Presentation children; each lesson is a Gameplay setup child plus a Presentation child. The tutorials.md rows blocked by #37 are unblocked by FD-01 for rails and lessons, not for art. Icons, copy, tell design and lesson ids are contract work. Agents do not pass the learning gate.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-15: the field card / card plus in-park tells / card, tells and a lesson per hazard pattern and ground",
+        "answer_quote": "c"
+      },
+      "numeric_targets": "not applicable: presentation and tutorial coverage",
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "c",
+          "scope": "A player learns a park three ways, delivered in this order. One: a field card on the field pick that shows size, air, ground and hazards from the park data, replacing the per-id copy switch. Two: in-park tells \u2014 a wind flag, a ground that looks like its row, a tell when a hazard acts (and before it acts where the hazard is not a surprise), and a stamp from the typed event when a park rule decides a play. Three: a Practice lesson for every hazard pattern and every ground that changes the ball, under the docs/tutorials.md contract: repeatable setup, a player-owned action, real success and failure evidence. A lesson runs at a park that has the hazard; a random hazard's lesson uses a fixed seed so the opportunity repeats. The card and the tells are Presentation children; each lesson is a Gameplay setup child plus a Presentation child. The tutorials.md rows blocked by #37 are unblocked by FD-01 for rails and lessons, not for art. Icons, copy, tell design and lesson ids are contract work. Agents do not pass the learning gate."
+        }
+      ]
     },
     {
       "id": "FD-16",
@@ -1295,6 +1310,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-13 accepted by Jack: A, Harbor is the only calibrated park; other parks are measured and reported, not tuned, until a single default exists. 2 choices remain open: FD-15, FD-18."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-15 accepted by Jack: C, the field card, in-park tells and a Practice lesson per hazard pattern and per ground, delivered in that order. 1 choice remains open: FD-18."
     }
   ]
 }
