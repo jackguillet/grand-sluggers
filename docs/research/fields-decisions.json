@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-08",
+  "next_decision": "FD-08-R1",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -515,7 +515,7 @@
       "id": "FD-08",
       "area": "Hazards",
       "question": "What fairness contract must every hazard obey?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-01"
       ],
@@ -546,16 +546,62 @@
       "recommendation": "A, with B allowed only where the choice is shown early enough to act on.",
       "existing_contract": "AGENTS.md: a play is decided by geometry, never by a roll or a caption. Today every hazard is decided once, at the preview, from the ball's landing point (Fielding.cs:69-90). The warp exit is rng.Next (Fielding.cs:701). A slowed play adds a 0.4 drop roll (Match.cs:702). The slow lasts the whole play for every chaser. The reference's most criticized hazards are random ball output, lost visibility and stuns with no counter; fixed geometry gets the praise.",
       "acceptance": "Both seats and the CPU read the same hazard facts. A scenario per hazard pattern proves the outcome from positions alone. A stranger can say why the hazard did what it did.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "C",
+      "accepted_scope": "Park hazards may carry random party elements. This is permission, not a requirement: a hazard may be fixed, or it may surprise. The author's recommendation was A. Engineering rule that follows, not a tradeoff: every random hazard draw comes from the match's seeded stream and is emitted as a typed live event, so the same seed replays the same game and traces, cohorts, scenario tests and tutorials stay deterministic. The CPU gets no foresight of a draw (seat parity). Harbor stays the park with no hazard. This decision conflicts with the standing AGENTS.md rule 'a play is decided by geometry, never by a roll' and with the Phase P ban on rolls that produce a PlayEvent: the exception is scoped to park hazards only, and its exact wording waits for refinement FD-08-R1 (may a draw decide a play's result directly, or only what the hazard does). Which hazards are random, how often, and every number stay open.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-08: geometric, fixed and told / geometric with seeded variety / party chaos",
+        "answer_quote": "C. we can add random party elements for the hazards"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "C. we can add random party elements for the hazards",
+          "scope": "Park hazards may carry random party elements. This is permission, not a requirement: a hazard may be fixed, or it may surprise. The author's recommendation was A. Engineering rule that follows, not a tradeoff: every random hazard draw comes from the match's seeded stream and is emitted as a typed live event, so the same seed replays the same game and traces, cohorts, scenario tests and tutorials stay deterministic. The CPU gets no foresight of a draw (seat parity). Harbor stays the park with no hazard. This decision conflicts with the standing AGENTS.md rule 'a play is decided by geometry, never by a roll' and with the Phase P ban on rolls that produce a PlayEvent: the exception is scoped to park hazards only, and its exact wording waits for refinement FD-08-R1 (may a draw decide a play's result directly, or only what the hazard does). Which hazards are random, how often, and every number stay open."
+        }
+      ],
+      "affects_standing_orders": [
+        "AGENTS.md 'Done means you played it': a play is decided by geometry, never by a roll or a caption",
+        "docs/roadmap.md Phase P ban: any Random that produces a PlayEvent",
+        "docs/plan-fields.md FR-07"
+      ],
+      "refinements": [
+        {
+          "id": "FD-08-R1",
+          "question": "May a random hazard draw decide a play's result directly, or only what the hazard does?",
+          "status": "open",
+          "options": [
+            {
+              "id": "1",
+              "label": "Random world, geometric result",
+              "tradeoff": "A draw decides what a hazard does: when it fires, which exit it picks, where it throws the ball. The ball and the bodies then decide the play as in every other play. No out, hit, drop or catch is awarded by chance. AGENTS.md's geometry rule stays whole; hazards add surprise to the world."
+            },
+            {
+              "id": "2",
+              "label": "Draws may also decide results",
+              "tradeoff": "A hazard may roll a result: a slowed fielder drops the catch 40 percent of the time (today's drops.frozen), a plant eats the ball or does not. Closest to the reference. AGENTS.md's rule gets a real exception, and a player can lose an out to a roll he could not answer."
+            }
+          ],
+          "recommendation": "1. It keeps the surprise Jack asked for and keeps every out explainable by what the player saw.",
+          "existing_contract": "Today both kinds exist: the warp exit is a draw on the world (Fielding.cs:701); drops.frozen 0.4 is a draw on the result (Match.cs:702).",
+          "selected_option": null,
+          "accepted_scope": null,
+          "decided_by": null,
+          "decided_at": null,
+          "decision_evidence": null
+        }
+      ]
     },
     {
       "id": "FD-09",
@@ -647,7 +693,7 @@
           "tradeoff": "Time of day is the toggle. Ties FD-11 to this choice."
         }
       ],
-      "recommendation": "B, default on, built after the hazard runtime. With hazards as a list of instances the switch is an empty list, and the park keeps its size, air and ground. Later Mario sports games and Smash all added this switch; the one game that removed hazards was called too plain.",
+      "recommendation": "B, default on, built after the hazard runtime. FD-08 C makes the switch more important: with random hazards in play, the switch is how two players choose a straight game at any park. With hazards as a list of instances the switch is an empty list, and the park keeps its size, air and ground.",
       "existing_contract": "Title has a night toggle. Exhibition options are innings and difficulty (title X / LB). No hazard switch is documented for either Mario baseball game; Harbor is the clean park today.",
       "acceptance": "A friend on the couch can always play any park with no hazard. The park-factors report covers both states.",
       "selected_option": null,
@@ -1115,6 +1161,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-07 accepted by Jack: C, foul territory and outfield depth per park, parity extraction first. Round 3 (what a park may change) is complete. 8 choices remain open; next is FD-08."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-08 accepted by Jack: C, park hazards may carry random party elements. The author's recommendation was A. Draws come from the seeded match stream. The standing geometry rule gets an exception scoped to park hazards; its wording waits for refinement FD-08-R1. 7 choices and 1 refinement remain open."
     }
   ]
 }
