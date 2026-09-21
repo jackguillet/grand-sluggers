@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-05",
+  "next_decision": "FD-06",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -336,7 +336,7 @@
       "id": "FD-05",
       "area": "Environment",
       "question": "Is the ground one material per park, or a map of zones?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-03"
       ],
@@ -364,16 +364,31 @@
       "recommendation": "B. The zones already exist as geometry, so no new shape language is needed. The ground library is a closed table like the pitch families (D20).",
       "existing_contract": "Roll friction is one number today (flight.json roll.friction 22). `surface` is a label with no gameplay effect (#713). The infield lip and the warning track are existing geometry.",
       "acceptance": "A ground id with no authored row stops the load and names the id. A ball crossing from dirt to grass changes its roll at the lip, in the trace.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B",
+      "accepted_scope": "The ground is a map of zones taken from the shared diamond: infield dirt, outfield, warning track and foul apron each name a ground id from a closed library (FR-02). A park overrides a zone's ground; Harbor names none. The ball reads the zone it is on for roll and bounce, the three loose-ball ground models read the same row, and the FD-04 body multipliers read the zone the body stands in. The zone list is the starting proposal: the exact zones, their boundaries (the 155-ft infield lip and the track are #730 / #732 geometry) and the ground ids are contract work. No free-form painted region. No ground value is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-05: one ground per park / zones from the shared diamond / painted regions",
+        "answer_quote": "b"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "b",
+          "scope": "The ground is a map of zones taken from the shared diamond: infield dirt, outfield, warning track and foul apron each name a ground id from a closed library (FR-02). A park overrides a zone's ground; Harbor names none. The ball reads the zone it is on for roll and bounce, the three loose-ball ground models read the same row, and the FD-04 body multipliers read the zone the body stands in. The zone list is the starting proposal: the exact zones, their boundaries (the 155-ft infield lip and the track are #730 / #732 geometry) and the ground ids are contract work. No free-form painted region. No ground value is selected."
+        }
+      ]
     },
     {
       "id": "FD-06",
@@ -1055,6 +1070,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-04 accepted by Jack: B, the ground has a small effect on bodies with control kept; C (full traction) is held as a named trial candidate for the proving park's greybox sitting. The author's recommendation was A. No multiplier selected. 11 choices remain open; next is FD-05."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-05 accepted by Jack: B, ground zones from the shared diamond with a closed ground library. No ground value selected. 10 choices remain open; next is FD-06."
     }
   ]
 }

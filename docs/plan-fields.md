@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. The other 11 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-05. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. FD-04 is accepted: the ground has a small effect on bodies with control kept (B); full traction (C) is held as a trial candidate for the greybox sitting. FD-05 is accepted: the ground is a map of zones from the shared diamond (B). The other 10 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-06. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -179,7 +179,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01, FD-02, FD-03, FD-04, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 11 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 to FD-05, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 10 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -246,6 +246,8 @@ Area: Environment. Depends on: FD-03. Evidence: MW-PIG, BYB-WP.
 **Acceptance:** The same routine grounder is a routine out in every park. A probe shows the ball's roll differs by ground while the body's speed curve does not (option A).
 
 ### FD-05 — Is the ground one material per park, or a map of zones?
+
+**Decision — Jack, September 21, 2026: B.** Reply "b" selects zones from the shared diamond: infield dirt, outfield, warning track and foul apron each name a ground id from a closed library; a park overrides a zone. The ball, the three loose-ball ground models and the FD-04 body multipliers all read the zone. The exact zones, their boundaries (the lip and the track are #730 / #732 geometry) and the ground ids are contract work. No painted regions. No ground value is selected. Full provenance is in the canonical JSON.
 
 Area: Environment. Depends on: FD-03. Evidence: BROSNAN, MH-STAD.
 
