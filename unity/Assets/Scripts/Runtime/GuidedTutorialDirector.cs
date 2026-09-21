@@ -54,8 +54,6 @@ namespace GrandSluggers.UnityClient
             if (_guided == null || !_guided.Observe(action) || _guided.Phase != TutorialPhase.Feedback) return;
             _tutorialUiAge = 0; _tutorialSaved = false;
             _match.SetPaused(false);
-            _phase = Phase.Title;
-            _cam.Play("title");
         }
 
         void GuidedSeatLost(LineupSeat seat)
@@ -68,7 +66,7 @@ namespace GrandSluggers.UnityClient
             if (GuidedAttempt("T-G06-R") && _guided.ObserveSeatRecovered(seat))
             {
                 _tutorialUiAge = 0; _tutorialSaved = false;
-                _match.SetPaused(false); _phase = Phase.Title; _cam.Play("title");
+                _match.SetPaused(false);
             }
         }
 

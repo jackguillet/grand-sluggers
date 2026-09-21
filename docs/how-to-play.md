@@ -206,7 +206,7 @@ Fielding lessons teach manual takeover, throws to each named base, ordinary airb
 
 Every lesson requires **three successful attempts**. The counter shows 0/3 through 3/3 in the list, brief, play HUD and feedback. Failures keep earlier successes, and partial progress is saved when you leave or close the game. Old one-success passes do not satisfy this requirement.
 
-Feedback explains what happened. **South / Space** continues with a fresh setup after success 1 or 2, or retries after a failure; **West / F** moves to the next lesson; **East / G** returns to lessons. Checkmarks appear only at 3/3, separately from Exhibition. Automatic assistance and demonstrations do not earn completion. Call time / How to play still works during an attempt. Restart resets that lesson; Title leaves it.
+After a success or failure, the same lesson immediately starts a fresh attempt until you reach **3/3**. There is no Continue press or return to the briefing between attempts, including guided lessons. After a miss, the coaching panel keeps the correction alongside the controls during the next attempt. At 3/3 the completion screen offers **South / Space** to replay, **West / F** for the next lesson, and **East / G** to return to lessons. Checkmarks appear only at 3/3, separately from Exhibition. Automatic assistance and demonstrations do not earn completion. Call time / How to play still works during an attempt. Restart resets that lesson; Title leaves it.
 
 **Free practice** lives in the **Free play** category for ungated Harbor play. New mechanics and future lessons are tracked in `data/tutorials/`; unavailable lessons are not presented as playable.
 
