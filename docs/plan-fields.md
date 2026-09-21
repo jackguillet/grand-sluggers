@@ -400,7 +400,7 @@ Area: Legibility. Depends on: FD-02, FD-08. Evidence: SHOW-SZ, SMB-TG.
 
 ### FD-16 — What is a park kit, and what is shared?
 
-**Decision — Jack, September 21, 2026: B.** Accepted as part of the rails set. One park-neutral field kit; parks fill named slots; empty slots draw a complete greybox from data. Harbor fills the slots first with no visual change; the  fallback diamond and dress methods retire after that. The slot schema is contract work. No art is commissioned. Full provenance is in the canonical JSON.
+**Decision — Jack, September 21, 2026: B.** Accepted as part of the rails set. One park-neutral field kit; parks fill named slots; empty slots draw a complete greybox from data. Harbor fills the slots first with no visual change; the `ParkView` fallback diamond and dress methods retire after that. The slot schema is contract work. No art is commissioned. Full provenance is in the canonical JSON.
 
 Area: Presentation. Depends on: FD-01. Evidence: code maps only.
 
@@ -416,7 +416,7 @@ Area: Presentation. Depends on: FD-01. Evidence: code maps only.
 
 ### FD-17 — What gates a park's look, and in what order?
 
-**Decision — Jack, September 21, 2026: C.** Accepted as part of the rails set. Rules green → greybox playable → Jack's greybox sitting → DCC stages and dual stills; one park in art at a time.  gains  and ; the stage and still catalogs gain a park lane. Agents do not pass the sitting or the look gate. Full provenance is in the canonical JSON.
+**Decision — Jack, September 21, 2026: C.** Accepted as part of the rails set. Rules green → greybox playable → Jack's greybox sitting → DCC stages and dual stills; one park in art at a time. `StillRequest` gains `park` and `night`; the stage and still catalogs gain a park lane. Agents do not pass the sitting or the look gate. Full provenance is in the canonical JSON.
 
 Area: Presentation. Depends on: FD-16. Evidence: code maps only.
 
