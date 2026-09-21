@@ -4,13 +4,13 @@ Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), servi
 
 ## Current state
 
-Research foundation prepared; **PH-01 and PH-09 directions accepted; 18 choices open, no new mechanics or numbers accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; no individual rule has yet been superseded.
+Research foundation prepared; **PH-01, PH-09 and PH-02 directions accepted; 17 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; no individual rule has yet been superseded.
 
 This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
 
 ## How we use this together
 
-1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-02**, ordinary pitch variety.
+1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-03**, pitch location.
 2. Record Jack's answer in the JSON: selected option (or a clearly described custom answer), accepted scope, exact qualification, local date, author and a conversation/issue reference or quoted answer. Recommendation never counts as selection.
 3. Append history rather than erase a prior choice. Record supersession explicitly; link the replacement and named gameplay-spec decision affected.
 4. Direction acceptance selects intent only. Numeric targets stay null until a later scoped trial is accepted with units, conditions, rationale and evidence limits.
@@ -27,7 +27,7 @@ Status progression: `open → direction-accepted → trial-accepted → implemen
 
 ## Decision register
 
-PH-01 and PH-09 are **DIRECTION ACCEPTED**; the other 18 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
+PH-01, PH-09 and PH-02 are **DIRECTION ACCEPTED**; the other 17 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
 
 ### PH-01 — What should added depth primarily ask the player to do?
 
@@ -46,6 +46,8 @@ Area: Direction. Depends on: none. Evidence: WII, SMB-EI, SHOW-H.
 **Acceptance:** A new player can put balls in play; a practiced player can explain a tactical advantage beyond simply reacting faster.
 
 ### PH-02 — How many ordinary pitch families should each pitcher have?
+
+**Decision — Jack, September 20, 2026: B.** Reply “2” selects a small set of distinct ordinary pitches, each with a clear purpose and weakness. Exact pitch count/names, character differences, inputs, location, steering and tuning remain open. This accepts the direction only; no implementation or human playtest gate is passed. Evidence: this task’s PH-02 reply; full provenance is in the canonical JSON.
 
 Area: Pitching. Depends on: PH-01. Evidence: GC, WII, SPORTS, SMB-EI.
 
@@ -322,7 +324,8 @@ Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 - [x] Seed stable decision IDs with alternatives, dependencies and proposed acceptance.
 - [x] Resolve PH-01: tactical depth plus reliability/teaching (Jack, September 20).
 - [x] Resolve PH-09: keep the batter-linked horizontal cursor (Jack, September 20).
-- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-02.
+- [x] Resolve PH-02: a small set of distinct ordinary pitches with clear purposes and weaknesses (Jack, September 20).
+- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-03.
 - [ ] Collect matched reference observations and the required D7 standalone re-sit.
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
 - [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
