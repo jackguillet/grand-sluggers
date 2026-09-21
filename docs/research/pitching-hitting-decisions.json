@@ -140,7 +140,8 @@
       },
       "numeric_targets": null,
       "implementation_issues": [
-        "#807"
+        "#807",
+        "#809"
       ],
       "validation_evidence": [],
       "human_acceptance": null,
@@ -238,7 +239,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#807"
+            "#807",
+            "#809"
           ],
           "validation_evidence": [
             {
@@ -304,7 +306,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#807"
+            "#807",
+            "#809"
           ],
           "validation_evidence": [
             {
@@ -2009,7 +2012,8 @@
       },
       "numeric_targets": null,
       "implementation_issues": [
-        "#807"
+        "#807",
+        "#809"
       ],
       "validation_evidence": [],
       "human_acceptance": null,
@@ -2131,7 +2135,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#807"
+            "#807",
+            "#809"
           ],
           "validation_evidence": [
             {
@@ -2246,7 +2251,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#807"
+            "#807",
+            "#809"
           ],
           "validation_evidence": [
             {
@@ -2293,7 +2299,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#807"
+            "#807",
+            "#809"
           ],
           "validation_evidence": [
             {
@@ -2573,7 +2580,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#807"
+            "#807",
+            "#809"
           ],
           "validation_evidence": [
             {
@@ -4374,7 +4382,7 @@
     },
     {
       "date": "2026-09-21",
-      "event": "P1-a (#807) implemented the pitch family ids and the 25 ordinary repertoires as a data rail: PitchFamily is the closed five-id library, Repertoire is a two-slot value type beside the implied fastball, every shipped character and the trials/c80 overlay carry their accepted assignment, and the content validator requires the field. Status stays direction-accepted because curveball, slider and sinker still have no flight and cannot be selected (P1-b, P1-c). No numeric trial: assignment data only, with no behaviour change."
+      "event": "P1-a (#807, #809) implemented the pitch family ids and the 25 ordinary repertoires as a data rail: PitchFamily is the closed five-id library, Repertoire is a two-slot value type beside the implied fastball, every shipped character and the trials/c80 overlay carry their accepted assignment, and the content validator requires the field. Status stays direction-accepted because curveball, slider and sinker still have no flight and cannot be selected (P1-b, P1-c). No numeric trial: assignment data only, with no behaviour change."
     }
   ]
 }
