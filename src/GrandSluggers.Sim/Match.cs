@@ -724,6 +724,27 @@ public sealed class Match
         return true;
     }
 
+    /// <summary>
+    /// One SET tick of the mound's pitch selection (spec §3, PH-02-R3/R4/R5), against the pitcher
+    /// who is on the mound <b>right now</b> and this match's own rules table — never
+    /// <see cref="Rules.Default"/>, so a trial overlay's families are the ones that cycle.
+    ///
+    /// A read: the selection is the caller's state, nothing here is stored, no <c>_rng</c> draw
+    /// moves, and no pitch is built. The mound wiring that will call it every SET frame is P1-f.
+    /// </summary>
+    public PitchSelectionStep SelectPitch(
+        PitchSelectionState state,
+        bool cyclePressed,
+        bool selectable,
+        ChargeButtonState prevButton,
+        ChargeButtonStep buttonStep) =>
+        PitchSelection.Advance(state, cyclePressed, selectable, prevButton, buttonStep,
+            Pitcher.Repertoire, Rules.Pitching.Families);
+
+    /// <summary>The family a selection names for the current pitcher and this match's table (§4.3).</summary>
+    public string FamilyAt(PitchSelectionState state) =>
+        PitchSelection.FamilyAt(state, Pitcher.Repertoire, Rules.Pitching.Families);
+
     public bool ResetPitcher()
     {
         PitcherOffsetX = 0;
