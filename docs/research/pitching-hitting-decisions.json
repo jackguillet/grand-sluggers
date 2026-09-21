@@ -1270,7 +1270,7 @@
       "existing_contract": "Existing S-18/19 and two-strike foul-bunt rules remain; do not create a guaranteed CPU exploit.",
       "acceptance": "A bunt is a live ball with an earned outcome; both humans and CPU can defend it and a foul bunt with two strikes retires the batter.",
       "selected_option": "A",
-      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. PH-14-R2 adds an explicit first-/third-base-side preference for bunts, separating intended direction from contact quality. It does not add directional shaping to ordinary swings or guarantee a landing or safe result. PH-14-R3 allows side changes while squared up until contact, with bat angle showing the current choice and no post-contact redirection. Exact bindings, contact-action/withdrawal behavior, defaults, animation transitions, response curves and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
+      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. PH-14-R2 adds an explicit first-/third-base-side preference for bunts, separating intended direction from contact quality. It does not add directional shaping to ordinary swings or guarantee a landing or safe result. PH-14-R3 allows side changes while squared up until contact, with bat angle showing the current choice and no post-contact redirection. PH-14-R4 selects holding to square and make geometric contact without a separate timed swing press, with release before contact withdrawing the bat and no latched attempt. Exact bindings, input/rearming precedence, defaults, animation transitions, response curves and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1322,6 +1322,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Allow the batter to change the first-/third-base-side bunt preference while squared up until contact. The bat angle visibly communicates the current choice so the defense can read it. Contact fixes the outgoing ball; later side inputs cannot redirect that ball. Preserve PH-14-R1 softness/control from actual contact quality and PH-14-R2 separation of placement intent from contact quality. This does not lock direction when first squaring up or guarantee a landing point. Exact bindings, contact-action/withdrawal behavior, default preference, animation transitions and numerical curves remain open. The bat-angle cue requires authored presentation in its own scope; no animation or runtime change is made here. Direction refinement only; no numeric tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-14-R4",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Hold the bunt action to remain squared up and position the bat to meet the pitch. While held, actual ball/bat contact resolves the bunt without a separate timed swing-button press. Releasing before contact withdraws the bat; releasing does not swing or preserve a latched bunt attempt. Contact still requires actual coverage and geometry, not merely holding a button. Retain side changes until contact, the visible bat-angle cue, contact-quality-driven softness/control, live defense and two-strike foul-bunt rules. Exact hardware bindings, transition/rearming precedence, animation timing and response curves remain open. Ordinary swings retain their accepted charge/release and timing rules. No runtime/presentation change, numeric tuning trial or human acceptance."
         }
       ],
       "discussion": [
@@ -1348,6 +1358,37 @@
           "clarification": "The assistant explained that option 1 would need an authored off-center contact-to-direction response and would couple intended side to contact quality. It revised its recommendation from option 1 to option 2 before Jack selected option 2.",
           "baseline_evidence": "At baseline 05471a6, AtBatResolver.cs:121\u2013128 suppresses timing spray for bunts and combines supplied SprayAimDeg with spread; it does not establish the proposed signed contact-offset direction mapping.",
           "limits": "This is a design clarification and accepted side-preference direction, not proof of new runtime behavior. Exact aim controls and response curves remain open."
+        },
+        {
+          "id": "PH-14-R5",
+          "date": "2026-09-21",
+          "status": "proposal",
+          "question": "Should bunt posture and side use two directional hold inputs or retain a separate bunt button?",
+          "recommendation": "Two directional holds: LT/keyboard J holds a third-base-side bunt; RT/keyboard L holds a first-base-side bunt. This combines square-up and side selection without requiring the right thumb to hold a face button and move the right stick simultaneously.",
+          "options": [
+            {
+              "id": "1",
+              "label": "Two directional bunt holds",
+              "flow": [
+                "Hold LT / J to bunt toward third-base side.",
+                "Hold RT / L to bunt toward first-base side.",
+                "Changing the held side changes intent before contact; if both are held, the most recently pressed side is active.",
+                "Release all bunt holds before contact to withdraw.",
+                "Left stick / WASD continues positioning; no timed swing press is required."
+              ]
+            },
+            {
+              "id": "2",
+              "label": "Retain the existing bunt button plus separate side inputs",
+              "flow": [
+                "Hold West / V / Left Ctrl to square up.",
+                "Use LT / J and RT / L as separate side selectors.",
+                "Release the bunt button before contact to withdraw.",
+                "Initial preference, simultaneous-input handling and exact side-selector persistence need a consolidated contract if selected."
+              ]
+            }
+          ],
+          "limits": "Both layouts are unaccepted proposals. Option 1 would replace the existing West/V/Ctrl bunt verb, requiring paired HowToPlay/docs and diagrams before implementation. Triggers also participate in legacy action modifiers: audit role/phase ownership and require rearming across contact so a held bunt input cannot trigger a live-play action. No second toolkit, gameplay implementation, authored asset or new numerical value is approved."
         }
       ],
       "refinements": [
@@ -1473,6 +1514,48 @@
             "Changing side before contact can change intended direction without reducing otherwise equivalent contact quality; after contact the ball trajectory is fixed.",
             "Authored bat-angle presentation communicates the selected side and agrees with resolved direction intent for both hands and seats; no unseen direction flip or guaranteed landing marker.",
             "Preserve actual fair/foul, live defense, two-strike foul-bunt rules and ordinary-swing direction policy."
+          ]
+        },
+        {
+          "id": "PH-14-R4",
+          "question": "How should bunting make contact?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Hold to bunt; geometric contact; release withdraws"
+            },
+            {
+              "id": "2",
+              "label": "Hold to square and separately time contact with swing action"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Hold the bunt action to remain squared up and position the bat to meet the pitch. While held, actual ball/bat contact resolves the bunt without a separate timed swing-button press. Releasing before contact withdraws the bat; releasing does not swing or preserve a latched bunt attempt. Contact still requires actual coverage and geometry, not merely holding a button. Retain side changes until contact, the visible bat-angle cue, contact-quality-driven softness/control, live defense and two-strike foul-bunt rules. Exact hardware bindings, transition/rearming precedence, animation timing and response curves remain open. Ordinary swings retain their accepted charge/release and timing rules. No runtime/presentation change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "bunt_action": "hold to remain squared up",
+            "contact_trigger": "actual ball/bat overlap while bunting",
+            "separate_timed_swing_press_required": false,
+            "release_before_contact": "withdraw bat; no swing or latched bunt attempt",
+            "side_change_window": "until contact"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-14-R4: How should bunting make contact? 1. Hold to bunt (recommended): keep the bunt action held and position the bat to meet the pitch; contact occurs when ball and bat meet; releasing beforehand withdraws the bat. 2. Time the bunt: hold to square up, then press the swing button to attempt contact at the right moment. Both retain side selection and contact-quality-driven softness and control.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Holding alone cannot make contact without actual ball/bat coverage; bunting does not require a swing press or synthesize one to claim geometric correctness.",
+            "Releasing before contact withdraws the bat and cannot leave a stale bunt intent that contacts later or trigger an ordinary swing.",
+            "Keep pose/contact/withdrawal presentation in agreement with the sim contract for both batting hands and input schemes; do not use Unity collision to decide baseball.",
+            "Resolve contact, side preference, fair/foul and live defense normally; ordinary swing timing/charge rules remain separate."
           ]
         }
       ]
@@ -2833,6 +2916,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-14-R3 option 1: change bunt side while squared up until contact, with visible bat-angle cue. Next PH-14-R4 consolidates the contact/withdrawal action: hold-to-bunt versus a separately timed bunt press. Exact bindings and authored presentation remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-14-R4 option 1: hold to bunt, geometric contact, release before contact withdraws; no separately timed swing press. Prepared PH-14-R5 as a proposed complete directional-hold layout versus retaining a separate bunt button. Bindings and input arbitration remain unaccepted."
     }
   ]
 }
