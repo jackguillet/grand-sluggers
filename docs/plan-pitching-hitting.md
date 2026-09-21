@@ -4,7 +4,7 @@ Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), servi
 
 ## Current state
 
-Research foundation prepared; **all 20 broad directions and 38 refinements are accepted. Ordinary repertoires are assigned to all 25 existing characters. The current agreement is summarized below; exact tuning, ability designs, remaining control/resource contracts and human acceptance stay open. No new mechanics are implemented.** Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
+Research foundation prepared; **all 20 broad directions and 48 refinements are accepted (ten recorded in the September 21 implementation round: PH-06-R1, PH-10-R1, PH-14-R6, PH-16-R15–R19, PH-18-R1, PH-20-R1). Ordinary repertoires are assigned to all 25 existing characters. The current agreement is summarized below; exact tuning, ability designs, remaining control/resource contracts and human acceptance stay open. No new mechanics are implemented.** Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. PH-13 additionally selects a deliberate pre-commit swing cancel; its binding and commitment boundary must be specified and taught before implementation. Runtime remains unchanged.
 
 This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
 
@@ -134,6 +134,8 @@ Area: Pitching. Depends on: PH-03, PH-04. Evidence: WII, SMB-EI, SHOW-P.
 
 ### PH-06 — What may the opponent see before committing?
 
+**Refinement PH-06-R1 — Jack, September 21, 2026: rubber-only aim ring.** Reply “Rubber-only ring”. In ordinary play the pale ring stays in SET but shows only the pitcher’s left/right position from the rubber, at mid-zone height. It does not move for the selected family, the charge or a Star Pitch, and it hides at release. Practice and tutorials may show the full ring (PH-19). One presentation for 1P and 1v1. Exact look and timing are presentation work; no runtime change or passed playtest. Full provenance is in the canonical JSON.
+
 **Decision — Jack, September 20, 2026: A.** Reply “1” selects body and ball cues in ordinary play: read the windup, charge, release and actual ball movement without explicit opponent pitch-type or destination hints. Retain a readable response opportunity on the shared screen. Stronger training/assistance guidance remains a separate open choice under PH-17/PH-19; exact cues and timing are unselected. Direction only; no presentation/runtime change or passed playtest. Evidence: this task’s PH-06 reply; full provenance is in the canonical JSON.
 
 Area: Shared duel. Depends on: PH-03, PH-04. Evidence: WII, SMB-EI, SHOW-P.
@@ -206,6 +208,8 @@ Area: Hitting. Depends on: PH-01. Evidence: WII, GC, SHOW-H, SMB-EI.
 
 ### PH-10 — How should timing and barrel position determine contact quality?
 
+**Refinement PH-10-R1 — Jack, September 21, 2026: one shared timing window; trial start value 9 frames (trial-accepted).** Reply “9 frames”. Every hitter, swing type and human difficulty shares one window (PH-11-R1, PH-15-R7, PH-17). The batting trial starts from 9 frames at 60 Hz, total width centred on the ball (±4.5 frames, 150 ms): today’s quick-swing window for an average hitter. It replaces the 9 / 7 slap / charge split, `framesPerContact` and the human difficulty multiplier on the window. The crystal-rink night multiplier stays; Star Pitch multipliers follow PH-16-R18. A start value, not a final number: Jack judges it in the batting sitting and S-29 is re-reported before and after. Units, conditions, rationale and evidence limits are in the canonical JSON.
+
 **Decision — Jack, September 20, 2026: A.** Reply “1” selects placement as the primary quality determinant and timing as the direction determinant. Centered contact can still produce strong deliberate pull/opposite-field hits; contact weakens near the timing-window edges, and outside the window is a miss. Retain the timing-rim penalty concept rather than continuously penalizing all nonideal timing. Exact window widths, edge bands and penalty amounts remain open; D4/D13 remain in force. Direction only; no runtime change or passed playtest. Evidence: this task’s PH-10 reply; full provenance is in the canonical JSON.
 
 Area: Hitting. Depends on: PH-09. Evidence: GC, WII, SHOW-H, Legacy.
@@ -277,6 +281,8 @@ Area: Hitting. Depends on: PH-11. Evidence: WII, SHOW-H.
 **Acceptance:** Take, load-cancel, bunt withdrawal and swing cannot conflict; balls/strikes follow the same geometric zone.
 
 ### PH-14 — How much depth belongs in bunting?
+
+**Refinement PH-14-R6 — Jack, September 21, 2026: fresh press after contact.** Reply “Fresh press after contact”. A trigger that was held for a bunt means nothing else after contact until it is released and pressed again: the PH-13-R1 principle applied to the triggers. No binding moves. Scenarios cover both triggers, both seats and two pads. With PH-16-R15 the item offer leaves play, so the LT item-modifier collision cannot occur for now; the guard stays as the general rule. No runtime change or passed playtest.
 
 **Refinement PH-14-R4 — Jack, September 21, 2026: hold to bunt.** Reply “1” selects holding the bunt action while positioning the bat; actual ball/bat contact resolves the bunt without a separate timed swing press. Releasing before contact withdraws the bat, with no ordinary swing or stale latched bunt. Holding alone does not guarantee contact. Preserve side changes until contact, bat-angle readability, quality-driven softness/control, live defense and two-strike foul-bunt rules. Exact bindings, transition/rearming precedence, animation timing and response curves remain open. Ordinary swing timing/charge remains separate. No runtime change, numeric trial or passed playtest.
 
@@ -357,6 +363,16 @@ Area: Roster. Depends on: PH-02, PH-10. Evidence: GC, WII.
 
 ### PH-16 — How should stars and chemistry affect plate decisions?
 
+**Refinement PH-16-R19 — Jack, September 21, 2026: remove the Phonyball whiff roll.** Reply “Remove the roll”. If the bat meets the ball, it is contact. The decoy path is the whole effect and reading it is the counterplay. Same child as PH-16-R18. A later buff, if needed, is geometric and separately reviewed, never a roll. No runtime change or passed playtest.
+
+**Refinement PH-16-R18 — Jack, September 21, 2026: Star Pitch window multipliers go; speed and path only for now.** Reply “Speed and path only, for now”. One child removes `batterWindowMul` from Charmball, Skullball and Fogball (PH-16-R1). Until their individual reviews they keep their speed change and, for Charmball, its wobble. Each replacement is a separate proposal with counterplay. No re-pricing selected. S-10 is rewritten in that child. No runtime change or passed playtest.
+
+**Refinement PH-16-R17 — Jack, September 21, 2026: LB held is the special modifier.** Jack first replied “i think it should be like right trigger. it should be a button that you don't need to click with your thumb (you need your thumb for south)”. RT collides with the accepted first-base-side bunt hold (PH-14-R5) and with PH-13-R1 (a bunt hold replaces an uncommitted load), so the question was re-asked with finger-button options and Jack chose “LB, both seats”. Pad: LB held, read at South release, pitcher and batter alike. Keyboard: Q held. During the pitch LB no longer sends all runners; per-runner steal arming, LB + RB halt and the post-contact LB / RB commands stay. PH-14-R5 is untouched. Reconcile gameplay-spec §3 and the paired HowToPlay/docs in the verb PR. No runtime change or passed playtest. The first reply and the resolution are preserved in the canonical JSON.
+
+**Refinement PH-16-R16 — Jack, September 21, 2026: fixed and equal starting Stars.** Reply “Fixed and equal” (against the recommendation). Both teams start with the same reserve, whatever they drafted; chemistry no longer sets starting Stars. The amount is a trial number and must let each team afford a special at the first plate appearance (PH-16-R6). The `stars.json` starting table and the lineup-hearts copy are reconciled in their own scopes. No runtime change or passed playtest.
+
+**Refinement PH-16-R15 — Jack, September 21, 2026: remove the on-deck chemistry item offer.** Reply “Remove it” (against the recommendation). PH-16-R14 is read strictly: no chemistry effect is tied to a plate appearance. The offer is the only source of items today, so items leave play until a non-chemistry source is designed and accepted. Plan stated to Jack: item code and data stay dormant and are not deleted; item lessons are marked blocked with an owning issue; item rows leave the book in a presentation pass. Fielding and teamwork chemistry stay. No runtime change or passed playtest.
+
 **Refinement PH-16-R14 — Jack, September 21, 2026: no plate-level chemistry.** After asking who the batter would have chemistry with, Jack replied “agreed. option 3.” Chemistry adds neither pitching/hitting attribute bonuses nor a plate-level Star-earning bonus. Keep the already accepted Star gains and existing fielding/teamwork chemistry. Suggested runner/lineup relationships were not adopted. This refines the earlier broad chemistry scope; original evidence remains intact. No runtime change, numeric trial or passed playtest. Full provenance is in the canonical JSON.
 
 **Refinement PH-16-R13 — Jack, September 21, 2026: shared charge tradeoffs for specials.** Reply “1” selects more power with less steering correction for charged Star Pitches, and more power with less spatial forgiveness for charged Star Swings, alongside their ability effects. Ability-specific contact-area changes remain allowed. Preserve characteristic movement, ordinary timing windows, geometric contact, charge/overcharge behavior and release-time commitment. Exact formulas, bounds, ability-area composition and character/fatigue interactions remain open; no charge-dependent resource price or numeric multiplier is selected. D7 and D6 remain. No runtime change, numeric trial or passed playtest. Full provenance is in the canonical JSON.
@@ -417,6 +433,8 @@ Area: Accessibility. Depends on: PH-09, PH-10. Evidence: GC, SMB4, SHOW-H.
 
 ### PH-18 — What information and commitment rules may CPU players use?
 
+**Refinement PH-18-R1 — Jack, September 21, 2026: the CPU converts with the new shapes.** Reply “With the new shapes”. The shipped CPU pitcher stays as it is until the new pitch shapes exist. In the same trial it changes to human inputs only: rubber position, a family from its own repertoire chosen with the presses a human has, charge, and accumulated steering. Its height then comes from the family (PH-03). No interim flat CPU. S-29 and S-27 are re-reported before and after, never tuned to pass. Noted for both seats: no ordinary family in the accepted library crosses high; the P1-d proposal shows it on its plots. No runtime change or passed playtest.
+
 **Decision — Jack, September 21, 2026: A.** Reply “1” selects human-equivalent CPU limits: the same legal actions, available cues and committed swings that late legal steering can fool. No future-input knowledge, hidden destination access or privileged post-commit correction. Exact observation model, timing and CPU skill tuning remain open; selectable difficulty is not newly accepted and PH-17’s fixed human forgiveness remains. Audit current live/headless behavior and endpoint aiming before implementation. No simulation shortcut is approved by this choice. Direction only; no runtime change or passed playtest. Evidence: this task’s PH-18 reply; full provenance is in the canonical JSON.
 
 Area: CPU. Depends on: PH-03, PH-04, PH-06. Evidence: Legacy.
@@ -448,6 +466,8 @@ Area: Understanding. Depends on: PH-06, PH-10, PH-11. Evidence: SMB4, SHOW-H.
 **Acceptance:** A stranger can name why a miss or weak hit occurred and deliberately improve on the next attempt without external instructions.
 
 ### PH-20 — What evidence will make the chosen system ready to ship?
+
+**Refinement PH-20-R1 — Jack, September 21, 2026: new pitch numbers are judged in a trial window.** Reply “Trial window”. Curveball, Slider and Sinker numbers live in a trial overlay, never in the shipped default, until Jack accepts them. A preview standalone lets RB/Tab cycle all three pitches for every pitcher; the shapes and the verb are judged in one sitting; only accepted numbers move to `data/rules`. New family speeds stay inside today’s changeup-to-fastball envelope, so D7 is not touched. No runtime change or passed playtest.
 
 **Decision — Jack, September 21, 2026: A.** Reply “1” selects small serial playable steps after required baseline checks: define and test each connected mechanic, then have Jack judge the named standalone revision. Preserve D7 and all applicable evidence prerequisites, scoped numeric trials and human acceptance. No broader baseline-only milestone is required by default. Keep gameplay, presentation/book/tutorial and art scopes separate; resolve the remaining detailed contracts before opening implementation children. This is delivery direction acceptance, not approval of an implementation, merge, coefficient or passed playtest. Evidence: this task’s PH-20 reply; full provenance is in the canonical JSON.
 
@@ -540,6 +560,16 @@ Do not postpone all teaching and playtests until step 4: its delivery requiremen
 - [x] Refine PH-16-R12: ordinary fallback without Star spend; Star-counter red flash remains a candidate (Jack, September 21).
 - [x] Refine PH-16-R13: ordinary charge tradeoffs alongside special effects (Jack, September 21).
 - [x] Refine PH-16-R14: no plate-level chemistry bonus; fielding/teamwork chemistry retained (Jack, September 21).
+- [x] Refine PH-20-R1: new pitch-family numbers judged in a trial window before promotion (Jack, September 21).
+- [x] Refine PH-18-R1: the CPU pitcher converts to human inputs in the same trial as the new shapes (Jack, September 21).
+- [x] Refine PH-06-R1: rubber-only aim ring in SET, hidden at release; full ring only in practice (Jack, September 21).
+- [x] Refine PH-10-R1: one shared timing window; trial start value 9 frames, trial-accepted (Jack, September 21).
+- [x] Refine PH-14-R6: fresh press after contact for bunt-held triggers (Jack, September 21).
+- [x] Refine PH-16-R15: remove the on-deck chemistry item offer; items dormant (Jack, September 21).
+- [x] Refine PH-16-R16: fixed and equal starting Stars (Jack, September 21).
+- [x] Refine PH-16-R17: LB held special modifier on both seats, Q on keyboard; LB stops being all-advance during the pitch (Jack, September 21).
+- [x] Refine PH-16-R18: remove the three Star Pitch window multipliers; speed and path only until individual reviews (Jack, September 21).
+- [x] Refine PH-16-R19: remove the Phonyball whiff roll (Jack, September 21).
 - [ ] Consolidate accepted input/commitment and resource contracts; resolve material gaps before implementation, with feedback and fatigue candidates kept explicit.
 - [ ] Collect matched reference observations and the required D7 standalone re-sit.
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
