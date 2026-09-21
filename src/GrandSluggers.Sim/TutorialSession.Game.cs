@@ -19,7 +19,7 @@ public sealed partial class TutorialSession
         for (var outNumber = 0; outNumber < 2; outNumber++)
             for (var strike = 0; strike < 3; strike++)
             {
-                Match.BeginAtBat(new PitchCommand("fastball", 0, false), take, out _, out var play);
+                Match.BeginAtBat(new PitchCommand(PitchFamily.Fastball, 0, false), take, out _, out var play);
                 if (strike == 2 && (play?.Kind != PlayKind.Strikeout || Match.Outs != outNumber + 1))
                     throw new InvalidDataException("Game half setup no longer produces two real called strikeouts.");
             }

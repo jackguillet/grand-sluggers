@@ -207,6 +207,7 @@ public static class RulesValidation
         table.Fielding.Validate(RulesTable.PathFor(root, "fielding"), errors);
         table.Batting.Validate(RulesTable.PathFor(root, "batting"), errors);
         table.Pitching.Cpu.Validate(RulesTable.PathFor(root, "pitching"), errors);
+        table.Pitching.Families.Validate(RulesTable.PathFor(root, "pitching"), errors);
     }
 
     /// <summary>Every numeric leaf is finite and inside its attribute range.</summary>
@@ -374,20 +375,16 @@ public sealed class PitchingRules
     public PitchSpeedRules Speed { get; init; } = new();
     public PitchReleaseRules Release { get; init; } = new();
     public PitchFlightRules Flight { get; init; } = new();
-    public PitchShapeRules Shapes { get; init; } = new();
+    public PitchFamilyTable Families { get; init; } = new();
     public StarPitchShapeRules StarShapes { get; init; } = new();
     public StaminaRules Stamina { get; init; } = new();
     public CpuPitcherRules Cpu { get; init; } = new();
 }
 
-/// <summary>Base mph per shape and the Pitch-stat and charge coefficients (<see cref="AtBatResolver.PitchSpeedMph(PitchCommand, int, RulesTable)"/>).</summary>
+/// <summary>The one coefficient every family shares: the Pitch stat's mph (<see cref="AtBatResolver.PitchSpeedMph(PitchCommand, int, RulesTable)"/>). Base mph and charge mph are per family.</summary>
 public sealed class PitchSpeedRules
 {
-    [Positive] public double FastballMph { get; init; } = 86;
-    [Positive] public double ChangeupMph { get; init; } = 68.8;
     public double MphPerPitchStat { get; init; } = 0.9;
-    public double ChargeMph { get; init; } = 8;
-    public double ChangeupChargeMph { get; init; } = 3;
 }
 
 /// <summary>The charge release (spec §4.1): inside the first <see cref="NiceBandSec"/> of MAX is a Nice! release, +<see cref="NiceMul"/> mph.</summary>
@@ -422,18 +419,111 @@ public sealed class PitchFlightRules
     public double BreakRatePerPitchStat { get; init; } = 0.12;
 }
 
-/// <summary>The two shapes (spec §4.3): every shape crosses at its aim; the changeup's aim is <see cref="ChangeupDropFt"/> lower.</summary>
-public sealed class PitchShapeRules
+/// <summary>
+/// The authored rows of the shared pitch library (spec §4.3, PH-02-R2, #810). One row per family
+/// the game can throw; <see cref="PitchFlight.Shape"/> evaluates every one of them with the same
+/// arithmetic, so a new family is a row and not a new <c>if</c>.
+///
+/// The rows are <b>named properties</b>, never a dictionary or a list. A collection would load, and
+/// would then slip past every guard this file has: the reflective range checks in
+/// <see cref="RulesValidation.Walk"/>, the unknown-field refusal in
+/// <see cref="RulesValidation.UnknownFields"/>, and the JSON = code parity tests all walk declared
+/// properties. A row hiding in a collection would be a table nothing validated.
+///
+/// Three of the five library ids (<see cref="PitchFamily.Curveball"/>,
+/// <see cref="PitchFamily.Slider"/>, <see cref="PitchFamily.Sinker"/>) are <b>known but unauthored</b>:
+/// their numbers and their natural sweep are P1-d, a numeric trial Jack accepts. Asking for one is a
+/// loud stop that names it, never a silent fastball.
+/// </summary>
+public sealed class PitchFamilyTable
 {
-    /// <summary>The fastball rides above the straight line mid-flight and settles on its aim.</summary>
-    public double FastballHump { get; init; } = 0.35;
-    [Chance] public double ChangeupHangUntil { get; init; } = 0.62;
-    /// <summary>How fast Y interpolates toward the (lower) aim during the hang. Well below 1 keeps the ball up; 1 is a fade.</summary>
-    public double ChangeupHangRate { get; init; } = 0.22;
-    /// <summary>How fast Y interpolates after <see cref="ChangeupHangUntil"/>. Must finish the drop in flight (spec §4.3).</summary>
-    public double ChangeupDumpRate { get; init; } = 2.4;
-    /// <summary>The changeup crosses this far below a fastball's height (up to one zone-half).</summary>
-    public double ChangeupDropFt { get; init; } = 0.9;
+    /// <summary>Speed pressure, straight, with a mild mid-flight hump. Every pitcher throws it (PH-15-R1).</summary>
+    public PitchFamilyRules Fastball { get; init; } = new()
+    {
+        Mph = 86, ChargeMph = 8,
+        Hump = 0.35, HangUntil = 1, HangRate = 1, DumpRate = 1, DropFt = 0,
+        BreakDamped = false, StaminaCost = 0, OffSpeed = false
+    };
+
+    /// <summary>0.80× the meat; hangs at or above the fastball, then dumps to a lower aim (#668).</summary>
+    public PitchFamilyRules Changeup { get; init; } = new()
+    {
+        Mph = 68.8, ChargeMph = 3,
+        Hump = 0, HangUntil = 0.62, HangRate = 0.22, DumpRate = 2.4, DropFt = 0.9,
+        BreakDamped = true, StaminaCost = 3, OffSpeed = true
+    };
+
+    /// <summary>True for a library id this table has numbers for. The other three are P1-d.</summary>
+    public bool IsAuthored(string? family) => family is PitchFamily.Fastball or PitchFamily.Changeup;
+
+    static readonly IReadOnlyList<string> AuthoredIds =
+        PitchFamily.All.Where(id => id is PitchFamily.Fastball or PitchFamily.Changeup).ToList();
+
+    /// <summary>The authored ids in library order (<see cref="PitchFamily.All"/>).</summary>
+    public IReadOnlyList<string> Authored => AuthoredIds;
+
+    /// <summary>
+    /// The row for a family id. A library id with no row and an id that is not in the library are
+    /// different mistakes and get different messages; neither one flies.
+    /// </summary>
+    public PitchFamilyRules Of(string? family)
+    {
+        if (family == PitchFamily.Fastball) return Fastball;
+        if (family == PitchFamily.Changeup) return Changeup;
+        if (PitchFamily.IsKnown(family ?? ""))
+            throw new InvalidOperationException(
+                $"pitch family '{family}' is in the library but has no authored row in pitching.json families; "
+                + "its numbers are P1-d. Authored: " + string.Join(", ", Authored));
+        throw new ArgumentException(
+            $"'{family}' is not a pitch family. The library is [{string.Join(", ", PitchFamily.All)}] (PitchFamily); "
+            + "break is a stick verb and charge is a modifier, not a type.", nameof(family));
+    }
+
+    /// <summary>
+    /// The one rule across a row's fields the attributes cannot say: the hang must reach the aim
+    /// before the plate. A row whose hang and dump never sum to 1 is a pitch that never arrives, and
+    /// the clamp in <see cref="PitchFlight.Shape"/> would hide it as a snap at u=1 (#668).
+    /// </summary>
+    internal void Validate(string source, List<string> errors)
+    {
+        foreach (var (name, row) in new[] { ("fastball", Fastball), ("changeup", Changeup) })
+        {
+            var atPlate = row.HangUntil * row.HangRate + (1 - row.HangUntil) * row.DumpRate;
+            if (atPlate < 1)
+                errors.Add($"{source}: pitching.families.{name} must finish its drop in flight; "
+                           + $"hangUntil × hangRate + (1 − hangUntil) × dumpRate = {atPlate} < 1");
+        }
+    }
+}
+
+/// <summary>
+/// One family's numbers (spec §4.3). Every field is something that used to be an <c>if</c> on the
+/// retired <c>Changeup</c> bool, under a name that says what it does rather than which pitch it was
+/// written for. The defaults are the fastball — the family every pitcher throws — so a row that
+/// omits a field reads as straight and ordinary rather than as a broken changeup.
+/// </summary>
+public sealed class PitchFamilyRules
+{
+    /// <summary>Base mph, before the Pitch stat, the charge, Nice! and the tired arm.</summary>
+    [Positive] public double Mph { get; init; } = 86;
+    /// <summary>mph a full charge adds to <em>this</em> family (spec §4.1).</summary>
+    public double ChargeMph { get; init; } = 8;
+    /// <summary>Feet the ball rides above the straight line at mid-flight; 0 is a shape with no hump.</summary>
+    public double Hump { get; init; } = 0.35;
+    /// <summary>Where the hang ends and the dump begins, as a share of the flight. 1 is a shape that never dumps.</summary>
+    [Chance] public double HangUntil { get; init; } = 1;
+    /// <summary>How fast Y interpolates toward the aim before <see cref="HangUntil"/>. Well below 1 keeps the ball up; 1 is a straight line.</summary>
+    public double HangRate { get; init; } = 1;
+    /// <summary>How fast Y interpolates after <see cref="HangUntil"/>. With <see cref="HangUntil"/> 1 there is no after, and it only has to keep the seam continuous.</summary>
+    public double DumpRate { get; init; } = 1;
+    /// <summary>Feet below a fastball's height this family crosses (up to one zone-half).</summary>
+    public double DropFt { get; init; } = 0;
+    /// <summary>The stick's break takes <c>flight.breakDampedMul</c> for this family even uncharged (spec §4.1).</summary>
+    public bool BreakDamped { get; init; }
+    /// <summary>Stamina on top of <c>stamina.pitchCost</c> (spec §4.7).</summary>
+    public int StaminaCost { get; init; }
+    /// <summary>The batter can be fooled slow by it: the sour-slap pop band (§5.2) and the CPU batter's late error (§5.9).</summary>
+    public bool OffSpeed { get; init; }
 }
 
 public sealed class StarPitchShapeRules
@@ -452,8 +542,9 @@ public sealed class StarPitchShapeRules
 
 /// <summary>
 /// Per-pitcher stamina (spec §4.7): pool = poolBase + Pitch × poolPerPitch; costs per verb; a
-/// star's cost is its <c>staminaCost</c> in star-skills.json. Below tiredBelow = TIRED (−mph,
-/// −break, a crossing wobble); below 0 = exhausted (worse). The CPU swaps at TIRED with a lead.
+/// family's own extra is its row's <see cref="PitchFamilyRules.StaminaCost"/>, and a star's cost is
+/// its <c>staminaCost</c> in star-skills.json. Below tiredBelow = TIRED (−mph, −break, a crossing
+/// wobble); below 0 = exhausted (worse). The CPU swaps at TIRED with a lead.
 /// </summary>
 public sealed class StaminaRules
 {
@@ -461,7 +552,6 @@ public sealed class StaminaRules
     public int PoolPerPitch { get; init; } = 6;
     public int PitchCost { get; init; } = 4;
     public int ChargeCost { get; init; } = 3;
-    public int ChangeupCost { get; init; } = 3;
     public int BreakCost { get; init; } = 1;
     public int HomerCost { get; init; } = 6;
     public int RunCost { get; init; } = 2;

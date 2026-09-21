@@ -1,12 +1,15 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// The pitch as a readable object (spec §4.2, §4.3): two shapes — fastball flies true with a
-/// mild hump, changeup hangs then dumps below the fastball's height — plus the stick's break
-/// after release and the rubber walk. u=0 at the release, u=1 at the plate. One function,
+/// The pitch as a readable object (spec §4.2, §4.3): a <b>family</b> from the shared library —
+/// today the fastball, which flies true with a mild hump, and the changeup, which hangs then dumps
+/// below the fastball's height — plus the stick's break after release and the rubber walk. u=0 at
+/// the release, u=1 at the plate. One function,
 /// <see cref="Point(PitchCommand, double, string?, ValueTuple{double, double, double}?, RulesTable?)"/>,
 /// gives the ball at any u; the aim tell, the ball, the umpire, and the CPU batter all read
-/// its u=1 sample (<see cref="Crossing"/>). Every shape number is pitching.json.
+/// its u=1 sample (<see cref="Crossing"/>). Every shape number is a row in pitching.json
+/// <c>families</c> (<see cref="PitchFamilyTable"/>, #810), and one <see cref="Shape"/> evaluates
+/// every row — a new family is a row, not a new branch.
 /// </summary>
 public static class PitchFlight
 {
@@ -40,29 +43,29 @@ public static class PitchFlight
     }
 
     /// <summary>
-    /// The ball at u for a shape. <paramref name="breakX"/> is the stick (−1..1); a charged
-    /// pitch or a changeup takes <c>breakDampedMul</c> of it (spec §4.1). The rubber walk moves
-    /// the crossing by the same world distance as the body, once (spec §4.2).
+    /// The ball at u for a family. <paramref name="type"/> is a <see cref="PitchFamily"/> id and is
+    /// resolved through <see cref="PitchFamilyTable.Of"/>, so an unauthored or unknown id stops here
+    /// instead of flying as a fastball. <paramref name="breakX"/> is the stick (−1..1); a charged
+    /// pitch, or one whose family is <see cref="PitchFamilyRules.BreakDamped"/>, takes
+    /// <c>breakDampedMul</c> of it (spec §4.1). The rubber walk moves the crossing by the same world
+    /// distance as the body, once (spec §4.2).
     /// </summary>
     public static (double X, double Y, double Z) Point(
         string type, double u, double aimX = 0, double aimY = 0,
-        double breakX = 0, bool changeup = false, double rubberX = 0,
+        double breakX = 0, double rubberX = 0,
         (double X, double Y, double Z)? from = null, RulesTable? rules = null, bool charged = false)
     {
         var r = Rules.Or(rules);
         var f = r.Pitching.Flight;
-        var sh = r.Pitching.Shapes;
+        var row = r.Pitching.Families.Of(type);
         u = Math.Clamp(u, 0, 1);
-        var liveChange = changeup || type == "changeup";
         var (tx, ty) = PlateTarget(aimX, aimY);
         tx += rubberX * HomeSet.PitcherWalk;
-        if (liveChange) ty -= sh.ChangeupDropFt;
+        ty -= row.DropFt;
         var rel = from ?? Release(rubberX, r);
         var z = rel.Z * (1 - u);
-        var (x, y, zz) = liveChange
-            ? Changeup(u, tx, ty, z, rel, sh)
-            : Fastball(u, tx, ty, z, rel, sh);
-        x += BreakShiftFt(u, breakX, charged || liveChange, f);
+        var (x, y, zz) = Shape(u, tx, ty, z, rel, row);
+        x += BreakShiftFt(u, breakX, charged || row.BreakDamped, f);
         return (x, y, zz);
     }
 
@@ -73,7 +76,7 @@ public static class PitchFlight
         var r = Rules.Or(rules);
         u = Math.Clamp(u, 0, 1);
         var p = Point(pitch.Type, u, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
-            pitch.Changeup, pitch.RubberX, from, r, ChargeFeel.IsCharge(pitch.Charge01));
+            pitch.RubberX, from, r, ChargeFeel.IsCharge(pitch.Charge01));
         if (!pitch.Star) return p;
         var st = r.Pitching.StarShapes;
         return starPitchId switch
@@ -163,27 +166,39 @@ public static class PitchFlight
         return Math.Atan(diameter / Math.Max(0.4, dist)) * (180 / Math.PI);
     }
 
-    /// <summary>Straight to the aim with a hump the eye reads as a fastball; on target at the plate.</summary>
-    static (double X, double Y, double Z) Fastball(double u, double tx, double ty, double z, (double X, double Y, double Z) rel, PitchShapeRules sh)
-    {
-        var x = rel.X + (tx - rel.X) * u;
-        var y = rel.Y + (ty - rel.Y) * u + sh.FastballHump * 4 * u * (1 - u);
-        return (x, y, z);
-    }
-
     /// <summary>
-    /// Flat until <c>changeupHangUntil</c> (hangRate keeps Y at or above the fastball), then dumps
-    /// to the lower aim. A hangRate near 1 is a fade, not a changeup (spec §4.3, #668).
+    /// The one shape function every family is evaluated by (spec §4.3, #810). X always travels
+    /// straight to the aim; Y travels by <c>hang</c>, which interpolates at
+    /// <see cref="PitchFamilyRules.HangRate"/> until <see cref="PitchFamilyRules.HangUntil"/> and at
+    /// <see cref="PitchFamilyRules.DumpRate"/> after it, and always arrives at u=1; on top of that
+    /// rides the mid-flight <see cref="PitchFamilyRules.Hump"/>.
+    ///
+    /// <b>It reproduces both shipped shapes bit for bit, and the arithmetic is written that way on
+    /// purpose</b> (<c>PitchFamilyGoldenTests</c> is the falsifier, not this comment):
+    /// <list type="bullet">
+    /// <item>The fastball row is <c>hangUntil 1, hangRate 1</c>, so below u=1 the hang branch gives
+    /// <c>u * 1.0</c>, which is exactly <c>u</c>; the clamp returns a value already inside [0, 1]
+    /// unchanged; and at u=1 the dump branch gives <c>1 * 1.0 + 0.0 * dumpRate</c> = 1.0, which the
+    /// <c>u >= 1</c> line then reasserts. <c>dumpRate</c> is 1 so the two rates meet at the seam
+    /// rather than sitting in the table as an arbitrary unused number.</item>
+    /// <item>The changeup row is <c>hump 0</c>, and <c>0 * 4 * u * (1 - u)</c> is <c>+0.0</c> for
+    /// every u in [0, 1], and <c>y + 0.0</c> is exactly <c>y</c> for the heights a pitch has.</item>
+    /// <item><c>ty - dropFt</c> with <c>dropFt 0</c> is exact for every ty, including a signed zero
+    /// (subtracting +0.0 never changes a value the way adding it can).</item>
+    /// <item>The operation order is the order the two retired functions used, because floating-point
+    /// addition does not associate: <c>rel + (t − rel) × hang</c>, then <c>+ ((hump × 4) × u) × (1 − u)</c>.</item>
+    /// </list>
     /// </summary>
-    static (double X, double Y, double Z) Changeup(double u, double tx, double ty, double z, (double X, double Y, double Z) rel, PitchShapeRules sh)
+    public static (double X, double Y, double Z) Shape(double u, double tx, double ty, double z,
+        (double X, double Y, double Z) rel, PitchFamilyRules row)
     {
-        var hang = u < sh.ChangeupHangUntil
-            ? u * sh.ChangeupHangRate
-            : sh.ChangeupHangUntil * sh.ChangeupHangRate + (u - sh.ChangeupHangUntil) * sh.ChangeupDumpRate;
+        var hang = u < row.HangUntil
+            ? u * row.HangRate
+            : row.HangUntil * row.HangRate + (u - row.HangUntil) * row.DumpRate;
         hang = Math.Clamp(hang, 0, 1);
         if (u >= 1) hang = 1;
         var x = rel.X + (tx - rel.X) * u;
-        var y = rel.Y + (ty - rel.Y) * hang;
+        var y = rel.Y + (ty - rel.Y) * hang + row.Hump * 4 * u * (1 - u);
         return (x, y, z);
     }
 }
