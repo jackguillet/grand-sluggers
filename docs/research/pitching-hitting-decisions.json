@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-12",
+  "next_decision": "PH-13",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -667,7 +667,7 @@
       "id": "PH-12",
       "area": "Hitting",
       "question": "How deliberately can the hitter shape a batted ball?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-09",
         "PH-10"
@@ -696,16 +696,37 @@
       "recommendation": "A first; retain meaningful influence without letting a stick command guarantee a hit class.",
       "existing_contract": "Current Up lowers launch and Down lifts. Coordinate changed exit/launch distributions with #693/#708/#715.",
       "acceptance": "The same intent can succeed or fail because of actual contact; grounders, liners, flies and fouls remain distinct.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "C",
+      "accepted_scope": "Remove extra directional input for shaping ordinary hits. Timing, contact position, pitch shape and swing type determine batted-ball flight; retain PH-09 horizontal batter positioning, PH-10 timing-led pull/opposite-field direction and contact-quality rules, and PH-11 quick/charged swings. Do not add a preselected grounder/liner/lift approach. This selects a target departure from gameplay-spec sections 5.3\u20135.4 direct stick spray/loft influence, to reconcile before implementation. It does not remove batter movement or SET recenter, change pitching steering, settle bunt placement, require mesh-collision microphysics, or select flight coefficients. Direction only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-12: 1. Influence direction and loft with the stick; 2. Choose a grounder/liner/lift approach beforehand; 3. No extra directional input: timing, contact position, pitch shape and swing type determine flight.",
+        "answer_quote": "3"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "3",
+          "scope": "Remove extra directional input for shaping ordinary hits. Timing, contact position, pitch shape and swing type determine batted-ball flight; retain PH-09 horizontal batter positioning, PH-10 timing-led pull/opposite-field direction and contact-quality rules, and PH-11 quick/charged swings. Do not add a preselected grounder/liner/lift approach. This selects a target departure from gameplay-spec sections 5.3\u20135.4 direct stick spray/loft influence, to reconcile before implementation. It does not remove batter movement or SET recenter, change pitching steering, settle bunt placement, require mesh-collision microphysics, or select flight coefficients. Direction only; no runtime change or human playtest acceptance."
+        }
+      ],
+      "accepted_validation_requirements": [
+        "With fixed batter position, timed swing input, pitch trajectory, swing/charge state and seed, changing only direct spray/loft stick intent does not change the ordinary batted-ball result.",
+        "Horizontal input can still reposition the batter before commitment and thereby change actual contact; it no longer applies a second direct spray adjustment.",
+        "Preserve early-pull/late-opposite behavior, weak timing-edge contact, quick/charged tradeoffs and distinct geometric grounder/liner/fly/foul outcomes.",
+        "Reconcile gameplay-spec sections 5.3\u20135.4 and update HowToPlay.cs, docs/how-to-play.md and affected tutorials together in the appropriate implementation/presentation scopes; coordinate flight distributions with #693/#708/#715."
+      ]
     },
     {
       "id": "PH-13",
@@ -1101,6 +1122,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-11 option A: one-button quick/charged swings, overcharge decay and useful quick swings. Eleven choices remain open; exact timing, forgiveness and power values are unselected."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-12 option C: no extra directional input for shaping ordinary hits; preserve horizontal batter movement and timing/contact/pitch/swing effects. Ten choices remain open. Direct stick spray/loft in spec sections 5.3\u20135.4 needs reconciliation before implementation."
     }
   ]
 }

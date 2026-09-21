@@ -4,13 +4,13 @@ Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803), servi
 
 ## Current state
 
-Research foundation prepared; **Nine directions accepted (PH-01–06 and PH-09–11); 11 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; no individual rule has yet been superseded.
+Research foundation prepared; **Ten directions accepted (PH-01–06 and PH-09–12); 10 choices open. No new mechanics implemented or numerical targets accepted**. Jack loves Super Sluggers and is open to more robustness. That is a brief to explore, not blanket approval for a precision simulator. Existing gameplay-spec D4, D6, D7, D12 and D13 remain in force. The older #534 “match exactly for now” scope is now open for discussion; PH-12 selects a target change to the direct stick spray/loft rules in gameplay-spec §§5.3–5.4; reconcile that shipping contract before implementation. Runtime remains unchanged.
 
 This follows the #693/#708 tracking pattern: stable IDs, alternatives, recommendations, scoped human choices, evidence and separate implementation/play gates. It also carries forward that tracker's lesson: **ask about material gameplay tradeoffs one at a time; do not create a chain of glove-microphysics-style approvals for routine derivations.**
 
 ## How we use this together
 
-1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-12**, batted-ball direction and loft.
+1. Discuss the next ready question using a short player-facing example and two or three real alternatives. Next ready question: **PH-13**, changing your mind before a swing.
 2. Record Jack's answer in the JSON: selected option (or a clearly described custom answer), accepted scope, exact qualification, local date, author and a conversation/issue reference or quoted answer. Recommendation never counts as selection.
 3. Append history rather than erase a prior choice. Record supersession explicitly; link the replacement and named gameplay-spec decision affected.
 4. Direction acceptance selects intent only. Numeric targets stay null until a later scoped trial is accepted with units, conditions, rationale and evidence limits.
@@ -27,7 +27,7 @@ Status progression: `open → direction-accepted → trial-accepted → implemen
 
 ## Decision register
 
-PH-01–06 and PH-09–11 are **DIRECTION ACCEPTED**; the other 11 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
+PH-01–06 and PH-09–12 are **DIRECTION ACCEPTED**; the other 10 choices remain **OPEN**. The recommendation is the author's proposal. Only Jack’s explicitly recorded answer selects an option; each acceptance statement is a proposed falsifier rather than a passed gate. Source IDs resolve in the research report.
 
 ### PH-01 — What should added depth primarily ask the player to do?
 
@@ -203,6 +203,10 @@ Area: Hitting. Depends on: PH-09, PH-10. Evidence: GC, WII, SMB-EI.
 
 ### PH-12 — How deliberately can the hitter shape a batted ball?
 
+**Decision — Jack, September 20, 2026: C.** Reply “3” selects no extra directional input for shaping ordinary hits. Timing, contact position, pitch shape and swing type determine flight. Preserve horizontal batter movement (PH-09), timing-led pull/opposite-field direction and contact quality (PH-10), and quick/charged swings (PH-11). No preselected grounder/liner/lift approach. This changes the target for gameplay-spec §§5.3–5.4 direct stick spray/loft; reconcile the spec before implementation. Batter movement, SET recenter and pitching steering remain, and bunt placement is separately open. Exact flight coefficients and human acceptance remain open. Evidence: this task’s PH-12 reply; full provenance is in the canonical JSON.
+
+**Accepted validation scope:** hold batter position, swing timing, pitch, swing/charge state and seed fixed; changing only direct spray/loft intent must not change the ordinary hit. Moving the batter may still change actual contact, without a second stick-based spray bonus. Keep grounders/liners/flies/fouls distinct. Coordinate flight distributions with #693/#708/#715 and update the paired book/tutorial instructions in their implementation scopes.
+
 Area: Hitting. Depends on: PH-09, PH-10. Evidence: GC, SHOW-H.
 
 - **A — Current bounded influence:** Timing pulls/pushes; stick shifts direction and loft, with contact constraining the result.
@@ -343,7 +347,8 @@ Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 - [x] Resolve PH-06: body and ball cues for ordinary play (Jack, September 20).
 - [x] Resolve PH-10: placement-led quality, timing-led direction with edge weakening and outside-window misses (Jack, September 20).
 - [x] Resolve PH-11: one-button quick/charged swings with overcharge and useful quick swings (Jack, September 20).
-- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-12; pace remains in its later D7-gated discussion.
+- [x] Resolve PH-12: no extra directional input for ordinary hit shaping (Jack, September 20).
+- [ ] Resolve subsequent material tradeoffs with Jack, beginning with PH-13; pace remains in its later D7-gated discussion.
 - [ ] Collect matched reference observations and the required D7 standalone re-sit.
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
 - [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
