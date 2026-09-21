@@ -1270,7 +1270,7 @@
       "existing_contract": "Existing S-18/19 and two-strike foul-bunt rules remain; do not create a guaranteed CPU exploit.",
       "acceptance": "A bunt is a live ball with an earned outcome; both humans and CPU can defend it and a foul bunt with two strikes retires the batter.",
       "selected_option": "A",
-      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and a live defensive play. Preserve the existing two-strike foul-bunt rule. Jack also asked whether bunt quality should be determined by contact quality; record that question and the proposed answer separately, without treating it as approval of a new response formula, placement input or extra timing task. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and live defense. PH-14-R1 accepts actual contact quality governing bunt-specific softness/deadening and control: good contact favors a soft controlled bunt; poor contact can pop up, carry excessive pace or go foul according to geometry. Preserve two-strike foul-bunt rules and no guaranteed safe/out result. This resolves the earlier quality question; response curves, placement controls and numerical tuning remain open. Direction acceptance only; no runtime change or human playtest acceptance. Original question and scope remain in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1292,16 +1292,77 @@
           "choice": "A",
           "quote": "1. Bunt quality should be determined by contact quality?",
           "scope": "Keep bunting simple and situational: square up and make contact, with readable foul risk and a live defensive play. Preserve the existing two-strike foul-bunt rule. Jack also asked whether bunt quality should be determined by contact quality; record that question and the proposed answer separately, without treating it as approval of a new response formula, placement input or extra timing task. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-14-R1",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Use actual contact quality to govern both bunt softness/deadening and control through a bunt-specific response. Good contact favors a soft controlled bunt; poor contact can produce a popup, excessive pace or a foul according to contact and pitch geometry. Better bunt contact must not simply inherit the ordinary swing rule of greater exit power. Preserve simple square/contact behavior, ordinary legal contact judgment, live defensive resolution and the two-strike foul-bunt rule. No automatic successful sacrifice, safe/out result or separate quality meter is selected. Exact response curves, placement/directional controls, pitch-height interaction and numerical tuning remain open. This resolves Jack\u2019s earlier contact-quality question at the directional level; no runtime change, numeric tuning trial or human acceptance."
         }
       ],
       "discussion": [
         {
           "date": "2026-09-20",
-          "status": "proposal",
+          "status": "direction-accepted",
           "user_question": "Bunt quality should be determined by contact quality?",
           "recommendation": "Yes: use actual contact quality, interpreted through a bunt-specific response. Good contact should deaden and control the ball; poor contact can produce an uncontrolled pop, excessive pace or a foul according to contact/pitch geometry. Preserve legal contact and take/miss judgment; no separate bunt-quality meter or random safe/out result. Good bunting should not inherit the ordinary swing meaning of better contact equals greater exit speed.",
           "baseline_evidence": "At baseline 05471a6, AtBatResolver.cs:58\u201364 determines contact quality; :107\u2013114 applies the bunt exit multiplier and pops sour contact or high pitches. Exit speed first inherits swing quality/power factors at :81\u201389. Contact quality already matters, but this does not establish a dedicated deadening/control quality curve.",
-          "limits": "The response mapping, any placement input and numbers remain open. The question is not recorded as acceptance of this proposed refinement."
+          "limits": "The contact-quality softness/control direction is accepted through PH-14-R1 on September 21, 2026. Exact response curves, placement controls and numbers remain open; original proposal limits are preserved separately.",
+          "original_proposal_limits": "The response mapping, any placement input and numbers remain open. The question is not recorded as acceptance of this proposed refinement.",
+          "resolution": {
+            "date": "2026-09-21",
+            "author": "Jack",
+            "answer_quote": "1",
+            "refinement_id": "PH-14-R1"
+          }
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-14-R1",
+          "question": "How should contact quality affect bunts?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Contact quality governs softness and control"
+            },
+            {
+              "id": "2",
+              "label": "Clean contact versus mishit, with similar strength for clean bunts"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Use actual contact quality to govern both bunt softness/deadening and control through a bunt-specific response. Good contact favors a soft controlled bunt; poor contact can produce a popup, excessive pace or a foul according to contact and pitch geometry. Better bunt contact must not simply inherit the ordinary swing rule of greater exit power. Preserve simple square/contact behavior, ordinary legal contact judgment, live defensive resolution and the two-strike foul-bunt rule. No automatic successful sacrifice, safe/out result or separate quality meter is selected. Exact response curves, placement/directional controls, pitch-height interaction and numerical tuning remain open. This resolves Jack\u2019s earlier contact-quality question at the directional level; no runtime change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "quality_source": "actual contact quality",
+            "bunt_quality_response": "softness/deadening and control",
+            "good_contact": "soft controlled bunt",
+            "poor_contact": "popup, excessive pace or foul according to contact/pitch geometry",
+            "outcome_resolution": "live baseball geometry and defense; no guaranteed safe/out result"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-14-R1: How should contact quality affect bunts? 1. Softness and control (recommended): good contact produces a soft, controlled bunt; poor contact can pop up, travel too hard, or go foul according to contact geometry. 2. Clean contact versus mishit only: quality determines whether the bunt succeeds cleanly; clean bunts have similar strength. Both retain live defense\u2014good contact never guarantees reaching base.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Use a bunt-specific contact response rather than multiplying ordinary swing power and assuming that better quality means more speed.",
+            "Poor-contact outcomes follow the actual contact and pitch geometry; no random categorical safe/out or automatic sacrifice.",
+            "A well-contacted bunt can still be fielded for an out; fair/foul, two-strike foul-bunt retirement and both human/CPU defense remain authoritative.",
+            "Verify both batting hands and all accepted ordinary pitch families once the response curves and placement contract are specified."
+          ]
         }
       ]
     },
@@ -2649,6 +2710,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack answered PH-08-R1 \u201cdefinitely 1, maybe a bit of 2\u201d: peak-power decline is accepted as fatigue\u2019s primary effect; a small secondary correction penalty remains a candidate. No amount or stacking formula accepted. Next PH-14-R1 resolves the previously recorded contact-quality bunt response proposal."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-14-R1 option 1: actual contact quality governs bunt-specific softness and control, resolving the earlier quality proposal. Poor contact can pop up, carry excessive pace or foul according to geometry; live defense and two-strike foul-bunt rules remain. Next PH-14-R2 settles directional placement controls; curves and tuning remain open."
     }
   ]
 }
