@@ -1,10 +1,6 @@
 {
   "speed": {
-    "fastballMph": 86,
-    "changeupMph": 68.8,
-    "mphPerPitchStat": 0.9,
-    "chargeMph": 8,
-    "changeupChargeMph": 3
+    "mphPerPitchStat": 0.9
   },
   "release": {
     "niceBandSec": 0.25,
@@ -26,12 +22,31 @@
     "breakRatePerSec": 2.4,
     "breakRatePerPitchStat": 0.12
   },
-  "shapes": {
-    "fastballHump": 0.35,
-    "changeupHangUntil": 0.62,
-    "changeupHangRate": 0.22,
-    "changeupDumpRate": 2.4,
-    "changeupDropFt": 0.9
+  "families": {
+    "fastball": {
+      "mph": 86,
+      "chargeMph": 8,
+      "hump": 0.35,
+      "hangUntil": 1,
+      "hangRate": 1,
+      "dumpRate": 1,
+      "dropFt": 0,
+      "breakDamped": false,
+      "staminaCost": 0,
+      "offSpeed": false
+    },
+    "changeup": {
+      "mph": 68.8,
+      "chargeMph": 3,
+      "hump": 0,
+      "hangUntil": 0.62,
+      "hangRate": 0.22,
+      "dumpRate": 2.4,
+      "dropFt": 0.9,
+      "breakDamped": true,
+      "staminaCost": 3,
+      "offSpeed": true
+    }
   },
   "starShapes": {
     "heatballWobbleHz": 18,
@@ -50,7 +65,6 @@
     "poolPerPitch": 6,
     "pitchCost": 4,
     "chargeCost": 3,
-    "changeupCost": 3,
     "breakCost": 1,
     "homerCost": 6,
     "runCost": 2,
