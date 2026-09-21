@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-09",
+  "next_decision": "PH-16",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -1063,7 +1063,7 @@
       "existing_contract": "Gameplay-spec D4/D12 apply. An independent cursor or persistent box position requires an explicit supersession.",
       "acceptance": "Inside/outside and high/low balls have understandable responses for both hands and small/large captains.",
       "selected_option": "A",
-      "accepted_scope": "Keep the batter-linked horizontal cursor and horizontal box movement. Retain the existing height and between-pitch recenter contracts. No separate high/low aiming adjustment or independent two-dimensional cursor is selected; no numerical tuning or human playtest acceptance is implied.",
+      "accepted_scope": "Keep the batter-linked horizontal cursor and horizontal box movement. PH-09-R1 preserves normal horizontal movement while charging an uncommitted ordinary swing, with no charging slowdown. Committed-swing movement and movement tuning are not selected by this refinement. Retain the existing height and between-pitch recenter contracts. No separate high/low aiming adjustment or independent two-dimensional cursor is selected; no numerical tuning or human playtest acceptance is implied.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1085,6 +1085,59 @@
           "choice": "A",
           "quote": "1",
           "scope": "Keep the batter-linked horizontal cursor and horizontal box movement. Retain the existing height and between-pitch recenter contracts. No separate high/low aiming adjustment or independent two-dimensional cursor is selected; no numerical tuning or human playtest acceptance is implied."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-09-R1",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Holding charge during an uncommitted ordinary swing load preserves normal horizontal batter box movement; charging adds no movement slowdown. Preserve batter-linked coverage, spatial forgiveness traded for power under PH-11-R1, charge buildup/overcharge, PH-13-R1 release commitment/cancel/rearming, and existing height/recenter contracts. This decision concerns pre-commit loading only: it does not authorize moving a committed swing to rescue contact, choose committed-swing movement or authored transitions, or select normal movement speed/acceleration values or character modifiers. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-09-R1",
+          "question": "Should charging slow the batter\u2019s movement?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Normal horizontal movement while loading"
+            },
+            {
+              "id": "2",
+              "label": "Slower horizontal movement while loading"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Holding charge during an uncommitted ordinary swing load preserves normal horizontal batter box movement; charging adds no movement slowdown. Preserve batter-linked coverage, spatial forgiveness traded for power under PH-11-R1, charge buildup/overcharge, PH-13-R1 release commitment/cancel/rearming, and existing height/recenter contracts. This decision concerns pre-commit loading only: it does not authorize moving a committed swing to rescue contact, choose committed-swing movement or authored transitions, or select normal movement speed/acceleration values or character modifiers. Direction refinement only; no runtime change, numerical trial or human acceptance.",
+          "contract": {
+            "phase": "uncommitted ordinary swing loading",
+            "charge_adds_box_movement_slowdown": false,
+            "horizontal_movement": "normal movement remains available while holding charge",
+            "committed_swing_movement": "not selected by this refinement",
+            "normal_movement_values_and_character_modifiers": "open"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-09-R1: Should charging slow the batter\u2019s movement? 1. Normal movement \u2014 recommended: reposition normally while loading. Charging already costs contact forgiveness and risks overcharge. 2. Slower movement while loading: power swings also require committing earlier to a position. This concerns movement before releasing to commit the swing.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "For the same hitter and movement input, normal horizontal movement response is unchanged when holding charge during the uncommitted loading phase.",
+            "Preserve spatial charge cost, overcharge and PH-13-R1 release/cancel/bunt conversion/rearming for both input schemes and seats.",
+            "Reconcile movement, visible batter-linked coverage and authored motion before implementation; no committed-swing rescue follows from this choice."
+          ]
         }
       ]
     },
@@ -3437,6 +3490,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-08-R3 option 1: fatigue comes from pitching effort only, with no extra cost for hits/home runs/runs allowed; baseline outcome surcharges require reconciliation. Next PH-09-R1 compares normal horizontal box movement while loading with slower movement during loading; neither movement policy is selected yet."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-09-R1 option 1: normal horizontal box movement during uncommitted swing loading, without a charging slowdown. Next PH-16-R1 compares preserving the ordinary timing window for Star Pitches with allowing clearly signaled temporary reductions. Neither special timing policy is selected yet."
     }
   ]
 }
