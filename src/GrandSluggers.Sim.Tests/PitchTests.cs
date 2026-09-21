@@ -48,10 +48,10 @@ public class PitchTests
     [Fact]
     public void AirSecondsIsSluggersPaceNotMlbNinety()
     {
-        var sp = Rules.Default.Pitching.Speed;
-        var meat = PitchFlight.AirSeconds(sp.FastballMph);
-        var gas = PitchFlight.AirSeconds(sp.FastballMph + sp.ChargeMph);
-        var change = PitchFlight.AirSeconds(sp.ChangeupMph);
+        var fam = Rules.Default.Pitching.Families;
+        var meat = PitchFlight.AirSeconds(fam.Fastball.Mph);
+        var gas = PitchFlight.AirSeconds(fam.Fastball.Mph + fam.Fastball.ChargeMph);
+        var change = PitchFlight.AirSeconds(fam.Changeup.Mph);
         Assert.InRange(meat, 0.85, 1.15);
         Assert.True(gas < meat, $"charged FB {gas} vs meat {meat}");
         Assert.True(change > meat, $"changeup {change} vs meat {meat}");
@@ -91,22 +91,40 @@ public class PitchTests
     [Fact]
     public void ChangeupHangsThenDumps()
     {
-        var hangU = Rules.Default.Pitching.Shapes.ChangeupHangUntil;
-        var hang = PitchFlight.Point("changeup", hangU).Y;
+        var hangU = Rules.Default.Pitching.Families.Changeup.HangUntil;
+        var hang = PitchFlight.Point(PitchFamily.Changeup, hangU).Y;
         var fb = PitchFlight.Point("fastball", hangU).Y;
-        var plate = PitchFlight.Point("changeup", 1).Y;
+        var plate = PitchFlight.Point(PitchFamily.Changeup, 1).Y;
         Assert.True(hang >= fb, $"changeup should hang, hang {hang} vs fb {fb}");
         Assert.True(hang - plate > 1.0, $"then dump, hang {hang} plate {plate}");
     }
 
     [Fact]
-    public void BreakIsAStickVerbNotAType()
+    public void BreakIsAStickVerbNotAFamilyAndAnUnauthoredFamilyDoesNotFly()
     {
-        // Spec §4.3: "curve" / "slider" are retired; an unknown type flies as a fastball.
-        var fb = PitchFlight.Point("fastball", 1);
-        Assert.Equal(fb, PitchFlight.Point("curve", 1));
-        Assert.Equal(fb, PitchFlight.Point("slider", 1));
+        // Spec §4.3 (#810): the type is a family id from the closed library, and the old rule —
+        // "an unknown type flies as a fastball" — is retired. Break stays a stick verb: it is not
+        // in the library at all, so the retired trajectory string "curve" is simply not a family.
+        Assert.DoesNotContain("curve", PitchFamily.All);
+        Assert.DoesNotContain("break", PitchFamily.All);
+
+        var unknown = Assert.Throws<ArgumentException>(() => PitchFlight.Point("curve", 1));
+        Assert.Contains("curve", unknown.Message, StringComparison.Ordinal);
+        Assert.Contains("not a pitch family", unknown.Message, StringComparison.Ordinal);
+
+        // "curveball" is different: it is in the library, it has no authored row yet (P1-d), and it
+        // must say so by name rather than quietly flying as a fastball.
+        foreach (var unauthored in new[] { PitchFamily.Curveball, PitchFamily.Slider, PitchFamily.Sinker })
+        {
+            var fell = Assert.Throws<InvalidOperationException>(() => PitchFlight.Point(unauthored, 1));
+            Assert.Contains(unauthored, fell.Message, StringComparison.Ordinal);
+            Assert.Contains("no authored row", fell.Message, StringComparison.Ordinal);
+            Assert.Throws<InvalidOperationException>(() =>
+                AtBatResolver.PitchSpeedMph(new PitchCommand(unauthored, 0, false), 5));
+        }
+
         Assert.Equal(["fastball", "changeup"], Training.CorePitches);
+        Assert.Equal(Training.CorePitches, Rules.Default.Pitching.Families.Authored);
     }
 
     [Fact]
@@ -153,9 +171,9 @@ public class PitchTests
         Assert.Equal(StrikeZoneGeometry.HalfWidth / 2, f.BreakMaxFt, 2);
         Assert.Equal(-f.BreakMaxFt, PitchFlight.Point("fastball", 1, 0, 0, breakX: -1).X - heart.X, 6);
         var charged = PitchFlight.Point("fastball", 1, 0, 0, breakX: 1, charged: true);
-        var change = PitchFlight.Point("fastball", 1, 0, 0, breakX: 1, changeup: true);
+        var change = PitchFlight.Point(PitchFamily.Changeup, 1, 0, 0, breakX: 1);
         Assert.Equal(f.BreakMaxFt * f.BreakDampedMul, charged.X - heart.X, 6);
-        Assert.Equal(f.BreakMaxFt * f.BreakDampedMul, change.X - PitchFlight.Point("fastball", 1, 0, 0, changeup: true).X, 6);
+        Assert.Equal(f.BreakMaxFt * f.BreakDampedMul, change.X - PitchFlight.Point(PitchFamily.Changeup, 1, 0, 0).X, 6);
         // Full stick over the top of the range stays at the cap.
         Assert.Equal(broke.X, PitchFlight.Point("fastball", 1, 0, 0, breakX: 3).X, 6);
     }
@@ -169,8 +187,8 @@ public class PitchTests
         Assert.Equal(0, fb.X, 6);
         var charged = PitchFlight.Point("fastball", 1, charged: true);
         Assert.Equal(fb.Y, charged.Y, 6);
-        var change = PitchFlight.Point("fastball", 1, changeup: true);
-        Assert.Equal(StrikeZoneGeometry.CenterY - Rules.Default.Pitching.Shapes.ChangeupDropFt, change.Y, 6);
+        var change = PitchFlight.Point(PitchFamily.Changeup, 1);
+        Assert.Equal(StrikeZoneGeometry.CenterY - Rules.Default.Pitching.Families.Changeup.DropFt, change.Y, 6);
         Assert.True(change.Y > StrikeZoneGeometry.Bottom, "the changeup dumps inside the zone by default");
         Assert.True(change.Y < StrikeZoneGeometry.CenterY - StrikeZoneGeometry.Height / 4);
     }
@@ -188,12 +206,14 @@ public class PitchTests
     }
 
     [Fact]
-    public void ChangeupModifierHangsThenDumps()
+    public void ChangeupCommandHangsThenDumps()
     {
-        var hangU = Rules.Default.Pitching.Shapes.ChangeupHangUntil;
-        var hang = PitchFlight.Point("fastball", hangU, changeup: true).Y;
-        var fb = PitchFlight.Point("fastball", hangU).Y;
-        var plate = PitchFlight.Point("fastball", 1, changeup: true).Y;
+        // Was the Changeup modifier on a fastball command (#810 retired it): the family id is the
+        // one way to ask for the shape, and it is still the same shape.
+        var hangU = Rules.Default.Pitching.Families.Changeup.HangUntil;
+        var hang = PitchFlight.Point(PitchFamily.Changeup, hangU).Y;
+        var fb = PitchFlight.Point(PitchFamily.Fastball, hangU).Y;
+        var plate = PitchFlight.Point(PitchFamily.Changeup, 1).Y;
         Assert.True(hang >= fb, $"changeup hang {hang} vs fb {fb}");
         Assert.True(hang - plate > 1.0, $"changeup dump hang {hang} plate {plate}");
     }
@@ -205,21 +225,21 @@ public class PitchTests
         // fastball. CHANGE on the card is not the tell. A fade (hangRate near 1, hang below the
         // fastball mid-flight) would pass S-06's plate Y and still read as a slow fastball.
         var r = Rules.Default.Pitching;
-        var sh = r.Shapes;
-        var fb = new PitchCommand("fastball", 0, false);
-        var ch = fb with { Changeup = true };
+        var sh = r.Families.Changeup;
+        var fb = new PitchCommand(PitchFamily.Fastball, 0, false);
+        var ch = fb with { Type = PitchFamily.Changeup };
 
-        Assert.Equal(0.80, r.Speed.ChangeupMph / r.Speed.FastballMph, 2);
+        Assert.Equal(0.80, sh.Mph / r.Families.Fastball.Mph, 2);
         var fbAir = PitchFlight.AirSeconds(AtBatResolver.PitchSpeedMph(fb, 5));
         var chAir = PitchFlight.AirSeconds(AtBatResolver.PitchSpeedMph(ch, 5));
         Assert.True(chAir > fbAir + 0.18, $"changeup {chAir:0.000}s vs fastball {fbAir:0.000}s");
 
         var fbPlate = PitchFlight.Point(fb, 1);
         var chPlate = PitchFlight.Point(ch, 1);
-        Assert.Equal(sh.ChangeupDropFt, fbPlate.Y - chPlate.Y, 6);
+        Assert.Equal(sh.DropFt, fbPlate.Y - chPlate.Y, 6);
         Assert.True(chPlate.Y > StrikeZoneGeometry.Bottom);
 
-        var hangU = sh.ChangeupHangUntil;
+        var hangU = sh.HangUntil;
         var chRel = PitchFlight.Point(ch, 0).Y;
         var chHang = PitchFlight.Point(ch, hangU).Y;
         var fbHang = PitchFlight.Point(fb, hangU).Y;
@@ -228,9 +248,9 @@ public class PitchTests
         var dumpDrop = chHang - chPlate.Y;
         Assert.True(dumpDrop > hangDrop * 2,
             $"dump {dumpDrop:0.00} vs hang-drop {hangDrop:0.00} — a fade drops evenly");
-        Assert.True(sh.ChangeupDumpRate > sh.ChangeupHangRate * 4,
-            $"dumpRate {sh.ChangeupDumpRate} vs hangRate {sh.ChangeupHangRate}");
-        var hangT = hangU * sh.ChangeupHangRate + (1 - hangU) * sh.ChangeupDumpRate;
+        Assert.True(sh.DumpRate > sh.HangRate * 4,
+            $"dumpRate {sh.DumpRate} vs hangRate {sh.HangRate}");
+        var hangT = hangU * sh.HangRate + (1 - hangU) * sh.DumpRate;
         Assert.True(hangT >= 1, $"dump must reach the aim in flight, hang(1)={hangT}");
         var almost = PitchFlight.Point(ch, 0.99).Y;
         Assert.True(Math.Abs(almost - chPlate.Y) < 0.15,
@@ -250,13 +270,15 @@ public class PitchTests
     }
 
     [Fact]
-    public void ChangeupFlagIsSlowerThanAMaxFastball()
+    public void ChangeupIsSlowerThanAMaxFastball()
     {
-        var maxFb = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, false), 7);
-        var change = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, false, Changeup: true), 7);
-        var typed = AtBatResolver.PitchSpeedMph(new PitchCommand("changeup", 1, false), 7);
-        Assert.True(change < maxFb, $"changeup {change} vs MAX fastball {maxFb}");
-        Assert.True(typed < maxFb, $"typed changeup {typed} vs MAX {maxFb}");
-        Assert.InRange(change, typed - 0.5, typed + 0.5);
+        var maxFb = AtBatResolver.PitchSpeedMph(new PitchCommand(PitchFamily.Fastball, 1, false), 7);
+        var typed = AtBatResolver.PitchSpeedMph(new PitchCommand(PitchFamily.Changeup, 1, false), 7);
+        Assert.True(typed < maxFb, $"changeup {typed} vs MAX fastball {maxFb}");
+        // A full charge is worth less on the changeup than on the fastball: each family carries its
+        // own chargeMph (#810), so the gap widens with the charge rather than shifting by a constant.
+        var restFb = AtBatResolver.PitchSpeedMph(new PitchCommand(PitchFamily.Fastball, 0, false), 7);
+        var restCh = AtBatResolver.PitchSpeedMph(new PitchCommand(PitchFamily.Changeup, 0, false), 7);
+        Assert.True(maxFb - typed > restFb - restCh, $"charged gap {maxFb - typed} vs rest gap {restFb - restCh}");
     }
 }
