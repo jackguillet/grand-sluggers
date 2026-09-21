@@ -100,7 +100,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| **F1-a** | Park files refuse an unknown field, the way rule tables do. Dead fields resolved: `notes` becomes a declared, rule-free member; `nightOnly`, `dayOnly` and the train's `periodSec` are removed from all twelve files (FD-11's night block and F4-f's mover row bring back what a park needs). The park list comes from the catalog, not from a literal in `ExhibitionPick`. The home-park map becomes data: a captain's home park is the park whose `faction` is his, else Harbor, which reproduces `Teams.HomeParkId` exactly. An unknown park id is an error, not Harbor. SF-02, SF-04 (sim half). No behavior change. | FD-01, FR-03, FR-04 | Nothing |
+| **F1-a** #820 | Park files refuse an unknown field, the way rule tables do. Dead fields resolved: `notes` becomes a declared, rule-free member; `nightOnly`, `dayOnly` and the train's `periodSec` are removed from all twelve files (FD-11's night block and F4-f's mover row bring back what a park needs). The park list comes from the catalog, not from a literal in `ExhibitionPick`. The home-park map becomes data: a captain's home park is the park whose `faction` is his, else Harbor, which reproduces `Teams.HomeParkId` exactly. An unknown park id is an error, not Harbor. SF-02, SF-04 (sim half). No behavior change. | FD-01, FR-03, FR-04 | Nothing |
 
 ### F2 — Geometry owner (Gameplay, then Presentation)
 
@@ -213,4 +213,5 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 | Child | Issue | PR | Merged | Tested revision | Human gate |
 | --- | --- | --- | --- | --- | --- |
 | Foundation: research, maps, register, all 19 directions | #814 | #815 | `4dc31699` | `df08c631`: `portable` CI green; docs and one research tool; `cli art` OK; seed 7 unchanged | none |
-| Spec reconciliation (D21, §0.3, §14, A.10, B.9), doc corrections, this map | #814 | — | — | docs only | none |
+| Spec reconciliation (D21, §0.3, §14, A.10, B.9), doc corrections, this map | #814 | #819 | — | docs only | none |
+| F1-a strict park schema; park list and home-park map from data | #820 | — | — | — | none (no player-facing change) |
