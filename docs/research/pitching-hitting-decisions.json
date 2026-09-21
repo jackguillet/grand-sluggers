@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-03",
+  "next_decision": "PH-04",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -158,7 +158,7 @@
       "id": "PH-03",
       "area": "Pitching",
       "question": "How does the pitcher choose location?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-01",
         "PH-02"
@@ -188,16 +188,31 @@
       "recommendation": "Compare A and B first. Choose together with PH-04 so aiming plus steering does not grant unlimited correction.",
       "existing_contract": "Human pitching currently has no free vertical aim. CPU endpoint targeting is a baseline asymmetry to assess in PH-18.",
       "acceptance": "Both seats can intentionally seek a strike or chase pitch without the shared screen revealing the exact endpoint.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Use horizontal mound positioning plus pitch-defined height to choose location. Do not add broad target-region selection or a freely aimed two-dimensional target under this decision. Exact pitch shapes and numerical values remain open; post-release steering is the separate PH-04 decision. Direction acceptance only, with no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-03: 1. Mound position + pitch shape; 2. Choose a broad target area; 3. Aim freely within a two-dimensional target. Post-release steering follows separately.",
+        "answer_quote": "1"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "1",
+          "scope": "Use horizontal mound positioning plus pitch-defined height to choose location. Do not add broad target-region selection or a freely aimed two-dimensional target under this decision. Exact pitch shapes and numerical values remain open; post-release steering is the separate PH-04 decision. Direction acceptance only, with no runtime change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-04",
@@ -987,6 +1002,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-02 option B: a small set of distinct ordinary pitches with clear purposes and weaknesses. Seventeen choices remain open; exact pitches, character differences, steering and numbers remain unselected."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-03 option A: horizontal mound positioning and pitch-defined height. Sixteen choices remain open; post-release steering, exact pitch shapes and numbers remain unselected."
     }
   ]
 }
