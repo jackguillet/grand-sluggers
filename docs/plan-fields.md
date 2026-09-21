@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The other 17 decisions are open. Nothing is implemented. No number is accepted.** Next: the engineering rails as a set (FD-09, FD-12, FD-16, FD-17). Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). The other 13 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-03. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -71,7 +71,7 @@ What a field can vary, where it lives today, and where this plan proposes it liv
 
 ## Rails
 
-The engineering contract. These are patterns the repo already uses; each row names the precedent. They are the author's proposal. Jack can accept them as a set with FD-09, FD-12, FD-16 and FD-17, because none of them changes how the game plays.
+The engineering contract. These are patterns the repo already uses; each row names the precedent. Jack accepted the four rail decisions as a set on September 21, 2026 (FD-09, FD-12, FD-16, FD-17). The table is the working contract for implementation children; a rail that depends on an open decision (FR-07 on FD-08, FR-10's band on a trial) waits for it.
 
 | Id | Rail | Precedent | Falsifier |
 | --- | --- | --- | --- |
@@ -179,7 +179,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 and FD-02 are **DIRECTION ACCEPTED**. FD-03 to FD-19 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01, FD-02, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 13 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -299,6 +299,8 @@ Area: Hazards. Depends on: FD-01. Evidence: MW-YP, MW-WC, MTA, SSB, PR-RULES.
 
 ### FD-09 — How are hazards built: one rule per hazard, or a small library of patterns?
 
+**Decision — Jack, September 21, 2026: B.** Accepted with FD-12, FD-16 and FD-17 as one set ("accept all four recommendations"). A closed pattern library; a hazard type is a data row; no silent fallback. The pattern list is a starting proposal: which patterns ship, the fairness contract (FD-08), placement (FD-19), the catch stealer's place in the game and every number stay open. Full provenance is in the canonical JSON.
+
 Area: Hazards. Depends on: FD-08. Evidence: MH-STAD, MW-MSS.
 
 - **A — One rule per hazard type:** Each new hazard is new sim code. Fast for the first few. The ninth park invents everything again.
@@ -340,6 +342,8 @@ Area: Hazards. Depends on: FD-08. Evidence: MW-MSS, MW-PIG, MPT, THT-TWI.
 **Acceptance:** No code path names a park id or the word night to pick a number. The night block is validated like the day block.
 
 ### FD-12 — How does a park file stay correct on both data roots (shipped and C80)?
+
+**Decision — Jack, September 21, 2026: B.** Accepted as part of the rails set. Positions are authored relative to the diamond and the fence, inside the #716 whole-file rule. The unit scheme is contract work and must reproduce the accepted by-zone migration (F693-04-park-migration). #730 / #732 keep their numbers until they close. No park file changes by this decision. Full provenance is in the canonical JSON.
 
 Area: Rails. Depends on: FD-01. Evidence: code maps only.
 
@@ -396,6 +400,8 @@ Area: Legibility. Depends on: FD-02, FD-08. Evidence: SHOW-SZ, SMB-TG.
 
 ### FD-16 — What is a park kit, and what is shared?
 
+**Decision — Jack, September 21, 2026: B.** Accepted as part of the rails set. One park-neutral field kit; parks fill named slots; empty slots draw a complete greybox from data. Harbor fills the slots first with no visual change; the  fallback diamond and dress methods retire after that. The slot schema is contract work. No art is commissioned. Full provenance is in the canonical JSON.
+
 Area: Presentation. Depends on: FD-01. Evidence: code maps only.
 
 - **A — Copy HarborKit per park:** Each park gets its own builder. Fast start. Six builders drift.
@@ -409,6 +415,8 @@ Area: Presentation. Depends on: FD-01. Evidence: code maps only.
 **Acceptance:** `cli art` lists every park's slots and what is missing. A park with empty slots draws a complete greybox from its data, not an error and not Harbor's dress.
 
 ### FD-17 — What gates a park's look, and in what order?
+
+**Decision — Jack, September 21, 2026: C.** Accepted as part of the rails set. Rules green → greybox playable → Jack's greybox sitting → DCC stages and dual stills; one park in art at a time.  gains  and ; the stage and still catalogs gain a park lane. Agents do not pass the sitting or the look gate. Full provenance is in the canonical JSON.
 
 Area: Presentation. Depends on: FD-16. Evidence: code maps only.
 
