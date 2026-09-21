@@ -867,6 +867,66 @@
           "choice": "A",
           "quote": "1",
           "scope": "For ordinary play, the hitter reads the pitcher\u2019s body, windup/charge/release and actual ball movement, without explicit pitch-family or destination guidance to the opponent. Preserve a readable response opportunity and the shared-screen mind game. Stronger training/assistance guidance remains a separate open choice under PH-17/PH-19; exact cues and timing remain open. Direction acceptance only; no runtime/presentation change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-06-R1",
+          "choice": "1",
+          "quote": "Rubber-only ring (Recommended)",
+          "scope": "In ordinary play the aim ring stays in SET but shows only the pitcher's left/right position from the rubber, at mid-zone height. It does not move for the selected family, the charge or a Star Pitch, so it tells the batter nothing the pitcher's body position does not already show, and it cannot reveal the active selection (PH-02-R5). It hides at release; the ball is the cue in flight. Practice and tutorials may still show the full ring (PH-19). One presentation for 1P and 1v1. Exact look and timing are presentation work. No runtime change and no passed playtest; human acceptance stays open."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-06-R1",
+          "question": "What happens to the pale aim ring in ordinary play?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Rubber-only ring in SET, hidden at release"
+            },
+            {
+              "id": "2",
+              "label": "No ring in ordinary play"
+            },
+            {
+              "id": "3",
+              "label": "Full ring against the CPU only"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "In ordinary play the aim ring stays in SET but shows only the pitcher's left/right position from the rubber, at mid-zone height. It does not move for the selected family, the charge or a Star Pitch, so it tells the batter nothing the pitcher's body position does not already show, and it cannot reveal the active selection (PH-02-R5). It hides at release; the ball is the cue in flight. Practice and tutorials may still show the full ring (PH-19). One presentation for 1P and 1v1. Exact look and timing are presentation work. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "ordinary_play_ring": "rubber position only, mid-zone height, SET only",
+            "moves_with": [
+              "rubber walk"
+            ],
+            "does_not_move_with": [
+              "selected family",
+              "charge",
+              "Star Pitch",
+              "post-release steering"
+            ],
+            "hidden_at": "release",
+            "practice_and_tutorials": "may show the full crossing ring",
+            "forks_1p_vs_1v1": false
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q6: What happens to the pale aim ring in ordinary play? 1. Rubber-only ring (recommended). 2. No ring in ordinary play. 3. Full ring against the CPU only.",
+            "answer_quote": "Rubber-only ring (Recommended)"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
         }
       ]
     },
@@ -1324,6 +1384,77 @@
           "choice": "A",
           "quote": "1",
           "scope": "Keep placement as the primary determinant of contact quality and timing as the determinant of pull/opposite-field direction within the contact window. Centered contact can remain strong when deliberately early or late, with weaker contact near the timing-window edges and a miss outside the window. Retain the timing-rim penalty concept rather than continuously reducing quality with every departure from ideal timing. Exact window widths, edge bands and penalty amounts remain unselected; existing gameplay-spec D4/D13 govern until explicitly amended. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-10-R1",
+          "choice": "1",
+          "quote": "9 frames (Recommended)",
+          "scope": "Every hitter, swing type and human difficulty shares one timing window (PH-11-R1, PH-15-R7, PH-17). The batting trial starts from 9 frames at 60 Hz, total width centred on the ball (plus or minus 4.5 frames, 150 ms): today's quick-swing window for an average hitter. It replaces slapFrames 9 / chargeFrames 7, framesPerContact 0.4 and the human difficulty multiplier on the window. The crystal-rink night multiplier is not selected and stays; Star Pitch window multipliers are handled by PH-16-R18. This is a trial start value, not a final number: Jack judges it in the batting sitting, and S-29 is re-reported before and after. No runtime change and no passed playtest; human acceptance stays open."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-10-R1",
+          "question": "What one timing window should the batting trial start from?",
+          "status": "trial-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "9 frames"
+            },
+            {
+              "id": "2",
+              "label": "8 frames"
+            },
+            {
+              "id": "3",
+              "label": "7 frames"
+            },
+            {
+              "id": "4",
+              "label": "Sweep first, then choose"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Every hitter, swing type and human difficulty shares one timing window (PH-11-R1, PH-15-R7, PH-17). The batting trial starts from 9 frames at 60 Hz, total width centred on the ball (plus or minus 4.5 frames, 150 ms): today's quick-swing window for an average hitter. It replaces slapFrames 9 / chargeFrames 7, framesPerContact 0.4 and the human difficulty multiplier on the window. The crystal-rink night multiplier is not selected and stays; Star Pitch window multipliers are handled by PH-16-R18. This is a trial start value, not a final number: Jack judges it in the batting sitting, and S-29 is re-reported before and after. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "shared_window": "one value for every hitter, quick and charged swings, every human difficulty",
+            "replaces": [
+              "batting.window.slapFrames / chargeFrames split",
+              "batting.window.framesPerContact",
+              "cpu.*.humanWindowMul on the window"
+            ],
+            "unchanged": [
+              "parks nightContactWindowMul",
+              "window.squareFraction rim rule",
+              "window.floorFrames until reviewed"
+            ]
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q2: What one timing window should the batting trial start from? 1. 9 frames (recommended). 2. 8 frames. 3. 7 frames. 4. Sweep first.",
+            "answer_quote": "9 frames (Recommended)"
+          },
+          "numeric_targets": {
+            "batting.window.frames": {
+              "value": 9,
+              "unit": "frames at 60 Hz, total width centred on plate arrival (plus or minus 4.5)",
+              "kind": "trial start value",
+              "conditions": "ordinary swings, quick and charged, every hitter, every human difficulty; shipped Harbor; before any Star Pitch or park multiplier",
+              "rationale": "equals today's quick-swing window for an average (Bat 5) hitter on NORMAL, so the most-used action keeps its feel while charge and Contact stop changing timing",
+              "evidence_limits": "no sitting yet; S-29 before/after to be reported by the implementing child; accepted as a starting point for the batting sitting, not as a final value"
+            }
+          },
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
         }
       ]
     },
@@ -1767,6 +1898,16 @@
           "choice": "1",
           "quote": "1 ",
           "scope": "Use two directional bunt holds: LT on controller or J on keyboard holds a third-base-side bunt; RT or L holds a first-base-side bunt. Change held side before contact to change intent; when both are held, the latest press determines the active side. Release all bunt holds before contact to withdraw. Left stick/WASD retains batter positioning. Preserve held geometric contact without a timed swing press, bat-angle intent cues, contact-quality execution and live defense. This replaces the target design\u2019s West/V/Ctrl held-bunt verb; reconcile the shipping controls and paired HowToPlay/docs/diagrams before implementation. Exact same-tick arbitration, trigger thresholds, swing-to-bunt interaction, animation transitions and response curves remain open. Audit existing trigger modifiers and rearming at live-play transitions; no second input toolkit, runtime change, numerical tuning trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-14-R6",
+          "choice": "1",
+          "quote": "Fresh press after contact (Recommended)",
+          "scope": "A trigger that was held for a bunt does not count as any other verb after contact until it is released and pressed again. This is the PH-13-R1 principle applied to the triggers: a held input never turns into a different verb. No binding moves. Scenarios cover both triggers, both seats and two pads. With PH-16-R15 the item offer leaves play, so the LT item-modifier collision cannot occur for now; the guard stays as the general rule. No runtime change and no passed playtest; human acceptance stays open."
         }
       ],
       "discussion": [
@@ -2061,6 +2202,49 @@
             "A held bunt input must not leak into legacy trigger modifiers or a live-play action at contact; define rearming and role/phase ownership.",
             "Update the shipping control contract, HowToPlay/docs and diagrams for both schemes before implementing the replacement of West/V/Ctrl bunting."
           ]
+        },
+        {
+          "id": "PH-14-R6",
+          "question": "How is the LT bunt hold kept apart from the LT item modifier?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Fresh press after contact"
+            },
+            {
+              "id": "2",
+              "label": "Move the item modifier"
+            },
+            {
+              "id": "3",
+              "label": "Both"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "A trigger that was held for a bunt does not count as any other verb after contact until it is released and pressed again. This is the PH-13-R1 principle applied to the triggers: a held input never turns into a different verb. No binding moves. Scenarios cover both triggers, both seats and two pads. With PH-16-R15 the item offer leaves play, so the LT item-modifier collision cannot occur for now; the guard stays as the general rule. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "rule": "a bunt-held trigger must be released and re-pressed before it can mean anything else",
+            "bindings_changed": false,
+            "scenario_scope": [
+              "LT and RT",
+              "both seats",
+              "two pads",
+              "leak into dash / item / live-play verbs"
+            ]
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q4: How should the game separate the LT bunt hold from the LT item modifier? 1. Fresh press after contact (recommended). 2. Move the item modifier. 3. Both.",
+            "answer_quote": "Fresh press after contact (Recommended)"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
         }
       ]
     },
@@ -3422,6 +3606,57 @@
           "choice": "3",
           "quote": "agreed. option 3.",
           "scope": "No plate-level chemistry bonus. Chemistry does not improve ordinary pitching/hitting attributes or add a chemistry-based Star-earning bonus to the plate duel; retain the accepted completed-plate-appearance gains and performance bonuses without a new chemistry multiplier. Keep chemistry in existing fielding/teamwork systems such as throws and buddy plays, without changing those systems in this decision. Jack questioned who the batter would have chemistry with; indirect runner/lineup relationships were discussed but not adopted. This refines the earlier broad PH-16 chemistry scope; original broad evidence remains in history. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R15",
+          "choice": "2",
+          "quote": "Remove it",
+          "scope": "PH-16-R14 is read strictly: no chemistry effect is tied to a plate appearance. The offer of an item when the batter has good chemistry with the on-deck hitter is removed, together with the buddies-on-base barrel widening and charge power. That offer is the only source of items today, so items leave play until a non-chemistry source is designed and accepted. Implementation plan stated to Jack and not objected to: the item code and data stay dormant and are not deleted; item lessons are marked blocked with an owning issue; item rows leave the book in a presentation pass; the 'item that mattered' MVP points go dormant. Fielding and teamwork chemistry (throws, Buddy Jump, Buddy Throw) stay. No runtime change and no passed playtest; human acceptance stays open."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R16",
+          "choice": "2",
+          "quote": "Fixed and equal",
+          "scope": "Both teams start with the same Star reserve, whatever they drafted. Draft chemistry no longer sets starting Stars; it pays off only in the field. The amount is a trial number for the Star resource child and must let each team afford a special at the first plate appearance (PH-16-R6). The stars.json starting table and the lineup-hearts copy are reconciled in their own scopes. No runtime change and no passed playtest; human acceptance stays open."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R17",
+          "choice": "1",
+          "quote": "LB, both seats (Recommended)",
+          "scope": "The special modifier is a finger button, not a thumb button, because the right thumb works South. Pad: LB held, read at South release, for pitcher and batter alike. Keyboard: Q held with the normal action. What gives way: during the pitch (SET and flight) LB no longer sends all runners; steals stay armed per runner (D-pad + L3, or the stick), LB + RB still halts runners, and after contact LB / RB work as today. PH-14-R5 (LT / RT directional bunt) is untouched. The author first proposed West or North; Jack rejected thumb buttons and suggested the right trigger; the orchestrator showed that RT collides with the accepted first-base-side bunt hold and with PH-13-R1 (a bunt hold replaces an uncommitted load); Jack then chose LB. Reconcile gameplay-spec section 3 and the paired HowToPlay/docs in the verb PR. No runtime change and no passed playtest; human acceptance stays open.",
+          "initial_quote": "i think it should be like right trigger. it should be a button that you don't need to click with your thumb (you need your thumb for south)"
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R18",
+          "choice": "1",
+          "quote": "Speed and path only, for now (Recommended)",
+          "scope": "One child removes batterWindowMul from Charmball, Skullball and Fogball (PH-16-R1). Until their individual reviews they keep their speed change and, for Charmball, its visible wobble; Skullball and Fogball are plain fast and slow pitches. Each replacement effect is a separate proposal with counterplay that Jack accepts or edits. S-10 is rewritten in that child. No runtime change and no passed playtest; human acceptance stays open."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R19",
+          "choice": "1",
+          "quote": "Remove the roll (Recommended)",
+          "scope": "The Phonyball roll that turns non-Perfect contact into a miss is removed. If the bat meets the ball, it is contact; the decoy path (the late lateral switch) is the whole effect and reading it is the counterplay. It lands in the same child as PH-16-R18. If Phonyball then plays too weak, it gets a geometric change in its own review, never a roll. No runtime change and no passed playtest; human acceptance stays open."
         }
       ],
       "refinements": [
@@ -4026,6 +4261,208 @@
             "Preserve the accepted base/performance Star earning rules without treating this choice as removal of independently reviewed fielding/teamwork effects.",
             "Reconcile any conflicting plate-level chemistry assumptions before implementation; do not rewrite the original broad decision provenance."
           ]
+        },
+        {
+          "id": "PH-16-R15",
+          "question": "Does the on-deck chemistry item offer stay?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Keep it"
+            },
+            {
+              "id": "2",
+              "label": "Remove it"
+            },
+            {
+              "id": "3",
+              "label": "Keep items, new trigger later"
+            }
+          ],
+          "selected_option": "2",
+          "accepted_scope": "PH-16-R14 is read strictly: no chemistry effect is tied to a plate appearance. The offer of an item when the batter has good chemistry with the on-deck hitter is removed, together with the buddies-on-base barrel widening and charge power. That offer is the only source of items today, so items leave play until a non-chemistry source is designed and accepted. Implementation plan stated to Jack and not objected to: the item code and data stay dormant and are not deleted; item lessons are marked blocked with an owning issue; item rows leave the book in a presentation pass; the 'item that mattered' MVP points go dormant. Fielding and teamwork chemistry (throws, Buddy Jump, Buddy Throw) stay. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "on_deck_item_offer": "removed",
+            "buddies_on_base_widen_and_charge_power": "removed (PH-16-R14)",
+            "items_in_play": "none until a new non-chemistry source is accepted",
+            "item_code_and_data": "dormant, not deleted",
+            "fielding_teamwork_chemistry": "unchanged"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q5a: Does the on-deck chemistry item offer stay? 1. Keep it (recommended). 2. Remove it. 3. Keep items, new trigger later.",
+            "answer_quote": "Remove it",
+            "note": "Jack chose against the recommendation."
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        },
+        {
+          "id": "PH-16-R16",
+          "question": "What sets each team's starting Stars?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Chemistry, with a floor"
+            },
+            {
+              "id": "2",
+              "label": "Fixed and equal"
+            },
+            {
+              "id": "3",
+              "label": "Keep today's chemistry table"
+            }
+          ],
+          "selected_option": "2",
+          "accepted_scope": "Both teams start with the same Star reserve, whatever they drafted. Draft chemistry no longer sets starting Stars; it pays off only in the field. The amount is a trial number for the Star resource child and must let each team afford a special at the first plate appearance (PH-16-R6). The stars.json starting table and the lineup-hearts copy are reconciled in their own scopes. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "starting_stars": "fixed and equal for both teams",
+            "depends_on_chemistry": false,
+            "amount": "open; scoped numeric trial",
+            "supersedes": "stars.json starting thresholds (chemistry average to 0-5)"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q5b: What sets each team's starting Stars? 1. Chemistry, with a floor (recommended). 2. Fixed and equal. 3. Keep today's table.",
+            "answer_quote": "Fixed and equal",
+            "note": "Jack chose against the recommendation."
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        },
+        {
+          "id": "PH-16-R17",
+          "question": "Which input is the held special modifier?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "LB held, both seats; LB stops being all-advance during the pitch"
+            },
+            {
+              "id": "2",
+              "label": "RT held, both seats; rework the bunt bindings (reopens PH-14-R5)"
+            },
+            {
+              "id": "3",
+              "label": "RT for the pitcher, LB for the batter"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "The special modifier is a finger button, not a thumb button, because the right thumb works South. Pad: LB held, read at South release, for pitcher and batter alike. Keyboard: Q held with the normal action. What gives way: during the pitch (SET and flight) LB no longer sends all runners; steals stay armed per runner (D-pad + L3, or the stick), LB + RB still halts runners, and after contact LB / RB work as today. PH-14-R5 (LT / RT directional bunt) is untouched. The author first proposed West or North; Jack rejected thumb buttons and suggested the right trigger; the orchestrator showed that RT collides with the accepted first-base-side bunt hold and with PH-13-R1 (a bunt hold replaces an uncommitted load); Jack then chose LB. Reconcile gameplay-spec section 3 and the paired HowToPlay/docs in the verb PR. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "pad_modifier": "LB held",
+            "keyboard_modifier": "Q held",
+            "sampled_at": "normal action-button release (PH-16-R11)",
+            "same_for_both_seats": true,
+            "principle": "modifier must not need the thumb that works South",
+            "gives_way": "LB all-advance during SET and flight; per-runner steal arming, LB+RB halt and post-contact LB/RB remain",
+            "PH-14-R5": "unchanged"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q3: Which input is the held special modifier? First asked with West held (recommended), North held, or try both. After Jack's reply it was re-asked: 1. LB, both seats (recommended). 2. RT, both seats; rework the bunt. 3. RT for pitcher, LB for batter.",
+            "answer_quote": "LB, both seats (Recommended)",
+            "initial_answer_quote": "i think it should be like right trigger. it should be a button that you don't need to click with your thumb (you need your thumb for south)",
+            "correction_note": "The first option set offered only thumb buttons. Jack's free-text reply set the finger-button principle and suggested RT. RT collides with accepted PH-14-R5 and PH-13-R1 on the batter's pad, so the question was re-asked with finger-button options and Jack chose LB."
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        },
+        {
+          "id": "PH-16-R18",
+          "question": "What do Charmball, Skullball and Fogball do once the timing-window penalty is removed?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Speed and path only, for now; replacements reviewed one by one"
+            },
+            {
+              "id": "2",
+              "label": "Proposals first; remove nothing until accepted"
+            },
+            {
+              "id": "3",
+              "label": "Remove and re-price to the lowest tier"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "One child removes batterWindowMul from Charmball, Skullball and Fogball (PH-16-R1). Until their individual reviews they keep their speed change and, for Charmball, its visible wobble; Skullball and Fogball are plain fast and slow pitches. Each replacement effect is a separate proposal with counterplay that Jack accepts or edits. S-10 is rewritten in that child. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "remove": "star-skills batterWindowMul on charmball, skullball, fogball",
+            "interim_effect": "existing speedMul and authored path only",
+            "replacements": "one reviewed proposal per pitch, later",
+            "re-pricing": "not selected"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q7a: What do Charmball, Skullball and Fogball do once the timing-window penalty is removed? 1. Speed and path only, for now (recommended). 2. Proposals first. 3. Remove and re-price.",
+            "answer_quote": "Speed and path only, for now (Recommended)"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        },
+        {
+          "id": "PH-16-R19",
+          "question": "What happens to the Phonyball 40 % whiff roll?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Remove the roll; the decoy path is the effect"
+            },
+            {
+              "id": "2",
+              "label": "Replace with a geometric cost now"
+            },
+            {
+              "id": "3",
+              "label": "Keep until its review"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "The Phonyball roll that turns non-Perfect contact into a miss is removed. If the bat meets the ball, it is contact; the decoy path (the late lateral switch) is the whole effect and reading it is the counterplay. It lands in the same child as PH-16-R18. If Phonyball then plays too weak, it gets a geometric change in its own review, never a roll. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "phonyball_whiff_roll": "removed",
+            "remaining_effect": "authored decoy path (geometry)",
+            "future_buff": "geometric only, separately reviewed"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q7b: What happens to the Phonyball 40 % whiff roll? 1. Remove the roll (recommended). 2. Replace with geometry now. 3. Keep until its review.",
+            "answer_quote": "Remove the roll (Recommended)"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
         }
       ]
     },
@@ -4149,12 +4586,64 @@
           "choice": "A",
           "quote": "1",
           "scope": "CPU opponents use the same legal action limits as humans, read available cues, and commit to swings that late legal steering can defeat. They cannot know future player inputs or use hidden pitch destinations, impossible location access, or privileged post-commit corrections. Exact observation model, reaction/commitment timing and CPU skill tuning remain open; this does not accept selectable difficulty or change PH-17 fixed human difficulty/forgiveness. Audit existing live/headless behavior and endpoint aiming before implementation. No simulation shortcut is newly approved. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-18-R1",
+          "choice": "1",
+          "quote": "With the new shapes (Recommended)",
+          "scope": "The CPU pitcher on the shipped root stays as it is until the new pitch shapes exist. In the same trial as those shapes it changes to human inputs only: rubber position, a family from its own repertoire chosen with the presses a human has, charge, and steering that accumulates over the flight. Its height then comes from the family it throws (PH-03), not from a solved endpoint. No interim flat CPU is shipped. The 50-game band (S-29) is re-reported before and after and is never tuned to pass. Noted for both seats: in the accepted library no ordinary family crosses high; the P1-d proposal shows this on its plots. No runtime change and no passed playtest; human acceptance stays open."
         }
       ],
       "validation_requirements": [
         "CPU decisions use only observations available by decision time; changing later human input cannot change an already committed CPU action. Final contact still uses actual ball geometry.",
         "CPU pitching must obey the same mound/shape and bounded steering action limits as human pitching; audit existing compensated endpoint aiming.",
         "Late legal steering can defeat a committed CPU read, and CPU skill tuning does not alter shared contact rules or human forgiveness."
+      ],
+      "refinements": [
+        {
+          "id": "PH-18-R1",
+          "question": "When does the CPU pitcher lose its endpoint (height) aim and pitch with human inputs only?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "With the new shapes, in the same trial"
+            },
+            {
+              "id": "2",
+              "label": "Convert now, before the new shapes exist"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "The CPU pitcher on the shipped root stays as it is until the new pitch shapes exist. In the same trial as those shapes it changes to human inputs only: rubber position, a family from its own repertoire chosen with the presses a human has, charge, and steering that accumulates over the flight. Its height then comes from the family it throws (PH-03), not from a solved endpoint. No interim flat CPU is shipped. The 50-game band (S-29) is re-reported before and after and is never tuned to pass. Noted for both seats: in the accepted library no ordinary family crosses high; the P1-d proposal shows this on its plots. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "cpu_conversion_timing": "same trial as the three new family shapes",
+            "shipped_cpu_until_then": "unchanged",
+            "cpu_inputs_after": [
+              "rubber position",
+              "family from own repertoire by legal presses",
+              "charge",
+              "accumulated steering"
+            ],
+            "evidence": "S-29 and S-27 re-reported before and after; never tuned to pass"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q8: When should the CPU pitcher lose its free high/low aim and pitch with human inputs only? 1. With the new shapes (recommended). 2. Convert now.",
+            "answer_quote": "With the new shapes (Recommended)"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        }
       ]
     },
     {
@@ -4276,12 +4765,63 @@
           "choice": "A",
           "quote": "1",
           "scope": "Proceed in small serial playable steps after required baseline checks: define each connected mechanic, establish scoped numeric trials where needed, implement and test it, then let Jack judge the named standalone revision. Complete D7 and other applicable evidence prerequisites before dependent tuning; do not expand this into a separate broader baseline-only milestone by default. Keep gameplay, presentation/book/tutorial and art work in their own bounded scopes and worktrees. Preserve existing human gates and require Jack\u2019s actual acceptance; this direction does not accept any exact mechanic, coefficient, runtime change, merge or playtest result. Resolve remaining contract details within the existing decision IDs before creating implementation children."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-20-R1",
+          "choice": "1",
+          "quote": "Trial window (Recommended)",
+          "scope": "New pitch-family numbers live in a trial overlay, never in the shipped default, until Jack accepts them. The orchestrator builds a preview standalone in which RB/Tab cycles all three ordinary pitches for every pitcher; Jack throws them and hits against them; only accepted numbers move to data/rules. The shapes and the RB/Tab verb are judged in one sitting. New family speeds stay inside today's changeup-to-fastball envelope so D7 is not touched. Exact values remain proposals until that sitting. No runtime change and no passed playtest; human acceptance stays open."
         }
       ],
       "validation_requirements": [
         "Each playable step names its decisions, reconciled shipping contract, applicable baseline evidence, numeric trial if needed, reproducible checks and tested standalone revision.",
         "Jack accepts actual play with the required schemes, seats and representative cases; tests and launches do not populate human acceptance.",
         "Keep detailed mechanics and the PH-14 proposed contact-quality refinement open until explicitly resolved; do not equate the completed direction round with implementation readiness."
+      ],
+      "refinements": [
+        {
+          "id": "PH-20-R1",
+          "question": "How should the Curveball, Slider and Sinker numbers be judged?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Trial window: numbers in a trial overlay, judged in a preview standalone, promoted only after acceptance"
+            },
+            {
+              "id": "2",
+              "label": "Numbers on paper first, then the trial window"
+            },
+            {
+              "id": "3",
+              "label": "Ship provisional numbers to the default table"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "New pitch-family numbers live in a trial overlay, never in the shipped default, until Jack accepts them. The orchestrator builds a preview standalone in which RB/Tab cycles all three ordinary pitches for every pitcher; Jack throws them and hits against them; only accepted numbers move to data/rules. The shapes and the RB/Tab verb are judged in one sitting. New family speeds stay inside today's changeup-to-fastball envelope so D7 is not touched. Exact values remain proposals until that sitting. No runtime change and no passed playtest; human acceptance stays open.",
+          "contract": {
+            "new_family_numbers_location_until_accepted": "trial overlay",
+            "promotion_requires": "Jack's acceptance after a preview sitting",
+            "sitting_scope": "three new shapes together with the RB/Tab selection verb",
+            "speed_envelope": "within the shipped changeup-to-fastball range; D7 untouched"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "ee60f4e8-8f5b-40d9-944b-6e32de449fc4",
+            "question": "Q1: How do you want to judge the Curveball, Slider and Sinker numbers? 1. Trial window (recommended). 2. Numbers on paper first. 3. Ship provisional numbers.",
+            "answer_quote": "Trial window (Recommended)"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        }
       ]
     }
   ],
@@ -4533,6 +5073,10 @@
     {
       "date": "2026-09-21",
       "event": "P1-c (#812, #813) shipped the pre-charge pitch selection as a pure sim step: PitchSelectionState / PitchSelection.Advance sit beside ChargeButton, one button cycles the pitcher's three ordinary families in repertoire order and wraps, a family with no authored row is skipped so zero, one or two presses always land on a pitch that can fly, the family locks on the tick the charge arms (cycle first, then lock, on a shared tick), the commit throws the locked family and resets to fastball unlocked at every SET entry and after a pitcher swap, and a disarm without a delivery releases the lock while keeping the slot. Match.SelectPitch / FamilyAt resolve against the current pitcher and the match's own family table, never Rules.Default. Spec GS section 3 carries the rule with the same-tick order and the reset points, and Appendix B.1 gains S-101 to S-106. No status change and no numeric trial: the step authors no number and nothing in the running game reads it yet - the mound wiring and the family-blind SET are P1-f, the CPU's presses are P1-e, and the three unauthored families remain P1-d. Review hardening before merge: a lock exists only while the charge button is armed, so a caller that skips the releasing tick cannot strand the selection (S-106b)."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Second decision round with Jack, run by the implementation orchestrator after P1-a, P1-b and P1-c merged (#809, #811, #813). Ten refinements recorded, one question at a time, each with its options and Jack's answer: PH-20-R1 (new pitch numbers are judged in a trial window), PH-18-R1 (the CPU converts to human inputs in that same trial), PH-06-R1 (rubber-only aim ring in SET, hidden at release), PH-10-R1 (one shared timing window; trial start value 9 frames, trial-accepted), PH-14-R6 (fresh press after contact for bunt-held triggers), PH-16-R15 (remove the on-deck chemistry item offer; items dormant), PH-16-R16 (fixed and equal starting Stars), PH-16-R17 (LB held is the special modifier on both seats, Q on keyboard; LB stops being all-advance during the pitch; Jack rejected thumb buttons and RT was shown to collide with PH-14-R5), PH-16-R18 (remove the three Star Pitch window multipliers; speed and path only until individual reviews) and PH-16-R19 (remove the Phonyball whiff roll). Jack chose against the recommendation on PH-16-R15 and PH-16-R16. No runtime change, no passed playtest, no human_acceptance written."
     }
   ]
 }
