@@ -9,6 +9,7 @@
   "run": 5,
   "bats": "R",
   "throws": "R",
+  "repertoire": ["curveball", "slider"],
   "starPitch": "charmball",
   "starSwing": "heart-swing",
   "fieldAbility": "snap-throw",

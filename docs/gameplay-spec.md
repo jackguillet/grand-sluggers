@@ -333,6 +333,10 @@ Stats are 1–10 per character (`data/characters/`). They drive *only* the quant
 
 The four stats are shown on the character card. Internally `Bat` splits into `contact` (window) and `power` (exit velo) with the same value unless a bat item modifies one (`data/bats/`). ✅
 
+**Ordinary pitch repertoire (PH-02-R1/R2, PH-15-R1/R2/R4, #807).** Beside the stats, every character carries an ordered repertoire of exactly three ordinary pitches: the **fastball every pitcher throws**, then two *different* families drawn from Changeup / Curveball / Slider / Sinker, in the order the decision register accepts (`PH-15-R2` for the seven captains, `PH-15-R4` for the eighteen role players). The data field is `"repertoire": ["<second>", "<third>"]` in `data/characters/`; the fastball is implied and may never be listed or removed, and the trial overlays carry the same rows. `ContentDataValidator` **requires** the field on every row — the character loader ignores unknown keys, so a misspelled one has to surface as missing — and refuses a count other than two, the same family twice, a listed `fastball`, and any id outside the four (`PitchFamily`, `Repertoire`; `RepertoireTests` holds all 25 rows to the register). ✅ #807 — **membership only**; §4.3 says what flies.
+
+Family ids are a **different namespace from the Star Pitch ids** in `data/abilities/star-skills.json`, which already spells two of its own skills `fastball` and `changeup` (§13). A character's `starPitch` is never resolved against its repertoire and the two sets are never validated against each other: Boom's star pitch is spelled `fastball` while his ordinary repertoire is slider + sinker. ✅ #807
+
 ---
 
 ## 3. The at-bat state machine
@@ -398,6 +402,10 @@ All shapes are `data/rules/pitching.json` curves, evaluated by `PitchFlight.Poin
 | Star pitches | per skill | Fastball + skill shape (§13); the *shape* is data, the effect on the batter is the skill rule |
 
 Pitch **type strings** (`"curve"`, `"slider"`) are retired: break is a stick verb, not a type. ✅ P1 (`PitchFlight` has two shapes; an unknown type flies as a fastball; `Training.CorePitches` is fastball / changeup).
+
+**The shared ordinary pitch library** is five families, ids lowercase and closed: `fastball`, `changeup`, `curveball`, `slider`, `sinker` (`PitchFamily`, PH-02-R2). A character throws the fastball plus the two its repertoire names (§2, PH-15-R1). These ids are *roster membership*, not the retired trajectory type strings above: an authored `"slider"` in `data/characters/` is a family a character owns, the retired `"slider"` was a runtime type the flight no longer reads. ✅ #807 for the ids and the 25 assignments.
+
+Only **fastball** and **changeup** have a shape in the table above. **Curveball, slider and sinker do not fly and cannot be selected** — #807 carries their ids and nothing else: no speed, no natural break, no stamina cost, no input. ❌ P1-b owns the family library table and the `PitchCommand` family field; P1-c owns the RB/Tab selection before the charge and the charge-start lock (PH-02-R3/R4/R5); the CPU mix is P1-e. Until then every ordinary pitch is still the fastball/changeup/charge/break set of §4.1.
 
 ### 4.4 Strike zone and judgment
 
