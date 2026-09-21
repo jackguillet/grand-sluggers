@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-02",
+  "next_decision": "PH-15",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -129,7 +129,7 @@
       "existing_contract": "Current PitchFlight has fastball/changeup base shapes; stars are separate. No new pitch count is selected.",
       "acceptance": "Each pitch has a readable trajectory, tactical use, counterplay and reason not to throw it every time.",
       "selected_option": "B",
-      "accepted_scope": "Develop a small set of distinct ordinary pitches, each with a clear tactical purpose, readable behavior and weakness. PH-02-R1 accepts exactly three ordinary pitches per pitcher, drawn from a shared library with different character repertoires; charging modifies a pitch and Star Pitches sit outside the count. Exact library membership, pitch names, character assignments, selection inputs and numerical tuning remain open; location and steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. The original count-open scope is preserved in history.",
+      "accepted_scope": "Develop distinct ordinary pitches with clear tactical purposes, readable behavior and weaknesses. PH-02-R1 fixes exactly three ordinary pitches per pitcher, with character-specific selections from a shared library; charging modifies a pitch and Star Pitches sit outside the count. PH-02-R2 fixes the library as fastball, changeup, curveball, slider and sinker with their recorded game roles. Character assignments, universal access, detailed weaknesses/counterplay, selection inputs and numerical tuning remain open; location and steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. Original scopes are preserved in history and each refinement.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -161,6 +161,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Each pitcher has exactly three ordinary pitches drawn from a shared pitch library, with different character repertoires. Charging modifies an ordinary pitch rather than counting as another pitch choice; Star Pitches are outside the three-pitch count. Exact library membership, character assignments, selection bindings, shapes and tuning remain open. This refines the accepted small-repertoire direction; no runtime change, numerical tuning trial or human acceptance is selected."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-02-R2",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Use a shared ordinary pitch library of fastball, changeup, curveball, slider and sinker, with the proposed game roles recorded in the contract. Each character still gets exactly three ordinary pitches under PH-02-R1; charging is a modifier and Star Pitches remain separate. These are authored game roles, not measured claims about a reference title. Character assignments, universal pitch access, selection inputs, detailed weaknesses/counterplay, trajectories, charge/steering interactions and numerical tuning remain open. In particular, no vertical batting aim, guaranteed batted-ball class, new reaction budget or automatic outcome is selected. Direction refinement only; no runtime change, numeric trial or human acceptance."
         }
       ],
       "refinements": [
@@ -192,6 +202,60 @@
             "kind": "conversation",
             "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
             "question": "PH-02 refinement: How many ordinary pitches should each pitcher have? 1. Three (recommended): enough to mix speed and movement while keeping selection quick and readable. 2. Four: more combinations and matchup options, with another pitch to learn and select. Characters draw different repertoires from a shared pitch library. Charging modifies a pitch, and Star Pitches sit outside this count. After this, define the pitch library and each pitch\u2019s purpose and weakness together.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null
+        },
+        {
+          "id": "PH-02-R2",
+          "question": "What should the shared pitch library contain?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Fastball, changeup, curveball, slider and sinker"
+            },
+            {
+              "id": "2",
+              "label": "Fastball, changeup, curveball and slider; omit sinker"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Use a shared ordinary pitch library of fastball, changeup, curveball, slider and sinker, with the proposed game roles recorded in the contract. Each character still gets exactly three ordinary pitches under PH-02-R1; charging is a modifier and Star Pitches remain separate. These are authored game roles, not measured claims about a reference title. Character assignments, universal pitch access, selection inputs, detailed weaknesses/counterplay, trajectories, charge/steering interactions and numerical tuning remain open. In particular, no vertical batting aim, guaranteed batted-ball class, new reaction budget or automatic outcome is selected. Direction refinement only; no runtime change, numeric trial or human acceptance.",
+          "contract": {
+            "ordinary_pitch_library": [
+              {
+                "name": "Fastball",
+                "role": "Speed pressure, relatively straight."
+              },
+              {
+                "name": "Changeup",
+                "role": "Slower delivery that punishes early swings."
+              },
+              {
+                "name": "Curveball",
+                "role": "Pronounced arc and drop."
+              },
+              {
+                "name": "Slider",
+                "role": "Sideways movement that challenges coverage."
+              },
+              {
+                "name": "Sinker",
+                "role": "A faster dipping alternative to the curveball."
+              }
+            ],
+            "ordinary_pitches_per_pitcher": 3
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-02-R2: What should the shared pitch library contain? Proposed game roles: Fastball: speed pressure, relatively straight; Changeup: slower delivery that punishes early swings; Curveball: pronounced arc and drop; Slider: sideways movement that challenges coverage; Sinker: a faster dipping alternative to the curveball. Each character gets three from that library. 1. All five (recommended): more distinct character combinations. 2. Four, leaving out the sinker: fewer shapes to learn and less overlap between dropping pitches.",
             "answer_quote": "1"
           },
           "numeric_targets": null,
@@ -1406,6 +1470,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-02-R1: exactly three ordinary pitches per pitcher from a shared library with different character repertoires; charging is a modifier and Star Pitches do not count. PH-02 remains next for library membership and pitch purposes; all 20 broad directions remain accepted. The pitch count is a contract refinement, not a measured tuning trial."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-02-R2 option 1: all five ordinary pitch families and their proposed game roles. Each pitcher still gets three. Next PH-15 refines repertoire composition: whether every pitcher has a fastball plus two others, or any three including sets without a fastball. Assignments and tuning remain open."
     }
   ]
 }
