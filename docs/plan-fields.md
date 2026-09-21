@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. The other 18 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-02. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The other 17 decisions are open. Nothing is implemented. No number is accepted.** Next: the engineering rails as a set (FD-09, FD-12, FD-16, FD-17). Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -179,7 +179,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 is **DIRECTION ACCEPTED**. FD-02 to FD-19 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 and FD-02 are **DIRECTION ACCEPTED**. FD-03 to FD-19 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -198,6 +198,8 @@ Area: Direction. Depends on: none. Evidence: MW-MSS, SMB-TG, MH-STAD.
 **Acceptance:** A written scope line in AGENTS.md and roadmap.md that an agent can obey without asking. No park art is commissioned by this decision.
 
 ### FD-02 — How strong may a park's effect on results be?
+
+**Decision — Jack, September 21, 2026: B.** Reply "b." selects a noticeable park effect in a direction each park declares before it gets numbers: about 25 % on runs and about 50 % on home runs is the intended size. Those figures describe the direction; they are not accepted numeric targets. Exact bounds, per-event bands, seeds and cohort size stay open until a scoped trial. Today's unplanned factors (Crystal 1.31, Funfair 1.35) are findings, not targets, and no park is tuned now (FD-13). Full provenance is in the canonical JSON.
 
 Area: Direction. Depends on: FD-01. Evidence: SAVANT-PF, NATHAN-SC, MH-STAD.
 
