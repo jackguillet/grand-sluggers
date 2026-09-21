@@ -1,6 +1,6 @@
 # Fields decision plan
 
-Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), serving #209 and building on [#713](https://github.com/jackguillet/grand-sluggers/issues/713) (the park override rail). Session kind: **Gameplay research/documentation**. Baseline: `d0c6e12c`. Research: [research-fields.md](research-fields.md). Code maps: [sim](research/fields-code-map-sim.md), [presentation](research/fields-code-map-presentation.md). Measured baseline: [fields-park-baseline.json](research/fields-park-baseline.json). Canonical structured record: [fields-decisions.json](research/fields-decisions.json).
+Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), serving #209 and building on [#713](https://github.com/jackguillet/grand-sluggers/issues/713) (the park override rail). Session kind: **Gameplay research/documentation**. Baseline: `d0c6e12c`. Research: [research-fields.md](research-fields.md). Code maps: [sim](research/fields-code-map-sim.md), [presentation](research/fields-code-map-presentation.md). Measured baseline: [fields-park-baseline.json](research/fields-park-baseline.json). Canonical structured record: [fields-decisions.json](research/fields-decisions.json). Implementation order, open questions and the ledger: [plan-fields-implementation.md](plan-fields-implementation.md). Shipping contract: [gameplay-spec.md](gameplay-spec.md) §0.3 (D21).
 
 ## Current state
 
@@ -21,7 +21,7 @@ Directions only. Each line names its decision; the register below has the exact 
 - **Learning (FD-15).** The field card, then in-park tells and stamps, then a Practice lesson per hazard pattern and per ground that changes the ball.
 - **Order (FD-18).** Crystal Rink proves the rails first. Funfair Park is the expected second park because it carries the first random hazard; it is not selected.
 
-**Next work.** Reconcile [gameplay-spec.md](gameplay-spec.md) (D15, §6.1, §14, §16) and finish the owed F0 corrections to [parks.md](parks.md). Write the implementation map. File one bounded child at a time, starting with F1.
+**Next work.** The spec is reconciled (D21, §0.3, §6.1, §14, §16, A.10, B.9), the owed corrections to [parks.md](parks.md), [systems.md](systems.md) and [research-sluggers.md](research-sluggers.md) are made, and the [implementation map](plan-fields-implementation.md) orders the children. Next: file one bounded child at a time, starting with F1-a, and bring Jack the map's questions one at a time as they start to block.
 
 ## How we use this together
 
@@ -156,11 +156,11 @@ Grouped by the epic that fixes it. Lines are from the maps at `d0c6e12c`.
 
 ## Epic sequence
 
-Serial by default. Each epic is filed only when the decisions it needs are accepted. Scenario ids for this phase use the block `SF-01 …` so they cannot collide with the pitching and hitting work.
+Serial by default. Each epic is filed only when the decisions it needs are accepted. Scenario ids for this phase use the block `SF-01 …` (GS Appendix B.9) so they cannot collide with the pitching and hitting work. The child-level order, with what each child needs from Jack, is in the [implementation map](plan-fields-implementation.md); the table below is the epic view.
 
 | Epic | Kind | Delivers | Needs | Rails |
 | --- | --- | --- | --- | --- |
-| **F0** Reconcile the standing orders | docs | Scope line in AGENTS.md, roadmap.md and art-rails.md: **done with FD-01**. Still owed: the parks.md and spec §14 corrections listed in the research report | FD-01 ✅ | — |
+| **F0** Reconcile the standing orders | docs | **Done.** Scope line in AGENTS.md, roadmap.md and art-rails.md (with FD-01); spec D21, §0.3, §14, A.10 and B.9; corrections to parks.md, systems.md and research-sluggers.md | FD-01 ✅ | — |
 | **F1** Schema and catalog | Gameplay | strict park schema, dead fields resolved, park list from the catalog, unknown id is an error | FD-01 | FR-03, FR-04, FR-06, FR-16 |
 | **F2** Geometry owner | Gameplay | park-neutral boundary type; Harbor's numbers as defaults; lopsided parks draw true; parity. Then the polyline fence: one distance per bearing, vertices kept in the clip polygon, height per point, material per span; D15 reconciled in the spec first | FD-06 ✅, FD-07 ✅; coordinate #732. Per-park outfield starts must not read the process-wide `Diamond.Positions` | FR-05, FR-06 |
 | **F3** Environment table | Gameplay | `AtPark`; ground and wall-material libraries, ground rows carrying ball fields and body multipliers; every park still names nothing; then one lever at a time as a trial. The body effect needs the response law on (C80 today) | FD-03, FD-04, FD-05 | FR-01, FR-02, FR-06, FR-11 |

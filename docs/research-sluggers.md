@@ -127,13 +127,15 @@ Nine (+ Toy Field). Each captain (almost) has a home park. Day/night on most. Ni
 | Mario Stadium | None. The “real baseball” control park. Fireworks at night. |
 | Peach Ice Garden | Ice rink. Freezies freeze you. Night: ceiling stars black out the stadium. |
 | Yoshi Park | Amusement park. Warp pipes randomize grounders. Train on the warning track. Night: Piranha Plants eat balls. |
-| Wario City | Rooftop / industrial. Urban obstacles, gem gimmicks. |
-| DK Jungle | Vines, barrels, climbable walls. |
-| Bowser Jr. Playroom | Day only. Chaotic toy terrain. |
+| Wario City | Rooftop / industrial. Manholes that jet water and knock a fielder down; outfield arrows that bounce a landed ball their way, farther at night. Shallow center. (Corrected September 21, 2026: "gem" is only the minigame.) |
+| DK Jungle | Barrel cannons across the outfield (flaming at night), center-field roots that slow the ball, gas flowers, a night statue that stuns the outfield. (Corrected: no vines or climbable walls are documented.) |
+| Bowser Jr. Playroom | Day only. Outfield floor pictures spawn chasers when a ball hits them; very high walls. (Corrected: no infield terrain is documented.) |
 | Bowser Castle | Night only. Lava, Podoboos, statue fire breath. |
-| Luigi’s Mansion | Night only. Ghosts, lights. |
-| Daisy Cruiser | Ship. Day/night. Deck tilt, Cheep Cheeps, Gooper Blooper. |
+| Luigi’s Mansion | Night only. Gravestones whose ghosts attack a fielder who comes near; tall grass that hides the ball. (Corrected: no light mechanic is documented.) |
+| Daisy Cruiser | Ship. Day: breakable tables, short walls (ground-rule doubles). Night: Cheep Cheeps, and near mid-game Gooper Blooper tilts the deck. |
 | Toy Field | Not a baseball game — party point-space minigame. |
+
+The full stadium teardown, with sources, the GameCube per-park numbers and the real-park physics, is in [research-fields.md](research-fields.md) (September 21, 2026). One more correction from it: stars for hitting park features are documented for the GameCube game only, not for Sluggers.
 
 **Steal this.** One clean diamond as the tutorial park. Every other park has *one primary gimmick* and a night variant. Unlock parks through play, not a shop full of DLC.
 
