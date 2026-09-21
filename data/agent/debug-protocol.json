@@ -352,6 +352,16 @@
       "promoted": "HowToPlayTests.HardwareCopyChecksWholeKeyNames",
       "issue": "#795",
       "pr": ""
+    },
+    {
+      "id": "tutorial-attempt-menu-interruption",
+      "signature": "A tutorial needs another Continue press after each success, and failures return to the briefing before the required three successes.",
+      "stage": "unity-console",
+      "cause": "The presentation treated every feedback phase as a blocking menu; retry skipped the briefing only on successful attempts and only after confirmation.",
+      "fix": "Save progress then rebuild and begin the same lesson on the next presentation tick below 3/3, for both gameplay and guided lessons. Skip play input on the reset frame and retain failed-attempt coaching without a modal.",
+      "promoted": "TutorialAttemptFlowTests.SuccessAndFailureBothRepeatUntilThreeEarnedSuccesses",
+      "issue": "#802",
+      "pr": ""
     }
 
   ]

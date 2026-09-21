@@ -21,12 +21,15 @@ namespace GrandSluggers.UnityClient
         MenuNav.Gate _tutorialY;
         bool _tutorialSaved;
         bool _tutorialWasModal;
+        TutorialFeedback _tutorialPreviousFeedback;
         GuidedTutorialSession _guided;
         bool TutorialOn => _coach != null && _coach.Tutorial != null;
         bool TutorialFeedbackReady => TutorialOn && _coach.Tutorial.Phase == TutorialPhase.Feedback
             && (_coach.Tutorial.IsFieldLesson || !_coach.PlayerBats || _phase == Phase.Result || _coach.Tutorial.Feedback.Code == "timeout");
-        bool TutorialModal => _tutorialMenu || TutorialOn && (_coach.Tutorial.Phase == TutorialPhase.Brief || TutorialFeedbackReady)
-            || _guided != null && _guided.Phase is TutorialPhase.Brief or TutorialPhase.Feedback;
+        bool TutorialModal => _tutorialMenu || TutorialOn && (_coach.Tutorial.Phase == TutorialPhase.Brief
+                || TutorialFeedbackReady && _coach.Tutorial.Passed)
+            || _guided != null && (_guided.Phase == TutorialPhase.Brief
+                || _guided.Phase == TutorialPhase.Feedback && _guided.Passed);
 
         string TutorialSaveKey(TutorialLesson lesson) => "tutorial.v2." + _tutorials.Profile + "." + lesson.Id + "." + lesson.Revision;
 
@@ -57,6 +60,7 @@ namespace GrandSluggers.UnityClient
 
         void PrepareTutorial(string id)
         {
+            _tutorialPreviousFeedback = null;
             var lesson = _tutorialAll.First(l => l.Id == id);
             SelectTutorialCategory(Array.IndexOf(_tutorialCategories, lesson.Category), id);
             if (GuidedLesson(id)) { PrepareGuidedTutorial(lesson); return; }
@@ -103,6 +107,22 @@ namespace GrandSluggers.UnityClient
             {
                 PlayerPrefs.SetInt(TutorialSaveKey(_coach.Tutorial.Lesson), _coach.Tutorial.Successes);
                 PlayerPrefs.Save(); _tutorialSaved = true;
+            }
+            // Save the completed attempt before replacing its session. Never consume its input
+            // again in the fresh setup: returning true skips the rest of this frame's play tick.
+            if (_guided != null && HowToPlay.TutorialRepeatsImmediately(_guided.Phase, _guided.Successes))
+            {
+                PrepareTutorial(_guided.Lesson.Id);
+                BeginGuidedAttempt();
+                return true;
+            }
+            if (TutorialFeedbackReady && HowToPlay.TutorialRepeatsImmediately(_coach.Tutorial.Phase, _coach.Tutorial.Successes))
+            {
+                var feedback = _coach.Tutorial.Feedback;
+                PrepareTutorial(_coach.Tutorial.Lesson.Id);
+                _tutorialPreviousFeedback = feedback;
+                BeginTutorialAttempt();
+                return true;
             }
             if (!TutorialModal)
             {
@@ -159,10 +179,8 @@ namespace GrandSluggers.UnityClient
             {
                 if (confirm || click == -2)
                 {
-                    var continuePractice = !_guided.Passed;
                     var id = _guided.Lesson.Id;
                     PrepareTutorial(id);
-                    if (continuePractice) BeginGuidedAttempt();
                 }
                 else if (Controls.WestDown || click == -5)
                 {
@@ -182,9 +200,7 @@ namespace GrandSluggers.UnityClient
             {
                 if (confirm || click == -2)
                 {
-                    var continuePractice = _coach.Tutorial.Feedback.Success && !_coach.Tutorial.Passed;
                     PrepareTutorial(_coach.Tutorial.Lesson.Id);
-                    if (continuePractice) BeginTutorialAttempt();
                 }
                 else if (Controls.WestDown || click == -5)
                 {

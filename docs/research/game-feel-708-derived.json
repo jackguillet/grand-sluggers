@@ -145,7 +145,7 @@
     "unity/Assets/Scripts/Runtime/Controls.cs": "bc5e8fa4283f1a9ac20e87e28153a296f49b785750100f67b4b0a3e7c9ce5f60",
     "unity/Assets/Scripts/Runtime/InPlayDirector.cs": "655e7fa5af0298333fb43045c77217a43b3f8661bba4dea8ce6d0ee62ff13053",
     "unity/Assets/Scripts/Runtime/AtBatDirector.cs": "6ea8d30733006db16718eeaf0b19596a266461a4cea4d26d70c990ba9a9445ab",
-    "unity/Assets/Scripts/Runtime/MatchDirector.cs": "ce861a4eb59eac23d93d839a21e6d692697722baf6aa3c188554932d9786c4da",
+    "unity/Assets/Scripts/Runtime/MatchDirector.cs": "62736feb270b6c6d2dd5e8b617d0384a79e40a8417bbe2844f7964018af7631d",
     "src/GrandSluggers.Sim/Seats.cs": "c1dbf2bceeeb02ab8932fce4b792fdd71bf5755908cdeabaaa803633903a7c77",
     "src/GrandSluggers.Sim/AtBatFeel.cs": "11afd94ea43a4ec4044a486723cacfc5ae9e94c173d8b7459462c6f359b738c1",
     "src/GrandSluggers.Sim/Rules.cs": "065b4b95de413c3ba01f698521eab65a1438491f2978d65d823333926902aa7c",

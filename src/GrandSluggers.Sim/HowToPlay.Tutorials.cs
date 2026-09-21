@@ -7,7 +7,12 @@ public static partial class HowToPlay
     public const string TutorialFreeGoal = "Keep playing in Harbor. Try any verb without a lesson goal.";
     public const string TutorialComplete = "LESSON COMPLETE";
     public const string TutorialRetry = "TRY AGAIN";
-    public const string TutorialRule = "Do it successfully three times to pass. Failures keep your earlier successes.";
+    public const string TutorialRule = "Attempts restart automatically until three successes. Failures keep your earlier successes.";
+    public static bool TutorialRepeatsImmediately(TutorialPhase phase, int successes) =>
+        phase == TutorialPhase.Feedback && successes < TutorialProgress.RequiredSuccesses;
+    public static string TutorialAttemptHint(string id, InputScheme scheme, string profile, TutorialFeedback? previous) =>
+        (previous is { Success: false } ? TutorialFeedbackText(previous.Code) + "\n" : "")
+        + TutorialControls(id, scheme, profile);
     public static string TutorialCount(int successes) => $"{successes}/{TutorialProgress.RequiredSuccesses}";
     public static string TutorialAttemptTitle(string id, int successes) => TutorialTitle(id) + " · " + TutorialCount(successes);
     public static string TutorialResultTitle(bool success, int successes) =>
