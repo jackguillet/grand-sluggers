@@ -3033,7 +3033,7 @@
       "existing_contract": "Gameplay-spec D6 prohibits free homers; no full-screen blinds or automatic outs. Existing systems remain until changed deliberately.",
       "acceptance": "Each special retains a response and an understandable resource cost, including a miss; baseline balance is tested without specials.",
       "selected_option": "A",
-      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. Exact earning/spending rates, costs, chemistry bonuses, special effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. PH-16-R1 keeps the ordinary timing window for Star Pitches, whose challenge comes from readable ball behavior. Existing timing-reducing Star Pitches require separately reviewed replacement effects and reconciliation before implementation. Exact earning/spending rates, costs, chemistry bonuses, replacement effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -3055,6 +3055,59 @@
           "choice": "A",
           "quote": "1",
           "scope": "Keep stars and chemistry supplementary to the ordinary pitching/hitting duel. Ordinary play must remain satisfying and complete on its own; specials create occasional tactical opportunities with readable counterplay rather than becoming the central at-bat resource strategy. Specials do not guarantee hits or outs. Exact earning/spending rates, costs, chemistry bonuses, special effects and frequency remain open. Existing gameplay-spec D6 and other special-ability restrictions remain in force. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-16-R1",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Star Pitches retain the ordinary hitter timing window rather than shrinking it as a special effect. Their pitching challenge comes from readable ball behavior, such as unusual movement or speed changes, with actual geometric contact and counterplay. This does not guarantee contact or remove the need to time a different arrival; the allowable timing window itself stays normal. Reconcile existing Star Pitch timing-window reductions in gameplay-spec section 13 and ability data before implementation, with replacement effects reviewed separately. This does not approve any particular replacement skill, speed/shape value, presentation, resource cost, Star Swing effect or park modifier. Preserve D6, PH-06 information rules, PH-18 CPU fairness and D7 before speed tuning. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-16-R1",
+          "question": "Should Star Pitches be allowed to shrink the hitter\u2019s timing window?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Keep the ordinary timing window; readable ball behavior provides challenge"
+            },
+            {
+              "id": "2",
+              "label": "Allow clearly signaled temporary timing-window narrowing"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Star Pitches retain the ordinary hitter timing window rather than shrinking it as a special effect. Their pitching challenge comes from readable ball behavior, such as unusual movement or speed changes, with actual geometric contact and counterplay. This does not guarantee contact or remove the need to time a different arrival; the allowable timing window itself stays normal. Reconcile existing Star Pitch timing-window reductions in gameplay-spec section 13 and ability data before implementation, with replacement effects reviewed separately. This does not approve any particular replacement skill, speed/shape value, presentation, resource cost, Star Swing effect or park modifier. Preserve D6, PH-06 information rules, PH-18 CPU fairness and D7 before speed tuning. Direction refinement only; no runtime change, numerical trial or human acceptance.",
+          "contract": {
+            "star_pitch_reduces_hitter_timing_window": false,
+            "challenge_source": "readable ball behavior",
+            "replacement_effects": "separate review required",
+            "baseline_reconciliation": "gameplay-spec section 13 and affected Star Pitch ability data",
+            "park_modifiers_and_star_swing_effects": "not selected by this refinement"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-16-R1: Should Star Pitches be allowed to shrink the hitter\u2019s timing window? 1. Keep the normal window \u2014 recommended: their challenge comes from readable ball behavior, such as unusual movement or speed changes. 2. Allow temporary narrowing: certain specials make timing harder, with a clear cue explaining the effect. Option 1 would require redesigning some existing specials; their replacement effects would be decided separately.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Across Star Pitches and both seats, the timing eligibility window remains the ordinary window; no hidden ability multiplier narrows it.",
+            "Vary special flight behavior independently of the contact timing window: contact still depends on actual geometry and timing relative to actual arrival.",
+            "Audit existing timing-reducing Star Pitches and review replacements before implementation, preserving readable counterplay, D6, CPU fairness and D7."
+          ]
         }
       ]
     },
@@ -3494,6 +3547,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-09-R1 option 1: normal horizontal box movement during uncommitted swing loading, without a charging slowdown. Next PH-16-R1 compares preserving the ordinary timing window for Star Pitches with allowing clearly signaled temporary reductions. Neither special timing policy is selected yet."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-16-R1 option 1: Star Pitches keep the ordinary timing window and use readable ball behavior for challenge. Existing timing-reducing skills need separately reviewed replacements. Next PH-16-R2 compares Star Swings retaining ordinary contact area/quality rules with allowing some Star Swings extra spatial contact forgiveness; neither Star Swing policy is selected yet."
     }
   ]
 }
