@@ -129,7 +129,7 @@
       "existing_contract": "Current PitchFlight has fastball/changeup base shapes; stars are separate. No new pitch count is selected.",
       "acceptance": "Each pitch has a readable trajectory, tactical use, counterplay and reason not to throw it every time.",
       "selected_option": "B",
-      "accepted_scope": "Develop distinct ordinary pitches with clear tactical purposes, readable behavior and weaknesses. PH-02-R1 fixes exactly three ordinary pitches per pitcher, with character-specific selections from a shared library; charging modifies a pitch and Star Pitches sit outside the count. PH-02-R2 fixes the library as fastball, changeup, curveball, slider and sinker with their recorded game roles. Character assignments, universal access, detailed weaknesses/counterplay, selection inputs and numerical tuning remain open; location and steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. Original scopes are preserved in history and each refinement.",
+      "accepted_scope": "Develop distinct ordinary pitches with clear tactical purposes, readable behavior and weaknesses. PH-02-R1 fixes exactly three ordinary pitches per pitcher, with character-specific selections from a shared library; charging modifies a pitch and Star Pitches sit outside the count. PH-02-R2 fixes the library as fastball, changeup, curveball, slider and sinker with their recorded game roles. PH-15-R1/R2/R4 fix universal fastball access and starting assignments for all 25 existing characters. PH-02-R3 requires ordinary pitch selection before charge, with the type locked at charge start and a common charge/release action. Exact selection bindings, detailed weaknesses/counterplay and numerical tuning remain open; location and live steering follow PH-03/PH-04. This is direction acceptance, not implementation or human playtest acceptance. Original scopes are preserved in history and each refinement.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -171,6 +171,16 @@
           "choice": "1",
           "quote": "1",
           "scope": "Use a shared ordinary pitch library of fastball, changeup, curveball, slider and sinker, with the proposed game roles recorded in the contract. Each character still gets exactly three ordinary pitches under PH-02-R1; charging is a modifier and Star Pitches remain separate. These are authored game roles, not measured claims about a reference title. Character assignments, universal pitch access, selection inputs, detailed weaknesses/counterplay, trajectories, charge/steering interactions and numerical tuning remain open. In particular, no vertical batting aim, guaranteed batted-ball class, new reaction budget or automatic outcome is selected. Direction refinement only; no runtime change, numeric trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-02-R3",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Select the ordinary pitch type before starting the charge. Starting the common charge/release action locks that type for the delivery; changing a selection or modifier during the load cannot substitute another ordinary pitch at release. Preserve the common charge/release controls, power/control tradeoff and live steering after release. This locks pitch family, not the entire trajectory. Exact selection bindings, default/persistence behavior, confirmation feedback and pitcher cancellation/rearming rules remain open; PH-13 accepted a hitter cancel and does not by itself select a pitcher cancel. Ordinary-play feedback must preserve PH-06 opponent information limits. Direction refinement only; no runtime change, numeric tuning trial or human acceptance."
         }
       ],
       "refinements": [
@@ -262,6 +272,46 @@
           "implementation_issues": [],
           "validation_evidence": [],
           "human_acceptance": null
+        },
+        {
+          "id": "PH-02-R3",
+          "question": "When should the pitcher choose the pitch type?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Choose before charging; type locks when charge starts"
+            },
+            {
+              "id": "2",
+              "label": "Change pitch type during charge until release"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Select the ordinary pitch type before starting the charge. Starting the common charge/release action locks that type for the delivery; changing a selection or modifier during the load cannot substitute another ordinary pitch at release. Preserve the common charge/release controls, power/control tradeoff and live steering after release. This locks pitch family, not the entire trajectory. Exact selection bindings, default/persistence behavior, confirmation feedback and pitcher cancellation/rearming rules remain open; PH-13 accepted a hitter cancel and does not by itself select a pitcher cancel. Ordinary-play feedback must preserve PH-06 opponent information limits. Direction refinement only; no runtime change, numeric tuning trial or human acceptance.",
+          "contract": {
+            "ordinary_pitch_selection_phase": "before charge",
+            "ordinary_pitch_type_locks_at": "start of charge",
+            "charge_release_action": "shared across ordinary pitch families",
+            "live_steering_after_release": true
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-02-R3: When should the pitcher choose the pitch type? 1. Before charging (recommended): select the pitch, then use the common charge/release button; starting the charge commits to that type. 2. During charging: hold a pitch modifier while loading; you can change the type until release, adding flexibility and more simultaneous inputs. Both retain live steering after release.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Changing pitch-selection inputs after charge starts cannot change the committed ordinary pitch family, including quick-tap delivery.",
+            "Charge/release and legal live steering remain active within the selected family; locking type does not freeze trajectory steering.",
+            "Audit input precedence and shared-screen feedback across both seats and keyboard/mouse; retain D-pad bag/pickoff inputs and PH-06 ordinary-play information limits."
+          ]
         }
       ]
     },
@@ -2331,6 +2381,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-15-R4 option 1: all 18 proposed role-player starting repertoires, with exact assignment parity. Together with PH-15-R2, all 25 existing characters now have accepted starting repertoires. Next PH-02-R3 refines pitch selection relative to charging; traits, detailed trajectories, tuning and implementation remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-02-R3 option 1: select ordinary pitch type before charging and lock that family at charge start; retain common charge/release and live steering. Next PH-02-R4 compares direct pitch selection with cycling through the three choices. Exact bindings and feedback remain open."
     }
   ]
 }
