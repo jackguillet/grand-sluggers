@@ -139,7 +139,9 @@
         "answer_quote": "2"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        "#807"
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -235,8 +237,20 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#807"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#807",
+              "revision": "1e9d5493",
+              "test": "GrandSluggers.Sim.Tests.RepertoireTests",
+              "summary": "Repertoire has exactly three slots (fastball plus two); Star Pitch ids stay a separate namespace and are never resolved against a family.",
+              "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
+              "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -289,8 +303,20 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#807"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#807",
+              "revision": "1e9d5493",
+              "test": "GrandSluggers.Sim.Tests.RepertoireTests",
+              "summary": "PitchFamily is the closed five-id library (fastball, changeup, curveball, slider, sinker); IsKnown / IsAssignable are the only membership test, and unknown or wrongly cased ids are content errors.",
+              "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
+              "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -1982,7 +2008,9 @@
         "answer_quote": "2"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        "#807"
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -2102,8 +2130,20 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#807"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#807",
+              "revision": "1e9d5493",
+              "test": "GrandSluggers.Sim.Tests.RepertoireTests",
+              "summary": "Repertoire makes fastball-plus-exactly-two impossible to break by construction; ContentDataValidator requires the field and refuses a count other than two, a repeat, a listed fastball and an id outside the four assignable families.",
+              "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
+              "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -2205,8 +2245,20 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#807"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#807",
+              "revision": "1e9d5493",
+              "test": "GrandSluggers.Sim.Tests.RepertoireTests",
+              "summary": "RepertoireTests compares the seven shipped captain rows, order included, with this refinement's captain_assignments contract, both directions.",
+              "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
+              "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -2240,8 +2292,20 @@
             "answer_quote": "2"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#807"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#807",
+              "revision": "1e9d5493",
+              "test": "GrandSluggers.Sim.Tests.RepertoireTests",
+              "summary": "Each role player carries its own authored repertoire row in data/characters/role-players.json and no captain Star Pitch; the loader grants nothing from a faction captain.",
+              "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
+              "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -2508,8 +2572,20 @@
             "review_artifact": "/Users/jack/.cursor/projects/Users-jack-repos-grand-sluggers/canvases/role-player-repertoires.canvas.tsx"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#807"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#807",
+              "revision": "1e9d5493",
+              "test": "GrandSluggers.Sim.Tests.RepertoireTests",
+              "summary": "RepertoireTests compares the eighteen shipped role-player rows, order included, with this refinement's role_player_assignments contract, both directions, and holds the trials/c80 overlay to the same repertoires.",
+              "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
+              "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -4295,6 +4371,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-16-R14 option 3 after questioning the batter chemistry partner: no plate-level chemistry attribute or Star-earning bonus; existing fielding/teamwork chemistry remains. Condensed the readable overview without changing previous decisions. Next work is contract consolidation under PH-16, not another proposed microdecision or implementation approval."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "P1-a (#807) implemented the pitch family ids and the 25 ordinary repertoires as a data rail: PitchFamily is the closed five-id library, Repertoire is a two-slot value type beside the implied fastball, every shipped character and the trials/c80 overlay carry their accepted assignment, and the content validator requires the field. Status stays direction-accepted because curveball, slider and sinker still have no flight and cannot be selected (P1-b, P1-c). No numeric trial: assignment data only, with no behaviour change."
     }
   ]
 }
