@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-13",
+  "next_decision": "FD-15",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -872,7 +872,7 @@
       "id": "FD-13",
       "area": "Rails",
       "question": "When does per-park balance start, and against what?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-02"
       ],
@@ -899,16 +899,31 @@
       "recommendation": "A. It follows #713's caution: once parks override physics the home-run economy is per-park and the work multiplies by six.",
       "existing_contract": "F693: Harbor-specific cohorts plus the mixed-park S-29 guardrail, which has no per-park band and plays 35 of 50 games away from Harbor. `cli match --cohort s29|harbor-calibration|harbor-validation`. #713: 'keep Harbor as the only thing calibrated against until the compact profile has been through whole-race validation'.",
       "acceptance": "A `park-factors` report exists for both roots and is part of the evidence for every park PR. No expectation is edited to make a park pass.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "A",
+      "accepted_scope": "Harbor is the only calibrated park. Every other park is measured against Harbor on predeclared seeds, on both data roots, and reported; it is not tuned until C80 is promoted (or another single default exists). Park numbers land as trial anchors, never as shipping defaults. A park PR carries the park-factors report; a factor outside the FD-02 direction, or a movement of S-29, is a finding in the PR, not a tuning target for it, and no expectation is edited to make a park pass. The FD-02 numeric band waits for its own scoped trial. Left open for the tuning step: whether S-29 keeps pooling all six parks or becomes Harbor-only plus a per-park factor check.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-13: Harbor is the only calibrated park, others measured / tune each park as it lands / tune on C80 only",
+        "answer_quote": "A"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "A",
+          "quote": "A",
+          "scope": "Harbor is the only calibrated park. Every other park is measured against Harbor on predeclared seeds, on both data roots, and reported; it is not tuned until C80 is promoted (or another single default exists). Park numbers land as trial anchors, never as shipping defaults. A park PR carries the park-factors report; a factor outside the FD-02 direction, or a movement of S-29, is a finding in the PR, not a tuning target for it, and no expectation is edited to make a park pass. The FD-02 numeric band waits for its own scoped trial. Left open for the tuning step: whether S-29 keeps pooling all six parks or becomes Harbor-only plus a per-park factor check."
+        }
+      ]
     },
     {
       "id": "FD-14",
@@ -1276,6 +1291,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-14 accepted by Jack: A, the CPU reads the same resolved park, with no foresight of a random draw. Round 4 (hazards) is complete. 3 choices remain open: FD-13, FD-15, FD-18."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-13 accepted by Jack: A, Harbor is the only calibrated park; other parks are measured and reported, not tuned, until a single default exists. 2 choices remain open: FD-15, FD-18."
     }
   ]
 }
