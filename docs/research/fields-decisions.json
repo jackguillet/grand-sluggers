@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-08-R1",
+  "next_decision": "FD-19",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -569,6 +569,15 @@
           "choice": "C",
           "quote": "C. we can add random party elements for the hazards",
           "scope": "Park hazards may carry random party elements. This is permission, not a requirement: a hazard may be fixed, or it may surprise. The author's recommendation was A. Engineering rule that follows, not a tradeoff: every random hazard draw comes from the match's seeded stream and is emitted as a typed live event, so the same seed replays the same game and traces, cohorts, scenario tests and tutorials stay deterministic. The CPU gets no foresight of a draw (seat parity). Harbor stays the park with no hazard. This decision conflicts with the standing AGENTS.md rule 'a play is decided by geometry, never by a roll' and with the Phase P ban on rolls that produce a PlayEvent: the exception is scoped to park hazards only, and its exact wording waits for refinement FD-08-R1 (may a draw decide a play's result directly, or only what the hazard does). Which hazards are random, how often, and every number stay open."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-08-R1: 1",
+          "quote": "1",
+          "scope": "Random world, geometric result. A hazard's draw may decide what the hazard does: when it fires, which exit it picks, where it sends the ball, which body it goes after. The ball and the bodies then decide the play as in every other play. No out, hit, drop or catch is awarded by chance. AGENTS.md's rule 'a play is decided by geometry, never by a roll' stays whole, with one clarifying sentence for park hazards. Consequence for the hazard runtime (epic F4): the park's use of the fielding.drops.frozen result roll retires; a special attack's use of the same table is outside this phase (the 3e specials boundary). The warp's random exit may stay, but the live ball must really travel there."
         }
       ],
       "affects_standing_orders": [
@@ -580,7 +589,7 @@
         {
           "id": "FD-08-R1",
           "question": "May a random hazard draw decide a play's result directly, or only what the hazard does?",
-          "status": "open",
+          "status": "direction-accepted",
           "options": [
             {
               "id": "1",
@@ -595,11 +604,33 @@
           ],
           "recommendation": "1. It keeps the surprise Jack asked for and keeps every out explainable by what the player saw.",
           "existing_contract": "Today both kinds exist: the warp exit is a draw on the world (Fielding.cs:701); drops.frozen 0.4 is a draw on the result (Match.cs:702).",
-          "selected_option": null,
-          "accepted_scope": null,
-          "decided_by": null,
-          "decided_at": null,
-          "decision_evidence": null
+          "selected_option": "1",
+          "accepted_scope": "Random world, geometric result. A hazard's draw may decide what the hazard does: when it fires, which exit it picks, where it sends the ball, which body it goes after. The ball and the bodies then decide the play as in every other play. No out, hit, drop or catch is awarded by chance. AGENTS.md's rule 'a play is decided by geometry, never by a roll' stays whole, with one clarifying sentence for park hazards. Consequence for the hazard runtime (epic F4): the park's use of the fielding.drops.frozen result roll retires; a special attack's use of the same table is outside this phase (the 3e specials boundary). The warp's random exit may stay, but the live ball must really travel there.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "FD-08-R1: random world, geometric result / draws may also decide results",
+            "answer_quote": "1"
+          },
+          "contract": {
+            "draw_source": "the match's seeded stream",
+            "draw_may_decide": [
+              "timing",
+              "selection among exits or targets",
+              "where the ball is sent"
+            ],
+            "draw_may_not_decide": [
+              "out",
+              "hit",
+              "drop",
+              "catch",
+              "safe or out at a bag"
+            ],
+            "draw_is_a_typed_live_event": true,
+            "cpu_foresight_of_draw": false
+          }
         }
       ]
     },
@@ -1165,6 +1196,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-08 accepted by Jack: C, park hazards may carry random party elements. The author's recommendation was A. Draws come from the seeded match stream. The standing geometry rule gets an exception scoped to park hazards; its wording waits for refinement FD-08-R1. 7 choices and 1 refinement remain open."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-08-R1 accepted by Jack: 1, random world, geometric result. A hazard draw never awards an out, hit, drop or catch. AGENTS.md gains one clarifying sentence; the geometry rule stays whole. 7 choices remain open; next is FD-19."
     }
   ]
 }
