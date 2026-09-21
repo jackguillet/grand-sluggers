@@ -13,7 +13,7 @@
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
-  "next_decision": "FD-06",
+  "next_decision": "FD-07",
   "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
@@ -394,7 +394,7 @@
       "id": "FD-06",
       "area": "Geometry",
       "question": "What shape may the outfield fence take?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "FD-01"
       ],
@@ -424,16 +424,34 @@
       "recommendation": "B. It gives a park a landmark wall without changing how depth, cameras and the C80 migration read the fence.",
       "existing_contract": "D15: fenceHeightFt is one number for the flight and the drawn wall. `AtBatResolver.RoundFence` / `FenceAt` is the three-post circle. Canopy's `climb_wall` hazard is a wall property written as a hazard.",
       "acceptance": "The drawn wall equals the flight wall on every segment (the HarborWallTests rule, for every park). A segment's carom and rob behavior come from its material row.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "C",
+      "accepted_scope": "A park's outfield fence may be a free polyline: a list of points from the left pole to the right pole, each with its own height, so a park can have notches, porches and alleys. A span between two points names a wall material, so the wall-segment benefits of option B (a tall wall, a low corner, a climbable section) are included. The three-post arc stays the default shape: a park that lists no points plays and draws exactly as today (parity). Contract work, not selected here: the point format (inside FD-12's diamond-relative units), the validator's limits, how the fielder-depth rule, the C80 migration, the warning track, the poles, the drawn wall and the 'field' camera follow a free shape, and whether outfield depth must become per park (FD-07). Author's proposed guardrail for that contract: the fence stays one distance per bearing as seen from home (no overhang, no fence behind a fence), so FenceAt(bearing) stays a function and every current consumer keeps working. D15 changes form and must be reconciled in gameplay-spec before code: 'one number' becomes 'the drawn wall equals the flight wall on every span'. The author's recommendation was B. No shape, height or material value is selected.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-21",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+        "question": "FD-06: three posts and one height / posts plus wall segments / free polyline",
+        "answer_quote": "C"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-21",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "C",
+          "quote": "C",
+          "scope": "A park's outfield fence may be a free polyline: a list of points from the left pole to the right pole, each with its own height, so a park can have notches, porches and alleys. A span between two points names a wall material, so the wall-segment benefits of option B (a tall wall, a low corner, a climbable section) are included. The three-post arc stays the default shape: a park that lists no points plays and draws exactly as today (parity). Contract work, not selected here: the point format (inside FD-12's diamond-relative units), the validator's limits, how the fielder-depth rule, the C80 migration, the warning track, the poles, the drawn wall and the 'field' camera follow a free shape, and whether outfield depth must become per park (FD-07). Author's proposed guardrail for that contract: the fence stays one distance per bearing as seen from home (no overhang, no fence behind a fence), so FenceAt(bearing) stays a function and every current consumer keeps working. D15 changes form and must be reconciled in gameplay-spec before code: 'one number' becomes 'the drawn wall equals the flight wall on every span'. The author's recommendation was B. No shape, height or material value is selected."
+        }
+      ],
+      "affects_spec_decisions": [
+        "D15"
+      ]
     },
     {
       "id": "FD-07",
@@ -1074,6 +1092,10 @@
     {
       "date": "2026-09-21",
       "event": "FD-05 accepted by Jack: B, ground zones from the shared diamond with a closed ground library. No ground value selected. 10 choices remain open; next is FD-06."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "FD-06 accepted by Jack: C, a free polyline fence with a height per point and a material per span; the three-post arc stays the default. The author's recommendation was B. Gameplay-spec D15 must be reconciled before implementation. 9 choices remain open; next is FD-07."
     }
   ]
 }
