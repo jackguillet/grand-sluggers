@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-13",
+  "next_decision": "PH-15",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -1205,7 +1205,7 @@
       "existing_contract": "A release-based charge scheme needs an explicit distinction between canceling a load and swinging. No new binding selected.",
       "acceptance": "Take, load-cancel, bunt withdrawal and swing cannot conflict; balls/strikes follow the same geometric zone.",
       "selected_option": "B",
-      "accepted_scope": "Add a deliberate player-commanded cancel before swing commitment, allowing the hitter to abandon a charged swing and take the pitch. Once the swing is committed, it follows through. Keep cancel distinct from the existing release-to-swing action. The cancel input, exact commitment/cutoff boundary, input priority and subsequent rearming behavior remain open. This selects neither automatic hesitation detection nor a mid-swing rescue. Preserve PH-09\u2013PH-12 and existing geometric ball/strike judgment. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "accepted_scope": "Use deliberate cancellation before ordinary swing commitment. PH-13-R1 selects East/G to discard an uncommitted load, and directional bunt input to directly replace that load with a held bunt while discarding charge. Ordinary swing-button release commits the swing, which then follows through. After cancel/conversion, releasing the old hold cannot swing; another ordinary swing requires release and a fresh press with no banked charge. Exact same-tick arbitration and authored transitions remain contract work. No automatic hesitation cancel or mid-swing rescue. Preserve PH-09\u2013PH-12, PH-14 held bunting and geometric judgment. Direction acceptance only; no runtime change or human playtest acceptance. Original scope remains in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -1227,6 +1227,16 @@
           "choice": "B",
           "quote": "2",
           "scope": "Add a deliberate player-commanded cancel before swing commitment, allowing the hitter to abandon a charged swing and take the pitch. Once the swing is committed, it follows through. Keep cancel distinct from the existing release-to-swing action. The cancel input, exact commitment/cutoff boundary, input priority and subsequent rearming behavior remain open. This selects neither automatic hesitation detection nor a mid-swing rescue. Preserve PH-09\u2013PH-12 and existing geometric ball/strike judgment. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-13-R1",
+          "choice": "1",
+          "quote": "1",
+          "scope": "East/G deliberately cancels an uncommitted ordinary swing load and discards its charge. Pressing an accepted directional bunt hold during an uncommitted load also discards that load and squares up directly toward the selected side, without requiring a separate cancel press. Releasing the ordinary swing button commits that swing; once committed it follows through and cannot be converted into a bunt or canceled. After cancellation or conversion, releasing the old swing hold cannot trigger a swing; a new ordinary swing requires release and a fresh press, with no banked charge. Preserve held-bunt contact/withdrawal, live defense and geometric judgment. Exact same-tick input arbitration and authored transition timing remain contract work. This does not select automatic hesitation detection, a mid-swing rescue, new numerical timing or runtime changes; human acceptance remains open."
         }
       ],
       "validation_requirements": [
@@ -1238,7 +1248,7 @@
         {
           "id": "PH-13-R1",
           "date": "2026-09-21",
-          "status": "proposal",
+          "status": "direction-accepted",
           "question": "How should a loaded ordinary swing transition into a bunt?",
           "common_flow": [
             "East / G cancels an uncommitted ordinary swing load, discarding its charge.",
@@ -1258,7 +1268,62 @@
             }
           ],
           "recommendation": "Option 1 makes a deliberate bunt input a direct change of intent before commitment, with no mid-swing rescue and no stored charge.",
-          "limits": "All binding, transition and commitment details in this packet are proposals pending Jack\u2019s choice. Preserve existing PH-13 deliberate cancellation, PH-14 held bunting and geometric judgments; do not silently authorize an automatic hesitation cancel."
+          "limits": "Option 1 and common cancel/commit/rearm flow accepted through PH-13-R1 on September 21, 2026. Original proposal limits preserved separately; exact same-tick arbitration and authored transitions remain contract work. No runtime change or human gate passed.",
+          "original_proposal_limits": "All binding, transition and commitment details in this packet are proposals pending Jack\u2019s choice. Preserve existing PH-13 deliberate cancellation, PH-14 held bunting and geometric judgments; do not silently authorize an automatic hesitation cancel.",
+          "resolution": {
+            "date": "2026-09-21",
+            "author": "Jack",
+            "answer_quote": "1",
+            "refinement_id": "PH-13-R1"
+          }
+        }
+      ],
+      "refinements": [
+        {
+          "id": "PH-13-R1",
+          "question": "How should a loaded ordinary swing transition into a bunt?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Bunt hold replaces an uncommitted swing load",
+              "flow": "Pressing LT/J or RT/L during an uncommitted load discards charge and squares up toward that side; no separate cancel press required."
+            },
+            {
+              "id": "2",
+              "label": "Explicit cancel before switching to bunt",
+              "flow": "Cancel the load first with East/G, then use a directional bunt hold; bunt input alone does not replace an active swing load."
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "East/G deliberately cancels an uncommitted ordinary swing load and discards its charge. Pressing an accepted directional bunt hold during an uncommitted load also discards that load and squares up directly toward the selected side, without requiring a separate cancel press. Releasing the ordinary swing button commits that swing; once committed it follows through and cannot be converted into a bunt or canceled. After cancellation or conversion, releasing the old swing hold cannot trigger a swing; a new ordinary swing requires release and a fresh press, with no banked charge. Preserve held-bunt contact/withdrawal, live defense and geometric judgment. Exact same-tick input arbitration and authored transition timing remain contract work. This does not select automatic hesitation detection, a mid-swing rescue, new numerical timing or runtime changes; human acceptance remains open.",
+          "contract": {
+            "explicit_swing_cancel": "East / G before commitment",
+            "cancel_discards_charge": true,
+            "ordinary_swing_commits_at": "release of ordinary swing charge/release button",
+            "bunt_during_uncommitted_load": "discard charge and square up directly toward held side",
+            "old_swing_hold_release_after_cancel_or_bunt": "does not swing",
+            "new_ordinary_swing": "release old hold, then fresh press; no banked charge",
+            "cancel_or_bunt_after_swing_commit": "cannot interrupt committed swing"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-13-R1: Switching a loaded swing into a bunt. Proposed shared rules: East/G cancels the load and discards charge. Releasing the swing button commits the swing; after cancellation, another swing requires a fresh press. 1. Bunt hold replaces the uncommitted load (recommended): press a bunt hold to discard charge and square up directly. 2. Cancel first: press East/G to abandon the load, then hold the bunt input. Neither can interrupt an already committed swing.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "A deliberate directional bunt input during an uncommitted load switches to held bunting and clears the old charge.",
+            "East/G before release cancels the load; the later release cannot produce a swing or restore banked charge.",
+            "After release commits the swing, neither cancel nor bunt inputs may undo contact, a miss or the committed action.",
+            "Specify same-tick release/cancel/bunt priority once in the shared input contract and test both seats and keyboard/mouse; authored transition poses must agree with the sim."
+          ]
         }
       ]
     },
@@ -3030,6 +3095,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-14-R5 option 1: LT/J third-side and RT/L first-side bunt holds, latest press wins while both held, release all withdraws, left stick/WASD positions. Next proposed PH-13-R1 consolidates cancel and swing-to-bunt transitions; those new details remain unaccepted."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-13-R1 option 1 and common flow: East/G cancels uncommitted load, directional bunt hold directly replaces it, charge is discarded, swing-button release commits and old holds must be released/repressed after cancellation. Next PH-15-R5 discusses separating batting Contact and Power; exact stats and tuning remain open."
     }
   ]
 }
