@@ -9,6 +9,7 @@
   "run": 2,
   "bats": "L",
   "throws": "R",
+  "repertoire": ["curveball", "sinker"],
   "starPitch": "caskball",
   "starSwing": "cask-swing",
   "fieldAbility": "clamber",

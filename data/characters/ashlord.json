@@ -9,6 +9,7 @@
   "run": 3,
   "bats": "L",
   "throws": "R",
+  "repertoire": ["slider", "sinker"],
   "starPitch": "skullball",
   "starSwing": "furnace",
   "fieldAbility": "spin-check",

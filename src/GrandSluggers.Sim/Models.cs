@@ -77,6 +77,80 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
     };
 }
 
+/// <summary>
+/// A character's ordinary pitches (spec §4.3, PH-15-R1): the fastball every pitcher throws, plus
+/// exactly two different families from <see cref="PitchFamily.Assignable"/>, in the accepted order
+/// (PH-15-R2 captains, PH-15-R4 role players). Authored as
+/// <c>"repertoire": ["&lt;second&gt;", "&lt;third&gt;"]</c>; the fastball is implied and is never listed.
+///
+/// Two named slots rather than a list, so "fastball plus exactly two" cannot be broken by
+/// construction: there is nowhere to put a fourth pitch, nowhere to drop the fastball, and no way
+/// to name a family the library does not have. A list would also cost <see cref="Character"/> its
+/// value equality — <c>PlayTraceRace</c> runs the roster through <c>Distinct()</c>, and a
+/// <c>List&lt;string&gt;</c> member compares by reference, so two identical rosters would stop
+/// being equal.
+///
+/// Membership only. Nothing here is a speed, a break or a stamina cost, and the three families
+/// beyond fastball and changeup do not fly yet (#807).
+/// </summary>
+public sealed record Repertoire(string Second, string Third)
+{
+    /// <summary>Ordinary pitches per character (PH-02-R1): the fastball and the two below.</summary>
+    public const int Slots = 3;
+
+    /// <summary>The second ordinary pitch, in accepted order. Slot 1 of the PH-02-R5 cycle.</summary>
+    public string Second { get; } = Assignable(Second, nameof(Second));
+
+    /// <summary>The third ordinary pitch. Never the same family as <see cref="Second"/>.</summary>
+    public string Third { get; } = Different(Assignable(Third, nameof(Third)), Second);
+
+    /// <summary>
+    /// The whole repertoire in cycle order: fastball, second, third (PH-02-R5). This is a view, not
+    /// state, so it is not serialized — a play trace records what a character throws through the
+    /// two authored slots it round-trips.
+    /// </summary>
+    [JsonIgnore] public IReadOnlyList<string> Ordinary => [PitchFamily.Fastball, Second, Third];
+
+    /// <summary>Slot 0 is the fastball, 1 the second pitch, 2 the third (PH-02-R5 cycle order).</summary>
+    public string this[int slot] => slot switch
+    {
+        0 => PitchFamily.Fastball,
+        1 => Second,
+        2 => Third,
+        _ => throw new ArgumentOutOfRangeException(
+            nameof(slot), slot, $"a repertoire has {Slots} slots: fastball, second, third")
+    };
+
+    /// <summary>True when this character throws that family. The fastball is always true (PH-15-R1).</summary>
+    public bool Has(string family) =>
+        string.Equals(family, PitchFamily.Fastball, StringComparison.Ordinal)
+        || string.Equals(family, Second, StringComparison.Ordinal)
+        || string.Equals(family, Third, StringComparison.Ordinal);
+
+    /// <summary>
+    /// What a hand-built <see cref="Character"/> throws when a caller authors nothing — a fixture,
+    /// not a roster default. Loaded data never reaches it: <c>ContentDataValidator</c> requires the
+    /// <c>repertoire</c> field, so a missing or misspelled key is an error rather than a silent
+    /// fallback (#807).
+    /// </summary>
+    public static Repertoire Default { get; } = new(PitchFamily.Changeup, PitchFamily.Curveball);
+
+    static string Assignable(string family, string slot) =>
+        PitchFamily.IsAssignable(family)
+            ? family
+            : throw new ArgumentException(
+                string.Equals(family, PitchFamily.Fastball, StringComparison.Ordinal)
+                    ? "every pitcher already throws the fastball, so it is never one of the two authored slots"
+                    : $"'{family}' is not one of [{string.Join(", ", PitchFamily.Assignable)}]",
+                slot);
+
+    static string Different(string third, string second) =>
+        string.Equals(third, second, StringComparison.Ordinal)
+            ? throw new ArgumentException(
+                $"the two authored pitches are different families; got '{third}' twice", nameof(Third))
+            : third;
+}
+
 public sealed record Character(
     string Id,
     string Name,
@@ -93,7 +167,21 @@ public sealed record Character(
     /// Authored stand-up catch reach in feet (F693-02-catch-reach-envelope). Null keeps the legacy
     /// <c>radiusBaseFt + radiusPerField x Field</c>, so an unauthored roster reaches exactly as far as it did.
     /// </summary>
-    double? ReachFt = null);
+    double? ReachFt = null)
+{
+    /// <summary>
+    /// The three ordinary pitches this character throws (§4.3, PH-15-R1/R2/R4). Separate from
+    /// <see cref="StarPitch"/>, which names a row in <c>data/abilities/star-skills.json</c> and sits
+    /// outside the ordinary count: a character whose star is spelled <c>changeup</c> need not carry
+    /// the changeup family, and the two are never resolved against each other
+    /// (<see cref="PitchFamily"/>).
+    ///
+    /// An init property with a default rather than a constructor parameter, so a hand-built test
+    /// character stays valid while every data row still has to author the field —
+    /// <c>ContentDataValidator</c> requires it.
+    /// </summary>
+    public Repertoire Repertoire { get; init; } = GrandSluggers.Sim.Repertoire.Default;
+}
 
 public sealed record Park(
     string Id,
