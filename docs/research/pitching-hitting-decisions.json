@@ -7,7 +7,7 @@
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
   "research": "../research-pitching-hitting.md",
-  "next_decision": "PH-08",
+  "next_decision": "PH-17",
   "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
@@ -443,7 +443,7 @@
       "id": "PH-08",
       "area": "Pitching",
       "question": "What should fatigue change during a short game?",
-      "status": "open",
+      "status": "direction-accepted",
       "depends_on": [
         "PH-02",
         "PH-05"
@@ -472,16 +472,31 @@
       "recommendation": "Compare A/B after the pitch vocabulary is chosen; no invisible sudden loss of control.",
       "existing_contract": "Existing stamina costs stack; a changeup adds 3 to the ordinary cost of 4. No new fatigue thresholds selected.",
       "acceptance": "The player predicts when to change pitchers and understands why a tired delivery differs; swapping does not erase history.",
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null,
+      "selected_option": "B",
+      "accepted_scope": "Use gradual, clearly visible, effort-driven pitcher fatigue. Ordinary pitching is relatively economical; repeatedly pushing for power wears the pitcher down faster. Effectiveness declines gradually rather than through an unexplained sudden loss of control. Exact stamina pools, action costs, fatigue curve, affected abilities, recovery/substitution details and numeric penalties remain open. Coordinate accumulated fatigue with PH-05\u2019s immediate power/control tradeoff and PH-15\u2019s character differences, without assuming a particular stacking formula. Direction acceptance only; no runtime change or human playtest acceptance.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-20",
+      "decision_evidence": {
+        "kind": "conversation",
+        "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+        "question": "PH-08: 1. Keep current pitch-use stamina and tired/exhausted thresholds; 2. Gradual, effort-driven fatigue: economical ordinary pitching, more wear from repeatedly pushing power, gradual visible decline; 3. Keep fatigue minor.",
+        "answer_quote": "2"
+      },
       "numeric_targets": null,
       "implementation_issues": [],
       "validation_evidence": [],
       "human_acceptance": null,
-      "history": []
+      "history": [
+        {
+          "date": "2026-09-20",
+          "from": "open",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "B",
+          "quote": "2",
+          "scope": "Use gradual, clearly visible, effort-driven pitcher fatigue. Ordinary pitching is relatively economical; repeatedly pushing for power wears the pitcher down faster. Effectiveness declines gradually rather than through an unexplained sudden loss of control. Exact stamina pools, action costs, fatigue curve, affected abilities, recovery/substitution details and numeric penalties remain open. Coordinate accumulated fatigue with PH-05\u2019s immediate power/control tradeoff and PH-15\u2019s character differences, without assuming a particular stacking formula. Direction acceptance only; no runtime change or human playtest acceptance."
+        }
+      ]
     },
     {
       "id": "PH-09",
@@ -1217,6 +1232,10 @@
     {
       "date": "2026-09-20",
       "event": "Jack accepted PH-16 option A: stars and chemistry supplement the ordinary duel, with counterplay and no guaranteed hits/outs. Six choices remain open; costs, rates, bonuses and frequency remain unselected. Next PH-08 fatigue follows the planned discussion order."
+    },
+    {
+      "date": "2026-09-20",
+      "event": "Jack accepted PH-08 option B: gradual visible fatigue driven mainly by effort, with economical ordinary pitching and greater wear from repeated power. Five choices remain open; costs, curves and penalties remain unselected."
     }
   ]
 }
