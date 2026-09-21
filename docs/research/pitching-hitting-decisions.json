@@ -844,7 +844,7 @@
       "existing_contract": "Existing stamina costs stack; a changeup adds 3 to the ordinary cost of 4. No new fatigue thresholds selected.",
       "acceptance": "The player predicts when to change pitchers and understands why a tired delivery differs; swapping does not erase history.",
       "selected_option": "B",
-      "accepted_scope": "Use gradual, clearly visible, effort-driven pitcher fatigue. Ordinary pitching stays relatively economical; repeated high-power pitching wears the pitcher down faster. PH-08-R1 accepts reduced available peak power as the primary effect. A small secondary steering-correction reduction is a tentative candidate, not an accepted mandatory penalty or amount. Exact costs, curves, recovery/substitution details and numeric penalties remain open. Coordinate accumulated fatigue with PH-05-R1 charge/control costs and PH-15 character differences without assuming a stacking formula; preserve predictable steering and D7. Direction acceptance only; no runtime change or human playtest acceptance. Original scope remains in history.",
+      "accepted_scope": "Use gradual, clearly visible, effort-driven pitcher fatigue. Ordinary pitching stays relatively economical; repeated high-power pitching wears the pitcher down faster. PH-08-R1 accepts reduced available peak power as the primary effect. A small secondary steering-correction reduction is a tentative candidate, not an accepted mandatory penalty or amount. PH-08-R2 makes fatigue persist per character for the match, with no in-game recovery or swap reset, including time spent in another fielding position. Exact costs, curves, substitution details and numeric penalties remain open; swap eligibility/frequency are unchanged by this refinement. Coordinate accumulated fatigue with PH-05-R1 charge/control costs and PH-15 character differences without assuming a stacking formula; preserve predictable steering and D7. Direction acceptance only; no runtime change or human playtest acceptance. Original scope remains in history.",
       "decided_by": "Jack",
       "decided_at": "2026-09-20",
       "decision_evidence": {
@@ -876,6 +876,16 @@
           "choice": "1 with tentative small secondary effect from 2",
           "quote": "definitely 1, maybe a bit of 2",
           "scope": "Make loss of available peak pitching power the primary accumulated-fatigue effect, with gradual visible decline driven mainly by high-effort pitching. Jack also expressed tentative interest in a small secondary reduction of steering correction. Preserve that as a candidate to evaluate, not acceptance of a mandatory second penalty, particular amount or stacking formula. Steering remains readable and predictable; do not turn fatigue into random errors or increasingly sensitive inputs. Coordinate any candidate correction loss with PH-05-R1\u2019s charge-related correction limit and PH-15 character differences. Exact fatigue costs, power response, correction effect, recovery and numerical curves remain open; respect D7 before tuning pitch travel time. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        },
+        {
+          "date": "2026-09-21",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "refinement_id": "PH-08-R2",
+          "choice": "1",
+          "quote": "1",
+          "scope": "Pitcher fatigue persists for the entire match without in-game stamina recovery. Each character retains their accumulated fatigue when moved to another fielding position and if they later return to pitch. Resting while another teammate pitches does not restore stamina, and swaps never reset the pool. Preserve the effort-driven fatigue model, Endurance differences, primary peak-power decline and tentative-only secondary steering penalty. This does not change pitcher-swap eligibility or frequency, choose stamina pools/costs/curves, or add fatigue effects to batting/fielding. Direction refinement only; no runtime change, numerical trial or human acceptance."
         }
       ],
       "refinements": [
@@ -923,6 +933,47 @@
             "Make the gradual power decline visible and distinguish it from a deliberate lower-charge pitch.",
             "If evaluating the tentative small steering penalty, compare it with power-only fatigue and assess the combined effect with PH-05-R1; do not assume two full penalties stack.",
             "Keep steering predictable and characteristic pitch identity readable. Respect D7 before selecting any flight-time effects."
+          ]
+        },
+        {
+          "id": "PH-08-R2",
+          "question": "Can pitchers recover stamina during a game?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "1",
+              "label": "Fatigue lasts for the match; no in-game recovery"
+            },
+            {
+              "id": "2",
+              "label": "Gradual recovery while another teammate pitches"
+            }
+          ],
+          "selected_option": "1",
+          "accepted_scope": "Pitcher fatigue persists for the entire match without in-game stamina recovery. Each character retains their accumulated fatigue when moved to another fielding position and if they later return to pitch. Resting while another teammate pitches does not restore stamina, and swaps never reset the pool. Preserve the effort-driven fatigue model, Endurance differences, primary peak-power decline and tentative-only secondary steering penalty. This does not change pitcher-swap eligibility or frequency, choose stamina pools/costs/curves, or add fatigue effects to batting/fielding. Direction refinement only; no runtime change, numerical trial or human acceptance.",
+          "contract": {
+            "fatigue_persistence": "per character for the match",
+            "in_game_stamina_recovery": false,
+            "swap_resets_fatigue": false,
+            "rest_while_another_teammate_pitches_restores_stamina": false,
+            "swap_eligibility_and_frequency": "unchanged by this refinement"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-21",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "01a0c175-b934-7df1-8a25-8261a1313503",
+            "question": "PH-08-R2: Can pitchers recover stamina during a game? 1. Fatigue lasts for the match \u2014 recommended: moving a tired pitcher elsewhere preserves their fatigue if they return. This keeps effort management meaningful in short games. 2. Gradual recovery while another teammate pitches: resting a pitcher restores some stamina, encouraging rotation. Neither allows swapping to instantly reset fatigue.",
+            "answer_quote": "1"
+          },
+          "numeric_targets": null,
+          "implementation_issues": [],
+          "validation_evidence": [],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Preserve individual fatigue across legal pitcher swaps, returns to the mound, innings and time spent in another position; no rest recovery or swap reset.",
+            "A fresh teammate has their own remaining pool; do not copy the outgoing pitcher fatigue or erase returning pitcher history.",
+            "Apply the same persistence to human and CPU pitchers, with existing swap limits and named standalone acceptance retained."
           ]
         }
       ]
@@ -3328,6 +3379,10 @@
     {
       "date": "2026-09-21",
       "event": "Jack accepted PH-11-R1 option 1: charge trades spatial placement forgiveness for power with an unchanged timing window and shared hitter rule. Next PH-08-R2 compares no in-game pitcher fatigue recovery with gradual recovery while another teammate pitches; neither recovery policy is selected yet."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "Jack accepted PH-08-R2 option 1: fatigue persists per character for the match, without rest recovery or swap reset. Next PH-08-R3 compares fatigue costs from pitching actions alone with additional costs for conceding hits/runs; neither outcome-cost policy is selected yet."
     }
   ]
 }
