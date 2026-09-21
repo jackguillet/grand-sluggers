@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). The other 13 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-03. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **FD-01 is accepted: rails first, proven on one park, then the other parks one at a time as greyboxes; no park art. FD-02 is accepted: a park's effect is noticeable, in a direction it declares first. The engineering rails are accepted as a set: FD-09 B (hazard pattern library), FD-12 B (diamond-relative positions), FD-16 B (one field kit with slots), FD-17 C (greybox first, one park in art at a time). FD-03 is accepted: a park may override the ball's environment (the #713 list); gravity, the time scales, the plate and the infield stay global. The other 12 decisions are open. Nothing is implemented. No number is accepted.** Next: FD-04. Jack's brief, September 21, 2026: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -179,7 +179,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01, FD-02, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 13 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01, FD-02, FD-03, FD-09, FD-12, FD-16 and FD-17 are **DIRECTION ACCEPTED**. The other 12 are **OPEN**. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -214,6 +214,8 @@ Area: Direction. Depends on: FD-01. Evidence: SAVANT-PF, NATHAN-SC, MH-STAD.
 **Acceptance:** Each park has a declared intent (for example 'fewer home runs, more triples') and a measured factor that lands inside the accepted band on predeclared seeds. S-29 and the Harbor cohorts stay green.
 
 ### FD-03 — Which physical qualities may a park override?
+
+**Decision — Jack, September 21, 2026: A.** Reply "a" selects the #713 list: air drag, wind exposure, roll friction, rest speed, bounce and wall carom, as overrides with fallback to the global table. Gravity, the time scales, the plate, the foul-line angle and the infield stay global. Body traction and outfield depth are not opened here (FD-04, FD-07). No value is selected; the #702 race rows are re-run per park before any number is accepted. Full provenance is in the canonical JSON.
 
 Area: Environment. Depends on: FD-01. Evidence: NATHAN-SC, NATHAN-CARRY, MH-STAD, SHOW-SZ.
 
