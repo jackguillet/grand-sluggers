@@ -82,7 +82,7 @@ graph TD
 | Child | Kind | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- | --- |
 | **P1-a** #807 | Gameplay | Closed family id set. `repertoire` on all 25 characters, shipped and c80. Validator. Register provenance test. No behaviour change. | PH-15-R1..R4, PH-02-R1/R2 | Nothing |
-| P1-b | Gameplay | One family row schema in `pitching.json` (named rows). Fastball and Changeup rows carry today's exact numbers; flights bit-identical. `PitchCommand` carries a family; the `Changeup` bool and the silent fastball fallback go. Per-family stamina cost key replaces `changeupCost`, same value. Reconcile GS:400 and §4.3 first. | PH-02-R2, PH-03, PH-15-R1 | Nothing |
+| P1-b #810 | Gameplay | One family row schema in `pitching.json` (named rows). Fastball and Changeup rows carry today's exact numbers; flights bit-identical. `PitchCommand` carries a family; the `Changeup` bool and the silent fastball fallback go. Per-family stamina cost key replaces `changeupCost`, same value. Reconcile GS:400 and §4.3 first. | PH-02-R2, PH-03, PH-15-R1 | Nothing |
 | P1-c | Gameplay | Pure sim selection step beside `ChargeButton`: cycle before arm, wrap, reset to Fastball each pitch and on a swap, lock on the arm edge, later cycle presses ignored. Same-tick rule written in the spec. Scenarios for every repertoire, both seats. | PH-02-R3/R4/R5 | Nothing. No pitcher cancel is added (PH-02-R3 leaves it unselected). |
 | P1-d | Gameplay | Curveball, Slider, Sinker rows as a **scoped numeric trial**: units, conditions, rationale, headless evidence (crossing, drop, sweep by hand, air time). All speeds stay inside today's changeup–fastball envelope so D7 is untouched. | PH-02-R2, PH-03, PH-04 | **Trial acceptance.** See §5 Q1. |
 | P1-g | Gameplay | PH-18 audit turned into code: CPU aims through legal inputs, accumulates break, may combine verbs as a human can. | PH-18 | Nothing to start; re-report S-29. |
@@ -151,4 +151,5 @@ One at a time, in the order they start to block. None blocks P1-a, P1-b or P1-c.
 | --- | --- | --- | --- | --- | --- |
 | Foundation | #803 | #805 | `a9204a8c` | docs only | none |
 | Phase 0 audit and this map | #803 | — | — | `a9204a8c` | none |
-| P1-a | #807 | — | — | — | none (no player-facing change) |
+| P1-a family ids + 25 repertoires | #807 | #809 | `9b625591` | `cbc94d5d`: 1777 / 1777 tests, 721 / 721 c80 rows, seals hash-only, seed 7 identical | none (no player-facing change) |
+| P1-b family library rail | #810 | — | — | — | none (behaviour-identical) |
