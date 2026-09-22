@@ -13,14 +13,14 @@
   "hazards": [
     {
       "type": "lava_pit",
-      "x": 34,
-      "z": 69,
+      "x": 44,
+      "z": 89,
       "radius": 7
     },
     {
       "type": "lava_pit",
-      "x": -37,
-      "z": 85,
+      "x": -40,
+      "z": 92,
       "radius": 7
     },
     {

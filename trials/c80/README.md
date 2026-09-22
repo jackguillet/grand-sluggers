@@ -983,7 +983,7 @@ second CI run is 299 rows.
 | Carry of the 95 mph / 28° fly (three rows) | 300 to 450 ft | 210 to 315 ft | it carries 233 ft on the copy; the same band at 0.70 |
 | The fastball at halfway | 26 to 34 ft | 23 to 30 ft | the rubber is at 53.78 ft; the same band at 8/9 |
 | Harbor and Ember fences | 400 / 408 | 280 / 286 | the fences at 0.70 (#717) |
-| Ember's lava pit, the Rink's freeze volume, Rooftop's star sign | (38, 78), (40, 70), (−80, 240) | (34, 69), (36, 62), (−56, 168) | the hazards at the field's scale (#732) |
+| Ember's lava pit, the Rink's freeze volume, Rooftop's star sign | (49, 100), (53, 93), (−80, 240) | (44, 89), (47, 83), (−56, 168) | the hazards at the field's scale (#732); the pit and the volume were (38, 78) / (34, 69) and (40, 70) / (36, 62), on the first–second lane, until FD-19-R1 moved them outward along their own bearings (F4-e, #862) |
 | Ember's fire breath at night | 250 ft and 270 ft | 175 ft and 189 ft | the mouth at 0.70, the same 20 ft past it at 0.70 |
 | Runner pips along the path | 45 ft is half, 30 ft a third, 9 ft overrun is 1.1 | 40 ft, 26.67 ft, 8 ft | the 80-ft path |
 | The fielder's dash | `dash.chaseMul` above 1 | exactly 1.0 | the copy's dash is the Ball Dash carrier's, no free chase multiplier (#718) |
@@ -1165,7 +1165,7 @@ recorded in `docs/plan-game-feel-693.md` beside the specials exclusion. No Sim s
 | Row | Shipped | Compact |
 | --- | --- | --- |
 | The slow is one multiplier, and Burrow ignores it | 0.45 | 0.45 |
-| A fly into the Rink's deep freeze volume, CPU seat and human seat | lands at (10, 180); the chaser tops out at 0.45 of its Harbor speed | lands at (7, 126); the same, after the response law's ramp and the stick's six neutral frames |
-| A grounder into Ember's lava pit: what the take costs | lands at (38, 78); the knockback of the hit's energy | lands at (34, 69); `RecoilSec` of the ball's incoming speed (#720). No term for the slow in either |
+| A fly into the Rink's deep freeze volume, CPU seat and human seat | lands at (10, 187); the chaser tops out at 0.45 of its Harbor speed | lands at (7, 131); the same, after the response law's ramp and the stick's six neutral frames. The volume was (10, 180) / (7, 126), on the copy's second-base pad, until FD-19-R1 (F4-e, #862) |
+| A grounder into Ember's lava pit: what the take costs | lands at (49, 100); the knockback of the hit's energy | lands at (44, 89); `RecoilSec` of the ball's incoming speed (#720). No term for the slow in either. The pit was (38, 78) / (34, 69) until FD-19-R1 (F4-e, #862) |
 
 The copy's CI run is 382 rows.

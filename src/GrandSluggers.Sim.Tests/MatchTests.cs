@@ -473,8 +473,9 @@ public class MatchTests
         var match = Match.Slice(_content, seed: 1, parkId: "crystal-rink");
         Assert.Equal("crystal-rink", match.Park.Id);
         Assert.Equal("ice", match.Park.Surface);
-        // The C80 copy carries the hazards at the field's scale (#732): this volume stands at (36, 62).
-        var (iceX, iceZ) = TestRoot.Pick((40.0, 70.0), (36.0, 62.0));
+        // The C80 copy carries the hazards at the field's scale (#732): this volume stands at (47, 83). It stood at
+        // (40, 70) / (36, 62) on the first-second lane until FD-19-R1 moved it outward along its own bearing (F4-e, #862).
+        var (iceX, iceZ) = TestRoot.Pick((53.0, 93.0), (47.0, 83.0));
         Assert.True(ParkHazards.InFreeze(match.Park, iceX, iceZ));
         Assert.False(ParkHazards.InFreeze(match.Park, 0, 0));
     }
@@ -575,8 +576,9 @@ public class MatchTests
         Assert.Contains(park.Hazards, h => h.Type == "lava_pit");
         Assert.Contains(park.Hazards, h => h.Type == "fire_breath");
         Assert.Contains(park.Hazards, h => h.Type == "statue");
-        // The C80 copy carries the hazards at the field's scale (#732): this pit stands at (34, 69).
-        var (pitX, pitZ) = TestRoot.Pick((38.0, 78.0), (34.0, 69.0));
+        // The C80 copy carries the hazards at the field's scale (#732): this pit stands at (44, 89). It stood at
+        // (38, 78) / (34, 69) on the first-second lane until FD-19-R1 moved it outward along its own bearing (F4-e, #862).
+        var (pitX, pitZ) = TestRoot.Pick((49.0, 100.0), (44.0, 89.0));
         Assert.True(ParkHazards.InSlow(park, pitX, pitZ));
         Assert.False(ParkHazards.InSlow(park, 0, 0));
         Assert.Equal("ember-keep", PresetTeams.HomeParkId(_content, "ashlord"));
