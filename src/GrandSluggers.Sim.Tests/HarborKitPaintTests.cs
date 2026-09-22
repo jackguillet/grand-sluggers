@@ -75,13 +75,21 @@ public class HarborKitPaintTests
         Assert.Equal(expected, HarborKitPaint.For(mesh, material));
     }
 
+    /// <summary>
+    /// The kit FBX's meshes are painted in one place. Since #859 that place is the one field kit
+    /// (<c>FieldKit.cs</c>), which drops the bags, the plate and the mound at every park, and Harbor's
+    /// dugouts and fans drop through it rather than through a second palette in <c>HarborKit.cs</c>.
+    /// </summary>
     [Fact]
     public void HarborKitPaintsFromTheTable()
     {
-        var src = File.ReadAllText(Path.Combine(_repo, "unity/Assets/Scripts/Runtime/HarborKit.cs"));
-        Assert.Contains("HarborKitPaint.For", src, StringComparison.Ordinal);
-        Assert.Contains("HarborKitPaint.PrimitiveBag", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("else next[i] = _kitWood;", src, StringComparison.Ordinal);
+        var kit = File.ReadAllText(Path.Combine(_repo, "unity/Assets/Scripts/Runtime/FieldKit.cs"));
+        var harbor = File.ReadAllText(Path.Combine(_repo, "unity/Assets/Scripts/Runtime/HarborKit.cs"));
+        Assert.Contains("HarborKitPaint.For", kit, StringComparison.Ordinal);
+        Assert.Contains("HarborKitPaint.PrimitiveBag", kit, StringComparison.Ordinal);
+        Assert.DoesNotContain("else next[i] = _kitWood;", kit, StringComparison.Ordinal);
+        Assert.DoesNotContain("else next[i] = _kitWood;", harbor, StringComparison.Ordinal);
+        Assert.Contains("Field.DropMesh(", harbor, StringComparison.Ordinal);
     }
 
     [Fact]
