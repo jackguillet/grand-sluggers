@@ -3,7 +3,19 @@ using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
-    /// <summary>Five physical star pips per dugout. Filled gold, empty pewter.</summary>
+    /// <summary>
+    /// Five physical star pips per dugout. Filled gold, empty pewter.
+    ///
+    /// <para>
+    /// The pips stand on the foul rail of the park being played — the one the <see cref="ParkView"/>
+    /// beside this meter last built — where the dugout is: the rail's top
+    /// (<see cref="HarborWall.HipHeight"/>) at points of the rail the ball meets
+    /// (<see cref="HarborWall.FoulWall"/>, which is <see cref="ParkBoundary.RailPoint"/>), along the
+    /// dugout span the wall loop pins on each foul wrap at every park
+    /// (<see cref="HarborDugout.AlongHome"/>). Nothing here reads Harbor's kit (#859); at Harbor that
+    /// rail is the dugout fascia, so the pips land where they always have.
+    /// </para>
+    /// </summary>
     public sealed class StarMeter : MonoBehaviour
     {
         Transform _root;
@@ -15,24 +27,37 @@ namespace GrandSluggers.UnityClient
 
         public void Build(Transform parent)
         {
+            var view = GetComponent<ParkView>();
+            var park = view != null ? view.Park : null;
             if (_root != null) Destroy(_root.gameObject);
             _on = Look.Toon(Colors.Gold);
             _off = Look.Toon(new Color(0.28f, 0.28f, 0.30f));
             _mesh = StarMesh();
             _root = new GameObject("StarMeter").transform;
             _root.SetParent(parent, false);
-            var y = HarborKit.DugoutFasciaY + 0.22f;
+            var y = HarborWall.HipHeight + 0.22f;
             var faceHome = Quaternion.Euler(-8f, -135f, 0f);
             var faceAway = Quaternion.Euler(-8f, 135f, 0f);
             for (var i = 0; i < 5; i++)
             {
-                var along = HarborDugout.Along0 - HarborDugout.HalfAlong + 1.7f
-                    + i * HarborKit.DugoutStarSpacing;
-                var home = HarborDugout.RailAt(1, along);
-                var away = HarborDugout.RailAt(-1, along);
-                _home[i] = Pip("HomeStar" + i, new Vector3(home.X - 0.15f, y, home.Z), faceHome);
-                _away[i] = Pip("AwayStar" + i, new Vector3(away.X + 0.15f, y, away.Z), faceAway);
+                var along = HarborDugout.AlongHome + 1.7f + i * HarborDugout.StarSpacing;
+                var home = Rail(park, 1, along);
+                var away = Rail(park, -1, along);
+                _home[i] = Pip("HomeStar" + i, new Vector3(home.x - 0.15f, y, home.z), faceHome);
+                _away[i] = Pip("AwayStar" + i, new Vector3(away.x + 0.15f, y, away.z), faceAway);
             }
+        }
+
+        /// <summary>
+        /// The park's foul rail at this distance along the line, on this side (+1 first base). With no
+        /// park built yet the rail runs parallel to the line, which is where every park's rail is this
+        /// close to home (the flare starts at <see cref="ParkBoundary.FlareStartFt"/>).
+        /// </summary>
+        static Vector3 Rail(Park park, int sign, float along)
+        {
+            var pole = park != null ? AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg) : 0;
+            var p = HarborWall.FoulWall(sign, along, pole);
+            return new Vector3((float)p.X, 0f, (float)p.Z);
         }
 
         public void Set(double home, double away)

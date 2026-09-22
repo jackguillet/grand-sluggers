@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 
@@ -243,8 +244,12 @@ public static class ContentDataValidator
         // in so a park's own mistakes are still named in the same pass.
         var hazards = data.Rules?.Hazards ?? RulesTable.Defaults.Hazards;
         var grounds = data.Rules?.Grounds ?? RulesTable.Defaults.Grounds;
+        // Where a hazard may stand is measured on this root's own diamond (SF-23): the bags and the
+        // rubber are the infield table this root loaded, so a trial's 80-ft diamond is the one its
+        // parks are checked against, never the process-wide one.
+        var infield = data.Rules?.Infield ?? RulesTable.Defaults.Infield;
         foreach (var row in data.Parks)
-            ValidatePark(row, hazards, grounds, data.GroundsSource, errors);
+            ValidatePark(row, hazards, grounds, data.GroundsSource, infield, errors);
         UniquePerPark("pickOrder", data.Parks.Where(r => r.Value.PickOrder is not null)
             .Select(r => (r.Value.PickOrder!.Value.ToString(), r.Source)), errors);
         UniquePerPark("faction", data.Parks
@@ -418,7 +423,8 @@ public static class ContentDataValidator
     }
 
     static void ValidatePark(
-        Sourced<ParkDto> row, HazardRules hazards, GroundLibrary grounds, string groundsSource, List<string> errors)
+        Sourced<ParkDto> row, HazardRules hazards, GroundLibrary grounds, string groundsSource, InfieldRules infield,
+        List<string> errors)
     {
         var p = row.Value;
         Required(row.Source, "park", p.Id, "id", p.Id, errors);
@@ -480,7 +486,27 @@ public static class ContentDataValidator
             // none at all — which is why Funfair's boxcar no longer needs a special case by name.
             if (h.Radius == 0 && hazards.Of(h.Type).Pattern != HazardPattern.Decoration)
                 errors.Add($"{row.Source}: {where} radius must be greater than 0; got {h.Radius}");
+            HazardPlace(row.Source, where, h, infield, errors);
         }
+    }
+
+    /// <summary>
+    /// <c>SF-23</c> (§14, FD-19): a hazard stays off the running lanes, the mound-to-plate lane, the bag
+    /// pads, the mound and the plate area. One refusal per hazard, naming every piece of ground its disc
+    /// crosses and by how many feet, deepest first, so the author can see how far it has to go. A disc
+    /// whose centre or radius is not a number has already been refused for that, and is not measured.
+    /// </summary>
+    static void HazardPlace(string source, string where, HazardDto h, InfieldRules infield, List<string> errors)
+    {
+        if (!double.IsFinite(h.X) || !double.IsFinite(h.Z) || !double.IsFinite(h.Radius) || h.Radius < 0) return;
+        var crossings = HazardPlacement.Crossings(h.X, h.Z, h.Radius, infield);
+        if (crossings.Count == 0) return;
+        var what = string.Join(", ", crossings.Select(c =>
+            $"{c.What} by {c.ByFt.ToString("0.00", CultureInfo.InvariantCulture)} ft"));
+        errors.Add($"{source}: {where} {h.Type} at ({h.X.ToString(CultureInfo.InvariantCulture)}, "
+            + $"{h.Z.ToString(CultureInfo.InvariantCulture)}) radius {h.Radius.ToString(CultureInfo.InvariantCulture)} "
+            + $"crosses {what}; a hazard stays off the running lanes, the mound-to-plate lane, the bag pads, "
+            + "the mound and the plate area (FD-19, SF-23)");
     }
 
     /// <summary>
@@ -619,6 +645,89 @@ public static class ContentDataValidator
     {
         if (double.IsNaN(value) || double.IsInfinity(value) || value < min || value > max)
             errors.Add($"{source}: {field} must be between {min} and {max}; got {value}");
+    }
+}
+
+/// <summary>
+/// Where a hazard may stand (§14, §0.3 FD-19, <c>SF-23</c>). A hazard may sit anywhere except the four
+/// running lanes, the mound-to-plate lane, the three bag pads, the mound and the plate area; a disc that
+/// crosses any of them is refused on whichever data root it was authored in.
+///
+/// <para>
+/// <b>No new number.</b> The ground a body needs is the ground the diamond already draws: a lane is
+/// <see cref="ParkDiamond.PathWidth"/> wide, centred on the line from bag to bag (and from the rubber to
+/// the plate), a pad is <see cref="ParkDiamond.BagPadR"/> round a bag, the mound is
+/// <see cref="ParkDiamond.MoundR"/> round the rubber and the plate area is
+/// <see cref="ParkDiamond.HomePackedR"/> round the plate. Those are feet of body and equipment and do not
+/// scale. Where the bags and the rubber <i>are</i> is the root's own <c>infield.json</c>
+/// (<c>cornerFt</c>, <c>secondFt</c>, <c>moundFt</c>), handed in, so the 80-ft trial is checked on its
+/// own diamond. The mound is the <c>float</c> 9.2 the hill has always stood at.
+/// </para>
+///
+/// <para>
+/// <b>The disc is the hazard's own radius</b> — the thing that stands on the field where a runner or a
+/// fielder would meet it. A <c>ballRedirect</c> row's <c>reachPadFt</c> is not counted: it is how near a
+/// <i>ball</i> must land for the can to take it (#732), not ground a body stands on, and FD-19 keeps
+/// shallow ball hazards legal. A <c>decoration</c> with no radius is a point. There is no moving hazard
+/// yet (F4-f); when there is, every point of its path is checked by this same function.
+/// </para>
+/// </summary>
+public static class HazardPlacement
+{
+    /// <summary>One piece of protected ground a disc crosses, and by how many feet.</summary>
+    public readonly record struct Crossing(string What, double ByFt);
+
+    /// <summary>
+    /// Every piece of protected ground the disc at (<paramref name="x"/>, <paramref name="z"/>) of
+    /// <paramref name="radiusFt"/> crosses, deepest first. Empty is a legal place. A disc that only
+    /// touches the edge is legal.
+    /// </summary>
+    public static IReadOnlyList<Crossing> Crossings(double x, double z, double radiusFt, InfieldRules infield) =>
+        Ground(infield)
+            .Select(g => new Crossing(g.What, radiusFt + g.HalfWidthFt - g.DistanceFt(x, z)))
+            .Where(c => c.ByFt > 0)
+            .OrderByDescending(c => c.ByFt)
+            .ToList();
+
+    /// <summary>
+    /// How far the disc stands from the nearest protected ground, in feet: positive is clear by that
+    /// much, zero touches, negative crosses by that much.
+    /// </summary>
+    public static double ClearanceFt(double x, double z, double radiusFt, InfieldRules infield) =>
+        Ground(infield).Min(g => g.DistanceFt(x, z) - g.HalfWidthFt - radiusFt);
+
+    /// <summary>A lane is a segment with its half-width; a pad is a point with its radius.</summary>
+    readonly record struct Protected(string What, double Ax, double Az, double Bx, double Bz, double HalfWidthFt)
+    {
+        public double DistanceFt(double x, double z)
+        {
+            var dx = Bx - Ax;
+            var dz = Bz - Az;
+            var length2 = dx * dx + dz * dz;
+            var t = length2 == 0 ? 0 : Math.Clamp(((x - Ax) * dx + (z - Az) * dz) / length2, 0, 1);
+            return Diamond.Dist(x, z, Ax + t * dx, Az + t * dz);
+        }
+    }
+
+    static Protected[] Ground(InfieldRules infield)
+    {
+        var lane = ParkDiamond.PathWidth * 0.5;
+        var corner = infield.CornerFt;
+        var second = infield.SecondFt;
+        var rubber = infield.MoundFt;
+        return
+        [
+            new("the home-first lane", 0, 0, corner, corner, lane),
+            new("the first-second lane", corner, corner, 0, second, lane),
+            new("the second-third lane", 0, second, -corner, corner, lane),
+            new("the third-home lane", -corner, corner, 0, 0, lane),
+            new("the mound-to-plate lane", 0, rubber, 0, 0, lane),
+            new("first base's pad", corner, corner, corner, corner, ParkDiamond.BagPadR),
+            new("second base's pad", 0, second, 0, second, ParkDiamond.BagPadR),
+            new("third base's pad", -corner, corner, -corner, corner, ParkDiamond.BagPadR),
+            new("the mound", 0, rubber, 0, rubber, ParkDiamond.MoundR),
+            new("the plate area", 0, 0, 0, 0, ParkDiamond.HomePackedR)
+        ];
     }
 }
 

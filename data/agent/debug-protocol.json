@@ -463,6 +463,26 @@
       "promoted": "GuiLockTests.test_a_live_holder_refuses_the_second_session_by_name",
       "issue": "#866",
       "pr": "#866"
+    },
+    {
+      "id": "hazard-on-a-base-path",
+      "signature": "cli art, or any ContentCatalog.Load, stops with \"park '<id>' hazard[<i>] <type> at (x, z) radius r crosses the first-second lane by N ft ...; a hazard stays off the running lanes, the mound-to-plate lane, the bag pads, the mound and the plate area (FD-19, SF-23)\" - for a park file nobody touched, or for a trial overlay that carries only rules/infield.json with the bags moved.",
+      "stage": "sim",
+      "cause": "The placement rule (ContentValidation.cs HazardPlacement, #862) measures every hazard's own disc against the lanes (ParkDiamond.PathWidth), the pads (BagPadR), the mound (MoundR) and the plate area (HomePackedR) of the root's own infield.json. A park that authors a disc there is refused; so is a root that moves the bags without its hazards, because the shipped parks then stand on the smaller diamond (an 80-ft infield under the shipped Canopy puts its (6, 102) barrel on the first-second lane and second base's pad). Before #862 no validator checked a hazard's place, and eight status volumes sat on a lane or a pad unnoticed, because no body touches a hazard yet.",
+      "fix": "Do not weaken the rule, add a per-park exception, count or drop reachPadFt, or move the hazard yourself: FD-19 makes a refused hazard a finding for Jack, and only a decision like FD-19-R1 (outward along its own bearing, radius kept, the trial twin the migration of the moved row) moves one. A trial that moves the bags carries the parks whose hazards stand near them, migrated by the accepted zone rule, as trials/c80 does; a test fixture that only needs an infield table changes fields no hazard stands on (baselineFt, innerHalfFt, backArcFt).",
+      "promoted": "HazardPlacementTests.SF23_EveryHazardClearsTheLanesPadsMoundAndPlate",
+      "issue": "#862",
+      "pr": "#867"
+    },
+    {
+      "id": "sim-uses-a-bcl-api-unity-lacks",
+      "signature": "dotnet build, the full test suite and the CLI are green after a GrandSluggers.Sim change, then tools/unity-compile.sh stops on the sim itself with CS0117 or CS1061 on a framework type - e.g. 'ArgumentNullException' does not contain a definition for 'ThrowIfNull'.",
+      "stage": "unity-console",
+      "cause": "GrandSluggers.Sim is also a Unity local package. The solution builds it for net10.0, but Unity compiles the same sources against netstandard 2.1 (tools/unity-compile.sh: NetStandard/ref/2.1.0 plus the BCL extensions), so a framework helper added after netstandard 2.1 - ArgumentNullException.ThrowIfNull, and its kind - exists for dotnet and not for the game. Nothing in the .NET build or the tests can see the difference (#856, GroundZones.cs WallMaterial.OfSegment).",
+      "fix": "Write the netstandard 2.1 form in src/GrandSluggers.Sim (if (x is null) throw new ArgumentNullException(nameof(x))) and run tools/unity-compile.sh before opening any PR that adds framework calls to the sim, not only one that changes a signature. The language version is not the limit (the gate compiles with /langversion:latest); the framework surface is.",
+      "promoted": "tools/unity-compile.sh",
+      "issue": "#856",
+      "pr": "#869"
     }
   ]
 }
