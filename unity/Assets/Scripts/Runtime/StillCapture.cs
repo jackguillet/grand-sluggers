@@ -20,6 +20,7 @@ namespace GrandSluggers.UnityClient
         StillRequest _req;
         bool _ran;
         string _temp = "";
+        string _loadError = "";
 
         public static void Attach(MatchDirector play)
         {
@@ -39,8 +40,22 @@ namespace GrandSluggers.UnityClient
         void Update()
         {
             if (_ran || _req != null) return;
+            // The director's catalog declares the parks, so the gate waits the
+            // frame it takes to load: a park id the catalog does not have is
+            // refused by name, not captured at the default park.
+            if (_play == null || _play.GateContent == null) return;
             _temp = TempDir();
-            if (!StillRequest.TryLoad(_temp, out _req, out _)) return;
+            if (!StillRequest.TryLoad(_temp, _play.GateContent, out _req, out var loadError))
+            {
+                // No request is the idle state; a request the parser refuses — an
+                // unknown shot, an unknown park — says so once instead of waiting.
+                if (!loadError.StartsWith("missing ", StringComparison.Ordinal) && loadError != _loadError)
+                {
+                    _loadError = loadError;
+                    Debug.LogError("Grand Sluggers still gate: " + loadError);
+                }
+                return;
+            }
             ForceMute = _req.HudOff;
             StartCoroutine(Run());
         }
@@ -58,14 +73,16 @@ namespace GrandSluggers.UnityClient
             var outDir = _req.ResolvedOutDir(_temp);
             IReadOnlyList<string> shots;
             IReadOnlyList<string> swingCaptains;
+            var park = ExhibitionPick.DefaultPark;
             try
             {
+                park = _req.ResolvedPark(_play.GateContent);
                 shots = _req.ResolvedShots();
                 swingCaptains = _req.ResolvedSwingCaptains();
             }
             catch (Exception ex)
             {
-                WriteDone(_temp, outDir, false, files, swingMetrics, ex.Message);
+                WriteDone(_temp, outDir, false, files, swingMetrics, park, _req.Night, ex.Message);
                 enabled = false;
                 yield break;
             }
@@ -74,66 +91,78 @@ namespace GrandSluggers.UnityClient
             var cam = _play.GateCam;
             var w = _req.ResolvedWidth();
             var h = _req.ResolvedHeight();
-            foreach (var shot in shots)
+            // The scene's park and night are Jack's pick. Capture at the park the
+            // request names, then hand the pick back so Play is where he left it.
+            var prevPark = _play.ParkId;
+            var prevNight = _play.Night;
+            _play.GateUsePark(park, _req.Night);
+            try
             {
-                _play.GateStage(shot, _req);
-                if (StillRequest.IsSwingMatrixShot(shot))
+                foreach (var shot in shots)
                 {
-                    foreach (var captain in swingCaptains)
-                    foreach (var hand in new[] { Hand.R, Hand.L })
+                    _play.GateStage(shot, _req);
+                    if (StillRequest.IsSwingMatrixShot(shot))
                     {
-                        _play.GateStageSwingCaptain(captain, hand);
-                        for (var i = 0; i < 24; i++) yield return null;
-                        foreach (var power in new[] { (Id: "normal", Charge: 0f), (Id: "max", Charge: 1f) })
-                        foreach (var beat in new[] { "ready", "load", "contact", "follow", "finish" })
+                        foreach (var captain in swingCaptains)
+                        foreach (var hand in new[] { Hand.R, Hand.L })
                         {
-                            _play.GatePoseSwing(beat, power.Charge);
-                            for (var i = 0; i < 4; i++) yield return null;
-                            // ActorDirector continues drawing SET while simulation is held.
-                            // Reapply the exact pose on the capture frame, after those draws.
-                            var hero = _play.GatePoseSwing(beat, power.Charge);
-                            var matrixPng = StillRequest.SwingPngPath(outDir, captain + "-" + hand, power.Id, beat);
-                            try
+                            _play.GateStageSwingCaptain(captain, hand);
+                            for (var i = 0; i < 24; i++) yield return null;
+                            foreach (var power in new[] { (Id: "normal", Charge: 0f), (Id: "max", Charge: 1f) })
+                            foreach (var beat in new[] { "ready", "load", "contact", "follow", "finish" })
                             {
-                                Capture(_play.GateCam != null ? _play.GateCam : cam, matrixPng, w, h);
-                                files.Add(matrixPng);
-                                swingMetrics.Add(_play.GateMeasureSwing(
-                                    hero, beat, captain + "-" + hand, power.Id, out var metricError));
-                                if (!string.IsNullOrEmpty(metricError)) swingErrors.Add(metricError);
+                                _play.GatePoseSwing(beat, power.Charge);
+                                for (var i = 0; i < 4; i++) yield return null;
+                                // ActorDirector continues drawing SET while simulation is held.
+                                // Reapply the exact pose on the capture frame, after those draws.
+                                var hero = _play.GatePoseSwing(beat, power.Charge);
+                                var matrixPng = StillRequest.SwingPngPath(outDir, captain + "-" + hand, power.Id, beat);
+                                try
+                                {
+                                    Capture(_play.GateCam != null ? _play.GateCam : cam, matrixPng, w, h);
+                                    files.Add(matrixPng);
+                                    swingMetrics.Add(_play.GateMeasureSwing(
+                                        hero, beat, captain + "-" + hand, power.Id, out var metricError));
+                                    if (!string.IsNullOrEmpty(metricError)) swingErrors.Add(metricError);
+                                }
+                                catch (Exception ex)
+                                {
+                                    error = ex.Message;
+                                    break;
+                                }
                             }
-                            catch (Exception ex)
-                            {
-                                error = ex.Message;
-                                break;
-                            }
+                            if (error != null) break;
                         }
                         if (error != null) break;
+                        continue;
                     }
-                    if (error != null) break;
-                    continue;
+                    for (var i = 0; i < 24; i++) yield return null;
+                    _play.GatePose(shot, _req);
+                    for (var i = 0; i < 4; i++) yield return null;
+                    // ActorDirector draws SET every frame. Reapply the requested
+                    // authored pose in the capture frame, as the swing matrix does.
+                    _play.GatePose(shot, _req);
+                    var png = StillRequest.PngPath(outDir, shot, _req.ResolvedHome(), park, _req.Night);
+                    try
+                    {
+                        Capture(_play.GateCam != null ? _play.GateCam : cam, png, w, h);
+                        files.Add(png);
+                    }
+                    catch (Exception ex)
+                    {
+                        error = ex.Message;
+                        break;
+                    }
                 }
-                for (var i = 0; i < 24; i++) yield return null;
-                _play.GatePose(shot, _req);
-                for (var i = 0; i < 4; i++) yield return null;
-                // ActorDirector draws SET every frame. Reapply the requested
-                // authored pose in the capture frame, as the swing matrix does.
-                _play.GatePose(shot, _req);
-                var png = StillRequest.PngPath(outDir, shot, _req.ResolvedHome());
-                try
-                {
-                    Capture(_play.GateCam != null ? _play.GateCam : cam, png, w, h);
-                    files.Add(png);
-                }
-                catch (Exception ex)
-                {
-                    error = ex.Message;
-                    break;
-                }
+            }
+            finally
+            {
+                _play.GateRestorePark(prevPark, prevNight);
             }
 
             var doneError = error ?? string.Join("; ", swingErrors);
             WriteDone(_temp, outDir, error == null && swingErrors.Count == 0,
-                files, swingMetrics, doneError);
+                files, swingMetrics, park, _req.Night, doneError);
             try { File.Delete(StillRequest.RequestPath(_temp)); }
             catch { /* leftover request is ok */ }
             enabled = false;
@@ -158,9 +187,11 @@ namespace GrandSluggers.UnityClient
             Destroy(rt);
         }
 
-        static void WriteDone(string temp, string outDir, bool ok, List<string> files, List<string> swingMetrics, string error)
+        static void WriteDone(string temp, string outDir, bool ok, List<string> files, List<string> swingMetrics,
+            string park, bool night, string error)
         {
             var json = "{\"ok\":" + (ok ? "true" : "false")
+                + ",\"park\":\"" + park + "\",\"night\":" + (night ? "true" : "false")
                 + ",\"files\":[" + string.Join(",", files.ConvertAll(f => "\"" + f.Replace("\\", "/") + "\""))
                 + "],\"swing\":[" + string.Join(",", swingMetrics)
                 + "],\"error\":\"" + (error ?? "").Replace("\"", "'") + "\"}";
@@ -183,6 +214,30 @@ namespace GrandSluggers.UnityClient
     public sealed partial class MatchDirector
     {
         internal Camera GateCam => _rig != null ? _rig.Cam : Camera.main;
+
+        /// <summary>The loaded catalog, so the still gate validates a park id against the park files (#820).</summary>
+        internal ContentCatalog GateContent => _content;
+
+        /// <summary>
+        /// The batch's park and night, set before the first <c>NewMatch()</c>.
+        /// Dropping the match the scene came in with is what makes every shot —
+        /// including the title, select and lineup shots that keep an existing
+        /// match — resolve the requested park; each GateStage branch then
+        /// rebuilds the view from it the way the field pick does.
+        /// </summary>
+        internal void GateUsePark(string parkId, bool night)
+        {
+            ParkId = parkId;
+            Night = night;
+            _match = null;
+        }
+
+        /// <summary>Hands the pick back after a batch. The drawn park stays on the last still.</summary>
+        internal void GateRestorePark(string parkId, bool night)
+        {
+            ParkId = parkId;
+            Night = night;
+        }
 
         internal void GateStage(string shot, StillRequest req)
         {
