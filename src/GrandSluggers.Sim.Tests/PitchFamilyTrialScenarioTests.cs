@@ -282,6 +282,13 @@ public sealed class PitchFamilyTrialScenarioTests
                 Assert.Equal(2 * PitchFlight.SweepShiftFt(u, row, Hand.R), right - left, 12);
             }
 
+        // The arm rides on a record a saved trace carries (LivePlayCommand.Pitch), so a stream
+        // written before this field existed still has to read. It comes back as a right-hander,
+        // which is the only arm any flight before #818 was ever given.
+        var oldStream = PlayTrace.Parse(
+            """{"ticks":[],"commands":[{"i":0,"t":0,"input":{"kind":"Begin","pitch":{"type":"fastball","charge01":0,"star":false}}}]}""");
+        Assert.Equal(Hand.R, oldStream.Commands![0].Input.Pitch!.Throws);
+
         // All 25 shipped pitchers: the sweep a delivery ends with is the one this arm gives it.
         var roster = _shippedContent.Characters.Values.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         Assert.Equal(25, roster.Count);
