@@ -58,8 +58,11 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
     /// Contact: spatial forgiveness at the plate (PH-15-R7) — it scales the cursor's barrel, so a
     /// crossing further from the center still finds the bat. Unauthored (0) tracks <see cref="Bat"/>.
     ///
-    /// It also still widens the timing window (<see cref="AtBatResolver.SwingWindowFrames"/>); that
-    /// read is P2-b's to remove, not a rule this trait keeps (spec §2, §5.3).
+    /// On the <b>shipped root</b> it also still widens the timing window
+    /// (<see cref="AtBatResolver.SwingWindowFrames"/>); under <c>batting.window.shared</c> it does
+    /// not, and the barrel is all it does (#844, spec §2, §5.3). The CPU batter's timing error also
+    /// reads it, and that is a separate thing: how far off the ball that bat arrives, not how wide
+    /// its window is (§5.9; whether it should read Contact at all is P2-g's).
     /// </summary>
     public int Contact
     {
