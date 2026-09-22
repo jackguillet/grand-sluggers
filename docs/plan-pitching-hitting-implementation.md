@@ -98,7 +98,7 @@ graph TD
 | P2-d | Gameplay | Charge narrows the spatial barrel only (already `chargeMul`); Contact scales the spatial barrel only. Pins for PH-09-R1. One sim helper for the drawn oval so Unity stops re-deriving it. | PH-11-R1, PH-15-R7, PH-09-R1 | Nothing |
 | P2-e | Gameplay | Remove buddies-on-base widen and charge power. | PH-16-R14, PH-16-R15 | Q5a answered: the on-deck item offer goes too; items dormant. |
 | P2-g | Gameplay | The CPU batter reads only what a human can see when it commits: decide at the commit instant from the trajectory as it stands, not from the final crossing (GS §3 vs §5.9). Behind a switch; shipped draws identical; S-04 and S-28 follow. | PH-18 | Re-report S-29. |
-| P2-f | Presentation | Book pair, card bars for Contact / Power, difficulty copy. | PH-15-R5, PH-17 | **Sitting 2** |
+| P2-f #876 | Presentation | Book pair (one window, three pitches), title line, T-P03 fixed, T-P10 implemented. Card bars for Contact / Power wait until a value is authored. | PH-15-R5, PH-17 | Jack reads the book |
 
 ### Phase 3 — pitching attributes and fatigue
 
@@ -172,7 +172,7 @@ One child per reviewed ability or ability group, after P5. First: remove `batter
 
 ## 4. Scenario ids
 
-Free: S-83..S-89 and S-128 upward (S-101 … S-106b selection, #812; S-107 … S-113 trial shapes, #818; S-114 … S-120 CPU pitcher, #823; S-121 … S-123 Contact / Power, #837; S-124 … S-127 shared window, #844). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
+Free: S-83..S-89 and S-133 upward (S-101 … S-106b selection, #812; S-107 … S-113 trial shapes, #818; S-114 … S-120 CPU pitcher, #823; S-121 … S-123 Contact / Power, #837; S-124 … S-127 shared window, #844; S-128 … S-132 stick switch, #855). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
 
 ## 5. Questions that were Jack's — answered September 21, 2026
 
@@ -216,4 +216,5 @@ Consequences for the map:
 | P2-b one shared timing window (9 frames) behind `batting.window.shared`, on in `trials/pitch5` (S-124 … S-127; S-10, S-30 rewritten) | #844 | #849 | `d49c5273` | `e331b7c1`: 1945 / 1945, 777 / 777 c80 rows, seals hash-only, shipped seed 7 identical, `portable` green | **sitting 2 passed** — same window and words |
 | P2-c ordinary swings ignore the stick behind `batting.geometryOnly`, on in `trials/pitch5`; cross-root in-zone read repaired (S-128 … S-132; S-13, S-126, S-127 rewritten) | #855 | #865 | `c48fad54` | `e800fbeb`: 1995 / 1995 and 811 / 811 c80 rows (child and orchestrator, on the merged `c48fad54`), seals check clean, shipped seed 7 identical, `unity-compile.sh` OK, `portable` green. Merged by Jack before the orchestrator's review; verified after merge | its own sitting on `trials/pitch5` (not on the accepted window) |
 | Acceptance of sittings 1 and 2 written to the register (13 decisions `human-accepted`, verbatim quote, scope) | #803 | this PR | — | docs only | recorded, not claimed |
-| Promote the accepted duel trial to the shipped root (data only; switches kept) | #860 | — | — | — | passed on the trial window; Jack may confirm the shipped build |
+| Promote the accepted duel trial to the shipped root (data + `Rules.cs` defaults for the parity rail; switches kept; `trials/pitch5` is now the P2-c stick trial only) | #860 | #871 | `00eed012` | `8b4470c3` (main merged in after #869; resealed hash + provenance only): 2035 / 2035, 820 / 820 c80 rows, seals clean, `unity-compile.sh` OK, `portable` green; shipped S-29 1.92 / 1.90 → 2.48 / 2.08, walks 2.86 → 0.80 | passed on the trial window; Jack may confirm the shipped build (window preview `00eed012` on `trials/pitch5`) |
+| P2-f the book, lessons and title line describe the shipped duel; T-P03 pitched by hex (vale owns no changeup); T-P10 implemented (`third-slot-strike`) | #876 | #877 | `5aaf1426` | `f8eca1a5`: 2039 / 2039, 824 / 824 c80 rows, 104 lessons on both profiles, seed 7 identical, seals unchanged, `unity-compile.sh` OK, `portable` green | Jack reads the book and plays T-P03 / T-P10 |
