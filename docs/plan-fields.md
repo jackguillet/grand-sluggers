@@ -146,7 +146,7 @@ Grouped by the epic that fixes it. Lines are from the maps at `d0c6e12c`.
 
 **F4 — Hazard runtime (Gameplay).** Every row of the pattern matrix. Also: `ParkHazards.ChompFly` tests `park.Id` (`Fielding.cs:679`); `EmberNightFireMul` is a fielding rule with a park's name; `drops.frozen` is a roll (`Match.cs:702`); `WarpIfPipe` rolls the exit (`Fielding.cs:701`); Unity reads none of `Frozen`, `Warped`, `Chomped`. Spec §14 says "1.2 s" and "tilt"; neither exists.
 
-**F5 — Measurement (Gameplay).** S-29 pools six parks with no per-park band (`AtBatScenarioTests.cs:690`). The CLI has no night flag, so no gate measures a night rule. There is no park-factor cohort.
+**F5 — Measurement (Gameplay).** S-29 pools six parks with no per-park band (`AtBatScenarioTests.cs:690`) — still true, and FD-13's open tuning question. ✅ #828 (PR #834) closed the other two: `cli match --night` plays a night game, and `cli match --cohort park-factors` is the cohort — every park in the catalog, ten matchups, predeclared seeds, day and night, either root, reported against Harbor. It is a report, not a gate, so it measures a night rule without holding one.
 
 **F6 — Field kit (Presentation).** Two diamonds (`ParkView.cs:181-273` vs `HarborKit`). Five per-park dress methods and eleven light rigs chosen by id (`ParkView.cs:48-173`, `Look.cs:296-484`). The foul rail is not drawn outside Harbor. `StarMeter` stands on Harbor's dugout in every park (`StarMeter.cs:24`). Rooftop draws two AC units that are not in data (`ParkView.cs:829`). Warp and barrel draw the radius but the sim reach adds an 8-ft pad nobody sees. `data/art/parks.json` rows are `{id, slot, placed}` only; `cli art` checks only that a row exists (`Art.cs:237`).
 
