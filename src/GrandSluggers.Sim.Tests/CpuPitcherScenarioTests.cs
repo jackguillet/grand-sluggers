@@ -447,7 +447,9 @@ public sealed class CpuPitcherScenarioTests
         // (a) The switch, both sides, from the files rather than from the code defaults.
         Assert.False(_shipped.Rules.Pitching.Cpu.HumanInputs);
         Assert.True(Trial.Rules.Pitching.Cpu.HumanInputs);
-        Assert.Equal(new[] { "rules/pitching.json" }, TrialRoot.Overrides);
+        // #844 added rules/batting.json to the same overlay (the Phase 1 + Phase 2 duel trial); this
+        // row still owns pitching.json, and the batting file is S-126's.
+        Assert.Equal(new[] { "rules/batting.json", "rules/pitching.json" }, TrialRoot.Overrides);
         Assert.Equal(TrialName, TrialRoot.OverlayName);
 
         // (b) The shipped rows carry the port of today's exclusive mix, so the switch has a stated
