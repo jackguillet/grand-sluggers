@@ -10,7 +10,6 @@ namespace GrandSluggers.Sim;
 public static class ContentDataValidator
 {
     static readonly HashSet<string> Hands = new(StringComparer.OrdinalIgnoreCase) { "L", "R" };
-    static readonly HashSet<string> Surfaces = new(StringComparer.Ordinal) { "grass", "dirt", "ice", "ash" };
     static readonly HashSet<string> FieldAbilityIds = new(StringComparer.Ordinal)
     {
         "ball-dash", "burrow", "clamber", "dive", "grow", "laser", "lick-catch",
@@ -90,6 +89,9 @@ public static class ContentDataValidator
 
         // Rule numbers (spec §16). Missing fields fall back to code; unknown fields and bad ranges are errors.
         data.Rules = RulesTable.Load(root, data.ReadErrors);
+        // Resolved through the overlay like every other path, so a trial that carries its own ground
+        // rows is the file a bad `surface` is reported against (FD-05, SF-03).
+        data.GroundsSource = RulesTable.PathFor(root, "grounds");
         return data;
     }
 
@@ -234,12 +236,15 @@ public static class ContentDataValidator
 
         foreach (var row in data.Characters)
             ValidateCharacter(row, pitches, swings, errors);
-        // The hazard type set is the library's table, not a list this file keeps (FD-09, FR-02).
-        // A rules table that failed to load has already reported itself; fall back to the code rows
-        // so a park's own mistakes are still named in the same pass.
+        // The hazard type set is the library's table, not a list this file keeps (FD-09, FR-02), and
+        // so is the ground set a park's surface and zones are checked against (FD-05, SF-03). Both are
+        // the tables this root loaded, so a trial that authors either file is checked against its own
+        // rows; a rules table that failed to load has already reported itself, and the code rows stand
+        // in so a park's own mistakes are still named in the same pass.
         var hazards = data.Rules?.Hazards ?? RulesTable.Defaults.Hazards;
+        var grounds = data.Rules?.Grounds ?? RulesTable.Defaults.Grounds;
         foreach (var row in data.Parks)
-            ValidatePark(row, hazards, errors);
+            ValidatePark(row, hazards, grounds, data.GroundsSource, errors);
         UniquePerPark("pickOrder", data.Parks.Where(r => r.Value.PickOrder is not null)
             .Select(r => (r.Value.PickOrder!.Value.ToString(), r.Source)), errors);
         UniquePerPark("faction", data.Parks
@@ -412,7 +417,8 @@ public static class ContentDataValidator
                 + "the two ordinary pitches beside the fastball are different families");
     }
 
-    static void ValidatePark(Sourced<ParkDto> row, HazardRules hazards, List<string> errors)
+    static void ValidatePark(
+        Sourced<ParkDto> row, HazardRules hazards, GroundLibrary grounds, string groundsSource, List<string> errors)
     {
         var p = row.Value;
         Required(row.Source, "park", p.Id, "id", p.Id, errors);
@@ -424,7 +430,10 @@ public static class ContentDataValidator
             errors.Add($"{row.Source}: park '{p.Id}' pickOrder must name its place in the field-pick cycle; got none");
         else if (pick < 1)
             errors.Add($"{row.Source}: park '{p.Id}' pickOrder must be at least 1; got {pick}");
-        Known(row.Source, $"park '{p.Id}' surface", p.Surface, Surfaces, errors);
+        // `surface` names the park's outfield ground (and, through the derived map, its foul apron).
+        // It used to be checked against a set spelled out in this file; since F3-b the only thing that
+        // decides whether a surface exists is whether the ground library has a row for it (FD-05).
+        GroundId(row.Source, $"park '{p.Id}' surface", p.Surface, grounds, groundsSource, errors);
         Positive(row.Source, $"park '{p.Id}' leftFenceFt", p.LeftFenceFt, errors);
         Positive(row.Source, $"park '{p.Id}' centerFenceFt", p.CenterFenceFt, errors);
         Positive(row.Source, $"park '{p.Id}' rightFenceFt", p.RightFenceFt, errors);
@@ -439,6 +448,7 @@ public static class ContentDataValidator
         if (!(p.NightContactWindowMul > 0 && p.NightContactWindowMul <= 1))
             errors.Add($"{row.Source}: park '{p.Id}' nightContactWindowMul must be in (0, 1]; got {p.NightContactWindowMul}");
         ValidateParkEnvironment(row.Source, p.Id, p.Environment, errors);
+        ValidateParkZones(row.Source, p.Id, p.Zones, grounds, groundsSource, errors);
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)
         {
             var h = p.Hazards![i];
@@ -486,6 +496,38 @@ public static class ContentDataValidator
             errors.Add($"{source}: park '{id}' environment.dragMul must be greater than 0 and at most {MaxParkDragMul}; got {drag}");
         if (env.WindMul is { } wind)
             FiniteRange(source, $"park '{id}' environment.windMul", wind, 0, 1, errors);
+    }
+
+    /// <summary>
+    /// The park's ground (§6.1, FD-05, <c>SF-03</c>): the block and each of its four zones are
+    /// optional, and a zone the park does not name is the one derived from <c>surface</c>
+    /// (<see cref="GroundZones.Of(Park, RulesTable?)"/>). A zone that <em>is</em> named has to name a
+    /// ground the library has a row for — there is no silent fallback to grass, because a park rolling
+    /// on a ground nobody authored is exactly the drift FR-02 exists to stop. No park names one.
+    /// </summary>
+    static void ValidateParkZones(
+        string source, string id, ParkZonesDto? zones, GroundLibrary grounds, string groundsSource, List<string> errors)
+    {
+        if (zones is null) return;
+        foreach (var (zone, named) in zones.Named())
+        {
+            if (named is null) continue;
+            GroundId(source, $"park '{id}' zones.{zone}", named, grounds, groundsSource, errors);
+        }
+    }
+
+    /// <summary>
+    /// A ground id with no row is a stop that names both files: the park file the id was written in,
+    /// and the library file the rows live in (<c>SF-03</c>). Two files, because the reader either
+    /// misspelled the id or has not authored the row yet, and the message should not make them guess
+    /// which.
+    /// </summary>
+    static void GroundId(
+        string source, string field, string value, GroundLibrary grounds, string groundsSource, List<string> errors)
+    {
+        if (grounds.Has(value)) return;
+        errors.Add($"{source}: {field} must be a ground with a row in {groundsSource}; "
+            + $"the library is [{string.Join(", ", grounds.Ids)}]; got '{value}'");
     }
 
     static void ValidateBat(Sourced<BatDto> row, List<string> errors)
@@ -591,6 +633,8 @@ internal sealed class ContentData
     public StarSkillsDto StarSkills { get; set; } = new();
     public string StarSkillsSource { get; set; } = "";
     public RulesTable? Rules { get; set; }
+    /// <summary>Where this root's ground library was read from — named by every <c>SF-03</c> refusal.</summary>
+    public string GroundsSource { get; set; } = "";
     public List<string> ReadErrors { get; } = [];
 }
 
@@ -704,11 +748,52 @@ internal sealed class ParkDto
     /// </summary>
     public ParkEnvironmentDto? Environment { get; set; }
 
+    /// <summary>
+    /// Which ground each of this park's four zones names (§6.1, FD-05, #846). Optional, and absent is
+    /// the map derived from <see cref="Surface"/>. Like <see cref="Environment"/> and unlike
+    /// <see cref="Notes"/> it <em>is</em> carried onto <see cref="Park"/>, because the ball will read
+    /// it (F3-c): evidence taken on one park's ground must not be readable as another's. A park that
+    /// names none writes nothing into <see cref="PlayTraceIdentity"/>, so no stored SHA moves.
+    /// </summary>
+    public ParkZonesDto? Zones { get; set; }
+
     public Park ToPark() => new(
         Id, Name, Faction, Surface,
         LeftFenceFt, CenterFenceFt, RightFenceFt, WindMph,
         (Hazards ?? []).Select(h => new Hazard(h!.Type, h.X, h.Z, h.Radius, h.Tag)).ToList(),
-        WindDeg, FenceHeightFt, NightContactWindowMul, Environment?.ToEnvironment());
+        WindDeg, FenceHeightFt, NightContactWindowMul, Environment?.ToEnvironment(), Zones?.ToZones());
+}
+
+/// <summary>
+/// The optional <c>zones</c> block of a park file (§6.1, §16; FD-05). Four optional ground ids: an
+/// absent zone is the one derived from <c>surface</c>, never an empty string. The block sits inside
+/// the strict park read (#820), so a misspelled zone name is refused by name rather than quietly
+/// leaving the park on its derived map.
+/// </summary>
+internal sealed class ParkZonesDto
+{
+    /// <summary>The ground inside the infield lip. Absent is <c>dirt</c>.</summary>
+    public string? InfieldDirt { get; set; }
+
+    /// <summary>The ground past the lip. Absent is the park's <c>surface</c>.</summary>
+    public string? Outfield { get; set; }
+
+    /// <summary>The ground within a track width of the fence. Absent is <c>dirt</c>.</summary>
+    public string? WarningTrack { get; set; }
+
+    /// <summary>The ground outside the chalk. Absent is the park's <c>surface</c>.</summary>
+    public string? FoulApron { get; set; }
+
+    /// <summary>The zones this block names, by the name the file spells, for the validator's messages.</summary>
+    public IEnumerable<(string Zone, string? Ground)> Named()
+    {
+        yield return ("infieldDirt", InfieldDirt);
+        yield return ("outfield", Outfield);
+        yield return ("warningTrack", WarningTrack);
+        yield return ("foulApron", FoulApron);
+    }
+
+    public ParkZones ToZones() => new(InfieldDirt, Outfield, WarningTrack, FoulApron);
 }
 
 /// <summary>

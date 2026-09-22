@@ -235,7 +235,14 @@ public sealed record Park(
     /// names one — is the global table, so the park plays Harbor's air. Last, with a default, because
     /// <c>Park</c> is also built positionally (the flight probes).
     /// </summary>
-    ParkEnvironment? Environment = null)
+    ParkEnvironment? Environment = null,
+    /// <summary>
+    /// Which ground each of this park's four zones names (§6.1, §16; FD-05). Null — no shipped or
+    /// trial park names one — is the map derived from <see cref="Surface"/>, which is how the four
+    /// zones read today (<see cref="GroundZones.Of(Park, RulesTable?)"/>). Last and defaulted for the
+    /// same reason <see cref="Environment"/> is.
+    /// </summary>
+    ParkZones? Zones = null)
 {
     /// <summary>Where the wind blows toward, in the field frame: 0 out to CF, 90 toward the right-field line, 180 in at the plate.</summary>
     public (double X, double Z) WindDirection
@@ -268,6 +275,41 @@ public sealed record ParkEnvironment(double? DragMul = null, double? WindMul = n
 {
     /// <summary>True when the park names at least one override. A park that names none plays the global table, by reference.</summary>
     public bool Names => DragMul is not null || WindMul is not null;
+}
+
+/// <summary>
+/// Which ground a park's zones name (§6.1, §16; FD-05, F3-b). Every field is optional and <c>null</c>
+/// means the default derived from the park's <c>surface</c>: <see cref="Outfield"/> and
+/// <see cref="FoulApron"/> are the surface, <see cref="InfieldDirt"/> and <see cref="WarningTrack"/>
+/// are <see cref="Ground.Dirt"/>. So a park is its surface plus the zones it overrides, and a park
+/// that overrides none reads exactly as <c>surface</c> has always read.
+///
+/// <para>
+/// <b>The zones, not their boundaries.</b> Where the lip, the track and the chalk are is the geometry
+/// the field already has (<see cref="GroundZones"/>) and belongs to #730 / #732; this block only says
+/// what each zone is made of. <b>No wall here</b> either: a span's material and its traits are the
+/// polyline fence's (FD-06, F2-c).
+/// </para>
+///
+/// <para>
+/// <b>No shipped or trial park names one.</b> The first park with an unequal zone arrives with Crystal
+/// (F9-a), as a trial, and every row of the library is today's number until then — so this block can
+/// change no play in this child.
+/// </para>
+/// </summary>
+/// <param name="InfieldDirt">The ground inside the infield lip.</param>
+/// <param name="Outfield">The ground past the lip and short of the track. The park's <c>surface</c> when absent.</param>
+/// <param name="WarningTrack">The ground within a track width of the fence.</param>
+/// <param name="FoulApron">The ground outside the chalk, behind the plate included.</param>
+public sealed record ParkZones(
+    string? InfieldDirt = null,
+    string? Outfield = null,
+    string? WarningTrack = null,
+    string? FoulApron = null)
+{
+    /// <summary>True when the park overrides at least one zone. A block that names none is the derived map.</summary>
+    public bool Names =>
+        InfieldDirt is not null || Outfield is not null || WarningTrack is not null || FoulApron is not null;
 }
 
 public sealed record Hazard(string Type, double X, double Z, double Radius, string? Tag);
