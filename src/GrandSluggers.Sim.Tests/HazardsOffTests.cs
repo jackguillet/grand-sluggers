@@ -229,8 +229,19 @@ public sealed class HazardsOffTests
 
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
-    /// <summary>The fly into the Rink's deep freeze volume, by root (<see cref="ParkSlowRowsTests"/>): (10, 180) shipped, (7, 126) on the copy.</summary>
-    static (double Carry, double Spray) RinkFly => TestRoot.Pick((180.3, 3.18), (126.2, 3.18));
+    /// <summary>
+    /// A fly aimed at the centre of the Rink's deepest status volume, read from the park as the catalog
+    /// authored it — the ball <see cref="ParkSlowRowsTests"/> slows, wherever a placement child puts the disc.
+    /// </summary>
+    static (double Carry, double Spray) RinkFly()
+    {
+        var rink = Catalog.MustPark("crystal-rink");
+        var deep = rink.Hazards
+            .Where(h => Catalog.Rules.Hazards.Of(h.Type).Pattern == HazardPattern.StatusVolume)
+            .OrderByDescending(h => Diamond.Dist(0, 0, h.X, h.Z))
+            .First();
+        return (Diamond.Dist(0, 0, deep.X, deep.Z), Math.Atan2(deep.X, deep.Z) * 180 / Math.PI);
+    }
 
     /// <summary>
     /// A human-seat fixture and an <c>AutoPlay</c> fixture see the same list (FD-10: both seats and the
@@ -241,7 +252,7 @@ public sealed class HazardsOffTests
     [Fact]
     public void SF24_AHumanSeatAndTheCpuPlayTheSameHazardsOffPark()
     {
-        var (carry, spray) = RinkFly;
+        var (carry, spray) = RinkFly();
         foreach (var hazards in new[] { true, false })
         {
             // Match.Slice's teams, so the glove that plays the fly is the one ParkSlowRowsTests slows.
