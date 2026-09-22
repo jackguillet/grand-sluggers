@@ -1807,8 +1807,26 @@
         "answer_quote": "b"
       },
       "numeric_targets": "not applicable: a placement rule from existing geometry",
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        {
+          "child": "F4-e",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/862",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/867",
+          "status": "open"
+        }
+      ],
+      "validation_evidence": [
+        {
+          "kind": "implementation",
+          "issue": "#862",
+          "pr": "#867",
+          "revision": "c74b2587",
+          "test": "GrandSluggers.Sim.Tests.HazardPlacementTests",
+          "summary": "SF-23: ContentDataValidator refuses a hazard whose own disc crosses a running lane, the mound-to-plate lane, a bag pad, the mound or the plate area, on both data roots, measured on the root's own infield.json with ParkDiamond.PathWidth / 2, BagPadR, MoundR and HomePackedR (no new number), and names the park file, the index, the type and each crossing in feet. reachPadFt and nightRadiusMul are not counted; a decoration with no radius is a point. Before the move the rule refused exactly the eight volumes named in map section 5 Q1 and nothing else. FD-19-R1: the five shipped rows behind them moved outward along their own bearing to the smallest whole-foot place that clears both roots, radii kept, the trial rows the F693-04 migration of the moved rows: Crystal (40,70)->(53,93), (-45,90)->(-49,97), (10,180)->(10,187); Ember (38,78)->(49,100), (-42,96)->(-45,104); trials/c80 (47,83), (-44,86), (7,131), (44,89), (-40,92). CompactGeometryTests unedited and green.",
+          "numeric_trial": "not applicable: positions moved by Jack's rule (FD-19-R1), no number chosen or tuned. Measured: seed 7 identical on both roots; park-factors runs x Harbor day / night shipped Crystal 1.23/1.34 -> 1.21/1.25, Ember 1.18/1.21 -> 1.17/1.21; trial Crystal 0.93/1.00 -> 0.96/1.01, Ember 1.07/1.11 -> 1.05/1.09; the other four parks byte-identical. S-29 away/home 1.92/1.90 -> 1.86/1.90 shipped, 2.36/2.46 -> 2.36/2.54 trial (one game at Crystal changed on each root).",
+          "gate": "no human gate for the rule; the moved statues and pits are drawn where the data puts them and no still was required or captured. Status unchanged (direction-accepted). Finding for Jack, not acted on: counted with reachPadFt, Canopy's barrels (22,58) and (6,102) and Funfair's first can (20,55) would cross the mound or the first-second lane on the shipped root, and Canopy's (5,91) on the trial."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -2028,6 +2046,10 @@
     {
       "date": "2026-09-22",
       "event": "Jack passed F6-a's look gate (reply \"pass\") on before / after contact sheets of all six parks, day and night, captured with the #866 GUI Unity lock after he said the Mac was free. Recorded as FD-16 validation evidence scoped to F6-a; FD-16's human_acceptance stays null because slots, looks as data and hazard actors are still to come."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F4-e opened as PR #867 (#862): the hazard placement validator (SF-23) and the FD-19-R1 moves. The content validator now refuses a hazard whose own disc crosses a running lane, the mound-to-plate lane, a bag pad, the mound or the plate area, measured on each root's own infield.json with the existing ParkDiamond path width, pads, mound and home pad; it refused exactly the eight map-Q1 volumes before the move and nothing after. The five shipped rows behind them moved outward along their own bearings to the smallest whole-foot place that clears both roots, sizes kept, and the trial rows are the accepted migration of the moved rows, so CompactGeometryTests holds unedited. The two first-base-side rows crossed the lane from the infield side, so an outward-only move carries them about 25 ft, past the lane. Crystal and Ember play moved on both roots and was re-reported, not tuned; seed 7 and the other four parks are unchanged. Two TrialOverlayTests fixtures that moved the bags to 80 ft under the shipped parks were re-authored to keep the shipped bags, because SF-23 refuses that root (Canopy's barrel lands on the lane); the refusal is itself a test. Stored trace identity SHAs were not regenerated: they were already stale for every park on main and no test reads them. No decision status changed; no number accepted; no human gate."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
