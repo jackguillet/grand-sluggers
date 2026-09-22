@@ -70,7 +70,8 @@ public sealed class GroundLibraryTests
     /// <summary>
     /// And the rows against each other: every ground is the same ground today. An unequal row is a
     /// behavior change, and it arrives with Crystal (F9-a) as a trial Jack has accepted — never as a
-    /// side effect of building the library.
+    /// side effect of building the library. The <c>body</c> block (F3-d, #857) has no flight copy to
+    /// equal; its rows equal each other here, and <c>BodyGroundTests</c> pins them at 1.0.
     /// </summary>
     [Fact]
     public void EveryGroundRowIsEqualToEveryOtherToday()
@@ -84,6 +85,7 @@ public sealed class GroundLibraryTests
                 SameNumbers($"grounds.{id}.roll", grass.Roll, grounds.Of(id).Roll);
                 SameNumbers($"grounds.{id}.bounce", grass.Bounce, grounds.Of(id).Bounce);
                 SameNumbers($"grounds.{id}.skid", grass.Skid, grounds.Of(id).Skid);
+                SameNumbers($"grounds.{id}.body", grass.Body, grounds.Of(id).Body);
             }
         }
     }
@@ -141,6 +143,7 @@ public sealed class GroundLibraryTests
             SameNumbers($"grounds.{id}.roll", defaults.Grounds.Of(id).Roll, loaded.Grounds.Of(id).Roll);
             SameNumbers($"grounds.{id}.bounce", defaults.Grounds.Of(id).Bounce, loaded.Grounds.Of(id).Bounce);
             SameNumbers($"grounds.{id}.skid", defaults.Grounds.Of(id).Skid, loaded.Grounds.Of(id).Skid);
+            SameNumbers($"grounds.{id}.body", defaults.Grounds.Of(id).Body, loaded.Grounds.Of(id).Body);
         }
         foreach (var id in defaults.Walls.Ids)
             SameNumbers($"walls.{id}", defaults.Walls.Of(id), loaded.Walls.Of(id));
