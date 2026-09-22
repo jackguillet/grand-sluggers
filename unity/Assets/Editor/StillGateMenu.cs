@@ -1,5 +1,6 @@
 using System.IO;
 using GrandSluggers.Sim;
+using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -17,7 +18,9 @@ namespace GrandSluggers.EditorTools
             var source = System.Environment.GetEnvironmentVariable(RequestFileEnvironment);
             try
             {
-                var json = StillRequest.ReadValidatedJsonFile(source);
+                // The window's own root (a trial overlay included), not a bare
+                // load: an editor process would not find data/ from its binary.
+                var json = StillRequest.ReadValidatedJsonFile(source, ContentCatalog.Load(DataProfile.Root));
                 var temp = Path.Combine(Directory.GetParent(Application.dataPath)!.FullName, "Temp");
                 Directory.CreateDirectory(temp);
                 var staged = StillRequest.RequestPath(temp);

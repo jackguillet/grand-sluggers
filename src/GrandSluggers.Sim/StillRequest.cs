@@ -33,6 +33,15 @@ public sealed class StillRequest
     public string? OutDir { get; init; }
     public double Charge01 { get; init; } = 1;
 
+    /// <summary>
+    /// The park the batch captures. Absent or blank is the one default park
+    /// (FR-04: no park id lives in code beyond <see cref="ExhibitionPick.DefaultPark"/>).
+    /// </summary>
+    public string? Park { get; init; }
+
+    /// <summary>Night for the whole batch, the same declared layer the field pick toggles.</summary>
+    public bool Night { get; init; }
+
     public IReadOnlyList<string> ResolvedShots()
     {
         var src = Shots is { Length: > 0 } ? Shots : DefaultShots;
@@ -53,6 +62,21 @@ public sealed class StillRequest
     }
 
     public string ResolvedHome() => string.IsNullOrWhiteSpace(Home) ? "rio" : Home.Trim().ToLowerInvariant();
+
+    /// <summary>
+    /// Trims and lower-cases like <see cref="ResolvedHome"/>. The park comes from
+    /// the catalog, not a list in code (#820, FR-04): an id no park file declares
+    /// is refused by name, the way an unknown shot is.
+    /// </summary>
+    public string ResolvedPark(ContentCatalog content)
+    {
+        if (string.IsNullOrWhiteSpace(Park)) return ExhibitionPick.DefaultPark;
+        var id = Park.Trim().ToLowerInvariant();
+        if (!content.Parks.ContainsKey(id))
+            throw new InvalidDataException("still park not allowed: " + Park.Trim()
+                + "; the fields are " + string.Join(", ", content.ParkPickOrder));
+        return id;
+    }
 
     public string ResolvedAway()
     {
@@ -113,18 +137,40 @@ public sealed class StillRequest
             + "-" + power.Trim().ToLowerInvariant()
             + "-" + beat.Trim().ToLowerInvariant() + ".png");
 
-    public static string PngPath(string outDir, string shot, string? who = null)
+    /// <summary>
+    /// What a still names itself. The default park in daylight keeps today's
+    /// names, so existing stills and gates do not move; any other park, and any
+    /// night, is named in the file (<c>{shot}-{park}.png</c>,
+    /// <c>{shot}-{park}-night.png</c>).
+    /// </summary>
+    public static string ParkSuffix(string? park, bool night)
+    {
+        var id = string.IsNullOrWhiteSpace(park)
+            ? ExhibitionPick.DefaultPark
+            : park.Trim().ToLowerInvariant();
+        var suffix = id.Equals(ExhibitionPick.DefaultPark, StringComparison.Ordinal) ? "" : "-" + id;
+        return night ? suffix + "-night" : suffix;
+    }
+
+    public static string PngPath(string outDir, string shot, string? who = null, string? park = null, bool night = false)
     {
         var id = (shot ?? "").ToLowerInvariant();
+        var name = id;
         if (IsCharShot(id) && !string.IsNullOrWhiteSpace(who))
         {
             var kind = id.EndsWith("pose", StringComparison.Ordinal) ? "pose" : "rest";
-            return Path.Combine(outDir, "char-" + who.Trim().ToLowerInvariant() + "-" + kind + ".png");
+            name = "char-" + who.Trim().ToLowerInvariant() + "-" + kind;
         }
-        return Path.Combine(outDir, id + ".png");
+        return Path.Combine(outDir, name + ParkSuffix(park, night) + ".png");
     }
 
-    public static StillRequest Parse(string json)
+    /// <summary>
+    /// Shots and captains are refused from the request alone. The park needs the
+    /// catalog that declares the parks, so a caller that has one passes it and the
+    /// bad id is named here; a caller that has none refuses it at
+    /// <see cref="ResolvedPark"/>, before the first still.
+    /// </summary>
+    public static StillRequest Parse(string json, ContentCatalog? content = null)
     {
         if (string.IsNullOrWhiteSpace(json))
             throw new InvalidDataException("still request is empty");
@@ -133,25 +179,29 @@ public sealed class StillRequest
             ?? throw new InvalidDataException("still request is empty");
         _ = req.ResolvedShots();
         _ = req.ResolvedSwingCaptains();
+        if (content != null) _ = req.ResolvedPark(content);
         return req;
     }
 
     /// <summary>
     /// Reads a durable request outside Unity's startup-cleaned Temp folder and
-    /// validates it before an editor tool stages the JSON for Play mode.
+    /// validates it before an editor tool stages the JSON for Play mode. The
+    /// caller passes the catalog it already loaded — an editor tool's data root is
+    /// not the one a bare load would find — so a bad park is a menu error here and
+    /// not a still at the wrong field.
     /// </summary>
-    public static string ReadValidatedJsonFile(string? path)
+    public static string ReadValidatedJsonFile(string? path, ContentCatalog content)
     {
         if (string.IsNullOrWhiteSpace(path))
             throw new InvalidDataException("still request file path is empty");
         if (!File.Exists(path))
             throw new FileNotFoundException("still request file not found", path);
         var json = File.ReadAllText(path);
-        _ = Parse(json);
+        _ = Parse(json, content);
         return json;
     }
 
-    public static bool TryLoad(string unityTemp, out StillRequest request, out string error)
+    public static bool TryLoad(string unityTemp, ContentCatalog? content, out StillRequest request, out string error)
     {
         request = null!;
         error = "";
@@ -163,7 +213,7 @@ public sealed class StillRequest
         }
         try
         {
-            request = Parse(File.ReadAllText(path));
+            request = Parse(File.ReadAllText(path), content);
             return true;
         }
         catch (Exception ex)
