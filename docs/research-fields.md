@@ -159,7 +159,7 @@ The [sim map](research/fields-code-map-sim.md) and the [presentation map](resear
 
 **Presentation.** One scene and one builder. Harbor draws `HarborKit`. The other five parks draw an older primitive diamond in `ParkView` (bags on the foul line, a square dirt pad, no batter's boxes, no foul rail) and one private dress method each. Eleven light rigs are code literals chosen by park id. The drawn wall mirrors right field onto left, so a lopsided park draws wrong. `data/art/parks.json` rows are `{id, slot, placed}`. `StillRequest` cannot name a park or night. The stage and dual-still catalogs have a Harbor lane only. `harbor_kit.py` reads no data and seven of its constants have drifted from the sim.
 
-**Gates.** S-29 pools fifty day games at the home captain's park: 15 at Harbor, 10 Canopy, 10 Rooftop, 5 each at Ember, Funfair and Crystal. No park has its own band. The CLI has no night flag. Tutorials and Practice are always at Harbor.
+**Gates.** S-29 pools fifty day games at the home captain's park: 15 at Harbor, 10 Canopy, 10 Rooftop, 5 each at Ember, Funfair and Crystal. No park has its own band. ~~The CLI has no night flag.~~ ✅ #828 (PR #834): `cli match --night`, and `cli match --cohort park-factors` measures every park day and night — a report, not a gate, so no park has a band still. Tutorials and Practice are always at Harbor.
 
 ### Measured today: the same matchup and seeds at every park
 
