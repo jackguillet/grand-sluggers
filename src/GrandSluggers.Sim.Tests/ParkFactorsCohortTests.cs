@@ -4,15 +4,15 @@ using GrandSluggers.Sim;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// SF-30 (FR-10, FD-02, FD-13). The park-factors cohort is a <b>report, not a gate</b>: no row below
-/// asserts a factor value, a run rate or a park's character. They assert that the report covers the
-/// catalog, names the root it ran on, measures day and night, keeps the control park at 1.00 by
+/// SF-30 (FR-10, FD-02, FD-13). The park-factors cohort is a <b>report, not a gate</b>: nothing here
+/// asserts a factor value, a run rate or a park's character. The rows assert that the report covers
+/// the catalog, names the root it ran on, measures day and night, keeps the control park at 1.00 by
 /// definition, and gives the same bytes for the same seeds.
 /// <para>
-/// The rows run the smallest honest plan — one matchup, one seed — because shape, coverage and
-/// determinism do not need fifty games a park; <c>cli match --cohort park-factors</c> always runs the
-/// predeclared plan. The coverage row is <c>Rows=compact</c>, so CI asks the same question of
-/// <c>trials/c80</c>.
+/// They run the smallest honest plan — one matchup, one seed, so one game a cell — because coverage,
+/// shape and determinism do not need fifty games a park, and a cohort row that plays hundreds of
+/// games would become the whole suite's long pole. <c>cli match --cohort park-factors</c> always runs
+/// the predeclared plan. The first row is <c>Rows=compact</c>, so CI asks it of <c>trials/c80</c>.
 /// </para>
 /// </summary>
 public class ParkFactorsCohortTests
@@ -20,13 +20,13 @@ public class ParkFactorsCohortTests
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     static readonly IReadOnlyList<int> OneSeed = new[] { 1 };
-    static IReadOnlyList<(string Home, string Away)> OnePair => RaceCohort.Pairs.Take(1).ToArray();
+    static IReadOnlyList<(string Home, string Away)> OneMatchup => ParkFactorCohort.Matchups.Take(1).ToArray();
 
     [Fact]
     [Trait("Rows", "compact")]
-    public void SF30_CohortCoversEveryCatalogParkDayAndNightAndNamesItsRoot()
+    public void SF30_CohortCoversEveryCatalogParkDayAndNight_NamesItsRoot_AndRepeatsByteForByte()
     {
-        var report = ParkFactorCohort.Run(_content, OneSeed, OnePair);
+        var report = ParkFactorCohort.Run(_content, OneSeed, OneMatchup);
 
         Assert.Equal(ParkFactorCohort.Name, report.Cohort);
         Assert.Equal(1, report.SchemaVersion);
@@ -63,26 +63,47 @@ public class ParkFactorsCohortTests
         }
 
         Assert.Equal(OneSeed, report.Seeds);
-        Assert.Equal(OnePair.Count * 2, report.Matchups.Count);
+        Assert.Equal(OneMatchup.Count, report.Matchups.Count);
         Assert.Equal(report.Rows.Sum(r => r.Games), report.Games);
         // A report, never an expectation (FD-13).
         Assert.Contains("report, not a gate", report.Acceptance);
         Assert.Contains("noise", report.Limitations);
+
+        // The same seeds give the same bytes: the report can be filed and compared, not re-argued.
+        var again = ParkFactorCohort.Run(_content, OneSeed, OneMatchup);
+        Assert.Equal(report.ToJson(), again.ToJson());
+        Assert.Equal(report.Table(), again.Table());
+        // The table is the same rows a person can read, not a second measurement.
+        Assert.StartsWith(report.Root, report.Table());
+        Assert.Contains(ParkFactorCohort.ControlPark, report.Table());
+        Assert.Contains("DAY", report.Table());
+        Assert.Contains("NIGHT", report.Table());
     }
 
     [Fact]
-    public void SF30_TheSameSeedsGiveByteIdenticalJsonAndTable()
+    public void AnEmptyPlanFallsBackToThePredeclaredOne()
     {
-        var first = ParkFactorCohort.Run(_content, OneSeed, OnePair);
-        var second = ParkFactorCohort.Run(_content, OneSeed, OnePair);
-        Assert.Equal(first.ToJson(), second.ToJson());
-        Assert.Equal(first.Table(), second.Table());
-        // The table is the same rows a person can read, not a second measurement.
-        Assert.Contains(ParkFactorCohort.ControlPark, first.Table());
-        Assert.Contains("DAY", first.Table());
-        Assert.Contains("NIGHT", first.Table());
-        Assert.StartsWith(first.Root, first.Table());
+        // A caller that passes nothing gets the filed plan, so a report can never be quietly smaller
+        // than the one the CLI runs.
+        Assert.Equal(new[] { 1, 2, 3, 4, 5 }, ParkFactorCohort.Seeds);
+        Assert.Equal(RaceCohort.Pairs.Count * 2, ParkFactorCohort.Matchups.Count);
+        // Every pair is played both ways round.
+        foreach (var (h, a) in RaceCohort.Pairs)
+        {
+            Assert.Contains((h, a), ParkFactorCohort.Matchups);
+            Assert.Contains((a, h), ParkFactorCohort.Matchups);
+        }
+        Assert.DoesNotContain(ParkFactorCohort.Name, RaceCohort.Names);
     }
+}
+
+/// <summary>
+/// Its own class so xUnit plays these games beside the report's, not after them: a cohort row is the
+/// slowest thing in the suite, and two of them in one collection would run back to back.
+/// </summary>
+public class ParkFactorsNightTests
+{
+    readonly ContentCatalog _content = ContentCatalog.Load();
 
     /// <summary>
     /// The night half of the cohort, and <c>cli match --night</c>, reach the match the same way:
@@ -93,7 +114,7 @@ public class ParkFactorsCohortTests
     [Fact]
     public void NightReachesTheMatchTheCohortPlays()
     {
-        var (home, away) = (RaceCohort.Pairs[0].Home, RaceCohort.Pairs[0].Away);
+        var (home, away) = ParkFactorCohort.Matchups[0];
         Assert.NotEqual(Game("crystal-rink", night: false), Game("crystal-rink", night: true));
         Assert.Equal(Game(ParkFactorCohort.ControlPark, false), Game(ParkFactorCohort.ControlPark, true));
 
@@ -107,15 +128,5 @@ public class ParkFactorsCohortTests
             Assert.True(match.Over);
             return $"{match.AwayScore}-{match.HomeScore} " + string.Join(",", match.Log.Select(e => e.Kind));
         }
-    }
-
-    [Fact]
-    public void AnEmptyPlanFallsBackToThePredeclaredOne()
-    {
-        // A caller that passes nothing gets the filed plan, so a report can never be quietly smaller
-        // than the one the CLI runs.
-        Assert.Equal(new[] { 1, 2, 3, 4, 5 }, ParkFactorCohort.Seeds);
-        Assert.Equal(5, RaceCohort.Pairs.Count);
-        Assert.DoesNotContain(ParkFactorCohort.Name, RaceCohort.Names);
     }
 }
