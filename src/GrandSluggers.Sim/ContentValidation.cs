@@ -24,6 +24,13 @@ public static class ContentDataValidator
         "freeze_volume", "lava_pit", "statue", "train", "tree", "warp_pipe"
     };
 
+    /// <summary>
+    /// The thickest air a park may name, as a multiple of the root's <c>flight.drag</c> (§0.3 FD-03).
+    /// A sane envelope for a schema that no park uses yet — the compact trial's own drag is about 2.1×
+    /// the shipped one — not a number anyone accepted for a park.
+    /// </summary>
+    const double MaxParkDragMul = 4;
+
     public static IReadOnlyList<string> Validate(DataRoot dataRoot)
     {
         var data = Read(dataRoot, JsonOptions());
@@ -430,6 +437,7 @@ public static class ContentDataValidator
             errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must stand over the {ParkBoundary.Default.RailHeightFt} ft foul rail (the drawn wall ramps up to it, D15); got {p.FenceHeightFt}");
         if (!(p.NightContactWindowMul > 0 && p.NightContactWindowMul <= 1))
             errors.Add($"{row.Source}: park '{p.Id}' nightContactWindowMul must be in (0, 1]; got {p.NightContactWindowMul}");
+        ValidateParkEnvironment(row.Source, p.Id, p.Environment, errors);
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)
         {
             var h = p.Hazards![i];
@@ -446,6 +454,21 @@ public static class ContentDataValidator
             if (!string.Equals(h.Type, "train", StringComparison.Ordinal) && h.Radius == 0)
                 errors.Add($"{row.Source}: {where} radius must be greater than 0; got {h.Radius}");
         }
+    }
+
+    /// <summary>
+    /// The park's air (§0.3 FD-03, §16): the block and both of its fields are optional, and a park that
+    /// names neither plays the global table. A named field has to be a number the flight can fly —
+    /// <see cref="MaxParkDragMul"/> is the sane envelope the schema refuses past, not an accepted value.
+    /// No park names one; the first number is a trial, not a validator change.
+    /// </summary>
+    static void ValidateParkEnvironment(string source, string id, ParkEnvironmentDto? env, List<string> errors)
+    {
+        if (env is null) return;
+        if (env.DragMul is { } drag && !(drag > 0 && drag <= MaxParkDragMul))
+            errors.Add($"{source}: park '{id}' environment.dragMul must be greater than 0 and at most {MaxParkDragMul}; got {drag}");
+        if (env.WindMul is { } wind)
+            FiniteRange(source, $"park '{id}' environment.windMul", wind, 0, 1, errors);
     }
 
     static void ValidateBat(Sourced<BatDto> row, List<string> errors)
@@ -649,12 +672,34 @@ internal sealed class ParkDto
     /// would enter <see cref="PlayTraceIdentity"/> and move every stored identity SHA (#820).
     /// </summary>
     public string? Notes { get; set; }
+    /// <summary>
+    /// What this park changes about the ball's air (§0.3 FD-03, #827). Optional, and absent is the global
+    /// table. Unlike <see cref="Notes"/> this one <em>is</em> on <see cref="Park"/>, because the flight
+    /// reads it: a match resolves it into its own table (<see cref="RulesTable.AtPark"/>), and evidence
+    /// taken in one park's air must not be readable as another's. A park that names none writes nothing
+    /// into the identity, so no stored SHA moves.
+    /// </summary>
+    public ParkEnvironmentDto? Environment { get; set; }
 
     public Park ToPark() => new(
         Id, Name, Faction, Surface,
         LeftFenceFt, CenterFenceFt, RightFenceFt, WindMph,
         (Hazards ?? []).Select(h => new Hazard(h!.Type, h.X, h.Z, h.Radius, h.Tag)).ToList(),
-        WindDeg, FenceHeightFt, NightContactWindowMul);
+        WindDeg, FenceHeightFt, NightContactWindowMul, Environment?.ToEnvironment());
+}
+
+/// <summary>
+/// The optional <c>environment</c> block of a park file (§0.3 FD-03, §16). Air only, both fields optional:
+/// an absent field is the global table's number, never a zero.
+/// </summary>
+internal sealed class ParkEnvironmentDto
+{
+    /// <summary>Multiplies the root's <c>flight.drag</c>.</summary>
+    public double? DragMul { get; set; }
+    /// <summary>Replaces <c>flight.windMul</c>.</summary>
+    public double? WindMul { get; set; }
+
+    public ParkEnvironment ToEnvironment() => new(DragMul, WindMul);
 }
 
 internal sealed class HazardDto
