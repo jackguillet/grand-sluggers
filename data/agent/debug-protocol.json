@@ -450,7 +450,7 @@
       "stage": "sim",
       "cause": "AtBatResolver.PitchInZone, StrikeZoneGeometry.Contains(PitchCommand, string?) and the PitchFlight.Point overload behind them take no RulesTable, so the family is resolved against Rules.Default — the process-wide table — instead of against Match.Rules. Match.AutoPlay (Match.cs:1550) is the in-zone call on the auto-play path. With GRAND_SLUGGERS_TRIAL set the process-wide table IS the overlay, so a CLI cohort is correct and only an in-process overlay catalog fails; on the shipped root the two tables are the same object, so nothing has ever failed. Same family as derived-table-copy-drops-a-section and the Diamond reads: a static that answers from the process root while the caller believes it asked the match.",
       "fix": "Do not conclude the overlay is broken, and do not author the missing row. Produce the evidence the way the report does — GRAND_SLUGGERS_TRIAL=<overlay> cli match --cohort s29 — and record the figures from there. The rail is to thread the match's table through the in-zone read, which the owner of Match.cs / PitchFlight.cs has to build; every other in-zone caller already passes one. A scenario row that wants an in-process overlay cohort should PIN the cross-root read instead of skipping: assert the no-table call stops by name and that the same call with the catalog's own table does not, so the row becomes the real measurement the day the read is threaded.",
-      "promoted": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests.S127_TheS29CohortUnderTheTrialIsRecordedAndItsCrossRootReadIsPinned",
+      "promoted": "SharedWindowScenarioTests.S127_TheS29CohortUnderTheTrialIsRecordedAndItsCrossRootReadIsPinned",
       "issue": "#844",
       "pr": ""
     }
