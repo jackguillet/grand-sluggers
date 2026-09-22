@@ -13,7 +13,10 @@ namespace GrandSluggers.Sim.Tests;
 /// on every span</b> (Appendix B.9 <c>SF-05</c>). #845 made that true of the shape as well as of the
 /// top — the loop walks the park's own fence on both sides instead of mirroring right field onto
 /// left, so Funfair (315 / 340), Rooftop (318 / 322) and Canopy (312 / 318) draw the wall a ball hit
-/// to left actually meets.
+/// to left actually meets. F2-b2 (#873, FD-06-R2) made it true of the rail's top to the pole: each
+/// drawn span stands at the top of the flight segment under it at each end (<see cref="HarborWall.SpanTops"/>),
+/// so the rail stays hip-high to the pole and the wall steps up to the fence at the pole, where the
+/// ball's does.
 /// </para>
 /// </summary>
 [Trait("Rows", "compact")]
@@ -56,29 +59,53 @@ public sealed class HarborWallTests
         Assert.Equal(park.FenceHeightFt, bounds.FenceHeightFt);
     }
 
-    // A gap on the C80 copy, reported and not repaired (#715): the rail's taper starts at a literal 95 ft in HarborWall (hipZ,
-    // flareStart), which no overlay can move. On the copy's 0.70 lines the ramp is shorter, and the two 8-ft parks (funfair-park,
-    // crystal-rink) get 4 taper vertices where TaperIsARamp asks for 6. The copy's run skips Copy=gap rows until promotion decides.
+    /// <summary>
+    /// The foul rail stays hip-high to the pole (FD-06-R2, Jack, September 22, 2026). Every drawn vertex
+    /// that is not on the fence — the whole foul wrap and the backstop, the last feet before each pole
+    /// included — stands at the flight's rail top, and the only change of height on the foul side is
+    /// the step at each pole.
+    ///
+    /// <para>
+    /// Re-authored by F2-b2 (#873). It used to exempt every vertex past a literal 95 ft out
+    /// (<c>RampStartZ</c>) and ask instead that the rail ramp up to the fence there over at least six
+    /// vertices (<c>TaperIsARamp</c>), while the ball's rail stayed hip-high to the pole. That literal
+    /// was also this row's <c>Copy=gap</c> on <c>trials/c80</c> (#715): on the copy's shorter lines the
+    /// two 8-ft parks drew four ramp vertices, not six. With the ramp gone there is no literal and no
+    /// gap, so the row runs on both roots.
+    /// </para>
+    /// </summary>
     [Theory]
-    [Trait("Copy", "gap")]
     [MemberData(nameof(Parks))]
-    public void TheFoulRailStaysHipHighAndMatchesTheFlightsFoulWall(string id)
+    public void TheFoulRailStaysHipHighToThePoleAndMatchesTheFlightsFoulWall(string id)
     {
         var park = _content.Parks[id];
         Assert.Equal(4.2f, HarborWall.HipHeight);
         Assert.Equal(HarborWall.HipHeight, FieldBounds.FoulWallHeightFt, 4);
+        Assert.All(FieldBounds.Of(park).Segments.Where(s => s.Kind == FieldBounds.WallKind.FoulWall),
+            s => Assert.Equal(FieldBounds.FoulWallHeightFt, s.HeightFt, 4));
+
         var rail = 0;
         var n = HarborWall.Loop(park).Length;
         for (var i = 0; i < n; i++)
         {
-            if (HarborWall.LoopPoint(park, i).Z > HarborWall.RampStartZ) continue;
+            if (HarborWall.IsOutfield(park, i)) continue;
             rail++;
             Assert.Equal(HarborWall.HipHeight, HarborWall.Height(park, i));
+            Assert.Equal((HarborWall.HipHeight, HarborWall.HipHeight), HarborWall.SpanTops(park, i));
         }
-        Assert.True(rail > 20, $"{id}: {rail} rail vertices");
-        Assert.All(FieldBounds.Of(park).Segments.Where(s => s.Kind == FieldBounds.WallKind.FoulWall),
-            s => Assert.Equal(FieldBounds.FoulWallHeightFt, s.HeightFt, 4));
-        Assert.True(HarborWall.TaperIsARamp(park), $"{id}: the rail ramps up to the fence");
+        Assert.Equal(n - (HarborWall.OutfieldSegs + 1), rail);
+
+        // The rail's last vertex before each pole: the old ramp's top end, now hip-high.
+        foreach (var sign in new[] { -1, 1 })
+        {
+            var last = Enumerable.Range(0, n).Where(i => !HarborWall.IsOutfield(park, i))
+                .MaxBy(i => sign * HarborWall.LoopPoint(park, i).X);
+            var p = HarborWall.LoopPoint(park, last);
+            Assert.True(FieldBounds.DistHome(p.X, p.Z) > 0.9 * AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg),
+                $"{id}: the rail vertex nearest the {(sign < 0 ? "left" : "right")} pole is {FieldBounds.DistHome(p.X, p.Z):0.#} ft out");
+            Assert.Equal(HarborWall.HipHeight, HarborWall.Height(park, last));
+        }
+        Assert.True(HarborWall.StepsOnlyAtThePoles(park), $"{id}: the wall steps from the rail to the fence at each pole and nowhere else");
     }
 
     /// <summary>
@@ -90,23 +117,26 @@ public sealed class HarborWallTests
     const double OnTheWallFt = 1e-9;
 
     /// <summary>
-    /// <c>SF-05</c> (D15 as amended by D21, FD-06; #845). The wall the player sees is the wall the
-    /// ball meets, on every span of every park in the pick cycle, on both roots:
+    /// <c>SF-05</c> (D15 as amended by D21, FD-06; #845; the whole rail since F2-b2, #873, FD-06-R2).
+    /// The wall the player sees is the wall the ball meets, on every span of every park in the pick
+    /// cycle, on both roots:
     ///
     /// <list type="bullet">
     /// <item>every drawn vertex lies on <see cref="FieldBounds.Of(Park)"/>'s polygon;</item>
-    /// <item>a vertex on a fair span is drawn at the flight's fence top (D15);</item>
-    /// <item>a vertex on a foul span is drawn at the flight's rail top, up to
-    /// <see cref="HarborWall.RampStartZ"/>;</item>
-    /// <item>each pole is drawn at <i>that side's</i> fence distance — which is the mirror this
-    /// child removed: before #845 a lopsided park drew its right-field pole in left field.</item>
+    /// <item>every drawn span lies on one flight segment and is drawn at that segment's top — the
+    /// fence's on a fair span (D15), the rail's on a foul span, all the way to the pole;</item>
+    /// <item>every drawn vertex stands at the tallest flight segment it lies on, so a pole is the
+    /// fence's end and every other foul vertex is the rail;</item>
+    /// <item>the wall steps from the fence to the rail at each pole, where the flight's segment kind
+    /// changes, and nowhere else;</item>
+    /// <item>each pole is drawn at <i>that side's</i> fence distance — which is the mirror #845
+    /// removed: before it a lopsided park drew its right-field pole in left field.</item>
     /// </list>
     ///
     /// <para>
-    /// Past <see cref="HarborWall.RampStartZ"/> the drawn rail ramps up to the fence while the
-    /// flight's rail stays hip-high to the pole. The positions still agree there — only the tops
-    /// disagree, and which of the two is the rule is §5 <b>Q5</b> (#732) and is Jack's. This row
-    /// stops at the ramp rather than deciding it.
+    /// Until F2-b2 the row stopped at <c>HarborWall.RampStartZ</c> (95 ft out): past it the drawn rail
+    /// ramped up to the fence while the flight's rail stayed hip-high to the pole. Jack chose the
+    /// flight's rail (FD-06-R2), so the drawing follows and the row claims that span too.
     /// </para>
     /// </summary>
     [Theory]
@@ -118,54 +148,128 @@ public sealed class HarborWallTests
         var loop = HarborWall.Loop(park);
         Assert.Equal(HarborWall.WrapSegs, loop.Length);
 
+        var (fair, rail) = AssertDrawnIsFlight(id, park, bounds, loop);
+        Assert.Equal(HarborWall.OutfieldSegs + 1, fair);
+        Assert.Equal(loop.Length - fair, rail);
+        // The rail the kit draws through the infield stands off the line at the edge's own offset.
+        Assert.Equal(ParkBoundary.Default.FoulOffsetFt, RailOffsetFt(loop), 6);
+
+        // Each pole at its own distance, and the step at it. The mirror drew the right-field pole on both sides.
+        foreach (var sign in new[] { -1, 1 })
+            AssertTheStepIsAtThePole(id, park, sign);
+        Assert.Equal(park.LeftFenceFt == park.RightFenceFt, HarborWall.ParkIsSymmetric(park));
+    }
+
+    /// <summary>
+    /// Every drawn vertex on the flight polygon, every drawn span on one flight segment and drawn at
+    /// that segment's top at each of its ends, every drawn vertex at the tallest segment it lies on.
+    /// A level segment's top is asserted to the bit; a polyline span's sloped top (F2-c) to 1e-4 ft.
+    /// Returns the vertices on the fence (the poles included) and the vertices on the rail and backstop
+    /// only.
+    /// </summary>
+    static (int Fair, int Rail) AssertDrawnIsFlight(string id, Park park, FieldBounds.Boundary bounds, (double X, double Z)[] loop)
+    {
         var fair = 0;
         var rail = 0;
-        var ramped = 0;
         for (var i = 0; i < loop.Length; i++)
         {
             var p = loop[i];
-            var (dist, kind) = NearestSpan(bounds, p.X, p.Z);
-            Assert.True(dist <= OnTheWallFt,
-                $"{id}: drawn vertex {i} at ({p.X:0.###}, {p.Z:0.###}) is {dist:0.###} ft off the flight wall");
+            var q = loop[(i + 1) % loop.Length];
+            var at = SpansThrough(bounds, p);
+            Assert.True(at.Length > 0,
+                $"{id}: drawn vertex {i} at ({p.X:0.###}, {p.Z:0.###}) is {NearestSpan(bounds, p.X, p.Z).Ft:0.###} ft off the flight wall");
 
-            if (kind == FieldBounds.WallKind.FairFence)
+            // The span from this vertex to the next is a piece of one flight segment, drawn at its top at each end.
+            var under = SpansThrough(bounds, p).Intersect(SpansThrough(bounds, q)).ToArray();
+            Assert.True(under.Length > 0, $"{id}: drawn span {i} does not lie on one flight segment");
+            Assert.Single(under);
+            var seg = under[0];
+            var tops = HarborWall.SpanTops(park, i);
+            Assert.Equal(seg.Kind, HarborWall.FlightSpan(park, i).Kind);
+            if (seg.HeightBFt is null)
+            {
+                Assert.Equal((float)seg.HeightFt, tops.Start);
+                Assert.Equal((float)seg.HeightFt, tops.End);
+            }
+            else
+            {
+                Assert.Equal(seg.HeightAt(Along(seg, p)), tops.Start, 4);
+                Assert.Equal(seg.HeightAt(Along(seg, q)), tops.End, 4);
+            }
+
+            // The vertex stands at the tallest flight wall that meets there.
+            var tallest = at.Max(s => s.HeightAt(Along(s, p)));
+            if (at.All(s => s.HeightBFt is null))
+                Assert.Equal((float)tallest, HarborWall.Height(park, i));
+            else
+                Assert.Equal(tallest, HarborWall.Height(park, i), 4);
+            var onFence = at.Any(s => s.Kind == FieldBounds.WallKind.FairFence);
+            Assert.Equal(onFence, HarborWall.IsOutfield(park, i));
+            if (onFence)
             {
                 fair++;
-                Assert.True(HarborWall.IsOutfield(park, i), $"{id}: vertex {i} is on a fair span but is not drawn as outfield");
-                Assert.Equal(bounds.FenceHeightFt, HarborWall.Height(park, i), 4);
+                Assert.Equal(AtBatResolver.FenceSpotAt(park, FieldBounds.SprayDeg(p.X, p.Z)).TopFt, HarborWall.Height(park, i), 4);
             }
-            else if (p.Z <= HarborWall.RampStartZ)
+            else
             {
                 rail++;
                 Assert.Equal(FieldBounds.FoulWallHeightFt, HarborWall.Height(park, i), 4);
             }
-            else
-            {
-                ramped++;
-            }
         }
-        Assert.Equal(HarborWall.OutfieldSegs + 1, fair);
-        Assert.True(ramped > 0, $"{id}: the ramp should cover the last feet of rail on each side");
-        Assert.True(rail > ramped,
-            $"{id}: {ramped} of {rail + ramped} foul vertices are past the ramp — this row would be checking the tail, not the rail");
-        // The rail the kit draws through the infield stands off the line at the edge's own offset.
-        Assert.Equal(ParkBoundary.Default.FoulOffsetFt, RailOffsetFt(loop), 6);
-
-        // Each pole at its own distance. The mirror drew the right-field pole on both sides.
-        foreach (var sign in new[] { -1, 1 })
-        {
-            var want = AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg);
-            var pole = loop.MinBy(p => Math.Abs(FieldBounds.SprayDeg(p.X, p.Z) - sign * AtBatResolver.FoulLineDeg));
-            Assert.Equal(want, FieldBounds.DistHome(pole.X, pole.Z), 9);
-        }
-        Assert.Equal(park.LeftFenceFt == park.RightFenceFt, HarborWall.ParkIsSymmetric(park));
+        return (fair, rail);
     }
+
+    /// <summary>
+    /// The pole on this side is a drawn vertex at that side's fence distance, the fence runs to it at
+    /// the fence's top there (the park's <c>fenceHeightFt</c>, or a polyline's pole point, F2-c), and the
+    /// rail leaves it at the rail's top: the step is at the pole, on the vertex where the flight's segment
+    /// kind changes, and nowhere near it is a ramp.
+    /// </summary>
+    static void AssertTheStepIsAtThePole(string id, Park park, int sign)
+    {
+        var loop = HarborWall.Loop(park);
+        var want = AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg);
+        var pole = Enumerable.Range(0, loop.Length)
+            .MinBy(i => Math.Abs(FieldBounds.SprayDeg(loop[i].X, loop[i].Z) - sign * AtBatResolver.FoulLineDeg));
+        var at = loop[pole];
+        Assert.Equal(want, FieldBounds.DistHome(at.X, at.Z), 9);
+        Assert.True(HarborWall.IsPole(park, pole), $"{id}: vertex {pole} is not where the kit stands the pole");
+
+        // Walking the loop, the right pole is fence → rail and the left pole is rail → fence.
+        var (fenceSide, railSide) = sign > 0 ? (pole - 1, pole) : (pole, pole - 1);
+        Assert.Equal(FieldBounds.WallKind.FairFence, HarborWall.FlightSpan(park, fenceSide).Kind);
+        Assert.Equal(FieldBounds.WallKind.FoulWall, HarborWall.FlightSpan(park, railSide).Kind);
+        var fenceTop = (float)AtBatResolver.FenceSpotAt(park, sign * AtBatResolver.FoulLineDeg).TopFt;
+        var fenceSpan = HarborWall.SpanTops(park, fenceSide);
+        Assert.Equal(fenceTop, sign > 0 ? fenceSpan.End : fenceSpan.Start);
+        Assert.Equal((HarborWall.HipHeight, HarborWall.HipHeight), HarborWall.SpanTops(park, railSide));
+        Assert.Equal(fenceTop, HarborWall.Height(park, pole));
+        // One vertex into foul the wall is already the rail: the step is not spread over a sample.
+        var intoFoul = sign > 0 ? pole + 1 : pole - 1;
+        Assert.False(HarborWall.IsOutfield(park, intoFoul), $"{id}: vertex {intoFoul} past the pole is drawn as fence");
+        Assert.Equal(HarborWall.HipHeight, HarborWall.Height(park, intoFoul));
+    }
+
+    /// <summary>How far along a flight segment (0 at A, 1 at B) a point on it stands.</summary>
+    static double Along(FieldBounds.WallSegment s, (double X, double Z) p)
+    {
+        var ex = s.Bx - s.Ax;
+        var ez = s.Bz - s.Az;
+        var len2 = ex * ex + ez * ez;
+        return len2 < 1e-12 ? 0 : Math.Clamp(((p.X - s.Ax) * ex + (p.Z - s.Az) * ez) / len2, 0, 1);
+    }
+
+    /// <summary>The flight segments a drawn point lies on (the tolerance is <see cref="OnTheWallFt"/>).</summary>
+    static FieldBounds.WallSegment[] SpansThrough(FieldBounds.Boundary bounds, (double X, double Z) p) =>
+        bounds.Segments.Where(s => DistToSpan(s, p.X, p.Z) <= OnTheWallFt).ToArray();
 
     /// <summary>
     /// <c>SF-05</c> on a park the catalog does not carry: a fixture pulled 30 ft in on one line and
     /// 30 ft out on the other, so the row proves the builder and not today's data. On the shipped
     /// root that is 300 / 400 / 360, and before #845 its drawn left field stood at 360 ft — the
-    /// right-field wall, mirrored — with every gate above it green.
+    /// right-field wall, mirrored — with every gate above it green. Since F2-b2 (FD-06-R2) it also
+    /// holds the whole rail and the step on a park whose two poles stand at different distances: each
+    /// side's rail runs hip-high to its own pole and steps up there.
     /// </summary>
     [Fact]
     public void SF05_ALopsidedParkDrawsItsOwnLeftFieldWall()
@@ -181,11 +285,12 @@ public sealed class HarborWallTests
         var loop = HarborWall.Loop(lopsided);
         Assert.Equal(HarborWall.WrapSegs, loop.Length);
         var bounds = FieldBounds.Of(lopsided);
-        for (var i = 0; i < loop.Length; i++)
-        {
-            var (dist, _) = NearestSpan(bounds, loop[i].X, loop[i].Z);
-            Assert.True(dist <= OnTheWallFt, $"drawn vertex {i} is {dist:0.###} ft off the flight wall");
-        }
+        var (fair, rail) = AssertDrawnIsFlight(lopsided.Id, lopsided, bounds, loop);
+        Assert.Equal(HarborWall.OutfieldSegs + 1, fair);
+        Assert.Equal(loop.Length - fair, rail);
+        foreach (var sign in new[] { -1, 1 })
+            AssertTheStepIsAtThePole(lopsided.Id, lopsided, sign);
+        Assert.True(HarborWall.StepsOnlyAtThePoles(lopsided));
 
         var left = loop.MinBy(p => Math.Abs(FieldBounds.SprayDeg(p.X, p.Z) + AtBatResolver.FoulLineDeg));
         var right = loop.MinBy(p => Math.Abs(FieldBounds.SprayDeg(p.X, p.Z) - AtBatResolver.FoulLineDeg));
@@ -254,6 +359,18 @@ public sealed class HarborWallTests
             Assert.True(sloped > 4, $"{sloped} drawn vertices on a sloped span");
             Assert.True(HarborWall.OutfieldIsTheFence(park));
 
+            // F2-b2 (FD-06-R2) on the same fixture: every drawn span is its flight segment's top at both its ends, so a
+            // sloped span is drawn sloped between its two point heights and every other span level; the rail stays hip-high
+            // to each pole and steps up to that pole's own point height (14 ft on the left, 12 ft on the right).
+            var (fair, rail) = AssertDrawnIsFlight(park.Id, park, bounds, loop);
+            Assert.Equal(FieldBounds.FenceBearings(park).Count, fair);
+            Assert.Equal(loop.Length - fair, rail);
+            var slopedSpans = Enumerable.Range(0, loop.Length).Count(i => HarborWall.SpanTops(park, i).Start != HarborWall.SpanTops(park, i).End);
+            Assert.Equal(bounds.Segments.Count(sg => sg.HeightBFt is not null), slopedSpans);
+            foreach (var sign in new[] { -1, 1 })
+                AssertTheStepIsAtThePole(park.Id, park, sign);
+            Assert.True(HarborWall.StepsOnlyAtThePoles(park));
+
             // The poles stand where the polyline starts and ends; the drawn rail meets the fence there.
             foreach (var (sign, p) in new[] { (-1, points[0]), (1, points[^1]) })
             {
@@ -280,6 +397,75 @@ public sealed class HarborWallTests
             (best, piece, along) = (d, s, t);
         }
         return (best, piece!, along);
+    }
+
+    /// <summary>
+    /// The tops the FD-06-R2 look gate was captured on (PR #875 at <c>21091d3a</c>, before F2-c merged),
+    /// for every catalog park, as run-lengths of float values around the loop from center field: each
+    /// vertex's <see cref="HarborWall.Height"/>, and each span's <see cref="HarborWall.SpanTops"/> at both
+    /// ends. The fence from center field to the right pole (vertices 0–24), the rail to the left pole
+    /// (25–83), the fence back to center field (84–107); every span level. The same on both roots: the
+    /// trial scales the posts, not the heights. Rebasing onto F2-c's per-end tops must not move a stroke of
+    /// what Jack was shown; the drawn positions are pinned to the bit by
+    /// <c>PolylineFenceTests.SF06_EveryCatalogParkPlaysAndDrawsTheThreePostFenceBitForBit</c>.
+    /// </summary>
+    [Theory]
+    [InlineData("harbor-diamond", "12")]
+    [InlineData("crystal-rink", "8")]
+    [InlineData("funfair-park", "8")]
+    [InlineData("rooftop-city", "12")]
+    [InlineData("canopy-yard", "12")]
+    [InlineData("ember-keep", "10")]
+    public void TheCatalogParksDrawTheTopsTheLookGateWasShown(string id, string fence)
+    {
+        var park = _content.Parks[id];
+        var n = HarborWall.Loop(park).Length;
+        Assert.Equal(108, n);
+        var vertices = Enumerable.Range(0, n).Select(i => HarborWall.Height(park, i));
+        var starts = Enumerable.Range(0, n).Select(i => HarborWall.SpanTops(park, i).Start);
+        var ends = Enumerable.Range(0, n).Select(i => HarborWall.SpanTops(park, i).End);
+        Assert.Equal($"{fence}x25 4.2x59 {fence}x24", Runs(vertices));
+        Assert.Equal($"{fence}x24 4.2x60 {fence}x24", Runs(starts));
+        Assert.Equal($"{fence}x24 4.2x60 {fence}x24", Runs(ends));
+    }
+
+    /// <summary>Run-lengths of exact float values ("12x25 4.2x59 ..."), compared bit for bit.</summary>
+    static string Runs(IEnumerable<float> values)
+    {
+        var runs = new List<(float Value, int Count)>();
+        foreach (var v in values)
+        {
+            if (runs.Count > 0 && BitConverter.SingleToInt32Bits(runs[^1].Value) == BitConverter.SingleToInt32Bits(v))
+                runs[^1] = (v, runs[^1].Count + 1);
+            else
+                runs.Add((v, 1));
+        }
+        return string.Join(" ", runs.Select(r => r.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "x" + r.Count));
+    }
+
+    /// <summary>
+    /// The kit draws what these rows pin (FD-06-R2). Unity has no EditMode test assembly and
+    /// <c>unity/</c> is not in the solution, so this reads <c>FieldKit.Wall</c>'s source the way
+    /// <c>FieldKitSourceTests</c> does: each span is drawn from its own flight top at each end
+    /// (<see cref="HarborWall.SpanTops"/>) — level where the two are equal, which is every span of every
+    /// catalog park, and sloped along a polyline span whose two points differ (F2-c) — not from its two
+    /// end vertices' <see cref="HarborWall.Height"/>. Reading the vertices would draw the span that
+    /// leaves each pole — a fence vertex, then rail — as a steep ramp over one sample instead of the
+    /// step at the pole.
+    /// </summary>
+    [Fact]
+    public void TheKitDrawsEachSpanAtItsOwnFlightTop()
+    {
+        var repo = Path.GetFullPath(Path.Combine(_content.Root.Shipped, ".."));
+        var src = File.ReadAllText(Path.Combine(repo, "unity/Assets/Scripts/Runtime/FieldKit.cs"));
+        var from = src.IndexOf("public void Wall(", StringComparison.Ordinal);
+        var to = src.IndexOf("static void RampPrism(", StringComparison.Ordinal);
+        Assert.True(from >= 0 && to > from, "FieldKit.Wall and RampPrism are where this row reads them");
+        var wall = src.Substring(from, to - from);
+        Assert.Contains("HarborWall.SpanTops(park, i)", wall, StringComparison.Ordinal);
+        Assert.DoesNotContain("HarborWall.Height(", wall, StringComparison.Ordinal);
+        Assert.Contains("RampPrism(folder, \"Wall\" + i, a, b, h0, h1,", wall, StringComparison.Ordinal);
+        Assert.Contains("RampCap(folder, \"Cap\" + i, a, b, h0, h1,", wall, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -318,14 +504,17 @@ public sealed class HarborWallTests
 
     /// <summary>
     /// How far the drawn rail sits off the first-base line through the infield, where the flare has
-    /// not started. That is <see cref="ParkBoundary.FoulOffsetFt"/>, drawn.
+    /// not started (along the line up to <see cref="ParkBoundary.FlareStartFt"/>; along is
+    /// (x + z) / √2 on the first-base side). That is <see cref="ParkBoundary.FoulOffsetFt"/>, drawn.
+    /// Until F2-b2 the stretch was cut at <c>HarborWall.RampStartZ</c>, which went with the ramp.
     /// </summary>
     static double RailOffsetFt((double X, double Z)[] loop)
     {
+        var flareStart = ParkBoundary.Default.FlareStartFt;
         var off = 0.0;
         foreach (var p in loop)
         {
-            if (p.Z <= 0 || p.Z > HarborWall.RampStartZ || p.X <= 0) continue;
+            if (p.Z <= 0 || p.X <= 0 || (p.X + p.Z) / Math.Sqrt(2) > flareStart + 1e-9) continue;
             off = Math.Max(off, (p.X - p.Z) / Math.Sqrt(2));
         }
         return off;
@@ -338,18 +527,23 @@ public sealed class HarborWallTests
         var kind = FieldBounds.WallKind.FoulWall;
         foreach (var s in bounds.Segments)
         {
-            var ex = s.Bx - s.Ax;
-            var ez = s.Bz - s.Az;
-            var len2 = ex * ex + ez * ez;
-            var t = len2 < 1e-12 ? 0 : Math.Clamp(((x - s.Ax) * ex + (z - s.Az) * ez) / len2, 0, 1);
-            var px = s.Ax + ex * t;
-            var pz = s.Az + ez * t;
-            var d = Math.Sqrt((x - px) * (x - px) + (z - pz) * (z - pz));
+            var d = DistToSpan(s, x, z);
             if (d >= best) continue;
             best = d;
             kind = s.Kind;
         }
         return (best, kind);
+    }
+
+    static double DistToSpan(FieldBounds.WallSegment s, double x, double z)
+    {
+        var ex = s.Bx - s.Ax;
+        var ez = s.Bz - s.Az;
+        var len2 = ex * ex + ez * ez;
+        var t = len2 < 1e-12 ? 0 : Math.Clamp(((x - s.Ax) * ex + (z - s.Az) * ez) / len2, 0, 1);
+        var px = s.Ax + ex * t;
+        var pz = s.Az + ez * t;
+        return Math.Sqrt((x - px) * (x - px) + (z - pz) * (z - pz));
     }
 
     [Fact]
