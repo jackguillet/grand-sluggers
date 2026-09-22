@@ -632,7 +632,7 @@ namespace GrandSluggers.UnityClient
             FerrisWheel();
             FunfairBooths(wood, red, cream, yellow, pink);
             FunfairTrain(park, wood, red, cream, yellow);
-            FunfairNightHook();
+            FunfairNightHook(park);
         }
 
         void FunfairBackstop(Material cream, Material red, Material wood)
@@ -770,15 +770,18 @@ namespace GrandSluggers.UnityClient
             go.transform.localRotation = Quaternion.Euler(0, 0, 90f);
         }
 
-        void FunfairNightHook()
+        // The mouths are park data since #847; they were three Sim literals before it, which is why
+        // this hook read ParkHazards rather than the park it was drawing.
+        void FunfairNightHook(Park park)
         {
             var go = new GameObject("Chompers");
             go.transform.SetParent(_root, false);
             go.transform.position = Vector3.zero;
             if (_night)
             {
-                foreach (var h in ParkHazards.FunfairChompers)
-                    ChomperMouth(go.transform, h);
+                foreach (var h in park.Hazards)
+                    if (h.Type == HazardType.Chomper)
+                        ChomperMouth(go.transform, h);
             }
             go.SetActive(_night);
         }
@@ -1091,7 +1094,11 @@ namespace GrandSluggers.UnityClient
             armR.transform.localRotation = Quaternion.Euler(0, 0, -28f);
             if (breath)
             {
-                var amp = _night ? (float)(_rules ?? Rules.Default).Fielding.Park.EmberNightFireMul : 1f;
+                // The breath's night reach is the fire_breath row's own number since #847; it was
+                // fielding.park.emberNightFireMul, at the same 1.6.
+                var amp = _night
+                    ? (float)(_rules ?? Rules.Default).Hazards.Of(HazardType.FireBreath).NightRadiusMul
+                    : 1f;
                 var br = radius * amp;
                 Look.Prim(PrimitiveType.Cylinder, "Breath", root, new Vector3(0, 6.6f, 2.8f), new Vector3(br * 0.55f, br * 0.55f, br * 0.55f), fire);
                 var cone = Look.Prim(PrimitiveType.Cylinder, "Flame", root, new Vector3(0, 6.4f, 5.4f * amp), new Vector3(br * 1.1f, br * 0.7f, br * 1.1f), fire);
@@ -1278,6 +1285,10 @@ namespace GrandSluggers.UnityClient
                         break;
                     case "climb_wall":
                         ClimbWall(h);
+                        break;
+                    case "chomper":
+                        // Drawn by FunfairNightHook, at night only (#847). Named here so a mouth
+                        // that became park data does not also stand in the sun.
                         break;
                 }
             }

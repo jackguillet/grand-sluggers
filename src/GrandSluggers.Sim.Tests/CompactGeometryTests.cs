@@ -50,23 +50,26 @@ public sealed class CompactGeometryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Thirteen files, named. The tree is the declaration (#716), so this list is also the answer to
-    /// "what is this trial changing?" — and a slice that quietly carried a fourteenth would show up
+    /// Fourteen files, named. The tree is the declaration (#716), so this list is also the answer to
+    /// "what is this trial changing?" — and a slice that quietly carried a fifteenth would show up
     /// here rather than in a trace nobody could attribute. It was eight until #725 added the fielder
     /// starts, nine until #732 carried the fielding table for the hazard reach pad, ten until #722
     /// carried the CPU table for the throw reads, eleven until #732 carried the running table for
-    /// the tag-up race, and twelve until #718 carried the role players so three of them could hold
-    /// Ball Dash; the count is in the name so growing it is a rename somebody has to mean.
+    /// the tag-up race, twelve until #718 carried the role players so three of them could hold
+    /// Ball Dash, and thirteen until #847 moved that same reach pad out of the fielding table and
+    /// into the hazard library, which the overlay now has to carry in its place; the count is in the
+    /// name so growing it is a rename somebody has to mean.
     /// </summary>
     [Fact]
-    public void TheTrialCarriesThirteenFilesAndNoOthers()
+    public void TheTrialCarriesFourteenFilesAndNoOthers()
     {
         Assert.Equal(
             [
                 "characters/role-players.json",
                 "parks/canopy-yard.json", "parks/crystal-rink.json", "parks/ember-keep.json",
                 "parks/funfair-park.json", "parks/harbor-diamond.json", "parks/rooftop-city.json",
-                "rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json",
+                "rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json",
+                "rules/hazards.json", "rules/infield.json",
                 "rules/running.json"
             ],
             Root.Overrides);
@@ -168,12 +171,16 @@ public sealed class CompactGeometryTests
 
         // #729's own claim, which #725 and #732 did not change: the dress rides in infield.json rather
         // than a file of its own. Named rather than counted, because the total is
-        // TheTrialCarriesThirteenFilesAndNoOthers's to say — it went from eight to nine when #725 added
+        // TheTrialCarriesFourteenFilesAndNoOthers's to say — it went from eight to nine when #725 added
         // rules/fielders.json, to ten when #732 added rules/fielding.json, to eleven when #722 added
-        // rules/cpu.json, to twelve when #732 added rules/running.json and to thirteen when #718 added
-        // characters/role-players.json, and this line used to assert that count a second time.
+        // rules/cpu.json, to twelve when #732 added rules/running.json, to thirteen when #718 added
+        // characters/role-players.json and to fourteen when #847 moved the hazard reach pad into
+        // rules/hazards.json, and this line used to assert that count a second time.
         Assert.Equal(
-            ["rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json", "rules/running.json"],
+            [
+                "rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json",
+                "rules/hazards.json", "rules/infield.json", "rules/running.json"
+            ],
             Root.Overrides.Where(f => f.StartsWith("rules/", StringComparison.Ordinal)));
     }
 
@@ -322,10 +329,10 @@ public sealed class CompactGeometryTests
 
     /// <summary>
     /// <b>The reach pad scales with the radii, and it is the part that matters (#732, #730 decision 4).</b>
-    /// A barrel or pipe catches a ball inside <c>radius + park.pipeReachPadFt</c>, and the pad is
+    /// A barrel or pipe catches a ball inside <c>radius + reachPadFt</c>, and the pad is
     /// larger than any barrel's radius. Scaling the radius alone would have taken a Canopy barrel's
     /// real catch from 13.00 ft to 11.50 — an 11.5% cut on a field that lost 30%. With the pad at 5.60
-    /// the disc is 3.50 + 5.60 = 9.10 ft, exactly 0.70 of shipped. <c>emberNightFireMul</c> is
+    /// the disc is 3.50 + 5.60 = 9.10 ft, exactly 0.70 of shipped. <c>nightRadiusMul</c> is
     /// dimensionless and does not move.
     ///
     /// <para>
@@ -334,18 +341,38 @@ public sealed class CompactGeometryTests
     /// checked by name so a copy that dropped a key or drifted a number is refused rather than read
     /// as authored. #722 slice 1 added the throw clock's five values to the named list.
     /// </para>
+    ///
+    /// <para>
+    /// <b>The pad itself left this file with #847.</b> The hazard pattern library moved
+    /// <c>park.pipeReachPadFt</c> under <c>warpPipe</c> and <c>barrel</c> in <c>rules/hazards.json</c>
+    /// and <c>park.emberNightFireMul</c> under <c>fireBreath</c>, at the values above; the overlay
+    /// carries that table for the same reason it carries this one. Nothing in <c>fielding.json</c>
+    /// differs between the roots for a hazard's sake any more, which is why the named list below no
+    /// longer has a <c>park.</c> entry in it.
+    /// </para>
     /// </summary>
     [Fact]
     public void TheTrialFieldingTableIsTheShippedOneWithThePadOnTheFenceScale()
     {
-        var shipped = Control.Rules.Fielding.Park;
-        var trial = Trial.Rules.Fielding.Park;
-        Assert.Equal(8, shipped.PipeReachPadFt);
-        Assert.Equal(5.6, trial.PipeReachPadFt);
-        Assert.Equal(Math.Round(shipped.PipeReachPadFt * Outfield, 2), trial.PipeReachPadFt);
-        Assert.Equal(1.6, trial.EmberNightFireMul);
-        Assert.Equal(shipped.EmberNightFireMul, trial.EmberNightFireMul);
-        Assert.Equal(shipped.ShellWarpChance, trial.ShellWarpChance);
+        var shipped = Control.Rules.Hazards;
+        var trial = Trial.Rules.Hazards;
+        foreach (var type in new[] { HazardType.WarpPipe, HazardType.Barrel })
+        {
+            Assert.Equal(8, shipped.Of(type).ReachPadFt);
+            Assert.Equal(5.6, trial.Of(type).ReachPadFt);
+            Assert.Equal(Math.Round(shipped.Of(type).ReachPadFt * Outfield, 2), trial.Of(type).ReachPadFt);
+        }
+        Assert.Equal(1.6, trial.Of(HazardType.FireBreath).NightRadiusMul);
+        Assert.Equal(shipped.Of(HazardType.FireBreath).NightRadiusMul, trial.Of(HazardType.FireBreath).NightRadiusMul);
+        Assert.Equal(Control.Rules.Fielding.Park.ShellWarpChance, Trial.Rules.Fielding.Park.ShellWarpChance);
+
+        // The rest of the hazard library is the shipped table, row for row: only the two pads move.
+        var shippedHazards = Leaves(Path.Combine(Shipped, "rules", "hazards.json"));
+        var trialHazards = Leaves(Path.Combine(Overlay, "rules", "hazards.json"));
+        Assert.Equal(shippedHazards.Keys, trialHazards.Keys);
+        Assert.Equal(
+            ["barrel.reachPadFt", "warpPipe.reachPadFt"],
+            shippedHazards.Where(kv => trialHazards[kv.Key] != kv.Value).Select(kv => kv.Key).ToList());
 
         var shippedLeaves = Leaves(Path.Combine(Shipped, "rules", "fielding.json"));
         var trialLeaves = Leaves(Path.Combine(Overlay, "rules", "fielding.json"));
@@ -364,7 +391,6 @@ public sealed class CompactGeometryTests
                 "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
                 "dash.chaseMul",
                 "handling.awkwardHop",
-                "park.pipeReachPadFt",
                 "reaction.catcherSec", "reaction.firstSec", "reaction.outfieldSec", "reaction.pitcherSec", "reaction.shortSec", "reaction.thirdSec",
                 "recoil.airFullFtPerSec", "recoil.airOnsetFtPerSec", "recoil.fullFtPerSec", "recoil.onsetFtPerSec",
                 "stick.enterMag", "stick.leaveMag",
@@ -435,7 +461,8 @@ public sealed class CompactGeometryTests
         // secondSec was already 0.25 and does not move: the infield's one number is the number second already had.
         Assert.Equal(shippedLeaves["reaction.secondSec"], trialLeaves["reaction.secondSec"]);
         Assert.Equal(("200", "9999"), (shippedLeaves["throw.onTheFlyFt"], trialLeaves["throw.onTheFlyFt"]));
-        Assert.Equal(("8", "5.6"), (shippedLeaves["park.pipeReachPadFt"], trialLeaves["park.pipeReachPadFt"]));
+        // #732's pad left this file with #847; it is checked on the hazard library's rows above.
+        Assert.Equal(("8", "5.6"), (shippedHazards["warpPipe.reachPadFt"], trialHazards["warpPipe.reachPadFt"]));
         Assert.Equal(("0.22", "0.30"), (shippedLeaves["throw.releaseSec"], trialLeaves["throw.releaseSec"]));
         Assert.Equal(("100", "88.89"), (shippedLeaves["throw.baseFtPerSec"], trialLeaves["throw.baseFtPerSec"]));
         Assert.Equal(("0", "0.60"), (shippedLeaves["throw.longThrowLossSec"], trialLeaves["throw.longThrowLossSec"]));
@@ -531,10 +558,10 @@ public sealed class CompactGeometryTests
             var was = shippedPark.Hazards.First(h => h.Type == type);
             var now = trialPark.Hazards.First(h => h.Type == type);
             var discTrial = Math.Round(discShipped * Outfield, 2);
-            Assert.Equal(discShipped, was.Radius + Control.Rules.Fielding.Park.PipeReachPadFt, 2);
-            Assert.Equal(discTrial, now.Radius + Trial.Rules.Fielding.Park.PipeReachPadFt, 2);
+            Assert.Equal(discShipped, was.Radius + Control.Rules.Hazards.Of(type).ReachPadFt, 2);
+            Assert.Equal(discTrial, now.Radius + Trial.Rules.Hazards.Of(type).ReachPadFt, 2);
             // The radius alone: the 13.00 → 11.50 cut the packet warned about (12.00 → 10.80 for a pipe).
-            Assert.Equal(Math.Round(was.Radius * Outfield + 8, 2), now.Radius + Control.Rules.Fielding.Park.PipeReachPadFt, 2);
+            Assert.Equal(Math.Round(was.Radius * Outfield + 8, 2), now.Radius + Control.Rules.Hazards.Of(type).ReachPadFt, 2);
 
             Assert.True(ParkHazards.WarpIfPipe(shippedPark, was.X + discShipped - 0.1, was.Z, rng, Control.Rules).Warped, id + " shipped, inside the disc");
             Assert.False(ParkHazards.WarpIfPipe(shippedPark, was.X + discShipped + 0.1, was.Z, rng, Control.Rules).Warped, id + " shipped, outside the disc");
@@ -548,8 +575,8 @@ public sealed class CompactGeometryTests
         var shippedFire = Control.Parks["ember-keep"].Hazards.Single(h => h.Type == "fire_breath");
         Assert.Equal(16, shippedFire.Radius);
         Assert.Equal(11.2, fire.Radius);
-        Assert.Equal(25.60, shippedFire.Radius * Control.Rules.Fielding.Park.EmberNightFireMul, 2);
-        Assert.Equal(17.92, fire.Radius * Trial.Rules.Fielding.Park.EmberNightFireMul, 2);
+        Assert.Equal(25.60, shippedFire.Radius * Control.Rules.Hazards.Of(HazardType.FireBreath).NightRadiusMul, 2);
+        Assert.Equal(17.92, fire.Radius * Trial.Rules.Hazards.Of(HazardType.FireBreath).NightRadiusMul, 2);
         Assert.True(ParkHazards.InSlow(ember, fire.X + 11.1, fire.Z, night: false, Trial.Rules));
         Assert.False(ParkHazards.InSlow(ember, fire.X + 11.3, fire.Z, night: false, Trial.Rules));
         Assert.True(ParkHazards.InSlow(ember, fire.X + 17.9, fire.Z, night: true, Trial.Rules));
@@ -1070,10 +1097,17 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
-    /// <b>Four hazards end up in a different zone than the one that scaled them.</b> The rule picks a
+    /// <b>Six hazards end up in a different zone than the one that scaled them.</b> The rule picks a
     /// factor from each hazard's <i>shipped</i> distance, and nothing checks where the result lands.
-    /// Because the outfield contracts harder than the infield, four hazards that were outfield become
+    /// Because the outfield contracts harder than the infield, six hazards that were outfield become
     /// infield — Canopy's deep tree by five hundredths of a foot.
+    ///
+    /// <para>
+    /// <b>It was four until #847</b> put Funfair's chompers in park data. The left and right mouths
+    /// migrate from 217.28 and 212.81 ft to 152.43 and 149.49, inside the shipped lip; the centre
+    /// mouth at 160 ft stays outside it. They are new rows, not a change to the rule, and they run
+    /// the same one way the other four do.
+    /// </para>
     ///
     /// This is not a mis-application of the rule; it is the rule being one-way. It is recorded because
     /// the seam is <c>flight.classes.infieldLipFt</c>.
@@ -1088,7 +1122,7 @@ public sealed class CompactGeometryTests
     /// </para>
     /// </summary>
     [Fact]
-    public void FourHazardsLandInADifferentZoneThanTheOneThatScaledThem()
+    public void SixHazardsLandInADifferentZoneThanTheOneThatScaledThem()
     {
         var lip = Control.Rules.Flight.Classes.InfieldLipFt;
         var flipped = new List<string>();
@@ -1111,7 +1145,10 @@ public sealed class CompactGeometryTests
         }
 
         Assert.Equal(
-            ["canopy-yard tree", "crystal-rink freeze_volume", "ember-keep lava_pit", "rooftop-city ac_unit"],
+            [
+                "canopy-yard tree", "crystal-rink freeze_volume", "ember-keep lava_pit",
+                "funfair-park chomper", "funfair-park chomper", "rooftop-city ac_unit"
+            ],
             flipped);
 
         // The same count read against the migrated lip, so the narration above is a measurement.
@@ -1211,52 +1248,64 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
-    /// <b>The migrated centre fielder starts inside a Funfair chomper.</b> An effect this slice does
-    /// not own and does not repair. <c>ParkHazards.FunfairChompers</c> are C# literals, so they did
-    /// not migrate with the park data (#717's gap) — the centre mouth is still at (0, 228) with an
-    /// 18-ft radius. The shipped centre fielder stood 77.00 ft from that centre, 59.00 ft clear of
-    /// the rim. The migrated one stands 14.50 ft from it, which is 3.50 ft <i>inside</i> the rim.
+    /// <b>The migrated centre fielder no longer starts inside a Funfair chomper — #847 closed it.</b>
+    /// The mouths were three C# literals (<c>ParkHazards.FunfairChompers</c>) that no overlay could
+    /// move, so #717's migration left the centre one at (0, 228) with an 18-ft rim while the centre
+    /// fielder came in to (0, 213.50): 14.50 ft from the centre, <i>3.50 ft inside</i> it. A fly
+    /// landing at his own feet on a Funfair night was stamped an out before his glove resolved.
     ///
     /// <para>
-    /// <c>ChompFly</c> is evaluated at the ball's landing point, not at the fielder, so nobody is
-    /// frozen where they stand. What it means is narrower and stranger: on a Funfair night, a fly
-    /// landing at the centre fielder's own feet is stamped an out by the hazard before his glove
-    /// resolves. Recorded because it puts part of the trial's fly-out movement outside the geometry
-    /// #725 controls, and a 3d reader would otherwise attribute all of it here.
+    /// The pattern library made the mouths park data, so they migrate by the same zone rule as every
+    /// other hazard. The centre mouth is at (0, 160) with a 12.60-ft rim and the clearance is 40.90
+    /// ft — the shipped 59.00 ft on a compact field. The anomaly is gone on both roots, and the test
+    /// stays to hold it gone.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>That is the one intended non-parity of #847, and it runs the other way too.</b> At their
+    /// literal 198–228 ft the mouths were where a compact fly could not reach; at 139–160 they are
+    /// in play, so a Funfair night on <c>trials/c80</c> now differs from its day. Nothing on the
+    /// shipped root moved: the same three discs at the same three places.
     /// </para>
     /// </summary>
     [Fact]
-    public void TheMigratedCentreFielderStartsInsideAFunfairChomper()
+    public void TheMigratedCentreFielderIsClearOfTheFunfairChompers()
     {
         var funfair = Trial.Parks["funfair-park"];
-        var centre = ParkHazards.FunfairChompers.Single(h => h.Tag == "C");
+        var centre = funfair.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C");
+        var shippedCentre = Control.Parks["funfair-park"].Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C");
         var was = Control.Rules.Fielders.Spot("CF");
         var now = Trial.Rules.Fielders.Spot("CF");
 
-        // Distance to the mouth's centre, then the clearance its 18-ft rim leaves.
-        Assert.Equal(18, centre.Radius);
-        Assert.Equal(77.00, Diamond.Dist(centre.X, centre.Z, was.X, was.Z), 2);
-        Assert.Equal(14.50, Diamond.Dist(centre.X, centre.Z, now.X, now.Z), 2);
-        Assert.Equal(59.00, Diamond.Dist(centre.X, centre.Z, was.X, was.Z) - centre.Radius, 2);
-        Assert.Equal(-3.50, Diamond.Dist(centre.X, centre.Z, now.X, now.Z) - centre.Radius, 2);
+        // The mouth took the zone rule with the rest: (0, 228) r 18 -> (0, 160) r 12.60.
+        Assert.Equal((0.0, 228.0, 18.0), (shippedCentre.X, shippedCentre.Z, shippedCentre.Radius));
+        Assert.Equal((0.0, 160.0, 12.6), (centre.X, centre.Z, centre.Radius));
 
-        Assert.False(ParkHazards.ChompFly(funfair, night: true, was.X, was.Z));
-        Assert.True(ParkHazards.ChompFly(funfair, night: true, now.X, now.Z));
+        // Distance to the mouth's centre, then the clearance its rim leaves, on each root.
+        Assert.Equal(77.00, Diamond.Dist(shippedCentre.X, shippedCentre.Z, was.X, was.Z), 2);
+        Assert.Equal(53.50, Diamond.Dist(centre.X, centre.Z, now.X, now.Z), 2);
+        Assert.Equal(59.00, Diamond.Dist(shippedCentre.X, shippedCentre.Z, was.X, was.Z) - shippedCentre.Radius, 2);
+        Assert.Equal(40.90, Diamond.Dist(centre.X, centre.Z, now.X, now.Z) - centre.Radius, 2);
 
-        // Only at night, and only a fly: a grounder or a liner is never chomped.
-        Assert.False(ParkHazards.ChompFly(funfair, night: false, now.X, now.Z));
-        Assert.True(ParkHazards.ChompFly(funfair, night: true, now.X, now.Z, grounder: true) is false);
-
-        // The corners are clear, so this is one body in one park.
-        foreach (var pos in new[] { "LF", "RF" })
+        // No start, on either root, stands in a mouth any more.
+        foreach (var pos in new[] { "LF", "CF", "RF" })
         {
             var spot = Trial.Rules.Fielders.Spot(pos);
-            Assert.False(ParkHazards.ChompFly(funfair, night: true, spot.X, spot.Z), pos);
+            Assert.False(ParkHazards.ChompFly(funfair, night: true, spot.X, spot.Z, rules: Trial.Rules), "trial " + pos);
+            var shippedSpot = Control.Rules.Fielders.Spot(pos);
+            Assert.False(
+                ParkHazards.ChompFly(Control.Parks["funfair-park"], night: true, shippedSpot.X, shippedSpot.Z, rules: Control.Rules),
+                "shipped " + pos);
         }
+
+        // Only at night, and only a fly: a grounder or a liner is never chomped.
+        Assert.True(ParkHazards.ChompFly(funfair, night: true, centre.X, centre.Z, rules: Trial.Rules));
+        Assert.False(ParkHazards.ChompFly(funfair, night: false, centre.X, centre.Z, rules: Trial.Rules));
+        Assert.False(ParkHazards.ChompFly(funfair, night: true, centre.X, centre.Z, grounder: true, rules: Trial.Rules));
 
         // And no other park has chompers at all, whatever a body stands on.
         foreach (var id in ParkIds.Where(p => p != "funfair-park"))
-            Assert.False(ParkHazards.ChompFly(Trial.Parks[id], night: true, now.X, now.Z), id);
+            Assert.False(ParkHazards.ChompFly(Trial.Parks[id], night: true, centre.X, centre.Z, rules: Trial.Rules), id);
     }
 
     /// <summary>

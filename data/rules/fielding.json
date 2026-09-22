@@ -271,9 +271,10 @@
     "deflectObstruction": 0.5,
     "deflectMinFtPerSec": 55
   },
+  // The hazard types' own numbers moved to rules/hazards.json with the pattern library (#847).
+  // What is left is not a park hazard's: a shell or cask star swing flags a grounder warped with no
+  // can in the park at all.
   "park": {
-    "emberNightFireMul": 1.6,
-    "pipeReachPadFt": 8,
     "shellWarpChance": 0.6
   },
   // #625, spec §7.3: the batter squares at the West press and the defense reads it before the pitch. The corners
