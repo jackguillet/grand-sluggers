@@ -1056,7 +1056,10 @@ namespace GrandSluggers.UnityClient
                 BroadcastHud.ArmLine(match.PitcherStamina, match.Rules),
                 (pitcherExtra ?? "")
                     + (BroadcastHud.PoorArm(match.PitcherStamina, match.Rules) ? "  SWEAT" : ""),
-                Look.Portrait(match.Pitcher));
+                Look.Portrait(match.Pitcher),
+                // This arm's ordinary pitches, in repertoire order, on both seats' screen and in
+                // every phase: no highlight, no cursor, no press count (PH-02-R5, #825).
+                BroadcastHud.PitcherPitches(match));
             Bar(Px(lay.PitcherCard).x + 16, Px(lay.PitcherCard).y + Px(lay.PitcherCard).height - 22,
                 Px(lay.PitcherCard).width - 32, Mathf.Clamp01(match.PitcherStamina / (float)match.PitcherStaminaMax));
             if (!showTiming) return;
@@ -1067,7 +1070,8 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(box.x + 186, box.y + box.height - 12, Mathf.Clamp01(charge) * 80f, 6), _starOn);
         }
 
-        static void SeatCard(Rect r, string role, string name, bool you, string line2, string extra, Texture2D face)
+        static void SeatCard(Rect r, string role, string name, bool you, string line2, string extra, Texture2D face,
+            string line3 = "")
         {
             if (you)
             {
@@ -1089,6 +1093,10 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(x, r.y + r.height * 0.32f, textW, r.height * 0.18f), line2, _tiny);
             if (!string.IsNullOrWhiteSpace(extra))
                 GUI.Label(new Rect(x, r.y + r.height * 0.50f, textW, r.height * 0.18f), extra.Trim(), _gold);
+            // The repertoire row sits under the extras and above the arm bar. Same anchors, same
+            // card: the layout rects in BroadcastHud do not move (#325, PH-02-R5).
+            if (!string.IsNullOrWhiteSpace(line3))
+                GUI.Label(new Rect(x, r.y + r.height * 0.68f, textW, r.height * 0.16f), line3.Trim(), _tiny);
         }
 
         static void Stars(float x, float y, double n)

@@ -132,8 +132,10 @@ namespace GrandSluggers.EditorTools
                 () => VerifyKeyboardCannotReleasePadTwo(play),
                 () => VerifyScreenDirections(play),
                 () => VerifyCursorIgnoresCurve(play),
-                () => VerifyWestHoldChangeup(play, padTwo: false),
-                () => VerifyWestHoldChangeup(play, padTwo: true),
+                () => VerifyCycleOnceChangeup(play, padTwo: false),
+                () => VerifyCycleOnceChangeup(play, padTwo: true),
+                () => VerifyCycleAfterArmIgnored(play),
+                () => VerifyCycleResetsEachPitch(play),
                 () => VerifySelectSwapPick(play, padTwo: false),
                 () => VerifySelectSwapPick(play, padTwo: true)
             })
@@ -475,23 +477,79 @@ namespace GrandSluggers.EditorTools
         }
 
         /// <summary>#582: West held through the release throws a changeup, on controller 1 (1P) and controller 2 (1v1, bottom half).</summary>
-        static GateCase VerifyWestHoldChangeup(MatchDirector play, bool padTwo)
+        /// <summary>
+        /// #825, PH-02-R3/R4/R5: one RB press in SET selects the second pitch, the charge locks it,
+        /// and what leaves the hand is that family — on either pad. SET itself stays family-blind:
+        /// the pose and the ball are still the fastball's while the selection is held.
+        /// </summary>
+        static GateCase VerifyCycleOnceChangeup(MatchDirector play, bool padTwo)
         {
             var match = padTwo ? Setup(play, Seats.Versus, homeAtBat: true) : Setup(play, Seats.One);
             Require(padTwo == !match.Top, "Fixture half does not put the expected controller on the mound.");
+            Require(match.Pitcher.Repertoire.Second == PitchFamily.Changeup,
+                "Fixture pitcher's second ordinary pitch is not the changeup.");
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
-            var hold = State(south: true, west: true);
-            var release = State(west: true);
+            var cycle = State(cycle: true);
+            Tick(play, "TickSet", padTwo ? State() : cycle, padTwo ? cycle : State());
+            Tick(play, "TickSet", State(), State());
+            Require(GetProperty<string>(play, "ShownPitchType") == PitchFamily.Fastball,
+                "SET leaked the selected family to the pose and the ball.");
+            var hold = State(south: true);
             for (var frame = 0; frame < 6; frame++)
                 Tick(play, "TickSet", padTwo ? State() : hold, padTwo ? hold : State());
             Require(Phase(play) == "Set", "Held South launched before release.");
-            Require(GetProperty<string>(play, "ShownPitchType") == "changeup" || Get<object>(play, "_swapPick") == null,
-                "West hold did not read CHANGE on the card.");
-            Tick(play, "TickSet", padTwo ? State() : release, padTwo ? release : State());
+            Tick(play, "TickSet", State(), State());
             var pitch = Get<PitchCommand>(play, "_pitch");
-            Require(Phase(play) == "Flight" && pitch != null, "Release with West held did not launch.");
-            Require(pitch.Type == PitchFamily.Changeup, "West held through the release was not a changeup.");
-            return new GateCase { name = padTwo ? "west-hold-changeup-pad2" : "west-hold-changeup-pad1", phase = Phase(play), charge = pitch.Charge01 };
+            Require(Phase(play) == "Flight" && pitch != null, "The release did not launch.");
+            Require(pitch.Type == PitchFamily.Changeup, "One cycle press did not throw the changeup.");
+            return new GateCase { name = padTwo ? "cycle-once-changeup-pad2" : "cycle-once-changeup-pad1", phase = Phase(play), charge = pitch.Charge01 };
+        }
+
+        /// <summary>#825, PH-02-R4: the charge takes the family with it; presses after the arm do nothing.</summary>
+        static GateCase VerifyCycleAfterArmIgnored(MatchDirector play)
+        {
+            Setup(play, Seats.One);
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            var hold = State(south: true);
+            var holdAndCycle = State(south: true, cycle: true);
+            Tick(play, "TickSet", hold, State());
+            for (var frame = 0; frame < 4; frame++)
+                Tick(play, "TickSet", frame % 2 == 0 ? holdAndCycle : hold, State());
+            Require(Phase(play) == "Set", "Held South launched before release.");
+            Tick(play, "TickSet", State(), State());
+            var pitch = Get<PitchCommand>(play, "_pitch");
+            Require(Phase(play) == "Flight" && pitch != null, "The release did not launch.");
+            Require(pitch.Type == PitchFamily.Fastball,
+                "A cycle press after the charge armed moved the locked family.");
+            return new GateCase { name = "cycle-after-arm-ignored", phase = Phase(play), charge = pitch.Charge01 };
+        }
+
+        /// <summary>
+        /// #825, PH-02-R5: every SET starts on the fastball. The pitch after a cycled changeup is a
+        /// fastball with no press, because nothing on the shared screen marks the active family.
+        /// </summary>
+        static GateCase VerifyCycleResetsEachPitch(MatchDirector play)
+        {
+            Setup(play, Seats.One);
+            var feel = Get<FeelTable>(play, "_feel");
+            Set(play, "_t", (float)feel.PitcherReadySeconds + 0.01f);
+            var hold = State(south: true);
+            Tick(play, "TickSet", State(cycle: true), State());
+            Tick(play, "TickSet", State(), State());
+            for (var frame = 0; frame < 6; frame++) Tick(play, "TickSet", hold, State());
+            Tick(play, "TickSet", State(), State());
+            Require(Get<PitchCommand>(play, "_pitch")?.Type == PitchFamily.Changeup,
+                "The cycled pitch was not the changeup.");
+            Invoke(play, "BeginSet");
+            Set(play, "_gateHold", true);
+            Set(play, "_t", (float)feel.PitcherReadySeconds + 0.01f);
+            for (var frame = 0; frame < 6; frame++) Tick(play, "TickSet", hold, State());
+            Tick(play, "TickSet", State(), State());
+            var second = Get<PitchCommand>(play, "_pitch");
+            Require(Phase(play) == "Flight" && second != null, "The second release did not launch.");
+            Require(second.Type == PitchFamily.Fastball,
+                "The next SET did not start on the fastball.");
+            return new GateCase { name = "cycle-resets-each-pitch", phase = Phase(play), charge = second.Charge01 };
         }
 
         /// <summary>#582: Select opens the swap pick, the d-pad steps it, Select confirms; the mound changes and SET stays.</summary>
@@ -574,10 +632,12 @@ namespace GrandSluggers.EditorTools
             Controls.Tick(Step);
         }
 
-        static GamepadState State(bool south = false, bool west = false, float stickX = 0, float stickY = 0)
+        static GamepadState State(bool south = false, bool west = false, float stickX = 0, float stickY = 0,
+            bool cycle = false)
         {
             var state = new GamepadState { leftStick = new Vector2(stickX, stickY) };
             if (south) state = state.WithButton(GamepadButton.South);
+            if (cycle) state = state.WithButton(GamepadButton.RightShoulder);
             return west ? state.WithButton(GamepadButton.West) : state;
         }
 
