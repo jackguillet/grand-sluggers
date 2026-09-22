@@ -84,7 +84,7 @@ public sealed class FieldingResolver
         var radius = CatchRadiusFt(fielder, park, _rules);
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
-        var chomped = ParkHazards.ChompFly(park, night, landing.X, landing.Z, grounder || line);
+        var chomped = ParkHazards.ChompFly(park, night, landing.X, landing.Z, grounder || line, _rules);
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, shape,
             heat, furnace, freeze, radius, warped, Chomped: chomped, Foul: ball.Foul, Ball: ball);
@@ -318,7 +318,7 @@ public sealed class FieldingResolver
         var standUp = fielder.ReachFt
                       ?? (c.StandUpReachFt > 0 ? c.StandUpReachFt : c.RadiusBaseFt + fielder.Stats.Field * c.RadiusPerField);
         var radius = standUp + FieldAbilities.CatchBonus(fielder, r);
-        if (park != null && ParkHazards.CanClamber(park, fielder))
+        if (park != null && ParkHazards.CanClamber(park, fielder, r))
             radius += r.Fielding.Catch.ClamberRadiusFt;
         return radius;
     }
@@ -642,6 +642,26 @@ public sealed record FieldingPreview(
     public bool HomeRunLikely => Class == BattedBallClass.Homer;
 }
 
+/// <summary>
+/// What a park's hazards do to a play (§14). Every test here runs once, in
+/// <see cref="FieldingResolver.Preview"/>, against the ball's landing mark; nothing is ticked and no
+/// body's position is ever tested against a hazard. That is the shape D21 changes (F4-b … F4-g), and
+/// #847 did not change it: it moved the <em>dispatch</em>.
+///
+/// <para>
+/// <b>Patterns, not type strings (FD-09, FR-08).</b> Each method asks the hazard library
+/// (<see cref="HazardRules"/>, <c>data/rules/hazards.json</c>) for the row of the type a park
+/// authored and runs the pattern that row names. No method here spells a hazard type, and none
+/// spells a park id (FR-04): Funfair's chompers are three <c>chomper</c> rows in
+/// <c>data/parks/funfair-park.json</c>, the way every other hazard already was.
+/// </para>
+///
+/// <para>
+/// A type with no row is a stop, not a shrug: <see cref="HazardRules.Of"/> throws rather than
+/// letting an unknown hazard quietly do nothing. The park validator refuses one at load, so a
+/// catalog that opened can never reach it.
+/// </para>
+/// </summary>
 public static class ParkHazards
 {
     /// <summary>The park's contact window at night (§14): a park data field (<c>nightContactWindowMul</c>), never a park id in code.</summary>
@@ -654,43 +674,57 @@ public static class ParkHazards
     public static bool InFreeze(Park park, double x, double z, bool night = false, RulesTable? rules = null) =>
         InSlow(park, x, z, night, rules);
 
+    /// <summary>
+    /// A <see cref="HazardPattern.StatusVolume"/> the ball landed in: the whole play's chase runs at
+    /// <c>fielding.chase.frozenMul</c>. The row's <c>nightRadiusMul</c> widens the disc at night —
+    /// 1 for every volume but Ember's breath, and a multiply by 1 is exact.
+    /// </summary>
     public static bool InSlow(Park park, double x, double z, bool night = false, RulesTable? rules = null)
     {
+        var hazards = Rules.Or(rules).Hazards;
         foreach (var h in park.Hazards)
         {
-            if (h.Type is not ("freeze_volume" or "lava_pit" or "fire_breath")) continue;
+            var row = hazards.Of(h.Type);
+            if (row.Pattern != HazardPattern.StatusVolume) continue;
             var r = h.Radius;
-            if (night && h.Type == "fire_breath")
-                r *= Rules.Or(rules).Fielding.Park.EmberNightFireMul;
+            if (night) r *= row.NightRadiusMul;
             if (Diamond.Dist(h.X, h.Z, x, z) <= r) return true;
         }
         return false;
     }
 
-    public static readonly Hazard[] FunfairChompers =
-    [
-        new("chomper", -72, 205, 16, "L"),
-        new("chomper", 0, 228, 18, "C"),
-        new("chomper", 78, 198, 16, "R")
-    ];
-
-    public static bool ChompFly(Park park, bool night, double x, double z, bool grounder = false)
+    /// <summary>
+    /// A <see cref="HazardPattern.CatchStealer"/> the fly landed in: an out at the hang, with no
+    /// glove. A row that is <c>nightOnly</c> is not there by day.
+    /// </summary>
+    public static bool ChompFly(Park park, bool night, double x, double z, bool grounder = false, RulesTable? rules = null)
     {
-        if (!night || grounder || park.Id != "funfair-park") return false;
-        foreach (var h in FunfairChompers)
+        if (grounder) return false;
+        var hazards = Rules.Or(rules).Hazards;
+        foreach (var h in park.Hazards)
+        {
+            var row = hazards.Of(h.Type);
+            if (row.Pattern != HazardPattern.CatchStealer) continue;
+            if (row.NightOnly && !night) continue;
             if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
+        }
         return false;
     }
 
+    /// <summary>
+    /// A grounder that landed inside a <see cref="HazardPattern.BallRedirect"/>'s own radius plus its
+    /// row's reach pad: the preview landing moves to another one of the park's, drawn from the
+    /// match's stream. Needs two, because a mouth cannot be its own exit.
+    /// </summary>
     public static (double X, double Z, bool Warped) WarpIfPipe(Park park, double x, double z, Random rng, RulesTable? rules = null)
     {
-        var pipes = park.Hazards.Where(h => h.Type is "warp_pipe" or "barrel").ToList();
+        var hazards = Rules.Or(rules).Hazards;
+        var pipes = park.Hazards.Where(h => hazards.Of(h.Type).Pattern == HazardPattern.BallRedirect).ToList();
         if (pipes.Count < 2) return (x, z, false);
-        var pad = Rules.Or(rules).Fielding.Park.PipeReachPadFt;
         Hazard? hit = null;
         foreach (var p in pipes)
         {
-            if (Diamond.Dist(p.X, p.Z, x, z) <= p.Radius + pad)
+            if (Diamond.Dist(p.X, p.Z, x, z) <= p.Radius + hazards.Of(p.Type).ReachPadFt)
             {
                 hit = p;
                 break;
@@ -702,27 +736,38 @@ public static class ParkHazards
         return (dest.X, dest.Z, true);
     }
 
+    /// <summary>What the caption calls this park's redirect. Copy, not a rule.</summary>
     public static string WarpName(Park park) =>
-        park.Hazards.Any(h => h.Type == "barrel") ? "barrel cannon" : "warp can";
+        park.Hazards.Any(h => h.Type == HazardType.Barrel) ? "barrel cannon" : "warp can";
 
-    public static bool HitStarSign(Park park, double x, double z)
+    /// <summary>A <see cref="HazardPattern.RewardTarget"/> the ball landed on: the batting team is paid <c>stars.gains.billboard</c>.</summary>
+    public static bool HitStarSign(Park park, double x, double z, RulesTable? rules = null)
     {
+        var hazards = Rules.Or(rules).Hazards;
         foreach (var h in park.Hazards)
         {
-            if (h.Type != "billboard") continue;
+            if (hazards.Of(h.Type).Pattern != HazardPattern.RewardTarget) continue;
             if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
         }
         return false;
     }
 
-    public static bool CanClamber(Park park, Character fielder) =>
-        fielder.FieldAbility.Equals("clamber", StringComparison.OrdinalIgnoreCase) &&
-        park.Hazards.Any(h => h.Type == "climb_wall");
+    /// <summary>
+    /// A Clamber fielder in a park that lists a <see cref="HazardPattern.WallTrait"/>. Park-wide
+    /// today — the row's position and radius are never read — which is what FD-06 turns into a
+    /// property of one wall span.
+    /// </summary>
+    public static bool CanClamber(Park park, Character fielder, RulesTable? rules = null)
+    {
+        if (!fielder.FieldAbility.Equals("clamber", StringComparison.OrdinalIgnoreCase)) return false;
+        var hazards = Rules.Or(rules).Hazards;
+        return park.Hazards.Any(h => hazards.Of(h.Type).Pattern == HazardPattern.WallTrait);
+    }
 
     /// <summary>Clamber robs a ball clearing the fence by at most fielding.catch.clamberRobFt (§8.4).</summary>
     public static bool CanClamberRob(Park park, Character fielder, AtBatResult hit, RulesTable? rules = null)
     {
-        if (!CanClamber(park, fielder)) return false;
+        if (!CanClamber(park, fielder, rules)) return false;
         var ball = BattedBall.Of(hit, park, rules);
         return ball.HomeRun && ball.FenceClearFt <= Rules.Or(rules).Fielding.Catch.ClamberRobFt;
     }

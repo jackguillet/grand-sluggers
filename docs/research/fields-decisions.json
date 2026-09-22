@@ -718,7 +718,14 @@
         "answer_quote": "accept all four recommendations"
       },
       "numeric_targets": "not applicable: an engineering pattern",
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F4-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/847",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/851",
+          "status": "in review"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -730,6 +737,57 @@
           "choice": "B",
           "quote": "accept all four recommendations",
           "scope": "Hazards come from a small closed library of patterns. A hazard type is a data row that picks a pattern and its numbers; a park lists instances. An unknown type, or a type with no authored row, fails the load. The pattern list in the plan (status volume, ball redirect, solid body, timed mover, catch stealer, reward target, wall trait) is the starting proposal, not an accepted set: which patterns ship, their fairness contract (FD-08), their placement rule (FD-19) and every number stay open. The catch stealer's place in the game is not accepted by this decision."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "FD-09-R1",
+          "question": "What are the four inert hazard types?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "decoration",
+              "label": "A decoration pattern",
+              "tradeoff": "statue, train, ac_unit and tree carry an authored row that says the type changes no play. The library stays closed and fully authored, a park may list one for the kit, and the validator needs no special case for the train's missing radius. Each type gets a real pattern when its park comes up."
+            },
+            {
+              "id": "solid-body-and-timed-mover",
+              "label": "Name the patterns they will have",
+              "tradeoff": "statue, ac_unit and tree take solidBody and train takes timedMover, as the hazard pattern matrix proposes. The rows would name behaviour no sim code implements, so a park listing one would read as authored while nothing happened - the silent fallback FR-02 exists to refuse."
+            },
+            {
+              "id": "drop-them",
+              "label": "Remove the four types from the library",
+              "tradeoff": "The library carries only types that act. The four are drawn by ParkView from park rows today, so removing them would take the props out of four parks or move them to a second, unvalidated list."
+            }
+          ],
+          "recommendation": "decoration. An honest no-effect row keeps the library closed and fully authored without claiming behaviour that does not exist.",
+          "existing_contract": "statue, train, ac_unit and tree are validated hazard types with no sim effect (ContentValidation.cs:21-24, docs/research/fields-code-map-sim.md section 3). The train's radius is a named exception in the park validator and its periodSec was removed by F1-a. ParkView draws all four from the park's own rows.",
+          "selected_option": "decoration",
+          "accepted_scope": "statue, train, ac_unit and tree are a decoration pattern: an honest no-effect row; each gets a real pattern when its park comes up",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q6: what are the four inert hazard types in the pattern library?",
+            "answer_quote": "decoration"
+          },
+          "contract": {
+            "pattern_id": "decoration",
+            "types": [
+              "statue",
+              "train",
+              "ac_unit",
+              "tree"
+            ],
+            "sim_effect": "none",
+            "validator_consequence": "a decoration row may carry radius 0, so the train's radius special case by name is removed; every acting pattern still requires a radius above 0",
+            "revisited_by": [
+              "F4-f",
+              "F4-g"
+            ]
+          }
         }
       ]
     },
@@ -1432,6 +1490,10 @@
     {
       "date": "2026-09-22",
       "event": "F2-b (#845, PR #848) removed the mirror from the drawn wall: HarborWall.Loop walked CF -> RF pole -> behind home and copied that half onto the other side, so Funfair (315 / 340), Rooftop (318 / 322) and Canopy (312 / 318) drew right field's wall in left. The loop now walks the whole boundary - each side's own fence through AtBatResolver.FenceAt, that side's foul wrap and the round backstop from the ParkBoundary - on the spray grid FieldBounds samples, so every drawn vertex lies on the clip polygon (worst 5e-15 ft) and each pole is drawn at its own distance (SF-05, over content.ParkPickOrder on both roots, plus a lopsided fixture built in the test). The single-slot loop cache, keyed by the three posts under a lock, became a per-(park, edge) cache on FieldBounds' key. Parity: FieldBounds and ParkBoundary untouched, seed 7 identical, seals hash-only, and the three symmetric parks (Harbor, Crystal, Ember) draw bit-identical loops, so nothing changed on screen - no other park draws this kit yet. The HarborPostcardTests symmetry row was re-authored citing FD-06: it held for every park because the builder copied one half, and now says a symmetric park draws matching sides. Left open and untouched: the rail ramp near the pole (map SS5 Q5, #732) and the polyline fence (F2-c). FD-06 status unchanged; no number selected and no human gate passed."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F4-a (#847, PR #851) in review: the hazard pattern library at parity. data/rules/hazards.json carries one authored row per hazard type (freezeVolume, lavaPit, fireBreath, warpPipe, barrel, billboard, climbWall, chomper, statue, train, acUnit, tree), each naming a pattern from the closed set statusVolume | ballRedirect | rewardTarget | catchStealer | wallTrait | decoration, in the D20 shape: named properties, one row per library id, and different named refusals for an id outside the library and an id inside it with no row (SF-03, on both roots). ParkHazards dispatches on the row's pattern and spells no hazard type and no park id; HazardLibraryTests carries the pre-847 type-string code verbatim as an oracle and compares the two over every hazard in every park, day and night, the warp's seeded draw included. The validator's type set is derived from the table and the train's radius special case is gone, because a decoration may carry no disc. Numbers moved at today's values (FR-06): fielding.park.emberNightFireMul 1.6 -> fireBreath.nightRadiusMul, fielding.park.pipeReachPadFt 8 (5.6 on trials/c80) -> warpPipe.reachPadFt and barrel.reachPadFt; chase.frozenMul, drops.frozen, stars.gains.billboard and shellWarpChance stayed. 730 / 732 still own the pad and the multiplier. trials/c80 carries rules/hazards.json and is fourteen files. Chompers became park data: ParkHazards.FunfairChompers and the park.Id != 'funfair-park' test are gone, Funfair carries the three discs at the literal's own places, and the trial carries them migrated by the accepted zone rule - so SF-04's sim half loses its ChompFly exception and CarnivalFront's copy (F8-a) is the only park-id literal left in the sim outside the one default. Shipped root bit-identical: seed 7 and the park-factors table, day and night. One intended non-parity, on the trial only: at 198-228 ft the literals were out of a compact fly's reach and Funfair's night rows equalled its day rows; at 139-160 they are in play, and the night row reads 4.90 runs (1.15 against Harbor) against the day's 5.04 (1.18) - a finding, not a target (FD-13). It also closes 717's anomaly, the migrated centre fielder starting inside a mouth. Seals regenerated after rebasing on fdc9a48f, hashes only on both. Jack answered map section 5 Q6 on September 22, 2026 - the four inert types are a decoration pattern - recorded as FD-09-R1. FD-09's status is unchanged and no human gate passed. Reported for the parent to weigh: pipeReachPadFt was inside tools/compact-field-report.py's seal through data/rules/fielding.json, and data/rules/hazards.json is not in that seal's hash list, so the pad left sealed coverage when it moved."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",

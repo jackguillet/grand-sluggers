@@ -52,7 +52,7 @@ Three rules. Each is checked when the overlay is read, not left to care:
 ## What is here now
 
 [#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
-ball that fits it. #717 landed eight files in one commit — the folder carries thirteen now — because
+ball that fits it. #717 landed eight files in one commit — the folder carries fourteen now — because
 **drag is global and park dimensions are not**:
 at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
 poles is a game with no home runs in it, and the parks alone are a derby.
@@ -64,9 +64,10 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.infieldAirMul` 1.0 (the outfield's multiplier went to 1.0 with it and came back to the shipped 0.6 after 3d, #715); and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0; and the impact recoil (#720): `recoil.onsetFtPerSec` 55, `fullFtPerSec` 75 — the knockback block is not read — with the airborne pair `airOnsetFtPerSec` 80, `airFullFtPerSec` 115; and the handling error (#721): `handling.awkwardHop` 1 — the routine pickup never rolls, the bobble block is not read; a failed take gets past on a glancing touch of a hot ball (`deflect*`, the accepted anchors in both roots). Nothing else in the table. |
+| `rules/fielding.json` | the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.infieldAirMul` 1.0 (the outfield's multiplier went to 1.0 with it and came back to the shipped 0.6 after 3d, #715); and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0; and the impact recoil (#720): `recoil.onsetFtPerSec` 55, `fullFtPerSec` 75 — the knockback block is not read — with the airborne pair `airOnsetFtPerSec` 80, `airFullFtPerSec` 115; and the handling error (#721): `handling.awkwardHop` 1 — the routine pickup never rolls, the bobble block is not read; a failed take gets past on a glancing touch of a hot ball (`deflect*`, the accepted anchors in both roots). Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
-| `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
+| `rules/hazards.json` | the hazard pattern library's reach pad (#732, carried here by #847): `warpPipe.reachPadFt` and `barrel.reachPadFt` 8 → 5.6. The number was `rules/fielding.json`'s `park.pipeReachPadFt` until the library moved it under its types; it did not change when it moved. Every other row and every other field — the twelve patterns, `fireBreath.nightRadiusMul` 1.6, `chomper.nightOnly` — is the shipped table, byte for byte. |
+| `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. Funfair gained three `chomper` rows with #847, migrated by the same zone rule as the rest. |
 
 **The infield.** `baselineFt` 80, `moundFt` 53.78, and the bags at 56.57 / 113.14 — the shipped
 rounded 63.64 / 127.28 multiplied by 80/90, kept at the two decimals `data/` already spells them in.
@@ -127,6 +128,18 @@ night fly from z 210 to z 245, and LF and RF at (∓77.09, 175.19) are clear. No
 park flips. Some of the trial's fly-out movement at Funfair is therefore the chomper rather than the
 geometry this slice owns. The chompers are code literals and no overlay can move them (#717's gap);
 this is recorded, not repaired.
+
+**Closed by [#847](https://github.com/jackguillet/grand-sluggers/issues/847).** The hazard pattern
+library made the mouths park data, so they migrate by the zone rule like every other hazard: the
+centre one is at (0, 160) with a 12.60-ft rim and the centre fielder stands 53.50 ft off it, 40.90 ft
+clear — the shipped 59.00 ft on a compact field. The left and right mouths are at (−50, 144) r 11.20
+and (55, 139) r 11.20. Nothing stands in a mouth on either root now
+(`CompactGeometryTests.TheMigratedCentreFielderIsClearOfTheFunfairChompers`). The move runs the other
+way as well: at 198–228 ft the literals sat where a compact fly could not reach them, so Funfair's
+night rows were byte-identical to its day rows; at 139–160 they are in play, and the night row reads
+4.90 runs a game against the day's 5.04 (1.18 → 1.15 against Harbor). That is the intended
+consequence of removing a park id from code, and it is the only park-factors row on either root that
+#847 moved.
 
 None of this was fixed in #717 on purpose: absorbing #725 would have merged two slices into one and
 destroyed the attribution 3d depends on. It is recorded so a 3d reader does not mistake these
@@ -294,8 +307,11 @@ refuses a copy missing a shipped key, and only `RulesValidation.UnknownFields` c
 and the shipped file no longer does. That makes #730 decision 6, should it proceed and delete
 `throw.onTheFlyFt`, a two-copy edit. Funfair's coded night chompers (`ParkHazards.FunfairChompers`,
 radii 16 / 18 / 16) are C# literals and did not scale, as their positions did not in #717 — recorded,
-not repaired. `pipeReachPadFt` carries no `[Positive]` validator in `Rules.cs`; adding one is a sealed-
-source edit and was left for a slice that already has to regenerate the packets.
+not repaired, and **closed by #847**, which made them park rows that scale with the rest.
+`pipeReachPadFt` carries no `[Positive]` validator in `Rules.cs`; adding one is a sealed-
+source edit and was left for a slice that already has to regenerate the packets. #847 moved the
+number to `hazards.json` as `reachPadFt` and left it un-`[Positive]` for the same reason: a pad of 0
+is a barrel that catches only what lands on it, which is a number, not a broken table.
 
 ---
 
