@@ -18,6 +18,10 @@ Run it:
 GRAND_SLUGGERS_TRIAL=trials/pitch5 dotnet run --project src/GrandSluggers.Cli -- match --seed 7
 ```
 
+**Sibling report:** [`cpu-pitcher-p1g.md`](cpu-pitcher-p1g.md) — P1-g (#823) turns the CPU pitcher's
+switch on in this same overlay, so the CPU throws these three families with the inputs a hand has
+(PH-18-R1). The two are judged together in sitting 1.
+
 ## The proposal
 
 Two new fields on a family row. `sweepFt` is the family's **natural sweep**: feet the crossing ends

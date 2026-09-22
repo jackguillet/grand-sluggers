@@ -392,6 +392,16 @@
       "promoted": "PitchFamilyTrialScenarioTests.S109_TheArcTheRideAndTheFlatOneAreThreeDifferentHeightPaths",
       "issue": "#818",
       "pr": "#821"
+    },
+    {
+      "id": "star-shape-moves-the-crossing",
+      "signature": "A claim about where a pitch crosses passes for hundreds of deliveries and then fails by a round number that is a starShapes value - e.g. expected 2.55 ft of height, got 3.10, a difference of exactly caskballRise 0.55 - on a pitch nothing else about the assertion can explain.",
+      "stage": "sim",
+      "cause": "PitchFlight.Point applies the Star Pitch's own shape (heat/prism/charm/phony wobble in X, caskball's rise in Y) after the family, the sweep and the stick, so a Star crossing is not the family's crossing. Any test that samples CpuPitch, AutoPlay or a captain's delivery will eventually draw one: Match.CpuPitch rolls Star on a captain with a star available (#823, S-115).",
+      "fix": "Say which pitches the claim is about. A statement about the family's own geometry exempts pitch.Star and asserts that a Star was in fact drawn, so the exemption is not silently covering an empty set; a statement about the rubber solve does not need the exemption, because the wobble is in the rubber-0 probe too and cancels. Do not widen the tolerance to swallow a star.",
+      "promoted": "CpuPitcherScenarioTests.S115_TrialCpuNeverAimsAndWalksTheRubberOntoItsIntentWithBothArms",
+      "issue": "#823",
+      "pr": ""
     }
 
   ]
