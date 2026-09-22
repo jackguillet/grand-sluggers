@@ -116,8 +116,8 @@ namespace GrandSluggers.UnityClient
                 // geometry owner, in this park's dirt and wall. HarborKit draws it for Harbor.
                 new FieldKit(_root).Build(park, FieldSkin(park, dirtMat, ash));
             }
-            // The dress stands beside the kit, never in it: the kit's backstop wraps the plate, and no
-            // dress piece stands inside it (F6-a2 #881, FieldKitSourceTests).
+            // The dress stands beside the kit, never in it: no dress piece stands inside the kit's
+            // backstop or in the dugout span along either foul line (F6-a2 #881, FieldKitSourceTests).
             if (harbor)
             {
                 // HarborKit draws Harbor: the field kit and Harbor's own dress.
@@ -247,8 +247,6 @@ namespace GrandSluggers.UnityClient
             var stone = Look.Lit(new Color(0.76f, 0.82f, 0.88f), smooth: 0.28f);
 
             CrystalBoards(park, glass, pink);
-            Cube("IceBench1B", new Vector3(42, 1.1f, 22), new Vector3(20, 1.0f, 6), ice);
-            Cube("IceBench3B", new Vector3(-42, 1.1f, 22), new Vector3(20, 1.0f, 6), ice);
             Cube("HomePavilion", new Vector3(0, 10, -62), new Vector3(80, 18, 16), ice);
             Cube("HomeRoof", new Vector3(0, 20.2f, -62), new Vector3(86, 2.2f, 20), pink);
             Cube("LeftPavilion", new Vector3(-118, 12, 40), new Vector3(16, 20, 90), ice);
@@ -324,9 +322,7 @@ namespace GrandSluggers.UnityClient
             var yellow = Look.Lit(Colors.Gold, smooth: 0.4f);
             var pink = Look.Lit(new Color(1f, 0.31f, 0.63f), smooth: 0.28f);
             var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
-            var canvas = Look.Lit(new Color(0.94f, 0.78f, 0.48f), smooth: 0.12f);
 
-            FunfairBenches(wood, canvas);
             Tent("HomeTent", new Vector3(0, 0, -62), 72, 22, 20, red, cream, wood);
             Tent("LeftTent", new Vector3(-118, 0, 38), 22, 84, 18, pink, cream, wood);
             Tent("RightTent", new Vector3(118, 0, 38), 22, 84, 18, yellow, red, wood);
@@ -338,14 +334,6 @@ namespace GrandSluggers.UnityClient
             FunfairBooths(wood, red, cream, yellow, pink);
             FunfairTrain(park, wood, red, cream, yellow);
             FunfairNightHook(park);
-        }
-
-        void FunfairBenches(Material wood, Material canvas)
-        {
-            Cube("Bench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
-            Cube("Awning1B", new Vector3(42, 5.2f, 22), new Vector3(22, 0.5f, 8), canvas);
-            Cube("Bench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
-            Cube("Awning3B", new Vector3(-42, 5.2f, 22), new Vector3(22, 0.5f, 8), canvas);
         }
 
         void Tent(string name, Vector3 pos, float w, float d, float h, Material a, Material b, Material pole)
@@ -508,10 +496,6 @@ namespace GrandSluggers.UnityClient
             var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
             var magenta = Look.Unlit(new Color(1f, 0.28f, 0.72f));
 
-            Cube("Bench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), tar);
-            Cube("Awning1B", new Vector3(42, 5.4f, 22), new Vector3(22, 0.35f, 8), neon);
-            Cube("Bench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), tar);
-            Cube("Awning3B", new Vector3(-42, 5.4f, 22), new Vector3(22, 0.35f, 8), magenta);
             Cube("HomeRoofStand", new Vector3(0, 10, -62), new Vector3(76, 16, 14), tar);
             Cube("HomeNeon", new Vector3(0, 18.6f, -62), new Vector3(80, 0.5f, 16), gold);
             Cube("LeftRoof", new Vector3(-118, 12, 40), new Vector3(16, 18, 86), tar);
@@ -566,12 +550,7 @@ namespace GrandSluggers.UnityClient
             var bark = Look.Lit(new Color(0.36f, 0.21f, 0.11f), smooth: 0.08f);
             var leaf = Look.Lit(new Color(0.12f, 0.4f, 0.18f), smooth: 0.1f);
             var vine = Look.Lit(new Color(0.22f, 0.48f, 0.18f), smooth: 0.12f);
-            var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
 
-            Cube("LogBench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
-            Cube("LeafAwning1B", new Vector3(42, 5.4f, 22), new Vector3(22, 0.6f, 8), leaf);
-            Cube("LogBench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
-            Cube("LeafAwning3B", new Vector3(-42, 5.4f, 22), new Vector3(22, 0.6f, 8), leaf);
             Cube("HomeGrove", new Vector3(0, 10, -62), new Vector3(72, 16, 14), bark);
             Cube("HomeCanopy", new Vector3(0, 19.2f, -62), new Vector3(80, 4, 18), leaf);
             Cube("LeftGrove", new Vector3(-118, 12, 40), new Vector3(16, 18, 86), bark);
@@ -677,8 +656,6 @@ namespace GrandSluggers.UnityClient
             var fire = Look.Unlit(Colors.EmberFire);
             var gold = Look.Lit(Colors.Gold, smooth: 0.45f);
 
-            Cube("StoneBench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), stone);
-            Cube("StoneBench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), stone);
             Cube("HomeKeep", new Vector3(0, 10, -62), new Vector3(76, 18, 16), stone);
             Cube("HomeCrenel", new Vector3(0, 20.2f, -62), new Vector3(82, 2.4f, 18), iron);
             Cube("LeftBattlement", new Vector3(-118, 12, 40), new Vector3(16, 20, 90), stone);
