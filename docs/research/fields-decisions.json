@@ -462,7 +462,14 @@
         "answer_quote": "C"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F2-b",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/845",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/848",
+          "status": "in review"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -1421,6 +1428,10 @@
     {
       "date": "2026-09-22",
       "event": "F3-a2 #840 merged (b7a13dc4): both resolvers play on the match's resolved table. NORMAL unchanged; the fielding preview now waits the match's difficulty rung as live play already did, so EASY / HARD games can differ from before (reported, not tuned). The F3-a lever now reaches the first flight of a play; no park names air."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F2-b (#845, PR #848) removed the mirror from the drawn wall: HarborWall.Loop walked CF -> RF pole -> behind home and copied that half onto the other side, so Funfair (315 / 340), Rooftop (318 / 322) and Canopy (312 / 318) drew right field's wall in left. The loop now walks the whole boundary - each side's own fence through AtBatResolver.FenceAt, that side's foul wrap and the round backstop from the ParkBoundary - on the spray grid FieldBounds samples, so every drawn vertex lies on the clip polygon (worst 5e-15 ft) and each pole is drawn at its own distance (SF-05, over content.ParkPickOrder on both roots, plus a lopsided fixture built in the test). The single-slot loop cache, keyed by the three posts under a lock, became a per-(park, edge) cache on FieldBounds' key. Parity: FieldBounds and ParkBoundary untouched, seed 7 identical, seals hash-only, and the three symmetric parks (Harbor, Crystal, Ember) draw bit-identical loops, so nothing changed on screen - no other park draws this kit yet. The HarborPostcardTests symmetry row was re-authored citing FD-06: it held for every park because the builder copied one half, and now says a symmetric park draws matching sides. Left open and untouched: the rail ramp near the pole (map SS5 Q5, #732) and the polyline fence (F2-c). FD-06 status unchanged; no number selected and no human gate passed."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
