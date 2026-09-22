@@ -488,10 +488,110 @@
           "choice": "C",
           "quote": "C",
           "scope": "A park's outfield fence may be a free polyline: a list of points from the left pole to the right pole, each with its own height, so a park can have notches, porches and alleys. A span between two points names a wall material, so the wall-segment benefits of option B (a tall wall, a low corner, a climbable section) are included. The three-post arc stays the default shape: a park that lists no points plays and draws exactly as today (parity). Contract work, not selected here: the point format (inside FD-12's diamond-relative units), the validator's limits, how the fielder-depth rule, the C80 migration, the warning track, the poles, the drawn wall and the 'field' camera follow a free shape, and whether outfield depth must become per park (FD-07). Author's proposed guardrail for that contract: the fence stays one distance per bearing as seen from home (no overhang, no fence behind a fence), so FenceAt(bearing) stays a function and every current consumer keeps working. D15 changes form and must be reconciled in gameplay-spec before code: 'one number' becomes 'the drawn wall equals the flight wall on every span'. The author's recommendation was B. No shape, height or material value is selected."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-06-R1: yes",
+          "quote": "1. approve.",
+          "scope": "The polyline fence keeps one fence distance per bearing as seen from home. Notches, porches and alleys are legal. An overhang or a fence behind a fence is refused by the park validator, by name, on both roots. FenceAt stays a function of the bearing. The three-post circle stays the default (SF-06)."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-06-R2: sim-rail",
+          "quote": "8. approve",
+          "scope": "The sim's rail is the rule near the foul pole. The drawn rail stays hip-high (the boundary table's rail top) all the way to the pole, and the drawn wall steps from the rail to the fence at the pole, where the flight's wall steps. The drawn ramp past HarborWall.RampStartZ goes. No sim number changes; #732's flare and offset are untouched. D15's drawn-equals-flight rule then holds on every span and SF-05 claims the whole rail. This is a visible change at Harbor near both poles, so it carries a look gate for Jack."
         }
       ],
       "affects_spec_decisions": [
         "D15"
+      ],
+      "refinements": [
+        {
+          "id": "FD-06-R1",
+          "question": "Map section 5 Q4: does the polyline fence keep one distance per bearing from home?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "yes",
+              "label": "One distance per bearing",
+              "tradeoff": "Notches, porches and alleys are legal; an overhang or a fence behind a fence is not. FenceAt stays a function of the bearing, so the depth rule, the C80 migration, the clamp and the cameras keep working."
+            },
+            {
+              "id": "no",
+              "label": "Any simple polygon",
+              "tradeoff": "A park may fold its fence back on itself. Every reader of FenceAt (16 callers), the fielder-depth rule, the C80 scale and the cameras would need a new shape language."
+            }
+          ],
+          "recommendation": "yes. It keeps the fence a simple function of direction at no cost to the shapes a park wants.",
+          "existing_contract": "The flight already clips against a polygon sampled from FenceAt(park, bearing) (FieldBounds.cs:133, AtBatResolver.cs:239); the three-post circle is the only shape today.",
+          "selected_option": "yes",
+          "accepted_scope": "The polyline fence keeps one fence distance per bearing as seen from home. Notches, porches and alleys are legal. An overhang or a fence behind a fence is refused by the park validator, by name, on both roots. FenceAt stays a function of the bearing. The three-post circle stays the default (SF-06).",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q4 (item 1 of the assistant's list): the polyline guardrail, one fence distance per bearing from home",
+            "answer_quote": "1. approve.",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "fence_shape": "one distance per bearing from home",
+            "refused": [
+              "overhang",
+              "fence behind a fence"
+            ],
+            "default": "the three-post circle",
+            "revisited_by": [
+              "F2-c"
+            ]
+          }
+        },
+        {
+          "id": "FD-06-R2",
+          "question": "Map section 5 Q5: near the foul pole, which rail is the rule, the drawn ramp or the sim's hip-high rail?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "sim-rail",
+              "label": "The sim's rail; the drawing follows",
+              "tradeoff": "The drawn rail stays hip-high to the pole and the wall steps up at the pole, where the flight's wall steps. Only a look changes (Harbor near both poles). No sim number moves."
+            },
+            {
+              "id": "drawn-ramp",
+              "label": "The drawn ramp; the sim follows",
+              "tradeoff": "The flight's rail rises to the fence from 95 ft out. Pulled balls and ground-rule doubles near the line are decided differently, on ground #732 is still measuring."
+            }
+          ],
+          "recommendation": "sim-rail. It changes only a look, while raising the sim rail changes play near the line.",
+          "existing_contract": "HarborWall draws the rail ramping from 4.2 ft to the fence past RampStartZ (95 ft out) while FieldBounds keeps the rail at 4.2 ft to the pole. F2-b (#848) measured the disagreement at 150-177 ft of rail per side on the shipped root and 64-82 ft on trials/c80; SF-05 skips that span.",
+          "selected_option": "sim-rail",
+          "accepted_scope": "The sim's rail is the rule near the foul pole. The drawn rail stays hip-high (the boundary table's rail top) all the way to the pole, and the drawn wall steps from the rail to the fence at the pole, where the flight's wall steps. The drawn ramp past HarborWall.RampStartZ goes. No sim number changes; #732's flare and offset are untouched. D15's drawn-equals-flight rule then holds on every span and SF-05 claims the whole rail. This is a visible change at Harbor near both poles, so it carries a look gate for Jack.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q5 (item 8 of the assistant's list): the rail near the foul pole; the author leaned toward drawing the sim's rail",
+            "answer_quote": "8. approve",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "rule": "drawn rail top == flight rail top on every foul span, to the pole",
+            "removed": "the drawn ramp past HarborWall.RampStartZ",
+            "sim_change": "none",
+            "human_gate": "a look at Harbor's poles",
+            "revisited_by": [
+              "F2-b2"
+            ]
+          }
+        }
       ]
     },
     {
@@ -626,6 +726,15 @@
           "choice": "FD-08-R1: 1",
           "quote": "1",
           "scope": "Random world, geometric result. A hazard's draw may decide what the hazard does: when it fires, which exit it picks, where it sends the ball, which body it goes after. The ball and the bodies then decide the play as in every other play. No out, hit, drop or catch is awarded by chance. AGENTS.md's rule 'a play is decided by geometry, never by a roll' stays whole, with one clarifying sentence for park hazards. Consequence for the hazard runtime (epic F4): the park's use of the fielding.drops.frozen result roll retires; a special attack's use of the same table is outside this phase (the 3e specials boundary). The warp's random exit may stay, but the live ball must really travel there."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-08-R2: number-now",
+          "quote": "3. slows for 3 seconds.",
+          "scope": "A status volume slows the body that touches it for 3 seconds (Jack's number). The speed factor was not re-decided: it stays fielding.chase.frozenMul 0.45. F4-b builds the per-body touch, the 3-second duration and the typed event, retires the play-wide flag and the park's drops.frozen roll (FD-08-R1), and re-reports S-29 and the park factors. What re-entering the volume does, and which roots carry the number (FD-13-R1), are F4-b's contract work. The number is Jack's; it is not trial-accepted until he has played it."
         }
       ],
       "affects_standing_orders": [
@@ -678,6 +787,44 @@
             ],
             "draw_is_a_typed_live_event": true,
             "cpu_foresight_of_draw": false
+          }
+        },
+        {
+          "id": "FD-08-R2",
+          "question": "Map section 5 Q7: how long does a status volume slow a body, and does the 0.45 speed factor stay?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "number-now",
+              "label": "Jack names the duration now",
+              "tradeoff": "F4-b builds to a stated number."
+            },
+            {
+              "id": "scoped-trial",
+              "label": "Settle both in a scoped trial",
+              "tradeoff": "F4-b builds the mechanism with a proposal; Jack plays and accepts the numbers."
+            }
+          ],
+          "recommendation": "scoped-trial.",
+          "existing_contract": "Today a landing in the disc slows every chaser for the whole play at fielding.chase.frozenMul (0.45), with no touch test and no timer. docs/parks.md's intent says 'frozen 1.2s'; that was never in the code.",
+          "selected_option": "number-now",
+          "accepted_scope": "A status volume slows the body that touches it for 3 seconds (Jack's number). The speed factor was not re-decided: it stays fielding.chase.frozenMul 0.45. F4-b builds the per-body touch, the 3-second duration and the typed event, retires the play-wide flag and the park's drops.frozen roll (FD-08-R1), and re-reports S-29 and the park factors. What re-entering the volume does, and which roots carry the number (FD-13-R1), are F4-b's contract work. The number is Jack's; it is not trial-accepted until he has played it.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q7 (item 3 of the assistant's list): the status volume's duration, and whether 0.45 stays",
+            "answer_quote": "3. slows for 3 seconds.",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "duration_sec": 3.0,
+            "slow_factor": "fielding.chase.frozenMul 0.45, unchanged (not re-decided)",
+            "status_of_number": "Jack's number, not yet played",
+            "revisited_by": [
+              "F4-b"
+            ]
           }
         }
       ]
@@ -744,6 +891,15 @@
           "choice": "B",
           "quote": "accept all four recommendations",
           "scope": "Hazards come from a small closed library of patterns. A hazard type is a data row that picks a pattern and its numbers; a park lists instances. An unknown type, or a type with no authored row, fails the load. The pattern list in the plan (status volume, ball redirect, solid body, timed mover, catch stealer, reward target, wall trait) is the starting proposal, not an accepted set: which patterns ship, their fairness contract (FD-08), their placement rule (FD-19) and every number stay open. The catch stealer's place in the game is not accepted by this decision."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-09-R2: ball-redirect",
+          "quote": "9. approve",
+          "scope": "A chomper never makes an out. It becomes a ball redirect: it takes the ball and sends it on as a live ball, and where it sends it may be a seeded draw (FD-08-R1); the ball and the bodies decide the play. The catchStealer pattern leaves the library once no type uses it. Built with the live ball redirect (F4-c) when Funfair comes up; until then the chomper rows keep today's behaviour on both roots."
         }
       ],
       "refinements": [
@@ -793,6 +949,49 @@
             "revisited_by": [
               "F4-f",
               "F4-g"
+            ]
+          }
+        },
+        {
+          "id": "FD-09-R2",
+          "question": "Map section 5 Q8: the catch stealer (a chomper makes an out with no glove): keep it, change it to a ball redirect, or drop it?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "keep",
+              "label": "Keep",
+              "tradeoff": "An out with no glove. Contradicts FD-08-R1: a hazard never awards an out."
+            },
+            {
+              "id": "ball-redirect",
+              "label": "Change it to a ball redirect",
+              "tradeoff": "The chomper takes the ball and sends it on as a live ball; the play is decided by the ball and the bodies. Reuses the warp-pipe pattern."
+            },
+            {
+              "id": "drop",
+              "label": "Drop",
+              "tradeoff": "Funfair loses its night hazard."
+            }
+          ],
+          "recommendation": "ball-redirect. It follows FD-08-R1 and reuses a pattern the library already has.",
+          "existing_contract": "Three chomper rows in data/parks/funfair-park.json (F4-a, #851), pattern catchStealer, nightOnly: a fly that lands in a disc at night is a fly out with no glove.",
+          "selected_option": "ball-redirect",
+          "accepted_scope": "A chomper never makes an out. It becomes a ball redirect: it takes the ball and sends it on as a live ball, and where it sends it may be a seeded draw (FD-08-R1); the ball and the bodies decide the play. The catchStealer pattern leaves the library once no type uses it. Built with the live ball redirect (F4-c) when Funfair comes up; until then the chomper rows keep today's behaviour on both roots.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q8 (item 9 of the assistant's list): the catch stealer",
+            "answer_quote": "9. approve",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "chomper_pattern": "ballRedirect",
+            "catchStealer": "retires once unused",
+            "until_built": "today's behaviour",
+            "revisited_by": [
+              "F4-c"
             ]
           }
         }
@@ -916,6 +1115,61 @@
           "choice": "B",
           "quote": "b",
           "scope": "Night is a declared rule layer per park. A park may carry a night block that overrides named fields of the day park or adds hazard instances; everything the block does not name is the day park. The block is validated like the day block, and no code path picks a number by a park id or by the word night. Harbor's night stays a look only. The three night rules that exist today move into night blocks at parity: Crystal's contact window (nightContactWindowMul 0.85), Ember's breath reach (fielding.park.emberNightFireMul 1.6) and Funfair's chompers (code literals). Moving them does not endorse them: the contact-window rule acts on the at-bat and has no reference source, and it is reviewed when night blocks are written. Night hazard instances are hazards, so the FD-10 switch removes them; a night field override (air, light rule) is not a hazard and stays. nightOnly / dayOnly are wired or removed by the schema epic. The CLI gains a night flag so a night rule can be measured. No night value is selected."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-11-R1: drop",
+          "quote": "6. drop",
+          "scope": "Crystal's night contact-window rule is dropped for Crystal's trial: when F4-d writes the night blocks, the trial's Crystal night block carries no contact-window change, and that trial's night Crystal plays the day window. Read with FD-13-R1 (the shipped park stays as it is until a single default exists) and the author's framing ('dropping it for the first trial'), the shipped Crystal keeps its 0.85 until then; if Jack meant the shipped game too, F4-d removes it there as well. No replacement night event is selected."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "FD-11-R1",
+          "question": "Map section 5 Q9: Crystal's night contact window (x 0.85 on the at-bat, no reference source): keep, replace or drop?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "keep",
+              "label": "Keep",
+              "tradeoff": "Crystal's night block carries the 0.85 window at parity."
+            },
+            {
+              "id": "replace",
+              "label": "Replace",
+              "tradeoff": "A fielding-phase night event that a batted ball triggers, as in the reference, with its own tell."
+            },
+            {
+              "id": "drop",
+              "label": "Drop",
+              "tradeoff": "Crystal's night keeps its look and loses the invisible at-bat penalty."
+            }
+          ],
+          "recommendation": "drop, for the first trial: the player gets no signal for it. A visible night event can come later with its own signal.",
+          "existing_contract": "nightContactWindowMul is a park field (Crystal 0.85, every other park 1), read by ParkHazards.ContactWindowMul at night. Crystal at night is 1.34 runs / 1.55 HR against Harbor on the shipped root (#834).",
+          "selected_option": "drop",
+          "accepted_scope": "Crystal's night contact-window rule is dropped for Crystal's trial: when F4-d writes the night blocks, the trial's Crystal night block carries no contact-window change, and that trial's night Crystal plays the day window. Read with FD-13-R1 (the shipped park stays as it is until a single default exists) and the author's framing ('dropping it for the first trial'), the shipped Crystal keeps its 0.85 until then; if Jack meant the shipped game too, F4-d removes it there as well. No replacement night event is selected.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q9 (item 6 of the assistant's list): Crystal's night contact window, keep / replace / drop; the author leaned toward dropping it for the first trial",
+            "answer_quote": "6. drop",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "trial_crystal_night": "no contact-window change",
+            "shipped_crystal": "0.85 kept until a single default exists (FD-13-R1); flagged to Jack",
+            "replacement": "none selected",
+            "revisited_by": [
+              "F4-d",
+              "F9-a"
+            ]
+          }
         }
       ]
     },
@@ -1035,6 +1289,103 @@
           "choice": "A",
           "quote": "A",
           "scope": "Harbor is the only calibrated park. Every other park is measured against Harbor on predeclared seeds, on both data roots, and reported; it is not tuned until C80 is promoted (or another single default exists). Park numbers land as trial anchors, never as shipping defaults. A park PR carries the park-factors report; a factor outside the FD-02 direction, or a movement of S-29, is a finding in the PR, not a tuning target for it, and no expectation is edited to make a park pass. The FD-02 numeric band waits for its own scoped trial. Left open for the tuning step: whether S-29 keeps pooling all six parks or becomes Harbor-only plus a per-park factor check."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-13-R1: trial-only",
+          "quote": "4. approve",
+          "scope": "A park's first numbers (its ground rows or zones, wall material, air, body multipliers, volumes placed for play, night block) live in trials/c80 only. The shipped park stays as it is until a single default exists."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-13-R2: probe-play-accept",
+          "quote": "5. approve",
+          "scope": "Ground, air and wall numbers are judged as the pitch shapes were: a headless probe table first (the same ball in two states), then Jack plays them in the trial window, then accepts. Agents never accept a number."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "FD-13-R1",
+          "question": "Map section 5 Q2: where do a park's first numbers live?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "trial-only",
+              "label": "In trials/c80 only",
+              "tradeoff": "The body effect needs the response law, which is on only there; FD-13 makes park numbers trial anchors; the sitting runs in a local-player --trial window. The shipped park stays as it is."
+            },
+            {
+              "id": "both-roots",
+              "label": "In both roots",
+              "tradeoff": "The shipped game changes before a single default exists; the body effect does nothing there."
+            }
+          ],
+          "recommendation": "trial-only.",
+          "existing_contract": "The shipped root has chase.accelSec 0 / brakeSec 0; trials/c80 has 0.2 / 0.1 (implementation map finding 8).",
+          "selected_option": "trial-only",
+          "accepted_scope": "A park's first numbers (its ground rows or zones, wall material, air, body multipliers, volumes placed for play, night block) live in trials/c80 only. The shipped park stays as it is until a single default exists.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q2 (item 4 of the assistant's list): where a park's first numbers live",
+            "answer_quote": "4. approve",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "root": "trials/c80",
+            "shipped_park": "unchanged until a single default exists",
+            "revisited_by": [
+              "F9-a"
+            ]
+          }
+        },
+        {
+          "id": "FD-13-R2",
+          "question": "Map section 5 Q3: how are ground, air and wall numbers judged?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "probe-play-accept",
+              "label": "Probe table, then play, then accept",
+              "tradeoff": "The pitch-shape method: a headless probe table (the same ball in two states), then Jack plays the numbers in the trial window, then accepts."
+            },
+            {
+              "id": "play-only",
+              "label": "Play only",
+              "tradeoff": "Faster; no record of what the numbers do before the sitting."
+            }
+          ],
+          "recommendation": "probe-play-accept.",
+          "existing_contract": "The pitching and hitting phase (#803) judged pitch shapes this way.",
+          "selected_option": "probe-play-accept",
+          "accepted_scope": "Ground, air and wall numbers are judged as the pitch shapes were: a headless probe table first (the same ball in two states), then Jack plays them in the trial window, then accepts. Agents never accept a number.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q3 (item 5 of the assistant's list): how Jack judges ground, air and wall numbers",
+            "answer_quote": "5. approve",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "steps": [
+              "headless probe table",
+              "Jack plays in the trial window",
+              "Jack accepts"
+            ],
+            "revisited_by": [
+              "F9-a"
+            ]
+          }
         }
       ]
     },
@@ -1199,6 +1550,61 @@
           "choice": "B",
           "quote": "accept all four recommendations",
           "scope": "One park-neutral field kit draws the diamond, lines, bags, mound, wall and rail from the shared geometry owner. A park fills named slots; an empty slot draws a complete greybox from park data. Harbor fills the slots first with no visual change, and the ParkView fallback diamond and per-park dress methods retire after that. The slot list in the plan is the starting proposal; the exact slot schema and the order of retirement are contract work. No art is commissioned (FD-01)."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-16-R1: keep",
+          "quote": "7. keep",
+          "scope": "The primitive backdrops stay, as named greybox builders behind the backdrop slot. The park's slot data picks one; no code picks it by park id (FR-04). They are greybox, not art, and no new art is made for them (FD-01)."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "FD-16-R1",
+          "question": "Map section 5 Q12: the old primitive backdrops (palace, ferris wheel, skyline, castle, trees): keep them as named greybox builders, or draw no backdrop until art?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "keep",
+              "label": "Keep as named greybox builders behind the backdrop slot",
+              "tradeoff": "Each park keeps an identity at its greybox sitting at no art cost; the park's slot data picks the builder, not its id."
+            },
+            {
+              "id": "none",
+              "label": "No backdrop until art",
+              "tradeoff": "Greyboxes read as the same field; less code to carry."
+            }
+          ],
+          "recommendation": "keep.",
+          "existing_contract": "RoyalPalace, FerrisWheel, RooftopSkyline, KeepCastle and JungleTree are private ParkView methods picked by park id (ParkView.cs), which FR-04 retires.",
+          "selected_option": "keep",
+          "accepted_scope": "The primitive backdrops stay, as named greybox builders behind the backdrop slot. The park's slot data picks one; no code picks it by park id (FR-04). They are greybox, not art, and no new art is made for them (FD-01).",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q12 (item 7 of the assistant's list): the old primitive backdrops",
+            "answer_quote": "7. keep",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "builders": [
+              "palace",
+              "ferris wheel",
+              "skyline",
+              "castle",
+              "trees"
+            ],
+            "picked_by": "the park's backdrop slot",
+            "revisited_by": [
+              "F6-b",
+              "F6-d"
+            ]
+          }
         }
       ]
     },
@@ -1377,6 +1783,67 @@
           "choice": "B",
           "quote": "b",
           "scope": "A hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags. The content validator enforces it on both data roots: it refuses a hazard whose disc or body crosses a running lane, a bag pad, the mound or the plate area. A moving hazard obeys the same rule along its whole path. Shallow ball hazards that can take a routine grounder stay legal. The lane widths and pad sizes the validator uses are contract work and come from existing geometry (ParkDiamond path width and pads), not new numbers. Today's park files are checked against the rule when it lands; a hazard that fails it is a finding to bring back, not something to move silently. No hazard position is selected."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-19-R1: move-outward",
+          "quote": "2. approve.",
+          "scope": "Each offending status volume moves outward from home along the ray through its own centre until its disc clears every running lane, the mound-to-plate lane, every bag pad, the mound and the plate area, using the existing ParkDiamond geometry. Its radius does not change. A trial position stays what the accepted migration rule (F693-04) makes of the moved shipped position, so a shipped volume moves as far as both roots need. F4-e makes the move and adds the validator (SF-23). Moving a volume moves where today's landing-point test fires at Crystal and Ember, so the PR reports S-29 and the park factors before and after; nothing is tuned. F9-a later places Crystal's volumes for play."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "FD-19-R1",
+          "question": "Map section 5 Q1: what happens to the eight status volumes that sit on a running lane or a bag pad today?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "move-outward",
+              "label": "Move each outward along its own bearing",
+              "tradeoff": "Each volume moves away from home along the line through its centre until its disc clears every lane and pad, keeping its size. The smallest move that obeys FD-19; Crystal's are placed for play later by F9-a."
+            },
+            {
+              "id": "shrink",
+              "label": "Shrink each until it clears",
+              "tradeoff": "Positions stay; radii fall. Radii are #730 / #732's numbers."
+            },
+            {
+              "id": "remove",
+              "label": "Remove the offending volumes",
+              "tradeoff": "Crystal and Ember lose half their hazards before their parks are designed."
+            }
+          ],
+          "recommendation": "move-outward, keep the size, and let F9-a place Crystal's for play.",
+          "existing_contract": "Probe with the lane half-width 5 ft (ParkDiamond.PathWidth / 2), bag pads 12 ft (BagPadR), home 18 ft (HomePackedR) and the mound 9.2 ft (MoundR): shipped Crystal freeze_volume (40, 70) r 8 and (-45, 90) r 8, Ember lava_pit (38, 78) r 10 and (-42, 96) r 10; trials/c80 Crystal (-40, 80) r 5.6 and (7, 126) r 7 (second base's pad), Ember (34, 69) r 7 and (-37, 85) r 7. Inert today because no body touches a hazard.",
+          "selected_option": "move-outward",
+          "accepted_scope": "Each offending status volume moves outward from home along the ray through its own centre until its disc clears every running lane, the mound-to-plate lane, every bag pad, the mound and the plate area, using the existing ParkDiamond geometry. Its radius does not change. A trial position stays what the accepted migration rule (F693-04) makes of the moved shipped position, so a shipped volume moves as far as both roots need. F4-e makes the move and adds the validator (SF-23). Moving a volume moves where today's landing-point test fires at Crystal and Ember, so the PR reports S-29 and the park factors before and after; nothing is tuned. F9-a later places Crystal's volumes for play.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Map section 5 Q1 (item 2 of the assistant's list): the eight status volumes on running lanes",
+            "answer_quote": "2. approve.",
+            "full_reply": "1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve"
+          },
+          "contract": {
+            "rule": "outward along the ray from home through the centre, smallest move that clears",
+            "radius": "unchanged",
+            "trial": "the F693-04 migration of the moved shipped position",
+            "geometry": [
+              "ParkDiamond.PathWidth",
+              "ParkDiamond.BagPadR",
+              "ParkDiamond.HomePackedR",
+              "ParkDiamond.MoundR"
+            ],
+            "revisited_by": [
+              "F4-e",
+              "F9-a"
+            ]
+          }
         }
       ]
     }
@@ -1509,6 +1976,10 @@
     {
       "date": "2026-09-22",
       "event": "F2-b #848 (fdc9a48f), F4-a #851 (b8dde6f7) and F3-b #850 (1504b1cf) merged at parity on the shipped root; the trial's Funfair chompers went live by the accepted migration rule (reported). #853 filed for the four unsealed rules tables. Map questions 6 answered (decoration)."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack answered nine of the implementation map's section 5 questions in one reply: \"1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve\" The items were the assistant's list, in blocking order, so item 1 = Q4, 2 = Q1, 3 = Q7, 4 = Q2, 5 = Q3, 6 = Q9, 7 = Q12, 8 = Q5, 9 = Q8. Recorded as refinements: FD-06-R1 (one fence distance per bearing), FD-19-R1 (the eight volumes move outward along their own bearings), FD-08-R2 (a status volume slows a body for 3 s; 0.45 not re-decided), FD-13-R1 (a park's first numbers live in trials/c80 only), FD-13-R2 (probe table, then play, then accept), FD-11-R1 (drop Crystal's night contact window for Crystal's trial; the shipped value is kept under FD-13-R1 and flagged), FD-16-R1 (keep the primitive backdrops as greybox builders behind the slot), FD-06-R2 (the sim's rail is the rule near the pole; the drawing follows), FD-09-R2 (the chomper becomes a ball redirect and never makes an out). Q10 and Q11 stay open until tuning. No number accepted by play; no human gate passed."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
