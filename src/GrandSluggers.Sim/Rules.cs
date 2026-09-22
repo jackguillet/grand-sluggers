@@ -14,13 +14,20 @@ public sealed class RulesTable
     public const string Directory = "rules";
 
     public static readonly IReadOnlyList<string> Files =
-        ["match", "pitching", "batting", "flight", "infield", "boundary", "fielders", "fielding", "hazards", "running", "stars", "cpu"];
+        ["match", "pitching", "batting", "flight", "grounds", "walls", "infield", "boundary", "fielders", "fielding", "hazards", "running", "stars", "cpu"];
 
     public MatchRules Match { get; init; } = new();
 
     public PitchingRules Pitching { get; init; } = new();
     public BattingRules Batting { get; init; } = new();
     public FlightRules Flight { get; init; } = new();
+
+    /// <summary>The closed ground library (FD-05): one row per ground a zone may name.</summary>
+    public GroundLibrary Grounds { get; init; } = new();
+
+    /// <summary>The closed wall-material library (FD-06): one row per material a span may name.</summary>
+    public WallMaterialLibrary Walls { get; init; } = new();
+
     public InfieldRules Infield { get; init; } = new();
     public BoundaryRules Boundary { get; init; } = new();
     public FielderRules Fielders { get; init; } = new();
@@ -46,6 +53,7 @@ public sealed class RulesTable
         return new RulesTable
         {
             Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight,
+            Grounds = Grounds, Walls = Walls,
             Infield = Infield, Boundary = Boundary, Fielders = Fielders, Fielding = Fielding,
             Hazards = Hazards, Running = Running, Stars = Stars,
             Cpu = Cpu.AtLevel(level)
@@ -67,6 +75,9 @@ public sealed class RulesTable
         return new RulesTable
         {
             Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight.WithEnvironment(env),
+            // The ground and wall libraries are global: a park chooses which row each of its zones
+            // names (its `zones` block, read through GroundZones), never what a row says (FD-05).
+            Grounds = Grounds, Walls = Walls,
             Infield = Infield, Boundary = Boundary, Fielders = Fielders, Fielding = Fielding,
             Hazards = Hazards, Running = Running, Stars = Stars,
             Cpu = Cpu
@@ -98,6 +109,8 @@ public sealed class RulesTable
             Pitching = Read<PitchingRules>(dataRoot, "pitching", json, errors),
             Batting = Read<BattingRules>(dataRoot, "batting", json, errors),
             Flight = Read<FlightRules>(dataRoot, "flight", json, errors),
+            Grounds = Read<GroundLibrary>(dataRoot, "grounds", json, errors),
+            Walls = Read<WallMaterialLibrary>(dataRoot, "walls", json, errors),
             Infield = Read<InfieldRules>(dataRoot, "infield", json, errors),
             Boundary = Read<BoundaryRules>(dataRoot, "boundary", json, errors),
             Fielders = Read<FielderRules>(dataRoot, "fielders", json, errors),
@@ -232,6 +245,8 @@ public static class RulesValidation
         Walk(table.Pitching, RulesTable.PathFor(root, "pitching"), "pitching", errors);
         Walk(table.Batting, RulesTable.PathFor(root, "batting"), "batting", errors);
         Walk(table.Flight, RulesTable.PathFor(root, "flight"), "flight", errors);
+        Walk(table.Grounds, RulesTable.PathFor(root, "grounds"), "grounds", errors);
+        Walk(table.Walls, RulesTable.PathFor(root, "walls"), "walls", errors);
         Walk(table.Infield, RulesTable.PathFor(root, "infield"), "infield", errors);
         Walk(table.Boundary, RulesTable.PathFor(root, "boundary"), "boundary", errors);
         Walk(table.Fielders, RulesTable.PathFor(root, "fielders"), "fielders", errors);
@@ -242,6 +257,7 @@ public static class RulesValidation
         Walk(table.Cpu, RulesTable.PathFor(root, "cpu"), "cpu", errors);
         table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
         table.Flight.Validate(RulesTable.PathFor(root, "flight"), errors);
+        table.Grounds.Validate(RulesTable.PathFor(root, "grounds"), errors);
         table.Infield.Validate(RulesTable.PathFor(root, "infield"), errors);
         table.Boundary.Validate(RulesTable.PathFor(root, "boundary"), errors);
         table.Fielders.Validate(RulesTable.PathFor(root, "fielders"), errors);
@@ -1376,6 +1392,164 @@ public sealed class DeadBallRules
     public double AfterHangSec { get; init; } = 0.35;
     /// <summary>A flight nobody plays holds this long past the ball's rest (or exit) before the result.</summary>
     public double RestHoldSec { get; init; } = 0.2;
+}
+
+// ---------------------------------------------------------------------------------------
+// grounds.json — the closed ground library (§6.1, §16; FD-05, F3-b)
+// ---------------------------------------------------------------------------------------
+
+/// <summary>
+/// What the ball does on one kind of ground: one named row per id in <see cref="Ground"/>, the way
+/// <see cref="PitchFamilyTable"/> has one named row per pitch family (D20). Named properties, not a
+/// <c>Dictionary</c> — a dictionary bypasses the reflective range walk, the unknown-key refusal and
+/// the JSON = code parity test, and a row that slipped into one would load and be checked by nothing
+/// (FR-02).
+///
+/// <para>
+/// <b>Every row here is today's global number.</b> F3-b (#846) built the library at parity: `grass`,
+/// `dirt`, `ice` and `ash` all carry exactly what <c>flight.json</c>'s <c>roll</c>, <c>bounce</c> and
+/// <c>skid</c> blocks carry, so the ground under the ball cannot change a play. The flight and the
+/// three loose-ball models still read <see cref="FlightRules"/>'s own copy; F3-c moves those reads to
+/// the zone under the ball, and only then does a row that differs mean anything. Until it does,
+/// <c>GroundLibraryTests</c> asserts every row equals the flight block field for field, so the two
+/// copies cannot drift apart while both exist. A ground value that is <em>not</em> today's arrives
+/// with Crystal (F9-a), as a trial, after Jack has accepted it.
+/// </para>
+/// </summary>
+public sealed class GroundLibrary
+{
+    /// <summary>The outfield of every shipped park. The rows are equal today, so this is also the ball's only roll.</summary>
+    public GroundRules Grass { get; init; } = new();
+
+    /// <summary>The infield and the warning track of every park, whatever its <c>surface</c> says (<see cref="GroundZones"/>).</summary>
+    public GroundRules Dirt { get; init; } = new();
+
+    /// <summary>Crystal Rink's surface. Its numbers are grass's until F9-a measures a trial.</summary>
+    public GroundRules Ice { get; init; } = new();
+
+    /// <summary>Ember Keep's surface. Its numbers are grass's until F9-a measures a trial.</summary>
+    public GroundRules Ash { get; init; } = new();
+
+    /// <summary>This table's row for a library id, or null for an id the library does not have.</summary>
+    GroundRules? Named(string id) => id switch
+    {
+        Ground.Grass => Grass,
+        Ground.Dirt => Dirt,
+        Ground.Ice => Ice,
+        Ground.Ash => Ash,
+        _ => null
+    };
+
+    /// <summary>True for an id <b>this table</b> has a row for (<c>SF-03</c>).</summary>
+    public bool Has(string? id) => id is not null && Named(id) is not null;
+
+    /// <summary>The ids this table has rows for, in library order.</summary>
+    public IReadOnlyList<string> Ids => Ground.All;
+
+    /// <summary>
+    /// The row for a ground id (<c>SF-03</c>). There is no silent fallback: a park whose zone names an
+    /// id with no row is a park playing a ground nobody authored, and it stops rather than quietly
+    /// rolling on grass. The message names the id and the file, because the two things a reader needs
+    /// are what was asked for and where the rows live.
+    /// </summary>
+    public GroundRules Of(string? id)
+    {
+        if (id is not null && Named(id) is { } row) return row;
+        throw new ArgumentException(
+            $"'{id}' is not a ground with a row in {RulesTable.Directory}/grounds.json; "
+            + $"the library is [{string.Join(", ", Ground.All)}] (Ground). A new ground is a row in that "
+            + "file and an id in the library, never a fallback (FR-02, SF-03).", nameof(id));
+    }
+
+    /// <summary>
+    /// The rule across a row's fields the attributes cannot say, checked on every row and on both
+    /// roots: the skid band has to be a band. It is the same order <see cref="FlightRules.Validate"/>
+    /// holds for <c>flight.skid</c>, held here per row so a trial that authors one ground cannot write
+    /// a band that never opens.
+    /// </summary>
+    internal void Validate(string source, List<string> errors)
+    {
+        foreach (var id in Ids)
+        {
+            var row = Of(id);
+            RulesValidation.Order(source, $"grounds.{id}.skid.launchMinDeg", row.Skid.LaunchMinDeg, row.Skid.LaunchMaxDeg, errors);
+        }
+    }
+}
+
+/// <summary>
+/// One ground's numbers. The three blocks are the <em>same types</em> <see cref="FlightRules"/>
+/// carries — <see cref="RollRules"/>, <see cref="BounceRules"/>, <see cref="SkidRules"/> — rather than
+/// near-copies under new names, for two reasons. The parity this child ships is then literally field
+/// for field, with nothing to translate; and F3-c's move is a change of <em>which</em> object the
+/// flight reads, not a rewrite of how it reads one.
+///
+/// <para>
+/// <c>skid.launchMinDeg</c> / <c>launchMaxDeg</c> are a property of the <em>ball</em> (the launch band
+/// a rope skids in), not of the ground, and they ride along here because the child's contract is the
+/// whole skid block at parity. Which fields of a zone's row the flight actually reads is F3-c's to
+/// decide; a row whose band differed from the flight's would be a behavior change, so today none does.
+/// </para>
+/// </summary>
+public sealed class GroundRules
+{
+    /// <summary>The ball rolling on this ground: friction and the speed it comes to rest at.</summary>
+    public RollRules Roll { get; init; } = new();
+
+    /// <summary>The hop off this ground.</summary>
+    public BounceRules Bounce { get; init; } = new();
+
+    /// <summary>The rope's skid across this ground, band included.</summary>
+    public SkidRules Skid { get; init; } = new();
+}
+
+// ---------------------------------------------------------------------------------------
+// walls.json — the closed wall-material library (§6.1, §16; FD-06, F3-b)
+// ---------------------------------------------------------------------------------------
+
+/// <summary>
+/// What the ball does off one kind of wall: one named row per id in <see cref="WallMaterial"/>, the
+/// same shape as <see cref="GroundLibrary"/> and for the same reasons (FR-02). One row today —
+/// <c>padded</c>, carrying exactly <c>flight.wall</c> — because every span of every park is the one
+/// padded wall the ball caroms off now.
+///
+/// <para>
+/// <b>A material, not a span.</b> Which span of which fence is made of what, and whether it can be
+/// climbed or robbed over, is the polyline fence's business (FD-06, F2-c): a trait like
+/// <c>climbable</c> belongs to a stretch of wall, not to the stuff it is made of, and putting one here
+/// would make the library answer a question it cannot see. The flight still reads
+/// <see cref="FlightRules.Wall"/>; F3-c moves that read to the span's row.
+/// </para>
+/// </summary>
+public sealed class WallMaterialLibrary
+{
+    /// <summary>The padded outfield wall every park has today. Exactly <c>flight.wall</c>.</summary>
+    public WallRules Padded { get; init; } = new();
+
+    WallRules? Named(string id) => id switch
+    {
+        WallMaterial.Padded => Padded,
+        _ => null
+    };
+
+    /// <summary>True for an id <b>this table</b> has a row for (<c>SF-03</c>).</summary>
+    public bool Has(string? id) => id is not null && Named(id) is not null;
+
+    /// <summary>The ids this table has rows for, in library order.</summary>
+    public IReadOnlyList<string> Ids => WallMaterial.All;
+
+    /// <summary>
+    /// The row for a wall material (<c>SF-03</c>). A span that names a material with no row stops and
+    /// names the id and the file, rather than caroming off whatever the first row happens to be.
+    /// </summary>
+    public WallRules Of(string? id)
+    {
+        if (id is not null && Named(id) is { } row) return row;
+        throw new ArgumentException(
+            $"'{id}' is not a wall material with a row in {RulesTable.Directory}/walls.json; "
+            + $"the library is [{string.Join(", ", WallMaterial.All)}] (WallMaterial). A new material is a "
+            + "row in that file and an id in the library, never a fallback (FR-02, SF-03).", nameof(id));
+    }
 }
 
 // ---------------------------------------------------------------------------------------

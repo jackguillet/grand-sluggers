@@ -127,7 +127,13 @@ public sealed class ContentValidationTests
         fixture.ChangeObject("gloves/web-back.json", json => json["errorReduction"] = 1.1);
 
         var errors = ContentDataValidator.Validate(fixture.Root);
-        Assert.Contains(errors, e => e.Contains("surface must be one of [ash, dirt, grass, ice]; got 'water'", StringComparison.Ordinal));
+        // Still refused, still by name. Since F3-b (#846) the set it is refused against is the ground
+        // library's rows rather than a list spelled out in the validator, so the sentence names
+        // grounds.json as well; what a surface may be is the table's answer now (FD-05, SF-03).
+        Assert.Contains(errors, e =>
+            e.Contains("surface must be a ground with a row in", StringComparison.Ordinal)
+            && e.Contains("[grass, dirt, ice, ash]", StringComparison.Ordinal)
+            && e.Contains("got 'water'", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("hazard[0] type must be one of", StringComparison.Ordinal)
             && e.Contains("got 'teleporter'", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("leftFenceFt must be greater than 0; got 0", StringComparison.Ordinal));
