@@ -205,6 +205,84 @@ public sealed class HarborWallTests
     }
 
     /// <summary>
+    /// <c>SF-05</c> on a polyline fence (F2-c #874; FD-06 C, D15 as amended by D21), both roots. No catalog park names
+    /// points, so this is a fixture on each root's Harbor: a tall porch down the left line, an alley, a low corner. The drawn
+    /// loop walks the bearings the clip polygon is built on, so every fence point is a drawn vertex exactly where the
+    /// polygon has it, every drawn vertex lies on the flight wall, and every outfield vertex is drawn at the flight's top
+    /// at that vertex — the point's own height at a point, the straight line between two heights along a sloped span.
+    /// The loop grows by the points that are not already on the spray grid, and nothing else about it changes.
+    /// </summary>
+    [Fact]
+    public void SF05_APolylineParkDrawsEveryPointAndEverySpanAtTheFlightsTop()
+    {
+        FencePoint[] points =
+        [
+            new(-45, 0.9, 14), new(-20, 0.9, 14), new(-12, 1.05, 10), new(0, 1.0, 12),
+            new(10, 0.95, 12), new(27.5, 1.0, 8), new(45, 1.0, 12)
+        ];
+        var shipped = ContentCatalog.Load(new DataRoot(_content.Root.Shipped));
+        var trial = ContentCatalog.Load(new DataRoot(_content.Root.Shipped,
+            Path.GetFullPath(Path.Combine(_content.Root.Shipped, "..", "trials", "c80"))));
+        foreach (var catalog in new[] { shipped, trial })
+        {
+            var harbor = catalog.Parks[HarborPostcard.ParkId];
+            var park = harbor with { Id = "sf05-polyline", Fence = new ParkFence(points) };
+            var loop = HarborWall.Loop(park);
+            var bounds = FieldBounds.Of(park);
+            var offGrid = points.Count(p => !FieldBounds.FenceBearings(harbor).Contains(p.BearingDeg));
+            Assert.Equal(4, offGrid);
+            Assert.Equal(HarborWall.WrapSegs + offGrid, loop.Length);
+
+            foreach (var p in points)
+            {
+                var at = BallFlight.GroundPoint(p.FenceFrac * AtBatResolver.FenceAt(harbor, p.BearingDeg), p.BearingDeg);
+                var i = Array.IndexOf(loop, at);
+                Assert.True(i >= 0, $"{catalog.Root.Provenance}: the point at {p.BearingDeg} degrees is not a drawn vertex");
+                Assert.Equal(p.HeightFt, HarborWall.Height(park, i), 4);
+            }
+
+            var sloped = 0;
+            for (var i = 0; i < loop.Length; i++)
+            {
+                var (dist, piece, along) = NearestPiece(bounds, loop[i].X, loop[i].Z);
+                Assert.True(dist <= OnTheWallFt, $"drawn vertex {i} is {dist:0.###} ft off the flight wall");
+                if (piece.Kind != FieldBounds.WallKind.FairFence) continue;
+                Assert.True(HarborWall.IsOutfield(park, i), $"vertex {i} is on a fair span but is not drawn as outfield");
+                Assert.Equal(piece.HeightAt(along), HarborWall.Height(park, i), 4);
+                if (piece.HeightBFt is not null) sloped++;
+            }
+            Assert.True(sloped > 4, $"{sloped} drawn vertices on a sloped span");
+            Assert.True(HarborWall.OutfieldIsTheFence(park));
+
+            // The poles stand where the polyline starts and ends; the drawn rail meets the fence there.
+            foreach (var (sign, p) in new[] { (-1, points[0]), (1, points[^1]) })
+            {
+                var pole = loop.MinBy(v => Math.Abs(FieldBounds.SprayDeg(v.X, v.Z) - sign * AtBatResolver.FoulLineDeg));
+                Assert.Equal(p.FenceFrac * AtBatResolver.FenceAt(harbor, p.BearingDeg), FieldBounds.DistHome(pole.X, pole.Z), 9);
+            }
+        }
+    }
+
+    /// <summary>The nearest piece of the flight polygon to a drawn vertex, how far it is, and how far along the piece.</summary>
+    static (double Ft, FieldBounds.WallSegment Piece, double Along) NearestPiece(FieldBounds.Boundary bounds, double x, double z)
+    {
+        var best = double.MaxValue;
+        FieldBounds.WallSegment? piece = null;
+        var along = 0.0;
+        foreach (var s in bounds.Segments)
+        {
+            var ex = s.Bx - s.Ax;
+            var ez = s.Bz - s.Az;
+            var len2 = ex * ex + ez * ez;
+            var t = len2 < 1e-12 ? 0 : Math.Clamp(((x - s.Ax) * ex + (z - s.Az) * ez) / len2, 0, 1);
+            var d = Diamond.Dist(x, z, s.Ax + ex * t, s.Az + ez * t);
+            if (d >= best) continue;
+            (best, piece, along) = (d, s, t);
+        }
+        return (best, piece!, along);
+    }
+
+    /// <summary>
     /// The loop is cached per park <b>and</b> per edge (#845). It was one slot keyed by the three
     /// posts: the flight asks for every park from every thread, so two parks in one process rebuilt
     /// it on every call, and a second <see cref="ParkBoundary"/> (F2-d) would have been served the
