@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// Spec D15 (#608): one number. The drawn padded wall (<see cref="HarborWall.Height"/>, what
-/// <c>HarborKit.DressWall</c> builds) and the boundary the flight clips against
+/// <c>FieldKit.Wall</c> builds at every park since #859) and the boundary the flight clips against
 /// (<see cref="FieldBounds.Of"/>) read the same <see cref="Park.FenceHeightFt"/> on every segment.
 ///
 /// <para>

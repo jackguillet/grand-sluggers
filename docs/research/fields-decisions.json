@@ -1555,8 +1555,27 @@
         "answer_quote": "accept all four recommendations"
       },
       "numeric_targets": "not applicable: an engineering pattern",
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        {
+          "child": "F6-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/859",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/863",
+          "status": "in review"
+        }
+      ],
+      "validation_evidence": [
+        {
+          "date": "2026-09-22",
+          "child": "F6-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/859",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/863",
+          "kind": "look gate (human)",
+          "judged_by": "Jack",
+          "quote": "pass",
+          "evidence": "22 stills under the #866 GUI lock: all six parks after (76854194) and the five non-Harbor parks before (a13925a3), day and night, shots field / diamond / plate on contact sheets. Harbor against e14bc513: day unchanged within the run-to-run noise (title, lineup, field pixel-identical); night: the backstop's shading moves by 1-6 of 255. Five parks now draw the kit diamond, chalk, boxes, foul lines, dirt cut, track and foul rail; their old dress backstops still stand inside the kit backstop (F6-d).",
+          "scope": "F6-a's look only; FD-16 as a whole (slots F6-b, looks as data F6-c, hazard actors F6-d) is not accepted by it"
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -2001,6 +2020,14 @@
     {
       "date": "2026-09-22",
       "event": "F3-d opened as PR #864 (#857): the body multipliers on a ground row, all 1.0 (FD-04 B, FD-05). Every grounds.json row gains body {startMul, brakeMul, cutMul, slideMul, overrunMul}, each scaling a time or a length (above 1 = more slippery). GroundZones.RowAt is the one row lookup (the same function F3-c adds). The fielder's step (LivePlaySystem.Respond) reads the zone under the body each tick: ramp x startMul, brake x brakeMul, and the across-heading correction - previously at the ramp rate - over accelSec x cutMul; the planner's half-ramp reads the start zone's startMul; the runner's slide (automatic and forced) and the overrun past first read the bag's zone. The response law's switch is unchanged, so start, brake and cut-back exist only where the law is on (trials/c80, map finding 8); slide and overrun act on both roots. No multiplier touches top speed, heading or the stick. At 1.0 both roots are bit-identical: seed 7, park factors day and night, and the trial's 3d race cohorts unchanged; seals move by hash only. No number accepted, no status moved, no human_acceptance written."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F6-a (#859, PR #863) in review: one field kit draws the diamond, rail and wall for every park (FD-16 B, FR-13, FR-05). unity/Assets/Scripts/Runtime/FieldKit.cs is a plain builder, not a component, so the HarborDiamond scene's serialized HarborKit is untouched: HarborKit calls it for Harbor under its placed anchors and hangs Harbor's own dress on it (the ads, ivy and center-field mark on each wall span through a per-span hook, the striped lawn, dugouts, scoreboard, bowls, town, night floods, fireworks and shot anchors, in the order they were always drawn); ParkView calls it for the other five. It draws the home pad, the plate and its chalk boxes, the mound and rubber, the bags, the infield dirt, the foul lines (each to its own pole), the warning track, the poles and screens and the wall loop (outfield fence, foul rail and backstop) from Diamond, ParkDiamond, HomeSet and HarborWall.Loop over ParkBoundary, so the five parks now draw the foul rail and backstop the ball meets (map finding 11; FD-06). A dress that stands in the rail claims those spans (Harbor's dugout fascia, HarborDugout.WallOpensHere); a park with none draws its rail unbroken. The kit FBX's bag, home-plate and mound meshes are the shared kit, read from the default park's slot until F6-b gives the kit slots; the dugouts and fans in the same file are Harbor dress. The file's one paint table moved into the kit with them, so HarborKitPaintTests now reads FieldKit.cs for the same three assertions and adds that HarborKit drops through the kit; FieldKitSourceTests adds that the kit names no park and that ParkView draws the kit and no second diamond. Retired from ParkView: Infield, Mound, FoulLines, Bags, HomePlate, Fence and the kit-less Harbor branch (HarborDiamondSkin, WarningTrack, Backstop, Dugouts, HarborDugoutsPlus, HarborWallDress, HarborScoreboard, HarborBleachers, HarborTown, HarborNightHook, Fans) with its firework fallback; the four dress methods lose only their own WarningTrack(park) call, because the kit draws the track (Crystal gains one). Colors stay where they were chosen: ParkView.FieldSkin keeps Fence's wall, cap and pole choices verbatim and hands them over (F6-c moves them). StarMeter reads the played park's rail (HarborWall.FoulWall = ParkBoundary.RailPoint at HarborWall.HipHeight) over the dugout span the loop pins at every park, taking the park from its ParkView; at Harbor the pips move by at most 5e-6 ft (float rounding). No sim, rule, data, camera, mesh, texture or light change; no sealed file touched (both --check). Stills: Harbor day and night captured twice at e14bc513 (the run-to-run noise floor: title, lineup and field are pixel-stable, the shots with bodies are not); the after stills were not captured because the machine's GUI editor is shared, so the Harbor before / after comparison and the five-park look are pending. No decision status changed; no human gate passed."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack passed F6-a's look gate (reply \"pass\") on before / after contact sheets of all six parks, day and night, captured with the #866 GUI Unity lock after he said the Mac was free. Recorded as FD-16 validation evidence scoped to F6-a; FD-16's human_acceptance stays null because slots, looks as data and hazard actors are still to come."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
