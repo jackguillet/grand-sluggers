@@ -122,8 +122,12 @@ namespace GrandSluggers.UnityClient
             }
 
             public bool Charge => Charge01 >= ChargePull;
+            /// <summary>
+            /// The mound's pre-charge family cycle in SET (spec §3, §4.1; PH-02-R3/R4/R5). A press
+            /// edge: one press is one advance. West is no longer a pitching modifier — the batter's
+            /// bunt keeps it (#825).
+            /// </summary>
             public bool CyclePitch => KeyDown(Key.Tab) || Pressed(Device?.rightShoulder);
-            public bool Changeup => WestHeld;
             public bool Skip => EastDown;
             public bool Start => KeyDown(Key.H) || Pressed(Device?.startButton);
             public bool Esc => KeyDown(Key.Escape);
@@ -443,7 +447,6 @@ namespace GrandSluggers.UnityClient
         public static float Charge01 => Pad1.Charge01;
         public static bool Charge => Pad1.Charge;
         public static bool CyclePitch => Pad1.CyclePitch;
-        public static bool Changeup => Pad1.Changeup;
         public static bool Skip => Pad1.Skip;
         public static bool CallTime => Pad1.Start || (Pad2.Present && Pad2.Start);
         public static bool Esc => Pad1.Esc || (Pad2.Present && Pad2.Esc);

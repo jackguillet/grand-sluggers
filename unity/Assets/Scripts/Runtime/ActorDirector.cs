@@ -203,7 +203,9 @@ namespace GrandSluggers.UnityClient
                 var brace = FielderTells.Brace(_owed, kv.Key, _match.Rules.Fielding.Recoil.CapSec, _feel.FieldTells);
                 hero.SetBrace(new Vector3((float)brace.X, (float)brace.Y, (float)brace.Z));
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
-                    x += _match.PitcherOffsetX * HomeSet.PitcherWalk;
+                    // The drawn rubber, not the match's: a hand's is the match's exactly, and the
+                    // CPU's walks to it over SET instead of teleporting on the release frame (§4.8).
+                    x += _moundX * HomeSet.PitcherWalk;
                 // The normal jump's root rise is the sim's (#719): two feet over the airtime, the ring left on the dirt.
                 var rise = (float)FielderTells.RiseFt(_owed, kv.Key);
                 hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z) + rise, (float)z),
@@ -314,7 +316,9 @@ namespace GrandSluggers.UnityClient
             var starPitch = _pitch != null && _pitch.Star ? _match.Pitcher.StarPitch : _spec.ActivePitch;
             var starSwing = _pending != null ? _pending.StarSwingUsed
                 : _last != null ? _last.AtBat.StarSwingUsed : null;
-            var ptype = _pitch != null ? _pitch.Type : "fastball";
+            // The ball is tinted by family only once it is out of the hand (PH-02-R5): in SET, and
+            // through the windup, it is the fastball's colour whatever was selected (BallView:290).
+            var ptype = _pitchAir && _pitch != null ? _pitch.Type : PitchFamily.Fastball;
             var heat = _last != null && _last.Heatball;
             if ((_caught || _buddy) && !_throwing && _phase is Phase.InPlay or Phase.StealThrow)
                 HoldBallInGlove();
