@@ -442,7 +442,7 @@
       "fix": "Regenerate with --write, then --check, and read the diff before staging it: a behaviour-identical child must see sourceSha256 lines only, with every flight, speed, coverage case and plot byte-identical. A moved number there is a finding to report, not a seal to refresh. The rail is the probe's --check in the portable job beside the other two so the seal cannot drift between children; until it is there, treat a stale hash for a file you did not touch as inherited, say so in the PR, and do not claim it as your change.",
       "promoted": "",
       "issue": "#837",
-      "pr": ""
+      "pr": "#839"
     }
 
   ]
