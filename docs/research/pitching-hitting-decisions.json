@@ -147,7 +147,9 @@
         "#812",
         "#813",
         "#818",
-        "#821"
+        "#821",
+        "#823",
+        "#824"
       ],
       "validation_evidence": [
         {
@@ -178,6 +180,17 @@
           "summary": "P1-d gives the three remaining library ids numbers in the trial overlay trials/pitch5 and nothing in the shipped root: curveball (the library's biggest hump then its longest drop, a small glove-side sweep, offSpeed), slider (the flattest of the three and the big glove-side sweep) and sinker (rides the fastball's height longest then dips, a small arm-side sweep). Speed order fastball > sinker > slider > curveball > changeup at every Pitch stat, charge and release, every one between the two shipped families. Authored is now a fact about the data: the three are nullable rows the shipped table has no key for, so Of, IsAuthored and Authored read the table they are asked and the shipped root still stops all three by name.",
           "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
           "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+        },
+        {
+          "kind": "trial-proposal",
+          "issue": "#823",
+          "revision": "f993b603",
+          "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+          "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+          "report": "docs/research/cpu-pitcher-p1g.md",
+          "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). PH-02-R3/R4/R5 decide that the ordinary pitch is selected before the charge, by a cycling button, from a fastball reset every SET. The CPU now walks that same cycle: its choice is replayed through PitchSelection.Advance from PitchSelectionState.Reset and is always 0, 1 or 2 presses.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+          "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
         }
       ],
       "human_acceptance": null,
@@ -426,7 +439,9 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#812",
-            "#813"
+            "#813",
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -437,6 +452,17 @@
               "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
               "numeric_trial": "not applicable (input/state contract; no number authored)",
               "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). The family is fixed before the delivery and nothing re-polls it: the CPU's press count is taken once per SET and the command carries the family those presses landed on.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
           "human_acceptance": null,
@@ -479,7 +505,9 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#812",
-            "#813"
+            "#813",
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -490,6 +518,17 @@
               "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
               "numeric_trial": "not applicable (input/state contract; no number authored)",
               "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). One cycling button, and the CPU counts presses on it rather than naming a family.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
           "human_acceptance": null
@@ -532,7 +571,9 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#812",
-            "#813"
+            "#813",
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -543,6 +584,17 @@
               "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
               "numeric_trial": "not applicable (input/state contract; no number authored)",
               "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). The cycle starts from the fastball at every SET, for the CPU as for a player, which is why a press count of 0/1/2 is a complete description of its choice.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
           "human_acceptance": null,
@@ -2384,7 +2436,9 @@
         "#812",
         "#813",
         "#818",
-        "#821"
+        "#821",
+        "#823",
+        "#824"
       ],
       "validation_evidence": [
         {
@@ -2415,6 +2469,17 @@
           "summary": "Natural movement and player steering are distinct terms in one flight: PitchFlight composes shape, then the family's sweep, then the stick's shift, then the star term. The sweep is not scaled by the stick and not damped by a charge; the stick keeps its own unchanged cap. All three trial rows author breakDamped false, so they steer like a fastball and their identity is the movement they have without the player. The throwing hand reaches the flight for the first time: PitchCommand carries a trailing defaulted Throws that Match.PreparePitch stamps from the pitcher, and the glove-side sign is derived once from first base's own X.",
           "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
           "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+        },
+        {
+          "kind": "trial-proposal",
+          "issue": "#823",
+          "revision": "f993b603",
+          "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+          "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+          "report": "docs/research/cpu-pitcher-p1g.md",
+          "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). PH-15-R1..R4 decide what an arm owns; this child makes the CPU read that ownership rather than a two-way mix. The weights are filtered through PitchSelection.IsSelectable, so the CPU can only throw a family in its own repertoire that the active table also authors - checked over all 25 shipped repertoires and both throwing hands.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+          "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
         }
       ],
       "human_acceptance": null,
@@ -2541,7 +2606,9 @@
             "#810",
             "#811",
             "#812",
-            "#813"
+            "#813",
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -2570,6 +2637,17 @@
               "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
               "numeric_trial": "not applicable (input/state contract; no number authored)",
               "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). The fastball is the fallback the run-time filter lands on: a count row that weights only families this pitcher cannot select throws the fastball with zero presses, stated in the spec and tested, because it is the one family every pitcher throws.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
           "human_acceptance": null
@@ -2675,7 +2753,9 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#807",
-            "#809"
+            "#809",
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -2686,6 +2766,17 @@
               "summary": "RepertoireTests compares the seven shipped captain rows, order included, with this refinement's captain_assignments contract, both directions.",
               "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
               "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). The captains' assigned repertoires are what the CPU rolls over; no captain throws a family it was not assigned.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
           "human_acceptance": null
@@ -2723,7 +2814,9 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#807",
-            "#809"
+            "#809",
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -2734,6 +2827,17 @@
               "summary": "Each role player carries its own authored repertoire row in data/characters/role-players.json and no captain Star Pitch; the loader grants nothing from a faction captain.",
               "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
               "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). Role-player repertoires are read the same way as captains'; the CPU has no separate table.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
           "human_acceptance": null
@@ -3004,7 +3108,9 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#807",
-            "#809"
+            "#809",
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -3015,6 +3121,17 @@
               "summary": "RepertoireTests compares the eighteen shipped role-player rows, order included, with this refinement's role_player_assignments contract, both directions, and holds the trials/c80 overlay to the same repertoires.",
               "numeric_trial": "not applicable (assignment data). No number was authored and no behaviour moved: cli match --seed 7 is byte-identical to main, and the #708 derived evidence regenerated with only source-hash changes.",
               "gate": "no human gate for this child; no player-facing change. Status stays direction-accepted because the families do not fly yet."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). All 25 shipped repertoires were driven as the arm on the mound and every pitch thrown was in that character's own repertoire.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
           "human_acceptance": null
@@ -4686,8 +4803,23 @@
         "answer_quote": "1"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        "#823",
+        "#824"
+      ],
+      "validation_evidence": [
+        {
+          "kind": "trial-proposal",
+          "issue": "#823",
+          "revision": "f993b603",
+          "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+          "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+          "report": "docs/research/cpu-pitcher-p1g.md",
+          "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). PH-18 and PH-18-R1 are what this child implements: the CPU's legal action set is now the human one for the pitching half - no endpoint aim, no vertical location, no instant break, no family a hand's presses cannot reach. The batting half (the CPU batter's commit-time read) is left open for P2-g.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+          "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -4752,8 +4884,23 @@
             "answer_quote": "With the new shapes (Recommended)"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#823",
+            "#824"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). PH-18 and PH-18-R1 are what this child implements: the CPU's legal action set is now the human one for the pitching half - no endpoint aim, no vertical location, no instant break, no family a hand's presses cannot reach. The batting half (the CPU batter's commit-time read) is left open for P2-g.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
+            }
+          ],
           "human_acceptance": null
         }
       ]
@@ -4867,7 +5014,9 @@
       "numeric_targets": null,
       "implementation_issues": [
         "#818",
-        "#821"
+        "#821",
+        "#823",
+        "#824"
       ],
       "validation_evidence": [
         {
@@ -4880,6 +5029,17 @@
           "summary": "The mechanism decided in PH-20-R1 is exercised end to end: trials/pitch5 is the whole shipped rules/pitching.json plus three rows, a test holds it equal to the shipped copy everywhere outside those rows, and GRAND_SLUGGERS_TRIAL=trials/pitch5 cli art and cli match --seed 7 both run green. The evidence Jack will judge from is sealed by source hash (tools/pitch-family-probes, docs/research/pitch-families-p1d.json) with four SVG plots, and the report states what is not claimed. Not wired into CI in this child.",
           "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
           "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+        },
+        {
+          "kind": "trial-proposal",
+          "issue": "#823",
+          "revision": "f993b603",
+          "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+          "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+          "report": "docs/research/cpu-pitcher-p1g.md",
+          "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). PH-20-R1's mechanism carries a second thing: trials/pitch5 is now the shipped pitching.json plus three family rows and the CPU switch with its trial weights. S-113 was widened to put both additions back before comparing, so every other key in the file is still guarded against a shipped edit that forgets the overlay.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+          "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
         }
       ],
       "human_acceptance": null,
@@ -4947,7 +5107,9 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#818",
-            "#821"
+            "#821",
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -4960,6 +5122,17 @@
               "summary": "The mechanism decided in PH-20-R1 is exercised end to end: trials/pitch5 is the whole shipped rules/pitching.json plus three rows, a test holds it equal to the shipped copy everywhere outside those rows, and GRAND_SLUGGERS_TRIAL=trials/pitch5 cli art and cli match --seed 7 both run green. The evidence Jack will judge from is sealed by source hash (tools/pitch-family-probes, docs/research/pitch-families-p1d.json) with four SVG plots, and the report states what is not claimed. Not wired into CI in this child.",
               "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
               "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#823",
+              "revision": "f993b603",
+              "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
+              "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
+              "report": "docs/research/cpu-pitcher-p1g.md",
+              "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). PH-20-R1's mechanism carries a second thing: trials/pitch5 is now the shipped pitching.json plus three family rows and the CPU switch with its trial weights. S-113 was widened to put both additions back before comparing, so every other key in the file is still guarded against a shipped edit that forgets the overlay.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
+              "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
           "human_acceptance": null
@@ -5223,6 +5396,10 @@
     {
       "date": "2026-09-21",
       "event": "P1-d (#818) made curveball, slider and sinker fly under the trial overlay trials/pitch5 and left the shipped root unchanged. The flight gained one new term, a family's natural sweep: sweepFt is the feet its crossing ends off the straight line from the rubber, positive toward the pitcher's glove side and mirrored by the throwing hand, and sweepFrom is where in the flight it starts to show, after which it grows as the square of the flight that is left. It is a quadratic ease and nothing else, so no libm stands between the table and the crossing; it is not scaled by the stick and not damped by a charge, and the player's steering adds to it under its own unchanged cap. The arm reaches the flight through a trailing defaulted PitchCommand.Throws that PreparePitch stamps from the pitcher, and the glove-side sign is derived in one place from first base's own X. Curveball, slider and sinker became nullable rows, so authored is a fact about the data rather than a pair hard-wired in code; the shipped pitching.json has no key for them and still stops all three by name, and both shipped rows author sweepFt 0 with sweepFrom 1, the value that means the sweep never begins. Spec GS sections 4.2, 4.3 and 16 carry the rule, the trial rows are marked proposed-not-accepted, and Appendix B.1 gains S-107 to S-113, which assert relationships only so a proposed number can move without editing a test. Evidence: tools/pitch-family-probes writes a sealed docs/research/pitch-families-p1d.json and four SVG plots, and docs/research/pitch-families-p1d.md carries the proposal table, the seven measured relationships and two findings reported rather than fixed - no ordinary family crosses high, and PitchFlight.Release still uses one releaseHandX for every pitcher so a left-hander releases from a right-hander's side. No status change, no numeric target and no human acceptance: every number is a proposal for Jack's trial-window sitting, which is not possible until the mound is wired in P1-f."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "P1-g (#823, PR #824) put the CPU pitcher on human inputs behind one switch, pitching.cpu.humanInputs, off on the shipped root and on in trials/pitch5 - the same trial as P1-d's shapes, which is what PH-18-R1 asked for. Off, the shipped endpoint model runs unchanged and cli match --seed 7 and the S-29 cohort are byte-identical to main. On, the CPU's pitch is built from the inputs a hand has: the count row's location is a horizontal intent and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the walk is solved, not searched, and clamped to the legal +/-1); AimX and AimY are always 0 and the height is whatever the family gives; the family is the row's new per-family weights filtered to the slots this pitcher can select and expressed as the 0/1/2 cycle presses it is; charge and steer became two independent modifier rolls instead of two of four exclusive verbs, so a charged CPU pitch is steerable for the first time; and the bend is PitchFlight.BreakReach over the delivery's own air time. The throwing hand is now stamped before the solve - P1-d found it was stamped after, which mattered the moment a family swept, because the same delivery from the wrong arm misses its intent by twice the sweep. Two things were measured and reported rather than fixed: at the shipped break rate a stick held from release reaches the cap on every real flight, so the reach bound is correct but slack (it bites only at the air-time floor); and because the rubber is now the location, the CPU's rubber moves between most pitches, which the CPU batter's mistrack read sees. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix. Spec \u00a74.8 was rewritten with the switch and five rules, \u00a73 and \u00a716 follow, and Appendix B.1 gained S-114 ... S-120 (CpuPitcherScenarioTests). No status change, no numeric target, no human_acceptance written; sitting 1 remains impossible until P1-f wires the mound."
     }
   ]
 }
