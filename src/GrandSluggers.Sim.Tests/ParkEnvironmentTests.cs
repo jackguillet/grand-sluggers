@@ -298,6 +298,24 @@ public sealed class ParkEnvironmentTests
         Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
     }
 
+    /// <summary>
+    /// The block sits inside the strict park schema (F1-a, #820), nested and all: a key the environment does
+    /// not declare stops the load and names it, so a misspelled <c>dragMul</c> cannot quietly fly Harbor's air.
+    /// </summary>
+    [Fact]
+    public void AnUnknownKeyInsideTheEnvironmentBlockIsRefusedByName()
+    {
+        using var fixture = new ContentFixture();
+        fixture.ChangeObject("parks/harbor-diamond.json",
+            json => json["environment"] = new JsonObject { ["dragMultiplier"] = 1.2 });
+
+        var errors = ContentDataValidator.Validate(fixture.Root);
+        Assert.Contains(errors, e =>
+            e.Contains("environment.dragMultiplier is not a key this file declares", StringComparison.Ordinal)
+            && e.Contains("[dragMul, windMul]", StringComparison.Ordinal));
+        Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
+    }
+
     /// <summary>Wind exposure is a fraction of the flag: outside [0, 1] there is no ball it describes.</summary>
     [Theory]
     [InlineData(-0.1)]
