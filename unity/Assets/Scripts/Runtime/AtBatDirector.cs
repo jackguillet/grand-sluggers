@@ -19,6 +19,30 @@ namespace GrandSluggers.UnityClient
         ChargeButtonState _pitchButton;
         ChargeButtonState _swingButton;
 
+        /// <summary>
+        /// The mound's pre-charge family selection (spec §3, PH-02-R3/R4/R5). The state is the
+        /// client's; the step that moves it is the sim's (<see cref="Match.SelectPitch"/>).
+        /// </summary>
+        PitchSelectionState _pitchSelect;
+
+        /// <summary>
+        /// The CPU's delivery, decided at the top of SET under <c>pitching.cpu.humanInputs</c>
+        /// (§4.8, PH-18-R1) so the body has SET to walk to the rubber it solved for. Null on the
+        /// shipped root, where the pitch is still built on the release frame exactly as before.
+        /// </summary>
+        PitchCommand _cpuPitch;
+
+        /// <summary>The direction that CPU delivery holds the stick, drawn a frame at a time in flight.</summary>
+        int _cpuSteer;
+
+        /// <summary>
+        /// The rubber the <b>body</b> stands on this frame, in rubber units. A hand's is the match's,
+        /// exactly — the stick already walks it. The CPU's walks toward the match's at the same rate
+        /// a hand walks, so its location verb reads as a walk rather than a teleport on the release
+        /// frame. Drawn only: the delivery is built from <c>Match.PitcherOffsetX</c>.
+        /// </summary>
+        float _moundX;
+
         internal void TickAtBat(float dt)
         {
             if (_phase == Phase.Set) TickSet(dt);
@@ -41,6 +65,11 @@ namespace GrandSluggers.UnityClient
             _chargePast = 0;
             _pitchButton = default;
             _swingButton = default;
+            // Fastball, unlocked, at every SET entry (PH-02-R5): nothing on the shared screen marks
+            // the active family, so the player counts presses from a known start every time.
+            _pitchSelect = PitchSelectionState.Reset;
+            _cpuPitch = null;
+            _cpuSteer = 0;
             _swapPick = null;
             _breakX = 0;
             _dash01 = 0;
@@ -82,9 +111,11 @@ namespace GrandSluggers.UnityClient
             _itemPick = 0;
             _items?.Hide();
             _banner = _sub = "";
+            // The body starts this SET where the last pitch left it; the rubber persists (§4.2).
+            _moundX = (float)_match.PitcherOffsetX;
             var rel = PitchFlight.Release(_match.PitcherOffsetX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
-            _park.Ball.Place(_ball, "", "fastball", false, false);
+            _park.Ball.Place(_ball, "", PitchFamily.Fastball, false, false);
             _pitchAir = false;
             HoldPitchInHand();
             _aimX = _aimY = 0;
@@ -134,13 +165,28 @@ namespace GrandSluggers.UnityClient
             var mound = PitchPad;
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
+            var pitchFamily = PitchFamily.Fastball;
             if (HumanPitches) TickSwapPick(dt, mound);
+            // The arm edge is read from the button as it stood *before* this tick's step (#813).
+            var prevPitchButton = _pitchButton;
             if (HumanPitches)
                 pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
                     ref _pitchButton, ref _pitchCharge, ref _pitchPast,
                     _t >= (float)_feel.PitcherReadySeconds && _swapPick == null);
             else
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
+            if (HumanPitches)
+            {
+                // One SET tick of the cycle (spec §3, PH-02-R3/R4/R5). Cycling is legal before the
+                // pitcher-ready beat — a selection is not a delivery — but not while the swap pick
+                // owns the stick and the button (§4.7), so the gate is the seat, not `accepting`.
+                var selection = _match.SelectPitch(_pitchSelect, mound.CyclePitch,
+                    HumanPitches && _swapPick == null, prevPitchButton, pitchButton);
+                _pitchSelect = selection.Next;
+                // On the commit tick this is the locked family of the delivery leaving the hand;
+                // `Next` has already reset to the fastball for the SET after it.
+                pitchFamily = selection.Family;
+            }
             if (HumanBats)
             {
                 // A press during SET is not a swing (spec §3): the hold builds, the release drops.
@@ -153,6 +199,17 @@ namespace GrandSluggers.UnityClient
             if (!HumanBats && _t < dt) _match.CpuArmSteal();
             // The CPU batter's square is read at SET (§5.9, §7.3) so a human pitcher sees it before the pitch.
             if (!HumanBats && _t < dt) _match.CpuSquaresBunt();
+            // Under `pitching.cpu.humanInputs` the CPU decides its delivery at the top of SET, the way
+            // a hand decides before it charges (§4.8, PH-18-R1): the rubber the model solves for is
+            // then somewhere to walk to during SET instead of a place to appear at on the release
+            // frame. Off — the shipped root — nothing is decided here and the pitch is still built at
+            // the launch, so the shipped CPU is untouched.
+            if (!HumanPitches && _t < dt && _cpuPitch == null && !TutorialOn
+                && _match.Rules.Pitching.Cpu.HumanInputs)
+            {
+                _cpuPitch = _match.CpuPitchByInputs(out var cpuPlan);
+                _cpuSteer = Math.Sign(cpuPlan.SteerDir);
+            }
             if (HumanPitches && mound.NorthDown && _match.CanStarPitch) _starPitch = !_starPitch;
             if (HumanBats && box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
             TickBaserunning(dt);
@@ -170,6 +227,7 @@ namespace GrandSluggers.UnityClient
                 if (_swapPick != null) { }
                 else if (mound.StickY < -0.7f) _match.ResetPitcher();
                 else _match.WalkPitcher(PitchWorldX(mound.StickX) * dt * 1.6f);
+                _moundX = (float)_match.PitcherOffsetX;
                 _aimX = (float)_match.PitcherOffsetX;
                 _aimY = 0;
                 if (_t >= (float)_feel.PitcherReadySeconds)
@@ -181,13 +239,20 @@ namespace GrandSluggers.UnityClient
                     }
                     if (pitchButton.Committed)
                     {
-                        Launch(PlayerPitch(pitchButton.CommitFill01, pitchButton.CommitSecondsPastFull));
+                        Launch(PlayerPitch(pitchButton.CommitFill01, pitchButton.CommitSecondsPastFull, pitchFamily));
                         return;
                     }
                 }
             }
+            if (!HumanPitches)
+                // The CPU's body walks to the rubber its delivery solved for, at the rate a hand
+                // walks (§4.8). Presentation only: the delivery already carries that rubber, and
+                // with no plan (the shipped root) the body sits on the match's own value, as before.
+                _moundX = _cpuPitch != null
+                    ? Mathf.MoveTowards(_moundX, (float)_match.PitcherOffsetX, dt * 1.6f)
+                    : (float)_match.PitcherOffsetX;
             ShowCursor();
-            ShowAimTell(HumanPitches ? PreviewPitch() : null);
+            ShowAimTell(HumanPitches ? PreviewPitch(pitchFamily) : null);
             AimSetCamera();
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
             {
@@ -198,7 +263,7 @@ namespace GrandSluggers.UnityClient
                     BeginPickoff(pickoffBag);
                     return;
                 }
-                Launch((TutorialOn && HumanBats ? _coach.Tutorial.CpuPitch : _match.CpuPitch()));
+                Launch(TutorialOn && HumanBats ? _coach.Tutorial.CpuPitch : _cpuPitch ?? _match.CpuPitch());
             }
         }
 
@@ -218,20 +283,28 @@ namespace GrandSluggers.UnityClient
             if (dead != null) { _last = dead; Banner(); BeginResult(); }
         }
 
-        /// <summary>The pitcher card's verb tells: STAR, CHANGE while West is held, the swap pick (spec §4.1, §4.7).</summary>
+        /// <summary>
+        /// The pitcher card's verb tells: STAR and the swap pick (spec §4.1, §4.7). No family tell —
+        /// the card is shared by both seats and the selection is made before the charge, so naming
+        /// the held pitch would hand it to the batter (PH-02-R5). The repertoire row the card shows
+        /// instead is <see cref="BroadcastHud.PitcherPitches(Match)"/> and depends on nothing held.
+        /// </summary>
         string PitcherExtra()
         {
             if (_match == null) return "";
             var set = _phase == Phase.Set && HumanPitches;
             return BroadcastHud.PitcherExtra(
                 _starPitch && HumanPitches,
-                set && PitchPad.Changeup,
                 set ? _swapPick?.Tell : null,
                 set && _swapPick == null && PitcherSwapPick.CanOpen(_match));
         }
 
-        /// <summary>The pitcher's shape for the pose and the ball: the changeup hold in SET, the pitch once thrown.</summary>
-        string ShownPitchType => _pitch != null ? _pitch.Type : HumanPitches && PitchPad.Changeup ? "changeup" : "fastball";
+        /// <summary>
+        /// The pitcher's shape for the pose and the ball. Family-blind until the delivery exists
+        /// (PH-02-R5): in SET the pose is the fastball's whatever is selected, and the real family
+        /// arrives with <c>_pitch</c> at the launch, for the throw itself.
+        /// </summary>
+        string ShownPitchType => _pitch != null ? _pitch.Type : PitchFamily.Fastball;
 
         /// <summary>
         /// Select opens the swap pick, the stick or d-pad steps it, Select confirms, East closes
@@ -254,6 +327,9 @@ namespace GrandSluggers.UnityClient
                 if (!TutorialOn || !_coach.Tutorial.SwapPitcher(_swapPick.Current.Who.Id))
                     _swapPick.Confirm(_match);
                 _swapPick = null;
+                // A new arm is a new repertoire, and this path does not re-enter BeginSet: the
+                // selection resets to the fastball here too (PH-02-R5).
+                _pitchSelect = PitchSelectionState.Reset;
                 return;
             }
             if (mound.EastDown)
@@ -265,23 +341,37 @@ namespace GrandSluggers.UnityClient
             if (step != 0) _swapPick.Step(step);
         }
 
-        /// <summary>The pitch as it stands in SET: the rubber, the changeup hold, the charge so far. Not committed.</summary>
-        PitchCommand PreviewPitch() =>
-            new(PitchPad.Changeup ? "changeup" : "fastball", EffectiveCharge(_pitchCharge, _pitchPast),
+        /// <summary>The pitch as it stands in SET: the selected family, the rubber, the charge so far. Not committed.</summary>
+        PitchCommand PreviewPitch(string family) =>
+            new(family, EffectiveCharge(_pitchCharge, _pitchPast),
                 _starPitch && _match.CanStarPitch, RubberX: _match.PitcherOffsetX);
 
         /// <summary>
-        /// The aim tell is the crossing of the pitch as it stands, from the one flight function the
-        /// umpire and the ball read (spec §4.4, #577). Pitching seat only.
+        /// The SET ring (spec §4.4, PH-06, PH-06-R1). Pitching seat only, and in ordinary play it is
+        /// the <b>rubber</b> — where the pitcher stands, at the middle of the strike frame — for SET
+        /// alone. The crossing now carries the family's drop and its natural sweep (§4.2, §4.3), so
+        /// a ring drawn there would name the selected family on the shared screen before the ball
+        /// left the hand, which PH-02-R5's family-blind SET forbids; and in flight the ball is the
+        /// cue, so the ring hides at release.
+        ///
+        /// <para>
+        /// Practice and the Tutorials keep the full crossing ring, through the flight (PH-19): there
+        /// the shape <i>is</i> the lesson and there is no opponent to leak it to.
+        /// </para>
         /// </summary>
+        /// <param name="pitch">The pitch as it stands, for the teaching ring; null hides the tell.</param>
         void ShowAimTell(PitchCommand pitch)
         {
-            if (pitch == null || _match == null)
+            var teaching = TrainingOn || TutorialOn;
+            if (pitch == null || _match == null
+                || !SetTells.AimTellOn(HumanPitches, _phase == Phase.Set, _phase == Phase.Flight, teaching))
             {
                 _zone.AimTell(false, 0, 0);
                 return;
             }
-            var (x, y) = SetTells.Locator(pitch, _match.Pitcher.StarPitch, _match.Rules);
+            var (x, y) = teaching
+                ? SetTells.Locator(pitch, _match.Pitcher.StarPitch, _match.Rules)
+                : SetTells.RubberRing(_match.PitcherOffsetX);
             _zone.AimTell(true, (float)x, (float)y);
         }
 
@@ -313,16 +403,19 @@ namespace GrandSluggers.UnityClient
             (float)ChargeFeel.Effective01(charge, past, _feel.ChargeMaxHoldSeconds, _feel.ChargeOverchargeDecay);
 
         /// <summary>
-        /// The human's pitch (spec §4.1 – §4.2): shape from the changeup hold, charge from the
-        /// release, location from the rubber walk alone (the crossing moves with the body, once),
-        /// height from the shape (AimY is not a stick), Nice! from the release band.
+        /// The human's pitch (spec §4.1 – §4.2, §3): shape from the family the charge locked,
+        /// charge from the release, location from the rubber walk alone (the crossing moves with the
+        /// body, once), height from the shape (AimY is not a stick), Nice! from the release band.
         /// </summary>
-        PitchCommand PlayerPitch(double fill01, double secondsPastFull)
+        /// <param name="family">
+        /// The committed step's locked family (PH-02-R4). Threaded in rather than re-read: the
+        /// selection state has already reset to the fastball for the next SET.
+        /// </param>
+        PitchCommand PlayerPitch(double fill01, double secondsPastFull, string family)
         {
             var nice = ChargeFeel.NiceCopy(true, fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds);
             if (!string.IsNullOrEmpty(nice)) _banner = nice;
-            var changeup = PitchPad.Changeup;
-            return new PitchCommand(changeup ? "changeup" : "fastball",
+            return new PitchCommand(family,
                 EffectiveCharge((float)fill01, (float)secondsPastFull),
                 _starPitch && _match.CanStarPitch,
                 RubberX: _match.PitcherOffsetX,
@@ -356,7 +449,13 @@ namespace GrandSluggers.UnityClient
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _aimX = (float)pitch.AimX;
             _aimY = (float)pitch.AimY;
-            _breakX = (float)pitch.BreakX;
+            // A hand's bend starts at nothing and grows for as long as the stick is held (§4.1).
+            // A steered CPU delivery carries the whole of that hold in one number
+            // (PitchFlight.BreakReach, §4.8), so the drawn ball walks there with the same BreakStep
+            // rather than snapping to it at release. Without a plan this is the command, as before.
+            _breakX = _cpuSteer != 0 ? 0f : (float)pitch.BreakX;
+            // Body and ball agree from here: both stand on the rubber this delivery was built from.
+            _moundX = (float)pitch.RubberX;
             ShowCursor();
             ShowAimTell(HumanPitches ? pitch : null);
             _rig.Punch(pitch.Star ? 8f : 4f);
@@ -418,11 +517,20 @@ namespace GrandSluggers.UnityClient
             var u = Mathf.Clamp01(_flight / _pitchDur);
             // Break is a stick direction after release (spec §4.1): screen-relative from either camera.
             if (HumanPitches)
+            {
                 _breakX = (float)PitchFlight.BreakStep(_breakX, PitchWorldX(PitchPad.StickX), dt,
                     _match.Pitcher.Stats.Pitch, _match.Rules);
+                // The stick *is* the human's break, so the command the umpire reads carries it.
+                _pitch = _pitch with { BreakX = _breakX };
+            }
+            else if (_cpuSteer != 0)
+                // Drawn only (§4.8, PH-18-R1): the command already carries the whole reach the sim
+                // judged, and the same per-frame step arrives there over this delivery's air time.
+                _breakX = (float)PitchFlight.BreakStep(_breakX, _cpuSteer, dt,
+                    _match.Pitcher.Stats.Pitch, _match.Rules);
             var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
-            _pitch = _pitch with { BreakX = _breakX };
-            var p = PitchFlight.Point(_pitch, u, _match.Pitcher.StarPitch, from);
+            var shown = _cpuSteer != 0 ? _pitch with { BreakX = _breakX } : _pitch;
+            var p = PitchFlight.Point(shown, u, _match.Pitcher.StarPitch, from);
             _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             ShowAimTell(HumanPitches ? _pitch : null);
             TickBaserunning(dt);
