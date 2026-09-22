@@ -377,7 +377,12 @@ public sealed record RunnerTickContext(
     /// <summary>The live force chain: a forced runner cannot be held while the force at their next bag stands (§9.3).</summary>
     Func<int, bool> ForceAt,
     /// <summary>A throw is armed to this bag, or a glove with the ball is close to it: the runner slides in (§9.4).</summary>
-    Func<int, bool> TagThreatAt);
+    Func<int, bool> TagThreatAt,
+    /// <summary>
+    /// The park's ground map on the match's table (FD-05): the slide and the overrun read the row of the bag's zone (F3-d).
+    /// Null only for a tick that names no park — a runner ticked on no field slides and overruns the running table's own lengths.
+    /// </summary>
+    GroundZones? Zones = null);
 
 /// <summary>
 /// Moves every body one frame (spec §9.1, §9.4, §9.5): one speed formula, the batter's start
@@ -427,6 +432,34 @@ public static class RunnerSystem
         return feet <= 0 ? 0 : feet / SpeedFtPerSec(runner.Who, dash01, rules);
     }
 
+    /// <summary>
+    /// How far out a runner goes down into <paramref name="bag"/> (§9.4): <c>running.bags.slideFt</c> × the <c>body.slideMul</c> of
+    /// the ground the bag stands on (FD-04 B, F3-d). One reader for the automatic slide and the player's forced one, so the two
+    /// never disagree about where the slide starts. With no park named it is the table's own length.
+    /// </summary>
+    public static double SlideFt(int bag, GroundZones? zones, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var feet = r.Running.Bags.SlideFt;
+        if (zones is not { } z) return feet;
+        var at = Diamond.Bag(bag);
+        return feet * z.RowAt(at.X, at.Z, r.Grounds).Body.SlideMul;
+    }
+
+    /// <summary>
+    /// How far a runner carries past <paramref name="bag"/> before coming straight back (§9.4): <c>running.bags.overrunFt</c> × the
+    /// <c>body.overrunMul</c> of the ground the bag stands on (FD-04 B, F3-d). Only first is run through today; the bag is named so
+    /// a bag that is not first needs no second reader. With no park named it is the table's own length.
+    /// </summary>
+    public static double OverrunFt(int bag, GroundZones? zones, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var feet = r.Running.Bags.OverrunFt;
+        if (zones is not { } z) return feet;
+        var at = Diamond.Bag(bag);
+        return feet * z.RowAt(at.X, at.Z, r.Grounds).Body.OverrunMul;
+    }
+
     /// <summary>The live runner heading for <paramref name="bag"/> (or standing short of it, bound there), nearest first.</summary>
     public static Runner? HeadingTo(IEnumerable<Runner> runners, int bag) =>
         runners.Where(r => r.Live && r.Bag < bag && r.DestBag >= bag)
@@ -469,9 +502,10 @@ public static class RunnerSystem
                 if (runner.OverrunOut && runner.DestBag <= 1)
                 {
                     var outFt = runner.OverrunFt + speed * dt;
+                    var throughFt = OverrunFt(1, ctx.Zones, r);
                     runner.SetVelocity(speed);
                     runner.SetPhase(RunnerPhase.Advancing);
-                    if (outFt >= bagRules.OverrunFt) runner.SetOverrun(bagRules.OverrunFt, outward: false);
+                    if (outFt >= throughFt) runner.SetOverrun(throughFt, outward: false);
                     else runner.SetOverrun(outFt, outward: true);
                 }
                 else
@@ -528,7 +562,7 @@ public static class RunnerSystem
                 runner.SetFeet(feet);
                 var stopping = runner.DestBag == runner.Bag + 1;
                 var remaining = runner.SegmentFt - runner.Feet;
-                if (stopping && remaining <= bagRules.SlideFt && (runner.ForceSlide || ctx.TagThreatAt(runner.NextBag)))
+                if (stopping && remaining <= SlideFt(runner.NextBag, ctx.Zones, r) && (runner.ForceSlide || ctx.TagThreatAt(runner.NextBag)))
                     runner.SetPhase(RunnerPhase.Sliding);
                 else if (runner.Phase != RunnerPhase.Sliding || !stopping)
                     runner.SetPhase(runner.Stealing ? RunnerPhase.Stealing : RunnerPhase.Advancing);

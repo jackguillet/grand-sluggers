@@ -1512,6 +1512,12 @@ public sealed class GroundLibrary
 /// whole skid block at parity. Which fields of a zone's row the flight actually reads is F3-c's to
 /// decide; a row whose band differed from the flight's would be a behavior change, so today none does.
 /// </para>
+///
+/// <para>
+/// <c>body</c> is the fourth block and the only one that is not the ball's: what the ground does to a
+/// fielder's start, brake and cut-back and to a runner's slide and overrun (<see cref="GroundBodyRules"/>,
+/// F3-d). A body reads the row of the zone it stands in, through <see cref="GroundZones.RowAt"/>.
+/// </para>
 /// </summary>
 public sealed class GroundRules
 {
@@ -1523,6 +1529,56 @@ public sealed class GroundRules
 
     /// <summary>The rope's skid across this ground, band included.</summary>
     public SkidRules Skid { get; init; } = new();
+
+    /// <summary>What this ground does to a body standing on it (FD-04 B, F3-d): five multipliers, every one 1.0 today.</summary>
+    public GroundBodyRules Body { get; init; } = new();
+}
+
+/// <summary>
+/// What one ground does to a body on it (spec §8, §9, §16; FD-04 B, FD-05, F3-d #857). Each multiplier scales a
+/// <em>time</em> or a <em>length</em> the body already has, never a speed, so a number above 1 always reads "more
+/// slippery" and 1 is the table itself:
+/// <list type="bullet">
+/// <item><c>startMul</c> × <c>fielding.chase.accelSec</c>: rest to the rated speed (and the planner's half-ramp).</item>
+/// <item><c>brakeMul</c> × <c>fielding.chase.brakeSec</c>: the rated speed to rest.</item>
+/// <item><c>cutMul</c> × the time the across-heading correction takes, which is the ramp time: the cut-back.</item>
+/// <item><c>slideMul</c> × <c>running.bags.slideFt</c> into a bag on this ground.</item>
+/// <item><c>overrunMul</c> × <c>running.bags.overrunFt</c> past a bag on this ground.</item>
+/// </list>
+///
+/// <para>
+/// <b>The body always goes where the stick points.</b> Nothing here touches the rated speed, the asked velocity, the
+/// stick or the heading the body settles on (FD-04: no skating, no loss of control): a slick ground is slower to
+/// answer, not a different answer. The first three act through the §8 response law and exist only where it is on
+/// (<c>chase.accelSec</c> or <c>brakeSec</c> above 0 — <c>trials/c80</c> today, implementation map finding 8); a
+/// multiplier cannot switch the law on, because the switch reads the table and not a product. The slide and the
+/// overrun are not behind the law and act on both roots.
+/// </para>
+///
+/// <para>
+/// <b>Every row carries 1.0.</b> <c>x × 1.0</c> is exact in IEEE doubles, and each reader multiplies its time or
+/// length once, so the shipped and the trial paths are bit-identical to the code before the block existed. A value
+/// that is not 1.0 arrives with Crystal (F9-a) as a trial Jack has accepted. Full traction (FD-04 C: drift, slow
+/// steering, a runner who overruns any bag) is held; were it accepted it would be more named fields in this block,
+/// not a second block.
+/// </para>
+/// </summary>
+public sealed class GroundBodyRules
+{
+    /// <summary>× <c>fielding.chase.accelSec</c>: the time from rest to the rated speed on this ground.</summary>
+    [Positive] public double StartMul { get; init; } = 1.0;
+
+    /// <summary>× <c>fielding.chase.brakeSec</c>: the time from the rated speed to rest on this ground.</summary>
+    [Positive] public double BrakeMul { get; init; } = 1.0;
+
+    /// <summary>× the ramp time the component across the body's heading is corrected over: the cut-back.</summary>
+    [Positive] public double CutMul { get; init; } = 1.0;
+
+    /// <summary>× <c>running.bags.slideFt</c>: how far out a runner goes down into a bag on this ground.</summary>
+    [Positive] public double SlideMul { get; init; } = 1.0;
+
+    /// <summary>× <c>running.bags.overrunFt</c>: how far a runner carries past a bag on this ground.</summary>
+    [Positive] public double OverrunMul { get; init; } = 1.0;
 }
 
 // ---------------------------------------------------------------------------------------
