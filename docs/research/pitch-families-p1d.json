@@ -32,11 +32,11 @@
   },
   "sourceSha256": {
     "src/GrandSluggers.Sim/PitchFlight.cs": "9d6903c051244ef2252e2fc710e5a85cac4f5fefeee5fc76d983c65c3cf461ef",
-    "src/GrandSluggers.Sim/Rules.cs": "a4c32996e786ab5e42e332b28ba44769cea59675fe01583ab8d7da64a047f8fd",
+    "src/GrandSluggers.Sim/Rules.cs": "7bfa35a5dddd0c8890bb9ea2d0c8aaf01e79d55fc51fb1b1e7f6747e6010de69",
     "src/GrandSluggers.Sim/Models.cs": "0a48ed35553709ac9f9ea82458f6d04f483494a3bdadc8e48be7c502d8790db1",
     "src/GrandSluggers.Sim/AtBatFeel.cs": "fab6f4246194f4953ccb231094b45ecdf792effbd99ed46a2934d7e78c3d4ab2",
     "data/rules/pitching.json": "ce1eae6bae6cf52f33efc2069c38e61c213dd00aed435d55ca51d3eeffd23c8e",
-    "data/rules/batting.json": "5e34c938c45c81777a55f72124dfb46961ebf3373e0f1bdb0fb1ae4c39186715",
+    "data/rules/batting.json": "57853b61521691c907f11177f6c1db065a317f9564fb7490bd533f2287768647",
     "tools/pitch-family-probes/PitchFamilyProbes.csproj": "48cc9606851a8083bd83f53457aa3f9311174fd328aa8c6622a67e9f1fec22fa",
     "tools/pitch-family-probes/Program.cs": "574e28ae643b27c954edb3ad1022e2da8865a8ce5ffca2ee7d3c1bbe8c701299"
   },

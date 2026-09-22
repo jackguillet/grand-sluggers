@@ -8,9 +8,9 @@ namespace GrandSluggers.Sim.Tests;
 /// under the trial overlay <c>trials/pitch5</c>, and the shipped root still refusing them by name.
 ///
 /// <b>#860:</b> Jack played that window and accepted it on September 22, 2026 ("trial was
-/// good."), so the three rows are now in the shipped <c>pitching.json</c> and the overlay no longer
-/// carries one. <see cref="Trial"/> still loads the overlay, which now resolves pitching to the
-/// shipped file, so S-107 … S-112 hold the shipped rows to the same roles. S-113 holds the promotion.
+/// good."), so the three rows are now in the shipped <c>pitching.json</c>. #883 retired the
+/// <c>trials/pitch5</c> folder, so <see cref="Trial"/> is the shipped table: S-107 … S-112 hold the
+/// shipped rows to the same roles. S-113 holds the promotion.
 ///
 /// <b>Every row asserts a relationship, never a proposed number.</b> The numbers are Jack's to judge
 /// in the trial window (PH-20-R1) and he is expected to change them; what he must not be able to
@@ -19,24 +19,20 @@ namespace GrandSluggers.Sim.Tests;
 /// one of them can be thrown for a strike and covered by a batter who reads it. So a row here fails
 /// when a role breaks, not when a value moves.
 ///
-/// The overlay is loaded <b>in process</b>, through a <see cref="DataRoot"/> this class builds from
-/// the repository, so nothing depends on <c>GRAND_SLUGGERS_TRIAL</c> being set and CI is untouched.
-/// The shipped table is loaded the same way beside it, and the two are compared.
+/// The shipped table is loaded <b>in process</b>, through a <see cref="DataRoot"/> this class builds
+/// from the repository, so nothing depends on <c>GRAND_SLUGGERS_TRIAL</c> being set and CI is untouched.
 /// </summary>
 public sealed class PitchFamilyTrialScenarioTests
 {
-    /// <summary>The overlay, named the way a run names it and the way its README names it.</summary>
-    const string TrialName = "trials/pitch5";
-
     readonly ContentCatalog _shippedContent = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
 
     string Shipped => _shippedContent.Root.Shipped;
-    string Repo => Path.GetFullPath(Path.Combine(Shipped, ".."));
 
-    /// <summary>The shipped root with the pitch5 overlay laid over it, built here rather than by the environment.</summary>
-    DataRoot TrialRoot => new(Shipped, Path.Combine(Repo, "trials", "pitch5"));
-
-    RulesTable Trial => RulesTable.Load(TrialRoot);
+    /// <summary>
+    /// The table the three families were proposed in: since #860 the shipped table (the
+    /// <c>trials/pitch5</c> overlay that once carried them was retired by #883).
+    /// </summary>
+    RulesTable Trial => ShippedRules;
     RulesTable ShippedRules => _shippedContent.Rules;
 
     static readonly string[] Proposed = [PitchFamily.Curveball, PitchFamily.Slider, PitchFamily.Sinker];
@@ -156,7 +152,7 @@ public sealed class PitchFamilyTrialScenarioTests
         var rules = Trial;
 
         // The cross-field rule every authored row must satisfy: the drop finishes in flight.
-        Assert.Empty(RulesTable.Validate(TrialRoot));
+        Assert.Empty(RulesTable.Validate(new DataRoot(Shipped)));
 
         var fastball = Heights(PitchFamily.Fastball, rules);
         var paths = PitchFamily.All.ToDictionary(f => f, f => Heights(f, rules), StringComparer.Ordinal);
@@ -413,9 +409,9 @@ public sealed class PitchFamilyTrialScenarioTests
     {
         // #860: Jack played the trials/pitch5 window and accepted it on September 22, 2026 ("trial
         // was good."), so the three rows moved into the shipped pitching.json. This row now holds
-        // the promotion instead of the trial: the shipped root is the accepted trial, the overlay
-        // no longer carries a pitching.json at all, and the stop by name is the off path — a table
-        // with no row, built here (the code defaults, whose three optional rows are null).
+        // the promotion instead of the trial: the shipped root is the accepted trial (#883 retired
+        // the overlay folder), and the stop by name is the off path — a table with no row, built
+        // here (the code defaults, whose three optional rows are null).
 
         // (a) The off path: three library ids, no rows, a loud stop that names the family and says
         //     where its numbers live. Nothing flies as a fastball.
@@ -432,23 +428,18 @@ public sealed class PitchFamilyTrialScenarioTests
         Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, bare.Pitching.Families.Authored);
         Assert.Equal(new[] { "fastball", "changeup" }, Training.CorePitches);
 
-        // (b) The shipped root authors all five, and the overlay leaves pitching.json alone: it
-        //     overrides one file, batting.json, for #855's geometryOnly (S-126).
+        // (b) The shipped root authors all five, and the CPU pitcher runs on human inputs.
         var shipped = ShippedRules.Pitching.Families;
         Assert.Equal(PitchFamily.All, shipped.Authored);
         Assert.True(ShippedRules.Pitching.Cpu.HumanInputs, "the shipped CPU runs on human inputs (#860)");
-        var root = TrialRoot;
-        Assert.Equal(new[] { "rules/batting.json" }, root.Overrides);
-        Assert.Equal(TrialName, root.OverlayName);
-        Assert.Equal(Path.Combine(Shipped, "rules", "pitching.json"), root.Resolve("rules", "pitching.json"));
 
-        // (c) Under the overlay the whole library is authored, in library order.
+        // (c) The whole library is authored, in library order.
         var trial = Trial.Pitching.Families;
         Assert.Equal(PitchFamily.All, trial.Authored);
         foreach (var family in Proposed) Assert.True(trial.IsAuthored(family));
 
         // (d) … so the SET selection cycles all three slots for all 25 shipped repertoires, off the
-        //     overlay table's own authored list — nothing in the step knows a number (#812).
+        //     shipped table's own authored list — nothing in the step knows a number (#812).
         var roster = _shippedContent.Characters.Values.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         Assert.Equal(25, roster.Count);
         foreach (var who in roster)
