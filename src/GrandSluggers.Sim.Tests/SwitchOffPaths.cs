@@ -35,12 +35,14 @@ static class SwitchOffPaths
     static readonly Lazy<ContentCatalog> _splitWindowContent = new(() => ContentCatalog.Load(SplitWindow));
 
     static readonly Lazy<DataRoot> _stickShapes = new(() =>
-        Copy("stick-shapes", "batting.json", json => json["geometryOnly"] = false));
+        Copy("stick-shapes", "batting.json", json => json["geometryOnly"] = false, keepOverlay: true));
 
     /// <summary>
-    /// The shipped root with <c>batting.geometryOnly</c> false: stick L/R adds <c>spray.stickDeg</c>
+    /// The process's root with <c>batting.geometryOnly</c> false: stick L/R adds <c>spray.stickDeg</c>
     /// and stick U/D takes <c>launch.stickDeg</c> off the launch on every swing, and the CPU batter
-    /// draws both aims (what played before #883).
+    /// draws both aims (what played before #883). Unlike <see cref="SplitWindow"/> it keeps the
+    /// process's overlay (<c>trials/c80</c> in the compact run), because compact rows that play a
+    /// lesson or a match on it need the diamond the process-wide tables were built from.
     /// </summary>
     public static DataRoot StickShapes => _stickShapes.Value;
 
@@ -52,9 +54,13 @@ static class SwitchOffPaths
     public static ContentCatalog StickShapesContent => _stickShapesContent.Value;
     static readonly Lazy<ContentCatalog> _stickShapesContent = new(() => ContentCatalog.Load(StickShapes));
 
-    static DataRoot Copy(string name, string file, Action<JsonObject> edit)
+    static DataRoot Copy(string name, string file, Action<JsonObject> edit, bool keepOverlay = false)
     {
-        var source = ContentCatalog.Load().Root.Shipped;
+        var process = ContentCatalog.Load().Root;
+        var source = process.Shipped;
+        var overlay = keepOverlay ? process.Overlay : null;
+        if (overlay is not null && process.Overrides.Contains($"{RulesTable.Directory}/{file}"))
+            throw new InvalidOperationException($"the overlay {overlay} overrides {RulesTable.Directory}/{file}, so an off path edited in the shipped copy would not be read");
         var root = Path.Combine(Path.GetTempPath(), $"grand-sluggers-off-{name}-{Guid.NewGuid():N}");
         foreach (var dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
             Directory.CreateDirectory(Path.Combine(root, Path.GetRelativePath(source, dir)));
@@ -70,6 +76,6 @@ static class SwitchOffPaths
         {
             try { Directory.Delete(root, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
         };
-        return new DataRoot(root);
+        return new DataRoot(root, overlay);
     }
 }

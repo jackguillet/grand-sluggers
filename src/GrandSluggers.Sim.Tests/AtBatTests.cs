@@ -221,13 +221,19 @@ public class AtBatTests
     [Fact]
     public void StickUpBiasesAHopper()
     {
-        var up = Swing(timing: 0, launchAim: 1, seed: 3);
-        var down = Swing(timing: 0, launchAim: -1, seed: 3);
+        // #883 (Jack accepted the stick trial on September 22, 2026: "approve all"): on the shipped
+        // root an ordinary swing ignores the stick, so up and down are the same ball. The hopper is
+        // the switch's off path (geometryOnly false), built in the test and never read from shipped data.
+        Assert.Equal(Swing(timing: 0, launchAim: -1, seed: 3), Swing(timing: 0, launchAim: 1, seed: 3));
+
+        var off = SwitchOffPaths.StickShapesRules;
+        var up = Swing(timing: 0, launchAim: 1, seed: 3, rules: off);
+        var down = Swing(timing: 0, launchAim: -1, seed: 3, rules: off);
         Assert.True(up.LaunchDeg < down.LaunchDeg, $"up {up.LaunchDeg} vs down {down.LaunchDeg}");
         Assert.True(up.LaunchDeg < 14, $"stick-up should ground, launch {up.LaunchDeg}");
     }
 
-    AtBatResult Swing(double timing, int? bat = null, string batterId = "rio", string batId = "harbor-lumber", bool bunt = false, double launchAim = 0, int seed = 1)
+    AtBatResult Swing(double timing, int? bat = null, string batterId = "rio", string batId = "harbor-lumber", bool bunt = false, double launchAim = 0, int seed = 1, RulesTable? rules = null)
     {
         var batter = _content.Must(batterId);
         if (bat is int b)
@@ -248,6 +254,6 @@ public class AtBatTests
             Bunt: bunt,
             LaunchAim: launchAim);
 
-        return new AtBatResolver(_content.Chemistry).Resolve(input, _harbor, new Random(seed));
+        return new AtBatResolver(_content.Chemistry, rules).Resolve(input, _harbor, new Random(seed));
     }
 }
