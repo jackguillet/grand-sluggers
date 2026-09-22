@@ -57,17 +57,19 @@ public sealed class TrialOverlayTests
     /// <summary>
     /// The same thing one layer up, where it matters: a catalog loaded through the overlay plays the
     /// trial's infield and the shipped everything-else, table for table.
+    ///
+    /// <para>
+    /// The bags stay where they ship (#862). Moved to 80 ft under the shipped parks, they put Canopy's
+    /// shallow barrel on the first-second lane, and the placement rule refuses that on any root
+    /// (FD-19, SF-23): a trial that moves the bags carries the hazards that stand near them, as
+    /// <c>trials/c80</c> does. <c>HazardPlacementTests</c> holds that refusal.
+    /// </para>
     /// </summary>
     [Fact]
     public void TheCatalogTakesTheTrialsTableAndTheShippedRest()
     {
         using var trial = new Trial();
-        trial.Override("rules/infield.json", json =>
-        {
-            json["baselineFt"] = 80;
-            json["cornerFt"] = 56.57;
-            json["secondFt"] = 113.14;
-        });
+        trial.Override("rules/infield.json", json => json["baselineFt"] = 80);
 
         var control = Control;
         var candidate = ContentCatalog.Load(trial.Root);
@@ -411,7 +413,11 @@ public sealed class TrialOverlayTests
         Assert.Empty(ContentCatalog.Load(trial.Root).Parks["harbor-diamond"].Hazards);
     }
 
-    /// <summary>A whole file, changed field by field, is exactly what a trial is for.</summary>
+    /// <summary>
+    /// A whole file, changed field by field, is exactly what a trial is for. The fields are the ones no
+    /// hazard stands on (#862): the bags stay where they ship, for the reason
+    /// <see cref="TheCatalogTakesTheTrialsTableAndTheShippedRest"/> gives.
+    /// </summary>
     [Fact]
     public void AWholeFileIsAccepted()
     {
@@ -419,8 +425,8 @@ public sealed class TrialOverlayTests
         trial.Override("rules/infield.json", json =>
         {
             json["baselineFt"] = 80;
-            json["cornerFt"] = 56.57;
-            json["secondFt"] = 113.14;
+            json["innerHalfFt"] = 44.44;
+            json["backArcFt"] = 81.78;
         });
 
         Assert.Equal(80, ContentCatalog.Load(trial.Root).Rules.Infield.BaselineFt);
