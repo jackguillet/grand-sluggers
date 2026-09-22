@@ -114,7 +114,7 @@
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
     "docs/research/game-feel-708-candidates.json": "823f4d7c1df512b02e2e4aebb6608a9c50267bd31eec81be5105b453944ccb4c",
-    "docs/research/game-feel-708-flight-derived.json": "d31b39fe6f133bdf356009fcc2e988b195e6f2547a65a2e4850670cc7ebbc78f",
+    "docs/research/game-feel-708-flight-derived.json": "e4310febcaa76bff77143820fddf9f4c2814d023e700d0adf406afbc3f0f97ad",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "63690674351200fd65514341f86938cdf9c8ebad2621c624aded607432d6a484",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "453eba8d5cf1ef0f1163adcb48ec660b201d644d58ad6bda3a6d9985612fca7b",
@@ -148,11 +148,11 @@
     "unity/Assets/Scripts/Runtime/MatchDirector.cs": "4f6c0351534b16c8f89cb5d56256cdab494ab577de204f3f2ba5d76ffbb93141",
     "src/GrandSluggers.Sim/Seats.cs": "c1dbf2bceeeb02ab8932fce4b792fdd71bf5755908cdeabaaa803633903a7c77",
     "src/GrandSluggers.Sim/AtBatFeel.cs": "fab6f4246194f4953ccb231094b45ecdf792effbd99ed46a2934d7e78c3d4ab2",
-    "src/GrandSluggers.Sim/Rules.cs": "de8debb04b10224f9f0865da65b4ce7afb9a2904e2717463f38cbc16a3a99150",
+    "src/GrandSluggers.Sim/Rules.cs": "84cb522dc2d4fcabd86602410b20f28e7cb76b34669049d349c35453f328fe13",
     "data/abilities/star-skills.json": "aec525b0cadf665e2d5d48a57823834a744f91e9adc6e61b5e2e6642d2598c71",
     "src/GrandSluggers.Sim/StarSkillTable.cs": "57477b7d77cf244c0a8f4db7fefdda83674c9bdb82333918c5f9f84223c42e0c",
-    "src/GrandSluggers.Sim/ContentValidation.cs": "ace0ea5fafcbab68e530570d4511f788032be654e4a6cbe9756c29b2c7daee18",
-    "src/GrandSluggers.Sim/Models.cs": "049410b2697669d06362bcfa65c87efa2ebe54327054d1e7cfbcb82351b83647"
+    "src/GrandSluggers.Sim/ContentValidation.cs": "4ed8add1af4596226bbaa8b6518a6176f0c5729032cf43b81db5497c97211f90",
+    "src/GrandSluggers.Sim/Models.cs": "6c9eb539123a2d7dc1cf102a1d657351df3392b7dcefc243d604518ed4773974"
   },
   "profiles": [
     {

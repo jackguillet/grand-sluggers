@@ -1,0 +1,78 @@
+{
+  // The closed ground library (spec §6.1, §16; FD-05). One named row per ground id a park's zone
+  // may name. Every row is today's flight.json roll / bounce / skid, so the ground under the ball
+  // changes no play; the flight still reads its own copy until F3-c moves the read to the zone.
+  // A value that is not today's arrives with Crystal (F9-a), as a trial Jack has accepted.
+  "grass": {
+    "roll": {
+      "friction": 22,
+      "restSpeed": 1.4
+    },
+    "bounce": {
+      "restitution": 0.48,
+      "horizontal": 0.82,
+      "minVy": 3.6
+    },
+    "skid": {
+      "launchMinDeg": 14,
+      "launchMaxDeg": 22,
+      "minVy": 2.2,
+      "restitution": 0.28,
+      "horizontal": 0.93
+    }
+  },
+  "dirt": {
+    "roll": {
+      "friction": 22,
+      "restSpeed": 1.4
+    },
+    "bounce": {
+      "restitution": 0.48,
+      "horizontal": 0.82,
+      "minVy": 3.6
+    },
+    "skid": {
+      "launchMinDeg": 14,
+      "launchMaxDeg": 22,
+      "minVy": 2.2,
+      "restitution": 0.28,
+      "horizontal": 0.93
+    }
+  },
+  "ice": {
+    "roll": {
+      "friction": 22,
+      "restSpeed": 1.4
+    },
+    "bounce": {
+      "restitution": 0.48,
+      "horizontal": 0.82,
+      "minVy": 3.6
+    },
+    "skid": {
+      "launchMinDeg": 14,
+      "launchMaxDeg": 22,
+      "minVy": 2.2,
+      "restitution": 0.28,
+      "horizontal": 0.93
+    }
+  },
+  "ash": {
+    "roll": {
+      "friction": 22,
+      "restSpeed": 1.4
+    },
+    "bounce": {
+      "restitution": 0.48,
+      "horizontal": 0.82,
+      "minVy": 3.6
+    },
+    "skid": {
+      "launchMinDeg": 14,
+      "launchMaxDeg": 22,
+      "minVy": 2.2,
+      "restitution": 0.28,
+      "horizontal": 0.93
+    }
+  }
+}
