@@ -1148,8 +1148,25 @@
         "answer_quote": "b"
       },
       "numeric_targets": "not applicable: a match option",
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        {
+          "child": "F4-h",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/858",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/870",
+          "status": "in review"
+        }
+      ],
+      "validation_evidence": [
+        {
+          "kind": "implementation",
+          "issue": "#858",
+          "revision": "7a304810",
+          "test": "GrandSluggers.Sim.Tests.HazardsOffTests; GrandSluggers.Sim.Tests.ParkFactorsCohortTests; GrandSluggers.Sim.Tests.ParkFactorsHazardsTests",
+          "summary": "F4-h builds FD-10 B in the sim and the CLI. Match and both Match.Exhibition overloads take bool hazards = true, last; off, Match.Park is the catalog park with { Hazards = kept } and every other member the same value, and the table resolves from the park as authored, so a hazards-off match plays the same RulesTable reference as its hazards-on twin (SF-01). What counts as a hazard is a property of the pattern set, HazardPattern.Hazards: statusVolume, ballRedirect, rewardTarget and catchStealer go; wallTrait (FD-06) and decoration stay. HazardPattern.HazardsOff builds the kept park from the library rows without dispatching. cli match --hazards on|off; the park-factors cohort reports four conditions (day and night, each with hazards on and off; schema 2) and --hazards on|off narrows it. SF-24 (HazardsOffTests): no instance of a hazard pattern and every other park member unchanged, every park, both roots; over a scanned seed set covering every park with a hazard, hazards on freezes, warps, chomps or pays a billboard and the same game with hazards off does none; a human-seat fixture and the CPU read the same park; default on, seed for seed. SF-30: the hazards-on rows are main's rows cell for cell on both roots, measured on bbd982fe beside main's own build (seed 7 Final identical; the header gains 'hazards on'). Full dotnet test and the trials/c80 compact rows green (853/853 on the copy locally; portable CI on the PR head), cli art / tutorials / protocol and unity-compile OK, seals hash-only (Match.cs).",
+          "numeric_trial": "not applicable (a match option; no number authored, no hazard number, position or radius moved)",
+          "gate": "no human gate for this child: no player-facing change; the title option and its book pair are F4-i. Status unchanged. The pattern split (which patterns count as a hazard) was contract work FD-10 left open, written by the issue and implemented here; Jack confirmed it, recorded as FD-10-R1."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -2362,6 +2379,10 @@
     {
       "date": "2026-09-22",
       "event": "F7-b1 opened as PR #884 (#882): the named still shots pole-left and pole-right (FD-17 C, FD-16; FR-14, FR-05, FR-04), so F2-b2's look gate at the foul poles can be judged. The pose is computed in the sim from the park being captured (ParkDiamond.FoulPole, FenceSpotAt, ParkBoundary); its framing numbers are parkShots rows in data/feel/shots.json with a validator; StillRequest accepts the two ids with the default list and the no-flag request unchanged; StillCapture cuts to the sim's pose on the field view. Tested at every park on both roots, both sides and a polyline fixture. No still captured, no gate passed, seals untouched."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F4-h (#858, PR #870) in review: hazards off as a match option in the sim and the CLI (FD-10 B). Match / Match.Exhibition take hazards = true, last; off, the match plays the catalog park with every instance of a hazard pattern removed (HazardPattern.Hazards: statusVolume, ballRedirect, rewardTarget, catchStealer) and keeps wallTrait (FD-06) and decoration, every other park member, and the same resolved table by reference. Night: instances only - Crystal's window stays, Funfair's chompers and Ember's breath go; FD-11 decides whether a night layer follows. cli match --hazards on|off; the park-factors cohort reports day and night with hazards on and off (schema 2), and its hazards-on rows are main's rows cell for cell on both roots (measured on bbd982fe, after F4-e, the #860 promotion and F2-c). Findings, not targets (FD-13): with hazards off every factor, runs and home runs, on both roots, moves by less than the report's own 0.15 noise band; Rooftop's rows do not move on either root, because a billboard's star changes no play in a CPU-vs-CPU game. The cohort plays 1,200 games instead of 600, so its run time roughly doubles. Seed 7 Final identical; seals hash-only; fresh trace identities of hazards-off matches differ from hazards-on ones (the kept list), and no stored identity was regenerated. The pattern split is the one Jack confirmed as FD-10-R1. No number accepted; no human gate."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
