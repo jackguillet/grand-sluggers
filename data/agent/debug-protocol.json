@@ -452,7 +452,7 @@
       "fix": "Do not conclude the overlay is broken, and do not author the missing row. Produce the evidence the way the report does — GRAND_SLUGGERS_TRIAL=<overlay> cli match --cohort s29 — and record the figures from there. The rail is to thread the match's table through the in-zone read, which the owner of Match.cs / PitchFlight.cs has to build; every other in-zone caller already passes one. A scenario row that wants an in-process overlay cohort should PIN the cross-root read instead of skipping: assert the no-table call stops by name and that the same call with the catalog's own table does not, so the row becomes the real measurement the day the read is threaded.",
       "promoted": "SharedWindowScenarioTests.S127_TheS29CohortUnderTheTrialIsRecordedAndItsCrossRootReadIsPinned",
       "issue": "#844",
-      "pr": ""
+      "pr": "#849"
     }
 
   ]
