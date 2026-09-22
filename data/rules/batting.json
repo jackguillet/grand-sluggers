@@ -1,4 +1,9 @@
 {
+  // #855: whether the stick at contact shapes an ORDINARY swing (PH-12). Off here, so stick L/R adds
+  // spray.stickDeg to the direction and stick U/D takes launch.stickDeg off the launch, as shipped.
+  // On in trials/pitch5, where a swing that is neither a bunt nor a Star Swing ignores both aims and
+  // the CPU batter draws neither. Bunts and Star Swings read the stick either way.
+  "geometryOnly": false,
   "window": {
     // #844: one window for every hitter, both swings and every human rung (PH-10-R1). Off here, so
     // the four numbers below are what plays; on in trials/pitch5, where "frames" is the whole

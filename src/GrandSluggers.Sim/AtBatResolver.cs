@@ -18,9 +18,25 @@ public sealed class AtBatResolver
     /// <summary>A round fence shorter than this is a degenerate circle; the two-post lerp is used instead.</summary>
     const double RoundFenceMinFt = 50;
 
-    /// <summary>Stick L/R at contact shifts the whole direction range (batting.spray.stickDeg, spec §5.3).</summary>
+    /// <summary>
+    /// Stick L/R at contact shifts the whole direction range (batting.spray.stickDeg, spec §5.3) — for
+    /// the swings <see cref="StickShapesContact"/> says the stick still shapes. The intent always
+    /// carries it; whether the ball reads it is the resolver's call.
+    /// </summary>
     public static double SprayAimDeg(double stickX, RulesTable? rules = null) =>
         Math.Clamp(stickX, -1, 1) * Rules.Or(rules).Batting.Spray.StickDeg;
+
+    /// <summary>
+    /// Whether the stick at contact shapes this swing's ball (spec §5.3, §5.4, PH-12). With
+    /// <c>batting.geometryOnly</c> off — the shipped root — it shapes every swing, as it always has.
+    /// On — <c>trials/pitch5</c> — it shapes only a bunt (its direction, until P4-b gives the bunt a
+    /// held side, PH-14-R5) and a Star Swing (until Phase 6 reviews each one); an ordinary swing's
+    /// flight is timing, contact position, pitch height and the swing, and its two aims are read as 0.
+    /// The CPU batter asks the same question before it draws an aim (<see cref="Match.CpuSwing"/>, PH-18).
+    /// It says nothing about the box walk or the SET recenter, which read the same stick and stay (PH-09).
+    /// </summary>
+    public static bool StickShapesContact(bool bunt, bool starSwing, RulesTable? rules = null) =>
+        bunt || starSwing || !Rules.Or(rules).Batting.GeometryOnly;
 
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
@@ -36,6 +52,12 @@ public sealed class AtBatResolver
     public AtBatResult Resolve(AtBatInput input, Park park, Random rng, bool night = false)
     {
         var b = _rules.Batting;
+        // The stick at contact (§5.3, §5.4, PH-12): read as 0 on an ordinary swing under
+        // batting.geometryOnly. Neither aim ever drew from rng, so no draw moves either way; off, these
+        // are the input's own doubles and every expression below is the one that shipped.
+        var stickShapes = StickShapesContact(input.Bunt, input.UseStarSwing, _rules);
+        var launchAim = stickShapes ? input.LaunchAim : 0;
+        var sprayAim = stickShapes ? input.SprayAimDeg : 0;
         // The cursor is Contact's (spec §5.2, PH-15-R7); the exit and the loft are Power's (§5.4, §5.5).
         var contact = Math.Clamp(input.Batter.Stats.Contact + (input.Bat?.ContactMod ?? 0), 1, 10);
         var power = Math.Clamp(input.Batter.Stats.Power + (input.Bat?.PowerMod ?? 0), 1, 10);
@@ -90,11 +112,12 @@ public sealed class AtBatResolver
         if (input.PitcherStamina < _rules.Pitching.Stamina.TiredBelow)
             exit *= b.Exit.TiredPitcherMul;
 
-        // Launch (§5.4): power and charge lift, the pitch height, the stick (up = grounder), noise.
+        // Launch (§5.4): power and charge lift, the pitch height, the stick (up = grounder) while it
+        // shapes this swing, noise.
         var height = input.CrossingY - StrikeZoneGeometry.CenterY;
         var loft = b.Launch.LoftBaseDeg + (power - 5) * b.Launch.LoftPerPower
                    + (charged ? b.Charge.LoftDeg : 0) + height * b.Launch.PerFtOfHeight;
-        var launch = loft - input.LaunchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
+        var launch = loft - launchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
         if (quality == ContactQuality.Sour)
         {
             // Sour is forced to a band: early tops it, late pops it; a sour slap on a changeup
@@ -118,9 +141,10 @@ public sealed class AtBatResolver
         if (input.UseStarSwing && !input.Bunt)
             launch = StarSkills.SwingLaunchDeg(input.Batter.StarSwing, _skills) ?? launch;
 
-        // Direction (§5.3): early pulls, late pushes; the stick shifts; the zone spreads.
+        // Direction (§5.3): early pulls, late pushes; the stick shifts while it shapes this swing; the
+        // zone spreads.
         var spray = (input.Bunt ? 0 : TimingSprayDeg(err, window, bats, _rules))
-                    + input.SprayAimDeg + (rng.NextDouble() - 0.5) * SpraySpread(quality, b.Spray);
+                    + sprayAim + (rng.NextDouble() - 0.5) * SpraySpread(quality, b.Spray);
         if (input.UseStarPitch && input.Pitcher.StarPitch == "prismball")
             spray += (rng.NextDouble() - 0.5) * b.Star.PrismballSpraySpanDeg;
         if (!input.PitchInZone)
@@ -326,11 +350,17 @@ public sealed class AtBatResolver
 
     static double Lerp(double a, double b, double t) => a + (b - a) * t;
 
-    public static bool PitchInZone(PitchCommand pitch, int pitchStat, string? starPitchId = null)
+    /// <summary>
+    /// The umpire's read of a pitch before it is thrown (§3). <paramref name="rules"/> is the table the
+    /// family is flown on: a match passes its own (<see cref="Match.Rules"/>), so an overlay catalog
+    /// reads its own families rather than the process-wide table's (#855). Absent, it is the
+    /// process-wide table, as before.
+    /// </summary>
+    public static bool PitchInZone(PitchCommand pitch, int pitchStat, string? starPitchId = null, RulesTable? rules = null)
     {
         // Skill/charge affect the delivery, never an invisible resizing of the zone.
         _ = pitchStat;
-        return StrikeZoneGeometry.Contains(pitch, starPitchId);
+        return StrikeZoneGeometry.Contains(pitch, starPitchId, rules);
     }
 
     /// <summary>The batter's body at the plate plane in world feet: the authored box plus the walk (spec §4.6).</summary>
