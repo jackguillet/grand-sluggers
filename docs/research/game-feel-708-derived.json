@@ -114,7 +114,7 @@
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
     "docs/research/game-feel-708-candidates.json": "823f4d7c1df512b02e2e4aebb6608a9c50267bd31eec81be5105b453944ccb4c",
-    "docs/research/game-feel-708-flight-derived.json": "1d5d28edb4a456210da3af76ce71f519ad3adf72ba717a45697373d8d8e99c3a",
+    "docs/research/game-feel-708-flight-derived.json": "c22f3ab1383fe1501979d6defb781adb35395c3cbb7a52a8f6e4c5b34cae8f76",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "63690674351200fd65514341f86938cdf9c8ebad2621c624aded607432d6a484",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "d3cdb3e054382b63044e1990f0ad05d929f03c6646a4c721b0fa12944e37a5a9",

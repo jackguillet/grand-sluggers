@@ -15,7 +15,7 @@
     "src/GrandSluggers.Sim/Rules.cs": "89ffa088aae130b4f9625d46e5ec881903d4592f953b99cb7f95af48440938b3",
     "src/GrandSluggers.Sim/BattedBall.cs": "25e2bc5d1120926e6d368ee87f9ecb1cd475527d10e02db641e2cad3a42e756e",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "d3cdb3e054382b63044e1990f0ad05d929f03c6646a4c721b0fa12944e37a5a9",
-    "src/GrandSluggers.Sim/HarborWall.cs": "a24af4aeb46ef14f83e448e33ee4eac3f08c429baaa83a5356b3f2eaaef5bd5e",
+    "src/GrandSluggers.Sim/HarborWall.cs": "34fe72350c63a65613306e3fa120d0caf91477fa0edb32429a472095b6e6c467",
     "src/GrandSluggers.Sim/Models.cs": "c07bd7e710ce86f8e932af4bc26bbaf4e8c5faa40e87c9ba8bf4c1cc7541957d",
     "tools/game-feel-flight-probes/GameFeelFlightProbes.csproj": "48cc9606851a8083bd83f53457aa3f9311174fd328aa8c6622a67e9f1fec22fa",
     "tools/game-feel-flight-probes/Program.cs": "112b99d212f1d5fff0f7ab7fe791eb30c57a39427c3d47a5f332a4e7630f5731"
