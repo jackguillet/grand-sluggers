@@ -18,7 +18,7 @@ public static class Scheme
         new("all-advance", "LB", ",", "Click advance"),
         new("all-return", "RB", ".", "Click return"),
         new("steal", "Stick to the next bag / L3", "Z", "Click steal"),
-        new("changeup", "West", "V", "Left Ctrl"),
+        new("cyclePitch", "RB", "Tab", "Tab"),
         new("swap", "Select", "R", "Click swap"),
         new("bunt", "West hold", "V", "Left Ctrl hold in the box"),
         new("cutoff", "LB", "X", "Click relay"),

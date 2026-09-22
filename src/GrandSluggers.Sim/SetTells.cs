@@ -66,11 +66,42 @@ public static class SetTells
     public static (double X, double Y) Locator(PitchCommand pitch, string? starPitchId = null, RulesTable? rules = null) =>
         PitchFlight.Crossing(pitch, starPitchId, rules);
 
+    /// <summary>
+    /// The ordinary-play SET ring (PH-06, PH-06-R1): <b>where the pitcher stands</b>, not where the
+    /// pitch will cross. X is the rubber walked into world feet (<see cref="HomeSet.PitcherWalk"/>
+    /// per unit, the same distance the body moves, §4.2); Y is the middle of the strike frame, which
+    /// is a fixed height and says nothing about the family.
+    ///
+    /// <para>
+    /// It exists because <see cref="Locator"/> cannot be drawn in SET any more. The crossing now
+    /// carries the family's own drop and natural sweep (§4.2, §4.3), so a ring at the crossing tells
+    /// the whole shared screen which pitch was selected before it leaves the hand — exactly what
+    /// PH-02-R5's family-blind SET forbids. <see cref="Locator"/> stays for Practice and the
+    /// Tutorials, where the point is to show the player what a shape does (PH-19).
+    /// </para>
+    /// </summary>
+    /// <param name="rubberX">The pitcher's rubber position, −1..1 (<c>Match.PitcherOffsetX</c>).</param>
+    public static (double X, double Y) RubberRing(double rubberX) =>
+        (rubberX * HomeSet.PitcherWalk, StrikeZoneGeometry.CenterY);
+
     public static bool InZone(PitchCommand pitch, string? starPitchId = null) =>
         StrikeZoneGeometry.Contains(pitch, starPitchId);
 
     /// <summary>The tell is the pitcher's: shown on the pitching seat, never to the batter as a giveaway.</summary>
     public static bool AimTellOn(bool humanPitches, bool setOrFlight) => humanPitches && setOrFlight;
+
+    /// <summary>
+    /// When the SET ring is drawn at all (PH-06-R1). In ordinary play it is <b>SET only</b> — it
+    /// hides at release, because the ball itself is the cue in flight and a ring that slid with the
+    /// break would draw the crossing again. Practice and the Tutorials may keep it through the
+    /// flight (PH-19): there the shape is the lesson.
+    /// </summary>
+    /// <param name="humanPitches">A human sits the mound this half.</param>
+    /// <param name="set">The at-bat is in SET (not the windup, not the flight).</param>
+    /// <param name="flight">The pitch is in the air.</param>
+    /// <param name="teaching">Practice or a Tutorial owns the screen.</param>
+    public static bool AimTellOn(bool humanPitches, bool set, bool flight, bool teaching) =>
+        humanPitches && (set || (flight && teaching));
 
     public static bool TrailOn(bool flight) => flight;
 

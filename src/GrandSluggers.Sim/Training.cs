@@ -289,7 +289,7 @@ public sealed class Training
         ? "South  title"
         : Lesson switch
         {
-            PracticeLesson.Pitching => "South hold/release   West changeup   stick break",
+            PracticeLesson.Pitching => "South hold/release   RB cycle pitch   stick break",
             PracticeLesson.Batting => "stick walk   South hold/release at MAX",
             PracticeLesson.Fielding => LessonPart >= 2
                 ? "South to second    South to first"
