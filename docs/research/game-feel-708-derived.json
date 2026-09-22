@@ -114,7 +114,7 @@
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
     "docs/research/game-feel-708-candidates.json": "823f4d7c1df512b02e2e4aebb6608a9c50267bd31eec81be5105b453944ccb4c",
-    "docs/research/game-feel-708-flight-derived.json": "2241ad5e5d52f4bce198e10e8e13db366fd0196046d8fe7a71b5af0dec44dfc3",
+    "docs/research/game-feel-708-flight-derived.json": "d3393dc132570a0e93ffc37c7e52b7272bd3495e804b33c8038370a206b4b90c",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "63690674351200fd65514341f86938cdf9c8ebad2621c624aded607432d6a484",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "02566e5c112d89e7b858ad764bd5f5ae5455a6c5ec7e75262caf805eeea9eafd",
@@ -148,10 +148,10 @@
     "unity/Assets/Scripts/Runtime/MatchDirector.cs": "62736feb270b6c6d2dd5e8b617d0384a79e40a8417bbe2844f7964018af7631d",
     "src/GrandSluggers.Sim/Seats.cs": "c1dbf2bceeeb02ab8932fce4b792fdd71bf5755908cdeabaaa803633903a7c77",
     "src/GrandSluggers.Sim/AtBatFeel.cs": "fab6f4246194f4953ccb231094b45ecdf792effbd99ed46a2934d7e78c3d4ab2",
-    "src/GrandSluggers.Sim/Rules.cs": "adfd5455f995ea07d027f52f876b49ff567da241ab7e79000ecbf7ed4def490e",
+    "src/GrandSluggers.Sim/Rules.cs": "95312475c9161a4e8148227495db7ef23146980f3342eef2ac678cbe947e6a57",
     "data/abilities/star-skills.json": "aec525b0cadf665e2d5d48a57823834a744f91e9adc6e61b5e2e6642d2598c71",
     "src/GrandSluggers.Sim/StarSkillTable.cs": "57477b7d77cf244c0a8f4db7fefdda83674c9bdb82333918c5f9f84223c42e0c",
-    "src/GrandSluggers.Sim/ContentValidation.cs": "f55d57f1607d84185f42580018b30490b1267a83802f660cff4273d313bff111",
+    "src/GrandSluggers.Sim/ContentValidation.cs": "11d8173a8e6319b0fa151c84ce24c3d374a97c3d003743d097c90250761e5743",
     "src/GrandSluggers.Sim/Models.cs": "62c50894ce3b15982c287650456321257c8e342645ad5182942717b156a699e7"
   },
   "profiles": [
