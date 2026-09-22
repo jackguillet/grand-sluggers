@@ -242,7 +242,15 @@ public sealed record Park(
     /// zones read today (<see cref="GroundZones.Of(Park, RulesTable?)"/>). Last and defaulted for the
     /// same reason <see cref="Environment"/> is.
     /// </summary>
-    ParkZones? Zones = null)
+    ParkZones? Zones = null,
+    /// <summary>
+    /// The outfield fence as a polyline from pole to pole (§6.1, §16; FD-06 C, FD-06-R1, FD-12 B; F2-c).
+    /// Null — no shipped or trial park names one — is the circle through the three posts at
+    /// <see cref="FenceHeightFt"/>, exactly as every park has always played and drawn (<c>SF-06</c>).
+    /// Last and defaulted for the same reason <see cref="Environment"/> is, and null is not written into
+    /// <see cref="PlayTraceIdentity"/>, so no stored identity moves while no park names one.
+    /// </summary>
+    ParkFence? Fence = null)
 {
     /// <summary>Where the wind blows toward, in the field frame: 0 out to CF, 90 toward the right-field line, 180 in at the plate.</summary>
     public (double X, double Z) WindDirection
@@ -311,6 +319,74 @@ public sealed record ParkZones(
     public bool Names =>
         InfieldDirt is not null || Outfield is not null || WarningTrack is not null || FoulApron is not null;
 }
+
+/// <summary>
+/// A park's outfield fence as a polyline from the left-field pole to the right-field pole (§6.1, §16;
+/// FD-06 C, FD-06-R1, FD-12 B; F2-c). Each point names where the fence stands and how tall it is there,
+/// and the wall between two points is straight in the ground plane, with a top that runs straight from
+/// one point's height to the next. So a park can have a notch, a porch or an alley, a tall wall or a
+/// low corner.
+///
+/// <para>
+/// <b>One distance per bearing (FD-06-R1).</b> The points run from bearing −45 to +45 with every bearing
+/// strictly greater than the one before, which the park validator enforces by name on both roots. Every
+/// ray from home then meets exactly one span, so <see cref="AtBatResolver.FenceAt"/> stays a function of
+/// the bearing and every reader of it — the clip polygon, the track, the poles, the zone map, the drawn
+/// loop — follows the polyline without learning a shape language. An overhang or a fence behind a fence
+/// is refused, never drawn.
+/// </para>
+///
+/// <para>
+/// <b>Where a point is, in fence-relative units (FD-12).</b> A point's distance is
+/// <see cref="FencePoint.FenceFrac"/> of the park's own three-post fence at that bearing — the circle
+/// <see cref="AtBatResolver.FenceAt"/> answers for the park without points. The trial's posts are the
+/// shipped posts through the one fence scale, so the same block lands at the same place relative to the
+/// fence on both roots: the migration the zone rule makes of a point beyond the lip, with a point at
+/// <c>1.0</c> exactly on each root's own fence. Heights do not scale (walls did not shrink).
+/// </para>
+///
+/// <para>
+/// Equality is by value, point for point, because the polygon and the drawn loop are cached on it:
+/// two parks with the same posts and the same points are the same field, and a park with other points
+/// is another field even when its list object is new (map finding 14).
+/// </para>
+/// </summary>
+/// <param name="Points">The fence from the left-field pole to the right-field pole. Validated before a catalog holds it.</param>
+public sealed record ParkFence(IReadOnlyList<FencePoint> Points)
+{
+    /// <summary>The wall material of span <paramref name="span"/> (from point <c>span</c> to <c>span + 1</c>): its first point's, else <c>padded</c>.</summary>
+    public string SpanMaterial(int span) => Points[span].Material ?? WallMaterial.Padded;
+
+    public bool Equals(ParkFence? other) =>
+        other is not null && (ReferenceEquals(this, other) || Points.SequenceEqual(other.Points));
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        foreach (var point in Points) hash.Add(point);
+        return hash.ToHashCode();
+    }
+}
+
+/// <summary>
+/// One point of a <see cref="ParkFence"/> (FD-06 C, FD-12 B).
+/// </summary>
+/// <param name="BearingDeg">Degrees from centre field, the spray frame: −45 the left-field line, 0 centre, +45 the right-field line.</param>
+/// <param name="FenceFrac">How far out the fence stands here, as a fraction of the park's three-post fence at this bearing: 1.0 is on today's arc.</param>
+/// <param name="HeightFt">The fence top here, in feet. It must stand over the foul rail. Not scaled between roots.</param>
+/// <param name="Material">
+/// The wall material of the span from this point to the next — a <c>walls.json</c> row. Null is
+/// <see cref="WallMaterial.Padded"/>. The right-field pole ends the fence, so its point names none.
+/// </param>
+public sealed record FencePoint(double BearingDeg, double FenceFrac, double HeightFt, string? Material = null);
+
+/// <summary>
+/// The fence where the ray from home at one bearing meets it (§6.1; FD-06): how far out it stands, how
+/// tall it is there and what the span there is made of. One resolution answers all three
+/// (<see cref="AtBatResolver.FenceSpotAt"/>), so the distance the flight clips at, the top it clears and
+/// the row it caroms off cannot come from three different fences.
+/// </summary>
+public readonly record struct FenceSpot(double DistanceFt, double TopFt, string Material);
 
 public sealed record Hazard(string Type, double X, double Z, double Radius, string? Tag);
 

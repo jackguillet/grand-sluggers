@@ -38,8 +38,9 @@ public static class Ground
 
 /// <summary>
 /// The wall-material library's ids (spec §6.1, §16; FD-06). One today: every fence span of every park
-/// is the padded wall the ball caroms off now. A span names one of these once the polyline fence lands
-/// (F2-c); a material with no row in <c>data/rules/walls.json</c> is a stop (<c>SF-03</c>).
+/// is the padded wall the ball caroms off now. A span of a park's polyline fence (F2-c) names one of
+/// these; a material with no row in <c>data/rules/walls.json</c> is refused by the park validator and is
+/// a stop at the carom (<c>SF-03</c>).
 /// </summary>
 public static class WallMaterial
 {
@@ -56,16 +57,17 @@ public static class WallMaterial
 
     /// <summary>
     /// Which material one segment of the boundary is made of — the one place that question is answered
-    /// (FD-06, F3-c). Every segment of every park, the fence between the poles and the foul wrap alike,
-    /// is <see cref="Padded"/> until the polyline fence (F2-c) gives a span its own material; F2-c
-    /// changes this function, and no caller spells a material. The carom takes the row for the answer
-    /// out of <see cref="WallMaterialLibrary.Of"/>, which stops on a material with no row rather than
-    /// caroming off the first one.
+    /// (FD-06, F3-c, F2-c). A fence segment is the material of the polyline span it lies on
+    /// (<see cref="FencePoint.Material"/>, <see cref="Padded"/> when the span names none), which
+    /// <see cref="FieldBounds"/> puts on the segment when it builds the polygon; the foul wrap, and the
+    /// whole fence of a park with no polyline, is <see cref="Padded"/>. No caller spells a material. The
+    /// carom takes the row for the answer out of <see cref="WallMaterialLibrary.Of"/>, which stops on a
+    /// material with no row rather than caroming off the first one.
     /// </summary>
     public static string OfSegment(FieldBounds.WallSegment segment)
     {
         if (segment is null) throw new ArgumentNullException(nameof(segment));
-        return Padded;
+        return segment.Material;
     }
 }
 

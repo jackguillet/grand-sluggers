@@ -41,9 +41,19 @@ public static class HarborWall
     /// <summary>
     /// The padded outfield wall's top is the park's own fence (spec D15): the same number the flight
     /// clips against (<see cref="FieldBounds"/>), so a ball that meets the padding you see caroms and a
-    /// homer clears it. No second constant.
+    /// homer clears it. No second constant. For a park with a polyline fence (F2-c) this is the park's
+    /// nominal top, which the stands and the dress are sized against; each span of the drawn wall stands
+    /// at its own top (<see cref="OutfieldHeight(Park, double)"/>).
     /// </summary>
     public static float OutfieldHeight(Park park) => (float)park.FenceHeightFt;
+
+    /// <summary>
+    /// The drawn wall's top at one bearing between the poles: the top the flight's fence has there
+    /// (<see cref="AtBatResolver.FenceSpotAt"/>, D15 as amended by D21). <see cref="OutfieldHeight(Park)"/>
+    /// everywhere for a park with no polyline; a polyline's point heights, straight between them, for a
+    /// park that names one (F2-c).
+    /// </summary>
+    public static float OutfieldHeight(Park park, double sprayDeg) => (float)AtBatResolver.FenceSpotAt(park, sprayDeg).TopFt;
     /// <summary>Hip-high rail around the infield, dugouts, and home. The top the flight clips against.</summary>
     public static float HipHeight => (float)Bounds.RailHeightFt;
     /// <summary>
@@ -61,10 +71,11 @@ public static class HarborWall
     public static float DugoutClearX => HarborDugout.X + HarborDugout.HalfDeep + DugoutPad;
 
     /// <summary>
-    /// The loop per (park, edge), built once. The key is <see cref="FieldBounds"/>'s key, deliberately:
-    /// the drawn wall and the clip polygon are the same edge (D15 as amended by D21, FD-06), so
-    /// whatever moves one moves the other and the two caches grow together — a polyline fence (F2-c)
-    /// or a park's own foul area (F2-d) lands in both keys at once.
+    /// The loop per (park, edge), built once. The key is <see cref="FieldBounds"/>'s key, deliberately —
+    /// the same <c>FieldBounds.EdgeKey</c> type, not a copy of its fields: the drawn wall and the clip
+    /// polygon are the same edge (D15 as amended by D21, FD-06), so whatever moves one moves the other and
+    /// the two caches grow together. The polyline fence (F2-c) is in it by value; a park's own foul area
+    /// (F2-d) lands in both at once.
     ///
     /// <para>
     /// Until #845 this was one slot keyed by the three posts under a lock. A second
@@ -73,17 +84,13 @@ public static class HarborWall
     /// two parks in one process rebuilt the slot on every call.
     /// </para>
     /// </summary>
-    static readonly System.Collections.Concurrent.ConcurrentDictionary<
-        (string Id, int Left, int Center, int Right, double Height, ParkBoundary Bounds), (double X, double Z)[]> Loops = new();
+    static readonly System.Collections.Concurrent.ConcurrentDictionary<FieldBounds.EdgeKey, (double X, double Z)[]> Loops = new();
 
     public static (double X, double Z)[] Loop(Park park) => Loop(park, Bounds);
 
     /// <summary>The loop this park draws on a given edge. <see cref="FieldBounds.Of(Park, ParkBoundary)"/>'s sibling.</summary>
-    public static (double X, double Z)[] Loop(Park park, ParkBoundary bounds)
-    {
-        var key = (park.Id, park.LeftFenceFt, park.CenterFenceFt, park.RightFenceFt, park.FenceHeightFt, bounds);
-        return Loops.GetOrAdd(key, k => BuildLoop(park, k.Bounds));
-    }
+    public static (double X, double Z)[] Loop(Park park, ParkBoundary bounds) =>
+        Loops.GetOrAdd(FieldBounds.EdgeKey.Of(park, bounds), k => BuildLoop(park, k.Bounds));
 
     public static (double X, double Z) LoopPoint(Park park, int i)
     {
@@ -123,16 +130,24 @@ public static class HarborWall
     /// <summary>
     /// One side: CF → this side's pole along the park's own fence → in along the foul rail → behind
     /// the plate. <paramref name="sign"/> is +1 for the first-base side.
+    ///
+    /// <para>
+    /// The fence is walked on <see cref="FieldBounds.FenceBearings"/>, the bearings the clip polygon is
+    /// built on: the spray grid, and for a park with a polyline fence (F2-c) every point merged in, so
+    /// every fence point is a drawn vertex and each span is drawn between the flight's own vertices. The
+    /// grid's bearings are exact multiples of 1.875°, so a park with no points walks exactly the
+    /// bearings it always did and its loop is unchanged to the bit (<c>SF-06</c>). Centre field (bearing
+    /// 0) is on the grid, so it is always the vertex both halves share.
+    /// </para>
     /// </summary>
     static List<(double X, double Z)> HalfLoop(Park park, int sign, ParkBoundary bounds)
     {
-        var half = new List<(double X, double Z)>(WrapSegs / 2 + 2);
-        for (var i = OutfieldSegs / 2; i <= OutfieldSegs; i++)
-        {
-            var spray = -AtBatResolver.FoulLineDeg
-                + 2 * AtBatResolver.FoulLineDeg * i / OutfieldSegs;
-            half.Add(FencePoint(park, sign * spray));
-        }
+        var bearings = FieldBounds.FenceBearings(park);
+        var half = new List<(double X, double Z)>(WrapSegs / 2 + 2 + bearings.Count - (OutfieldSegs + 1));
+        var cf = 0;
+        while (bearings[cf] < 0) cf++;
+        for (var i = cf; i >= 0 && i < bearings.Count; i += sign)
+            half.Add(FencePoint(park, bearings[i]));
         var poleR = AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg);
         var alongs = new List<double>(FoulSegs + DugoutEnds);
         for (var i = 1; i <= FoulSegs; i++)
@@ -243,7 +258,7 @@ public static class HarborWall
         var p = LoopPoint(park, i);
         var spray = Math.Atan2(p.X, p.Z) * (180.0 / Math.PI);
         if (Math.Abs(spray) <= AtBatResolver.FoulLineDeg + 0.5)
-            return OutfieldHeight(park);
+            return OutfieldHeight(park, spray);
         if (p.Z <= RampStartZ) return HipHeight;
         var poleZ = Math.Cos(AtBatResolver.FoulLineDeg * Math.PI / 180.0)
             * AtBatResolver.FenceAt(park, Math.Sign(p.X) * AtBatResolver.FoulLineDeg);
@@ -261,15 +276,21 @@ public static class HarborWall
     }
 
     /// <summary>
-    /// D15: every outfield vertex of the drawn wall stands at the park's <c>fenceHeightFt</c>, the rail
-    /// stays hip-high, and the fence is taller than the rail so the wrap ramps up to it.
+    /// D15: every outfield vertex of the drawn wall stands at the flight fence's top at that vertex —
+    /// the park's <c>fenceHeightFt</c>, or for a polyline fence (F2-c) the points' heights, straight
+    /// between them — the rail stays hip-high, and the fence is taller than the rail so the wrap ramps
+    /// up to it.
     /// </summary>
     public static bool OutfieldIsTheFence(Park park)
     {
         if (!(HipHeight >= 3.2f && HipHeight <= 5.5f && park.FenceHeightFt > HipHeight)) return false;
-        var n = Loop(park).Length;
-        for (var i = 0; i < n; i++)
-            if (IsOutfield(park, i) && Math.Abs(Height(park, i) - park.FenceHeightFt) > 1e-4) return false;
+        var loop = Loop(park);
+        for (var i = 0; i < loop.Length; i++)
+        {
+            if (!IsOutfield(park, i)) continue;
+            var top = AtBatResolver.FenceSpotAt(park, FieldBounds.SprayDeg(loop[i].X, loop[i].Z)).TopFt;
+            if (!(top > HipHeight) || Math.Abs(Height(park, i) - top) > 1e-4) return false;
+        }
         return true;
     }
 
