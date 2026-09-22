@@ -35,11 +35,32 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 21 | Moving the chompers into data and migrating them by the zone rule closed #717's recorded anomaly (the trial's centre fielder no longer starts inside a mouth) and made the trial's night Funfair live. `ParkZones.Names` / `ParkEnvironment.Names` are computed record properties that serialise into the trace identity when a block is present. | PRs #851, #850 | Reported; nothing tuned. |
 | 18 | The sibling worktrees share one scratchpad root, so a fixed scratch filename (`pr-body.md`) can be overwritten by another session. | PR #832 | Scratch files carry the PR number. |
 
+### Found by the third batch (September 22, 2026)
+
+| # | Finding | Where | Effect |
+| --- | --- | --- | --- |
+| 22 | The stored race identities (`game-feel-3d-race-*.json`, `game-feel-702-baseline.json`) are pinned at build `46f2e94a`, already differed from `main` before F3-b, and no test reads them. Regenerating them would rewrite #715's and #702's evidence, not refresh a hash. | PRs #864, #869, #867 | §2's trace-identity rail is amended: say that fresh identities moved; do not regenerate the stored ones (a full re-export is the packet owner's, #853). |
+| 23 | The CPU's arrival forecasts (`CpuWalkSec`, the cover-arrival estimates) never charge the response law's ramp, so with a `startMul` above 1 the planner accounts for the ground and they do not. | PR #864 | F4-g and F9-a. |
+| 24 | The T-R04 slide lesson's press band reads `running.bags.slideFt` directly; a lesson on a slick bag needs `RunnerSystem.SlideFt`. | `TutorialRunningTests`, PR #864 | F8-c. |
+| 25 | The response rates are measured against the rated speed, so an outfielder asked 0.6 of it reaches that speed in 0.6 × `accelSec`. | PR #864 | Read `SF-13` this way. |
+| 26 | Still-gate captures do not repeat to the pixel on shots with characters (0.5k–81k px between identical runs); only `title`, `lineup` and `field` do. | PR #863 | A look gate compares those, or measures the noise floor first (F7-b). |
+| 27 | Park-neutral values live in Harbor-named sim classes: `HarborPostcard.WallThickFt`, `HarborDugout.AlongHome`, `AlongBag`, `StarSpacing`. | PR #863 | F6-b, or a Gameplay child. |
+| 28 | `MatchDirector.cs` is sealed, so a Presentation child that passes something through it must reseal. `StillCapture` and `RebuildTitlePark` rebuild the park but not the star pips. `HarborKit.ShowBackstop(false)` hides an empty folder, so `StillCapture.HideBackstop` does nothing. | PR #863 | F2-d (pips); F7-b. |
+| 29 | At the five other parks the dress's old backstop (z −24) stands inside the kit's (−36), and Crystal gains the brown track the other parks already had. At Harbor, night, the kit's backstop shades 1–6 of 255 differently. Jack passed the look with these. | PR #863 stills | F6-c (colors), F6-d (dress). |
+| 30 | The two first-base-side volumes crossed the lane from inside the diamond, so the outward move carried them about 25 ft, past the lane, to 19–27 ft from the second baseman's start. | PR #867 | F9-a places Crystal's for play. |
+| 31 | The placement rule reads the root's own `infield.json`, so a trial that moves the bags without its hazards is refused. It measures the day disc: Ember's breath at night still clears, by 85 ft shipped and 32 ft on the trial. | PR #867 | F4-d checks the night disc. |
+| 32 | Counting a ball redirect's `reachPadFt` would refuse Canopy's barrels at (22, 58) and (6, 102) and Funfair's can at (20, 55) on the shipped root, and Canopy's (5, 91) on the trial. The rule counts the hazard's own radius. | PR #867 | Reported to Jack; nothing moved. |
+| 33 | Moving the volumes moved S-29's shipped away mean from 1.92 to 1.86, nearer the 1.8 floor (one game: Brondo at Vale, in Crystal). | PR #867 | Re-reported; not tuned (FD-13). |
+| 34 | `FieldingResolver.OutfieldGrass` still splits dirt from grass at the lip directly rather than through the zone map; the two agree today. | PR #869 | Note for F9-a (an unequal infield row). |
+| 35 | Unity compiles the sim against netstandard 2.1, so a newer BCL helper (`ArgumentNullException.ThrowIfNull`) passes `dotnet test` and fails `unity-compile.sh`. | PR #869; protocol row `sim-uses-a-bcl-api-unity-lacks` | Run the Unity gate before any PR that adds framework calls to the sim. |
+| 36 | With five sessions on one Mac the load average reached 80–270, so a single wall time means nothing. | PR #869 | Time the old and new builds side by side. |
+| 37 | A still-capture loop fronted its editor every 10 s and took focus from Jack's game window; a bare editor started by activating Unity by name idled for 14 h. | PR #866; protocol row `gui-editor-focus-fight` | One machine-wide GUI lock (`tools/unity_gui.py`); captures take it, front by PID, and ask Jack before `--player-open-ok`. |
+
 ## 2. Rails every child carries
 
 - **Parity first (FR-06).** A rail child changes no behavior. It proves that with seed 7, S-29 and the Harbor cohorts unchanged, and with seals that move by hash only.
 - **Evidence seals (FR-16).** CI hashes `Models.cs`, `Rules.cs`, `FieldBounds.cs`, `HarborWall.cs`, `BallFlight.cs`, `BattedBall.cs`, `AtBatResolver.cs`, `Fielding.cs`, `FlyCatch.cs`, `ParkDiamond.cs`, `Match.cs`, `LivePlaySystem.Field.cs`, `ContentValidation.cs`, `data/parks/harbor-diamond.json`, `flight.json`, `fielding.json`, `running.json`. Order: `dotnet run --project tools/game-feel-flight-probes -- --write`, then `python3 tools/compact-field-report.py`, then both `--check`.
-- **Trace identity.** `PlayTraceIdentity` serialises the whole `Park` record. A new `Park` member moves every stored identity SHA in `docs/research/game-feel-3d-race-*.json` and `game-feel-702-baseline.json`. Say so in the PR and regenerate; do not hide the member from the identity.
+- **Trace identity.** `PlayTraceIdentity` serialises the whole `Park` record. A new `Park` member, or a change to a rules table's shape, moves every fresh identity SHA. Say so in the PR and do not hide the member from the identity. The SHAs stored in `docs/research/game-feel-3d-race-*.json` and `game-feel-702-baseline.json` are a pinned record of the #715 / #702 runs at their builds: do not regenerate them in a child (finding 22; a full re-export is the packet owner's, #853).
 - **`Park` is built positionally** in `tools/game-feel-flight-probes/Program.cs:44`. A new member has a default and goes last.
 - **c80 parity.** A shipped park edit has its `trials/c80` twin in the same PR. `CompactGeometryTests` key equality stays green.
 - **#730 / #732 numbers are banned** until those issues close: hazard radii, `pipeReachPadFt`, `emberNightFireMul`, `HarborWall.FoulOffset`, `flareStart`, `infieldLipFt`, the fielder starts. A fields child may move one into data at its current value. It may not change one.
@@ -132,15 +153,15 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | --- | --- | --- | --- |
 | F3-a #827 ✅, F3-a2 #838 ✅ | `RulesTable.AtPark(park)` beside `AtLevel`. An optional `environment` block on a park; no park names one. Audit and fix every flight and ground reader that falls back to `Rules.Default`. SF-01. | FD-03, FR-01 | Nothing |
 | F3-b #846 ✅ | `grounds` and `walls` libraries as named rows (grass, dirt, ice, ash, …; padded, …), every row seeded with today's global numbers. Zones (infield dirt, outfield, track, apron) from existing geometry; `surface` becomes the zone map. SF-03. Behavior-identical. | FD-05, FR-02 | Nothing |
-| F3-c | The flight reads the zone under the ball for roll and bounce, and the span's row for a carom. The overthrow and bobble models read the same row. SF-10, SF-11, SF-12, SF-14 on a fixture root with unequal rows. Shipped rows stay equal, so play is identical. | FD-03, FD-05 | Nothing |
-| F3-d | Body multipliers on a ground row: start, brake, cut-back (response law), slide, overrun. All 1.0. SF-13. | FD-04 B | Nothing. Values come with Crystal (F9-a) |
+| F3-c #856 ✅ | The flight reads the zone under the ball for roll and bounce, and the span's row for a carom. The overthrow and bobble models read the same row. SF-10, SF-11, SF-12, SF-14 on a fixture root with unequal rows. Shipped rows stay equal, so play is identical. | FD-03, FD-05 | Nothing |
+| F3-d #857 ✅ | Body multipliers on a ground row: start, brake, cut-back (response law), slide, overrun. All 1.0. SF-13. | FD-04 B | Nothing. Values come with Crystal (F9-a) |
 
 ### F4 — Hazard runtime (Gameplay; one Presentation child)
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
 | F4-a #847 ✅ | The pattern library at parity: a closed type table as named rows (pattern, acts-on, numbers); `ParkHazards` reads rows, not type strings; chompers become data instances; `pipeReachPadFt` and `emberNightFireMul` move under their rows at today's values. SF-03, SF-04. Same outcomes as today, rolls included. | FD-09, FR-08 | §5 Q6 answered: **decoration** (Jack, 2026-09-22) |
-| F4-e | The placement validator on both roots, and the eight volumes moved outward along their own bearings until they clear (FD-19-R1). SF-23. **Moves where the landing-point test fires at Crystal and Ember**: re-report S-29 and park factors. | FD-19, FD-19-R1 | §5 Q1 answered |
+| F4-e #862 ✅ | The placement validator on both roots, and the eight volumes moved outward along their own bearings until they clear (FD-19-R1). SF-23. **Moves where the landing-point test fires at Crystal and Ember**: re-report S-29 and park factors. | FD-19, FD-19-R1 | §5 Q1 answered |
 | F4-b | Status volume, live: a per-body touch test in the tick, a duration, a typed event; the play-wide flag and the park's `drops.frozen` roll go. `ParkSlowRowsTests` is re-authored to the decision. SF-20, SF-22. **Behavior change**: re-report S-29 and park factors. | FD-08-R1, FD-08-R2, FR-07 | §5 Q7 answered: 3 s; 0.45 unchanged. After F4-e |
 | F4-g | The CPU route costs a volume and goes around a body; no foresight of a draw. SF-26. | FD-14 | Nothing |
 | F4-d | Night blocks: Crystal's window, Ember's reach and Funfair's chompers move into `night` at parity. SF-25. | FD-11, FD-11-R1 | §5 Q9 answered: Crystal's trial night block drops the contact window. After F4-h (both touch `ParkHazards`) |
@@ -159,7 +180,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| F6-a | Every park draws the one diamond from the geometry owner: bags, chalk, boxes, mound, dirt, the foul rail and backstop. The `ParkView` fallback diamond retires. Harbor does not change. `StarMeter` reads the geometry owner. | FD-16, FR-13 | A look at five parks (at review) |
+| F6-a #859 ✅ | Every park draws the one diamond from the geometry owner: bags, chalk, boxes, mound, dirt, the foul rail and backstop. The `ParkView` fallback diamond retires. Harbor does not change. `StarMeter` reads the geometry owner. | FD-16, FR-13 | A look at five parks: **passed by Jack**, September 22, 2026 |
 | F6-b | Kit slots in `data/art/parks.json` with a validator; `cli art` lists each park's empty slots. Harbor fills them with no visual change. | FD-16 | Nothing |
 | F6-c | Light, sky, fog, ground and wall colors as data chosen by the park, not by an id `if` chain. Same looks. | FD-16, FR-04 | Nothing |
 | F6-d | Hazard actors by pattern, drawn at the sim's true size (the pad included). Greybox dress from data. The five per-park methods retire. | FD-16, FD-16-R1 | §5 Q12 answered: keep them behind the backdrop slot |
@@ -238,5 +259,10 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 | F4-a hazard pattern library at parity; chompers are park data; four decorations | #847 | #851 | `b8dde6f7` | `40534ad8`: 1925 / 1925, 769 / 769, seals hash-only on the shipped root, seed 7 identical; **trial only:** Funfair night 1.18 → 1.15 runs × Harbor as the migrated chompers go live | none |
 | F3-b ground and wall-material libraries; the zone map | #846 | #850 | `1504b1cf` | `30661804`: 1979 / 1979, 811 / 811, seals hash-only, seed 7 identical; the zone map resolves beside the park like `ParkBoundary`, not on the table | none |
 | Seal the four new rules tables in the evidence packet (found by F4-a) | #853 | — | — | — | none |
-| Jack answers map §5 Q1–Q5, Q7–Q9, Q12 (nine register refinements); F2-b2 added | #814 | #861 | — | docs only | none |
+| Jack answers map §5 Q1–Q5, Q7–Q9, Q12 (nine register refinements); F2-b2 added | #814 | #861 | `5c581337` | docs only | none |
+| F3-d body multipliers on a ground row (start, brake, cut-back, slide, overrun), all 1.0 | #857 | #864 | `36d7cc13` | `b921bdc7`: 1997 / 1997, 811 / 811; seed 7, park factors, S-29 and both Harbor cohorts identical on both roots; seals hash-only | none |
+| F6-a one field kit draws the diamond, rail and wall for every park | #859 | #863 | `5fc7a350` | `4c9bba82`: CI green, unity-compile OK, no sealed file; 22 stills under the #866 lock, Harbor day unchanged within noise, night backstop shading 1–6 / 255 | **Jack passed the look** ("pass") |
+| F4-e placement validator; the eight status volumes moved off the base paths (behavior change at Crystal and Ember) | #862 | #867 | `a10a02dd` | `7a1d4c16`: 2021 / 2021, 811 / 811; seed 7 identical; runs × Harbor day / night shipped Crystal 1.23 / 1.34 → 1.21 / 1.25, Ember 1.18 / 1.21 → 1.17 / 1.21; S-29 shipped 1.92 / 1.90 → 1.86 / 1.90; not tuned | none |
+| F3-c the ball and the loose-ball models read the ground zone under them | #856 | #869 | `a801d9f9` | `e418516a`: 2022 / 2022, 820 / 820; seed 7 and park factors identical on both roots; bit-identical paths and loose-ball ticks against the pre-move code; seals hash-only | none |
+| One machine-wide GUI Unity lock (found when two sessions fought over Unity) | — | #866 | `a13925a3` | tool tests 58 / 58; first live front / quit by PID on the F6-a stills | none |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
