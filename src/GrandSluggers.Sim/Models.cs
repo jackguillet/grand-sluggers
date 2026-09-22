@@ -28,14 +28,17 @@ public enum ContactQuality
 
 /// <summary>
 /// A character's ratings. <see cref="Field"/> is the displayed defensive number; <see cref="Arm"/> and
-/// <see cref="Hands"/> are the explicit traits behind it (F693-02-defensive-trait-mapping). Both are
-/// <b>seeded from Field</b> until a character authors its own, so a roster that names neither behaves
-/// exactly as it did before the split.
+/// <see cref="Hands"/> are the explicit traits behind it (F693-02-defensive-trait-mapping). <see cref="Bat"/>
+/// is the displayed batting number; <see cref="Contact"/> and <see cref="Power"/> are the explicit traits
+/// behind it (PH-15-R5). All four are <b>seeded from the aggregate</b> until a character authors its own,
+/// so a roster that names none behaves exactly as it did before the split.
 /// </summary>
 public sealed record Stats(int Pitch, int Bat, int Field, int Run)
 {
     readonly int _arm;
     readonly int _hands;
+    readonly int _contact;
+    readonly int _power;
 
     /// <summary>Throwing: speed and accuracy. Unauthored (0) tracks <see cref="Field"/>.</summary>
     public int Arm
@@ -52,6 +55,26 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
     }
 
     /// <summary>
+    /// Contact: spatial forgiveness at the plate (PH-15-R7) — it scales the cursor's barrel, so a
+    /// crossing further from the center still finds the bat. Unauthored (0) tracks <see cref="Bat"/>.
+    ///
+    /// It also still widens the timing window (<see cref="AtBatResolver.SwingWindowFrames"/>); that
+    /// read is P2-b's to remove, not a rule this trait keeps (spec §2, §5.3).
+    /// </summary>
+    public int Contact
+    {
+        get => _contact > 0 ? _contact : Bat;
+        init => _contact = value;
+    }
+
+    /// <summary>Power: exit velocity and loft off the bat (spec §5.4, §5.5). Unauthored (0) tracks <see cref="Bat"/>.</summary>
+    public int Power
+    {
+        get => _power > 0 ? _power : Bat;
+        init => _power = value;
+    }
+
+    /// <summary>
     /// True when this rating was authored rather than seeded from <see cref="Field"/>.
     ///
     /// Not serialized. It is bookkeeping about where the number came from, not a rating, and a
@@ -65,7 +88,13 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
     /// <inheritdoc cref="ArmAuthored"/>
     [JsonIgnore] public bool HandsAuthored => _hands > 0;
 
-    // An unauthored trait stays unauthored through a clamp, so it keeps tracking the clamped Field.
+    /// <inheritdoc cref="ArmAuthored"/>
+    [JsonIgnore] public bool ContactAuthored => _contact > 0;
+
+    /// <inheritdoc cref="ArmAuthored"/>
+    [JsonIgnore] public bool PowerAuthored => _power > 0;
+
+    // An unauthored trait stays unauthored through a clamp, so it keeps tracking the clamped aggregate.
     public Stats Clamp() => new(
         Math.Clamp(Pitch, 1, 10),
         Math.Clamp(Bat, 1, 10),
@@ -73,7 +102,9 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
         Math.Clamp(Run, 1, 10))
     {
         Arm = _arm > 0 ? Math.Clamp(_arm, 1, 10) : 0,
-        Hands = _hands > 0 ? Math.Clamp(_hands, 1, 10) : 0
+        Hands = _hands > 0 ? Math.Clamp(_hands, 1, 10) : 0,
+        Contact = _contact > 0 ? Math.Clamp(_contact, 1, 10) : 0,
+        Power = _power > 0 ? Math.Clamp(_power, 1, 10) : 0
     };
 }
 
