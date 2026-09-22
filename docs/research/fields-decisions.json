@@ -824,6 +824,15 @@
           "choice": "FD-08-R2: number-now",
           "quote": "3. slows for 3 seconds.",
           "scope": "A status volume slows the body that touches it for 3 seconds (Jack's number). The speed factor was not re-decided: it stays fielding.chase.frozenMul 0.45. F4-b builds the per-body touch, the 3-second duration and the typed event, retires the play-wide flag and the park's drops.frozen roll (FD-08-R1), and re-reports S-29 and the park factors. What re-entering the volume does, and which roots carry the number (FD-13-R1), are F4-b's contract work. The number is Jack's; it is not trial-accepted until he has played it."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-08-R2: 0.45 confirmed",
+          "quote": "3. keep.",
+          "scope": "The status volume's slow stays fielding.chase.frozenMul 0.45 for the 3-second touch."
         }
       ],
       "affects_standing_orders": [
@@ -909,11 +918,18 @@
           },
           "contract": {
             "duration_sec": 3.0,
-            "slow_factor": "fielding.chase.frozenMul 0.45, unchanged (not re-decided)",
+            "slow_factor": "fielding.chase.frozenMul 0.45, confirmed by Jack (\"3. keep.\", 2026-09-22)",
             "status_of_number": "Jack's number, not yet played",
             "revisited_by": [
               "F4-b"
             ]
+          },
+          "confirmation": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Item 3 of the assistant's decision list: does the 0.45 slow factor stay",
+            "answer_quote": "3. keep.",
+            "full_reply": "work with the other session to decide when you can. 2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards. 3. keep. 4. a. 5. a"
           }
         }
       ]
@@ -1144,6 +1160,63 @@
           "choice": "B",
           "quote": "b",
           "scope": "A match option turns park hazards off. Default on. With hazards off the park keeps everything else it names: size, fence shape, walls, air, wind, ground zones, foul territory and depth. The switch empties the hazard instance list for the match; it changes no other rule. It is built after the hazard runtime (epic F4) and the park-factors report covers both states. Open as contract work: where the option sits on the title and its binding (a Presentation child with the paired HowToPlay and docs/how-to-play.md update), whether a wall trait such as a climbable span counts as a hazard (FD-06 made it a wall property, so the proposal is that it stays on), whether a night rule layer follows the switch (FD-11), and the CLI flag. Both seats and the CPU get the same state."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-10-R1: a",
+          "quote": "4. a.",
+          "scope": "With hazards off, every statusVolume, ballRedirect, catchStealer and rewardTarget instance is removed for the match; wallTrait (a climbable span is part of the wall, FD-06) and decoration instances stay. Night hazard instances are hazards and go with them (FD-11). Nothing else about the park changes."
+        }
+      ],
+      "refinements": [
+        {
+          "id": "FD-10-R1",
+          "question": "Which hazard instances does the hazards-off switch remove?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "a",
+              "label": "Hazard patterns go; wall traits and decorations stay",
+              "tradeoff": "statusVolume, ballRedirect, catchStealer and rewardTarget instances go; a climbable wall is part of the wall (FD-06) and a decoration does nothing, so both stay."
+            },
+            {
+              "id": "b",
+              "label": "Climbable walls go too",
+              "tradeoff": "A clean park has no climbable span even when its wall shape would have one."
+            }
+          ],
+          "recommendation": "a.",
+          "existing_contract": "FD-10's accepted scope left open whether a wall trait counts as a hazard, proposing that it stays on. F4-h (#858) implements option a.",
+          "selected_option": "a",
+          "accepted_scope": "With hazards off, every statusVolume, ballRedirect, catchStealer and rewardTarget instance is removed for the match; wallTrait (a climbable span is part of the wall, FD-06) and decoration instances stay. Night hazard instances are hazards and go with them (FD-11). Nothing else about the park changes.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Item 4 of the assistant's decision list: the hazards-off scope",
+            "answer_quote": "4. a.",
+            "full_reply": "work with the other session to decide when you can. 2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards. 3. keep. 4. a. 5. a"
+          },
+          "contract": {
+            "removed": [
+              "statusVolume",
+              "ballRedirect",
+              "catchStealer",
+              "rewardTarget"
+            ],
+            "kept": [
+              "wallTrait",
+              "decoration"
+            ],
+            "revisited_by": [
+              "F4-h",
+              "F4-i"
+            ]
+          }
         }
       ]
     },
@@ -1213,6 +1286,15 @@
           "choice": "FD-11-R1: drop",
           "quote": "6. drop",
           "scope": "Crystal's night contact-window rule is dropped for Crystal's trial: when F4-d writes the night blocks, the trial's Crystal night block carries no contact-window change, and that trial's night Crystal plays the day window. Read with FD-13-R1 (the shipped park stays as it is until a single default exists) and the author's framing ('dropping it for the first trial'), the shipped Crystal keeps its 0.85 until then; if Jack meant the shipped game too, F4-d removes it there as well. No replacement night event is selected."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-11-R2: both",
+          "quote": "2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards.",
+          "scope": "Night keeps the stadium lights on: play visibility is the same as by day. Night changes only the view outside the stadium (a look: sky, backdrop, light outside the bowl) and the hazards (night hazard instances, and a hazard type's own night numbers such as fireBreath.nightRadiusMul). A night block may therefore name hazard instances and look fields, never a rule that changes the at-bat, the flight, the ground or the bodies. Crystal's night contact window (x 0.85) is dropped on both roots, and so is the 'blackout' idea in docs/parks.md; the follow-spot presentation is not a rule. F4-d removes nightContactWindowMul and ParkHazards.ContactWindowMul and moves Ember's reach and Funfair's chompers into night blocks; night Crystal's play changes on both roots and the park factors are re-reported, not tuned. This supersedes FD-11-R1's reading that the shipped Crystal keeps 0.85. The author's recommendation was trial-only."
         }
       ],
       "refinements": [
@@ -1257,6 +1339,56 @@
             "revisited_by": [
               "F4-d",
               "F9-a"
+            ]
+          },
+          "superseded_by": "FD-11-R2 (Jack, 2026-09-22): dropped on both roots"
+        },
+        {
+          "id": "FD-11-R2",
+          "question": "What may night change, and is Crystal's night contact window dropped on the shipped root too (FD-11-R1 had kept it there under FD-13-R1)?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "trial-only",
+              "label": "Drop the window in Crystal's trial only",
+              "tradeoff": "The shipped Crystal keeps 0.85 until a single default exists (FD-13-R1)."
+            },
+            {
+              "id": "both",
+              "label": "Drop it on both roots",
+              "tradeoff": "Night Crystal plays the day window everywhere; the shipped game changes at night at one park."
+            }
+          ],
+          "recommendation": "trial-only.",
+          "existing_contract": "FD-11 B: a night block may override named day fields or add hazard instances. FD-11-R1 recorded the drop for Crystal's trial only. nightContactWindowMul is a park field (Crystal 0.85) read by ParkHazards.ContactWindowMul.",
+          "selected_option": "both",
+          "accepted_scope": "Night keeps the stadium lights on: play visibility is the same as by day. Night changes only the view outside the stadium (a look: sky, backdrop, light outside the bowl) and the hazards (night hazard instances, and a hazard type's own night numbers such as fireBreath.nightRadiusMul). A night block may therefore name hazard instances and look fields, never a rule that changes the at-bat, the flight, the ground or the bodies. Crystal's night contact window (x 0.85) is dropped on both roots, and so is the 'blackout' idea in docs/parks.md; the follow-spot presentation is not a rule. F4-d removes nightContactWindowMul and ParkHazards.ContactWindowMul and moves Ember's reach and Funfair's chompers into night blocks; night Crystal's play changes on both roots and the park factors are re-reported, not tuned. This supersedes FD-11-R1's reading that the shipped Crystal keeps 0.85. The author's recommendation was trial-only.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Item 2 of the assistant's decision list: drop Crystal's night contact window in the trial only, or in the shipped game too",
+            "answer_quote": "2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards.",
+            "full_reply": "work with the other session to decide when you can. 2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards. 3. keep. 4. a. 5. a"
+          },
+          "contract": {
+            "night_may_change": [
+              "the view outside the stadium (look)",
+              "hazard instances and a hazard type's own night numbers"
+            ],
+            "night_may_not_change": [
+              "play visibility",
+              "the at-bat (contact window)",
+              "the flight",
+              "the ground",
+              "the bodies"
+            ],
+            "crystal_contact_window": "dropped on both roots",
+            "supersedes": "FD-11-R1's shipped-root reading",
+            "revisited_by": [
+              "F4-d",
+              "F6-c"
             ]
           }
         }
@@ -1937,6 +2069,15 @@
           "choice": "FD-19-R1: move-outward",
           "quote": "2. approve.",
           "scope": "Each offending status volume moves outward from home along the ray through its own centre until its disc clears every running lane, the mound-to-plate lane, every bag pad, the mound and the plate area, using the existing ParkDiamond geometry. Its radius does not change. A trial position stays what the accepted migration rule (F693-04) makes of the moved shipped position, so a shipped volume moves as far as both roots need. F4-e makes the move and adds the validator (SF-23). Moving a volume moves where today's landing-point test fires at Crystal and Ember, so the PR reports S-29 and the park factors before and after; nothing is tuned. F9-a later places Crystal's volumes for play."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "FD-19-R2: a",
+          "quote": "5. a",
+          "scope": "The placement rule measures the hazard's own radius, the thing that stands on the field. A ball redirect's reachPadFt is not counted. The four ball hazards that would cross only with the pad stay where they are."
         }
       ],
       "refinements": [
@@ -1988,6 +2129,41 @@
               "F4-e",
               "F9-a"
             ]
+          }
+        },
+        {
+          "id": "FD-19-R2",
+          "question": "Does the placement rule count a ball redirect's reach pad (reachPadFt), or only the hazard's own radius?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "a",
+              "label": "The hazard's own radius",
+              "tradeoff": "The lanes are protected for bodies; the pad is how near a ball must land for the can to take it. Nothing else moves."
+            },
+            {
+              "id": "b",
+              "label": "Count the pad",
+              "tradeoff": "Canopy's barrels at (22, 58) and (6, 102) and Funfair's can at (20, 55) on the shipped root, and Canopy's (5, 91) on the trial, would be refused and have to move."
+            }
+          ],
+          "recommendation": "a.",
+          "existing_contract": "F4-e (#862, PR #867) measures the hazard's own radius; the pad finding was reported and nothing moved (implementation map finding 32).",
+          "selected_option": "a",
+          "accepted_scope": "The placement rule measures the hazard's own radius, the thing that stands on the field. A ball redirect's reachPadFt is not counted. The four ball hazards that would cross only with the pad stay where they are.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "a6b0f90b-49ec-4eee-bda1-86966b9c8287",
+            "question": "Item 5 of the assistant's decision list: count the ball pad in the lane check or not",
+            "answer_quote": "5. a",
+            "full_reply": "work with the other session to decide when you can. 2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards. 3. keep. 4. a. 5. a"
+          },
+          "contract": {
+            "disc": "the hazard's own radius",
+            "reachPadFt": "not counted",
+            "revisited_by": []
           }
         }
       ]
@@ -2153,6 +2329,10 @@
     {
       "date": "2026-09-22",
       "event": "F2-c opened as PR #878 (#874): the polyline fence at parity (FD-06 C, FD-06-R1, FD-12 B). An optional fence.points block in fence-relative units (a bearing, a fraction of the park's own three-post fence at that bearing, a height; a walls.json material per span); FenceAt reads it and stays a function of the bearing; the clip polygon keeps every point as a vertex with per-piece tops and span materials; the carom reads the span's material; the drawn loop follows; the validator refuses an overhang, a fence behind a fence, a missing pole point, a point or span inside the lip, a height under the rail and an unknown material by name on both roots. No park names points: seed 7, the park-factors table and fresh identities unchanged, seals hash-only."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack answered the assistant's five-item list: \"work with the other session to decide when you can. 2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards. 3. keep. 4. a. 5. a\" Item 1 (when to capture F2-b2's stills) was delegated to the fields and pitching sessions to agree. Recorded: FD-11-R2 (night keeps the stadium lights; night changes only the view outside the stadium and the hazards; Crystal's contact window is dropped on both roots, superseding FD-11-R1's shipped-root reading), FD-08-R2 confirmed (0.45 stays), FD-10-R1 (hazards off removes the four hazard patterns and keeps wall traits and decorations), FD-19-R2 (the placement disc is the hazard's own radius; the pad is not counted)."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
