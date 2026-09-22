@@ -58,7 +58,7 @@
     },
     {
       "id": "T-P03",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "pitching.03"
       ],
@@ -66,7 +66,7 @@
       "category": "pitching",
       "status": "implemented",
       "issue": 825,
-      "reason": "Headless lesson; the RB / Tab cycle is the verb it teaches (#825). Standalone learning gate pending sitting 1",
+      "reason": "Headless lesson; the RB / Tab cycle is the verb it teaches (#825). The setup names hex (fastball, changeup, curveball) as the pitcher, because the home captain vale throws curveball / slider and owns no changeup (#876). Standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
@@ -90,9 +90,9 @@
       ],
       "title": "wrap the cycle to the third pitch",
       "category": "pitching",
-      "status": "planned",
-      "issue": 825,
-      "reason": "No shipped pitcher has an authored third family, so two presses land back on the fastball and there is no repeatable success to award. Blocked on the trials/pitch5 shapes being accepted (PH-20-R1, sitting 1)",
+      "status": "implemented",
+      "issue": 876,
+      "reason": "Headless lesson. Since #860 every pitcher throws three authored families, so two presses of the RB / Tab cycle select the third slot. The objective is the slot, not a family, so it holds for any repertoire. Standalone learning gate pending",
       "profiles": [
         "shipped",
         "c80"
@@ -101,12 +101,14 @@
       "prerequisites": [
         "T-P03"
       ],
-      "setup": "",
-      "objective": "",
+      "setup": "T-P10",
+      "objective": "third-slot-strike",
       "controls": [
         "control:pitching/Cycle pitch"
       ],
-      "tests": []
+      "tests": [
+        "TutorialSessionTests"
+      ]
     },
     {
       "id": "T-P04",
@@ -2874,7 +2876,39 @@
         "rio"
       ],
       "runners": [],
-      "balls": {}
+      "balls": {},
+      "pitcherId": "hex"
+    },
+    {
+      "id": "T-P10",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "pitcherId": "vale"
     },
     {
       "id": "T-B01",

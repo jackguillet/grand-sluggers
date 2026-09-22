@@ -44,6 +44,87 @@ public sealed class TutorialSessionTests
         Assert.False(run.Feedback.Success);
     }
 
+    /// <summary>
+    /// The family the real mound cycle hands the delivery after <paramref name="presses"/> presses
+    /// from the SET's fastball start, against the lesson's own match: its pitcher on the mound and
+    /// its rules table (#876). A lesson that names a family its pitcher cannot reach is unwinnable
+    /// in the window even when a hand-built command would pass the headless verdict.
+    /// </summary>
+    static string Cycled(TutorialSession run, int presses)
+    {
+        var state = PitchSelectionState.Reset;
+        var button = default(ChargeButtonState);
+        for (var i = 0; i < presses; i++)
+            state = run.Match.SelectPitch(state, cyclePressed: true, selectable: true, button, default).Next;
+        var press = ChargeButton.Advance(button, pressed: true, held: true, released: true,
+            deltaSeconds: Frame, secondsToFull: 0.55);
+        var thrown = run.Match.SelectPitch(state, cyclePressed: false, selectable: true, button, press);
+        Assert.True(thrown.Committed);
+        return thrown.Family;
+    }
+
+    [Fact]
+    public void ChangeupLessonsPitcherOwnsTheChangeupOnePressFromTheFastball()
+    {
+        // T-P03 names hex (fastball, changeup, curveball): the home captain vale throws curveball /
+        // slider and owns no changeup, so one press on vale's mound selected the curveball (#876).
+        var run = Start("T-P03");
+        Assert.Equal("hex", run.Match.Pitcher.Id);
+        Assert.Equal(PitchFamily.Changeup, run.Match.Pitcher.Repertoire.Second);
+        Assert.Equal(PitchFamily.Fastball, Cycled(run, 0));
+        var family = Cycled(run, 1);
+        Assert.Equal(PitchFamily.Changeup, family);
+        Assert.True(run.Pitch(new(family, 0, false)));
+        Assert.True(run.Feedback!.Success, run.Feedback.Detail);
+    }
+
+    [Fact]
+    public void ThirdPitchLessonAwardsTheThirdSlotAfterTwoCyclePressesAndNothingElse()
+    {
+        var run = Start("T-P10");
+        var repertoire = run.Match.Pitcher.Repertoire;
+        Assert.Equal("vale", run.Match.Pitcher.Id);
+        // The fastball and the second pitch are strikes the lesson refuses.
+        foreach (var presses in new[] { 0, 1, 3 })
+        {
+            var wrong = Cycled(run, presses);
+            Assert.NotEqual(repertoire[2], wrong);
+            Assert.True(run.Pitch(new(wrong, 0, false)));
+            Assert.False(run.Feedback!.Success);
+            Assert.Equal("use-third-pitch", run.Feedback.Code);
+            run.Retry();
+        }
+        // A star pitch is not an ordinary slot.
+        Assert.True(run.Pitch(new(repertoire[2], 0, true)));
+        Assert.False(run.Feedback!.Success);
+        run.Retry();
+        // A miss with the right pitch still fails on the zone.
+        var third = Cycled(run, 2);
+        Assert.Equal(repertoire.Third, third);
+        Assert.True(run.Pitch(new(third, 0, false, AimX: 4)));
+        Assert.Equal("outside-zone", run.Feedback!.Code);
+        run.Retry();
+        Assert.False(run.Pitch(new(third, 0, false), LivePlayCommandSource.Cpu));
+        Assert.True(run.Pitch(new(third, 0, false)));
+        Assert.True(run.Feedback!.Success, run.Feedback.Detail);
+        Assert.Equal(1, run.Successes);
+    }
+
+    [Theory]
+    [InlineData("T-P03", 1)]
+    [InlineData("T-P10", 2)]
+    public void TheCycleLessonsPassThreeTimesThroughTheRealCycle(string id, int presses)
+    {
+        var run = Start(id);
+        for (var i = 0; i < 3; i++)
+        {
+            if (i > 0) run.Retry();
+            Assert.True(run.Pitch(new(Cycled(run, presses), 0, false)));
+            Assert.True(run.Feedback!.Success, run.Feedback.Detail);
+        }
+        Assert.True(run.Passed);
+    }
+
     [Fact]
     public void SlapRequiresFairUnchargedHumanContact()
     {

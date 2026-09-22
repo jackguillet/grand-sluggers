@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>Plate lesson verdicts inspect ordinary commands and the real crossing/contact result.</summary>
 public static class TutorialPlateObjectives
 {
-    public static readonly string[] PitchIds = ["called-strike", "changeup-strike", "max-pitch-strike", "break-strike", "rubber-strike", "called-ball"];
+    public static readonly string[] PitchIds = ["called-strike", "changeup-strike", "third-slot-strike", "max-pitch-strike", "break-strike", "rubber-strike", "called-ball"];
     public static readonly string[] SwingIds = ["slap-fair", "perfect-slap-fair", "max-swing-fair", "bunt-fair", "take-ball", "pull-fair", "push-fair", "box-perfect-fair", "grounder-fair", "fly-fair"];
     static TutorialFeedback Fail(string code, string detail) => new(false, code, detail);
 
@@ -15,6 +15,10 @@ public static class TutorialPlateObjectives
                 : Fail("pitch-outside", "Move off the middle and pitch outside the zone without hitting the batter.");
         if (objective == "changeup-strike" && command.Type != PitchFamily.Changeup)
             return Fail("use-changeup", "Press the pitch cycle once to select the changeup, then put it in the strike zone.");
+        // By slot, not family (T-P10): the pitcher's third pitch is two cycle presses from the
+        // fastball whatever it is, and the play's own pitcher is the repertoire that decides it.
+        if (objective == "third-slot-strike" && (command.Star || play is null || command.Type != play.Pitcher.Repertoire[2]))
+            return Fail("use-third-pitch", "Press the pitch cycle twice to select your third pitch, then put it in the strike zone.");
         if (objective == "max-pitch-strike" && (command.Charge01 < 1 || command.Star || command.Type == PitchFamily.Changeup))
             return Fail("use-max-pitch", "Release an ordinary pitch at full charge, then put it in the zone.");
         if (objective == "break-strike" && (Math.Abs(command.BreakX) < setup.MinMovement01 || command.Star || command.Type == PitchFamily.Changeup || ChargeFeel.IsCharge(command.Charge01)))

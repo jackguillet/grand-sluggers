@@ -216,13 +216,13 @@ public static partial class HowToPlay
             "Swing when the ball is on the plate (gold streak). Tap: normal. Hold/release at MAX: charge.",
             "One controller: pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
-            "Cycle pitch: RB before the charge (FB, CH changeup). Bunt: hold West. Star: North + South. Past line: foul; Strike unless two.",
+            "Cycle pitch: RB before the charge (FB, 2nd, 3rd). Bunt: hold West. Star: North + South. Past line: foul; Strike unless two.",
         ],
         [
             "Swing when the ball is on the plate (gold streak). Tap: normal. Hold/release at MAX: charge.",
             "Pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
-            "Cycle pitch: Tab before the charge (FB, CH changeup). Bunt: hold V/Ctrl. Star: Q+Space. Past line foul; Strike unless two.",
+            "Cycle pitch: Tab before the charge (FB, 2nd, 3rd). Bunt: hold V/Ctrl. Star: Q+Space. Past line foul; Strike unless two.",
         ]),
         new("the-box", "The box and the rubber", "the-box",
         [
