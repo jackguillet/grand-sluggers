@@ -44,11 +44,9 @@ graph TD
   P1a[P1-a repertoire ids + data] --> P1b[P1-b family library rail]
   P1b --> P1c[P1-c selection step: cycle, reset, lock]
   P1b --> P1d[P1-d three new shapes: numeric trial]
-  P1g[P1-g CPU legality audit PH-18] --> P1e
-  P1c --> P1e[P1-e CPU throws from repertoire]
-  P1d --> P1e
-  P1c --> P1f[P1-f verb: Unity wiring, family-blind SET, book, lessons]
-  P1d --> P1f
+  P1c --> P1g[P1-g CPU on human inputs, trial switch; absorbs P1-e]
+  P1d --> P1g
+  P1g --> P1f[P1-f verb: Unity wiring, rubber-only ring, book, lessons]
   P1f --> S1((Jack sitting 1))
 
   P2a[P2-a Contact / Power split, seeded equal] --> P2b[P2-b one shared timing window]
@@ -87,8 +85,7 @@ graph TD
 | P1-b #810 | Gameplay | One family row schema in `pitching.json` (named rows). Fastball and Changeup rows carry today's exact numbers; flights bit-identical. `PitchCommand` carries a family; the `Changeup` bool and the silent fastball fallback go. Per-family stamina cost key replaces `changeupCost`, same value. Reconcile GS:400 and §4.3 first. | PH-02-R2, PH-03, PH-15-R1 | Nothing |
 | P1-c #812 | Gameplay | Pure sim selection step beside `ChargeButton`: cycle before arm, wrap, reset to Fastball each pitch and on a swap, lock on the arm edge, later cycle presses ignored. Same-tick rule written in the spec. Scenarios for every repertoire, both seats. | PH-02-R3/R4/R5 | Nothing. No pitcher cancel is added (PH-02-R3 leaves it unselected). |
 | P1-d | Gameplay | Curveball, Slider, Sinker rows as a **scoped numeric trial**: units, conditions, rationale, headless evidence (crossing, drop, sweep by hand, air time). All speeds stay inside today's changeup–fastball envelope so D7 is untouched. | PH-02-R2, PH-03, PH-04, PH-20-R1 | **Trial acceptance** in the preview sitting (Q1 answered: trial window). |
-| P1-g | Gameplay | PH-18 audit turned into code: CPU aims through legal inputs, accumulates break, may combine verbs as a human can. | PH-18, PH-18-R1 | Q8 answered: converts in the same trial as P1-d. Re-report S-29. |
-| P1-e | Gameplay | CPU picks a family from its repertoire with the presses a human has. Mix columns become family weights (named). S-27, S-28, S-67 follow. | PH-15, PH-18 | Nothing; re-report S-29. |
+| P1-g (absorbs P1-e) | Gameplay | The CPU pitcher on human inputs, behind a switch in the `cpu` table: off on the shipped root (draws identical), on in `trials/pitch5`. Location by rubber walk only (no `AimX` / `AimY`); height is the family; family by presses over the pitcher's *selectable* slots with per-family weights per count row; charge and steer as modifiers; steer magnitude is what a held stick reaches in the air time; scatter becomes noise on the rubber. S-27, S-28, S-67 follow. Trial S-29 baseline re-reported. | PH-15, PH-18, PH-18-R1 | Sitting 1 judges the mix. |
 | P1-f | Presentation | Mound reads `CyclePitch`; director builds the pitch from the locked family; West changeup retired; SET is family-blind (aim tell, pose, card, tint); three pitches shown in order with no active mark; book pair, `RoleTables`, `Scheme`, `ControlDiagram`; T-P03 reworked, cycle lesson added. | PH-02-R5, PH-06, PH-06-R1 | Q6 answered: rubber-only ring. **Sitting 1**: both schemes, two pads. |
 
 ### Phase 2 — ordinary batting
@@ -100,6 +97,7 @@ graph TD
 | P2-c | Gameplay | Ordinary swings ignore stick spray and loft. Invariance scenario replaces S-13. CPU aim sigmas go (re-report S-29). Bunt direction stays on the stick until P4-b. T-B06 / T-B06-F retire with their lesson rows. | PH-12 | Nothing |
 | P2-d | Gameplay | Charge narrows the spatial barrel only (already `chargeMul`); Contact scales the spatial barrel only. Pins for PH-09-R1. One sim helper for the drawn oval so Unity stops re-deriving it. | PH-11-R1, PH-15-R7, PH-09-R1 | Nothing |
 | P2-e | Gameplay | Remove buddies-on-base widen and charge power. | PH-16-R14, PH-16-R15 | Q5a answered: the on-deck item offer goes too; items dormant. |
+| P2-g | Gameplay | The CPU batter reads only what a human can see when it commits: decide at the commit instant from the trajectory as it stands, not from the final crossing (GS §3 vs §5.9). Behind a switch; shipped draws identical; S-04 and S-28 follow. | PH-18 | Re-report S-29. |
 | P2-f | Presentation | Book pair, card bars for Contact / Power, difficulty copy. | PH-15-R5, PH-17 | **Sitting 2** |
 
 ### Phase 3 — pitching attributes and fatigue
@@ -131,6 +129,14 @@ graph TD
 
 One child per reviewed ability or ability group, after P5. First: remove `batterWindowMul` from charmball, skullball and fogball with replacement effects Jack reviews (PH-16-R1); rule on the phonyball 40 % whiff roll; add an optional authored contact-area field for Star Swings (PH-16-R2). Each needs counterplay, geometry, data, validator and scenarios.
 
+### Notes carried to P1-g and P1-f (from #821)
+
+- `Match.CpuPitch` calls `PitchFlight.AimForCrossing` **before** `PreparePitch` stamps `Throws`, so a left-hander's sweep is compensated with the right-hander's sign. Harmless while the shipped sweep is 0; P1-g must stamp the arm before it solves, and must solve for the rubber, not for `AimX`.
+- The crossing now carries the sweep. A ring drawn from `PitchFlight.Crossing` leaks the family before release; the rubber-only ring (PH-06-R1) is drawn from the rubber and mid-zone height.
+- `PitchFlight.Release` uses one `releaseHandX` for both hands, so a left-hander releases from the right-hander's side. Reported, not fixed; fixing it moves a shipped flight and needs its own golden.
+- No ordinary family crosses high. Every `dropFt` is at or below the fastball's. A riser would be a new role, not a number.
+- The CPU batter still reads the final crossing at the plate plane (GS §5.9) while §3 says it commits before it; that is the batting half of PH-18 and belongs to Phase 2 as its own child (P2-g), not to P1-g.
+
 ### Notes carried to P1-f (from #813)
 
 - `prevButton` is `_pitchButton` read **before** `TickChargeButton` overwrites it. `buttonStep` is the existing step local. `cyclePressed` is `Controls.CyclePitch`.
@@ -142,7 +148,7 @@ One child per reviewed ability or ability group, after P5. First: remove `batter
 
 ## 4. Scenario ids
 
-Free: S-83..S-89 and S-107 upward (S-101 … S-106b are the selection step, #812). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
+Free: S-83..S-89 and S-114 upward (S-101 … S-106b are the selection step, #812; S-107 … S-113 the trial shapes, #818). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
 
 ## 5. Questions that were Jack's — answered September 21, 2026
 
@@ -178,3 +184,5 @@ Consequences for the map:
 | P1-a family ids + 25 repertoires | #807 | #809 | `9b625591` | `cbc94d5d`: 1777 / 1777 tests, 721 / 721 c80 rows, seals hash-only, seed 7 identical | none (no player-facing change) |
 | P1-b family library table; `PitchCommand.Type` is the family | #810 | #811 | `d0c6e12c` | `7bf73a54`: 1790 / 1790 on macOS and Linux, 721 / 721 c80 rows, seals hash-only, seed 7 identical, golden flight test exact on both platforms | none (behaviour-identical) |
 | P1-c sim selection step: cycle, Fastball reset, charge-start lock, self-healing lock | #812 | #813 | `42ee9d38` | `b1109f0a`: 1800 / 1800, 731 / 731 c80 rows, S-101 … S-106b, seals hash-only, seed 7 identical | none (mound not wired) |
+| Decision round 2: ten refinements (register 38 → 48) | #803 | #817 | `52e51431` | docs only | none |
+| P1-d Curveball / Slider / Sinker under `trials/pitch5`: sweep term, nullable rows, proposal, plots, evidence | #818 | #821 | `2887a72c` | `5c767988`: 1807 / 1807, 731 / 731 c80 rows, #811 golden unedited, seals hash-only, seed 7 identical shipped and under the trial, `portable` green | sitting 1 later; numbers are proposals; shipped root unchanged |
