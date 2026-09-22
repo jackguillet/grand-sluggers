@@ -286,7 +286,72 @@ public sealed class AtBatResolver
         return side * (FoulLineDeg + foul.CheapPullPastDeg + rng.NextDouble() * foul.CheapPullSpanDeg);
     }
 
-    public static double FenceAt(Park park, double sprayDeg)
+    /// <summary>
+    /// How far from home the outfield fence stands at this bearing (spray −45 left, 0 centre, +45 right;
+    /// a bearing past a line reads that line's pole). The one fence function (FD-06-R1): a park that
+    /// names a <see cref="Park.Fence"/> polyline answers the distance at which the ray meets its one span
+    /// there (<see cref="FenceSpotAt"/>); a park that names none answers the circle through its three
+    /// posts, exactly as before the polyline existed (<c>SF-06</c>).
+    /// </summary>
+    public static double FenceAt(Park park, double sprayDeg) =>
+        park.Fence is { } fence ? Polyline(park, fence, sprayDeg).DistanceFt : PostFence(park, sprayDeg);
+
+    /// <summary>
+    /// The fence at this bearing — its distance (<see cref="FenceAt"/>), its top and the material of the
+    /// span the ray meets — from one resolution (§6.1, §7.9; FD-06). A park with no points stands at
+    /// <see cref="Park.FenceHeightFt"/> and is <see cref="WallMaterial.Padded"/> everywhere between the
+    /// poles, as every park always has been.
+    /// </summary>
+    public static FenceSpot FenceSpotAt(Park park, double sprayDeg) =>
+        park.Fence is { } fence
+            ? Polyline(park, fence, sprayDeg)
+            : new FenceSpot(PostFence(park, sprayDeg), park.FenceHeightFt, WallMaterial.Padded);
+
+    /// <summary>
+    /// The polyline at one bearing (FD-06 C, FD-06-R1, FD-12 B). The points are validated to run from
+    /// −45 to +45 with strictly increasing bearings, so the span that holds the bearing is the only
+    /// span its ray meets. A point stands at its <see cref="FencePoint.FenceFrac"/> of the three-post
+    /// fence at its own bearing, placed with the same <see cref="BallFlight.GroundPoint"/> the clip
+    /// polygon places its vertices with, and the distance is the ray's meeting with the straight chord
+    /// between the span's two points — the same arithmetic <see cref="FieldBounds.Boundary.RadiusAt"/>
+    /// runs on a segment, so the function and the polygon cannot describe two fences. On a point's own
+    /// bearing it is that point, exactly. The top runs straight along the chord from one point's height
+    /// to the next; the span's material is its first point's.
+    /// </summary>
+    static FenceSpot Polyline(Park park, ParkFence fence, double sprayDeg)
+    {
+        var points = fence.Points;
+        var spray = Math.Clamp(sprayDeg, -FoulLineDeg, FoulLineDeg);
+        var span = 0;
+        while (span < points.Count - 2 && points[span + 1].BearingDeg <= spray) span++;
+        var a = points[span];
+        var b = points[span + 1];
+        var material = fence.SpanMaterial(span);
+        var aFt = a.FenceFrac * PostFence(park, a.BearingDeg);
+        if (spray == a.BearingDeg) return new FenceSpot(aFt, a.HeightFt, material);
+        var bFt = b.FenceFrac * PostFence(park, b.BearingDeg);
+        if (spray == b.BearingDeg) return new FenceSpot(bFt, b.HeightFt, material);
+
+        var (ax, az) = BallFlight.GroundPoint(aFt, a.BearingDeg);
+        var (bx, bz) = BallFlight.GroundPoint(bFt, b.BearingDeg);
+        var rad = spray * Math.PI / 180.0;
+        var dx = Math.Sin(rad);
+        var dz = Math.Cos(rad);
+        var ex = bx - ax;
+        var ez = bz - az;
+        var denom = dx * ez - dz * ex;
+        var distance = (ax * ez - az * ex) / denom;
+        var along = Math.Clamp((ax * dz - az * dx) / denom, 0, 1);
+        var top = a.HeightFt == b.HeightFt ? a.HeightFt : a.HeightFt + (b.HeightFt - a.HeightFt) * along;
+        return new FenceSpot(distance, top, material);
+    }
+
+    /// <summary>
+    /// The three-post fence: the circle through the park's L / C / R posts, or the two-post lerp where
+    /// that circle degenerates. What <see cref="FenceAt"/> has always answered for a park, and the unit a
+    /// polyline point's <see cref="FencePoint.FenceFrac"/> is a fraction of.
+    /// </summary>
+    static double PostFence(Park park, double sprayDeg)
     {
         // spray −45 left, 0 center, +45 right. The wall is the circle through
         // the three posts so CF is round — not a chevron from two lerps.

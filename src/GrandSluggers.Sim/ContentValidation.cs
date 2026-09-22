@@ -93,6 +93,8 @@ public static class ContentDataValidator
         // Resolved through the overlay like every other path, so a trial that carries its own ground
         // rows is the file a bad `surface` is reported against (FD-05, SF-03).
         data.GroundsSource = RulesTable.PathFor(root, "grounds");
+        // The same for the wall-material library a fence span names (FD-06, SF-03).
+        data.WallsSource = RulesTable.PathFor(root, "walls");
         return data;
     }
 
@@ -248,8 +250,16 @@ public static class ContentDataValidator
         // rubber are the infield table this root loaded, so a trial's 80-ft diamond is the one its
         // parks are checked against, never the process-wide one.
         var infield = data.Rules?.Infield ?? RulesTable.Defaults.Infield;
+        // A polyline fence (FD-06, F2-c) is checked against this root's own lip, rail and wall
+        // library, so a block that is legal on the shipped field and not on a trial's is refused on
+        // the trial, by name, rather than played.
+        var fence = new FenceLimits(
+            (data.Rules?.Flight ?? RulesTable.Defaults.Flight).Classes.InfieldLipFt,
+            (data.Rules?.Boundary ?? RulesTable.Defaults.Boundary).RailHeightFt,
+            data.Rules?.Walls ?? RulesTable.Defaults.Walls,
+            data.WallsSource);
         foreach (var row in data.Parks)
-            ValidatePark(row, hazards, grounds, data.GroundsSource, infield, errors);
+            ValidatePark(row, hazards, grounds, data.GroundsSource, infield, fence, errors);
         UniquePerPark("pickOrder", data.Parks.Where(r => r.Value.PickOrder is not null)
             .Select(r => (r.Value.PickOrder!.Value.ToString(), r.Source)), errors);
         UniquePerPark("faction", data.Parks
@@ -424,7 +434,7 @@ public static class ContentDataValidator
 
     static void ValidatePark(
         Sourced<ParkDto> row, HazardRules hazards, GroundLibrary grounds, string groundsSource, InfieldRules infield,
-        List<string> errors)
+        FenceLimits fence, List<string> errors)
     {
         var p = row.Value;
         Required(row.Source, "park", p.Id, "id", p.Id, errors);
@@ -455,6 +465,7 @@ public static class ContentDataValidator
             errors.Add($"{row.Source}: park '{p.Id}' nightContactWindowMul must be in (0, 1]; got {p.NightContactWindowMul}");
         ValidateParkEnvironment(row.Source, p.Id, p.Environment, errors);
         ValidateParkZones(row.Source, p.Id, p.Zones, grounds, groundsSource, errors);
+        ValidateParkFence(row.Source, p, fence, errors);
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)
         {
             var h = p.Hazards![i];
@@ -541,6 +552,133 @@ public static class ContentDataValidator
             GroundId(source, $"park '{id}' zones.{zone}", named, grounds, groundsSource, errors);
         }
     }
+
+    /// <summary>What a polyline fence is checked against on one data root: its lip, its rail and its wall library.</summary>
+    readonly record struct FenceLimits(double LipFt, double RailFt, WallMaterialLibrary Walls, string WallsSource);
+
+    /// <summary>
+    /// The park's polyline fence (§6.1, §16; FD-06 C, FD-06-R1, FD-12 B; F2-c). The block is optional
+    /// and no park names one. When a park does, every refusal names the park, the point or span by index,
+    /// and the reason, on whichever root the file was authored in:
+    /// <list type="bullet">
+    /// <item>fewer than two points, or a point that is not an object;</item>
+    /// <item>a first point that is not on the left-field line (−45) or a last that is not on the right
+    /// (+45): the fence runs from pole to pole, where the foul rail meets it;</item>
+    /// <item>a bearing that is not greater than the one before it — equal is a fence behind a fence
+    /// (two distances on one bearing), smaller is an overhang (the fence folds back). With every bearing
+    /// strictly increasing inside ±45°, each ray from home meets exactly one span, which is what keeps
+    /// <see cref="AtBatResolver.FenceAt"/> a function of the bearing (FD-06-R1);</item>
+    /// <item>a <c>fenceFrac</c> that is not a positive number, and a point — or any part of a span
+    /// between two points, since a long chord can dip nearer home than either end — inside this root's
+    /// infield lip (<c>flight.classes.infieldLipFt</c>), measured on the park's own three-post fence;</item>
+    /// <item>a height that does not stand over this root's foul rail (the floor <c>fenceHeightFt</c> has
+    /// always had, D15);</item>
+    /// <item>a span material with no row in this root's <c>walls.json</c> (<c>SF-03</c>), and a material
+    /// on the right-field pole's point, which starts no span.</item>
+    /// </list>
+    /// </summary>
+    static void ValidateParkFence(string source, ParkDto p, FenceLimits limits, List<string> errors)
+    {
+        if (p.Fence is not { } fence) return;
+        var where = $"park '{p.Id}' fence.points";
+        var points = fence.Points;
+        if (points is null || points.Count < 2)
+        {
+            errors.Add($"{source}: {where} must list at least 2 points, from the left-field pole (bearingDeg -45) "
+                + $"to the right-field pole (bearingDeg 45); got {points?.Count ?? 0}");
+            return;
+        }
+
+        var last = points.Count - 1;
+        var bearing = new double?[points.Count];
+        var frac = new double?[points.Count];
+        for (var k = 0; k <= last; k++)
+        {
+            var at = $"{where}[{k}]";
+            if (points[k] is not { } q)
+            {
+                errors.Add($"{source}: {at} must be an object; got null");
+                continue;
+            }
+            if (q.BearingDeg is { } b && double.IsFinite(b)) bearing[k] = b;
+            else errors.Add($"{source}: {at} bearingDeg must be a finite number of degrees from centre field "
+                + $"(-45 the left-field line, 45 the right); got {Got(q.BearingDeg)}");
+            if (q.FenceFrac is { } f && double.IsFinite(f) && f > 0) frac[k] = f;
+            else errors.Add($"{source}: {at} fenceFrac must be greater than 0 (the fraction of the park's "
+                + $"three-post fence at that bearing); got {Got(q.FenceFrac)}");
+            if (q.HeightFt is not { } h || !double.IsFinite(h))
+                errors.Add($"{source}: {at} heightFt must be a finite number of feet; got {Got(q.HeightFt)}");
+            else if (h <= limits.RailFt)
+                errors.Add($"{source}: {at} heightFt must stand over the {Show(limits.RailFt)} ft foul rail (D15); got {Show(h)}");
+            if (q.Material is not { } material) continue;
+            if (k == last)
+                errors.Add($"{source}: {at} material names the span from a point to the next one, and the "
+                    + $"right-field pole's point ends the fence; got '{material}'");
+            else if (!limits.Walls.Has(material))
+                errors.Add($"{source}: {at} material must be a wall material with a row in {limits.WallsSource}; "
+                    + $"the library is [{string.Join(", ", limits.Walls.Ids)}]; got '{material}'");
+        }
+
+        if (bearing[0] is { } first && first != -AtBatResolver.FoulLineDeg)
+            errors.Add($"{source}: {where}[0] bearingDeg must be -45, the left-field line: the fence starts at the "
+                + $"left-field pole, where the foul rail meets it; got {Show(first)}");
+        if (bearing[last] is { } end && end != AtBatResolver.FoulLineDeg)
+            errors.Add($"{source}: {where}[{last}] bearingDeg must be 45, the right-field line: the fence ends at the "
+                + $"right-field pole, where the foul rail meets it; got {Show(end)}");
+        for (var k = 1; k <= last; k++)
+        {
+            if (bearing[k] is not { } b || bearing[k - 1] is not { } before) continue;
+            if (b == before)
+                errors.Add($"{source}: {where}[{k}] bearingDeg {Show(b)} is points[{k - 1}]'s bearing: two fence "
+                    + "distances on one bearing is a fence behind a fence, and the fence keeps one distance per "
+                    + "bearing from home (FD-06-R1)");
+            else if (b < before)
+                errors.Add($"{source}: {where}[{k}] bearingDeg {Show(b)} is left of points[{k - 1}]'s {Show(before)}: "
+                    + "the fence would fold back over itself, an overhang; bearings run strictly from the left-field "
+                    + "pole to the right (FD-06-R1)");
+        }
+
+        // Where each point stands is a fraction of the park's own three-post fence (FD-12), so the lip
+        // can only be measured on posts that are themselves legal.
+        if (p.LeftFenceFt <= 0 || p.CenterFenceFt <= 0 || p.RightFenceFt <= 0) return;
+        var posts = new Park(p.Id, p.Name, p.Faction, p.Surface, p.LeftFenceFt, p.CenterFenceFt, p.RightFenceFt, 0, []);
+        var place = new (double X, double Z)?[points.Count];
+        for (var k = 0; k <= last; k++)
+        {
+            if (bearing[k] is not { } b || frac[k] is not { } f) continue;
+            var circle = AtBatResolver.FenceAt(posts, b);
+            var ft = f * circle;
+            place[k] = BallFlight.GroundPoint(ft, b);
+            if (ft < limits.LipFt)
+                errors.Add($"{source}: {where}[{k}] stands {Show(ft)} ft from home ({Show(f)} of the park's "
+                    + $"{Show(circle)} ft fence at {Show(b)} degrees), inside the {Show(limits.LipFt)} ft infield lip; "
+                    + "the fence stands beyond the infield");
+        }
+        for (var k = 0; k < last; k++)
+        {
+            if (place[k] is not { } a || place[k + 1] is not { } z) continue;
+            if (!(bearing[k + 1] > bearing[k])) continue;
+            var nearest = Nearest(a, z);
+            if (nearest < limits.LipFt
+                && Diamond.Dist(0, 0, a.X, a.Z) >= limits.LipFt && Diamond.Dist(0, 0, z.X, z.Z) >= limits.LipFt)
+                errors.Add($"{source}: {where}[{k}] to [{k + 1}] runs {Show(nearest)} ft from home at its nearest, "
+                    + $"inside the {Show(limits.LipFt)} ft infield lip; a span is straight between its points, so a "
+                    + "long one dips nearer home than either end");
+        }
+
+        static double Nearest((double X, double Z) a, (double X, double Z) z)
+        {
+            var ex = z.X - a.X;
+            var ez = z.Z - a.Z;
+            var length2 = ex * ex + ez * ez;
+            var t = length2 == 0 ? 0 : Math.Clamp(-(a.X * ex + a.Z * ez) / length2, 0, 1);
+            return Diamond.Dist(0, 0, a.X + t * ex, a.Z + t * ez);
+        }
+    }
+
+    static string Show(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    static string Got(double? value) => value is { } v ? v.ToString(CultureInfo.InvariantCulture) : "none";
 
     /// <summary>
     /// A ground id with no row is a stop that names both files: the park file the id was written in,
@@ -744,6 +882,8 @@ internal sealed class ContentData
     public RulesTable? Rules { get; set; }
     /// <summary>Where this root's ground library was read from — named by every <c>SF-03</c> refusal.</summary>
     public string GroundsSource { get; set; } = "";
+    /// <summary>Where this root's wall-material library was read from — named by a fence span's <c>SF-03</c> refusal.</summary>
+    public string WallsSource { get; set; } = "";
     public List<string> ReadErrors { get; } = [];
 }
 
@@ -866,11 +1006,54 @@ internal sealed class ParkDto
     /// </summary>
     public ParkZonesDto? Zones { get; set; }
 
+    /// <summary>
+    /// The outfield fence as a polyline (§6.1, §16; FD-06, FD-06-R1, FD-12; F2-c). Optional, and absent is
+    /// the circle through the three posts at <see cref="FenceHeightFt"/>. Carried onto <see cref="Park"/>
+    /// because the flight, the zone map and the drawn wall read it; a park that names none writes nothing
+    /// into <see cref="PlayTraceIdentity"/>, so no stored SHA moves. No shipped or trial park names one.
+    /// </summary>
+    public ParkFenceDto? Fence { get; set; }
+
     public Park ToPark() => new(
         Id, Name, Faction, Surface,
         LeftFenceFt, CenterFenceFt, RightFenceFt, WindMph,
         (Hazards ?? []).Select(h => new Hazard(h!.Type, h.X, h.Z, h.Radius, h.Tag)).ToList(),
-        WindDeg, FenceHeightFt, NightContactWindowMul, Environment?.ToEnvironment(), Zones?.ToZones());
+        WindDeg, FenceHeightFt, NightContactWindowMul, Environment?.ToEnvironment(), Zones?.ToZones(),
+        Fence?.ToFence());
+}
+
+/// <summary>
+/// The optional <c>fence</c> block of a park file (§6.1, §16; FD-06 C, FD-12 B). One key, <c>points</c>,
+/// from the left-field pole to the right-field pole. Inside the strict park read (#820), so a misspelled
+/// key in the block or in a point is refused by name rather than dropped.
+/// </summary>
+internal sealed class ParkFenceDto
+{
+    public List<FencePointDto?>? Points { get; set; }
+
+    /// <summary>Only after <see cref="ContentDataValidator"/> has accepted the block, which is when a catalog is built.</summary>
+    public ParkFence ToFence() => new((Points ?? []).Select(p => p!.ToPoint()).ToList());
+}
+
+/// <summary>
+/// One point of a park's fence (FD-06 C, FD-12 B). The three numbers are nullable so a missing one is
+/// refused by name instead of reading as 0.
+/// </summary>
+internal sealed class FencePointDto
+{
+    /// <summary>Degrees from centre field: −45 the left-field line, 45 the right.</summary>
+    public double? BearingDeg { get; set; }
+
+    /// <summary>The distance from home as a fraction of the park's three-post fence at that bearing.</summary>
+    public double? FenceFrac { get; set; }
+
+    /// <summary>The fence top at this point, in feet (not scaled between roots).</summary>
+    public double? HeightFt { get; set; }
+
+    /// <summary>The wall material of the span from this point to the next. Absent is <c>padded</c>.</summary>
+    public string? Material { get; set; }
+
+    public FencePoint ToPoint() => new(BearingDeg!.Value, FenceFrac!.Value, HeightFt!.Value, Material);
 }
 
 /// <summary>

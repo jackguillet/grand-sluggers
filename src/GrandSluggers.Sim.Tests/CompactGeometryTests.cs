@@ -328,6 +328,81 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
+    /// <b>FD-12 B for the polyline fence (F2-c, #874).</b> A park's fence points are authored in fence-relative units — a
+    /// bearing and a fraction of the park's own three-post fence at that bearing — so one block serves both roots, and
+    /// this is the proof that it reproduces the migration rule. The same block on each shipped park and on its trial
+    /// twin:
+    /// <list type="bullet">
+    /// <item>every point stands past the shipped lip, so the zone rule moves it by the fence scale, 0.70;</item>
+    /// <item>on the trial it lands where 0.70 puts it, on the same bearing, off by exactly its fraction of the trial
+    /// fence's own departure from 0.70 × the shipped fence there — the posts' rounding (and Harbor's accepted 232 at the
+    /// poles), never more than a foot;</item>
+    /// <item>and it stands exactly where it did <em>relative to the fence</em>: a point at 1.0 is on each root's own
+    /// fence to the bit. That is why this unit and not the zone rule applied to feet: a Harbor pole point authored in feet
+    /// and scaled would stand at 231 ft, a foot short of the trial's 232-ft pole where the foul rail meets the fence;</item>
+    /// <item>heights are the same on both roots, because walls did not shrink (<see cref="WallsWindAndTheNightWindowAreTheShippedOnes"/>).</item>
+    /// </list>
+    /// <para>
+    /// One thing the unit does not carry over: the lip. #728 moved the lip on the basepath scale (155 → 137.78) while the
+    /// fence took 0.70, so the lip sits deeper into the trial's field, and a fraction legal on the shipped root can stand
+    /// inside the trial's lip. The validator measures each root against its own lip and refuses such a block on the trial
+    /// by name (<c>PolylineFenceTests.SF07_…RefusedByName</c>, the lip row).
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void APolylineFenceAuthoredOnceLandsWhereTheZoneRulePutsItOnBothRoots()
+    {
+        FencePoint[] block =
+        [
+            new(-45, 1.0, 12), new(-30, 0.92, 16), new(-10, 1.0, 12), new(0, 0.93, 12),
+            new(12.5, 1.0, 10), new(22.5, 1.08, 9), new(45, 1.0, 12)
+        ];
+        var worst = 0.0;
+        foreach (var id in ParkIds)
+        {
+            var shippedArc = Control.Parks[id];
+            var trialArc = Trial.Parks[id];
+            var shipped = shippedArc with { Fence = new ParkFence(block) };
+            var trial = trialArc with { Fence = new ParkFence(block) };
+            foreach (var point in block)
+            {
+                var b = point.BearingDeg;
+                var s = BallFlight.GroundPoint(AtBatResolver.FenceAt(shipped, b), b);
+                var t = BallFlight.GroundPoint(AtBatResolver.FenceAt(trial, b), b);
+                Assert.True(FieldingResolver.OutfieldGrass(s.X, s.Z, Control.Rules), $"{id} {b}: the point is past the shipped lip");
+
+                var ruled = (X: s.X * Outfield, Z: s.Z * Outfield);
+                var miss = Diamond.Dist(ruled.X, ruled.Z, t.X, t.Z);
+                var fenceDrift = Math.Abs(AtBatResolver.FenceAt(trialArc, b) - Outfield * AtBatResolver.FenceAt(shippedArc, b));
+                Assert.True(Math.Abs(miss - point.FenceFrac * fenceDrift) < 1e-9, $"{id} {b}: {miss} ft from the zone rule");
+                Assert.True(miss <= 1.0 + 1e-9, $"{id} {b}: {miss} ft from the zone rule");
+                worst = Math.Max(worst, miss);
+                Assert.Equal(FieldBounds.SprayDeg(s.X, s.Z), FieldBounds.SprayDeg(t.X, t.Z), 9);
+
+                Assert.Equal(AtBatResolver.FenceSpotAt(shipped, b).TopFt, AtBatResolver.FenceSpotAt(trial, b).TopFt);
+                if (point.FenceFrac == 1.0)
+                {
+                    Assert.Equal(AtBatResolver.FenceAt(shippedArc, b), AtBatResolver.FenceAt(shipped, b));
+                    Assert.Equal(AtBatResolver.FenceAt(trialArc, b), AtBatResolver.FenceAt(trial, b));
+                }
+            }
+        }
+        Assert.True(worst > 0.5, $"the posts' rounding shows somewhere: worst {worst} ft");
+
+        // Harbor's left pole: fence-relative, the point is the trial's own 232-ft pole; the zone rule on feet says 231.
+        var harbor = Trial.Parks["harbor-diamond"] with { Fence = new ParkFence(block) };
+        Assert.Equal(AtBatResolver.FenceAt(Trial.Parks["harbor-diamond"], -45), AtBatResolver.FenceAt(harbor, -45));
+        Assert.Equal(232, AtBatResolver.FenceAt(harbor, -45), 9);
+        Assert.Equal(231, Outfield * Control.Parks["harbor-diamond"].LeftFenceFt, 9);
+
+        // The lip is the part that does not carry over: its share of the fence is larger on the trial in every park.
+        foreach (var id in ParkIds)
+            Assert.True(
+                Trial.Rules.Flight.Classes.InfieldLipFt / AtBatResolver.FenceAt(Trial.Parks[id], 0)
+                > Control.Rules.Flight.Classes.InfieldLipFt / AtBatResolver.FenceAt(Control.Parks[id], 0), id);
+    }
+
+    /// <summary>
     /// <b>The reach pad scales with the radii, and it is the part that matters (#732, #730 decision 4).</b>
     /// A barrel or pipe catches a ball inside <c>radius + reachPadFt</c>, and the pad is
     /// larger than any barrel's radius. Scaling the radius alone would have taken a Canopy barrel's

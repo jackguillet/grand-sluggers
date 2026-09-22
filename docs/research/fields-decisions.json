@@ -537,9 +537,36 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/845",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/848",
           "status": "merged"
+        },
+        {
+          "child": "F2-c",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/874",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/878",
+          "status": "in review"
         }
       ],
-      "validation_evidence": [],
+      "validation_evidence": [
+        {
+          "child": "F2-c",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/874",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/878",
+          "kind": "parity and fixture scenarios (no shape, height or material selected)",
+          "tests": [
+            "PolylineFenceTests.SF06_EveryCatalogParkPlaysAndDrawsTheThreePostFenceBitForBit",
+            "PolylineFenceTests.SF07_EveryPointIsAVertexOfTheClipPolygonAtItsHeight",
+            "PolylineFenceTests.SF07_FenceAtIsSingleValuedAndTheTrackThePolesAndTheZoneMapFollowIt",
+            "PolylineFenceTests.SF07_ABallRolledIntoTheNotchCaromsByThatSpansNormal",
+            "PolylineFenceTests.SF07_AFlyClearsOrMeetsTheSpansOwnTop",
+            "PolylineFenceTests.SF07_AValidFenceBlockLoadsOnBothRootsAndThePointsReachThePark",
+            "PolylineFenceTests.SF07_AnOverhangAFenceBehindAFenceAMissingPoleAPointInsideTheLipAHeightUnderTheRailAndAnUnknownMaterialAreRefusedByName",
+            "PolylineFenceTests.SF07_AnUnknownKeyInTheFenceBlockOrInAPointIsRefusedByName",
+            "PolylineFenceTests.SF12_EachSpanAsksTheLibraryForItsOwnMaterialsRow",
+            "PolylineFenceTests.ThePolygonAndTheLoopAreCachedOnTheFenceByValue",
+            "HarborWallTests.SF05_APolylineParkDrawsEveryPointAndEverySpanAtTheFlightsTop"
+          ],
+          "summary": "A park may name fence.points from the left-field pole to the right: each point a bearing, a fraction of the park's own three-post fence at that bearing and a height, each span a walls.json material (default padded). FD-06-R1 is enforced by the park validator by park, index and reason on both roots (first point at -45, last at 45, bearings strictly increasing: equal is a fence behind a fence, smaller an overhang), with a point or a straight span inside the root's lip, a height not over the rail and a material with no row refused too. AtBatResolver.FenceAt stays the one fence function (the ray meets exactly one span; else the three-post circle, bit for bit), FenceSpotAt gives the top and the span material from the same resolution, the clip polygon keeps every point as a vertex with its top at both ends of each piece and its span material, the flight compares the ball with the top where it crossed, WallMaterial.OfSegment returns the span's material (the foul rail stays padded), the polygon and the drawn loop share one cache key carrying the fence by value, and the drawn loop walks the same bearings at the flight's top (SF-05 on a polyline fixture). No shipped or trial park names points: seed 7 and the park-factors table (day and night) byte-identical on both roots, every catalog park's FenceAt, polygon and drawn loop identical to the pre-polyline code to the bit, fresh trace identities unmoved, seals hash-only. Not built here: two spans caroming off two different rows (the closed library has one row; a second material is content, F9-a), and BattedBall's rob clearance still measures against fenceHeightFt rather than the crossed span's top."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -1275,8 +1302,27 @@
         "answer_quote": "accept all four recommendations"
       },
       "numeric_targets": "not applicable: an engineering pattern",
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        {
+          "child": "F2-c",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/874",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/878",
+          "status": "in review"
+        }
+      ],
+      "validation_evidence": [
+        {
+          "child": "F2-c",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/874",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/878",
+          "kind": "unit scheme for fence points, proved on a fixture (no park file changed)",
+          "tests": [
+            "CompactGeometryTests.APolylineFenceAuthoredOnceLandsWhereTheZoneRulePutsItOnBothRoots",
+            "PolylineFenceTests.SF07_AValidFenceBlockLoadsOnBothRootsAndThePointsReachThePark"
+          ],
+          "summary": "Fence points are authored as { bearingDeg, fenceFrac, heightFt }: fenceFrac is the distance from home as a fraction of the park's own three-post fence at that bearing. The same block on each of the six shipped parks and its trials/c80 twin lands where F693-04's zone rule puts a point past the lip (x 0.70), on the same bearing, off by exactly its fraction of the trial fence's own departure from 0.70 x the shipped fence (the posts' rounding; 1 ft at most, Harbor's accepted 232-ft poles), and a point at 1.0 stands exactly on each root's own fence, which scaling feet would not (a Harbor pole point would stand at 231 ft, a foot short of the trial's pole where the foul rail meets the fence). Heights are unscaled. The lip does not carry over: #728 moved it on the basepath scale, so a fraction legal on the shipped root can stand inside the trial's lip, and the validator refuses it there by name."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -2103,6 +2149,10 @@
     {
       "date": "2026-09-22",
       "event": "Merged one at a time after review: F3-d #864 (36d7cc13), F6-a #863 (5fc7a350, Jack passed the look), F4-e #867 (a10a02dd, the eight volumes moved off the base paths; a behavior change at Crystal and Ember, reported and not tuned) and F3-c #869 (a801d9f9). The one machine-wide GUI Unity lock landed as #866. Implementation map findings 22-37 recorded; the stored race identities are a pinned record and are not regenerated by a child."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F2-c opened as PR #878 (#874): the polyline fence at parity (FD-06 C, FD-06-R1, FD-12 B). An optional fence.points block in fence-relative units (a bearing, a fraction of the park's own three-post fence at that bearing, a height; a walls.json material per span); FenceAt reads it and stays a function of the bearing; the clip polygon keeps every point as a vertex with per-piece tops and span materials; the carom reads the span's material; the drawn loop follows; the validator refuses an overhang, a fence behind a fence, a missing pole point, a point or span inside the lip, a height under the rail and an unknown material by name on both roots. No park names points: seed 7, the park-factors table and fresh identities unchanged, seals hash-only."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",

@@ -156,7 +156,9 @@ public static class BallFlight
             {
                 var h = y + (ny - y) * cross.U;
                 var fair = cross.Segment.Kind == FieldBounds.WallKind.FairFence;
-                if (h > cross.Segment.HeightFt)
+                // The top where the ball met the wall (FD-06, F2-c): a polyline span's top runs straight between
+                // its two points; every level piece — the whole fence of a park with no points — is its HeightFt.
+                if (h > cross.HeightFt)
                 {
                     // Over the top: gone. Fair between the poles is the homer (or the ground-rule double
                     // after a bounce); a foul wall is the stands. The path continues for the camera only.
