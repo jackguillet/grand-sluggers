@@ -379,7 +379,7 @@ namespace GrandSluggers.UnityClient
         void ShowCursor()
         {
             if (_match == null) return;
-            var contact = Math.Clamp(_match.Batter.Stats.Bat + (_match.OffenseBat?.ContactMod ?? 0), 1, 10);
+            var contact = Math.Clamp(_match.Batter.Stats.Contact + (_match.OffenseBat?.ContactMod ?? 0), 1, 10);
             var chargeBat = _match.OffenseBat?.ChargeAlwaysFull == true;
             var charged = chargeBat || ChargeFeel.IsCharge(EffectiveCharge(_charge, _chargePast));
             var buddies = _match.Chemistry.BuddiesOnBase(_match.Batter, _match.RunnersOn());
