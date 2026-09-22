@@ -345,13 +345,18 @@ Stats are 1–10 per character (`data/characters/`). They drive *only* the quant
 | Stat | Drives | Not allowed to drive |
 | --- | --- | --- |
 | **Pitch** | Fastball mph, break amount, changeup drop, stamina pool, CPU aim scatter | Whether a batter misses |
-| **Bat** | Contact window width, sweet-spot size, exit-velo cap (power), CPU timing error | Whether a fielder catches |
+| **Bat** | Nothing directly: it is the displayed batting aggregate and the seed for the two traits below. **Contact** drives sweet-spot size — and, ⚠️ until P2-b, contact window width and the CPU's timing error. **Power** drives exit velocity and loft | Whether a fielder catches |
 | **Field** | Chase speed in the field, catch radius, jump/dive window, throw speed, throw accuracy, bobble chance, CPU throw decision delay | Whether a runner is out |
 | **Run** | Sprint speed on the bases and out of the box, dash, CPU send aggression, close-play reaction | Anything about the ball |
 
 **#693 design amendment (F693-02-character-catch-range, September 15, 2026):** the target catch range is an explicit property independent of displayed Fielding; Field must not determine glove positioning/response. The historical Field-driven catch-radius model above needs reconciliation before implementation. The later F693-02-defensive-trait-mapping supersedes summary-only Fielding: Arm controls throwing and Fielding controls hands/recovery. The table above describes historical runtime; the target amendments in §0.2 govern the migration, preserving approved anchors and separately authored reach.
 
-The four stats are shown on the character card. Internally `Bat` splits into `contact` (window) and `power` (exit velo) with the same value unless a bat item modifies one (`data/bats/`). ✅
+The four stats are shown on the character card. **Contact and Power are ratings of their own** (PH-15-R5), authored beside `bat` the way `arm` and `hands` are authored beside `field`: optional keys in `data/characters/`, 1–10 when present, and **an absent or 0 key tracks `Bat`**, so a roster that authors neither behaves exactly as it did before the split. `Stats.ContactAuthored` / `PowerAuthored` say which it was; neither flag is serialized. No shipped character authors a value today, and the values are Jack's to choose later. ✅ P2-a (#837)
+
+- **Contact is spatial forgiveness** (PH-15-R7): it scales the cursor's barrel (§5.2), so a crossing further from the center still finds the bat. It does **not** buy per-character timing assistance. ⚠️ Today it still widens the timing window (§5.3) and still sets the CPU batter's timing error (§5.9); both are the one shared window's reads and **P2-b removes them**. They read Contact until then so P2-b removes one thing, not two.
+- **Power is hitting strength**: the exit-velocity base (§5.5) and the launch loft (§5.4).
+- A bat item's `contactMod` / `powerMod` still adds to the trait it names (`data/bats/`), after the trait is resolved and before the 1–10 clamp.
+- `Bat` stays the **displayed aggregate**: the character card, `cli teams` / `cli chem`, the Raylib HUD and `Teams.Tools`' four-rating sum all read `Bat` and none of them reads a trait. What the card shows once the traits carry different numbers is P2-f's.
 
 **Ordinary pitch repertoire (PH-02-R1/R2, PH-15-R1/R2/R4, #807).** Beside the stats, every character carries an ordered repertoire of exactly three ordinary pitches: the **fastball every pitcher throws**, then two *different* families drawn from Changeup / Curveball / Slider / Sinker, in the order the decision register accepts (`PH-15-R2` for the seven captains, `PH-15-R4` for the eighteen role players). The data field is `"repertoire": ["<second>", "<third>"]` in `data/characters/`; the fastball is implied and may never be listed or removed, and the trial overlays carry the same rows. `ContentDataValidator` **requires** the field on every row — the character loader ignores unknown keys, so a misspelled one has to surface as missing — and refuses a count other than two, the same family twice, a listed `fastball`, and any id outside the four (`PitchFamily`, `Repertoire`; `RepertoireTests` holds all 25 rows to the register). ✅ #807 — **membership only**; §4.3 says what flies.
 
@@ -523,7 +528,7 @@ The reference model (D4): the bat is a hitbox along the swing plane, split into 
 
 - A gold oval **follows the batter**, never the pitch (booklet-confirmed). Box walk moves it in X by the same world distance as the body; its Y is the zone center. The oval is the perfect+nice zones; the rim is sour. ✅ P1 (`SweetSpot`, world feet, `batting.cursor`)
 - The oval is **tall enough that any strike is hittable**: its nice half-height is the zone half-height, and the sour rim is the barrel's rectangle `rimFraction` beyond it, so the corners of the frame are on the bat with the box centered. Quality is by the ellipse distance from the center: along X the bat barrel (nice half-axis `niceTipFt` 1.05 toward the tip, `niceHandleFt` 0.75 toward the hands — the handle side is shorter), along Y a ball at the top or bottom of the zone is at best nice. The perfect heart is `perfectFraction` (0.42) of the oval. The client draws exactly this outline (`SweetSpot.Outline`). ✅ P1 (S-05, S-06)
-- Bat (contact) stat scales the barrel (`scalePerContact` 0.04 per point from 5); a charge **narrows** it (`chargeMul` 0.8; reference: charge zones are smaller than slap zones). Good-chemistry runners on base widen a slap's barrel (×1.05 / 1.10 / 1.20 for 1 / 2 / 3, `buddiesOnBase.widen*`). ✅ P1 (S-11, S-30)
+- The **Contact** rating scales the barrel (`scalePerContact` 0.04 per point from 5) — this is the spatial forgiveness of PH-15-R7 and the only thing Contact is meant to buy; a charge **narrows** it (`chargeMul` 0.8; reference: charge zones are smaller than slap zones). Good-chemistry runners on base widen a slap's barrel (×1.05 / 1.10 / 1.20 for 1 / 2 / 3, `buddiesOnBase.widen*`). ✅ P1 (S-11, S-30); ✅ P2-a reads `Stats.Contact` (+ the bat's `contactMod`) rather than `Bat` (S-122)
 - Vertical placement is *earned* by the pitch choice on the mound (a changeup dumps under the center; a high charged fastball rides over it). A **sour slap on a changeup or a charged pitch is a pop-up** (reference rule). That is the pitcher-vs-batter game. ✅ P1 (S-12)
 
 | Zone | Slap exit (× base) | Charge exit (× base) | Tell |
@@ -541,14 +546,14 @@ The two columns are `batting.quality.slap` / `.charge`, interpolated by the effe
 
 The take is the swing that is judged (#613): a charge (`ChargeFeel.IsCharge`, the same test that narrows the window) plays `swing-charge`, anything else `swing-slap`; both share the Contact mark and the measured approach and contact keys, so the warp above is one rule for both. Both end on a held finish at 0.60 that stays up through the STRIKE stamp until SET, or through the contact freeze until the batter-runner is `feel.swingFinishStepFt` out of the box (#583). ✅ #613 (`SwingPresentationTests`, `MotionTests`, the swing matrix `finish` beat)
 
-- **Window**: slap **9 frames**, charge **7 frames** (reference), + (contact − 5) × 0.4, × skill multipliers (`star-skills.json` `batterWindowMul`) × the park's × the difficulty rung's `cpu.json` `humanWindowMul` for a pad's swing only (EASY 1.3 / NORMAL 1.0 / HARD 0.9, printed on the title's difficulty line), **floored at 5 frames** (`batting.window`). The window is a total width: the bat is on the plane when |err| ≤ half of it. Outside it the bat is not on the plane: **miss**, strike. The Charge Bat keeps the slap window. ✅ P1 (S-08, S-09, S-10, S-30; `AtBatResolver.ContactWindowFrames`)
+- **Window**: slap **9 frames**, charge **7 frames** (reference), + (Contact − 5) × 0.4 (`Stats.Contact` plus the bat's `contactMod`; ⚠️ a timing read of Contact that **P2-b removes** with the rest of the per-hitter window — PH-15-R7 gives Contact spatial forgiveness only, and it reads the trait until then so P2-b removes one thing, not two), × skill multipliers (`star-skills.json` `batterWindowMul`) × the park's × the difficulty rung's `cpu.json` `humanWindowMul` for a pad's swing only (EASY 1.3 / NORMAL 1.0 / HARD 0.9, printed on the title's difficulty line), **floored at 5 frames** (`batting.window`). The window is a total width: the bat is on the plane when |err| ≤ half of it. Outside it the bat is not on the plane: **miss**, strike. The Charge Bat keeps the slap window. ✅ P1 (S-08, S-09, S-10, S-30; `AtBatResolver.ContactWindowFrames`)
 - Inside the window, timing does **not** change quality (D4). It changes **direction**: early contact **pulls**, late contact **pushes** (opposite field). Linear across the window: earliest frame ≈ 55° toward the pull line (`spray.timingDeg`), center ≈ straight at second, latest ≈ 55° toward the opposite line. Stick L/R at contact shifts the whole range by ±12° (`spray.stickDeg`). The zone adds its spread (`spray.*SpreadDeg`). ✅ P1 (S-07, S-08)
 - The batter's handedness mirrors the map. A right-handed batter who is early hits toward 3B. ✅ P1
 - Quality still moves slightly with timing only through the *rim*: the outermost (1 − `squareFraction`) of each half-window reduces the cursor zone by one (perfect → nice, nice → sour) because the bat is not square. Never two zones; sour stays sour. ✅ P1
 
 ### 5.4 Height and the stick
 
-- **Launch** = base by power and charge (`launch.loftBaseDeg`, `loftPerPower`, `charge.loftDeg`) **+** the pitch height (`perFtOfHeight` per foot the crossing sits above the zone center: a low pitch launches lower) **+** stick U/D at contact (`stickDeg`): **Up = over the top = grounder**, **Down = under = lift**. The reference maps up→grounder, down→fly and that is the rule. The same axis does **not** reset the box: Down-reset is a SET verb only, before the windup. ✅ P1 (S-06, S-13)
+- **Launch** = base by **Power** (`Stats.Power` plus the bat's `powerMod`) and charge (`launch.loftBaseDeg`, `loftPerPower`, `charge.loftDeg`) **+** the pitch height (`perFtOfHeight` per foot the crossing sits above the zone center: a low pitch launches lower) **+** stick U/D at contact (`stickDeg`): **Up = over the top = grounder**, **Down = under = lift**. The reference maps up→grounder, down→fly and that is the rule. The same axis does **not** reset the box: Down-reset is a SET verb only, before the windup. ✅ P1 (S-06, S-13)
 - Launch noise is ±`noiseDeg`/2. Sour contact is forced to a band: the topper band (`topperMinDeg`..) when early, the pop band (`popMinDeg`..) when late or on the §5.2 pop-up rule. ✅ P1 (S-12). The five-band probability table (topper / grounder / liner / fly / pop by zone × swing × stick) is the P2 batted-ball class table; until then the class is read from the launch.
 - Sluggers' "scatter hit" (D-pad at contact) is our stick L/R above. The reference guide calls it unreliable; ours is deterministic.
 
@@ -556,7 +561,7 @@ The take is the swing that is judged (#613): a charge (`ChargeFeel.IsCharge`, th
 
 `exit = base(power) × zone × charge × starSwing × buddies × pitch`.
 
-- `base(power)` = `batting.exit.baseMph` + Power × `batting.exit.mphPerPower` (61 + 3.7 × Power; P7 lifted the base from 57 for the S-29 band and left the slope, so the whole lineup hits harder and the power hitter's homer stays inside the ≤ 2 per game mean).
+- `base(power)` = `batting.exit.baseMph` + Power × `batting.exit.mphPerPower` (61 + 3.7 × Power; P7 lifted the base from 57 for the S-29 band and left the slope, so the whole lineup hits harder and the power hitter's homer stays inside the ≤ 2 per game mean). **Power** here is the rating `Stats.Power` (plus the bat's `powerMod`), not the `Bat` aggregate — it and the §5.4 loft are the only things Power drives. ✅ P2-a (S-122)
 
 - `zone × charge`: the §5.2 table — 0 → the slap column; MAX → the charge column (**×1.25** on a perfect; reference: charge perfect 160–170 vs slap perfect 145–150, with less gravity). Below MAX interpolates; past the band the charge decays and the exit slides back toward the slap column. ✅ P1 (S-11, S-30)
 - `buddies`: good-chemistry runners on base — **×1.10 / 1.25 / 1.50 on a charged swing only** (`buddiesOnBase.*Mul`), and the slap-zone widening in §5.2. ✅ P1
@@ -601,7 +606,21 @@ A table (`batting.json` `cpu`, `Match.CpuSwing`), evaluated when the ball crosse
 
 **No forced-miss clamp against a human pitcher**: the human's meatball is punished by the same table; difficulty is a σ multiplier and the mistrack table (`data/rules/cpu.json` `difficulty` 0.8 / 1.0 / 1.3). ✅ P1 part a: `CpuSwingVsHuman`, its `batting.cpu.vsHuman` numbers, and the `cpuVsHumanTake` / `cpuVsHumanMiss` feel rolls are deleted; one table whoever pitches. ✅ the steal decision is its own once-per-at-bat read (`_cpuStealDecided`, §11.6), outside `CpuSwing`.
 
-Charge vs slap by archetype (reference, `cpu.archetype`): balanced 50%, power 80%, speed 30%, technique 10% — derived from the character's Bat/Run split (Bat − Run ≥ `splitStat` = power, Run − Bat ≥ `splitStat` = speed, both ≥ `techniqueMin` = technique). ✅ P1
+Charge vs slap by archetype (reference, `cpu.archetype`): balanced 50%, power 80%, speed 30%, technique 10% — derived from the character's **Power**/Run split (Power − Run ≥ `splitStat` = power, Run − Power ≥ `splitStat` = speed), with the technique gate on **Contact** and Run (both ≥ `techniqueMin`). ✅ P1, retargeted by P2-a
+
+**Which trait each CPU read takes** (PH-15-R5; the rows above name `Bat` because it is the number a reader recognizes, and every trait equals `Bat` until one is authored). ✅ P2-a (#837, S-122)
+
+| Read | `Match` | Trait | Why |
+| --- | --- | --- | --- |
+| Chase on a near pitch, `(chase base − n)%` | `CpuSwing` | **Contact** | Laying off the pitch it cannot square up is contact judgment |
+| Timing error σ, `(11 − n) × errorFramesPerBatStat` | `CpuSwing` | **Contact** | How far off the ball the bat arrives. ⚠️ a timing read; P2-b re-reads it |
+| Forced charge, `n ≥ chargeBatMin` / `rispChargeBatMin` | `CpuSwing` | **Power** | Swinging for it on a hitter's count |
+| Archetype split, `n − Run ≥ splitStat` | `CpuChargeChance` | **Power** | A slugger against a speedster |
+| Technique gate, `n ≥ techniqueMin && Run ≥ techniqueMin` | `CpuChargeChance` | **Contact** | The hitter who both squares it up and beats it out slaps |
+| Sac bunt, `n ≤ sacBuntBatMax` | `CpuSquaresBunt` | **Contact** | The weak-contact hitter gives himself up |
+| Star swing, tracking, zone classes, the box | `CpuSwing` | — | No rating read at all; unchanged |
+
+The rung multipliers (`timingSigmaMul`, `mistrackMul`) sit outside the trait and are the difficulty's, not the hitter's.
 
 ---
 
@@ -1425,6 +1444,9 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-118 | The overlay, the *even* row (0-0) and the *ahead* row (0-2), 4000 pitches each | — | Charge and steer occur at their rows' `chargeChance` / `steerChance` (± 0.04) and **co-occur at the product** (± 0.03): a charged pitch is still steerable, which the shipped model's four exclusive verbs never allowed (S-114). ⚠️ trial. ✅ #823 |
 | S-119 | The overlay at 0-2 — S-27's twin — then the even row | 100 pitches each | ≥ 30 % cross outside the zone, and ≥ 30 % are outside **by X**: with no vertical intent left the waste has to come from the rubber, and the split by X vs by Y is reported (no ordinary family drops out of the zone on its own, so the whole waste is the rubber's). The even row still puts fewer than 10 of 100 down the middle. ⚠️ trial. ✅ #823 |
 | S-120 | The switch and what a table may say | — | Off on the shipped root, on in `trials/pitch5`, one overridden file. The shipped rows carry the port of the exclusive mix exactly (fastball = normal + charge + break, changeup = changeup, `chargeChance` = charge / total, `steerChance` = break / total). A weight for a family the active table cannot fly is **valid** — weights are filtered at run time, not validated against a roster — and never reaches the mound. A row that weights nothing at all is a **validation error** by name. A row that weights only families *this pitcher* cannot select is not an error: it falls back to the fastball with zero presses, stated here and tested. ✅ #823 |
+| S-121 | All 25 shipped characters on both data roots; a hand-built `Stats` at every `Bat`; a `Stats` through `Clamp()`; a `Stats` through a JSON round trip | — | Unauthored is seeded: `Contact == Power == Bat`, `ContactAuthored == PowerAuthored == false`, and no roster file authors either key. An unauthored trait stays unauthored through a clamp (so it tracks the clamped `Bat`); an authored one clamps to 1–10 and stays authored. The round trip keeps every rating and, as for `Arm`, does **not** serialize the authored flags — a reloaded `Stats` is `Equals` to the one it came from. ✅ P2-a (`ContactPowerScenarioTests`) |
+| S-122 | Two hand-built characters with the same `Bat`, Contact 9 / Power 2 against Contact 2 / Power 9 (a fixture only — no data file authors a value) | Resolver, cursor and the CPU reads | Each consumer follows its own trait and not the other: the barrel and the judged oval follow **Contact**; exit velocity and loft follow **Power**; the CPU's chase, timing σ and sac-bunt gate follow **Contact**; the forced charge and the archetype split follow **Power**. Direction only — which read moved, never a literal number. ✅ P2-a |
+| S-123 | The shipped catalog with one row edited | `contact` / `power` absent, 0, 11, −1; `bat` removed | Absent and 0 are unauthored; 11 and −1 are each an error naming the character and the field; `bat` is still required and still 1–10. ✅ P2-a |
 
 ### B.2 Grounders and fielding
 
