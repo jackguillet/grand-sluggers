@@ -245,7 +245,7 @@ Shell: `tools/still-gate.sh` writes the request and clicks **Grand Sluggers → 
 
 ### Another park, and night (#829)
 
-`tools/still-gate.sh --park <id>` and `tools/still-gate.sh --park crystal-rink --night` capture the same shots somewhere else. The flags write the request keys `park` and `night`; with no flag the request is the one above, byte for byte, so the current gate and the character gate do not move. A park id must be in the catalog (`ExhibitionPick.Parks`) — an unknown id is refused by name before Play starts, the way an unknown shot is.
+`tools/still-gate.sh --park <id>` and `tools/still-gate.sh --park crystal-rink --night` capture the same shots somewhere else. The flags write the request keys `park` and `night`; with no flag the request is the one above, byte for byte, so the current gate and the character gate do not move. A park id must be one the catalog declares — a file in `data/parks` (#820) — and an unknown id is refused by name, with the fields listed, the way an unknown shot is refused.
 
 The default park in daylight keeps today's file names. Any other park, and any night, names itself: `plate-crystal-rink.png`, `plate-crystal-rink-night.png`, `plate-night.png`. The done file lists the park and the night it captured, and the gate hands the scene's park and night back when the batch is done, so Play is where you left it.
 

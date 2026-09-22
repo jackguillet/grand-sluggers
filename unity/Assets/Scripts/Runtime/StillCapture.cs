@@ -20,6 +20,7 @@ namespace GrandSluggers.UnityClient
         StillRequest _req;
         bool _ran;
         string _temp = "";
+        string _loadError = "";
 
         public static void Attach(MatchDirector play)
         {
@@ -39,8 +40,22 @@ namespace GrandSluggers.UnityClient
         void Update()
         {
             if (_ran || _req != null) return;
+            // The director's catalog declares the parks, so the gate waits the
+            // frame it takes to load: a park id the catalog does not have is
+            // refused by name, not captured at the default park.
+            if (_play == null || _play.GateContent == null) return;
             _temp = TempDir();
-            if (!StillRequest.TryLoad(_temp, out _req, out _)) return;
+            if (!StillRequest.TryLoad(_temp, _play.GateContent, out _req, out var loadError))
+            {
+                // No request is the idle state; a request the parser refuses — an
+                // unknown shot, an unknown park — says so once instead of waiting.
+                if (!loadError.StartsWith("missing ", StringComparison.Ordinal) && loadError != _loadError)
+                {
+                    _loadError = loadError;
+                    Debug.LogError("Grand Sluggers still gate: " + loadError);
+                }
+                return;
+            }
             ForceMute = _req.HudOff;
             StartCoroutine(Run());
         }
@@ -61,7 +76,7 @@ namespace GrandSluggers.UnityClient
             var park = ExhibitionPick.DefaultPark;
             try
             {
-                park = _req.ResolvedPark();
+                park = _req.ResolvedPark(_play.GateContent);
                 shots = _req.ResolvedShots();
                 swingCaptains = _req.ResolvedSwingCaptains();
             }
@@ -199,6 +214,9 @@ namespace GrandSluggers.UnityClient
     public sealed partial class MatchDirector
     {
         internal Camera GateCam => _rig != null ? _rig.Cam : Camera.main;
+
+        /// <summary>The loaded catalog, so the still gate validates a park id against the park files (#820).</summary>
+        internal ContentCatalog GateContent => _content;
 
         /// <summary>
         /// The batch's park and night, set before the first <c>NewMatch()</c>.
