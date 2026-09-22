@@ -492,7 +492,7 @@
       "fix": "REPAIRED by #881: the pieces are gone, and FieldKitSourceTests.NoDressPieceStandsInsideTheKitsBackstop reads every spot ParkView places a piece at (a builder handed a literal spot, Look.Prim under the park root, a group root that parents primitives, a literal spot list, a Hazard written in the view) and refuses one inside the kit's backstop wall: the radius of the drawn loop's wrap around the plate (HarborWall.Loop, from ParkBoundary) plus half the wall FieldKit draws. The dress stands beside the kit, never in it. Do not move a refused piece to just past the line, thin it, or add it to an allowlist: the kit owns the backstop, and a park's own backstop look is a kit slot (F6-b), not a dress piece. When F6-d retires the dress methods into greybox builders, the rail moves with them.",
       "promoted": "FieldKitSourceTests.NoDressPieceStandsInsideTheKitsBackstop",
       "issue": "#881",
-      "pr": ""
+      "pr": "#885"
     }
   ]
 }
