@@ -121,8 +121,9 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
 | F2-a #826 ✅ | A park-neutral boundary type. The foul wrap, flare, rail height and backstop move from `HarborWall` literals to data at today's values; `FieldBounds` and the validator stop naming Harbor; the cache key carries every input. SF-08. #732's numbers move but do not change. | FD-07, FR-05 | Nothing |
-| F2-b #845 ✅ | The drawn wall stops mirroring right field onto left; `HarborWallTests` covers both sides of all six parks. SF-05. | FD-06, D15 | **§5 Q5**: near the pole the drawn rail ramps to the fence while the sim rail stays 4.2 ft. Which is the rule? |
-| F2-c | The polyline fence: optional `fence.points` in FD-12 units, a height per point, a wall material per span; `FenceAt` reads it; the clip polygon keeps the vertices; the track, the poles and the drawn wall follow. The three-post circle is the default. SF-06, SF-07, SF-12. | FD-06, FD-12 | **§5 Q4**: the one-distance-per-bearing guardrail |
+| F2-b #845 ✅ | The drawn wall stops mirroring right field onto left; `HarborWallTests` covers both sides of all six parks. SF-05. | FD-06, D15 | §5 Q5 answered: the sim's rail (FD-06-R2); the ramp is F2-b2's |
+| F2-b2 | The drawn rail stays hip-high to the pole, as the flight's does; the ramp past `HarborWall.RampStartZ` goes and the wall steps up at the pole. `SF-05` claims the whole rail on both roots. After F6-a (it draws the loop at every park). | FD-06-R2, D15 | **A look at Harbor's poles** (at review) |
+| F2-c | The polyline fence: optional `fence.points` in FD-12 units, a height per point, a wall material per span; `FenceAt` reads it; the clip polygon keeps the vertices; the track, the poles and the drawn wall follow. The three-post circle is the default. SF-06, SF-07, SF-12. | FD-06, FD-12, FD-06-R1 | §5 Q4 answered (one distance per bearing). After F3-c, whose segment-material function it extends |
 | F2-d | Optional per-park foul parameters and the three outfield starts; the default depth stays the #730 fraction rule. `Diamond.Positions` is process-wide today, so the starts need a match-scoped source. SF-09. | FD-07 | Nothing; values come with a park |
 
 ### F3 — Environment table (Gameplay)
@@ -139,14 +140,14 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
 | F4-a #847 ✅ | The pattern library at parity: a closed type table as named rows (pattern, acts-on, numbers); `ParkHazards` reads rows, not type strings; chompers become data instances; `pipeReachPadFt` and `emberNightFireMul` move under their rows at today's values. SF-03, SF-04. Same outcomes as today, rolls included. | FD-09, FR-08 | §5 Q6 answered: **decoration** (Jack, 2026-09-22) |
-| F4-e | The placement validator on both roots. SF-23. | FD-19 | **§5 Q1** first |
-| F4-b | Status volume, live: a per-body touch test in the tick, a duration, a typed event; the play-wide flag and the park's `drops.frozen` roll go. `ParkSlowRowsTests` is re-authored to the decision. SF-20, SF-22. **Behavior change**: re-report S-29 and park factors. | FD-08-R1, FR-07 | **§5 Q7**: the duration, and whether 0.45 stays |
+| F4-e | The placement validator on both roots, and the eight volumes moved outward along their own bearings until they clear (FD-19-R1). SF-23. **Moves where the landing-point test fires at Crystal and Ember**: re-report S-29 and park factors. | FD-19, FD-19-R1 | §5 Q1 answered |
+| F4-b | Status volume, live: a per-body touch test in the tick, a duration, a typed event; the play-wide flag and the park's `drops.frozen` roll go. `ParkSlowRowsTests` is re-authored to the decision. SF-20, SF-22. **Behavior change**: re-report S-29 and park factors. | FD-08-R1, FD-08-R2, FR-07 | §5 Q7 answered: 3 s; 0.45 unchanged. After F4-e |
 | F4-g | The CPU route costs a volume and goes around a body; no foresight of a draw. SF-26. | FD-14 | Nothing |
-| F4-d | Night blocks: Crystal's window, Ember's reach and Funfair's chompers move into `night` at parity. SF-25. | FD-11 | Nothing to move them. **§5 Q9** before Crystal's block is final |
+| F4-d | Night blocks: Crystal's window, Ember's reach and Funfair's chompers move into `night` at parity. SF-25. | FD-11, FD-11-R1 | §5 Q9 answered: Crystal's trial night block drops the contact window. After F4-h (both touch `ParkHazards`) |
 | F4-h | Hazards off in the sim and the CLI: an empty instance list, nothing else. SF-24. | FD-10 | Nothing |
 | F4-i | Presentation: the title option, the book pair, `HowToPlay`. | FD-10 | Placement on the title (at review) |
-| F4-c | Ball redirect, live: the ball leaves at the entry and re-enters at the exit; the exit is a seeded draw and a typed event. SF-21, SF-27. With the second park. | FD-08, FD-08-R1 | Exit speed and heading as a trial |
-| F4-f | Solid body and timed mover. SF-28. With the park that needs them. | FD-09 | **§5 Q8** for the catch stealer |
+| F4-c | Ball redirect, live: the ball leaves at the entry and re-enters at the exit; the exit is a seeded draw and a typed event. SF-21, SF-27. With the second park. | FD-08, FD-08-R1, FD-09-R2 | Exit speed and heading as a trial; the chomper joins it as a ball redirect (§5 Q8 answered) |
+| F4-f | Solid body and timed mover. SF-28. With the park that needs them. | FD-09 | Nothing (§5 Q8 answered: the chomper goes to F4-c) |
 
 ### F5 — Measurement (Gameplay)
 
@@ -161,7 +162,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | F6-a | Every park draws the one diamond from the geometry owner: bags, chalk, boxes, mound, dirt, the foul rail and backstop. The `ParkView` fallback diamond retires. Harbor does not change. `StarMeter` reads the geometry owner. | FD-16, FR-13 | A look at five parks (at review) |
 | F6-b | Kit slots in `data/art/parks.json` with a validator; `cli art` lists each park's empty slots. Harbor fills them with no visual change. | FD-16 | Nothing |
 | F6-c | Light, sky, fog, ground and wall colors as data chosen by the park, not by an id `if` chain. Same looks. | FD-16, FR-04 | Nothing |
-| F6-d | Hazard actors by pattern, drawn at the sim's true size (the pad included). Greybox dress from data. The five per-park methods retire. | FD-16 | **§5 Q12**: the old primitive backdrops |
+| F6-d | Hazard actors by pattern, drawn at the sim's true size (the pad included). Greybox dress from data. The five per-park methods retire. | FD-16, FD-16-R1 | §5 Q12 answered: keep them behind the backdrop slot |
 
 ### F7 — Look gates (Presentation / Art process)
 
@@ -182,7 +183,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| F9-a | Crystal declares its intent, then names its differences as a scoped numeric trial: an ice outfield row, a glass-board wall material, its air, its body multipliers, its volumes off the lanes, its night block. | FD-18, FD-02, FD-13 | **§5 Q2** (where the numbers live) and **trial acceptance** |
+| F9-a | Crystal declares its intent, then names its differences as a scoped numeric trial: an ice outfield row, a glass-board wall material, its air, its body multipliers, its volumes off the lanes, its night block. | FD-18, FD-02, FD-13, FD-13-R1, FD-13-R2 | §5 Q2 and Q3 answered (`trials/c80` only; probe, play, accept); **trial acceptance** |
 | F9-b | Crystal plays as a greybox in the standalone (`local-player --trial`). | FD-17 | **The greybox sitting**, which also judges FD-04 C |
 | F9-c | Art stages for Crystal. | FD-17, #37 | The look gate |
 
@@ -194,9 +195,9 @@ Rows that change with the design: `ParkSlowRowsTests` (the play-wide slow become
 
 ## 5. Questions that are Jack's
 
-One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a, F3-b, F5-a or F7-a.**
+One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a, F3-b, F5-a or F7-a.** Jack answered Q1–Q5, Q7–Q9 and Q12 on September 22, 2026 in one reply; each answer is a refinement in the register, and the register's history maps each reply item to its question. **Q10 and Q11 stay open until tuning.**
 
-1. **Eight status volumes sit on a running lane or a bag pad.** FD-19 forbids that, and its scope says a failing hazard comes back to you. Found with the lane half-width 5 ft, bag pads 12 ft, home pad 18 ft, mound 9.2 ft from `ParkDiamond`:
+1. ~~**Eight status volumes sit on a running lane or a bag pad.**~~ **Answered, September 22, 2026: "approve".** Each volume moves outward from home along the ray through its own centre until its disc clears every lane, pad, the mound and the plate area; its size is kept; a trial position stays what the migration rule makes of the moved shipped position (FD-19-R1). F4-e does it. Original question: FD-19 forbids that, and its scope says a failing hazard comes back to you. Found with the lane half-width 5 ft, bag pads 12 ft, home pad 18 ft, mound 9.2 ft from `ParkDiamond`:
 
    | Root | Park | Hazard | Place | Crosses |
    | --- | --- | --- | --- | --- |
@@ -210,17 +211,17 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
    | c80 | Ember Keep | `lava_pit` | (−37, 85) r 7 | second → third lane by 5.7 ft |
 
    Funfair's cans and Canopy's barrels pass. Recommended: move each one outward along its own bearing until it clears the lane by its radius, keep its size, and let F9-a place Crystal's for play. Blocks F4-e, then F4-b.
-2. **Where do a park's first numbers live?** Recommended: in `trials/c80` only. The body effect needs the response law, which is on only there; FD-13 says park numbers are trial anchors; and the sitting runs in a `local-player --trial` window. The shipped Crystal stays as it is until a single default exists. Blocks F9-a.
-3. **How do you want to judge ground, air and wall numbers?** Recommended: as for the pitch shapes — a headless probe table first (same ball, two states), then you play them in the trial window, then accept. Blocks F9-a.
-4. **The polyline guardrail.** One fence distance per bearing from home: notches, porches and alleys are legal; an overhang or a fence behind a fence is not. It keeps `FenceAt` a function, so the depth rule, the C80 scale, the clamp and the cameras keep working. Blocks F2-c.
-5. **The rail near the foul pole.** The drawn rail ramps from 4.2 ft up to the fence from 95 ft out; the sim rail is 4.2 ft all the way, and #732 showed pulled balls scored foul for crossing it. Which one is the rule? This sits beside #732. Blocks F2-b.
+2. ~~**Where do a park's first numbers live?**~~ **Answered, September 22, 2026: "approve".** `trials/c80` only; the shipped park stays as it is until a single default exists (FD-13-R1). Original question: Recommended: in `trials/c80` only. The body effect needs the response law, which is on only there; FD-13 says park numbers are trial anchors; and the sitting runs in a `local-player --trial` window. The shipped Crystal stays as it is until a single default exists. Blocks F9-a.
+3. ~~**How do you want to judge ground, air and wall numbers?**~~ **Answered, September 22, 2026: "approve".** A headless probe table, then Jack plays in the trial window, then accepts (FD-13-R2). Original question: Recommended: as for the pitch shapes — a headless probe table first (same ball, two states), then you play them in the trial window, then accept. Blocks F9-a.
+4. ~~**The polyline guardrail.**~~ **Answered, September 22, 2026: "approve".** One fence distance per bearing; an overhang or a fence behind a fence is refused (FD-06-R1). Unblocks F2-c. Original question: One fence distance per bearing from home: notches, porches and alleys are legal; an overhang or a fence behind a fence is not. It keeps `FenceAt` a function, so the depth rule, the C80 scale, the clamp and the cameras keep working. Blocks F2-c.
+5. ~~**The rail near the foul pole.**~~ **Answered, September 22, 2026: "approve".** The sim's rail is the rule: the drawn rail stays hip-high to the pole and the wall steps up there (FD-06-R2). A look change at Harbor: child F2-b2, after F6-a. Original question: The drawn rail ramps from 4.2 ft up to the fence from 95 ft out; the sim rail is 4.2 ft all the way, and #732 showed pulled balls scored foul for crossing it. Which one is the rule? This sits beside #732. Blocks F2-b.
 6. ~~**Statue, train, AC unit, tree.**~~ **Answered, September 22, 2026: "decoration."** A `decoration` pattern row; each gets a real pattern when its park comes up. Built by F4-a (#851).
-7. **The status volume's numbers.** How long a touch slows a body, and whether 0.45 stays (#730 owns 0.45's neighbors, not 0.45). A scoped trial. Blocks F4-b.
-8. **The catch stealer.** A chomper makes an out with no glove. Keep it, change it to a ball redirect, or drop it? Blocks Funfair, not Crystal.
-9. **Crystal's night.** Today: contact window × 0.85, on the at-bat, with no reference source. The reference blackout is a fielding-phase event that a batted ball triggers. Keep, replace, or drop? Blocks Crystal's night block in F9-a.
+7. ~~**The status volume's numbers.**~~ **Answered, September 22, 2026: "slows for 3 seconds".** A touch slows the body for 3 s; the 0.45 factor was not re-decided and stays (FD-08-R2). F4-b builds it. Original question: How long a touch slows a body, and whether 0.45 stays (#730 owns 0.45's neighbors, not 0.45). A scoped trial. Blocks F4-b.
+8. ~~**The catch stealer.**~~ **Answered, September 22, 2026: "approve".** The chomper becomes a ball redirect and never makes an out; `catchStealer` retires once unused (FD-09-R2). Built with F4-c. Original question: A chomper makes an out with no glove. Keep it, change it to a ball redirect, or drop it? Blocks Funfair, not Crystal.
+9. ~~**Crystal's night.**~~ **Answered, September 22, 2026: "drop".** Crystal's trial night block carries no contact-window change (FD-11-R1). Under FD-13-R1 the shipped Crystal keeps 0.85 until a single default exists; that reading is flagged to Jack. Original question: Today: contact window × 0.85, on the at-bat, with no reference source. The reference blackout is a fielding-phase event that a batted ball triggers. Keep, replace, or drop? Blocks Crystal's night block in F9-a.
 10. **The FD-02 band as numbers.** Bounds, seeds, cohort size, per-event bands. At tuning time.
 11. **S-29's pool.** Six parks pooled, or Harbor only plus a park-factor check? At tuning time.
-12. **The old primitive backdrops** (palace, ferris wheel, skyline, castle, trees). They are code chosen by park id, which FR-04 retires. Keep them as named greybox builders behind the backdrop slot, or draw greyboxes with no backdrop until art? Blocks F6-d.
+12. ~~**The old primitive backdrops**~~ **Answered, September 22, 2026: "keep".** The backdrops stay as named greybox builders behind the backdrop slot, picked by slot data, never by park id (FD-16-R1). Original question: (palace, ferris wheel, skyline, castle, trees). They are code chosen by park id, which FR-04 retires. Keep them as named greybox builders behind the backdrop slot, or draw greyboxes with no backdrop until art? Blocks F6-d.
 
 ## 6. Ledger
 
@@ -237,4 +238,5 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 | F4-a hazard pattern library at parity; chompers are park data; four decorations | #847 | #851 | `b8dde6f7` | `40534ad8`: 1925 / 1925, 769 / 769, seals hash-only on the shipped root, seed 7 identical; **trial only:** Funfair night 1.18 → 1.15 runs × Harbor as the migrated chompers go live | none |
 | F3-b ground and wall-material libraries; the zone map | #846 | #850 | `1504b1cf` | `30661804`: 1979 / 1979, 811 / 811, seals hash-only, seed 7 identical; the zone map resolves beside the park like `ParkBoundary`, not on the table | none |
 | Seal the four new rules tables in the evidence packet (found by F4-a) | #853 | — | — | — | none |
+| Jack answers map §5 Q1–Q5, Q7–Q9, Q12 (nine register refinements); F2-b2 added | #814 | this PR | — | docs only | none |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |

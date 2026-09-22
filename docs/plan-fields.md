@@ -125,11 +125,11 @@ The engineering contract. These are patterns the repo already uses; each row nam
 
 | Pattern | Acts on | Types today | What the sim does today | What the pattern needs |
 | --- | --- | --- | --- | --- |
-| Status volume | a body inside it, for a stated time | `freeze_volume`, `lava_pit`, `fire_breath` | landing point in the disc slows **every** chaser for the **whole** play (×0.45) and adds a 0.4 drop roll | per-body touch test in the tick, a duration, CPU route cost, a tell on the body; the park's `drops.frozen` roll retires (FD-08-R1) |
+| Status volume | a body inside it, for a stated time | `freeze_volume`, `lava_pit`, `fire_breath` | landing point in the disc slows **every** chaser for the **whole** play (×0.45) and adds a 0.4 drop roll | per-body touch test in the tick, a 3-second duration (FD-08-R2), CPU route cost, a tell on the body; the park's `drops.frozen` roll retires (FD-08-R1) |
 | Ball redirect | a ball on the ground that enters it | `warp_pipe`, `barrel` | moves the preview landing to a **random** other can; the live ball does not move | live entry; an exit that may be fixed or drawn from the seed (FD-08 C); exit speed and direction; the ball re-enters play as a typed event |
 | Solid body | the ball (carom) and bodies (route around) | `ac_unit`, `tree`, `statue` | nothing | a collider in the flight clip and in the route planner |
 | Timed mover | the ball and bodies, on a clock | `train` | nothing; `periodSec` is not read | a position from the play clock, told ahead |
-| Catch stealer | a ball in the air | chompers (code literal, Funfair id) | a fly that lands in the disc at night is an out | data instances, a tell, and a decision on whether an out with no glove fits the game |
+| Catch stealer | a ball in the air | chompers (park data since F4-a) | a fly that lands in the disc at night is an out | **retires** (FD-09-R2): the chomper becomes a ball redirect and never makes an out |
 | Reward target | the batting team's stars | `billboard` | landing in the disc gives a star; `tag` is ignored | the target on the wall segment it is drawn on |
 | Wall trait | a fielder at the wall | `climb_wall` | a park-wide flag: +6 ft catch radius anywhere, rob to 28 ft | a property of a wall segment (FD-06), not a hazard |
 | Visibility | the batter's window | `nightContactWindowMul` | one park number at night | a night-block field (FD-11) |
@@ -195,7 +195,7 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 to FD-19 and refinement FD-08-R1 are **DIRECTION ACCEPTED**. Detailed contracts, numeric trials, implementation and human acceptance remain open. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 to FD-19, refinement FD-08-R1, FD-09-R1 (map §5 Q6) and the nine refinements of September 22, 2026 (FD-06-R1, FD-06-R2, FD-08-R2, FD-09-R2, FD-11-R1, FD-13-R1, FD-13-R2, FD-16-R1, FD-19-R1) are **DIRECTION ACCEPTED**. Detailed contracts, numeric trials, implementation and human acceptance remain open. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
@@ -279,6 +279,10 @@ Area: Environment. Depends on: FD-03. Evidence: BROSNAN, MH-STAD.
 
 ### FD-06 — What shape may the outfield fence take?
 
+**Refinement FD-06-R2 — Jack, September 22, 2026: the sim's rail is the rule near the pole.** Reply "8. approve" (map §5 Q5). The drawn rail stays hip-high to the pole and the wall steps up to the fence at the pole, where the flight's wall steps; the drawn ramp past `HarborWall.RampStartZ` goes. No sim number changes and #732's flare is untouched. A visible change at Harbor near both poles, so it carries a look gate (child F2-b2, after F6-a).
+
+**Refinement FD-06-R1 — Jack, September 22, 2026: one fence distance per bearing.** Reply "1. approve" (map §5 Q4). Notches, porches and alleys are legal; an overhang or a fence behind a fence is refused by the park validator. `FenceAt` stays a function of the bearing, so the depth rule, the C80 migration, the clamp and the cameras keep working. The three-post circle stays the default. Unblocks F2-c.
+
 **Decision — Jack, September 21, 2026: C.** Reply "C" selects a free polyline: points from pole to pole, each with a height, so a park can have notches, porches and alleys. A span names a wall material, so B's benefits (a tall wall, a low corner, a climbable section) are included. **The three-post arc stays the default**: a park that lists no points plays and draws exactly as today. The author's recommendation was B. Contract work, not selected: the point format (FD-12 units), the validator's limits, and how the fielder-depth rule, the C80 migration, the track, the poles, the drawn wall and the `field` shot follow a free shape. Proposed guardrail: one fence distance per bearing from home, so `AtBatResolver.FenceAt` stays a function and its consumers keep working (`FieldBounds.Build` already clips the flight against a polygon sampled from it). **D15 changes form** and is reconciled in the spec before code: "one number" becomes "the drawn wall equals the flight wall on every span". Full provenance is in the canonical JSON.
 
 Area: Geometry. Depends on: FD-01. Evidence: MLB-FD, SI-WALLS, WP-GM, MH-STAD.
@@ -311,6 +315,8 @@ Area: Geometry. Depends on: FD-01. Evidence: FG-FOUL, FG-FOULHFA.
 
 ### FD-08 — What fairness contract must every hazard obey?
 
+**Refinement FD-08-R2 — Jack, September 22, 2026: a status volume slows a body for 3 seconds.** Reply "3. slows for 3 seconds." (map §5 Q7). The author recommended settling the duration and the factor as a scoped trial. The 0.45 speed factor (`fielding.chase.frozenMul`) was not re-decided and stays. F4-b builds the per-body touch and the duration; the number is Jack's and is not trial-accepted until he has played it.
+
 **Refinement FD-08-R1 — Jack, September 21, 2026: random world, geometric result.** Reply "1". A hazard's draw may decide what the hazard does: when it fires, which exit it picks, where it sends the ball, which body it goes after. The ball and the bodies then decide the play. **No out, hit, drop or catch is awarded by chance.** AGENTS.md's geometry rule stays whole and gains one clarifying sentence. Consequence for F4: the park's use of the `fielding.drops.frozen` result roll (`Match.cs:702`) retires; a special's use of that table is outside this phase. The warp's random exit (`Fielding.cs:701`) may stay, but the live ball must really travel there. Full provenance and the contract block are in the canonical JSON.
 
 **Decision — Jack, September 21, 2026: C.** "C. we can add random party elements for the hazards." Park hazards may carry random party elements: permission, not a requirement. The author's recommendation was A. What follows as engineering, not as a tradeoff: every draw comes from the match's seeded stream and is a typed live event, so the same seed replays the same game; the CPU gets no foresight of a draw; Harbor stays the park with no hazard. **This touched the standing rule "a play is decided by geometry, never by a roll"** (AGENTS.md; roadmap Phase P ban). FD-08-R1 settled it: the rule stays whole, and a draw decides only what a hazard does. Which hazards are random, how often, and every number stay open. Full provenance is in the canonical JSON.
@@ -328,6 +334,8 @@ Area: Hazards. Depends on: FD-01. Evidence: MW-YP, MW-WC, MTA, SSB, PR-RULES.
 **Acceptance:** Both seats and the CPU read the same hazard facts. A scenario per hazard pattern proves the outcome from positions alone. A stranger can say why the hazard did what it did.
 
 ### FD-09 — How are hazards built: one rule per hazard, or a small library of patterns?
+
+**Refinement FD-09-R2 — Jack, September 22, 2026: the chomper becomes a ball redirect.** Reply "9. approve" (map §5 Q8). A chomper never makes an out: it takes the ball and sends it on as a live ball, and where it sends it may be a seeded draw (FD-08-R1). The `catchStealer` pattern leaves the library once no type uses it. Built with F4-c when Funfair comes up; until then the chomper rows keep today's behaviour.
 
 **Decision — Jack, September 21, 2026: B.** Accepted with FD-12, FD-16 and FD-17 as one set ("accept all four recommendations"). A closed pattern library; a hazard type is a data row; no silent fallback. The pattern list is a starting proposal: which patterns ship, the fairness contract (FD-08), placement (FD-19), the catch stealer's place in the game and every number stay open. Full provenance is in the canonical JSON.
 
@@ -361,6 +369,8 @@ Area: Hazards. Depends on: FD-08. Evidence: MPT, MTA, MSC, MSBL, SSB.
 
 ### FD-11 — What may night change?
 
+**Refinement FD-11-R1 — Jack, September 22, 2026: drop Crystal's night contact window.** Reply "6. drop" (map §5 Q9). When F4-d writes the night blocks, Crystal's trial night block carries no contact-window change. Read with FD-13-R1 and the author's framing ("dropping it for the first trial"), the shipped Crystal keeps its 0.85 until a single default exists; this reading is flagged to Jack. No replacement night event is selected.
+
 **Decision — Jack, September 21, 2026: B.** Reply "b" selects a declared night block per park: it overrides named fields of the day park or adds hazard instances; the rest is the day park. It is validated like the day block, and no code picks a number by a park id or by the word night. Harbor's night stays a look only. The three night rules that exist today move into night blocks **at parity**: Crystal's contact window (0.85), Ember's breath reach (1.6) and Funfair's chompers. **Moving them does not endorse them**: the contact-window rule acts on the at-bat and has no reference source; it is reviewed when night blocks are written. Night hazard instances are hazards, so the FD-10 switch removes them; a night field override stays. The CLI gains a night flag so a night rule can be measured. No night value is selected. Full provenance is in the canonical JSON.
 
 Area: Hazards. Depends on: FD-08. Evidence: MW-MSS, MW-PIG, MPT, THT-TWI.
@@ -392,6 +402,10 @@ Area: Rails. Depends on: FD-01. Evidence: code maps only.
 **Acceptance:** A park edit that forgets the trial copy fails a test by name. A hazard sits at the same place relative to the bags on both roots.
 
 ### FD-13 — When does per-park balance start, and against what?
+
+**Refinement FD-13-R2 — Jack, September 22, 2026: probe table, then play, then accept.** Reply "5. approve" (map §5 Q3). Ground, air and wall numbers are judged as the pitch shapes were: a headless probe table first (the same ball in two states), then Jack plays them in the trial window, then accepts. Agents never accept a number.
+
+**Refinement FD-13-R1 — Jack, September 22, 2026: a park's first numbers live in `trials/c80` only.** Reply "4. approve" (map §5 Q2). The body effect needs the response law, which is on only there; park numbers are trial anchors; the sitting runs in a `local-player --trial` window. The shipped park stays as it is until a single default exists.
 
 **Decision — Jack, September 21, 2026: A.** Reply "A". Harbor is the only calibrated park. Every other park is measured against Harbor on predeclared seeds, on both roots, and reported; it is not tuned until C80 is promoted or another single default exists. Park numbers land as trial anchors. A factor outside the FD-02 direction, or a movement of S-29, is a finding in the PR, not a tuning target for it; no expectation is edited to make a park pass. Left open for the tuning step: whether S-29 keeps pooling six parks or becomes Harbor-only plus a per-park factor check. Full provenance is in the canonical JSON.
 
@@ -440,6 +454,8 @@ Area: Legibility. Depends on: FD-02, FD-08. Evidence: SHOW-SZ, SMB-TG.
 
 ### FD-16 — What is a park kit, and what is shared?
 
+**Refinement FD-16-R1 — Jack, September 22, 2026: keep the primitive backdrops.** Reply "7. keep" (map §5 Q12). The palace, ferris wheel, skyline, castle and trees stay as named greybox builders behind the backdrop slot, picked by the park's slot data and never by a park id (FR-04). They are greybox, not art.
+
 **Decision — Jack, September 21, 2026: B.** Accepted as part of the rails set. One park-neutral field kit; parks fill named slots; empty slots draw a complete greybox from data. Harbor fills the slots first with no visual change; the `ParkView` fallback diamond and dress methods retire after that. The slot schema is contract work. No art is commissioned. Full provenance is in the canonical JSON.
 
 Area: Presentation. Depends on: FD-01. Evidence: code maps only.
@@ -487,6 +503,8 @@ Area: Roster. Depends on: FD-01, FD-09. Evidence: MW-PIG.
 **Acceptance:** The proving park needs no code that names it.
 
 ### FD-19 — Where may a hazard sit?
+
+**Refinement FD-19-R1 — Jack, September 22, 2026: move the eight volumes outward.** Reply "2. approve" (map §5 Q1). Each status volume that crosses a lane or a pad moves away from home along the ray through its own centre until its disc clears, keeping its size; a trial position stays what the accepted migration rule makes of the moved shipped position. F4-e makes the move and adds the validator (SF-23), and reports the park factors, because the landing-point test now fires elsewhere at Crystal and Ember. F9-a later places Crystal's for play.
 
 **Decision — Jack, September 21, 2026: B.** Reply "b". A hazard may sit anywhere except the running lanes, the mound-to-plate lane and the bags. The content validator enforces it on both data roots, and a moving hazard obeys it along its whole path. Shallow ball hazards that can take a routine grounder stay legal. Lane widths and pad sizes come from existing geometry (`ParkDiamond`), not new numbers. A current hazard that fails the rule is a finding to bring back, not something to move silently. Full provenance is in the canonical JSON.
 
