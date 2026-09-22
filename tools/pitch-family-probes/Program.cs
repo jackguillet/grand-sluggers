@@ -4,20 +4,21 @@ using System.Text;
 using System.Text.Json;
 using GrandSluggers.Sim;
 
-// Research only (#818, PH-20-R1). This measures the production flight function under the trial
-// overlay trials/pitch5 and writes down what it did. Nothing here is a second flight model, a
-// balance claim, or an acceptance: every number the overlay proposes is Jack's to judge in the
-// trial window, and the shipped root is untouched by this tool and by the overlay it reads.
+// Research only (#818, PH-20-R1). This measures the production flight function on the shipped
+// root and writes down what it did. Nothing here is a second flight model, a balance claim, or an
+// acceptance. The numbers were proposed in trials/pitch5 (#818); Jack played that window and
+// accepted it on September 22, 2026 ("trial was good."), and #860 moved them into data/rules, so
+// the overlay no longer carries a pitching.json and this tool reads the shipped root.
 var root = FindRoot();
 var mode = args.SingleOrDefault() ?? "--check";
 if (mode is not ("--check" or "--write"))
     throw new ArgumentException("Use --check or --write.");
 
-const string Overlay = "trials/pitch5";
+const string Root = "data (shipped root, #860)";
 const string OutputPath = "docs/research/pitch-families-p1d.json";
 const string PlotFolder = "docs/research/pitch-families-p1d";
 
-var dataRoot = new DataRoot(Path.Combine(root, "data"), Path.Combine(root, Overlay));
+var dataRoot = new DataRoot(Path.Combine(root, "data"));
 var rules = RulesTable.Load(dataRoot);
 var families = rules.Pitching.Families;
 var flight = rules.Pitching.Flight;
@@ -132,7 +133,7 @@ foreach (var family in library)
     });
 }
 
-// The margin PH-04 has to survive, for the three families the trial proposes. Worst legal case:
+// The margin PH-04 has to survive, for the three families #860 promoted. Worst legal case:
 // the family's whole sweep plus the player's whole stick the same way, at the highest Pitch stat
 // with a Nice! release, against a batter who starts centred and does not move until the sweep
 // alone has taken the ball a ball-radius off the line it was flying. The charge damps the stick
@@ -187,25 +188,24 @@ var sources = new[]
 {
     "src/GrandSluggers.Sim/PitchFlight.cs", "src/GrandSluggers.Sim/Rules.cs",
     "src/GrandSluggers.Sim/Models.cs", "src/GrandSluggers.Sim/AtBatFeel.cs",
-    "data/rules/pitching.json", "data/rules/batting.json", Overlay + "/rules/pitching.json",
+    "data/rules/pitching.json", "data/rules/batting.json",
     "tools/pitch-family-probes/PitchFamilyProbes.csproj", "tools/pitch-family-probes/Program.cs"
 };
 var options = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 var report = new
 {
     schemaVersion = 1,
-    what = "Curveball, slider and sinker as they fly under the trial overlay " + Overlay + " (#818, PH-20-R1). "
-        + "Derived from the production flight function; proposals, not accepted numbers.",
-    status = "trial-proposal-not-accepted",
-    overlay = Overlay,
+    what = "Curveball, slider and sinker as they fly on the shipped root (#818 proposed them in trials/pitch5; "
+        + "#860 promoted them after Jack accepted the window). Derived from the production flight function.",
+    status = "shipped-after-human-acceptance",
+    dataRoot = Root,
     generatedBy = "dotnet run --project tools/pitch-family-probes -- --write",
     verify = "dotnet run --project tools/pitch-family-probes -- --check",
     notClaimed = new[]
     {
-        "No sitting has happened: the mound is not wired to a seat until P1-f, so nobody has thrown one of these.",
-        "No feel judgment, no balance claim, and no human acceptance (PH-20-R1 keeps that with Jack).",
-        "The shipped root is unchanged; without GRAND_SLUGGERS_TRIAL=" + Overlay + " these three families still stop by name.",
-        "The CPU pitcher never selects them, so no whole-game rate here moved."
+        "Jack's acceptance is his words on the trials/pitch5 window (September 22, 2026: \"trial was good.\"); nothing here adds a feel judgment to it.",
+        "No balance claim: the whole-game rates the CPU's use of these families moved are in docs/research/promote-duel-trial.md, not here.",
+        "The measured flights are the ones #818 wrote under the overlay; #860 moved the same rows, so only the provenance moved."
     },
     method = new
     {
@@ -263,8 +263,7 @@ else
 }
 
 Console.WriteLine($"#818: {rows.Count} flights, {speed.Count} speeds and {coverage.Count} coverage cases "
-    + $"{(mode == "--write" ? "written" : "verified")} under {Overlay}; {plots.Count} plots; "
-    + "proposals only — no sitting, no acceptance, shipped root unchanged.");
+    + $"{(mode == "--write" ? "written" : "verified")} on the shipped root; {plots.Count} plots.");
 
 // ---- helpers ------------------------------------------------------------------------------------
 
@@ -314,7 +313,7 @@ string Svg(Hand throws, bool side)
     svg.Append(CultureInfo.InvariantCulture, $"<rect x=\"0\" y=\"0\" width=\"{W}\" height=\"{H}\" fill=\"#ffffff\"/>\n");
     svg.Append(CultureInfo.InvariantCulture, $"<text x=\"{L}\" y=\"24\" font-size=\"15\" font-weight=\"bold\" fill=\"#111111\">"
         + $"{(side ? "Side view — height" : "Top view — lateral")}, {(throws == Hand.R ? "right" : "left")}-handed pitcher, no steering, middle of the rubber</text>\n");
-    svg.Append(CultureInfo.InvariantCulture, $"<text x=\"{L}\" y=\"40\" font-size=\"11\" fill=\"#555555\">trial {Overlay} — proposed, not accepted (PH-20-R1). Pitch 5, no charge. Feet.</text>\n");
+    svg.Append(CultureInfo.InvariantCulture, $"<text x=\"{L}\" y=\"40\" font-size=\"11\" fill=\"#555555\">shipped root (#860; accepted in trials/pitch5). Pitch 5, no charge. Feet.</text>\n");
 
     // Grid and axes.
     for (var f = Math.Ceiling(lo); f <= hi; f += 1)
@@ -380,7 +379,7 @@ static string Sha(string path) =>
 static string FindRoot()
 {
     for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-        if (Directory.Exists(Path.Combine(dir.FullName, "trials", "pitch5")))
+        if (File.Exists(Path.Combine(dir.FullName, "data", "rules", "pitching.json")))
             return dir.FullName;
     throw new DirectoryNotFoundException("Run from the repository's probe project.");
 }

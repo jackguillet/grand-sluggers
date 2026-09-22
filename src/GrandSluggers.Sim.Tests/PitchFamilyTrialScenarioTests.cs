@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using GrandSluggers.Sim;
 using Xunit;
 
@@ -8,6 +6,11 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// Spec Appendix B.1 rows S-107 … S-113 (#818): the curveball, the slider and the sinker flying
 /// under the trial overlay <c>trials/pitch5</c>, and the shipped root still refusing them by name.
+///
+/// <b>#860:</b> Jack played that window and accepted it on September 22, 2026 ("trial was
+/// good."), so the three rows are now in the shipped <c>pitching.json</c> and the overlay no longer
+/// carries one. <see cref="Trial"/> still loads the overlay, which now resolves pitching to the
+/// shipped file, so S-107 … S-112 hold the shipped rows to the same roles. S-113 holds the promotion.
 ///
 /// <b>Every row asserts a relationship, never a proposed number.</b> The numbers are Jack's to judge
 /// in the trial window (PH-20-R1) and he is expected to change them; what he must not be able to
@@ -22,12 +25,6 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class PitchFamilyTrialScenarioTests
 {
-    static readonly JsonDocumentOptions JsonComments = new()
-    {
-        CommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
     /// <summary>The overlay, named the way a run names it and the way its README names it.</summary>
     const string TrialName = "trials/pitch5";
 
@@ -408,51 +405,42 @@ public sealed class PitchFamilyTrialScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-113  The shipped root refuses all three; the overlay differs in those three rows only
+    // S-113  The shipped root authors all three (#860); a table without the rows still refuses them
     // ---------------------------------------------------------------------------------
 
     [Fact]
     public void S113_TheShippedRootStopsByNameAndTheTrialAddsNothingElse()
     {
-        // (a) Shipped: three library ids, no rows, a loud stop that names the family and says where
-        //     its numbers live. Nothing flies as a fastball.
-        var shipped = ShippedRules.Pitching.Families;
+        // #860: Jack played the trials/pitch5 window and accepted it on September 22, 2026 ("trial
+        // was good."), so the three rows moved into the shipped pitching.json. This row now holds
+        // the promotion instead of the trial: the shipped root is the accepted trial, the overlay
+        // no longer carries a pitching.json at all, and the stop by name is the off path — a table
+        // with no row, built here (the code defaults, whose three optional rows are null).
+
+        // (a) The off path: three library ids, no rows, a loud stop that names the family and says
+        //     where its numbers live. Nothing flies as a fastball.
+        var bare = RulesTable.Defaults;
         foreach (var family in Proposed)
         {
-            Assert.False(shipped.IsAuthored(family));
-            var stopped = Assert.Throws<InvalidOperationException>(() => shipped.Of(family));
+            Assert.False(bare.Pitching.Families.IsAuthored(family));
+            var stopped = Assert.Throws<InvalidOperationException>(() => bare.Pitching.Families.Of(family));
             Assert.Contains(family, stopped.Message, StringComparison.Ordinal);
-            Assert.Contains(TrialName, stopped.Message, StringComparison.Ordinal);
+            Assert.Contains("pitching.json", stopped.Message, StringComparison.Ordinal);
             Assert.Throws<InvalidOperationException>(
-                () => PitchFlight.Crossing(new PitchCommand(family, 0, false), rules: ShippedRules));
+                () => PitchFlight.Crossing(new PitchCommand(family, 0, false), rules: bare));
         }
-        Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, shipped.Authored);
+        Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, bare.Pitching.Families.Authored);
         Assert.Equal(new[] { "fastball", "changeup" }, Training.CorePitches);
 
-        // (b) The overlay carries one file, and it is the shipped file plus two named additions:
-        //     the three family rows (#818) and the human-input CPU with its trial weights (#823).
-        //     Put both back and the two are the same JSON — so a shipped edit that forgets this
-        //     overlay fails here instead of quietly making the trial measure a third thing.
+        // (b) The shipped root authors all five, and the overlay leaves pitching.json alone: it
+        //     overrides one file, batting.json, for #855's geometryOnly (S-126).
+        var shipped = ShippedRules.Pitching.Families;
+        Assert.Equal(PitchFamily.All, shipped.Authored);
+        Assert.True(ShippedRules.Pitching.Cpu.HumanInputs, "the shipped CPU runs on human inputs (#860)");
         var root = TrialRoot;
-        // #844 added the second file: the overlay is now the Phase 1 + Phase 2 duel trial, and the
-        // batting window's own equality check is SharedWindowScenarioTests.S126_….
-        Assert.Equal(new[] { "rules/batting.json", "rules/pitching.json" }, root.Overrides);
+        Assert.Equal(new[] { "rules/batting.json" }, root.Overrides);
         Assert.Equal(TrialName, root.OverlayName);
-
-        var shippedJson = Parse(Path.Combine(Shipped, "rules", "pitching.json"));
-        var trialJson = Parse(root.Resolve("rules", "pitching.json"));
-        foreach (var family in Proposed)
-            Assert.True(trialJson["families"]!.AsObject().Remove(family), $"the overlay has no {family} row");
-
-        var shippedCpu = shippedJson["cpu"]!.AsObject();
-        var trialCpu = trialJson["cpu"]!.AsObject();
-        Assert.False(shippedCpu["humanInputs"]!.GetValue<bool>(), "the shipped root leaves the CPU switch off");
-        Assert.True(trialCpu["humanInputs"]!.GetValue<bool>(), "the overlay turns the CPU switch on");
-        trialCpu["humanInputs"] = false;
-        foreach (var row in new[] { "even", "ahead", "behind", "runnerTwoOuts" })
-        foreach (var key in new[] { "families", "chargeChance", "steerChance" })
-            trialCpu[row]!.AsObject()[key] = JsonNode.Parse(shippedCpu[row]![key]!.ToJsonString());
-        Assert.Equal(shippedJson.ToJsonString(), trialJson.ToJsonString());
+        Assert.Equal(Path.Combine(Shipped, "rules", "pitching.json"), root.Resolve("rules", "pitching.json"));
 
         // (c) Under the overlay the whole library is authored, in library order.
         var trial = Trial.Pitching.Families;
@@ -494,7 +482,4 @@ public sealed class PitchFamilyTrialScenarioTests
 
     static double Chord(double[] path, int i) =>
         path[0] + (path[^1] - path[0]) * UGrid[i];
-
-    static JsonObject Parse(string path) =>
-        JsonNode.Parse(File.ReadAllText(path), null, JsonComments)!.AsObject();
 }
