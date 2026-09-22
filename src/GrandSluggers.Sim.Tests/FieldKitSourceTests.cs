@@ -46,7 +46,7 @@ public sealed class FieldKitSourceTests
         Assert.DoesNotContain("RampPrism(", harbor, StringComparison.Ordinal);
     }
 
-    // ---- F6-a2 (#881): the kit owns the backstop around the plate ----
+    // ---- F6-a2 (#881): no dress piece stands in the backstop around the plate or in a dugout ----
 
     /// <summary>
     /// F6-a2 (#881; FD-16 B, FD-01, FR-13, FR-05): the kit owns the backstop around the plate, so no
@@ -180,6 +180,130 @@ public sealed class FieldKitSourceTests
         Assert.Contains(spots, s => s.Name == "spots" && s.FromPlateFt > line);
         Assert.DoesNotContain(spots, s => s.Name is "NearGlow" or "NearSpot");
     }
+
+    /// <summary>
+    /// F6-a2 (#881, extended after Jack's look at the sheets: "looks like we also need to get rid of
+    /// those old dugouts"): no park's dress builds a dugout. Until then every park but Harbor stood a
+    /// bench (and, at three of them, an awning over it) at (±42, 22), in foul ground in front of the
+    /// span Harbor's dugouts fill. Harbor's dugouts are its own dress in <c>HarborKit</c>, which this
+    /// scan does not read, and they do not change.
+    ///
+    /// <para>
+    /// The region is the one the geometry owner already pins at every park (<see cref="InADugout"/>):
+    /// along each foul line from <see cref="HarborDugout.AlongHome"/> to <see cref="HarborDugout.AlongBag"/>
+    /// — the span the star meter stands on the rail over at every park — and from the chalk into foul
+    /// ground as far as the pit's back wall, the rail's offset (<see cref="HarborWall.FoulOffset"/>, from
+    /// <see cref="ParkBoundary"/>) plus the pit's depth. A dress piece placed there is a dugout, whether
+    /// it sits in front of the rail or behind it.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void NoDressPieceStandsInADugout()
+    {
+        var spots = Spots(Runtime("ParkView.cs"));
+        Assert.NotEmpty(spots);
+
+        var inside = spots.Where(InADugout).ToList();
+        Assert.True(inside.Count == 0,
+            $"the dugouts stand {HarborDugout.AlongHome:0.0}-{HarborDugout.AlongBag:0.0} ft along each foul line, from the chalk to "
+            + $"{DugoutBackFt:0.0} ft into foul ground; these dress pieces stand in one:\n"
+            + string.Join("\n", inside.Select(s => "  " + s)));
+    }
+
+    /// <summary>
+    /// The dugout region catches every bench and awning F6-a2 removed, written as they were
+    /// (<c>ParkView.cs</c> at <c>0f93da5a</c>), and is bounded where the geometry owner bounds it: a
+    /// piece in the pit behind the rail is in it; the same spot mirrored into fair ground, one past the
+    /// bag end, one short of the home end and one behind the pit's back wall are not.
+    /// </summary>
+    [Fact]
+    public void TheDugoutScanCatchesTheBenchesF6a2Retired()
+    {
+        const string retired = """
+            void CrystalGarden(Park park)
+            {
+                Cube("IceBench1B", new Vector3(42, 1.1f, 22), new Vector3(20, 1.0f, 6), ice);
+                Cube("IceBench3B", new Vector3(-42, 1.1f, 22), new Vector3(20, 1.0f, 6), ice);
+            }
+
+            void FunfairBenches(Material wood, Material canvas)
+            {
+                Cube("Bench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
+                Cube("Awning1B", new Vector3(42, 5.2f, 22), new Vector3(22, 0.5f, 8), canvas);
+                Cube("Bench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
+                Cube("Awning3B", new Vector3(-42, 5.2f, 22), new Vector3(22, 0.5f, 8), canvas);
+            }
+
+            void RooftopDeck(Park park)
+            {
+                Cube("Bench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), tar);
+                Cube("Awning1B", new Vector3(42, 5.4f, 22), new Vector3(22, 0.35f, 8), neon);
+                Cube("Bench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), tar);
+                Cube("Awning3B", new Vector3(-42, 5.4f, 22), new Vector3(22, 0.35f, 8), magenta);
+            }
+
+            void CanopyGrounds(Park park)
+            {
+                Cube("LogBench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
+                Cube("LeafAwning1B", new Vector3(42, 5.4f, 22), new Vector3(22, 0.6f, 8), leaf);
+                Cube("LogBench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
+                Cube("LeafAwning3B", new Vector3(-42, 5.4f, 22), new Vector3(22, 0.6f, 8), leaf);
+            }
+
+            void EmberCourtyard(Park park)
+            {
+                Cube("StoneBench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), stone);
+                Cube("StoneBench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), stone);
+            }
+
+            void Bounds(Park park)
+            {
+                Cube("InThePit", new Vector3(-64.7f, 1, 8.84f), new Vector3(4, 2, 4), stone);
+                Cube("FairMirror", new Vector3(22, 1, 42), new Vector3(4, 2, 4), stone);
+                Cube("PastTheBagEnd", new Vector3(66.5f, 1, 46.7f), new Vector3(4, 2, 4), stone);
+                Cube("ShortOfTheHomeEnd", new Vector3(41, 1, -1.4f), new Vector3(4, 2, 4), stone);
+                Cube("BehindThePit", new Vector3(62, 1, -2), new Vector3(4, 2, 4), stone);
+            }
+            """;
+
+        var spots = Spots(retired);
+        var inside = spots.Where(InADugout).Select(s => s.Method + "." + s.Name).OrderBy(n => n, StringComparer.Ordinal).ToArray();
+        var expected = new[]
+        {
+            "CrystalGarden.IceBench1B", "CrystalGarden.IceBench3B",
+            "FunfairBenches.Bench1B", "FunfairBenches.Awning1B", "FunfairBenches.Bench3B", "FunfairBenches.Awning3B",
+            "RooftopDeck.Bench1B", "RooftopDeck.Awning1B", "RooftopDeck.Bench3B", "RooftopDeck.Awning3B",
+            "CanopyGrounds.LogBench1B", "CanopyGrounds.LeafAwning1B", "CanopyGrounds.LogBench3B", "CanopyGrounds.LeafAwning3B",
+            "EmberCourtyard.StoneBench1B", "EmberCourtyard.StoneBench3B",
+            "Bounds.InThePit"
+        }.OrderBy(n => n, StringComparer.Ordinal).ToArray();
+        Assert.Equal(expected, inside);
+
+        // The benches stood 47 ft out, past the backstop line: only the dugout region names them.
+        Assert.DoesNotContain(spots, s => s.FromPlateFt < BackstopOuterFaceFt());
+    }
+
+    /// <summary>
+    /// A spot in a dugout, on either side, as the geometry owner pins it at every park: between
+    /// <see cref="HarborDugout.AlongHome"/> and <see cref="HarborDugout.AlongBag"/> along the foul line
+    /// (the span <see cref="HarborDugout.WallOpensHere"/> opens and the star meter reads), and from the
+    /// chalk into foul ground out to the pit's back wall (<see cref="DugoutBackFt"/>). The rail is still
+    /// parallel to the line over the span (it flares from <see cref="ParkBoundary.FlareStartFt"/>), so
+    /// the offset is the rail's at every park.
+    /// </summary>
+    static bool InADugout(Spot s)
+    {
+        const double inv = 0.7071067811865476;
+        var ax = Math.Abs(s.X - Diamond.Home.X);
+        var z = s.Z - Diamond.Home.Z;
+        var along = (ax + z) * inv;
+        var into = (ax - z) * inv;
+        return along >= HarborDugout.AlongHome && along <= HarborDugout.AlongBag
+            && into > 0 && into <= DugoutBackFt;
+    }
+
+    /// <summary>The pit's back wall, measured into foul ground from the chalk: the rail, then the pit's depth behind it.</summary>
+    static double DugoutBackFt => HarborWall.FoulOffset + 2.0 * HarborDugout.HalfDeep;
 
     /// <summary>
     /// Where the kit's backstop wall stops, measured from the plate: the radius of the loop's wrap —
