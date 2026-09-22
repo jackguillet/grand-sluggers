@@ -81,13 +81,23 @@
     "cpuSwapLead": 3
   },
   "cpu": {
+    "humanInputs": false,
     "even": {
       "location": "edge",
       "normal": 45,
       "charge": 20,
       "changeup": 15,
       "break": 20,
-      "starChance": 0.05
+      "starChance": 0.05,
+      "families": {
+        "fastball": 85,
+        "changeup": 15,
+        "curveball": 0,
+        "slider": 0,
+        "sinker": 0
+      },
+      "chargeChance": 0.2,
+      "steerChance": 0.2
     },
     "ahead": {
       "location": "waste",
@@ -95,7 +105,16 @@
       "charge": 15,
       "changeup": 35,
       "break": 30,
-      "starChance": 0.15
+      "starChance": 0.15,
+      "families": {
+        "fastball": 65,
+        "changeup": 35,
+        "curveball": 0,
+        "slider": 0,
+        "sinker": 0
+      },
+      "chargeChance": 0.15,
+      "steerChance": 0.3
     },
     "behind": {
       "location": "middleIn",
@@ -103,7 +122,16 @@
       "charge": 30,
       "changeup": 5,
       "break": 5,
-      "starChance": 0
+      "starChance": 0,
+      "families": {
+        "fastball": 95,
+        "changeup": 5,
+        "curveball": 0,
+        "slider": 0,
+        "sinker": 0
+      },
+      "chargeChance": 0.3,
+      "steerChance": 0.05
     },
     "runnerTwoOuts": {
       "location": "middle",
@@ -111,7 +139,16 @@
       "charge": 40,
       "changeup": 0,
       "break": 10,
-      "starChance": 0
+      "starChance": 0,
+      "families": {
+        "fastball": 100,
+        "changeup": 0,
+        "curveball": 0,
+        "slider": 0,
+        "sinker": 0
+      },
+      "chargeChance": 0.4,
+      "steerChance": 0.1
     },
     "locations": {
       "edgeInsetFt": 0.2,

@@ -648,24 +648,62 @@ public sealed class StaminaRules
 /// </summary>
 public sealed class CpuPitcherRules
 {
+    /// <summary>
+    /// <b>The switch (PH-18-R1, #823).</b> <c>false</c> — the shipped root — is today's CPU: it
+    /// solves an endpoint with a height (<c>AimX</c> / <c>AimY</c>) and treats charge, changeup and
+    /// break as four exclusive verbs. <c>true</c> — <c>trials/pitch5</c> — is
+    /// <see cref="Match.CpuPitchByInputs"/>: the pitch is built from the inputs a human has and
+    /// nothing else (rubber for location, presses for family, charge and steer as modifiers, a bend
+    /// no bigger than a held stick reaches), and its height is whatever the family gives (PH-03).
+    ///
+    /// <para>
+    /// Off, not a never-sentinel, because this is a code path and not a number: the #722 convention
+    /// picks a per-rung sentinel when a rule has a value that could shadow "never", and a bool has
+    /// no such value. Off is byte-identical to the shipped CPU — same draws, same order, same
+    /// stream (S-114).
+    /// </para>
+    ///
+    /// <para>
+    /// Jack judges the on side in sitting 1, with P1-d's shapes and P1-f's verb. Whether it ever
+    /// flips on the shipped root is his, not an agent's.
+    /// </para>
+    /// </summary>
+    public bool HumanInputs { get; init; } = false;
     /// <summary>0-0, 1-0, 1-1 and every count no other row claims.</summary>
-    public CpuPitchRow Even { get; init; } = new() { Location = "edge", Normal = 45, Charge = 20, Changeup = 15, Break = 20, StarChance = 0.05 };
+    public CpuPitchRow Even { get; init; } = new() { Location = "edge", Normal = 45, Charge = 20, Changeup = 15, Break = 20, StarChance = 0.05,
+        Families = new CpuFamilyWeights { Fastball = 85, Changeup = 15, Curveball = 0, Slider = 0, Sinker = 0 },
+        ChargeChance = 0.20, SteerChance = 0.20 };
     /// <summary>Ahead 0-2, 1-2: waste, then edge.</summary>
-    public CpuPitchRow Ahead { get; init; } = new() { Location = "waste", Normal = 20, Charge = 15, Changeup = 35, Break = 30, StarChance = 0.15 };
+    public CpuPitchRow Ahead { get; init; } = new() { Location = "waste", Normal = 20, Charge = 15, Changeup = 35, Break = 30, StarChance = 0.15,
+        Families = new CpuFamilyWeights { Fastball = 65, Changeup = 35, Curveball = 0, Slider = 0, Sinker = 0 },
+        ChargeChance = 0.15, SteerChance = 0.30 };
     /// <summary>Behind 2-0, 3-0, 3-1: middle-in, safe.</summary>
-    public CpuPitchRow Behind { get; init; } = new() { Location = "middleIn", Normal = 60, Charge = 30, Changeup = 5, Break = 5, StarChance = 0 };
+    public CpuPitchRow Behind { get; init; } = new() { Location = "middleIn", Normal = 60, Charge = 30, Changeup = 5, Break = 5, StarChance = 0,
+        Families = new CpuFamilyWeights { Fastball = 95, Changeup = 5, Curveball = 0, Slider = 0, Sinker = 0 },
+        ChargeChance = 0.30, SteerChance = 0.05 };
     /// <summary>A runner on with two outs: middle, fast; never a pitch-out.</summary>
-    public CpuPitchRow RunnerTwoOuts { get; init; } = new() { Location = "middle", Normal = 50, Charge = 40, Changeup = 0, Break = 10, StarChance = 0 };
+    public CpuPitchRow RunnerTwoOuts { get; init; } = new() { Location = "middle", Normal = 50, Charge = 40, Changeup = 0, Break = 10, StarChance = 0,
+        Families = new CpuFamilyWeights { Fastball = 100, Changeup = 0, Curveball = 0, Slider = 0, Sinker = 0 },
+        ChargeChance = 0.40, SteerChance = 0.10 };
     public CpuPitchLocations Locations { get; init; } = new();
-    /// <summary>Aim scatter in feet per Pitch-stat point below 11 (spec §4.8).</summary>
+    /// <summary>
+    /// Scatter in feet per Pitch-stat point below 11 (spec §4.8). Off the switch it is aim scatter in
+    /// both axes around the endpoint; on it, it is noise on the CPU's own rubber intent in X, because
+    /// under the human-input model there is no vertical input to miss in.
+    /// </summary>
     public double ScatterFtPerPitchStat { get; init; } = 0.10;
     [Positive] public double TiredScatterMul { get; init; } = 1.6;
     /// <summary>A charged CPU pitch releases inside the Nice! band this often.</summary>
     [Chance] public double NiceChance { get; init; } = 0.3;
     [Chance] public double TapMin { get; init; } = 0.1;
     [Chance] public double TapSpan { get; init; } = 0.35;
-    /// <summary>The CPU walks the rubber before this share of pitches (a real verb: the batter may mistrack, §5.9).</summary>
+    /// <summary>
+    /// The CPU walks the rubber before this share of pitches (a real verb: the batter may mistrack,
+    /// §5.9). <b>Shipped-path only</b>: with <see cref="HumanInputs"/> on, the rubber <i>is</i> the
+    /// location, so it is solved on every pitch and there is no separate walk to roll for.
+    /// </summary>
     [Chance] public double RubberWalkChance { get; init; } = 0.35;
+    /// <inheritdoc cref="RubberWalkChance"/>
     [Chance] public double RubberWalkMax { get; init; } = 0.4;
 
     internal void Validate(string source, List<string> errors)
@@ -676,19 +714,86 @@ public sealed class CpuPitcherRules
                 errors.Add($"{source}: pitching.cpu.{name}.location must be one of [edge, waste, middleIn, middle]; got '{row.Location}'");
             if (row.Normal + row.Charge + row.Changeup + row.Break <= 0)
                 errors.Add($"{source}: pitching.cpu.{name} pitch mix must have a positive total");
+            // A row that weights nothing has no family to throw. The run-time filter can still empty
+            // a row for one pitcher (the row weights only families this arm does not own, or the
+            // table does not author) and that falls back to the fastball every pitcher throws
+            // (PH-15-R1, Match.CpuPitchByInputs) — but a row that weights nothing for *anybody* is a
+            // broken table, and it is caught here rather than read as "always the fastball".
+            if (row.Families.Total() <= 0)
+                errors.Add($"{source}: pitching.cpu.{name}.families must weight at least one family: a row with no "
+                    + "family to throw is not a pitch (spec §4.8, pitching.cpu.humanInputs)");
         }
     }
 }
 
-/// <summary>One row of the CPU pitcher's table: where, and the mix of the four verbs (weights).</summary>
+/// <summary>
+/// One row of the CPU pitcher's table: where, and how it throws there.
+///
+/// <para>
+/// Two mixes live here, one per side of <see cref="CpuPitcherRules.HumanInputs"/>.
+/// <see cref="Normal"/> / <see cref="Charge"/> / <see cref="Changeup"/> / <see cref="Break"/> are
+/// the shipped model's four <b>exclusive verbs</b>. <see cref="Families"/> plus
+/// <see cref="ChargeChance"/> and <see cref="SteerChance"/> are the human-input model: a family from
+/// the library, then charge and steer as <b>independent modifiers</b> on it, the way a hand has them
+/// (PH-02-R1). The shipped file authors both, and the second is the port of the first written down —
+/// fastball takes every verb that was not the changeup, and the charge and break shares become the
+/// two chances — so the switch has a stated starting point rather than a new invention.
+/// </para>
+/// </summary>
 public sealed class CpuPitchRow
 {
     public string Location { get; init; } = "edge";
+    /// <summary>Shipped model: a tap with no stick. Inert while <see cref="CpuPitcherRules.HumanInputs"/> is on.</summary>
     public double Normal { get; init; } = 45;
+    /// <inheritdoc cref="Normal"/>
     public double Charge { get; init; } = 20;
+    /// <inheritdoc cref="Normal"/>
     public double Changeup { get; init; } = 15;
+    /// <inheritdoc cref="Normal"/>
     public double Break { get; init; } = 20;
     [Chance] public double StarChance { get; init; } = 0.05;
+    /// <summary>
+    /// Human-input model: the weight of each family in this count, filtered at run time to the slots
+    /// this pitcher can actually select (<c>PitchSelection.IsSelectable</c>) and renormalised. Inert
+    /// while <see cref="CpuPitcherRules.HumanInputs"/> is off.
+    /// </summary>
+    public CpuFamilyWeights Families { get; init; } = new();
+    /// <summary>Human-input model: this share of pitches is charged to MAX, independent of the family.</summary>
+    [Chance] public double ChargeChance { get; init; } = 0.20;
+    /// <summary>Human-input model: this share holds the stick one way from release, independent of the family and the charge.</summary>
+    [Chance] public double SteerChance { get; init; } = 0.20;
+}
+
+/// <summary>
+/// The weight of each family in one count row (spec §4.8, PH-15, PH-18-R1). Named properties, not a
+/// dictionary, for the same reason the family library is (#810): every weight is range-checked,
+/// compared against the JSON, and refused when it is a key this table does not own.
+///
+/// <para>A weight is a share, not a probability: the row's weights are filtered to what this pitcher
+/// can select and then renormalised, so a row may weight a family no pitcher on the roster owns
+/// without being wrong — it simply never comes up.</para>
+/// </summary>
+public sealed class CpuFamilyWeights
+{
+    public double Fastball { get; init; } = 85;
+    public double Changeup { get; init; } = 15;
+    public double Curveball { get; init; }
+    public double Slider { get; init; }
+    public double Sinker { get; init; }
+
+    /// <summary>The weight this row gives a family id; an id the library does not have weighs nothing.</summary>
+    public double Of(string family) => family switch
+    {
+        PitchFamily.Fastball => Fastball,
+        PitchFamily.Changeup => Changeup,
+        PitchFamily.Curveball => Curveball,
+        PitchFamily.Slider => Slider,
+        PitchFamily.Sinker => Sinker,
+        _ => 0
+    };
+
+    /// <summary>Every weight in the row, before any pitcher filters it.</summary>
+    public double Total() => Fastball + Changeup + Curveball + Slider + Sinker;
 }
 
 /// <summary>Where the named locations sit, in feet from the zone's edges and center.</summary>
@@ -702,7 +807,11 @@ public sealed class CpuPitchLocations
     public double WasteOutFt { get; init; } = 0.3;
     /// <summary>Middle-in sits this far toward the batter from center.</summary>
     public double MiddleInFt { get; init; } = 0.35;
-    /// <summary>A middle target varies its height by ± this.</summary>
+    /// <summary>
+    /// A middle target varies its height by ± this. <b>Shipped-path only</b>: with
+    /// <see cref="CpuPitcherRules.HumanInputs"/> on there is no vertical input at all, so height is
+    /// the family's and nothing spreads it (PH-03).
+    /// </summary>
     public double MiddleYSpreadFt { get; init; } = 0.5;
 }
 
