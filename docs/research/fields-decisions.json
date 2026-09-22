@@ -407,7 +407,7 @@
           "child": "F3-b",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/846",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/850",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [],
@@ -474,7 +474,7 @@
           "child": "F2-b",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/845",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/848",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [],
@@ -730,7 +730,7 @@
           "child": "F4-a",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/847",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/851",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [],
@@ -1505,6 +1505,10 @@
     {
       "date": "2026-09-22",
       "event": "F3-b opened as PR #850 (#846), on top of F3-a / F3-a2: the closed ground and wall-material libraries and the zone map, at parity. data/rules/grounds.json carries one named row per ground id (grass, dirt, ice, ash - exactly the ids a park's surface has always been allowed to be), each with roll, bounce and the whole skid block; data/rules/walls.json carries one row, padded, with today's flight.wall. Every row is seeded with today's flight.json value, and GroundLibraryTests asserts each one equals the flight block field for field on both roots, so the two copies cannot drift before F3-c retires the flight copy. Named properties, not a Dictionary, so the reflective range walk, the unknown-key refusal and the JSON = code parity test reach inside a row (D20's precedent, FR-02). Both tables are wired like infield.json including both the AtLevel and the AtPark copies, which #832's reflection test now holds by reference; trials/c80 gets no copy. The zone map: a park's ground is infieldDirt / outfield / warningTrack / foulApron, each naming a ground id, with an optional zones block on a park inside #820's strict schema and no park naming one. The defaults are derived so surface keeps its meaning - outfield and foulApron are the surface, infieldDirt and warningTrack are dirt - and surface validation moves off the hard-coded set in ContentValidation.cs onto an id the grounds table has, beside F4-a's move of the hazard type set onto its own table. GroundZones.ZoneAt(x, z) is the one function F3-c and F3-d will call, and its boundaries are read rather than moved: flight.classes.infieldLipFt for the lip, ParkDiamond.TrackWidth inside AtBatResolver.FenceAt for the track, and the 45 degree chalk, all pinned by a sweep over both roots, six parks, 65 bearings and 84 radii against that geometry computed independently. The resolved map lives beside the table rather than on it, because AtPark hands back the global table itself for a park that names no air (SF-01) and a per-park map on it would have made every park's table a copy. With F4-a's hazard half already merged, SF-03 is now closed on all three counts. Zero behavior change: seed 7 Final and the six-park park-factors table are identical, full dotnet test and the compact filter green, cli art / tutorials / protocol and unity-compile OK, and the evidence seals moved by source hash only. One expectation moved and not to pass: ContentValidationTests still refuses a surface of 'water' by name, but the sentence now names grounds.json, because what a surface may be is the library's answer rather than a list in the validator. Rebased onto b8dde6f7 (F4-a #847) and resealed there. No decision status changed; no number accepted; no human gate (no player-facing change)."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F2-b #848 (fdc9a48f), F4-a #851 (b8dde6f7) and F3-b #850 (1504b1cf) merged at parity on the shipped root; the trial's Funfair chompers went live by the accepted migration rule (reported). #853 filed for the four unsealed rules tables. Map questions 6 answered (decoration)."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
