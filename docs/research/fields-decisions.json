@@ -503,7 +503,14 @@
         "answer_quote": "C"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F2-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/826",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/833",
+          "status": "in review"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -1352,6 +1359,10 @@
     {
       "date": "2026-09-21",
       "event": "F1-a opened as PR #831 (#820): park files refuse an unknown key on both roots, naming the file and the key; notes stays as a declared member off the Park record; nightOnly, dayOnly and the Funfair train's periodSec are removed from all twelve files; the field-pick cycle comes from a required, unique pickOrder and the home-park map from each park's faction; an unknown park id is a stop, not Harbor; ExhibitionPick.DefaultPark is the one park-id literal left in the sim, with ParkHazards.ChompFly (F4-a) and CarnivalFront (F8-a) named as the pending exceptions. Zero behaviour change: seed 7 and the park-factors table are identical and the seals moved by source hash only. SF-02 and the sim half of SF-04. No decision status changed; no human gate."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "F2-a (#826, PR #833) moved the boundary out of HarborWall: the foul rail's offset and flare, the rail top, the backstop and the dugout pad are data/rules/boundary.json read through a ParkBoundary value type; FieldBounds and the park validator's fence floor name no park's class; the polygon cache keys on the resolved edge. Parity only - every value is the one that shipped (36, 95, 4.2, -36, 18), trials/c80 carries no copy, SF-08 holds vertex for vertex for six parks on both roots, seed 7 and the park factors are identical. FD-07 status unchanged; no number was selected and no human gate passed."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
