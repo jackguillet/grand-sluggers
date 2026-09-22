@@ -55,10 +55,23 @@ switch (cmd)
         var cohortAt = Array.IndexOf(args, "--cohort");
         if (cohortAt >= 0)
         {
-            if (cohortAt != 1 || args.Length != 3 || !RaceCohort.Names.Contains(args[2]))
+            // --table is the park-factors report read by a person instead of filed as JSON; every
+            // other argument is refused, because a cohort fixes its own seeds, parks and matchups.
+            var table = args.Length == 4 && args[3] == "--table" && args.ElementAtOrDefault(2) == ParkFactorCohort.Name;
+            var names = RaceCohort.Names.Append(ParkFactorCohort.Name).ToArray();
+            if (cohortAt != 1 || (args.Length != 3 && !table) || !names.Contains(args[2]))
             {
-                Console.Error.WriteLine("Use match --cohort s29|harbor-calibration|harbor-validation without overrides; each cohort fixes its seeds, parks and matchups.");
+                Console.Error.WriteLine($"Use match --cohort {string.Join("|", names)} without overrides; each cohort fixes its seeds, parks and matchups. Add --table to read {ParkFactorCohort.Name} as a table instead of JSON.");
                 Environment.ExitCode = 2;
+                break;
+            }
+            if (args[2] == ParkFactorCohort.Name)
+            {
+                var report = ParkFactorCohort.Run(content);
+                // The table always reaches a person: on stdout when asked for, beside the provenance
+                // line on stderr otherwise, so the filed JSON stays byte-comparable between runs.
+                if (table) Console.Write(report.Table());
+                else { Console.Error.Write(report.Table()); Console.WriteLine(report.ToJson()); }
                 break;
             }
             Console.WriteLine(RaceCohort.Run(content, args[cohortAt + 1]).ToJson());
@@ -66,7 +79,7 @@ switch (cmd)
         }
         // A park or a captain the catalog does not have is a stop, not a silent fall back to Harbor
         // (#820): a run that prints a Final under the wrong park is worse than no run at all.
-        try { RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args)); }
+        try { RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args), Night(args)); }
         catch (KeyNotFoundException e) { Console.Error.WriteLine("match: " + e.Message); Environment.ExitCode = 2; }
         break;
     case "challenge":
@@ -103,8 +116,9 @@ switch (cmd)
               team [spark-allstars|ember-court|mixed-rivals|rio|vale|zig|brondo|konga|ashlord]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
-              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--difficulty easy|normal|hard] [--trace [file]]
+              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--night] [--difficulty easy|normal|hard] [--trace [file]]
               match --cohort s29|harbor-calibration|harbor-validation
+              match --cohort park-factors [--table]
               challenge [--captain rio] [--seed N]
               art
               protocol
@@ -121,6 +135,12 @@ static int Seed(string[] args)
             return n;
     return 1;
 }
+
+/// <summary>
+/// A night game (§14). The park's night rules — Crystal's contact window, Ember's breath reach,
+/// Funfair's chompers — could not be measured headless before this flag existed.
+/// </summary>
+static bool Night(string[] args) => args.Contains("--night");
 
 static string ParkId(string[] args)
 {
@@ -295,17 +315,17 @@ static void DumpChem(ContentCatalog content, string id)
     }
 }
 
-static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty, string? trace)
+static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty, string? trace, bool night)
 {
     var match = string.IsNullOrEmpty(parkId)
-        ? Match.Exhibition(content, home, away, innings: 3, seed: seed, difficulty: difficulty)
-        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, difficulty: difficulty);
+        ? Match.Exhibition(content, home, away, innings: 3, seed: seed, night: night, difficulty: difficulty)
+        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, night: night, difficulty: difficulty);
     if (trace is not null) match.Tracing = true;
     var log = Console.Out;
     if (trace == "-") Console.SetOut(Console.Error);
     try
     {
-        Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {match.Difficulty}");
+        Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {(match.Night ? "night" : "day")}  {match.Difficulty}");
         Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
         while (!match.Over)
         {
