@@ -256,7 +256,14 @@
         "answer_quote": "a"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F3-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/827",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/832",
+          "status": "in review"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -1374,6 +1381,10 @@
     {
       "date": "2026-09-21",
       "event": "F7-a opened as PR #830 (#829): StillRequest gains park and night, refused by name unless the id is in the catalog; StillCapture captures at that park and hands the scene's pick back; the default park in daylight keeps today's PNG names and every other park and night names itself; tools/still-gate.sh takes --park and --night, byte-identical with no flag. Zero gameplay change; no human gate. The park lane in the stage and dual-still catalogs stays F7-b."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "F3-a opened as PR #832 (#827), on top of F1-a: RulesTable.AtPark(park) beside AtLevel, a match on content.Rules.AtLevel(difficulty).AtPark(park), and an optional air-only environment block declared inside F1-a's strict park schema (dragMul multiplies the root's flight.drag, windMul replaces flight.windMul; both optional, both validated, an unknown key inside the block refused by name). No shipped or trial park names one, so Harbor's resolved table is the global table itself on both roots (SF-01) and SF-10 is proved on a park built in the test. The second client and the Unity directors now read the match's table instead of the process-wide default; Match.cs still builds AtBatResolver and FieldingResolver with the catalog's global table, which is recorded in spec 6.1 and Appendix A.10 row 84 as the remaining reach. Zero behavior change: seed 7 and the park-factors table identical, evidence seals moved by source hash only, and no stored trace identity moves because the trace serializer omits a null member. No number accepted; no human gate."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
