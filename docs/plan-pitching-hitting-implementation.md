@@ -93,7 +93,7 @@ graph TD
 | Child | Kind | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- | --- |
 | P2-a #837 | Gameplay | `Contact` and `Power` on `Stats`, unauthored tracks `Bat` (the `Arm` / `Hands` pattern); the resolver and the CPU read the right one (§5.9 table); `Teams`, cards and CLI keep `Bat`. Behaviour-identical. | PH-15-R5, PH-15-R7 | **Authored values** are Jack's; nothing is authored yet. |
-| P2-b | Gameplay | One timing window for every hitter, swing type and difficulty: remove `chargeFrames` vs `slapFrames`, `framesPerContact`, `humanWindowMul` from the window. S-10 and S-30 rewritten. | PH-11-R1, PH-15-R7, PH-17, PH-10-R1 | Q2 answered: start at 9 frames. Sitting 2 judges it. Park night multiplier stays. |
+| P2-b #844 | Gameplay | `batting.window.shared` + `frames`: off shipped (bit-identical), on in `trials/pitch5` — one window for every hitter, swing and human rung; Star and park multipliers and the floor still apply. S-29 pitch5 1.56 / 2.08 → 2.02 / 2.32, re-reported not tuned. | PH-10-R1, PH-11-R1, PH-15-R7, PH-17, PH-20-R1 | Sitting 2 judges 9 frames. |
 | P2-c | Gameplay | Ordinary swings ignore stick spray and loft. Invariance scenario replaces S-13. CPU aim sigmas go (re-report S-29). Bunt direction stays on the stick until P4-b. T-B06 / T-B06-F retire with their lesson rows. | PH-12 | Nothing |
 | P2-d | Gameplay | Charge narrows the spatial barrel only (already `chargeMul`); Contact scales the spatial barrel only. Pins for PH-09-R1. One sim helper for the drawn oval so Unity stops re-deriving it. | PH-11-R1, PH-15-R7, PH-09-R1 | Nothing |
 | P2-e | Gameplay | Remove buddies-on-base widen and charge power. | PH-16-R14, PH-16-R15 | Q5a answered: the on-deck item offer goes too; items dormant. |
@@ -128,6 +128,14 @@ graph TD
 ### Phase 6 — ability-specific effects
 
 One child per reviewed ability or ability group, after P5. First: remove `batterWindowMul` from charmball, skullball and fogball with replacement effects Jack reviews (PH-16-R1); rule on the phonyball 40 % whiff roll; add an optional authored contact-area field for Star Swings (PH-16-R2). Each needs counterplay, geometry, data, validator and scenarios.
+
+### Sitting 2 — what is on the window (from #849)
+
+- Under `trials/pitch5` every hitter, quick or charged, EASY / NORMAL / HARD, has one 9-frame window (±4.5 frames, 150 ms). The shipped root makes 45 distinct windows from 5 to 14.3 frames across the roster, both swings, nine bats and three rungs; the trial makes one.
+- Charge and Contact still change the oval (`cursor.chargeMul`, `scalePerContact`); the timing half is gone. Look for: quick and charged feel the same timing; a low- and a high-Contact hitter time the same and differ in the oval only; the difficulty rung does not change the window.
+- S-29 under the trial moved 1.56 / 2.08 → 2.02 / 2.32 (walks 0.98 → 0.76, balls in play +105 over 50 games, strikeouts flat). The home mean is back inside the shipped guardrail; no trial band is proposed.
+- Charmball ×0.75 and crystal-rink night ×0.85 still multiply the window (PH-16-R18 removes the Star ones later).
+- `Match.AutoPlay`'s in-zone read resolves the family against the process-wide table, so an in-process trial cohort cannot run; the CLI with `GRAND_SLUGGERS_TRIAL` is the cohort path. Whoever next touches `Match.cs` threads the match's table through it (S-127 pins the read).
 
 ### Notes carried to P2-b and P2-d (from #839)
 
@@ -164,7 +172,7 @@ One child per reviewed ability or ability group, after P5. First: remove `batter
 
 ## 4. Scenario ids
 
-Free: S-83..S-89 and S-124 upward (S-101 … S-106b selection, #812; S-107 … S-113 trial shapes, #818; S-114 … S-120 CPU pitcher, #823; S-121 … S-123 Contact / Power, #837). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
+Free: S-83..S-89 and S-128 upward (S-101 … S-106b selection, #812; S-107 … S-113 trial shapes, #818; S-114 … S-120 CPU pitcher, #823; S-121 … S-123 Contact / Power, #837; S-124 … S-127 shared window, #844). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
 
 ## 5. Questions that were Jack's — answered September 21, 2026
 
@@ -205,3 +213,4 @@ Consequences for the map:
 | P1-g CPU pitcher on human inputs behind `cpu.humanInputs` (S-114 … S-120; absorbs P1-e) | #823 | #824 | `776c80a2` | `db3a64a3`: 1817 / 1817, 731 / 731, seals hash-only, shipped seed 7 identical, `portable` green | sitting 1; shipped root unchanged |
 | P1-f verb PR: RB / Tab on the mound, family-blind SET, rubber-only ring, CPU stick tick, book pair, lessons | #825 | #835 | `c1bd4b38` | `7ac8543c`: 1839 / 1839, 731 / 731, seals hash-only, seed 7 identical on both roots, `unity-compile.sh` OK, no Unity run, `portable` green | **sitting 1 open** — window `main-c1bd4b3895` on `trials/pitch5` delivered September 22, 2026 |
 | P2-a Contact and Power as ratings of their own, seeded from Bat (S-121 … S-123) | #837 | #839 | `37b49e16` | `3206c2e1`: 1901 / 1901, 766 / 766 c80 rows, seals hash-only, seed 7 identical on both roots, `portable` green | none (no value authored; no player-facing change) |
+| P2-b one shared timing window (9 frames) behind `batting.window.shared`, on in `trials/pitch5` (S-124 … S-127; S-10, S-30 rewritten) | #844 | #849 | `d49c5273` | `e331b7c1`: 1945 / 1945, 777 / 777 c80 rows, seals hash-only, shipped seed 7 identical, `portable` green | **sitting 2 open** — window `main-d49c527351` on `trials/pitch5` delivered September 22, 2026 |
