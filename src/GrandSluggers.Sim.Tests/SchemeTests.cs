@@ -149,7 +149,13 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("resets each pitch"));
         Assert.Contains(HowToPlay.Must("the-box").KeyLines!, l => l.Contains("resets each pitch"));
         Assert.Contains(HowToPlay.Must("the-box").KeyLines!, l => l.Contains("SET") && l.Contains("do not walk"));
-        Assert.True(HowToPlay.Mentions("changeup"));
+        // #876: the cycle walks all three of a pitcher's pitches (fastball, second, third), so the
+        // pitching card names the slots rather than the old two-pitch "FB, CH changeup".
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+        {
+            Assert.Contains(HowToPlay.Must("pitch-swing").Shown(scheme), l => l.Contains("Cycle pitch") && l.Contains("(FB, 2nd, 3rd)"));
+            Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(scheme), l => l.Contains("CH changeup"));
+        }
         Assert.True(HowToPlay.Mentions("call time"));
         Assert.True(HowToPlay.Mentions("outfielder"));
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
@@ -262,15 +268,16 @@ public class SchemeTests
         Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("South"));
 
         // PH-02-R5 (#825): the mound's modifier line is now the cycle, and the bunt keeps West on
-        // its own. Neither page may still teach a West / V changeup.
+        // its own. Neither page may still teach a West / V changeup. Since #860 the cycle walks all
+        // three of a pitcher's pitches, so the line names the slots (#876).
         var padPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad);
         Assert.Contains(padPitch, l => l.Contains("Cycle pitch") && l.Contains("RB")
-            && l.Contains("before the charge") && l.Contains("changeup", StringComparison.OrdinalIgnoreCase)
+            && l.Contains("before the charge") && l.Contains("(FB, 2nd, 3rd)")
             && l.Contains("bunt", StringComparison.OrdinalIgnoreCase) && l.Contains("hold West"));
         Assert.DoesNotContain(padPitch, l => l.Contains("Changeup: hold West"));
         var keyPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys);
         Assert.Contains(keyPitch, l => l.Contains("Cycle pitch") && l.Contains("Tab")
-            && l.Contains("before the charge") && l.Contains("changeup", StringComparison.OrdinalIgnoreCase)
+            && l.Contains("before the charge") && l.Contains("(FB, 2nd, 3rd)")
             && l.Contains("bunt", StringComparison.OrdinalIgnoreCase) && l.Contains("hold V/Ctrl"));
         Assert.DoesNotContain(keyPitch, l => l.Contains("Changeup: hold V/Ctrl"));
         // PH-02-R5: the whole rule — the Fastball start and the charge-start lock — is on the
