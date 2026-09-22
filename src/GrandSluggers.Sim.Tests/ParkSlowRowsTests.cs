@@ -31,8 +31,11 @@ public sealed class ParkSlowRowsTests
         Assert.False(FieldAbilities.IgnoresParkSlow(rio));
     }
 
-    /// <summary>The fly into the Rink's deep freeze volume, by root: (10, 180) shipped, (7, 126) on the copy (#732).</summary>
-    static (double Carry, double Spray) RinkFly => TestRoot.Pick((180.3, 3.18), (126.2, 3.18));
+    /// <summary>
+    /// The fly into the Rink's deep freeze volume, by root: (10, 187) shipped, (7, 131) on the copy (#732). It was (10, 180) /
+    /// (7, 126) until FD-19-R1 moved the volume outward along its own bearing off the copy's second-base pad (F4-e, #862).
+    /// </summary>
+    static (double Carry, double Spray) RinkFly => TestRoot.Pick((187.3, 3.06), (131.2, 3.06));
 
     [Theory]
     [InlineData(false)]
@@ -52,8 +55,11 @@ public sealed class ParkSlowRowsTests
         Assert.Equal(rules.Fielding.Chase.FrozenMul, slowed / free, 6);
     }
 
-    /// <summary>The grounder into Ember's first-base-side lava pit, by root: (38, 78) shipped, (34, 69) on the copy (#732).</summary>
-    static (double Carry, double Spray) EmberGrounder => TestRoot.Pick((86.8, 25.97), (76.9, 26.23));
+    /// <summary>
+    /// The grounder into Ember's first-base-side lava pit, by root: (49, 100) shipped, (44, 89) on the copy (#732). It was
+    /// (38, 78) / (34, 69), on the first-second lane, until FD-19-R1 moved the pit outward along its own bearing (F4-e, #862).
+    /// </summary>
+    static (double Carry, double Spray) EmberGrounder => TestRoot.Pick((111.4, 26.10), (99.3, 26.31));
 
     [Fact]
     public void TheSlowIsMovementOnlyWhatTheTakeCostsHasNoTermForIt()

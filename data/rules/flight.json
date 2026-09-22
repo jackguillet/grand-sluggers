@@ -8,26 +8,6 @@
   "windMul": 0.35,
   "sampleHz": 120,
   "maxSeconds": 12,
-  "bounce": {
-    "restitution": 0.48,
-    "horizontal": 0.82,
-    "minVy": 3.6
-  },
-  "skid": {
-    "launchMinDeg": 14,
-    "launchMaxDeg": 22,
-    "minVy": 2.2,
-    "restitution": 0.28,
-    "horizontal": 0.93
-  },
-  "roll": {
-    "friction": 22,
-    "restSpeed": 1.4
-  },
-  "wall": {
-    "restitution": 0.48,
-    "tangential": 0.82
-  },
   "landing": {
     "firstGrassMinSec": 0.08
   },

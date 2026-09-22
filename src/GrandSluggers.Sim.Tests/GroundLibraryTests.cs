@@ -10,12 +10,12 @@ namespace GrandSluggers.Sim.Tests;
 /// says which row a point on the field is standing on (spec §6.1, §16).
 ///
 /// <para>
-/// <b>This child changes no play, and these rows are how that is true rather than hoped.</b> The two
-/// libraries are new tables, but every row in them is today's <c>flight.json</c> number; the flight
-/// and the three loose-ball models still read <c>flight.roll</c> / <c>bounce</c> / <c>skid</c> /
-/// <c>wall</c>, and F3-c moves those reads. While both copies exist the parity rows hold them equal
-/// field for field, so nothing can drift between now and that move — which is the whole reason the
-/// duplication is allowed to exist at all (FR-06).
+/// <b>No play changed, and these rows are how that is true rather than hoped.</b> F3-b built the two
+/// libraries with every row at today's <c>flight.json</c> number and held the two copies equal while
+/// both existed. F3-c (#856) moved the reads — the batted ball, the overthrow and the local bobble read
+/// the row of the zone under the ball (<c>GroundReadTests</c>) — and retired the flight's copy, so the
+/// parity rows now pin every row to the shipped numbers written here (FD-05, FR-06). A row that is not
+/// these numbers is a behavior change, and it arrives as a trial Jack has accepted.
 /// </para>
 ///
 /// <para>
@@ -39,39 +39,35 @@ public sealed class GroundLibraryTests
     static IEnumerable<ContentCatalog> BothRoots => [Shipped, Trial];
 
     // ---------------------------------------------------------------------------------
-    // Parity — the libraries are today's flight blocks, row for row
+    // Parity — every row is today's number, written here
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Every ground row equals the flight's own block field for field, on both roots. This is the
-    /// guardrail that lets two copies of the same numbers exist until F3-c retires one: a tune written
-    /// into <c>flight.json</c> and not into <c>grounds.json</c> (or the other way) fails here, by name,
-    /// instead of shipping as a silent split between what the ball does and what the library says it
-    /// does.
+    /// Every ground row is the shipped number, field for field, on both roots (FD-05). Until F3-c this row
+    /// held each ground equal to <c>flight.json</c>'s own <c>roll</c> / <c>bounce</c> / <c>skid</c>; F3-c
+    /// retired that copy and moved the overthrow's deceleration and the local bobble's three ground numbers
+    /// in, so the expectation is now the numbers themselves — the values those keys carried on both roots
+    /// the day they moved. A tune to any of them fails here by name, and a tune is a trial Jack accepts
+    /// (F9-a), never a side effect.
     /// </summary>
     [Fact]
-    public void EveryGroundRowIsTodaysFlightBlockFieldForField()
+    public void EveryGroundRowIsTodaysNumberFieldForField()
     {
         foreach (var catalog in BothRoots)
         {
-            var flight = catalog.Rules.Flight;
             var grounds = catalog.Rules.Grounds;
             Assert.Equal(["grass", "dirt", "ice", "ash"], grounds.Ids);
             foreach (var id in grounds.Ids)
-            {
-                var row = grounds.Of(id);
-                SameNumbers($"grounds.{id}.roll", flight.Roll, row.Roll);
-                SameNumbers($"grounds.{id}.bounce", flight.Bounce, row.Bounce);
-                SameNumbers($"grounds.{id}.skid", flight.Skid, row.Skid);
-            }
+                AssertTodaysGround($"grounds.{id}", grounds.Of(id));
         }
     }
 
     /// <summary>
     /// And the rows against each other: every ground is the same ground today. An unequal row is a
     /// behavior change, and it arrives with Crystal (F9-a) as a trial Jack has accepted — never as a
-    /// side effect of building the library. The <c>body</c> block (F3-d, #857) has no flight copy to
-    /// equal; its rows equal each other here, and <c>BodyGroundTests</c> pins them at 1.0.
+    /// side effect of building the library. The <c>body</c> block (F3-d, #857) is not the ball's, so
+    /// <see cref="AssertTodaysGround"/> leaves it to <c>BodyGroundTests</c>, which pins it at 1.0; its
+    /// rows equal each other here like every other block.
     /// </summary>
     [Fact]
     public void EveryGroundRowIsEqualToEveryOtherToday()
@@ -85,39 +81,53 @@ public sealed class GroundLibraryTests
                 SameNumbers($"grounds.{id}.roll", grass.Roll, grounds.Of(id).Roll);
                 SameNumbers($"grounds.{id}.bounce", grass.Bounce, grounds.Of(id).Bounce);
                 SameNumbers($"grounds.{id}.skid", grass.Skid, grounds.Of(id).Skid);
+                SameNumbers($"grounds.{id}.overthrow", grass.Overthrow, grounds.Of(id).Overthrow);
+                SameNumbers($"grounds.{id}.bobble", grass.Bobble, grounds.Of(id).Bobble);
                 SameNumbers($"grounds.{id}.body", grass.Body, grounds.Of(id).Body);
             }
         }
     }
 
-    /// <summary>The one wall material is today's <c>flight.wall</c>, on both roots.</summary>
+    /// <summary>
+    /// The one wall material is the shipped carom, written here, on both roots (FD-05 / FD-06). Until F3-c
+    /// this row held it equal to <c>flight.wall</c>; F3-c retired that copy, so the expectation is the
+    /// numbers <c>flight.wall</c> carried on both roots the day it moved.
+    /// </summary>
     [Fact]
-    public void TheWallRowIsTodaysFlightWall()
+    public void TheWallRowIsTodaysNumber()
     {
         foreach (var catalog in BothRoots)
         {
             Assert.Equal(["padded"], catalog.Rules.Walls.Ids);
-            SameNumbers("walls.padded", catalog.Rules.Flight.Wall, catalog.Rules.Walls.Of(WallMaterial.Padded));
+            var padded = catalog.Rules.Walls.Of(WallMaterial.Padded);
+            Assert.Equal((0.48, 0.82), (padded.Restitution, padded.Tangential));
         }
     }
 
     /// <summary>
-    /// The flight still reads its own blocks. Stated as a row rather than left to the diff, because
-    /// "F3-c moves the read" is the only reason the duplication above is honest: if a reader had
-    /// already moved, the parity rows would be pinning a copy nobody uses.
+    /// The copies are gone and the readers moved (F3-c, FD-05). Stated as a row rather than left to the
+    /// diff, because one copy is the only reason the rows above pin anything a ball does: <c>FlightRules</c>
+    /// declares no roll, bounce, skid or wall, <c>fielding.overthrow</c> no deceleration and
+    /// <c>fielding.handling</c> none of the bobble's three ground numbers — so neither file can carry one
+    /// (an unknown key is refused) — and the flight reads its ground through the zone map and its carom
+    /// through the segment's material.
     /// </summary>
     [Fact]
-    public void TheFlightStillReadsItsOwnGroundBlocksUntilF3c()
+    public void TheFlightAndTheLooseBallReadTheRowsAndNoCopyRemains()
     {
+        static IEnumerable<string> Declared(Type type) =>
+            type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(p => p.Name);
+
+        Assert.Empty(Declared(typeof(FlightRules)).Intersect(["Roll", "Bounce", "Skid", "Wall"]));
+        Assert.DoesNotContain("DecelFtPerSec2", Declared(typeof(OverthrowRules)));
+        Assert.Empty(Declared(typeof(HandlingRules)).Intersect(["BobbleRestitution", "BobbleGroundRetain", "BobbleDecelFtPerSec2"]));
+
         var source = Path.Combine(Shipped.Root.Shipped, "..", "src", "GrandSluggers.Sim", "BallFlight.cs");
         var text = File.ReadAllText(Path.GetFullPath(source));
-        // `f` is the flight table the loop was handed; these are the four blocks F3-c will move.
-        Assert.Contains("f.Roll.Friction", text, StringComparison.Ordinal);
-        Assert.Contains("f.Bounce.MinVy", text, StringComparison.Ordinal);
-        Assert.Contains("f.Skid.MinVy", text, StringComparison.Ordinal);
-        Assert.Contains("f.Wall", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("Grounds", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("GroundZones", text, StringComparison.Ordinal);
+        Assert.Contains(".RowAt(", text, StringComparison.Ordinal);
+        Assert.Contains("WallMaterial.OfSegment(", text, StringComparison.Ordinal);
+        Assert.Contains(".Overthrow.DecelFtPerSec2", text, StringComparison.Ordinal);
+        Assert.Contains(".Bobble;", text, StringComparison.Ordinal);
     }
 
     // ---------------------------------------------------------------------------------
@@ -143,6 +153,8 @@ public sealed class GroundLibraryTests
             SameNumbers($"grounds.{id}.roll", defaults.Grounds.Of(id).Roll, loaded.Grounds.Of(id).Roll);
             SameNumbers($"grounds.{id}.bounce", defaults.Grounds.Of(id).Bounce, loaded.Grounds.Of(id).Bounce);
             SameNumbers($"grounds.{id}.skid", defaults.Grounds.Of(id).Skid, loaded.Grounds.Of(id).Skid);
+            SameNumbers($"grounds.{id}.overthrow", defaults.Grounds.Of(id).Overthrow, loaded.Grounds.Of(id).Overthrow);
+            SameNumbers($"grounds.{id}.bobble", defaults.Grounds.Of(id).Bobble, loaded.Grounds.Of(id).Bobble);
             SameNumbers($"grounds.{id}.body", defaults.Grounds.Of(id).Body, loaded.Grounds.Of(id).Body);
         }
         foreach (var id in defaults.Walls.Ids)
@@ -625,6 +637,21 @@ public sealed class GroundLibraryTests
     }
 
     // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// The shipped ground, written out (FD-05): what <c>flight.json</c>'s <c>roll</c> / <c>bounce</c> /
+    /// <c>skid</c> and <c>fielding.json</c>'s <c>overthrow.decelFtPerSec2</c> and <c>handling.bobbleRestitution</c>
+    /// / <c>bobbleGroundRetain</c> / <c>bobbleDecelFtPerSec2</c> carried, on both roots, when F3-c moved them.
+    /// </summary>
+    static void AssertTodaysGround(string what, GroundRules row)
+    {
+        Assert.True((22.0, 1.4) == (row.Roll.Friction, row.Roll.RestSpeed), $"{what}.roll");
+        Assert.True((0.48, 0.82, 3.6) == (row.Bounce.Restitution, row.Bounce.Horizontal, row.Bounce.MinVy), $"{what}.bounce");
+        Assert.True((14.0, 22.0, 2.2, 0.28, 0.93)
+                    == (row.Skid.LaunchMinDeg, row.Skid.LaunchMaxDeg, row.Skid.MinVy, row.Skid.Restitution, row.Skid.Horizontal), $"{what}.skid");
+        Assert.True(18.0 == row.Overthrow.DecelFtPerSec2, $"{what}.overthrow");
+        Assert.True((0.35, 0.90, 6.0) == (row.Bobble.Restitution, row.Bobble.GroundRetain, row.Bobble.DecelFtPerSec2), $"{what}.bobble");
+    }
 
     /// <summary>
     /// Two blocks of the same type, compared field for field rather than by <c>Equals</c>: these are
