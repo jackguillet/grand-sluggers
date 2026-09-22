@@ -195,7 +195,13 @@ public sealed record Park(
     IReadOnlyList<Hazard> Hazards,
     double WindDeg = 0,
     double FenceHeightFt = 8,
-    double NightContactWindowMul = 1.0)
+    double NightContactWindowMul = 1.0,
+    /// <summary>
+    /// What this park changes about the ball's air (§0.3 D21, FD-03). Null — no shipped or trial park
+    /// names one — is the global table, so the park plays Harbor's air. Last, with a default, because
+    /// <c>Park</c> is also built positionally (the flight probes).
+    /// </summary>
+    ParkEnvironment? Environment = null)
 {
     /// <summary>Where the wind blows toward, in the field frame: 0 out to CF, 90 toward the right-field line, 180 in at the plate.</summary>
     public (double X, double Z) WindDirection
@@ -206,6 +212,28 @@ public sealed record Park(
             return (Math.Sin(rad), Math.Cos(rad));
         }
     }
+}
+
+/// <summary>
+/// What one park changes about the air the ball flies through (§0.3 D21, FD-03; §16). Every field is
+/// optional and <c>null</c> means the global table's number, so a park is Harbor plus the differences it
+/// names and a park that names nothing resolves to the global table itself (<see cref="RulesTable.AtPark"/>,
+/// SF-01). <b>Air only.</b> The ground (roll, bounce, skid) and the wall materials are not here — they
+/// become zone and span rows of their own — and gravity, the three time scales, the plate and the infield
+/// stay global in every park (D21).
+/// </summary>
+/// <param name="DragMul">
+/// Multiplies the root's <c>flight.drag</c> rather than replacing it, so a trial root's drag stays the
+/// trial's: thicker air (&gt; 1) is a shorter carry.
+/// </param>
+/// <param name="WindMul">
+/// Replaces <c>flight.windMul</c>, how much of the flag reading the ball feels at field level. 0 is a park
+/// the wind does not reach; the flag still reads <see cref="Park.WindMph"/>.
+/// </param>
+public sealed record ParkEnvironment(double? DragMul = null, double? WindMul = null)
+{
+    /// <summary>True when the park names at least one override. A park that names none plays the global table, by reference.</summary>
+    public bool Names => DragMul is not null || WindMul is not null;
 }
 
 public sealed record Hazard(string Type, double X, double Z, double Radius, string? Tag);

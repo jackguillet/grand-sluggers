@@ -423,6 +423,16 @@
       "promoted": "BookletLayoutTests.EveryRenderedPageBodyFitsAtCouchSizeInBothSchemes",
       "issue": "#825",
       "pr": "#835"
+    },
+    {
+      "id": "derived-table-copy-drops-a-section",
+      "signature": "A table derived per match (RulesTable.AtLevel, RulesTable.AtPark) keeps playing the code defaults for a section that another branch added, with every test green: the copy lists its sections by hand, so a section merged in while a branch was open is simply absent from the new object and reads as `new()`. On the shipped root the defaults equal the JSON, so nothing fails; on a trial root, or once a park names the section, the match quietly plays the wrong numbers.",
+      "stage": "sim",
+      "cause": "RulesTable is a class with init-only properties, so a copy cannot be a `with` expression and every section is named in the object initializer (Rules.cs AtLevel / AtPark). #826 added `boundary` to the table and to AtLevel while #827's AtPark was open; the rebase merged cleanly and left AtPark one section short.",
+      "fix": "Walk the sections by reflection in a test rather than trusting the initializer: every section of a derived table is ReferenceEquals the source's except the one the derivation owns. A reference check, not a value check - the dropped section's defaults print identically to the loaded ones, so comparing values passes. The same row also pins the section count, so a section that appears in neither branch's copy is a failure and not a silent pass.",
+      "promoted": "ParkEnvironmentTests.AParkCopiesTheFlightAndSharesEveryOtherSection",
+      "issue": "#827",
+      "pr": "#832"
     }
 
   ]

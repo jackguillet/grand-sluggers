@@ -93,6 +93,10 @@ Optional later: a point-space minigame park like Sluggers’ Toy Field. Out of s
 | `fenceHeightFt` | The top of the outfield fence. A flight that meets it below the top caroms; above it between the poles is a home run; a ball that bounced first and then clears it is a ground-rule double. Required, greater than 0. |
 | `windMph` | Flag reading. The ball feels `flight.windMul` of it (drag is taken relative to the wind). |
 | `windDeg` | Where the wind blows **toward**, in the field frame: `0` out to center, `90` toward the right-field line (first-base side), `180` in at the plate, `270` toward left. The wind bends the path, so a ball's landing spray is not its spray at contact. |
+| `environment.dragMul` | *Optional.* Multiplies the root's `flight.drag` for this park — thicker air is a shorter carry off the same launch. Absent is the global drag; a value must be greater than 0 and at most 4. No park names one. |
+| `environment.windMul` | *Optional.* Replaces `flight.windMul`, the fraction of the flag reading the ball feels at field level. `0` is a park the wind does not reach (the flag still reads `windMph`). Absent is the global exposure; a value must be in [0, 1]. No park names one. |
+
+**The park's air (spec §0.3 D21, FD-03, #827).** The whole `environment` block is optional and so is each of its two fields, because a park is Harbor plus the differences it names: a match plays on `content.Rules.AtLevel(difficulty).AtPark(park)`, and a park that names no environment resolves to the global table **itself**, the same object. So Harbor's air is the global air by construction, on the shipped root and on `trials/c80`, and no park below names a value — the first one is a measured trial (Crystal, F9-a), not a schema change. The block is air only: the roll, the bounce and the wall carom become ground and wall-material rows with their own libraries, and gravity, the three time scales and the plate stay global in every park (one clock, D21).
 
 Shipped values:
 

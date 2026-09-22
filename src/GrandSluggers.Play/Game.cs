@@ -391,7 +391,7 @@ public sealed class Game : IDisposable
 
     void StartFly(AtBatResult hit, bool playerField)
     {
-        _hitPath = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg, _match.Park);
+        _hitPath = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg, _match.Park, _match.Rules);
         _hitT = 0;
         _phase = Phase.InPlay;
         _phaseT = 0;
@@ -407,7 +407,7 @@ public sealed class Game : IDisposable
             BeginResult();
             return;
         }
-        var p = BallFlight.PointAt(_hitPath, _hitT);
+        var p = BallFlight.PointAt(_hitPath, _hitT, _match.Rules);
         _ball = new Vector3((float)p.X, (float)Math.Max(0.6, p.Y), (float)p.Z);
         _trail.Add(_ball);
         if (_trail.Count > 40) _trail.RemoveAt(0);
@@ -418,13 +418,13 @@ public sealed class Game : IDisposable
             var speed = (18 + pre.Fielder.Stats.Run * 1.8) * (_frozenSlow ? 0.4 : 1);
             _fx += field.MoveX * speed * dt;
             _fz += field.MoveZ * speed * dt;
-            var hang = BallFlight.HangTime(_hitPath);
+            var hang = BallFlight.HangTime(_hitPath, _match.Rules);
             var needsJump = FlyCatch.NeedsJump(pre);
-            var plant = FlyCatch.ChaseTarget(pre, _match.Park);
+            var plant = FlyCatch.ChaseTarget(pre, _match.Park, _match.Rules);
             var window = FieldingResolver.CatchWindowFt(pre.CatchRadius, false, field.Jump);
             var under = FlyCatch.Under(_fx, _fz, _ball.X, _ball.Z, plant.X, plant.Z, window, needsJump);
-            var inWin = FlyCatch.JumpWindow(_hitT, hang, pre.Fielder, _match.Park);
-            var jumpTry = field.Jump && FlyCatch.HighEnough(_ball.Y, needsJump || FieldingResolver.BuddyJumpOffered(pre));
+            var inWin = FlyCatch.JumpWindow(_hitT, hang, pre.Fielder, _match.Park, _match.Rules);
+            var jumpTry = field.Jump && FlyCatch.HighEnough(_ball.Y, needsJump || FieldingResolver.BuddyJumpOffered(pre), _match.Rules);
             if (FlyCatch.PlayerCaught(jumpTry, field.ConfirmPressed, under, inWin, needsJump))
             {
                 _caught = true;
@@ -471,7 +471,7 @@ public sealed class Game : IDisposable
             return;
         }
 
-        var done = _hitT >= BallFlight.HangTime(_hitPath) + 0.35f;
+        var done = _hitT >= BallFlight.HangTime(_hitPath, _match.Rules) + 0.35f;
         if (_last?.Kind == PlayKind.HomeRun && _hitT > 2.4f) done = true;
         if (done) BeginResult();
     }

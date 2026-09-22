@@ -95,7 +95,7 @@ public sealed class Match
     public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null)
     {
         Content = content;
-        _rules = content.Rules.AtLevel(difficulty);
+        _rules = content.Rules.AtLevel(difficulty).AtPark(park);
         Mercy = mercy;
         Away = away;
         Home = home;
