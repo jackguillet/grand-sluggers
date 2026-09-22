@@ -128,5 +128,27 @@
       "fov": 48,
       "blend": 8
     }
+  ],
+  "parkShots": [
+    {
+      "id": "pole-left",
+      "frame": "pole",
+      "side": "left",
+      "backFt": 100,
+      "fairFt": 16,
+      "eyeFt": 6,
+      "fov": 40,
+      "holdFt": 50
+    },
+    {
+      "id": "pole-right",
+      "frame": "pole",
+      "side": "right",
+      "backFt": 100,
+      "fairFt": 16,
+      "eyeFt": 6,
+      "fov": 40,
+      "holdFt": 50
+    }
   ]
 }

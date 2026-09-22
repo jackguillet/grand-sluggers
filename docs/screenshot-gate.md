@@ -249,7 +249,27 @@ Shell: `tools/still-gate.sh` writes the request and clicks **Grand Sluggers → 
 
 The default park in daylight keeps today's file names. Any other park, and any night, names itself: `plate-crystal-rink.png`, `plate-crystal-rink-night.png`, `plate-night.png`. The done file lists the park and the night it captured, and the gate hands the scene's park and night back when the batch is done, so Play is where you left it.
 
-This is the protocol only. Nothing on screen changes, a park with no kit draws whatever it draws today (F6), and there are no park rubric rows or named park shots here — those are F7-b. A greybox sitting is Jack's (FD-17).
+This is the protocol only. Nothing on screen changes, a park with no kit draws whatever it draws today (F6), and there are no park rubric rows here — those are F7-b. A greybox sitting is Jack's (FD-17).
+
+### Named park shots: the foul poles (F7-b1, #882)
+
+A fixed shot is one pose for every park, and none of the shots above frames a foul pole; one aimed at a pole would be aimed at one park's, while the poles stand from 312 to 340 ft out (218 to 238 ft on `trials/c80`). A **park shot** is posed from the park being captured. The two today:
+
+| Shot | Frames | Use it for |
+| --- | --- | --- |
+| `pole-left` | The left-field (third-base) pole, the last span of the outfield fence running to its fair side and the last stretch of the foul rail running back toward home on its foul side. From the fair side of the line, about head height. | Judging the wall where the rail meets the fence, for instance F2-b2's step at the pole (FD-06-R2). |
+| `pole-right` | The same at the right-field (first-base) pole. | The same. |
+
+The camera stands `backFt` back from the pole along the foul line and `fairFt` into fair, `eyeFt` over the grass, with a vertical `fov`; it looks at the pole, at the middle of the step from the rail's top to the fence's top there. The numbers are the `parkShots` rows of `data/feel/shots.json`; the pose is `StillShots.Frame` in the sim, from `ParkDiamond.FoulPole`, `AtBatResolver.FenceSpotAt` and `ParkBoundary` — no `Vector3` in code and no park id, so it frames every park, lopsided and compact ones included. `holdFt` is the contract: `StillShotsTests` holds that much fence and rail either side of the pole inside the frame at every park on both roots, so a retune that loses the pole fails a test before it fails a still. The capture stages the `field` view (no bodies, no ball) and cuts to the pose.
+
+They are opt-in. The default request and `tools/still-gate.sh` with no flag do not change. Capture them with **Grand Sluggers → Capture Request File**, one park and one light per request:
+
+```json
+{"shots":["pole-left","pole-right"],"park":"funfair-park","hudOff":true,"width":1920,"height":1080}
+{"shots":["pole-left","pole-right"],"park":"funfair-park","night":true,"hudOff":true,"width":1920,"height":1080}
+```
+
+The files name themselves like every still: `pole-left.png` / `pole-right.png` at Harbor by day, `pole-left-funfair-park.png`, `pole-right-funfair-park-night.png` elsewhere. They are a capture tool; they pass nothing on their own.
 
 For a request that must survive Unity startup, keep the JSON outside
 `unity/Temp`, set `GS_STILL_REQUEST_FILE` to its absolute path before launching
