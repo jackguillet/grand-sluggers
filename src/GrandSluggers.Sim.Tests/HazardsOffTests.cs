@@ -14,7 +14,7 @@ namespace GrandSluggers.Sim.Tests;
 /// every instance whose type's pattern is a status volume, a ball redirect, a reward target or a catch
 /// stealer. A <c>wallTrait</c> (a climbable span is a wall property, FD-06) and a <c>decoration</c>
 /// (it does nothing in play; the kit still draws it) stay. <see cref="TheSwitchRemovesTheFourActingPatternsAndKeepsTheWallAndTheScenery"/>
-/// pins that choice, because it is the one Jack may reverse.
+/// pins that choice, which Jack confirmed (4. a, September 22, 2026).
 /// </para>
 ///
 /// <para>
