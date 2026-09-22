@@ -2404,6 +2404,10 @@
     {
       "date": "2026-09-22",
       "event": "F6-a2 opened as PR #885 (#881, FD-16 B, FD-01; FR-13, FR-05): the five non-Harbor dresses no longer build the pre-kit backstop, side panels and ledges that stood inside the kit's backstop around the batter (implementation map finding 29); the fallback dress's Lip went with them. A source row beside FieldKitSourceTests refuses any dress piece placed inside the kit's backstop wall, read from the geometry owner. No piece, mesh or color added; Harbor unchanged; no decision status changed; no human gate passed."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack looked at the F6-a2 before / after sheets (PR #885, #881): \"looks like we also need to get rid of those old dugouts. looks great otherwise.\" Not a look pass: PR #885 was extended to remove the five non-Harbor dresses' old dugout benches and awnings at (+-42, 22) (Crystal IceBench1B / 3B; Funfair's whole FunfairBenches; Rooftop Bench1B, Awning1B, Bench3B, Awning3B; Canopy LogBench1B, LeafAwning1B, LogBench3B, LeafAwning3B; Ember StoneBench1B / 3B) and the two materials only they used, and a second source row, FieldKitSourceTests.NoDressPieceStandsInADugout, refuses any dress piece in the dugout region the geometry owner pins at every park (HarborDugout.AlongHome to AlongBag along either foul line, from the chalk to the pit's back wall behind the rail). Harbor's dugouts are HarborKit dress and do not change; the booth awnings stay. The sheets are recaptured for Jack's look."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
