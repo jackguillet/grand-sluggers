@@ -77,14 +77,21 @@ public static class ParkFactorCohort
     public static readonly IReadOnlyList<int> Seeds = new[] { 1, 2, 3, 4, 5 };
 
     /// <summary>
-    /// Runs the plan. <paramref name="seeds"/> and <paramref name="pairs"/> exist so a test row can
-    /// ask the same question of a smaller plan; the CLI always runs the predeclared one.
+    /// The predeclared matchups: the five S-29 pairs, each played both ways round. Who bats last is
+    /// part of a park's story, and the lineups differ.
+    /// </summary>
+    public static readonly IReadOnlyList<(string Home, string Away)> Matchups =
+        RaceCohort.Pairs.SelectMany(p => new[] { (p.Home, p.Away), (p.Away, p.Home) }).ToArray();
+
+    /// <summary>
+    /// Runs the plan. <paramref name="seeds"/> and <paramref name="matchups"/> exist so a test row
+    /// can ask the same question of a smaller plan; the CLI always runs the predeclared one.
     /// </summary>
     public static ParkFactorReport Run(ContentCatalog content, IReadOnlyList<int>? seeds = null,
-        IReadOnlyList<(string Home, string Away)>? pairs = null)
+        IReadOnlyList<(string Home, string Away)>? matchups = null)
     {
         seeds = seeds is { Count: > 0 } ? seeds : Seeds;
-        pairs = pairs is { Count: > 0 } ? pairs : RaceCohort.Pairs;
+        matchups = matchups is { Count: > 0 } ? matchups : Matchups;
         if (!content.Parks.ContainsKey(ControlPark))
             throw new InvalidOperationException(
                 $"The park-factors cohort reports against '{ControlPark}' (FD-13); this catalog has no such park.");
@@ -95,8 +102,6 @@ public static class ParkFactorCohort
             .OrderBy(id => id == ControlPark ? 0 : 1)
             .ThenBy(id => id, StringComparer.Ordinal)
             .ToArray();
-        // Both ways round: who bats last is part of a park's story, and the lineups differ.
-        var matchups = pairs.SelectMany(p => new[] { (Home: p.Home, Away: p.Away), (Home: p.Away, Away: p.Home) }).ToArray();
 
         var tallies = new Dictionary<(string Park, bool Night), Tally>();
         foreach (var parkId in parks)
@@ -143,7 +148,7 @@ public static class ParkFactorCohort
             Seats: "CPU both sides",
             Seeds: seeds.ToArray(),
             Matchups: matchups.Select(m => $"{m.Away} at {m.Home}").ToArray(),
-            GamesPerParkPerCondition: matchups.Length * seeds.Count,
+            GamesPerParkPerCondition: matchups.Count * seeds.Count,
             Games: rows.Sum(r => r.Games),
             Rows: rows,
             Acceptance: "None. This is a report, not a gate (FD-13): Harbor is the only calibrated park, every other park "
