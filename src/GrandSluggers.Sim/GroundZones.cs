@@ -64,7 +64,7 @@ public static class WallMaterial
     /// </summary>
     public static string OfSegment(FieldBounds.WallSegment segment)
     {
-        ArgumentNullException.ThrowIfNull(segment);
+        if (segment is null) throw new ArgumentNullException(nameof(segment));
         return Padded;
     }
 }

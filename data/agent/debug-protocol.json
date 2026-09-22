@@ -473,6 +473,16 @@
       "promoted": "HazardPlacementTests.SF23_EveryHazardClearsTheLanesPadsMoundAndPlate",
       "issue": "#862",
       "pr": "#867"
+    },
+    {
+      "id": "sim-uses-a-bcl-api-unity-lacks",
+      "signature": "dotnet build, the full test suite and the CLI are green after a GrandSluggers.Sim change, then tools/unity-compile.sh stops on the sim itself with CS0117 or CS1061 on a framework type - e.g. 'ArgumentNullException' does not contain a definition for 'ThrowIfNull'.",
+      "stage": "unity-console",
+      "cause": "GrandSluggers.Sim is also a Unity local package. The solution builds it for net10.0, but Unity compiles the same sources against netstandard 2.1 (tools/unity-compile.sh: NetStandard/ref/2.1.0 plus the BCL extensions), so a framework helper added after netstandard 2.1 - ArgumentNullException.ThrowIfNull, and its kind - exists for dotnet and not for the game. Nothing in the .NET build or the tests can see the difference (#856, GroundZones.cs WallMaterial.OfSegment).",
+      "fix": "Write the netstandard 2.1 form in src/GrandSluggers.Sim (if (x is null) throw new ArgumentNullException(nameof(x))) and run tools/unity-compile.sh before opening any PR that adds framework calls to the sim, not only one that changes a signature. The language version is not the limit (the gate compiles with /langversion:latest); the framework surface is.",
+      "promoted": "tools/unity-compile.sh",
+      "issue": "#856",
+      "pr": ""
     }
   ]
 }
