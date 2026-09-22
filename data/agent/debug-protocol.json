@@ -502,7 +502,7 @@
       "fix": "Read a drawn top from the flight segment the drawn span lies on (HarborWall.FlightSpan / SpanTops, from FieldBounds.Of(park), at each end of the span), take a vertex's top as the tallest segment that meets there, and draw each span from its own tops rather than from its end vertices. Classify a vertex as fence by the flight segment's kind, not by an angle with slack. Check the tops span by span, not only the positions vertex by vertex.",
       "promoted": "HarborWallTests.SF05_TheDrawnWallIsTheFlightWallOnEverySpan",
       "issue": "#873",
-      "pr": "-"
+      "pr": "#875"
     }
   ]
 }
