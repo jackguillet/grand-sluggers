@@ -59,7 +59,7 @@ public sealed class TutorialGameTests
             Assert.True(run.Pitch(new("fastball", 0, false), source));
             return;
         }
-        var foulCommand = new SwingCommand(true, 0, -4, false, SprayAimDeg: AtBatResolver.SprayAimDeg(-1));
+        var foulCommand = new SwingCommand(true, 0, -4, false);
         Assert.True(run.Swing(foulCommand, source));
         Assert.True(run.LastHit?.Foul);
         Drain(run, source);
@@ -99,7 +99,7 @@ public sealed class TutorialGameTests
         if (id == "T-G04") Assert.Equal("wrong-count", run.Feedback?.Code);
         Assert.Equal(0, run.Successes);
         run = new TutorialSession(content, catalog, id); run.Begin();
-        if (id == "T-G04-F") Assert.False(run.Swing(new(true, 0, -4, false, SprayAimDeg: AtBatResolver.SprayAimDeg(-1)), LivePlayCommandSource.Cpu));
+        if (id == "T-G04-F") Assert.False(run.Swing(new(true, 0, -4, false), LivePlayCommandSource.Cpu));
         else Assert.False(run.Pitch(new("fastball", 0, false), LivePlayCommandSource.Cpu));
         Assert.Equal(0, run.Successes);
         run = new TutorialSession(content, catalog, id); run.Begin(demonstration: true);
