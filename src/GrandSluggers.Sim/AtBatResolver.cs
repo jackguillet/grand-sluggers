@@ -36,8 +36,9 @@ public sealed class AtBatResolver
     public AtBatResult Resolve(AtBatInput input, Park park, Random rng, bool night = false)
     {
         var b = _rules.Batting;
-        var contact = Math.Clamp(input.Batter.Stats.Bat + (input.Bat?.ContactMod ?? 0), 1, 10);
-        var power = Math.Clamp(input.Batter.Stats.Bat + (input.Bat?.PowerMod ?? 0), 1, 10);
+        // The cursor is Contact's (spec §5.2, PH-15-R7); the exit and the loft are Power's (§5.4, §5.5).
+        var contact = Math.Clamp(input.Batter.Stats.Contact + (input.Bat?.ContactMod ?? 0), 1, 10);
+        var power = Math.Clamp(input.Batter.Stats.Power + (input.Bat?.PowerMod ?? 0), 1, 10);
         var bats = input.Batter.Bats;
 
         // The Charge Bat is a MAX charge for free with the narrow charge zones off (§5.5).
@@ -162,7 +163,10 @@ public sealed class AtBatResolver
     public static double SwingWindowFrames(Character batter, BatItem? bat, double charge01, string? starPitch,
         Park? park, bool night, double humanWindowMul = 1, RulesTable? rules = null, StarSkillTable? skills = null)
     {
-        var contact = Math.Clamp(batter.Stats.Bat + (bat?.ContactMod ?? 0), 1, 10);
+        // A timing read of Contact, removed by P2-b (PH-15-R7): Contact is spatial forgiveness only,
+        // and every hitter is to share one window. It reads the trait until then so P2-b removes one
+        // thing, not two.
+        var contact = Math.Clamp(batter.Stats.Contact + (bat?.ContactMod ?? 0), 1, 10);
         var chargeBat = bat?.ChargeAlwaysFull == true;
         var charged = !chargeBat && ChargeFeel.IsCharge(Math.Clamp(charge01, 0, 1));
         return ContactWindowFrames(contact, charged, starPitch, park, night, rules, skills, humanWindowMul);
