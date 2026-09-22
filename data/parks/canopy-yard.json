@@ -2,6 +2,7 @@
   "id": "canopy-yard",
   "name": "Canopy Yard",
   "faction": "canopy",
+  "pickOrder": 5,
   "surface": "dirt",
   "leftFenceFt": 312,
   "centerFenceFt": 378,
@@ -9,8 +10,6 @@
   "windMph": 3,
   "windDeg": 200,
   "fenceHeightFt": 12,
-  "nightOnly": false,
-  "dayOnly": false,
   "hazards": [
     {
       "type": "barrel",

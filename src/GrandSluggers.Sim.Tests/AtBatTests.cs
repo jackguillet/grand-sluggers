@@ -66,7 +66,7 @@ public class AtBatTests
                 or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
-        Assert.Equal("crystal-rink", PresetTeams.HomeParkId("vale"));
+        Assert.Equal("crystal-rink", PresetTeams.HomeParkId(_content, "vale"));
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class AtBatTests
         Assert.DoesNotContain(fair.Hazards, h =>
             h.Type is "freeze_volume" or "billboard" or "ac_unit" or "barrel"
                 or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
-        Assert.Equal("funfair-park", PresetTeams.HomeParkId("zig"));
+        Assert.Equal("funfair-park", PresetTeams.HomeParkId(_content, "zig"));
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
     }
@@ -100,7 +100,7 @@ public class AtBatTests
         Assert.DoesNotContain(roof.Hazards, h =>
             h.Type is "freeze_volume" or "warp_pipe" or "barrel"
                 or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
-        Assert.Equal("rooftop-city", PresetTeams.HomeParkId("brondo"));
+        Assert.Equal("rooftop-city", PresetTeams.HomeParkId(_content, "brondo"));
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
     }
@@ -118,7 +118,7 @@ public class AtBatTests
         Assert.DoesNotContain(yard.Hazards, h =>
             h.Type is "freeze_volume" or "warp_pipe" or "billboard" or "ac_unit"
                 or "lava_pit" or "fire_breath" or "statue");
-        Assert.Equal("canopy-yard", PresetTeams.HomeParkId("konga"));
+        Assert.Equal("canopy-yard", PresetTeams.HomeParkId(_content, "konga"));
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
     }
@@ -136,7 +136,7 @@ public class AtBatTests
         Assert.DoesNotContain(keep.Hazards, h =>
             h.Type is "freeze_volume" or "warp_pipe" or "billboard" or "ac_unit"
                 or "barrel" or "climb_wall");
-        Assert.Equal("ember-keep", PresetTeams.HomeParkId("ashlord"));
+        Assert.Equal("ember-keep", PresetTeams.HomeParkId(_content, "ashlord"));
         Assert.Equal(TestRoot.Pick(408, 286), keep.CenterFenceFt);
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);

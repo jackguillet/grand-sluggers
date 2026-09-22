@@ -64,10 +64,8 @@ public sealed class Challenge
     {
         var opp = NextOpponentId(content);
         var (home, away) = PresetTeams.Pair(content, CaptainId, opp, Owned);
-        parkId ??= PresetTeams.HomeParkId(opp);
-        if (!content.Parks.TryGetValue(parkId, out var park))
-            park = content.Parks["harbor-diamond"];
-        return new Match(content, away, home, park, innings, seed, night);
+        parkId ??= PresetTeams.HomeParkId(content, opp);
+        return new Match(content, away, home, content.MustPark(parkId), innings, seed, night);
     }
 
     public Character? Resolve(Match match) =>

@@ -18,7 +18,7 @@ public static class RaceCohort
         foreach (var seed in seeds)
         {
             var match = name == "s29" ? Match.Exhibition(content, home, away, innings: 3, seed: seed)
-                : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: "harbor-diamond");
+                : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: ExhibitionPick.DefaultPark);
             match.AutoPlayGame();
             if (!match.Over) throw new InvalidOperationException("Cohort game did not finish");
             games.Add(new(seed, home, away, match.Park.Id, PlayTraceIdentity.Capture(match), match.HomeScore, match.AwayScore,
