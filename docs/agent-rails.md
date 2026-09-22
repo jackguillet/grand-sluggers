@@ -131,7 +131,7 @@ This is VibeGame's "frame-synchronous control" without replacing Unity, and TheP
 For any change under `Art/Characters/`, `Art/Animation/Clips/`, `tools/blender/`, or Harbor kit meshes:
 
 1. **DCC still** from `tools/dcc-still.sh` (`--clay` / `--sheets` / Harbor `--clay`). Named files: `scratchpad/stills/dcc-body.png`, `dcc-extras.png`, `dcc-{clip}.png`, `dcc-harbor-kit.png`. Catches "cap doesn't cover the hair" before import.
-2. **In-game still** from `still-gate-character.sh` / `still-gate.sh`. Named files: `char-{id}-rest.png`, `char-{id}-pose.png` (park shots from still-gate). Catches brim-in-lens, HUD-on, wrong shot.
+2. **In-game still** from `still-gate-character.sh` / `still-gate.sh`. Named files: `char-{id}-rest.png`, `char-{id}-pose.png` (park shots from still-gate). Catches brim-in-lens, HUD-on, wrong shot. A still can name a park and a night — `StillRequest.park` / `night`, `tools/still-gate.sh --park <id> [--night]` (✅ #829) — and the default park in daylight keeps today's names, so any other park and any night name themselves in the file (`plate-crystal-rink-night.png`).
 3. Both PNGs in `scratchpad/stills/` and linked in the PR.
 4. A **read-only critic** (`.grok/skills/look-critic/`, separate session or subagent) compares them to the screenshot-gate table and [silhouette-bible.md](silhouette-bible.md). Output: specific diffs. It **files** a child or a PR comment. It cannot mark #188 done. It cannot edit its own rubric.
 5. The builder **stops**. Jack passes look.
