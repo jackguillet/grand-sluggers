@@ -482,7 +482,7 @@
       "fix": "Write the netstandard 2.1 form in src/GrandSluggers.Sim (if (x is null) throw new ArgumentNullException(nameof(x))) and run tools/unity-compile.sh before opening any PR that adds framework calls to the sim, not only one that changes a signature. The language version is not the limit (the gate compiles with /langversion:latest); the framework surface is.",
       "promoted": "tools/unity-compile.sh",
       "issue": "#856",
-      "pr": ""
+      "pr": "#869"
     }
   ]
 }
