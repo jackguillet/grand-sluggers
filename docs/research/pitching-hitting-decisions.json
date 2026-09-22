@@ -148,7 +148,8 @@
         "#813",
         "#818",
         "#821",
-        "#823"
+        "#823",
+        "#824"
       ],
       "validation_evidence": [
         {
@@ -183,7 +184,7 @@
         {
           "kind": "trial-proposal",
           "issue": "#823",
-          "revision": "953466cc",
+          "revision": "f993b603",
           "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
           "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
           "report": "docs/research/cpu-pitcher-p1g.md",
@@ -439,7 +440,8 @@
           "implementation_issues": [
             "#812",
             "#813",
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -454,7 +456,7 @@
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -504,7 +506,8 @@
           "implementation_issues": [
             "#812",
             "#813",
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -519,7 +522,7 @@
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -569,7 +572,8 @@
           "implementation_issues": [
             "#812",
             "#813",
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -584,7 +588,7 @@
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -2433,7 +2437,8 @@
         "#813",
         "#818",
         "#821",
-        "#823"
+        "#823",
+        "#824"
       ],
       "validation_evidence": [
         {
@@ -2468,7 +2473,7 @@
         {
           "kind": "trial-proposal",
           "issue": "#823",
-          "revision": "953466cc",
+          "revision": "f993b603",
           "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
           "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
           "report": "docs/research/cpu-pitcher-p1g.md",
@@ -2602,7 +2607,8 @@
             "#811",
             "#812",
             "#813",
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -2635,7 +2641,7 @@
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -2748,7 +2754,8 @@
           "implementation_issues": [
             "#807",
             "#809",
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -2763,7 +2770,7 @@
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -2808,7 +2815,8 @@
           "implementation_issues": [
             "#807",
             "#809",
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -2823,7 +2831,7 @@
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -3101,7 +3109,8 @@
           "implementation_issues": [
             "#807",
             "#809",
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -3116,7 +3125,7 @@
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -4795,13 +4804,14 @@
       },
       "numeric_targets": null,
       "implementation_issues": [
-        "#823"
+        "#823",
+        "#824"
       ],
       "validation_evidence": [
         {
           "kind": "trial-proposal",
           "issue": "#823",
-          "revision": "953466cc",
+          "revision": "f993b603",
           "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
           "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
           "report": "docs/research/cpu-pitcher-p1g.md",
@@ -4875,13 +4885,14 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -5004,7 +5015,8 @@
       "implementation_issues": [
         "#818",
         "#821",
-        "#823"
+        "#823",
+        "#824"
       ],
       "validation_evidence": [
         {
@@ -5021,7 +5033,7 @@
         {
           "kind": "trial-proposal",
           "issue": "#823",
-          "revision": "953466cc",
+          "revision": "f993b603",
           "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
           "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
           "report": "docs/research/cpu-pitcher-p1g.md",
@@ -5096,7 +5108,8 @@
           "implementation_issues": [
             "#818",
             "#821",
-            "#823"
+            "#823",
+            "#824"
           ],
           "validation_evidence": [
             {
@@ -5113,7 +5126,7 @@
             {
               "kind": "trial-proposal",
               "issue": "#823",
-              "revision": "953466cc",
+              "revision": "f993b603",
               "test": "GrandSluggers.Sim.Tests.CpuPitcherScenarioTests",
               "scenarios": "S-114, S-115, S-116, S-117, S-118, S-119, S-120",
               "report": "docs/research/cpu-pitcher-p1g.md",
@@ -5386,7 +5399,7 @@
     },
     {
       "date": "2026-09-21",
-      "event": "P1-g (#823) put the CPU pitcher on human inputs behind one switch, pitching.cpu.humanInputs, off on the shipped root and on in trials/pitch5 - the same trial as P1-d's shapes, which is what PH-18-R1 asked for. Off, the shipped endpoint model runs unchanged and cli match --seed 7 and the S-29 cohort are byte-identical to main. On, the CPU's pitch is built from the inputs a hand has: the count row's location is a horizontal intent and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the walk is solved, not searched, and clamped to the legal +/-1); AimX and AimY are always 0 and the height is whatever the family gives; the family is the row's new per-family weights filtered to the slots this pitcher can select and expressed as the 0/1/2 cycle presses it is; charge and steer became two independent modifier rolls instead of two of four exclusive verbs, so a charged CPU pitch is steerable for the first time; and the bend is PitchFlight.BreakReach over the delivery's own air time. The throwing hand is now stamped before the solve - P1-d found it was stamped after, which mattered the moment a family swept, because the same delivery from the wrong arm misses its intent by twice the sweep. Two things were measured and reported rather than fixed: at the shipped break rate a stick held from release reaches the cap on every real flight, so the reach bound is correct but slack (it bites only at the air-time floor); and because the rubber is now the location, the CPU's rubber moves between most pitches, which the CPU batter's mistrack read sees. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix. Spec \u00a74.8 was rewritten with the switch and five rules, \u00a73 and \u00a716 follow, and Appendix B.1 gained S-114 ... S-120 (CpuPitcherScenarioTests). No status change, no numeric target, no human_acceptance written; sitting 1 remains impossible until P1-f wires the mound."
+      "event": "P1-g (#823, PR #824) put the CPU pitcher on human inputs behind one switch, pitching.cpu.humanInputs, off on the shipped root and on in trials/pitch5 - the same trial as P1-d's shapes, which is what PH-18-R1 asked for. Off, the shipped endpoint model runs unchanged and cli match --seed 7 and the S-29 cohort are byte-identical to main. On, the CPU's pitch is built from the inputs a hand has: the count row's location is a horizontal intent and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the walk is solved, not searched, and clamped to the legal +/-1); AimX and AimY are always 0 and the height is whatever the family gives; the family is the row's new per-family weights filtered to the slots this pitcher can select and expressed as the 0/1/2 cycle presses it is; charge and steer became two independent modifier rolls instead of two of four exclusive verbs, so a charged CPU pitch is steerable for the first time; and the bend is PitchFlight.BreakReach over the delivery's own air time. The throwing hand is now stamped before the solve - P1-d found it was stamped after, which mattered the moment a family swept, because the same delivery from the wrong arm misses its intent by twice the sweep. Two things were measured and reported rather than fixed: at the shipped break rate a stick held from release reaches the cap on every real flight, so the reach bound is correct but slack (it bites only at the air-time floor); and because the rubber is now the location, the CPU's rubber moves between most pitches, which the CPU batter's mistrack read sees. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix. Spec \u00a74.8 was rewritten with the switch and five rules, \u00a73 and \u00a716 follow, and Appendix B.1 gained S-114 ... S-120 (CpuPitcherScenarioTests). No status change, no numeric target, no human_acceptance written; sitting 1 remains impossible until P1-f wires the mound."
     }
   ]
 }
