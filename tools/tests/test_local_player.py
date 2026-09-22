@@ -1,4 +1,6 @@
+import argparse
 import importlib.util
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -120,6 +122,64 @@ class TrialOverlayTests(unittest.TestCase):
         for name in ("data", "/tmp/trials/c80", "trials/../data", "c80", "trials"):
             with self.subTest(name=name), self.assertRaises(RuntimeError):
                 player.trial_overlay(self.source, name)
+
+
+class ReplaceTests(unittest.TestCase):
+    """A delivery names the window it would close and closes it only when told to (--replace)."""
+
+    WINDOW = dict(pid=77559, start="", kind="main", revision="d49c527351aced99d9fe8c52d7743f3a3b781d3b",
+                  dataProfile="trials/pitch5", app="/releases/main-d49c527351-1/GrandSluggers.app",
+                  delivered="2026-09-22T17:20:37Z")
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.support = Path(self.temp.name)
+        environment = patch.dict(os.environ, {"GS_SUPPORT_DIR": str(self.support)})
+        environment.start()
+        self.addCleanup(environment.stop)
+
+    def args(self, **overrides):
+        values = dict(preview=None, trial=None, timeout=900, replace=False)
+        values.update(overrides)
+        return argparse.Namespace(**values)
+
+    def test_an_open_window_is_named_and_nothing_is_built_without_replace(self):
+        for preview in (None, "/nonexistent/preview-worktree"):
+            with self.subTest(preview=preview), \
+                    patch.object(player.unity_gui, "players", return_value=[self.WINDOW]), \
+                    patch.object(player, "sync_main", side_effect=AssertionError("main moved")) as sync:
+                with self.assertRaises(RuntimeError) as refused:
+                    player.deliver(self.args(preview=preview))
+                message = str(refused.exception)
+                for text in ("main d49c527351 on trials/pitch5", "pid 77559", "delivered 2026-09-22T17:20:37Z",
+                             "--replace", "nothing was built"):
+                    self.assertIn(text, message)
+                sync.assert_not_called()
+                self.assertFalse((self.support / "unity-gui.lock").exists())
+
+    def test_no_open_window_needs_no_replace(self):
+        player.refuse_unless_replace([], False, "nothing was built.")
+
+    def test_replace_names_each_window_it_closes(self):
+        with patch.object(player.os, "kill", side_effect=[None, ProcessLookupError()]) as kill, \
+                patch.object(player, "log") as log:
+            player.close_players([self.WINDOW], "main 5c58133700 on the shipped data", "/releases/new/GrandSluggers.app")
+        self.assertEqual(call(77559, player.signal.SIGTERM), kill.call_args_list[0])
+        closing = log.call_args.args[0]
+        self.assertIn("Closing main d49c527351 on trials/pitch5 (pid 77559", closing)
+        self.assertIn("for main 5c58133700 on the shipped data", closing)
+
+    def test_a_held_gui_lock_refuses_the_delivery_by_name(self):
+        holder = subprocess.Popen(["sleep", "60"])
+        self.addCleanup(holder.wait)
+        self.addCleanup(holder.kill)
+        player.unity_gui.acquire("tools/still-gate.sh --park crystal-rink", holder.pid, worktree="/wt/a")
+        with patch.object(player.unity_gui, "players", side_effect=AssertionError("looked past the lock")), \
+                patch.object(player, "sync_main", side_effect=AssertionError("main moved")):
+            with self.assertRaises(player.unity_gui.LockHeld) as refused:
+                player.deliver(self.args())
+        self.assertIn("tools/still-gate.sh --park crystal-rink (pid " + str(holder.pid), str(refused.exception))
 
 
 class EditorShutdownTests(unittest.TestCase):

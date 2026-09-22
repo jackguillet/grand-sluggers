@@ -35,9 +35,9 @@ with `{"shots":["swing-matrix"],"swingCaptains":["rio","vale","brondo","fenn","z
 
 ## Editor gotchas found on this branch
 
-- `runInBackground` is 0 in Player Settings, so a Play-mode capture only advances while the editor is the frontmost app: `osascript -e 'tell application "Unity" to activate'` after launch.
+- `runInBackground` is 0 in Player Settings, so a Play-mode capture only advances while the editor is the frontmost app. Front it by its PID while you hold the GUI Unity lock: `python3 tools/unity_gui.py front --owner $$ <editor pid>`. Never activate Unity by name: with no Unity running, that starts a bare, projectless editor (docs/editor-startup.md).
 - Killing the editor mid-Play leaves `unity/Temp/__Backupscenes`; the next launch blocks on a "Recovering Scene Backups" dialog before the log gets past licensing. Delete that folder before relaunching (or click No).
-- Exactly one editor instance. `pkill -x Unity` between runs; Unity clears `unity/Temp` on a clean quit, so copy evidence out first.
+- Exactly one editor instance. Quit your own editor normally between runs (`python3 tools/unity_gui.py quit --owner $$ <editor pid>`); never `pkill` Unity, which closes every session's editor. Unity clears `unity/Temp` on a clean quit, so copy evidence out first.
 
 ## What the Unity run proved, and what it did not
 

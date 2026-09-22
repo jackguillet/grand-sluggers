@@ -184,7 +184,7 @@ done file out before quitting.
 Hard-won notes (still true):
 
 - **Exactly one editor instance.** Two on the same project wedges the capture
-  silently. Check with `pgrep -x Unity` first.
+  silently. Check with `python3 tools/unity_gui.py status` first.
 - A fresh worktree imports the whole project on first open; budget ten minutes
   before the capture starts.
 - `osascript -e 'tell application "Unity" to quit'` deleted `unity/Temp/`
@@ -192,6 +192,10 @@ Hard-won notes (still true):
   System Events keystrokes are refused ("osascript is not allowed to send
   keystrokes"), so Cmd+Q is not available there; `pkill -x Unity` (SIGTERM)
   quit it cleanly both times once the capture had finished.
+  Superseded 2026-09-22: other sessions share this Mac, so never address Unity
+  by name or `pkill` it machine-wide. Hold the GUI Unity lock and send the
+  normal quit to your own editor's PID: `python3 tools/unity_gui.py quit
+  --owner $$ <pid>` (docs/editor-startup.md).
 - Unity rewrites some `.fbx.meta` files on import. Do not commit that churn —
   `git checkout -- unity/Assets` before staging.
 - Tinting hand meshes to tell them apart: `material.color` does nothing under

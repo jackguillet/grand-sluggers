@@ -156,6 +156,8 @@ Before launching editors, load [editor-startup.md](editor-startup.md): Blender r
 
 Personal Unity cannot `-batchmode`. `tools/unity-compile.sh` stays the CI csc gate. `python3 tools/local-player.py` stays Jack's window. Do not poll or restart while he is playing.
 
+One GUI Unity user on this Mac at a time. Take the lock in `tools/unity_gui.py` before you launch, front or click an editor, or deliver a player. The still gates, `build-player.sh` and `local-player.py` take it for you. A live holder refuses the next session by name. Front an editor by its PID, never by name. A capture refuses while Jack's window is open until he says the machine is free (`--player-open-ok`). Delivery closes an open window only with `--replace`. Rules and the capture recipe: [editor-startup.md](editor-startup.md#unity-one-gui-editor-user-at-a-time). Protocol row: `gui-editor-focus-fight`.
+
 ---
 
 ## 6. Stage-save DCC
