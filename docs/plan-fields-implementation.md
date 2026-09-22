@@ -30,6 +30,9 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 15 | The resolved table did not reach the first flight: `AtBatResolver` / `FieldingResolver` were built with `content.Rules`. Inert while no park names air — but the fielding **preview** read the shipped difficulty rung while live play waited the match's, so EASY / HARD previews and live play disagreed. | `Match.cs:107-108, 977` | Fixed by F3-a2 (#840): both resolvers play on `_rules`. NORMAL unchanged; EASY / HARD games can move (3 of 24 seeds did). |
 | 16 | Funfair's chompers do nothing on `trials/c80`: the three literal discs sit at 198–228 ft, outside the trial's ×0.70 fences. Crystal at night is 1.34 runs / 1.55 HR against Harbor on the shipped root. | `park-factors` cohort report in PR #834 | Findings, not targets (FD-13). F4-a moves the chompers into data; §5 Q9 covers Crystal's window. |
 | 17 | `tools/game-feel-scale-probes --check` was already stale on `main` before F2-a; it seals `HarborWall.cs` and is #730's, not in CI. | PR #833 | Leave to #730. |
+| 19 | The old `LoopIsSymmetric` test was vacuous: it held for every park because the builder copied one half. The rail ramp near the pole covers 150–177 ft of rail per side on the shipped root and 64–82 ft on `trials/c80`, wider than the docs said. | PR #848 | Q5 stays Jack's; `SF-05` checks position exactly and skips the ramp's top. |
+| 20 | Four rules tables now sit outside the evidence seals: `boundary.json`, `grounds.json`, `walls.json`, `hazards.json`. `pipeReachPadFt` left sealed coverage when it moved. Adding a file to the seal list adds a key to the evidence JSON, which is more than a parity child's hash-only gate allows. | PR #851, PR #850 | #853, for the packet owner (#708 / #730). |
+| 21 | Moving the chompers into data and migrating them by the zone rule closed #717's recorded anomaly (the trial's centre fielder no longer starts inside a mouth) and made the trial's night Funfair live. `ParkZones.Names` / `ParkEnvironment.Names` are computed record properties that serialise into the trace identity when a block is present. | PRs #851, #850 | Reported; nothing tuned. |
 | 18 | The sibling worktrees share one scratchpad root, so a fixed scratch filename (`pr-body.md`) can be overwritten by another session. | PR #832 | Scratch files carry the PR number. |
 
 ## 2. Rails every child carries
@@ -118,7 +121,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
 | F2-a #826 ✅ | A park-neutral boundary type. The foul wrap, flare, rail height and backstop move from `HarborWall` literals to data at today's values; `FieldBounds` and the validator stop naming Harbor; the cache key carries every input. SF-08. #732's numbers move but do not change. | FD-07, FR-05 | Nothing |
-| F2-b | The drawn wall stops mirroring right field onto left; `HarborWallTests` covers both sides of all six parks. SF-05. | FD-06, D15 | **§5 Q5**: near the pole the drawn rail ramps to the fence while the sim rail stays 4.2 ft. Which is the rule? |
+| F2-b #845 ✅ | The drawn wall stops mirroring right field onto left; `HarborWallTests` covers both sides of all six parks. SF-05. | FD-06, D15 | **§5 Q5**: near the pole the drawn rail ramps to the fence while the sim rail stays 4.2 ft. Which is the rule? |
 | F2-c | The polyline fence: optional `fence.points` in FD-12 units, a height per point, a wall material per span; `FenceAt` reads it; the clip polygon keeps the vertices; the track, the poles and the drawn wall follow. The three-post circle is the default. SF-06, SF-07, SF-12. | FD-06, FD-12 | **§5 Q4**: the one-distance-per-bearing guardrail |
 | F2-d | Optional per-park foul parameters and the three outfield starts; the default depth stays the #730 fraction rule. `Diamond.Positions` is process-wide today, so the starts need a match-scoped source. SF-09. | FD-07 | Nothing; values come with a park |
 
@@ -127,7 +130,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
 | F3-a #827 ✅, F3-a2 #838 ✅ | `RulesTable.AtPark(park)` beside `AtLevel`. An optional `environment` block on a park; no park names one. Audit and fix every flight and ground reader that falls back to `Rules.Default`. SF-01. | FD-03, FR-01 | Nothing |
-| F3-b | `grounds` and `walls` libraries as named rows (grass, dirt, ice, ash, …; padded, …), every row seeded with today's global numbers. Zones (infield dirt, outfield, track, apron) from existing geometry; `surface` becomes the zone map. SF-03. Behavior-identical. | FD-05, FR-02 | Nothing |
+| F3-b #846 ✅ | `grounds` and `walls` libraries as named rows (grass, dirt, ice, ash, …; padded, …), every row seeded with today's global numbers. Zones (infield dirt, outfield, track, apron) from existing geometry; `surface` becomes the zone map. SF-03. Behavior-identical. | FD-05, FR-02 | Nothing |
 | F3-c | The flight reads the zone under the ball for roll and bounce, and the span's row for a carom. The overthrow and bobble models read the same row. SF-10, SF-11, SF-12, SF-14 on a fixture root with unequal rows. Shipped rows stay equal, so play is identical. | FD-03, FD-05 | Nothing |
 | F3-d | Body multipliers on a ground row: start, brake, cut-back (response law), slide, overrun. All 1.0. SF-13. | FD-04 B | Nothing. Values come with Crystal (F9-a) |
 
@@ -135,7 +138,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| F4-a | The pattern library at parity: a closed type table as named rows (pattern, acts-on, numbers); `ParkHazards` reads rows, not type strings; chompers become data instances; `pipeReachPadFt` and `emberNightFireMul` move under their rows at today's values. SF-03, SF-04. Same outcomes as today, rolls included. | FD-09, FR-08 | **§5 Q6**: the four inert types |
+| F4-a #847 ✅ | The pattern library at parity: a closed type table as named rows (pattern, acts-on, numbers); `ParkHazards` reads rows, not type strings; chompers become data instances; `pipeReachPadFt` and `emberNightFireMul` move under their rows at today's values. SF-03, SF-04. Same outcomes as today, rolls included. | FD-09, FR-08 | §5 Q6 answered: **decoration** (Jack, 2026-09-22) |
 | F4-e | The placement validator on both roots. SF-23. | FD-19 | **§5 Q1** first |
 | F4-b | Status volume, live: a per-body touch test in the tick, a duration, a typed event; the play-wide flag and the park's `drops.frozen` roll go. `ParkSlowRowsTests` is re-authored to the decision. SF-20, SF-22. **Behavior change**: re-report S-29 and park factors. | FD-08-R1, FR-07 | **§5 Q7**: the duration, and whether 0.45 stays |
 | F4-g | The CPU route costs a volume and goes around a body; no foresight of a draw. SF-26. | FD-14 | Nothing |
@@ -211,7 +214,7 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 3. **How do you want to judge ground, air and wall numbers?** Recommended: as for the pitch shapes — a headless probe table first (same ball, two states), then you play them in the trial window, then accept. Blocks F9-a.
 4. **The polyline guardrail.** One fence distance per bearing from home: notches, porches and alleys are legal; an overhang or a fence behind a fence is not. It keeps `FenceAt` a function, so the depth rule, the C80 scale, the clamp and the cameras keep working. Blocks F2-c.
 5. **The rail near the foul pole.** The drawn rail ramps from 4.2 ft up to the fence from 95 ft out; the sim rail is 4.2 ft all the way, and #732 showed pulled balls scored foul for crossing it. Which one is the rule? This sits beside #732. Blocks F2-b.
-6. **Statue, train, AC unit, tree.** They are validated types that do nothing. Recommended: declare them as a `decoration` pattern now (an honest no-effect row), and give each a real pattern when its park comes up. Blocks F4-a.
+6. ~~**Statue, train, AC unit, tree.**~~ **Answered, September 22, 2026: "decoration."** A `decoration` pattern row; each gets a real pattern when its park comes up. Built by F4-a (#851).
 7. **The status volume's numbers.** How long a touch slows a body, and whether 0.45 stays (#730 owns 0.45's neighbors, not 0.45). A scoped trial. Blocks F4-b.
 8. **The catch stealer.** A chomper makes an out with no glove. Keep it, change it to a ball redirect, or drop it? Blocks Funfair, not Crystal.
 9. **Crystal's night.** Today: contact window × 0.85, on the at-bat, with no reference source. The reference blackout is a fielding-phase event that a batted ball triggers. Keep, replace, or drop? Blocks Crystal's night block in F9-a.
@@ -230,4 +233,8 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 | F7-a `StillRequest` park + night; `still-gate.sh --park --night` | #829 | #830 | `21c00685` | `77936c34`: 1862 / 1862, 749 / 749, no seal moved; validated against the catalog after #820 removed the literal | none (no still captured; a compile is not a still) |
 | F3-a `AtPark`, optional air `environment` block, at parity | #827 | #832 | `ae774c36` | `8255a9fa`: 1879 / 1879, 766 / 766, seals hash-only, seed 7 identical; identity SHAs unmoved (null is not serialised) | none |
 | F5-a `cli match --night`; `park-factors` cohort (a report) | #828 | #834 | `3dcb0528` | `c2733a5e`: 1882 / 1882, 767 / 767, no seal moved; three cohorts byte-identical | none |
+| F2-b the drawn wall stops mirroring right field onto left | #845 | #848 | `fdc9a48f` | `ae0ffc2d`: 1914 / 1914, 777 / 777, seals hash-only, seed 7 identical; symmetric parks bit-identical to the old loop | none (no visible change at Harbor) |
+| F4-a hazard pattern library at parity; chompers are park data; four decorations | #847 | #851 | `b8dde6f7` | `40534ad8`: 1925 / 1925, 769 / 769, seals hash-only on the shipped root, seed 7 identical; **trial only:** Funfair night 1.18 → 1.15 runs × Harbor as the migrated chompers go live | none |
+| F3-b ground and wall-material libraries; the zone map | #846 | #850 | `1504b1cf` | `30661804`: 1979 / 1979, 811 / 811, seals hash-only, seed 7 identical; the zone map resolves beside the park like `ParkBoundary`, not on the table | none |
+| Seal the four new rules tables in the evidence packet (found by F4-a) | #853 | — | — | — | none |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
