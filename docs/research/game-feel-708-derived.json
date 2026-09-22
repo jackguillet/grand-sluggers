@@ -151,7 +151,7 @@
     "src/GrandSluggers.Sim/Rules.cs": "fc44b0faf4d861b339fdcd0ace23e6ab0a4207586b166869d21146924f4acd1c",
     "data/abilities/star-skills.json": "aec525b0cadf665e2d5d48a57823834a744f91e9adc6e61b5e2e6642d2598c71",
     "src/GrandSluggers.Sim/StarSkillTable.cs": "57477b7d77cf244c0a8f4db7fefdda83674c9bdb82333918c5f9f84223c42e0c",
-    "src/GrandSluggers.Sim/ContentValidation.cs": "4ed8add1af4596226bbaa8b6518a6176f0c5729032cf43b81db5497c97211f90",
+    "src/GrandSluggers.Sim/ContentValidation.cs": "e479660d1b3a61ff717b04d5a2ed0619028cec7ee47d0d57b0c0b0f7f96d276a",
     "src/GrandSluggers.Sim/Models.cs": "6c9eb539123a2d7dc1cf102a1d657351df3392b7dcefc243d604518ed4773974"
   },
   "profiles": [

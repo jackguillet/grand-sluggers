@@ -14,20 +14,20 @@
   "hazards": [
     {
       "type": "freeze_volume",
-      "x": 40,
-      "z": 70,
+      "x": 53,
+      "z": 93,
       "radius": 8
     },
     {
       "type": "freeze_volume",
-      "x": -45,
-      "z": 90,
+      "x": -49,
+      "z": 97,
       "radius": 8
     },
     {
       "type": "freeze_volume",
       "x": 10,
-      "z": 180,
+      "z": 187,
       "radius": 10
     }
   ],
