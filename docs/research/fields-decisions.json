@@ -1143,7 +1143,14 @@
         "answer_quote": "accept all four recommendations"
       },
       "numeric_targets": "not applicable: an engineering pattern",
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F7-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/829",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/830",
+          "status": "in review"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -1363,6 +1370,10 @@
     {
       "date": "2026-09-21",
       "event": "F2-a (#826, PR #833) moved the boundary out of HarborWall: the foul rail's offset and flare, the rail top, the backstop and the dugout pad are data/rules/boundary.json read through a ParkBoundary value type; FieldBounds and the park validator's fence floor name no park's class; the polygon cache keys on the resolved edge. Parity only - every value is the one that shipped (36, 95, 4.2, -36, 18), trials/c80 carries no copy, SF-08 holds vertex for vertex for six parks on both roots, seed 7 and the park factors are identical. FD-07 status unchanged; no number was selected and no human gate passed."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "F7-a opened as PR #830 (#829): StillRequest gains park and night, refused by name unless the id is in the catalog; StillCapture captures at that park and hands the scene's pick back; the default park in daylight keeps today's PNG names and every other park and night names itself; tools/still-gate.sh takes --park and --night, byte-identical with no flag. Zero gameplay change; no human gate. The park lane in the stage and dual-still catalogs stays F7-b."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
