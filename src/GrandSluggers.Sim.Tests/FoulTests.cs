@@ -16,7 +16,10 @@ public class FoulTests
     public void SprayPastTheFoulLineIsFoulNotInPlay()
     {
         var park = _content.Parks["harbor-diamond"];
-        var r = new AtBatResolver(_content.Chemistry).Resolve(Square(60), park, new Random(1));
+        // A 60° aim is the device that puts the ball past the chalk: the switch's off path
+        // (geometryOnly false, built in the test) still reads it. On the shipped root an ordinary
+        // swing ignores the aim since #883 (Jack, September 22, 2026: "approve all").
+        var r = new AtBatResolver(_content.Chemistry, SwitchOffPaths.StickShapesRules).Resolve(Square(60), park, new Random(1));
         Assert.True(r.Foul);
         Assert.False(r.InPlay);
         Assert.False(r.HomeRun);
@@ -62,7 +65,10 @@ public class FoulTests
     [Fact]
     public void FoulIsAStrikeUnlessTwo()
     {
-        var match = Match.Slice(_content, innings: 3, seed: 1);
+        // The 60° aim is the device that makes each swing foul, so the match plays the switch's off
+        // path (geometryOnly false, built in the test): on the shipped root an ordinary swing ignores
+        // the aim since #883 (Jack, September 22, 2026: "approve all").
+        var match = Match.Slice(SwitchOffPaths.StickShapesContent, innings: 3, seed: 1);
         var paint = new PitchCommand("fastball", 0, false);
         var pull = new SwingCommand(true, 0, 0, false, SprayAimDeg: 60);
         var batter = match.Batter.Id;
