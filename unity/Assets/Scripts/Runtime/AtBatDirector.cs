@@ -487,7 +487,7 @@ namespace GrandSluggers.UnityClient
                     ref _swingButton, ref _charge, ref _chargePast);
                 if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
                 if (box.WestHeld) _bunt = true;
-                // Stick U/D aims launch here; it never resets the box once the windup starts (§5.4).
+                // Stick U/D does not reset the box once the windup starts (§5.4); it no longer aims an ordinary swing (#883).
                 _match.WalkBatter(box.StickX * dt * 1.6f);
                 ShowCursor();
                 if (swingButton.Committed)

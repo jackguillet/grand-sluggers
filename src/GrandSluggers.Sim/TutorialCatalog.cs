@@ -157,7 +157,7 @@ public sealed class TutorialCatalog
                 && l.Requires.Contains(setup.Skill)
                 && setup.Home.Any(id => content.Characters[id].FieldAbility == setup.Skill),
                 l.Id + " needs the named ability fielder in its home nine");
-            if (l.Objective is "break-strike" or "rubber-strike" or "box-perfect-fair" or "grounder-fair" or "fly-fair")
+            if (l.Objective is "break-strike" or "rubber-strike" or "box-perfect-fair")
                 Require(setup.MinMovement01 > 0, l.Id + " needs a meaningful movement threshold");
             if (l.Objective is "pull-fair" or "push-fair")
                 Require(setup.MinTimingFrames > 0, l.Id + " needs a meaningful timing threshold");

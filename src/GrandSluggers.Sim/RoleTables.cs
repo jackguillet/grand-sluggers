@@ -62,7 +62,7 @@ public static class RoleTables
             new("Charge swing", "Hold South; release at MAX"),
             new("Star swing", "North + South"),
             new("Bunt", "Hold West"),
-            new("Spray", "Stick L/R at contact"),
+            new("Aim bunt", "Stick L/R at contact"),
         ]),
         new("pitching", "Pitching",
         [
@@ -112,7 +112,7 @@ public static class RoleTables
             new("Charge swing", "Hold Space / left click; release at MAX"),
             new("Star swing", "Q + Space"),
             new("Bunt", "Hold V / Ctrl"),
-            new("Spray", "A/D at contact"),
+            new("Aim bunt", "A/D at contact"),
         ]),
         new("pitching", "Pitching",
         [

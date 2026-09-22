@@ -108,9 +108,7 @@
       "title": "early/late direction",
       "category": "batting",
       "spec": "gameplay-spec:5",
-      "sources": [
-        "control:batting/Spray"
-      ]
+      "sources": []
     },
     {
       "id": "batting.04",
@@ -131,19 +129,13 @@
       ]
     },
     {
-      "id": "batting.06",
-      "title": "launch direction",
-      "category": "batting",
-      "spec": "gameplay-spec:5",
-      "sources": []
-    },
-    {
       "id": "batting.07",
       "title": "bunt and foul-bunt risk",
       "category": "batting",
       "spec": "gameplay-spec:5",
       "sources": [
-        "control:batting/Bunt"
+        "control:batting/Bunt",
+        "control:batting/Aim bunt"
       ]
     },
     {
