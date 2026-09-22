@@ -1543,7 +1543,7 @@
         {
           "kind": "trial-implementation",
           "issue": "#844",
-          "revision": "7962d302",
+          "revision": "c9ce8531",
           "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
           "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
           "report": "docs/research/plate-window-p2b.md",
@@ -1639,7 +1639,7 @@
             {
               "kind": "trial-implementation",
               "issue": "#844",
-              "revision": "7962d302",
+              "revision": "c9ce8531",
               "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
               "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
               "report": "docs/research/plate-window-p2b.md",
@@ -1765,7 +1765,7 @@
             {
               "kind": "trial-implementation",
               "issue": "#844",
-              "revision": "7962d302",
+              "revision": "c9ce8531",
               "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
               "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
               "report": "docs/research/plate-window-p2b.md",
@@ -3393,7 +3393,7 @@
             {
               "kind": "trial-implementation",
               "issue": "#844",
-              "revision": "7962d302",
+              "revision": "c9ce8531",
               "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
               "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
               "report": "docs/research/plate-window-p2b.md",
@@ -4877,7 +4877,7 @@
         {
           "kind": "trial-implementation",
           "issue": "#844",
-          "revision": "7962d302",
+          "revision": "c9ce8531",
           "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
           "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
           "report": "docs/research/plate-window-p2b.md",
@@ -5311,7 +5311,7 @@
             {
               "kind": "trial-implementation",
               "issue": "#844",
-              "revision": "7962d302",
+              "revision": "c9ce8531",
               "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
               "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
               "report": "docs/research/plate-window-p2b.md",
