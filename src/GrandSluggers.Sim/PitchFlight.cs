@@ -3,7 +3,8 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// The pitch as a readable object (spec §4.2, §4.3): a <b>family</b> from the shared library —
 /// today the fastball, which flies true with a mild hump, and the changeup, which hangs then dumps
-/// below the fastball's height — plus the stick's break after release and the rubber walk. u=0 at
+/// below the fastball's height — plus the family's own natural sweep (<see cref="SweepShiftFt"/>,
+/// zero for both shipped rows), the stick's break after release and the rubber walk. u=0 at
 /// the release, u=1 at the plate. One function,
 /// <see cref="Point(PitchCommand, double, string?, ValueTuple{double, double, double}?, RulesTable?)"/>,
 /// gives the ball at any u; the aim tell, the ball, the umpire, and the CPU batter all read
@@ -53,7 +54,8 @@ public static class PitchFlight
     public static (double X, double Y, double Z) Point(
         string type, double u, double aimX = 0, double aimY = 0,
         double breakX = 0, double rubberX = 0,
-        (double X, double Y, double Z)? from = null, RulesTable? rules = null, bool charged = false)
+        (double X, double Y, double Z)? from = null, RulesTable? rules = null, bool charged = false,
+        Hand throws = Hand.R)
     {
         var r = Rules.Or(rules);
         var f = r.Pitching.Flight;
@@ -65,6 +67,13 @@ public static class PitchFlight
         var rel = from ?? Release(rubberX, r);
         var z = rel.Z * (1 - u);
         var (x, y, zz) = Shape(u, tx, ty, z, rel, row);
+        // Shape → sweep → stick → star. The sweep is the family's own movement and the stick's shift
+        // is the player's, so they add rather than one scaling the other (PH-15-R6). The add is
+        // skipped outright when there is no sweep: `x + 0.0` is x for every value a flight has
+        // except a negative zero, where it clears the sign bit, and the #811 golden holds X bit for
+        // bit. Nothing in the shipped table sweeps, so nothing in the shipped flight moves.
+        var sweep = SweepShiftFt(u, row, throws);
+        if (sweep != 0) x += sweep;
         x += BreakShiftFt(u, breakX, charged || row.BreakDamped, f);
         return (x, y, zz);
     }
@@ -76,7 +85,7 @@ public static class PitchFlight
         var r = Rules.Or(rules);
         u = Math.Clamp(u, 0, 1);
         var p = Point(pitch.Type, u, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
-            pitch.RubberX, from, r, ChargeFeel.IsCharge(pitch.Charge01));
+            pitch.RubberX, from, r, ChargeFeel.IsCharge(pitch.Charge01), pitch.Throws);
         if (!pitch.Star) return p;
         var st = r.Pitching.StarShapes;
         return starPitchId switch
@@ -111,6 +120,58 @@ public static class PitchFlight
         var early = Math.Sin(u * Math.PI) * b * f.BreakEarly;
         var late = u <= f.BreakLateFrom ? 0 : Math.Min(1, (u - f.BreakLateFrom) / f.BreakLateSpan);
         return early + late * late * b * f.BreakMaxFt;
+    }
+
+    /// <summary>
+    /// World X of a pitcher's <b>glove side</b>, and the one place the sign is decided (spec §4.2,
+    /// #818).
+    ///
+    /// <para>
+    /// Read off the diamond, not remembered: home is the origin and first base is
+    /// <see cref="Diamond.First"/>, whose X is <c>infield.cornerFt</c> — a <c>[Positive]</c> rule, so
+    /// first base is on the +X side of the center line in every data root there can be. A
+    /// right-hander stands on the rubber facing home with first base on the glove hand's side, so a
+    /// right-hander's glove side is +X and a left-hander's is −X. A sweep toward the glove side is a
+    /// slider running away from a same-handed batter, which is what "glove side" is worth naming for.
+    /// </para>
+    ///
+    /// <para>
+    /// This is the flight's only opinion about the arm. <see cref="Release"/> is not mirrored — every
+    /// pitcher's hand leaves from the same <c>releaseHandX</c> — and #818 leaves that alone
+    /// deliberately; see the report in <c>docs/research/pitch-families-p1d.md</c>.
+    /// </para>
+    /// </summary>
+    public static double GloveSideSign(Hand throws) =>
+        Math.Sign(Diamond.First.X) * (throws == Hand.L ? -1 : 1);
+
+    /// <summary>
+    /// The family's natural sweep at u, in feet of world X (spec §4.2, #818): nothing until
+    /// <see cref="PitchFamilyRules.SweepFrom"/>, then the square of the share of flight that is left,
+    /// reaching the row's whole <see cref="PitchFamilyRules.SweepFt"/> exactly at the plate, on the
+    /// side <see cref="GloveSideSign"/> gives this arm.
+    ///
+    /// <para>
+    /// The curve is a quadratic ease and nothing else: multiply, subtract, divide. No
+    /// <c>Math.Sin</c>, <c>Pow</c> or <c>Atan</c> stands between the table and the crossing, so the
+    /// same row produces the same bits on macOS and on glibc (#811, #736) and evidence derived from
+    /// it can be compared across platforms.
+    /// </para>
+    ///
+    /// <para>
+    /// It does not read the stick, the charge or the Pitch stat. The stick's shift
+    /// (<see cref="BreakShiftFt"/>) is added beside it under its own unchanged cap, and a charge
+    /// damps that shift and not this one (PH-05-R1: a charge costs steering correction, never
+    /// characteristic movement).
+    /// </para>
+    /// </summary>
+    public static double SweepShiftFt(double u, PitchFamilyRules row, Hand throws)
+    {
+        if (row is null) throw new ArgumentNullException(nameof(row));
+        // A row that never begins to sweep, and a row with no sweep to begin, are both straight —
+        // and the guard is also what keeps 1 out of the divisor below.
+        if (row.SweepFt == 0 || row.SweepFrom >= 1) return 0;
+        var t = u <= row.SweepFrom ? 0 : (u - row.SweepFrom) / (1 - row.SweepFrom);
+        return t * t * row.SweepFt * GloveSideSign(throws);
     }
 
     /// <summary>

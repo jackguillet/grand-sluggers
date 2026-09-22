@@ -50,6 +50,48 @@
       "breakDamped": true,
       "staminaCost": 3,
       "offSpeed": true
+    },
+    "curveball": {
+      "mph": 72.5,
+      "chargeMph": 4,
+      "hump": 0.8,
+      "hangUntil": 0.55,
+      "hangRate": 0.42,
+      "dumpRate": 1.72,
+      "dropFt": 0.9,
+      "sweepFt": 0.32,
+      "sweepFrom": 0.42,
+      "breakDamped": false,
+      "staminaCost": 2,
+      "offSpeed": true
+    },
+    "slider": {
+      "mph": 78,
+      "chargeMph": 5,
+      "hump": 0.15,
+      "hangUntil": 0.8,
+      "hangRate": 0.95,
+      "dumpRate": 1.26,
+      "dropFt": 0.3,
+      "sweepFt": 0.58,
+      "sweepFrom": 0.45,
+      "breakDamped": false,
+      "staminaCost": 2,
+      "offSpeed": false
+    },
+    "sinker": {
+      "mph": 81,
+      "chargeMph": 6,
+      "hump": 0.3,
+      "hangUntil": 0.75,
+      "hangRate": 0.88,
+      "dumpRate": 1.37,
+      "dropFt": 0.55,
+      "sweepFt": -0.2,
+      "sweepFrom": 0.55,
+      "breakDamped": false,
+      "staminaCost": 1,
+      "offSpeed": false
     }
   },
   "starShapes": {

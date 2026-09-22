@@ -181,6 +181,16 @@ public sealed class ChanceAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class SignedAttribute : Attribute;
 
+/// <summary>
+/// A nested table the data may leave out: null is "nothing authors this", not a broken table
+/// (#818, spec §4.3). Every other object property must be present, so a null there is still an
+/// error. The absence has to come from the file having no such key: a JSON <c>null</c> is refused
+/// by <see cref="RulesValidation.UnknownFields"/>, which walks the element and reports a row that
+/// is not an object.
+/// </summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class OptionalAttribute : Attribute;
+
 public static class RulesValidation
 {
     /// <summary>
@@ -220,6 +230,9 @@ public static class RulesValidation
             var value = p.GetValue(node);
             if (value is null)
             {
+                // A row the data does not author has nothing to range-check (#818). Everything else
+                // that is null is a table that failed to build.
+                if (p.GetCustomAttribute<OptionalAttribute>() is not null) continue;
                 errors.Add($"{source}: {name} must be an object; got null");
                 continue;
             }
@@ -434,6 +447,15 @@ public sealed class PitchFlightRules
 /// <see cref="PitchFamily.Slider"/>, <see cref="PitchFamily.Sinker"/>) are <b>known but unauthored</b>:
 /// their numbers and their natural sweep are P1-d, a numeric trial Jack accepts. Asking for one is a
 /// loud stop that names it, never a silent fastball.
+///
+/// <para>
+/// <b>Authored is a fact about the data, not about the code</b> (#818). The three are nullable rows
+/// that the shipped <c>pitching.json</c> simply has no key for, and the trial overlay
+/// <c>trials/pitch5</c> is a copy of that file with the three keys present. So the same build stops
+/// on <c>Of("slider")</c> under the shipped root and flies it under the trial, and nothing anywhere
+/// hard-wires which ids have numbers. <see cref="Fastball"/> and <see cref="Changeup"/> are not
+/// nullable: a table without them is a game that cannot throw a pitch.
+/// </para>
 /// </summary>
 public sealed class PitchFamilyTable
 {
@@ -442,6 +464,7 @@ public sealed class PitchFamilyTable
     {
         Mph = 86, ChargeMph = 8,
         Hump = 0.35, HangUntil = 1, HangRate = 1, DumpRate = 1, DropFt = 0,
+        SweepFt = 0, SweepFrom = 1,
         BreakDamped = false, StaminaCost = 0, OffSpeed = false
     };
 
@@ -450,17 +473,46 @@ public sealed class PitchFamilyTable
     {
         Mph = 68.8, ChargeMph = 3,
         Hump = 0, HangUntil = 0.62, HangRate = 0.22, DumpRate = 2.4, DropFt = 0.9,
+        SweepFt = 0, SweepFrom = 1,
         BreakDamped = true, StaminaCost = 3, OffSpeed = true
     };
 
-    /// <summary>True for a library id this table has numbers for. The other three are P1-d.</summary>
-    public bool IsAuthored(string? family) => family is PitchFamily.Fastball or PitchFamily.Changeup;
+    /// <summary>Pronounced arc and drop (PH-02-R2). Unauthored on the shipped root; <c>trials/pitch5</c> proposes it (#818).</summary>
+    [Optional] public PitchFamilyRules? Curveball { get; init; }
 
-    static readonly IReadOnlyList<string> AuthoredIds =
-        PitchFamily.All.Where(id => id is PitchFamily.Fastball or PitchFamily.Changeup).ToList();
+    /// <summary>Sideways movement that challenges coverage (PH-02-R2). Unauthored on the shipped root (#818).</summary>
+    [Optional] public PitchFamilyRules? Slider { get; init; }
 
-    /// <summary>The authored ids in library order (<see cref="PitchFamily.All"/>).</summary>
-    public IReadOnlyList<string> Authored => AuthoredIds;
+    /// <summary>A faster dipping alternative to the curveball (PH-02-R2). Unauthored on the shipped root (#818).</summary>
+    [Optional] public PitchFamilyRules? Sinker { get; init; }
+
+    /// <summary>
+    /// This table's row for a library id, or null when the data does not author one. Not public:
+    /// callers ask <see cref="IsAuthored"/> or take <see cref="Of"/>'s named stop, so an unauthored
+    /// family can never be read as a missing-but-harmless nothing.
+    /// </summary>
+    PitchFamilyRules? Named(string family) => family switch
+    {
+        PitchFamily.Fastball => Fastball,
+        PitchFamily.Changeup => Changeup,
+        PitchFamily.Curveball => Curveball,
+        PitchFamily.Slider => Slider,
+        PitchFamily.Sinker => Sinker,
+        _ => null
+    };
+
+    /// <summary>True for a library id <b>this table</b> has numbers for (#818).</summary>
+    public bool IsAuthored(string? family) => family is not null && Named(family) is not null;
+
+    IReadOnlyList<string>? _authored;
+
+    /// <summary>
+    /// The authored ids in library order (<see cref="PitchFamily.All"/>). Built once per table and
+    /// then handed out: <see cref="PitchSelection"/> asks for it on the SET tick, so it must not
+    /// allocate per call. A table is never mutated after it loads, so the answer cannot go stale.
+    /// </summary>
+    public IReadOnlyList<string> Authored =>
+        _authored ??= PitchFamily.All.Where(IsAuthored).ToList();
 
     /// <summary>
     /// The row for a family id. A library id with no row and an id that is not in the library are
@@ -468,30 +520,40 @@ public sealed class PitchFamilyTable
     /// </summary>
     public PitchFamilyRules Of(string? family)
     {
-        if (family == PitchFamily.Fastball) return Fastball;
-        if (family == PitchFamily.Changeup) return Changeup;
+        if (family is not null && Named(family) is { } row) return row;
         if (PitchFamily.IsKnown(family ?? ""))
             throw new InvalidOperationException(
                 $"pitch family '{family}' is in the library but has no authored row in pitching.json families; "
-                + "its numbers are P1-d. Authored: " + string.Join(", ", Authored));
+                + "its numbers are a trial (trials/pitch5, PH-20-R1). Authored: " + string.Join(", ", Authored));
         throw new ArgumentException(
             $"'{family}' is not a pitch family. The library is [{string.Join(", ", PitchFamily.All)}] (PitchFamily); "
             + "break is a stick verb and charge is a modifier, not a type.", nameof(family));
     }
 
     /// <summary>
-    /// The one rule across a row's fields the attributes cannot say: the hang must reach the aim
-    /// before the plate. A row whose hang and dump never sum to 1 is a pitch that never arrives, and
-    /// the clamp in <see cref="PitchFlight.Shape"/> would hide it as a snap at u=1 (#668).
+    /// The rules across a row's fields the attributes cannot say, checked on every <b>authored</b>
+    /// row, shipped or trial:
+    /// <list type="bullet">
+    /// <item>The hang must reach the aim before the plate. A row whose hang and dump never sum to 1
+    /// is a pitch that never arrives, and the clamp in <see cref="PitchFlight.Shape"/> would hide it
+    /// as a snap at u=1 (#668).</item>
+    /// <item>A row that sweeps must say when the sweep starts (#818). <c>sweepFrom</c> 1 is "never
+    /// begins", so a row with feet of sweep and no start is a number that does nothing — the kind of
+    /// dead rule a table should refuse rather than carry.</item>
+    /// </list>
     /// </summary>
     internal void Validate(string source, List<string> errors)
     {
-        foreach (var (name, row) in new[] { ("fastball", Fastball), ("changeup", Changeup) })
+        foreach (var name in Authored)
         {
+            var row = Of(name);
             var atPlate = row.HangUntil * row.HangRate + (1 - row.HangUntil) * row.DumpRate;
             if (atPlate < 1)
                 errors.Add($"{source}: pitching.families.{name} must finish its drop in flight; "
                            + $"hangUntil × hangRate + (1 − hangUntil) × dumpRate = {atPlate} < 1");
+            if (row.SweepFt != 0 && row.SweepFrom >= 1)
+                errors.Add($"{source}: pitching.families.{name} sweeps {row.SweepFt} ft but its sweepFrom is "
+                           + $"{row.SweepFrom}, which never begins; give the sweep a start below 1 or set sweepFt to 0");
         }
     }
 }
@@ -518,6 +580,21 @@ public sealed class PitchFamilyRules
     public double DumpRate { get; init; } = 1;
     /// <summary>Feet below a fastball's height this family crosses (up to one zone-half).</summary>
     public double DropFt { get; init; } = 0;
+    /// <summary>
+    /// The family's <b>natural sweep</b> (spec §4.2, #818): feet the crossing ends off the straight
+    /// line from the rubber, positive toward the pitcher's <b>glove side</b> and mirrored by the
+    /// throwing hand. It is the shape's own movement, so the stick does not scale it and a charge
+    /// does not damp it (PH-05-R1, PH-15-R6); it adds to the player's steering, whose own cap
+    /// <c>flight.breakMaxFt</c> is unchanged. 0 is a family that flies straight.
+    /// </summary>
+    [Signed] public double SweepFt { get; init; }
+    /// <summary>
+    /// Where in the flight the sweep starts to show, as a share of it. From there it grows as the
+    /// square of the remaining flight, so it is nothing early and most of itself at the end — late
+    /// enough to fool, early enough to read (§4.2). 1 is "never begins", which is why it is the
+    /// default and what a family with no sweep authors.
+    /// </summary>
+    [Chance] public double SweepFrom { get; init; } = 1;
     /// <summary>The stick's break takes <c>flight.breakDampedMul</c> for this family even uncharged (spec §4.1).</summary>
     public bool BreakDamped { get; init; }
     /// <summary>Stamina on top of <c>stamina.pitchCost</c> (spec §4.7).</summary>
