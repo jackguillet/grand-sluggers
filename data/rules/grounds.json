@@ -3,6 +3,15 @@
   // may name. Every row is today's flight.json roll / bounce / skid, so the ground under the ball
   // changes no play; the flight still reads its own copy until F3-c moves the read to the zone.
   // A value that is not today's arrives with Crystal (F9-a), as a trial Jack has accepted.
+  //
+  // `body` is what the ground does to a body standing on it (spec §8, §9; FD-04 B, F3-d). Each
+  // multiplier scales a TIME or a LENGTH, never a speed, so above 1 always reads "more slippery":
+  // startMul x fielding.chase.accelSec (rest to speed, and the planner's half-ramp), brakeMul x
+  // fielding.chase.brakeSec (speed to rest), cutMul x the time the across-heading correction takes
+  // (the ramp time: the cut-back), slideMul x running.bags.slideFt and overrunMul x
+  // running.bags.overrunFt (read at the bag's zone). The stick, the heading and the top speed are
+  // never scaled: the body always goes where it is pointed. Start, brake and cut-back act only
+  // where the response law is on (accelSec / brakeSec above 0: trials/c80 today). Every row is 1.0.
   "grass": {
     "roll": {
       "friction": 22,
@@ -19,6 +28,13 @@
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93
+    },
+    "body": {
+      "startMul": 1.0,
+      "brakeMul": 1.0,
+      "cutMul": 1.0,
+      "slideMul": 1.0,
+      "overrunMul": 1.0
     }
   },
   "dirt": {
@@ -37,6 +53,13 @@
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93
+    },
+    "body": {
+      "startMul": 1.0,
+      "brakeMul": 1.0,
+      "cutMul": 1.0,
+      "slideMul": 1.0,
+      "overrunMul": 1.0
     }
   },
   "ice": {
@@ -55,6 +78,13 @@
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93
+    },
+    "body": {
+      "startMul": 1.0,
+      "brakeMul": 1.0,
+      "cutMul": 1.0,
+      "slideMul": 1.0,
+      "overrunMul": 1.0
     }
   },
   "ash": {
@@ -73,6 +103,13 @@
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93
+    },
+    "body": {
+      "startMul": 1.0,
+      "brakeMul": 1.0,
+      "cutMul": 1.0,
+      "slideMul": 1.0,
+      "overrunMul": 1.0
     }
   }
 }

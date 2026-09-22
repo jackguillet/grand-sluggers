@@ -1,0 +1,610 @@
+using System.Security.Cryptography;
+using System.Text.Json.Nodes;
+using GrandSluggers.Sim;
+using Xunit;
+
+namespace GrandSluggers.Sim.Tests;
+
+/// <summary>
+/// F3-d (#857; FD-04 B, FD-05, FR-02 / FR-06 / FR-16; spec §8, §9, §16, <c>SF-13</c>): the ground acts on a body in a small
+/// way. Every ground row carries a <c>body</c> block — <c>startMul</c>, <c>brakeMul</c>, <c>cutMul</c> through the §8
+/// response law, <c>slideMul</c> and <c>overrunMul</c> on the runner — each scaling a time or a length, all 1.0 on both roots.
+///
+/// <para>
+/// <b>The fixture rows here are not shipped numbers.</b> <see cref="Roots"/> copies the shipped root and turns the response
+/// law on at the trial's rates (<c>accelSec</c> 0.2 / <c>brakeSec</c> 0.1), and gives the <c>ice</c> row fixture
+/// multipliers; the parks are Harbor as authored ("plain": dirt and grass, both 1.0) and Harbor with every zone named ice
+/// ("iced"). The same body, the same stick, the same ball on the two parks is the <c>SF-13</c> comparison. The fixture's
+/// geometry is the shipped diamond, the one <see cref="Diamond"/> reads in this process, so nothing here plays a trial row on
+/// the control's field. The class is not <c>Rows=compact</c>: it builds its own roots.
+/// </para>
+///
+/// <para>
+/// <b>Parity was written first.</b> The three <c>AtOne…</c> rows were committed against the code before the block existed,
+/// with the values that code produced; the change had to keep them. Each value is reached by <c>+ − × ÷</c> and <c>sqrt</c>
+/// alone — the stick glove's want is the raw stick, the route runs on a synthetic roller, the runner on the running table —
+/// so the golden pins no libm (protocol <c>stored-double-pins-the-platform</c>).
+/// </para>
+/// </summary>
+public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
+{
+    const double Frame = 1.0 / 60.0;
+    readonly Roots _roots;
+
+    public BodyGroundTests(Roots roots) => _roots = roots;
+
+    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+
+    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped,
+        Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"))));
+
+    /// <summary>The fixture ice row. Distinct values, so a reader that took the wrong multiplier fails by name.</summary>
+    static readonly (double Start, double Brake, double Cut, double Slide, double Overrun) Slick = (1.5, 2.0, 2.5, 1.5, 2.0);
+
+    /// <summary>The stick glove's script: +X from rest (through the reaction lockout), a 90° cut to −Z, then a reversal to +Z.</summary>
+    static readonly (int Frames, double X, double Y)[] Script = [(100, 1, 0), (60, 0, -1), (45, 0, 1)];
+
+    const int CutFrom = 100;
+    const int ReverseFrom = 160;
+
+    static Park Plain(ContentCatalog catalog) => catalog.Parks["harbor-diamond"];
+
+    static Park Iced(ContentCatalog catalog) => Plain(catalog) with
+    {
+        Zones = new ParkZones(InfieldDirt: Ground.Ice, Outfield: Ground.Ice, WarningTrack: Ground.Ice, FoulApron: Ground.Ice)
+    };
+
+    // ---------------------------------------------------------------------------------
+    // The table
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>Every row names the block, every multiplier is 1.0, on both roots (<c>trials/c80</c> reads the shipped library).</summary>
+    [Fact]
+    public void EveryGroundRowCarriesTheBodyBlockAtOne()
+    {
+        foreach (var catalog in new[] { Shipped, Trial })
+            foreach (var id in catalog.Rules.Grounds.Ids)
+            {
+                var body = catalog.Rules.Grounds.Of(id).Body;
+                Assert.Equal((1.0, 1.0, 1.0, 1.0, 1.0), (body.StartMul, body.BrakeMul, body.CutMul, body.SlideMul, body.OverrunMul));
+            }
+        Assert.False(File.Exists(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80", RulesTable.Directory, "grounds.json")));
+    }
+
+    /// <summary>The multipliers are range-checked like every rule: 0 or less is refused by name, against the file.</summary>
+    [Theory]
+    [InlineData("grass", "startMul", 0)]
+    [InlineData("dirt", "brakeMul", -1)]
+    [InlineData("ice", "cutMul", 0)]
+    [InlineData("ash", "slideMul", 0)]
+    [InlineData("ice", "overrunMul", -0.5)]
+    public void AMultiplierAtOrBelowZeroIsRefusedByName(string row, string field, double value)
+    {
+        var root = _roots.Fresh(grounds => grounds[row]!["body"]![field] = value);
+        Assert.Contains(RulesTable.Validate(new DataRoot(root)), e =>
+            e.Contains($"grounds.{row}.body.{field} must be greater than 0", StringComparison.Ordinal)
+            && e.Contains(Path.Combine(root, RulesTable.Directory, "grounds.json"), StringComparison.Ordinal));
+    }
+
+    /// <summary>A key the block does not declare is a typo, not a silent default (the strict schema reaches inside a row).</summary>
+    [Fact]
+    public void AnUnknownKeyInTheBodyBlockIsRefused()
+    {
+        var root = _roots.Fresh(grounds => grounds["ice"]!["body"]!["driftMul"] = 1.0);
+        Assert.Contains(RulesTable.Validate(new DataRoot(root)), e =>
+            e.Contains("grounds.ice.body.driftMul is not a rule this table owns", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// The response law's switch reads the table, never a product: the ice row on the law-off root carries every fixture
+    /// multiplier and the chase still has no ramp and no brake, so there is no law for them to scale.
+    /// </summary>
+    [Fact]
+    public void TheLawsSwitchIsTheTableNotAProduct()
+    {
+        var off = _roots.SlickLawOff.Rules;
+        Assert.Equal((0.0, 0.0), (off.Fielding.Chase.AccelSec, off.Fielding.Chase.BrakeSec));
+        Assert.Equal(Slick.Start, off.Grounds.Of(Ground.Ice).Body.StartMul);
+        var on = _roots.Slick.Rules;
+        Assert.Equal((0.2, 0.1), (on.Fielding.Chase.AccelSec, on.Fielding.Chase.BrakeSec));
+        Assert.Equal((Slick.Start, Slick.Brake, Slick.Cut, Slick.Slide, Slick.Overrun),
+            (on.Grounds.Of(Ground.Ice).Body.StartMul, on.Grounds.Of(Ground.Ice).Body.BrakeMul, on.Grounds.Of(Ground.Ice).Body.CutMul,
+             on.Grounds.Of(Ground.Ice).Body.SlideMul, on.Grounds.Of(Ground.Ice).Body.OverrunMul));
+        Assert.Equal(1.0, on.Grounds.Of(Ground.Dirt).Body.StartMul);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // SF-13 — the same body on two grounds
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// <c>SF-13</c>: the same centre fielder, asked the same velocity from rest by the same stick, on the plain park and on the
+    /// iced one. The start takes <c>accelSec × startMul</c>, the stop (the brake half of the reversal) <c>brakeSec ×
+    /// brakeMul</c>, and the 90° cut longer on the slick row; the top speed and the heading the body settles on after the cut
+    /// and after the reversal are the same on both — the body goes where the stick points, it only answers slower.
+    /// </summary>
+    [Fact]
+    public void SF13_StartBrakeAndCutBackDifferOnTwoGrounds()
+    {
+        var catalog = _roots.Slick;
+        var chase = catalog.Rules.Fielding.Chase;
+        var plain = Velocities(StickRun(catalog, Plain(catalog), Script, out var rated));
+        var iced = Velocities(StickRun(catalog, Iced(catalog), Script, out var ratedOnIce));
+        Assert.Equal(rated, ratedOnIce);
+
+        var top = Speed(plain[CutFrom]);
+        Assert.True(top > 5, $"the body is at speed before the cut ({top:0.00} ft/s)");
+        Assert.Equal(top, Speed(iced[CutFrom]), 9);
+        // No frame is faster than the asked speed, on either ground (the ground never adds speed).
+        Assert.All(plain.Concat(iced), v => Assert.True(Speed(v) <= top * (1 + 1e-9), $"{Speed(v)} over {top}"));
+        // The rates are measured against the rated speed (§8, #718); an outfielder under a fly is asked a fraction of it.
+        double Takes(double sec, double mul) => sec * mul * top / rated;
+
+        // The start: rest to the asked speed.
+        var startPlain = FramesToReach(plain, 0, v => v.X >= top * (1 - 1e-9));
+        var startIced = FramesToReach(iced, 0, v => v.X >= top * (1 - 1e-9));
+        Assert.InRange(startPlain * Frame, Takes(chase.AccelSec, 1), Takes(chase.AccelSec, 1) + Frame);
+        Assert.InRange(startIced * Frame, Takes(chase.AccelSec, Slick.Start), Takes(chase.AccelSec, Slick.Start) + Frame);
+        Assert.True(startIced > startPlain);
+
+        // The cut-back: +X at speed, the stick to −Z. The same heading and speed at the end on both; later on the slick row.
+        var cutPlain = FramesToReach(plain, CutFrom, v => Near(v, (0, -top)));
+        var cutIced = FramesToReach(iced, CutFrom, v => Near(v, (0, -top)));
+        Assert.True(cutIced > cutPlain, $"the cut on ice ({cutIced} frames) is slower than on dirt and grass ({cutPlain})");
+        Assert.True(Near(plain[ReverseFrom], (0, -top)) && Near(iced[ReverseFrom], (0, -top)), "both finished the cut on −Z at speed");
+
+        // The stop: the reversal's brake half, −Z at speed until the component along the old heading has died.
+        var stopPlain = FramesToReach(plain, ReverseFrom, v => v.Z >= 0);
+        var stopIced = FramesToReach(iced, ReverseFrom, v => v.Z >= 0);
+        Assert.InRange(stopPlain * Frame, Takes(chase.BrakeSec, 1), Takes(chase.BrakeSec, 1) + Frame);
+        Assert.InRange(stopIced * Frame, Takes(chase.BrakeSec, Slick.Brake), Takes(chase.BrakeSec, Slick.Brake) + Frame);
+        Assert.True(stopIced > stopPlain);
+
+        // And the body ends where the stick points, at the same speed, on both grounds.
+        Assert.True(Near(plain[^1], (0, top)) && Near(iced[^1], (0, top)), "both run +Z at the asked speed at the end");
+    }
+
+    /// <summary>
+    /// Each multiplier moves its own part of the law and nothing else. On the fixture ash row only <c>cutMul</c> is off 1.0: the
+    /// start and the stop are the plain park's frame for frame, the 90° cut alone is slower, and the body still ends each leg on
+    /// the stick's heading at the asked speed.
+    /// </summary>
+    [Fact]
+    public void SF13_TheCutBackIsItsOwnTime()
+    {
+        var catalog = _roots.Slick;
+        var ashen = Plain(catalog) with
+        {
+            Zones = new ParkZones(InfieldDirt: Ground.Ash, Outfield: Ground.Ash, WarningTrack: Ground.Ash, FoulApron: Ground.Ash)
+        };
+        var plain = Velocities(StickRun(catalog, Plain(catalog), Script));
+        var cutOnly = Velocities(StickRun(catalog, ashen, Script));
+        var top = Speed(plain[CutFrom]);
+        Assert.Equal(plain.Take(CutFrom + 1), cutOnly.Take(CutFrom + 1));
+        Assert.True(FramesToReach(cutOnly, CutFrom, v => Near(v, (0, -top))) > FramesToReach(plain, CutFrom, v => Near(v, (0, -top))));
+        Assert.True(Near(cutOnly[ReverseFrom], (0, -top)));
+        // The reversal is a brake along the heading and then the ramp: nothing across it, so the cut-back does not enter.
+        Assert.Equal(FramesToReach(plain, ReverseFrom, v => v.Z >= 0), FramesToReach(cutOnly, ReverseFrom, v => v.Z >= 0));
+        Assert.Equal(FramesToReach(plain, ReverseFrom, v => Near(v, (0, top))), FramesToReach(cutOnly, ReverseFrom, v => Near(v, (0, top))));
+    }
+
+    /// <summary>
+    /// The planner charges the ramp of the ground the body starts on (FD-04 B): half of <c>accelSec × startMul</c>, so the plan
+    /// and the body agree. The same roller and the same shortstop: on the iced infield the route pays the longer ramp.
+    /// </summary>
+    [Fact]
+    public void SF13_ThePlannerChargesTheRampOfTheGroundTheBodyStartsOn()
+    {
+        var rules = _roots.Slick.Rules;
+        var plain = PlanRoute(rules, Plain(_roots.Slick));
+        var iced = PlanRoute(rules, Iced(_roots.Slick));
+        Assert.Equal(rules.Fielding.Chase.AccelSec / 2, plain.RampSec);
+        Assert.Equal(rules.Fielding.Chase.AccelSec * Slick.Start / 2, iced.RampSec);
+        Assert.True(plain.Reachable && iced.Reachable);
+        Assert.True(iced.MeetTimeSec >= plain.MeetTimeSec);
+        Assert.True(iced.TravelTimeSec > plain.TravelTimeSec);
+
+        // The start zone is what is read: a park whose only ice is the outfield leaves the infield body's ramp alone.
+        var outfieldIce = Plain(_roots.Slick) with { Zones = new ParkZones(Outfield: Ground.Ice) };
+        Assert.Equal(plain, PlanRoute(rules, outfieldIce));
+    }
+
+    /// <summary>
+    /// <c>SF-13</c>: S-31's ball (118 ft, 4°, −18° to the shortstop, cinder at Run 5) on the slick row is still the routine
+    /// out at first. The ground did act — the shortstop's path differs frame by frame — and the out stands, because the effect
+    /// is small (FD-04 B: the same routine grounder is a routine out in every park).
+    /// </summary>
+    [Fact]
+    public void SF13_TheRoutineGrounderIsStillAnOut()
+    {
+        var catalog = _roots.Slick;
+        var (plainPlay, plainTrack) = RoutineGrounder(catalog, Plain(catalog));
+        var (icedPlay, icedTrack) = RoutineGrounder(catalog, Iced(catalog));
+        foreach (var play in new[] { plainPlay, icedPlay })
+        {
+            Assert.Equal(PlayKind.GroundOut, play.Kind);
+            var only = Assert.Single(play.Outcome!.OutsMade);
+            Assert.Equal((OutType.ThrowOutAtFirst, 1, 0), (only.Type, only.Bag, only.FromBag));
+        }
+        Assert.False(plainTrack.SequenceEqual(icedTrack), "the slick row changed the shortstop's steps");
+    }
+
+    /// <summary>
+    /// <c>SF-13</c>: with the law off (the shipped chase, 0 / 0) the ice row's multipliers have nothing to scale. The stick
+    /// glove and every body in S-31's play step bit for bit the same on the plain and the iced park.
+    /// </summary>
+    [Fact]
+    public void SF13_WithTheLawOffTheBodyIsIdentical()
+    {
+        var catalog = _roots.SlickLawOff;
+        Assert.Equal(StickRun(catalog, Plain(catalog), Script), StickRun(catalog, Iced(catalog), Script));
+        var (plainPlay, plainTrack) = RoutineGrounder(catalog, Plain(catalog), everyBody: true);
+        var (icedPlay, icedTrack) = RoutineGrounder(catalog, Iced(catalog), everyBody: true);
+        Assert.Equal(plainTrack, icedTrack);
+        Assert.Equal(plainPlay.Kind, icedPlay.Kind);
+    }
+
+    /// <summary>
+    /// The slide and the overrun are lengths at a bag, read from the row of the zone the bag stands in (§9.4). They are not
+    /// behind the response law, so the law-off root shows them: into every bag the slide starts <c>slideFt × slideMul</c> out,
+    /// past first the batter-runner carries <c>overrunFt × overrunMul</c>. A park whose only ice is the outfield leaves the
+    /// bags on dirt, so it is the bag's zone that is read, not the park's surface.
+    /// </summary>
+    [Fact]
+    public void SF13_TheSlideAndTheOverrunFollowTheRowOfTheBagsZone()
+    {
+        var catalog = _roots.SlickLawOff;
+        var rules = catalog.Rules;
+        var bags = rules.Running.Bags;
+        var plain = GroundZones.Of(Plain(catalog), rules);
+        var iced = GroundZones.Of(Iced(catalog), rules);
+        var outfieldIce = GroundZones.Of(Plain(catalog) with { Zones = new ParkZones(Outfield: Ground.Ice) }, rules);
+        for (var bag = 1; bag <= 4; bag++)
+        {
+            Assert.Equal(bags.SlideFt, RunnerSystem.SlideFt(bag, plain, rules));
+            Assert.Equal(bags.SlideFt * Slick.Slide, RunnerSystem.SlideFt(bag, iced, rules));
+            Assert.Equal(bags.SlideFt, RunnerSystem.SlideFt(bag, outfieldIce, rules));
+            Assert.Equal(bags.SlideFt, RunnerSystem.SlideFt(bag, null, rules));
+        }
+        Assert.Equal(bags.OverrunFt, RunnerSystem.OverrunFt(1, plain, rules));
+        Assert.Equal(bags.OverrunFt * Slick.Overrun, RunnerSystem.OverrunFt(1, iced, rules));
+        Assert.Equal(bags.OverrunFt, RunnerSystem.OverrunFt(1, outfieldIce, rules));
+
+        foreach (var zones in new[] { plain, iced })
+        {
+            // Through first: out to the bag's overrun length exactly, then straight back.
+            var batter = Runner.BatterRunner(catalog.Must("rio"), HomeSet.BatterX, HomeSet.BatterZ);
+            var t = 0.0;
+            var farthest = 0.0;
+            for (var i = 0; i < 400; i++)
+            {
+                RunnerSystem.Tick([batter], Frame, Context(t += Frame, _ => false, zones), rules);
+                farthest = Math.Max(farthest, batter.OverrunFt);
+            }
+            Assert.Equal(RunnerSystem.OverrunFt(1, zones, rules), farthest);
+            Assert.True(batter.IsOn(1) && !batter.Overrunning);
+
+            // Into second with a tag threat: the slide starts at the first frame inside the bag's slide length.
+            var runner = new Runner(catalog.Must("vale"), 1);
+            runner.BeginPlay(forced: false, tagAndGo: false);
+            runner.Send(2);
+            var slide = RunnerSystem.SlideFt(2, zones, rules);
+            var before = runner.SegmentFt;
+            var began = -1.0;
+            t = 0;
+            for (var i = 0; i < 400 && began < 0; i++)
+            {
+                RunnerSystem.Tick([runner], Frame, Context(t += Frame, bag => bag == 2, zones), rules);
+                if (runner.Phase == RunnerPhase.Sliding) began = runner.SegmentFt - runner.Feet;
+                else before = runner.SegmentFt - runner.Feet;
+            }
+            Assert.InRange(began, 0, slide);
+            Assert.True(before > slide, $"the frame before the slide was outside it ({before:0.00} ft against {slide})");
+        }
+    }
+
+    /// <summary>
+    /// The player's slide (§9.4: West or South near the bag forces it) reads the same length as the automatic one. The batter-runner
+    /// on an infield single, the press held only while first is between the plain slide length and the slick one: on the iced
+    /// park the press is inside the bag's slide and he goes down into the bag; on the plain park it is outside it, so nothing
+    /// is forced and he runs through.
+    /// </summary>
+    [Fact]
+    public void SF13_ThePlayersSlideReadsTheBagsZoneToo()
+    {
+        var catalog = _roots.SlickLawOff;
+        var bags = catalog.Rules.Running.Bags;
+        foreach (var (park, slid) in new[] { (Plain(catalog), false), (Iced(catalog), true) })
+        {
+            var match = Defense(catalog, park, leadoff: "dart");
+            var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
+            var preview = match.PreviewHit(hit);
+            var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
+            var live = match.LivePlay;
+            Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, seats, 0, LivePlayCommandSource.Human)).Snapshot.Active);
+            var batter = Assert.Single(match.Runners, r => r.IsBatter);
+            var pressed = false;
+            var wentDown = false;
+            for (var i = 0; i < 60 * 20 && live.Active && batter.Live; i++)
+            {
+                var feet = batter.Bag == 0 ? batter.FeetTo(1) : double.PositiveInfinity;
+                var press = feet > bags.SlideFt && feet <= bags.SlideFt * Slick.Slide;
+                pressed |= press;
+                live.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, press ? new LivePadInput(WestDown: true) : LivePadInput.Dead, false, LivePlayCommandSource.Human));
+                wentDown |= batter.Phase == RunnerPhase.Sliding;
+                if (batter.Bag >= 1) break;
+            }
+            Assert.True(pressed, "the press band was crossed");
+            Assert.Equal(slid, wentDown);
+            Assert.Equal(!slid, batter.Overrunning);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Parity — every multiplier at 1.0 is the code before the block existed, bit for bit
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// The stick glove's path, frame by frame, on the shipped root (law off) and on the law-on fixture with every row at 1.0.
+    /// The expected hashes were taken from the code before F3-d.
+    /// </summary>
+    [Fact]
+    public void AtOneTheStickGlovesStepIsThePreChangeBits()
+    {
+        Assert.Equal("176a9d3491fbc74419efabe9e6418aaae3bfa7cd885b5f2dc1375ceb27eaf8fb",
+            Hash(StickRun(Shipped, Plain(Shipped), Script).SelectMany(p => new[] { p.X, p.Z })));
+        Assert.Equal("09668725c6b0a072150fa406dc7ee4de10ac721eae029dadd8a798c4603d0713",
+            Hash(StickRun(_roots.LawOn, Plain(_roots.LawOn), Script).SelectMany(p => new[] { p.X, p.Z })));
+        // A zone map that names every zone a 1.0 row is the same path: the read is there, the product is exact.
+        Assert.Equal("09668725c6b0a072150fa406dc7ee4de10ac721eae029dadd8a798c4603d0713",
+            Hash(StickRun(_roots.LawOn, Iced(_roots.LawOn), Script).SelectMany(p => new[] { p.X, p.Z })));
+    }
+
+    /// <summary>The planner's route on a synthetic roller: the pre-F3-d values, on the shipped root, the law-on fixture and the trial.</summary>
+    [Fact]
+    public void AtOneThePlannersRouteIsThePreChangeRoute()
+    {
+        Assert.Equal(new FieldingPursuit.Route(-25.1953125, 118.7890625, 1.25, 16.823202477577286, 18, 1, true, false, 0),
+            PlanRoute(Shipped.Rules, Plain(Shipped)));
+        var ramped = new FieldingPursuit.Route(-26.081249999999997, 120.85624999999999, 1.3, 16.172964033379905, 18, 1.05, true, false, 0.1);
+        Assert.Equal(ramped, PlanRoute(_roots.LawOn.Rules, Plain(_roots.LawOn)));
+        Assert.Equal(ramped, PlanRoute(_roots.LawOn.Rules, Iced(_roots.LawOn)));
+        Assert.Equal(ramped, PlanRoute(Trial.Rules, Plain(Trial)));
+    }
+
+    /// <summary>
+    /// The runner through first and into second under a tag threat: the pre-F3-d path, with no park named and with Harbor's
+    /// zones (every bag on a 1.0 row), on the shipped root and the trial.
+    /// </summary>
+    [Fact]
+    public void AtOneTheRunnersPathIsThePreChangePath()
+    {
+        const string expected = "a4085fb291cabed947d5711852099c27c3a7e5a8073577a274f22e927ff24203";
+        foreach (var catalog in new[] { Shipped, Trial })
+        {
+            Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, null)));
+            Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Plain(catalog), catalog.Rules))));
+            Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Iced(catalog), catalog.Rules))));
+        }
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Harness
+    // ---------------------------------------------------------------------------------
+
+    static RunnerTickContext Context(double elapsed, Func<int, bool> tagThreat, GroundZones? zones) =>
+        new(elapsed, 0, FlyState.None, 0, _ => false, tagThreat, zones);
+
+    /// <summary>A human centre fielder on a high fly to left-centre, steered by the script; the glove's position every frame.</summary>
+    static List<(double X, double Z)> StickRun(ContentCatalog catalog, Park park, (int Frames, double X, double Y)[] script) =>
+        StickRun(catalog, park, script, out _);
+
+    /// <param name="rated">The glove's rated speed, the one the response rates are measured against (§8.1, #718).</param>
+    static List<(double X, double Z)> StickRun(ContentCatalog catalog, Park park, (int Frames, double X, double Y)[] script, out double rated)
+    {
+        var home = catalog.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = catalog.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = new Match(catalog, away, home, park, innings: 3, seed: 1);
+        var hit = FlightFixtures.Landing(match.Park, 300, 34, -8, rules: match.Rules);
+        var preview = match.PreviewHit(hit);
+        Assert.Equal("CF", preview.Position);
+        rated = FieldingResolver.ChaseSpeedFt(preview.Fielder, false, match.Rules);
+        var seats = new LiveSeats(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
+        var live = match.LivePlay;
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, seats, 0, LivePlayCommandSource.Human)).Snapshot.Active);
+        var track = new List<(double X, double Z)> { live.Fielders["CF"] };
+        foreach (var (frames, x, y) in script)
+            for (var i = 0; i < frames; i++)
+            {
+                live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(StickX: x, StickY: y), LivePadInput.Dead, false, LivePlayCommandSource.Human));
+                Assert.True(live.Active);
+                Assert.Equal("CF", live.GlovePos);
+                track.Add(live.Fielders["CF"]);
+            }
+        return track;
+    }
+
+    /// <summary>The frame velocities of a track, <c>v[i]</c> being the step into frame <c>i</c> (so <c>v[0]</c> is rest).</summary>
+    static List<(double X, double Z)> Velocities(List<(double X, double Z)> track)
+    {
+        var v = new List<(double X, double Z)> { (0, 0) };
+        for (var i = 1; i < track.Count; i++)
+            v.Add(((track[i].X - track[i - 1].X) / Frame, (track[i].Z - track[i - 1].Z) / Frame));
+        return v;
+    }
+
+    static double Speed((double X, double Z) v) => Math.Sqrt(v.X * v.X + v.Z * v.Z);
+
+    static bool Near((double X, double Z) v, (double X, double Z) want) =>
+        Math.Abs(v.X - want.X) <= 1e-6 * Speed(want) && Math.Abs(v.Z - want.Z) <= 1e-6 * Speed(want);
+
+    /// <summary>Frames from the first moving frame at or after <paramref name="from"/> until <paramref name="reached"/> holds.</summary>
+    static int FramesToReach(List<(double X, double Z)> v, int from, Func<(double X, double Z), bool> reached)
+    {
+        var first = from;
+        if (from == 0)
+            while (first < v.Count && Speed(v[first]) < 1e-9) first++;
+        else first = from + 1;
+        for (var i = first; i < v.Count; i++)
+            if (reached(v[i])) return i - first + 1;
+        throw new Xunit.Sdk.XunitException($"never reached from frame {from}");
+    }
+
+    /// <summary>S-31's defense and batter (FieldingScenarioTests.Defense) at a named park.</summary>
+    static Match Defense(ContentCatalog catalog, Park park, string leadoff)
+    {
+        var home = catalog.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var rest = new[] { "jester", "soot", "grit", "nugget", "boom", "marlow", "gull", "pip" }.Where(id => id != leadoff).Take(7).ToArray();
+        var away = catalog.Team("Offense", "zig", leadoff, rest[0], rest[1], rest[2], rest[3], rest[4], rest[5], rest[6]);
+        var match = new Match(catalog, away, home, park, innings: 3, seed: 1);
+        Assert.Equal(leadoff, match.Batter.Id);
+        Assert.True(match.BeginAtBat(Scenario.Paint, Scenario.Swing, out _, out _), "the scripted swing must put the ball in play");
+        return match;
+    }
+
+    /// <summary>S-31 played CPU against CPU: the completed play and the shortstop's (or every body's) position each frame.</summary>
+    static (PlayEvent Play, List<(double X, double Z)> Track) RoutineGrounder(ContentCatalog catalog, Park park, bool everyBody = false)
+    {
+        var match = Defense(catalog, park, leadoff: "cinder");
+        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
+        var preview = match.PreviewHit(hit);
+        Assert.Equal("SS", preview.Position);
+        var live = match.LivePlay;
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, match.ResolveFielding(hit, preview), LiveSeats.CpuOnly)).Snapshot.Active);
+        var track = new List<(double X, double Z)>();
+        PlayEvent? play = null;
+        for (var i = 0; i < 60 * 40 && play is null; i++)
+        {
+            play = live.Apply(LivePlayCommand.Tick(Frame)).CompletedPlay;
+            if (everyBody) track.AddRange(Diamond.Order.Where(live.Fielders.ContainsKey).Select(p => live.Fielders[p]));
+            else if (live.Fielders.TryGetValue("SS", out var ss)) track.Add(ss);
+        }
+        Assert.NotNull(play);
+        return (play!, track);
+    }
+
+    static FieldingPursuit.Route PlanRoute(RulesTable rules, Park park)
+    {
+        var path = new List<Sample>();
+        for (var i = 0; i <= 80; i++)
+        {
+            var t = i * 0.05;
+            var d = 60 * t - 5 * t * t;
+            path.Add(new Sample(t, d, 0, -0.375 * d, 60 + 0.875 * d));
+        }
+        var who = Shipped.Must("ashlord");
+        var preview = FlightFixtures.Preview(who, "SS", BattedBallClass.Grounder, 0, path[^1].X, path[^1].Z);
+        return FieldingPursuit.Plan(preview, park, path, 0.25, -42, 118, 18, rules, readySec: 0.25);
+    }
+
+    static List<double> RunnerPath(RulesTable rules, GroundZones? zones)
+    {
+        var values = new List<double>();
+        var batter = Runner.BatterRunner(Shipped.Must("rio"), HomeSet.BatterX, HomeSet.BatterZ);
+        var t = 0.0;
+        for (var i = 0; i < 400; i++)
+        {
+            RunnerSystem.Tick([batter], Frame, Context(t += Frame, _ => false, zones), rules);
+            values.Add(batter.Feet);
+            values.Add(batter.OverrunFt);
+            values.Add((double)batter.Phase);
+        }
+        var runner = new Runner(Shipped.Must("vale"), 1);
+        runner.BeginPlay(forced: false, tagAndGo: false);
+        runner.Send(2);
+        t = 0;
+        var slid = false;
+        for (var i = 0; i < 400; i++)
+        {
+            RunnerSystem.Tick([runner], Frame, Context(t += Frame, bag => bag == 2, zones), rules);
+            slid |= runner.Phase == RunnerPhase.Sliding;
+            values.Add(runner.Feet);
+            values.Add((double)runner.Phase);
+            values.Add(runner.Bag);
+        }
+        Assert.True(slid, "the path holds a slide");
+        return values;
+    }
+
+    static string Hash(IEnumerable<double> values) =>
+        Convert.ToHexString(SHA256.HashData(values.SelectMany(v => BitConverter.GetBytes(BitConverter.DoubleToInt64Bits(v))).ToArray())).ToLowerInvariant();
+
+    /// <summary>
+    /// Throwaway copies of the shipped root, deleted with the class: the law on at the trial's rates with every row at 1.0; the
+    /// same with the fixture ice row; the shipped chase with the fixture ice row. Nothing under <c>data/</c> is written.
+    /// </summary>
+    public sealed class Roots : IDisposable
+    {
+        readonly List<string> _dirs = [];
+
+        public Roots()
+        {
+            LawOn = ContentCatalog.Load(new DataRoot(Copy(_ => { }, LawOnChase)));
+            Slick = ContentCatalog.Load(new DataRoot(Copy(IceRow, LawOnChase)));
+            SlickLawOff = ContentCatalog.Load(new DataRoot(Copy(IceRow, _ => { })));
+        }
+
+        public ContentCatalog LawOn { get; }
+        public ContentCatalog Slick { get; }
+        public ContentCatalog SlickLawOff { get; }
+
+        /// <summary>A fresh copy of the shipped root with one change to <c>grounds.json</c>, for a refusal row.</summary>
+        public string Fresh(Action<JsonObject> grounds) => Copy(grounds, _ => { });
+
+        static void LawOnChase(JsonObject fielding)
+        {
+            fielding["chase"]!["accelSec"] = 0.2;
+            fielding["chase"]!["brakeSec"] = 0.1;
+        }
+
+        /// <summary>The fixture rows: ice carries all five, ash only the cut-back (so the cut is proved to be its own time).</summary>
+        static void IceRow(JsonObject grounds)
+        {
+            grounds["ice"]!["body"] = new JsonObject
+            {
+                ["startMul"] = BodyGroundTests.Slick.Start,
+                ["brakeMul"] = BodyGroundTests.Slick.Brake,
+                ["cutMul"] = BodyGroundTests.Slick.Cut,
+                ["slideMul"] = BodyGroundTests.Slick.Slide,
+                ["overrunMul"] = BodyGroundTests.Slick.Overrun
+            };
+            grounds["ash"]!["body"]!["cutMul"] = BodyGroundTests.Slick.Cut;
+        }
+
+        string Copy(Action<JsonObject> grounds, Action<JsonObject> fielding)
+        {
+            var root = Path.Combine(Path.GetTempPath(), "grand-sluggers-body-ground-" + Guid.NewGuid().ToString("N"));
+            _dirs.Add(root);
+            CopyTree(ContentCatalog.Load().Root.Shipped, root);
+            Change(Path.Combine(root, RulesTable.Directory, "grounds.json"), grounds);
+            Change(Path.Combine(root, RulesTable.Directory, "fielding.json"), fielding);
+            return root;
+        }
+
+        static void Change(string path, Action<JsonObject> change)
+        {
+            var json = JsonNode.Parse(File.ReadAllText(path), null, new System.Text.Json.JsonDocumentOptions
+            {
+                CommentHandling = System.Text.Json.JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            })!.AsObject();
+            change(json);
+            File.WriteAllText(path, json.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        static void CopyTree(string source, string destination)
+        {
+            Directory.CreateDirectory(destination);
+            foreach (var directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+                Directory.CreateDirectory(Path.Combine(destination, Path.GetRelativePath(source, directory)));
+            foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+                File.Copy(file, Path.Combine(destination, Path.GetRelativePath(source, file)));
+        }
+
+        public void Dispose()
+        {
+            foreach (var dir in _dirs)
+                if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+}
