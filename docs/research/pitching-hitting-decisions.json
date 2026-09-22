@@ -1536,8 +1536,22 @@
         "answer_quote": "1"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        "#844"
+      ],
+      "validation_evidence": [
+        {
+          "kind": "trial-implementation",
+          "issue": "#844",
+          "revision": "17ac16d4",
+          "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
+          "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
+          "report": "docs/research/plate-window-p2b.md",
+          "summary": "P2-b put one shared timing window behind one switch, batting.window.shared: false on the shipped root and true in trials/pitch5, which is now the Phase 1 + Phase 2 duel trial (Jack runs one overlay at a time, so the batting window joined the pitching file rather than forcing a second build). Off, AtBatResolver.ContactWindowFrames is today's arithmetic in today's order, bit for bit: slap 9 / charge 7, plus (Contact - 5) x 0.4, times the Star Pitch's batterWindowMul, times the park's nightContactWindowMul, times the rung's humanWindowMul, floored at 5. On, the window is batting.window.frames for every hitter, a quick swing and a charged swing alike, and every human rung, then the same star multiplier, the same park multiplier and the same floor in the same order. The rung's humanWindowMul is deliberately not applied (PH-17: a difficulty that still widened a pad's window is the per-seat mechanical assistance that decision refuses); it is still taken as an argument and still threaded from Match, because the switch is decided inside the formula rather than by rewiring the seat, and Match.cs was not touched. The shipped file authors frames: 9.0 inert beside the numbers it replaces, so the trial start value is written down once rather than only inside a trial, and the validator floors it (floorFrames <= frames) on either setting. The Contact read in SwingWindowFrames stays on the off path and is dead on the on path, so both roots stay exactly what they are. What a charge and a trait still buy is spatial and unchanged on both roots: cursor.chargeMul 0.8 narrows the oval for a charge (PH-11-R1) and cursor.scalePerContact 0.04 widens it with Contact (PH-15-R7). Measured: over the whole roster x both swings x all nine bats x three rungs the shipped root produces 45 distinct windows from 5 to 14.3 frames and the trial produces one, 9. The CPU batter's timing sigma was not touched and is not the window - it is how far off the ball that bat arrives, not how wide its window is - and whether it should read Contact at all is PH-18's batting half, left to P2-g. Spec 5.3 now carries one switch and two contracts, D4's 9 / 7 rationale gained a footnote pointing at the trial, 5.1 / 5.2 / 5.5 say the timing half of charge and of the Charge Bat is gone under the switch, 5.9 says the sigma is execution skill, 16 carries the two keys and the duel-trial row, and Appendix B.1 rewrote S-10 and S-30 with trial halves and gained S-124 ... S-127. Zero behaviour change on the shipped root: cli match --seed 7 is byte-identical before and after (empty diff), the S-29 cohort on the shipped root is unchanged, the #811 golden is unedited and the #708 and pitch-family evidence differ only in source-hash lines.",
+          "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
+          "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -1616,8 +1630,22 @@
               "evidence_limits": "no sitting yet; S-29 before/after to be reported by the implementing child; accepted as a starting point for the batting sitting, not as a final value"
             }
           },
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#844"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "trial-implementation",
+              "issue": "#844",
+              "revision": "17ac16d4",
+              "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
+              "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
+              "report": "docs/research/plate-window-p2b.md",
+              "summary": "P2-b put one shared timing window behind one switch, batting.window.shared: false on the shipped root and true in trials/pitch5, which is now the Phase 1 + Phase 2 duel trial (Jack runs one overlay at a time, so the batting window joined the pitching file rather than forcing a second build). Off, AtBatResolver.ContactWindowFrames is today's arithmetic in today's order, bit for bit: slap 9 / charge 7, plus (Contact - 5) x 0.4, times the Star Pitch's batterWindowMul, times the park's nightContactWindowMul, times the rung's humanWindowMul, floored at 5. On, the window is batting.window.frames for every hitter, a quick swing and a charged swing alike, and every human rung, then the same star multiplier, the same park multiplier and the same floor in the same order. The rung's humanWindowMul is deliberately not applied (PH-17: a difficulty that still widened a pad's window is the per-seat mechanical assistance that decision refuses); it is still taken as an argument and still threaded from Match, because the switch is decided inside the formula rather than by rewiring the seat, and Match.cs was not touched. The shipped file authors frames: 9.0 inert beside the numbers it replaces, so the trial start value is written down once rather than only inside a trial, and the validator floors it (floorFrames <= frames) on either setting. The Contact read in SwingWindowFrames stays on the off path and is dead on the on path, so both roots stay exactly what they are. What a charge and a trait still buy is spatial and unchanged on both roots: cursor.chargeMul 0.8 narrows the oval for a charge (PH-11-R1) and cursor.scalePerContact 0.04 widens it with Contact (PH-15-R7). Measured: over the whole roster x both swings x all nine bats x three rungs the shipped root produces 45 distinct windows from 5 to 14.3 frames and the trial produces one, 9. The CPU batter's timing sigma was not touched and is not the window - it is how far off the ball that bat arrives, not how wide its window is - and whether it should read Contact at all is PH-18's batting half, left to P2-g. Spec 5.3 now carries one switch and two contracts, D4's 9 / 7 rationale gained a footnote pointing at the trial, 5.1 / 5.2 / 5.5 say the timing half of charge and of the Charge Bat is gone under the switch, 5.9 says the sigma is execution skill, 16 carries the two keys and the duel-trial row, and Appendix B.1 rewrote S-10 and S-30 with trial halves and gained S-124 ... S-127. Zero behaviour change on the shipped root: cli match --seed 7 is byte-identical before and after (empty diff), the S-29 cohort on the shipped root is unchanged, the #811 golden is unedited and the #708 and pitch-family evidence differ only in source-hash lines.",
+              "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
+              "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched."
+            }
+          ],
           "human_acceptance": null
         }
       ]
@@ -1667,7 +1695,9 @@
         "answer_quote": "1"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        "#844"
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -1724,8 +1754,22 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#844"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "trial-implementation",
+              "issue": "#844",
+              "revision": "17ac16d4",
+              "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
+              "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
+              "report": "docs/research/plate-window-p2b.md",
+              "summary": "P2-b put one shared timing window behind one switch, batting.window.shared: false on the shipped root and true in trials/pitch5, which is now the Phase 1 + Phase 2 duel trial (Jack runs one overlay at a time, so the batting window joined the pitching file rather than forcing a second build). Off, AtBatResolver.ContactWindowFrames is today's arithmetic in today's order, bit for bit: slap 9 / charge 7, plus (Contact - 5) x 0.4, times the Star Pitch's batterWindowMul, times the park's nightContactWindowMul, times the rung's humanWindowMul, floored at 5. On, the window is batting.window.frames for every hitter, a quick swing and a charged swing alike, and every human rung, then the same star multiplier, the same park multiplier and the same floor in the same order. The rung's humanWindowMul is deliberately not applied (PH-17: a difficulty that still widened a pad's window is the per-seat mechanical assistance that decision refuses); it is still taken as an argument and still threaded from Match, because the switch is decided inside the formula rather than by rewiring the seat, and Match.cs was not touched. The shipped file authors frames: 9.0 inert beside the numbers it replaces, so the trial start value is written down once rather than only inside a trial, and the validator floors it (floorFrames <= frames) on either setting. The Contact read in SwingWindowFrames stays on the off path and is dead on the on path, so both roots stay exactly what they are. What a charge and a trait still buy is spatial and unchanged on both roots: cursor.chargeMul 0.8 narrows the oval for a charge (PH-11-R1) and cursor.scalePerContact 0.04 widens it with Contact (PH-15-R7). Measured: over the whole roster x both swings x all nine bats x three rungs the shipped root produces 45 distinct windows from 5 to 14.3 frames and the trial produces one, 9. The CPU batter's timing sigma was not touched and is not the window - it is how far off the ball that bat arrives, not how wide its window is - and whether it should read Contact at all is PH-18's batting half, left to P2-g. Spec 5.3 now carries one switch and two contracts, D4's 9 / 7 rationale gained a footnote pointing at the trial, 5.1 / 5.2 / 5.5 say the timing half of charge and of the Charge Bat is gone under the switch, 5.9 says the sigma is execution skill, 16 carries the two keys and the duel-trial row, and Appendix B.1 rewrote S-10 and S-30 with trial halves and gained S-124 ... S-127. Zero behaviour change on the shipped root: cli match --seed 7 is byte-identical before and after (empty diff), the S-29 cohort on the shipped root is unchanged, the #811 golden is unedited and the #708 and pitch-family evidence differ only in source-hash lines.",
+              "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
+              "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Hold hitter, pitch and timing fixed and compare quick/charged swings: charge trades spatial forgiveness for power without changing timing eligibility or timing-edge rules.",
@@ -2468,7 +2512,8 @@
         "#823",
         "#824",
         "#837",
-        "#839"
+        "#839",
+        "#844"
       ],
       "validation_evidence": [
         {
@@ -3326,7 +3371,8 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#837",
-            "#839"
+            "#839",
+            "#844"
           ],
           "validation_evidence": [
             {
@@ -3337,6 +3383,17 @@
               "summary": "P2-a gave Contact and Power a home and routed every reader, seeded equal to bat so nothing moved. Stats carries them the way it already carries Arm and Hands: optional ratings whose unauthored (0) value tracks Bat, [JsonIgnore] ContactAuthored / PowerAuthored saying which it was, and Clamp() keeping an unauthored trait unauthored so it goes on tracking the clamped aggregate. CharacterDto accepts optional contact and power and ValidateCharacter refuses either outside 1-10 by character and field name; no character file and no trial overlay authors a value, because PH-15-R5 leaves the values open and they are Jack's later choice. Every Bat reader that means contact or power now reads the trait: the cursor barrel and the exit/loft in AtBatResolver, the Unity cursor's one token in AtBatDirector, and the four CPU reads - chase chance, timing sigma, the CpuChargeChance technique gate and the sac-bunt gate are Contact; the forced charge and the archetype split against Run are Power. The window read in SwingWindowFrames reads Contact on purpose and is marked in the code and in spec 5.3 as the timing half PH-15-R7 does not want, so P2-b removes one thing rather than two. Teams.Tools, the character card, the Raylib HUD, CardToy and the CLI keep Bat: it stays the displayed aggregate and P2-f decides what the card shows. Zero behaviour change, because with nothing authored every read returns the same integer and no _rng draw moves: cli match --seed 7 is byte-identical to main on the shipped root and under GRAND_SLUGGERS_TRIAL=trials/pitch5, the suite and the c80 rerun are green with the three new rows added, and the #708 evidence regenerated with source-hash changes only. Two new serialized properties do change PlayTraceIdentity's roster bytes, so identity SHAs recorded from here on differ from ones recorded before; an old trace still reads, because an absent key is unauthored and tracks Bat, and no schema version was bumped. Spec section 2 now says Contact and Power are ratings of their own rather than an internal split of Bat, 5.2 / 5.3 / 5.4 / 5.5 name the trait each formula reads, 5.9 carries the CPU mapping table, and Appendix B.1 gained S-121 ... S-123 (ContactPowerScenarioTests), which assert directions and integer identities only so an authored value can move without editing a test.",
               "numeric_trial": "not applicable (seeded equal; no value authored)",
               "gate": "no human gate for this child: no player-facing change, so it does not move sitting 1, #534, #346 or D7 and no human_acceptance field is filled. No status change - the traits exist and every reader is routed, but until Jack authors a value the game plays exactly as it did."
+            },
+            {
+              "kind": "trial-implementation",
+              "issue": "#844",
+              "revision": "17ac16d4",
+              "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
+              "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
+              "report": "docs/research/plate-window-p2b.md",
+              "summary": "P2-b put one shared timing window behind one switch, batting.window.shared: false on the shipped root and true in trials/pitch5, which is now the Phase 1 + Phase 2 duel trial (Jack runs one overlay at a time, so the batting window joined the pitching file rather than forcing a second build). Off, AtBatResolver.ContactWindowFrames is today's arithmetic in today's order, bit for bit: slap 9 / charge 7, plus (Contact - 5) x 0.4, times the Star Pitch's batterWindowMul, times the park's nightContactWindowMul, times the rung's humanWindowMul, floored at 5. On, the window is batting.window.frames for every hitter, a quick swing and a charged swing alike, and every human rung, then the same star multiplier, the same park multiplier and the same floor in the same order. The rung's humanWindowMul is deliberately not applied (PH-17: a difficulty that still widened a pad's window is the per-seat mechanical assistance that decision refuses); it is still taken as an argument and still threaded from Match, because the switch is decided inside the formula rather than by rewiring the seat, and Match.cs was not touched. The shipped file authors frames: 9.0 inert beside the numbers it replaces, so the trial start value is written down once rather than only inside a trial, and the validator floors it (floorFrames <= frames) on either setting. The Contact read in SwingWindowFrames stays on the off path and is dead on the on path, so both roots stay exactly what they are. What a charge and a trait still buy is spatial and unchanged on both roots: cursor.chargeMul 0.8 narrows the oval for a charge (PH-11-R1) and cursor.scalePerContact 0.04 widens it with Contact (PH-15-R7). Measured: over the whole roster x both swings x all nine bats x three rungs the shipped root produces 45 distinct windows from 5 to 14.3 frames and the trial produces one, 9. The CPU batter's timing sigma was not touched and is not the window - it is how far off the ball that bat arrives, not how wide its window is - and whether it should read Contact at all is PH-18's batting half, left to P2-g. Spec 5.3 now carries one switch and two contracts, D4's 9 / 7 rationale gained a footnote pointing at the trial, 5.1 / 5.2 / 5.5 say the timing half of charge and of the Charge Bat is gone under the switch, 5.9 says the sigma is execution skill, 16 carries the two keys and the duel-trial row, and Appendix B.1 rewrote S-10 and S-30 with trial halves and gained S-124 ... S-127. Zero behaviour change on the shipped root: cli match --seed 7 is byte-identical before and after (empty diff), the S-29 cohort on the shipped root is unchanged, the #811 golden is unedited and the #708 and pitch-family evidence differ only in source-hash lines.",
+              "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
+              "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched."
             }
           ],
           "human_acceptance": null,
@@ -4805,8 +4862,22 @@
         "answer_quote": "2"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        "#844"
+      ],
+      "validation_evidence": [
+        {
+          "kind": "trial-implementation",
+          "issue": "#844",
+          "revision": "17ac16d4",
+          "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
+          "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
+          "report": "docs/research/plate-window-p2b.md",
+          "summary": "P2-b put one shared timing window behind one switch, batting.window.shared: false on the shipped root and true in trials/pitch5, which is now the Phase 1 + Phase 2 duel trial (Jack runs one overlay at a time, so the batting window joined the pitching file rather than forcing a second build). Off, AtBatResolver.ContactWindowFrames is today's arithmetic in today's order, bit for bit: slap 9 / charge 7, plus (Contact - 5) x 0.4, times the Star Pitch's batterWindowMul, times the park's nightContactWindowMul, times the rung's humanWindowMul, floored at 5. On, the window is batting.window.frames for every hitter, a quick swing and a charged swing alike, and every human rung, then the same star multiplier, the same park multiplier and the same floor in the same order. The rung's humanWindowMul is deliberately not applied (PH-17: a difficulty that still widened a pad's window is the per-seat mechanical assistance that decision refuses); it is still taken as an argument and still threaded from Match, because the switch is decided inside the formula rather than by rewiring the seat, and Match.cs was not touched. The shipped file authors frames: 9.0 inert beside the numbers it replaces, so the trial start value is written down once rather than only inside a trial, and the validator floors it (floorFrames <= frames) on either setting. The Contact read in SwingWindowFrames stays on the off path and is dead on the on path, so both roots stay exactly what they are. What a charge and a trait still buy is spatial and unchanged on both roots: cursor.chargeMul 0.8 narrows the oval for a charge (PH-11-R1) and cursor.scalePerContact 0.04 widens it with Contact (PH-15-R7). Measured: over the whole roster x both swings x all nine bats x three rungs the shipped root produces 45 distinct windows from 5 to 14.3 frames and the trial produces one, 9. The CPU batter's timing sigma was not touched and is not the window - it is how far off the ball that bat arrives, not how wide its window is - and whether it should read Contact at all is PH-18's batting half, left to P2-g. Spec 5.3 now carries one switch and two contracts, D4's 9 / 7 rationale gained a footnote pointing at the trial, 5.1 / 5.2 / 5.5 say the timing half of charge and of the Charge Bat is gone under the switch, 5.9 says the sigma is execution skill, 16 carries the two keys and the duel-trial row, and Appendix B.1 rewrote S-10 and S-30 with trial halves and gained S-124 ... S-127. Zero behaviour change on the shipped root: cli match --seed 7 is byte-identical before and after (empty diff), the S-29 cohort on the shipped root is unchanged, the #811 golden is unedited and the #708 and pitch-family evidence differ only in source-hash lines.",
+          "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
+          "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -5096,7 +5167,8 @@
         "#823",
         "#824",
         "#825",
-        "#835"
+        "#835",
+        "#844"
       ],
       "validation_evidence": [
         {
@@ -5200,7 +5272,8 @@
             "#818",
             "#821",
             "#823",
-            "#824"
+            "#824",
+            "#844"
           ],
           "validation_evidence": [
             {
@@ -5224,6 +5297,17 @@
               "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). PH-20-R1's mechanism carries a second thing: trials/pitch5 is now the shipped pitching.json plus three family rows and the CPU switch with its trial weights. S-113 was widened to put both additions back before comparing, so every other key in the file is still guarded against a shipped edit that forgets the overlay.",
               "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
               "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
+            },
+            {
+              "kind": "trial-implementation",
+              "issue": "#844",
+              "revision": "17ac16d4",
+              "test": "GrandSluggers.Sim.Tests.SharedWindowScenarioTests",
+              "scenarios": "S-124, S-125, S-126, S-127 (plus the S-10 and S-30 trial halves in AtBatScenarioTests and the window half of S-122 moved into S-124)",
+              "report": "docs/research/plate-window-p2b.md",
+              "summary": "P2-b put one shared timing window behind one switch, batting.window.shared: false on the shipped root and true in trials/pitch5, which is now the Phase 1 + Phase 2 duel trial (Jack runs one overlay at a time, so the batting window joined the pitching file rather than forcing a second build). Off, AtBatResolver.ContactWindowFrames is today's arithmetic in today's order, bit for bit: slap 9 / charge 7, plus (Contact - 5) x 0.4, times the Star Pitch's batterWindowMul, times the park's nightContactWindowMul, times the rung's humanWindowMul, floored at 5. On, the window is batting.window.frames for every hitter, a quick swing and a charged swing alike, and every human rung, then the same star multiplier, the same park multiplier and the same floor in the same order. The rung's humanWindowMul is deliberately not applied (PH-17: a difficulty that still widened a pad's window is the per-seat mechanical assistance that decision refuses); it is still taken as an argument and still threaded from Match, because the switch is decided inside the formula rather than by rewiring the seat, and Match.cs was not touched. The shipped file authors frames: 9.0 inert beside the numbers it replaces, so the trial start value is written down once rather than only inside a trial, and the validator floors it (floorFrames <= frames) on either setting. The Contact read in SwingWindowFrames stays on the off path and is dead on the on path, so both roots stay exactly what they are. What a charge and a trait still buy is spatial and unchanged on both roots: cursor.chargeMul 0.8 narrows the oval for a charge (PH-11-R1) and cursor.scalePerContact 0.04 widens it with Contact (PH-15-R7). Measured: over the whole roster x both swings x all nine bats x three rungs the shipped root produces 45 distinct windows from 5 to 14.3 frames and the trial produces one, 9. The CPU batter's timing sigma was not touched and is not the window - it is how far off the ball that bat arrives, not how wide its window is - and whether it should read Contact at all is PH-18's batting half, left to P2-g. Spec 5.3 now carries one switch and two contracts, D4's 9 / 7 rationale gained a footnote pointing at the trial, 5.1 / 5.2 / 5.5 say the timing half of charge and of the Charge Bat is gone under the switch, 5.9 says the sigma is execution skill, 16 carries the two keys and the duel-trial row, and Appendix B.1 rewrote S-10 and S-30 with trial halves and gained S-124 ... S-127. Zero behaviour change on the shipped root: cli match --seed 7 is byte-identical before and after (empty diff), the S-29 cohort on the shipped root is unchanged, the #811 golden is unedited and the #708 and pitch-family evidence differ only in source-hash lines.",
+              "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
+              "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched."
             }
           ],
           "human_acceptance": null
@@ -5501,6 +5585,10 @@
       "date": "2026-09-21",
       "event": "P2-a (#837) made Contact and Power ratings of their own (PH-15-R5) and routed every reader to them, seeded equal to bat so nothing a player can feel moved. Stats carries them exactly as it carries Arm and Hands - optional, unauthored (0) tracks Bat, the authored flags are not serialized, and a clamp keeps an unauthored trait unauthored - and characters may author contact / power as 1-10 keys that the validator refuses outside the range by character and field. Nothing authors one: the values are Jack's later choice and the c80 and pitch5 overlays needed no row. The split routes the readers by meaning rather than by name: the cursor barrel is Contact's and the exit velocity and loft are Power's, the Unity cursor's one token became Contact so the drawn oval still equals the judged one, and the CPU batter's four reads split - chase, timing sigma, the technique gate and the sac bunt are Contact, the forced charge and the archetype split against Run are Power. One read is deliberately wrong and labelled: SwingWindowFrames still widens the window with Contact, which PH-15-R7 does not want, and it reads the trait so P2-b removes one thing instead of two. Bat stays the displayed aggregate the card, the CLI, the Raylib HUD and Teams.Tools show; P2-f decides the card. Behaviour is unchanged and was measured that way: cli match --seed 7 is byte-identical on both data roots, the sim suite and the c80 rerun are green with three new scenario rows, and the #708 seals regenerated with source-hash lines only. The roster gained two serialized properties, so PlayTraceIdentity's bytes move from here on; old traces still read because absent means unauthored, and no schema was bumped. Spec section 2 was rewritten, 5.2 / 5.3 / 5.4 / 5.5 name the trait each formula reads, 5.9 gained the CPU mapping table and Appendix B.1 gained S-121 ... S-123. No status change, no numeric target, no human acceptance.",
       "pr": "#839"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P2-b put one shared timing window behind one switch, batting.window.shared: false on the shipped root and true in trials/pitch5, which is now the Phase 1 + Phase 2 duel trial (Jack runs one overlay at a time, so the batting window joined the pitching file rather than forcing a second build). Off, AtBatResolver.ContactWindowFrames is today's arithmetic in today's order, bit for bit: slap 9 / charge 7, plus (Contact - 5) x 0.4, times the Star Pitch's batterWindowMul, times the park's nightContactWindowMul, times the rung's humanWindowMul, floored at 5. On, the window is batting.window.frames for every hitter, a quick swing and a charged swing alike, and every human rung, then the same star multiplier, the same park multiplier and the same floor in the same order. The rung's humanWindowMul is deliberately not applied (PH-17: a difficulty that still widened a pad's window is the per-seat mechanical assistance that decision refuses); it is still taken as an argument and still threaded from Match, because the switch is decided inside the formula rather than by rewiring the seat, and Match.cs was not touched. The shipped file authors frames: 9.0 inert beside the numbers it replaces, so the trial start value is written down once rather than only inside a trial, and the validator floors it (floorFrames <= frames) on either setting. The Contact read in SwingWindowFrames stays on the off path and is dead on the on path, so both roots stay exactly what they are. What a charge and a trait still buy is spatial and unchanged on both roots: cursor.chargeMul 0.8 narrows the oval for a charge (PH-11-R1) and cursor.scalePerContact 0.04 widens it with Contact (PH-15-R7). Measured: over the whole roster x both swings x all nine bats x three rungs the shipped root produces 45 distinct windows from 5 to 14.3 frames and the trial produces one, 9. The CPU batter's timing sigma was not touched and is not the window - it is how far off the ball that bat arrives, not how wide its window is - and whether it should read Contact at all is PH-18's batting half, left to P2-g. Spec 5.3 now carries one switch and two contracts, D4's 9 / 7 rationale gained a footnote pointing at the trial, 5.1 / 5.2 / 5.5 say the timing half of charge and of the Charge Bat is gone under the switch, 5.9 says the sigma is execution skill, 16 carries the two keys and the duel-trial row, and Appendix B.1 rewrote S-10 and S-30 with trial halves and gained S-124 ... S-127. Zero behaviour change on the shipped root: cli match --seed 7 is byte-identical before and after (empty diff), the S-29 cohort on the shipped root is unchanged, the #811 golden is unedited and the #708 and pitch-family evidence differ only in source-hash lines. S-29 was re-reported under trials/pitch5 before and after and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it The before column reproduces #824's published pair exactly, which is how the report knows it measures the same cohort. No status change, no numeric target moved, no human acceptance written: PH-10-R1 stays trial-accepted and sitting 2 remains open."
     }
   ]
 }
