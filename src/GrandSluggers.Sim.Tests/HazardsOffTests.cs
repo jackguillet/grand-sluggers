@@ -136,20 +136,22 @@ public sealed class HazardsOffTests
 
     /// <summary>
     /// The seed set, found by a scan of seeds 1–12 at every park with a hazard, day and night, on each
-    /// root (#858). Each row is a game in which hazards on plays at least one hazard outcome, so the
-    /// hazards-off twin of the same game proves something. Chompers bite only at night (their row is
-    /// <c>nightOnly</c>), so Funfair carries a night row.
+    /// root, with the first matchup (#858; Rooftop's signs on the copy are small and far, so its scan ran
+    /// to 80). Rescanned after F4-e (#862) moved Crystal's and Ember's volumes off the base paths. Each row
+    /// is a game in which hazards on plays at least one hazard outcome, so the hazards-off twin of the same
+    /// game proves something. Chompers bite only at night (their row is <c>nightOnly</c>), so Funfair
+    /// carries a night row, and Ember's night row is the one in which the breath is widened.
     /// </summary>
     static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds => TestRoot.Pick<IReadOnlyList<(string, bool, int)>>(
         [
-            ("crystal-rink", false, 10),  // a freeze volume slows the chase
-            ("ember-keep", true, 1),      // a lava pit or the breath, which night widens
+            ("crystal-rink", true, 11),   // a freeze volume slows the chase
+            ("ember-keep", true, 3),      // a lava pit or the breath slows the chase
             ("funfair-park", true, 9),    // a chomper eats a fly, and a can warps a grounder
             ("canopy-yard", false, 7),    // a barrel warps a grounder
             ("rooftop-city", false, 1)    // a billboard pays the batting team
         ],
         [
-            ("crystal-rink", false, 6),
+            ("crystal-rink", false, 11),
             ("ember-keep", true, 1),
             ("funfair-park", true, 5),
             ("canopy-yard", false, 7),
