@@ -337,27 +337,62 @@ public sealed class SharedWindowScenarioTests
     /// Fifty three-inning CPU-vs-CPU games under <c>trials/pitch5</c>. <b>There is no trial band and
     /// this row asserts none.</b> Nobody has accepted a number for the trial: the shipped band
     /// (F693-06, 1.8–5 per side) belongs to <see cref="AtBatScenarioTests.S29_FiftySeedCpuGamesLandInTheBand"/>
-    /// on the shipped root, and tuning anything to move the trial figures is banned by #844. What
-    /// this row holds is that the cohort <em>runs</em> under the overlay, every game finishes, and
-    /// the window the games were played in was the shared one. The figures themselves are in
-    /// <c>docs/research/plate-window-p2b.md</c>, before and after, for sitting 2 to read.
+    /// on the shipped root, and tuning anything to move the trial figures is banned by #844. The
+    /// figures are in <c>docs/research/plate-window-p2b.md</c>, before and after, for sitting 2.
+    ///
+    /// <b>The cohort is a CLI measurement, and this row pins why it has to be.</b>
+    /// <see cref="Match.AutoPlay"/>'s in-zone read is
+    /// <see cref="AtBatResolver.PitchInZone"/> → <see cref="StrikeZoneGeometry.Contains(PitchCommand, string?)"/>
+    /// → <see cref="PitchFlight.Point(PitchCommand, double, string?, System.Numerics.Vector3?, RulesTable?)"/>,
+    /// and none of those three takes a rules table: the family is resolved against the
+    /// <em>process-wide</em> one rather than against the match's. Under
+    /// <c>GRAND_SLUGGERS_TRIAL=trials/pitch5</c> the process-wide table <i>is</i> the overlay, so the
+    /// CLI cohort in the report is correct; in a test process rooted at the shipped data an
+    /// overlay-only family stops the game by name. That is a cross-root read, not a window bug, and
+    /// #844 may not touch <c>Match.cs</c> or <c>PitchFlight.cs</c> — so it is reported here and in
+    /// <c>data/agent/debug-protocol.json</c> instead of repaired. When it is repaired, the branch
+    /// below runs the real cohort and this row becomes the in-process measurement it wants to be.
     /// </summary>
     [Fact]
-    public void S127_TheS29CohortRunsUnderTheTrialAndIsRecordedNotGated()
+    public void S127_TheS29CohortUnderTheTrialIsRecordedAndItsCrossRootReadIsPinned()
     {
         // The cohort's parks and diamond come from the process-wide table; the compact profile is a
         // different diamond and a different (equally correct) cohort, and it is not what #844 measures.
         if (TestRoot.Compact) return;
 
         var content = ContentCatalog.Load(TrialRoot);
-        Assert.True(content.Rules.Batting.Window.Shared, "the cohort plays the shared window");
-        Assert.Equal(content.Rules.Batting.Window.Frames,
-            AtBatResolver.ContactWindowFrames(5, true, null, Harbor, false, content.Rules, content.StarSkills, 0.9));
 
+        // (a) The window those fifty games are judged in is the shared one, at every rung.
+        Assert.True(content.Rules.Batting.Window.Shared, "the cohort plays the shared window");
+        foreach (var rung in Rungs)
+        foreach (var charged in new[] { false, true })
+            Assert.Equal(content.Rules.Batting.Window.Frames,
+                AtBatResolver.ContactWindowFrames(5, charged, null, Harbor, false, content.Rules, content.StarSkills, rung));
+
+        // (b) The overlay's own table can fly its families; the process-wide one is a separate
+        //     question, and the in-zone read on the way to AutoPlay asks the second.
+        var trialOnly = PitchFamily.Curveball;
+        var pitch = new PitchCommand(trialOnly, 0, false);
+        Assert.True(content.Rules.Pitching.Families.IsAuthored(trialOnly), "the overlay authors it");
+        Assert.True(double.IsFinite(PitchFlight.Point(pitch, 1, rules: content.Rules).Y), "and can fly it");
+
+        if (!Rules.Default.Pitching.Families.IsAuthored(trialOnly))
+        {
+            // The pinned read: handed no table it takes the process-wide one and stops by name, so
+            // RaceCohort.Run(content, "s29") cannot be called from here. The report's figures come
+            // from `GRAND_SLUGGERS_TRIAL=trials/pitch5 cli match --cohort s29`, where the
+            // process-wide table is the overlay and the same call is correct.
+            var stopped = Assert.Throws<InvalidOperationException>(() => StrikeZoneGeometry.Contains(pitch));
+            Assert.Contains(trialOnly, stopped.Message, StringComparison.Ordinal);
+            Assert.Contains(TrialName, stopped.Message, StringComparison.Ordinal);
+            return;
+        }
+
+        // This process is already rooted at a table that can fly them: run the real cohort, and
+        // still assert no band.
         var report = RaceCohort.Run(content, "s29");
         Assert.Equal(50, report.Games.Count);
         Assert.All(report.Games, g => Assert.True(g.HomeRuns >= 0 && g.AwayRuns >= 0));
-
         var line = $"trial S-29: runs {report.MeanAwayRuns:0.00} away / {report.MeanHomeRuns:0.00} home over {report.Games.Count} games";
         Assert.True(report.MeanHomeRuns > 0 && report.MeanAwayRuns > 0, line);
         Assert.True(report.Games.Sum(g => g.Outcomes.GetValueOrDefault("Strikeout")) > 0, line);

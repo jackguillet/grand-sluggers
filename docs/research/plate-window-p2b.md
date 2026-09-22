@@ -140,8 +140,9 @@ there.
 ## What moved, and what did not
 
 - **The shipped root did not move.** `cli match --seed 7` is byte-identical before and after
-  (empty `diff`), the S-29 cohort on the shipped root is unchanged, and the #708 evidence files
-  differ only in source-hash lines.
+  (empty `diff`), and the #708 and pitch-family evidence files differ only in source-hash lines.
+  The shipped S-29 cohort run after the change reproduces #824's published shipped column exactly —
+  1.90 home / 1.92 away, 3.74 singles, 1.44 doubles, 1.28 HR, 3.18 K, 2.86 BB per game.
 - **The trial root moved, on purpose, from the third batter of seed 7.** The first two plate
   appearances are identical; Hex's double becomes a single, and the two logs never resynchronise
   after it. The game still runs to a Final (Ember Court 0–3 before, 4–3 after).
@@ -154,6 +155,17 @@ there.
   is how far off the ball a swing may be and still meet it. A poor-Contact CPU hitter still misses
   more because its bat arrives further away, not because it was given a narrower window. Whether
   that σ should read Contact at all is PH-18's batting half and belongs to P2-g.
+- **A cross-root read was found and reported, not repaired.** The cohort above has to be run by the
+  CLI with `GRAND_SLUGGERS_TRIAL` set, and cannot be run from a test process that loads the overlay
+  in memory, because `Match.AutoPlay`'s in-zone read — `AtBatResolver.PitchInZone` →
+  `StrikeZoneGeometry.Contains` → `PitchFlight.Point` — takes no rules table and resolves the pitch
+  family against the **process-wide** one instead of the match's. With the variable set the
+  process-wide table *is* the overlay, so every figure above is correct; without it an
+  overlay-only family stops the game by name. Nothing in the shipped game has ever hit this,
+  because on the shipped root the two tables are the same object. It is a rail for whoever owns
+  `Match.cs` and `PitchFlight.cs` — files #844 may not touch — so S-127 pins the read instead, and
+  runs the real in-process cohort the day it is threaded. Appended to
+  `data/agent/debug-protocol.json` as `trial-cohort-reads-the-process-wide-table`.
 - **`humanWindowMul` is still read by the shipped path and still printed on the title.** The rung
   is not deleted; it stops reaching the window when the switch is on. The CPU-side rung
   multipliers (`timingSigmaMul`, `mistrackMul`, the reaction and margin numbers) are untouched on
