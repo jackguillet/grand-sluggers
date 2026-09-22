@@ -7,12 +7,21 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class HarborWall
 {
+    /// <summary>
+    /// Fence samples pole to pole — the same count and the same spray grid
+    /// <see cref="FieldBounds.FenceSegs"/> samples, so a drawn outfield vertex is a vertex of the
+    /// polygon the flight clips against and not a point near one.
+    /// </summary>
     public const int OutfieldSegs = 48;
     public const int FoulSegs = 20;
     public const int HomeSegs = 16;
     /// <summary>Home and bag rail ends, pinned on each foul wrap so the wall butts the dugout.</summary>
     public const int DugoutEnds = 2;
-    /// <summary>One side (CF→RF→home) mirrored. Must stay even.</summary>
+    /// <summary>
+    /// Both sides (CF → pole → home), each walked on its own half of the park, sharing the CF point
+    /// and the point behind the plate. Must stay even: the two halves are the same length, so the
+    /// count does not change with the park (#845).
+    /// </summary>
     public const int WrapSegs = 2 * (OutfieldSegs / 2 + 1 + FoulSegs + DugoutEnds + HomeSegs / 2) - 2;
     /// <summary>
     /// The edge this kit dresses: the one <see cref="FieldBounds"/> clips against, from
@@ -37,33 +46,43 @@ public static class HarborWall
     public static float OutfieldHeight(Park park) => (float)park.FenceHeightFt;
     /// <summary>Hip-high rail around the infield, dugouts, and home. The top the flight clips against.</summary>
     public static float HipHeight => (float)Bounds.RailHeightFt;
+    /// <summary>
+    /// Where the drawn rail leaves <see cref="HipHeight"/> and ramps up to the park's fence, in Z
+    /// (<see cref="Height"/>). The flight's rail stays hip-high all the way to the pole
+    /// (<see cref="FieldBounds"/>), so past this line the drawn top and the flight top disagree by
+    /// design. Which one is the rule is the fields map's §5 <b>Q5</b> (#732) and is Jack's; #845 did not touch it, and
+    /// <c>SF-05</c>'s rail-top row stops here.
+    /// </summary>
+    public const double RampStartZ = 95;
     public const bool HasNet = false;
     /// <summary>Authored ring sat on its side in the sky. Boxes follow the loop until the FBX lies in XZ.</summary>
     public const bool DropAuthoredRing = false;
 
     public static float DugoutClearX => HarborDugout.X + HarborDugout.HalfDeep + DugoutPad;
 
-    static (double X, double Z)[]? _loop;
-    static int _loopL, _loopC, _loopR;
+    /// <summary>
+    /// The loop per (park, edge), built once. The key is <see cref="FieldBounds"/>'s key, deliberately:
+    /// the drawn wall and the clip polygon are the same edge (D15 as amended by D21, FD-06), so
+    /// whatever moves one moves the other and the two caches grow together — a polyline fence (F2-c)
+    /// or a park's own foul area (F2-d) lands in both keys at once.
+    ///
+    /// <para>
+    /// Until #845 this was one slot keyed by the three posts under a lock. A second
+    /// <see cref="ParkBoundary"/> would have been served the first one's loop and nothing would have
+    /// failed, because the posts matched; and the flight asks for every park from every thread, so
+    /// two parks in one process rebuilt the slot on every call.
+    /// </para>
+    /// </summary>
+    static readonly System.Collections.Concurrent.ConcurrentDictionary<
+        (string Id, int Left, int Center, int Right, double Height, ParkBoundary Bounds), (double X, double Z)[]> Loops = new();
 
-    static readonly object LoopLock = new();
+    public static (double X, double Z)[] Loop(Park park) => Loop(park, Bounds);
 
-    public static (double X, double Z)[] Loop(Park park)
+    /// <summary>The loop this park draws on a given edge. <see cref="FieldBounds.Of(Park, ParkBoundary)"/>'s sibling.</summary>
+    public static (double X, double Z)[] Loop(Park park, ParkBoundary bounds)
     {
-        // One slot, keyed by the three posts; the flight asks for every park from every thread, so the swap is atomic.
-        lock (LoopLock)
-        {
-            if (_loop != null
-                && _loopL == park.LeftFenceFt
-                && _loopC == park.CenterFenceFt
-                && _loopR == park.RightFenceFt)
-                return _loop;
-            _loopL = park.LeftFenceFt;
-            _loopC = park.CenterFenceFt;
-            _loopR = park.RightFenceFt;
-            _loop = BuildLoop(park);
-            return _loop;
-        }
+        var key = (park.Id, park.LeftFenceFt, park.CenterFenceFt, park.RightFenceFt, park.FenceHeightFt, bounds);
+        return Loops.GetOrAdd(key, k => BuildLoop(park, k.Bounds));
     }
 
     public static (double X, double Z) LoopPoint(Park park, int i)
@@ -74,17 +93,47 @@ public static class HarborWall
         return loop[i0];
     }
 
-    static (double X, double Z)[] BuildLoop(Park park)
+    /// <summary>
+    /// The whole boundary, once around: left pole to right pole through the park's own
+    /// <see cref="AtBatResolver.FenceAt"/> on each side, then each side's foul wrap and the round
+    /// backstop from the <see cref="ParkBoundary"/>. Every vertex is a vertex of
+    /// <see cref="FieldBounds.Of(Park)"/>'s polygon, so the wall drawn in left field is the wall a
+    /// ball hit to left meets (<c>SF-05</c>, D15 as amended by D21, FD-06).
+    ///
+    /// <para>
+    /// Until #845 this built CF → RF pole → behind home and mirrored that half, so Funfair
+    /// (315 / 340), Rooftop (318 / 322) and Canopy (312 / 318) drew right field's wall in left. A
+    /// symmetric park's halves are the same shape in the same order, so Harbor's loop is the loop it
+    /// always was — same count, same winding, same vertices — and nothing changes on screen.
+    /// </para>
+    /// </summary>
+    static (double X, double Z)[] BuildLoop(Park park, ParkBoundary bounds)
     {
-        // Build CF → RF pole → behind home, then mirror so 1B/3B match.
+        var right = HalfLoop(park, 1, bounds);
+        var left = HalfLoop(park, -1, bounds);
+        var pts = new List<(double X, double Z)>(WrapSegs);
+        pts.AddRange(right);
+        // Both halves start on the CF post and end behind the plate. Walk the left one back from
+        // home to CF without repeating either shared end.
+        for (var i = left.Count - 2; i >= 1; i--)
+            pts.Add(left[i]);
+        return pts.ToArray();
+    }
+
+    /// <summary>
+    /// One side: CF → this side's pole along the park's own fence → in along the foul rail → behind
+    /// the plate. <paramref name="sign"/> is +1 for the first-base side.
+    /// </summary>
+    static List<(double X, double Z)> HalfLoop(Park park, int sign, ParkBoundary bounds)
+    {
         var half = new List<(double X, double Z)>(WrapSegs / 2 + 2);
         for (var i = OutfieldSegs / 2; i <= OutfieldSegs; i++)
         {
             var spray = -AtBatResolver.FoulLineDeg
                 + 2 * AtBatResolver.FoulLineDeg * i / OutfieldSegs;
-            half.Add(FencePoint(park, spray));
+            half.Add(FencePoint(park, sign * spray));
         }
-        var poleR = AtBatResolver.FenceAt(park, AtBatResolver.FoulLineDeg);
+        var poleR = AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg);
         var alongs = new List<double>(FoulSegs + DugoutEnds);
         for (var i = 1; i <= FoulSegs; i++)
             alongs.Add(poleR * (1 - i / (double)FoulSegs));
@@ -92,21 +141,18 @@ public static class HarborWall
         alongs.Add(HarborDugout.AlongHome);
         alongs.Sort((a, b) => b.CompareTo(a));
         foreach (var s in alongs)
-            half.Add(FoulWall(1, s, poleR));
-        var rightHome = half[^1];
-        var r = Math.Sqrt(rightHome.X * rightHome.X + rightHome.Z * rightHome.Z);
-        var a0 = Math.Atan2(rightHome.X, rightHome.Z);
-        const double a1 = Math.PI;
+            half.Add(bounds.RailPoint(sign, s, poleR));
+        var home = half[^1];
+        var r = Math.Sqrt(home.X * home.X + home.Z * home.Z);
+        var a0 = Math.Atan2(home.X, home.Z);
+        var a1 = sign * Math.PI;
         for (var i = 1; i <= HomeSegs / 2; i++)
         {
             var t = i / (double)(HomeSegs / 2);
             var a = a0 + (a1 - a0) * t;
             half.Add((Math.Sin(a) * r, Math.Cos(a) * r));
         }
-        var pts = new List<(double X, double Z)>(half);
-        for (var i = half.Count - 2; i >= 1; i--)
-            pts.Add((-half[i].X, half[i].Z));
-        return pts.ToArray();
+        return half;
     }
 
     /// <summary>
@@ -135,6 +181,23 @@ public static class HarborWall
         return (a.X + (b.X - a.X) * t, a.Z + (b.Z - a.Z) * t);
     }
 
+    /// <summary>
+    /// The park's two poles are the same distance, so its wall has a mirror line down the middle.
+    /// Harbor, Crystal and Ember are; Funfair, Rooftop and Canopy are not (FD-06).
+    /// </summary>
+    public static bool ParkIsSymmetric(Park park) => park.LeftFenceFt == park.RightFenceFt;
+
+    /// <summary>
+    /// Every loop vertex has a partner across the Z axis.
+    ///
+    /// <para>
+    /// Re-authored by #845 (FD-06): the loop is no longer a mirror of the right-field half, so this
+    /// is now a statement about the <i>park</i> and not about the builder. A park whose poles match
+    /// draws the same wall on both sides; a lopsided park draws its own left field, and this is
+    /// false for it — which is the fix, not a regression. <see cref="WrapsTheDiamond"/> asks for it
+    /// only of a symmetric park (<see cref="ParkIsSymmetric"/>).
+    /// </para>
+    /// </summary>
     public static bool LoopIsSymmetric(Park park)
     {
         var loop = Loop(park);
@@ -181,11 +244,10 @@ public static class HarborWall
         var spray = Math.Atan2(p.X, p.Z) * (180.0 / Math.PI);
         if (Math.Abs(spray) <= AtBatResolver.FoulLineDeg + 0.5)
             return OutfieldHeight(park);
-        const double hipZ = 95;
-        if (p.Z <= hipZ) return HipHeight;
+        if (p.Z <= RampStartZ) return HipHeight;
         var poleZ = Math.Cos(AtBatResolver.FoulLineDeg * Math.PI / 180.0)
             * AtBatResolver.FenceAt(park, Math.Sign(p.X) * AtBatResolver.FoulLineDeg);
-        var u = (p.Z - hipZ) / Math.Max(20, poleZ - hipZ);
+        var u = (p.Z - RampStartZ) / Math.Max(20, poleZ - RampStartZ);
         u = Math.Clamp(u, 0, 1);
         var s = u * u * (3 - 2 * u);
         return HipHeight + (OutfieldHeight(park) - HipHeight) * (float)s;
@@ -300,7 +362,10 @@ public static class HarborWall
         if (Math.Abs(minDug - HarborDugout.HalfDeep) > 4) return false;
         var cf = FencePoint(park, 0);
         if (loop.Min(p => Diamond.Dist(p.X, p.Z, cf.X, cf.Z)) > 4) return false;
-        return WrapStaysInFoul(park) && LoopIsSymmetric(park)
+        return WrapStaysInFoul(park)
+            // A symmetric park draws one wall on both sides. A lopsided park draws two, which is
+            // the point of #845 — asking every park for a mirror is what hid the bug.
+            && (!ParkIsSymmetric(park) || LoopIsSymmetric(park))
             && HomeWrapIsRound(park)
             && !HasNet && !DropAuthoredRing
             && OutfieldIsTheFence(park);
