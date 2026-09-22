@@ -9,18 +9,11 @@ namespace GrandSluggers.UnityClient
         BallView _ball;
         bool _night;
         Light _followSpot;
-        Transform _fireworks;
-        readonly Firework[] _sparks = new Firework[28];
-
-        struct Firework
-        {
-            public Transform Tf;
-            public Vector3 Vel;
-            public float Life;
-        }
 
         public BallView Ball => _ball;
         public bool Night => _night;
+        /// <summary>The park this view last built: the one being played.</summary>
+        public Park Park { get; private set; }
 
         RulesTable _rules;
         FeelTable _feel;
@@ -39,9 +32,7 @@ namespace GrandSluggers.UnityClient
             _root.SetParent(transform, false);
             _night = night;
             _followSpot = null;
-            _fireworks = null;
-            for (var i = 0; i < _sparks.Length; i++)
-                _sparks[i] = default;
+            Park = park;
 
             var ice = park.Surface == "ice";
             var ash = park.Surface == "ash";
@@ -121,31 +112,13 @@ namespace GrandSluggers.UnityClient
             {
                 Quad("Water", new Vector3(0, -1.4f, 240), new Vector3(1100, 1, 1100), waterMat);
                 Quad("Outfield", new Vector3(0, -0.12f, 190), new Vector3(620, 0.35f, 620), grassMat);
+                // The one field kit (FD-16, #859): the diamond, rail and wall Harbor draws, from the same
+                // geometry owner, in this park's dirt and wall. HarborKit draws it for Harbor.
+                new FieldKit(_root).Build(park, FieldSkin(park, dirtMat, ash));
             }
-            if (!placed)
-            {
-                Infield(dirtMat);
-                Mound();
-                FoulLines();
-                Bags();
-            }
-            if (!placed)
-                Fence(park, ash);
             if (harbor)
             {
-                if (!placed)
-                {
-                    HarborDiamondSkin();
-                    WarningTrack(park);
-                    Backstop();
-                    Dugouts();
-                    HarborDugoutsPlus();
-                    HarborWallDress(park);
-                    HarborScoreboard(park);
-                    HarborBleachers();
-                    HarborTown();
-                    HarborNightHook();
-                }
+                // HarborKit draws Harbor: the field kit and Harbor's own dress.
             }
             else if (crystal)
             {
@@ -178,53 +151,12 @@ namespace GrandSluggers.UnityClient
             _ball.Build(_root, _feel.BallShadow);
         }
 
-        void Infield(Material dirt)
-        {
-            Quad("DirtPad", new Vector3(0, 0.04f, 64), new Vector3(150, 0.18f, 150), dirt);
-            Cylinder("HomeDirt", new Vector3(0, 0.08f, 0), 18f, 0.16f, dirt);
-            Cylinder("BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), 11f, 0.16f, dirt);
-            Cylinder("BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), 11f, 0.16f, dirt);
-            Cylinder("BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), 11f, 0.16f, dirt);
-        }
-
-        void Mound()
-        {
-            var dirt = Look.Lit(new Color(0.62f, 0.42f, 0.26f), Look.Dirt, 3f, 0.1f);
-            Cylinder("Mound", new Vector3(0, 0.45f, 60.5f), 10f, 1.15f, dirt);
-            Quad("Rubber", new Vector3(0, 1.08f, 60.5f), new Vector3(1.9f, 0.08f, 0.45f), Look.Lit(Colors.Chalk, smooth: 0.05f));
-        }
-
-        void FoulLines()
-        {
-            var chalk = Look.Lit(Colors.Chalk, smooth: 0.05f);
-            var a = Quaternion.Euler(0, 45, 0);
-            var b = Quaternion.Euler(0, -45, 0);
-            // Start past the batter's boxes so chalk does not slice them.
-            var l = Look.Prim(PrimitiveType.Cube, "FoulL", _root, new Vector3(112f, 0.14f, 112f), new Vector3(0.95f, 0.08f, 200f), chalk);
-            l.transform.rotation = a;
-            var r = Look.Prim(PrimitiveType.Cube, "FoulR", _root, new Vector3(-112f, 0.14f, 112f), new Vector3(0.95f, 0.08f, 200f), chalk);
-            r.transform.rotation = b;
-        }
-
-        void Bags()
-        {
-            var bag = Look.Lit(Colors.Chalk, smooth: 0.08f);
-            Cube("1B", new Vector3((float)Diamond.First.X, 0.28f, (float)Diamond.First.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
-            Cube("2B", new Vector3((float)Diamond.Second.X, 0.28f, (float)Diamond.Second.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
-            Cube("3B", new Vector3((float)Diamond.Third.X, 0.28f, (float)Diamond.Third.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
-            HomePlate(bag);
-        }
-
-        /// <summary>Pentagon: flat edge to the pitcher, point to the catcher.</summary>
-        void HomePlate(Material chalk)
-        {
-            Cube("HomeBody", new Vector3(0f, 0.24f, 0.4f), new Vector3(2.4f, 0.28f, 1.55f), chalk);
-            var point = Look.Prim(PrimitiveType.Cube, "HomePoint", _root,
-                new Vector3(0f, 0.24f, -0.52f), new Vector3(1.70f, 0.28f, 1.70f), chalk);
-            point.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
-        }
-
-        void Fence(Park park, bool ash)
+        /// <summary>
+        /// What this park hands the field kit: its dirt, the warning track, and its wall, cap and pole,
+        /// chosen here as they were before the kit (F6-c moves the choice into data). The chalk, the
+        /// bags, the plate and the mound are the kit's own.
+        /// </summary>
+        FieldKit.Skin FieldSkin(Park park, Material dirt, bool ash)
         {
             var crystal = park.Id == "crystal-rink";
             var funfair = park.Id == "funfair-park";
@@ -245,105 +177,17 @@ namespace GrandSluggers.UnityClient
                     : Colors.Gold,
                 smooth: crystal ? 0.75f : rooftop ? 0.28f : 0.4f);
             var pole = Look.Lit(crystal ? Colors.Royal : rooftop ? Colors.Goldrush : Colors.Gold, smooth: 0.45f);
-            // The wall stands on the park's fenceHeightFt: the same top the flight clips against (§6.1).
-            var fenceH = (float)park.FenceHeightFt;
-            for (var i = -18; i <= 18; i++)
+            return new FieldKit.Skin
             {
-                var spray = i / 18f * 48f;
-                var fence = (float)AtBatResolver.FenceAt(park, spray);
-                var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * fence, fenceH * 0.5f, Mathf.Cos(rad) * fence);
-                Cube("Fence" + i, p, new Vector3(14, fenceH, 1.8f), funfair && (i & 1) == 0 ? wallAlt : wall);
-                Cube("Cap" + i, p + new Vector3(0, fenceH * 0.5f + 0.2f, 0), new Vector3(14, 0.35f, 2.1f), cap);
-            }
-            var poleL = ParkDiamond.FoulPole(park, -1);
-            var poleR = ParkDiamond.FoulPole(park, 1);
-            Cylinder("PoleL", new Vector3((float)poleL.X, 0, (float)poleL.Z), ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
-            Cylinder("PoleR", new Vector3((float)poleR.X, 0, (float)poleR.Z), ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
-            var yellow = Look.Unlit(Colors.Gold);
-            var fairL = ParkDiamond.FairInward(-1);
-            var fairR = ParkDiamond.FairInward(1);
-            var rotL = Quaternion.LookRotation(new Vector3((float)fairL.X, 0f, (float)fairL.Z), Vector3.up);
-            var rotR = Quaternion.LookRotation(new Vector3((float)fairR.X, 0f, (float)fairR.Z), Vector3.up);
-            var off = ParkDiamond.PoleScreenThick * 0.5f + ParkDiamond.PoleRadius;
-            Cube("ScreenL", new Vector3((float)(poleL.X + fairL.X * off), ParkDiamond.PoleScreenY, (float)(poleL.Z + fairL.Z * off)),
-                new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenThick), yellow, rotL);
-            Cube("ScreenR", new Vector3((float)(poleR.X + fairR.X * off), ParkDiamond.PoleScreenY, (float)(poleR.Z + fairR.Z * off)),
-                new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenThick), yellow, rotR);
-        }
-
-        void WarningTrack(Park park)
-        {
-            var dirt = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f);
-            var n = ParkDiamond.TrackSegs;
-            var half = n * 0.5f;
-            for (var i = 0; i <= n; i++)
-            {
-                var spray = (i / half - 1f) * (float)AtBatResolver.FoulLineDeg;
-                var midR = (float)ParkDiamond.TrackMid(park, spray);
-                var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * midR, ParkDiamond.TrackY, Mathf.Cos(rad) * midR);
-                Cube("Track" + i, p, new Vector3(16, ParkDiamond.TrackThick, ParkDiamond.TrackWidth), dirt);
-            }
-        }
-
-        void Backstop()
-        {
-            var net = Look.Unlit(new Color(0.82f, 0.84f, 0.86f));
-            var post = Look.Lit(new Color(0.55f, 0.55f, 0.5f), smooth: 0.15f);
-            Cube("Backstop", new Vector3(0, 9f, -22f), new Vector3(42, 18, 0.6f), net);
-            Cube("BackL", new Vector3(-22, 8f, -12f), new Vector3(0.6f, 16, 18f), net);
-            Cube("BackR", new Vector3(22, 8f, -12f), new Vector3(0.6f, 16, 18f), net);
-            Cylinder("PostL", new Vector3(-21, 0, -22), 0.45f, 18f, post);
-            Cylinder("PostR", new Vector3(21, 0, -22), 0.45f, 18f, post);
-        }
-
-        void Dugouts()
-        {
-            var roof = Look.Lit(new Color(0.18f, 0.32f, 0.22f), smooth: 0.12f);
-            var pad = Look.Lit(new Color(0.55f, 0.42f, 0.28f), Look.Dirt, 2f, 0.1f);
-            Cube("Dugout1B", new Vector3(HarborDugout.X, 2.4f, HarborDugout.Z), new Vector3(22, 1.2f, 10), roof);
-            Cube("Dugout1BPad", new Vector3(HarborDugout.X, 0.3f, HarborDugout.Z), new Vector3(20, 0.4f, 8), pad);
-            Cube("Dugout3B", new Vector3(-HarborDugout.X, 2.4f, HarborDugout.Z), new Vector3(22, 1.2f, 10), roof);
-            Cube("Dugout3BPad", new Vector3(-HarborDugout.X, 0.3f, HarborDugout.Z), new Vector3(20, 0.4f, 8), pad);
-        }
-
-        void HarborBleachers()
-        {
-            var conc = Look.Lit(new Color(0.74f, 0.75f, 0.76f), smooth: 0.1f);
-            var rail = Look.Lit(Colors.Gold, smooth: 0.4f);
-            for (var row = 0; row < 6; row++)
-            {
-                var y = 3.2f + row * 2.15f;
-                var z = -44f - row * 3.6f;
-                Cube("HomeStep" + row, new Vector3(0, y, z), new Vector3(96 - row * 2, 2.0f, 3.4f), conc);
-                CrowdCard("CrowdH" + row, new Vector3(0, y + 1.6f, z - 1.4f), new Vector3(90 - row * 2, 2.8f, 0.4f));
-            }
-            for (var row = 0; row < 5; row++)
-            {
-                var y = 3.0f + row * 2.1f;
-                Cube("LStep" + row, new Vector3(-102 - row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
-                CrowdCard("CrowdL" + row, new Vector3(-104 - row * 2.4f, y + 1.5f, 40), new Vector3(0.4f, 2.6f, 80));
-                Cube("RStep" + row, new Vector3(102 + row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
-                CrowdCard("CrowdR" + row, new Vector3(104 + row * 2.4f, y + 1.5f, 40), new Vector3(0.4f, 2.6f, 80));
-            }
-            Cube("RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
-            Fans(new Vector3(-40, 5.2f, -46), new Vector3(8, 0, 0), 10);
-            Fans(new Vector3(-90, 6.4f, 20), new Vector3(0, 0, 8), 8);
-            Fans(new Vector3(90, 6.4f, 20), new Vector3(0, 0, 8), 8);
-        }
-
-        void Fans(Vector3 origin, Vector3 step, int n)
-        {
-            var jersey = new[] { Colors.Spark, Colors.Royal, Color.white, Colors.Gold };
-            for (var i = 0; i < n; i++)
-            {
-                var p = origin + step * i;
-                var body = Look.Toon(jersey[i % jersey.Length]);
-                var flesh = Look.Toon(new Color(1f, 0.8f, 0.68f));
-                Cube("Fan" + origin.x + i, p + new Vector3(0, 1.1f, 0), new Vector3(1.1f, 2.0f, 0.9f), body);
-                Cube("FanHead" + origin.x + i, p + new Vector3(0, 2.35f, 0), new Vector3(0.85f, 0.85f, 0.85f), flesh);
-            }
+                Dirt = dirt,
+                HomeDirt = dirt,
+                Track = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f),
+                // The panels alternate from the first span, as they did from the first fence box.
+                WallFaces = new[] { wallAlt, wall },
+                WallCap = cap,
+                Pole = pole,
+                Screen = Look.Unlit(Colors.Gold)
+            };
         }
 
         void Stands(bool ice, bool ash)
@@ -375,98 +219,6 @@ namespace GrandSluggers.UnityClient
             Look.Paint(go, mat);
         }
 
-        void HarborDiamondSkin()
-        {
-            var dirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
-            var chalk = Look.Unlit(Colors.Chalk);
-            var diamond = Look.Prim(PrimitiveType.Cube, "DirtDiamond", _root,
-                new Vector3(0f, 0.12f, 63.64f), new Vector3(132f, 0.24f, 132f), dirt);
-            diamond.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
-            // Beside the plate, in fair ground — not crossed by the 45° foul lines.
-            Cube("BoxL", new Vector3((float)-HomeSet.BoxX, 0.21f, (float)HomeSet.BoxZ),
-                new Vector3((float)HomeSet.BoxW, 0.07f, (float)HomeSet.BoxD), chalk);
-            Cube("BoxR", new Vector3((float)HomeSet.BoxX, 0.21f, (float)HomeSet.BoxZ),
-                new Vector3((float)HomeSet.BoxW, 0.07f, (float)HomeSet.BoxD), chalk);
-            Cube("BoxLIn", new Vector3((float)-HomeSet.BoxX, 0.23f, (float)HomeSet.BoxZ),
-                new Vector3((float)(HomeSet.BoxW * 0.78), 0.05f, (float)(HomeSet.BoxD * 0.88)), dirt);
-            Cube("BoxRIn", new Vector3((float)HomeSet.BoxX, 0.23f, (float)HomeSet.BoxZ),
-                new Vector3((float)(HomeSet.BoxW * 0.78), 0.05f, (float)(HomeSet.BoxD * 0.88)), dirt);
-        }
-
-        void HarborDugoutsPlus()
-        {
-            var roof = Look.Toon(new Color(0.16f, 0.28f, 0.2f));
-            var rail = Look.Toon(Colors.Gold);
-            var bench = Look.Lit(new Color(0.45f, 0.28f, 0.12f), smooth: 0.1f);
-            Cube("Dug1Roof", new Vector3(HarborDugout.X, 5.2f, HarborDugout.Z), new Vector3(24f, 0.5f, 12f), roof);
-            Cube("Dug3Roof", new Vector3(-HarborDugout.X, 5.2f, HarborDugout.Z), new Vector3(24f, 0.5f, 12f), roof);
-            Cube("Dug1Rail", new Vector3(HarborDugout.X, 3.4f, HarborDugout.Z - 6f), new Vector3(20f, 0.35f, 0.5f), rail);
-            Cube("Dug3Rail", new Vector3(-HarborDugout.X, 3.4f, HarborDugout.Z - 6f), new Vector3(20f, 0.35f, 0.5f), rail);
-            Cube("Dug1Bench", new Vector3(HarborDugout.X, HarborDugout.PitFloorY + 1.0f, HarborDugout.Z), new Vector3(18f, 0.7f, 2.2f), bench);
-            Cube("Dug3Bench", new Vector3(-HarborDugout.X, HarborDugout.PitFloorY + 1.0f, HarborDugout.Z), new Vector3(18f, 0.7f, 2.2f), bench);
-        }
-
-        void HarborWallDress(Park park)
-        {
-            var pad = Look.Toon(new Color(0.18f, 0.38f, 0.28f));
-            var ads = new[]
-            {
-                Look.Toon(Colors.Spark),
-                Look.Toon(Colors.Gold),
-                Look.Toon(new Color(0.18f, 0.42f, 0.72f)),
-                Look.Toon(new Color(0.94f, 0.94f, 0.9f))
-            };
-            for (var i = -18; i <= 18; i++)
-            {
-                var spray = i / 18f * 48f;
-                var fence = (float)AtBatResolver.FenceAt(park, spray);
-                var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * fence, 5.2f, Mathf.Cos(rad) * fence);
-                Cube("Pad" + i, p + new Vector3(0f, -2.8f, 0f), new Vector3(14f, 4.4f, 2.4f), pad);
-                Cube("Ad" + i, p + new Vector3(0f, 1.1f, -0.4f), new Vector3(12f, 3.4f, 0.55f), ads[Mathf.Abs(i) % ads.Length]);
-            }
-        }
-
-        void HarborScoreboard(Park park)
-        {
-            var z = (float)park.CenterFenceFt + 18f;
-            var house = Look.Toon(new Color(0.12f, 0.14f, 0.18f));
-            var face = Look.Unlit(new Color(0.16f, 0.52f, 0.3f));
-            Cube("ScoreHouse", new Vector3(0f, 22f, z), new Vector3(48f, 28f, 8f), house);
-            Cube("ScoreFace", new Vector3(0f, 22f, z - 4.2f), new Vector3(42f, 18f, 0.6f), face);
-            Cube("ScoreSpark", new Vector3(0f, 34f, z - 4.4f), new Vector3(16f, 3.2f, 0.5f), Look.Toon(Colors.Spark));
-            Cube("ScoreBar", new Vector3(0f, 12f, z - 4f), new Vector3(36f, 1.2f, 0.5f), Look.Toon(Colors.Gold));
-        }
-
-        void HarborTown()
-        {
-            var white = Look.Lit(new Color(0.93f, 0.95f, 0.96f), smooth: 0.2f);
-            var brick = Look.Lit(new Color(0.62f, 0.28f, 0.22f), smooth: 0.1f);
-            var red = Look.Lit(Colors.SparkDark, smooth: 0.15f);
-            Cube("Wharf", new Vector3(-70, 16, 490), new Vector3(36, 32, 24), white);
-            Cube("SparkHall", new Vector3(-18, 18, 505), new Vector3(22, 36, 20), red);
-            Cube("Loft", new Vector3(55, 22, 495), new Vector3(28, 44, 22), white);
-            Cube("Pier", new Vector3(110, 6, 470), new Vector3(70, 5, 16), brick);
-            Cylinder("Light", new Vector3(155, 0, 440), 2.2f, 34f, Look.Lit(new Color(0.35f, 0.3f, 0.22f), smooth: 0.1f));
-            Cube("RoofSpark", new Vector3(-18, 38, 505), new Vector3(24, 4, 22), Look.Lit(Colors.Gold, smooth: 0.4f));
-        }
-
-        void HarborNightHook()
-        {
-            var go = new GameObject("Fireworks");
-            go.transform.SetParent(_root, false);
-            go.transform.position = new Vector3(0, 12, 400);
-            _fireworks = go.transform;
-            if (_night)
-            {
-                Glow("FloodL", new Vector3(-90, 28, 40), new Color(1f, 0.92f, 0.75f), 1.8f, 140f);
-                Glow("FloodR", new Vector3(90, 28, 40), new Color(1f, 0.92f, 0.75f), 1.8f, 140f);
-                Glow("FloodH", new Vector3(0, 22, -40), new Color(1f, 0.90f, 0.70f), 1.4f, 110f);
-                Glow("FloodC", new Vector3(0, 32, 240), new Color(0.85f, 0.9f, 1f), 1.2f, 180f);
-            }
-            go.SetActive(_night);
-        }
-
         public void Tick(Vector3 ball, float dt)
         {
             if (_followSpot != null && _followSpot.gameObject.activeInHierarchy)
@@ -477,54 +229,13 @@ namespace GrandSluggers.UnityClient
             }
             var kit = HarborKit.Instance;
             if (kit != null && kit.OwnsDiamond) kit.Tick(ball, dt);
-            else TickFireworks(dt);
         }
 
+        /// <summary>Fireworks are Harbor's night dress; no other park has any.</summary>
         public void BurstFireworks(Vector3 at)
         {
             var kit = HarborKit.Instance;
-            if (kit != null && kit.OwnsDiamond)
-            {
-                kit.BurstFireworks(at);
-                return;
-            }
-            if (!_night || _fireworks == null) return;
-            var cols = new[]
-            {
-                Colors.Spark, Colors.Gold, new Color(1f, 0.45f, 0.2f),
-                new Color(0.45f, 0.75f, 1f), new Color(1f, 0.35f, 0.7f)
-            };
-            var origin = at.z < 80f ? new Vector3(0, 18, 390) : at + Vector3.up * 8f;
-            for (var i = 0; i < _sparks.Length; i++)
-            {
-                if (_sparks[i].Tf != null) Destroy(_sparks[i].Tf.gameObject);
-                var col = cols[i % cols.Length];
-                var go = Look.Prim(PrimitiveType.Sphere, "Spark" + i, _fireworks, origin, Vector3.one * 1.4f, Look.Unlit(col));
-                var a = i / (float)_sparks.Length * Mathf.PI * 2f;
-                var lift = 18f + (i % 5) * 6f;
-                _sparks[i] = new Firework
-                {
-                    Tf = go.transform,
-                    Vel = new Vector3(Mathf.Cos(a) * 22f, lift, Mathf.Sin(a) * 16f),
-                    Life = 1.6f + (i % 4) * 0.12f
-                };
-            }
-        }
-
-        void TickFireworks(float dt)
-        {
-            for (var i = 0; i < _sparks.Length; i++)
-            {
-                var s = _sparks[i];
-                if (s.Tf == null || s.Life <= 0) continue;
-                s.Life -= dt;
-                s.Vel += new Vector3(0, -22f * dt, 0);
-                s.Tf.position += s.Vel * dt;
-                var u = Mathf.Clamp01(s.Life);
-                s.Tf.localScale = Vector3.one * (0.4f + 1.2f * u);
-                s.Tf.gameObject.SetActive(s.Life > 0);
-                _sparks[i] = s;
-            }
+            if (kit != null && kit.OwnsDiamond) kit.BurstFireworks(at);
         }
 
         void CrystalGarden(Park park)
@@ -619,7 +330,6 @@ namespace GrandSluggers.UnityClient
             var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
             var canvas = Look.Lit(new Color(0.94f, 0.78f, 0.48f), smooth: 0.12f);
 
-            WarningTrack(park);
             FunfairBackstop(cream, red, wood);
             FunfairBenches(wood, canvas);
             Tent("HomeTent", new Vector3(0, 0, -62), 72, 22, 20, red, cream, wood);
@@ -813,7 +523,6 @@ namespace GrandSluggers.UnityClient
             var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
             var magenta = Look.Unlit(new Color(1f, 0.28f, 0.72f));
 
-            WarningTrack(park);
             Cube("ChainBack", new Vector3(0, 8f, -24f), new Vector3(38, 16, 0.45f), steel);
             Cube("ChainL", new Vector3(-20, 7f, -12f), new Vector3(0.45f, 14, 16f), steel);
             Cube("ChainR", new Vector3(20, 7f, -12f), new Vector3(0.45f, 14, 16f), steel);
@@ -878,7 +587,6 @@ namespace GrandSluggers.UnityClient
             var vine = Look.Lit(new Color(0.22f, 0.48f, 0.18f), smooth: 0.12f);
             var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
 
-            WarningTrack(park);
             Cube("VineBack", new Vector3(0, 8f, -24f), new Vector3(38, 16, 0.7f), vine);
             Cube("VineL", new Vector3(-20, 7f, -12f), new Vector3(0.7f, 14, 16f), vine);
             Cube("VineR", new Vector3(20, 7f, -12f), new Vector3(0.7f, 14, 16f), vine);
@@ -991,7 +699,6 @@ namespace GrandSluggers.UnityClient
             var fire = Look.Unlit(Colors.EmberFire);
             var gold = Look.Lit(Colors.Gold, smooth: 0.45f);
 
-            WarningTrack(park);
             Cube("IronBack", new Vector3(0, 8f, -24f), new Vector3(38, 16, 0.55f), iron);
             Cube("IronL", new Vector3(-20, 7f, -12f), new Vector3(0.55f, 14, 16f), iron);
             Cube("IronR", new Vector3(20, 7f, -12f), new Vector3(0.55f, 14, 16f), iron);
