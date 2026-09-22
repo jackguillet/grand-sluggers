@@ -434,7 +434,9 @@ public sealed class PitchFamilyTrialScenarioTests
         //     Put both back and the two are the same JSON — so a shipped edit that forgets this
         //     overlay fails here instead of quietly making the trial measure a third thing.
         var root = TrialRoot;
-        Assert.Equal(new[] { "rules/pitching.json" }, root.Overrides);
+        // #844 added the second file: the overlay is now the Phase 1 + Phase 2 duel trial, and the
+        // batting window's own equality check is SharedWindowScenarioTests.S126_….
+        Assert.Equal(new[] { "rules/batting.json", "rules/pitching.json" }, root.Overrides);
         Assert.Equal(TrialName, root.OverlayName);
 
         var shippedJson = Parse(Path.Combine(Shipped, "rules", "pitching.json"));

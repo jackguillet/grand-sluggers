@@ -218,13 +218,18 @@ public sealed class AtBatScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-10  The window is floored
+    // S-10  The window is floored (shipped) — and is one number for everyone (trial)
     // ---------------------------------------------------------------------------------
 
+    /// <summary>
+    /// The shipped half, unchanged by #844: the split window's worst case still clears the floor.
+    /// The trial half is below; the whole switch is <c>SharedWindowScenarioTests</c> (S-124 … S-127).
+    /// </summary>
     [Fact]
     public void S10_BatOneChargedAgainstACharmballStillHasAFiveFrameWindow()
     {
         var park = _content.Parks["harbor-diamond"];
+        Assert.False(_content.Rules.Batting.Window.Shared, "this half is the shipped, split window");
         var window = AtBatResolver.ContactWindowFrames(1, true, "charmball", park, false);
         Assert.Equal(_content.Rules.Batting.Window.FloorFrames, window);
         Assert.True(window >= 5);
@@ -237,6 +242,30 @@ public sealed class AtBatScenarioTests
         var outside = inside with { TimingErrorFrames = 2.6 };
         Assert.NotEqual(ContactQuality.Miss, resolver.Resolve(inside, park, new Random(1)).Quality);
         Assert.Equal(ContactQuality.Miss, resolver.Resolve(outside, park, new Random(1)).Quality);
+    }
+
+    /// <summary>
+    /// The trial half (#844, PH-10-R1): under <c>trials/pitch5</c> the same three hitters and both
+    /// swings share one window, and the charmball still multiplies it (PH-16-R18 removes the Star
+    /// Pitch multiplier later, not here). No frame count is stored: 9 is a trial start value Jack
+    /// judges in sitting 2, so the row reads it from the table it is asserting about.
+    /// </summary>
+    [Fact]
+    public void S10_UnderTheTrialTheWindowIsOneNumberForEverySwingAndEveryHitter()
+    {
+        var park = _content.Parks["harbor-diamond"];
+        var trial = TrialRules;
+        var frames = trial.Batting.Window.Frames;
+        Assert.True(trial.Batting.Window.Shared);
+
+        foreach (var contact in new[] { 1, 5, 10 })
+        foreach (var charged in new[] { false, true })
+            Assert.Equal(frames, AtBatResolver.ContactWindowFrames(contact, charged, null, park, false, trial, _content.StarSkills));
+
+        // The charmball still narrows it, by its own table value, and stays over the floor.
+        var charmed = AtBatResolver.ContactWindowFrames(1, true, "charmball", park, false, trial, _content.StarSkills);
+        Assert.Equal(Math.Max(trial.Batting.Window.FloorFrames, frames * StarSkills.BatterWindowMul("charmball", _content.StarSkills)), charmed);
+        Assert.True(charmed < frames && charmed >= trial.Batting.Window.FloorFrames, $"charmed {charmed} of {frames}");
     }
 
     // ---------------------------------------------------------------------------------
@@ -742,6 +771,11 @@ public sealed class AtBatScenarioTests
     // S-30  The Charge Bat is never worse than a manual MAX
     // ---------------------------------------------------------------------------------
 
+    /// <summary>
+    /// The shipped root, unchanged by #844: the Charge Bat keeps the slap window and the slap zones.
+    /// Under the trial its window clause is moot — nobody has a charge window — and its spatial
+    /// clause is the whole item; the trial half is below.
+    /// </summary>
     [Fact]
     public void S30_ChargeBatIsAtLeastAManualMaxWithNoWindowOrZonePenalty()
     {
@@ -768,7 +802,68 @@ public sealed class AtBatScenarioTests
         Assert.Equal(ContactQuality.Perfect, resolver.Resolve(chargeBat with { CrossingX = tip }, park, new Random(1)).Quality);
     }
 
+    /// <summary>
+    /// The trial half (#844): the Charge Bat's **spatial** clause is untouched — it still keeps the
+    /// wide slap zones on a MAX charge, which is the half PH-11-R1 says a charge trades. Its window
+    /// clause has nothing left to buy: under the switch a manual MAX, the Charge Bat and a quick
+    /// swing are all judged in the same window, so "no window penalty" is true because there is no
+    /// penalty for anyone.
+    /// </summary>
+    [Fact]
+    public void S30_UnderTheTrialTheChargeBatKeepsItsZonesAndSharesEveryonesWindow()
+    {
+        var trial = TrialRules;
+        var park = _content.Parks["harbor-diamond"];
+        var resolver = new AtBatResolver(_content.Chemistry, trial, _content.StarSkills);
+        var manual = Input(bat: 5, err: 0, charge: 1);
+        var chargeBat = Input(bat: 5, err: 0, charge: 0, batId: "charge-bat");
+        var quick = Input(bat: 5, err: 0);
+        Assert.True(_content.Bats["charge-bat"].ChargeAlwaysFull);
+
+        // One window for all three, and for the low- and high-Contact hitters behind them.
+        var frames = trial.Batting.Window.Frames;
+        foreach (var swing in new[] { manual, chargeBat, quick })
+        foreach (var contact in new[] { 1, 5, 10 })
+        {
+            var batter = swing.Batter with { Stats = swing.Batter.Stats with { Bat = contact } };
+            Assert.Equal(frames, AtBatResolver.SwingWindowFrames(
+                batter, swing.Bat, swing.Charge01, null, park, false, 1, trial, _content.StarSkills));
+        }
+
+        // The spatial clause still holds: the ball toward the tip is Nice on a manual charge and
+        // Perfect with the bat, exactly as on the shipped root.
+        var tip = SweetSpot.TipSign(manual.Batter.Bats) * 0.4;
+        Assert.Equal(ContactQuality.Nice, resolver.Resolve(manual with { CrossingX = tip }, park, new Random(1)).Quality);
+        Assert.Equal(ContactQuality.Perfect, resolver.Resolve(chargeBat with { CrossingX = tip }, park, new Random(1)).Quality);
+        Assert.True(resolver.Resolve(chargeBat, park, new Random(1)).ExitVeloMph
+                    >= resolver.Resolve(manual, park, new Random(1)).ExitVeloMph,
+            "the Charge Bat is still never worse than a manual MAX");
+
+        // …and a swing at the old charge window's edge is now inside the window for everyone, which
+        // is the one thing the switch changed here.
+        var oldChargeEdge = trial.Batting.Window.ChargeFrames / 2 + 0.1;
+        Assert.True(oldChargeEdge < frames / 2, "the old charge half-window is inside the shared one");
+        foreach (var swing in new[] { manual, chargeBat, quick })
+            Assert.NotEqual(ContactQuality.Miss,
+                resolver.Resolve(swing with { TimingErrorFrames = oldChargeEdge }, park, new Random(1)).Quality);
+    }
+
     // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// <c>trials/pitch5</c>'s tables, loaded in process through a <see cref="DataRoot"/> built from
+    /// the repository (the <see cref="PitchFamilyTrialScenarioTests"/> shape), so the trial halves of
+    /// S-10 and S-30 never depend on <c>GRAND_SLUGGERS_TRIAL</c> being set.
+    /// </summary>
+    RulesTable TrialRules
+    {
+        get
+        {
+            var shipped = _content.Root.Shipped;
+            var repo = Path.GetFullPath(Path.Combine(shipped, ".."));
+            return RulesTable.Load(new DataRoot(shipped, Path.Combine(repo, "trials", "pitch5")));
+        }
+    }
 
     AtBatInput Input(int bat, double err, double charge = 0, double crossingY = double.NaN,
         bool changeup = false, Character? pitcher = null, string batId = "harbor-lumber")
