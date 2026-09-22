@@ -55,8 +55,11 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.PoleSitsOnThatParkFence(Harbor));
         Assert.True(ParkDiamond.ScreenFacesFair(Harbor),
             "yellow grate sits in fair and is taller than the wall");
-        Assert.True(HarborWall.TaperIsARamp(Harbor),
-            "hip→outfield wall is a ramp, not stair boxes");
+        // Re-authored by F2-b2 (#873, FD-06-R2). It read "hip→outfield wall is a ramp, not stair
+        // boxes": the drawn rail climbed to the fence from 95 ft out while the ball's rail stayed
+        // hip-high to the pole. Jack chose the ball's rail, so the wall steps up once, at the pole.
+        Assert.True(HarborWall.StepsOnlyAtThePoles(Harbor),
+            "the rail is hip-high to each pole and the wall steps up to the fence there, where the pole stands");
         Assert.Equal(Harbor.CenterFenceFt, AtBatResolver.FenceAt(Harbor, 0), 1);
         Assert.Equal(Harbor.LeftFenceFt, AtBatResolver.FenceAt(Harbor, -AtBatResolver.FoulLineDeg), 1);
         Assert.Equal(Harbor.RightFenceFt, AtBatResolver.FenceAt(Harbor, AtBatResolver.FoulLineDeg), 1);

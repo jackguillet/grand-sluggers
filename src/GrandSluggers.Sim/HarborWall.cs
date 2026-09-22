@@ -54,16 +54,11 @@ public static class HarborWall
     /// park that names one (F2-c).
     /// </summary>
     public static float OutfieldHeight(Park park, double sprayDeg) => (float)AtBatResolver.FenceSpotAt(park, sprayDeg).TopFt;
-    /// <summary>Hip-high rail around the infield, dugouts, and home. The top the flight clips against.</summary>
-    public static float HipHeight => (float)Bounds.RailHeightFt;
     /// <summary>
-    /// Where the drawn rail leaves <see cref="HipHeight"/> and ramps up to the park's fence, in Z
-    /// (<see cref="Height"/>). The flight's rail stays hip-high all the way to the pole
-    /// (<see cref="FieldBounds"/>), so past this line the drawn top and the flight top disagree by
-    /// design. Which one is the rule is the fields map's §5 <b>Q5</b> (#732) and is Jack's; #845 did not touch it, and
-    /// <c>SF-05</c>'s rail-top row stops here.
+    /// Hip-high rail around the infield, dugouts, and home, all the way out to each pole. The top the
+    /// flight clips against (<see cref="ParkBoundary.RailTopFt"/>).
     /// </summary>
-    public const double RampStartZ = 95;
+    public static float HipHeight => (float)Bounds.RailHeightFt;
     public const bool HasNet = false;
     /// <summary>Authored ring sat on its side in the sky. Boxes follow the loop until the FBX lies in XZ.</summary>
     public const bool DropAuthoredRing = false;
@@ -250,36 +245,147 @@ public static class HarborWall
     }
 
     /// <summary>
-    /// The park's fence in the outfield, tapering to hip height along the foul wrap so the
-    /// side wall is a rail, not a fence through the dugouts.
+    /// One drawn span of the loop, from vertex <c>i</c> to <c>i + 1</c>: the flight segment it lies on,
+    /// and that segment's top at each of the span's two ends.
     /// </summary>
-    public static float Height(Park park, int i)
+    readonly record struct DrawnSpan(FieldBounds.WallSegment Segment, float Start, float End);
+
+    /// <summary>
+    /// The drawn spans per (park, edge), built once, on <see cref="Loops"/>' key — the one
+    /// <c>FieldBounds.EdgeKey</c> the clip polygon's cache uses, not a second key — so whatever grows
+    /// that key (the polyline fence, F2-c; a park's own foul area, F2-d) reaches the spans with the loop
+    /// and the polygon they are read from.
+    /// </summary>
+    static readonly System.Collections.Concurrent.ConcurrentDictionary<FieldBounds.EdgeKey, DrawnSpan[]> Spans = new();
+
+    static DrawnSpan Span(Park park, int i)
     {
-        var p = LoopPoint(park, i);
-        var spray = Math.Atan2(p.X, p.Z) * (180.0 / Math.PI);
-        if (Math.Abs(spray) <= AtBatResolver.FoulLineDeg + 0.5)
-            return OutfieldHeight(park, spray);
-        if (p.Z <= RampStartZ) return HipHeight;
-        var poleZ = Math.Cos(AtBatResolver.FoulLineDeg * Math.PI / 180.0)
-            * AtBatResolver.FenceAt(park, Math.Sign(p.X) * AtBatResolver.FoulLineDeg);
-        var u = (p.Z - RampStartZ) / Math.Max(20, poleZ - RampStartZ);
-        u = Math.Clamp(u, 0, 1);
-        var s = u * u * (3 - 2 * u);
-        return HipHeight + (OutfieldHeight(park) - HipHeight) * (float)s;
+        var spans = Spans.GetOrAdd(FieldBounds.EdgeKey.Of(park, Bounds),
+            k => BuildSpans(Loop(park, k.Bounds), FieldBounds.Of(park, k.Bounds)));
+        var n = spans.Length;
+        return spans[((i % n) + n) % n];
     }
 
-    /// <summary>A loop vertex between the poles (fair), where the drawn wall is the park's fence.</summary>
-    public static bool IsOutfield(Park park, int i)
+    /// <summary>
+    /// Each drawn span's flight segment — the one its midpoint lies on — and the segment's top where
+    /// each end of the span stands on it (<see cref="FieldBounds.WallSegment.HeightAt"/>).
+    /// </summary>
+    static DrawnSpan[] BuildSpans((double X, double Z)[] loop, FieldBounds.Boundary bounds)
+    {
+        var n = loop.Length;
+        var spans = new DrawnSpan[n];
+        for (var i = 0; i < n; i++)
+        {
+            var a = loop[i];
+            var b = loop[(i + 1) % n];
+            var mid = ((a.X + b.X) * 0.5, (a.Z + b.Z) * 0.5);
+            FieldBounds.WallSegment? under = null;
+            var best = double.MaxValue;
+            foreach (var s in bounds.Segments)
+            {
+                var (d, _) = OnSegment(s, mid);
+                if (d >= best) continue;
+                best = d;
+                under = s;
+            }
+            spans[i] = new DrawnSpan(under!, TopOn(under!, a), TopOn(under!, b));
+        }
+        return spans;
+    }
+
+    /// <summary>How far a point is from a segment, and how far along it (0 at A, 1 at B) its nearest point is.</summary>
+    static (double DistSq, double Along) OnSegment(FieldBounds.WallSegment s, (double X, double Z) p)
+    {
+        var ex = s.Bx - s.Ax;
+        var ez = s.Bz - s.Az;
+        var len2 = ex * ex + ez * ez;
+        var t = len2 < 1e-12 ? 0 : Math.Clamp(((p.X - s.Ax) * ex + (p.Z - s.Az) * ez) / len2, 0, 1);
+        var dx = p.X - (s.Ax + ex * t);
+        var dz = p.Z - (s.Az + ez * t);
+        return (dx * dx + dz * dz, t);
+    }
+
+    /// <summary>
+    /// The segment's top at a drawn vertex on it. A vertex at one of the segment's ends reads that end's
+    /// top exactly, not a projection a rounding error short of it; a level segment reads its one top.
+    /// </summary>
+    static float TopOn(FieldBounds.WallSegment s, (double X, double Z) p)
+    {
+        var t = OnSegment(s, p).Along;
+        if (t < 1e-9) t = 0;
+        else if (t > 1 - 1e-9) t = 1;
+        return (float)s.HeightAt(t);
+    }
+
+    /// <summary>
+    /// The segment of the clip polygon (<see cref="FieldBounds.Of(Park)"/>) that the drawn span from
+    /// loop vertex <paramref name="i"/> to <paramref name="i"/> + 1 lies on. Every drawn vertex is a
+    /// polygon vertex or a point on one of its straight rail segments (<c>SF-05</c>), so each drawn
+    /// span is a piece of exactly one flight segment: its top, its kind (fence or rail) and its
+    /// material are read from here, not recomputed (FD-06-R2).
+    /// </summary>
+    public static FieldBounds.WallSegment FlightSpan(Park park, int i) => Span(park, i).Segment;
+
+    /// <summary>
+    /// The top of the drawn span from loop vertex <paramref name="i"/> to <paramref name="i"/> + 1 at
+    /// each of its ends: the top of the flight's wall under it (<see cref="FlightSpan"/>) where that end
+    /// stands. Between the poles that is the fence — the park's <c>fenceHeightFt</c> end to end, or a
+    /// polyline span's two point heights, straight between them (F2-c) — and on the foul wrap and the
+    /// backstop it is the rail's top, level all the way to each pole (FD-06-R2). This is what
+    /// <c>FieldKit.Wall</c> draws each span from and to, so the span that leaves a pole is rail from its
+    /// first foot and the wall steps from the fence to the rail at the pole itself, where the ball's
+    /// wall steps. Every span of a park with no polyline is level (<c>Start == End</c>).
+    /// </summary>
+    public static (float Start, float End) SpanTops(Park park, int i)
+    {
+        var span = Span(park, i);
+        return (span.Start, span.End);
+    }
+
+    /// <summary>
+    /// The top of the wall at loop vertex <paramref name="i"/>: the taller of the two drawn spans that
+    /// meet there (<see cref="SpanTops"/>, each read at this vertex), so the flight's top and not a second
+    /// rule. The fence's top between the poles and at each pole, where the fence ends; the rail's top at
+    /// every other vertex of the foul wrap and the backstop.
+    ///
+    /// <para>
+    /// Until F2-b2 (#873) this was its own rule: the fence within half a degree of the foul line,
+    /// then a smoothstep from the rail's top up to the fence past a literal 95 ft out
+    /// (<c>RampStartZ</c>), while the flight's rail stayed hip-high to the pole — 150–177 ft of drawn
+    /// rail per side on the shipped root and 64–82 ft on <c>trials/c80</c> stood over a ball that
+    /// went through it (map finding 19). Jack chose the flight's rail (FD-06-R2): the drawn rail stays
+    /// hip-high to the pole and the wall steps up at the pole. No flight number moved.
+    /// </para>
+    /// </summary>
+    public static float Height(Park park, int i) => Math.Max(SpanTops(park, i - 1).End, SpanTops(park, i).Start);
+
+    /// <summary>
+    /// A loop vertex on the fence between the poles, the poles included: a vertex of a fair span of
+    /// the flight's wall (<see cref="FlightSpan"/>), where the drawn wall is the park's fence. Before
+    /// F2-b2 this was "within half a degree of the foul line", which also took in the first one or
+    /// two rail vertices past each pole, where the rail flares into the line.
+    /// </summary>
+    public static bool IsOutfield(Park park, int i) =>
+        FlightSpan(park, i - 1).Kind == FieldBounds.WallKind.FairFence
+        || FlightSpan(park, i).Kind == FieldBounds.WallKind.FairFence;
+
+    /// <summary>A loop vertex at a foul pole: the point on that side's fence where the foul line meets it (<see cref="ParkDiamond.FoulPole"/>).</summary>
+    public static bool IsPole(Park park, int i)
     {
         var p = LoopPoint(park, i);
-        return p.Z > 0 && Math.Abs(Math.Atan2(p.X, p.Z) * (180.0 / Math.PI)) <= AtBatResolver.FoulLineDeg + 0.5;
+        for (var sign = -1; sign <= 1; sign += 2)
+        {
+            var pole = ParkDiamond.FoulPole(park, sign);
+            if (Diamond.Dist(p.X, p.Z, pole.X, pole.Z) < 1e-6) return true;
+        }
+        return false;
     }
 
     /// <summary>
     /// D15: every outfield vertex of the drawn wall stands at the flight fence's top at that vertex —
     /// the park's <c>fenceHeightFt</c>, or for a polyline fence (F2-c) the points' heights, straight
-    /// between them — the rail stays hip-high, and the fence is taller than the rail so the wrap ramps
-    /// up to it.
+    /// between them — the rail stays hip-high, and the fence is taller than the rail so the wall steps
+    /// up to it at each pole (FD-06-R2).
     /// </summary>
     public static bool OutfieldIsTheFence(Park park)
     {
@@ -295,23 +401,32 @@ public static class HarborWall
     }
 
     /// <summary>
-    /// Neighboring samples in the hip→outfield blend differ by a little, not a
-    /// 4-ft stair. Dress must use both endpoint heights (a ramp), not one box height.
+    /// FD-06-R2: the only change of height on the foul side is the step at each pole. Every span of
+    /// the foul wrap and the backstop stands at the rail's top (<see cref="HipHeight"/>), level to the
+    /// pole; a fair span meets a foul one exactly twice around the loop, each time at a foul pole
+    /// (<see cref="IsPole"/>), and the top steps there. Heights between two fair spans are the fence's
+    /// own business (a polyline fence, F2-c) and are not asked about here.
+    ///
+    /// <para>
+    /// Replaces <c>TaperIsARamp</c>, which asked the opposite: that the rail climb to the fence over
+    /// at least six vertices past 95 ft out, while the ball's rail stayed hip-high to the pole.
+    /// </para>
     /// </summary>
-    public static bool TaperIsARamp(Park park)
+    public static bool StepsOnlyAtThePoles(Park park)
     {
         var n = Loop(park).Length;
-        var taper = 0;
+        var steps = 0;
         for (var i = 0; i < n; i++)
         {
-            var a = Height(park, i);
-            var b = Height(park, i + 1);
-            if (Math.Abs(a - b) > HipHeight * 2f) return false;
-            if (a <= HipHeight + 1f || a >= OutfieldHeight(park) - 1f) continue;
-            taper++;
-            if (Math.Abs(a - b) > 8f) return false;
+            var before = FlightSpan(park, i - 1).Kind;
+            var here = FlightSpan(park, i).Kind;
+            var tops = SpanTops(park, i);
+            if (here == FieldBounds.WallKind.FoulWall && (tops.Start != HipHeight || tops.End != HipHeight)) return false;
+            if (before == here) continue;
+            if (!IsPole(park, i) || SpanTops(park, i - 1).End == tops.Start) return false;
+            steps++;
         }
-        return taper >= 6;
+        return steps == 2;
     }
 
     public static (double X, double Z) Outward(Park park, int i)
