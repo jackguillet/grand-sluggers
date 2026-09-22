@@ -2467,7 +2467,8 @@
         "#821",
         "#823",
         "#824",
-        "#837"
+        "#837",
+        "#839"
       ],
       "validation_evidence": [
         {
@@ -3210,7 +3211,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#837"
+            "#837",
+            "#839"
           ],
           "validation_evidence": [
             {
@@ -3323,7 +3325,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#837"
+            "#837",
+            "#839"
           ],
           "validation_evidence": [
             {
@@ -5496,7 +5499,8 @@
     },
     {
       "date": "2026-09-21",
-      "event": "P2-a (#837) made Contact and Power ratings of their own (PH-15-R5) and routed every reader to them, seeded equal to bat so nothing a player can feel moved. Stats carries them exactly as it carries Arm and Hands - optional, unauthored (0) tracks Bat, the authored flags are not serialized, and a clamp keeps an unauthored trait unauthored - and characters may author contact / power as 1-10 keys that the validator refuses outside the range by character and field. Nothing authors one: the values are Jack's later choice and the c80 and pitch5 overlays needed no row. The split routes the readers by meaning rather than by name: the cursor barrel is Contact's and the exit velocity and loft are Power's, the Unity cursor's one token became Contact so the drawn oval still equals the judged one, and the CPU batter's four reads split - chase, timing sigma, the technique gate and the sac bunt are Contact, the forced charge and the archetype split against Run are Power. One read is deliberately wrong and labelled: SwingWindowFrames still widens the window with Contact, which PH-15-R7 does not want, and it reads the trait so P2-b removes one thing instead of two. Bat stays the displayed aggregate the card, the CLI, the Raylib HUD and Teams.Tools show; P2-f decides the card. Behaviour is unchanged and was measured that way: cli match --seed 7 is byte-identical on both data roots, the sim suite and the c80 rerun are green with three new scenario rows, and the #708 seals regenerated with source-hash lines only. The roster gained two serialized properties, so PlayTraceIdentity's bytes move from here on; old traces still read because absent means unauthored, and no schema was bumped. Spec section 2 was rewritten, 5.2 / 5.3 / 5.4 / 5.5 name the trait each formula reads, 5.9 gained the CPU mapping table and Appendix B.1 gained S-121 ... S-123. No status change, no numeric target, no human acceptance."
+      "event": "P2-a (#837) made Contact and Power ratings of their own (PH-15-R5) and routed every reader to them, seeded equal to bat so nothing a player can feel moved. Stats carries them exactly as it carries Arm and Hands - optional, unauthored (0) tracks Bat, the authored flags are not serialized, and a clamp keeps an unauthored trait unauthored - and characters may author contact / power as 1-10 keys that the validator refuses outside the range by character and field. Nothing authors one: the values are Jack's later choice and the c80 and pitch5 overlays needed no row. The split routes the readers by meaning rather than by name: the cursor barrel is Contact's and the exit velocity and loft are Power's, the Unity cursor's one token became Contact so the drawn oval still equals the judged one, and the CPU batter's four reads split - chase, timing sigma, the technique gate and the sac bunt are Contact, the forced charge and the archetype split against Run are Power. One read is deliberately wrong and labelled: SwingWindowFrames still widens the window with Contact, which PH-15-R7 does not want, and it reads the trait so P2-b removes one thing instead of two. Bat stays the displayed aggregate the card, the CLI, the Raylib HUD and Teams.Tools show; P2-f decides the card. Behaviour is unchanged and was measured that way: cli match --seed 7 is byte-identical on both data roots, the sim suite and the c80 rerun are green with three new scenario rows, and the #708 seals regenerated with source-hash lines only. The roster gained two serialized properties, so PlayTraceIdentity's bytes move from here on; old traces still read because absent means unauthored, and no schema was bumped. Spec section 2 was rewritten, 5.2 / 5.3 / 5.4 / 5.5 name the trait each formula reads, 5.9 gained the CPU mapping table and Appendix B.1 gained S-121 ... S-123. No status change, no numeric target, no human acceptance.",
+      "pr": "#839"
     }
   ]
 }
