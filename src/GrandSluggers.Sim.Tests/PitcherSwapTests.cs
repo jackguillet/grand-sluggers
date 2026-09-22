@@ -98,12 +98,18 @@ public class PitcherSwapTests
         Assert.DoesNotContain(row, "*[]<>".Contains);
         foreach (var family in match.Pitcher.Repertoire.Ordinary.Where(content.Rules.Pitching.Families.IsAuthored))
             Assert.Contains(BroadcastHud.ShortFamily(family), row);
-        // Shipped: only the fastball and the changeup are authored, so no card names a third pitch.
-        Assert.DoesNotContain("CU", row);
-        Assert.Equal("FB  ·  CH", BroadcastHud.PitcherPitches(
+        // #860 (Jack, September 22, 2026: "trial was good."): the shipped root authors all five
+        // families, so the card names every ordinary pitch, in repertoire order.
+        Assert.Equal("FB  ·  CH  ·  CU", BroadcastHud.PitcherPitches(
             new Repertoire(PitchFamily.Changeup, PitchFamily.Curveball), content.Rules.Pitching.Families));
-        Assert.Equal("FB", BroadcastHud.PitcherPitches(
+        Assert.Equal("FB  ·  SL  ·  CU", BroadcastHud.PitcherPitches(
             new Repertoire(PitchFamily.Slider, PitchFamily.Curveball), content.Rules.Pitching.Families));
+        // The off path: a table that authors only the two code-default rows skips the rest.
+        var bare = RulesTable.Defaults.Pitching.Families;
+        Assert.Equal("FB  ·  CH", BroadcastHud.PitcherPitches(
+            new Repertoire(PitchFamily.Changeup, PitchFamily.Curveball), bare));
+        Assert.Equal("FB", BroadcastHud.PitcherPitches(
+            new Repertoire(PitchFamily.Slider, PitchFamily.Curveball), bare));
         Assert.Equal(["FB", "CH", "CU", "SL", "SI"],
             PitchFamily.All.Select(BroadcastHud.ShortFamily).ToArray());
     }
