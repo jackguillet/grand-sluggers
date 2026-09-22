@@ -561,16 +561,17 @@ public sealed class PitchFlightRules
 /// properties. A row hiding in a collection would be a table nothing validated.
 ///
 /// Three of the five library ids (<see cref="PitchFamily.Curveball"/>,
-/// <see cref="PitchFamily.Slider"/>, <see cref="PitchFamily.Sinker"/>) are <b>known but unauthored</b>:
-/// their numbers and their natural sweep are P1-d, a numeric trial Jack accepts. Asking for one is a
-/// loud stop that names it, never a silent fastball.
+/// <see cref="PitchFamily.Slider"/>, <see cref="PitchFamily.Sinker"/>) are <b>optional rows</b>:
+/// their numbers and their natural sweep are P1-d's, which Jack accepted in the <c>trials/pitch5</c>
+/// window on September 22, 2026 ("trial was good.") and #860 moved into the shipped
+/// <c>pitching.json</c>. A table that does not author one still stops loudly on it, naming it,
+/// never a silent fastball.
 ///
 /// <para>
 /// <b>Authored is a fact about the data, not about the code</b> (#818). The three are nullable rows
-/// that the shipped <c>pitching.json</c> simply has no key for, and the trial overlay
-/// <c>trials/pitch5</c> is a copy of that file with the three keys present. So the same build stops
-/// on <c>Of("slider")</c> under the shipped root and flies it under the trial, and nothing anywhere
-/// hard-wires which ids have numbers. <see cref="Fastball"/> and <see cref="Changeup"/> are not
+/// with no code default: the shipped <c>pitching.json</c> authors all three, and a table without a
+/// key (a fixture, a trial that drops one) stops on <c>Of("slider")</c> and never selects it.
+/// Nothing anywhere hard-wires which ids have numbers. <see cref="Fastball"/> and <see cref="Changeup"/> are not
 /// nullable: a table without them is a game that cannot throw a pitch.
 /// </para>
 /// </summary>
@@ -594,13 +595,13 @@ public sealed class PitchFamilyTable
         BreakDamped = true, StaminaCost = 3, OffSpeed = true
     };
 
-    /// <summary>Pronounced arc and drop (PH-02-R2). Unauthored on the shipped root; <c>trials/pitch5</c> proposes it (#818).</summary>
+    /// <summary>Pronounced arc and drop (PH-02-R2). Authored in the shipped data since #860; no code default (#818).</summary>
     [Optional] public PitchFamilyRules? Curveball { get; init; }
 
-    /// <summary>Sideways movement that challenges coverage (PH-02-R2). Unauthored on the shipped root (#818).</summary>
+    /// <summary>Sideways movement that challenges coverage (PH-02-R2). Authored in the shipped data since #860; no code default (#818).</summary>
     [Optional] public PitchFamilyRules? Slider { get; init; }
 
-    /// <summary>A faster dipping alternative to the curveball (PH-02-R2). Unauthored on the shipped root (#818).</summary>
+    /// <summary>A faster dipping alternative to the curveball (PH-02-R2). Authored in the shipped data since #860; no code default (#818).</summary>
     [Optional] public PitchFamilyRules? Sinker { get; init; }
 
     /// <summary>
@@ -641,7 +642,7 @@ public sealed class PitchFamilyTable
         if (PitchFamily.IsKnown(family ?? ""))
             throw new InvalidOperationException(
                 $"pitch family '{family}' is in the library but has no authored row in pitching.json families; "
-                + "its numbers are a trial (trials/pitch5, PH-20-R1). Authored: " + string.Join(", ", Authored));
+                + "this table does not author it (the shipped data does since #860). Authored: " + string.Join(", ", Authored));
         throw new ArgumentException(
             $"'{family}' is not a pitch family. The library is [{string.Join(", ", PitchFamily.All)}] (PitchFamily); "
             + "break is a stick verb and charge is a modifier, not a type.", nameof(family));
@@ -766,42 +767,44 @@ public sealed class StaminaRules
 public sealed class CpuPitcherRules
 {
     /// <summary>
-    /// <b>The switch (PH-18-R1, #823).</b> <c>false</c> — the shipped root — is today's CPU: it
-    /// solves an endpoint with a height (<c>AimX</c> / <c>AimY</c>) and treats charge, changeup and
-    /// break as four exclusive verbs. <c>true</c> — <c>trials/pitch5</c> — is
+    /// <b>The switch (PH-18-R1, #823).</b> <c>true</c> — the shipped root since #860 — is
     /// <see cref="Match.CpuPitchByInputs"/>: the pitch is built from the inputs a human has and
     /// nothing else (rubber for location, presses for family, charge and steer as modifiers, a bend
     /// no bigger than a held stick reaches), and its height is whatever the family gives (PH-03).
+    /// <c>false</c> is the switch's off path, the CPU that shipped before #860: it solves an endpoint
+    /// with a height (<c>AimX</c> / <c>AimY</c>) and treats charge, changeup and break as four
+    /// exclusive verbs.
     ///
     /// <para>
-    /// Off, not a never-sentinel, because this is a code path and not a number: the #722 convention
-    /// picks a per-rung sentinel when a rule has a value that could shadow "never", and a bool has
-    /// no such value. Off is byte-identical to the shipped CPU — same draws, same order, same
-    /// stream (S-114).
+    /// A bool, not a never-sentinel, because this is a code path and not a number: the #722
+    /// convention picks a per-rung sentinel when a rule has a value that could shadow "never", and a
+    /// bool has no such value. Off is byte-identical to the CPU that shipped before #860 — same
+    /// draws, same order, same stream (S-114).
     /// </para>
     ///
     /// <para>
-    /// Jack judges the on side in sitting 1, with P1-d's shapes and P1-f's verb. Whether it ever
-    /// flips on the shipped root is his, not an agent's.
+    /// Jack judged the on side in the <c>trials/pitch5</c> window (sitting 1, with P1-d's shapes and
+    /// P1-f's verb) and accepted it on September 22, 2026: "trial was good." #860 moved it to the
+    /// shipped root. The off path stays reachable by data until a cleanup child removes it.
     /// </para>
     /// </summary>
-    public bool HumanInputs { get; init; } = false;
+    public bool HumanInputs { get; init; } = true;
     /// <summary>0-0, 1-0, 1-1 and every count no other row claims.</summary>
     public CpuPitchRow Even { get; init; } = new() { Location = "edge", Normal = 45, Charge = 20, Changeup = 15, Break = 20, StarChance = 0.05,
-        Families = new CpuFamilyWeights { Fastball = 85, Changeup = 15, Curveball = 0, Slider = 0, Sinker = 0 },
-        ChargeChance = 0.20, SteerChance = 0.20 };
+        Families = new CpuFamilyWeights { Fastball = 40, Changeup = 15, Curveball = 12, Slider = 18, Sinker = 15 },
+        ChargeChance = 0.20, SteerChance = 0.30 };
     /// <summary>Ahead 0-2, 1-2: waste, then edge.</summary>
     public CpuPitchRow Ahead { get; init; } = new() { Location = "waste", Normal = 20, Charge = 15, Changeup = 35, Break = 30, StarChance = 0.15,
-        Families = new CpuFamilyWeights { Fastball = 65, Changeup = 35, Curveball = 0, Slider = 0, Sinker = 0 },
-        ChargeChance = 0.15, SteerChance = 0.30 };
+        Families = new CpuFamilyWeights { Fastball = 20, Changeup = 24, Curveball = 26, Slider = 20, Sinker = 10 },
+        ChargeChance = 0.15, SteerChance = 0.45 };
     /// <summary>Behind 2-0, 3-0, 3-1: middle-in, safe.</summary>
     public CpuPitchRow Behind { get; init; } = new() { Location = "middleIn", Normal = 60, Charge = 30, Changeup = 5, Break = 5, StarChance = 0,
-        Families = new CpuFamilyWeights { Fastball = 95, Changeup = 5, Curveball = 0, Slider = 0, Sinker = 0 },
-        ChargeChance = 0.30, SteerChance = 0.05 };
+        Families = new CpuFamilyWeights { Fastball = 44, Changeup = 6, Curveball = 6, Slider = 14, Sinker = 30 },
+        ChargeChance = 0.30, SteerChance = 0.15 };
     /// <summary>A runner on with two outs: middle, fast; never a pitch-out.</summary>
     public CpuPitchRow RunnerTwoOuts { get; init; } = new() { Location = "middle", Normal = 50, Charge = 40, Changeup = 0, Break = 10, StarChance = 0,
-        Families = new CpuFamilyWeights { Fastball = 100, Changeup = 0, Curveball = 0, Slider = 0, Sinker = 0 },
-        ChargeChance = 0.40, SteerChance = 0.10 };
+        Families = new CpuFamilyWeights { Fastball = 38, Changeup = 10, Curveball = 10, Slider = 20, Sinker = 22 },
+        ChargeChance = 0.40, SteerChance = 0.25 };
     public CpuPitchLocations Locations { get; init; } = new();
     /// <summary>
     /// Scatter in feet per Pitch-stat point below 11 (spec §4.8). Off the switch it is aim scatter in
@@ -993,20 +996,19 @@ public sealed class ContactWindowRules
 {
     /// <summary>
     /// One window for every hitter, every swing and every human rung (PH-10-R1, PH-11-R1, PH-15-R7,
-    /// PH-17). <c>false</c> on the shipped root — the split window above is what plays, bit for bit.
-    /// <c>true</c> in <c>trials/pitch5</c>: <see cref="Frames"/> is the window, and
+    /// PH-17). <c>true</c> on the shipped root since #860: <see cref="Frames"/> is the window, and
     /// <see cref="SlapFrames"/>, <see cref="ChargeFrames"/>, <see cref="FramesPerContact"/> and the
-    /// rung's <c>humanWindowMul</c> do not enter it. The Star Pitch multiplier, the park's night
+    /// rung's <c>humanWindowMul</c> do not enter it. <c>false</c> is the switch's off path — the split
+    /// window above, bit for bit what played before #860. The Star Pitch multiplier, the park's night
     /// multiplier and <see cref="FloorFrames"/> apply either way, in the same order.
     ///
-    /// Sitting 2 judges the trial; until then the shipped game is the game it was.
+    /// Jack accepted it in the <c>trials/pitch5</c> window on September 22, 2026 ("trial was good.").
     /// </summary>
-    public bool Shared { get; init; }
+    public bool Shared { get; init; } = true;
 
     /// <summary>
-    /// The one shared window in frames at 60 Hz, total width (PH-10-R1's trial start value, 9).
-    /// Read only when <see cref="Shared"/> is on; the shipped file authors it so the start value is
-    /// written down once, beside the numbers it replaces, rather than living in a trial alone.
+    /// The one shared window in frames at 60 Hz, total width (PH-10-R1: 9, the value Jack played and
+    /// accepted). Read only when <see cref="Shared"/> is on.
     /// </summary>
     [Positive] public double Frames { get; init; } = 9.0;
 

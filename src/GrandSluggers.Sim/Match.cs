@@ -1149,7 +1149,7 @@ public sealed class Match
     /// <c>pitching.cpu.humanInputs</c> (PH-18-R1, #823).
     ///
     /// <para>
-    /// <b>Off — the shipped root.</b> Today's endpoint model: a location target in world feet (never
+    /// <b>Off — the switch's off path, the CPU that shipped before #860.</b> The endpoint model: a location target in world feet (never
     /// dead center), a verb from the row's four-way mix, scatter σ = (11 − Pitch) ×
     /// <c>scatterFtPerPitchStat</c> around the target, TIRED noise on top, and
     /// <see cref="PitchFlight.AimForCrossing"/> compensating the rubber and the break into an aim a
@@ -1158,9 +1158,10 @@ public sealed class Match
     /// </para>
     ///
     /// <para>
-    /// <b>On — <c>trials/pitch5</c>.</b> <see cref="CpuPitchByInputs"/>: the pitch is built from the
-    /// inputs a hand has and nothing else. Shipped until sitting 1 accepts the trial; the shipped
-    /// root is byte-identical to before the switch existed (S-114).
+    /// <b>On — the shipped root since #860.</b> <see cref="CpuPitchByInputs"/>: the pitch is built
+    /// from the inputs a hand has and nothing else. Jack accepted it in the <c>trials/pitch5</c>
+    /// window on September 22, 2026; the off path is byte-identical to the CPU before the switch
+    /// existed (S-114).
     /// </para>
     /// </summary>
     public PitchCommand CpuPitch() =>
@@ -1196,7 +1197,7 @@ public sealed class Match
     /// <summary>
     /// The CPU pitcher built from the inputs a human has and nothing else (spec §4.8, §3; PH-18,
     /// PH-18-R1, PH-02-R3/R4/R5, PH-03, PH-04). Behind <c>pitching.cpu.humanInputs</c>; on in
-    /// <c>trials/pitch5</c> only.
+    /// the shipped data since #860.
     ///
     /// <para>Five rules, in the order this method applies them:</para>
     /// <list type="number">
