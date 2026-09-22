@@ -1,0 +1,1507 @@
+{
+  "schemaVersion": 1,
+  "what": "Curveball, slider and sinker as they fly under the trial overlay trials/pitch5 (#818, PH-20-R1). Derived from the production flight function; proposals, not accepted numbers.",
+  "status": "trial-proposal-not-accepted",
+  "overlay": "trials/pitch5",
+  "generatedBy": "dotnet run --project tools/pitch-family-probes -- --write",
+  "verify": "dotnet run --project tools/pitch-family-probes -- --check",
+  "notClaimed": [
+    "No sitting has happened: the mound is not wired to a seat until P1-f, so nobody has thrown one of these.",
+    "No feel judgment, no balance claim, and no human acceptance (PH-20-R1 keeps that with Jack).",
+    "The shipped root is unchanged; without GRAND_SLUGGERS_TRIAL=trials/pitch5 these three families still stop by name.",
+    "The CPU pitcher never selects them, so no whole-game rate here moved."
+  ],
+  "method": {
+    "ballRadiusFt": 0.125,
+    "ballRadiusWhy": "The real ball\u0027s radius in game feet. Baseball.cs draws it at 0.62 ft across and calls that a readability mesh over a ball ~0.25 ft across; the drawn radius would also refuse the shipped changeup, which crosses 0.20 ft above the zone floor.",
+    "boxWalkFtPerSec": 3.84,
+    "boxWalkWhy": "AtBatDirector moves the box by StickX * dt * 1.6 box-units; HomeSet.BatterWalk is 2.4 ft per box-unit.",
+    "batterContact": 5,
+    "batterNote": "Bat 5 (barrel scale 1), no charge, no buddies, starting in the middle of the box.",
+    "worstCase": "The family\u0027s whole sweep plus the player\u0027s whole stick the same way, at Pitch 10 with a Nice! release. The reaction window opens when the sweep alone has moved the ball a ball-radius off its line; the stick\u0027s own mid-flight bend shows far earlier, so counting it would only lengthen the window.",
+    "rounding": "Every number is rounded to 6 decimals. The sweep, the shape and the speed are pure arithmetic and identical on macOS and glibc; the only libm on the way to these values is Math.Sin inside the stick\u0027s shift, whose one-ULP platform difference is ~1e-16 and disappears at this rounding (#811, #736)."
+  },
+  "zone": {
+    "halfWidthFt": 0.92,
+    "bottomFt": 1.45,
+    "topFt": 3.65,
+    "centerFt": 2.55
+  },
+  "gloveSideSign": {
+    "R": 1,
+    "L": -1
+  },
+  "sourceSha256": {
+    "src/GrandSluggers.Sim/PitchFlight.cs": "e5cae6dbacd25bf0ed64ecf1742386b225cddad990b266ddadc6a148e22b4621",
+    "src/GrandSluggers.Sim/Rules.cs": "28ac83ff59ac38681fc898468ea039132cc05d65339af881c4837e2e81258adb",
+    "src/GrandSluggers.Sim/Models.cs": "62c50894ce3b15982c287650456321257c8e342645ad5182942717b156a699e7",
+    "src/GrandSluggers.Sim/AtBatFeel.cs": "fab6f4246194f4953ccb231094b45ecdf792effbd99ed46a2934d7e78c3d4ab2",
+    "data/rules/pitching.json": "e64a0f2f16a15722116f41486a2f8965fa3e66558f800cfed0782e00b2131ced",
+    "data/rules/batting.json": "afde01a38bf13b1546b05021346664f7ae32fb1bd6f1aba3732f47857d61d878",
+    "trials/pitch5/rules/pitching.json": "608cf2fa3661acbb5f7db484711d4139b40e84b52ddf5208298a4ce76bc200ef",
+    "tools/pitch-family-probes/PitchFamilyProbes.csproj": "48cc9606851a8083bd83f53457aa3f9311174fd328aa8c6622a67e9f1fec22fa",
+    "tools/pitch-family-probes/Program.cs": "49d60f54d16e013d1403927cd5cdd982ef65a7da7cc019ab40a0e7a467b30f35"
+  },
+  "speed": [
+    {
+      "family": "fastball",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": false,
+      "mph": 86.9,
+      "airSec": 0.973079,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": true,
+      "mph": 91.245,
+      "airSec": 0.926742,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": false,
+      "mph": 94.9,
+      "airSec": 0.891049,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": true,
+      "mph": 99.645,
+      "airSec": 0.848618,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": false,
+      "mph": 90.5,
+      "airSec": 0.934371,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": true,
+      "mph": 95.025,
+      "airSec": 0.889877,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": false,
+      "mph": 98.5,
+      "airSec": 0.858483,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": true,
+      "mph": 103.425,
+      "airSec": 0.817603,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": false,
+      "mph": 95,
+      "airSec": 0.890111,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": true,
+      "mph": 99.75,
+      "airSec": 0.847725,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": false,
+      "mph": 103,
+      "airSec": 0.820976,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "fastball",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": true,
+      "mph": 108.15,
+      "airSec": 0.781882,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": false,
+      "mph": 69.7,
+      "airSec": 1.213208,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": true,
+      "mph": 73.185,
+      "airSec": 1.155436,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": false,
+      "mph": 72.7,
+      "airSec": 1.163144,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": true,
+      "mph": 76.335,
+      "airSec": 1.107756,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": false,
+      "mph": 73.3,
+      "airSec": 1.153623,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": true,
+      "mph": 76.965,
+      "airSec": 1.098689,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": false,
+      "mph": 76.3,
+      "airSec": 1.108264,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": true,
+      "mph": 80.115,
+      "airSec": 1.05549,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": false,
+      "mph": 77.8,
+      "airSec": 1.086897,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": true,
+      "mph": 81.69,
+      "airSec": 1.03514,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": false,
+      "mph": 80.8,
+      "airSec": 1.046542,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "changeup",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": true,
+      "mph": 84.84,
+      "airSec": 0.996706,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": false,
+      "mph": 73.4,
+      "airSec": 1.152051,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": true,
+      "mph": 77.07,
+      "airSec": 1.097192,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": false,
+      "mph": 77.4,
+      "airSec": 1.092514,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": true,
+      "mph": 81.27,
+      "airSec": 1.040489,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": false,
+      "mph": 77,
+      "airSec": 1.098189,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": true,
+      "mph": 80.85,
+      "airSec": 1.045895,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": false,
+      "mph": 81,
+      "airSec": 1.043958,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": true,
+      "mph": 85.05,
+      "airSec": 0.994245,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": false,
+      "mph": 81.5,
+      "airSec": 1.037553,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": true,
+      "mph": 85.575,
+      "airSec": 0.988146,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": false,
+      "mph": 85.5,
+      "airSec": 0.989013,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "curveball",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": true,
+      "mph": 89.775,
+      "airSec": 0.941917,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": false,
+      "mph": 78.9,
+      "airSec": 1.071744,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": true,
+      "mph": 82.845,
+      "airSec": 1.020708,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": false,
+      "mph": 83.9,
+      "airSec": 1.007873,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": true,
+      "mph": 88.095,
+      "airSec": 0.959879,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": false,
+      "mph": 82.5,
+      "airSec": 1.024977,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": true,
+      "mph": 86.625,
+      "airSec": 0.976168,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": false,
+      "mph": 87.5,
+      "airSec": 0.966407,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": true,
+      "mph": 91.875,
+      "airSec": 0.920387,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": false,
+      "mph": 87,
+      "airSec": 0.971961,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": true,
+      "mph": 91.35,
+      "airSec": 0.925677,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": false,
+      "mph": 92,
+      "airSec": 0.919137,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "slider",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": true,
+      "mph": 96.6,
+      "airSec": 0.875368,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": false,
+      "mph": 81.9,
+      "airSec": 1.032486,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 1,
+      "charge": 0,
+      "nice": true,
+      "mph": 85.995,
+      "airSec": 0.98332,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": false,
+      "mph": 87.9,
+      "airSec": 0.962009,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 1,
+      "charge": 1,
+      "nice": true,
+      "mph": 92.295,
+      "airSec": 0.916199,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": false,
+      "mph": 85.5,
+      "airSec": 0.989013,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 5,
+      "charge": 0,
+      "nice": true,
+      "mph": 89.775,
+      "airSec": 0.941917,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": false,
+      "mph": 91.5,
+      "airSec": 0.924159,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 5,
+      "charge": 1,
+      "nice": true,
+      "mph": 96.075,
+      "airSec": 0.880152,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": false,
+      "mph": 90,
+      "airSec": 0.939562,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 10,
+      "charge": 0,
+      "nice": true,
+      "mph": 94.5,
+      "airSec": 0.894821,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": false,
+      "mph": 96,
+      "airSec": 0.880839,
+      "insideShippedEnvelope": true
+    },
+    {
+      "family": "sinker",
+      "pitchStat": 10,
+      "charge": 1,
+      "nice": true,
+      "mph": 100.8,
+      "airSec": 0.838895,
+      "insideShippedEnvelope": true
+    }
+  ],
+  "rows": [
+    {
+      "family": "fastball",
+      "throws": "R",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 90.5,
+      "airSec": 0.934371,
+      "crossingXFt": 0,
+      "crossingYFt": 2.55,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0,
+      "sweepAtPlateFt": 0,
+      "sweepStartsAtU": 1,
+      "inZone": true,
+      "zoneMarginXFt": 0.92,
+      "zoneMarginYFt": 1.1,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0
+        }
+      ]
+    },
+    {
+      "family": "fastball",
+      "throws": "R",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 98.5,
+      "airSec": 0.858483,
+      "crossingXFt": 0,
+      "crossingYFt": 2.55,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0,
+      "sweepAtPlateFt": 0,
+      "sweepStartsAtU": 1,
+      "inZone": true,
+      "zoneMarginXFt": 0.92,
+      "zoneMarginYFt": 1.1,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0
+        }
+      ]
+    },
+    {
+      "family": "fastball",
+      "throws": "L",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 90.5,
+      "airSec": 0.934371,
+      "crossingXFt": 0,
+      "crossingYFt": 2.55,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0,
+      "sweepAtPlateFt": 0,
+      "sweepStartsAtU": 1,
+      "inZone": true,
+      "zoneMarginXFt": 0.92,
+      "zoneMarginYFt": 1.1,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0
+        }
+      ]
+    },
+    {
+      "family": "fastball",
+      "throws": "L",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 98.5,
+      "airSec": 0.858483,
+      "crossingXFt": 0,
+      "crossingYFt": 2.55,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0,
+      "sweepAtPlateFt": 0,
+      "sweepStartsAtU": 1,
+      "inZone": true,
+      "zoneMarginXFt": 0.92,
+      "zoneMarginYFt": 1.1,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0
+        }
+      ]
+    },
+    {
+      "family": "changeup",
+      "throws": "R",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 73.3,
+      "airSec": 1.153623,
+      "crossingXFt": 0,
+      "crossingYFt": 1.65,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.9,
+      "sweepAtPlateFt": 0,
+      "sweepStartsAtU": 1,
+      "inZone": true,
+      "zoneMarginXFt": 0.92,
+      "zoneMarginYFt": 0.2,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.818182
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.818182
+        }
+      ]
+    },
+    {
+      "family": "changeup",
+      "throws": "R",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 76.3,
+      "airSec": 1.108264,
+      "crossingXFt": 0,
+      "crossingYFt": 1.65,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.9,
+      "sweepAtPlateFt": 0,
+      "sweepStartsAtU": 1,
+      "inZone": true,
+      "zoneMarginXFt": 0.92,
+      "zoneMarginYFt": 0.2,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.818182
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.818182
+        }
+      ]
+    },
+    {
+      "family": "changeup",
+      "throws": "L",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 73.3,
+      "airSec": 1.153623,
+      "crossingXFt": 0,
+      "crossingYFt": 1.65,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.9,
+      "sweepAtPlateFt": 0,
+      "sweepStartsAtU": 1,
+      "inZone": true,
+      "zoneMarginXFt": 0.92,
+      "zoneMarginYFt": 0.2,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.818182
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.818182
+        }
+      ]
+    },
+    {
+      "family": "changeup",
+      "throws": "L",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 76.3,
+      "airSec": 1.108264,
+      "crossingXFt": 0,
+      "crossingYFt": 1.65,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.9,
+      "sweepAtPlateFt": 0,
+      "sweepStartsAtU": 1,
+      "inZone": true,
+      "zoneMarginXFt": 0.92,
+      "zoneMarginYFt": 0.2,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.818182
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.818182
+        }
+      ]
+    },
+    {
+      "family": "curveball",
+      "throws": "R",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 77,
+      "airSec": 1.098189,
+      "crossingXFt": 0.32,
+      "crossingYFt": 1.65,
+      "peakHeightFt": 6.3298,
+      "peakAtU": 0.2,
+      "dropBelowFastballCrossingFt": 0.9,
+      "sweepAtPlateFt": 0.32,
+      "sweepStartsAtU": 0.42,
+      "inZone": true,
+      "zoneMarginXFt": 0.6,
+      "zoneMarginYFt": 0.2,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.873099
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.922749
+        }
+      ]
+    },
+    {
+      "family": "curveball",
+      "throws": "R",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 81,
+      "airSec": 1.043958,
+      "crossingXFt": 0.32,
+      "crossingYFt": 1.65,
+      "peakHeightFt": 6.3298,
+      "peakAtU": 0.2,
+      "dropBelowFastballCrossingFt": 0.9,
+      "sweepAtPlateFt": 0.32,
+      "sweepStartsAtU": 0.42,
+      "inZone": true,
+      "zoneMarginXFt": 0.6,
+      "zoneMarginYFt": 0.2,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.873099
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.922749
+        }
+      ]
+    },
+    {
+      "family": "curveball",
+      "throws": "L",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 77,
+      "airSec": 1.098189,
+      "crossingXFt": -0.32,
+      "crossingYFt": 1.65,
+      "peakHeightFt": 6.3298,
+      "peakAtU": 0.2,
+      "dropBelowFastballCrossingFt": 0.9,
+      "sweepAtPlateFt": -0.32,
+      "sweepStartsAtU": 0.42,
+      "inZone": true,
+      "zoneMarginXFt": 0.6,
+      "zoneMarginYFt": 0.2,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.922749
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.873099
+        }
+      ]
+    },
+    {
+      "family": "curveball",
+      "throws": "L",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 81,
+      "airSec": 1.043958,
+      "crossingXFt": -0.32,
+      "crossingYFt": 1.65,
+      "peakHeightFt": 6.3298,
+      "peakAtU": 0.2,
+      "dropBelowFastballCrossingFt": 0.9,
+      "sweepAtPlateFt": -0.32,
+      "sweepStartsAtU": 0.42,
+      "inZone": true,
+      "zoneMarginXFt": 0.6,
+      "zoneMarginYFt": 0.2,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.922749
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.873099
+        }
+      ]
+    },
+    {
+      "family": "slider",
+      "throws": "R",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 82.5,
+      "airSec": 1.024977,
+      "crossingXFt": 0.58,
+      "crossingYFt": 2.25,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.3,
+      "sweepAtPlateFt": 0.58,
+      "sweepStartsAtU": 0.45,
+      "inZone": true,
+      "zoneMarginXFt": 0.34,
+      "zoneMarginYFt": 0.8,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.61604
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.820015
+        }
+      ]
+    },
+    {
+      "family": "slider",
+      "throws": "R",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 87.5,
+      "airSec": 0.966407,
+      "crossingXFt": 0.58,
+      "crossingYFt": 2.25,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.3,
+      "sweepAtPlateFt": 0.58,
+      "sweepStartsAtU": 0.45,
+      "inZone": true,
+      "zoneMarginXFt": 0.34,
+      "zoneMarginYFt": 0.8,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.61604
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.820015
+        }
+      ]
+    },
+    {
+      "family": "slider",
+      "throws": "L",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 82.5,
+      "airSec": 1.024977,
+      "crossingXFt": -0.58,
+      "crossingYFt": 2.25,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.3,
+      "sweepAtPlateFt": -0.58,
+      "sweepStartsAtU": 0.45,
+      "inZone": true,
+      "zoneMarginXFt": 0.34,
+      "zoneMarginYFt": 0.8,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.820015
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.61604
+        }
+      ]
+    },
+    {
+      "family": "slider",
+      "throws": "L",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 87.5,
+      "airSec": 0.966407,
+      "crossingXFt": -0.58,
+      "crossingYFt": 2.25,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.3,
+      "sweepAtPlateFt": -0.58,
+      "sweepStartsAtU": 0.45,
+      "inZone": true,
+      "zoneMarginXFt": 0.34,
+      "zoneMarginYFt": 0.8,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.820015
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.61604
+        }
+      ]
+    },
+    {
+      "family": "sinker",
+      "throws": "R",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 85.5,
+      "airSec": 0.989013,
+      "crossingXFt": -0.2,
+      "crossingYFt": 2,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.55,
+      "sweepAtPlateFt": -0.2,
+      "sweepStartsAtU": 0.55,
+      "inZone": true,
+      "zoneMarginXFt": 0.72,
+      "zoneMarginYFt": 0.55,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.566667
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.535053
+        }
+      ]
+    },
+    {
+      "family": "sinker",
+      "throws": "R",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 91.5,
+      "airSec": 0.924159,
+      "crossingXFt": -0.2,
+      "crossingYFt": 2,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.55,
+      "sweepAtPlateFt": -0.2,
+      "sweepStartsAtU": 0.55,
+      "inZone": true,
+      "zoneMarginXFt": 0.72,
+      "zoneMarginYFt": 0.55,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.566667
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.535053
+        }
+      ]
+    },
+    {
+      "family": "sinker",
+      "throws": "L",
+      "charge": 0,
+      "pitchStat": 5,
+      "mph": 85.5,
+      "airSec": 0.989013,
+      "crossingXFt": 0.2,
+      "crossingYFt": 2,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.55,
+      "sweepAtPlateFt": 0.2,
+      "sweepStartsAtU": 0.55,
+      "inZone": true,
+      "zoneMarginXFt": 0.72,
+      "zoneMarginYFt": 0.55,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.535053
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.566667
+        }
+      ]
+    },
+    {
+      "family": "sinker",
+      "throws": "L",
+      "charge": 1,
+      "pitchStat": 5,
+      "mph": 91.5,
+      "airSec": 0.924159,
+      "crossingXFt": 0.2,
+      "crossingYFt": 2,
+      "peakHeightFt": 6.2,
+      "peakAtU": 0,
+      "dropBelowFastballCrossingFt": 0.55,
+      "sweepAtPlateFt": 0.2,
+      "sweepStartsAtU": 0.55,
+      "inZone": true,
+      "zoneMarginXFt": 0.72,
+      "zoneMarginYFt": 0.55,
+      "keepsABallInsideTheZone": true,
+      "cursorReach": [
+        {
+          "bats": "R",
+          "ovalDistanceAtCrossing": 0.535053
+        },
+        {
+          "bats": "L",
+          "ovalDistanceAtCrossing": 0.566667
+        }
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "family": "curveball",
+      "throws": "R",
+      "charged": false,
+      "mph": 85.575,
+      "airSec": 0.988146,
+      "sweepFt": 0.32,
+      "steerFt": 0.46,
+      "crossingXFt": 0.78,
+      "crossingYFt": 1.65,
+      "sweepShowsAtU": 0.7825,
+      "reactionWindowSec": 0.214922,
+      "walkFt": 0.825299,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.603708,
+          "reachFt": 1.429007,
+          "marginFt": 0.649007
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.43122,
+          "reachFt": 1.256519,
+          "marginFt": 0.476519
+        }
+      ]
+    },
+    {
+      "family": "curveball",
+      "throws": "R",
+      "charged": true,
+      "mph": 89.775,
+      "airSec": 0.941917,
+      "sweepFt": 0.32,
+      "steerFt": 0.046,
+      "crossingXFt": 0.366,
+      "crossingYFt": 1.65,
+      "sweepShowsAtU": 0.7825,
+      "reactionWindowSec": 0.204867,
+      "walkFt": 0.786689,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.603708,
+          "reachFt": 1.390396,
+          "marginFt": 1.024396
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.43122,
+          "reachFt": 1.217909,
+          "marginFt": 0.851909
+        }
+      ]
+    },
+    {
+      "family": "curveball",
+      "throws": "L",
+      "charged": false,
+      "mph": 85.575,
+      "airSec": 0.988146,
+      "sweepFt": -0.32,
+      "steerFt": -0.46,
+      "crossingXFt": -0.78,
+      "crossingYFt": 1.65,
+      "sweepShowsAtU": 0.7825,
+      "reactionWindowSec": 0.214922,
+      "walkFt": 0.825299,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.43122,
+          "reachFt": 1.256519,
+          "marginFt": 0.476519
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.603708,
+          "reachFt": 1.429007,
+          "marginFt": 0.649007
+        }
+      ]
+    },
+    {
+      "family": "curveball",
+      "throws": "L",
+      "charged": true,
+      "mph": 89.775,
+      "airSec": 0.941917,
+      "sweepFt": -0.32,
+      "steerFt": -0.046,
+      "crossingXFt": -0.366,
+      "crossingYFt": 1.65,
+      "sweepShowsAtU": 0.7825,
+      "reactionWindowSec": 0.204867,
+      "walkFt": 0.786689,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.43122,
+          "reachFt": 1.217909,
+          "marginFt": 0.851909
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.603708,
+          "reachFt": 1.390396,
+          "marginFt": 1.024396
+        }
+      ]
+    },
+    {
+      "family": "slider",
+      "throws": "R",
+      "charged": false,
+      "mph": 91.35,
+      "airSec": 0.925677,
+      "sweepFt": 0.58,
+      "steerFt": 0.46,
+      "crossingXFt": 1.04,
+      "crossingYFt": 2.25,
+      "sweepShowsAtU": 0.705331,
+      "reactionWindowSec": 0.272768,
+      "walkFt": 1.04743,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 1.010196,
+          "reachFt": 2.057626,
+          "marginFt": 1.017626
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.721569,
+          "reachFt": 1.768998,
+          "marginFt": 0.728998
+        }
+      ]
+    },
+    {
+      "family": "slider",
+      "throws": "R",
+      "charged": true,
+      "mph": 96.6,
+      "airSec": 0.875368,
+      "sweepFt": 0.58,
+      "steerFt": 0.046,
+      "crossingXFt": 0.626,
+      "crossingYFt": 2.25,
+      "sweepShowsAtU": 0.705331,
+      "reactionWindowSec": 0.257944,
+      "walkFt": 0.990504,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 1.010196,
+          "reachFt": 2.0007,
+          "marginFt": 1.3747
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.721569,
+          "reachFt": 1.712073,
+          "marginFt": 1.086073
+        }
+      ]
+    },
+    {
+      "family": "slider",
+      "throws": "L",
+      "charged": false,
+      "mph": 91.35,
+      "airSec": 0.925677,
+      "sweepFt": -0.58,
+      "steerFt": -0.46,
+      "crossingXFt": -1.04,
+      "crossingYFt": 2.25,
+      "sweepShowsAtU": 0.705331,
+      "reactionWindowSec": 0.272768,
+      "walkFt": 1.04743,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.721569,
+          "reachFt": 1.768998,
+          "marginFt": 0.728998
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 1.010196,
+          "reachFt": 2.057626,
+          "marginFt": 1.017626
+        }
+      ]
+    },
+    {
+      "family": "slider",
+      "throws": "L",
+      "charged": true,
+      "mph": 96.6,
+      "airSec": 0.875368,
+      "sweepFt": -0.58,
+      "steerFt": -0.046,
+      "crossingXFt": -0.626,
+      "crossingYFt": 2.25,
+      "sweepShowsAtU": 0.705331,
+      "reactionWindowSec": 0.257944,
+      "walkFt": 0.990504,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.721569,
+          "reachFt": 1.712073,
+          "marginFt": 1.086073
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 1.010196,
+          "reachFt": 2.0007,
+          "marginFt": 1.3747
+        }
+      ]
+    },
+    {
+      "family": "sinker",
+      "throws": "R",
+      "charged": false,
+      "mph": 94.5,
+      "airSec": 0.894821,
+      "sweepFt": -0.2,
+      "steerFt": -0.46,
+      "crossingXFt": -0.66,
+      "crossingYFt": 2,
+      "sweepShowsAtU": 0.905756,
+      "reactionWindowSec": 0.084331,
+      "walkFt": 0.323832,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.649519,
+          "reachFt": 0.973351,
+          "marginFt": 0.313351
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.909327,
+          "reachFt": 1.233159,
+          "marginFt": 0.573159
+        }
+      ]
+    },
+    {
+      "family": "sinker",
+      "throws": "R",
+      "charged": true,
+      "mph": 100.8,
+      "airSec": 0.838895,
+      "sweepFt": -0.2,
+      "steerFt": -0.046,
+      "crossingXFt": -0.246,
+      "crossingYFt": 2,
+      "sweepShowsAtU": 0.905756,
+      "reactionWindowSec": 0.079061,
+      "walkFt": 0.303593,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.649519,
+          "reachFt": 0.953112,
+          "marginFt": 0.707112
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.909327,
+          "reachFt": 1.212919,
+          "marginFt": 0.966919
+        }
+      ]
+    },
+    {
+      "family": "sinker",
+      "throws": "L",
+      "charged": false,
+      "mph": 94.5,
+      "airSec": 0.894821,
+      "sweepFt": 0.2,
+      "steerFt": 0.46,
+      "crossingXFt": 0.66,
+      "crossingYFt": 2,
+      "sweepShowsAtU": 0.905756,
+      "reactionWindowSec": 0.084331,
+      "walkFt": 0.323832,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.909327,
+          "reachFt": 1.233159,
+          "marginFt": 0.573159
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.649519,
+          "reachFt": 0.973351,
+          "marginFt": 0.313351
+        }
+      ]
+    },
+    {
+      "family": "sinker",
+      "throws": "L",
+      "charged": true,
+      "mph": 100.8,
+      "airSec": 0.838895,
+      "sweepFt": 0.2,
+      "steerFt": 0.046,
+      "crossingXFt": 0.246,
+      "crossingYFt": 2,
+      "sweepShowsAtU": 0.905756,
+      "reactionWindowSec": 0.079061,
+      "walkFt": 0.303593,
+      "batters": [
+        {
+          "bats": "R",
+          "ovalHalfWidthAtCrossingFt": 0.909327,
+          "reachFt": 1.212919,
+          "marginFt": 0.966919
+        },
+        {
+          "bats": "L",
+          "ovalHalfWidthAtCrossingFt": 0.649519,
+          "reachFt": 0.953112,
+          "marginFt": 0.707112
+        }
+      ]
+    }
+  ]
+}
