@@ -331,7 +331,7 @@
         {
           "id": "PH-02-R2",
           "question": "What should the shared pitch library contain?",
-          "status": "human-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -384,7 +384,8 @@
             "#810",
             "#811",
             "#818",
-            "#821"
+            "#821",
+            "#860"
           ],
           "validation_evidence": [
             {
@@ -415,6 +416,18 @@
               "summary": "P1-d gives the three remaining library ids numbers in the trial overlay trials/pitch5 and nothing in the shipped root: curveball (the library's biggest hump then its longest drop, a small glove-side sweep, offSpeed), slider (the flattest of the three and the big glove-side sweep) and sinker (rides the fastball's height longest then dips, a small arm-side sweep). Speed order fastball > sinker > slider > curveball > changeup at every Pitch stat, charge and release, every one between the two shipped families. Authored is now a fact about the data: the three are nullable rows the shipped table has no key for, so Of, IsAuthored and Authored read the table they are asked and the shipped root still stops all three by name.",
               "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
               "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+            },
+            {
+              "kind": "shipped-promotion",
+              "issue": "#860",
+              "pr": "#871",
+              "revision": "issue-860-promote",
+              "promoted": "curveball, slider and sinker rows in data/rules/pitching.json families",
+              "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+              "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+              "report": "docs/research/promote-duel-trial.md",
+              "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+              "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
             }
           ],
           "human_acceptance": {
@@ -696,7 +709,7 @@
       "id": "PH-03",
       "area": "Pitching",
       "question": "How does the pitcher choose location?",
-      "status": "human-accepted",
+      "status": "implemented",
       "depends_on": [
         "PH-01",
         "PH-02"
@@ -741,7 +754,8 @@
         "#810",
         "#811",
         "#818",
-        "#821"
+        "#821",
+        "#860"
       ],
       "validation_evidence": [
         {
@@ -763,6 +777,18 @@
           "summary": "Height stays the family's, and the three trial rows are three different height paths measured over the whole flight: the curveball is the only family whose path climbs out of the hand (peak 6.330 ft at u=0.200) and travels farthest from peak to plate (4.680 ft); the sinker is never more than 0.076 ft off the fastball's height through the first three quarters and then leaves it by a further 0.474 ft; the slider strays 0.265 ft from its own chord, the least of the three. No ordinary family crosses high - every dropFt is at or below the fastball's - and the curveball's crossing matches the shipped changeup's 1.65 ft rather than going lower, so the library's lowest crossing did not move. Every unsteered crossing from the middle of the rubber is inside the zone with a ball's radius to spare, for both arms.",
           "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
           "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+        },
+        {
+          "kind": "shipped-promotion",
+          "issue": "#860",
+          "pr": "#871",
+          "revision": "issue-860-promote",
+          "promoted": "the three family rows (height is the family) and cpu.humanInputs true (no vertical input for the CPU)",
+          "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+          "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+          "report": "docs/research/promote-duel-trial.md",
+          "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+          "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
         }
       ],
       "human_acceptance": {
@@ -792,6 +818,13 @@
           "author": "Jack",
           "quote": "trial was good.",
           "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "human-accepted",
+          "to": "implemented",
+          "author": "agent (#860)",
+          "event": "Accepted values promoted to data/rules (#860, PR #871). human_acceptance untouched."
         }
       ]
     },
@@ -799,7 +832,7 @@
       "id": "PH-04",
       "area": "Pitching",
       "question": "How much control remains after release?",
-      "status": "human-accepted",
+      "status": "implemented",
       "depends_on": [
         "PH-02",
         "PH-03"
@@ -841,7 +874,8 @@
       "numeric_targets": null,
       "implementation_issues": [
         "#818",
-        "#821"
+        "#821",
+        "#860"
       ],
       "validation_evidence": [
         {
@@ -854,6 +888,18 @@
           "summary": "Bounded live steering is unchanged and the new sweep adds to it rather than replacing it, so the worst legal lateral movement is sweep + breakMaxFt. That worst case was computed rather than asserted: full sweep plus full stick the same way, Pitch 10, Nice!, batter centred with an ordinary bat, reacting only once the sweep alone has moved the ball a ball radius (0.125 ft) off its line, walking the box at 3.84 ft/s and reaching with the nice oval's half-width at the crossing's own height. Every case is positive; the tightest in the set is +0.313 ft (a right-handed batter against a right-hander's uncharged sinker, whose sweep is smallest and therefore the last to show). S-111 asserts the sign, the probe reports the feet.",
           "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
           "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+        },
+        {
+          "kind": "shipped-promotion",
+          "issue": "#860",
+          "pr": "#871",
+          "revision": "issue-860-promote",
+          "promoted": "the three family rows with their sweepFt / sweepFrom",
+          "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+          "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+          "report": "docs/research/promote-duel-trial.md",
+          "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+          "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
         }
       ],
       "human_acceptance": {
@@ -883,6 +929,13 @@
           "author": "Jack",
           "quote": "trial was good.",
           "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "human-accepted",
+          "to": "implemented",
+          "author": "agent (#860)",
+          "event": "Accepted values promoted to data/rules (#860, PR #871). human_acceptance untouched."
         }
       ]
     },
@@ -1659,7 +1712,7 @@
         {
           "id": "PH-10-R1",
           "question": "What one timing window should the batting trial start from?",
-          "status": "human-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -1712,7 +1765,8 @@
             }
           },
           "implementation_issues": [
-            "#844"
+            "#844",
+            "#860"
           ],
           "validation_evidence": [
             {
@@ -1727,6 +1781,18 @@
               "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
               "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched.",
               "pr": "#849"
+            },
+            {
+              "kind": "shipped-promotion",
+              "issue": "#860",
+              "pr": "#871",
+              "revision": "issue-860-promote",
+              "promoted": "batting.window.shared true, window.frames 9",
+              "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+              "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+              "report": "docs/research/promote-duel-trial.md",
+              "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+              "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
             }
           ],
           "human_acceptance": {
@@ -1817,7 +1883,7 @@
         {
           "id": "PH-11-R1",
           "question": "What forgiveness should charging a swing cost?",
-          "status": "human-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -1847,7 +1913,8 @@
           },
           "numeric_targets": null,
           "implementation_issues": [
-            "#844"
+            "#844",
+            "#860"
           ],
           "validation_evidence": [
             {
@@ -1862,6 +1929,18 @@
               "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
               "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched.",
               "pr": "#849"
+            },
+            {
+              "kind": "shipped-promotion",
+              "issue": "#860",
+              "pr": "#871",
+              "revision": "issue-860-promote",
+              "promoted": "batting.window.shared true (a charge no longer narrows the timing window)",
+              "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+              "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+              "report": "docs/research/promote-duel-trial.md",
+              "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+              "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
             }
           ],
           "human_acceptance": {
@@ -3459,7 +3538,7 @@
         {
           "id": "PH-15-R7",
           "question": "How should higher Contact help a hitter?",
-          "status": "human-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -3491,7 +3570,8 @@
           "implementation_issues": [
             "#837",
             "#839",
-            "#844"
+            "#844",
+            "#860"
           ],
           "validation_evidence": [
             {
@@ -3515,6 +3595,18 @@
               "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
               "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched.",
               "pr": "#849"
+            },
+            {
+              "kind": "shipped-promotion",
+              "issue": "#860",
+              "pr": "#871",
+              "revision": "issue-860-promote",
+              "promoted": "batting.window.shared true (Contact no longer widens the timing window)",
+              "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+              "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+              "report": "docs/research/promote-duel-trial.md",
+              "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+              "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
             }
           ],
           "human_acceptance": {
@@ -4951,7 +5043,7 @@
       "id": "PH-17",
       "area": "Accessibility",
       "question": "How should different skill levels share the same game?",
-      "status": "human-accepted",
+      "status": "implemented",
       "depends_on": [
         "PH-09",
         "PH-10"
@@ -4993,7 +5085,8 @@
       },
       "numeric_targets": null,
       "implementation_issues": [
-        "#844"
+        "#844",
+        "#860"
       ],
       "validation_evidence": [
         {
@@ -5008,6 +5101,18 @@
           "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
           "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched.",
           "pr": "#849"
+        },
+        {
+          "kind": "shipped-promotion",
+          "issue": "#860",
+          "pr": "#871",
+          "revision": "issue-860-promote",
+          "promoted": "batting.window.shared true (the rung humanWindowMul no longer enters a pad window)",
+          "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+          "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+          "report": "docs/research/promote-duel-trial.md",
+          "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+          "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
         }
       ],
       "human_acceptance": {
@@ -5037,6 +5142,13 @@
           "author": "Jack",
           "quote": "trial was good.",
           "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "human-accepted",
+          "to": "implemented",
+          "author": "agent (#860)",
+          "event": "Accepted values promoted to data/rules (#860, PR #871). human_acceptance untouched."
         }
       ],
       "validation_requirements": [
@@ -5162,7 +5274,7 @@
         {
           "id": "PH-18-R1",
           "question": "When does the CPU pitcher lose its endpoint (height) aim and pitch with human inputs only?",
-          "status": "human-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -5197,7 +5309,8 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#823",
-            "#824"
+            "#824",
+            "#860"
           ],
           "validation_evidence": [
             {
@@ -5210,6 +5323,18 @@
               "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). PH-18 and PH-18-R1 are what this child implements: the CPU's legal action set is now the human one for the pitching half - no endpoint aim, no vertical location, no instant break, no family a hand's presses cannot reach. The batting half (the CPU batter's commit-time read) is left open for P2-g.",
               "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
               "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
+            },
+            {
+              "kind": "shipped-promotion",
+              "issue": "#860",
+              "pr": "#871",
+              "revision": "issue-860-promote",
+              "promoted": "cpu.humanInputs true and the four count rows families weights and steerChance",
+              "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+              "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+              "report": "docs/research/promote-duel-trial.md",
+              "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+              "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
             }
           ],
           "human_acceptance": {
@@ -5407,7 +5532,7 @@
         {
           "id": "PH-20-R1",
           "question": "How should the Curveball, Slider and Sinker numbers be judged?",
-          "status": "human-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -5444,7 +5569,8 @@
             "#821",
             "#823",
             "#824",
-            "#844"
+            "#844",
+            "#860"
           ],
           "validation_evidence": [
             {
@@ -5481,6 +5607,18 @@
               "numeric_trial": "9 frames under trials/pitch5 (PH-10-R1 trial-accepted start value); shipped unchanged; sitting 2 judges it. S-29 under trials/pitch5 re-reported and never tuned: 1.56 home / 2.08 away before the switch, 2.02 home / 2.32 away after it. The shipped root's S-29 is unchanged. There is no accepted trial band and no test asserts one.",
               "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - quick and charged swings feeling like the same timing, a low-Contact and a high-Contact hitter timing the same and differing only in the oval, and EASY / NORMAL / HARD not changing the window - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played; the window is a number in a formula until a pad is holding it. This child may merge because the shipped root is unchanged and the overlay is inert unless named. PH-10-R1 stays trial-accepted, numeric_targets is untouched, and human_acceptance is untouched.",
               "pr": "#849"
+            },
+            {
+              "kind": "shipped-promotion",
+              "issue": "#860",
+              "pr": "#871",
+              "revision": "issue-860-promote",
+              "promoted": "the accepted family numbers and CPU weights moved from trials/pitch5 into data/rules; trials/pitch5/rules/pitching.json deleted",
+              "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+              "scenarios": "S-10, S-30, S-113, S-114, S-116, S-120, S-124, S-125, S-126 moved to the shipped rule; the off paths are built in the test (SwitchOffPaths)",
+              "report": "docs/research/promote-duel-trial.md",
+              "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
+              "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
             }
           ],
           "human_acceptance": {
@@ -5782,6 +5920,10 @@
       "date": "2026-09-22",
       "event": "Jack played the trials/pitch5 window main-d49c527351 (sittings 1 and 2) and wrote \"trial was good.\" Recorded as human_acceptance and status human-accepted on PH-02-R2, PH-02-R3, PH-02-R4, PH-02-R5, PH-03, PH-04, PH-06-R1, PH-10-R1, PH-11-R1, PH-15-R7, PH-17, PH-18-R1, PH-20-R1. Scope: Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered.",
       "pr": "orchestrator docs PR"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "#860 (PR #871) promoted the accepted duel trial to the shipped root: the three family rows, cpu.humanInputs and the CPU count-row weights and steerChance in pitching.json, and batting.window.shared. Status implemented on PH-02-R2, PH-03, PH-04, PH-20-R1, PH-18-R1, PH-10-R1, PH-11-R1, PH-15-R7, PH-17. human_acceptance untouched. PH-12 (geometryOnly) stays a trial in trials/pitch5."
     }
   ]
 }
