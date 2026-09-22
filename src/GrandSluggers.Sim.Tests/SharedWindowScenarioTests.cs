@@ -13,8 +13,9 @@ namespace GrandSluggers.Sim.Tests;
 /// the park's night multiplier × the human rung's, floored (<b>S-124</b>). <b>On</b> —
 /// <c>trials/pitch5</c> — it is <c>window.frames</c> for every hitter, both swings and every rung,
 /// with the star multiplier, the park multiplier and the floor still applying in the same order
-/// (<b>S-125</b>). <b>S-126</b> holds the overlay to that one key and the validator to the floor.
-/// <b>S-127</b> runs the S-29 cohort under the overlay and records it; it gates nothing.
+/// (<b>S-125</b>). <b>S-126</b> holds the overlay to that key and #855's <c>geometryOnly</c> — the
+/// two keys the overlay changes — and the validator to the floor. <b>S-127</b> runs the S-29 cohort
+/// under the overlay, in process, and records it; it gates nothing.
 ///
 /// The overlay is loaded <b>in process</b>, through a <see cref="DataRoot"/> this class builds from
 /// the repository, the way <see cref="PitchFamilyTrialScenarioTests"/> does, so nothing here depends
@@ -248,11 +249,16 @@ public sealed class SharedWindowScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-126  The overlay is one key, and the validator still floors the window
+    // S-126  The overlay is two keys, and the validator still floors the window
     // ---------------------------------------------------------------------------------
 
+    /// <summary>
+    /// The overlay's batting file is the shipped file with exactly two keys changed: this child's
+    /// <c>window.shared</c> and #855's <c>geometryOnly</c> (PH-12). Each is off in <c>data/</c> and on
+    /// here; put both back and the two files are the same JSON.
+    /// </summary>
     [Fact]
-    public void S126_TheOverlayIsTheShippedFileWithOneKeyChanged()
+    public void S126_TheOverlayIsTheShippedFileWithTwoKeysChanged()
     {
         var root = TrialRoot;
         Assert.Equal(TrialName, root.OverlayName);
@@ -266,10 +272,13 @@ public sealed class SharedWindowScenarioTests
         var trialWindow = trialJson["window"]!.AsObject();
         Assert.False(shippedWindow["shared"]!.GetValue<bool>(), "the shipped root leaves the switch off");
         Assert.True(trialWindow["shared"]!.GetValue<bool>(), "the overlay turns the switch on");
+        Assert.False(shippedJson["geometryOnly"]!.GetValue<bool>(), "the shipped file authors geometryOnly: false (#855)");
+        Assert.True(trialJson["geometryOnly"]!.GetValue<bool>(), "the overlay turns geometryOnly on (#855)");
 
-        // Put the one key back; everything else in the file must be identical, so a shipped edit
-        // that forgets this overlay fails here instead of quietly making the trial measure two things.
+        // Put the two keys back; everything else in the file must be identical, so a shipped edit
+        // that forgets this overlay fails here instead of quietly making the trial measure more things.
         trialWindow["shared"] = false;
+        trialJson["geometryOnly"] = false;
         Assert.Equal(shippedJson.ToJsonString(), trialJson.ToJsonString());
     }
 
@@ -329,6 +338,33 @@ public sealed class SharedWindowScenarioTests
             e => e.Contains("batting.window.sharedWindow is not a rule this table owns", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void S126_GeometryOnlyIsARuleTheTableOwnsAndAMissingOneIsOff()
+    {
+        // #855's switch is held to the same terms as this one: the table owns it, an absent key is
+        // the safe direction (the stick shapes every swing, as shipped), and a misspelling is refused.
+        using var fixture = new RulesFixture();
+        fixture.Change("batting.json", json => json.Remove("geometryOnly"));
+        var errors = new List<string>();
+        Assert.False(RulesTable.Load(new DataRoot(fixture.Root), errors).Batting.GeometryOnly);
+        Assert.Empty(errors);
+
+        using var misspelled = new RulesFixture();
+        misspelled.Change("batting.json", json => json["geometryOnlyMode"] = true);
+        Assert.Contains(RulesTable.Validate(new DataRoot(misspelled.Root)),
+            e => e.Contains("batting.geometryOnlyMode is not a rule this table owns", StringComparison.Ordinal)
+                 && e.Contains(misspelled.Path("batting.json"), StringComparison.Ordinal));
+
+        using var misplaced = new RulesFixture();
+        misplaced.Change("batting.json", json =>
+        {
+            json.Remove("geometryOnly");
+            json["spray"]!["geometryOnly"] = true;
+        });
+        Assert.Contains(RulesTable.Validate(new DataRoot(misplaced.Root)),
+            e => e.Contains("batting.spray.geometryOnly is not a rule this table owns", StringComparison.Ordinal));
+    }
+
     // ---------------------------------------------------------------------------------
     // S-127  The S-29 cohort under the overlay — recorded, never gated
     // ---------------------------------------------------------------------------------
@@ -337,24 +373,23 @@ public sealed class SharedWindowScenarioTests
     /// Fifty three-inning CPU-vs-CPU games under <c>trials/pitch5</c>. <b>There is no trial band and
     /// this row asserts none.</b> Nobody has accepted a number for the trial: the shipped band
     /// (F693-06, 1.8–5 per side) belongs to <see cref="AtBatScenarioTests.S29_FiftySeedCpuGamesLandInTheBand"/>
-    /// on the shipped root, and tuning anything to move the trial figures is banned by #844. The
-    /// figures are in <c>docs/research/plate-window-p2b.md</c>, before and after, for sitting 2.
+    /// on the shipped root, and tuning anything to move the trial figures is banned by #844 and #855.
+    /// The figures are in <c>docs/research/plate-window-p2b.md</c> and
+    /// <c>docs/research/stick-shaping-p2c.md</c>, before and after, for sitting 2.
     ///
-    /// <b>The cohort is a CLI measurement, and this row pins why it has to be.</b>
-    /// <see cref="Match.AutoPlay"/>'s in-zone read is
-    /// <see cref="AtBatResolver.PitchInZone"/> → <see cref="StrikeZoneGeometry.Contains(PitchCommand, string?)"/>
-    /// → <see cref="PitchFlight.Point(PitchCommand, double, string?, System.Numerics.Vector3?, RulesTable?)"/>,
-    /// and none of those three takes a rules table: the family is resolved against the
-    /// <em>process-wide</em> one rather than against the match's. Under
-    /// <c>GRAND_SLUGGERS_TRIAL=trials/pitch5</c> the process-wide table <i>is</i> the overlay, so the
-    /// CLI cohort in the report is correct; in a test process rooted at the shipped data an
-    /// overlay-only family stops the game by name. That is a cross-root read, not a window bug, and
-    /// #844 may not touch <c>Match.cs</c> or <c>PitchFlight.cs</c> — so it is reported here and in
-    /// <c>data/agent/debug-protocol.json</c> instead of repaired. When it is repaired, the branch
-    /// below runs the real cohort and this row becomes the in-process measurement it wants to be.
+    /// <b>The cohort runs in process.</b> #844 found <see cref="Match.AutoPlay"/>'s in-zone read —
+    /// <see cref="AtBatResolver.PitchInZone"/> → <see cref="StrikeZoneGeometry.Contains(PitchCommand, string?, RulesTable?)"/>
+    /// → <see cref="PitchFlight.Point(PitchCommand, double, string?, System.ValueTuple{double, double, double}?, RulesTable?)"/>
+    /// — resolving the pitch family against the <em>process-wide</em> table rather than the match's,
+    /// so an overlay-only family stopped an in-process overlay game by name, and pinned it here. #855
+    /// threaded the match's table through every hop (an optional <see cref="RulesTable"/> defaulting
+    /// to today's resolution), and <c>Match</c> passes its own. So the pinned branch is gone: the row
+    /// asks the read with the overlay's table, then plays the real cohort from a catalog loaded on the
+    /// overlay in a process rooted at the shipped data. The figures agree with
+    /// <c>GRAND_SLUGGERS_TRIAL=trials/pitch5 cli match --cohort s29</c>; the report records both.
     /// </summary>
     [Fact]
-    public void S127_TheS29CohortUnderTheTrialIsRecordedAndItsCrossRootReadIsPinned()
+    public void S127_TheS29CohortUnderTheTrialRunsInProcessAndIsRecordedNotGated()
     {
         // The cohort's parks and diamond come from the process-wide table; the compact profile is a
         // different diamond and a different (equally correct) cohort, and it is not what #844 measures.
@@ -369,27 +404,24 @@ public sealed class SharedWindowScenarioTests
             Assert.Equal(content.Rules.Batting.Window.Frames,
                 AtBatResolver.ContactWindowFrames(5, charged, null, Harbor, false, content.Rules, content.StarSkills, rung));
 
-        // (b) The overlay's own table can fly its families; the process-wide one is a separate
-        //     question, and the in-zone read on the way to AutoPlay asks the second.
+        // (b) The repaired read: handed the overlay's table, every hop flies an overlay-only family,
+        //     and the umpire's answer is the crossing's.
         var trialOnly = PitchFamily.Curveball;
         var pitch = new PitchCommand(trialOnly, 0, false);
         Assert.True(content.Rules.Pitching.Families.IsAuthored(trialOnly), "the overlay authors it");
-        Assert.True(double.IsFinite(PitchFlight.Point(pitch, 1, rules: content.Rules).Y), "and can fly it");
+        var crossing = PitchFlight.Point(pitch, 1, rules: content.Rules);
+        Assert.Equal(StrikeZoneGeometry.Contains(crossing.X, crossing.Y), StrikeZoneGeometry.Contains(pitch, null, content.Rules));
+        Assert.Equal(StrikeZoneGeometry.Contains(pitch, null, content.Rules), AtBatResolver.PitchInZone(pitch, 5, null, content.Rules));
 
+        // Handed no table the read is still the process-wide one, as before: on a shipped-rooted
+        // process that table does not author the family and stops by name.
         if (!Rules.Default.Pitching.Families.IsAuthored(trialOnly))
         {
-            // The pinned read: handed no table it takes the process-wide one and stops by name, so
-            // RaceCohort.Run(content, "s29") cannot be called from here. The report's figures come
-            // from `GRAND_SLUGGERS_TRIAL=trials/pitch5 cli match --cohort s29`, where the
-            // process-wide table is the overlay and the same call is correct.
-            var stopped = Assert.Throws<InvalidOperationException>(() => StrikeZoneGeometry.Contains(pitch));
+            var stopped = Assert.Throws<InvalidOperationException>(() => AtBatResolver.PitchInZone(pitch, 5));
             Assert.Contains(trialOnly, stopped.Message, StringComparison.Ordinal);
-            Assert.Contains(TrialName, stopped.Message, StringComparison.Ordinal);
-            return;
         }
 
-        // This process is already rooted at a table that can fly them: run the real cohort, and
-        // still assert no band.
+        // (c) The real cohort, in process, from the overlay's catalog — and still no band.
         var report = RaceCohort.Run(content, "s29");
         Assert.Equal(50, report.Games.Count);
         Assert.All(report.Games, g => Assert.True(g.HomeRuns >= 0 && g.AwayRuns >= 0));

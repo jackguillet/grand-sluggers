@@ -938,6 +938,20 @@ public sealed class CpuPitchLocations
 
 public sealed class BattingRules
 {
+    /// <summary>
+    /// Whether the stick at contact shapes an <b>ordinary</b> swing (PH-12 option C, spec §5.3, §5.4).
+    /// <c>false</c> on the shipped root — stick L/R adds <see cref="SprayRules.StickDeg"/> to the
+    /// direction and stick U/D takes <see cref="LaunchRules.StickDeg"/> off the launch, bit for bit
+    /// what shipped. <c>true</c> in <c>trials/pitch5</c>: a swing that is neither a bunt nor a Star
+    /// Swing ignores both aims, so timing, contact position, pitch height and the swing decide the
+    /// flight, and the CPU batter stops drawing the two aims it no longer needs (PH-18). Bunts keep
+    /// the stick until P4-b; Star Swings keep it until Phase 6. The box walk and the SET recenter
+    /// read the same stick and are untouched either way (PH-09).
+    ///
+    /// Sitting 2 judges the trial; until then the shipped game is the game it was.
+    /// </summary>
+    public bool GeometryOnly { get; init; }
+
     public ContactWindowRules Window { get; init; } = new();
     public SwingChargeRules Charge { get; init; } = new();
     public QualityRules Quality { get; init; } = new();
@@ -1061,6 +1075,10 @@ public sealed class LaunchRules
     public double LoftPerPower { get; init; } = 1.0;
     /// <summary>Degrees of launch per foot the crossing sits above the zone center.</summary>
     public double PerFtOfHeight { get; init; } = 6;
+    /// <summary>
+    /// Stick U/D at contact. An ordinary swing reads it only while <see cref="BattingRules.GeometryOnly"/>
+    /// is off; a Star Swing reads it either way (Phase 6). A bunt's launch is its own band and never read it.
+    /// </summary>
     public double StickDeg { get; init; } = 12;
     public double NoiseDeg { get; init; } = 14;
     public double TopperMinDeg { get; init; } = 3;
@@ -1091,6 +1109,10 @@ public sealed class SprayRules
     public double PerfectSpreadDeg { get; init; } = 8;
     public double NiceSpreadDeg { get; init; } = 18;
     public double SourSpreadDeg { get; init; } = 52;
+    /// <summary>
+    /// Stick L/R at contact. An ordinary swing reads it only while <see cref="BattingRules.GeometryOnly"/>
+    /// is off; a bunt (until P4-b) and a Star Swing (until Phase 6) read it either way.
+    /// </summary>
     public double StickDeg { get; init; } = 12;
     public double TimingDeg { get; init; } = 55;
     public double OutOfZoneSpanDeg { get; init; } = 18;
