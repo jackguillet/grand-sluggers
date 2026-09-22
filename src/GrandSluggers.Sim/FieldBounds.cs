@@ -1,11 +1,12 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// The field's boundary for a park (spec §6.1): the outfield fence arc between the poles — the
-/// park's L / C / R distances through <see cref="AtBatResolver.FenceAt"/>, top at
-/// <see cref="Park.FenceHeightFt"/> — and the foul wrap (hip rail along the lines, round backstop)
-/// from the park's <see cref="ParkBoundary"/>. The flight clips against it, gloves plant inside it,
-/// and fair / foul is the chalk wedge. Each park's JSON fences — not a Harbor 400.
+/// The field's boundary for a park (spec §6.1): the outfield fence between the poles — read through
+/// <see cref="AtBatResolver.FenceSpotAt"/>, so the circle through the park's L / C / R posts at
+/// <see cref="Park.FenceHeightFt"/>, or the park's own <see cref="Park.Fence"/> polyline with a top per
+/// point and a wall material per span (F2-c) — and the foul wrap (hip rail along the lines, round
+/// backstop) from the park's <see cref="ParkBoundary"/>. The flight clips against it, gloves plant
+/// inside it, and fair / foul is the chalk wedge. Each park's JSON fences — not a Harbor 400.
 ///
 /// <para>
 /// No park's name appears here (#826, FR-05). The wrap was built from <c>HarborWall</c>'s literals
@@ -24,11 +25,43 @@ public static class FieldBounds
         FoulWall
     }
 
-    /// <summary>One straight piece of the boundary, its top, and its outward normal (toward the stands).</summary>
+    /// <summary>
+    /// One straight piece of the boundary, its top, its outward normal (toward the stands) and what it
+    /// is made of.
+    ///
+    /// <para>
+    /// <b>The top.</b> <see cref="HeightFt"/> is the top at A. A level piece — every foul piece, and every
+    /// fence piece of a park with no polyline — has no <see cref="HeightBFt"/> and stands at
+    /// <see cref="HeightFt"/> end to end, to the bit. A polyline span whose two points stand at different
+    /// heights carries its top at B as well, and the top runs straight between them
+    /// (<see cref="HeightAt"/>), which is the ramp the drawn wall draws between the same two vertices
+    /// (D15 as amended by D21, <c>SF-05</c>).
+    /// </para>
+    ///
+    /// <para>
+    /// <b>The material</b> is the span's (FD-06, F2-c): <see cref="WallMaterial.OfSegment"/> reads it,
+    /// and the carom takes that row. The foul rail and the fence of a park with no polyline are
+    /// <see cref="WallMaterial.Padded"/>.
+    /// </para>
+    /// </summary>
     public sealed record WallSegment(
-        double Ax, double Az, double Bx, double Bz, double HeightFt, WallKind Kind, double Nx, double Nz, double MinR, double MaxR);
+        double Ax, double Az, double Bx, double Bz, double HeightFt, WallKind Kind, double Nx, double Nz, double MinR, double MaxR,
+        string Material = WallMaterial.Padded, double? HeightBFt = null)
+    {
+        /// <summary>The top at <paramref name="along"/> of the way from A (0) to B (1).</summary>
+        public double HeightAt(double along) =>
+            HeightBFt is { } b ? HeightFt + (b - HeightFt) * Math.Clamp(along, 0, 1) : HeightFt;
+    }
 
-    public readonly record struct Crossing(WallSegment Segment, double U, double X, double Z);
+    /// <summary>
+    /// Where a step met a segment: <see cref="U"/> of the way along the step, <see cref="V"/> of the way
+    /// from the segment's A to its B, at (<see cref="X"/>, <see cref="Z"/>).
+    /// </summary>
+    public readonly record struct Crossing(WallSegment Segment, double U, double X, double Z, double V)
+    {
+        /// <summary>The wall's top where the ball met it: the segment's top at <see cref="V"/> (<see cref="WallSegment.HeightAt"/>).</summary>
+        public double HeightFt => Segment.HeightAt(V);
+    }
 
     /// <summary>The closed polygon with heights, built once per park.</summary>
     public sealed class Boundary
@@ -100,7 +133,7 @@ public static class FieldBounds
                 var v = (fx * dz - fz * dx) / denom;
                 if (u < 0 || u > 1 || v < -1e-9 || v > 1 + 1e-9) continue;
                 if (best is null || u < best.Value.U)
-                    best = new Crossing(s, u, x0 + dx * u, z0 + dz * u);
+                    best = new Crossing(s, u, x0 + dx * u, z0 + dz * u, v);
             }
             return best;
         }
@@ -116,21 +149,28 @@ public static class FieldBounds
     public static double FoulWallHeightFt => ParkBoundary.Default.RailTopFt;
 
     /// <summary>
-    /// The polygon per park, built once. Every input is in the key: the three posts and the fence
-    /// top the park carries, and the whole <see cref="ParkBoundary"/> it plays on. Before #826 the
-    /// key was the posts alone, so a second foul area (F2-d) would have been served the first one's
-    /// polygon — and nothing would have failed, because the posts would have matched.
+    /// Everything the edge is built from, as one key (map finding 14): the three posts, the fence top
+    /// the park carries, the park's <see cref="Park.Fence"/> polyline — by value, point for point — and
+    /// the whole <see cref="ParkBoundary"/> it plays on. Before #826 the key was the posts alone, so a
+    /// second foul area (F2-d) would have been served the first one's polygon, and nothing would have
+    /// failed, because the posts would have matched; a polyline keyed on the posts would be the same
+    /// bug again. The drawn loop's cache (<see cref="HarborWall"/>) uses this same key, so an input
+    /// added here reaches both caches at once.
     /// </summary>
-    static readonly System.Collections.Concurrent.ConcurrentDictionary<
-        (string Id, int Left, int Center, int Right, double Height, ParkBoundary Bounds), Boundary> Cache = new();
+    internal readonly record struct EdgeKey(
+        string Id, int Left, int Center, int Right, double Height, ParkFence? Fence, ParkBoundary Bounds)
+    {
+        public static EdgeKey Of(Park park, ParkBoundary bounds) =>
+            new(park.Id, park.LeftFenceFt, park.CenterFenceFt, park.RightFenceFt, park.FenceHeightFt, park.Fence, bounds);
+    }
+
+    /// <summary>The polygon per park and edge, built once (<see cref="EdgeKey"/>).</summary>
+    static readonly System.Collections.Concurrent.ConcurrentDictionary<EdgeKey, Boundary> Cache = new();
 
     public static Boundary Of(Park park) => Of(park, ParkBoundary.Default);
 
-    public static Boundary Of(Park park, ParkBoundary bounds)
-    {
-        var key = (park.Id, park.LeftFenceFt, park.CenterFenceFt, park.RightFenceFt, park.FenceHeightFt, bounds);
-        return Cache.GetOrAdd(key, k => Build(park, k.Bounds));
-    }
+    public static Boundary Of(Park park, ParkBoundary bounds) =>
+        Cache.GetOrAdd(EdgeKey.Of(park, bounds), k => Build(park, k.Bounds));
 
     /// <summary>Segments along the outfield arc between the poles (the chord sag is under 0.1 ft at these radii).</summary>
     public const int FenceSegs = 48;
@@ -138,18 +178,44 @@ public static class FieldBounds
     const int HomeSegs = 16;
 
     /// <summary>
-    /// The polygon: the park's own fence on both sides (asymmetric parks keep their asymmetry —
-    /// the drawn loop mirrors one side for the mesh, which is F2-b's to fix), then the foul wrap
-    /// (<see cref="ParkBoundary.RailPoint"/>: a rail parallel to the line that flares to the pole)
-    /// and the round backstop.
+    /// The bearings the fence between the poles is built on, left pole to right pole: the
+    /// <see cref="FenceSegs"/> spray grid, and for a park with a <see cref="Park.Fence"/> polyline every
+    /// point's bearing merged in, so every point is a vertex and no corner of the polyline is cut (a grid
+    /// bearing between two points only divides a straight span). A park with no points is the grid
+    /// alone, computed exactly as it always was, so its polygon and its drawn loop are unchanged vertex
+    /// for vertex (<c>SF-06</c>). The drawn loop walks the same list (<see cref="HarborWall"/>).
+    /// </summary>
+    public static IReadOnlyList<double> FenceBearings(Park park)
+    {
+        var bearings = new List<double>(FenceSegs + 1 + (park.Fence?.Points.Count ?? 0));
+        for (var i = 0; i <= FenceSegs; i++)
+            bearings.Add(-AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i / FenceSegs);
+        if (park.Fence is not { } fence) return bearings;
+        foreach (var point in fence.Points)
+            if (!bearings.Contains(point.BearingDeg))
+                bearings.Add(point.BearingDeg);
+        bearings.Sort();
+        return bearings;
+    }
+
+    /// <summary>
+    /// The polygon: the park's own fence from the left pole to the right, on
+    /// <see cref="FenceBearings"/> (each vertex where <see cref="AtBatResolver.FenceSpotAt"/> puts the
+    /// fence, each piece carrying the fence's top at both its ends and the material of the span it
+    /// lies on), then the foul wrap (<see cref="ParkBoundary.RailPoint"/>: a rail parallel to the line
+    /// that flares to the pole) and the round backstop, which are <see cref="WallMaterial.Padded"/> and
+    /// stand at the rail's top.
     /// </summary>
     static Boundary Build(Park park, ParkBoundary bounds)
     {
-        var pts = new List<(double X, double Z)>(FenceSegs + 2 * FoulSegs + HomeSegs + 4);
-        for (var i = 0; i <= FenceSegs; i++)
+        var bearings = FenceBearings(park);
+        var fence = new FenceSpot[bearings.Count];
+        var pts = new List<(double X, double Z)>(bearings.Count + 2 * FoulSegs + HomeSegs + 4);
+        for (var i = 0; i < bearings.Count; i++)
         {
-            var spray = -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i / FenceSegs;
-            pts.Add(BallFlight.GroundPoint(AtBatResolver.FenceAt(park, spray), spray));
+            var spray = bearings[i];
+            fence[i] = AtBatResolver.FenceSpotAt(park, spray);
+            pts.Add(BallFlight.GroundPoint(fence[i].DistanceFt, spray));
         }
         var right = FoulSide(park, 1, bounds);
         pts.AddRange(right);
@@ -170,9 +236,12 @@ public static class FieldBounds
         {
             var a = pts[i];
             var b = pts[(i + 1) % pts.Count];
-            var fair = i < FenceSegs;
+            var fair = i < bearings.Count - 1;
             var kind = fair ? WallKind.FairFence : WallKind.FoulWall;
-            var height = fair ? park.FenceHeightFt : bounds.RailTopFt;
+            var height = fair ? fence[i].TopFt : bounds.RailTopFt;
+            // A level piece stays level to the bit; only a span whose ends differ carries its far top.
+            double? heightB = fair && fence[i + 1].TopFt != height ? fence[i + 1].TopFt : null;
+            var material = fair ? fence[i].Material : WallMaterial.Padded;
             var ex = b.X - a.X;
             var ez = b.Z - a.Z;
             var len = Math.Sqrt(ex * ex + ez * ez);
@@ -188,7 +257,7 @@ public static class FieldBounds
             }
             var ra = Math.Sqrt(a.X * a.X + a.Z * a.Z);
             var rb = Math.Sqrt(b.X * b.X + b.Z * b.Z);
-            segs.Add(new WallSegment(a.X, a.Z, b.X, b.Z, height, kind, nx, nz, Math.Min(ra, rb), Math.Max(ra, rb)));
+            segs.Add(new WallSegment(a.X, a.Z, b.X, b.Z, height, kind, nx, nz, Math.Min(ra, rb), Math.Max(ra, rb), material, heightB));
         }
         return new Boundary(segs, park.FenceHeightFt);
     }
