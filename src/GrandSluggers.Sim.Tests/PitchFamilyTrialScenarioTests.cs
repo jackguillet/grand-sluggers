@@ -429,9 +429,10 @@ public sealed class PitchFamilyTrialScenarioTests
         Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, shipped.Authored);
         Assert.Equal(new[] { "fastball", "changeup" }, Training.CorePitches);
 
-        // (b) The overlay carries one file, and it is the shipped file plus three rows. Remove them
-        //     and the two are the same JSON — so a shipped edit that forgets this overlay fails here
-        //     instead of quietly making the trial measure two things at once.
+        // (b) The overlay carries one file, and it is the shipped file plus two named additions:
+        //     the three family rows (#818) and the human-input CPU with its trial weights (#823).
+        //     Put both back and the two are the same JSON — so a shipped edit that forgets this
+        //     overlay fails here instead of quietly making the trial measure a third thing.
         var root = TrialRoot;
         Assert.Equal(new[] { "rules/pitching.json" }, root.Overrides);
         Assert.Equal(TrialName, root.OverlayName);
@@ -440,6 +441,15 @@ public sealed class PitchFamilyTrialScenarioTests
         var trialJson = Parse(root.Resolve("rules", "pitching.json"));
         foreach (var family in Proposed)
             Assert.True(trialJson["families"]!.AsObject().Remove(family), $"the overlay has no {family} row");
+
+        var shippedCpu = shippedJson["cpu"]!.AsObject();
+        var trialCpu = trialJson["cpu"]!.AsObject();
+        Assert.False(shippedCpu["humanInputs"]!.GetValue<bool>(), "the shipped root leaves the CPU switch off");
+        Assert.True(trialCpu["humanInputs"]!.GetValue<bool>(), "the overlay turns the CPU switch on");
+        trialCpu["humanInputs"] = false;
+        foreach (var row in new[] { "even", "ahead", "behind", "runnerTwoOuts" })
+        foreach (var key in new[] { "families", "chargeChance", "steerChance" })
+            trialCpu[row]!.AsObject()[key] = JsonNode.Parse(shippedCpu[row]![key]!.ToJsonString());
         Assert.Equal(shippedJson.ToJsonString(), trialJson.ToJsonString());
 
         // (c) Under the overlay the whole library is authored, in library order.
