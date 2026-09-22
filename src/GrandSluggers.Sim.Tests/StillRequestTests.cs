@@ -120,6 +120,33 @@ public class StillRequestTests
         Assert.Contains("duplicated", duplicate.Message);
     }
 
+    /// <summary>
+    /// F7-b1 (#882): the two pole shots are accepted and named by park and night like
+    /// any still, and they are opt-in — the default list does not grow.
+    /// </summary>
+    [Fact]
+    public void PoleShotsAreAcceptedAndOptIn()
+    {
+        Assert.Contains("pole-left", StillRequest.AllowedShots);
+        Assert.Contains("pole-right", StillRequest.AllowedShots);
+        Assert.Equal(new[] { "title", "select", "lineup", "plate", "pitch", "mound", "diamond-grounder", "smash" },
+            StillRequest.DefaultShots);
+        Assert.DoesNotContain("pole-left", StillRequest.DefaultShots);
+        Assert.DoesNotContain("pole-right", StillRequest.DefaultShots);
+        Assert.Equal(StillRequest.DefaultShots, StillRequest.Parse("{}", _content).ResolvedShots());
+
+        var req = StillRequest.Parse("""{"shots":["Pole-Left","pole-right"],"park":"funfair-park","night":true}""", _content);
+        Assert.Equal(new[] { "pole-left", "pole-right" }, req.ResolvedShots());
+        Assert.Equal("funfair-park", req.ResolvedPark(_content));
+        Assert.Equal("/tmp/gs/pole-left-funfair-park-night.png",
+            StillRequest.PngPath("/tmp/gs", "pole-left", req.ResolvedHome(), req.ResolvedPark(_content), req.Night));
+        Assert.Equal("/tmp/gs/pole-right.png",
+            StillRequest.PngPath("/tmp/gs", "pole-right", "rio", ExhibitionPick.DefaultPark));
+        // Every pole the request accepts is a park shot the catalog can pose.
+        foreach (var id in req.ResolvedShots())
+            Assert.True(_content.Shots.TryGetPark(id, out _), id);
+    }
+
     [Fact]
     public void AwayWillNotMatchHome()
     {

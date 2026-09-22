@@ -1913,9 +1913,34 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/829",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/830",
           "status": "merged"
+        },
+        {
+          "child": "F7-b1",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/882",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/884",
+          "status": "in review"
         }
       ],
-      "validation_evidence": [],
+      "validation_evidence": [
+        {
+          "child": "F7-b1",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/882",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/884",
+          "kind": "capture tool: pose and validator tests (no still captured, no look judged)",
+          "tests": [
+            "StillShotsTests.EveryPoleShotFramesItsPoleAtEveryParkOnBothRootsAndBothSides",
+            "StillShotsTests.ALopsidedParksTwoShotsStandTheSameWayFromTwoDifferentPoles",
+            "StillShotsTests.APolylineFenceMovesThePoleAndTheLookWithIt",
+            "StillShotsTests.TheParkShotsAreTheStillsTheRequestAcceptsAndNoneIsAFixedPose",
+            "StillShotsTests.TheValidatorRefusesABadRowByName",
+            "StillShotsTests.TwoRowsWithOneIdAreRefusedAndTheShippedFileLoadsAsIs",
+            "StillShotsTests.AShotThatWouldStandBehindThePlateIsRefused",
+            "StillRequestTests.PoleShotsAreAcceptedAndOptIn",
+            "StillRequestTests.StillGateScriptWritesTodaysRequestUntilAFlagNamesAPark"
+          ],
+          "summary": "The first named park shots: pole-left and pole-right frame that side's foul pole with the last span of the fence on its fair side and the last stretch of the foul rail on its foul side, from the fair side of the line at about head height. The pose is computed in the sim (StillShots.Frame) from the geometry owner for the park being captured: the pole from ParkDiamond.FoulPole (FenceAt), the fence's top there from FenceSpotAt and the rail's top from ParkBoundary; the camera stands backFt back along the line and fairFt into fair at eyeFt, looking at the middle of the rail-to-fence step. The framing numbers (backFt 100, fairFt 16, eyeFt 6, fov 40, holdFt 50) are data/feel/shots.json parkShots rows, refused by file, row and reason at load. At every park on both roots and both sides, and on a polyline fixture, the target is the pole, the camera is on the fair side inside the fence, and the pole, holdFt of fence and holdFt of rail project inside the middle 90 % of a 1920 x 1080 frame. StillRequest accepts the two ids; the default list and the no-flag still-gate request are byte-identical; StillCapture stages them as the field view and cuts to the sim's pose; no play camera or existing shot moves. No still was captured here: the shots exist so Jack can judge F2-b2's poles (FD-06-R2), and neither the greybox sitting nor any look gate is passed by them."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -2333,6 +2358,10 @@
     {
       "date": "2026-09-22",
       "event": "Jack answered the assistant's five-item list: \"work with the other session to decide when you can. 2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards. 3. keep. 4. a. 5. a\" Item 1 (when to capture F2-b2's stills) was delegated to the fields and pitching sessions to agree. Recorded: FD-11-R2 (night keeps the stadium lights; night changes only the view outside the stadium and the hazards; Crystal's contact window is dropped on both roots, superseding FD-11-R1's shipped-root reading), FD-08-R2 confirmed (0.45 stays), FD-10-R1 (hazards off removes the four hazard patterns and keeps wall traits and decorations), FD-19-R2 (the placement disc is the hazard's own radius; the pad is not counted)."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F7-b1 opened as PR #884 (#882): the named still shots pole-left and pole-right (FD-17 C, FD-16; FR-14, FR-05, FR-04), so F2-b2's look gate at the foul poles can be judged. The pose is computed in the sim from the park being captured (ParkDiamond.FoulPole, FenceSpotAt, ParkBoundary); its framing numbers are parkShots rows in data/feel/shots.json with a validator; StillRequest accepts the two ids with the default list and the no-flag request unchanged; StillCapture cuts to the sim's pose on the field view. Tested at every park on both roots, both sides and a polyline fixture. No still captured, no gate passed, seals untouched."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",

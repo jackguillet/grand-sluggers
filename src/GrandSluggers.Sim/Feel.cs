@@ -13,10 +13,24 @@ public readonly record struct CameraShot(
 public sealed class CameraShots
 {
     readonly Dictionary<string, CameraShot> _byId;
+    readonly Dictionary<string, ParkShot> _parkById;
 
-    CameraShots(Dictionary<string, CameraShot> byId) => _byId = byId;
+    CameraShots(Dictionary<string, CameraShot> byId, Dictionary<string, ParkShot> parkById)
+    {
+        _byId = byId;
+        _parkById = parkById;
+    }
 
     public IReadOnlyDictionary<string, CameraShot> ById => _byId;
+
+    /// <summary>
+    /// The named park shots (<c>parkShots</c>; F7-b): stills whose pose <see cref="StillShots.Frame"/> computes from the
+    /// park being captured. Not in <see cref="ById"/>: a park shot has no pose until it has a park.
+    /// </summary>
+    public IReadOnlyDictionary<string, ParkShot> ParkById => _parkById;
+
+    public bool TryGetPark(string id, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out ParkShot shot) =>
+        _parkById.TryGetValue(id, out shot);
 
     public CameraShot Must(string id) =>
         _byId.TryGetValue(id, out var shot)
@@ -49,12 +63,23 @@ public sealed class CameraShots
                 row.Fov,
                 row.Blend);
         }
-        return new CameraShots(map);
+        var parks = new Dictionary<string, ParkShot>(StringComparer.OrdinalIgnoreCase);
+        var rows = dto.ParkShots ?? [];
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var shot = (rows[i] ?? throw new InvalidDataException($"{path}: parkShots[{i}] is empty")).ToShot(path, i);
+            // One id is one still: a park shot cannot share a name with a fixed shot or another park shot.
+            if (map.ContainsKey(shot.Id) || parks.ContainsKey(shot.Id))
+                throw new InvalidDataException($"{path}: parkShots[{i}] '{shot.Id}' is already a shot");
+            parks.Add(shot.Id, shot);
+        }
+        return new CameraShots(map, parks);
     }
 
     sealed class ShotsFile
     {
         public List<ShotDto>? Shots { get; set; }
+        public List<ParkShotDto?>? ParkShots { get; set; }
     }
 
     sealed class ShotDto
