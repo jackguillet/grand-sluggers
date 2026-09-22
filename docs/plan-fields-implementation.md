@@ -238,5 +238,5 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 | F4-a hazard pattern library at parity; chompers are park data; four decorations | #847 | #851 | `b8dde6f7` | `40534ad8`: 1925 / 1925, 769 / 769, seals hash-only on the shipped root, seed 7 identical; **trial only:** Funfair night 1.18 → 1.15 runs × Harbor as the migrated chompers go live | none |
 | F3-b ground and wall-material libraries; the zone map | #846 | #850 | `1504b1cf` | `30661804`: 1979 / 1979, 811 / 811, seals hash-only, seed 7 identical; the zone map resolves beside the park like `ParkBoundary`, not on the table | none |
 | Seal the four new rules tables in the evidence packet (found by F4-a) | #853 | — | — | — | none |
-| Jack answers map §5 Q1–Q5, Q7–Q9, Q12 (nine register refinements); F2-b2 added | #814 | this PR | — | docs only | none |
+| Jack answers map §5 Q1–Q5, Q7–Q9, Q12 (nine register refinements); F2-b2 added | #814 | #861 | — | docs only | none |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
