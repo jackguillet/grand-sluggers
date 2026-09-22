@@ -1,11 +1,14 @@
+// trials/pitch5 (#844, PH-10-R1): the shipped batting table with one key changed —
+// window.shared is true, so every hitter, both swings and every human difficulty are judged in the
+// one window below (window.frames, 9 at 60 Hz). Nothing else in the file differs from data/.
 {
   "window": {
-    // #844: one window for every hitter, both swings and every human rung (PH-10-R1). Off here, so
-    // the four numbers below are what plays; on in trials/pitch5, where "frames" is the whole
-    // window and slapFrames / chargeFrames / framesPerContact / cpu.humanWindowMul do not enter it.
-    "shared": false,
-    // The trial's start value, written down once beside what it replaces: 9 is today's quick-swing
-    // window for an average hitter. Inert while "shared" is false. Sitting 2 judges it.
+    // #844: one window for every hitter, both swings and every human rung (PH-10-R1). On here, so
+    // "frames" below is the whole window and slapFrames / chargeFrames / framesPerContact /
+    // cpu.humanWindowMul do not enter it. It is false in data/, where the four numbers still play.
+    "shared": true,
+    // The one window, in frames at 60 Hz, total width. A trial START VALUE, not an accepted number:
+    // 9 is today's quick-swing window for an average hitter. Sitting 2 judges it.
     "frames": 9.0,
     "slapFrames": 9.0,
     "chargeFrames": 7.0,

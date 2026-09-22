@@ -158,14 +158,16 @@ public sealed class AtBatResolver
     /// The window one swing is judged in (spec §5.3): the batter's contact with the bat's mod, a
     /// charge narrows it unless the Charge Bat carries the charge, the star pitch, the park, and the
     /// human rung. The resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>)
-    /// read this one number.
+    /// read this one number. Under <c>batting.window.shared</c> the hitter, the charge and the rung
+    /// drop out and every caller here gets the one window (<see cref="ContactWindowFrames"/>).
     /// </summary>
     public static double SwingWindowFrames(Character batter, BatItem? bat, double charge01, string? starPitch,
         Park? park, bool night, double humanWindowMul = 1, RulesTable? rules = null, StarSkillTable? skills = null)
     {
-        // A timing read of Contact, removed by P2-b (PH-15-R7): Contact is spatial forgiveness only,
-        // and every hitter is to share one window. It reads the trait until then so P2-b removes one
-        // thing, not two.
+        // A timing read of Contact (PH-15-R7: Contact is spatial forgiveness only). Dead under
+        // batting.window.shared — the shared window reads no hitter at all — and still shipped,
+        // because the shipped root keeps the split window until sitting 2 accepts the trial. The
+        // read stays on the off path so the two roots stay bit for bit what they are.
         var contact = Math.Clamp(batter.Stats.Contact + (bat?.ContactMod ?? 0), 1, 10);
         var chargeBat = bat?.ChargeAlwaysFull == true;
         var charged = !chargeBat && ChargeFeel.IsCharge(Math.Clamp(charge01, 0, 1));
@@ -177,14 +179,34 @@ public sealed class AtBatResolver
         Math.Abs(errFrames) <= windowFrames / 2;
 
     /// <summary>
-    /// The timing window in frames at 60 Hz (spec §5.3): slap 9 / charge 7, ± (contact − 5) × 0.4,
-    /// × the star pitch's window multiplier × the park's × the human rung's, floored. Inside is ± half of this.
+    /// The timing window in frames at 60 Hz (spec §5.3). Inside is ± half of this.
+    ///
+    /// <c>batting.window.shared</c> off — the shipped root — is the window that shipped: slap 9 /
+    /// charge 7, ± (contact − 5) × 0.4, × the star pitch's window multiplier × the park's × the
+    /// human rung's, floored.
+    ///
+    /// On — <c>trials/pitch5</c> — the window is <c>batting.window.frames</c> for every hitter,
+    /// both swings and every human rung (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), then the same star
+    /// multiplier, the same park multiplier and the same floor, in the same order. The rung's
+    /// <paramref name="humanWindowMul"/> is not applied: one fixed challenge is PH-17, and a
+    /// difficulty that still widened the window would be the per-seat assistance it refuses. The
+    /// argument is still taken and still threaded from <c>Match</c>, because the seat that pressed
+    /// is not the formula's business to know and the switch is decided here.
     /// </summary>
     public static double ContactWindowFrames(int contact, bool charged, string? starPitch, Park? park, bool night,
         RulesTable? rules = null, StarSkillTable? skills = null, double humanWindowMul = 1)
     {
         var r = Rules.Or(rules);
         var w = r.Batting.Window;
+        if (w.Shared)
+        {
+            var one = w.Frames;
+            if (starPitch is not null)
+                one *= StarSkills.BatterWindowMul(starPitch, skills);
+            if (park is not null)
+                one *= ParkHazards.ContactWindowMul(park, night, r);
+            return Math.Max(w.FloorFrames, one);
+        }
         var frames = (charged ? w.ChargeFrames : w.SlapFrames) + (Math.Clamp(contact, 1, 10) - 5) * w.FramesPerContact;
         if (starPitch is not null)
             frames *= StarSkills.BatterWindowMul(starPitch, skills);
