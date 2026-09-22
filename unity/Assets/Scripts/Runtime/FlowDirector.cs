@@ -210,7 +210,7 @@ namespace GrandSluggers.UnityClient
             var dx = _selectX.Tick(Controls.MenuX, Controls.MenuTapX, Time.unscaledDeltaTime);
             if (dx != 0)
             {
-                ApplyPick(ExhibitionPick.CyclePark(CurrentPick(), dx));
+                ApplyPick(ExhibitionPick.CyclePark(_content, CurrentPick(), dx));
                 RebuildTitlePark();
             }
             if (Controls.NightToggle)

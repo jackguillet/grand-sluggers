@@ -7,6 +7,15 @@ public sealed class ContentCatalog
 {
     public IReadOnlyDictionary<string, Character> Characters { get; }
     public IReadOnlyDictionary<string, Park> Parks { get; }
+    /// <summary>
+    /// The park ids in the field-pick cycle's declared order, from each park file's <c>pickOrder</c>
+    /// (§16, FR-04). The pregame cycle used to be a six-id literal in <see cref="ExhibitionPick"/>, so a
+    /// park file could not be the one place a park is declared; a directory listing would be
+    /// alphabetical, which is a different order (#820).
+    /// </summary>
+    public IReadOnlyList<string> ParkPickOrder { get; }
+    /// <summary>Faction to the park that faction plays at home. One park per faction; the validator refuses a second.</summary>
+    readonly IReadOnlyDictionary<string, string> _parkOfFaction;
     public IReadOnlyDictionary<string, BatItem> Bats { get; }
     public IReadOnlyDictionary<string, GloveItem> Gloves { get; }
     public ChemistryTable Chemistry { get; }
@@ -25,6 +34,7 @@ public sealed class ContentCatalog
         DataRoot root,
         Dictionary<string, Character> characters,
         Dictionary<string, Park> parks,
+        IReadOnlyList<string> parkPickOrder,
         Dictionary<string, BatItem> bats,
         Dictionary<string, GloveItem> gloves,
         ChemistryTable chemistry,
@@ -38,6 +48,11 @@ public sealed class ContentCatalog
         StarSkills = starSkills;
         Characters = characters;
         Parks = parks;
+        ParkPickOrder = parkPickOrder;
+        _parkOfFaction = parkPickOrder
+            .Select(id => parks[id])
+            .Where(p => !string.IsNullOrWhiteSpace(p.Faction))
+            .ToDictionary(p => p.Faction, p => p.Id, StringComparer.OrdinalIgnoreCase);
         Bats = bats;
         Gloves = gloves;
         Chemistry = chemistry;
@@ -66,6 +81,12 @@ public sealed class ContentCatalog
         var parks = new Dictionary<string, Park>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in data.Parks)
             parks.Add(row.Value.Id, row.Value.ToPark());
+        // The cycle the pregame field pick walks, from the data (#820). `pickOrder` is validated present
+        // and unique before this runs, so the sort is total and the same on every filesystem.
+        var parkPickOrder = data.Parks
+            .OrderBy(row => row.Value.PickOrder ?? int.MaxValue)
+            .Select(row => row.Value.Id)
+            .ToList();
 
         var bats = new Dictionary<string, BatItem>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in data.Bats)
@@ -97,11 +118,26 @@ public sealed class ContentCatalog
         foreach (var (id, dto) in data.StarSkills.Swings ?? [])
             if (dto is not null) starSwings[id] = dto.ToSwing();
         var starSkills = new StarSkillTable(starPitches, starSwings);
-        return new ContentCatalog(root, characters, parks, bats, gloves, chemistry, shots, feel, rules, starSkills, art);
+        return new ContentCatalog(root, characters, parks, parkPickOrder, bats, gloves, chemistry, shots, feel, rules, starSkills, art);
     }
 
     public Character Must(string id) =>
         Characters.TryGetValue(id, out var c) ? c : throw new KeyNotFoundException($"No character '{id}'");
+
+    /// <summary>
+    /// The park an id names, or a stop. An id the catalog does not have used to fall back to Harbor in
+    /// silence, so a typo played the control park and the trace claimed the park that was asked for (#820).
+    /// </summary>
+    public Park MustPark(string id) =>
+        Parks.TryGetValue(id, out var p) ? p
+            : throw new KeyNotFoundException($"No park '{id}'; the fields are {string.Join(", ", ParkPickOrder)}");
+
+    /// <summary>
+    /// The park a faction plays at home: the park whose <c>faction</c> is that one, else the default park
+    /// (D21). A faction with no park of its own — every roster faction that is not a park's — is at Harbor.
+    /// </summary>
+    public string HomeParkIdOfFaction(string faction) =>
+        faction is not null && _parkOfFaction.TryGetValue(faction, out var id) ? id : ExhibitionPick.DefaultPark;
 
     public Team Team(string name, string captainId, params string[] rosterIds)
     {

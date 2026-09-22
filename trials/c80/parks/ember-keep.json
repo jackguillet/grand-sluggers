@@ -2,6 +2,7 @@
   "id": "ember-keep",
   "name": "Ember Keep",
   "faction": "ember",
+  "pickOrder": 6,
   "surface": "ash",
   "leftFenceFt": 237,
   "centerFenceFt": 286,
@@ -9,8 +10,6 @@
   "windMph": 1,
   "windDeg": 0,
   "fenceHeightFt": 10,
-  "nightOnly": false,
-  "dayOnly": false,
   "hazards": [
     {
       "type": "lava_pit",

@@ -7,7 +7,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class HarborPostcard
 {
-    public const string ParkId = "harbor-diamond";
+    public const string ParkId = ExhibitionPick.DefaultPark;
 
     public const float WallThickFt = 3.4f;
     /// <summary>Full loop: outfield plus the wrap behind dugouts and home.</summary>

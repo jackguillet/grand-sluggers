@@ -7,9 +7,12 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public readonly record struct ExhibitionPick(string Home, string Away, string Park, bool Pad1Home = true)
 {
-    public static readonly string[] Parks =
-        ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep"];
-
+    /// <summary>
+    /// Harbor is the default park (D21), and this is the one place in <c>GrandSluggers.Sim</c> that spells
+    /// its id. Every other rule that wants the default reads this constant; the list of parks and the
+    /// home-park map are data (<see cref="ContentCatalog.ParkPickOrder"/>,
+    /// <see cref="ContentCatalog.HomeParkIdOfFaction"/>). A source test holds the rule (#820, SF-04).
+    /// </summary>
     public const string DefaultPark = "harbor-diamond";
 
     public static ExhibitionPick Default => new("rio", "ashlord", DefaultPark);
@@ -43,14 +46,21 @@ public readonly record struct ExhibitionPick(string Home, string Away, string Pa
     public static ExhibitionPick ToggleSeat(ExhibitionPick pick) =>
         pick with { Pad1Home = !pick.Pad1Home };
 
-    public static ExhibitionPick CyclePark(ExhibitionPick pick, int dir) =>
-        pick with { Park = WrapPark(pick.Park, dir) };
+    public static ExhibitionPick CyclePark(ContentCatalog content, ExhibitionPick pick, int dir) =>
+        pick with { Park = WrapPark(content, pick.Park, dir) };
 
-    public static string WrapPark(string parkId, int dir)
+    /// <summary>
+    /// The next park in the catalog's declared cycle (<see cref="ContentCatalog.ParkPickOrder"/>). A park
+    /// the catalog does not have starts the walk at the first park, so a stale saved pick still cycles.
+    /// </summary>
+    public static string WrapPark(ContentCatalog content, string parkId, int dir)
     {
-        var i = Array.FindIndex(Parks, id => id.Equals(parkId, StringComparison.OrdinalIgnoreCase));
-        if (i < 0) i = 0;
-        var n = Parks.Length;
-        return Parks[(i + dir % n + n) % n];
+        var parks = content.ParkPickOrder;
+        var n = parks.Count;
+        if (n == 0) return DefaultPark;
+        var i = 0;
+        for (var k = 0; k < n; k++)
+            if (parks[k].Equals(parkId, StringComparison.OrdinalIgnoreCase)) { i = k; break; }
+        return parks[(i + dir % n + n) % n];
     }
 }
