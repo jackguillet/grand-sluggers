@@ -145,7 +145,9 @@
         "#810",
         "#811",
         "#812",
-        "#813"
+        "#813",
+        "#818",
+        "#821"
       ],
       "validation_evidence": [
         {
@@ -165,6 +167,17 @@
           "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
           "numeric_trial": "not applicable (input/state contract; no number authored)",
           "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+        },
+        {
+          "kind": "trial-proposal",
+          "issue": "#818",
+          "revision": "801aa711",
+          "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+          "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+          "report": "docs/research/pitch-families-p1d.md",
+          "summary": "P1-d gives the three remaining library ids numbers in the trial overlay trials/pitch5 and nothing in the shipped root: curveball (the library's biggest hump then its longest drop, a small glove-side sweep, offSpeed), slider (the flattest of the three and the big glove-side sweep) and sinker (rides the fastball's height longest then dips, a small arm-side sweep). Speed order fastball > sinker > slider > curveball > changeup at every Pitch stat, charge and release, every one between the two shipped families. Authored is now a fact about the data: the three are nullable rows the shipped table has no key for, so Of, IsAuthored and Authored read the table they are asked and the shipped root still stops all three by name.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+          "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
         }
       ],
       "human_acceptance": null,
@@ -343,7 +356,9 @@
             "#807",
             "#809",
             "#810",
-            "#811"
+            "#811",
+            "#818",
+            "#821"
           ],
           "validation_evidence": [
             {
@@ -363,6 +378,17 @@
               "summary": "The five-id library resolves against authored rows: fastball and changeup have rows, and curveball / slider / sinker are known ids with no row that stop the pitch by name at the first read instead of flying as a fastball. The fixture holds only values IEEE pins (+, -, *, /): Y, Z and mph outright, and for X the sin-free flight plus the damping decision, because Math.Sin differs by one ULP between macOS libm and glibc (#736); the test rebuilds X on the running platform and still asserts bit equality, verified green on both.",
               "numeric_trial": "not applicable (behaviour-identical refactor; today's fastball/changeup numbers moved, none authored). Curveball, slider and sinker are still unauthored and their numbers are P1-d's numeric trial.",
               "gate": "no human gate for this child; no player-facing change, and it does not move #534, #346 or D7. Status unchanged: the other three families still do not fly."
+            },
+            {
+              "kind": "trial-proposal",
+              "issue": "#818",
+              "revision": "801aa711",
+              "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+              "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+              "report": "docs/research/pitch-families-p1d.md",
+              "summary": "P1-d gives the three remaining library ids numbers in the trial overlay trials/pitch5 and nothing in the shipped root: curveball (the library's biggest hump then its longest drop, a small glove-side sweep, offSpeed), slider (the flattest of the three and the big glove-side sweep) and sinker (rides the fastball's height longest then dips, a small arm-side sweep). Speed order fastball > sinker > slider > curveball > changeup at every Pitch stat, charge and release, every one between the two shipped families. Authored is now a fact about the data: the three are nullable rows the shipped table has no key for, so Of, IsAuthored and Authored read the table they are asked and the shipped root still stops all three by name.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+              "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
             }
           ],
           "human_acceptance": null
@@ -612,7 +638,9 @@
       "numeric_targets": null,
       "implementation_issues": [
         "#810",
-        "#811"
+        "#811",
+        "#818",
+        "#821"
       ],
       "validation_evidence": [
         {
@@ -623,6 +651,17 @@
           "summary": "Height is a property of the pitch, expressed as row fields rather than a branch: hump, hangUntil, hangRate, dumpRate and dropFt are per family, and one shape function evaluates every row. The fixture holds only values IEEE pins (+, -, *, /): Y, Z and mph outright, and for X the sin-free flight plus the damping decision, because Math.Sin differs by one ULP between macOS libm and glibc (#736); the test rebuilds X on the running platform and still asserts bit equality, verified green on both.",
           "numeric_trial": "not applicable (behaviour-identical refactor; today's fastball/changeup numbers moved, none authored). Curveball, slider and sinker are still unauthored and their numbers are P1-d's numeric trial.",
           "gate": "no human gate for this child; no player-facing change, and it does not move #534, #346 or D7. Status unchanged: the other three families still do not fly."
+        },
+        {
+          "kind": "trial-proposal",
+          "issue": "#818",
+          "revision": "801aa711",
+          "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+          "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+          "report": "docs/research/pitch-families-p1d.md",
+          "summary": "Height stays the family's, and the three trial rows are three different height paths measured over the whole flight: the curveball is the only family whose path climbs out of the hand (peak 6.330 ft at u=0.200) and travels farthest from peak to plate (4.680 ft); the sinker is never more than 0.076 ft off the fastball's height through the first three quarters and then leaves it by a further 0.474 ft; the slider strays 0.265 ft from its own chord, the least of the three. No ordinary family crosses high - every dropFt is at or below the fastball's - and the curveball's crossing matches the shipped changeup's 1.65 ft rather than going lower, so the library's lowest crossing did not move. Every unsteered crossing from the middle of the rubber is inside the zone with a ball's radius to spare, for both arms.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+          "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
         }
       ],
       "human_acceptance": null,
@@ -682,8 +721,23 @@
         "answer_quote": "1"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        "#818",
+        "#821"
+      ],
+      "validation_evidence": [
+        {
+          "kind": "trial-proposal",
+          "issue": "#818",
+          "revision": "801aa711",
+          "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+          "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+          "report": "docs/research/pitch-families-p1d.md",
+          "summary": "Bounded live steering is unchanged and the new sweep adds to it rather than replacing it, so the worst legal lateral movement is sweep + breakMaxFt. That worst case was computed rather than asserted: full sweep plus full stick the same way, Pitch 10, Nice!, batter centred with an ordinary bat, reacting only once the sweep alone has moved the ball a ball radius (0.125 ft) off its line, walking the box at 3.84 ft/s and reaching with the nice oval's half-width at the crossing's own height. Every case is positive; the tightest in the set is +0.313 ft (a right-handed batter against a right-hander's uncharged sinker, whose sweep is smallest and therefore the last to show). S-111 asserts the sign, the probe reports the feet.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+          "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -742,8 +796,23 @@
         "answer_quote": "2"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        "#818",
+        "#821"
+      ],
+      "validation_evidence": [
+        {
+          "kind": "trial-proposal",
+          "issue": "#818",
+          "revision": "801aa711",
+          "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+          "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+          "report": "docs/research/pitch-families-p1d.md",
+          "summary": "A charge costs steering correction and never characteristic movement: with no stick the crossing is the same bits at charge 0 and charge 1 at every point of the flight, while the stick's shift goes from breakMaxFt (0.46 ft) to breakMaxFt x breakDampedMul (0.046 ft). The sweep term does not read the charge at all.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+          "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -798,8 +867,23 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#818",
+            "#821"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "trial-proposal",
+              "issue": "#818",
+              "revision": "801aa711",
+              "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+              "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+              "report": "docs/research/pitch-families-p1d.md",
+              "summary": "A charge costs steering correction and never characteristic movement: with no stick the crossing is the same bits at charge 0 and charge 1 at every point of the flight, while the stick's shift goes from breakMaxFt (0.46 ft) to breakMaxFt x breakDampedMul (0.046 ft). The sweep term does not read the charge at all.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+              "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Distinguish authored pitch-family movement from player steering correction in the trajectory contract; reducing correction must not erase characteristic movement.",
@@ -2298,7 +2382,9 @@
         "#810",
         "#811",
         "#812",
-        "#813"
+        "#813",
+        "#818",
+        "#821"
       ],
       "validation_evidence": [
         {
@@ -2318,6 +2404,17 @@
           "summary": "P1-c adds the pure sim selection step beside ChargeButton: PitchSelectionState(Slot, Locked) with slot 0 = fastball as the default, and PitchSelection.Advance applying one SET tick in order - a cycle press while unlocked and selectable advances to the next selectable slot and wraps, the tick the charge arms locks the slot as it stands after that cycle (so a press on the arming tick is never dropped, including the same-tick press-and-release), the commit throws the locked family and resets to fastball unlocked, and a disarm with no delivery releases the lock and keeps the slot. A family with no authored row in the active table is skipped, so no press can select a pitch that cannot fly; a stale slot reads as the fastball; a table with no fastball row stops by name. Match.SelectPitch / Match.FamilyAt read the current Pitcher.Repertoire and the match's own pitching.families, never Rules.Default. Scenarios S-101 (all 25 repertoires under a table that authors all five), S-102 (later presses ignored, quick and MAX releases), S-103 (cycle then lock on one tick), S-104 (reset at every SET entry and after a swap, on a real match through a delivery, a foul and a dead pickoff), S-105 (the shipped root skips curveball, slider and sinker), S-106 (the disarm edge and a closed seat), plus determinism and the defensive read; every row drives the real ChargeButton and holds on both data roots. Nothing in the running game calls the step yet, so no behaviour moved: cli match --seed 7 is byte-identical and the #708 evidence regenerated with source-hash changes only. Review hardening in the same PR: the lock is held by an invariant rather than only by the releasing edge - a locked state whose charge button is not armed is stale and is read as unlocked, so a SET frame that returns early (the swap pick, a pause, a tutorial gate) and skips the tick the charge went away cannot strand the selection locked with every cycle press ignored until the next reset. S-106b drives that through the real ChargeButton and pins that a genuinely armed charge still ignores presses.",
           "numeric_trial": "not applicable (input/state contract; no number authored)",
           "gate": "no human gate for this child: nothing reads the step in the running game yet (the mound wiring is P1-f), so it does not move #534, #346 or D7. No status change - selection is not player-visible until P1-f, and no pitcher cancel was added (PH-02-R3 leaves it unselected)."
+        },
+        {
+          "kind": "trial-proposal",
+          "issue": "#818",
+          "revision": "801aa711",
+          "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+          "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+          "report": "docs/research/pitch-families-p1d.md",
+          "summary": "Natural movement and player steering are distinct terms in one flight: PitchFlight composes shape, then the family's sweep, then the stick's shift, then the star term. The sweep is not scaled by the stick and not damped by a charge; the stick keeps its own unchanged cap. All three trial rows author breakDamped false, so they steer like a fastball and their identity is the movement they have without the player. The throwing hand reaches the flight for the first time: PitchCommand carries a trailing defaulted Throws that Match.PreparePitch stamps from the pitcher, and the glove-side sign is derived once from first base's own X.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+          "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
         }
       ],
       "human_acceptance": null,
@@ -3002,8 +3099,23 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#818",
+            "#821"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "trial-proposal",
+              "issue": "#818",
+              "revision": "801aa711",
+              "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+              "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+              "report": "docs/research/pitch-families-p1d.md",
+              "summary": "Natural movement and player steering are distinct terms in one flight: PitchFlight composes shape, then the family's sweep, then the stick's shift, then the star term. The sweep is not scaled by the stick and not damped by a charge; the stick keeps its own unchanged cap. All three trial rows author breakDamped false, so they steer like a fastball and their identity is the movement they have without the player. The throwing hand reaches the flight for the first time: PitchCommand carries a trailing defaulted Throws that Match.PreparePitch stamps from the pitcher, and the glove-side sign is derived once from first base's own X.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+              "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Demonstrate independently authored pitching strengths under shared controls and CPU action limits, preserving family identity.",
@@ -4753,8 +4865,23 @@
         "answer_quote": "1"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        "#818",
+        "#821"
+      ],
+      "validation_evidence": [
+        {
+          "kind": "trial-proposal",
+          "issue": "#818",
+          "revision": "801aa711",
+          "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+          "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+          "report": "docs/research/pitch-families-p1d.md",
+          "summary": "The mechanism decided in PH-20-R1 is exercised end to end: trials/pitch5 is the whole shipped rules/pitching.json plus three rows, a test holds it equal to the shipped copy everywhere outside those rows, and GRAND_SLUGGERS_TRIAL=trials/pitch5 cli art and cli match --seed 7 both run green. The evidence Jack will judge from is sealed by source hash (tools/pitch-family-probes, docs/research/pitch-families-p1d.json) with four SVG plots, and the report states what is not claimed. Not wired into CI in this child.",
+          "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+          "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -4818,8 +4945,23 @@
             "answer_quote": "Trial window (Recommended)"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#818",
+            "#821"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "trial-proposal",
+              "issue": "#818",
+              "revision": "801aa711",
+              "test": "GrandSluggers.Sim.Tests.PitchFamilyTrialScenarioTests",
+              "scenarios": "S-107, S-108, S-109, S-110, S-111, S-112, S-113",
+              "report": "docs/research/pitch-families-p1d.md",
+              "summary": "The mechanism decided in PH-20-R1 is exercised end to end: trials/pitch5 is the whole shipped rules/pitching.json plus three rows, a test holds it equal to the shipped copy everywhere outside those rows, and GRAND_SLUGGERS_TRIAL=trials/pitch5 cli art and cli match --seed 7 both run green. The evidence Jack will judge from is sealed by source hash (tools/pitch-family-probes, docs/research/pitch-families-p1d.json) with four SVG plots, and the report states what is not claimed. Not wired into CI in this child.",
+              "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
+              "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+            }
+          ],
           "human_acceptance": null
         }
       ]
@@ -5077,6 +5219,10 @@
     {
       "date": "2026-09-21",
       "event": "Second decision round with Jack, run by the implementation orchestrator after P1-a, P1-b and P1-c merged (#809, #811, #813). Ten refinements recorded, one question at a time, each with its options and Jack's answer: PH-20-R1 (new pitch numbers are judged in a trial window), PH-18-R1 (the CPU converts to human inputs in that same trial), PH-06-R1 (rubber-only aim ring in SET, hidden at release), PH-10-R1 (one shared timing window; trial start value 9 frames, trial-accepted), PH-14-R6 (fresh press after contact for bunt-held triggers), PH-16-R15 (remove the on-deck chemistry item offer; items dormant), PH-16-R16 (fixed and equal starting Stars), PH-16-R17 (LB held is the special modifier on both seats, Q on keyboard; LB stops being all-advance during the pitch; Jack rejected thumb buttons and RT was shown to collide with PH-14-R5), PH-16-R18 (remove the three Star Pitch window multipliers; speed and path only until individual reviews) and PH-16-R19 (remove the Phonyball whiff roll). Jack chose against the recommendation on PH-16-R15 and PH-16-R16. No runtime change, no passed playtest, no human_acceptance written."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "P1-d (#818) made curveball, slider and sinker fly under the trial overlay trials/pitch5 and left the shipped root unchanged. The flight gained one new term, a family's natural sweep: sweepFt is the feet its crossing ends off the straight line from the rubber, positive toward the pitcher's glove side and mirrored by the throwing hand, and sweepFrom is where in the flight it starts to show, after which it grows as the square of the flight that is left. It is a quadratic ease and nothing else, so no libm stands between the table and the crossing; it is not scaled by the stick and not damped by a charge, and the player's steering adds to it under its own unchanged cap. The arm reaches the flight through a trailing defaulted PitchCommand.Throws that PreparePitch stamps from the pitcher, and the glove-side sign is derived in one place from first base's own X. Curveball, slider and sinker became nullable rows, so authored is a fact about the data rather than a pair hard-wired in code; the shipped pitching.json has no key for them and still stops all three by name, and both shipped rows author sweepFt 0 with sweepFrom 1, the value that means the sweep never begins. Spec GS sections 4.2, 4.3 and 16 carry the rule, the trial rows are marked proposed-not-accepted, and Appendix B.1 gains S-107 to S-113, which assert relationships only so a proposed number can move without editing a test. Evidence: tools/pitch-family-probes writes a sealed docs/research/pitch-families-p1d.json and four SVG plots, and docs/research/pitch-families-p1d.md carries the proposal table, the seven measured relationships and two findings reported rather than fixed - no ordinary family crosses high, and PitchFlight.Release still uses one releaseHandX for every pitcher so a left-hander releases from a right-hander's side. No status change, no numeric target and no human acceptance: every number is a proposal for Jack's trial-window sitting, which is not possible until the mound is wired in P1-f."
     }
   ]
 }

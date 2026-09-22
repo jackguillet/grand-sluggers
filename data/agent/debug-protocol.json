@@ -382,6 +382,16 @@
       "promoted": "PitchFamilyGoldenTests.XIsStoredExactlyWhereverNoSineTouchesItAndComposedWhereverOneDoes",
       "issue": "#810",
       "pr": "#811"
+    },
+    {
+      "id": "role-test-measures-the-wrong-statistic",
+      "signature": "A new relationship test over authored rows fails with the rows the right way round in the data and the wrong way round in the measure - e.g. 'sinker separates at 0.875, slider at 0.94' when the sinker is the row whose role is to ride the fastball's line longest.",
+      "stage": "sim",
+      "cause": "The statistic was a proxy, and the flattest row wins any proxy about staying near the fastball by never doing anything. The slider's whole role is a small drop, so the last u at which the height gap stays under a tolerance is largest for it, not for the sinker whose role is to ride and then dip (#818, S-109).",
+      "fix": "State a role as two numbers that cannot both be won by inaction - how far it strays before the window (the ride) and how much further it goes after it (the dip) - and before trusting a single-threshold proxy, ask which row would win it by doing nothing. Change the measure, not the proposed number: the number is the thing under judgment.",
+      "promoted": "PitchFamilyTrialScenarioTests.S109_TheArcTheRideAndTheFlatOneAreThreeDifferentHeightPaths",
+      "issue": "#818",
+      "pr": "#821"
     }
 
   ]

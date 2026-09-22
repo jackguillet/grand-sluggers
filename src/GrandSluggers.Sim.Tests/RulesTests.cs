@@ -256,6 +256,10 @@ public sealed class RulesTests
             var key = char.ToLowerInvariant(p.Name[0]) + p.Name.Substring(1);
             if (!json.TryGetPropertyValue(key, out var node) || node is null)
             {
+                // An [Optional] row is authored by the data or by nobody (#818): the shipped
+                // pitching.json has no curveball key and the code default is null, and those two
+                // agree. A trial that carries the key is checked like any other object, below.
+                if (p.GetCustomAttribute<OptionalAttribute>() is not null) continue;
                 missing.Add(path + "." + key);
                 continue;
             }
