@@ -64,10 +64,14 @@ switch (cmd)
             Console.WriteLine(RaceCohort.Run(content, args[cohortAt + 1]).ToJson());
             break;
         }
-        RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args));
+        // A park or a captain the catalog does not have is a stop, not a silent fall back to Harbor
+        // (#820): a run that prints a Final under the wrong park is worse than no run at all.
+        try { RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args)); }
+        catch (KeyNotFoundException e) { Console.Error.WriteLine("match: " + e.Message); Environment.ExitCode = 2; }
         break;
     case "challenge":
-        RunChallenge(content, CaptainId(args), Seed(args));
+        try { RunChallenge(content, CaptainId(args), Seed(args)); }
+        catch (KeyNotFoundException e) { Console.Error.WriteLine("challenge: " + e.Message); Environment.ExitCode = 2; }
         break;
     case "chem":
         DumpChem(content, args.ElementAtOrDefault(1) ?? "rio");

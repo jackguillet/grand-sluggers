@@ -5,6 +5,8 @@ namespace GrandSluggers.Sim.Tests;
 
 public class ExhibitionPickTests
 {
+    readonly ContentCatalog _content = ContentCatalog.Load();
+
     [Fact]
     public void CyclingTheCaptainDoesNotMoveTheField()
     {
@@ -13,8 +15,8 @@ public class ExhibitionPickTests
         Assert.Equal("vale", next.Home);
         Assert.Equal("ashlord", next.Away);
         Assert.Equal("harbor-diamond", next.Park);
-        Assert.Equal("crystal-rink", PresetTeams.HomeParkId("vale"));
-        Assert.NotEqual(PresetTeams.HomeParkId(next.Home), next.Park);
+        Assert.Equal("crystal-rink", PresetTeams.HomeParkId(_content, "vale"));
+        Assert.NotEqual(PresetTeams.HomeParkId(_content, next.Home), next.Park);
 
         var prev = ExhibitionPick.CycleHome(start, -1);
         Assert.Equal("fenn", prev.Home);
@@ -26,12 +28,12 @@ public class ExhibitionPickTests
     public void CyclingTheFieldDoesNotMoveTheCaptains()
     {
         var start = new ExhibitionPick("rio", "ashlord", "harbor-diamond");
-        var next = ExhibitionPick.CyclePark(start, 1);
+        var next = ExhibitionPick.CyclePark(_content, start, 1);
         Assert.Equal("rio", next.Home);
         Assert.Equal("ashlord", next.Away);
         Assert.Equal("crystal-rink", next.Park);
 
-        var wrap = ExhibitionPick.CyclePark(start, -1);
+        var wrap = ExhibitionPick.CyclePark(_content, start, -1);
         Assert.Equal("ember-keep", wrap.Park);
         Assert.Equal("rio", wrap.Home);
     }

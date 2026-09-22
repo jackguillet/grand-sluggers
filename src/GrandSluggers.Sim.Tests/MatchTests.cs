@@ -579,8 +579,8 @@ public class MatchTests
         var (pitX, pitZ) = TestRoot.Pick((38.0, 78.0), (34.0, 69.0));
         Assert.True(ParkHazards.InSlow(park, pitX, pitZ));
         Assert.False(ParkHazards.InSlow(park, 0, 0));
-        Assert.Equal("ember-keep", PresetTeams.HomeParkId("ashlord"));
-        Assert.Equal("canopy-yard", PresetTeams.HomeParkId("konga"));
+        Assert.Equal("ember-keep", PresetTeams.HomeParkId(_content, "ashlord"));
+        Assert.Equal("canopy-yard", PresetTeams.HomeParkId(_content, "konga"));
     }
 
     [Fact]

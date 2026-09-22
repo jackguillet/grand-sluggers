@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 
 namespace GrandSluggers.Sim;
@@ -72,7 +73,9 @@ public static class ContentDataValidator
             }
         }
 
-        ReadRows(root, "parks", data.Parks, json, data.ReadErrors);
+        // Parks are read strictly (spec §16, FR-03): a key a park file does not declare is a stop,
+        // the way it is for a rule table. Every other catalog stays permissive until its own child.
+        ReadRows(root, "parks", data.Parks, json, data.ReadErrors, strict: true);
         ReadRows(root, "bats", data.Bats, json, data.ReadErrors);
         ReadRows(root, "gloves", data.Gloves, json, data.ReadErrors);
 
@@ -94,11 +97,12 @@ public static class ContentDataValidator
         string directory,
         List<Sourced<T>> destination,
         JsonSerializerOptions json,
-        List<string> errors) where T : class
+        List<string> errors,
+        bool strict = false) where T : class
     {
         foreach (var file in Files(root, directory, errors))
         {
-            var row = ReadJson<T>(file, json, errors);
+            var row = ReadJson<T>(file, json, errors, strict);
             if (row is not null) destination.Add(new(row, file));
         }
     }
@@ -119,11 +123,13 @@ public static class ContentDataValidator
         return root.Files(directory, "*.json");
     }
 
-    static T? ReadJson<T>(string path, JsonSerializerOptions json, List<string> errors) where T : class
+    static T? ReadJson<T>(string path, JsonSerializerOptions json, List<string> errors, bool strict = false) where T : class
     {
         try
         {
-            var value = JsonSerializer.Deserialize<T>(File.ReadAllText(path), json);
+            var text = File.ReadAllText(path);
+            if (strict) UnknownKeys(text, typeof(T), path, errors);
+            var value = JsonSerializer.Deserialize<T>(text, json);
             if (value is null) errors.Add($"{path}: JSON document is empty");
             return value;
         }
@@ -133,6 +139,82 @@ public static class ContentDataValidator
             return null;
         }
     }
+
+    static readonly JsonDocumentOptions StrictJson = new()
+    {
+        CommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
+    };
+
+    /// <summary>
+    /// The strict read (spec §16, FR-03, #820): a key the row type does not declare stops the load and
+    /// names the file and the key, the way <see cref="RulesValidation.UnknownFields"/> does for a rule
+    /// table. Before this, <c>System.Text.Json</c> dropped an unknown park key in silence, so a
+    /// misspelled <c>centerFenceFt</c> played Harbor's fence and no test failed.
+    ///
+    /// Rows nested in a list (a park's hazards) are walked against their own row type; a malformed
+    /// document is left to <see cref="JsonSerializer"/>, which reports it with the parser's message.
+    /// </summary>
+    static void UnknownKeys(string text, Type type, string source, List<string> errors)
+    {
+        JsonDocument doc;
+        try { doc = JsonDocument.Parse(text, StrictJson); }
+        catch (JsonException) { return; }
+        using (doc)
+            UnknownKeys(doc.RootElement, type, "", source, errors);
+    }
+
+    static void UnknownKeys(JsonElement element, Type type, string path, string source, List<string> errors)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            errors.Add($"{source}: {(path.Length == 0 ? "the row" : path.TrimEnd('.'))} must be an object; got {element.ValueKind}");
+            return;
+        }
+        var declared = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.GetIndexParameters().Length == 0)
+            .ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
+        foreach (var field in element.EnumerateObject())
+        {
+            if (!declared.TryGetValue(field.Name, out var p))
+            {
+                var names = declared.Values.Select(x => Camel(x.Name)).OrderBy(x => x, StringComparer.Ordinal);
+                errors.Add($"{source}: {path}{field.Name} is not a key this file declares; "
+                    + $"the keys of {Camel(TypeLabel(type))} are [{string.Join(", ", names)}]");
+                continue;
+            }
+            if (RowType(p.PropertyType) is { } row && field.Value.ValueKind == JsonValueKind.Array)
+            {
+                var i = 0;
+                foreach (var entry in field.Value.EnumerateArray())
+                {
+                    if (entry.ValueKind != JsonValueKind.Null)
+                        UnknownKeys(entry, row, $"{path}{Camel(p.Name)}[{i}].", source, errors);
+                    i++;
+                }
+            }
+            else if (Nested(p.PropertyType))
+                UnknownKeys(field.Value, p.PropertyType, $"{path}{Camel(p.Name)}.", source, errors);
+        }
+    }
+
+    /// <summary>The row type behind a <c>List&lt;T?&gt;</c> of authored rows, else null.</summary>
+    static Type? RowType(Type type)
+    {
+        if (!type.IsGenericType) return null;
+        var arg = type.GetGenericArguments()[0];
+        arg = Nullable.GetUnderlyingType(arg) ?? arg;
+        return Nested(arg) ? arg : null;
+    }
+
+    static bool Nested(Type type) =>
+        type.IsClass && type != typeof(string) && type.Namespace == typeof(ContentDataValidator).Namespace;
+
+    static string TypeLabel(Type type) =>
+        type.Name.EndsWith("Dto", StringComparison.Ordinal) ? type.Name[..^3] : type.Name;
+
+    static string Camel(string name) =>
+        name.Length == 0 ? name : char.ToLowerInvariant(name[0]) + name[1..];
 
     static IReadOnlyList<string> Errors(ContentData data)
     {
@@ -153,6 +235,11 @@ public static class ContentDataValidator
             ValidateCharacter(row, pitches, swings, errors);
         foreach (var row in data.Parks)
             ValidatePark(row, errors);
+        UniquePerPark("pickOrder", data.Parks.Where(r => r.Value.PickOrder is not null)
+            .Select(r => (r.Value.PickOrder!.Value.ToString(), r.Source)), errors);
+        UniquePerPark("faction", data.Parks
+            .Where(r => !string.IsNullOrWhiteSpace(r.Value.Faction))
+            .Select(r => (r.Value.Faction, r.Source)), errors);
         foreach (var row in data.Bats)
             ValidateBat(row, errors);
         foreach (var row in data.Gloves)
@@ -227,6 +314,23 @@ public static class ContentDataValidator
         {
             var sources = group.Select(x => x.Source).OrderBy(x => x, StringComparer.Ordinal);
             errors.Add($"duplicate {kind} id '{group.Key.ToLowerInvariant()}' (case-insensitive): {string.Join("; ", sources)}");
+        }
+    }
+
+    /// <summary>
+    /// A park field that has to be one park's alone (#820): the field-pick order, so the cycle is a
+    /// declared sequence rather than a directory listing, and the faction, so a captain's home park
+    /// is one park and never a coin toss between two. Both errors name every file that shares the value.
+    /// </summary>
+    static void UniquePerPark(string field, IEnumerable<(string Value, string Source)> candidates, List<string> errors)
+    {
+        foreach (var group in candidates
+            .GroupBy(x => x.Value, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1)
+            .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
+        {
+            var sources = group.Select(x => x.Source).OrderBy(x => x, StringComparer.Ordinal);
+            errors.Add($"park {field} '{group.Key}' is claimed by more than one park: {string.Join("; ", sources)}");
         }
     }
 
@@ -306,6 +410,12 @@ public static class ContentDataValidator
         Required(row.Source, "park", p.Id, "id", p.Id, errors);
         Required(row.Source, "park", p.Id, "name", p.Name, errors);
         Required(row.Source, "park", p.Id, "faction", p.Faction, errors);
+        // The field-pick cycle is authored, not alphabetical (#820): a park that names no place in it
+        // would take whichever place the filesystem happened to list it in.
+        if (p.PickOrder is not { } pick)
+            errors.Add($"{row.Source}: park '{p.Id}' pickOrder must name its place in the field-pick cycle; got none");
+        else if (pick < 1)
+            errors.Add($"{row.Source}: park '{p.Id}' pickOrder must be at least 1; got {pick}");
         Known(row.Source, $"park '{p.Id}' surface", p.Surface, Surfaces, errors);
         Positive(row.Source, $"park '{p.Id}' leftFenceFt", p.LeftFenceFt, errors);
         Positive(row.Source, $"park '{p.Id}' centerFenceFt", p.CenterFenceFt, errors);
@@ -509,7 +619,16 @@ internal sealed class ParkDto
 {
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
+    /// <summary>
+    /// Whose park it is. A captain whose faction is this one plays here at home
+    /// (<see cref="ContentCatalog.HomeParkIdOfFaction"/>); the validator refuses two parks with one faction.
+    /// </summary>
     public string Faction { get; set; } = "";
+    /// <summary>
+    /// This park's place in the field-pick cycle (<see cref="ContentCatalog.ParkPickOrder"/>). Required and
+    /// unique: a directory listing is alphabetical, and the pregame cycle is an authored sequence (#820).
+    /// </summary>
+    public int? PickOrder { get; set; }
     public string Surface { get; set; } = "";
     public int LeftFenceFt { get; set; }
     public int CenterFenceFt { get; set; }
@@ -522,6 +641,12 @@ internal sealed class ParkDto
     /// <summary>The contact window at night as a fraction of the day's (§14): a blackout park shrinks it; 1 (the default) is no change.</summary>
     public double NightContactWindowMul { get; set; } = 1.0;
     public List<HazardDto?>? Hazards { get; set; }
+    /// <summary>
+    /// Authored prose about the park, for whoever opens the file. Declared here so the strict read
+    /// accepts it, and deliberately off <see cref="Park"/>: no rule reads it, and a member on the record
+    /// would enter <see cref="PlayTraceIdentity"/> and move every stored identity SHA (#820).
+    /// </summary>
+    public string? Notes { get; set; }
 
     public Park ToPark() => new(
         Id, Name, Faction, Surface,

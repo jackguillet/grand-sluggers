@@ -34,15 +34,14 @@ public static class PresetTeams
         return i < 0 ? 0 : i;
     }
 
-    public static string HomeParkId(string captainId) => captainId.ToLowerInvariant() switch
-    {
-        "vale" => "crystal-rink",
-        "zig" => "funfair-park",
-        "brondo" => "rooftop-city",
-        "konga" => "canopy-yard",
-        "ashlord" => "ember-keep",
-        _ => "harbor-diamond"
-    };
+    /// <summary>
+    /// A captain's home park: the park whose faction is his, else the default park (D21, FD-01). Data,
+    /// not a switch — a park file declares whose park it is, and the validator refuses two parks with one
+    /// faction, so the map cannot go quietly out of step with the catalog (#820). A captain the catalog
+    /// does not have is at the default park, as he was before.
+    /// </summary>
+    public static string HomeParkId(ContentCatalog content, string captainId) =>
+        content.HomeParkIdOfFaction(content.Characters.TryGetValue(captainId, out var c) ? c.Faction : "");
 
     public static string TeamName(Character captain) => captain.Id.ToLowerInvariant() switch
     {
