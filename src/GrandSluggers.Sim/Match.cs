@@ -148,12 +148,8 @@ public sealed class Match
             AwayGlove = Content.Gloves[ids[(ids.IndexOf(AwayGlove.Id) + 1) % ids.Count]];
     }
 
-    public static Match Slice(ContentCatalog content, int innings = DefaultInnings, int seed = 1, string parkId = "harbor-diamond", bool night = false)
-    {
-        if (!content.Parks.TryGetValue(parkId, out var park))
-            park = content.Parks["harbor-diamond"];
-        return new Match(content, PresetTeams.EmberCourt(content), PresetTeams.SparkAllStars(content), park, innings, seed, night);
-    }
+    public static Match Slice(ContentCatalog content, int innings = DefaultInnings, int seed = 1, string parkId = ExhibitionPick.DefaultPark, bool night = false) =>
+        new(content, PresetTeams.EmberCourt(content), PresetTeams.SparkAllStars(content), content.MustPark(parkId), innings, seed, night);
 
     public static Match Exhibition(
         ContentCatalog content,
@@ -166,7 +162,7 @@ public sealed class Match
         string? difficulty = null)
     {
         var (home, away) = PresetTeams.Pair(content, homeCaptain, awayCaptain);
-        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(homeCaptain), night, difficulty);
+        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(content, homeCaptain), night, difficulty);
     }
 
     public static Match Exhibition(
@@ -179,10 +175,8 @@ public sealed class Match
         bool night = false,
         string? difficulty = null)
     {
-        parkId ??= PresetTeams.HomeParkId(home.Captain.Id);
-        if (!content.Parks.TryGetValue(parkId, out var park))
-            park = content.Parks["harbor-diamond"];
-        return new Match(content, away, home, park, innings, seed, night, difficulty: difficulty);
+        parkId ??= PresetTeams.HomeParkId(content, home.Captain.Id);
+        return new Match(content, away, home, content.MustPark(parkId), innings, seed, night, difficulty: difficulty);
     }
 
     /// <summary>

@@ -52,7 +52,7 @@ public sealed class Game : IDisposable
     bool _frozenSlow;
     bool _itemArmed;
 
-    public Game(bool demo, int seed, string parkId = "harbor-diamond", bool two = false,
+    public Game(bool demo, int seed, string parkId = ExhibitionPick.DefaultPark, bool two = false,
         string homeCaptain = "rio", string awayCaptain = "ashlord", bool challenge = false)
     {
         _demo = demo;
@@ -179,7 +179,7 @@ public sealed class Game : IDisposable
             if (p1.NavRight) pick = ExhibitionPick.CycleHome(pick, 1);
             if (p1.NavUp) pick = ExhibitionPick.CycleAway(pick, -1);
             if (p1.NavDown) pick = ExhibitionPick.CycleAway(pick, 1);
-            if (p1.TogglePark) pick = ExhibitionPick.CyclePark(pick, 1);
+            if (p1.TogglePark) pick = ExhibitionPick.CyclePark(_content, pick, 1);
             _homeCaptain = pick.Home;
             _awayCaptain = pick.Away;
             _parkId = pick.Park;

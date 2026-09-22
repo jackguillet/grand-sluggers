@@ -2,6 +2,7 @@
   "id": "funfair-park",
   "name": "Funfair Park",
   "faction": "carnival",
+  "pickOrder": 3,
   "surface": "grass",
   "leftFenceFt": 220,
   "centerFenceFt": 273,
@@ -9,8 +10,6 @@
   "windMph": 6,
   "windDeg": 0,
   "fenceHeightFt": 8,
-  "nightOnly": false,
-  "dayOnly": false,
   "hazards": [
     {
       "type": "warp_pipe",
@@ -35,8 +34,7 @@
     },
     {
       "type": "train",
-      "z": 217,
-      "periodSec": 18
+      "z": 217
     }
   ],
   "notes": "Grounders that enter a warp can exit another. Night chompers in the outfield eat flies."

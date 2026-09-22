@@ -15,7 +15,7 @@ public enum PracticeLesson
 /// </summary>
 public sealed class Training
 {
-    public const string ParkId = "harbor-diamond";
+    public const string ParkId = ExhibitionPick.DefaultPark;
     public const int DrillCount = 5;
     /// <summary>
     /// The families a practice pitcher can actually throw, in library order (spec §4.3): the rows

@@ -2,6 +2,7 @@
   "id": "rooftop-city",
   "name": "Rooftop City",
   "faction": "goldrush",
+  "pickOrder": 4,
   "surface": "dirt",
   "leftFenceFt": 223,
   "centerFenceFt": 272,
@@ -9,8 +10,6 @@
   "windMph": 9,
   "windDeg": 90,
   "fenceHeightFt": 12,
-  "nightOnly": false,
-  "dayOnly": false,
   "hazards": [
     {
       "type": "billboard",
