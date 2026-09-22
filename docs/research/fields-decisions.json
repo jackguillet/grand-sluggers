@@ -269,6 +269,12 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/827",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/832",
           "status": "merged"
+        },
+        {
+          "child": "F3-a2",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/838",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/840",
+          "status": "in review"
         }
       ],
       "validation_evidence": [],
@@ -1407,6 +1413,10 @@
     {
       "date": "2026-09-22",
       "event": "Ledger: F1-a #831, F2-a #833, F7-a #830, F3-a #832 and F5-a #834 merged to main (3dcb0528), all at parity. F3-a2 #838 filed for the resolver gap F3-a found. Six findings recorded in the implementation map section 1."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "F3-a2 opened as PR #840 (#838), on top of F3-a: Match builds AtBatResolver and FieldingResolver on the match's resolved table (_rules = content.Rules.AtLevel(difficulty).AtPark(park)) instead of the catalog's global one, and SwingWindowFrames reads the same table, so content.Rules is read in Match at exactly one place - the derivation itself. LivePlaySystem already read _match.Rules throughout and was not touched. With that the park's air reaches the first flight of a play: SF-10 is now proved by a seeded swing run through Match / LivePlaySystem at a fixture park with dragMul 2.0 (the at-bat's own ball, the fielding preview's and the live path all carry shorter), and SF-01 by a walk over both roots, six parks and four rungs asserting every resolver holds the match's table by reference. The difficulty audit the child asked for: AtBatResolver reads no RulesTable.Cpu field (its only Cpu read is batting.cpu.sacBuntChance, which AtLevel does not replace), but FieldingResolver does - the preview's CPU reaction lockouts are Cpu.Active.reactionMul - so the preview now waits the rung the match is playing, which is the rung LivePlaySystem already waited. NORMAL is byte-identical: seed 7 and the park-factors table are unchanged and no stored number moves; across twelve seeds x three rungs, 0/12 NORMAL games moved and 2/12 EASY and 1/12 HARD did. Evidence seals moved by source hash only. No decision status changed; no number accepted; no human gate (no player-facing change)."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
