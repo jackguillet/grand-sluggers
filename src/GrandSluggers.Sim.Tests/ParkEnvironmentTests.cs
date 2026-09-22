@@ -20,6 +20,14 @@ namespace GrandSluggers.Sim.Tests;
 /// </para>
 ///
 /// <para>
+/// F3-a2 (#838) closed the last of that reach: <see cref="Match"/> builds <c>AtBatResolver</c> and
+/// <c>FieldingResolver</c> on its own resolved table, so the at-bat's ball and the defense's preview of it
+/// fly the park's air too. The two rows that would have caught the gap run the whole path — a seeded swing
+/// through <see cref="Match"/> and <see cref="LivePlaySystem"/>, and a walk of every resolver's table by
+/// reference — because a row that calls <see cref="BallFlight"/> by hand passes either way.
+/// </para>
+///
+/// <para>
 /// Tagged <c>Rows=compact</c>: every row here holds on the shipped root and on <c>trials/c80</c>, and
 /// CI plays them a second time on the copy. The two-root rows do not wait for that run — they load the
 /// overlay by hand as well, the way <see cref="CompactGeometryTests"/> does.
@@ -76,6 +84,43 @@ public sealed class ParkEnvironmentTests
         Assert.Equal("hard", hard.Difficulty);
     }
 
+    /// <summary>
+    /// <c>SF-01</c>, the reach of that one table (F3-a2, #838). A match resolves its rules once and
+    /// <em>every</em> resolver it builds holds that table by reference — the at-bat's, which flies the first
+    /// ball of a play, and the defense's, which previews it. Before this child both were built with the
+    /// catalog's global table, so a park's air reached the deflected ball and not the swing, and the preview's
+    /// CPU reaction lockouts were read at the shipped rung in an EASY or HARD game while
+    /// <see cref="LivePlaySystem"/> waited the match's. Walked over both roots, every park and every rung,
+    /// because a park that names no air must still hand over the global table itself.
+    /// </summary>
+    [Fact]
+    public void SF01_EveryResolverInTheMatchHoldsTheMatchsResolvedTable()
+    {
+        foreach (var catalog in new[] { Catalog, Trial })
+        {
+            var (home, away) = PresetTeams.Pair(catalog, "rio", "ashlord");
+            foreach (var park in catalog.Parks.Values)
+            {
+                foreach (var level in new string?[] { null, "easy", "normal", "hard" })
+                {
+                    var match = new Match(catalog, away, home, park, innings: 3, seed: 7, difficulty: level);
+                    Assert.Same(match.Rules, TableOf(match, "_atBat"));
+                    Assert.Same(match.Rules, TableOf(match, "_fielding"));
+                    // No shipped or trial park names air, so that one table is the catalog's own — and the
+                    // rung it carries is the match's, which is the whole of what AtLevel replaces.
+                    Assert.Same(catalog.Rules.Flight, match.Rules.Flight);
+                    Assert.Equal(level ?? catalog.Rules.Cpu.Level, TableOf(match, "_fielding").Cpu.Level);
+                }
+            }
+
+            // And a park that does name air: the resolvers hold the parked table, not the global one.
+            var thick = new Match(catalog, away, home, Air(new ParkEnvironment(DragMul: 2.0)), innings: 3, seed: 7);
+            Assert.NotSame(catalog.Rules, thick.Rules);
+            Assert.Same(thick.Rules, TableOf(thick, "_atBat"));
+            Assert.Same(thick.Rules, TableOf(thick, "_fielding"));
+        }
+    }
+
     // ---------------------------------------------------------------------------------
     // SF-10 — the lever, on a fixture park
     // ---------------------------------------------------------------------------------
@@ -103,6 +148,34 @@ public sealed class ParkEnvironmentTests
         Assert.Equal(open[0].Height, heavy[0].Height);
         Assert.InRange(LaunchOf(open), 27.7, 28.0);
         Assert.Equal(LaunchOf(open), LaunchOf(heavy), 1);
+    }
+
+    /// <summary>
+    /// <c>SF-10</c> on the path the game actually plays (F3-a2, #838): one seeded swing, scripted pitch and
+    /// scripted press, run through <see cref="Match"/> and handed to <see cref="LivePlaySystem"/> at a park
+    /// whose air is twice as thick. The same bat speed off the same plate carries shorter — in the at-bat's
+    /// own ball (<c>AtBatResolver</c>), in the defense's preview of it (<c>FieldingResolver</c>) and in the
+    /// path the live ball is ticked along. Called through <see cref="BallFlight.Trajectory"/> by hand this
+    /// row passed while <see cref="Match"/> still built both resolvers on the global table.
+    /// </summary>
+    [Fact]
+    public void SF10_ASeededSwingThroughTheMatchFliesTheParksAir()
+    {
+        var open = SeededSwing(Air(null));
+        var thick = SeededSwing(Air(new ParkEnvironment(DragMul: 2.0)));
+
+        // The same swing left the bat: only the air between the plate and the grass changed.
+        Assert.Equal(open.ExitMph, thick.ExitMph, 9);
+        Assert.Equal(open.LaunchDeg, thick.LaunchDeg, 9);
+        Assert.Equal(open.SprayDeg, thick.SprayDeg, 9);
+        Assert.True(open.Carry > 100, $"the fixture swing has to be a ball worth measuring: {open.Carry:0.0} ft");
+
+        Assert.True(thick.Carry < open.Carry - 10,
+            $"the at-bat's own ball has to fly the park's air: {open.Carry:0.0} -> {thick.Carry:0.0} ft");
+        Assert.True(thick.Preview < open.Preview - 10,
+            $"the fielding preview's ball has to fly the park's air: {open.Preview:0.0} -> {thick.Preview:0.0} ft");
+        Assert.True(thick.Live < open.Live - 10,
+            $"the live ball has to fly the park's air: {open.Live:0.0} -> {thick.Live:0.0} ft");
     }
 
     /// <summary><c>SF-10</c>, the other field: a park the wind does not reach flies the still-air path exactly.</summary>
@@ -357,6 +430,47 @@ public sealed class ParkEnvironmentTests
 
     static double Landing(Park park, RulesTable rules) =>
         BallFlight.FirstLandingDist(BallFlight.Trajectory(95, 28, 0, park, rules));
+
+    /// <summary>
+    /// One seeded swing at <paramref name="park"/>, run the way a game runs it: the scripted pitch and press
+    /// through <see cref="Match.BeginAtBat"/>, the defense's read through <see cref="Match.PreviewHit"/>, and
+    /// the live ball begun on <see cref="LivePlaySystem"/>. Three carries come back, one per owner of the flight.
+    /// </summary>
+    static (double ExitMph, double LaunchDeg, double SprayDeg, double Carry, double Preview, double Live) SeededSwing(Park park)
+    {
+        var (home, away) = PresetTeams.Pair(Catalog, "rio", "ashlord");
+        var match = new Match(Catalog, away, home, park, innings: 3, seed: 7);
+        Assert.True(match.BeginAtBat(Scenario.Paint, Scenario.Swing, out var hit, out _),
+            "the scripted swing has to put the ball in play");
+        var preview = match.PreviewHit(hit, Scenario.Swing);
+        var live = match.LivePlay;
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly))
+            .Snapshot.Active, "the live ball has to begin");
+        Assert.NotNull(preview.Ball);
+        Assert.NotNull(live.Path);
+        return (hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg,
+            hit.CarryFt, preview.Ball!.LandingDist, BallFlight.FirstLandingDist(live.Path!));
+    }
+
+    /// <summary>
+    /// The rules table a <see cref="Match"/>'s resolver was built on. Read by reflection because a resolver
+    /// keeps its table to itself; the field is asserted present by name, so a rename fails this row loudly
+    /// instead of quietly passing on a null.
+    /// </summary>
+    static RulesTable TableOf(Match match, string resolverField)
+    {
+        var resolver = Private(match, resolverField);
+        return Assert.IsType<RulesTable>(Private(resolver, "_rules"));
+    }
+
+    static object Private(object owner, string name)
+    {
+        var field = owner.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.True(field is not null, $"{owner.GetType().Name} has no '{name}' field; this row must follow the rename");
+        var value = field!.GetValue(owner);
+        Assert.NotNull(value);
+        return value!;
+    }
 
     /// <summary>The angle the ball left the plate at, read off the first step of the path.</summary>
     static double LaunchOf(IReadOnlyList<Sample> samples)
