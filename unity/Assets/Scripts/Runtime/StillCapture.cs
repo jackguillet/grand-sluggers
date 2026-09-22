@@ -239,6 +239,21 @@ namespace GrandSluggers.UnityClient
             Night = night;
         }
 
+        /// <summary>
+        /// Cuts to a named park shot (F7-b1, #882) on the park this still captures. The pose is
+        /// the sim's (<see cref="StillShots.Frame"/>), from the park's own pole, fence and rail;
+        /// the rail is the edge <see cref="HarborWall"/> draws, <see cref="ParkBoundary.Default"/>.
+        /// The client holds no Vector3 of its own.
+        /// </summary>
+        void CutParkShot(ParkShot row)
+        {
+            var pose = StillShots.Frame(row, _match.Park, ParkBoundary.Default);
+            _cam.CutRaw(pose.Id,
+                new Vector3((float)pose.Pos.X, (float)pose.Pos.Y, (float)pose.Pos.Z),
+                new Vector3((float)pose.Target.X, (float)pose.Target.Y, (float)pose.Target.Z),
+                (float)pose.Fov);
+        }
+
         internal void GateStage(string shot, StillRequest req)
         {
             _gateSwingHand = null;
@@ -276,6 +291,18 @@ namespace GrandSluggers.UnityClient
                 _turntable = true;
                 _logo?.Hide();
                 _card?.Hide();
+                return;
+            }
+
+            if (_content.Shots.TryGetPark(shot, out var parkShot))
+            {
+                // A named park shot (F7-b): the field view the `field` cut stages, with no
+                // bodies or ball in the way, and a pose computed from the park being captured.
+                if (_match == null) _match = NewMatch();
+                _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
+                _phase = Phase.Field;
+                CutParkShot(parkShot);
+                _gateHold = true;
                 return;
             }
 
@@ -769,6 +796,12 @@ namespace GrandSluggers.UnityClient
             if (shot == "field")
             {
                 _cam.Cut("field");
+                return;
+            }
+
+            if (_content.Shots.TryGetPark(shot, out var parkShot))
+            {
+                CutParkShot(parkShot);
                 return;
             }
 
