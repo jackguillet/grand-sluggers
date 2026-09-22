@@ -263,7 +263,7 @@ public static class BallFlight
         var g = gravity;
         var nx = x + vx * dt;
         var nz = z + vz * dt;
-        var ny = y;
+        double ny;
         if (air)
         {
             vy -= g * dt;
