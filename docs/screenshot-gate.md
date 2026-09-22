@@ -241,7 +241,7 @@ Play **skips the top**. You do not have to get three outs. `Match.SkipToHomeHalf
 
 Dolphin stays compare-only. Agents do not send keys into a live Super Sluggers session.
 
-Shell: `tools/still-gate.sh` writes the request and clicks **Grand Sluggers → Capture Still Gate** (not Cmd+P). PNGs: `unity/Temp/gs-stills/`.
+Shell: `tools/still-gate.sh` writes the request and clicks **Grand Sluggers → Capture Still Gate** (not Cmd+P). It clicks the editor that is open on its own worktree, by PID. It holds the machine-wide GUI Unity lock until the capture is done ([editor-startup.md](editor-startup.md)). PNGs: `unity/Temp/gs-stills/`.
 
 ### Another park, and night (#829)
 
