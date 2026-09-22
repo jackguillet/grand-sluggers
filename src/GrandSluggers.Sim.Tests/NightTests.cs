@@ -73,13 +73,17 @@ public class NightTests
     public void FunfairNightChompersEatOutfieldFlies()
     {
         var park = _content.Parks["funfair-park"];
-        Assert.False(ParkHazards.ChompFly(park, false, 0, 228));
-        Assert.True(ParkHazards.ChompFly(park, true, 0, 228));
+        // The mouths are park data since #847, so the C80 copy carries them at the field's scale:
+        // the centre one is at (0, 228) r 18 shipped and (0, 160) r 12.60 on the trial.
+        var mouthZ = TestRoot.Pick(228.0, 160.0);
+        Assert.Equal(mouthZ, park.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C").Z);
+        Assert.False(ParkHazards.ChompFly(park, false, 0, mouthZ));
+        Assert.True(ParkHazards.ChompFly(park, true, 0, mouthZ));
         Assert.False(ParkHazards.ChompFly(park, true, 0, 0));
-        Assert.False(ParkHazards.ChompFly(park, true, 0, 228, grounder: true));
-        Assert.False(ParkHazards.ChompFly(_content.Parks["harbor-diamond"], true, 0, 228));
+        Assert.False(ParkHazards.ChompFly(park, true, 0, mouthZ, grounder: true));
+        Assert.False(ParkHazards.ChompFly(_content.Parks["harbor-diamond"], true, 0, mouthZ));
 
-        var hit = FlightFixtures.Landing(park, 228, 22, 0);
+        var hit = FlightFixtures.Landing(park, mouthZ, 22, 0);
         var spark = PresetTeams.SparkAllStars(_content);
         var fielding = new FieldingResolver(_content.Chemistry);
         var day = fielding.Resolve(hit, park, spark.Roster, spark.Captain, new Random(1));

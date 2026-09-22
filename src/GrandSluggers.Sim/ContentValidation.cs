@@ -18,12 +18,6 @@ public static class ContentDataValidator
     };
     public static IReadOnlyCollection<string> TutorialFieldAbilities => FieldAbilityIds;
 
-    static readonly HashSet<string> HazardTypes = new(StringComparer.Ordinal)
-    {
-        "ac_unit", "barrel", "billboard", "climb_wall", "fire_breath",
-        "freeze_volume", "lava_pit", "statue", "train", "tree", "warp_pipe"
-    };
-
     /// <summary>
     /// The thickest air a park may name, as a multiple of the root's <c>flight.drag</c> (§0.3 FD-03).
     /// A sane envelope for a schema that no park uses yet — the compact trial's own drag is about 2.1×
@@ -240,8 +234,12 @@ public static class ContentDataValidator
 
         foreach (var row in data.Characters)
             ValidateCharacter(row, pitches, swings, errors);
+        // The hazard type set is the library's table, not a list this file keeps (FD-09, FR-02).
+        // A rules table that failed to load has already reported itself; fall back to the code rows
+        // so a park's own mistakes are still named in the same pass.
+        var hazards = data.Rules?.Hazards ?? RulesTable.Defaults.Hazards;
         foreach (var row in data.Parks)
-            ValidatePark(row, errors);
+            ValidatePark(row, hazards, errors);
         UniquePerPark("pickOrder", data.Parks.Where(r => r.Value.PickOrder is not null)
             .Select(r => (r.Value.PickOrder!.Value.ToString(), r.Source)), errors);
         UniquePerPark("faction", data.Parks
@@ -414,7 +412,7 @@ public static class ContentDataValidator
                 + "the two ordinary pitches beside the fastball are different families");
     }
 
-    static void ValidatePark(Sourced<ParkDto> row, List<string> errors)
+    static void ValidatePark(Sourced<ParkDto> row, HazardRules hazards, List<string> errors)
     {
         var p = row.Value;
         Required(row.Source, "park", p.Id, "id", p.Id, errors);
@@ -450,11 +448,27 @@ public static class ContentDataValidator
                 errors.Add($"{row.Source}: {where} must be an object; got null");
                 continue;
             }
-            Known(row.Source, where + " type", h.Type, HazardTypes, errors);
             Finite(row.Source, where + " x", h.X, errors);
             Finite(row.Source, where + " z", h.Z, errors);
             NonNegative(row.Source, where + " radius", h.Radius, errors);
-            if (!string.Equals(h.Type, "train", StringComparison.Ordinal) && h.Radius == 0)
+            // The set of types is derived from the hazard library's table (SF-03, FD-09): an id
+            // outside the library and an id inside it with no authored row are different mistakes,
+            // and each is named for what it is.
+            if (!HazardType.IsKnown(h.Type))
+            {
+                errors.Add($"{row.Source}: {where} type must be one of "
+                    + $"[{string.Join(", ", hazards.Authored.OrderBy(x => x, StringComparer.Ordinal))}]; got '{h.Type}'");
+                continue;
+            }
+            if (!hazards.IsAuthored(h.Type))
+            {
+                errors.Add($"{row.Source}: {where} type '{h.Type}' is in the library but has no authored row "
+                    + "in hazards.json; every hazard type a park may name carries a row (FD-09)");
+                continue;
+            }
+            // A disc that acts needs a disc. A decoration is drawn and never played, so it may have
+            // none at all — which is why Funfair's boxcar no longer needs a special case by name.
+            if (h.Radius == 0 && hazards.Of(h.Type).Pattern != HazardPattern.Decoration)
                 errors.Add($"{row.Source}: {where} radius must be greater than 0; got {h.Radius}");
         }
     }

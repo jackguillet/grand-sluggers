@@ -202,9 +202,16 @@ public sealed class ParkSchemaTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// One default, named once (D21). The two exceptions are named with the child that owns them, so
-    /// this row goes green again only when that child has moved its literal into data — not because
-    /// somebody widened the allowance. The Unity half of SF-04 is F6-c's.
+    /// One default, named once (D21). The remaining exception is named with the child that owns it,
+    /// so this row goes green again only when that child has moved its literal into data — not
+    /// because somebody widened the allowance. The Unity half of SF-04 is F6-c's.
+    ///
+    /// <para>
+    /// <b>#847 removed the first of the two.</b> <c>ParkHazards.ChompFly</c> gated Funfair's chompers
+    /// on <c>park.Id != "funfair-park"</c>; the mouths are three <c>chomper</c> rows in
+    /// <c>data/parks/funfair-park.json</c> now and the dispatch reads the hazard library's pattern,
+    /// so <c>Fielding.cs</c> names no park at all. <c>CarnivalFront</c>'s per-id copy is F8-a's.
+    /// </para>
     /// </summary>
     [Fact]
     public void SF04_TheOnlyParkIdLiteralInSimRuleCodeIsTheOneDefault()
@@ -223,16 +230,14 @@ public sealed class ParkSchemaTests
                     found.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
         }
 
-        // ParkHazards.ChompFly still gates Funfair's chompers on the park id; the pattern library (F4-a)
-        // owns moving them into data. CarnivalFront still carries a copy line per park id; the field card
-        // (F8-a) owns it. Neither is this child's, and neither may grow.
-        var chompers = found.Where(l => l.StartsWith("Fielding.cs:", StringComparison.Ordinal)).ToList();
+        // CarnivalFront still carries a copy line per park id; the field card (F8-a) owns it. It is
+        // not this child's, and it may not grow. Fielding.cs is no longer on this list: F4-a (#847)
+        // moved the chompers into park data and the dispatch onto the hazard library's patterns.
+        Assert.DoesNotContain(found, l => l.StartsWith("Fielding.cs:", StringComparison.Ordinal));
         var copy = found.Where(l => l.StartsWith("CarnivalFront.cs:", StringComparison.Ordinal)).ToList();
-        Assert.Single(chompers);
-        Assert.Contains("funfair-park", chompers[0], StringComparison.Ordinal);
         Assert.Equal(7, copy.Count);
 
-        var rest = found.Except(chompers).Except(copy).ToList();
+        var rest = found.Except(copy).ToList();
         var only = Assert.Single(rest);
         Assert.StartsWith("ExhibitionPick.cs:", only, StringComparison.Ordinal);
         Assert.Contains("public const string DefaultPark = \"harbor-diamond\"", only, StringComparison.Ordinal);

@@ -14,7 +14,7 @@ public sealed class RulesTable
     public const string Directory = "rules";
 
     public static readonly IReadOnlyList<string> Files =
-        ["match", "pitching", "batting", "flight", "infield", "boundary", "fielders", "fielding", "running", "stars", "cpu"];
+        ["match", "pitching", "batting", "flight", "infield", "boundary", "fielders", "fielding", "hazards", "running", "stars", "cpu"];
 
     public MatchRules Match { get; init; } = new();
 
@@ -25,6 +25,10 @@ public sealed class RulesTable
     public BoundaryRules Boundary { get; init; } = new();
     public FielderRules Fielders { get; init; } = new();
     public FieldingRules Fielding { get; init; } = new();
+
+    /// <summary>The closed hazard type library (§14, FD-09): one authored row per type.</summary>
+    public HazardRules Hazards { get; init; } = new();
+
     public RunningRules Running { get; init; } = new();
     public StarRules Stars { get; init; } = new();
     public CpuRules Cpu { get; init; } = new();
@@ -43,7 +47,7 @@ public sealed class RulesTable
         {
             Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight,
             Infield = Infield, Boundary = Boundary, Fielders = Fielders, Fielding = Fielding,
-            Running = Running, Stars = Stars,
+            Hazards = Hazards, Running = Running, Stars = Stars,
             Cpu = Cpu.AtLevel(level)
         };
     }
@@ -64,7 +68,7 @@ public sealed class RulesTable
         {
             Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight.WithEnvironment(env),
             Infield = Infield, Boundary = Boundary, Fielders = Fielders, Fielding = Fielding,
-            Running = Running, Stars = Stars,
+            Hazards = Hazards, Running = Running, Stars = Stars,
             Cpu = Cpu
         };
     }
@@ -98,6 +102,7 @@ public sealed class RulesTable
             Boundary = Read<BoundaryRules>(dataRoot, "boundary", json, errors),
             Fielders = Read<FielderRules>(dataRoot, "fielders", json, errors),
             Fielding = Read<FieldingRules>(dataRoot, "fielding", json, errors),
+            Hazards = Read<HazardRules>(dataRoot, "hazards", json, errors),
             Running = Read<RunningRules>(dataRoot, "running", json, errors),
             Stars = Read<StarRules>(dataRoot, "stars", json, errors),
             Cpu = Read<CpuRules>(dataRoot, "cpu", json, errors)
@@ -231,6 +236,7 @@ public static class RulesValidation
         Walk(table.Boundary, RulesTable.PathFor(root, "boundary"), "boundary", errors);
         Walk(table.Fielders, RulesTable.PathFor(root, "fielders"), "fielders", errors);
         Walk(table.Fielding, RulesTable.PathFor(root, "fielding"), "fielding", errors);
+        Walk(table.Hazards, RulesTable.PathFor(root, "hazards"), "hazards", errors);
         Walk(table.Running, RulesTable.PathFor(root, "running"), "running", errors);
         Walk(table.Stars, RulesTable.PathFor(root, "stars"), "stars", errors);
         Walk(table.Cpu, RulesTable.PathFor(root, "cpu"), "cpu", errors);
@@ -241,6 +247,7 @@ public static class RulesValidation
         table.Fielders.Validate(RulesTable.PathFor(root, "fielders"), errors);
         table.Running.Validate(RulesTable.PathFor(root, "running"), errors);
         table.Fielding.Validate(RulesTable.PathFor(root, "fielding"), errors);
+        table.Hazards.Validate(RulesTable.PathFor(root, "hazards"), errors);
         table.Batting.Validate(RulesTable.PathFor(root, "batting"), errors);
         table.Pitching.Cpu.Validate(RulesTable.PathFor(root, "pitching"), errors);
         table.Pitching.Families.Validate(RulesTable.PathFor(root, "pitching"), errors);
@@ -1939,9 +1946,205 @@ public sealed class HandlingRules
 
 public sealed class ParkHazardRules
 {
-    [Positive] public double EmberNightFireMul { get; init; } = 1.6;
-    public double PipeReachPadFt { get; init; } = 8;
+    /// <summary>
+    /// The one number here that is not a park hazard's: a shell or cask star swing flags a grounder
+    /// warped with no can in the park at all (<c>Fielding.cs</c>). The hazard types' own numbers
+    /// moved to <c>hazards.json</c> with the pattern library (#847).
+    /// </summary>
     [Chance] public double ShellWarpChance { get; init; } = 0.6;
+}
+
+// ---------------------------------------------------------------------------------------
+// hazards.json — the closed hazard type library (§14, §16; FD-09, FR-02, FR-08)
+// ---------------------------------------------------------------------------------------
+
+/// <summary>
+/// One authored row per hazard type (#847). Each row names the <see cref="HazardPattern"/> the sim
+/// runs for that type and carries the numbers that are the type's own. <see cref="ParkHazards"/>
+/// dispatches on the row's pattern, never on a type string, so a type that fits a pattern is a row
+/// here and nothing in the sim (FR-08).
+///
+/// <para>
+/// The shape is the pitch-family library's (D20, <see cref="PitchFamilyTable"/>): named properties
+/// rather than a dictionary, so the reflective validator and the JSON = code parity test both reach
+/// every row; <see cref="Of"/> gives an id in the library with no row and an id outside the library
+/// different messages, and neither one flies.
+/// </para>
+///
+/// <para>
+/// <b>Every number here is the number that shipped.</b> #847 moved <c>fielding.park.emberNightFireMul</c>
+/// (1.6) under <c>fireBreath</c> and <c>fielding.park.pipeReachPadFt</c> (8; 5.6 on <c>trials/c80</c>)
+/// under <c>warpPipe</c> and <c>barrel</c>; it chose neither, and #730 / #732 still own them. What a
+/// status volume costs a body stays <c>fielding.chase.frozenMul</c> — a star swing sets the same slow
+/// and the specials are outside this phase — and the billboard's payout stays <c>stars.gains.billboard</c>.
+/// </para>
+/// </summary>
+public sealed class HazardRules
+{
+    /// <summary>Crystal's freezers: a landing in the disc slows the chase.</summary>
+    public HazardTypeRules FreezeVolume { get; init; } = new() { Pattern = HazardPattern.StatusVolume };
+
+    /// <summary>Ember's lava, the freezer's twin.</summary>
+    public HazardTypeRules LavaPit { get; init; } = new() { Pattern = HazardPattern.StatusVolume };
+
+    /// <summary>Ember's breath: the one volume night widens.</summary>
+    public HazardTypeRules FireBreath { get; init; } = new()
+    {
+        Pattern = HazardPattern.StatusVolume,
+        NightRadiusMul = 1.6
+    };
+
+    /// <summary>Funfair's warp cans: a grounder that enters one comes out of another.</summary>
+    public HazardTypeRules WarpPipe { get; init; } = new()
+    {
+        Pattern = HazardPattern.BallRedirect,
+        ReachPadFt = 8
+    };
+
+    /// <summary>Canopy's barrel cannons, the warp can's twin.</summary>
+    public HazardTypeRules Barrel { get; init; } = new()
+    {
+        Pattern = HazardPattern.BallRedirect,
+        ReachPadFt = 8
+    };
+
+    /// <summary>Rooftop's star signs: a landing on one pays the batting team.</summary>
+    public HazardTypeRules Billboard { get; init; } = new() { Pattern = HazardPattern.RewardTarget };
+
+    /// <summary>Canopy's climbable wall: a Clamber fielder's reach and rob.</summary>
+    public HazardTypeRules ClimbWall { get; init; } = new() { Pattern = HazardPattern.WallTrait };
+
+    /// <summary>Funfair's mouths: at night a fly that lands in one is an out with no glove.</summary>
+    public HazardTypeRules Chomper { get; init; } = new()
+    {
+        Pattern = HazardPattern.CatchStealer,
+        NightOnly = true
+    };
+
+    /// <summary>Ember's captain statue. Drawn, never played.</summary>
+    public HazardTypeRules Statue { get; init; } = new() { Pattern = HazardPattern.Decoration };
+
+    /// <summary>Funfair's boxcar. Drawn, never played; the timed mover is F4-f's.</summary>
+    public HazardTypeRules Train { get; init; } = new() { Pattern = HazardPattern.Decoration };
+
+    /// <summary>Rooftop's air-conditioning units. Drawn, never played; the solid body is F4-g's.</summary>
+    public HazardTypeRules AcUnit { get; init; } = new() { Pattern = HazardPattern.Decoration };
+
+    /// <summary>Canopy's trees. Drawn, never played; the solid body is F4-g's.</summary>
+    public HazardTypeRules Tree { get; init; } = new() { Pattern = HazardPattern.Decoration };
+
+    /// <summary>
+    /// This table's row for a library id, or null when the data does not author one. Not public:
+    /// callers ask <see cref="IsAuthored"/> or take <see cref="Of"/>'s named stop, so an unauthored
+    /// type can never be read as a missing-but-harmless nothing (FR-02).
+    /// </summary>
+    HazardTypeRules? Named(string? type) => type switch
+    {
+        HazardType.FreezeVolume => FreezeVolume,
+        HazardType.LavaPit => LavaPit,
+        HazardType.FireBreath => FireBreath,
+        HazardType.WarpPipe => WarpPipe,
+        HazardType.Barrel => Barrel,
+        HazardType.Billboard => Billboard,
+        HazardType.ClimbWall => ClimbWall,
+        HazardType.Chomper => Chomper,
+        HazardType.Statue => Statue,
+        HazardType.Train => Train,
+        HazardType.AcUnit => AcUnit,
+        HazardType.Tree => Tree,
+        _ => null
+    };
+
+    /// <summary>True for a library id <b>this table</b> has a row for.</summary>
+    public bool IsAuthored(string? type) => Named(type) is not null;
+
+    IReadOnlyList<string>? _authored;
+
+    /// <summary>
+    /// The authored ids in library order (<see cref="HazardType.All"/>). Built once per table and
+    /// then handed out: the park validator asks for it on every load. A table is never mutated after
+    /// it loads, so the answer cannot go stale.
+    /// </summary>
+    public IReadOnlyList<string> Authored => _authored ??= HazardType.All.Where(IsAuthored).ToList();
+
+    /// <summary>
+    /// The row for a hazard type. A library id with no row and an id that is not in the library are
+    /// different mistakes and get different messages; neither one flies (SF-03).
+    /// </summary>
+    public HazardTypeRules Of(string? type)
+    {
+        if (Named(type) is { } row) return row;
+        if (HazardType.IsKnown(type))
+            throw new InvalidOperationException(
+                $"hazard type '{type}' is in the library but has no authored row in hazards.json; "
+                + "every type a park may name carries a row (FD-09, FR-02). Authored: " + string.Join(", ", Authored));
+        throw new ArgumentException(
+            $"'{type}' is not a hazard type. The library is [{string.Join(", ", HazardType.All)}] (HazardType).",
+            nameof(type));
+    }
+
+    /// <summary>
+    /// The rules across a row's fields the attributes cannot say, checked on every library id:
+    /// <list type="bullet">
+    /// <item>Every type in the library has a row. A type a park may name with nothing behind it would
+    /// load and then throw at the first ball that reached it (FR-02).</item>
+    /// <item>The pattern is one the sim implements. An unknown pattern is a type that silently does
+    /// nothing, which is exactly what <see cref="HazardPattern.Decoration"/> exists to say out loud.</item>
+    /// <item>A number that its pattern never reads is a dead rule, the way a sweep with no start is
+    /// (#818): only a <c>statusVolume</c> widens at night, and only a <c>ballRedirect</c> has a reach pad.</item>
+    /// </list>
+    /// </summary>
+    internal void Validate(string source, List<string> errors)
+    {
+        foreach (var type in HazardType.All)
+        {
+            var key = "hazards." + HazardType.Key(type);
+            if (Named(type) is not { } row)
+            {
+                errors.Add($"{source}: {key} is in the library but has no authored row; "
+                           + $"every hazard type carries a row (FD-09). Authored: {string.Join(", ", Authored)}");
+                continue;
+            }
+            if (!HazardPattern.IsKnown(row.Pattern))
+            {
+                errors.Add($"{source}: {key}.pattern must be one of [{string.Join(", ", HazardPattern.All)}]; "
+                           + $"got '{row.Pattern}'");
+                continue;
+            }
+            if (row.NightRadiusMul != 1 && row.Pattern != HazardPattern.StatusVolume)
+                errors.Add($"{source}: {key}.nightRadiusMul is {row.NightRadiusMul}, but only a "
+                           + $"{HazardPattern.StatusVolume} widens at night; give the row that pattern or set it to 1");
+            if (row.ReachPadFt != 0 && row.Pattern != HazardPattern.BallRedirect)
+                errors.Add($"{source}: {key}.reachPadFt is {row.ReachPadFt}, but only a "
+                           + $"{HazardPattern.BallRedirect} has a reach pad; give the row that pattern or set it to 0");
+        }
+    }
+}
+
+/// <summary>
+/// One hazard type's row (§14, §16). The defaults are an inert drawn prop — the honest answer for a
+/// type whose pattern nobody has built — so a row that omits a field reads as scenery rather than as
+/// a broken volume.
+/// </summary>
+public sealed class HazardTypeRules
+{
+    /// <summary>Which of <see cref="HazardPattern"/> the sim runs for this type.</summary>
+    public string Pattern { get; init; } = HazardPattern.Decoration;
+
+    /// <summary>
+    /// A <c>statusVolume</c>'s disc at night, as a multiple of the radius the park authored. 1 is a
+    /// disc night does not widen, which is every volume but Ember's breath.
+    /// </summary>
+    [Positive] public double NightRadiusMul { get; init; } = 1;
+
+    /// <summary>
+    /// How far outside its own radius a <c>ballRedirect</c> still takes a grounder. The pad is the
+    /// larger part of the capture disc (#732), not a rounding allowance.
+    /// </summary>
+    public double ReachPadFt { get; init; }
+
+    /// <summary>True for a type that acts only at night. A day game plays as if it were not there.</summary>
+    public bool NightOnly { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------
