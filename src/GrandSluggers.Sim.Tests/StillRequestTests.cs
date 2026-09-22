@@ -6,6 +6,8 @@ namespace GrandSluggers.Sim.Tests;
 
 public class StillRequestTests
 {
+    readonly ContentCatalog _content = ContentCatalog.Load();
+
     [Fact]
     public void ExternalRequestMustExistAndPassTheSameParserBeforeStaging()
     {
@@ -17,12 +19,12 @@ public class StillRequestTests
             const string json = """{"shots":["plate","pitch","char-pose"],"home":"fenn","away":"rio"}""";
             File.WriteAllText(path, json);
 
-            Assert.Equal(json, StillRequest.ReadValidatedJsonFile(path));
+            Assert.Equal(json, StillRequest.ReadValidatedJsonFile(path, _content));
 
             File.WriteAllText(path, """{"shots":["not-a-shot"]}""");
-            Assert.Throws<InvalidDataException>(() => StillRequest.ReadValidatedJsonFile(path));
+            Assert.Throws<InvalidDataException>(() => StillRequest.ReadValidatedJsonFile(path, _content));
             Assert.Throws<FileNotFoundException>(() =>
-                StillRequest.ReadValidatedJsonFile(Path.Combine(root, "missing.json")));
+                StillRequest.ReadValidatedJsonFile(Path.Combine(root, "missing.json"), _content));
         }
         finally
         {
@@ -130,26 +132,30 @@ public class StillRequestTests
     [Fact]
     public void ParkAndNightAreAbsentByDefaultAndResolveToTheDefaultParkInDaylight()
     {
-        var req = StillRequest.Parse("{}");
+        var req = StillRequest.Parse("{}", _content);
         Assert.Null(req.Park);
         Assert.False(req.Night);
-        Assert.Equal(ExhibitionPick.DefaultPark, req.ResolvedPark());
-        Assert.Equal(ExhibitionPick.DefaultPark, StillRequest.Parse("""{"park":"   "}""").ResolvedPark());
-        Assert.Equal(ExhibitionPick.DefaultPark, StillRequest.Parse("""{"park":null}""").ResolvedPark());
+        Assert.Equal(ExhibitionPick.DefaultPark, req.ResolvedPark(_content));
+        Assert.Equal(ExhibitionPick.DefaultPark, StillRequest.Parse("""{"park":"   "}""", _content).ResolvedPark(_content));
+        Assert.Equal(ExhibitionPick.DefaultPark, StillRequest.Parse("""{"park":null}""", _content).ResolvedPark(_content));
     }
 
+    /// <summary>The park comes from the catalog, not a list in code (#820, FR-04).</summary>
     [Fact]
     public void ParkResolvesLikeHomeAndAnUnknownParkIsRefusedByName()
     {
-        var req = StillRequest.Parse("""{"shots":["plate"],"park":"  Crystal-Rink  ","night":true}""");
-        Assert.Equal("crystal-rink", req.ResolvedPark());
+        var req = StillRequest.Parse("""{"shots":["plate"],"park":"  Crystal-Rink  ","night":true}""", _content);
+        Assert.Equal("crystal-rink", req.ResolvedPark(_content));
         Assert.True(req.Night);
-        Assert.Contains("crystal-rink", ExhibitionPick.Parks);
+        Assert.Contains("crystal-rink", _content.ParkPickOrder);
+        foreach (var id in _content.ParkPickOrder)
+            Assert.Equal(id, StillRequest.Parse($$"""{"park":"{{id.ToUpperInvariant()}}"}""", _content).ResolvedPark(_content));
 
         var unknown = Assert.Throws<InvalidDataException>(() =>
-            StillRequest.Parse("""{"shots":["plate"],"park":"grand-canyon"}"""));
+            StillRequest.Parse("""{"shots":["plate"],"park":"grand-canyon"}""", _content));
         Assert.Contains("not allowed", unknown.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("grand-canyon", unknown.Message);
+        Assert.Contains(ExhibitionPick.DefaultPark, unknown.Message);
 
         var root = Path.Combine(Path.GetTempPath(), "gs-still-park-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
@@ -157,7 +163,11 @@ public class StillRequestTests
         {
             var path = Path.Combine(root, "park.json");
             File.WriteAllText(path, """{"shots":["plate"],"park":"grand-canyon"}""");
-            Assert.Throws<InvalidDataException>(() => StillRequest.ReadValidatedJsonFile(path));
+            // The editor menu passes the window's catalog, so a typo is refused
+            // before Play stages the request, the way an unknown shot is.
+            var refused = Assert.Throws<InvalidDataException>(() =>
+                StillRequest.ReadValidatedJsonFile(path, _content));
+            Assert.Contains("grand-canyon", refused.Message);
         }
         finally
         {
@@ -169,11 +179,11 @@ public class StillRequestTests
     public void AParkAndNightRequestRoundTripsThroughJson()
     {
         const string json = """{"shots":["plate","mound"],"home":"vale","park":"ember-keep","night":true}""";
-        var req = StillRequest.Parse(json);
+        var req = StillRequest.Parse(json, _content);
         var written = JsonSerializer.Serialize(req);
-        var back = StillRequest.Parse(written);
+        var back = StillRequest.Parse(written, _content);
 
-        Assert.Equal("ember-keep", back.ResolvedPark());
+        Assert.Equal("ember-keep", back.ResolvedPark(_content));
         Assert.True(back.Night);
         Assert.Equal(req.ResolvedShots(), back.ResolvedShots());
         Assert.Equal("vale", back.ResolvedHome());
@@ -218,7 +228,7 @@ public class StillRequestTests
     [Fact]
     public void StillGateScriptWritesTodaysRequestUntilAFlagNamesAPark()
     {
-        var repo = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
+        var repo = Path.GetFullPath(Path.Combine(_content.Root.Shipped, ".."));
         var script = File.ReadAllText(Path.Combine(repo, "tools", "still-gate.sh"));
         const string today = """{"shots":["title","select","lineup","plate","pitch","mound","diamond-grounder","smash"],"home":"rio","away":"ashlord","hudOff":true,"charge01":1,"width":1920,"height":1080}""";
 
@@ -229,9 +239,9 @@ public class StillRequestTests
         Assert.Contains("\\\"park\\\":\\\"$park\\\"", script);
         Assert.Contains("\\\"night\\\":true", script);
 
-        var req = StillRequest.Parse(today);
+        var req = StillRequest.Parse(today, _content);
         Assert.Equal(StillRequest.DefaultShots, req.ResolvedShots());
-        Assert.Equal(ExhibitionPick.DefaultPark, req.ResolvedPark());
+        Assert.Equal(ExhibitionPick.DefaultPark, req.ResolvedPark(_content));
         Assert.False(req.Night);
         Assert.Equal("rio", req.ResolvedHome());
         Assert.Equal("ashlord", req.ResolvedAway());
@@ -241,8 +251,8 @@ public class StillRequestTests
         Assert.Equal(1, req.Charge01);
         // What the flags compose, read back through the parser.
         var flagged = StillRequest.Parse(
-            today[..^1] + ",\"park\":\"crystal-rink\",\"night\":true}");
-        Assert.Equal("crystal-rink", flagged.ResolvedPark());
+            today[..^1] + ",\"park\":\"crystal-rink\",\"night\":true}", _content);
+        Assert.Equal("crystal-rink", flagged.ResolvedPark(_content));
         Assert.True(flagged.Night);
         Assert.Equal(req.ResolvedShots(), flagged.ResolvedShots());
     }

@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
     --night) night=1; shift ;;
     --help|-h)
       echo "usage: tools/still-gate.sh [--park <id>] [--night]"
-      echo "park ids: the catalog in ExhibitionPick.Parks. No --park is the default park."
+      echo "park ids: the park files in data/parks (the catalog). No --park is the default park."
       echo "PR stills: $dest/{shot}.png ({shot}-{park}.png, {shot}-{park}-night.png away from the default park)"
       exit 0
       ;;
