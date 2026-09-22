@@ -275,9 +275,29 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/838",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/840",
           "status": "merged"
+        },
+        {
+          "child": "F3-c",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/856",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/869",
+          "status": "in review"
         }
       ],
-      "validation_evidence": [],
+      "validation_evidence": [
+        {
+          "child": "F3-c",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/856",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/869",
+          "kind": "parity and fixture scenarios (no number accepted)",
+          "tests": [
+            "GroundReadTests.SF12_TheSameCaromFollowsThePaddedRowOfEachTable",
+            "GroundReadTests.TheOpenFieldStandsOnGrassAndOnlyOnGrass",
+            "GroundLibraryTests.TheWallRowIsTodaysNumber",
+            "ParkEnvironmentTests.AMatchOnAParkThatNamesAirPlaysThatAir"
+          ],
+          "summary": "Roll friction, rest speed, bounce and the wall carom are the ball's environment read from the ground and wall-material rows, not flight.json: flight.roll / bounce / skid / wall retired on both roots; the carom reads the padded row of the segment's material (WallMaterial.OfSegment, padded for every segment until F2-c); gravity, drag, the wind and the time scales stay the flight table's. The open field names grass."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -425,9 +445,34 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/846",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/850",
           "status": "merged"
+        },
+        {
+          "child": "F3-c",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/856",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/869",
+          "status": "in review"
         }
       ],
-      "validation_evidence": [],
+      "validation_evidence": [
+        {
+          "child": "F3-c",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/856",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/869",
+          "kind": "parity and fixture scenarios (no number accepted)",
+          "tests": [
+            "GroundReadTests.EqualRowsFlyThePreMovePathBitForBitInEveryPark",
+            "GroundReadTests.EqualRowsFlyThePreMoveOpenFieldAndContinuedPaths",
+            "GroundReadTests.EqualRowsRollTheLooseBallsThePreMoveWayBitForBit",
+            "GroundReadTests.SF10_TheSameFlyCarriesTheSameAndHopsOffTheRowItLandsOn",
+            "GroundReadTests.SF11_TheSameGrounderRollsFartherOnTheSlickerOutfieldAndChangesItsLossAtTheLip",
+            "GroundReadTests.SF14_TheBattedRollTheOverthrowAndTheBobbleReadTheRowOfTheSamePoint",
+            "GroundReadTests.AGroundWithNoRowStopsTheBallAndTheRowsAreTheHandedTables",
+            "GroundLibraryTests.EveryGroundRowIsTodaysNumberFieldForField",
+            "GroundLibraryTests.TheFlightAndTheLooseBallReadTheRowsAndNoCopyRemains"
+          ],
+          "summary": "The batted ball (every roll step, every bounce, the skid band judged against the row under the bounce), the overthrow and the local bobble read the row of the zone the ball is in through GroundZones.RowAt, on both roots; with the shipped (equal) rows every path and every loose-ball tick is the pre-move one to the bit, and on a fixture root with unequal rows SF-10 (zone half), SF-11 and SF-14 hold. seed 7 and the park-factors table (day and night, both roots) identical before and after."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -2050,6 +2095,10 @@
     {
       "date": "2026-09-22",
       "event": "F4-e opened as PR #867 (#862): the hazard placement validator (SF-23) and the FD-19-R1 moves. The content validator now refuses a hazard whose own disc crosses a running lane, the mound-to-plate lane, a bag pad, the mound or the plate area, measured on each root's own infield.json with the existing ParkDiamond path width, pads, mound and home pad; it refused exactly the eight map-Q1 volumes before the move and nothing after. The five shipped rows behind them moved outward along their own bearings to the smallest whole-foot place that clears both roots, sizes kept, and the trial rows are the accepted migration of the moved rows, so CompactGeometryTests holds unedited. The two first-base-side rows crossed the lane from the infield side, so an outward-only move carries them about 25 ft, past the lane. Crystal and Ember play moved on both roots and was re-reported, not tuned; seed 7 and the other four parks are unchanged. Two TrialOverlayTests fixtures that moved the bags to 80 ft under the shipped parks were re-authored to keep the shipped bags, because SF-23 refuses that root (Canopy's barrel lands on the lane); the refusal is itself a test. Stored trace identity SHAs were not regenerated: they were already stale for every park on main and no test reads them. No decision status changed; no number accepted; no human gate."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F3-c opened as PR #869 (#856): the ball and the loose-ball models read the ground zone under them, at parity. Every roll step of the batted ball reads roll from the row of the zone it starts in and every bounce reads bounce or skid from the row at the bounce point, the skid band judged against that row (the launch is the ball's, the band the ground's); the carom reads the row of the segment's wall material through WallMaterial.OfSegment, padded for every segment until F2-c; GroundZones.RowAt is the one lookup F3-d shares. The open field names grass (BallFlight.OpenFieldGround). The overthrow and the local bobble read the same row each tick through BallFlight.OverthrowTick and LocalBobbleTick, which TickLooseBall and TickLocalBobble call; their ground numbers moved into every ground row at today's values (overthrow.decelFtPerSec2 18; bobble.restitution / groundRetain / decelFtPerSec2 0.35 / 0.90 / 6), and flight.roll / bounce / skid / wall and the four fielding keys left FlightRules, FieldingRules and both roots' flight.json and fielding.json. No value changed and no sealed packet read a retired key by name, so the stop condition did not fire. GroundReadTests keeps the pre-move integrator and loose-ball ticks verbatim as the expectation: with equal rows every path and tick is the same bits on both roots; SF-10 (zone half), SF-11, SF-12 (material half) and SF-14 hold on a fixture root with unequal rows. F3-b's parity rows now pin every row to the shipped numbers written in the test (FD-05). seed 7 and the park-factors table identical day and night on both roots; the evidence seals moved by source hash only. No decision status changed; no number accepted; no human gate (no player-facing change)."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
