@@ -943,17 +943,17 @@ public sealed class BattingRules
 {
     /// <summary>
     /// Whether the stick at contact shapes an <b>ordinary</b> swing (PH-12 option C, spec §5.3, §5.4).
-    /// <c>false</c> on the shipped root — stick L/R adds <see cref="SprayRules.StickDeg"/> to the
-    /// direction and stick U/D takes <see cref="LaunchRules.StickDeg"/> off the launch, bit for bit
-    /// what shipped. <c>true</c> in <c>trials/pitch5</c>: a swing that is neither a bunt nor a Star
-    /// Swing ignores both aims, so timing, contact position, pitch height and the swing decide the
-    /// flight, and the CPU batter stops drawing the two aims it no longer needs (PH-18). Bunts keep
-    /// the stick until P4-b; Star Swings keep it until Phase 6. The box walk and the SET recenter
-    /// read the same stick and are untouched either way (PH-09).
+    /// <c>true</c> on the shipped root since #883: a swing that is neither a bunt nor a Star Swing
+    /// ignores both aims, so timing, contact position, pitch height and the swing decide the flight,
+    /// and the CPU batter does not draw the two aims it no longer needs (PH-18). Bunts keep the stick
+    /// until P4-b; Star Swings keep it until Phase 6. <c>false</c> is the switch's off path — stick
+    /// L/R adds <see cref="SprayRules.StickDeg"/> to the direction and stick U/D takes
+    /// <see cref="LaunchRules.StickDeg"/> off the launch, bit for bit what played before #883. The box
+    /// walk and the SET recenter read the same stick and are untouched either way (PH-09).
     ///
-    /// Sitting 2 judges the trial; until then the shipped game is the game it was.
+    /// Jack accepted it in the <c>trials/pitch5</c> window on September 22, 2026 ("approve all").
     /// </summary>
-    public bool GeometryOnly { get; init; }
+    public bool GeometryOnly { get; init; } = true;
 
     public ContactWindowRules Window { get; init; } = new();
     public SwingChargeRules Charge { get; init; } = new();

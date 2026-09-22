@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 ///
 /// <b>#860:</b> Jack played the <c>trials/pitch5</c> window and accepted it on September 22, 2026
 /// ("trial was good."), so the switch is <b>on in the shipped data</b> with the trial's weights, and
-/// <c>trials/pitch5</c> no longer carries a <c>pitching.json</c>. The rows that stood on the shipped
+/// <c>trials/pitch5</c> no longer carries a <c>pitching.json</c> (#883 retired the folder). The rows that stood on the shipped
 /// root for the switch-off side now build that side in the test (<see cref="OffPath"/>: the shipped
 /// root with <c>humanInputs</c> false), never by reading shipped data; the on side reads the
 /// shipped root, which now equals the accepted trial.
@@ -20,7 +20,7 @@ namespace GrandSluggers.Sim.Tests;
 /// fails when the CPU does something a hand could not do — aims a height, throws a family its
 /// pitcher does not own, bends further than a held stick reaches — and not when a weight moves.
 ///
-/// The overlay is loaded <b>in process</b> through a <see cref="DataRoot"/> built from the
+/// The shipped root is loaded <b>in process</b> through a <see cref="DataRoot"/> built from the
 /// repository, the way <see cref="PitchFamilyTrialScenarioTests"/> does it, so nothing depends on
 /// <c>GRAND_SLUGGERS_TRIAL</c> and CI is untouched.
 ///
@@ -31,15 +31,15 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class CpuPitcherScenarioTests
 {
-    const string TrialName = "trials/pitch5";
-
     readonly ContentCatalog _shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
 
     string ShippedRoot => _shipped.Root.Shipped;
-    string Repo => Path.GetFullPath(Path.Combine(ShippedRoot, ".."));
-    DataRoot TrialRoot => new(ShippedRoot, Path.Combine(Repo, "trials", "pitch5"));
 
-    ContentCatalog Trial => ContentCatalog.Load(TrialRoot);
+    /// <summary>
+    /// The on side of the switch: the shipped root, which since #860 is the accepted trial (the
+    /// <c>trials/pitch5</c> overlay that once carried it was retired by #883).
+    /// </summary>
+    ContentCatalog Trial => _shipped;
 
     static double CenterY => StrikeZoneGeometry.CenterY;
 
@@ -457,12 +457,9 @@ public sealed class CpuPitcherScenarioTests
     public void S120_TheSwitchIsOffShippedOnInTheTrialAndTheWeightsAreFilteredNotValidatedAgainstTheRoster()
     {
         // (a) The switch, from the files rather than from the code defaults. #860 (Jack, September
-        //     22, 2026: "trial was good."): on in the shipped data, which the pitch5 overlay no longer
-        //     overrides — it carries only the stick trial's batting file (#855).
+        //     22, 2026: "trial was good."): on in the shipped data. The pitch5 overlay that carried it
+        //     is retired (#883).
         Assert.True(_shipped.Rules.Pitching.Cpu.HumanInputs);
-        Assert.True(Trial.Rules.Pitching.Cpu.HumanInputs);
-        Assert.Equal(new[] { "rules/batting.json" }, TrialRoot.Overrides);
-        Assert.Equal(TrialName, TrialRoot.OverlayName);
         Assert.False(ContentCatalog.Load(OffPath()).Rules.Pitching.Cpu.HumanInputs);
 
         // (b) The shipped rows carry the accepted weights: every row weights every family in the

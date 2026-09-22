@@ -1,9 +1,11 @@
 {
-  // #855: whether the stick at contact shapes an ORDINARY swing (PH-12). Off here, so stick L/R adds
-  // spray.stickDeg to the direction and stick U/D takes launch.stickDeg off the launch, as shipped.
-  // On in trials/pitch5, where a swing that is neither a bunt nor a Star Swing ignores both aims and
-  // the CPU batter draws neither. Bunts and Star Swings read the stick either way.
-  "geometryOnly": false,
+  // #855 / #883: whether the stick at contact shapes an ORDINARY swing (PH-12). On: a swing that is
+  // neither a bunt nor a Star Swing ignores both aims, so timing, contact position, pitch height and
+  // the swing decide the flight, and the CPU batter draws neither aim (PH-18). Jack played it in the
+  // trials/pitch5 window and accepted it on September 22, 2026 ("approve all"). Bunts and Star Swings
+  // read the stick either way. False is the switch's off path: stick L/R adds spray.stickDeg to the
+  // direction and stick U/D takes launch.stickDeg off the launch, as played before #883.
+  "geometryOnly": true,
   "window": {
     // #844 / #860: one window for every hitter, both swings and every human rung (PH-10-R1, PH-17).
     // On: "frames" below is the whole window, and slapFrames / chargeFrames / framesPerContact /
