@@ -403,6 +403,17 @@
       "issue": "#823",
       "pr": ""
     }
+,
+    {
+      "id": "book-copy-overflows-the-measured-band",
+      "signature": "A book or controls page that was green fails BookletLayoutTests after a verb's copy changed - 'NxM <page> <scheme> does not fit at 32pt; band=WxH; blocks=...' or '<w>x<h> controls-2 hardware stack' - and always at 1024x768 first, with 1280x800 still passing.",
+      "stage": "sim",
+      "cause": "Every couch page is measured, not counted. BookletLayout.BestFlow reflows a paragraph page into two columns when one does not fit, so an extra paragraph or ~30 more characters can push one column past the band; ControlDiagram.PageCallouts splits the callout list into three fixed pages, so adding a callout can put a fourth two-action card on a page and the stack no longer fits even at BookLineMinPt. HowToPlay.KidLineMax and RoleTables.MaxRows pass while the pixels do not, and the smaller supported window is the one that binds (#825).",
+      "fix": "Fit the copy to the band, do not widen the band or drop the assertion. Measure before writing: ApproxWidth is length * pt * 0.55 and a block is ceil(width/columnW) lines of pt * 1.2, so a paragraph page's budget is a character count you can compute. Replace a row rather than adding one (RoleTables.MaxRows is a page count, not the limit that bites), put a new hardware callout on a lozenge that already exists rather than adding a card, and move copy that will not fit to the spread that owns that verb instead of deleting the rule.",
+      "promoted": "BookletLayoutTests.EveryRenderedPageBodyFitsAtCouchSizeInBothSchemes",
+      "issue": "#825",
+      "pr": "#835"
+    }
 
   ]
 }

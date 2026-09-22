@@ -27,12 +27,20 @@ public class HowToPlayTests
     [Fact]
     public void RetiredVerbsAreGoneFromEverySpread()
     {
-        // D1 / P3: no leads, no lead stick, no lead pips; #563: no pitch-type cycle; D3: no random pickoff.
-        foreach (var retired in new[] { "take a lead", "lead off", "lead-off", "Lead01", "lead pip", "walking lead", "cycle pitch", "cycle fastball", "random pickoff" })
+        // D1 / P3: no leads, no lead stick, no lead pips; D3: no random pickoff.
+        // #563 also banned "cycle pitch" — a post-release trajectory cycle. PH-02-R5 (#825) reuses the
+        // words for a different verb, the pre-charge family cycle, which the book must now teach:
+        // the ban is superseded here and the presence of the new row is asserted below.
+        foreach (var retired in new[] { "take a lead", "lead off", "lead-off", "Lead01", "lead pip", "walking lead", "cycle fastball", "random pickoff" })
             Assert.DoesNotContain(EveryLine, l => l.Contains(retired, StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(RoleTables.Pad.Concat(RoleTables.Keys).SelectMany(b => b.Rows),
             r => r.Verb.Contains("Lead", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("there is no lead"));
+        // PH-02-R5: the verb that replaced the West changeup is on the pitching spread, in both
+        // schemes, and the retired modifier is gone from every spread.
+        Assert.Contains(EveryLine, l => l.Contains("Cycle pitch"));
+        Assert.DoesNotContain(RoleTables.Pad.Concat(RoleTables.Keys).SelectMany(b => b.Rows),
+            r => r.Verb.Equals("Changeup", StringComparison.OrdinalIgnoreCase));
     }
 
     [Theory]
@@ -89,10 +97,14 @@ public class HowToPlayTests
     [Theory]
     [InlineData(InputScheme.Pad)]
     [InlineData(InputScheme.Keys)]
-    public void PitchingSpreadHasChangeupBreakTheVisibleSwapAndThePickoffRule(InputScheme scheme)
+    public void PitchingSpreadHasTheCycleBreakTheVisibleSwapAndThePickoffRule(InputScheme scheme)
     {
         var pitching = RoleTables.Of(scheme).First(b => b.Id == "pitching");
-        Row(pitching, "Changeup");
+        // PH-02-R5 (#825): the pre-charge family cycle replaces the West changeup row.
+        var cycle = Row(pitching, "Cycle pitch");
+        Assert.Contains(scheme == InputScheme.Pad ? "RB" : "Tab", cycle.Press);
+        Assert.Contains("charge", cycle.Press);
+        Assert.Contains("Fastball", cycle.Press);
         Row(pitching, "Break");
         var swap = Row(pitching, "Swap pitcher");
         Assert.Contains("any fielder", swap.Press);

@@ -58,15 +58,15 @@
     },
     {
       "id": "T-P03",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "pitching.03"
       ],
-      "title": "changeup",
+      "title": "changeup by the cycle",
       "category": "pitching",
       "status": "implemented",
-      "issue": 772,
-      "reason": "Headless lesson; standalone learning gate pending",
+      "issue": 825,
+      "reason": "Headless lesson; the RB / Tab cycle is the verb it teaches (#825). Standalone learning gate pending sitting 1",
       "profiles": [
         "shipped",
         "c80"
@@ -76,11 +76,37 @@
       "setup": "T-P03",
       "objective": "changeup-strike",
       "controls": [
-        "control:pitching/Changeup"
+        "control:pitching/Cycle pitch"
       ],
       "tests": [
         "TutorialSessionTests"
       ]
+    },
+    {
+      "id": "T-P10",
+      "revision": 1,
+      "mechanics": [
+        "pitching.10"
+      ],
+      "title": "wrap the cycle to the third pitch",
+      "category": "pitching",
+      "status": "planned",
+      "issue": 825,
+      "reason": "No shipped pitcher has an authored third family, so two presses land back on the fastball and there is no repeatable success to award. Blocked on the trials/pitch5 shapes being accepted (PH-20-R1, sitting 1)",
+      "profiles": [
+        "shipped",
+        "c80"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-P03"
+      ],
+      "setup": "",
+      "objective": "",
+      "controls": [
+        "control:pitching/Cycle pitch"
+      ],
+      "tests": []
     },
     {
       "id": "T-P04",
