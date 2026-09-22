@@ -391,7 +391,7 @@
       "fix": "State a role as two numbers that cannot both be won by inaction - how far it strays before the window (the ride) and how much further it goes after it (the dip) - and before trusting a single-threshold proxy, ask which row would win it by doing nothing. Change the measure, not the proposed number: the number is the thing under judgment.",
       "promoted": "PitchFamilyTrialScenarioTests.S109_TheArcTheRideAndTheFlatOneAreThreeDifferentHeightPaths",
       "issue": "#818",
-      "pr": "#PR"
+      "pr": "#821"
     }
 
   ]
