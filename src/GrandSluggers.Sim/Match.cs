@@ -104,8 +104,12 @@ public sealed class Match
         Innings = innings;
         Seed = seed;
         _rng = new Random(seed);
-        _atBat = new AtBatResolver(content.Chemistry, content.Rules, content.StarSkills);
-        _fielding = new FieldingResolver(content.Chemistry, content.Rules);
+        // Both resolvers play on the match's resolved table (§0.3, FD-03, FR-01), never the catalog's
+        // global one: the at-bat's own flight and the fielding preview are the first ball of a play, so a
+        // park that names its air has to reach them the same way it reaches the live ball's continuation.
+        // The rung comes with it — the preview's CPU reaction lockouts are the ones LivePlaySystem waits.
+        _atBat = new AtBatResolver(content.Chemistry, _rules, content.StarSkills);
+        _fielding = new FieldingResolver(content.Chemistry, _rules);
         LivePlay = new LivePlaySystem(this);
         AwayOrder = away.BattingOrder;
         HomeOrder = home.BattingOrder;
@@ -974,7 +978,7 @@ public sealed class Match
     /// </summary>
     public double SwingWindowFrames(PitchCommand pitch, SwingCommand swing) =>
         AtBatResolver.SwingWindowFrames(Batter, OffenseBat, swing.Charge01,
-            pitch.Star ? Pitcher.StarPitch : null, Park, Night, HumanWindowMul(swing), Content.Rules, Content.StarSkills);
+            pitch.Star ? Pitcher.StarPitch : null, Park, Night, HumanWindowMul(swing), Rules, Content.StarSkills);
 
     /// <summary>The rung widens a pad's window only (cpu.json <c>humanWindowMul</c>); the CPU batter's is the table's.</summary>
     double HumanWindowMul(SwingCommand swing) => swing.Human ? Rules.Cpu.Active.HumanWindowMul : 1;

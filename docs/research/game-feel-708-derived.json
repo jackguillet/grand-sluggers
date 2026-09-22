@@ -137,7 +137,7 @@
     "data/feel/table.json": "52d8ca86d133b5fa050e52f0aa738c3978ddfd4149f4bc128cf7f79323e56e02",
     "src/GrandSluggers.Sim/FieldingPursuit.cs": "c95ca666b6b5de4ac2d71c037c5611f196d15ddba8f8cf64ef3cee553594d947",
     "src/GrandSluggers.Sim/ChemistryTable.cs": "8d02a1d7053a63ce04fd8e8ec57a06b84e771c5e50d3d8c96c3d493cafccaf9f",
-    "src/GrandSluggers.Sim/Match.cs": "4f72063fa19090bc3ea1cddcc43154db829ffc63677c703e9959750100bed554",
+    "src/GrandSluggers.Sim/Match.cs": "0573b61bb6b3aceb81d4e4a66d59abbdbde3d666c496d5175e1b3aca6263483c",
     "src/GrandSluggers.Sim/FieldAbilities.cs": "98f1575b6e8a9f94ef4b040602645b7061d1bb18c02fd942ff5facba566d3680",
     "data/characters/vale.json": "83688765887ad22cfdfe200d400c2c883760f786918e35c69bff80e420c55fba",
     "data/characters/brondo.json": "b9b7a381a0e241e07ad93378b91741417bb8fe04020b5fc44386c3e5f0aed99e",
