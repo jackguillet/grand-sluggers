@@ -943,6 +943,9 @@ public sealed class BattingRules
         RulesValidation.Order(source, "batting.launch.minDeg", Launch.MinDeg, Launch.MaxDeg, errors);
         RulesValidation.Order(source, "batting.window.floorFrames", Window.FloorFrames, Window.ChargeFrames, errors);
         RulesValidation.Order(source, "batting.window.chargeFrames", Window.ChargeFrames, Window.SlapFrames, errors);
+        // The shared window is floored by the same number as the split one, so a table that authors
+        // a window under its own floor is refused whether the switch is on or off (PH-10-R1).
+        RulesValidation.Order(source, "batting.window.floorFrames", Window.FloorFrames, Window.Frames, errors);
         RulesValidation.Order(source, "batting.cursor.perfectFraction", Cursor.PerfectFraction, 1, errors);
     }
 }
@@ -952,9 +955,31 @@ public sealed class BattingRules
 /// × skill, park and the human rung's multipliers, floored. It is centered on the ball's plate time
 /// minus <see cref="LeadSec"/>. Inside the window timing decides direction only; the outermost
 /// (1 − squareFraction) of each half demotes the cursor zone by one tier, never two.
+///
+/// <see cref="Shared"/> picks which of two windows the formula is: off is the split one described
+/// above, on is <see cref="Frames"/> for everyone (PH-10-R1).
 /// </summary>
 public sealed class ContactWindowRules
 {
+    /// <summary>
+    /// One window for every hitter, every swing and every human rung (PH-10-R1, PH-11-R1, PH-15-R7,
+    /// PH-17). <c>false</c> on the shipped root — the split window above is what plays, bit for bit.
+    /// <c>true</c> in <c>trials/pitch5</c>: <see cref="Frames"/> is the window, and
+    /// <see cref="SlapFrames"/>, <see cref="ChargeFrames"/>, <see cref="FramesPerContact"/> and the
+    /// rung's <c>humanWindowMul</c> do not enter it. The Star Pitch multiplier, the park's night
+    /// multiplier and <see cref="FloorFrames"/> apply either way, in the same order.
+    ///
+    /// Sitting 2 judges the trial; until then the shipped game is the game it was.
+    /// </summary>
+    public bool Shared { get; init; }
+
+    /// <summary>
+    /// The one shared window in frames at 60 Hz, total width (PH-10-R1's trial start value, 9).
+    /// Read only when <see cref="Shared"/> is on; the shipped file authors it so the start value is
+    /// written down once, beside the numbers it replaces, rather than living in a trial alone.
+    /// </summary>
+    [Positive] public double Frames { get; init; } = 9.0;
+
     [Positive] public double SlapFrames { get; init; } = 9.0;
     [Positive] public double ChargeFrames { get; init; } = 7.0;
     public double FramesPerContact { get; init; } = 0.4;
