@@ -21,6 +21,17 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 11 | Two diamonds are drawn. Five parks never draw the foul rail the ball hits. | `ParkView.cs:181-273`, `HarborKit.cs:86-99` | F6-a (one diamond for every park) waits for F2-a, because the kit must read the park-neutral boundary. |
 | 12 | `StillRequest` cannot name a park or night. | `StillRequest.cs:15-34` | F7-a is small, has no dependency, and unblocks every later look. |
 
+### Found by the first five children (September 22, 2026)
+
+| # | Finding | Where | Effect |
+| --- | --- | --- | --- |
+| 13 | `HarborWall.HipHeight` was a `float`, so the clip polygon has always stood at `(double)4.2f`. Authoring 4.2 as a table double would have moved the polygon by 2e-7 ft. | `ParkBoundary.RailTopFt`; protocol row `float-const-widens-when-it-moves-into-data` | Every child that moves a `float` literal into data narrows once, named, and pins it (F2-c, F2-d, F3-b). |
+| 14 | `RulesTable` copies list sections by hand; a clean rebase silently dropped F2-a's `Boundary` from `AtPark`, and every test stayed green. | `Rules.cs` `AtLevel` / `AtPark`; protocol row `derived-table-copy-drops-a-section`; a reflection test now asserts every untouched section is the same reference | Any new derived table or new section runs that test. |
+| 15 | The resolved table did not reach the first flight: `AtBatResolver` / `FieldingResolver` are built with `content.Rules`. Inert while no park names air. | `Match.cs:107-108, 977` | F3-a2 (#838). Any park value waits for it. |
+| 16 | Funfair's chompers do nothing on `trials/c80`: the three literal discs sit at 198–228 ft, outside the trial's ×0.70 fences. Crystal at night is 1.34 runs / 1.55 HR against Harbor on the shipped root. | `park-factors` cohort report in PR #834 | Findings, not targets (FD-13). F4-a moves the chompers into data; §5 Q9 covers Crystal's window. |
+| 17 | `tools/game-feel-scale-probes --check` was already stale on `main` before F2-a; it seals `HarborWall.cs` and is #730's, not in CI. | PR #833 | Leave to #730. |
+| 18 | The sibling worktrees share one scratchpad root, so a fixed scratch filename (`pr-body.md`) can be overwritten by another session. | PR #832 | Scratch files carry the PR number. |
+
 ## 2. Rails every child carries
 
 - **Parity first (FR-06).** A rail child changes no behavior. It proves that with seed 7, S-29 and the Harbor cohorts unchanged, and with seals that move by hash only.
@@ -100,13 +111,13 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| **F1-a** #820 | Park files refuse an unknown field, the way rule tables do. Dead fields resolved: `notes` becomes a declared, rule-free member; `nightOnly`, `dayOnly` and the train's `periodSec` are removed from all twelve files (FD-11's night block and F4-f's mover row bring back what a park needs). The park list comes from the catalog, not from a literal in `ExhibitionPick`. The home-park map becomes data: a captain's home park is the park whose `faction` is his, else Harbor, which reproduces `Teams.HomeParkId` exactly. An unknown park id is an error, not Harbor. SF-02, SF-04 (sim half). No behavior change. | FD-01, FR-03, FR-04 | Nothing |
+| **F1-a** #820 ✅ | Park files refuse an unknown field, the way rule tables do. Dead fields resolved: `notes` becomes a declared, rule-free member; `nightOnly`, `dayOnly` and the train's `periodSec` are removed from all twelve files (FD-11's night block and F4-f's mover row bring back what a park needs). The park list comes from the catalog, not from a literal in `ExhibitionPick`. The home-park map becomes data: a captain's home park is the park whose `faction` is his, else Harbor, which reproduces `Teams.HomeParkId` exactly. An unknown park id is an error, not Harbor. SF-02, SF-04 (sim half). No behavior change. | FD-01, FR-03, FR-04 | Nothing |
 
 ### F2 — Geometry owner (Gameplay, then Presentation)
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| F2-a | A park-neutral boundary type. The foul wrap, flare, rail height and backstop move from `HarborWall` literals to data at today's values; `FieldBounds` and the validator stop naming Harbor; the cache key carries every input. SF-08. #732's numbers move but do not change. | FD-07, FR-05 | Nothing |
+| F2-a #826 ✅ | A park-neutral boundary type. The foul wrap, flare, rail height and backstop move from `HarborWall` literals to data at today's values; `FieldBounds` and the validator stop naming Harbor; the cache key carries every input. SF-08. #732's numbers move but do not change. | FD-07, FR-05 | Nothing |
 | F2-b | The drawn wall stops mirroring right field onto left; `HarborWallTests` covers both sides of all six parks. SF-05. | FD-06, D15 | **§5 Q5**: near the pole the drawn rail ramps to the fence while the sim rail stays 4.2 ft. Which is the rule? |
 | F2-c | The polyline fence: optional `fence.points` in FD-12 units, a height per point, a wall material per span; `FenceAt` reads it; the clip polygon keeps the vertices; the track, the poles and the drawn wall follow. The three-post circle is the default. SF-06, SF-07, SF-12. | FD-06, FD-12 | **§5 Q4**: the one-distance-per-bearing guardrail |
 | F2-d | Optional per-park foul parameters and the three outfield starts; the default depth stays the #730 fraction rule. `Diamond.Positions` is process-wide today, so the starts need a match-scoped source. SF-09. | FD-07 | Nothing; values come with a park |
@@ -115,7 +126,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| F3-a | `RulesTable.AtPark(park)` beside `AtLevel`. An optional `environment` block on a park; no park names one. Audit and fix every flight and ground reader that falls back to `Rules.Default`. SF-01. | FD-03, FR-01 | Nothing |
+| F3-a #827 ✅, F3-a2 #838 | `RulesTable.AtPark(park)` beside `AtLevel`. An optional `environment` block on a park; no park names one. Audit and fix every flight and ground reader that falls back to `Rules.Default`. SF-01. | FD-03, FR-01 | Nothing |
 | F3-b | `grounds` and `walls` libraries as named rows (grass, dirt, ice, ash, …; padded, …), every row seeded with today's global numbers. Zones (infield dirt, outfield, track, apron) from existing geometry; `surface` becomes the zone map. SF-03. Behavior-identical. | FD-05, FR-02 | Nothing |
 | F3-c | The flight reads the zone under the ball for roll and bounce, and the span's row for a carom. The overthrow and bobble models read the same row. SF-10, SF-11, SF-12, SF-14 on a fixture root with unequal rows. Shipped rows stay equal, so play is identical. | FD-03, FD-05 | Nothing |
 | F3-d | Body multipliers on a ground row: start, brake, cut-back (response law), slide, overrun. All 1.0. SF-13. | FD-04 B | Nothing. Values come with Crystal (F9-a) |
@@ -138,7 +149,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| F5-a | `cli match --night`, `--hazards off`. `--cohort park-factors` in `RaceCohort`, from `tools/park-factors.py`: predeclared seeds, more than one matchup, both roots, a JSON report. SF-30. A report, not a gate. | FD-02, FD-13, FR-10 | Nothing now. **§5 Q10 / Q11** at tuning time |
+| F5-a #828 ✅ | `cli match --night`. `--cohort park-factors [--table]` in `RaceCohort`: five S-29 pairs both ways, seeds 1–5, day and night, every catalog park, factors against Harbor; `--hazards off` waits for F4-h. SF-30. A report, not a gate. | FD-02, FD-13, FR-10 | Nothing now. **§5 Q10 / Q11** at tuning time |
 
 ### F6 — Field kit (Presentation)
 
@@ -153,7 +164,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| F7-a | `StillRequest` gains `park` and `night`; `tools/still-gate.sh` takes both. | FD-17, FR-14 | Nothing |
+| F7-a #829 ✅ | `StillRequest` gains `park` and `night`; `tools/still-gate.sh` takes both. | FD-17, FR-14 | Nothing |
 | F7-b | A park lane in `dcc-stages.json` and `dual-stills.json` and their validators; named park shots; park rows and a greybox-sitting checklist in `screenshot-gate.md`. `harbor_kit.py` constants pinned by test or read from data. | FD-17 | Nothing |
 
 ### F8 — Legibility (Presentation + Gameplay setup)
@@ -213,5 +224,10 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 | Child | Issue | PR | Merged | Tested revision | Human gate |
 | --- | --- | --- | --- | --- | --- |
 | Foundation: research, maps, register, all 19 directions | #814 | #815 | `4dc31699` | `df08c631`: `portable` CI green; docs and one research tool; `cli art` OK; seed 7 unchanged | none |
-| Spec reconciliation (D21, §0.3, §14, A.10, B.9), doc corrections, this map | #814 | #819 | — | docs only | none |
-| F1-a strict park schema; park list and home-park map from data | #820 | — | — | — | none (no player-facing change) |
+| Spec reconciliation (D21, §0.3, §14, A.10, B.9), doc corrections, this map | #814 | #819 | `f88ee67a` | docs only | none |
+| F1-a strict park schema; park list and home-park map from data | #820 | #831 | `248109da` | `af991e32`: 1838 / 1838, 731 / 731 c80 rows, seals hash-only, seed 7 and park factors identical | none |
+| F2-a park-neutral boundary at parity (`boundary.json`, `ParkBoundary`) | #826 | #833 | `5a4d60f1` | `eb93f639`: 1856 / 1856, 749 / 749, seals hash-only, seed 7 identical; the `float` 4.2 rail kept bit-exact and pinned | none |
+| F7-a `StillRequest` park + night; `still-gate.sh --park --night` | #829 | #830 | `21c00685` | `77936c34`: 1862 / 1862, 749 / 749, no seal moved; validated against the catalog after #820 removed the literal | none (no still captured; a compile is not a still) |
+| F3-a `AtPark`, optional air `environment` block, at parity | #827 | #832 | `ae774c36` | `8255a9fa`: 1879 / 1879, 766 / 766, seals hash-only, seed 7 identical; identity SHAs unmoved (null is not serialised) | none |
+| F5-a `cli match --night`; `park-factors` cohort (a report) | #828 | #834 | `3dcb0528` | `c2733a5e`: 1882 / 1882, 767 / 767, no seal moved; three cohorts byte-identical | none |
+| F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | — | — | — | none |
