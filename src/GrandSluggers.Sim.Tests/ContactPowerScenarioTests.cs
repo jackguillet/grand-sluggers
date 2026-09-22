@@ -194,20 +194,11 @@ public class ContactPowerScenarioTests
             $"loft {sluggerHit.LaunchDeg} on Power 9 vs {sureHit.LaunchDeg} on Power 2");
     }
 
-    [Fact]
-    public void S122_TheTimingWindowFollowsContact_UntilP2bRemovesIt()
-    {
-        // ⚠️ PH-15-R7 gives Contact spatial forgiveness only. The window read below is the timing half
-        // that P2-b removes with the rest of the per-hitter window; it reads Contact until then so
-        // P2-b removes one thing, not two. This row asserts which trait it reads, not that it should.
-        var park = _content.Parks[ExhibitionPick.DefaultPark];
-        var sure = Hitter(contact: 9, power: 2);
-        var slugger = Hitter(contact: 2, power: 9);
-        Assert.True(
-            AtBatResolver.SwingWindowFrames(sure, null, 0, null, park, false, 1, _content.Rules, _content.StarSkills)
-            > AtBatResolver.SwingWindowFrames(slugger, null, 0, null, park, false, 1, _content.Rules, _content.StarSkills),
-            "the window still widens with Contact, and with nothing else");
-    }
+    // The window half of S-122 moved to SharedWindowScenarioTests (#844): it asserted that the
+    // timing window reads Stats.Contact "until P2-b removes it", which is now a claim about the
+    // shipped root only, and it sits beside the rest of the shipped-root half as
+    // S124_TheShippedWindowStillFollowsContact_MovedFromS122. The σ, chase, forced-charge,
+    // archetype and sac-bunt halves below are unchanged.
 
     [Fact]
     public void S122_TheCpuChasesOnContactAndItsTimingSigmaIsContacts()
