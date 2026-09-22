@@ -40,7 +40,7 @@
     "data/rules/batting.json": "afde01a38bf13b1546b05021346664f7ae32fb1bd6f1aba3732f47857d61d878",
     "trials/pitch5/rules/pitching.json": "608cf2fa3661acbb5f7db484711d4139b40e84b52ddf5208298a4ce76bc200ef",
     "tools/pitch-family-probes/PitchFamilyProbes.csproj": "48cc9606851a8083bd83f53457aa3f9311174fd328aa8c6622a67e9f1fec22fa",
-    "tools/pitch-family-probes/Program.cs": "49d60f54d16e013d1403927cd5cdd982ef65a7da7cc019ab40a0e7a467b30f35"
+    "tools/pitch-family-probes/Program.cs": "baffe105730a09a8a7b6f59042c115e12f2fd3e44f0cd6259955ea6fafb12a12"
   },
   "speed": [
     {
@@ -1164,6 +1164,53 @@
           "ovalDistanceAtCrossing": 0.566667
         }
       ]
+    }
+  ],
+  "heights": [
+    {
+      "family": "fastball",
+      "humpAboveChordFt": 0.35,
+      "chordExcursionFt": 0.35,
+      "peakToPlateFt": 3.65,
+      "lateDropFt": 1.796,
+      "straysFromTheFastballEarlyFt": 0,
+      "dipsFromTheFastballLateFt": 0
+    },
+    {
+      "family": "changeup",
+      "humpAboveChordFt": 2.20038,
+      "chordExcursionFt": 2.20038,
+      "peakToPlateFt": 4.55,
+      "lateDropFt": 3.9494,
+      "straysFromTheFastballEarlyFt": 1.31254,
+      "dipsFromTheFastballLateFt": -0.41254
+    },
+    {
+      "family": "curveball",
+      "humpAboveChordFt": 2.24345,
+      "chordExcursionFt": 2.24345,
+      "peakToPlateFt": 4.6798,
+      "lateDropFt": 3.87565,
+      "straysFromTheFastballEarlyFt": 1.40195,
+      "dipsFromTheFastballLateFt": -0.50195
+    },
+    {
+      "family": "slider",
+      "humpAboveChordFt": 0.265003,
+      "chordExcursionFt": 0.265003,
+      "peakToPlateFt": 3.95,
+      "lateDropFt": 1.8425,
+      "straysFromTheFastballEarlyFt": 0.254532,
+      "dipsFromTheFastballLateFt": 0.045467
+    },
+    {
+      "family": "sinker",
+      "humpAboveChordFt": 0.60492,
+      "chordExcursionFt": 0.60492,
+      "peakToPlateFt": 4.2,
+      "lateDropFt": 2.2704,
+      "straysFromTheFastballEarlyFt": 0.075645,
+      "dipsFromTheFastballLateFt": 0.474355
     }
   ],
   "coverage": [

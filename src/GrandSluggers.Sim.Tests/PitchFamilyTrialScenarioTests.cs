@@ -164,13 +164,20 @@ public sealed class PitchFamilyTrialScenarioTests
         var fastball = Heights(PitchFamily.Fastball, rules);
         var paths = PitchFamily.All.ToDictionary(f => f, f => Heights(f, rules), StringComparer.Ordinal);
 
-        // (a) The curveball humps highest — of the whole library, not only of the three. The hump is
-        //     measured against the family's own release-to-crossing chord, so a pitch that simply
-        //     crosses lower does not win by falling.
-        var hump = paths.ToDictionary(p => p.Key, p => AboveChord(p.Value), StringComparer.Ordinal);
+        // (a) The curveball arcs: it carries the library's biggest hump term, and it is the only
+        //     family whose path climbs at all after it leaves the hand. "Farthest above its own
+        //     chord" is deliberately *not* the test — the shipped changeup's extreme hang puts it
+        //     2.20 ft above its chord, a hump by another name, and the curveball only just beats
+        //     that at 2.24 ft. The report says so rather than leaning on the difference.
         foreach (var other in PitchFamily.All.Where(f => f != PitchFamily.Curveball))
-            Assert.True(hump[PitchFamily.Curveball] > hump[other],
-                $"curveball hump {hump[PitchFamily.Curveball]} is not above {other}'s {hump[other]}");
+            Assert.True(rules.Pitching.Families.Of(PitchFamily.Curveball).Hump
+                > rules.Pitching.Families.Of(other).Hump, $"curveball does not hump more than {other}");
+        foreach (var family in PitchFamily.All)
+        {
+            var climbs = paths[family].Max() > paths[family][0];
+            Assert.True(climbs == (family == PitchFamily.Curveball),
+                $"{family} {(climbs ? "climbs" : "does not climb")} out of the hand; only the curveball should");
+        }
 
         // (b) … and travels the farthest up-and-down of any family: peak to crossing.
         var travel = paths.ToDictionary(p => p.Key, p => p.Value.Max() - p.Value[^1], StringComparer.Ordinal);
@@ -468,9 +475,6 @@ public sealed class PitchFamilyTrialScenarioTests
 
     static double Chord(double[] path, int i) =>
         path[0] + (path[^1] - path[0]) * UGrid[i];
-
-    static double AboveChord(double[] path) =>
-        path.Select((h, i) => h - Chord(path, i)).Max();
 
     static JsonObject Parse(string path) =>
         JsonNode.Parse(File.ReadAllText(path), null, JsonComments)!.AsObject();

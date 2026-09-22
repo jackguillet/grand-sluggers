@@ -106,6 +106,32 @@ foreach (var family in library)
             });
         }
 
+// The height path as five numbers per family, which is what the S-109 relationships are asserted
+// on: how far it rides above its own release-to-crossing chord (the arc), how far it travels from
+// its peak down to the plate, what it loses over the last two fifths (the late drop), how far it
+// strays from its chord either way (flatness), and the two halves of "rides the fastball's line
+// then dips" — the most it strays from the fastball's height through the first three quarters, and
+// how much more than that it has left by the plate. One arm: height does not know about the hand.
+var heights = new List<object>();
+var fastballPath = uGrid.Select(u => PitchFlight.Point(PitchFamily.Fastball, u, rules: rules).Y).ToArray();
+foreach (var family in library)
+{
+    var path = uGrid.Select(u => PitchFlight.Point(family, u, rules: rules).Y).ToArray();
+    double Chord(int i) => path[0] + (path[^1] - path[0]) * uGrid[i];
+    var beforeTheDip = uGrid.Length * 3 / 4;
+    var strays = Enumerable.Range(0, beforeTheDip + 1).Max(i => Math.Abs(path[i] - fastballPath[i]));
+    heights.Add(new
+    {
+        family,
+        humpAboveChordFt = R(Enumerable.Range(0, path.Length).Max(i => path[i] - Chord(i))),
+        chordExcursionFt = R(Enumerable.Range(0, path.Length).Max(i => Math.Abs(path[i] - Chord(i)))),
+        peakToPlateFt = R(path.Max() - path[^1]),
+        lateDropFt = R(path[uGrid.Length * 3 / 5] - path[^1]),
+        straysFromTheFastballEarlyFt = R(strays),
+        dipsFromTheFastballLateFt = R(Math.Abs(path[^1] - fastballPath[^1]) - strays)
+    });
+}
+
 // The margin PH-04 has to survive, for the three families the trial proposes. Worst legal case:
 // the family's whole sweep plus the player's whole stick the same way, at the highest Pitch stat
 // with a Nice! release, against a batter who starts centred and does not move until the sweep
@@ -209,6 +235,7 @@ var report = new
     sourceSha256 = sources.ToDictionary(p => p, p => Sha(Path.Combine(root, p))),
     speed,
     rows,
+    heights,
     coverage
 };
 
