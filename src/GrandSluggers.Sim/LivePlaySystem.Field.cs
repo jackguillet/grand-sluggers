@@ -3063,45 +3063,15 @@ public sealed partial class LivePlaySystem
     /// The local bobble's ball (F693-02-local-bobble-vertical-shape, -rebound-ceiling, -restitution, -settling, -ground-horizontal,
     /// -rolling-deceleration): falls under gravity from the contact, rebounds at 35 % of its downward speed under a six-inch ceiling,
     /// settles when the next rise would be three inches or less, keeps 90 % of its roll at each impact, and slows at 6 ft/s² on the
-    /// ground to rest. The park's edge stops it.
+    /// ground to rest. The park's edge stops it. The three ground numbers are the row of the zone the ball is in, each tick (FD-05,
+    /// F3-c: <see cref="BallFlight.LocalBobbleTick"/>); every row carries today's 35 % / 90 % / 6 ft/s².
     /// </summary>
     void TickLocalBobble(double dt)
     {
-        var h = R.Fielding.Handling;
-        var g = R.Flight.Gravity;
-        var nx = BallX + _looseVX * dt;
-        var nz = BallZ + _looseVZ * dt;
-        if (_looseAir)
-        {
-            _looseVY -= g * dt;
-            var ny = BallY + _looseVY * dt;
-            if (ny <= 0)
-            {
-                ny = 0;
-                var up = -_looseVY * h.BobbleRestitution;
-                up = Math.Min(up, Math.Sqrt(2 * g * Math.Max(0, h.BobbleReboundCapFt)));
-                if (up * up / (2 * g) <= h.BobbleSettleFt) up = 0;
-                _looseVX *= h.BobbleGroundRetain;
-                _looseVZ *= h.BobbleGroundRetain;
-                _looseVY = up;
-                _looseAir = up > 0;
-            }
-            BallY = ny;
-        }
-        else
-        {
-            var speed = Math.Sqrt(_looseVX * _looseVX + _looseVZ * _looseVZ);
-            var next = Math.Max(0, speed - h.BobbleDecelFtPerSec2 * dt);
-            nx = BallX + (speed > 0 ? _looseVX / speed * (speed + next) * 0.5 * dt : 0);
-            nz = BallZ + (speed > 0 ? _looseVZ / speed * (speed + next) * 0.5 * dt : 0);
-            _looseVX = speed > 0 ? _looseVX / speed * next : 0;
-            _looseVZ = speed > 0 ? _looseVZ / speed * next : 0;
-            BallY = 0;
-        }
-        var inside = FieldBounds.Clamp(Park, nx, nz);
-        if (Math.Abs(inside.X - nx) > 1e-6 || Math.Abs(inside.Z - nz) > 1e-6) _looseVX = _looseVZ = 0;
-        BallX = inside.X;
-        BallZ = inside.Z;
+        var step = BallFlight.LocalBobbleTick(GroundZones.Of(Park, R), R.Grounds, R.Fielding.Handling, R.Flight.Gravity,
+            BallX, BallY, BallZ, _looseVX, _looseVY, _looseVZ, _looseAir, dt);
+        (BallX, BallY, BallZ) = (step.X, step.Y, step.Z);
+        (_looseVX, _looseVY, _looseVZ, _looseAir) = (step.VX, step.VY, step.VZ, step.Air);
         if (!_looseAir && _looseVX == 0 && _looseVZ == 0)
         {
             if (_looseRestAt < 0) _looseRestAt = ElapsedSeconds;
@@ -3109,7 +3079,10 @@ public sealed partial class LivePlaySystem
         else _looseRestAt = -1;
     }
 
-    /// <summary>A loose ball rolls to a stop (fielding.overthrow) inside the park.</summary>
+    /// <summary>
+    /// A loose ball rolls to a stop inside the park, at the <c>overthrow</c> deceleration of the ground row of the zone it is in, each
+    /// tick (FD-05, F3-c: <see cref="BallFlight.OverthrowTick"/>).
+    /// </summary>
     void TickLooseBall(double dt)
     {
         if (_looseLocal)
@@ -3123,18 +3096,13 @@ public sealed partial class LivePlaySystem
             if (_looseRestAt < 0) _looseRestAt = ElapsedSeconds;
             return;
         }
-        var decel = R.Fielding.Overthrow.DecelFtPerSec2 * dt;
-        var next = Math.Max(0, speed - decel);
-        var nx = BallX + _looseVX / speed * (speed + next) * 0.5 * dt;
-        var nz = BallZ + _looseVZ / speed * (speed + next) * 0.5 * dt;
-        var inside = FieldBounds.Clamp(Park, nx, nz);
-        if (Math.Abs(inside.X - nx) > 1e-6 || Math.Abs(inside.Z - nz) > 1e-6) next = 0;
-        BallX = inside.X;
-        BallZ = inside.Z;
+        var step = BallFlight.OverthrowTick(GroundZones.Of(Park, R), R.Grounds, BallX, BallZ, _looseVX, _looseVZ, dt);
+        BallX = step.X;
+        BallZ = step.Z;
         BallY = 0;
-        _looseVX = speed > 0 ? _looseVX / speed * next : 0;
-        _looseVZ = speed > 0 ? _looseVZ / speed * next : 0;
-        if (next <= 0) _looseRestAt = ElapsedSeconds;
+        _looseVX = step.VX;
+        _looseVZ = step.VZ;
+        if (step.Speed <= 0) _looseRestAt = ElapsedSeconds;
     }
 
     /// <summary>The ball lands at the bag. True when the play is decided or waiting on the next press.</summary>

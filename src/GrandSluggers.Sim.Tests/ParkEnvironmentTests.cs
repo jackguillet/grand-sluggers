@@ -319,9 +319,10 @@ public sealed class ParkEnvironmentTests
 
         Assert.Equal(Catalog.Rules.Flight.Drag * 1.5, match.Rules.Flight.Drag, 12);
         Assert.Equal(0.1, match.Rules.Flight.WindMul);
-        Assert.Same(Catalog.Rules.Flight.Bounce, match.Rules.Flight.Bounce);
-        Assert.Same(Catalog.Rules.Flight.Roll, match.Rules.Flight.Roll);
-        Assert.Same(Catalog.Rules.Flight.Wall, match.Rules.Flight.Wall);
+        // The bounce, the roll and the wall carom left the flight table in F3-c (FD-05): they are the ground and wall-material
+        // rows, which a park reaches through its zones and never copies, so the match shares both libraries with the catalog.
+        Assert.Same(Catalog.Rules.Grounds, match.Rules.Grounds);
+        Assert.Same(Catalog.Rules.Walls, match.Rules.Walls);
         Assert.Same(Catalog.Rules.Fielding, match.Rules.Fielding);
         Assert.Same(Catalog.Rules.Running, match.Rules.Running);
         Assert.Same(Catalog.Rules.Infield, match.Rules.Infield);

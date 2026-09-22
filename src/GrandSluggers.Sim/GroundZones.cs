@@ -53,6 +53,20 @@ public static class WallMaterial
 
     /// <summary>True for a library id, spelled the way the library spells it.</summary>
     public static bool IsKnown(string? id) => id is not null && KnownIds.Contains(id);
+
+    /// <summary>
+    /// Which material one segment of the boundary is made of — the one place that question is answered
+    /// (FD-06, F3-c). Every segment of every park, the fence between the poles and the foul wrap alike,
+    /// is <see cref="Padded"/> until the polyline fence (F2-c) gives a span its own material; F2-c
+    /// changes this function, and no caller spells a material. The carom takes the row for the answer
+    /// out of <see cref="WallMaterialLibrary.Of"/>, which stops on a material with no row rather than
+    /// caroming off the first one.
+    /// </summary>
+    public static string OfSegment(FieldBounds.WallSegment segment)
+    {
+        if (segment is null) throw new ArgumentNullException(nameof(segment));
+        return Padded;
+    }
 }
 
 /// <summary>
@@ -77,9 +91,9 @@ public enum GroundZone
 
 /// <summary>
 /// One park's ground, resolved: which ground each of its four zones names, and the geometry that says
-/// which zone a point is in (spec §6.1, §16; FD-05, F3-b). This is the one function F3-c (the ball and
-/// the loose-ball models) and F3-d (the body multipliers) call — ask it for a point, get a zone, and
-/// take that zone's row out of <see cref="GroundLibrary"/>.
+/// which zone a point is in (spec §6.1, §16; FD-05, F3-b). This is the one function the ball and the
+/// loose-ball models (F3-c) and the body multipliers (F3-d) call — ask <see cref="RowAt"/> for a point
+/// and get the row of the zone it is in, out of <see cref="GroundLibrary"/>.
 ///
 /// <para>
 /// <b>Why this lives here and not on the resolved rules table.</b> <see cref="RulesTable.AtPark"/>

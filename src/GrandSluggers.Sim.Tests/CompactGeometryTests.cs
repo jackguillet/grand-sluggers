@@ -403,7 +403,9 @@ public sealed class CompactGeometryTests
         Assert.Equal(("0", "75"), (shippedLeaves["recoil.fullFtPerSec"], trialLeaves["recoil.fullFtPerSec"]));
         // #721 (slice 1): the awkward hop is the one difficulty — the switch moves, every other handling key is an accepted anchor in both roots.
         Assert.Equal(("0", "1"), (shippedLeaves["handling.awkwardHop"], trialLeaves["handling.awkwardHop"]));
-        foreach (var key in new[] { "handling.chanceCap", "handling.handsCut", "handling.hopMinApexFt", "handling.hopFullApexFt", "handling.hopPhaseHalfWidth", "handling.stunSec", "handling.bobbleSpreadDeg", "handling.bobbleRetain", "handling.bobbleCapFtPerSec", "handling.bobbleRestitution", "handling.bobbleReboundCapFt", "handling.bobbleSettleFt", "handling.bobbleGroundRetain", "handling.bobbleDecelFtPerSec2", "handling.deflectSpreadDeg", "handling.deflectRetainMax", "handling.deflectRetainMin", "handling.deflectObstruction", "handling.deflectMinFtPerSec" })
+        // The bobble's restitution, ground retain and rolling deceleration left this file for the ground rows in F3-c (FD-05); the trial
+        // carries no grounds.json, so both roots read the one row (HandlingErrorTests pins it).
+        foreach (var key in new[] { "handling.chanceCap", "handling.handsCut", "handling.hopMinApexFt", "handling.hopFullApexFt", "handling.hopPhaseHalfWidth", "handling.stunSec", "handling.bobbleSpreadDeg", "handling.bobbleRetain", "handling.bobbleCapFtPerSec", "handling.bobbleReboundCapFt", "handling.bobbleSettleFt", "handling.deflectSpreadDeg", "handling.deflectRetainMax", "handling.deflectRetainMin", "handling.deflectObstruction", "handling.deflectMinFtPerSec" })
             Assert.Equal(shippedLeaves[key], trialLeaves[key]);
         Assert.Equal(("0.10", "0.40"), (trialLeaves["handling.chanceCap"], trialLeaves["handling.stunSec"]));
         Assert.Equal(shippedLeaves["bobble.fumbleSec"], trialLeaves["bobble.fumbleSec"]);
