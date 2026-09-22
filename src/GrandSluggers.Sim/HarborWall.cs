@@ -15,21 +15,28 @@ public static class HarborWall
     /// <summary>One side (CF→RF→home) mirrored. Must stay even.</summary>
     public const int WrapSegs = 2 * (OutfieldSegs / 2 + 1 + FoulSegs + DugoutEnds + HomeSegs / 2) - 2;
     /// <summary>
+    /// The edge this kit dresses: the one <see cref="FieldBounds"/> clips against, from
+    /// <c>data/rules/boundary.json</c> (#826). The drawn rail and the ball's rail are the same
+    /// number because they are read from the same place — there is no second constant.
+    /// </summary>
+    static ParkBoundary Bounds => ParkBoundary.Default;
+
+    /// <summary>
     /// Hip wall offset from the foul line along the infield. The dugout rail
     /// <b>is</b> this line. Flares to the pole. Home backstop stays at <see cref="HomeZ"/>.
     /// </summary>
-    public const float FoulOffset = 36f;
+    public static float FoulOffset => (float)Bounds.FoulOffsetFt;
     /// <summary>Round wrap behind the plate. Radius is the offset line’s closest point, not a V to a farther apex.</summary>
-    public const float HomeZ = -36f;
-    public const float DugoutPad = 18f;
+    public static float HomeZ => (float)Bounds.BackstopZFt;
+    public static float DugoutPad => (float)Bounds.DugoutPadFt;
     /// <summary>
     /// The padded outfield wall's top is the park's own fence (spec D15): the same number the flight
     /// clips against (<see cref="FieldBounds"/>), so a ball that meets the padding you see caroms and a
     /// homer clears it. No second constant.
     /// </summary>
     public static float OutfieldHeight(Park park) => (float)park.FenceHeightFt;
-    /// <summary>Hip-high rail around the infield, dugouts, and home.</summary>
-    public const float HipHeight = 4.2f;
+    /// <summary>Hip-high rail around the infield, dugouts, and home. The top the flight clips against.</summary>
+    public static float HipHeight => (float)Bounds.RailHeightFt;
     public const bool HasNet = false;
     /// <summary>Authored ring sat on its side in the sky. Boxes follow the loop until the FBX lies in XZ.</summary>
     public const bool DropAuthoredRing = false;
@@ -105,20 +112,14 @@ public static class HarborWall
     /// <summary>
     /// Along the foul line toward home, offset into foul so the wall stays
     /// off the dirt and outside the dugout. Offset is 0 at the pole.
+    ///
+    /// <para>
+    /// The math is <see cref="ParkBoundary.RailPoint"/>: the drawn rail is the rail the ball meets,
+    /// not a copy of it (#826).
+    /// </para>
     /// </summary>
-    public static (double X, double Z) FoulWall(int sign, double alongFt, double poleFt)
-    {
-        var inv = 0.7071067811865476;
-        var s = Math.Max(0, alongFt);
-        // Parallel to the line through the infield, then flare to the pole.
-        var flareStart = 95;
-        var u = s <= flareStart || poleFt <= flareStart
-            ? 1
-            : 1 - Math.Clamp((s - flareStart) / (poleFt - flareStart), 0, 1);
-        u = u * u * (3 - 2 * u);
-        var off = FoulOffset * u;
-        return (sign * (inv * s + inv * off), inv * s - inv * off);
-    }
+    public static (double X, double Z) FoulWall(int sign, double alongFt, double poleFt) =>
+        Bounds.RailPoint(sign, alongFt, poleFt);
 
     static (double X, double Z) FencePoint(Park park, double sprayDeg)
     {

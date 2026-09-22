@@ -14,7 +14,7 @@ public sealed class RulesTable
     public const string Directory = "rules";
 
     public static readonly IReadOnlyList<string> Files =
-        ["match", "pitching", "batting", "flight", "infield", "fielders", "fielding", "running", "stars", "cpu"];
+        ["match", "pitching", "batting", "flight", "infield", "boundary", "fielders", "fielding", "running", "stars", "cpu"];
 
     public MatchRules Match { get; init; } = new();
 
@@ -22,6 +22,7 @@ public sealed class RulesTable
     public BattingRules Batting { get; init; } = new();
     public FlightRules Flight { get; init; } = new();
     public InfieldRules Infield { get; init; } = new();
+    public BoundaryRules Boundary { get; init; } = new();
     public FielderRules Fielders { get; init; } = new();
     public FieldingRules Fielding { get; init; } = new();
     public RunningRules Running { get; init; } = new();
@@ -41,7 +42,8 @@ public sealed class RulesTable
         return new RulesTable
         {
             Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight,
-            Infield = Infield, Fielders = Fielders, Fielding = Fielding, Running = Running, Stars = Stars,
+            Infield = Infield, Boundary = Boundary, Fielders = Fielders, Fielding = Fielding,
+            Running = Running, Stars = Stars,
             Cpu = Cpu.AtLevel(level)
         };
     }
@@ -72,6 +74,7 @@ public sealed class RulesTable
             Batting = Read<BattingRules>(dataRoot, "batting", json, errors),
             Flight = Read<FlightRules>(dataRoot, "flight", json, errors),
             Infield = Read<InfieldRules>(dataRoot, "infield", json, errors),
+            Boundary = Read<BoundaryRules>(dataRoot, "boundary", json, errors),
             Fielders = Read<FielderRules>(dataRoot, "fielders", json, errors),
             Fielding = Read<FieldingRules>(dataRoot, "fielding", json, errors),
             Running = Read<RunningRules>(dataRoot, "running", json, errors),
@@ -204,6 +207,7 @@ public static class RulesValidation
         Walk(table.Batting, RulesTable.PathFor(root, "batting"), "batting", errors);
         Walk(table.Flight, RulesTable.PathFor(root, "flight"), "flight", errors);
         Walk(table.Infield, RulesTable.PathFor(root, "infield"), "infield", errors);
+        Walk(table.Boundary, RulesTable.PathFor(root, "boundary"), "boundary", errors);
         Walk(table.Fielders, RulesTable.PathFor(root, "fielders"), "fielders", errors);
         Walk(table.Fielding, RulesTable.PathFor(root, "fielding"), "fielding", errors);
         Walk(table.Running, RulesTable.PathFor(root, "running"), "running", errors);
@@ -212,6 +216,7 @@ public static class RulesValidation
         table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
         table.Flight.Validate(RulesTable.PathFor(root, "flight"), errors);
         table.Infield.Validate(RulesTable.PathFor(root, "infield"), errors);
+        table.Boundary.Validate(RulesTable.PathFor(root, "boundary"), errors);
         table.Fielders.Validate(RulesTable.PathFor(root, "fielders"), errors);
         table.Running.Validate(RulesTable.PathFor(root, "running"), errors);
         table.Fielding.Validate(RulesTable.PathFor(root, "fielding"), errors);
@@ -376,6 +381,74 @@ public sealed class InfieldRules
         RulesValidation.Order(source, "infield.cornerFt", CornerFt, SecondFt, errors);
         RulesValidation.Order(source, "infield.innerHalfFt", InnerHalfFt, CornerFt, errors);
         RulesValidation.Order(source, "infield.innerHalfFt", InnerHalfFt, BackArcFt, errors);
+    }
+}
+
+// ---------------------------------------------------------------------------------------
+// boundary.json — the field's edge every park shares (§6.1, #826)
+// ---------------------------------------------------------------------------------------
+
+/// <summary>
+/// Where the field ends, in feet, read through <see cref="ParkBoundary"/> by the flight's clip
+/// polygon (<see cref="FieldBounds"/>), the drawn kit (<see cref="HarborWall"/>) and the park
+/// validator's fence floor. These were <c>HarborWall</c> literals until #826 (F2-a): a class named
+/// after one park decided the foul wrap of all six, and the sim could not be handed a different
+/// edge without editing code (FD-07, FR-05).
+///
+/// <para>
+/// One global set, like <see cref="InfieldRules"/>: every park shares this edge today, so a single
+/// table loaded once is the honest model. It is a table rather than five <c>const</c>s so that a
+/// park may name its own foul area later (FD-07 C, F2-d) and so the polyline fence (FD-06, F2-c)
+/// has somewhere to land — the value type that carries a resolved edge is
+/// <see cref="ParkBoundary"/>, and it is what the cache keys on.
+/// </para>
+///
+/// <para>
+/// <b>Every number here is the number that shipped.</b> #730 / #732 own
+/// <see cref="FoulOffsetFt"/> and <see cref="FlareStartFt"/> until they close; F2-a moved them, it
+/// did not choose them. <c>trials/c80</c> deliberately carries no copy of this file: whether the
+/// compact profile scales the offset or the flare is #732's question, and an overlay that answered
+/// it here would answer it by accident.
+/// </para>
+/// </summary>
+public sealed class BoundaryRules
+{
+    /// <summary>
+    /// The hip rail's offset from the foul line, into foul territory, measured perpendicular to the
+    /// line. The dugout rail <b>is</b> this line. 0 at the pole, where the rail meets the fence.
+    /// </summary>
+    [Positive] public double FoulOffsetFt { get; init; } = 36;
+
+    /// <summary>
+    /// How far along the line the rail runs parallel before it flares out to the pole. A pole
+    /// closer than this leaves the rail parallel the whole way (a smoothstep over nothing).
+    /// </summary>
+    [Positive] public double FlareStartFt { get; init; } = 95;
+
+    /// <summary>
+    /// The rail's top, pole to pole. A park's <c>fenceHeightFt</c> must stand over it (D15), which
+    /// is the floor <see cref="ContentDataValidator"/> refuses a park under.
+    /// </summary>
+    [Positive] public double RailHeightFt { get; init; } = 4.2;
+
+    /// <summary>
+    /// The backstop's wrap behind the plate, as a Z. Negative: behind home is −Z, and a backstop in
+    /// front of the plate is a field with no room to catch a pitch.
+    /// </summary>
+    [Signed] public double BackstopZFt { get; init; } = -36;
+
+    /// <summary>
+    /// Clearance from the dugout's back wall to the edge the stands may start at
+    /// (<see cref="HarborWall.DugoutClearX"/>). Drawn, not played, and here for the same reason the
+    /// grass diamond is in <c>infield.json</c>: it is measured off the rail, so it travels with it.
+    /// </summary>
+    [Positive] public double DugoutPadFt { get; init; } = 18;
+
+    /// <summary>The rule the attributes cannot say: the backstop is behind the plate, not in front of it.</summary>
+    public void Validate(string source, List<string> errors)
+    {
+        if (BackstopZFt >= 0)
+            errors.Add($"{source}: boundary.backstopZFt must be behind the plate (less than 0); got {BackstopZFt}");
     }
 }
 
