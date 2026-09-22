@@ -1965,7 +1965,7 @@
       "id": "PH-12",
       "area": "Hitting",
       "question": "How deliberately can the hitter shape a batted ball?",
-      "status": "direction-accepted",
+      "status": "implemented",
       "depends_on": [
         "PH-09",
         "PH-10"
@@ -2006,7 +2006,8 @@
       },
       "numeric_targets": null,
       "implementation_issues": [
-        "#855"
+        "#855",
+        "#883"
       ],
       "validation_evidence": [
         {
@@ -2021,9 +2022,30 @@
           "numeric_trial": "none. No number was selected or moved; spray.stickDeg and launch.stickDeg stay authored because bunts and Star Swings read them. S-29 under trials/pitch5 re-reported and never tuned: 2.02 home / 2.32 away before (main e14bc513, reproducing P2-b), 2.30 home / 2.12 away after; the in-process cohort agrees with the CLI to the game. Shipped S-29 and cli match --seed 7 unchanged. No trial band exists and no test asserts one.",
           "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - swing with the stick held each way and centered and the ball goes where the timing and the contact put it; bunts still steer; grounders, liners, flies and fouls all still happen - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played. This child may merge because the shipped root is unchanged and the overlay is inert unless named. status, numeric_targets and human_acceptance are untouched.",
           "pr": "#865"
+        },
+        {
+          "kind": "shipped-promotion",
+          "issue": "#883",
+          "pr": "#886",
+          "revision": "issue-promote-stick",
+          "promoted": "batting.geometryOnly true (an ordinary swing ignores stick spray and loft; bunts and Star Swings keep the stick); trials/pitch5 retired",
+          "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+          "scenarios": "S-13, S-126, S-127, S-128 ... S-132 moved to the shipped rule; the off path is built in the test (SwitchOffPaths.StickShapes)",
+          "report": "docs/research/promote-stick.md",
+          "summary": "data/rules/batting.json geometryOnly true and the Rules.cs default true (JSON = code parity). S-29 on the shipped root 2.48 away / 2.08 home -> 2.18 / 2.26 (F693-06 band 1.8-5 green); c80 2.58 / 2.26 -> 3.06 / 2.94. Every per-game outcome of the shipped cohort equals the trials/pitch5 cohort on bbd982fe, and cli match --seed 7 is byte-identical to the old trial log. Ordinary-contact fouls 17.4 % -> 11.1 % (shipped), liners 42.6 % -> 53.8 %, grounders 22.5 % -> 15.2 %. No measured sealed value moved; hashes only.",
+          "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window (\"approve all\"); whether the shipped build plays like it is his to confirm after redelivery. Nothing was looked at in Unity. T-B06 / T-B06-F can no longer be passed by their taught input on the shipped root; the lessons and the book are the Presentation child's."
         }
       ],
-      "human_acceptance": null,
+      "human_acceptance": {
+        "by": "Jack",
+        "date": "2026-09-22",
+        "quote": "approve all",
+        "kind": "sitting",
+        "window": "preview-4b47ad4e22",
+        "trial": "trials/pitch5",
+        "trial_revision": "4b47ad4e22",
+        "scope": "Window preview 4b47ad4e on trials/pitch5, delivered September 22, 2026. Jack was asked to (1) read the book (#877), (2) play T-P03 and T-P10, (3) sit the P2-c stick trial (batting.geometryOnly true: ordinary swings ignore stick spray and loft; bunts and Star Swings keep the stick; the CPU batter skips its aim draws), and (4) confirm the shipped duel (#871) plays like the accepted window. He answered \"approve.\", and when asked which items it covered, \"approve all\". The stick switch moves to data/rules in the next promotion PR."
+      },
       "history": [
         {
           "date": "2026-09-20",
@@ -2033,6 +2055,21 @@
           "choice": "C",
           "quote": "3",
           "scope": "Remove extra directional input for shaping ordinary hits. Timing, contact position, pitch shape and swing type determine batted-ball flight; retain PH-09 horizontal batter positioning, PH-10 timing-led pull/opposite-field direction and contact-quality rules, and PH-11 quick/charged swings. Do not add a preselected grounder/liner/lift approach. This selects a target departure from gameplay-spec sections 5.3\u20135.4 direct stick spray/loft influence, to reconcile before implementation. It does not remove batter movement or SET recenter, change pitching steering, settle bunt placement, require mesh-collision microphysics, or select flight coefficients. Direction only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "human-accepted",
+          "author": "Jack",
+          "quote": "approve all",
+          "scope": "Window preview 4b47ad4e on trials/pitch5, delivered September 22, 2026. Jack was asked to (1) read the book (#877), (2) play T-P03 and T-P10, (3) sit the P2-c stick trial (batting.geometryOnly true: ordinary swings ignore stick spray and loft; bunts and Star Swings keep the stick; the CPU batter skips its aim draws), and (4) confirm the shipped duel (#871) plays like the accepted window. He answered \"approve.\", and when asked which items it covered, \"approve all\". The stick switch moves to data/rules in the next promotion PR."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "human-accepted",
+          "to": "implemented",
+          "author": "agent (#883)",
+          "event": "Accepted stick rule promoted to data/rules (#883, PR #886); trials/pitch5 retired. human_acceptance untouched."
         }
       ],
       "accepted_validation_requirements": [
@@ -5205,7 +5242,8 @@
         "#824",
         "#825",
         "#835",
-        "#855"
+        "#855",
+        "#883"
       ],
       "validation_evidence": [
         {
@@ -5241,6 +5279,18 @@
           "numeric_trial": "none. No number was selected or moved; spray.stickDeg and launch.stickDeg stay authored because bunts and Star Swings read them. S-29 under trials/pitch5 re-reported and never tuned: 2.02 home / 2.32 away before (main e14bc513, reproducing P2-b), 2.30 home / 2.12 away after; the in-process cohort agrees with the CLI to the game. Shipped S-29 and cli match --seed 7 unchanged. No trial band exists and no test asserts one.",
           "gate": "No human gate closed and none claimed. Sitting 2 is Jack's - swing with the stick held each way and centered and the ball goes where the timing and the contact put it; bunts still steer; grounders, liners, flies and fouls all still happen - and it has not happened. NOT VERIFIED HERE: nothing was looked at in Unity and no frame of the game was played. This child may merge because the shipped root is unchanged and the overlay is inert unless named. status, numeric_targets and human_acceptance are untouched.",
           "pr": "#865"
+        },
+        {
+          "kind": "shipped-promotion",
+          "issue": "#883",
+          "pr": "#886",
+          "revision": "issue-promote-stick",
+          "promoted": "the CPU batter skips its two aim draws on an ordinary swing (batting.geometryOnly true); its Star Swing and sac bunt draw as before",
+          "test": "GrandSluggers.Sim.Tests.StickShapingScenarioTests (S-132) and the full suite",
+          "scenarios": "S-132 (and the CPU sac-bunt half of S-130) on the shipped root; the off path built in the test",
+          "report": "docs/research/promote-stick.md",
+          "summary": "The CPU-batter half of PH-12, now shipped: 1933 of 1961 non-bunt CPU swings in the shipped S-29 cohort carry 0 / 0 aims (the rest are Star Swings). Every shipped game reseeds from its first ordinary CPU swing. S-29 on the shipped root 2.48 away / 2.08 home -> 2.18 / 2.26 (F693-06 band 1.8-5 green); c80 2.58 / 2.26 -> 3.06 / 2.94. Every per-game outcome of the shipped cohort equals the trials/pitch5 cohort on bbd982fe, and cli match --seed 7 is byte-identical to the old trial log. Ordinary-contact fouls 17.4 % -> 11.1 % (shipped), liners 42.6 % -> 53.8 %, grounders 22.5 % -> 15.2 %. No measured sealed value moved; hashes only.",
+          "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window (\"approve all\"); whether the shipped build plays like it is his to confirm after redelivery. Nothing was looked at in Unity. T-B06 / T-B06-F can no longer be passed by their taught input on the shipped root; the lessons and the book are the Presentation child's."
         }
       ],
       "human_acceptance": null,
@@ -5924,6 +5974,16 @@
     {
       "date": "2026-09-22",
       "event": "#860 (PR #871) promoted the accepted duel trial to the shipped root: the three family rows, cpu.humanInputs and the CPU count-row weights and steerChance in pitching.json, and batting.window.shared. Status implemented on PH-02-R2, PH-03, PH-04, PH-20-R1, PH-18-R1, PH-10-R1, PH-11-R1, PH-15-R7, PH-17. human_acceptance untouched. PH-12 (geometryOnly) stays a trial in trials/pitch5."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack answered \"approve all\" for the window preview 4b47ad4e on trials/pitch5: the book, T-P03 / T-P10, the stick trial, and the shipped duel. PH-12 is now human-accepted. The duel decisions were already human-accepted and implemented; this confirms the shipped build. Scope: Window preview 4b47ad4e on trials/pitch5, delivered September 22, 2026. Jack was asked to (1) read the book (#877), (2) play T-P03 and T-P10, (3) sit the P2-c stick trial (batting.geometryOnly true: ordinary swings ignore stick spray and loft; bunts and Star Swings keep the stick; the CPU batter skips its aim draws), and (4) confirm the shipped duel (#871) plays like the accepted window. He answered \"approve.\", and when asked which items it covered, \"approve all\". The stick switch moves to data/rules in the next promotion PR.",
+      "pr": "stick promotion PR"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "#883 (PR #886) promoted the accepted stick rule to the shipped root: batting.geometryOnly true in data/rules/batting.json and as the Rules.cs default, and deleted trials/pitch5. PH-12 human-accepted -> implemented; PH-18 gets a shipped-promotion row and keeps its status. human_acceptance untouched.",
+      "pr": "#886"
     }
   ]
 }

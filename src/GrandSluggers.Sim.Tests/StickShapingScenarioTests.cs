@@ -7,19 +7,21 @@ namespace GrandSluggers.Sim.Tests;
 /// The stick at contact (#855, PH-12 option C, PH-18), Appendix B.1 rows S-128 … S-132 (S-13's two
 /// halves live beside the other plate rows in <see cref="AtBatScenarioTests"/>).
 ///
-/// <c>batting.geometryOnly</c> is the whole child. <b>Off</b> — the shipped root — stick L/R at
-/// contact adds <c>spray.stickDeg</c> to the direction and stick U/D takes <c>launch.stickDeg</c> off
-/// the launch, as shipped, and the CPU batter draws both aims from its Gaussians. <b>On</b> —
-/// <c>trials/pitch5</c> — a swing that is neither a bunt nor a Star Swing ignores both aims
-/// (<b>S-128</b>), while timing, contact, pitch height, the charge and the out-of-zone spread still
-/// shape it exactly as on the shipped root (<b>S-129</b>); a bunt (<b>S-130</b>, until P4-b) and a
-/// Star Swing (<b>S-131</b>, until Phase 6) still follow the stick; and the CPU batter holds no stick
-/// for an ordinary swing and draws no aim for it, while its Star Swing and its sac bunt draw as today
-/// (<b>S-132</b>).
+/// <c>batting.geometryOnly</c> is the whole child. <b>On</b> — the shipped root since #883 (Jack
+/// accepted the <c>trials/pitch5</c> stick trial on September 22, 2026: "approve all") — a swing that
+/// is neither a bunt nor a Star Swing ignores both aims (<b>S-128</b>), while timing, contact, pitch
+/// height, the charge and the out-of-zone spread still shape it exactly as on the off path
+/// (<b>S-129</b>); a bunt (<b>S-130</b>, until P4-b) and a Star Swing (<b>S-131</b>, until Phase 6)
+/// still follow the stick; and the CPU batter holds no stick for an ordinary swing and draws no aim
+/// for it, while its Star Swing and its sac bunt draw as before (<b>S-132</b>). <b>Off</b> — the
+/// switch's off path, what played before #883 — stick L/R at contact adds <c>spray.stickDeg</c> to
+/// the direction and stick U/D takes <c>launch.stickDeg</c> off the launch, and the CPU batter draws
+/// both aims from its Gaussians.
 ///
-/// Both roots are loaded <b>in process</b> through a <see cref="DataRoot"/> built from the
-/// repository, the <see cref="SharedWindowScenarioTests"/> shape, so nothing here depends on
-/// <c>GRAND_SLUGGERS_TRIAL</c> being set.
+/// Both roots are loaded <b>in process</b>: the shipped root through a <see cref="DataRoot"/> built
+/// from the repository, the off path from <see cref="SwitchOffPaths.StickShapes"/> (a copy of the
+/// shipped root with the one key false, built here and never read from shipped data), so nothing here
+/// depends on <c>GRAND_SLUGGERS_TRIAL</c> being set.
 ///
 /// <b>No row stores a double.</b> Every claim compares two resolutions to each other (the same
 /// swing with two sticks, the same swing on two roots) or composes today's value in the test from a
@@ -29,13 +31,7 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class StickShapingScenarioTests
 {
     readonly ContentCatalog _shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
-    readonly ContentCatalog _trial;
-
-    public StickShapingScenarioTests()
-    {
-        var repo = Path.GetFullPath(Path.Combine(_shipped.Root.Shipped, ".."));
-        _trial = ContentCatalog.Load(new DataRoot(_shipped.Root.Shipped, Path.Combine(repo, "trials", "pitch5")));
-    }
+    readonly ContentCatalog _off = SwitchOffPaths.StickShapesContent;
 
     static double CenterY => StrikeZoneGeometry.CenterY;
 
@@ -58,33 +54,35 @@ public sealed class StickShapingScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S128_TheStickShapesEverySwingShippedAndOnlyABuntOrAStarSwingUnderTheSwitch()
+    public void S128_OnTheShippedRootTheStickShapesOnlyABuntOrAStarSwingAndEverySwingOnTheOffPath()
     {
-        Assert.False(_shipped.Rules.Batting.GeometryOnly, "the shipped root leaves the stick shaping (#855)");
-        Assert.True(_trial.Rules.Batting.GeometryOnly, "the overlay turns the switch on");
+        // #883: Jack accepted the stick trial on September 22, 2026 ("approve all"); the switch is on
+        // in the shipped data, and the off path is built in the test.
+        Assert.True(_shipped.Rules.Batting.GeometryOnly, "the shipped root turns the switch on (#883)");
+        Assert.False(_off.Rules.Batting.GeometryOnly, "the off path leaves the stick shaping");
 
         foreach (var bunt in new[] { false, true })
         foreach (var star in new[] { false, true })
         {
-            Assert.True(AtBatResolver.StickShapesContact(bunt, star, _shipped.Rules), $"shipped bunt={bunt} star={star}");
-            Assert.Equal(bunt || star, AtBatResolver.StickShapesContact(bunt, star, _trial.Rules));
+            Assert.True(AtBatResolver.StickShapesContact(bunt, star, _off.Rules), $"off path bunt={bunt} star={star}");
+            Assert.Equal(bunt || star, AtBatResolver.StickShapesContact(bunt, star, _shipped.Rules));
         }
 
         // The stick numbers stay authored on both roots: the bunt and the Star Swing still read them.
-        Assert.Equal(_shipped.Rules.Batting.Spray.StickDeg, _trial.Rules.Batting.Spray.StickDeg);
-        Assert.Equal(_shipped.Rules.Batting.Launch.StickDeg, _trial.Rules.Batting.Launch.StickDeg);
-        Assert.True(_trial.Rules.Batting.Spray.StickDeg > 0 && _trial.Rules.Batting.Launch.StickDeg > 0);
+        Assert.Equal(_off.Rules.Batting.Spray.StickDeg, _shipped.Rules.Batting.Spray.StickDeg);
+        Assert.Equal(_off.Rules.Batting.Launch.StickDeg, _shipped.Rules.Batting.Launch.StickDeg);
+        Assert.True(_shipped.Rules.Batting.Spray.StickDeg > 0 && _shipped.Rules.Batting.Launch.StickDeg > 0);
     }
 
     // ---------------------------------------------------------------------------------
-    // S-128  Trial invariance: an ordinary swing is the same ball wherever the stick is
+    // S-128  Shipped invariance: an ordinary swing is the same ball wherever the stick is
     // ---------------------------------------------------------------------------------
 
     [Fact]
     public void S128_UnderGeometryOnlyAnOrdinarySwingIsTheSameBallWhereverTheStickIs()
     {
-        var resolver = Resolver(_trial);
-        var park = Harbor(_trial);
+        var resolver = Resolver(_shipped);
+        var park = Harbor(_shipped);
         var cases = 0;
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var charge in new[] { 0.0, 1.0 })
@@ -92,9 +90,9 @@ public sealed class StickShapingScenarioTests
         foreach (var err in new[] { -2.0, 0.0, 2.0 })
         foreach (var seed in new[] { 1, 7, 42 })
         {
-            var batter = Batter(_trial, bats);
-            var x = CrossingFor(_trial, batter, charge, zone);
-            var reference = resolver.Resolve(Input(_trial, batter, Intent(charge, 0, 0), err, x, CenterY), park, new Random(seed));
+            var batter = Batter(_shipped, bats);
+            var x = CrossingFor(_shipped, batter, charge, zone);
+            var reference = resolver.Resolve(Input(_shipped, batter, Intent(charge, 0, 0), err, x, CenterY), park, new Random(seed));
             Assert.Equal(zone, reference.Quality);
             foreach (var stick in Sticks)
             {
@@ -102,7 +100,7 @@ public sealed class StickShapingScenarioTests
                 // The intent still carries the stick (AtBatFeel is untouched); only the resolver ignores it.
                 Assert.Equal(AtBatResolver.SprayAimDeg(stick.X), intent.SprayAimDeg);
                 Assert.Equal(stick.Y, intent.LaunchAim);
-                var hit = resolver.Resolve(Input(_trial, batter, intent, err, x, CenterY), park, new Random(seed));
+                var hit = resolver.Resolve(Input(_shipped, batter, intent, err, x, CenterY), park, new Random(seed));
                 // Record equality: exit, launch, spray, carry, class, foul, quality — every field, exactly.
                 Assert.Equal(reference, hit);
                 cases++;
@@ -112,25 +110,25 @@ public sealed class StickShapingScenarioTests
     }
 
     [Fact]
-    public void S128_OnTheShippedRootTheSameGridStillMovesWithTheStick()
+    public void S128_OnTheOffPathTheSameGridStillMovesWithTheStick()
     {
-        // The row above is not vacuous: the same swings on the shipped root move with every stick
+        // The row above is not vacuous: the same swings on the off path move with every stick
         // that has a part the ball still reads. On Perfect and Nice contact every off-center stick
         // moves the ball; on Sour the launch is the forced band, so only a stick with an L/R part does.
-        var resolver = Resolver(_shipped);
-        var park = Harbor(_shipped);
+        var resolver = Resolver(_off);
+        var park = Harbor(_off);
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var charge in new[] { 0.0, 1.0 })
         foreach (var zone in Zones)
         foreach (var seed in new[] { 1, 7, 42 })
         {
-            var batter = Batter(_shipped, bats);
-            var x = CrossingFor(_shipped, batter, charge, zone);
-            var reference = resolver.Resolve(Input(_shipped, batter, Intent(charge, 0, 0), 0, x, CenterY), park, new Random(seed));
+            var batter = Batter(_off, bats);
+            var x = CrossingFor(_off, batter, charge, zone);
+            var reference = resolver.Resolve(Input(_off, batter, Intent(charge, 0, 0), 0, x, CenterY), park, new Random(seed));
             Assert.Equal(zone, reference.Quality);
             foreach (var stick in Sticks.Skip(1))
             {
-                var hit = resolver.Resolve(Input(_shipped, batter, Intent(charge, stick.X, stick.Y), 0, x, CenterY), park, new Random(seed));
+                var hit = resolver.Resolve(Input(_off, batter, Intent(charge, stick.X, stick.Y), 0, x, CenterY), park, new Random(seed));
                 var where = $"{bats} {(charge > 0 ? "charged" : "quick")} {zone} {stick.Name} seed {seed}";
                 // (A sour ball the cheap pull has already thrown past the chalk can land on the same
                 // spray either way, so the L/R claim is made on Perfect and Nice only.)
@@ -143,18 +141,18 @@ public sealed class StickShapingScenarioTests
     }
 
     [Fact]
-    public void S128_ThroughTheMatchTheSwingCarriesTheStickAndOnlyTheTrialBallIgnoresIt()
+    public void S128_ThroughTheMatchTheSwingCarriesTheStickAndOnlyTheShippedBallIgnoresIt()
     {
         // The whole path, not the resolver alone: Match.BeginAtBat hands the command's aims to the
         // resolver it built on the match's own table (§6.1, FD-03), so the switch in the catalog the
         // match was built from is the switch the ball obeys.
         foreach (var seed in new[] { 1, 2, 3, 4, 5 })
         {
-            var trialHits = Sticks.Select(s => AtBat(_trial, seed, s.X, s.Y)).ToList();
             var shippedHits = Sticks.Select(s => AtBat(_shipped, seed, s.X, s.Y)).ToList();
-            Assert.NotEqual(ContactQuality.Miss, trialHits[0].Quality);
-            Assert.All(trialHits, h => Assert.Equal(trialHits[0], h));
-            Assert.Contains(shippedHits, h => h != shippedHits[0]);
+            var offHits = Sticks.Select(s => AtBat(_off, seed, s.X, s.Y)).ToList();
+            Assert.NotEqual(ContactQuality.Miss, shippedHits[0].Quality);
+            Assert.All(shippedHits, h => Assert.Equal(shippedHits[0], h));
+            Assert.Contains(offHits, h => h != offHits[0]);
         }
 
         static AtBatResult AtBat(ContentCatalog content, int seed, double stickX, double stickY)
@@ -168,23 +166,23 @@ public sealed class StickShapingScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-129  Timing and contact still shape the ball under the trial
+    // S-129  Timing and contact still shape the ball on the shipped root
     // ---------------------------------------------------------------------------------
 
     [Fact]
     public void S129_EarlyStillPullsAndLateStillPushesByTheBattingHand()
     {
-        var resolver = Resolver(_trial);
-        var park = Harbor(_trial);
+        var resolver = Resolver(_shipped);
+        var park = Harbor(_shipped);
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var stick in Sticks)
         foreach (var seed in Enumerable.Range(1, 10))
         {
-            var batter = Batter(_trial, bats);
-            var x = CrossingFor(_trial, batter, 0, ContactQuality.Perfect);
+            var batter = Batter(_shipped, bats);
+            var x = CrossingFor(_shipped, batter, 0, ContactQuality.Perfect);
             var intent = Intent(0, stick.X, stick.Y);
-            var early = resolver.Resolve(Input(_trial, batter, intent, -3, x, CenterY), park, new Random(seed));
-            var late = resolver.Resolve(Input(_trial, batter, intent, 3, x, CenterY), park, new Random(seed));
+            var early = resolver.Resolve(Input(_shipped, batter, intent, -3, x, CenterY), park, new Random(seed));
+            var late = resolver.Resolve(Input(_shipped, batter, intent, 3, x, CenterY), park, new Random(seed));
             // A right-handed batter pulls toward third (negative spray), a left-handed one toward first
             // (PH-10, §5.3) — and a stick held the other way cannot take it back.
             var toPull = -SweetSpot.TipSign(bats);
@@ -197,30 +195,30 @@ public sealed class StickShapingScenarioTests
     [Fact]
     public void S129_PitchHeightAndTheChargeStillShapeTheLaunch()
     {
-        var resolver = Resolver(_trial);
-        var park = Harbor(_trial);
-        var height = _trial.Rules.Batting.Launch.PerFtOfHeight;
-        Assert.True(height > 0 && _trial.Rules.Batting.Charge.LoftDeg > 0);
+        var resolver = Resolver(_shipped);
+        var park = Harbor(_shipped);
+        var height = _shipped.Rules.Batting.Launch.PerFtOfHeight;
+        Assert.True(height > 0 && _shipped.Rules.Batting.Charge.LoftDeg > 0);
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var charge in new[] { 0.0, 1.0 })
         foreach (var stick in Sticks)
         foreach (var seed in Enumerable.Range(1, 10))
         {
-            var batter = Batter(_trial, bats);
+            var batter = Batter(_shipped, bats);
             var intent = Intent(charge, stick.X, stick.Y);
             var where = $"{bats} {(charge > 0 ? "charged" : "quick")} {stick.Name} seed {seed}";
 
             // A low crossing launches lower than a high one (perFtOfHeight), whatever the stick says.
-            var low = resolver.Resolve(Input(_trial, batter, intent, 0, 0, CenterY - 0.6), park, new Random(seed));
-            var high = resolver.Resolve(Input(_trial, batter, intent, 0, 0, CenterY + 0.6), park, new Random(seed));
+            var low = resolver.Resolve(Input(_shipped, batter, intent, 0, 0, CenterY - 0.6), park, new Random(seed));
+            var high = resolver.Resolve(Input(_shipped, batter, intent, 0, 0, CenterY + 0.6), park, new Random(seed));
             Assert.True(low.Quality is ContactQuality.Perfect or ContactQuality.Nice, where);
             Assert.True(high.Quality is ContactQuality.Perfect or ContactQuality.Nice, where);
             Assert.True(low.LaunchDeg < high.LaunchDeg, $"a low pitch launches lower: {where} {low.LaunchDeg} vs {high.LaunchDeg}");
 
             if (charge > 0) continue;
             // A charged swing lofts more than a quick one on the same pitch and the same noise draw.
-            var quick = resolver.Resolve(Input(_trial, batter, intent, 0, 0, CenterY), park, new Random(seed));
-            var charged = resolver.Resolve(Input(_trial, batter, Intent(1, stick.X, stick.Y), 0, 0, CenterY), park, new Random(seed));
+            var quick = resolver.Resolve(Input(_shipped, batter, intent, 0, 0, CenterY), park, new Random(seed));
+            var charged = resolver.Resolve(Input(_shipped, batter, Intent(1, stick.X, stick.Y), 0, 0, CenterY), park, new Random(seed));
             Assert.Equal(ContactQuality.Perfect, quick.Quality);
             Assert.Equal(ContactQuality.Perfect, charged.Quality);
             Assert.True(charged.LaunchDeg > quick.LaunchDeg, $"a charge lofts more: {where} {charged.LaunchDeg} vs {quick.LaunchDeg}");
@@ -230,28 +228,28 @@ public sealed class StickShapingScenarioTests
     [Fact]
     public void S129_TheOutOfZoneSpreadStillApplies()
     {
-        var resolver = Resolver(_trial);
-        var park = Harbor(_trial);
-        var span = _trial.Rules.Batting.Spray.OutOfZoneSpanDeg;
+        var resolver = Resolver(_shipped);
+        var park = Harbor(_shipped);
+        var span = _shipped.Rules.Batting.Spray.OutOfZoneSpanDeg;
         Assert.True(span > 0);
         var moved = 0;
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var seed in Enumerable.Range(1, 40))
         {
-            var batter = Batter(_trial, bats);
-            var x = CrossingFor(_trial, batter, 0, ContactQuality.Perfect);
+            var batter = Batter(_shipped, bats);
+            var x = CrossingFor(_shipped, batter, 0, ContactQuality.Perfect);
             var intent = Intent(0, 1, 1);
-            var inZone = resolver.Resolve(Input(_trial, batter, intent, 0, x, CenterY), park, new Random(seed));
-            var outOfZone = resolver.Resolve(Input(_trial, batter, intent, 0, x, CenterY, inZone: false), park, new Random(seed));
+            var inZone = resolver.Resolve(Input(_shipped, batter, intent, 0, x, CenterY), park, new Random(seed));
+            var outOfZone = resolver.Resolve(Input(_shipped, batter, intent, 0, x, CenterY, inZone: false), park, new Random(seed));
             // The same draws up to the extra one: the difference is that one draw's spread, and it is
             // inside half the span (plus the two one-decimal roundings the resolver makes).
             var diff = Math.Abs(outOfZone.SprayDeg - inZone.SprayDeg);
             Assert.True(diff <= span / 2 + 0.1, $"{bats} seed {seed}: {diff}");
             if (diff > 1) moved++;
-            // And it is the shipped root's out-of-zone ball, stick for stick centered.
-            var shipped = Resolver(_shipped).Resolve(Input(_shipped, Batter(_shipped, bats), Intent(0, 0, 0), 0, x, CenterY, inZone: false),
-                Harbor(_shipped), new Random(seed));
-            Assert.Equal(shipped, outOfZone);
+            // And it is the off path's out-of-zone ball, stick for stick centered.
+            var off = Resolver(_off).Resolve(Input(_off, Batter(_off, bats), Intent(0, 0, 0), 0, x, CenterY, inZone: false),
+                Harbor(_off), new Random(seed));
+            Assert.Equal(off, outOfZone);
         }
         Assert.True(moved > 40, $"the out-of-zone spread moved {moved} of 80 balls by more than a degree");
     }
@@ -260,8 +258,8 @@ public sealed class StickShapingScenarioTests
     public void S129_WithTheStickCenteredTheTwoRootsAreTheSameBall()
     {
         // The switch removes the two stick terms and nothing else in the resolver. With the stick
-        // centered and the swing on time (so the #844 window switch, the overlay's other key, cannot
-        // enter through the rim or the timing pull), every ordinary swing is the same ball on both roots.
+        // centered and the swing on time, every ordinary swing is the same ball on the shipped root and
+        // on the off path.
         var cases = 0;
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var charge in new[] { 0.0, 1.0 })
@@ -270,26 +268,26 @@ public sealed class StickShapingScenarioTests
         foreach (var crossingY in new[] { CenterY - 0.6, CenterY, CenterY + 0.6 })
         foreach (var seed in new[] { 1, 7, 42 })
         {
-            var x = CrossingFor(_shipped, Batter(_shipped, bats), charge, zone);
+            var x = CrossingFor(_off, Batter(_off, bats), charge, zone);
+            var off = Resolver(_off).Resolve(Input(_off, Batter(_off, bats), Intent(charge, 0, 0), 0, x, crossingY, inZone),
+                Harbor(_off), new Random(seed));
             var shipped = Resolver(_shipped).Resolve(Input(_shipped, Batter(_shipped, bats), Intent(charge, 0, 0), 0, x, crossingY, inZone),
                 Harbor(_shipped), new Random(seed));
-            var trial = Resolver(_trial).Resolve(Input(_trial, Batter(_trial, bats), Intent(charge, 0, 0), 0, x, crossingY, inZone),
-                Harbor(_trial), new Random(seed));
-            Assert.Equal(shipped, trial);
+            Assert.Equal(off, shipped);
             cases++;
         }
         Assert.Equal(2 * 2 * Zones.Length * 2 * 3 * 3, cases);
     }
 
     // ---------------------------------------------------------------------------------
-    // S-130  Bunts still follow the stick under the trial (until P4-b)
+    // S-130  Bunts still follow the stick on the shipped root (until P4-b)
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S130_APadsBuntStillFollowsTheStickUnderTheTrial()
+    public void S130_APadsBuntStillFollowsTheStickOnTheShippedRoot()
     {
-        var trial = Resolver(_trial);
         var shipped = Resolver(_shipped);
+        var off = Resolver(_off);
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var seed in Enumerable.Range(1, 10))
         {
@@ -297,12 +295,12 @@ public sealed class StickShapingScenarioTests
             foreach (var stick in Sticks)
             {
                 var intent = Intent(0, stick.X, stick.Y, bunt: true);
-                var onTrial = trial.Resolve(Input(_trial, Batter(_trial, bats), intent, 0, 0, CenterY), Harbor(_trial), new Random(seed));
                 var onShipped = shipped.Resolve(Input(_shipped, Batter(_shipped, bats), intent, 0, 0, CenterY), Harbor(_shipped), new Random(seed));
+                var onOff = off.Resolve(Input(_off, Batter(_off, bats), intent, 0, 0, CenterY), Harbor(_off), new Random(seed));
                 // The switch does not reach a bunt: the same ball on both roots.
-                Assert.Equal(onShipped, onTrial);
-                Assert.NotEqual(ContactQuality.Sour, onTrial.Quality);
-                hits[stick.Name] = onTrial;
+                Assert.Equal(onOff, onShipped);
+                Assert.NotEqual(ContactQuality.Sour, onShipped.Quality);
+                hits[stick.Name] = onShipped;
             }
             var where = $"{bats} seed {seed}";
             Assert.True(hits["left"].SprayDeg < hits["center"].SprayDeg, where);
@@ -314,26 +312,26 @@ public sealed class StickShapingScenarioTests
     }
 
     [Fact]
-    public void S130_TheCpuSacBuntStillCarriesItsDrawnAimUnderTheTrial()
+    public void S130_TheCpuSacBuntStillCarriesItsDrawnAimOnTheShippedRoot()
     {
         var bunts = CpuSacBunts();
         Assert.True(bunts > 0, "some seed squares and bunts");
     }
 
     // ---------------------------------------------------------------------------------
-    // S-131  A Star Swing still follows the stick under the trial (owner: Phase 6)
+    // S-131  A Star Swing still follows the stick on the shipped root (owner: Phase 6)
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S131_AStarSwingStillFollowsTheStickUnderTheTrial()
+    public void S131_AStarSwingStillFollowsTheStickOnTheShippedRoot()
     {
         // PH-12's scope is ordinary hits. Each Star Swing is reviewed in Phase 6; until then it keeps
         // both stick terms, and this row is how Phase 6 finds it. Rio's heat-swing authors no launch
         // of its own, so both terms reach it.
-        var captain = _trial.Must("rio");
-        Assert.Null(StarSkills.SwingLaunchDeg(captain.StarSwing, _trial.StarSkills));
-        var trial = Resolver(_trial);
+        var captain = _shipped.Must("rio");
+        Assert.Null(StarSkills.SwingLaunchDeg(captain.StarSwing, _shipped.StarSkills));
         var shipped = Resolver(_shipped);
+        var off = Resolver(_off);
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var seed in Enumerable.Range(1, 10))
         {
@@ -341,11 +339,11 @@ public sealed class StickShapingScenarioTests
             foreach (var stick in Sticks)
             {
                 var intent = Intent(0, stick.X, stick.Y);
-                var onTrial = trial.Resolve(Input(_trial, Batter(_trial, bats), intent, 0, 0, CenterY, star: true), Harbor(_trial), new Random(seed));
                 var onShipped = shipped.Resolve(Input(_shipped, Batter(_shipped, bats), intent, 0, 0, CenterY, star: true), Harbor(_shipped), new Random(seed));
-                Assert.Equal(onShipped, onTrial);
-                Assert.Equal(captain.StarSwing, onTrial.StarSwingUsed);
-                hits[stick.Name] = onTrial;
+                var onOff = off.Resolve(Input(_off, Batter(_off, bats), intent, 0, 0, CenterY, star: true), Harbor(_off), new Random(seed));
+                Assert.Equal(onOff, onShipped);
+                Assert.Equal(captain.StarSwing, onShipped.StarSwingUsed);
+                hits[stick.Name] = onShipped;
             }
             var where = $"{bats} seed {seed}";
             Assert.True(hits["up"].LaunchDeg < hits["center"].LaunchDeg, where);
@@ -356,20 +354,21 @@ public sealed class StickShapingScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-132  The CPU batter: today's command and draws shipped; no aim for an ordinary trial swing
+    // S-132  The CPU batter: no aim for an ordinary shipped swing; the old command on the off path
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S132_OnTheShippedRootTheCpuSwingIsTodaysCommandInTodaysDrawOrder()
+    public void S132_OnTheOffPathTheCpuSwingIsTheOldCommandInTheOldDrawOrder()
     {
         foreach (var seed in Enumerable.Range(1, 25))
         {
-            var match = Match.Slice(_shipped, innings: 3, seed: seed);
+            var match = Match.Slice(_off, innings: 3, seed: seed);
             AssertTheComposedPath(match);
             var first = match.CpuSwing(Middle, inZone: true);
             var second = match.CpuSwing(Middle, inZone: true);
 
-            // Today's CpuSwing, composed here draw by draw from a Random of the same seed. The second
+            // The off path's CpuSwing (what played before #883), composed here draw by draw from a
+            // Random of the same seed. The second
             // call continues the same replay, so a draw added or dropped anywhere in the first fails it.
             var replay = new Replay(seed);
             Assert.Equal(Today(match, replay, drawAims: true), first);
@@ -380,11 +379,11 @@ public sealed class StickShapingScenarioTests
     }
 
     [Fact]
-    public void S132_UnderTheTrialAnOrdinaryCpuSwingHoldsNoStickAndDrawsNoAim()
+    public void S132_OnTheShippedRootAnOrdinaryCpuSwingHoldsNoStickAndDrawsNoAim()
     {
         foreach (var seed in Enumerable.Range(1, 25))
         {
-            var match = Match.Slice(_trial, innings: 3, seed: seed);
+            var match = Match.Slice(_shipped, innings: 3, seed: seed);
             AssertTheComposedPath(match);
             var first = match.CpuSwing(Middle, inZone: true);
             var second = match.CpuSwing(Middle, inZone: true);
@@ -397,35 +396,35 @@ public sealed class StickShapingScenarioTests
             Assert.Equal(Today(match, replay, drawAims: false), first);
             Assert.Equal(Today(match, replay, drawAims: false), second);
 
-            // Everything before the aims is the shipped root's command, draw for draw.
-            var shipped = Match.Slice(_shipped, innings: 3, seed: seed).CpuSwing(Middle, inZone: true);
-            Assert.Equal(shipped with { SprayAimDeg = 0, LaunchAim = 0 }, first);
+            // Everything before the aims is the off path's command, draw for draw.
+            var off = Match.Slice(_off, innings: 3, seed: seed).CpuSwing(Middle, inZone: true);
+            Assert.Equal(off with { SprayAimDeg = 0, LaunchAim = 0 }, first);
         }
     }
 
     [Fact]
-    public void S132_UnderTheTrialACpuStarSwingAndASacBuntStillDrawTheirAims()
+    public void S132_OnTheShippedRootACpuStarSwingAndASacBuntStillDrawTheirAims()
     {
         var stars = 0;
         var ordinary = 0;
         foreach (var seed in Enumerable.Range(1, 120))
         {
-            var onTrial = CaptainUp(_trial, seed).CpuSwing(Middle, inZone: true);
             var onShipped = CaptainUp(_shipped, seed).CpuSwing(Middle, inZone: true);
-            Assert.True(onTrial.Swing);
-            if (onTrial.Star || onTrial.Bunt)
+            var onOff = CaptainUp(_off, seed).CpuSwing(Middle, inZone: true);
+            Assert.True(onShipped.Swing);
+            if (onShipped.Star || onShipped.Bunt)
             {
                 // A Star Swing (and a sac bunt, if this captain squares) draws its aims as today: the
                 // same command on both roots, drawn aims included.
-                Assert.Equal(onShipped, onTrial);
-                Assert.NotEqual(0, onTrial.SprayAimDeg);
-                if (onTrial.Star) Assert.NotEqual(0, onTrial.LaunchAim);
-                if (onTrial.Star) stars++;
+                Assert.Equal(onOff, onShipped);
+                Assert.NotEqual(0, onShipped.SprayAimDeg);
+                if (onShipped.Star) Assert.NotEqual(0, onShipped.LaunchAim);
+                if (onShipped.Star) stars++;
                 continue;
             }
-            Assert.Equal(0, onTrial.SprayAimDeg);
-            Assert.Equal(0, onTrial.LaunchAim);
-            Assert.Equal(onShipped with { SprayAimDeg = 0, LaunchAim = 0 }, onTrial);
+            Assert.Equal(0, onShipped.SprayAimDeg);
+            Assert.Equal(0, onShipped.LaunchAim);
+            Assert.Equal(onOff with { SprayAimDeg = 0, LaunchAim = 0 }, onShipped);
             ordinary++;
         }
         Assert.True(stars > 0, "some seed swings a Star Swing");
@@ -445,17 +444,17 @@ public sealed class StickShapingScenarioTests
         var bunts = 0;
         foreach (var seed in Enumerable.Range(1, 60))
         {
-            var onTrial = LightBatWithARunnerOnFirst(_trial, seed);
             var onShipped = LightBatWithARunnerOnFirst(_shipped, seed);
-            var squared = onTrial.CpuSquaresBunt();
-            Assert.Equal(onShipped.CpuSquaresBunt(), squared);
+            var onOff = LightBatWithARunnerOnFirst(_off, seed);
+            var squared = onShipped.CpuSquaresBunt();
+            Assert.Equal(onOff.CpuSquaresBunt(), squared);
             if (!squared) continue;
-            var trialBunt = onTrial.CpuSwing(Middle, inZone: true);
             var shippedBunt = onShipped.CpuSwing(Middle, inZone: true);
-            Assert.True(trialBunt.Bunt);
-            Assert.Equal(shippedBunt, trialBunt);
-            Assert.NotEqual(0, trialBunt.SprayAimDeg);
-            Assert.Equal(_trial.Rules.Batting.Cpu.SacBuntLaunchAim, trialBunt.LaunchAim);
+            var offBunt = onOff.CpuSwing(Middle, inZone: true);
+            Assert.True(shippedBunt.Bunt);
+            Assert.Equal(offBunt, shippedBunt);
+            Assert.NotEqual(0, shippedBunt.SprayAimDeg);
+            Assert.Equal(_shipped.Rules.Batting.Cpu.SacBuntLaunchAim, shippedBunt.LaunchAim);
             bunts++;
         }
         return bunts;

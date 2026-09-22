@@ -38,6 +38,8 @@ Delivery closes the window that is open. Before it builds or moves main, it look
 local-player: A delivered game window is open: main d49c527351 on trials/pitch5 (pid 77559, delivered 2026-09-22T17:20:37Z). Delivery would close it and end any match in it; nothing was built and main was not moved. Re-run with --replace when closing it is yours to do (docs/local-player.md).
 ```
 
+The window in this example ran on `trials/pitch5`. That overlay is retired (#883): its last key is shipped, so there is nothing left to pass to `--trial trials/pitch5`.
+
 Re-run with `--replace` when closing that window is yours to do:
 
 - An older `main` on the shipped data, replaced by merged main. This is the normal post-merge step (AGENTS.md "Local standalone delivery").

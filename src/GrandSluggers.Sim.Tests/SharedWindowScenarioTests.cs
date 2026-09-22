@@ -15,13 +15,14 @@ namespace GrandSluggers.Sim.Tests;
 /// <b>Off</b> — the switch's off path, built in the test (<see cref="SwitchOffPaths"/>) and never
 /// read from shipped data — the window is the one that shipped before #860: slap 9 / charge 7,
 /// ± (Contact − 5) × 0.4, × the Star Pitch's multiplier × the park's night multiplier × the human
-/// rung's, floored (<b>S-124</b>). <b>S-126</b> holds the overlay to the one key it still changes,
-/// #855's <c>geometryOnly</c>, and the validator to the floor. <b>S-127</b> runs the S-29 cohort
-/// under the overlay, in process, and records it; it gates nothing.
+/// rung's, floored (<b>S-124</b>). <b>S-126</b> holds the shipped file to both accepted keys (#883
+/// retired the <c>trials/pitch5</c> overlay that last carried #855's <c>geometryOnly</c>), and the
+/// validator to the floor. <b>S-127</b> runs the S-29 cohort from a catalog built in the test (the
+/// stick switch's off path), in process, and records it; it gates nothing.
 ///
-/// The overlay is loaded <b>in process</b>, through a <see cref="DataRoot"/> this class builds from
-/// the repository, the way <see cref="PitchFamilyTrialScenarioTests"/> does, so nothing here depends
-/// on <c>GRAND_SLUGGERS_TRIAL</c> being set and CI is untouched.
+/// Every root is loaded <b>in process</b>, through a <see cref="DataRoot"/> this class builds from
+/// the repository or <see cref="SwitchOffPaths"/> builds from a copy, so nothing here depends on
+/// <c>GRAND_SLUGGERS_TRIAL</c> being set and CI is untouched.
 ///
 /// <b>No row stores a window.</b> Every claim is an arithmetic identity recomputed here from the same table, a
 /// relationship, or an integer count. The formula is multiplies and a <c>Math.Max</c> — no libm — so
@@ -35,18 +36,11 @@ public sealed class SharedWindowScenarioTests
         AllowTrailingCommas = true
     };
 
-    /// <summary>The overlay, named the way a run names it and the way its README names it.</summary>
-    const string TrialName = "trials/pitch5";
-
     readonly ContentCatalog _shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
 
     string ShippedRoot => _shipped.Root.Shipped;
     string Repo => Path.GetFullPath(Path.Combine(ShippedRoot, ".."));
 
-    /// <summary>The shipped root with the pitch5 overlay laid over it, built here rather than by the environment.</summary>
-    DataRoot TrialRoot => new(ShippedRoot, Path.Combine(Repo, "trials", "pitch5"));
-
-    RulesTable Trial => RulesTable.Load(TrialRoot);
     RulesTable ShippedRules => _shipped.Rules;
     StarSkillTable Skills => _shipped.StarSkills;
 
@@ -258,39 +252,35 @@ public sealed class SharedWindowScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-126  The overlay is two keys, and the validator still floors the window
+    // S-126  The overlay is retired, and the validator still floors the window
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// The overlay's batting file is the shipped file with exactly one key changed: #855's
-    /// <c>geometryOnly</c> (PH-12), off in <c>data/</c> and on here. Until #860 it also changed this
-    /// child's <c>window.shared</c>; Jack accepted the window on September 22, 2026 ("trial was
-    /// good."), #860 turned it on in <c>data/</c>, and both copies now author it true. Put
-    /// <c>geometryOnly</c> back and the two files are the same JSON. The method name keeps the row's
-    /// history.
+    /// Until #883 the overlay's batting file was the shipped file with exactly one key changed:
+    /// #855's <c>geometryOnly</c> (PH-12). Before #860 it also changed this child's
+    /// <c>window.shared</c>. Jack accepted both in the <c>trials/pitch5</c> window on September 22,
+    /// 2026 ("trial was good." for the window, "approve all" for the stick), #860 and #883 turned them
+    /// on in <c>data/</c>, and #883 deleted the folder. So the shipped file authors both keys true,
+    /// the overlay is gone, and the stick's off path is the shipped file with that one key put back —
+    /// built in the test (<see cref="SwitchOffPaths.StickShapes"/>), never kept as a second copy.
     /// </summary>
     [Fact]
-    public void S126_TheOverlayIsTheShippedFileWithTwoKeysChanged()
+    public void S126_TheOverlayIsRetiredAndTheShippedFileAuthorsBothKeys()
     {
-        var root = TrialRoot;
-        Assert.Equal(TrialName, root.OverlayName);
-        Assert.Equal(new[] { "rules/batting.json" }, root.Overrides);
-        Assert.Empty(RulesTable.Validate(root));
+        Assert.False(Directory.Exists(Path.Combine(Repo, "trials", "pitch5")), "#883 retired trials/pitch5");
 
         var shippedJson = Parse(Path.Combine(ShippedRoot, "rules", "batting.json"));
-        var trialJson = Parse(root.Resolve("rules", "batting.json"));
+        Assert.True(shippedJson["window"]!["shared"]!.GetValue<bool>(), "the shipped root turns the window switch on (#860)");
+        Assert.True(shippedJson["geometryOnly"]!.GetValue<bool>(), "the shipped root turns geometryOnly on (#883)");
 
-        var shippedWindow = shippedJson["window"]!.AsObject();
-        var trialWindow = trialJson["window"]!.AsObject();
-        Assert.True(shippedWindow["shared"]!.GetValue<bool>(), "the shipped root turns the switch on (#860)");
-        Assert.True(trialWindow["shared"]!.GetValue<bool>(), "the overlay agrees with the shipped root");
-        Assert.False(shippedJson["geometryOnly"]!.GetValue<bool>(), "the shipped file authors geometryOnly: false (#855)");
-        Assert.True(trialJson["geometryOnly"]!.GetValue<bool>(), "the overlay turns geometryOnly on (#855)");
-
-        // Put the one key back; everything else in the file must be identical, so a shipped edit
-        // that forgets this overlay fails here instead of quietly making the trial measure more things.
-        trialJson["geometryOnly"] = false;
-        Assert.Equal(shippedJson.ToJsonString(), trialJson.ToJsonString());
+        // The off path changes that one key and nothing else, so a row that asserts it measures the
+        // switch and only the switch.
+        var off = SwitchOffPaths.StickShapes;
+        Assert.Empty(RulesTable.Validate(off));
+        var offJson = Parse(Path.Combine(off.Shipped, "rules", "batting.json"));
+        Assert.False(offJson["geometryOnly"]!.GetValue<bool>(), "the off path turns geometryOnly off");
+        offJson["geometryOnly"] = true;
+        Assert.Equal(shippedJson.ToJsonString(), offJson.ToJsonString());
     }
 
     [Fact]
@@ -304,7 +294,6 @@ public sealed class SharedWindowScenarioTests
 
         var w = ShippedRules.Batting.Window;
         Assert.Equal(w.SlapFrames, w.Frames);
-        Assert.Equal(w.Frames, Trial.Batting.Window.Frames);
 
         // …so on the off path an average hitter's quick swing and the shipped one window are the
         // same number, which is the whole reason 9 was the accepted start (PH-10-R1).
@@ -355,13 +344,18 @@ public sealed class SharedWindowScenarioTests
     [Fact]
     public void S126_GeometryOnlyIsARuleTheTableOwnsAndAMissingOneIsOff()
     {
-        // #855's switch is held to the same terms as this one: the table owns it, an absent key is
-        // the safe direction (the stick shapes every swing, as shipped), and a misspelling is refused.
+        // #855's switch is held to the same terms as this one: the table owns it, an absent key falls
+        // back to the code default, and a misspelling is refused. Until #883 the default was off;
+        // since #883 (Jack, September 22, 2026: "approve all") the code default follows the shipped
+        // JSON (the JSON = code parity rail), so an absent key plays the shipped rule — the stick
+        // shapes only a bunt or a Star Swing. An explicit false is the only way to the off path. The
+        // method name keeps the row's history.
         using var fixture = new RulesFixture();
         fixture.Change("batting.json", json => json.Remove("geometryOnly"));
         var errors = new List<string>();
-        Assert.False(RulesTable.Load(new DataRoot(fixture.Root), errors).Batting.GeometryOnly);
+        Assert.True(RulesTable.Load(new DataRoot(fixture.Root), errors).Batting.GeometryOnly);
         Assert.Empty(errors);
+        Assert.False(SwitchOffPaths.StickShapesRules.Batting.GeometryOnly);
 
         using var misspelled = new RulesFixture();
         misspelled.Change("batting.json", json => json["geometryOnlyMode"] = true);
@@ -380,16 +374,17 @@ public sealed class SharedWindowScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-127  The S-29 cohort under the overlay — recorded, never gated
+    // S-127  The S-29 cohort from a catalog built in the test — recorded, never gated
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Fifty three-inning CPU-vs-CPU games under <c>trials/pitch5</c>. <b>There is no trial band and
-    /// this row asserts none.</b> Nobody has accepted a number for the trial: the shipped band
-    /// (F693-06, 1.8–5 per side) belongs to <see cref="AtBatScenarioTests.S29_FiftySeedCpuGamesLandInTheBand"/>
-    /// on the shipped root, and tuning anything to move the trial figures is banned by #844 and #855.
-    /// The figures are in <c>docs/research/plate-window-p2b.md</c> and
-    /// <c>docs/research/stick-shaping-p2c.md</c>, before and after, for sitting 2.
+    /// Fifty three-inning CPU-vs-CPU games from a catalog that is <b>not</b> the process's: since #883
+    /// retired <c>trials/pitch5</c>, the stick switch's off path (<see cref="SwitchOffPaths.StickShapes"/>).
+    /// <b>This row asserts no band.</b> The shipped band (F693-06, 1.8–5 per side) belongs to
+    /// <see cref="AtBatScenarioTests.S29_FiftySeedCpuGamesLandInTheBand"/> on the shipped root, and
+    /// tuning anything to move these figures is banned by #844, #855 and #883. The figures are in
+    /// <c>docs/research/plate-window-p2b.md</c>, <c>docs/research/stick-shaping-p2c.md</c> and
+    /// <c>docs/research/promote-stick.md</c>.
     ///
     /// <b>The cohort runs in process.</b> #844 found <see cref="Match.AutoPlay"/>'s in-zone read —
     /// <see cref="AtBatResolver.PitchInZone"/> → <see cref="StrikeZoneGeometry.Contains(PitchCommand, string?, RulesTable?)"/>
@@ -398,18 +393,18 @@ public sealed class SharedWindowScenarioTests
     /// so an overlay-only family stopped an in-process overlay game by name, and pinned it here. #855
     /// threaded the match's table through every hop (an optional <see cref="RulesTable"/> defaulting
     /// to today's resolution), and <c>Match</c> passes its own. So the pinned branch is gone: the row
-    /// asks the read with the overlay's table, then plays the real cohort from a catalog loaded on the
-    /// overlay in a process rooted at the shipped data. The figures agree with
-    /// <c>GRAND_SLUGGERS_TRIAL=trials/pitch5 cli match --cohort s29</c>; the report records both.
+    /// asks the read with the catalog's own table, then plays the real cohort from that catalog in a
+    /// process rooted at the shipped data.
     /// </summary>
     [Fact]
-    public void S127_TheS29CohortUnderTheTrialRunsInProcessAndIsRecordedNotGated()
+    public void S127_TheS29CohortOnTheOffPathRunsInProcessAndIsRecordedNotGated()
     {
         // The cohort's parks and diamond come from the process-wide table; the compact profile is a
         // different diamond and a different (equally correct) cohort, and it is not what #844 measures.
         if (TestRoot.Compact) return;
 
-        var content = ContentCatalog.Load(TrialRoot);
+        var content = SwitchOffPaths.StickShapesContent;
+        Assert.False(content.Rules.Batting.GeometryOnly, "the cohort plays the stick's off path");
 
         // (a) The window those fifty games are judged in is the shared one, at every rung.
         Assert.True(content.Rules.Batting.Window.Shared, "the cohort plays the shared window");
@@ -418,11 +413,11 @@ public sealed class SharedWindowScenarioTests
             Assert.Equal(content.Rules.Batting.Window.Frames,
                 AtBatResolver.ContactWindowFrames(5, charged, null, Harbor, false, content.Rules, content.StarSkills, rung));
 
-        // (b) The repaired read: handed the overlay's table, every hop flies an overlay-only family,
+        // (b) The repaired read: handed the catalog's table, every hop flies the family it authors,
         //     and the umpire's answer is the crossing's.
         var trialOnly = PitchFamily.Curveball;
         var pitch = new PitchCommand(trialOnly, 0, false);
-        Assert.True(content.Rules.Pitching.Families.IsAuthored(trialOnly), "the overlay authors it");
+        Assert.True(content.Rules.Pitching.Families.IsAuthored(trialOnly), "the catalog authors it");
         var crossing = PitchFlight.Point(pitch, 1, rules: content.Rules);
         Assert.Equal(StrikeZoneGeometry.Contains(crossing.X, crossing.Y), StrikeZoneGeometry.Contains(pitch, null, content.Rules));
         Assert.Equal(StrikeZoneGeometry.Contains(pitch, null, content.Rules), AtBatResolver.PitchInZone(pitch, 5, null, content.Rules));
@@ -435,11 +430,11 @@ public sealed class SharedWindowScenarioTests
             Assert.Contains(trialOnly, stopped.Message, StringComparison.Ordinal);
         }
 
-        // (c) The real cohort, in process, from the overlay's catalog — and still no band.
+        // (c) The real cohort, in process, from the catalog built in the test — and still no band.
         var report = RaceCohort.Run(content, "s29");
         Assert.Equal(50, report.Games.Count);
         Assert.All(report.Games, g => Assert.True(g.HomeRuns >= 0 && g.AwayRuns >= 0));
-        var line = $"trial S-29: runs {report.MeanAwayRuns:0.00} away / {report.MeanHomeRuns:0.00} home over {report.Games.Count} games";
+        var line = $"off-path S-29: runs {report.MeanAwayRuns:0.00} away / {report.MeanHomeRuns:0.00} home over {report.Games.Count} games";
         Assert.True(report.MeanHomeRuns > 0 && report.MeanAwayRuns > 0, line);
         Assert.True(report.Games.Sum(g => g.Outcomes.GetValueOrDefault("Strikeout")) > 0, line);
         Assert.True(report.Games.Sum(g => g.Outcomes.GetValueOrDefault("Single")) > 0, line);
