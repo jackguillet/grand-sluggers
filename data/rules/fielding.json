@@ -187,9 +187,10 @@
     "relayAutoContinue": 1,
     "relayBufferSec": 0
   },
+  // How fast the loose ball slows is the ground's, not the throw's: grounds.json overthrow.decelFtPerSec2, read off the row of
+  // the zone the ball is in (F3-c, FD-05).
   "overthrow": {
     "carryMul": 0.35,
-    "decelFtPerSec2": 18,
     "maxRollFt": 45
   },
   "catcher": {
@@ -257,14 +258,13 @@
     "hopFullApexFt": 1.5,
     "hopPhaseHalfWidth": 0.35,
     "stunSec": 0.40,
+    // The local bobble's restitution, the roll it keeps per impact and its rolling deceleration are the ground's: grounds.json
+    // bobble, read off the row of the zone the ball is in (F3-c, FD-05). What stays here is the fumble's own.
     "bobbleSpreadDeg": 30,
     "bobbleRetain": 0.20,
     "bobbleCapFtPerSec": 6,
-    "bobbleRestitution": 0.35,
     "bobbleReboundCapFt": 0.50,
     "bobbleSettleFt": 0.25,
-    "bobbleGroundRetain": 0.90,
-    "bobbleDecelFtPerSec2": 6,
     "deflectSpreadDeg": 15,
     "deflectRetainMax": 0.80,
     "deflectRetainMin": 0.50,

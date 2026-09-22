@@ -1308,10 +1308,9 @@ public sealed class FlightRules
     public double WindMul { get; init; } = 0.35;
     [Positive] public int SampleHz { get; init; } = 120;
     [Positive] public double MaxSeconds { get; init; } = 12;
-    public BounceRules Bounce { get; init; } = new();
-    public SkidRules Skid { get; init; } = new();
-    public RollRules Roll { get; init; } = new();
-    public WallRules Wall { get; init; } = new();
+    // The roll, the bounce, the skid and the wall carom are not here (F3-c, FD-05 / FD-03): the ball reads them off the
+    // ground row of the zone it is on (grounds.json, through GroundZones.RowAt) and off the wall material of the segment
+    // it meets (walls.json, through WallMaterial.OfSegment). One copy of each number, where a park can reach it.
     public LandingRules Landing { get; init; } = new();
     public BattedBallClassRules Classes { get; init; } = new();
     public DeadBallRules DeadBall { get; init; } = new();
@@ -1319,9 +1318,10 @@ public sealed class FlightRules
     /// <summary>
     /// This table with one park's air (§0.3, FD-03): <c>dragMul</c> multiplies the root's drag and
     /// <c>windMul</c> replaces the global exposure. Every other number — gravity, the three stretches, the
-    /// plate, the sample clock — is the global one, and the ground, wall, landing, class and dead-ball
-    /// blocks are shared by reference: a park does not own them (they are F3-b / F3-c's zone and span rows).
-    /// Built once per match by <see cref="RulesTable.AtPark"/>, never per flight.
+    /// plate, the sample clock — is the global one, and the landing, class and dead-ball blocks are shared
+    /// by reference. The ground and the wall are not on this table at all: a park reaches them by naming
+    /// which ground row each of its zones stands on (<see cref="GroundZones"/>), never by a copy here
+    /// (F3-b, F3-c). Built once per match by <see cref="RulesTable.AtPark"/>, never per flight.
     /// </summary>
     internal FlightRules WithEnvironment(ParkEnvironment env) => new()
     {
@@ -1334,10 +1334,6 @@ public sealed class FlightRules
         WindMul = env.WindMul ?? WindMul,
         SampleHz = SampleHz,
         MaxSeconds = MaxSeconds,
-        Bounce = Bounce,
-        Skid = Skid,
-        Roll = Roll,
-        Wall = Wall,
         Landing = Landing,
         Classes = Classes,
         DeadBall = DeadBall
@@ -1345,41 +1341,10 @@ public sealed class FlightRules
 
     internal void Validate(string source, List<string> errors)
     {
-        RulesValidation.Order(source, "flight.skid.launchMinDeg", Skid.LaunchMinDeg, Skid.LaunchMaxDeg, errors);
         RulesValidation.Order(source, "flight.classes.topperMaxLaunchDeg", Classes.TopperMaxLaunchDeg, Classes.GrounderMaxLaunchDeg, errors);
         RulesValidation.Order(source, "flight.classes.grounderMaxLaunchDeg", Classes.GrounderMaxLaunchDeg, Classes.ChopperMaxLaunchDeg, errors);
         RulesValidation.Order(source, "flight.classes.chopperMaxLaunchDeg", Classes.ChopperMaxLaunchDeg, Classes.LinerMaxLaunchDeg, errors);
     }
-}
-
-public sealed class BounceRules
-{
-    [Chance] public double Restitution { get; init; } = 0.48;
-    [Chance] public double Horizontal { get; init; } = 0.82;
-    public double MinVy { get; init; } = 3.6;
-}
-
-/// <summary>Liners skid instead of hopping.</summary>
-public sealed class SkidRules
-{
-    public double LaunchMinDeg { get; init; } = 14;
-    public double LaunchMaxDeg { get; init; } = 22;
-    public double MinVy { get; init; } = 2.2;
-    [Chance] public double Restitution { get; init; } = 0.28;
-    [Chance] public double Horizontal { get; init; } = 0.93;
-}
-
-public sealed class RollRules
-{
-    [Positive] public double Friction { get; init; } = 22;
-    public double RestSpeed { get; init; } = 1.4;
-}
-
-/// <summary>The outfield fence below fence height: the carom (§7.9). Normal speed × restitution, along the wall × tangential.</summary>
-public sealed class WallRules
-{
-    [Chance] public double Restitution { get; init; } = 0.48;
-    [Chance] public double Tangential { get; init; } = 0.82;
 }
 
 public sealed class LandingRules
@@ -1428,14 +1393,19 @@ public sealed class DeadBallRules
 /// (FR-02).
 ///
 /// <para>
-/// <b>Every row here is today's global number.</b> F3-b (#846) built the library at parity: `grass`,
-/// `dirt`, `ice` and `ash` all carry exactly what <c>flight.json</c>'s <c>roll</c>, <c>bounce</c> and
-/// <c>skid</c> blocks carry, so the ground under the ball cannot change a play. The flight and the
-/// three loose-ball models still read <see cref="FlightRules"/>'s own copy; F3-c moves those reads to
-/// the zone under the ball, and only then does a row that differs mean anything. Until it does,
-/// <c>GroundLibraryTests</c> asserts every row equals the flight block field for field, so the two
-/// copies cannot drift apart while both exist. A ground value that is <em>not</em> today's arrives
-/// with Crystal (F9-a), as a trial, after Jack has accepted it.
+/// <b>The ball reads the row under it (F3-c, #856).</b> The batted ball's roll and every one of its
+/// bounces, the overthrow's roll and the local bobble each take their ground numbers from the row of
+/// the zone the ball is in (<see cref="GroundZones.RowAt"/>): there is no other copy.
+/// <c>flight.json</c>'s <c>roll</c>, <c>bounce</c> and <c>skid</c> and <c>fielding.json</c>'s
+/// <c>overthrow.decelFtPerSec2</c> and three <c>handling.bobble*</c> keys are gone, on both roots.
+/// </para>
+///
+/// <para>
+/// <b>Every row here is today's number.</b> F3-b (#846) seeded the four rows with the flight's blocks
+/// and F3-c moved the two loose-ball models' ground numbers in at their shipped values, so `grass`,
+/// `dirt`, `ice` and `ash` are equal and the ground under the ball cannot change a play.
+/// <c>GroundLibraryTests</c> pins every row to those numbers, written in the test. A ground value that
+/// is <em>not</em> today's arrives with Crystal (F9-a), as a trial, after Jack has accepted it.
 /// </para>
 /// </summary>
 public sealed class GroundLibrary
@@ -1485,9 +1455,8 @@ public sealed class GroundLibrary
 
     /// <summary>
     /// The rule across a row's fields the attributes cannot say, checked on every row and on both
-    /// roots: the skid band has to be a band. It is the same order <see cref="FlightRules.Validate"/>
-    /// holds for <c>flight.skid</c>, held here per row so a trial that authors one ground cannot write
-    /// a band that never opens.
+    /// roots: the skid band has to be a band. <c>flight.skid</c> held the same order until F3-c retired
+    /// it; held here per row, a trial that authors one ground cannot write a band that never opens.
     /// </summary>
     internal void Validate(string source, List<string> errors)
     {
@@ -1500,21 +1469,22 @@ public sealed class GroundLibrary
 }
 
 /// <summary>
-/// One ground's numbers. The three blocks are the <em>same types</em> <see cref="FlightRules"/>
-/// carries — <see cref="RollRules"/>, <see cref="BounceRules"/>, <see cref="SkidRules"/> — rather than
-/// near-copies under new names, for two reasons. The parity this child ships is then literally field
-/// for field, with nothing to translate; and F3-c's move is a change of <em>which</em> object the
-/// flight reads, not a rewrite of how it reads one.
+/// One ground's numbers: everything the ground does to a ball on it, for the three ground models that
+/// read it (FD-05) — the batted ball (<see cref="BallFlight"/>: <see cref="Roll"/>, <see cref="Bounce"/>,
+/// <see cref="Skid"/>), the overthrow (<see cref="Overthrow"/>) and the local bobble (<see cref="Bobble"/>).
+/// What belongs to the <em>ball</em> or the <em>hands</em> rather than the ground stays where it was: a
+/// sailed throw's carry and its roll cap are the throw's (<c>fielding.overthrow</c>), and the fumble's
+/// spill, stun, rebound ceiling and settle are the fumble's (<c>fielding.handling</c>).
 ///
 /// <para>
-/// <c>skid.launchMinDeg</c> / <c>launchMaxDeg</c> are a property of the <em>ball</em> (the launch band
-/// a rope skids in), not of the ground, and they ride along here because the child's contract is the
-/// whole skid block at parity. Which fields of a zone's row the flight actually reads is F3-c's to
-/// decide; a row whose band differed from the flight's would be a behavior change, so today none does.
+/// <b>The skid band is judged against the row under each bounce.</b> The launch angle is the ball's; the
+/// band a rope skids in (<c>skid.launchMinDeg</c> / <c>launchMaxDeg</c>) is the ground's, so a liner
+/// landing on a ground whose band excludes its launch hops there instead. Every row carries today's band,
+/// so no bounce changes.
 /// </para>
 ///
 /// <para>
-/// <c>body</c> is the fourth block and the only one that is not the ball's: what the ground does to a
+/// <c>body</c> is the one block that is not the ball's: what the ground does to a
 /// fielder's start, brake and cut-back and to a runner's slide and overrun (<see cref="GroundBodyRules"/>,
 /// F3-d). A body reads the row of the zone it stands in, through <see cref="GroundZones.RowAt"/>.
 /// </para>
@@ -1530,8 +1500,61 @@ public sealed class GroundRules
     /// <summary>The rope's skid across this ground, band included.</summary>
     public SkidRules Skid { get; init; } = new();
 
+    /// <summary>A sailed throw (or the shipped fumble's scatter) rolling loose on this ground.</summary>
+    public GroundOverthrowRules Overthrow { get; init; } = new();
+
+    /// <summary>The local bobble's ball (#721) rebounding and rolling on this ground.</summary>
+    public GroundBobbleRules Bobble { get; init; } = new();
+
     /// <summary>What this ground does to a body standing on it (FD-04 B, F3-d): five multipliers, every one 1.0 today.</summary>
     public GroundBodyRules Body { get; init; } = new();
+}
+
+/// <summary>The batted ball's hop off a ground: vertical speed × restitution, horizontal × horizontal; below <c>minVy</c> it rolls.</summary>
+public sealed class BounceRules
+{
+    [Chance] public double Restitution { get; init; } = 0.48;
+    [Chance] public double Horizontal { get; init; } = 0.82;
+    public double MinVy { get; init; } = 3.6;
+}
+
+/// <summary>Liners skid instead of hopping: a ball launched inside the ground's band bounces off this block instead of <see cref="BounceRules"/>.</summary>
+public sealed class SkidRules
+{
+    public double LaunchMinDeg { get; init; } = 14;
+    public double LaunchMaxDeg { get; init; } = 22;
+    public double MinVy { get; init; } = 2.2;
+    [Chance] public double Restitution { get; init; } = 0.28;
+    [Chance] public double Horizontal { get; init; } = 0.93;
+}
+
+/// <summary>The batted ball rolling on a ground: friction (ft/s²) and the speed it comes to rest below.</summary>
+public sealed class RollRules
+{
+    [Positive] public double Friction { get; init; } = 22;
+    public double RestSpeed { get; init; } = 1.4;
+}
+
+/// <summary>
+/// A loose thrown ball rolling to a stop on a ground (<c>fielding.overthrow.decelFtPerSec2</c> until F3-c). The throw's own
+/// numbers — how much speed it carries past the target and how far it may roll — stay in <see cref="OverthrowRules"/>.
+/// </summary>
+public sealed class GroundOverthrowRules
+{
+    [Positive] public double DecelFtPerSec2 { get; init; } = 18;
+}
+
+/// <summary>
+/// The local bobble's ball on a ground (#721, F693-02-local-bobble-restitution, -ground-horizontal, -rolling-deceleration;
+/// <c>fielding.handling.bobbleRestitution</c> / <c>bobbleGroundRetain</c> / <c>bobbleDecelFtPerSec2</c> until F3-c): the share of
+/// its downward speed it rebounds with, the share of its roll it keeps at each impact, and how fast it slows rolling. The spill,
+/// the rebound ceiling and the settle are the fumble's and stay in <see cref="HandlingRules"/>.
+/// </summary>
+public sealed class GroundBobbleRules
+{
+    [Chance] public double Restitution { get; init; } = 0.35;
+    [Chance] public double GroundRetain { get; init; } = 0.90;
+    public double DecelFtPerSec2 { get; init; } = 6;
 }
 
 /// <summary>
@@ -1588,20 +1611,21 @@ public sealed class GroundBodyRules
 /// <summary>
 /// What the ball does off one kind of wall: one named row per id in <see cref="WallMaterial"/>, the
 /// same shape as <see cref="GroundLibrary"/> and for the same reasons (FR-02). One row today —
-/// <c>padded</c>, carrying exactly <c>flight.wall</c> — because every span of every park is the one
-/// padded wall the ball caroms off now.
+/// <c>padded</c>, carrying exactly what <c>flight.wall</c> carried — because every span of every park
+/// is the one padded wall the ball caroms off now.
 ///
 /// <para>
 /// <b>A material, not a span.</b> Which span of which fence is made of what, and whether it can be
 /// climbed or robbed over, is the polyline fence's business (FD-06, F2-c): a trait like
 /// <c>climbable</c> belongs to a stretch of wall, not to the stuff it is made of, and putting one here
-/// would make the library answer a question it cannot see. The flight still reads
-/// <see cref="FlightRules.Wall"/>; F3-c moves that read to the span's row.
+/// would make the library answer a question it cannot see. Since F3-c the carom reads the row of the
+/// segment it meets (<see cref="WallMaterial.OfSegment"/>, which answers <c>padded</c> for every
+/// segment until F2-c gives a span its own) and <c>flight.wall</c> is gone.
 /// </para>
 /// </summary>
 public sealed class WallMaterialLibrary
 {
-    /// <summary>The padded outfield wall every park has today. Exactly <c>flight.wall</c>.</summary>
+    /// <summary>The padded outfield wall every park has today, at what <c>flight.wall</c> carried.</summary>
     public WallRules Padded { get; init; } = new();
 
     WallRules? Named(string id) => id switch
@@ -1628,6 +1652,13 @@ public sealed class WallMaterialLibrary
             + $"the library is [{string.Join(", ", WallMaterial.All)}] (WallMaterial). A new material is a "
             + "row in that file and an id in the library, never a fallback (FR-02, SF-03).", nameof(id));
     }
+}
+
+/// <summary>The fence below fence height: the carom (§7.9). Normal speed × restitution, along the wall × tangential.</summary>
+public sealed class WallRules
+{
+    [Chance] public double Restitution { get; init; } = 0.48;
+    [Chance] public double Tangential { get; init; } = 0.82;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1865,12 +1896,14 @@ public sealed class BuntDefenseRules
     [Positive] public double HardExitMph { get; init; } = 36;
 }
 
-/// <summary>A throw that misses its cover, or drops at an uncovered bag, rolls on from where it landed.</summary>
+/// <summary>
+/// A throw that misses its cover, or drops at an uncovered bag, rolls on from where it landed. These are the throw's numbers;
+/// how fast the loose ball slows is the ground's, read off the row under it (<see cref="GroundOverthrowRules"/>, F3-c).
+/// </summary>
 public sealed class OverthrowRules
 {
     /// <summary>A sailed throw keeps this much of its flight speed past the target.</summary>
     [Chance] public double CarryMul { get; init; } = 0.35;
-    [Positive] public double DecelFtPerSec2 { get; init; } = 18;
     [Positive] public double MaxRollFt { get; init; } = 45;
 }
 
@@ -2181,9 +2214,9 @@ public sealed class RecoilRules
 /// difficulty is the awkward in-between hop at the take — the ball rising off a real bounce, mid-way up a hop tall enough to
 /// matter — and its chance is <c>chanceCap × D × (1 − handsCut × H)</c> with D the normalized difficulty and H the normalized
 /// Hands. A failed take is a local bobble: the ball spills down from the contact with a fifth of its horizontal speed (six ft/s
-/// at most) inside ±<c>bobbleSpreadDeg</c> of its travel, rebounds at <c>bobbleRestitution</c> under a <c>bobbleReboundCapFt</c>
-/// ceiling, settles below <c>bobbleSettleFt</c>, keeps <c>bobbleGroundRetain</c> of its roll per impact and slows at
-/// <c>bobbleDecelFtPerSec2</c>; the fumbler is stunned <c>stunSec</c> — no steering, no take — while the ball and every other
+/// at most) inside ±<c>bobbleSpreadDeg</c> of its travel, rebounds under a <c>bobbleReboundCapFt</c> ceiling, settles below
+/// <c>bobbleSettleFt</c>, and takes its restitution, the roll it keeps per impact and its rolling deceleration from the ground row
+/// it is on (<see cref="GroundBobbleRules"/>, F3-c); the fumbler is stunned <c>stunSec</c> — no steering, no take — while the ball and every other
 /// body stay live, and the recovery never rolls again. Or (F693-02-expanded-ordinary-error-outcomes, -error-outcome-selection,
 /// -continuing-error-*) the ball gets past: how squarely the ring met the ball — the obstruction, 1 at the body, 0 at the edge of
 /// the take — and the ball's speed decide, never a second roll. Below <c>deflectObstruction</c> and at or above
@@ -2205,11 +2238,8 @@ public sealed class HandlingRules
     public double BobbleSpreadDeg { get; init; } = 30;
     [Chance] public double BobbleRetain { get; init; } = 0.20;
     public double BobbleCapFtPerSec { get; init; } = 6;
-    [Chance] public double BobbleRestitution { get; init; } = 0.35;
     public double BobbleReboundCapFt { get; init; } = 0.50;
     public double BobbleSettleFt { get; init; } = 0.25;
-    [Chance] public double BobbleGroundRetain { get; init; } = 0.90;
-    public double BobbleDecelFtPerSec2 { get; init; } = 6;
     public double DeflectSpreadDeg { get; init; } = 15;
     [Chance] public double DeflectRetainMax { get; init; } = 0.80;
     [Chance] public double DeflectRetainMin { get; init; } = 0.50;
