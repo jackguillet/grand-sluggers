@@ -2,9 +2,12 @@
 # Drop a Linux player request for the already-open Unity editor, then pack
 # linux/ + data/ into one tarball the agent copies to its computer.
 # Personal Unity cannot -batchmode. PlayerBuildGate watches
-# unity/Temp/gs-player-request.json in edit mode.
+# unity/Temp/gs-player-request.json in edit mode. One GUI Unity user on this Mac
+# at a time: the build holds tools/unity_gui.py's lock and waits on the editor
+# open on this worktree.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
+gui() { python3 "$root/tools/unity_gui.py" "$@"; }
 temp="$root/unity/Temp"
 builds="$root/unity/Builds"
 mkdir -p "$temp" "$builds"
@@ -38,11 +41,17 @@ if [[ "${1:-}" == "pack" ]]; then
   exit 0
 fi
 
+# Take the lock before anything touches Unity or the request (docs/editor-startup.md).
+gui acquire --pid $$ --worktree "$root" --purpose "tools/build-player.sh (Linux player)" || exit $?
+trap 'gui release --pid $$' EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 rm -f "$temp/gs-player-done.json"
 printf '{"target":"linux","width":1280,"height":800,"development":true,"revision":"%s"}\n' "$revision" > "$temp/gs-player-request.json"
 echo "wrote $temp/gs-player-request.json"
-if ! pgrep -x Unity >/dev/null; then
-  echo "Unity editor is not running. Open grand-sluggers/unity, then re-run."
+if ! gui editor "$root/unity" >/dev/null; then
+  echo "No Unity editor is open on $root/unity. Open it, then re-run."
   exit 0
 fi
 echo "Waiting for $temp/gs-player-done.json (editor builds on the next tick)."

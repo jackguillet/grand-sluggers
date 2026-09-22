@@ -11,6 +11,9 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import unity_gui  # noqa: E402  (tools/ is not a package)
+
 
 def run(*args, cwd=None):
     return subprocess.check_output(args, cwd=cwd, text=True).strip()
@@ -20,18 +23,8 @@ def log(message):
     print(message, flush=True)
 
 
-def request_normal_quit(pid):
-    """Ask the app with this exact PID to quit normally: the quit Apple Event that Quit sends, not a signal."""
-    script = ('ObjC.import("AppKit");'
-              'var app = $.NSRunningApplication.runningApplicationWithProcessIdentifier(' + str(int(pid)) + ');'
-              'app.isNil() ? "missing" : (app.terminate, "asked")')
-    try:
-        reply = subprocess.run(['osascript', '-l', 'JavaScript', '-e', script],
-                               capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.TimeoutExpired):
-        return False
-    # The caller's wait decides whether Unity quit, not terminate's return value.
-    return reply.stdout.strip() == 'asked'
+# The quit Apple Event to one exact PID; tools/unity_gui.py quit sends the same one to a capture's editor.
+request_normal_quit = unity_gui.request_normal_quit
 
 
 def wait_for_editor_shutdown(process, build_ok):
@@ -96,17 +89,52 @@ def trial_overlay(source, name):
     return relative.as_posix()
 
 
+def refuse_unless_replace(players, replace, consequence):
+    """Delivery closes the open game window. Name what it is, and stop unless the caller said --replace."""
+    if players and not replace:
+        raise RuntimeError('A delivered game window is open: ' + '; '.join(unity_gui.describe_player(p) for p in players)
+                           + '. Delivery would close it and end any match in it; ' + consequence
+                           + ' Re-run with --replace when closing it is yours to do (docs/local-player.md).')
+
+
+def close_players(players, replacement, app):
+    """Quit the delivered windows this delivery replaces, one by one, saying which revision and trial each played."""
+    for player in players:
+        log('Closing ' + unity_gui.describe_player(player) + ' for ' + replacement + '…')
+        pid = player['pid']
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            continue
+        for _ in range(100):
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                break
+            time.sleep(0.1)
+        else:
+            raise RuntimeError('Old game did not quit; not force-killing it: ' + unity_gui.describe_player(player)
+                               + '. New app: ' + str(app))
+
+
 def deliver(args):
     repo = Path(__file__).resolve().parents[1]
     common = Path(run('git', 'rev-parse', '--path-format=absolute', '--git-common-dir', cwd=repo))
     main = common.parent
-    state = Path.home() / 'Library/Application Support/Grand Sluggers/local-player'
+    state = unity_gui.support_dir() / 'local-player'
     state.mkdir(parents=True, exist_ok=True)
-    with (state / 'delivery.lock').open('w') as lock:
+    purpose = ('local-player delivery of ' + ('preview ' + str(args.preview) if args.preview else 'main')
+               + (' on ' + args.trial if args.trial else ''))
+    # One GUI Unity user on this Mac at a time: a capture or a build in another session refuses this delivery by
+    # name, and this delivery refuses them. delivery.lock still excludes copies of this script from before the lock.
+    with unity_gui.hold(purpose, worktree=repo, command=' '.join(sys.argv), log=log), \
+            (state / 'delivery.lock').open('w') as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             raise RuntimeError('Another local player delivery is running.')
+        # Say what this would close before anything is built or main moves.
+        refuse_unless_replace(unity_gui.players(checkout=main), args.replace, 'nothing was built and main was not moved.')
         if args.preview:
             source = Path(args.preview).expanduser().resolve()
             if source == main:
@@ -187,26 +215,11 @@ def deliver(args):
         (release / 'revision.json').write_text(json.dumps(dict(revision=revision, kind=label, source=str(source),
                                                                dataProfile=profile), indent=2))
         (release / 'build-evidence.json').write_text(json.dumps(result, indent=2))
-        # Quit only this project's old standalone player, after the new build/data exist.
-        old_main = main / 'unity/Builds/osx/GrandSluggers.app/Contents/MacOS/Grand Sluggers'
-        for line in run('ps', '-ax', '-o', 'pid=,command=').splitlines():
-            pid, _, command = line.strip().partition(' ')
-            command = command.strip()
-            recognized = command == str(old_main) or command.startswith(str(old_main) + ' ')
-            recognized |= command.startswith(str(state / 'releases') + '/') and '/GrandSluggers.app/Contents/MacOS/Grand Sluggers' in command
-            if recognized:
-                try:
-                    os.kill(int(pid), signal.SIGTERM)
-                except ProcessLookupError:
-                    continue
-                for _ in range(100):
-                    try:
-                        os.kill(int(pid), 0)
-                    except ProcessLookupError:
-                        break
-                    time.sleep(0.1)
-                else:
-                    raise RuntimeError('Old game did not quit; not force-killing it. New app: ' + str(app))
+        # Quit only this project's old standalone players, after the new build/data exist. One may have opened
+        # during the build, so look again, and still close nothing the caller did not say to replace.
+        players = unity_gui.players(checkout=main)
+        refuse_unless_replace(players, args.replace, 'the new build is kept at ' + str(app) + '.')
+        close_players(players, label + ' ' + revision[:10] + ' on the ' + profile + ' data', app)
         executable = app / 'Contents/MacOS/Grand Sluggers'
         player_log = release / 'player.log'
         player_env = os.environ.copy()
@@ -239,6 +252,9 @@ def main():
     parser.add_argument('--timeout', type=int, default=900, help='Build timeout in seconds (default: 900).')
     parser.add_argument('--trial', metavar='OVERLAY',
                         help='Play a trial overlay over the shipped data, e.g. trials/c80 (GRAND_SLUGGERS_TRIAL).')
+    parser.add_argument('--replace', action='store_true',
+                        help='Close the delivered game window this replaces. Without it, delivery names the open '
+                             "window's revision and trial and stops before building.")
     args = parser.parse_args()
     if sys.platform != 'darwin':
         parser.error('Standalone local delivery currently supports macOS only.')
