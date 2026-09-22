@@ -315,6 +315,8 @@ Area: Geometry. Depends on: FD-01. Evidence: FG-FOUL, FG-FOULHFA.
 
 ### FD-08 — What fairness contract must every hazard obey?
 
+**Confirmation of FD-08-R2 — Jack, September 22, 2026.** Reply "3. keep." The 3-second slow runs at `fielding.chase.frozenMul` 0.45.
+
 **Refinement FD-08-R2 — Jack, September 22, 2026: a status volume slows a body for 3 seconds.** Reply "3. slows for 3 seconds." (map §5 Q7). The author recommended settling the duration and the factor as a scoped trial. The 0.45 speed factor (`fielding.chase.frozenMul`) was not re-decided and stays. F4-b builds the per-body touch and the duration; the number is Jack's and is not trial-accepted until he has played it.
 
 **Refinement FD-08-R1 — Jack, September 21, 2026: random world, geometric result.** Reply "1". A hazard's draw may decide what the hazard does: when it fires, which exit it picks, where it sends the ball, which body it goes after. The ball and the bodies then decide the play. **No out, hit, drop or catch is awarded by chance.** AGENTS.md's geometry rule stays whole and gains one clarifying sentence. Consequence for F4: the park's use of the `fielding.drops.frozen` result roll (`Match.cs:702`) retires; a special's use of that table is outside this phase. The warp's random exit (`Fielding.cs:701`) may stay, but the live ball must really travel there. Full provenance and the contract block are in the canonical JSON.
@@ -353,6 +355,8 @@ Area: Hazards. Depends on: FD-08. Evidence: MH-STAD, MW-MSS.
 
 ### FD-10 — Can the players turn park hazards off?
 
+**Refinement FD-10-R1 — Jack, September 22, 2026: a.** Reply "4. a." Hazards off removes every status volume, ball redirect, catch stealer and reward target; climbable walls (part of the wall, FD-06) and decorations stay. Night hazards go with the rest.
+
 **Decision — Jack, September 21, 2026: B.** Reply "b" selects a match option, default on. With hazards off the park keeps its size, fence shape, walls, air, wind, ground zones, foul territory and depth; the switch empties the hazard instance list and changes no other rule. Built after the hazard runtime (F4); the park-factors report covers both states. Contract work: the title placement and binding (a Presentation child with the paired `HowToPlay` / how-to-play.md update), whether a wall trait stays on (proposal: yes, FD-06 made it a wall property), whether a night rule layer follows the switch (FD-11), and the CLI flag. Full provenance is in the canonical JSON.
 
 Area: Hazards. Depends on: FD-08. Evidence: MPT, MTA, MSC, MSBL, SSB.
@@ -368,6 +372,8 @@ Area: Hazards. Depends on: FD-08. Evidence: MPT, MTA, MSC, MSBL, SSB.
 **Acceptance:** A friend on the couch can always play any park with no hazard. The park-factors report covers both states.
 
 ### FD-11 — What may night change?
+
+**Refinement FD-11-R2 — Jack, September 22, 2026: night keeps the stadium lights.** "2, definitely drop it. for night time, we will still have stadium lights. the only thing that changes is stadium outside view, and hazards." Night changes only the view outside the stadium and the hazards; a night block may name hazard instances and look fields, never a rule that changes the at-bat, the flight, the ground or the bodies. Crystal's contact window is dropped on **both** roots (F4-d), superseding FD-11-R1's shipped-root reading. The author's recommendation was trial-only.
 
 **Refinement FD-11-R1 — Jack, September 22, 2026: drop Crystal's night contact window.** Reply "6. drop" (map §5 Q9). When F4-d writes the night blocks, Crystal's trial night block carries no contact-window change. Read with FD-13-R1 and the author's framing ("dropping it for the first trial"), the shipped Crystal keeps its 0.85 until a single default exists; this reading is flagged to Jack. No replacement night event is selected.
 
@@ -503,6 +509,8 @@ Area: Roster. Depends on: FD-01, FD-09. Evidence: MW-PIG.
 **Acceptance:** The proving park needs no code that names it.
 
 ### FD-19 — Where may a hazard sit?
+
+**Refinement FD-19-R2 — Jack, September 22, 2026: a.** Reply "5. a". The placement rule measures the hazard's own radius; a ball redirect's reach pad is not counted, so Canopy's barrels and Funfair's can stay where they are.
 
 **Refinement FD-19-R1 — Jack, September 22, 2026: move the eight volumes outward.** Reply "2. approve" (map §5 Q1). Each status volume that crosses a lane or a pad moves away from home along the ray through its own centre until its disc clears, keeping its size; a trial position stays what the accepted migration rule makes of the moved shipped position. F4-e makes the move and adds the validator (SF-23), and reports the park factors, because the landing-point test now fires elsewhere at Crystal and Ember. F9-a later places Crystal's for play.
 
