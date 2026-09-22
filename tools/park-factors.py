@@ -1,11 +1,24 @@
 #!/usr/bin/env python3
 """Park factors: the same matchup and seeds at every park, reported against Harbor.
 
+SUPERSEDED by `cli match --cohort park-factors` (#828, FR-10 / SF-30). Measure with the cohort:
+its seeds and matchups are declared in code, its rows are typed, it reads the ground-rule double
+off the outcome rather than off a caption, and it plays night as well as day — which this script
+cannot, because it predates `cli match --night`.
+
+    dotnet build src/GrandSluggers.Cli -c Release
+    dotnet .artifacts/bin/GrandSluggers.Cli/release/GrandSluggers.Cli.dll match --cohort park-factors --table
+    GRAND_SLUGGERS_TRIAL=trials/c80 dotnet .artifacts/.../GrandSluggers.Cli.dll match --cohort park-factors
+
+This file is kept, unchanged in behaviour, because it is the tool named by
+docs/research/fields-park-baseline.json: that evidence was measured with it at `d0c6e12c` and is
+not re-measured. It still answers one question the cohort does not — a wide seed sweep of a single
+matchup, run as parallel processes — so an operator who wants fifty seeds in a hurry can use it.
+
 Research tool for docs/research-fields.md (tracker: docs/plan-fields.md, FD-02 / FD-13).
 It changes no rule and passes no gate. It runs `cli match --park <id> --seed <n>` for every
 park on one data root and tallies the printed play kinds.
 
-    dotnet build src/GrandSluggers.Cli -c Release
     python3 tools/park-factors.py                       # shipped root
     python3 tools/park-factors.py --trial trials/c80    # the compact trial
     python3 tools/park-factors.py --json out.json
