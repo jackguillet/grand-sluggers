@@ -33,6 +33,15 @@ public sealed class StillRequest
     public string? OutDir { get; init; }
     public double Charge01 { get; init; } = 1;
 
+    /// <summary>
+    /// The park the batch captures. Absent or blank is the one default park
+    /// (FR-04: no park id lives in code beyond <see cref="ExhibitionPick.DefaultPark"/>).
+    /// </summary>
+    public string? Park { get; init; }
+
+    /// <summary>Night for the whole batch, the same declared layer the field pick toggles.</summary>
+    public bool Night { get; init; }
+
     public IReadOnlyList<string> ResolvedShots()
     {
         var src = Shots is { Length: > 0 } ? Shots : DefaultShots;
@@ -53,6 +62,19 @@ public sealed class StillRequest
     }
 
     public string ResolvedHome() => string.IsNullOrWhiteSpace(Home) ? "rio" : Home.Trim().ToLowerInvariant();
+
+    /// <summary>
+    /// Trims and lower-cases like <see cref="ResolvedHome"/>. A park that is not
+    /// in the catalog is refused by name, the way an unknown shot is.
+    /// </summary>
+    public string ResolvedPark()
+    {
+        if (string.IsNullOrWhiteSpace(Park)) return ExhibitionPick.DefaultPark;
+        var id = Park.Trim();
+        if (!Array.Exists(ExhibitionPick.Parks, p => p.Equals(id, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidDataException("still park not allowed: " + id);
+        return id.ToLowerInvariant();
+    }
 
     public string ResolvedAway()
     {
@@ -113,15 +135,31 @@ public sealed class StillRequest
             + "-" + power.Trim().ToLowerInvariant()
             + "-" + beat.Trim().ToLowerInvariant() + ".png");
 
-    public static string PngPath(string outDir, string shot, string? who = null)
+    /// <summary>
+    /// What a still names itself. The default park in daylight keeps today's
+    /// names, so existing stills and gates do not move; any other park, and any
+    /// night, is named in the file (<c>{shot}-{park}.png</c>,
+    /// <c>{shot}-{park}-night.png</c>).
+    /// </summary>
+    public static string ParkSuffix(string? park, bool night)
+    {
+        var id = string.IsNullOrWhiteSpace(park)
+            ? ExhibitionPick.DefaultPark
+            : park.Trim().ToLowerInvariant();
+        var suffix = id.Equals(ExhibitionPick.DefaultPark, StringComparison.Ordinal) ? "" : "-" + id;
+        return night ? suffix + "-night" : suffix;
+    }
+
+    public static string PngPath(string outDir, string shot, string? who = null, string? park = null, bool night = false)
     {
         var id = (shot ?? "").ToLowerInvariant();
+        var name = id;
         if (IsCharShot(id) && !string.IsNullOrWhiteSpace(who))
         {
             var kind = id.EndsWith("pose", StringComparison.Ordinal) ? "pose" : "rest";
-            return Path.Combine(outDir, "char-" + who.Trim().ToLowerInvariant() + "-" + kind + ".png");
+            name = "char-" + who.Trim().ToLowerInvariant() + "-" + kind;
         }
-        return Path.Combine(outDir, id + ".png");
+        return Path.Combine(outDir, name + ParkSuffix(park, night) + ".png");
     }
 
     public static StillRequest Parse(string json)
@@ -133,6 +171,7 @@ public sealed class StillRequest
             ?? throw new InvalidDataException("still request is empty");
         _ = req.ResolvedShots();
         _ = req.ResolvedSwingCaptains();
+        _ = req.ResolvedPark();
         return req;
     }
 

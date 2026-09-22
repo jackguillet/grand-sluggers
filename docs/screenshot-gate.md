@@ -243,6 +243,14 @@ Dolphin stays compare-only. Agents do not send keys into a live Super Sluggers s
 
 Shell: `tools/still-gate.sh` writes the request and clicks **Grand Sluggers → Capture Still Gate** (not Cmd+P). PNGs: `unity/Temp/gs-stills/`.
 
+### Another park, and night (#829)
+
+`tools/still-gate.sh --park <id>` and `tools/still-gate.sh --park crystal-rink --night` capture the same shots somewhere else. The flags write the request keys `park` and `night`; with no flag the request is the one above, byte for byte, so the current gate and the character gate do not move. A park id must be in the catalog (`ExhibitionPick.Parks`) — an unknown id is refused by name before Play starts, the way an unknown shot is.
+
+The default park in daylight keeps today's file names. Any other park, and any night, names itself: `plate-crystal-rink.png`, `plate-crystal-rink-night.png`, `plate-night.png`. The done file lists the park and the night it captured, and the gate hands the scene's park and night back when the batch is done, so Play is where you left it.
+
+This is the protocol only. Nothing on screen changes, a park with no kit draws whatever it draws today (F6), and there are no park rubric rows or named park shots here — those are F7-b. A greybox sitting is Jack's (FD-17).
+
 For a request that must survive Unity startup, keep the JSON outside
 `unity/Temp`, set `GS_STILL_REQUEST_FILE` to its absolute path before launching
 the editor, then choose **Grand Sluggers → Capture Request File**. The menu reads
