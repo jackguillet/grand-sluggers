@@ -315,38 +315,17 @@ public sealed class AtBatScenarioTests
     }
 
     /// <summary>
-    /// S-13, the shipped half: with <c>batting.geometryOnly</c> off the stick at contact still shapes an
-    /// ordinary swing, so stick up launches about <c>launch.stickDeg</c> lower than stick center. The
-    /// trial half is below; the whole grid is <see cref="StickShapingScenarioTests"/> (S-128).
+    /// S-13, the shipped half (#855, PH-12; shipped by #883 after Jack accepted the stick trial on
+    /// September 22, 2026: "approve all"): an ordinary swing ignores the stick at contact, so the same
+    /// swing with the stick up and with it centered is the same launch — and the same ball — exactly.
+    /// Nothing is stored: the two resolutions are compared to each other. The off path is below; the
+    /// whole grid is <see cref="StickShapingScenarioTests"/> (S-128).
     /// </summary>
     [Fact]
-    public void S13_OnTheShippedRootStickUpAtContactLaunchesAboutTwelveDegreesLower()
+    public void S13_OnTheShippedRootStickUpAndStickCenterLaunchTheSame()
     {
-        Assert.False(_content.Rules.Batting.GeometryOnly, "the shipped root leaves the stick shaping (#855)");
-        var resolver = new AtBatResolver(_content.Chemistry);
-        var park = _content.Parks["harbor-diamond"];
-        var diffs = new List<double>();
-        for (var seed = 0; seed < 20; seed++)
-        {
-            var flat = resolver.Resolve(Input(bat: 6, err: 0), park, new Random(seed));
-            var up = resolver.Resolve(Input(bat: 6, err: 0) with { LaunchAim = 1 }, park, new Random(seed));
-            Assert.Equal(flat.Quality, up.Quality);
-            diffs.Add(flat.LaunchDeg - up.LaunchDeg);
-        }
-        Assert.InRange(diffs.Average(), 10, _content.Rules.Batting.Launch.StickDeg + 0.5);
-    }
-
-    /// <summary>
-    /// S-13, the trial half (#855, PH-12): under <c>trials/pitch5</c> an ordinary swing ignores the stick
-    /// at contact, so the same swing with the stick up and with it centered is the same launch — and the
-    /// same ball — exactly. Nothing is stored: the two resolutions are compared to each other.
-    /// </summary>
-    [Fact]
-    public void S13_UnderGeometryOnlyStickUpAndStickCenterLaunchTheSame()
-    {
-        var trial = TrialRules;
-        Assert.True(trial.Batting.GeometryOnly, "the overlay turns the switch on");
-        var resolver = new AtBatResolver(_content.Chemistry, trial);
+        Assert.True(_content.Rules.Batting.GeometryOnly, "the shipped root turns the switch on (#883)");
+        var resolver = new AtBatResolver(_content.Chemistry, _content.Rules);
         var park = _content.Parks["harbor-diamond"];
         for (var seed = 0; seed < 20; seed++)
         {
@@ -356,6 +335,30 @@ public sealed class AtBatScenarioTests
             Assert.Equal(flat.LaunchDeg, up.LaunchDeg);
             Assert.Equal(flat, up);
         }
+    }
+
+    /// <summary>
+    /// S-13, the off path: with <c>batting.geometryOnly</c> false (built in the test,
+    /// <see cref="SwitchOffPaths.StickShapesRules"/>, never read from shipped data) the stick at contact
+    /// still shapes an ordinary swing, so stick up launches about <c>launch.stickDeg</c> lower than
+    /// stick center. This is what played before #883.
+    /// </summary>
+    [Fact]
+    public void S13_OnTheOffPathStickUpAtContactLaunchesAboutTwelveDegreesLower()
+    {
+        var off = SwitchOffPaths.StickShapesRules;
+        Assert.False(off.Batting.GeometryOnly, "the off path leaves the stick shaping");
+        var resolver = new AtBatResolver(_content.Chemistry, off);
+        var park = _content.Parks["harbor-diamond"];
+        var diffs = new List<double>();
+        for (var seed = 0; seed < 20; seed++)
+        {
+            var flat = resolver.Resolve(Input(bat: 6, err: 0), park, new Random(seed));
+            var up = resolver.Resolve(Input(bat: 6, err: 0) with { LaunchAim = 1 }, park, new Random(seed));
+            Assert.Equal(flat.Quality, up.Quality);
+            diffs.Add(flat.LaunchDeg - up.LaunchDeg);
+        }
+        Assert.InRange(diffs.Average(), 10, off.Batting.Launch.StickDeg + 0.5);
     }
 
     // ---------------------------------------------------------------------------------
@@ -886,22 +889,6 @@ public sealed class AtBatScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-
-    /// <summary>
-    /// <c>trials/pitch5</c>'s tables, loaded in process through a <see cref="DataRoot"/> built from
-    /// the repository (the <see cref="PitchFamilyTrialScenarioTests"/> shape), so S-13's trial half
-    /// never depends on <c>GRAND_SLUGGERS_TRIAL</c> being set. Since #860 the overlay carries only
-    /// <c>geometryOnly</c>; S-10's and S-30's former trial halves read the shipped root.
-    /// </summary>
-    RulesTable TrialRules
-    {
-        get
-        {
-            var shipped = _content.Root.Shipped;
-            var repo = Path.GetFullPath(Path.Combine(shipped, ".."));
-            return RulesTable.Load(new DataRoot(shipped, Path.Combine(repo, "trials", "pitch5")));
-        }
-    }
 
     AtBatInput Input(int bat, double err, double charge = 0, double crossingY = double.NaN,
         bool changeup = false, Character? pitcher = null, string batId = "harbor-lumber")

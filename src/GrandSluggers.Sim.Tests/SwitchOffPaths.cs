@@ -5,8 +5,9 @@ using GrandSluggers.Sim;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The off paths of the switches #860 turned on in the shipped data (Jack accepted the
-/// <c>trials/pitch5</c> window on September 22, 2026: "trial was good."). The switches and their
+/// The off paths of the switches #860 and #883 turned on in the shipped data (Jack accepted the
+/// <c>trials/pitch5</c> duel window on September 22, 2026: "trial was good.", and the stick trial the
+/// same day: "approve all"). The switches and their
 /// off paths stay in code until a cleanup child removes them, and they stay tested — but a row that
 /// asserts an off path must <b>build</b> it, never read it from shipped data. Each root here is the
 /// shipped data root copied once per test process, with one named key changed and nothing else.
@@ -32,6 +33,24 @@ static class SwitchOffPaths
     /// <summary>The whole catalog on <see cref="SplitWindow"/>, for rows that play a match.</summary>
     public static ContentCatalog SplitWindowContent => _splitWindowContent.Value;
     static readonly Lazy<ContentCatalog> _splitWindowContent = new(() => ContentCatalog.Load(SplitWindow));
+
+    static readonly Lazy<DataRoot> _stickShapes = new(() =>
+        Copy("stick-shapes", "batting.json", json => json["geometryOnly"] = false));
+
+    /// <summary>
+    /// The shipped root with <c>batting.geometryOnly</c> false: stick L/R adds <c>spray.stickDeg</c>
+    /// and stick U/D takes <c>launch.stickDeg</c> off the launch on every swing, and the CPU batter
+    /// draws both aims (what played before #883).
+    /// </summary>
+    public static DataRoot StickShapes => _stickShapes.Value;
+
+    /// <summary>The rules table on <see cref="StickShapes"/>.</summary>
+    public static RulesTable StickShapesRules => _stickShapesRules.Value;
+    static readonly Lazy<RulesTable> _stickShapesRules = new(() => RulesTable.Load(StickShapes));
+
+    /// <summary>The whole catalog on <see cref="StickShapes"/>, for rows that play a match.</summary>
+    public static ContentCatalog StickShapesContent => _stickShapesContent.Value;
+    static readonly Lazy<ContentCatalog> _stickShapesContent = new(() => ContentCatalog.Load(StickShapes));
 
     static DataRoot Copy(string name, string file, Action<JsonObject> edit)
     {
