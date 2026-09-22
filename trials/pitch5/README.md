@@ -3,7 +3,7 @@
 **This overlay is now the Phase 1 *and* Phase 2 duel trial.** Jack runs one overlay at a time, and
 sitting 1 is on this one, so the batting window joined it rather than forcing a second build. Two
 files, two sittings: sitting 1 judges the mound (the three shapes and the CPU), sitting 2 judges the
-plate (the one timing window).
+plate (the one timing window, and ordinary swings that ignore the stick at contact).
 
 The trial overlay the three unauthored pitch families are proposed in
 ([#818](https://github.com/jackguillet/grand-sluggers/issues/818)), **the CPU pitcher converts to
@@ -32,6 +32,11 @@ and a charged swing, and EASY / NORMAL / HARD alike are judged in **one window o
 60 Hz (±4.5 frames, 150 ms), instead of slap 9 / charge 7 ± (Contact − 5) × 0.4 × the difficulty
 rung. On the shipped root the switch is `false` and the split window is bit for bit the one that
 shipped.
+
+And it is where `batting.geometryOnly` is `true` ([#855](https://github.com/jackguillet/grand-sluggers/issues/855),
+PH-12, PH-18): an ordinary swing — not a bunt, not a Star Swing — ignores the stick at contact, so
+timing, contact, pitch height and the swing decide the ball, and the CPU batter draws no aim for it.
+The stick still walks the box. Report: [`docs/research/stick-shaping-p2c.md`](../../docs/research/stick-shaping-p2c.md).
 
 **Every number here is a proposal.** Nothing in it has been accepted, no sitting has happened, and
 no register decision records a numeric target for any of it *except* the window's 9 frames, which
@@ -78,17 +83,18 @@ its trial weights. A test (`PitchFamilyTrialScenarioTests.S113_…`) parses both
 additions back, and compares what is left, so a shipped edit that forgets this overlay fails loudly
 instead of quietly making the trial measure a third thing.
 
-`batting.json` changes exactly **one key**: `window.shared`, `false` → `true`. Every other number in
-it — `frames`, `slapFrames`, `chargeFrames`, `framesPerContact`, `floorFrames`, `squareFraction`,
-`leadSec`, the cursor, the exit table, the launch bands, the CPU batter's rolls — is the shipped
-one, and `SharedWindowScenarioTests.S126_…` restores the key and deep-compares the two files so a
-shipped edit that forgets this copy fails the same way.
+`batting.json` changes exactly **two keys**: `window.shared` and `geometryOnly`, each `false` →
+`true`. Every other number in it — `frames`, `slapFrames`, `chargeFrames`, `framesPerContact`,
+`floorFrames`, `squareFraction`, `leadSec`, the cursor, the exit table, the launch bands, both
+`stickDeg`s, the CPU batter's rolls — is the shipped one, and `SharedWindowScenarioTests.S126_…`
+restores both keys and deep-compares the two files so a shipped edit that forgets this copy fails
+the same way.
 
 What that means in practice: the release point, the air-time clamps, `breakMaxFt`, the star shapes,
 the stamina pool, the CPU's locations in feet, its scatter, its pickoff read, its Star chance and
 every other number in `pitching.json` are the shipped ones; the cursor, the exit table and the CPU
-batter's rolls in `batting.json` are too. This trial measures three shapes, one CPU and one window,
-and nothing else.
+batter's rolls in `batting.json` are too. This trial measures three shapes, one CPU, one window and
+one stick rule, and nothing else.
 
 ## The CPU switch and its weights
 
