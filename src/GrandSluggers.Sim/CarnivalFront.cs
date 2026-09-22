@@ -215,12 +215,12 @@ public static class CarnivalFront
     public static string TitleSetup(int innings, string level) => $"{innings} INNINGS  ·  {DifficultyLabel(level)}";
 
     /// <summary>
-    /// The title's difficulty line with what the rung does to the player's own swing
-    /// (cpu.json <c>humanWindowMul</c>, spec §5.3): EASY widens the window, HARD narrows it.
+    /// The title's difficulty line with what the rung changes: the CPU's skill, never a pad's swing
+    /// window (PH-17, spec §5.3 — one window for every hitter, swing and rung since #860). The
+    /// rules table stays in the signature so the title's call site does not move.
     /// </summary>
     public static string TitleSetup(int innings, string level, RulesTable rules) =>
-        TitleSetup(innings, level) + "  ·  SWING WINDOW ×"
-        + rules.AtLevel(level).Cpu.Active.HumanWindowMul.ToString("0.0#", System.Globalization.CultureInfo.InvariantCulture);
+        TitleSetup(innings, level) + "  ·  CPU SKILL";
 
     public static bool HarborIsTheProduct(string parkId) =>
         parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase);
