@@ -163,7 +163,7 @@ The [sim map](research/fields-code-map-sim.md) and the [presentation map](resear
 
 ### Measured today: the same matchup and seeds at every park
 
-`tools/park-factors.py`, fifty three-inning day games per park, CPU both sides. Read a factor within about 0.15 of 1.0 as noise.
+`tools/park-factors.py`, fifty three-inning day games per park, CPU both sides. Read a factor within about 0.15 of 1.0 as noise. Measured at `d0c6e12c`; **the measurement path is now `cli match --cohort park-factors`** (#828), which adds the whole catalog, ten matchups and night, and the script is superseded.
 
 | Park | Shipped: runs × Harbor | HR × Harbor | C80: runs × Harbor | HR × Harbor |
 | --- | --- | --- | --- | --- |
@@ -194,7 +194,7 @@ Recorded here. Not yet applied; epic F0 in the plan owns them.
 ## Research needed before selecting numbers
 
 - **Per lever, a fixed-input probe** on both roots: the same fly at two drags; the same grounder on two grounds; the same carom off two walls. Report distance, time to the wall, and whether the play kind changes. Use the flight-probe tool's pattern.
-- **Park factors on predeclared seeds**, more than one matchup, day and night (needs a CLI night flag). Fifty three-inning games is too few to read a 10 % effect.
+- ~~**Park factors on predeclared seeds**, more than one matchup, day and night (needs a CLI night flag).~~ ✅ #828 (PR #834): `cli match --night` exists, and `cli match --cohort park-factors` runs every park in the catalog on predeclared seeds, ten matchups, day and night, either root. Still open: **fifty three-inning games per park per condition is too few to read a 10 % effect** — the cohort size that could is the tuning step's call (implementation map §5 Q10).
 - **Reference captures** if a Sluggers number is wanted: ball roll-out on Peach Ice Garden against Mario Stadium, wall heights by body height, hazard positions against the bases. Record title, version, park, day or night, and capture rate. No Wii datamine exists.
 - **Ground values from the literature are bounce pace, not roll.** Do not map a 0.445 bounce value onto `roll.friction`. Derive roll from a named target (how far a routine grounder runs) and test it.
 - **The races.** Any ground or air change moves the fielding races that #693 calibrated. Re-run the #702 trace rows per park before a number is accepted.

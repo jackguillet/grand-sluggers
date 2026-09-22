@@ -196,7 +196,14 @@
         "answer_quote": "b."
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F5-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/828",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/834",
+          "status": "in review"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -931,7 +938,14 @@
         "answer_quote": "A"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F5-a",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/828",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/834",
+          "status": "in review"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -1385,6 +1399,10 @@
     {
       "date": "2026-09-21",
       "event": "F3-a opened as PR #832 (#827), on top of F1-a: RulesTable.AtPark(park) beside AtLevel, a match on content.Rules.AtLevel(difficulty).AtPark(park), and an optional air-only environment block declared inside F1-a's strict park schema (dragMul multiplies the root's flight.drag, windMul replaces flight.windMul; both optional, both validated, an unknown key inside the block refused by name). No shipped or trial park names one, so Harbor's resolved table is the global table itself on both roots (SF-01) and SF-10 is proved on a park built in the test. The second client and the Unity directors now read the match's table instead of the process-wide default; Match.cs still builds AtBatResolver and FieldingResolver with the catalog's global table, which is recorded in spec 6.1 and Appendix A.10 row 84 as the remaining reach. Zero behavior change: seed 7 and the park-factors table identical, evidence seals moved by source hash only, and no stored trace identity moves because the trace serializer omits a null member. No number accepted; no human gate."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "F5-a (#828, PR #834) in review: `cli match --night` plays a night game and `cli match --cohort park-factors` reports every park in the catalog against Harbor on predeclared seeds, ten matchups, day and night, on either data root. A report, not a gate (FD-13): SF-30 (ParkFactorsCohortTests) asserts determinism, coverage, the control park at 1.00, day and night, and the named root, and asserts no factor. No rule, park, feel or expectation value moved; seed 7 and the three existing cohorts are unchanged. Findings, not targets: Crystal Rink at night reads 1.34 on runs and 1.55 on home runs against Harbor, past the size FD-02's direction describes; Funfair's chompers do nothing on trials/c80, where its night rows are byte-identical to its day rows. tools/park-factors.py is superseded and kept as the tool named by fields-park-baseline.json. No number is accepted and no human gate has passed."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
