@@ -129,7 +129,8 @@ public static class HazardPattern
     /// <para>
     /// This is the one place the choice is written: a property of the pattern set, so a type is in or
     /// out by the pattern its row names, never by a per-park list or a test on a type string. It is
-    /// contract work FD-10 left open and F4-h (#858) wrote; Jack may reverse it here and nowhere else.
+    /// contract work FD-10 left open, written by F4-h (#858) and confirmed by Jack (4. a, September 22,
+    /// 2026).
     /// </para>
     /// </summary>
     public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget, CatchStealer];
