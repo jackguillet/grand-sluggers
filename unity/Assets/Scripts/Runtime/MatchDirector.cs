@@ -44,6 +44,14 @@ namespace GrandSluggers.UnityClient
         TrainingDirector _coach;
         ContentCatalog _content;
         Match _match;
+
+        /// <summary>
+        /// The table this match plays on (spec §0.3): the catalog's tables at the match's difficulty rung and
+        /// in the match's park (<c>RulesTable.AtLevel(...).AtPark(...)</c>). Every reader that asks the sim
+        /// about the ball is handed this, never the catalog's global table, so a park that names an
+        /// environment is read the same here as in the sim (FD-03). Before a match exists it is the catalog's.
+        /// </summary>
+        RulesTable MatchRules => _match != null ? _match.Rules : _content != null ? _content.Rules : null;
         ParkView _park;
         CameraRig _rig;
         CameraDirector _cam;
@@ -435,7 +443,7 @@ namespace GrandSluggers.UnityClient
                     verb = batter.Current.ToString();
                 else if (_match.Pitcher != null && _heroes.TryGetValue(_match.Pitcher.Id, out var pitcher) && pitcher != null)
                     verb = pitcher.Current.ToString();
-                var hang = _path != null && _path.Length > 0 ? (float)BallFlight.HangTime(_path) : 0f;
+                var hang = _path != null && _path.Length > 0 ? (float)BallFlight.HangTime(_path, MatchRules) : 0f;
                 var rest = _path != null && _path.Length > 0 ? (float)BallFlight.RestTime(_path) : 0f;
                 FeelOverlay.Draw(
                     _cam != null ? _cam.Shot : "",
@@ -853,9 +861,9 @@ namespace GrandSluggers.UnityClient
             _ = dt;
             if (_hlPath != null && _hlPath.Length > 0)
             {
-                var hang = (float)BallFlight.HangTime(_hlPath);
+                var hang = (float)BallFlight.HangTime(_hlPath, MatchRules);
                 var t = Mathf.Clamp(_t, 0f, Mathf.Max(0.4f, hang));
-                var p = BallFlight.PointAt(_hlPath, t);
+                var p = BallFlight.PointAt(_hlPath, t, MatchRules);
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
                 if (_clip != null && _clip.Beat is HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer)
                     _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);

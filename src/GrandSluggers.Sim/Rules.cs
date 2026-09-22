@@ -48,6 +48,27 @@ public sealed class RulesTable
         };
     }
 
+    /// <summary>
+    /// The same tables played in one park (§0.3 D21, FD-03): every section is shared, and only
+    /// <see cref="Flight"/> carries what the park's <see cref="ParkEnvironment"/> names. The table itself
+    /// is returned when the park names no environment, so Harbor's resolved table <em>is</em> the global
+    /// table — same reference, same numbers on either root (SF-01). Derived once, beside
+    /// <see cref="AtLevel"/>, in <see cref="Match"/>: a reader is handed the match's table and never
+    /// resolves a park itself.
+    /// </summary>
+    public RulesTable AtPark(Park park)
+    {
+        var env = park.Environment;
+        if (env is null || !env.Names) return this;
+        return new RulesTable
+        {
+            Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight.WithEnvironment(env),
+            Infield = Infield, Boundary = Boundary, Fielders = Fielders, Fielding = Fielding,
+            Running = Running, Stars = Stars,
+            Cpu = Cpu
+        };
+    }
+
     public static RulesTable Load(DataRoot dataRoot)
     {
         var errors = new List<string>();
@@ -1224,6 +1245,33 @@ public sealed class FlightRules
     public LandingRules Landing { get; init; } = new();
     public BattedBallClassRules Classes { get; init; } = new();
     public DeadBallRules DeadBall { get; init; } = new();
+
+    /// <summary>
+    /// This table with one park's air (§0.3, FD-03): <c>dragMul</c> multiplies the root's drag and
+    /// <c>windMul</c> replaces the global exposure. Every other number — gravity, the three stretches, the
+    /// plate, the sample clock — is the global one, and the ground, wall, landing, class and dead-ball
+    /// blocks are shared by reference: a park does not own them (they are F3-b / F3-c's zone and span rows).
+    /// Built once per match by <see cref="RulesTable.AtPark"/>, never per flight.
+    /// </summary>
+    internal FlightRules WithEnvironment(ParkEnvironment env) => new()
+    {
+        Gravity = Gravity,
+        Drag = Drag * (env.DragMul ?? 1.0),
+        TimeScale = TimeScale,
+        LinerTimeScale = LinerTimeScale,
+        DirtTimeScale = DirtTimeScale,
+        PlateHeightFt = PlateHeightFt,
+        WindMul = env.WindMul ?? WindMul,
+        SampleHz = SampleHz,
+        MaxSeconds = MaxSeconds,
+        Bounce = Bounce,
+        Skid = Skid,
+        Roll = Roll,
+        Wall = Wall,
+        Landing = Landing,
+        Classes = Classes,
+        DeadBall = DeadBall
+    };
 
     internal void Validate(string source, List<string> errors)
     {
