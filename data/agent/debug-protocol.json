@@ -472,7 +472,7 @@
       "fix": "Do not weaken the rule, add a per-park exception, count or drop reachPadFt, or move the hazard yourself: FD-19 makes a refused hazard a finding for Jack, and only a decision like FD-19-R1 (outward along its own bearing, radius kept, the trial twin the migration of the moved row) moves one. A trial that moves the bags carries the parks whose hazards stand near them, migrated by the accepted zone rule, as trials/c80 does; a test fixture that only needs an infield table changes fields no hazard stands on (baselineFt, innerHalfFt, backArcFt).",
       "promoted": "HazardPlacementTests.SF23_EveryHazardClearsTheLanesPadsMoundAndPlate",
       "issue": "#862",
-      "pr": ""
+      "pr": "#867"
     }
   ]
 }
