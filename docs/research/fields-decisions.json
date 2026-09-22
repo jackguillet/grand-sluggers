@@ -134,8 +134,8 @@
         {
           "child": "F1-a",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/820",
-          "pr": null,
-          "status": "filed"
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/831",
+          "status": "in review"
         }
       ],
       "validation_evidence": [],
@@ -1348,6 +1348,10 @@
     {
       "date": "2026-09-21",
       "event": "F1-a filed as #820 (strict park schema; park list and home-park map from data). Zero behavior change; no human gate."
+    },
+    {
+      "date": "2026-09-21",
+      "event": "F1-a opened as PR #831 (#820): park files refuse an unknown key on both roots, naming the file and the key; notes stays as a declared member off the Park record; nightOnly, dayOnly and the Funfair train's periodSec are removed from all twelve files; the field-pick cycle comes from a required, unique pickOrder and the home-park map from each park's faction; an unknown park id is a stop, not Harbor; ExhibitionPick.DefaultPark is the one park-id literal left in the sim, with ParkHazards.ChompFly (F4-a) and CarnivalFront (F8-a) named as the pending exceptions. Zero behaviour change: seed 7 and the park-factors table are identical and the seals moved by source hash only. SF-02 and the sim half of SF-04. No decision status changed; no human gate."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
