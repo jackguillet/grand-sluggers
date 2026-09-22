@@ -6,26 +6,14 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class TutorialDirectionTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
-    public static IEnumerable<object[]> Lessons => new[] { "T-P02", "T-B03", "T-B03-L", "T-B05", "T-B06", "T-B06-F" }.Select(id => new object[] { id });
-    /// <summary>
-    /// T-B06 / T-B06-F teach the stick at contact (up for a grounder, down for a fly). Since #883
-    /// (Jack accepted the stick trial on September 22, 2026: "approve all") an ordinary swing on the
-    /// shipped root ignores the stick, so the taught input no longer makes the lesson's ball; the
-    /// lesson rows and their copy are the Presentation child's to rewrite or retire. Until then the
-    /// lesson machinery is held here on the switch's off path (<c>geometryOnly</c> false, built in the
-    /// test), and <see cref="OnTheShippedRootTheHeldStickNoLongerMakesTheLessonsBall"/> pins what
-    /// the shipped root does with the same input.
-    /// </summary>
-    ContentCatalog For(string id) => id is "T-B06" or "T-B06-F" ? SwitchOffPaths.StickShapesContent : _content;
-    TutorialSession Start(string id) { var c = For(id); var run = new TutorialSession(c, TutorialCatalog.Load(c), id); run.Begin(); return run; }
+    public static IEnumerable<object[]> Lessons => new[] { "T-P02", "T-B03", "T-B03-L", "T-B05" }.Select(id => new object[] { id });
+    TutorialSession Start(string id) { var run = new TutorialSession(_content, TutorialCatalog.Load(_content), id); run.Begin(); return run; }
     static bool Perform(TutorialSession run, LivePlayCommandSource source = LivePlayCommandSource.Human) => run.Lesson.Id switch
     {
         "T-P02" => run.Pitch(new("fastball", 0, false, RubberX: -.6), source),
         "T-B03" => run.Swing(new(true, 0, -2, false), source),
         "T-B03-L" => run.Swing(new(true, 0, 2, false), source),
         "T-B05" => run.Swing(new(true, 0, 0, false, BoxOffsetX: PitchFlight.Crossing(run.CpuPitch, rules: run.Match.Rules).X / HomeSet.BatterWalk), source),
-        "T-B06" => run.Swing(new(true, 0, 0, false, LaunchAim: 1), source),
-        "T-B06-F" => run.Swing(new(true, 0, 0, false, LaunchAim: -1), source),
         _ => throw new InvalidOperationException()
     };
     [Theory, MemberData(nameof(Lessons))]
@@ -36,7 +24,7 @@ public sealed class TutorialDirectionTests
         {
             Assert.True(Perform(run)); Assert.True(run.Feedback!.Success, id + ": " + run.Feedback + " hit=" + run.LastHit);
             Assert.Equal(n, run.Successes); Assert.Equal(n == 3, run.Passed);
-            var replay = TutorialSession.Replay(For(id), TutorialCatalog.Load(For(id)), run.Recording());
+            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
             Assert.Equal(run.Feedback, replay.Feedback); Assert.Equal(run.LastHit, replay.LastHit);
             Assert.False(Perform(run)); Assert.Equal(n, run.Successes); run.Retry();
         }
@@ -47,7 +35,7 @@ public sealed class TutorialDirectionTests
         var run = Start(id); Assert.False(Perform(run, LivePlayCommandSource.Cpu));
         for (var n = 0; n < 601 && run.Phase == TutorialPhase.Attempt; n++) run.Tick(.05);
         Assert.Equal("timeout", run.Feedback!.Code); Assert.Equal(0, run.Successes);
-        run = new TutorialSession(For(id), TutorialCatalog.Load(For(id)), id); run.Begin(demonstration: true);
+        run = new TutorialSession(_content, TutorialCatalog.Load(_content), id); run.Begin(demonstration: true);
         Perform(run, LivePlayCommandSource.Cpu); Assert.Equal(0, run.Successes);
     }
     [Theory, MemberData(nameof(Lessons))]
@@ -82,7 +70,7 @@ public sealed class TutorialDirectionTests
         Assert.Contains(c.Validate(_content), e => e.Contains("offset pitch"));
     }
     [Theory]
-    [InlineData("T-B03")][InlineData("T-B03-L")][InlineData("T-B05")][InlineData("T-B06")][InlineData("T-B06-F")]
+    [InlineData("T-B03")][InlineData("T-B03-L")][InlineData("T-B05")]
     public void MissesAndWrongSwingTypesCannotSubstituteForTheLesson(string id)
     {
         var run = Start(id); run.Swing(new(true, 0, 50, false, LaunchAim: 1));
@@ -99,22 +87,28 @@ public sealed class TutorialDirectionTests
         Assert.Equal(PlayKind.HitByPitch, run.LastPlay!.Kind);
         Assert.False(run.Feedback!.Success); Assert.Equal(0, run.Successes);
     }
-    [Theory]
-    [InlineData("T-B06")][InlineData("T-B06-F")]
-    public void OnTheShippedRootTheHeldStickNoLongerMakesTheLessonsBall(string id)
+    [Fact]
+    public void TheStickShapingLessonsAreRetiredWithTheRule()
     {
-        // #883: the stick at contact no longer shapes an ordinary swing, so the held stick and the
-        // centered stick are the same ball and the lesson's objective is not met by its taught input.
-        // This row pins the misstatement for the Presentation child; when T-B06 / T-B06-F are
-        // rewritten or retired, this row moves with them.
+        // #883 (PH-12; Jack accepted the stick trial on September 22, 2026: "approve all"): an ordinary
+        // swing ignores the stick at contact, so a lesson that taught the stick has nothing to teach.
+        // T-B06 / T-B06-F, their setups, their objectives and mechanic batting.06 are gone, and no
+        // control row claims the stick at contact steers an ordinary swing.
         Assert.True(_content.Rules.Batting.GeometryOnly);
-        var held = new TutorialSession(_content, TutorialCatalog.Load(_content), id); held.Begin();
-        held.Swing(new(true, 0, 0, false, LaunchAim: id == "T-B06" ? 1 : -1));
-        var centered = new TutorialSession(_content, TutorialCatalog.Load(_content), id); centered.Begin();
-        centered.Swing(new(true, 0, 0, false));
-        Assert.Equal(centered.LastHit, held.LastHit);
-        Assert.False(held.Feedback!.Success, id + ": " + held.Feedback);
-        Assert.Equal(0, held.Successes);
+        var catalog = TutorialCatalog.Load(_content);
+        Assert.Empty(catalog.Validate(_content));
+        Assert.DoesNotContain(catalog.Lessons, l => l.Id is "T-B06" or "T-B06-F" || l.Objective is "grounder-fair" or "fly-fair");
+        Assert.DoesNotContain(catalog.Setups, s => s.Id is "T-B06" or "T-B06-F");
+        Assert.DoesNotContain(catalog.Mechanics, m => m.Id == "batting.06");
+        Assert.DoesNotContain("grounder-fair", TutorialPlateObjectives.SwingIds);
+        Assert.DoesNotContain("fly-fair", TutorialPlateObjectives.SwingIds);
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+        {
+            // The one stick-at-contact row left names the bunt, which keeps the stick until P4-b.
+            var rows = RoleTables.Of(scheme).SelectMany(b => b.Rows).ToArray();
+            Assert.DoesNotContain(rows, r => r.Verb == "Spray");
+            Assert.All(rows.Where(r => r.Press.Contains("at contact")), r => Assert.Equal("Aim bunt", r.Verb));
+        }
     }
     [Theory]
     [InlineData("T-B03", 2)][InlineData("T-B03-L", -2)]

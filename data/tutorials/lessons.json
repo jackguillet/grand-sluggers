@@ -440,62 +440,6 @@
       ]
     },
     {
-      "id": "T-B06",
-      "revision": 1,
-      "mechanics": [
-        "batting.06"
-      ],
-      "title": "grounder launch",
-      "category": "batting",
-      "status": "implemented",
-      "issue": 786,
-      "reason": "Headless exercise; standalone learning gate pending",
-      "profiles": [
-        "shipped",
-        "c80"
-      ],
-      "requires": [],
-      "prerequisites": [
-        "T-B01"
-      ],
-      "setup": "T-B06",
-      "objective": "grounder-fair",
-      "controls": [
-        "control:batting/Normal swing"
-      ],
-      "tests": [
-        "TutorialDirectionTests"
-      ]
-    },
-    {
-      "id": "T-B06-F",
-      "revision": 1,
-      "mechanics": [
-        "batting.06"
-      ],
-      "title": "fly launch",
-      "category": "batting",
-      "status": "implemented",
-      "issue": 786,
-      "reason": "Headless exercise; standalone learning gate pending",
-      "profiles": [
-        "shipped",
-        "c80"
-      ],
-      "requires": [],
-      "prerequisites": [
-        "T-B01"
-      ],
-      "setup": "T-B06-F",
-      "objective": "fly-fair",
-      "controls": [
-        "control:batting/Normal swing"
-      ],
-      "tests": [
-        "TutorialDirectionTests"
-      ]
-    },
-    {
       "id": "T-B07",
       "revision": 1,
       "mechanics": [
@@ -3418,68 +3362,6 @@
         "star": false,
         "aimX": 0.4
       }
-    },
-    {
-      "id": "T-B06",
-      "policy": "cpu-strike",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "ashlord",
-        "vine",
-        "moss",
-        "hex"
-      ],
-      "away": [
-        "zig",
-        "cinder",
-        "dart",
-        "jester",
-        "grit",
-        "soot",
-        "boom",
-        "nugget",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {},
-      "minMovement01": 0.75
-    },
-    {
-      "id": "T-B06-F",
-      "policy": "cpu-strike",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "ashlord",
-        "vine",
-        "moss",
-        "hex"
-      ],
-      "away": [
-        "zig",
-        "cinder",
-        "dart",
-        "jester",
-        "grit",
-        "soot",
-        "boom",
-        "nugget",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {},
-      "minMovement01": 0.75
     },
     {
       "id": "T-F02",

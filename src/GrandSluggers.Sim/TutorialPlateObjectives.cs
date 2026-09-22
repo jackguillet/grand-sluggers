@@ -4,7 +4,7 @@ namespace GrandSluggers.Sim;
 public static class TutorialPlateObjectives
 {
     public static readonly string[] PitchIds = ["called-strike", "changeup-strike", "third-slot-strike", "max-pitch-strike", "break-strike", "rubber-strike", "called-ball"];
-    public static readonly string[] SwingIds = ["slap-fair", "perfect-slap-fair", "max-swing-fair", "bunt-fair", "take-ball", "pull-fair", "push-fair", "box-perfect-fair", "grounder-fair", "fly-fair"];
+    public static readonly string[] SwingIds = ["slap-fair", "perfect-slap-fair", "max-swing-fair", "bunt-fair", "take-ball", "pull-fair", "push-fair", "box-perfect-fair"];
     static TutorialFeedback Fail(string code, string detail) => new(false, code, detail);
 
     public static TutorialFeedback Pitch(string objective, TutorialSetup setup, PitchCommand command, PlayEvent? play)
@@ -36,7 +36,7 @@ public static class TutorialPlateObjectives
             return !command.Swing && !command.Bunt && play?.Kind == PlayKind.TakeBall
                 ? new(true, "took-ball", "You let an out-of-zone pitch go by for a ball.")
                 : Fail("chased-ball", "Let the high pitch pass without swinging or squaring to bunt.");
-        if (objective is "slap-fair" or "perfect-slap-fair" or "pull-fair" or "push-fair" or "box-perfect-fair" or "grounder-fair" or "fly-fair")
+        if (objective is "slap-fair" or "perfect-slap-fair" or "pull-fair" or "push-fair" or "box-perfect-fair")
         {
             if (command.Bunt || command.Star || ChargeFeel.IsCharge(command.Charge01))
                 return Fail("use-slap", "Use an ordinary uncharged swing for this lesson.");
@@ -57,10 +57,6 @@ public static class TutorialPlateObjectives
             if (direction * command.TimingErrorFrames < setup.MinTimingFrames || direction * hit.SprayDeg * SweetSpot.TipSign(bats) <= 0)
                 return Fail(objective == "pull-fair" ? "swing-earlier" : "swing-later", "Use the requested timing and put the fair ball on that side of the field.");
         }
-        if (objective == "grounder-fair" && (command.LaunchAim < setup.MinMovement01 || !hit.Class.OnTheDirt()))
-            return Fail("hit-grounder", "Hold up at contact and put the ball on the ground.");
-        if (objective == "fly-fair" && (command.LaunchAim > -setup.MinMovement01 || !hit.Class.IsFlyShape()))
-            return Fail("lift-ball", "Hold down at contact and lift the ball into the air.");
         if (objective is "perfect-slap-fair" or "box-perfect-fair" && hit.Quality != ContactQuality.Perfect)
             return Fail("find-sweet-spot", "Contact missed the perfect heart of the bat. Adjust the batter's position.");
         return new(true, objective == "bunt-fair" ? "fair-bunt" : "fair-contact", "The requested contact put the ball in fair territory.");
