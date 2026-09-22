@@ -285,7 +285,12 @@ public class AtBatFeelTests
         Assert.Equal("", ChargeFeel.NiceCopy(true, 1, 0.9, feel.ChargeMaxHoldSeconds));
 
         var park = _content.Parks["harbor-diamond"];
-        var resolver = new AtBatResolver(_content.Chemistry);
+        // "Slap contacts more" is a timing claim, and it holds on the switch's off path only: #860
+        // shipped the shared window (PH-10-R1, PH-11-R1; Jack, September 22, 2026: "trial was
+        // good."), where a charge costs the barrel instead (S-125). So the resolver here runs on the
+        // split-window table built in the test, never read from shipped data.
+        var off = SwitchOffPaths.SplitWindowRules;
+        var resolver = new AtBatResolver(_content.Chemistry, off, _content.StarSkills);
         var vale = _content.Must("vale");
         var rio = _content.Must("rio");
         var bat = _content.Bats["harbor-lumber"];
@@ -293,10 +298,10 @@ public class AtBatFeelTests
         var chargeHits = 0;
         var maxCarry = 0.0;
         var lateCarry = 0.0;
-        // A frame inside the slap window and outside the charge window (spec §5.3: 9 vs 7 frames).
+        // A frame inside the slap window and outside the charge window (spec §5.3 off path: 9 vs 7 frames).
         var contact = rio.Stats.Bat;
-        var edge = (AtBatResolver.ContactWindowFrames(contact, true, null, park, false)
-                    + AtBatResolver.ContactWindowFrames(contact, false, null, park, false)) / 4;
+        var edge = (AtBatResolver.ContactWindowFrames(contact, true, null, park, false, off, _content.StarSkills)
+                    + AtBatResolver.ContactWindowFrames(contact, false, null, park, false, off, _content.StarSkills)) / 4;
         for (var seed = 0; seed < 36; seed++)
         {
             if (resolver.Resolve(Input(vale, rio, bat, 0, edge), park, new Random(seed)).Quality != ContactQuality.Miss) slapHits++;

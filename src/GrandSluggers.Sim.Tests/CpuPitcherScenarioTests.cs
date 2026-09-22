@@ -6,7 +6,14 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// Spec Appendix B.1 rows S-114 … S-120 (#823): the CPU pitcher built from the inputs a human has,
-/// behind <c>pitching.cpu.humanInputs</c> — off on the shipped root, on in <c>trials/pitch5</c>.
+/// behind <c>pitching.cpu.humanInputs</c>.
+///
+/// <b>#860:</b> Jack played the <c>trials/pitch5</c> window and accepted it on September 22, 2026
+/// ("trial was good."), so the switch is <b>on in the shipped data</b> with the trial's weights, and
+/// <c>trials/pitch5</c> no longer carries a <c>pitching.json</c>. The rows that stood on the shipped
+/// root for the switch-off side now build that side in the test (<see cref="OffPath"/>: the shipped
+/// root with <c>humanInputs</c> false), never by reading shipped data; the on side reads the
+/// shipped root, which now equals the accepted trial.
 ///
 /// <b>The switch-off rows assert identity; the switch-on rows assert legality, never a number.</b>
 /// The trial weights are proposals Jack judges in sitting 1 (PH-20-R1, PH-18-R1), so a row here
@@ -56,13 +63,16 @@ public sealed class CpuPitcherScenarioTests
     [Fact]
     public void S114_TheSwitchOffRunsTheShippedEndpointModelAndSpendsItsDraws()
     {
-        Assert.False(_shipped.Rules.Pitching.Cpu.HumanInputs);
-        var c = _shipped.Rules.Pitching.Cpu;
+        // #860: the off side is built here — the shipped root with the switch turned off — because
+        // the shipped data now runs the accepted human-input CPU.
+        var off = ContentCatalog.Load(OffPath());
+        Assert.False(off.Rules.Pitching.Cpu.HumanInputs);
+        var c = off.Rules.Pitching.Cpu;
 
         var pitches = new List<PitchCommand>();
         for (var seed = 1; seed <= 20; seed++)
         {
-            var match = new Scenario(_shipped, seed).Match;
+            var match = new Scenario(off, seed).Match;
             for (var i = 0; i < 30; i++) pitches.Add(match.CpuPitch());
         }
         Assert.Equal(600, pitches.Count);
@@ -96,14 +106,13 @@ public sealed class CpuPitcherScenarioTests
         Assert.DoesNotContain(pitches, p => p.Charge01 == 1.0 && p.BreakX != 0);
 
         // (c) Same seed, same stream: the draws this path spends are a function of the seed alone.
-        var first = new Scenario(_shipped, 7).Match;
-        var again = new Scenario(_shipped, 7).Match;
+        var first = new Scenario(off, 7).Match;
+        var again = new Scenario(off, 7).Match;
         for (var i = 0; i < 50; i++) Assert.Equal(first.CpuPitch(), again.CpuPitch());
 
-        // (d) The two paths are different functions, and the trial's never aims.
-        var trial = Trial;
-        Assert.True(trial.Rules.Pitching.Cpu.HumanInputs);
-        var legal = new Scenario(trial, 7).Match;
+        // (d) The two paths are different functions, and the shipped one (#860) never aims.
+        Assert.True(_shipped.Rules.Pitching.Cpu.HumanInputs);
+        var legal = new Scenario(_shipped, 7).Match;
         for (var i = 0; i < 50; i++)
         {
             var p = legal.CpuPitch();
@@ -253,8 +262,11 @@ public sealed class CpuPitcherScenarioTests
     [Fact]
     public void S116_UnderAShippedFamilyTableThePressesOnlyReachWhatCanFly()
     {
+        // #860: the shipped table authors all five families now, so "a table that authors only the
+        // fastball and the changeup" is built here by dropping the three rows the shipped file gained.
         var content = ContentCatalog.Load(WriteRoot(json =>
         {
+            DropAcceptedFamilies(json);
             json["cpu"]!["humanInputs"] = true;
             foreach (var row in Rows)
             {
@@ -444,32 +456,34 @@ public sealed class CpuPitcherScenarioTests
     [Fact]
     public void S120_TheSwitchIsOffShippedOnInTheTrialAndTheWeightsAreFilteredNotValidatedAgainstTheRoster()
     {
-        // (a) The switch, both sides, from the files rather than from the code defaults.
-        Assert.False(_shipped.Rules.Pitching.Cpu.HumanInputs);
+        // (a) The switch, from the files rather than from the code defaults. #860 (Jack, September
+        //     22, 2026: "trial was good."): on in the shipped data, which the pitch5 overlay no longer
+        //     overrides — it carries only the stick trial's batting file (#855).
+        Assert.True(_shipped.Rules.Pitching.Cpu.HumanInputs);
         Assert.True(Trial.Rules.Pitching.Cpu.HumanInputs);
-        // #844 added rules/batting.json to the same overlay (the Phase 1 + Phase 2 duel trial); this
-        // row still owns pitching.json, and the batting file is S-126's.
-        Assert.Equal(new[] { "rules/batting.json", "rules/pitching.json" }, TrialRoot.Overrides);
+        Assert.Equal(new[] { "rules/batting.json" }, TrialRoot.Overrides);
         Assert.Equal(TrialName, TrialRoot.OverlayName);
+        Assert.False(ContentCatalog.Load(OffPath()).Rules.Pitching.Cpu.HumanInputs);
 
-        // (b) The shipped rows carry the port of today's exclusive mix, so the switch has a stated
-        //     starting point rather than a new invention: the fastball takes every verb that was not
-        //     the changeup, and the charge and break shares become the two chances.
+        // (b) The shipped rows carry the accepted weights: every row weights every family in the
+        //     library, so no family is unreachable by count, and the chances stay chances. The
+        //     charge share is still the port of the exclusive mix's charge share (the accepted trial
+        //     kept it); the steer share is the accepted one, which no longer is the break share.
         var cpu = _shipped.Rules.Pitching.Cpu;
         foreach (var row in new[] { cpu.Even, cpu.Ahead, cpu.Behind, cpu.RunnerTwoOuts })
         {
             var mix = row.Normal + row.Charge + row.Changeup + row.Break;
-            Assert.Equal(row.Normal + row.Charge + row.Break, row.Families.Fastball);
-            Assert.Equal(row.Changeup, row.Families.Changeup);
-            Assert.Equal(0, row.Families.Curveball + row.Families.Slider + row.Families.Sinker);
+            foreach (var f in PitchFamily.All) Assert.True(row.Families.Of(f) > 0, f);
             Assert.Equal(row.Charge / mix, row.ChargeChance, 12);
-            Assert.Equal(row.Break / mix, row.SteerChance, 12);
+            Assert.True(row.SteerChance > row.Break / mix, "the accepted steer share is above the old break share");
+            Assert.InRange(row.SteerChance, 0, 1);
         }
 
         // (c) A weight for a family the active table cannot fly is legal — weights are filtered at
         //     run time, not validated against a roster — and never reaches the mound.
         var weighsTheUnauthored = WriteRoot(json =>
         {
+            DropAcceptedFamilies(json);
             json["cpu"]!["humanInputs"] = true;
             json["cpu"]!["even"]!["families"]!["curveball"] = 50;
         });
@@ -492,6 +506,7 @@ public sealed class CpuPitcherScenarioTests
         //     every pitcher throws and every SET starts on (PH-15-R1, PH-02-R5). Stated, not implied.
         var weighsOnlyTheUnavailable = WriteRoot(json =>
         {
+            DropAcceptedFamilies(json);
             json["cpu"]!["humanInputs"] = true;
             var families = json["cpu"]!["even"]!["families"]!.AsObject();
             foreach (var f in PitchFamily.All) families[f] = 0;
@@ -564,6 +579,20 @@ public sealed class CpuPitcherScenarioTests
             button = step.Next;
         }
         return PitchSelection.FamilyAt(state, repertoire, authored);
+    }
+
+    /// <summary>
+    /// The switch's off path (#860): the shipped root with <c>cpu.humanInputs</c> false and nothing
+    /// else changed. The shipped data no longer carries it, so a row that asserts the off side builds it.
+    /// </summary>
+    DataRoot OffPath() => WriteRoot(json => json["cpu"]!["humanInputs"] = false);
+
+    /// <summary>Removes the three family rows #860 promoted, leaving the fastball and the changeup.</summary>
+    static void DropAcceptedFamilies(JsonObject json)
+    {
+        var families = json["families"]!.AsObject();
+        foreach (var f in new[] { PitchFamily.Curveball, PitchFamily.Slider, PitchFamily.Sinker })
+            Assert.True(families.Remove(f), f);
     }
 
     /// <summary>A throwaway data root: the shipped one, with <c>pitching.json</c> edited in place.</summary>

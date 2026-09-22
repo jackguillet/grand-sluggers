@@ -8,21 +8,22 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// The one shared timing window (#844, PH-10-R1), Appendix B.1 rows S-124 … S-127.
 ///
-/// <c>batting.window.shared</c> is the whole child. <b>Off</b> — the shipped root — the window is
-/// the one that shipped: slap 9 / charge 7, ± (Contact − 5) × 0.4, × the Star Pitch's multiplier ×
-/// the park's night multiplier × the human rung's, floored (<b>S-124</b>). <b>On</b> —
-/// <c>trials/pitch5</c> — it is <c>window.frames</c> for every hitter, both swings and every rung,
-/// with the star multiplier, the park multiplier and the floor still applying in the same order
-/// (<b>S-125</b>). <b>S-126</b> holds the overlay to that key and #855's <c>geometryOnly</c> — the
-/// two keys the overlay changes — and the validator to the floor. <b>S-127</b> runs the S-29 cohort
+/// <c>batting.window.shared</c> is the whole child. <b>On</b> — the shipped root since #860, after
+/// Jack played the <c>trials/pitch5</c> window and accepted it on September 22, 2026 ("trial was
+/// good.") — it is <c>window.frames</c> for every hitter, both swings and every rung, with the star
+/// multiplier, the park multiplier and the floor still applying in the same order (<b>S-125</b>).
+/// <b>Off</b> — the switch's off path, built in the test (<see cref="SwitchOffPaths"/>) and never
+/// read from shipped data — the window is the one that shipped before #860: slap 9 / charge 7,
+/// ± (Contact − 5) × 0.4, × the Star Pitch's multiplier × the park's night multiplier × the human
+/// rung's, floored (<b>S-124</b>). <b>S-126</b> holds the overlay to the one key it still changes,
+/// #855's <c>geometryOnly</c>, and the validator to the floor. <b>S-127</b> runs the S-29 cohort
 /// under the overlay, in process, and records it; it gates nothing.
 ///
 /// The overlay is loaded <b>in process</b>, through a <see cref="DataRoot"/> this class builds from
 /// the repository, the way <see cref="PitchFamilyTrialScenarioTests"/> does, so nothing here depends
 /// on <c>GRAND_SLUGGERS_TRIAL</c> being set and CI is untouched.
 ///
-/// <b>No row stores a window.</b> 9 is a trial start value Jack judges in sitting 2 and is expected
-/// to move, so every claim is an arithmetic identity recomputed here from the same table, a
+/// <b>No row stores a window.</b> Every claim is an arithmetic identity recomputed here from the same table, a
 /// relationship, or an integer count. The formula is multiplies and a <c>Math.Max</c> — no libm — so
 /// two in-process computations of it are equal bit for bit and may be compared exactly (#736).
 /// </summary>
@@ -60,14 +61,17 @@ public sealed class SharedWindowScenarioTests
     double[] Rungs => [ShippedRules.Cpu.Easy.HumanWindowMul, ShippedRules.Cpu.Normal.HumanWindowMul, ShippedRules.Cpu.Hard.HumanWindowMul];
 
     // ---------------------------------------------------------------------------------
-    // S-124  Shipped: the switch is off and the window is the one that shipped
+    // S-124  The off path: the switch off is the window that shipped before #860
     // ---------------------------------------------------------------------------------
 
     [Fact]
     public void S124_TheShippedRootIsTodaysFormulaOverTheWholeGrid()
     {
-        var w = ShippedRules.Batting.Window;
-        Assert.False(w.Shared, "the shipped root leaves the shared window off (#844)");
+        // #860: this row was the shipped root; it is now the switch's off path, built in the test.
+        // The shipped root plays the shared window (S-125). The method name keeps the row's history.
+        var off = SwitchOffPaths.SplitWindowRules;
+        var w = off.Batting.Window;
+        Assert.False(w.Shared, "the off path is the split window (#844, #860)");
 
         var rows = 0;
         var floored = 0;
@@ -81,14 +85,14 @@ public sealed class SharedWindowScenarioTests
             // max, so this is the same double, not a rounded one.
             var expected = (charged ? w.ChargeFrames : w.SlapFrames) + (contact - 5) * w.FramesPerContact;
             if (star is not null) expected *= StarSkills.BatterWindowMul(star, Skills);
-            expected *= ParkHazards.ContactWindowMul(park, night, ShippedRules);
+            expected *= ParkHazards.ContactWindowMul(park, night, off);
             expected *= rung;
             var raw = expected;
             expected = Math.Max(w.FloorFrames, expected);
             if (expected > raw) floored++;
 
             Assert.Equal(expected, AtBatResolver.ContactWindowFrames(
-                contact, charged, star, park, night, ShippedRules, Skills, rung));
+                contact, charged, star, park, night, off, Skills, rung));
             rows++;
         }
 
@@ -102,18 +106,18 @@ public sealed class SharedWindowScenarioTests
             Assert.True(StarSkills.BatterWindowMul(star, Skills) < 1, star);
 
         // Every term is still live on this root: each one moves the answer by itself.
-        var plain = AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, ShippedRules, Skills);
-        Assert.True(AtBatResolver.ContactWindowFrames(5, true, null, Harbor, false, ShippedRules, Skills) < plain,
+        var plain = AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, off, Skills);
+        Assert.True(AtBatResolver.ContactWindowFrames(5, true, null, Harbor, false, off, Skills) < plain,
             "a charge still narrows the shipped window");
-        Assert.True(AtBatResolver.ContactWindowFrames(10, false, null, Harbor, false, ShippedRules, Skills) > plain,
+        Assert.True(AtBatResolver.ContactWindowFrames(10, false, null, Harbor, false, off, Skills) > plain,
             "Contact still widens the shipped window");
-        Assert.True(AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, ShippedRules, Skills, Rungs[0]) > plain,
+        Assert.True(AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, off, Skills, Rungs[0]) > plain,
             "EASY still widens the shipped window");
-        Assert.True(AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, ShippedRules, Skills, Rungs[2]) < plain,
+        Assert.True(AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, off, Skills, Rungs[2]) < plain,
             "HARD still narrows the shipped window");
-        Assert.True(AtBatResolver.ContactWindowFrames(5, false, "charmball", Harbor, false, ShippedRules, Skills) < plain,
+        Assert.True(AtBatResolver.ContactWindowFrames(5, false, "charmball", Harbor, false, off, Skills) < plain,
             "a star pitch still narrows the shipped window");
-        Assert.True(AtBatResolver.ContactWindowFrames(5, false, null, CrystalRink, true, ShippedRules, Skills) < plain,
+        Assert.True(AtBatResolver.ContactWindowFrames(5, false, null, CrystalRink, true, off, Skills) < plain,
             "the crystal rink at night still narrows the shipped window");
     }
 
@@ -126,26 +130,30 @@ public sealed class SharedWindowScenarioTests
     [Fact]
     public void S124_TheShippedWindowStillFollowsContact_MovedFromS122()
     {
+        // #860: the off path, built in the test; on the shipped root the window no longer follows
+        // Contact (S-125's last clause).
+        var off = SwitchOffPaths.SplitWindowRules;
         var sure = Hitter(contact: 9, power: 2);
         var slugger = Hitter(contact: 2, power: 9);
         Assert.Equal(sure.Stats.Bat, slugger.Stats.Bat);
 
         Assert.True(
-            AtBatResolver.SwingWindowFrames(sure, null, 0, null, Harbor, false, 1, ShippedRules, Skills)
-            > AtBatResolver.SwingWindowFrames(slugger, null, 0, null, Harbor, false, 1, ShippedRules, Skills),
-            "on the shipped root the window still widens with Contact, and with nothing else");
+            AtBatResolver.SwingWindowFrames(sure, null, 0, null, Harbor, false, 1, off, Skills)
+            > AtBatResolver.SwingWindowFrames(slugger, null, 0, null, Harbor, false, 1, off, Skills),
+            "on the off path the window still widens with Contact, and with nothing else");
     }
 
     // ---------------------------------------------------------------------------------
-    // S-125  Trial: one window for every hitter, every swing, every bat and every rung
+    // S-125  Shipped since #860: one window for every hitter, every swing, every bat and every rung
     // ---------------------------------------------------------------------------------
 
     [Fact]
     public void S125_UnderTheTrialEveryHitterAndSwingGetsTheOneWindow()
     {
-        var trial = Trial;
+        // #860 ("trial was good.", September 22, 2026): the shipped root is the accepted trial.
+        var trial = ShippedRules;
         var w = trial.Batting.Window;
-        Assert.True(w.Shared, TrialName + " turns the shared window on");
+        Assert.True(w.Shared, "the shipped root plays the shared window (#860)");
 
         var roster = _shipped.Characters.Values.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         Assert.Equal(25, roster.Count);
@@ -181,7 +189,7 @@ public sealed class SharedWindowScenarioTests
     [Fact]
     public void S125_TheStarAndTheParkStillMultiplyTheOneWindowAndTheFloorStillHolds()
     {
-        var trial = Trial;
+        var trial = ShippedRules;
         var w = trial.Batting.Window;
         var charm = StarSkills.BatterWindowMul("charmball", Skills);
         var rink = CrystalRink.NightContactWindowMul;
@@ -220,11 +228,12 @@ public sealed class SharedWindowScenarioTests
     [Fact]
     public void S125_TheSpatialHalfOfThePlateIsUntouchedByTheSwitch()
     {
-        var trial = Trial;
+        var trial = ShippedRules;
+        var off = SwitchOffPaths.SplitWindowRules;
         // PH-11-R1: a charge trades placement forgiveness, never timing. PH-15-R7: Contact is
         // spatial forgiveness. Both live in the cursor, and the switch does not reach them.
-        Assert.Equal(ShippedRules.Batting.Cursor.ChargeMul, trial.Batting.Cursor.ChargeMul);
-        Assert.Equal(ShippedRules.Batting.Cursor.ScalePerContact, trial.Batting.Cursor.ScalePerContact);
+        Assert.Equal(off.Batting.Cursor.ChargeMul, trial.Batting.Cursor.ChargeMul);
+        Assert.Equal(off.Batting.Cursor.ScalePerContact, trial.Batting.Cursor.ScalePerContact);
 
         foreach (var contact in Enumerable.Range(1, 10))
         {
@@ -253,16 +262,19 @@ public sealed class SharedWindowScenarioTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// The overlay's batting file is the shipped file with exactly two keys changed: this child's
-    /// <c>window.shared</c> and #855's <c>geometryOnly</c> (PH-12). Each is off in <c>data/</c> and on
-    /// here; put both back and the two files are the same JSON.
+    /// The overlay's batting file is the shipped file with exactly one key changed: #855's
+    /// <c>geometryOnly</c> (PH-12), off in <c>data/</c> and on here. Until #860 it also changed this
+    /// child's <c>window.shared</c>; Jack accepted the window on September 22, 2026 ("trial was
+    /// good."), #860 turned it on in <c>data/</c>, and both copies now author it true. Put
+    /// <c>geometryOnly</c> back and the two files are the same JSON. The method name keeps the row's
+    /// history.
     /// </summary>
     [Fact]
     public void S126_TheOverlayIsTheShippedFileWithTwoKeysChanged()
     {
         var root = TrialRoot;
         Assert.Equal(TrialName, root.OverlayName);
-        Assert.Equal(new[] { "rules/batting.json", "rules/pitching.json" }, root.Overrides);
+        Assert.Equal(new[] { "rules/batting.json" }, root.Overrides);
         Assert.Empty(RulesTable.Validate(root));
 
         var shippedJson = Parse(Path.Combine(ShippedRoot, "rules", "batting.json"));
@@ -270,14 +282,13 @@ public sealed class SharedWindowScenarioTests
 
         var shippedWindow = shippedJson["window"]!.AsObject();
         var trialWindow = trialJson["window"]!.AsObject();
-        Assert.False(shippedWindow["shared"]!.GetValue<bool>(), "the shipped root leaves the switch off");
-        Assert.True(trialWindow["shared"]!.GetValue<bool>(), "the overlay turns the switch on");
+        Assert.True(shippedWindow["shared"]!.GetValue<bool>(), "the shipped root turns the switch on (#860)");
+        Assert.True(trialWindow["shared"]!.GetValue<bool>(), "the overlay agrees with the shipped root");
         Assert.False(shippedJson["geometryOnly"]!.GetValue<bool>(), "the shipped file authors geometryOnly: false (#855)");
         Assert.True(trialJson["geometryOnly"]!.GetValue<bool>(), "the overlay turns geometryOnly on (#855)");
 
-        // Put the two keys back; everything else in the file must be identical, so a shipped edit
+        // Put the one key back; everything else in the file must be identical, so a shipped edit
         // that forgets this overlay fails here instead of quietly making the trial measure more things.
-        trialWindow["shared"] = false;
         trialJson["geometryOnly"] = false;
         Assert.Equal(shippedJson.ToJsonString(), trialJson.ToJsonString());
     }
@@ -285,8 +296,9 @@ public sealed class SharedWindowScenarioTests
     [Fact]
     public void S126_TheShippedFileWritesTheTrialStartValueDownOnce()
     {
-        // The start value is 9 because 9 is today's quick swing, and that has to be readable in the
-        // file rather than asserted as a literal here: both keys are read, and compared to each other.
+        // 9 was the start value because 9 was the quick swing for an average hitter, and Jack
+        // accepted it (#860); that has to be readable in the file rather than asserted as a literal
+        // here: both keys are read, and compared to each other.
         var window = Parse(Path.Combine(ShippedRoot, "rules", "batting.json"))["window"]!.AsObject();
         Assert.Equal(window["slapFrames"]!.GetValue<double>(), window["frames"]!.GetValue<double>());
 
@@ -294,10 +306,10 @@ public sealed class SharedWindowScenarioTests
         Assert.Equal(w.SlapFrames, w.Frames);
         Assert.Equal(w.Frames, Trial.Batting.Window.Frames);
 
-        // …so on the shipped root an average hitter's quick swing and the trial's one window are the
+        // …so on the off path an average hitter's quick swing and the shipped one window are the
         // same number, which is the whole reason 9 was the accepted start (PH-10-R1).
-        Assert.Equal(AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, Trial, Skills),
-            AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, ShippedRules, Skills));
+        Assert.Equal(AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, ShippedRules, Skills),
+            AtBatResolver.ContactWindowFrames(5, false, null, Harbor, false, SwitchOffPaths.SplitWindowRules, Skills));
     }
 
     [Theory]
@@ -325,12 +337,14 @@ public sealed class SharedWindowScenarioTests
         using var fixture = new RulesFixture();
         fixture.Change("batting.json", json => json["window"]!.AsObject().Remove("shared"));
 
-        // Absent falls back to the code default, which is off: a table that has never heard of the
-        // switch plays the shipped window rather than a shared one (#716's "whole files" rule keeps
-        // a trial from relying on this, but the fallback must still be the safe direction).
+        // Absent falls back to the code default. Until #860 that was off; since #860 the code
+        // default follows the shipped JSON (the JSON = code parity rail), so an absent key plays the
+        // shipped, shared window — still the safe direction, which is "what ships". An explicit
+        // false is the only way to the off path. The method name keeps the row's history.
         var errors = new List<string>();
-        Assert.False(RulesTable.Load(new DataRoot(fixture.Root), errors).Batting.Window.Shared);
+        Assert.True(RulesTable.Load(new DataRoot(fixture.Root), errors).Batting.Window.Shared);
         Assert.Empty(errors);
+        Assert.False(SwitchOffPaths.SplitWindowRules.Batting.Window.Shared);
 
         using var misspelled = new RulesFixture();
         misspelled.Change("batting.json", json => json["window"]!["sharedWindow"] = true);
