@@ -49,10 +49,13 @@ public sealed class BalanceTests
         Assert.Equal("3 INNINGS  ·  NORMAL", CarnivalFront.TitleSetup(3, "normal"));
         Assert.Equal("9 INNINGS  ·  HARD", CarnivalFront.TitleSetup(9, "hard"));
         Assert.Equal("NORMAL", CarnivalFront.DifficultyLabel("nope"));
-        // The rung says what it does to the player's own swing (#612).
-        Assert.Equal("3 INNINGS  ·  EASY  ·  SWING WINDOW ×1.3", CarnivalFront.TitleSetup(3, "easy", _content.Rules));
-        Assert.Equal("3 INNINGS  ·  NORMAL  ·  SWING WINDOW ×1.0", CarnivalFront.TitleSetup(3, "normal", _content.Rules));
-        Assert.Equal("9 INNINGS  ·  HARD  ·  SWING WINDOW ×0.9", CarnivalFront.TitleSetup(9, "hard", _content.Rules));
+        // The rung says what it changes (#612): the CPU's skill. Since #860 (PH-17) it never touches a
+        // pad's swing window, so the title prints no window multiplier (#876).
+        Assert.Equal("3 INNINGS  ·  EASY  ·  CPU SKILL", CarnivalFront.TitleSetup(3, "easy", _content.Rules));
+        Assert.Equal("3 INNINGS  ·  NORMAL  ·  CPU SKILL", CarnivalFront.TitleSetup(3, "normal", _content.Rules));
+        Assert.Equal("9 INNINGS  ·  HARD  ·  CPU SKILL", CarnivalFront.TitleSetup(9, "hard", _content.Rules));
+        foreach (var level in CpuRules.Levels)
+            Assert.DoesNotContain("WINDOW", CarnivalFront.TitleSetup(3, level, _content.Rules));
     }
 
     [Theory]
