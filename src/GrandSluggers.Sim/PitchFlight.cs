@@ -183,9 +183,41 @@ public static class PitchFlight
         var f = Rules.Or(rules).Pitching.Flight;
         var dir = Math.Sign(stickDir);
         if (dir == 0) return breakX;
-        var rate = f.BreakRatePerSec * Math.Max(0.25, 1 + (Math.Clamp(pitchStat, 1, 10) - 5) * f.BreakRatePerPitchStat);
+        var rate = BreakRatePerSec(pitchStat, f);
         return Math.Clamp(breakX + dir * rate * Math.Max(0, dt), -1, 1);
     }
+
+    /// <summary>
+    /// How fast this arm bends a held stick, in stick-units per second (spec §4.1). One expression,
+    /// so <see cref="BreakStep"/> (a frame of the hold) and <see cref="BreakReach"/> (the whole hold)
+    /// cannot drift apart: the operation order is <see cref="BreakStep"/>'s own, unchanged, and the
+    /// #811 golden is the falsifier.
+    /// </summary>
+    static double BreakRatePerSec(int pitchStat, PitchFlightRules f) =>
+        f.BreakRatePerSec * Math.Max(0.25, 1 + (Math.Clamp(pitchStat, 1, 10) - 5) * f.BreakRatePerPitchStat);
+
+    /// <summary>
+    /// The whole bend a stick <b>held one way from release</b> reaches by the plate: the rate above
+    /// over the flight's own air time, clamped at 1 the way <see cref="BreakStep"/>'s own clamp is
+    /// (spec §4.1, §4.8; PH-04, PH-18-R1).
+    ///
+    /// <para>
+    /// This exists because two callers must agree on one number. A hand holding the stick
+    /// accumulates it a frame at a time; the CPU pitcher under
+    /// <c>pitching.cpu.humanInputs</c> has no frames to hold, so it takes the same total in one
+    /// step (<see cref="Match.CpuPitchByInputs"/>) rather than an instant ±1 no arm could reach.
+    /// A short flight, a low Pitch stat, or both, and the hold simply does not get there.
+    /// </para>
+    ///
+    /// <para>
+    /// Pure and additive: it reads the same <c>pitching.flight</c> rows, decides nothing about a
+    /// pitch, and nothing that flew before this function existed flies differently because of it.
+    /// </para>
+    /// </summary>
+    /// <param name="pitchStat">The arm's Pitch stat, clamped to 1..10 as <see cref="BreakStep"/> clamps it.</param>
+    /// <param name="airSec">Seconds of flight the stick is held for (<see cref="AirSeconds"/>).</param>
+    public static double BreakReach(int pitchStat, double airSec, RulesTable? rules = null) =>
+        Math.Min(1, BreakRatePerSec(pitchStat, Rules.Or(rules).Pitching.Flight) * Math.Max(0, airSec));
 
     /// <summary>
     /// Aim a delivery at an intended normalized plate crossing while preserving
