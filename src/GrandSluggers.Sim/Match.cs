@@ -1444,6 +1444,12 @@ public sealed class Match
             err += offSpeed ? fooled : -fooled;
         }
         var box = tracked ? Math.Clamp(cx / HomeSet.BatterWalk, -1, 1) : CpuTrackedBox(cx, c, level);
+        // The stick at contact (§5.9, PH-12, PH-18). Where it no longer shapes an ordinary swing
+        // (batting.geometryOnly) no human's stick does, so the CPU holds none: 0 / 0 and neither
+        // Gaussian is drawn. A Star Swing still steers and draws as it always has; the sac bunt above
+        // is untouched. Off — the shipped root — this is the command and the draw order that shipped.
+        if (!AtBatResolver.StickShapesContact(bunt: false, star, Rules))
+            return new SwingCommand(true, charge, err, star, BoxOffsetX: box);
         return new SwingCommand(true, charge, err, star, Gauss() * c.SpraySigmaDeg,
             LaunchAim: Gauss() * c.LaunchAimSigma, BoxOffsetX: box);
     }
@@ -1547,7 +1553,8 @@ public sealed class Match
         if (pickoffBag > 0 && Pickoff(pickoffBag) is { } pickoff)
             return pickoff;
         var pitch = PreparePitch(CpuPitch());
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch);
+        // The match's own table, not the process-wide one (#855): an overlay catalog's families fly here.
+        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch, Rules);
         var swing = CpuSwing(pitch, inZone);
         return Play(pitch, swing);
     }
