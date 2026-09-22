@@ -32,8 +32,16 @@ public sealed class HandlingErrorTests
         foreach (var h in new[] { s, t })
         {
             Assert.Equal((0.10, 0.80, 0.5, 1.5, 0.35, 0.40), (h.ChanceCap, h.HandsCut, h.HopMinApexFt, h.HopFullApexFt, h.HopPhaseHalfWidth, h.StunSec));
-            Assert.Equal((30.0, 0.20, 6.0, 0.35, 0.50, 0.25, 0.90, 6.0), (h.BobbleSpreadDeg, h.BobbleRetain, h.BobbleCapFtPerSec, h.BobbleRestitution, h.BobbleReboundCapFt, h.BobbleSettleFt, h.BobbleGroundRetain, h.BobbleDecelFtPerSec2));
+            Assert.Equal((30.0, 0.20, 6.0, 0.50, 0.25), (h.BobbleSpreadDeg, h.BobbleRetain, h.BobbleCapFtPerSec, h.BobbleReboundCapFt, h.BobbleSettleFt));
         }
+        // The bobble's restitution, the roll it keeps per impact and its rolling deceleration are the ground's since F3-c (FD-05): every
+        // ground row carries the same accepted 0.35 / 0.90 / 6, on both roots (the trial reads the shipped grounds.json).
+        foreach (var rules in new[] { Control.Rules, Trial.Rules })
+            foreach (var id in rules.Grounds.Ids)
+            {
+                var b = rules.Grounds.Of(id).Bobble;
+                Assert.Equal((0.35, 0.90, 6.0), (b.Restitution, b.GroundRetain, b.DecelFtPerSec2));
+            }
         // The shipped bobble block is untouched in both: the energy roll and the 0.58-s fumble are what the shipped table plays.
         Assert.Equal((78.0, 0.5, 0.58), (Trial.Rules.Fielding.Bobble.MinEnergy, Trial.Rules.Fielding.Bobble.MaxChance, Trial.Rules.Fielding.Bobble.FumbleSec));
     }

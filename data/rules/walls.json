@@ -1,8 +1,9 @@
 {
   // The closed wall-material library (spec §6.1, §16; FD-06). One named row per material a fence
-  // span may name. `padded` is today's flight.wall, which is the wall every park caroms off now;
-  // the flight still reads its own copy until F3-c. A span's material and its traits (climb, rob)
-  // belong to the polyline fence (F2-c), not to the stuff the wall is made of.
+  // span may name. `padded` is what flight.wall carried - the wall every park caroms off now - and,
+  // since F3-c, the only copy: the carom reads the row of the segment's material, and every segment
+  // is padded until the polyline fence (F2-c) gives a span its own. A span's material and its traits
+  // (climb, rob) belong to that fence, not to the stuff the wall is made of.
   "padded": {
     "restitution": 0.48,
     "tangential": 0.82
