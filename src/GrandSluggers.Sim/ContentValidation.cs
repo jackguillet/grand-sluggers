@@ -358,6 +358,9 @@ public static class ContentDataValidator
         // Arm, hands and reach are optional: absent means seeded from field / the legacy radius.
         if (c.Arm != 0) Range(row.Source, $"character '{c.Id}' arm", c.Arm, 1, 10, errors);
         if (c.Hands != 0) Range(row.Source, $"character '{c.Id}' hands", c.Hands, 1, 10, errors);
+        // Contact and power are optional the same way: absent means seeded from bat (PH-15-R5).
+        if (c.Contact != 0) Range(row.Source, $"character '{c.Id}' contact", c.Contact, 1, 10, errors);
+        if (c.Power != 0) Range(row.Source, $"character '{c.Id}' power", c.Power, 1, 10, errors);
         if (c.ReachFt is { } reach && reach <= 0)
             errors.Add($"{row.Source}: character '{c.Id}' reachFt must be positive when present");
         Known(row.Source, $"character '{c.Id}' bats", c.Bats, Hands, errors);
@@ -596,6 +599,12 @@ internal sealed class CharacterDto
     /// <summary>Explicit handling rating. Absent seeds from <see cref="Field"/>.</summary>
     public int Hands { get; set; }
 
+    /// <summary>Explicit contact rating. Absent seeds from <see cref="Bat"/> (PH-15-R5).</summary>
+    public int Contact { get; set; }
+
+    /// <summary>Explicit power rating. Absent seeds from <see cref="Bat"/> (PH-15-R5).</summary>
+    public int Power { get; set; }
+
     /// <summary>Authored stand-up catch reach in feet. Absent keeps the legacy radius formula.</summary>
     public double? ReachFt { get; set; }
 
@@ -617,7 +626,7 @@ internal sealed class CharacterDto
 
     public Character ToCharacter() => new(
         Id, Name, Faction, Captain,
-        new Stats(Pitch, Bat, Field, Run) { Arm = Arm, Hands = Hands },
+        new Stats(Pitch, Bat, Field, Run) { Arm = Arm, Hands = Hands, Contact = Contact, Power = Power },
         ParseHand(Bats), ParseHand(Throws),
         StarPitch, StarSwing, FieldAbility, Bio, ReachFt)
     {

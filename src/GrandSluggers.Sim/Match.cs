@@ -1390,7 +1390,11 @@ public sealed class Match
     {
         var c = Rules.Batting.Cpu;
         var level = Rules.Cpu.Active;
-        var bat = Batter.Stats.Bat;
+        // Two traits, not one rating (§5.9, PH-15-R5): making contact is Contact's — whether it
+        // offers at a ball it cannot square up, and how far off the ball its bat arrives — while
+        // swinging for it is Power's.
+        var contact = Batter.Stats.Contact;
+        var power = Batter.Stats.Power;
         var (cx, cy) = PitchFlight.Crossing(pitch, Pitcher.StarPitch, Rules);
         var zone = CpuZoneClass(cx, cy, inZone, c);
         var take = new SwingCommand(false, 0, 0, false);
@@ -1410,7 +1414,8 @@ public sealed class Match
         {
             CpuZone.Middle => true,
             CpuZone.Edge => Strikes == 2 || _rng.NextDouble() < c.EdgeSwingChance,
-            CpuZone.Near => _rng.NextDouble() * 100 < (Strikes == 2 ? c.ChaseTwoStrikesBase : c.ChaseBase) - bat,
+            // Chase: a better-Contact hitter lays off the pitch it cannot square up.
+            CpuZone.Near => _rng.NextDouble() * 100 < (Strikes == 2 ? c.ChaseTwoStrikesBase : c.ChaseBase) - contact,
             _ => false
         };
         if (!swing) return take;
@@ -1418,13 +1423,15 @@ public sealed class Match
         var star = CanStarSwing && Batter.Captain && inZone && (RunnersOn().Any() || Strikes == 2)
                    && _rng.NextDouble() < c.StarChance;
         var risp = Second is not null || Third is not null;
+        // Forced charge: swinging for it on a hitter's count is Power's read, not Contact's.
         var forcedCharge = zone == CpuZone.Middle
-                           && (((Balls, Strikes) is (2, 0) or (3, 1) or (3, 0)) && bat >= c.ChargeBatMin
-                               || risp && Outs < 2 && bat >= c.RispChargeBatMin);
+                           && (((Balls, Strikes) is (2, 0) or (3, 1) or (3, 0)) && power >= c.ChargeBatMin
+                               || risp && Outs < 2 && power >= c.RispChargeBatMin);
         var charge = forcedCharge || _rng.NextDouble() < CpuChargeChance(Batter, c.Archetype) ? 1.0 : 0;
 
         var tracked = _rng.NextDouble() < c.TrackPerfectChance;
-        var err = Gauss() * (11 - bat) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
+        // Timing sigma: how far off the ball the bat arrives is Contact's (⚠️ P2-b re-reads this one).
+        var err = Gauss() * (11 - contact) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
         var offSpeed = Rules.Pitching.Families.Of(pitch.Type).OffSpeed;
         if (!tracked && (offSpeed || ChargeFeel.IsCharge(pitch.Charge01)))
         {
@@ -1469,14 +1476,19 @@ public sealed class Match
     /// <summary>The pitcher walked the rubber since the last pitch this offense saw.</summary>
     public bool RubberMovedSinceLastPitch => Math.Abs(PitcherOffsetX - _lastPitchRubberX) > 0.05;
 
-    /// <summary>Charge vs slap by archetype (spec §5.9), from the Bat / Run split.</summary>
+    /// <summary>
+    /// Charge vs slap by archetype (spec §5.9). The technique gate is <b>Contact</b> and Run — the
+    /// hitter who can both square it up and beat it out slaps — while the slugger-vs-speedster split
+    /// is <b>Power</b> against Run (PH-15-R5).
+    /// </summary>
     public static double CpuChargeChance(Character who, CpuArchetypeRules a)
     {
-        var bat = who.Stats.Bat;
+        var contact = who.Stats.Contact;
+        var power = who.Stats.Power;
         var run = who.Stats.Run;
-        if (bat >= a.TechniqueMin && run >= a.TechniqueMin) return a.Technique;
-        if (bat - run >= a.SplitStat) return a.Power;
-        if (run - bat >= a.SplitStat) return a.Speed;
+        if (contact >= a.TechniqueMin && run >= a.TechniqueMin) return a.Technique;
+        if (power - run >= a.SplitStat) return a.Power;
+        if (run - power >= a.SplitStat) return a.Speed;
         return a.Balanced;
     }
 
@@ -1496,8 +1508,9 @@ public sealed class Match
         _cpuSquareDecided = true;
         var c = Rules.Batting.Cpu;
         var trailing = Top ? HomeScore - AwayScore : AwayScore - HomeScore;
+        // The light bat that gives itself up is the weak-Contact hitter (§5.9).
         _cpuSquared = First is not null && Second is null && Third is null && Outs == 0
-                      && Batter.Stats.Bat <= c.SacBuntBatMax && trailing <= c.SacBuntTrailMax
+                      && Batter.Stats.Contact <= c.SacBuntBatMax && trailing <= c.SacBuntTrailMax
                       && _rng.NextDouble() < c.SacBuntChance;
         return _cpuSquared;
     }
