@@ -1,8 +1,10 @@
 {
   // The closed ground library (spec §6.1, §16; FD-05). One named row per ground id a park's zone
-  // may name. Every row is today's flight.json roll / bounce / skid, so the ground under the ball
-  // changes no play; the flight still reads its own copy until F3-c moves the read to the zone.
-  // A value that is not today's arrives with Crystal (F9-a), as a trial Jack has accepted.
+  // may name, and the only copy of these numbers (F3-c): the batted ball's roll, bounce and skid,
+  // the overthrow's roll and the local bobble each read the row of the zone the ball is in. Every
+  // row is today's number - what flight.json's roll / bounce / skid and fielding.json's
+  // overthrow.decelFtPerSec2 and handling.bobble* carried - so the ground under the ball changes no
+  // play. A value that is not today's arrives with Crystal (F9-a), as a trial Jack has accepted.
   //
   // `body` is what the ground does to a body standing on it (spec §8, §9; FD-04 B, F3-d). Each
   // multiplier scales a TIME or a LENGTH, never a speed, so above 1 always reads "more slippery":
@@ -29,6 +31,14 @@
       "restitution": 0.28,
       "horizontal": 0.93
     },
+    "overthrow": {
+      "decelFtPerSec2": 18
+    },
+    "bobble": {
+      "restitution": 0.35,
+      "groundRetain": 0.90,
+      "decelFtPerSec2": 6
+    },
     "body": {
       "startMul": 1.0,
       "brakeMul": 1.0,
@@ -53,6 +63,14 @@
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93
+    },
+    "overthrow": {
+      "decelFtPerSec2": 18
+    },
+    "bobble": {
+      "restitution": 0.35,
+      "groundRetain": 0.90,
+      "decelFtPerSec2": 6
     },
     "body": {
       "startMul": 1.0,
@@ -79,6 +97,14 @@
       "restitution": 0.28,
       "horizontal": 0.93
     },
+    "overthrow": {
+      "decelFtPerSec2": 18
+    },
+    "bobble": {
+      "restitution": 0.35,
+      "groundRetain": 0.90,
+      "decelFtPerSec2": 6
+    },
     "body": {
       "startMul": 1.0,
       "brakeMul": 1.0,
@@ -103,6 +129,14 @@
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93
+    },
+    "overthrow": {
+      "decelFtPerSec2": 18
+    },
+    "bobble": {
+      "restitution": 0.35,
+      "groundRetain": 0.90,
+      "decelFtPerSec2": 6
     },
     "body": {
       "startMul": 1.0,
