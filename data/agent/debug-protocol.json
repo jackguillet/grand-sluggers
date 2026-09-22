@@ -453,7 +453,16 @@
       "promoted": "SharedWindowScenarioTests.S127_TheS29CohortUnderTheTrialIsRecordedAndItsCrossRootReadIsPinned",
       "issue": "#844",
       "pr": "#849"
+    },
+    {
+      "id": "gui-editor-focus-fight",
+      "signature": "Jack's delivered game window, or another session's Unity editor, loses focus every ~10 s while a still capture runs; a bare Unity editor with no -projectPath sits idle for hours; one session's tools/local-player.py closes a window another session delivered for Jack (a preview or a trial).",
+      "stage": "still-gate",
+      "cause": "Sessions share one Mac and one GUI editor (Personal Unity cannot -batchmode), and Play advances only in the frontmost editor, so a capture loop fronted its editor every 10 s with nothing telling it the Mac was busy (2026-09-22). Fronting by name (tell application \"Unity\" to activate) starts a fresh projectless editor when none runs and fronts either one when two run; still-gate.sh clicked the menu of whichever process was named Unity, not the editor on its own worktree. local-player.py SIGTERMed every delivered player without saying what it closed.",
+      "fix": "One machine-wide GUI Unity lock (tools/unity_gui.py, ~/Library/Application Support/Grand Sluggers/unity-gui.lock). Take it before launching, fronting or clicking an editor and before delivering: `acquire --pid $$ --purpose ...` with a release in an EXIT trap, or unity_gui.hold in Python. A live holder refuses the next session by name (exit 75); a dead, zombie or reused holder PID leaves a stale lock the next acquire clears. Front, click and quit an editor by PID through unity_gui.py front / menu / quit, which only the holder may call. A capture that fronts an editor refuses while a delivered window is open until Jack says the machine is free (--player-open-ok). local-player.py names the revision and trial of the window it would close and stops before building unless --replace. Never activate or pkill Unity by name.",
+      "promoted": "GuiLockTests.test_a_live_holder_refuses_the_second_session_by_name",
+      "issue": "#866",
+      "pr": "#866"
     }
-
   ]
 }
