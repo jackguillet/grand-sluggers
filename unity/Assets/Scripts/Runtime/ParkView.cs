@@ -116,6 +116,8 @@ namespace GrandSluggers.UnityClient
                 // geometry owner, in this park's dirt and wall. HarborKit draws it for Harbor.
                 new FieldKit(_root).Build(park, FieldSkin(park, dirtMat, ash));
             }
+            // The dress stands beside the kit, never in it: the kit's backstop wraps the plate, and no
+            // dress piece stands inside it (F6-a2 #881, FieldKitSourceTests).
             if (harbor)
             {
                 // HarborKit draws Harbor: the field kit and Harbor's own dress.
@@ -193,11 +195,9 @@ namespace GrandSluggers.UnityClient
         void Stands(bool ice, bool ash)
         {
             var conc = Look.Lit(ice ? new Color(0.85f, 0.9f, 0.95f) : new Color(0.78f, 0.8f, 0.82f), smooth: 0.12f);
-            var rail = Look.Lit(Colors.Gold, smooth: 0.4f);
             Cube("HomePlateStand", new Vector3(0, 16, -56), new Vector3(120, 28, 22), conc);
             Cube("LeftStand", new Vector3(-108, 14, 36), new Vector3(28, 24, 110), conc);
             Cube("RightStand", new Vector3(108, 14, 36), new Vector3(28, 24, 110), conc);
-            Cube("Lip", new Vector3(0, 2.2f, -38), new Vector3(90, 3, 4), rail);
             CrowdCard("CrowdH", new Vector3(0, 18, -66), new Vector3(110, 18, 1));
             CrowdCard("CrowdL", new Vector3(-120, 16, 36), new Vector3(1, 16, 90));
             CrowdCard("CrowdR", new Vector3(120, 16, 36), new Vector3(1, 16, 90));
@@ -253,7 +253,6 @@ namespace GrandSluggers.UnityClient
             Cube("HomeRoof", new Vector3(0, 20.2f, -62), new Vector3(86, 2.2f, 20), pink);
             Cube("LeftPavilion", new Vector3(-118, 12, 40), new Vector3(16, 20, 90), ice);
             Cube("RightPavilion", new Vector3(118, 12, 40), new Vector3(16, 20, 90), ice);
-            Cube("IceLip", new Vector3(0, 2.0f, -36), new Vector3(70, 1.4f, 1.4f), pink);
             CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(74, 12, 1));
             CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 80));
             CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 80));
@@ -273,9 +272,6 @@ namespace GrandSluggers.UnityClient
                 Cube("Board" + i, p, new Vector3(14, 4.6f, 0.55f), glass);
                 Cube("Kick" + i, p + new Vector3(0, -1.7f, 0), new Vector3(14, 1.2f, 0.8f), kick);
             }
-            Cube("GlassBack", new Vector3(0, 8f, -24f), new Vector3(38, 16, 0.45f), glass);
-            Cube("GlassL", new Vector3(-20, 7f, -12f), new Vector3(0.45f, 14, 16f), glass);
-            Cube("GlassR", new Vector3(20, 7f, -12f), new Vector3(0.45f, 14, 16f), glass);
         }
 
         void FrozenFountain(Material ice, Material stone)
@@ -330,7 +326,6 @@ namespace GrandSluggers.UnityClient
             var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
             var canvas = Look.Lit(new Color(0.94f, 0.78f, 0.48f), smooth: 0.12f);
 
-            FunfairBackstop(cream, red, wood);
             FunfairBenches(wood, canvas);
             Tent("HomeTent", new Vector3(0, 0, -62), 72, 22, 20, red, cream, wood);
             Tent("LeftTent", new Vector3(-118, 0, 38), 22, 84, 18, pink, cream, wood);
@@ -343,16 +338,6 @@ namespace GrandSluggers.UnityClient
             FunfairBooths(wood, red, cream, yellow, pink);
             FunfairTrain(park, wood, red, cream, yellow);
             FunfairNightHook(park);
-        }
-
-        void FunfairBackstop(Material cream, Material red, Material wood)
-        {
-            Cube("BuntHome", new Vector3(0, 8f, -24f), new Vector3(38, 14, 0.5f), cream);
-            Cube("BuntStripe", new Vector3(0, 8f, -23.6f), new Vector3(38, 2.2f, 0.2f), red);
-            Cube("BuntL", new Vector3(-20, 7f, -12f), new Vector3(0.5f, 12, 16f), cream);
-            Cube("BuntR", new Vector3(20, 7f, -12f), new Vector3(0.5f, 12, 16f), cream);
-            Cylinder("PostL", new Vector3(-19, 0, -24), 0.5f, 16f, wood);
-            Cylinder("PostR", new Vector3(19, 0, -24), 0.5f, 16f, wood);
         }
 
         void FunfairBenches(Material wood, Material canvas)
@@ -523,9 +508,6 @@ namespace GrandSluggers.UnityClient
             var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
             var magenta = Look.Unlit(new Color(1f, 0.28f, 0.72f));
 
-            Cube("ChainBack", new Vector3(0, 8f, -24f), new Vector3(38, 16, 0.45f), steel);
-            Cube("ChainL", new Vector3(-20, 7f, -12f), new Vector3(0.45f, 14, 16f), steel);
-            Cube("ChainR", new Vector3(20, 7f, -12f), new Vector3(0.45f, 14, 16f), steel);
             Cube("Bench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), tar);
             Cube("Awning1B", new Vector3(42, 5.4f, 22), new Vector3(22, 0.35f, 8), neon);
             Cube("Bench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), tar);
@@ -537,7 +519,6 @@ namespace GrandSluggers.UnityClient
             CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(70, 12, 1));
             CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 76));
             CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 76));
-            Cube("ParapetLip", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), steel);
             AcUnit(new Hazard("ac_unit", -52, 118, 6, null));
             AcUnit(new Hazard("ac_unit", 72, 188, 6, null));
             RooftopSkyline(tar, steel, gold, neon, magenta);
@@ -587,9 +568,6 @@ namespace GrandSluggers.UnityClient
             var vine = Look.Lit(new Color(0.22f, 0.48f, 0.18f), smooth: 0.12f);
             var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
 
-            Cube("VineBack", new Vector3(0, 8f, -24f), new Vector3(38, 16, 0.7f), vine);
-            Cube("VineL", new Vector3(-20, 7f, -12f), new Vector3(0.7f, 14, 16f), vine);
-            Cube("VineR", new Vector3(20, 7f, -12f), new Vector3(0.7f, 14, 16f), vine);
             Cube("LogBench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
             Cube("LeafAwning1B", new Vector3(42, 5.4f, 22), new Vector3(22, 0.6f, 8), leaf);
             Cube("LogBench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
@@ -699,9 +677,6 @@ namespace GrandSluggers.UnityClient
             var fire = Look.Unlit(Colors.EmberFire);
             var gold = Look.Lit(Colors.Gold, smooth: 0.45f);
 
-            Cube("IronBack", new Vector3(0, 8f, -24f), new Vector3(38, 16, 0.55f), iron);
-            Cube("IronL", new Vector3(-20, 7f, -12f), new Vector3(0.55f, 14, 16f), iron);
-            Cube("IronR", new Vector3(20, 7f, -12f), new Vector3(0.55f, 14, 16f), iron);
             Cube("StoneBench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), stone);
             Cube("StoneBench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), stone);
             Cube("HomeKeep", new Vector3(0, 10, -62), new Vector3(76, 18, 16), stone);
@@ -711,7 +686,6 @@ namespace GrandSluggers.UnityClient
             CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(68, 12, 1));
             CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 80));
             CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 80));
-            Cube("AshLip", new Vector3(0, 2.0f, -36), new Vector3(70, 1.4f, 1.4f), gold);
             KeepCastle(stone, iron, gold, fire);
             Brazier(new Vector3(-36, 0, -40), fire, stone);
             Brazier(new Vector3(36, 0, -40), fire, stone);
