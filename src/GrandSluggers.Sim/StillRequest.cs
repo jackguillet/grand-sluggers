@@ -19,7 +19,10 @@ public sealed class StillRequest
         "title", "select", "field", "lineup", "plate", "pitch", "mound",
         "diamond", "diamond-line", "diamond-fly", "diamond-grounder",
         "throw", "tag", "smash", "replay", "scoop",
-        "char-rest", "char-pose", "swing-matrix"
+        "char-rest", "char-pose", "swing-matrix",
+        // Named park shots (F7-b1, #882): posed from the park being captured
+        // (data/feel/shots.json parkShots, StillShots.Frame). Opt-in only.
+        "pole-left", "pole-right"
     };
 
     public string[]? Shots { get; init; }
