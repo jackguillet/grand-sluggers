@@ -3,9 +3,16 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// The field's boundary for a park (spec §6.1): the outfield fence arc between the poles — the
 /// park's L / C / R distances through <see cref="AtBatResolver.FenceAt"/>, top at
-/// <see cref="Park.FenceHeightFt"/> — and the shared diamond-kit foul wrap (hip rail along the
-/// lines, round backstop) from <see cref="HarborWall.Loop"/>. The flight clips against it, gloves
-/// plant inside it, and fair / foul is the chalk wedge. Each park's JSON fences — not a Harbor 400.
+/// <see cref="Park.FenceHeightFt"/> — and the foul wrap (hip rail along the lines, round backstop)
+/// from the park's <see cref="ParkBoundary"/>. The flight clips against it, gloves plant inside it,
+/// and fair / foul is the chalk wedge. Each park's JSON fences — not a Harbor 400.
+///
+/// <para>
+/// No park's name appears here (#826, FR-05). The wrap was built from <c>HarborWall</c>'s literals
+/// until F2-a: the rail, its flare and the backstop now come from <c>data/rules/boundary.json</c>
+/// through <see cref="ParkBoundary"/>, at exactly the values that shipped, and the drawn kit reads
+/// the same edge so the padding the player sees is the padding the ball meets.
+/// </para>
 /// </summary>
 public static class FieldBounds
 {
@@ -102,18 +109,27 @@ public static class FieldBounds
     /// <summary>Same pad as <see cref="FlyCatch.WallPlant"/> — warning track, not the crowd.</summary>
     public const double InsideFt = 8;
 
-    /// <summary>The backstop wrap behind the plate (diamond kit, <see cref="HarborWall.HomeZ"/>).</summary>
-    public static double BackstopZ => HarborWall.HomeZ;
+    /// <summary>The backstop wrap behind the plate (<see cref="ParkBoundary.BackstopZFt"/>).</summary>
+    public static double BackstopZ => ParkBoundary.Default.BackstopZFt;
 
-    /// <summary>Hip rail height along the foul wraps (diamond kit, <see cref="HarborWall.HipHeight"/>).</summary>
-    public static double FoulWallHeightFt => HarborWall.HipHeight;
+    /// <summary>Hip rail height along the foul wraps (<see cref="ParkBoundary.RailTopFt"/>).</summary>
+    public static double FoulWallHeightFt => ParkBoundary.Default.RailTopFt;
 
-    static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Boundary> Cache = new();
+    /// <summary>
+    /// The polygon per park, built once. Every input is in the key: the three posts and the fence
+    /// top the park carries, and the whole <see cref="ParkBoundary"/> it plays on. Before #826 the
+    /// key was the posts alone, so a second foul area (F2-d) would have been served the first one's
+    /// polygon — and nothing would have failed, because the posts would have matched.
+    /// </summary>
+    static readonly System.Collections.Concurrent.ConcurrentDictionary<
+        (string Id, int Left, int Center, int Right, double Height, ParkBoundary Bounds), Boundary> Cache = new();
 
-    public static Boundary Of(Park park)
+    public static Boundary Of(Park park) => Of(park, ParkBoundary.Default);
+
+    public static Boundary Of(Park park, ParkBoundary bounds)
     {
-        var key = $"{park.Id}|{park.LeftFenceFt}|{park.CenterFenceFt}|{park.RightFenceFt}|{park.FenceHeightFt}";
-        return Cache.GetOrAdd(key, _ => Build(park));
+        var key = (park.Id, park.LeftFenceFt, park.CenterFenceFt, park.RightFenceFt, park.FenceHeightFt, bounds);
+        return Cache.GetOrAdd(key, k => Build(park, k.Bounds));
     }
 
     /// <summary>Segments along the outfield arc between the poles (the chord sag is under 0.1 ft at these radii).</summary>
@@ -123,11 +139,11 @@ public static class FieldBounds
 
     /// <summary>
     /// The polygon: the park's own fence on both sides (asymmetric parks keep their asymmetry —
-    /// <see cref="HarborWall.Loop"/> mirrors one side for the mesh), then the kit's foul wrap
-    /// (<see cref="HarborWall.FoulWall"/>: a rail parallel to the line that flares to the pole)
+    /// the drawn loop mirrors one side for the mesh, which is F2-b's to fix), then the foul wrap
+    /// (<see cref="ParkBoundary.RailPoint"/>: a rail parallel to the line that flares to the pole)
     /// and the round backstop.
     /// </summary>
-    static Boundary Build(Park park)
+    static Boundary Build(Park park, ParkBoundary bounds)
     {
         var pts = new List<(double X, double Z)>(FenceSegs + 2 * FoulSegs + HomeSegs + 4);
         for (var i = 0; i <= FenceSegs; i++)
@@ -135,7 +151,7 @@ public static class FieldBounds
             var spray = -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i / FenceSegs;
             pts.Add(BallFlight.GroundPoint(AtBatResolver.FenceAt(park, spray), spray));
         }
-        var right = FoulSide(park, 1);
+        var right = FoulSide(park, 1, bounds);
         pts.AddRange(right);
         var rightHome = right[^1];
         var r = Math.Sqrt(rightHome.X * rightHome.X + rightHome.Z * rightHome.Z);
@@ -145,7 +161,7 @@ public static class FieldBounds
             var a = a0 + (2 * Math.PI - 2 * a0) * i / HomeSegs;
             pts.Add((Math.Sin(a) * r, Math.Cos(a) * r));
         }
-        var left = FoulSide(park, -1);
+        var left = FoulSide(park, -1, bounds);
         for (var i = left.Count - 1; i >= 0; i--)
             pts.Add(left[i]);
 
@@ -156,7 +172,7 @@ public static class FieldBounds
             var b = pts[(i + 1) % pts.Count];
             var fair = i < FenceSegs;
             var kind = fair ? WallKind.FairFence : WallKind.FoulWall;
-            var height = fair ? park.FenceHeightFt : FoulWallHeightFt;
+            var height = fair ? park.FenceHeightFt : bounds.RailTopFt;
             var ex = b.X - a.X;
             var ez = b.Z - a.Z;
             var len = Math.Sqrt(ex * ex + ez * ez);
@@ -178,12 +194,12 @@ public static class FieldBounds
     }
 
     /// <summary>The foul wrap on one side, pole → home, on this side's own pole radius.</summary>
-    static List<(double X, double Z)> FoulSide(Park park, int sign)
+    static List<(double X, double Z)> FoulSide(Park park, int sign, ParkBoundary bounds)
     {
         var poleR = AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg);
         var side = new List<(double X, double Z)>(FoulSegs + 2);
         for (var i = 1; i <= FoulSegs; i++)
-            side.Add(HarborWall.FoulWall(sign, poleR * (1 - i / (double)FoulSegs), poleR));
+            side.Add(bounds.RailPoint(sign, poleR * (1 - i / (double)FoulSegs), poleR));
         return side;
     }
 

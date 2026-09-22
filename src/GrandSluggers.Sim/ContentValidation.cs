@@ -424,8 +424,10 @@ public static class ContentDataValidator
         FiniteRange(row.Source, $"park '{p.Id}' windDeg", p.WindDeg, -360, 360, errors);
         if (!(p.FenceHeightFt > 0) || double.IsNaN(p.FenceHeightFt) || double.IsInfinity(p.FenceHeightFt))
             errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must be greater than 0; got {p.FenceHeightFt}");
-        else if (p.FenceHeightFt <= HarborWall.HipHeight)
-            errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must stand over the {HarborWall.HipHeight} ft foul rail (the drawn wall ramps up to it, D15); got {p.FenceHeightFt}");
+        // The floor is the boundary table's rail, not a park's class (#826, FR-05): every park's
+        // fence stands over the rail the ball meets, and no park's name decides another park's rule.
+        else if (p.FenceHeightFt <= ParkBoundary.Default.RailHeightFt)
+            errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must stand over the {ParkBoundary.Default.RailHeightFt} ft foul rail (the drawn wall ramps up to it, D15); got {p.FenceHeightFt}");
         if (!(p.NightContactWindowMul > 0 && p.NightContactWindowMul <= 1))
             errors.Add($"{row.Source}: park '{p.Id}' nightContactWindowMul must be in (0, 1]; got {p.NightContactWindowMul}");
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)

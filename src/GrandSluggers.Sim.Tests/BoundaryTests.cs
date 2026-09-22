@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using GrandSluggers.Sim;
 using Xunit;
 
@@ -42,6 +44,145 @@ public sealed class BoundaryTests
             // Exact, not to a tolerance: the extraction moved a number's home, not its value.
             Assert.Equal(e, a);
         }
+    }
+
+    /// <summary>
+    /// The table is the source of truth and it carries what shipped. The five numbers are pinned
+    /// here as well as in the JSON because F2-a's whole claim is that it moved them without
+    /// choosing them: #730 / #732 own the offset and the flare until they close. Holds on both
+    /// roots — <c>trials/c80</c> carries no copy of <c>boundary.json</c>, so the compact profile
+    /// plays the shipped edge until #732 says otherwise.
+    /// </summary>
+    [Fact]
+    public void TheTableCarriesTheNumbersThatShipped()
+    {
+        var shipped = Rules.Default.Boundary;
+        Assert.Equal(36, shipped.FoulOffsetFt);
+        Assert.Equal(95, shipped.FlareStartFt);
+        Assert.Equal(4.2, shipped.RailHeightFt);
+        Assert.Equal(-36, shipped.BackstopZFt);
+        Assert.Equal(18, shipped.DugoutPadFt);
+
+        // JSON = code fallback, for this table, by name. (RulesTests makes the same comparison over
+        // every table; the row is here too because a boundary that drifts moves the polygon.)
+        var defaults = new BoundaryRules();
+        Assert.Equal(defaults.FoulOffsetFt, shipped.FoulOffsetFt);
+        Assert.Equal(defaults.FlareStartFt, shipped.FlareStartFt);
+        Assert.Equal(defaults.RailHeightFt, shipped.RailHeightFt);
+        Assert.Equal(defaults.BackstopZFt, shipped.BackstopZFt);
+        Assert.Equal(defaults.DugoutPadFt, shipped.DugoutPadFt);
+
+        // The kit and the flight read one edge, not two copies of it.
+        Assert.Equal(ParkBoundary.Default.FoulOffsetFt, HarborWall.FoulOffset);
+        Assert.Equal(ParkBoundary.Default.BackstopZFt, HarborWall.HomeZ);
+        Assert.Equal(ParkBoundary.Default.DugoutPadFt, HarborWall.DugoutPad);
+        Assert.Equal((double)HarborWall.HipHeight, FieldBounds.FoulWallHeightFt);
+        Assert.Equal(ParkBoundary.Default.BackstopZFt, FieldBounds.BackstopZ);
+    }
+
+    /// <summary>
+    /// The rail the geometry stands on is the authored number narrowed through <c>float</c>, because
+    /// the constant it replaced was a <c>float</c>. Pinned so that widening it is a deliberate act
+    /// with a changed polygon behind it, not a quiet 2e-7 ft under a refactor (#826, #732).
+    /// </summary>
+    [Fact]
+    public void TheRailTopIsTheShippedFloat()
+    {
+        Assert.Equal(4.2, ParkBoundary.Default.RailHeightFt);
+        Assert.Equal((double)4.2f, ParkBoundary.Default.RailTopFt);
+        Assert.NotEqual(4.2, ParkBoundary.Default.RailTopFt);
+        Assert.Equal(ParkBoundary.Default.RailTopFt, FieldBounds.FoulWallHeightFt);
+    }
+
+    /// <summary>
+    /// The cache serves a polygon per (park, edge). Before #826 the key was the three posts and the
+    /// fence top, so a park given a different foul area (F2-d) would have been handed the polygon
+    /// built for the first one — with no test failing, because the posts matched.
+    /// </summary>
+    [Fact]
+    public void ADifferentEdgeIsADifferentPolygon()
+    {
+        var park = _content.Parks["harbor-diamond"];
+        var shipped = ParkBoundary.Default;
+        var wide = shipped with { FoulOffsetFt = shipped.FoulOffsetFt + 10 };
+
+        Assert.Same(FieldBounds.Of(park), FieldBounds.Of(park, shipped));
+        var other = FieldBounds.Of(park, wide);
+        Assert.NotSame(FieldBounds.Of(park), other);
+        Assert.Same(other, FieldBounds.Of(park, wide));
+
+        // And it is a different field, not just a different object: the rail moved into foul.
+        var near = FieldBounds.Of(park).RadiusAt(70);
+        var wider = other.RadiusAt(70);
+        Assert.True(wider > near + 1, $"the wider foul area should push the rail out: {near} -> {wider}");
+
+        // A taller rail is a taller wall on the foul segments only.
+        var tall = FieldBounds.Of(park, shipped with { RailHeightFt = 9 });
+        Assert.All(tall.Segments.Where(s => s.Kind == FieldBounds.WallKind.FoulWall),
+            s => Assert.Equal(9f, (float)s.HeightFt));
+        Assert.All(tall.Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence),
+            s => Assert.Equal(park.FenceHeightFt, s.HeightFt));
+    }
+
+    [Theory]
+    [InlineData("foulOffsetFt", 0.0, "boundary.foulOffsetFt must be greater than 0")]
+    [InlineData("foulOffsetFt", -36.0, "boundary.foulOffsetFt must be greater than 0")]
+    [InlineData("flareStartFt", 0.0, "boundary.flareStartFt must be greater than 0")]
+    [InlineData("railHeightFt", 0.0, "boundary.railHeightFt must be greater than 0")]
+    [InlineData("railHeightFt", -4.2, "boundary.railHeightFt must be greater than 0")]
+    [InlineData("dugoutPadFt", -1.0, "boundary.dugoutPadFt must be greater than 0")]
+    [InlineData("backstopZFt", 0.0, "boundary.backstopZFt must be behind the plate (less than 0)")]
+    [InlineData("backstopZFt", 36.0, "boundary.backstopZFt must be behind the plate (less than 0)")]
+    public void AnImpossibleEdgeIsRefusedByName(string field, double value, string expected)
+    {
+        using var fixture = new RulesCopy();
+        fixture.Change("boundary.json", json => json[field] = value);
+
+        var errors = RulesTable.Validate(fixture.Root);
+        Assert.Contains(errors, e => e.Contains(expected, StringComparison.Ordinal)
+                                     && e.Contains(fixture.Path("boundary.json"), StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AMisspelledEdgeFieldIsAnErrorNotASilentFallback()
+    {
+        using var fixture = new RulesCopy();
+        fixture.Change("boundary.json", json => json["foulOffsetFeet"] = 40);
+
+        Assert.Contains(RulesTable.Validate(fixture.Root),
+            e => e.Contains("boundary.foulOffsetFeet is not a rule this table owns", StringComparison.Ordinal));
+    }
+
+    /// <summary>A copy of the shipped rules folder one row may edit. Sibling of <c>RulesTests.RulesFixture</c>.</summary>
+    sealed class RulesCopy : IDisposable
+    {
+        static readonly JsonDocumentOptions Comments = new()
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true
+        };
+
+        public RulesCopy()
+        {
+            Root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-boundary-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(System.IO.Path.Combine(Root, RulesTable.Directory));
+            var source = System.IO.Path.Combine(ContentCatalog.Load().Root.Shipped, RulesTable.Directory);
+            foreach (var file in Directory.GetFiles(source, "*.json"))
+                File.Copy(file, System.IO.Path.Combine(Root, RulesTable.Directory, System.IO.Path.GetFileName(file)));
+        }
+
+        public string Root { get; }
+
+        public string Path(string file) => System.IO.Path.Combine(Root, RulesTable.Directory, file);
+
+        public void Change(string file, Action<JsonObject> change)
+        {
+            var json = JsonNode.Parse(File.ReadAllText(Path(file)), null, Comments)!.AsObject();
+            change(json);
+            File.WriteAllText(Path(file), json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        public void Dispose() => Directory.Delete(Root, recursive: true);
     }
 
     /// <summary>
