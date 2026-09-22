@@ -14,7 +14,7 @@ public static class TutorialPlateObjectives
                 ? new(true, "pitched-ball", "Your pitch passed outside the zone without hitting the batter.")
                 : Fail("pitch-outside", "Move off the middle and pitch outside the zone without hitting the batter.");
         if (objective == "changeup-strike" && command.Type != PitchFamily.Changeup)
-            return Fail("use-changeup", "Use the changeup command, then put it in the strike zone.");
+            return Fail("use-changeup", "Press the pitch cycle once to select the changeup, then put it in the strike zone.");
         if (objective == "max-pitch-strike" && (command.Charge01 < 1 || command.Star || command.Type == PitchFamily.Changeup))
             return Fail("use-max-pitch", "Release an ordinary pitch at full charge, then put it in the zone.");
         if (objective == "break-strike" && (Math.Abs(command.BreakX) < setup.MinMovement01 || command.Star || command.Type == PitchFamily.Changeup || ChargeFeel.IsCharge(command.Charge01)))

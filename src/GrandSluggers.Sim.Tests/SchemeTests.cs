@@ -11,7 +11,7 @@ public class SchemeTests
         foreach (var id in new[]
         {
             "confirm", "charge", "star", "aim-run", "bags",
-            "all-advance", "all-return", "steal", "changeup", "swap", "bunt",
+            "all-advance", "all-return", "steal", "cyclePitch", "swap", "bunt",
             "call-time", "how-to", "dash", "pickoff", "skip"
         })
         {
@@ -29,7 +29,11 @@ public class SchemeTests
         Assert.Equal(",", Scheme.Keys("all-advance"));
         Assert.Equal(".", Scheme.Keys("all-return"));
         Assert.Equal("Z", Scheme.Keys("steal"));
-        Assert.Equal("V", Scheme.Keys("changeup"));
+        // PH-02-R5 (#825): the West changeup modifier is retired; RB / Tab cycles the family in SET.
+        Assert.Equal("RB", Scheme.Pad("cyclePitch"));
+        Assert.Equal("Tab", Scheme.Keys("cyclePitch"));
+        Assert.Equal("Tab", Scheme.Mouse("cyclePitch"));
+        Assert.False(Scheme.IsProductVerb("changeup"));
         Assert.Equal("R", Scheme.Keys("swap"));
         Assert.Equal("V", Scheme.Keys("bunt"));
         Assert.Equal("H", Scheme.Keys("call-time"));
@@ -194,7 +198,10 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("you are the glove"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("turn two"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("throw both"));
-        Assert.False(HowToPlay.Mentions("cycle pitch"));
+        // PH-02-R5 (#825) supersedes the #563 ban: the pre-charge family cycle IS the mound's verb now,
+        // so the book must teach it in both schemes. "cycle fastball" stays retired (it was a
+        // post-release trajectory cycle, a different thing).
+        Assert.True(HowToPlay.Mentions("Cycle pitch"));
         Assert.False(HowToPlay.Mentions("cycle fastball"));
         Assert.DoesNotContain(HowToPlay.Pages.SelectMany(p => p.Lines), l => l.Contains("F1") && l.Contains("timing", StringComparison.OrdinalIgnoreCase) && !l.Contains("debug"));
         Assert.Contains(HowToPlay.Must("pause-practice").Lines, l => l.Contains("West") && l.Contains("Tutorials"));
@@ -254,14 +261,36 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("Space"));
         Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("South"));
 
+        // PH-02-R5 (#825): the mound's modifier line is now the cycle, and the bunt keeps West on
+        // its own. Neither page may still teach a West / V changeup.
         var padPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad);
-        Assert.Contains(padPitch, l => l.Contains("hold West", StringComparison.OrdinalIgnoreCase)
-            && l.Contains("South") && l.Contains("changeup", StringComparison.OrdinalIgnoreCase)
-            && l.Contains("bunt", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(padPitch, l => l.Contains("Cycle pitch") && l.Contains("RB")
+            && l.Contains("before the charge") && l.Contains("changeup", StringComparison.OrdinalIgnoreCase)
+            && l.Contains("bunt", StringComparison.OrdinalIgnoreCase) && l.Contains("hold West"));
+        Assert.DoesNotContain(padPitch, l => l.Contains("Changeup: hold West"));
         var keyPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys);
-        Assert.Contains(keyPitch, l => l.Contains("hold V/Ctrl", StringComparison.OrdinalIgnoreCase)
-            && l.Contains("Space/left click") && l.Contains("changeup", StringComparison.OrdinalIgnoreCase)
-            && l.Contains("bunt", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(keyPitch, l => l.Contains("Cycle pitch") && l.Contains("Tab")
+            && l.Contains("before the charge") && l.Contains("changeup", StringComparison.OrdinalIgnoreCase)
+            && l.Contains("bunt", StringComparison.OrdinalIgnoreCase) && l.Contains("hold V/Ctrl"));
+        Assert.DoesNotContain(keyPitch, l => l.Contains("Changeup: hold V/Ctrl"));
+        // PH-02-R5: the whole rule — the Fastball start and the charge-start lock — is on the
+        // pitching controls spread, where the verb row lives, in both schemes.
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+        {
+            var cycle = RoleTables.Of(scheme).First(b => b.Id == "pitching").Rows
+                .First(r => r.Verb == "Cycle pitch");
+            Assert.Contains("before you charge", cycle.Press);
+            Assert.Contains("starts on Fastball", cycle.Press);
+            Assert.Contains("locks", cycle.Press);
+        }
+        // PH-06-R1: the SET ring names the rubber, never the crossing.
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+        {
+            var box = HowToPlay.Must("the-box").Shown(scheme);
+            Assert.Contains(box, l => l.Contains("pale ring") && l.Contains("rubber")
+                && l.Contains("not where the pitch will cross"));
+            Assert.DoesNotContain(box, l => l.Contains("ring") && l.Contains("where it will cross"));
+        }
 
         var allCouchCopy = HowToPlay.Pages.SelectMany(page => page.Lines.Concat(page.KeyLines ?? []))
             .Concat(GettingStarted.Modes.SelectMany(mode => new[] { mode.PadLine, mode.KeysLine }))

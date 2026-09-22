@@ -48,31 +48,63 @@ public class PitcherSwapTests
     [Fact]
     public void ThePitcherCardNamesTheVerbsTheWayTheBatterCardDoes()
     {
-        Assert.Equal("", BroadcastHud.PitcherExtra(false, false));
-        Assert.Equal("CHANGE", BroadcastHud.PitcherExtra(false, true));
-        Assert.Equal("STAR  CHANGE", BroadcastHud.PitcherExtra(true, true));
-        Assert.Equal("Select SWAP", BroadcastHud.PitcherExtra(false, false, null, canSwap: true));
-        Assert.Equal("SWAP → SS Nugget  ·  Select", BroadcastHud.PitcherExtra(false, false, "SWAP → SS Nugget", canSwap: true));
+        // PH-02-R5 (#825): the CHANGE tell is gone. The card never names the selected family, so the
+        // extras row carries only STAR and the swap pick, and the repertoire row below it is the
+        // same for both seats.
+        Assert.Equal("", BroadcastHud.PitcherExtra(false));
+        Assert.Equal("STAR", BroadcastHud.PitcherExtra(true));
+        Assert.Equal("Select SWAP", BroadcastHud.PitcherExtra(false, null, canSwap: true));
+        Assert.Equal("SWAP → SS Nugget  ·  Select", BroadcastHud.PitcherExtra(false, "SWAP → SS Nugget", canSwap: true));
         // The SET HUD map names the swap on the pitcher card (the mark cell is one measured line).
         Assert.Contains("SWAP", HudCallouts.Set.Marks.First(m => m.Id == "pitcher").Label);
     }
 
     [Fact]
-    public void TheBookNamesChangeupAndSwapOnThePitchingSpreadInBothSchemes()
+    public void TheBookNamesTheCycleAndSwapOnThePitchingSpreadInBothSchemes()
     {
+        // PH-02-R5 (#825): the Changeup row is replaced, not joined — MaxRows is 10 and the spread
+        // is two couch-size pages of five. The changeup is now a family inside the cycle.
         foreach (var scheme in new[] { RoleTables.Pad, RoleTables.Keys })
         {
             var pitching = scheme.First(b => b.Id == "pitching").Rows;
-            Assert.Contains(pitching, r => r.Verb == "Changeup");
+            Assert.Contains(pitching, r => r.Verb == "Cycle pitch");
+            Assert.DoesNotContain(pitching, r => r.Verb == "Changeup");
             Assert.Contains(pitching, r => r.Verb == "Swap pitcher" && r.Press.Contains("any fielder"));
             Assert.Contains(pitching, r => r.Verb == "Break");
             Assert.DoesNotContain(pitching, r => r.Verb == "Curve");
+            Assert.InRange(pitching.Count, RoleTables.MinRows, RoleTables.MaxRows);
         }
         var pad = RoleTables.Pad.First(b => b.Id == "pitching").Rows;
-        Assert.Contains(pad, r => r.Verb == "Changeup" && r.Press.Contains("West"));
+        Assert.Contains(pad, r => r.Verb == "Cycle pitch" && r.Press.Contains("RB") && r.Press.Contains("Fastball"));
         Assert.Contains(pad, r => r.Verb == "Swap pitcher" && r.Press.Contains("Select"));
         var keys = RoleTables.Keys.First(b => b.Id == "pitching").Rows;
+        Assert.Contains(keys, r => r.Verb == "Cycle pitch" && r.Press.Contains("Tab") && r.Press.Contains("Fastball"));
         Assert.Contains(keys, r => r.Verb == "Swap pitcher" && r.Press.StartsWith("R"));
         Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("any fielder"));
+    }
+
+    /// <summary>
+    /// PH-02-R5 (#825): the card shows the pitcher's ordinary pitches in repertoire order, with no
+    /// active mark — the row is a function of the arm and the table and of nothing the player is
+    /// holding, so the shared screen cannot leak the selection.
+    /// </summary>
+    [Fact]
+    public void ThePitcherCardListsTheRepertoireInOrderWithNoActiveMark()
+    {
+        var content = _content;
+        var match = Match.Slice(content, seed: 1);
+        var row = BroadcastHud.PitcherPitches(match);
+        Assert.StartsWith("FB", row);
+        Assert.DoesNotContain(row, "*[]<>".Contains);
+        foreach (var family in match.Pitcher.Repertoire.Ordinary.Where(content.Rules.Pitching.Families.IsAuthored))
+            Assert.Contains(BroadcastHud.ShortFamily(family), row);
+        // Shipped: only the fastball and the changeup are authored, so no card names a third pitch.
+        Assert.DoesNotContain("CU", row);
+        Assert.Equal("FB  ·  CH", BroadcastHud.PitcherPitches(
+            new Repertoire(PitchFamily.Changeup, PitchFamily.Curveball), content.Rules.Pitching.Families));
+        Assert.Equal("FB", BroadcastHud.PitcherPitches(
+            new Repertoire(PitchFamily.Slider, PitchFamily.Curveball), content.Rules.Pitching.Families));
+        Assert.Equal(["FB", "CH", "CU", "SL", "SI"],
+            PitchFamily.All.Select(BroadcastHud.ShortFamily).ToArray());
     }
 }

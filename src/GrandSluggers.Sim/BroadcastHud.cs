@@ -13,17 +13,67 @@ public static class BroadcastHud
     /// <summary>AB card extras. Steal names L3 until it's on.</summary>
     /// <summary>
     /// The pitcher card's verb tells in SET (spec §4.1, §4.7; #582): the way the batter card
-    /// shows BUNT and STEAL. CHANGE while West is held, STAR when armed, the swap pick while open.
+    /// shows BUNT and STEAL. STAR when armed, the swap pick while open.
+    ///
+    /// <para>
+    /// The CHANGE tell is gone (PH-02-R5, #825). The family is selected before the charge and the
+    /// card is shared by both seats, so a tell that named the held pitch handed the batter the
+    /// selection. What the card shows instead is <see cref="PitcherPitches"/> — the whole
+    /// repertoire, always, with nothing marked.
+    /// </para>
     /// </summary>
-    public static string PitcherExtra(bool star, bool changeup, string? swapTell = null, bool canSwap = false)
+    public static string PitcherExtra(bool star, string? swapTell = null, bool canSwap = false)
     {
         var s = "";
         if (star) s += "STAR  ";
-        if (changeup) s += "CHANGE  ";
         if (!string.IsNullOrEmpty(swapTell)) s += swapTell + "  ·  Select";
         else if (canSwap) s += "Select SWAP";
         return s.Trim();
     }
+
+    /// <summary>
+    /// Two letters per family, for the pitcher card (PH-02-R5). One table: a short name is couch
+    /// copy, so it lives here beside the other card rows rather than beside the ids in
+    /// <see cref="PitchFamily"/>. An id with no short name prints its first two letters upper-cased
+    /// rather than vanishing.
+    /// </summary>
+    public static string ShortFamily(string family) => family switch
+    {
+        PitchFamily.Fastball => "FB",
+        PitchFamily.Changeup => "CH",
+        PitchFamily.Curveball => "CU",
+        PitchFamily.Slider => "SL",
+        PitchFamily.Sinker => "SI",
+        _ => string.IsNullOrWhiteSpace(family) ? "" : family.Trim()[..Math.Min(2, family.Trim().Length)].ToUpperInvariant()
+    };
+
+    /// <summary>
+    /// The pitcher's ordinary pitches on the card, in repertoire order, as one short row —
+    /// <c>FB · CH</c> today, <c>FB · CH · CU</c> for a three-family arm under a table that authors
+    /// three (PH-02-R5).
+    ///
+    /// <para>
+    /// <b>No mark, no cursor, no press count.</b> The row is a function of the pitcher and the
+    /// active family table and of nothing else — not of the selection state — so the shared screen
+    /// cannot leak which family is showing, and both seats read the same card. What it lists is what
+    /// the RB / Tab cycle can actually reach: a slot the active table does not author is skipped by
+    /// <see cref="PitchSelection.Advance"/>, so printing it would name a pitch no press can select.
+    /// </para>
+    /// </summary>
+    public static string PitcherPitches(Repertoire repertoire, PitchFamilyTable families)
+    {
+        if (repertoire is null) throw new ArgumentNullException(nameof(repertoire));
+        if (families is null) throw new ArgumentNullException(nameof(families));
+        return string.Join("  ·  ", repertoire.Ordinary
+            .Where(families.IsAuthored)
+            .Select(ShortFamily));
+    }
+
+    /// <summary>The card row for the arm on the mound right now (§2, PH-15-R1).</summary>
+    public static string PitcherPitches(Match match) =>
+        match is null
+            ? throw new ArgumentNullException(nameof(match))
+            : PitcherPitches(match.Pitcher.Repertoire, match.Rules.Pitching.Families);
 
     public static string BatterExtra(bool star, bool stealOn, bool canSteal, bool bunt, string item)
     {

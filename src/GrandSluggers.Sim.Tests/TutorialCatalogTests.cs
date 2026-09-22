@@ -29,9 +29,10 @@ public sealed class TutorialCatalogTests
     [Fact]
     public void RemovingAFeatureFromTheInventoryDoesNotHideItsRuntimeCoverageGap()
     {
-        var c=Load();var m=c.Mechanics.First(m=>m.Sources.Contains("control:pitching/Changeup"));
+        // #825: the pitching source is the RB / Tab cycle now, and it is derived from the RoleTables row.
+        var c=Load();var m=c.Mechanics.First(m=>m.Sources.Contains("control:pitching/Cycle pitch"));
         c.Mechanics[Array.IndexOf(c.Mechanics,m)] = m with { Sources=[] };
-        Assert.Contains(c.Validate(_content),e=>e.Contains("unmapped runtime source control:pitching/Changeup"));
+        Assert.Contains(c.Validate(_content),e=>e.Contains("unmapped runtime source control:pitching/Cycle pitch"));
     }
 
     [Theory]

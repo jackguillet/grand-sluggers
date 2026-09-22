@@ -19,11 +19,11 @@
     },
     {
       "id": "pitching.03",
-      "title": "changeup",
+      "title": "changeup, selected by the cycle",
       "category": "pitching",
       "spec": "gameplay-spec:4",
       "sources": [
-        "control:pitching/Changeup"
+        "control:pitching/Cycle pitch"
       ]
     },
     {
@@ -79,6 +79,13 @@
       "sources": [
         "control:pitching/Star pitch"
       ]
+    },
+    {
+      "id": "pitching.10",
+      "title": "cycling past the second pitch to the third",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": []
     },
     {
       "id": "batting.01",
