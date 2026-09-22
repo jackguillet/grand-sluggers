@@ -402,6 +402,16 @@
       "promoted": "CpuPitcherScenarioTests.S115_TrialCpuNeverAimsAndWalksTheRubberOntoItsIntentWithBothArms",
       "issue": "#823",
       "pr": ""
+    },
+    {
+      "id": "float-const-widens-when-it-moves-into-data",
+      "signature": "A child that only moves a constant into data/rules - no code path changed - sees a derived number move in `game-feel-flight-probes --check`, or a vertex-for-vertex parity test fail by about 1e-7. The constant that moved was declared `float`.",
+      "stage": "sim",
+      "cause": "(double)4.2f is 4.19999980926514, not 4.2. A rules table stores doubles, so authoring the same decimal in JSON widens the number and moves the geometry that stood on it. HarborWall.HipHeight was a float const and FieldBounds.FoulWallHeightFt read it as a double, so every foul segment of the clip polygon has always stood at the narrowed value (#826).",
+      "fix": "Read the C# type before moving a constant into data/rules. If it is float and a double consumer reads it, author the decimal in the table and narrow exactly once, in a named member at the point the geometry stands on it (ParkBoundary.RailTopFt), with a test pinning the narrowed value. Widening then becomes a decision someone owns with parity evidence behind it, instead of a refactor's 2e-7. A float const with only float consumers stays float.",
+      "promoted": "BoundaryTests.TheRailTopIsTheShippedFloat",
+      "issue": "#826",
+      "pr": "#833"
     }
 
   ]
