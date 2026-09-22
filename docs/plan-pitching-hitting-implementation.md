@@ -94,7 +94,7 @@ graph TD
 | --- | --- | --- | --- | --- |
 | P2-a #837 | Gameplay | `Contact` and `Power` on `Stats`, unauthored tracks `Bat` (the `Arm` / `Hands` pattern); the resolver and the CPU read the right one (§5.9 table); `Teams`, cards and CLI keep `Bat`. Behaviour-identical. | PH-15-R5, PH-15-R7 | **Authored values** are Jack's; nothing is authored yet. |
 | P2-b #844 | Gameplay | `batting.window.shared` + `frames`: off shipped (bit-identical), on in `trials/pitch5` — one window for every hitter, swing and human rung; Star and park multipliers and the floor still apply. S-29 pitch5 1.56 / 2.08 → 2.02 / 2.32, re-reported not tuned. | PH-10-R1, PH-11-R1, PH-15-R7, PH-17, PH-20-R1 | Sitting 2 judges 9 frames. |
-| P2-c | Gameplay | Ordinary swings ignore stick spray and loft. Invariance scenario replaces S-13. CPU aim sigmas go (re-report S-29). Bunt direction stays on the stick until P4-b. T-B06 / T-B06-F retire with their lesson rows. | PH-12 | Nothing |
+| P2-c #855 | Gameplay | `batting.geometryOnly`: off shipped, on in `trials/pitch5`. Ordinary swings ignore stick spray and loft; bunts and Star Swings keep the stick (Phase 6 reviews Star Swings, P4-b bunts). The CPU skips its two aim draws on ordinary swings under the switch. S-13 rewritten; S-128 … S-132. The in-zone read now takes the match's table, so trial cohorts run in-process (S-127). T-B06 / T-B06-F and the book copy retire when the shipped root flips. | PH-12, PH-18 | Its own sitting |
 | P2-d | Gameplay | Charge narrows the spatial barrel only (already `chargeMul`); Contact scales the spatial barrel only. Pins for PH-09-R1. One sim helper for the drawn oval so Unity stops re-deriving it. | PH-11-R1, PH-15-R7, PH-09-R1 | Nothing |
 | P2-e | Gameplay | Remove buddies-on-base widen and charge power. | PH-16-R14, PH-16-R15 | Q5a answered: the on-deck item offer goes too; items dormant. |
 | P2-g | Gameplay | The CPU batter reads only what a human can see when it commits: decide at the commit instant from the trajectory as it stands, not from the final crossing (GS §3 vs §5.9). Behind a switch; shipped draws identical; S-04 and S-28 follow. | PH-18 | Re-report S-29. |
@@ -129,7 +129,7 @@ graph TD
 
 One child per reviewed ability or ability group, after P5. First: remove `batterWindowMul` from charmball, skullball and fogball with replacement effects Jack reviews (PH-16-R1); rule on the phonyball 40 % whiff roll; add an optional authored contact-area field for Star Swings (PH-16-R2). Each needs counterplay, geometry, data, validator and scenarios.
 
-### Sitting 2 — what is on the window (from #849)
+### Sitting 2 — what was on the window (from #849) — passed September 22, 2026
 
 - Under `trials/pitch5` every hitter, quick or charged, EASY / NORMAL / HARD, has one 9-frame window (±4.5 frames, 150 ms). The shipped root makes 45 distinct windows from 5 to 14.3 frames across the roster, both swings, nine bats and three rungs; the trial makes one.
 - Charge and Contact still change the oval (`cursor.chargeMul`, `scalePerContact`); the timing half is gone. Look for: quick and charged feel the same timing; a low- and a high-Contact hitter time the same and differ in the oval only; the difficulty rung does not change the window.
@@ -144,7 +144,7 @@ One child per reviewed ability or ability group, after P5. First: remove `batter
 - `PlayTraceIdentity` bytes moved (two new serialized `Stats` properties); old traces still read.
 - `tools/pitch-family-probes --check` is the one seal the `portable` job does not run and it drifted on main once already; adding it to CI is a small child of its own (debug-protocol row `pitch-family-seal-drifts-outside-ci`).
 
-### Sitting 1 — what is on the window (from #824, #835)
+### Sitting 1 — what was on the window (from #824, #835) — passed September 22, 2026
 
 - Under `trials/pitch5` walks fall from 2.86 to 0.98 per game and the S-29 home mean is 1.56 (shipped 1.90, floor 1.8): no pitcher, human or CPU, can miss high or low once height is the family (PH-03, PH-18). The legal levers (`scatterFtPerPitchStat`, `wasteOutFt`, weights on families that leave the zone by X) were not pulled. Jack decides whether the duel wants more balls.
 - The CPU's body walks to its rubber at the hand's rate (1.6 units/s) and `pitcherReadySeconds` is 0.55, so a traverse over 0.88 units snaps the rest at the launch. Presentation only; the arm and the ball always agree. Look at it.
@@ -211,6 +211,9 @@ Consequences for the map:
 | Decision round 2: ten refinements (register 38 → 48) | #803 | #817 | `52e51431` | docs only | none |
 | P1-d Curveball / Slider / Sinker under `trials/pitch5`: sweep term, nullable rows, proposal, plots, evidence | #818 | #821 | `2887a72c` | `5c767988`: 1807 / 1807, 731 / 731 c80 rows, #811 golden unedited, seals hash-only, seed 7 identical shipped and under the trial, `portable` green | sitting 1; numbers are proposals; shipped root unchanged |
 | P1-g CPU pitcher on human inputs behind `cpu.humanInputs` (S-114 … S-120; absorbs P1-e) | #823 | #824 | `776c80a2` | `db3a64a3`: 1817 / 1817, 731 / 731, seals hash-only, shipped seed 7 identical, `portable` green | sitting 1; shipped root unchanged |
-| P1-f verb PR: RB / Tab on the mound, family-blind SET, rubber-only ring, CPU stick tick, book pair, lessons | #825 | #835 | `c1bd4b38` | `7ac8543c`: 1839 / 1839, 731 / 731, seals hash-only, seed 7 identical on both roots, `unity-compile.sh` OK, no Unity run, `portable` green | **sitting 1 open** — window `main-c1bd4b3895` on `trials/pitch5` delivered September 22, 2026 |
+| P1-f verb PR: RB / Tab on the mound, family-blind SET, rubber-only ring, CPU stick tick, book pair, lessons | #825 | #835 | `c1bd4b38` | `7ac8543c`: 1839 / 1839, 731 / 731, seals hash-only, seed 7 identical on both roots, `unity-compile.sh` OK, no Unity run, `portable` green | **sitting 1 passed** — Jack on window `main-d49c527351`, September 22, 2026: "trial was good." |
 | P2-a Contact and Power as ratings of their own, seeded from Bat (S-121 … S-123) | #837 | #839 | `37b49e16` | `3206c2e1`: 1901 / 1901, 766 / 766 c80 rows, seals hash-only, seed 7 identical on both roots, `portable` green | none (no value authored; no player-facing change) |
-| P2-b one shared timing window (9 frames) behind `batting.window.shared`, on in `trials/pitch5` (S-124 … S-127; S-10, S-30 rewritten) | #844 | #849 | `d49c5273` | `e331b7c1`: 1945 / 1945, 777 / 777 c80 rows, seals hash-only, shipped seed 7 identical, `portable` green | **sitting 2 open** — window `main-d49c527351` on `trials/pitch5` delivered September 22, 2026 |
+| P2-b one shared timing window (9 frames) behind `batting.window.shared`, on in `trials/pitch5` (S-124 … S-127; S-10, S-30 rewritten) | #844 | #849 | `d49c5273` | `e331b7c1`: 1945 / 1945, 777 / 777 c80 rows, seals hash-only, shipped seed 7 identical, `portable` green | **sitting 2 passed** — same window and words |
+| P2-c ordinary swings ignore the stick behind `batting.geometryOnly`, on in `trials/pitch5`; cross-root in-zone read repaired (S-128 … S-132; S-13, S-126, S-127 rewritten) | #855 | #865 | `c48fad54` | `e800fbeb`: 1995 / 1995 and 811 / 811 c80 rows (child and orchestrator, on the merged `c48fad54`), seals check clean, shipped seed 7 identical, `unity-compile.sh` OK, `portable` green. Merged by Jack before the orchestrator's review; verified after merge | its own sitting on `trials/pitch5` (not on the accepted window) |
+| Acceptance of sittings 1 and 2 written to the register (13 decisions `human-accepted`, verbatim quote, scope) | #803 | this PR | — | docs only | recorded, not claimed |
+| Promote the accepted duel trial to the shipped root (data only; switches kept) | #860 | — | — | — | passed on the trial window; Jack may confirm the shipped build |

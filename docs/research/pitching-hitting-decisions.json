@@ -331,7 +331,7 @@
         {
           "id": "PH-02-R2",
           "question": "What should the shared pitch library contain?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -417,12 +417,21 @@
               "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
             }
           ],
-          "human_acceptance": null
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          }
         },
         {
           "id": "PH-02-R3",
           "question": "When should the pitcher choose the pitch type?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -478,7 +487,16 @@
               "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Changing pitch-selection inputs after charge starts cannot change the committed ordinary pitch family, including quick-tap delivery.",
             "Charge/release and legal live steering remain active within the selected family; locking type does not freeze trajectory steering.",
@@ -488,7 +506,7 @@
         {
           "id": "PH-02-R4",
           "question": "How should you select among the three pitches?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -544,12 +562,21 @@
               "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
-          "human_acceptance": null
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          }
         },
         {
           "id": "PH-02-R5",
           "question": "Which cycling flow should we use between pitches?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -610,7 +637,16 @@
               "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "At a new-pitch boundary, zero/one/two cycle presses select Fastball/second/third, with the third press wrapping; holding the button does not count as repeated presses.",
             "Charging freezes the selected family through release and late cycle/modifier inputs cannot swap it; steering remains legal after release.",
@@ -660,7 +696,7 @@
       "id": "PH-03",
       "area": "Pitching",
       "question": "How does the pitcher choose location?",
-      "status": "direction-accepted",
+      "status": "human-accepted",
       "depends_on": [
         "PH-01",
         "PH-02"
@@ -729,7 +765,16 @@
           "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
         }
       ],
-      "human_acceptance": null,
+      "human_acceptance": {
+        "by": "Jack",
+        "date": "2026-09-22",
+        "quote": "trial was good.",
+        "kind": "sitting",
+        "window": "main-d49c527351",
+        "trial": "trials/pitch5",
+        "trial_revision": "d49c527351",
+        "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+      },
       "history": [
         {
           "date": "2026-09-20",
@@ -739,6 +784,14 @@
           "choice": "A",
           "quote": "1",
           "scope": "Use horizontal mound positioning plus pitch-defined height to choose location. Do not add broad target-region selection or a freely aimed two-dimensional target under this decision. Exact pitch shapes and numerical values remain open; post-release steering is the separate PH-04 decision. Direction acceptance only, with no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "human-accepted",
+          "author": "Jack",
+          "quote": "trial was good.",
+          "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
         }
       ]
     },
@@ -746,7 +799,7 @@
       "id": "PH-04",
       "area": "Pitching",
       "question": "How much control remains after release?",
-      "status": "direction-accepted",
+      "status": "human-accepted",
       "depends_on": [
         "PH-02",
         "PH-03"
@@ -803,7 +856,16 @@
           "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
         }
       ],
-      "human_acceptance": null,
+      "human_acceptance": {
+        "by": "Jack",
+        "date": "2026-09-22",
+        "quote": "trial was good.",
+        "kind": "sitting",
+        "window": "main-d49c527351",
+        "trial": "trials/pitch5",
+        "trial_revision": "d49c527351",
+        "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+      },
       "history": [
         {
           "date": "2026-09-20",
@@ -813,6 +875,14 @@
           "choice": "A",
           "quote": "1",
           "scope": "Retain live left/right steering after release, with bounded, readable break that gives the hitter a fair opportunity to respond. Do not select a release-locked trajectory or an early-steering-only lockout. Exact break strength, response timing, per-pitch/charge differences and numerical limits remain open. This is direction acceptance only, with no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "human-accepted",
+          "author": "Jack",
+          "quote": "trial was good.",
+          "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
         }
       ]
     },
@@ -1047,7 +1117,7 @@
         {
           "id": "PH-06-R1",
           "question": "What happens to the pale aim ring in ordinary play?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -1090,7 +1160,16 @@
           "numeric_targets": null,
           "implementation_issues": [],
           "validation_evidence": [],
-          "human_acceptance": null
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          }
         }
       ]
     },
@@ -1580,7 +1659,7 @@
         {
           "id": "PH-10-R1",
           "question": "What one timing window should the batting trial start from?",
-          "status": "trial-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -1650,7 +1729,16 @@
               "pr": "#849"
             }
           ],
-          "human_acceptance": null
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          }
         }
       ]
     },
@@ -1729,7 +1817,7 @@
         {
           "id": "PH-11-R1",
           "question": "What forgiveness should charging a swing cost?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -1776,7 +1864,16 @@
               "pr": "#849"
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Hold hitter, pitch and timing fixed and compare quick/charged swings: charge trades spatial forgiveness for power without changing timing eligibility or timing-edge rules.",
             "Validate the shared charge response with high/low Contact and Power combinations; contact stays geometric and quick swings retain useful situational advantages.",
@@ -3362,7 +3459,7 @@
         {
           "id": "PH-15-R7",
           "question": "How should higher Contact help a hitter?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -3420,7 +3517,16 @@
               "pr": "#849"
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Vary Contact while holding other inputs and attributes constant: spatial forgiveness changes but swing timing eligibility and timing-edge rules do not.",
             "Contact remains geometric and its authored region must be represented honestly to the player; no successful-hit probability roll.",
@@ -4845,7 +4951,7 @@
       "id": "PH-17",
       "area": "Accessibility",
       "question": "How should different skill levels share the same game?",
-      "status": "direction-accepted",
+      "status": "human-accepted",
       "depends_on": [
         "PH-09",
         "PH-10"
@@ -4904,7 +5010,16 @@
           "pr": "#849"
         }
       ],
-      "human_acceptance": null,
+      "human_acceptance": {
+        "by": "Jack",
+        "date": "2026-09-22",
+        "quote": "trial was good.",
+        "kind": "sitting",
+        "window": "main-d49c527351",
+        "trial": "trials/pitch5",
+        "trial_revision": "d49c527351",
+        "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+      },
       "history": [
         {
           "date": "2026-09-21",
@@ -4914,6 +5029,14 @@
           "choice": "C",
           "quote": "2",
           "scope": "Use one fixed pitching/hitting challenge for everyone, with identical difficulty and forgiveness and the shared batter-linked cursor. Do not introduce optional or per-seat mechanical assistance. The two-option conversation presented this as option 2, corresponding to canonical option C; separate hitting interfaces were not selected. Teaching and post-pitch feedback remain a separate PH-19 choice. Exact shared tuning and reconciliation of existing difficulty multipliers remain open; CPU observation/commitment policy follows in PH-18. Direction acceptance only; no runtime change or human playtest acceptance."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "human-accepted",
+          "author": "Jack",
+          "quote": "trial was good.",
+          "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
         }
       ],
       "validation_requirements": [
@@ -5039,7 +5162,7 @@
         {
           "id": "PH-18-R1",
           "question": "When does the CPU pitcher lose its endpoint (height) aim and pitch with human inputs only?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -5089,7 +5212,16 @@
               "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
             }
           ],
-          "human_acceptance": null
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          }
         }
       ]
     },
@@ -5275,7 +5407,7 @@
         {
           "id": "PH-20-R1",
           "question": "How should the Curveball, Slider and Sinker numbers be judged?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -5351,7 +5483,16 @@
               "pr": "#849"
             }
           ],
-          "human_acceptance": null
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-22",
+            "quote": "trial was good.",
+            "kind": "sitting",
+            "window": "main-d49c527351",
+            "trial": "trials/pitch5",
+            "trial_revision": "d49c527351",
+            "scope": "Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          }
         }
       ]
     }
@@ -5636,6 +5777,11 @@
       "date": "2026-09-22",
       "event": "P2-c (#855) put PH-12 option C behind one switch, batting.geometryOnly, false on the shipped root and true in trials/pitch5: an ordinary swing - neither a bunt nor a Star Swing - ignores the stick at contact (spray and launch aims read as 0; no resolver draw moves), bunts keep the stick until P4-b and Star Swings until Phase 6, and the box walk and SET recenter are untouched. PH-18's half: under the switch the CPU batter passes 0 / 0 aims on an ordinary swing and draws neither Gaussian; its Star Swing and sac bunt draw as today. The cross-root in-zone read #849 reported is repaired - Match.AutoPlay passes its own table through PitchInZone -> StrikeZoneGeometry.Contains -> PitchFlight.Point - so S-127 now runs the trial cohort in process and agrees with the CLI to the game. S-29 under trials/pitch5 re-reported and never tuned: 2.02 home / 2.32 away before, 2.30 / 2.12 after; the ordinary mix moved to fewer grounders and flies and more liners (15.1 / 53.5 / 25.9 / 5.5 %), fouls 17.2 -> 11.0 %, direction nearly unchanged. Shipped root unchanged: cli match --seed 7 byte-identical, evidence hash-only. Spec 5.3 / 5.4 / 5.8 / 5.9 / 16 and Appendix B.1 (S-13 rewritten, S-126 / S-127 updated, S-128 ... S-132) follow. No status change, no numeric target, no human_acceptance; sitting 2 remains open.",
       "pr": "#865"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack played the trials/pitch5 window main-d49c527351 (sittings 1 and 2) and wrote \"trial was good.\" Recorded as human_acceptance and status human-accepted on PH-02-R2, PH-02-R3, PH-02-R4, PH-02-R5, PH-03, PH-04, PH-06-R1, PH-10-R1, PH-11-R1, PH-15-R7, PH-17, PH-18-R1, PH-20-R1. Scope: Sittings 1 and 2 on the trials/pitch5 window main-d49c527351 (main d49c5273 + trials/pitch5): Curveball, Slider and Sinker at the P1-d numbers (#821); the RB / Tab cycle, family-blind SET and rubber-only ring (#835); the CPU pitcher on human inputs with the trial family weights and steer chances (#824); one 9-frame timing window for every hitter, swing and rung (#849). Not covered: stick shaping (P2-c, #865), which was not on that window. The accepted values move to data/rules in #860; until then the shipped root still runs the switches' off paths. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered.",
+      "pr": "orchestrator docs PR"
     }
   ]
 }
