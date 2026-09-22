@@ -274,7 +274,7 @@
           "child": "F3-a2",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/838",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/840",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [],
@@ -1417,6 +1417,10 @@
     {
       "date": "2026-09-21",
       "event": "F3-a2 opened as PR #840 (#838), on top of F3-a: Match builds AtBatResolver and FieldingResolver on the match's resolved table (_rules = content.Rules.AtLevel(difficulty).AtPark(park)) instead of the catalog's global one, and SwingWindowFrames reads the same table, so content.Rules is read in Match at exactly one place - the derivation itself. LivePlaySystem already read _match.Rules throughout and was not touched. With that the park's air reaches the first flight of a play: SF-10 is now proved by a seeded swing run through Match / LivePlaySystem at a fixture park with dragMul 2.0 (the at-bat's own ball, the fielding preview's and the live path all carry shorter), and SF-01 by a walk over both roots, six parks and four rungs asserting every resolver holds the match's table by reference. The difficulty audit the child asked for: AtBatResolver reads no RulesTable.Cpu field (its only Cpu read is batting.cpu.sacBuntChance, which AtLevel does not replace), but FieldingResolver does - the preview's CPU reaction lockouts are Cpu.Active.reactionMul - so the preview now waits the rung the match is playing, which is the rung LivePlaySystem already waited. NORMAL is byte-identical: seed 7 and the park-factors table are unchanged and no stored number moves; across twelve seeds x three rungs, 0/12 NORMAL games moved and 2/12 EASY and 1/12 HARD did. Evidence seals moved by source hash only. No decision status changed; no number accepted; no human gate (no player-facing change)."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F3-a2 #840 merged (b7a13dc4): both resolvers play on the match's resolved table. NORMAL unchanged; the fielding preview now waits the match's difficulty rung as live play already did, so EASY / HARD games can differ from before (reported, not tuned). The F3-a lever now reaches the first flight of a play; no park names air."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
