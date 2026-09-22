@@ -42,8 +42,15 @@ public class HarborPostcardTests
             "wall pieces must overlap along the ground loop, not sit as gapped slabs");
         Assert.True(HarborWall.WrapStaysInFoul(harbor),
             "wrap must follow foul territory, not cut the infield");
+        // Re-authored by #845 (FD-06). It used to read "the home wrap is mirrored, not two different
+        // polylines", which held for every park because the builder copied the right-field half onto
+        // the left — including for a park whose two lines are different lengths. The claim now is
+        // about Harbor: its poles are equal, so it draws one wall on both sides, and it draws the
+        // same wall it drew before this child (bit for bit). A lopsided park must not, and
+        // HarborWallTests.SF05_ALopsidedParkDrawsItsOwnLeftFieldWall holds the other side of it.
+        Assert.True(HarborWall.ParkIsSymmetric(harbor), "Harbor's two lines are the same length");
         Assert.True(HarborWall.LoopIsSymmetric(harbor),
-            "1B and 3B walls must match — the home wrap is mirrored, not two different polylines");
+            "a symmetric park draws matching 1B and 3B walls");
         Assert.True(HarborWall.HomeWrapIsRound(harbor), "behind home is an arc, not a V");
         var cf = HarborPostcard.WallPoint(harbor, 0);
         var cfDist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
