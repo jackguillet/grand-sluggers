@@ -50,6 +50,48 @@
       "breakDamped": true,
       "staminaCost": 3,
       "offSpeed": true
+    },
+    "curveball": {
+      "mph": 72.5,
+      "chargeMph": 4,
+      "hump": 0.8,
+      "hangUntil": 0.55,
+      "hangRate": 0.42,
+      "dumpRate": 1.72,
+      "dropFt": 0.9,
+      "sweepFt": 0.32,
+      "sweepFrom": 0.42,
+      "breakDamped": false,
+      "staminaCost": 2,
+      "offSpeed": true
+    },
+    "slider": {
+      "mph": 78,
+      "chargeMph": 5,
+      "hump": 0.15,
+      "hangUntil": 0.8,
+      "hangRate": 0.95,
+      "dumpRate": 1.26,
+      "dropFt": 0.3,
+      "sweepFt": 0.58,
+      "sweepFrom": 0.45,
+      "breakDamped": false,
+      "staminaCost": 2,
+      "offSpeed": false
+    },
+    "sinker": {
+      "mph": 81,
+      "chargeMph": 6,
+      "hump": 0.3,
+      "hangUntil": 0.75,
+      "hangRate": 0.88,
+      "dumpRate": 1.37,
+      "dropFt": 0.55,
+      "sweepFt": -0.2,
+      "sweepFrom": 0.55,
+      "breakDamped": false,
+      "staminaCost": 1,
+      "offSpeed": false
     }
   },
   "starShapes": {
@@ -81,7 +123,7 @@
     "cpuSwapLead": 3
   },
   "cpu": {
-    "humanInputs": false,
+    "humanInputs": true,
     "even": {
       "location": "edge",
       "normal": 45,
@@ -90,14 +132,14 @@
       "break": 20,
       "starChance": 0.05,
       "families": {
-        "fastball": 85,
+        "fastball": 40,
         "changeup": 15,
-        "curveball": 0,
-        "slider": 0,
-        "sinker": 0
+        "curveball": 12,
+        "slider": 18,
+        "sinker": 15
       },
       "chargeChance": 0.2,
-      "steerChance": 0.2
+      "steerChance": 0.3
     },
     "ahead": {
       "location": "waste",
@@ -107,14 +149,14 @@
       "break": 30,
       "starChance": 0.15,
       "families": {
-        "fastball": 65,
-        "changeup": 35,
-        "curveball": 0,
-        "slider": 0,
-        "sinker": 0
+        "fastball": 20,
+        "changeup": 24,
+        "curveball": 26,
+        "slider": 20,
+        "sinker": 10
       },
       "chargeChance": 0.15,
-      "steerChance": 0.3
+      "steerChance": 0.45
     },
     "behind": {
       "location": "middleIn",
@@ -124,14 +166,14 @@
       "break": 5,
       "starChance": 0,
       "families": {
-        "fastball": 95,
-        "changeup": 5,
-        "curveball": 0,
-        "slider": 0,
-        "sinker": 0
+        "fastball": 44,
+        "changeup": 6,
+        "curveball": 6,
+        "slider": 14,
+        "sinker": 30
       },
       "chargeChance": 0.3,
-      "steerChance": 0.05
+      "steerChance": 0.15
     },
     "runnerTwoOuts": {
       "location": "middle",
@@ -141,14 +183,14 @@
       "break": 10,
       "starChance": 0,
       "families": {
-        "fastball": 100,
-        "changeup": 0,
-        "curveball": 0,
-        "slider": 0,
-        "sinker": 0
+        "fastball": 38,
+        "changeup": 10,
+        "curveball": 10,
+        "slider": 20,
+        "sinker": 22
       },
       "chargeChance": 0.4,
-      "steerChance": 0.1
+      "steerChance": 0.25
     },
     "locations": {
       "edgeInsetFt": 0.2,

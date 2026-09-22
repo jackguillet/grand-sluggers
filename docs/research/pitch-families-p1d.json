@@ -1,15 +1,14 @@
 {
   "schemaVersion": 1,
-  "what": "Curveball, slider and sinker as they fly under the trial overlay trials/pitch5 (#818, PH-20-R1). Derived from the production flight function; proposals, not accepted numbers.",
-  "status": "trial-proposal-not-accepted",
-  "overlay": "trials/pitch5",
+  "what": "Curveball, slider and sinker as they fly on the shipped root (#818 proposed them in trials/pitch5; #860 promoted them after Jack accepted the window). Derived from the production flight function.",
+  "status": "shipped-after-human-acceptance",
+  "dataRoot": "data (shipped root, #860)",
   "generatedBy": "dotnet run --project tools/pitch-family-probes -- --write",
   "verify": "dotnet run --project tools/pitch-family-probes -- --check",
   "notClaimed": [
-    "No sitting has happened: the mound is not wired to a seat until P1-f, so nobody has thrown one of these.",
-    "No feel judgment, no balance claim, and no human acceptance (PH-20-R1 keeps that with Jack).",
-    "The shipped root is unchanged; without GRAND_SLUGGERS_TRIAL=trials/pitch5 these three families still stop by name.",
-    "The CPU pitcher never selects them, so no whole-game rate here moved."
+    "Jack\u0027s acceptance is his words on the trials/pitch5 window (September 22, 2026: \u0022trial was good.\u0022); nothing here adds a feel judgment to it.",
+    "No balance claim: the whole-game rates the CPU\u0027s use of these families moved are in docs/research/promote-duel-trial.md, not here.",
+    "The measured flights are the ones #818 wrote under the overlay; #860 moved the same rows, so only the provenance moved."
   ],
   "method": {
     "ballRadiusFt": 0.125,
@@ -33,14 +32,13 @@
   },
   "sourceSha256": {
     "src/GrandSluggers.Sim/PitchFlight.cs": "9d6903c051244ef2252e2fc710e5a85cac4f5fefeee5fc76d983c65c3cf461ef",
-    "src/GrandSluggers.Sim/Rules.cs": "8918b441665c10dc9dff23b7b661e4910a8dc569efaf2bccb6d3a6344410104b",
+    "src/GrandSluggers.Sim/Rules.cs": "a4c32996e786ab5e42e332b28ba44769cea59675fe01583ab8d7da64a047f8fd",
     "src/GrandSluggers.Sim/Models.cs": "6c9eb539123a2d7dc1cf102a1d657351df3392b7dcefc243d604518ed4773974",
     "src/GrandSluggers.Sim/AtBatFeel.cs": "fab6f4246194f4953ccb231094b45ecdf792effbd99ed46a2934d7e78c3d4ab2",
-    "data/rules/pitching.json": "1fe2a165fdfbd0407192734d97df5e87d412a7f462771e0d23c4881f22e1b980",
-    "data/rules/batting.json": "944f5e2edbf75c443dfb9f6d9026b70006e21962b865e2f8db4847797fdee12c",
-    "trials/pitch5/rules/pitching.json": "ce1eae6bae6cf52f33efc2069c38e61c213dd00aed435d55ca51d3eeffd23c8e",
+    "data/rules/pitching.json": "ce1eae6bae6cf52f33efc2069c38e61c213dd00aed435d55ca51d3eeffd23c8e",
+    "data/rules/batting.json": "5e34c938c45c81777a55f72124dfb46961ebf3373e0f1bdb0fb1ae4c39186715",
     "tools/pitch-family-probes/PitchFamilyProbes.csproj": "48cc9606851a8083bd83f53457aa3f9311174fd328aa8c6622a67e9f1fec22fa",
-    "tools/pitch-family-probes/Program.cs": "baffe105730a09a8a7b6f59042c115e12f2fd3e44f0cd6259955ea6fafb12a12"
+    "tools/pitch-family-probes/Program.cs": "574e28ae643b27c954edb3ad1022e2da8865a8ce5ffca2ee7d3c1bbe8c701299"
   },
   "speed": [
     {

@@ -112,19 +112,29 @@ public class PitchTests
         Assert.Contains("curve", unknown.Message, StringComparison.Ordinal);
         Assert.Contains("not a pitch family", unknown.Message, StringComparison.Ordinal);
 
-        // "curveball" is different: it is in the library, it has no authored row yet (P1-d), and it
-        // must say so by name rather than quietly flying as a fastball.
+        // "curveball" is different: it is in the library, and a table with no row for it must say so
+        // by name rather than quietly flying it as a fastball. #860 (Jack, September 22, 2026:
+        // "trial was good."): the shipped data authors all three now, so the unauthored case is the
+        // code-default table, whose three optional rows are null — the stop is still reachable by data.
+        var bare = RulesTable.Defaults;
         foreach (var unauthored in new[] { PitchFamily.Curveball, PitchFamily.Slider, PitchFamily.Sinker })
         {
-            var fell = Assert.Throws<InvalidOperationException>(() => PitchFlight.Point(unauthored, 1));
+            var fell = Assert.Throws<InvalidOperationException>(() => PitchFlight.Point(unauthored, 1, rules: bare));
             Assert.Contains(unauthored, fell.Message, StringComparison.Ordinal);
             Assert.Contains("no authored row", fell.Message, StringComparison.Ordinal);
             Assert.Throws<InvalidOperationException>(() =>
-                AtBatResolver.PitchSpeedMph(new PitchCommand(unauthored, 0, false), 5));
+                AtBatResolver.PitchSpeedMph(new PitchCommand(unauthored, 0, false), 5, bare));
+
+            // … and on the shipped root the same family flies (#860).
+            Assert.True(Rules.Default.Pitching.Families.IsAuthored(unauthored));
+            Assert.True(AtBatResolver.PitchSpeedMph(new PitchCommand(unauthored, 0, false), 5) > 0);
         }
 
+        // Training.CorePitches reads the code defaults, which author two rows; the shipped data
+        // authors the whole library since #860.
         Assert.Equal(["fastball", "changeup"], Training.CorePitches);
-        Assert.Equal(Training.CorePitches, Rules.Default.Pitching.Families.Authored);
+        Assert.Equal(bare.Pitching.Families.Authored, Training.CorePitches);
+        Assert.Equal(PitchFamily.All, Rules.Default.Pitching.Families.Authored);
     }
 
     [Fact]

@@ -205,11 +205,11 @@ public sealed class AtBatResolver
     /// <summary>
     /// The timing window in frames at 60 Hz (spec §5.3). Inside is ± half of this.
     ///
-    /// <c>batting.window.shared</c> off — the shipped root — is the window that shipped: slap 9 /
-    /// charge 7, ± (contact − 5) × 0.4, × the star pitch's window multiplier × the park's × the
-    /// human rung's, floored.
+    /// <c>batting.window.shared</c> off — the switch's off path, the window that shipped before
+    /// #860 — is slap 9 / charge 7, ± (contact − 5) × 0.4, × the star pitch's window multiplier ×
+    /// the park's × the human rung's, floored.
     ///
-    /// On — <c>trials/pitch5</c> — the window is <c>batting.window.frames</c> for every hitter,
+    /// On — the shipped root since #860, accepted by Jack in the <c>trials/pitch5</c> window — the window is <c>batting.window.frames</c> for every hitter,
     /// both swings and every human rung (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), then the same star
     /// multiplier, the same park multiplier and the same floor, in the same order. The rung's
     /// <paramref name="humanWindowMul"/> is not applied: one fixed challenge is PH-17, and a
