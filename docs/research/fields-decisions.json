@@ -335,8 +335,25 @@
         "earlier_quote": "I think B, maybe even C."
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        {
+          "child": "F3-d",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/857",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/864",
+          "status": "in review"
+        }
+      ],
+      "validation_evidence": [
+        {
+          "kind": "implementation",
+          "issue": "#857",
+          "revision": "6f416049",
+          "test": "GrandSluggers.Sim.Tests.BodyGroundTests",
+          "summary": "Every row of data/rules/grounds.json carries a body block (startMul, brakeMul, cutMul, slideMul, overrunMul), each scaling a time or a length so a number above 1 always reads more slippery; GroundBodyRules is named properties with [Positive], inside the reflective walk, the unknown-key refusal and the JSON = code parity test. The body reads the zone it stands in through GroundZones.RowAt: LivePlaySystem.Respond scales the ramp (accelSec x startMul), the brake (brakeSec x brakeMul) and the across-heading correction, which ran at the ramp rate, over accelSec x cutMul (the cut-back); FieldingPursuit's half-ramp reads the startMul of the zone the body starts in; RunnerSystem.SlideFt / OverrunFt read the zone of the bag for the automatic slide, the player's forced slide and the run-through past first. The law's switch still reads the table, never a product, and no multiplier touches the rated speed, the asked velocity, the stick or the heading. SF-13 on fixture rows with the law on at the trial's 0.2 / 0.1: start, brake and cut-back differ and top speed and heading do not; a cut-only row moves the cut alone; S-31 is still a routine out; with the law off every body is bit-identical; the slide and the overrun follow the bag's zone. The AtOne rows were written against the pre-change code first and hold its bits (libm-free goldens).",
+          "numeric_trial": "not applicable (every multiplier is 1.0 on both roots; x 1.0 is exact, so the step, the route and the runner's path are bit-identical). cli match --seed 7, park-factors day and night and the s29 / harbor-calibration / harbor-validation cohorts are identical on the shipped root and on trials/c80. Values arrive with Crystal (F9-a) as a trial Jack accepts, in trials/c80 only (FD-13-R1).",
+          "gate": "no human gate for this child; no player-facing change on either root. FD-04 C (drift, slow steering, a runner who overruns any bag) stays held: it would be more named fields in the same body block. Status unchanged."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -1980,6 +1997,10 @@
     {
       "date": "2026-09-22",
       "event": "Jack answered nine of the implementation map's section 5 questions in one reply: \"1. approve. 2. approve. 3. slows for 3 seconds. 4. approve 5. approve 6. drop 7. keep 8. approve 9. approve\" The items were the assistant's list, in blocking order, so item 1 = Q4, 2 = Q1, 3 = Q7, 4 = Q2, 5 = Q3, 6 = Q9, 7 = Q12, 8 = Q5, 9 = Q8. Recorded as refinements: FD-06-R1 (one fence distance per bearing), FD-19-R1 (the eight volumes move outward along their own bearings), FD-08-R2 (a status volume slows a body for 3 s; 0.45 not re-decided), FD-13-R1 (a park's first numbers live in trials/c80 only), FD-13-R2 (probe table, then play, then accept), FD-11-R1 (drop Crystal's night contact window for Crystal's trial; the shipped value is kept under FD-13-R1 and flagged), FD-16-R1 (keep the primitive backdrops as greybox builders behind the slot), FD-06-R2 (the sim's rail is the rule near the pole; the drawing follows), FD-09-R2 (the chomper becomes a ball redirect and never makes an out). Q10 and Q11 stay open until tuning. No number accepted by play; no human gate passed."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F3-d opened as PR #864 (#857): the body multipliers on a ground row, all 1.0 (FD-04 B, FD-05). Every grounds.json row gains body {startMul, brakeMul, cutMul, slideMul, overrunMul}, each scaling a time or a length (above 1 = more slippery). GroundZones.RowAt is the one row lookup (the same function F3-c adds). The fielder's step (LivePlaySystem.Respond) reads the zone under the body each tick: ramp x startMul, brake x brakeMul, and the across-heading correction - previously at the ramp rate - over accelSec x cutMul; the planner's half-ramp reads the start zone's startMul; the runner's slide (automatic and forced) and the overrun past first read the bag's zone. The response law's switch is unchanged, so start, brake and cut-back exist only where the law is on (trials/c80, map finding 8); slide and overrun act on both roots. No multiplier touches top speed, heading or the stick. At 1.0 both roots are bit-identical: seed 7, park factors day and night, and the trial's 3d race cohorts unchanged; seals move by hash only. No number accepted, no status moved, no human_acceptance written."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",

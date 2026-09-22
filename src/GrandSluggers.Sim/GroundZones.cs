@@ -191,6 +191,14 @@ public readonly record struct GroundZones
     /// <summary>The ground under a point: <see cref="ZoneAt"/> and then <see cref="IdOf"/>, in one call.</summary>
     public string GroundAt(double x, double z) => IdOf(ZoneAt(x, z));
 
+    /// <summary>
+    /// The row of the ground under a point (FD-05): <see cref="GroundAt"/>, then that id's row in the match's library.
+    /// The one lookup every reader of a zone's row goes through — the ball and the loose-ball models (F3-c), a body's
+    /// start, brake and cut-back and a runner's slide and overrun (F3-d) — so no reader resolves a ground its own way.
+    /// An id with no row is the library's stop (<c>SF-03</c>), never a fallback.
+    /// </summary>
+    public GroundRules RowAt(double x, double z, GroundLibrary grounds) => grounds.Of(GroundAt(x, z));
+
     /// <summary>Every zone with the ground it names, in zone order. For a validator, a report or a test.</summary>
     public IEnumerable<(GroundZone Zone, string Ground)> All()
     {

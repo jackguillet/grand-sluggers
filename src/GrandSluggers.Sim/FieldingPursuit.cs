@@ -42,17 +42,26 @@ public static class FieldingPursuit
         var hang = BallFlight.HangTime(path, r);
         var live = BallFlight.PointAt(path, nowSec, r);
         var startSec = Math.Max(nowSec, readySec);
+        var ramp = RampSec(park, fromX, fromZ, r);
         if (FieldingResolver.InAir(preview, live.Y, nowSec, hang, r))
         {
             var plant = FlyCatch.ChaseTarget(preview, park, r);
-            var air = Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, airCatch: true, r);
+            var air = Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, airCatch: true, ramp, r);
             // A fly always runs the plant. A liner this body can take in the air is the same catch.
             // A liner still up that this body cannot catch: first reachable point on the roll, not the bounce (#667).
             if (preview.Class.IsFlyShape() || CanTakeInAir(air, preview, r))
                 return air;
         }
-        return Rolling(path, park, nowSec, startSec, fromX, fromZ, speedFtPerSec, r);
+        return Rolling(path, park, nowSec, startSec, fromX, fromZ, speedFtPerSec, ramp, r);
     }
+
+    /// <summary>
+    /// The seconds a route loses getting to speed (#718): half the ramp, charged once. The ramp is <c>chase.accelSec</c> on the
+    /// ground the body starts on — × that zone's <c>body.startMul</c> (FD-04 B, F3-d), the row the body's own step reads there —
+    /// so the plan and the body agree about the ramp. 0 on the shipped table, whatever the ground.
+    /// </summary>
+    static double RampSec(Park park, double fromX, double fromZ, RulesTable rules) =>
+        rules.Fielding.Chase.AccelSec * GroundZones.Of(park, rules).RowAt(fromX, fromZ, rules.Grounds).Body.StartMul / 2;
 
     /// <summary>Inside the catch window of the plant at hang: the body holds it in the air, so the plant is the route.</summary>
     static bool CanTakeInAir(Route air, FieldingPreview preview, RulesTable rules)
@@ -100,6 +109,7 @@ public static class FieldingPursuit
         double fromX,
         double fromZ,
         double speedFtPerSec,
+        double rampSec,
         RulesTable rules)
     {
         Route? lastLegal = null;
@@ -112,7 +122,7 @@ public static class FieldingPursuit
             // Gone over a wall: nothing past this sample is a pickup.
             if (sample.Event is SampleEvent.Fence or SampleEvent.Stands) break;
             if (!FieldBounds.Inside(park, sample.X, sample.Z)) continue;
-            var route = Fixed(sample.X, sample.Z, sample.T, startSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
+            var route = Fixed(sample.X, sample.Z, sample.T, startSec, fromX, fromZ, speedFtPerSec, airCatch: false, rampSec, rules);
             lastLegal = route;
             if (route.Reachable) return route;
         }
@@ -120,7 +130,7 @@ public static class FieldingPursuit
         if (lastLegal is not null) return lastLegal.Value;
         var live = BallFlight.PointAt(path, nowSec, rules);
         var legal = FieldBounds.Clamp(park, live.X, live.Z);
-        return Fixed(legal.X, legal.Z, nowSec, startSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
+        return Fixed(legal.X, legal.Z, nowSec, startSec, fromX, fromZ, speedFtPerSec, airCatch: false, rampSec, rules);
     }
 
     static Route Fixed(
@@ -132,13 +142,13 @@ public static class FieldingPursuit
         double fromZ,
         double speedFtPerSec,
         bool airCatch,
+        double ramp,
         RulesTable rules)
     {
         var travel = Diamond.Dist(fromX, fromZ, x, z);
         var available = Math.Max(0, meetSec - nowSec);
         var speed = Math.Max(0, speedFtPerSec);
-        // The response law (#718): a body from rest reaches its speed over accelSec, which costs it half that ramp of travel.
-        var ramp = rules.Fielding.Chase.AccelSec / 2;
+        // The response law (#718): a body from rest reaches its speed over the ramp, which costs it half that ramp of travel (RampSec).
         return new Route(x, z, meetSec, travel, speed, available,
             travel <= speed * Math.Max(0, available - ramp) + rules.Fielding.Chase.ReachSlackFt, airCatch, ramp);
     }

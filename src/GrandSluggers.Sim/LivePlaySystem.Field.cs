@@ -1813,7 +1813,7 @@ public sealed partial class LivePlaySystem
             if (run.StickBag == sel.NextBag && sel.Bag < 4) m.SendRunnerAt(sel.FromBag);
             else if (run.StickBag == sel.Bag || run.StickBag == Baserunning.PrevBag(Math.Max(1, sel.Bag))) m.ReturnToBagAt(sel.FromBag);
         }
-        if ((run.WestDown || run.SouthDown) && sel is not null && sel.FeetTo(sel.NextBag) <= R.Running.Bags.SlideFt)
+        if ((run.WestDown || run.SouthDown) && sel is not null && sel.FeetTo(sel.NextBag) <= RunnerSystem.SlideFt(sel.NextBag, GroundZones.Of(Park, R), R))
             sel.RequestSlide();
         _prevRun = run;
     }
@@ -2170,15 +2170,25 @@ public sealed partial class LivePlaySystem
     /// and dies at the brake rate; the component across it builds at the ramp rate. So a reversal is the brake and then the
     /// ramp, a stop is the brake, and an angled turn is continuous correction through the same two rates. Rest to the rated
     /// speed takes <c>chase.accelSec</c>; the rated speed to rest takes <c>chase.brakeSec</c>.
+    /// <para>
+    /// The ground under the body (FD-04 B, FD-05, F3-d) scales those times: the row of the zone at <paramref name="at"/>, read
+    /// every step, multiplies the ramp by <c>body.startMul</c>, the brake by <c>body.brakeMul</c> and the across-heading
+    /// correction's ramp by <c>body.cutMul</c>. Each multiplies its time once, so 1.0 is the old arithmetic bit for bit. The
+    /// rated speed, the asked velocity and the heading the body settles on are never scaled: the body always goes where it is
+    /// asked to, it only answers slower on a slick ground.
+    /// </para>
     /// </summary>
-    (double X, double Z) Respond(string pos, (double X, double Z) want, double asked, double dt)
+    (double X, double Z) Respond(string pos, (double X, double Z) at, (double X, double Z) want, double asked, double dt)
     {
         var c = R.Fielding.Chase;
+        var ground = GroundZones.Of(Park, R).RowAt(at.X, at.Z, R.Grounds).Body;
         var top = RatedSpeed(pos, asked);
         // Airborne on a normal jump the body answers at a fraction of its ground rates (#719, F693-02-normal-jump-air-response-trial).
         var rate = Airborne && pos == GlovePos ? R.Fielding.Catch.JumpAirResponseMul : 1.0;
-        var accel = c.AccelSec > 0 ? top / c.AccelSec * rate : double.PositiveInfinity;
-        var brake = c.BrakeSec > 0 ? top / c.BrakeSec * rate : double.PositiveInfinity;
+        var accel = c.AccelSec > 0 ? top / (c.AccelSec * ground.StartMul) * rate : double.PositiveInfinity;
+        var brake = c.BrakeSec > 0 ? top / (c.BrakeSec * ground.BrakeMul) * rate : double.PositiveInfinity;
+        // The cut-back: the component across the heading is corrected at the ramp rate, over the ground's own time for it.
+        var cut = c.AccelSec > 0 ? top / (c.AccelSec * ground.CutMul) * rate : double.PositiveInfinity;
         var v = _vel.TryGetValue(pos, out var cur) ? cur : (X: 0.0, Z: 0.0);
         var dvx = want.X - v.X;
         var dvz = want.Z - v.Z;
@@ -2203,7 +2213,7 @@ public sealed partial class LivePlaySystem
             var pz = dvz - along * uz;
             var across = Math.Sqrt(px * px + pz * pz);
             var alongStep = Math.Clamp(along, -brake * dt, accel * dt);
-            var acrossStep = across > 1e-12 ? Math.Min(across, accel * dt) / across : 0;
+            var acrossStep = across > 1e-12 ? Math.Min(across, cut * dt) / across : 0;
             nx = v.X + alongStep * ux + px * acrossStep;
             nz = v.Z + alongStep * uz + pz * acrossStep;
         }
@@ -2227,7 +2237,7 @@ public sealed partial class LivePlaySystem
         var want = dist <= stopFt || dist < 1e-9
             ? (X: 0.0, Z: 0.0)
             : (X: dx / dist * Math.Min(speed, dist / dt), Z: dz / dist * Math.Min(speed, dist / dt));
-        var v = Respond(pos, want, speed, dt);
+        var v = Respond(pos, at, want, speed, dt);
         return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
     }
 
@@ -2235,7 +2245,7 @@ public sealed partial class LivePlaySystem
     (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt)
     {
         if (!ResponseLaw) return FieldBounds.Clamp(Park, at.X + stickX * speed * dt, at.Z + stickY * speed * dt);
-        var v = Respond(pos, (stickX * speed, stickY * speed), speed, dt);
+        var v = Respond(pos, at, (stickX * speed, stickY * speed), speed, dt);
         return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
     }
 
@@ -2270,7 +2280,7 @@ public sealed partial class LivePlaySystem
     void BrakeStep(string pos, (double X, double Z) at, (double X, double Z) v, double dt)
     {
         // Nobody's intent in the air is a coast, not a brake (#719): the airborne glove keeps its velocity.
-        var nv = Airborne && pos == GlovePos ? v : Respond(pos, (0, 0), 0, dt);
+        var nv = Airborne && pos == GlovePos ? v : Respond(pos, at, (0, 0), 0, dt);
         var next = FieldBounds.Clamp(Park, at.X + nv.X * dt, at.Z + nv.Z * dt);
         _fielders[pos] = next;
         if (pos == GlovePos && !Throwing)

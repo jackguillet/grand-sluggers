@@ -488,7 +488,8 @@ public sealed partial class LivePlaySystem
             Fly,
             _match.Outs,
             bag => Forces.At(bag),
-            TagThreatAt);
+            TagThreatAt,
+            GroundZones.Of(_match.Park, _match.Rules));
         // Decide, then move (a scripted step is one long frame); a bag touched this frame is read at once.
         Decide(dash01);
         RunnerSystem.Tick(Runners, dt, ctx, _match.Rules);
