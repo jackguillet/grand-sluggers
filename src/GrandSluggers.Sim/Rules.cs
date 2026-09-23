@@ -527,7 +527,7 @@ public sealed class PitchingRules
     public CpuPitcherRules Cpu { get; init; } = new();
 }
 
-/// <summary>The one coefficient every family shares: the Pitch stat's mph (<see cref="AtBatResolver.PitchSpeedMph(PitchCommand, int, RulesTable)"/>). Base mph and charge mph are per family.</summary>
+/// <summary>The one coefficient every family shares: mph per point of the arm's Velocity (PH-15-R6; the key keeps its historical name) (<see cref="AtBatResolver.PitchSpeedMph(PitchCommand, int, RulesTable)"/>). Base mph and charge mph are per family.</summary>
 public sealed class PitchSpeedRules
 {
     public double MphPerPitchStat { get; init; } = 0.9;
@@ -559,9 +559,9 @@ public sealed class PitchFlightRules
     [Positive] public double BreakLateSpan { get; init; } = 0.45;
     /// <summary>A charged pitch or a changeup takes this much of the break (reference: "essentially straight").</summary>
     [Chance] public double BreakDampedMul { get; init; } = 0.10;
-    /// <summary>How fast a held stick brings the bend to full, per second, at Pitch 5 …</summary>
+    /// <summary>How fast a held stick brings the bend to full, per second, at Control 5 …</summary>
     [Positive] public double BreakRatePerSec { get; init; } = 2.4;
-    /// <summary>… and per Pitch-stat point above 5.</summary>
+    /// <summary>… and per Control point above 5 (PH-15-R6; the key keeps its historical name).</summary>
     public double BreakRatePerPitchStat { get; init; } = 0.12;
 }
 
@@ -700,7 +700,7 @@ public sealed class PitchFamilyTable
 /// </summary>
 public sealed class PitchFamilyRules
 {
-    /// <summary>Base mph, before the Pitch stat, the charge, Nice! and the tired arm.</summary>
+    /// <summary>Base mph, before the arm's Velocity, the charge, Nice! and the tired arm.</summary>
     [Positive] public double Mph { get; init; } = 86;
     /// <summary>mph a full charge adds to <em>this</em> family (spec §4.1).</summary>
     public double ChargeMph { get; init; } = 8;
@@ -752,7 +752,7 @@ public sealed class StarPitchShapeRules
 }
 
 /// <summary>
-/// Per-pitcher stamina (spec §4.7): pool = poolBase + Pitch × poolPerPitch; costs per verb; a
+/// Per-pitcher stamina (spec §4.7): pool = poolBase + Endurance × poolPerPitch (PH-15-R6); costs per verb; a
 /// family's own extra is its row's <see cref="PitchFamilyRules.StaminaCost"/>, and a star's cost is
 /// its <c>staminaCost</c> in star-skills.json. Below tiredBelow = TIRED (−mph, −break, a crossing
 /// wobble); below 0 = exhausted (worse). The CPU swaps at TIRED with a lead.
@@ -780,7 +780,7 @@ public sealed class StaminaRules
 /// outs, the runners, and its stamina. Each row names a horizontal location and a family mix, and
 /// <see cref="Match.CpuPitch"/> builds the pitch from the inputs a human has and nothing else
 /// (PH-18-R1): the rubber for location, presses for the family, charge and steer as modifiers, a
-/// bend no bigger than a held stick reaches. Scatter is σ = (11 − Pitch) × scatterFtPerPitchStat on
+/// bend no bigger than a held stick reaches. Scatter is σ = (11 − Control) × scatterFtPerPitchStat on
 /// the rubber intent, never a dead-center default.
 /// </summary>
 public sealed class CpuPitcherRules
@@ -803,7 +803,7 @@ public sealed class CpuPitcherRules
         ChargeChance = 0.40, SteerChance = 0.25 };
     public CpuPitchLocations Locations { get; init; } = new();
     /// <summary>
-    /// Scatter in feet per Pitch-stat point below 11 (spec §4.8): noise on the CPU's own rubber
+    /// Scatter in feet per Control point below 11 (PH-15-R6) (spec §4.8): noise on the CPU's own rubber
     /// intent in X, because a hand has no vertical input to miss in.
     /// </summary>
     public double ScatterFtPerPitchStat { get; init; } = 0.10;
@@ -1103,7 +1103,7 @@ public sealed class BuddiesOnBaseRules
 
 /// <summary>
 /// The pitch's say in the exit (spec §5.5): a charged pitch met sour, a charged pitch met by a
-/// perfect charge, and a high-Pitch arm dampening non-perfect contact per stat point above 5.
+/// perfect charge, and a high-Movement arm (PH-15-R6) dampening non-perfect contact per point above 5.
 /// </summary>
 public sealed class PitchFactorRules
 {

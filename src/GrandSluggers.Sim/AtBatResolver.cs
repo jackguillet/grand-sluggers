@@ -99,7 +99,8 @@ public sealed class AtBatResolver
         var zoneMul = Lerp(b.Quality.Slap.For(quality), b.Quality.Charge.For(quality), effective);
         var starSwingMul = input.UseStarSwing ? StarSkills.SwingExitMul(input.Batter.StarSwing, _skills) : 1.0;
         var onBaseMul = charged ? _chem.ChargePowerMul(input.Batter, input.RunnersOn) : 1.0;
-        var pitchMul = PitchFactor(input.ChargePitch, quality, charged, input.Pitcher.Stats.Pitch, b.PitchFactor);
+        // The arm's say over non-perfect contact is Movement's: the ball that is hard to square (§5.5, PH-15-R6).
+        var pitchMul = PitchFactor(input.ChargePitch, quality, charged, input.Pitcher.Stats.Movement, b.PitchFactor);
 
         var exit = b.Exit.BaseMph + power * b.Exit.MphPerPower;
         exit *= zoneMul * starSwingMul * onBaseMul * pitchMul;
@@ -217,7 +218,8 @@ public sealed class AtBatResolver
 
     /// <summary>
     /// The pitch's say (spec §5.5): a charged pitch met sour ×0.6, met by a perfect charge ×1.1;
-    /// a high-Pitch arm dampens non-perfect contact per stat point above 5.
+    /// a high-<b>Movement</b> arm (<see cref="Stats.Movement"/>, PH-15-R6) dampens non-perfect contact per
+    /// point above 5.
     /// </summary>
     public static double PitchFactor(bool chargedPitch, ContactQuality quality, bool chargedSwing, int pitchStat, PitchFactorRules f)
     {
@@ -386,7 +388,8 @@ public sealed class AtBatResolver
     /// </summary>
     public static bool PitchInZone(PitchCommand pitch, int pitchStat, string? starPitchId = null, RulesTable? rules = null)
     {
-        // Skill/charge affect the delivery, never an invisible resizing of the zone.
+        // Skill/charge affect the delivery, never an invisible resizing of the zone. Callers pass the
+        // arm's Control; no rating reads here.
         _ = pitchStat;
         return StrikeZoneGeometry.Contains(pitch, starPitchId, rules);
     }
@@ -413,7 +416,7 @@ public sealed class AtBatResolver
         inZone && runnerOnFirst && outs < 2 && roll < Rules.Or(rules).Batting.Cpu.SacBuntChance;
 
     /// <summary>
-    /// Speed by family, Pitch stat and charge: the family's row carries its own base mph and its own
+    /// Speed by family, the arm's <b>Velocity</b> (<see cref="Stats.Velocity"/>, PH-15-R6) and charge: the family's row carries its own base mph and its own
     /// charge mph (pitching.families), and pitching.speed carries the one coefficient they share. A
     /// Nice! release adds pitching.release.niceMul (spec §4.1); a star pitch multiplies by its
     /// skill's speedMul (star-skills.json). <paramref name="mphPenalty"/> is the tired / exhausted
@@ -433,5 +436,5 @@ public sealed class AtBatResolver
 
     public static double PitchSpeedMph(PitchCommand pitch, Character pitcher, RulesTable? rules = null,
         StarSkillTable? skills = null, double mphPenalty = 0) =>
-        PitchSpeedMph(pitch, pitcher.Stats.Pitch, rules, pitcher.StarPitch, skills, mphPenalty);
+        PitchSpeedMph(pitch, pitcher.Stats.Velocity, rules, pitcher.StarPitch, skills, mphPenalty);
 }

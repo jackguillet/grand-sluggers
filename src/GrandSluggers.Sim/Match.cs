@@ -990,7 +990,7 @@ public sealed class Match
     // ---- stamina (spec §4.7) --------------------------------------------------------
 
     public int StaminaPool(Character who) =>
-        Rules.Pitching.Stamina.PoolBase + who.Stats.Pitch * Rules.Pitching.Stamina.PoolPerPitch;
+        Rules.Pitching.Stamina.PoolBase + who.Stats.Endurance * Rules.Pitching.Stamina.PoolPerPitch;
 
     public int StaminaOf(Character who) =>
         _stamina.TryGetValue(who.Id, out var pool) ? pool : StaminaPool(who);
@@ -1106,6 +1106,8 @@ public sealed class Match
         var cur = Pitcher;
         next ??= defense
             .Where(c => !c.Id.Equals(cur.Id, StringComparison.OrdinalIgnoreCase))
+            // The displayed aggregate picks the arm, as the SET pick does (PitcherSwapPick): a selection,
+            // not a rating's read (§4.7, PH-15-R6).
             .OrderByDescending(c => c.Stats.Pitch)
             .FirstOrDefault();
         if (next is null || next.Id.Equals(cur.Id, StringComparison.OrdinalIgnoreCase)) return false;
@@ -1215,7 +1217,8 @@ public sealed class Match
 
         // (1) The horizontal intent, plus the arm's own scatter on it. No vertical term exists.
         var intentX = CpuPitchIntentX(row.Location, c.Locations);
-        var scatter = (11 - Pitcher.Stats.Pitch) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
+        // The CPU arm's miss on its own intent is Control's (§4.8, PH-15-R6).
+        var scatter = (11 - Pitcher.Stats.Control) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
         intentX += Gauss() * scatter;
 
         // (2) The family, as presses from the fastball every SET resets to (PH-02-R5).
@@ -1233,7 +1236,7 @@ public sealed class Match
         // looks at (family, charge, Nice!, Star, fatigue); the stick is lateral and does not reach it.
         var delivery = new PitchCommand(family, charge, star, RubberX: 0, Nice: nice, Throws: Pitcher.Throws);
         var airSec = PitchFlight.AirSeconds(PitchSpeedMph(delivery), Rules);
-        var reach = PitchFlight.BreakReach(Pitcher.Stats.Pitch, airSec, Rules);
+        var reach = PitchFlight.BreakReach(Pitcher.Stats.Control, airSec, Rules);
         var steerDir = _rng.NextDouble() < row.SteerChance ? (_rng.NextDouble() < 0.5 ? -1 : 1) : 0;
         delivery = delivery with { BreakX = steerDir * reach };
 
@@ -1493,7 +1496,7 @@ public sealed class Match
             return pickoff;
         var pitch = PreparePitch(CpuPitch());
         // The match's own table, not the process-wide one (#855): an overlay catalog's families fly here.
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch, Rules);
+        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Control, Pitcher.StarPitch, Rules);
         var swing = CpuSwing(pitch, inZone);
         return Play(pitch, swing);
     }

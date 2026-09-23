@@ -516,7 +516,7 @@ namespace GrandSluggers.UnityClient
             if (HumanPitches)
             {
                 _breakX = (float)PitchFlight.BreakStep(_breakX, PitchWorldX(PitchPad.StickX), dt,
-                    _match.Pitcher.Stats.Pitch, _match.Rules);
+                    _match.Pitcher.Stats.Control, _match.Rules);
                 // The stick *is* the human's break, so the command the umpire reads carries it.
                 _pitch = _pitch with { BreakX = _breakX };
             }
@@ -524,7 +524,7 @@ namespace GrandSluggers.UnityClient
                 // Drawn only (§4.8, PH-18-R1): the command already carries the whole reach the sim
                 // judged, and the same per-frame step arrives there over this delivery's air time.
                 _breakX = (float)PitchFlight.BreakStep(_breakX, _cpuSteer, dt,
-                    _match.Pitcher.Stats.Pitch, _match.Rules);
+                    _match.Pitcher.Stats.Control, _match.Rules);
             var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
             var shown = _cpuSteer != 0 ? _pitch with { BreakX = _breakX } : _pitch;
             var p = PitchFlight.Point(shown, u, _match.Pitcher.StarPitch, from);
@@ -534,7 +534,7 @@ namespace GrandSluggers.UnityClient
             // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9).
             if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
                 _swing = WithSquare(AtBatMotion.CommitCpuSwing(
-                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch))),
+                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Control, _match.Pitcher.StarPitch))),
                     _pitchDur, _match.Rules));
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt, _match.Rules))
@@ -545,7 +545,7 @@ namespace GrandSluggers.UnityClient
             if (u < 1 || TutorialOn && _coach.Tutorial.IsStealLesson) return;
             _swing ??= WithSquare(HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
-                : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch))));
+                : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Control, _match.Pitcher.StarPitch))));
             Resolve();
         }
 
