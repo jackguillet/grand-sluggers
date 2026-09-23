@@ -58,19 +58,13 @@ namespace GrandSluggers.UnityClient
             FocusRows(40, 235, 410, focus, new[] { "Exhibition", "Tutorials", "Controls", "Quit" });
             GUI.matrix = old;
         }
-        public static void FieldFocus(int focus, string park, bool night, bool hazards)
+        public static void FieldFocus(int focus, string park, bool night, bool hazards, bool versus, bool home)
         {
             var old = Begin();
-            FocusRows(40, 390, 630, focus, new[] { "Stadium: " + park, "Time: " + (night ? "Night" : "Day"),
-                "Hazards: " + (hazards ? "On" : "Off"), "Choose captains" });
+            FocusRows(864, 270, 392, focus, new[] { "Stadium: " + park, "Time: " + (night ? "Night" : "Day"),
+                "Hazards: " + (hazards ? "On" : "Off"), "Players: " + (versus ? "2 controllers" : "1 vs CPU"),
+                "P1 side: " + (home ? "Home" : "Away"), "Choose captains" });
             Text(40, 688, 1130, 65, "Up/down choose • Left/right change • South confirm • East back", _label);
-            GUI.matrix = old;
-        }
-        public static void CaptainFocus(int focus, bool versus, bool home)
-        {
-            var old = Begin();
-            FocusRows(700, 285, 540, focus, new[] { "Your captain • Left/right", versus ? "P2 captain • P2 left/right" : "Opponent • Left/right",
-                "Players: " + (versus ? "2 controllers" : "1 vs CPU"), "Your side: " + (home ? "Home" : "Away"), "Choose lineup" });
             GUI.matrix = old;
         }
         public static void LiveOrders(string runners, int target)
@@ -109,18 +103,6 @@ namespace GrandSluggers.UnityClient
             Button(ExhibitionSetupLayout.Back, CarnivalFront.SetupBackTitle, false);
             Button(ExhibitionSetupLayout.Next, CarnivalFront.SetupPickCaptains, true);
             Text(250, 718, 710, 48, CarnivalFront.SetupStadiumHelp(keys), _body);
-            GUI.matrix = old;
-        }
-        public static void CaptainControls()
-        {
-            var old = Begin();
-            var keys = Controls.SeatUsesKeyboard(0);
-            Fill(new Rect(376, 28, 210, 35), Ink);
-            Text(390, 28, 185, 35, CarnivalFront.SetupCaptainsStep, _small);
-            Fill(new Rect(24, 704, 1232, 78), Ink);
-            Button(ExhibitionSetupLayout.Back, CarnivalFront.SetupBackStadium, false);
-            Button(ExhibitionSetupLayout.Next, CarnivalFront.SetupPickLineup(keys), true);
-            Text(242, 716, 734, 50, CarnivalFront.SetupCaptainHelp(keys), _body);
             GUI.matrix = old;
         }
         public static void Settings(ExhibitionSettings settings, LineupScreens lineup, Match match)

@@ -600,6 +600,16 @@
       "promoted": "AtBatInputGate.VerifyLineupFill",
       "issue": "#988",
       "pr": ""
+    },
+    {
+      "id": "captain-setup-overlap",
+      "signature": "Captain stats and home-away caption overlap; setup navigation covers the selected characters.",
+      "stage": "sitting",
+      "cause": "Independent HudView.Select pixel rectangles and SetupSheet.CaptainFocus rows were drawn over the same selection screen.",
+      "fix": "CaptainSheet owns a scaled board with two team panels, a separate portrait row and footer; match options live on stadium setup. The layout test checks all panel and portrait pairs, and the GUI gate captures every captain.",
+      "promoted": "CaptainSelectionTests.TeamPanelsAndEveryPortraitHaveSeparateSpaceAboveTheFooter",
+      "issue": "#987",
+      "pr": ""
     }
   ]
 }

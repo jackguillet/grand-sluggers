@@ -348,13 +348,11 @@ namespace GrandSluggers.UnityClient
             }
             if (!_match.Paused && DrawTutorialUi()) return;
             if (_phase == Phase.Select)
-                HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
-                    _versusWanted, Controls.Pad2.Present);
-            if (_phase == Phase.Select) SetupSheet.CaptainFocus(_captainFocus, _versusWanted, Pad1Home);
+                CaptainSheet.Draw(_captains, _content, Controls.Pad2.Present);
             else if (_phase == Phase.Field)
             {
                 HudView.Field(ParkId, ParkDisplayName(ParkId), Night, Hazards, FieldHazardsLine(), FieldCardLines());
-                SetupSheet.FieldFocus(_fieldFocus, ParkDisplayName(ParkId), Night, Hazards);
+                SetupSheet.FieldFocus(_fieldFocus, ParkDisplayName(ParkId), Night, Hazards, _versusWanted, Pad1Home);
             }
             else if (_phase == Phase.Lineup && _lineup != null)
             {

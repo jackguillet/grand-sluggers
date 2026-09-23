@@ -4,7 +4,7 @@ namespace GrandSluggers.Sim;
 /// Exhibition front of house: the park is the poster, captains are toys, the field is a postcard.
 /// HUD draws this copy; tests lock it. Not a second UI toolkit.
 /// </summary>
-public static class CarnivalFront
+public static partial class CarnivalFront
 {
     public const string ExhibitionTitle = "EXHIBITION · BUILD YOUR MATCH";
     public const string Logo = "GRAND SLUGGERS";

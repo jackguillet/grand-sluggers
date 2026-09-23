@@ -36,7 +36,8 @@ namespace GrandSluggers.UnityClient
             {
                 TeamSheet.HideBoard();
                 _chem?.Hide();
-                PlaceSelectRoster();
+                if (_phase == Phase.Title) PlaceSelectRoster();
+                else { _logo?.Hide(); _card?.Hide(); }
                 foreach (var kv in _heroes)
                     if (!_used.Contains(kv.Key) && kv.Value != null)
                         kv.Value.gameObject.SetActive(false);

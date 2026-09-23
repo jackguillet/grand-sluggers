@@ -39,9 +39,13 @@ namespace GrandSluggers.EditorTools
         [MenuItem("Grand Sluggers/Verify Pitch Motion")]
         public static void RunPitchMotion() => Start(true);
 
-        static void Start(bool pitchOnly)
+        [MenuItem("Grand Sluggers/Verify Setup Input")]
+        public static void RunSetup() => Start(false, true);
+
+        static void Start(bool pitchOnly, bool setupOnly = false)
         {
             SessionState.SetBool(Pending + ".pitchOnly", pitchOnly);
+            SessionState.SetBool(Pending + ".setupOnly", setupOnly);
             if (EditorApplication.isPlaying)
                 throw new InvalidOperationException("Run this gate from Edit mode in a dedicated validation worktree.");
             EditorSceneManager.OpenScene("Assets/Scenes/HarborDiamond.unity");
@@ -113,6 +117,8 @@ namespace GrandSluggers.EditorTools
         static IEnumerator Checks(MatchDirector play, Evidence evidence)
         {
             var cases = new List<GateCase>();
+            var setupOnly = SessionState.GetBool(Pending + ".setupOnly", false);
+            if (!setupOnly)
             foreach (var hand in new[] { Hand.R, Hand.L })
             foreach (var charged in new[] { false, true })
             {
@@ -121,7 +127,8 @@ namespace GrandSluggers.EditorTools
                 evidence.cases = cases.ToArray();
             }
             if (!SessionState.GetBool(Pending + ".pitchOnly", false))
-            foreach (var check in new Func<GateCase>[]
+            foreach (var check in setupOnly ? new Func<GateCase>[]
+            { () => VerifyLineupFill(play, false), () => VerifyLineupFill(play, true) } : new Func<GateCase>[]
             {
                 () => VerifyControllerRouting(play),
                 () => VerifyLineupFill(play, false),
@@ -203,34 +210,92 @@ namespace GrandSluggers.EditorTools
         static IEnumerator VerifyControllerScreens(MatchDirector play)
         {
             Setup(play, Seats.One);
+            Set(play, "_versusWanted", false); Set(play, "Pad1Home", true);
             Invoke(play, "OpenTitle");
             var folder = Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("GS_AT_BAT_INPUT_EVIDENCE")
                 ?? Application.dataPath)!, "controller-screens");
             Directory.CreateDirectory(folder);
             IEnumerator Capture(string name)
             {
+                Invoke(play, "DrawActors", Step);
                 yield return new WaitForEndOfFrame();
                 var shot = ScreenCapture.CaptureScreenshotAsTexture();
                 File.WriteAllBytes(Path.Combine(folder, name + ".png"), shot.EncodeToPNG());
                 UnityEngine.Object.Destroy(shot);
             }
-            void Menu(GamepadState state)
+            void Menu(GamepadState one, GamepadState two = default)
             {
-                InputSystem.QueueStateEvent(_pad1, state); InputSystem.Update(); Controls.Tick(Step);
+                InputSystem.QueueStateEvent(_pad1, one); InputSystem.QueueStateEvent(_pad2, two);
+                InputSystem.Update(); Controls.Tick(Step);
                 Set(play, "_t", 1f); Invoke(play, "TickFlow");
             }
-            var shot = Capture("title"); while (shot.MoveNext()) yield return shot.Current;
-            Menu(State().WithButton(GamepadButton.South)); Menu(State());
-            Require(Phase(play) == "Field", "Controller title confirm did not open stadium selection.");
-            shot = Capture("stadium"); while (shot.MoveNext()) yield return shot.Current;
-            for (var i = 0; i < 3; i++) { Menu(State().WithButton(GamepadButton.DpadDown)); Menu(State()); }
-            Menu(State().WithButton(GamepadButton.South)); Menu(State());
-            Require(Phase(play) == "Select", "Controller stadium navigation did not reach captains.");
-            shot = Capture("captains"); while (shot.MoveNext()) yield return shot.Current;
-            Invoke(play, "OpenControlsBook");
-            foreach (var id in new[] { "controls", "controls-2", "controls-3", "controls-4", "roles-fielding", "roles-fielding-2" })
+            void Press(GamepadButton button, bool two = false)
             {
-                Set(play, "_pausePage", HowToPlay.Pages.ToList().FindIndex(p => p.Id == id));
+                Menu(State());
+                Menu(two ? State() : State().WithButton(button), two ? State().WithButton(button) : State());
+                Menu(State());
+            }
+            var shot = Capture("title"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.South);
+            Require(Phase(play) == "Field", "Title confirm did not open stadium selection.");
+            shot = Capture("stadium"); while (shot.MoveNext()) yield return shot.Current;
+            for (var i = 0; i < 5; i++) Press(GamepadButton.DpadDown);
+            Press(GamepadButton.South);
+            Require(Phase(play) == "Select", "Stadium navigation did not reach captains.");
+            var board = Get<CaptainSelection>(play, "_captains");
+            var seen = new HashSet<string>();
+            for (var i = 0; i < PresetTeams.CaptainIds.Length; i++)
+            {
+                seen.Add(board.Id(0));
+                shot = Capture("captain-" + board.Id(0)); while (shot.MoveNext()) yield return shot.Current;
+                Press(GamepadButton.DpadRight);
+            }
+            Require(seen.Count == PresetTeams.CaptainIds.Length, "A captain is unreachable through the controller.");
+            Press(GamepadButton.South);
+            Require(Phase(play) == "Select" && board.Ready(0) && !board.Ready(1), "P1 skipped choosing the CPU captain.");
+            shot = Capture("captain-cpu"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.East);
+            Require(!board.Ready(0), "East did not undo the first captain.");
+            Press(GamepadButton.South); Press(GamepadButton.South);
+            Require(Phase(play) == "Lineup", "Two sequential confirmations did not open lineup.");
+            var lineup = Get<LineupScreens>(play, "_lineup");
+            lineup.FocusCell(LineupSeat.Pad1, LineupFocus.HomeRow, 0);
+            Press(GamepadButton.RightShoulder);
+            Require(lineup.HomeFull, "RB did not fill P1 from roster focus.");
+            shot = Capture("lineup-filled"); while (shot.MoveNext()) yield return shot.Current;
+            // Back to stadium through the same controller path, then enable two players.
+            Press(GamepadButton.East); Press(GamepadButton.East);
+            Require(Phase(play) == "Field", "East did not return to stadium setup.");
+            for (var i = 0; i < 3; i++) Press(GamepadButton.DpadDown);
+            Press(GamepadButton.DpadRight);
+            Press(GamepadButton.DpadDown); Press(GamepadButton.DpadRight); // P1 away
+            Press(GamepadButton.DpadDown); Press(GamepadButton.South);
+            Require(Phase(play) == "Select", "Two-player setup did not reach the board.");
+            board = Get<CaptainSelection>(play, "_captains");
+            Require(board.Versus && !board.Pad1Home, "Player count or P1 away did not persist.");
+            var start = board.Id(1);
+            Press(GamepadButton.DpadRight, true);
+            Require(start != board.Id(1), "P2 cannot move its own cursor.");
+            while (board.Id(1) != board.Id(0)) Press(GamepadButton.DpadRight, true);
+            Press(GamepadButton.South);
+            Press(GamepadButton.South, true);
+            Require(Phase(play) == "Select" && !board.Ready(1), "Both players confirmed the same captain.");
+            shot = Capture("captain-reserved"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.DpadRight, true);
+            shot = Capture("captain-two-player"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.South, true);
+            Require(Phase(play) == "Lineup", "Both captains confirmed but lineup did not open.");
+            lineup = Get<LineupScreens>(play, "_lineup");
+            Require(lineup.HomeSeat == LineupSeat.Pad2 && lineup.AwaySeat == LineupSeat.Pad1, "Captain confirmation lost P1 away.");
+            Press(GamepadButton.RightShoulder); Press(GamepadButton.RightShoulder, true);
+            Require(lineup.HomeFull && lineup.AwayFull, "Both controllers cannot fill their teams.");
+            shot = Capture("lineup-two-filled"); while (shot.MoveNext()) yield return shot.Current;
+            Invoke(play, "OpenControlsBook");
+            foreach (var id in new[] { "exhibition", "lineup", "two-pads" })
+            {
+                var page = HowToPlay.Pages.ToList().FindIndex(p => p.Id == id);
+                if (page < 0) continue;
+                Set(play, "_pausePage", page);
                 shot = Capture(id); while (shot.MoveNext()) yield return shot.Current;
             }
         }
