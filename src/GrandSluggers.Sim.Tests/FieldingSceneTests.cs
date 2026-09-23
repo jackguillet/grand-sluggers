@@ -416,8 +416,9 @@ public class FieldingSceneTests
         var at = start;
         for (var i = 0; i < 90; i++)
             at = FieldingResolver.StepToward(at.X, at.Z, 0, 520, 28, 1.0 / 30, harbor);
-        Assert.True(FieldBounds.Inside(harbor, at.X, at.Z), "running at the wall stops on the grass");
-        Assert.True(at.Z < harbor.CenterFenceFt - 4);
+        Assert.True(FieldBounds.Of(harbor).Contains(at.X, at.Z), "running at the wall stays inside the field");
+        var clearance = _content.Rules.Fielding.Chase.WallClearanceFt;
+        Assert.InRange(harbor.CenterFenceFt - at.Z, clearance - .01, clearance + .5);
     }
 
     /// <summary>A real fly that lands <paramref name="carry"/> out in the open; Harbor's fence then says whether it is gone.</summary>

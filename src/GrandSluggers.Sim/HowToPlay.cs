@@ -288,7 +288,7 @@ public static partial class HowToPlay
         ]),
         new("fielding", "Fielding", "fielding",
         [
-            "On fly: outfielder runs to landing; ball hangs. Shadow tracks ball.",
+            "A fly hangs; outfielder to landing. Shadow tracks ball. HR: wall.",
             "The throw is yours. Bag + South; stick runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
             "After release, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Dead stick auto-runs; stick steers. Stand on ball to scoop. Select swaps; next glove pulses. Pickup stays live.",
@@ -296,7 +296,7 @@ public static partial class HowToPlay
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ],
         [
-            "On fly: outfielder runs to landing; ball hangs. Shadow tracks ball.",
+            "A fly hangs; outfielder to landing. Shadow tracks ball. HR: wall.",
             "The throw is yours. Bag + Space; WASD runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
             "After release, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Don't move: they auto-run; WASD steers. Stand on ball to scoop. R swaps; next glove pulses. Pickup stays live.",
