@@ -39,7 +39,7 @@ namespace GrandSluggers.UnityClient
             }
             if (phase == PhaseUi.Field)
             {
-                Field(match != null ? match.Park.Id : "", parkName, night);
+                Field(match != null ? match.Park.Id : "", parkName, night, match == null || match.Hazards, null);
                 return;
             }
             if (phase == PhaseUi.Lineup || phase == PhaseUi.TeamSetup || phase == PhaseUi.DefenseSetup)
@@ -159,16 +159,22 @@ namespace GrandSluggers.UnityClient
             GUI.color = prev;
         }
 
-        public static void Field(string parkId, string parkName, bool night)
+        public static void Field(string parkId, string parkName, bool night, bool hazards, string hazardsLine)
         {
             Ensure();
             Sticker(parkName, 40, 28, 720, 48, _title);
             Sticker(CarnivalFront.SkyGag(night), 40, 78, 200, 28, night ? _gold : _h1);
+            Sticker(CarnivalFront.HazardsLabel(hazards), 250, 78, 240, 28, hazards ? _h1 : _gold);
             GUI.Label(new Rect(44, 112, 720, 26), CarnivalFront.Gimmick(parkId, night), _gold);
+            var y = 140f;
+            if (!string.IsNullOrEmpty(hazardsLine))
+            {
+                GUI.Label(new Rect(44, y, 720, 22), hazardsLine, _tiny);
+                y += 26;
+            }
             if (!CarnivalFront.HarborIsTheProduct(parkId))
-                GUI.Label(new Rect(44, 140, 720, 22), "Harbor is the slice.", _tiny);
-            GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
-                "stick L/R the field    South lineup    West captains    N night    Esc how to play", _tiny);
+                GUI.Label(new Rect(44, y, 720, 22), "Harbor is the slice.", _tiny);
+            GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22), CarnivalFront.FieldFooter, _tiny);
         }
 
         static void Sticker(string text, float x, float y, float w, float h, GUIStyle style)
