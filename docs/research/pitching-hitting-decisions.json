@@ -1821,7 +1821,7 @@
             {
               "kind": "cleanup",
               "issue": "#887",
-              "pr": "#887 cleanup PR",
+              "pr": "#899",
               "revision": "issue-887-cleanup",
               "removed": "batting.window.shared and the split window: window.slapFrames, window.chargeFrames, window.framesPerContact, cpu.json humanWindowMul (both roots), AtBatResolver.SwingWindowFrames and the contact / charge / rung arguments of ContactWindowFrames, AtBatInput.HumanWindowMul",
               "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
@@ -2087,7 +2087,7 @@
         {
           "kind": "cleanup",
           "issue": "#887",
-          "pr": "#887 cleanup PR",
+          "pr": "#899",
           "revision": "issue-887-cleanup",
           "removed": "batting.geometryOnly and the stick terms on an ordinary swing; bunts and Star Swings keep spray.stickDeg and launch.stickDeg, and the CPU Star Swing still draws both aims",
           "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
@@ -5472,7 +5472,7 @@
             {
               "kind": "cleanup",
               "issue": "#887",
-              "pr": "#887 cleanup PR",
+              "pr": "#899",
               "revision": "issue-887-cleanup",
               "removed": "pitching.cpu.humanInputs and Match.CpuPitchByAim with the keys only it read: rubberWalkChance, rubberWalkMax, locations.middleYSpreadFt, and each count row's normal / charge / changeup / break",
               "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
@@ -6092,7 +6092,7 @@
     {
       "date": "2026-09-22",
       "event": "#887 removed the three trial switches' off paths now that each is on in shipped data: batting.window.shared (PH-10-R1), pitching.cpu.humanInputs (PH-18-R1) and batting.geometryOnly (PH-12), with the keys only those paths read, their validators and the SwitchOffPaths test rows. Behaviour-identical: seed 7 and S-29 on both roots unchanged; seals hash-only. Statuses unchanged; human_acceptance untouched.",
-      "pr": "#887 cleanup PR"
+      "pr": "#899"
     }
   ]
 }
