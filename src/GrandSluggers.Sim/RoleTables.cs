@@ -74,7 +74,7 @@ public static class RoleTables
             new("Star pitch", "Hold LB as you let go of South"),
             new("Break", "Stick L/R after release"),
             new("Pickoff", "D-pad + South before charge: any base. After charge: BALK."),
-            new("Swap pitcher", "Select; stick picks any fielder; Select again"),
+            new("Swap pitcher", "Select opens; stick inspects any fielder; South swaps two; Select to P"),
         ]),
         new("fielding", "Fielding",
         [
@@ -125,7 +125,7 @@ public static class RoleTables
             new("Star pitch", "Hold Q as you let go of Space"),
             new("Break", "A/D after release"),
             new("Pickoff", "1 2 3 4 + Space before charge: any base. After charge: BALK."),
-            new("Swap pitcher", "R; A/D picks any fielder; R again"),
+            new("Swap pitcher", "R opens; WASD inspects any fielder; Space swaps two; R to P"),
         ]),
         new("fielding", "Fielding",
         [
