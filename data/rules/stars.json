@@ -1,7 +1,7 @@
 {
   "meterMax": 5,
   "gains": {
-    "plateAppearance": 0,
+    "plateAppearance": 0.1,
     "strikeout": 0.8,
     "homeRun": 1.0,
     "extraBaseHit": 0.8,
@@ -15,13 +15,13 @@
   },
   "tiers": {
     "low": 1,
-    "mid": 1,
-    "top": 1
+    "mid": 2,
+    "top": 3
   },
   "costs": {
     "guestCaptainSurcharge": 1
   },
-  "startingReserve": 4,
+  "startingReserve": 3,
   "mvp": {
     "homeRun": 10,
     "winningPitcher": 5,
