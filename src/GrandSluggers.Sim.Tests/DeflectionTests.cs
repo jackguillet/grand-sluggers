@@ -18,6 +18,7 @@ public sealed class DeflectionTests
     const double Frame = 1.0 / 60.0;
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheBranchIsTheContactsAndTheSpeedsNeverASecondRoll()
     {
         foreach (var h in new[] { Control.Rules.Fielding.Handling, Trial.Rules.Fielding.Handling })

@@ -22,6 +22,7 @@ namespace GrandSluggers.Sim.Tests;
 /// The shipped table is loaded <b>in process</b>, through a <see cref="DataRoot"/> this class builds
 /// from the repository, so nothing depends on <c>GRAND_SLUGGERS_TRIAL</c> being set and CI is untouched.
 /// </summary>
+[Trait("Kind", "Balance")]
 public sealed class PitchFamilyTrialScenarioTests
 {
     readonly ContentCatalog _shippedContent = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));

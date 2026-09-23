@@ -10,7 +10,7 @@ Prepared September 15, 2026 because Jack is nearly out of session usage. **Conti
 - Work is stacked after the #702 measurement work at `59f3762` / draft [#707](https://github.com/jackguillet/grand-sluggers/pull/707). Do not flatten, merge, close or pass human gates as part of resuming research.
 - **No compact profile has been simulated or played. No runtime tuning or art changes are authorized by this packet.** Accepted numbers are authored calibration trials, not Nintendo measurements or approved shipping defaults.
 
-Read this file, current `AGENTS.md`, [agent rails](agent-rails.md), and the current direction at the top of [the #708 report](research-game-feel-708.md#current-direction--simple-arcade-fielding) first. Then read the relevant portions of [the decision plan](plan-game-feel-693.md) and [gameplay spec](gameplay-spec.md). Load `data/agent/debug-protocol.json` for the session; it contains comments, so a bare Python `json.loads` is not its loader.
+Start from "Start here" in `AGENTS.md`. For this research line, the current direction at the top of [the #708 report](research-game-feel-708.md#current-direction--simple-arcade-fielding) is the one part to read; the rest of that report, [the decision plan](plan-game-feel-693.md) and [agent rails](agent-rails.md) are reference. Read the [gameplay spec](gameplay-spec.md) sections the work touches. Load `data/agent/debug-protocol.json` for the session; it contains comments, so a bare Python `json.loads` is not its loader.
 
 ## Jack's objective and review preferences
 

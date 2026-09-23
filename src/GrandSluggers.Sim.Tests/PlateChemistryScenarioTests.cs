@@ -4,12 +4,12 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// No plate-level chemistry (#891, P2-e; PH-16-R14, PH-16-R15), Appendix B.1 rows S-138 and S-139.
+/// No plate-level chemistry (#891, P2-e; PH-16-R14, PH-16-R15), Appendix B.1 rows S-144 and S-145.
 ///
-/// <b>S-138</b>: good-chemistry runners on base change nothing at the plate — not the oval the client
+/// <b>S-144</b>: good-chemistry runners on base change nothing at the plate — not the oval the client
 /// draws, not the barrel the resolver judges, not the exit. Before #891 they widened a slap
 /// (×1.05 / 1.10 / 1.20) and multiplied a charged swing's exit (×1.10 / 1.25 / 1.50).
-/// <b>S-139</b>: no item offer is ever made. Before #891 a good-chemistry on-deck hitter offered an
+/// <b>S-145</b>: no item offer is ever made. Before #891 a good-chemistry on-deck hitter offered an
 /// item on every at-bat. The item code stays dormant (spec §12).
 ///
 /// Both roots: the class carries the compact trait, so the second CI run replays it on c80.
@@ -25,7 +25,7 @@ public sealed class PlateChemistryScenarioTests
     static readonly double[] Charges = [0, ChargeFeel.ChargeAt - 0.01, ChargeFeel.ChargeAt, 1];
 
     // ---------------------------------------------------------------------------------
-    // S-138  Good-chemistry runners on base change neither the barrel nor the exit
+    // S-144  Good-chemistry runners on base change neither the barrel nor the exit
     // ---------------------------------------------------------------------------------
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class PlateChemistryScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-139  No item offer is ever made
+    // S-145  No item offer is ever made
     // ---------------------------------------------------------------------------------
 
     [Fact]

@@ -229,6 +229,13 @@ public sealed class SignedAttribute : Attribute;
 /// error. The absence has to come from the file having no such key: a JSON <c>null</c> is refused
 /// by <see cref="RulesValidation.UnknownFields"/>, which walks the element and reports a row that
 /// is not an object.
+///
+/// <para>
+/// The same holds for a number a row may leave out (a <c>double?</c> leaf, F4-b: a
+/// <c>statusVolume</c> row's <c>slowSec</c>, which no other pattern reads). Absent is null;
+/// present, it is range-checked like every other leaf, so <see cref="PositiveAttribute"/> still
+/// holds; and a JSON <c>null</c> for it is refused rather than read as absent.
+/// </para>
 /// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class OptionalAttribute : Attribute;
@@ -277,15 +284,17 @@ public static class RulesValidation
             if (p.GetIndexParameters().Length > 0) continue;
             var name = path + "." + Camel(p.Name);
             var value = p.GetValue(node);
+            var leaf = p.PropertyType == typeof(double) || p.PropertyType == typeof(int) || p.PropertyType == typeof(double?);
             if (value is null)
             {
-                // A row the data does not author has nothing to range-check (#818). Everything else
-                // that is null is a table that failed to build.
+                // A row the data does not author has nothing to range-check (#818), and neither has a
+                // number a row may leave out (F4-b). Everything else that is null is a table that
+                // failed to build.
                 if (p.GetCustomAttribute<OptionalAttribute>() is not null) continue;
-                errors.Add($"{source}: {name} must be an object; got null");
+                errors.Add(leaf ? $"{source}: {name} must be a number; got null" : $"{source}: {name} must be an object; got null");
                 continue;
             }
-            if (p.PropertyType == typeof(double) || p.PropertyType == typeof(int))
+            if (leaf)
             {
                 var d = Convert.ToDouble(value);
                 if (double.IsNaN(d) || double.IsInfinity(d))
@@ -321,6 +330,13 @@ public static class RulesValidation
             if (!props.TryGetValue(field.Name, out var p))
             {
                 errors.Add($"{source}: {path}.{field.Name} is not a rule this table owns");
+                continue;
+            }
+            // A number a row may leave out is left out by having no key (OptionalAttribute): a JSON null
+            // would read as absent, which is a second way to say one thing.
+            if (p.PropertyType == typeof(double?) && field.Value.ValueKind == JsonValueKind.Null)
+            {
+                errors.Add($"{source}: {path}.{field.Name} must be a number; leave the key out rather than writing null");
                 continue;
             }
             if (p.PropertyType.IsClass && p.PropertyType != typeof(string)
@@ -511,7 +527,7 @@ public sealed class PitchingRules
     public CpuPitcherRules Cpu { get; init; } = new();
 }
 
-/// <summary>The one coefficient every family shares: the Pitch stat's mph (<see cref="AtBatResolver.PitchSpeedMph(PitchCommand, int, RulesTable)"/>). Base mph and charge mph are per family.</summary>
+/// <summary>The one coefficient every family shares: mph per point of the arm's Velocity (PH-15-R6; the key keeps its historical name) (<see cref="AtBatResolver.PitchSpeedMph(PitchCommand, int, RulesTable)"/>). Base mph and charge mph are per family.</summary>
 public sealed class PitchSpeedRules
 {
     public double MphPerPitchStat { get; init; } = 0.9;
@@ -543,9 +559,9 @@ public sealed class PitchFlightRules
     [Positive] public double BreakLateSpan { get; init; } = 0.45;
     /// <summary>A charged pitch or a changeup takes this much of the break (reference: "essentially straight").</summary>
     [Chance] public double BreakDampedMul { get; init; } = 0.10;
-    /// <summary>How fast a held stick brings the bend to full, per second, at Pitch 5 …</summary>
+    /// <summary>How fast a held stick brings the bend to full, per second, at Control 5 …</summary>
     [Positive] public double BreakRatePerSec { get; init; } = 2.4;
-    /// <summary>… and per Pitch-stat point above 5.</summary>
+    /// <summary>… and per Control point above 5 (PH-15-R6; the key keeps its historical name).</summary>
     public double BreakRatePerPitchStat { get; init; } = 0.12;
 }
 
@@ -684,7 +700,7 @@ public sealed class PitchFamilyTable
 /// </summary>
 public sealed class PitchFamilyRules
 {
-    /// <summary>Base mph, before the Pitch stat, the charge, Nice! and the tired arm.</summary>
+    /// <summary>Base mph, before the arm's Velocity, the charge, Nice! and the tired arm.</summary>
     [Positive] public double Mph { get; init; } = 86;
     /// <summary>mph a full charge adds to <em>this</em> family (spec §4.1).</summary>
     public double ChargeMph { get; init; } = 8;
@@ -736,7 +752,7 @@ public sealed class StarPitchShapeRules
 }
 
 /// <summary>
-/// Per-pitcher stamina (spec §4.7): pool = poolBase + Pitch × poolPerPitch; costs per verb; a
+/// Per-pitcher stamina (spec §4.7): pool = poolBase + Endurance × poolPerPitch (PH-15-R6); costs per verb; a
 /// family's own extra is its row's <see cref="PitchFamilyRules.StaminaCost"/>, and a star's cost is
 /// its <c>staminaCost</c> in star-skills.json. Below tiredBelow = TIRED (−mph, −break, a crossing
 /// wobble); below 0 = exhausted (worse). The CPU swaps at TIRED with a lead.
@@ -764,7 +780,7 @@ public sealed class StaminaRules
 /// outs, the runners, and its stamina. Each row names a horizontal location and a family mix, and
 /// <see cref="Match.CpuPitch"/> builds the pitch from the inputs a human has and nothing else
 /// (PH-18-R1): the rubber for location, presses for the family, charge and steer as modifiers, a
-/// bend no bigger than a held stick reaches. Scatter is σ = (11 − Pitch) × scatterFtPerPitchStat on
+/// bend no bigger than a held stick reaches. Scatter is σ = (11 − Control) × scatterFtPerPitchStat on
 /// the rubber intent, never a dead-center default.
 /// </summary>
 public sealed class CpuPitcherRules
@@ -787,7 +803,7 @@ public sealed class CpuPitcherRules
         ChargeChance = 0.40, SteerChance = 0.25 };
     public CpuPitchLocations Locations { get; init; } = new();
     /// <summary>
-    /// Scatter in feet per Pitch-stat point below 11 (spec §4.8): noise on the CPU's own rubber
+    /// Scatter in feet per Control point below 11 (PH-15-R6) (spec §4.8): noise on the CPU's own rubber
     /// intent in X, because a hand has no vertical input to miss in.
     /// </summary>
     public double ScatterFtPerPitchStat { get; init; } = 0.10;
@@ -1075,7 +1091,7 @@ public sealed class StarSwingRules
 
 /// <summary>
 /// The pitch's say in the exit (spec §5.5): a charged pitch met sour, a charged pitch met by a
-/// perfect charge, and a high-Pitch arm dampening non-perfect contact per stat point above 5.
+/// perfect charge, and a high-Movement arm (PH-15-R6) dampening non-perfect contact per point above 5.
 /// </summary>
 public sealed class PitchFactorRules
 {
@@ -1942,6 +1958,7 @@ public sealed class DropRules
 {
     [Chance] public double Heatball { get; init; } = 0.35;
     [Chance] public double PhonySwing { get; init; } = 0.35;
+    /// <summary>The heart swing's frozen glove (a special, §13). A park's status volume no longer rolls it (F4-b, #896; FD-08-R1).</summary>
     [Chance] public double Frozen { get; init; } = 0.4;
 }
 
@@ -2185,26 +2202,30 @@ public sealed class ParkHazardRules
 /// </para>
 ///
 /// <para>
-/// <b>Every number here is the number that shipped.</b> #847 moved <c>fielding.park.emberNightFireMul</c>
+/// <b>Every number here is the number that shipped, but one.</b> #847 moved <c>fielding.park.emberNightFireMul</c>
 /// (1.6) under <c>fireBreath</c> and <c>fielding.park.pipeReachPadFt</c> (8; 5.6 on <c>trials/c80</c>)
 /// under <c>warpPipe</c> and <c>barrel</c>; it chose neither, and #730 / #732 still own them. What a
 /// status volume costs a body stays <c>fielding.chase.frozenMul</c> — a star swing sets the same slow
 /// and the specials are outside this phase — and the billboard's payout stays <c>stars.gains.billboard</c>.
+/// The one new number is each status volume's <c>slowSec</c> (3.0, F4-b, #896): how long a touch slows
+/// the body that made it. It is Jack's number (FD-08-R2, "slows for 3 seconds", September 22, 2026) on
+/// both roots, and it is not trial-accepted until he has played it.
 /// </para>
 /// </summary>
 public sealed class HazardRules
 {
-    /// <summary>Crystal's freezers: a landing in the disc slows the chase.</summary>
-    public HazardTypeRules FreezeVolume { get; init; } = new() { Pattern = HazardPattern.StatusVolume };
+    /// <summary>Crystal's freezers: a body that touches the disc runs slowed for <see cref="HazardTypeRules.SlowSec"/>.</summary>
+    public HazardTypeRules FreezeVolume { get; init; } = new() { Pattern = HazardPattern.StatusVolume, SlowSec = 3.0 };
 
     /// <summary>Ember's lava, the freezer's twin.</summary>
-    public HazardTypeRules LavaPit { get; init; } = new() { Pattern = HazardPattern.StatusVolume };
+    public HazardTypeRules LavaPit { get; init; } = new() { Pattern = HazardPattern.StatusVolume, SlowSec = 3.0 };
 
     /// <summary>Ember's breath: the one volume night widens.</summary>
     public HazardTypeRules FireBreath { get; init; } = new()
     {
         Pattern = HazardPattern.StatusVolume,
-        NightRadiusMul = 1.6
+        NightRadiusMul = 1.6,
+        SlowSec = 3.0
     };
 
     /// <summary>Funfair's warp cans: a grounder that enters one comes out of another.</summary>
@@ -2227,12 +2248,11 @@ public sealed class HazardRules
     /// <summary>Canopy's climbable wall: a Clamber fielder's reach and rob.</summary>
     public HazardTypeRules ClimbWall { get; init; } = new() { Pattern = HazardPattern.WallTrait };
 
-    /// <summary>Funfair's mouths: at night a fly that lands in one is an out with no glove.</summary>
-    public HazardTypeRules Chomper { get; init; } = new()
-    {
-        Pattern = HazardPattern.CatchStealer,
-        NightOnly = true
-    };
+    /// <summary>
+    /// Funfair's mouths: a fly that lands in one is an out with no glove. They bite only at night
+    /// because Funfair authors them in its night block (FD-11, F4-d), not because of this row.
+    /// </summary>
+    public HazardTypeRules Chomper { get; init; } = new() { Pattern = HazardPattern.CatchStealer };
 
     /// <summary>Ember's captain statue. Drawn, never played.</summary>
     public HazardTypeRules Statue { get; init; } = new() { Pattern = HazardPattern.Decoration };
@@ -2305,6 +2325,9 @@ public sealed class HazardRules
     /// nothing, which is exactly what <see cref="HazardPattern.Decoration"/> exists to say out loud.</item>
     /// <item>A number that its pattern never reads is a dead rule, the way a sweep with no start is
     /// (#818): only a <c>statusVolume</c> widens at night, and only a <c>ballRedirect</c> has a reach pad.</item>
+    /// <item>A <c>statusVolume</c> says how long a touch slows a body (<c>slowSec</c>, FD-08-R2), and no other
+    /// pattern may: a volume with no time would slow nobody or everybody forever, and a time on a row that
+    /// never slows anyone is the same dead rule.</item>
     /// </list>
     /// </summary>
     internal void Validate(string source, List<string> errors)
@@ -2330,6 +2353,14 @@ public sealed class HazardRules
             if (row.ReachPadFt != 0 && row.Pattern != HazardPattern.BallRedirect)
                 errors.Add($"{source}: {key}.reachPadFt is {row.ReachPadFt}, but only a "
                            + $"{HazardPattern.BallRedirect} has a reach pad; give the row that pattern or set it to 0");
+            // How long a touch slows a body (FD-08-R2, F4-b): every status volume says it, and nothing else may,
+            // because no other pattern reads it. Its range ([Positive]) is the reflective walk's.
+            if (row.Pattern == HazardPattern.StatusVolume && row.SlowSec is null)
+                errors.Add($"{source}: {key} is a {HazardPattern.StatusVolume} and must author slowSec, how long a "
+                           + "touch slows the body that made it (FD-08-R2)");
+            if (row.SlowSec is { } slow && row.Pattern != HazardPattern.StatusVolume)
+                errors.Add($"{source}: {key}.slowSec is {slow}, but only a {HazardPattern.StatusVolume} slows a body; "
+                           + "give the row that pattern or leave slowSec out");
         }
     }
 }
@@ -2356,8 +2387,14 @@ public sealed class HazardTypeRules
     /// </summary>
     public double ReachPadFt { get; init; }
 
-    /// <summary>True for a type that acts only at night. A day game plays as if it were not there.</summary>
-    public bool NightOnly { get; init; }
+    /// <summary>
+    /// A <c>statusVolume</c>'s touch (FR-07, FD-08-R2; F4-b, #896): a body that enters the disc runs at
+    /// <c>fielding.chase.frozenMul</c> for this many seconds from the touch; staying inside keeps it slowed,
+    /// and leaving and entering again starts the time again. Every status volume authors it and no other
+    /// pattern may, so it is absent (null) on every row but the three volumes. 3.0 on both roots is Jack's
+    /// number (FD-08-R2), not yet played.
+    /// </summary>
+    [Optional, Positive] public double? SlowSec { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------

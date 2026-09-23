@@ -13,18 +13,22 @@ public sealed class Match
 
     public ContentCatalog Content { get; }
     /// <summary>
-    /// The park this match plays on. With <see cref="Hazards"/> on it is the catalog's park; with them
-    /// off it is that park with every hazard instance removed and every other member the same value
-    /// (<see cref="HazardPattern.HazardsOff"/>). Every reader — both seats, the CPU, the live ball, the
-    /// trace — reads this one, so no seat can play a hazard the others do not.
+    /// The park this match plays on, resolved once from the catalog's park (<see cref="PlayedPark.Of"/>,
+    /// FD-11, FD-10-R1): the day's hazard instances, then the night block's when the match is at
+    /// <see cref="Night"/>, then — with <see cref="Hazards"/> off — every hazard instance removed and
+    /// every other member the same value (<see cref="HazardPattern.HazardsOff"/>). A park with no night
+    /// block, played with hazards on, is the catalog's own object. Every reader — both seats, the CPU,
+    /// the live ball, the trace, the presentation — reads this one, so no seat can play a hazard the
+    /// others do not, and nothing reads a night block but the resolution.
     /// </summary>
     public Park Park { get; }
     public bool Night { get; }
     /// <summary>
     /// Park hazards on (the default) or off (FD-10, §14, SF-24). Off removes the instances whose
-    /// pattern <see cref="HazardPattern.IsHazard">counts as a hazard</see> and changes no other rule:
-    /// the park keeps its size, fence, walls, air, wind, ground zones, foul territory, depth and its
-    /// night window, and the table this match plays on is the one it plays on with hazards on.
+    /// pattern <see cref="HazardPattern.IsHazard">counts as a hazard</see>, the night block's with the
+    /// day's (FD-10-R1), and changes no other rule: the park keeps its size, fence, walls, air, wind,
+    /// ground zones, foul territory and depth, and the table this match plays on is the one it plays
+    /// on with hazards on.
     /// </summary>
     public bool Hazards { get; }
     public Team Away { get; }
@@ -108,15 +112,18 @@ public sealed class Match
     public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null, bool hazards = true)
     {
         Content = content;
-        // The table resolves from the park as the catalog authored it, so the switch cannot reach a
-        // rule: a hazards-off match plays the very table its hazards-on twin plays (SF-01, FD-10).
+        // The table resolves from the park as the catalog authored it, so neither the switch nor the
+        // night block can reach a rule: a hazards-off or a night match plays the very table its
+        // hazards-on day twin plays (SF-01, FD-10, FD-11-R2).
         _rules = content.Rules.AtLevel(difficulty).AtPark(park);
         Mercy = mercy;
         Away = away;
         Home = home;
         Hazards = hazards;
-        Park = hazards ? park : HazardPattern.HazardsOff(park, _rules.Hazards);
         Night = night;
+        // The one resolution (FD-11, F4-d): the night block's instances join the day's at night, then
+        // the switch removes every hazard when hazards are off. No other line reads a night block.
+        Park = PlayedPark.Of(park, night, hazards, _rules.Hazards);
         Innings = innings;
         Seed = seed;
         _rng = new Random(seed);
@@ -707,7 +714,11 @@ public sealed class Match
 
     /// <summary>
     /// A drop on the catch is allowed only for star effects (§8.6, fielding.drops): a heatball, a
-    /// phony swing, a frozen glove. Plain baseball never rolls a drop. One seeded stream (S-92).
+    /// phony swing, a glove the heart swing froze (<paramref name="frozen"/> is
+    /// <see cref="FieldingPreview.Frozen"/>, which only that special sets). Plain baseball never rolls a
+    /// drop, and neither does a park: a glove a status volume slowed is decided by the glove and the
+    /// ball (F4-b, #896; FD-08-R1, SF-22), so the park's use of <c>drops.frozen</c> is retired and the
+    /// special's is the one left. One seeded stream (S-92).
     /// </summary>
     internal bool RollDrop(AtBatResult hit, bool frozen)
     {
@@ -979,7 +990,7 @@ public sealed class Match
     // ---- stamina (spec §4.7) --------------------------------------------------------
 
     public int StaminaPool(Character who) =>
-        Rules.Pitching.Stamina.PoolBase + who.Stats.Pitch * Rules.Pitching.Stamina.PoolPerPitch;
+        Rules.Pitching.Stamina.PoolBase + who.Stats.Endurance * Rules.Pitching.Stamina.PoolPerPitch;
 
     public int StaminaOf(Character who) =>
         _stamina.TryGetValue(who.Id, out var pool) ? pool : StaminaPool(who);
@@ -1095,6 +1106,8 @@ public sealed class Match
         var cur = Pitcher;
         next ??= defense
             .Where(c => !c.Id.Equals(cur.Id, StringComparison.OrdinalIgnoreCase))
+            // The displayed aggregate picks the arm, as the SET pick does (PitcherSwapPick): a selection,
+            // not a rating's read (§4.7, PH-15-R6).
             .OrderByDescending(c => c.Stats.Pitch)
             .FirstOrDefault();
         if (next is null || next.Id.Equals(cur.Id, StringComparison.OrdinalIgnoreCase)) return false;
@@ -1204,7 +1217,8 @@ public sealed class Match
 
         // (1) The horizontal intent, plus the arm's own scatter on it. No vertical term exists.
         var intentX = CpuPitchIntentX(row.Location, c.Locations);
-        var scatter = (11 - Pitcher.Stats.Pitch) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
+        // The CPU arm's miss on its own intent is Control's (§4.8, PH-15-R6).
+        var scatter = (11 - Pitcher.Stats.Control) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
         intentX += Gauss() * scatter;
 
         // (2) The family, as presses from the fastball every SET resets to (PH-02-R5).
@@ -1222,7 +1236,7 @@ public sealed class Match
         // looks at (family, charge, Nice!, Star, fatigue); the stick is lateral and does not reach it.
         var delivery = new PitchCommand(family, charge, star, RubberX: 0, Nice: nice, Throws: Pitcher.Throws);
         var airSec = PitchFlight.AirSeconds(PitchSpeedMph(delivery), Rules);
-        var reach = PitchFlight.BreakReach(Pitcher.Stats.Pitch, airSec, Rules);
+        var reach = PitchFlight.BreakReach(Pitcher.Stats.Control, airSec, Rules);
         var steerDir = _rng.NextDouble() < row.SteerChance ? (_rng.NextDouble() < 0.5 ? -1 : 1) : 0;
         delivery = delivery with { BreakX = steerDir * reach };
 
@@ -1482,7 +1496,7 @@ public sealed class Match
             return pickoff;
         var pitch = PreparePitch(CpuPitch());
         // The match's own table, not the process-wide one (#855): an overlay catalog's families fly here.
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch, Rules);
+        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Control, Pitcher.StarPitch, Rules);
         var swing = CpuSwing(pitch, inZone);
         return Play(pitch, swing);
     }

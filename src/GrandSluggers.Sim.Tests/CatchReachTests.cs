@@ -15,6 +15,7 @@ public sealed class CatchReachTests
     static readonly ContentCatalog Trial = ContentCatalog.Load(Root);
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheShippedReachIsTheLegacyFormulaAndTheTrialIsSixFeet()
     {
         Assert.Equal(0, Control.Rules.Fielding.Catch.StandUpReachFt);
@@ -37,6 +38,7 @@ public sealed class CatchReachTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheTrialStackIsSixTenFourteen()
     {
         var r = Trial.Rules;
@@ -66,6 +68,7 @@ public sealed class CatchReachTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void AnOutfielderUnderAFlyRunsAtTheAirMultiplierOnBothTables()
     {
         Assert.Equal((0.6, 0.45), (Control.Rules.Fielding.Chase.OutfieldAirMul, Control.Rules.Fielding.Chase.InfieldAirMul));

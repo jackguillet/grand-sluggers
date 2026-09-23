@@ -237,10 +237,10 @@ Only if A–C stills exist and Phase P has exited. Rule: **three good parks beat
 4. Narrated half, #346 book-to-play gate, and the tutorial learning/transfer check in the Mac standalone. Record build and profile; agents do not pass these.
 5. Skeptic pass on the named Exhibition path and lesson retries. Phase T (#246) follows the gameplay/learning gates. R5, extra parks and deferred modes stay later.
 
-Command to keep agents honest:
+Command to keep agents honest (never the full test suite locally; CI runs the breakage suite, and Actions → Full tests runs the rest on demand):
 
 ```bash
-PATH=/opt/homebrew/bin:$PATH dotnet test
+PATH=/opt/homebrew/bin:$PATH tools/test-fast.sh <Classes you touched>
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- art
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- protocol
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7 --trace
