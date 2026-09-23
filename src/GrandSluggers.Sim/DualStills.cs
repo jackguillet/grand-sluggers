@@ -19,11 +19,12 @@ public sealed class DualStills
         "tools/blender/",
         "unity/Assets/Art/Animation/Clips/",
         "unity/Assets/Art/Characters/",
-        "unity/Assets/Art/Parks/harbor-diamond/"
+        "unity/Assets/Art/Parks/harbor-diamond/",
+        "unity/Assets/Art/Parks/"
     ];
 
     public static readonly IReadOnlyList<string> RequiredKindIds =
-        ["body", "extras", "harbor-kit", "takes"];
+        ["body", "extras", "harbor-kit", "park", "takes"];
 
     public static readonly IReadOnlyDictionary<string, string> NamedDcc =
         new Dictionary<string, string>(StringComparer.Ordinal)
@@ -31,7 +32,9 @@ public sealed class DualStills
             ["body"] = "dcc-body.png",
             ["extras"] = "dcc-extras.png",
             ["takes"] = "dcc-{clip}.png",
-            ["harbor-kit"] = "dcc-harbor-kit.png"
+            ["harbor-kit"] = "dcc-harbor-kit.png",
+            // A park's lane (F7-b): Harbor's kit is harbor-kit's; any other park's DCC arrives with its art stage (F9-c).
+            ["park"] = "dcc-park-{park}.png"
         };
 
     public static readonly IReadOnlyList<string> RequiredRubric =
