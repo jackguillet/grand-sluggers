@@ -143,19 +143,57 @@ public static class HazardPattern
     /// <summary>
     /// The park a match plays with hazards off (FD-10, SF-24): the same park with every instance whose
     /// type's pattern <see cref="IsHazard">is a hazard</see> removed, and nothing else. Its size, fence,
-    /// walls, air, wind, ground zones, foul territory, depth and night window are the same values, and
-    /// the <see cref="WallTrait"/> and <see cref="Decoration"/> instances stay, in their authored order.
+    /// walls, air, wind, ground zones, foul territory and depth are the same values, and the
+    /// <see cref="WallTrait"/> and <see cref="Decoration"/> instances stay, in their authored order.
     ///
     /// <para>
     /// It reads each instance's row from <paramref name="library"/> — the same table
     /// <see cref="ParkHazards"/> dispatches on — and does not dispatch: nothing here decides what a
     /// hazard does. A park that has no hazard instance comes back as itself, so a hazards-off match at
-    /// Harbor plays the catalog's own park object.
+    /// Harbor plays the catalog's own park object. A match reaches it through <see cref="PlayedPark.Of"/>,
+    /// after the night block is resolved, so the night's instances go with the day's (FD-10-R1).
     /// </para>
     /// </summary>
     public static Park HazardsOff(Park park, HazardRules library)
     {
         var kept = park.Hazards.Where(h => !IsHazard(library.Of(h.Type).Pattern)).ToArray();
         return kept.Length == park.Hazards.Count ? park : park with { Hazards = kept };
+    }
+}
+
+/// <summary>
+/// The one resolution of a park into the park a match plays (§0.3, §14; FD-11 B, FD-11-R2, FD-10,
+/// FD-10-R1; F4-d). A match resolves its park once, and every reader — the at-bat, the fielding preview,
+/// the live ball, the CPU, the trace and the presentation — reads the <see cref="Park.Hazards"/> of the
+/// park this returns. Nothing else reads a <see cref="ParkNight"/>.
+///
+/// <para>
+/// The order is fixed: the day's instances; then, at night, the night block's, after them, in the order
+/// the file lists them; then, with hazards off, the switch (<see cref="HazardPattern.HazardsOff"/>). The
+/// played park carries no night block — its night is already in its hazard list, or it is day — so
+/// resolving it again, as <c>ParkView</c> does for the title park and the match's alike, is itself.
+/// </para>
+///
+/// <para>
+/// <b>This is the one place night reaches a park.</b> The other night read in the sim is a hazard type's
+/// own night number (<c>fireBreath.nightRadiusMul</c>, <see cref="ParkHazards.NightDiscFt"/>), which
+/// FD-11-R2 keeps: it widens an instance at night wherever the instance is authored. Night changes no
+/// rule of the at-bat, the flight, the ground or the bodies (the contact window's night multiplier is
+/// gone on both roots). A park with no night block comes back as itself, day or night, so every park but
+/// Funfair plays the catalog's own object exactly as before.
+/// </para>
+/// </summary>
+public static class PlayedPark
+{
+    /// <summary>
+    /// The park a match plays at <paramref name="park"/>, by day or at night, with hazards on or off,
+    /// reading each instance's pattern from <paramref name="library"/> when hazards are off.
+    /// </summary>
+    public static Park Of(Park park, bool night, bool hazards, HazardRules library)
+    {
+        var tonight = park.Night is not { } block
+            ? park
+            : park with { Hazards = night ? [.. park.Hazards, .. block.Hazards] : park.Hazards, Night = null };
+        return hazards ? tonight : HazardPattern.HazardsOff(tonight, library);
     }
 }

@@ -6,8 +6,10 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// <c>SF-24</c>: hazards off (§0.3 D21, §14; FD-10 B, FD-09; F4-h, #858). A match option, default on,
 /// that plays a park with its hazard instances removed and <b>nothing else changed</b>: the park keeps
-/// its size, fence, walls, air, wind, ground zones, foul territory, depth and night window, the match
-/// plays the same resolved table, and both seats and the CPU read the one park the match holds.
+/// its size, fence, walls, air, wind, ground zones, foul territory and depth, the match plays the same
+/// resolved table, and both seats and the CPU read the one park the match holds. Since F4-d (FD-11) the
+/// switch is the last step of the one resolution (<see cref="PlayedPark.Of"/>), so a night block's
+/// instances go with the day's; <see cref="NightBlockTests"/> holds that half.
 ///
 /// <para>
 /// <b>Which instances go</b> is a property of the pattern set, <see cref="HazardPattern.Hazards"/>:
@@ -67,6 +69,13 @@ public sealed class HazardsOffTests
     /// authored order, and is the catalog's park in every other member (record equality once the list
     /// is put back). With hazards on it is the catalog's park itself. The table is the same reference
     /// either way, so the switch cannot have reached a rule (<c>SF-01</c>).
+    ///
+    /// <para>
+    /// Re-authored to FD-11 (F4-d, #895) for a park with a night block: the match holds the park as it
+    /// plays by day, the block resolved away (<c>Night</c> null) and every other member the catalog's, so
+    /// "the catalog's park itself" is that park with no night block, by record equality. Every park with no
+    /// night block is still the catalog's own object.
+    /// </para>
     /// </summary>
     [Fact]
     public void SF24_AHazardsOffMatchHasNoHazardInstanceAndEveryOtherParkMemberUnchangedOnBothRoots()
@@ -82,7 +91,8 @@ public sealed class HazardsOffTests
                 var off = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id, hazards: false);
                 Assert.True(on.Hazards);
                 Assert.False(off.Hazards);
-                Assert.Same(park, on.Park);
+                if (park.Night is null) Assert.Same(park, on.Park);
+                else Assert.Equal(park with { Night = null }, on.Park);
 
                 var patterns = content.Rules.Hazards;
                 Assert.DoesNotContain(off.Park.Hazards, h => HazardPattern.IsHazard(patterns.Of(h.Type).Pattern));
@@ -94,15 +104,16 @@ public sealed class HazardsOffTests
                 Assert.Equal(scenery, off.Park.Hazards);
                 Assert.All(off.Park.Hazards, h => Assert.Contains(park.Hazards, p => ReferenceEquals(p, h)));
 
-                Assert.Equal(park, off.Park with { Hazards = park.Hazards });
+                Assert.Equal(park with { Night = null }, off.Park with { Hazards = park.Hazards });
                 Assert.Equal(park.Id, off.Park.Id);
                 Assert.Same(on.Rules, off.Rules);
                 Assert.Equal(on.Night, off.Night);
 
                 removed += park.Hazards.Count - off.Park.Hazards.Count;
                 kept += off.Park.Hazards.Count;
-                // A park with nothing to remove plays the catalog's own object: nothing about it moved.
-                if (off.Park.Hazards.Count == park.Hazards.Count) Assert.Same(park, off.Park);
+                // A park with nothing to remove and no night block to resolve plays the catalog's own
+                // object: nothing about it moved.
+                if (off.Park.Hazards.Count == park.Hazards.Count && park.Night is null) Assert.Same(park, off.Park);
             }
             // Not vacuous: the switch removes instances on this root, and the scenery it keeps is there to keep.
             Assert.True(removed > 0, content.Root.Provenance);
@@ -140,7 +151,7 @@ public sealed class HazardsOffTests
     /// they held no outcome the scan ran on (a chomp to 16 on the copy). Rescanned after F4-e (#862) moved
     /// Crystal's and Ember's volumes, and again after each promotion that reseeded every game (#871, #886). Each row is a game in which hazards on plays at least one hazard
     /// outcome, so the hazards-off twin of the same game proves something. Chompers bite only at night
-    /// (their row is <c>nightOnly</c>), so Funfair's row is a night game with a chomp in it.
+    /// (they are Funfair's night block since F4-d, FD-11), so Funfair's row is a night game with a chomp in it.
     /// </summary>
     static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds => TestRoot.Pick<IReadOnlyList<(string, bool, int)>>(
         [
