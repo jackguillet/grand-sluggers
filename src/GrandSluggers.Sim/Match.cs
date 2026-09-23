@@ -1329,11 +1329,17 @@ public sealed class Match
     }
 
     /// <summary>
-    /// The CPU batter (spec §5.9): a table read at the plate plane from the final crossing, the
-    /// same whoever is pitching. No side effects: the box it stands in and the swing it makes are
-    /// the returned command. Steals are the runner AI's (<see cref="CpuArmSteal"/>).
+    /// The CPU batter (spec §5.9): a table read from one crossing, the same whoever is pitching.
+    /// Shipped (<c>batting.cpu.commitRead</c> off) that is the final crossing at the plate plane and
+    /// the caller's <paramref name="inZone"/>. With the switch on it is <see cref="CpuReadPitch"/>:
+    /// the flight as it stands at the commit instant, and the zone is judged on that read, so
+    /// <paramref name="inZone"/> is not consulted. No side effects: the box it stands in and the
+    /// swing it makes are the returned command. Steals are the runner AI's (<see cref="CpuArmSteal"/>).
     /// </summary>
-    public SwingCommand CpuSwing(PitchCommand pitch, bool inZone)
+    /// <param name="breakAtCommit">The stick's break as it stood at the commit instant, when the
+    /// caller watched it (a client ticking the flight, a scenario steering late). Absent, the steer is
+    /// taken as held one way from release, the CPU pitcher's own (S-117). Read only with the switch on.</param>
+    public SwingCommand CpuSwing(PitchCommand pitch, bool inZone, double? breakAtCommit = null)
     {
         var c = Rules.Batting.Cpu;
         var level = Rules.Cpu.Active;
@@ -1342,6 +1348,13 @@ public sealed class Match
         // swinging for it is Power's.
         var contact = Batter.Stats.Contact;
         var power = Batter.Stats.Power;
+        if (c.CommitRead)
+        {
+            // PH-18 (#892): commit from what can be seen. The read pitch replaces the final one for
+            // every decision below; the umpire and the bat still meet the ball that is thrown.
+            pitch = CpuReadPitch(pitch, breakAtCommit);
+            inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch, Rules);
+        }
         var (cx, cy) = PitchFlight.Crossing(pitch, Pitcher.StarPitch, Rules);
         var zone = CpuZoneClass(cx, cy, inZone, c);
         var take = new SwingCommand(false, 0, 0, false);
@@ -1394,6 +1407,26 @@ public sealed class Match
             return new SwingCommand(true, charge, err, star, BoxOffsetX: box);
         return new SwingCommand(true, charge, err, star, Gauss() * c.SpraySigmaDeg,
             LaunchAim: Gauss() * c.LaunchAimSigma, BoxOffsetX: box);
+    }
+
+    /// <summary>
+    /// The pitch the CPU batter can see at its commit instant (spec §3, §5.9; PH-18, #892): the same
+    /// delivery with the stick's break frozen where it stood at plate − <c>batting.cpu.decideLeadSec</c>
+    /// − <c>batting.window.leadSec</c> (<see cref="AtBatMotion.CpuDecisionTime"/>). Its crossing is the
+    /// flight as it stands — the family's own movement, the rubber and the break so far, with no future
+    /// steering. Given no <paramref name="breakAtCommit"/>, the steer is the stick held one way from
+    /// release (<see cref="PitchFlight.BreakReach"/> over the time to the commit, never more than the
+    /// command carries): exactly what a hand holding it, or the CPU pitcher's drawn steer, has reached
+    /// by then. Pure: no draw, no state.
+    /// </summary>
+    public PitchCommand CpuReadPitch(PitchCommand pitch, double? breakAtCommit = null)
+    {
+        if (breakAtCommit is { } seen) return pitch with { BreakX = Math.Clamp(seen, -1, 1) };
+        if (pitch.BreakX == 0) return pitch;
+        var airSec = PitchFlight.AirSeconds(PitchSpeedMph(pitch), Rules);
+        var commitSec = Math.Max(0, AtBatMotion.CpuDecisionTime(airSec, Rules));
+        var soFar = Math.Min(Math.Abs(pitch.BreakX), PitchFlight.BreakReach(Pitcher.Stats.Pitch, commitSec, Rules));
+        return pitch with { BreakX = Math.Sign(pitch.BreakX) * soFar };
     }
 
     enum CpuZone { Middle, Edge, Near, Far }
