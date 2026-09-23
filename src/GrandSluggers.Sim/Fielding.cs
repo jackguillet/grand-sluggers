@@ -84,7 +84,7 @@ public sealed class FieldingResolver
         var radius = CatchRadiusFt(fielder, park, _rules);
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
-        var chomped = ParkHazards.ChompFly(park, night, landing.X, landing.Z, grounder || line, _rules);
+        var chomped = ParkHazards.ChompFly(park, landing.X, landing.Z, grounder || line, _rules);
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, shape,
             heat, furnace, freeze, radius, warped, Chomped: chomped, Foul: ball.Foul, Ball: ball);
@@ -657,6 +657,14 @@ public sealed record FieldingPreview(
 /// </para>
 ///
 /// <para>
+/// <b>The park is the played park (FD-11, F4-d).</b> Every method reads the instances of the park it
+/// is handed, which in a match is <see cref="Match.Park"/> — resolved once by <see cref="PlayedPark.Of"/>,
+/// the night block's instances already in it at night and every hazard gone with hazards off. Nothing
+/// here asks whether an instance exists tonight. The one night number left is a type's own
+/// (<see cref="NightDiscFt"/>); night reaches no rule of the at-bat (FD-11-R2).
+/// </para>
+///
+/// <para>
 /// A type with no row is a stop, not a shrug: <see cref="HazardRules.Of"/> throws rather than
 /// letting an unknown hazard quietly do nothing. The park validator refuses one at load, so a
 /// catalog that opened can never reach it.
@@ -664,20 +672,21 @@ public sealed record FieldingPreview(
 /// </summary>
 public static class ParkHazards
 {
-    /// <summary>The park's contact window at night (§14): a park data field (<c>nightContactWindowMul</c>), never a park id in code.</summary>
-    public static double ContactWindowMul(Park park, bool night, RulesTable? rules = null)
-    {
-        _ = rules;
-        return night ? park.NightContactWindowMul : 1.0;
-    }
-
     public static bool InFreeze(Park park, double x, double z, bool night = false, RulesTable? rules = null) =>
         InSlow(park, x, z, night, rules);
 
     /// <summary>
+    /// The disc an instance of radius <paramref name="radiusFt"/> plays at night: the type row's own
+    /// <c>nightRadiusMul</c> times it (FD-11-R2 keeps a hazard type's own night numbers). 1 for every
+    /// row but Ember's breath, and a multiply by 1 is exact. The status volume and the park validator's
+    /// placement rule (FD-19, map finding 31) both read it, so the disc a body is refused on is the disc
+    /// the ball is slowed in.
+    /// </summary>
+    public static double NightDiscFt(double radiusFt, HazardTypeRules row) => radiusFt * row.NightRadiusMul;
+
+    /// <summary>
     /// A <see cref="HazardPattern.StatusVolume"/> the ball landed in: the whole play's chase runs at
-    /// <c>fielding.chase.frozenMul</c>. The row's <c>nightRadiusMul</c> widens the disc at night —
-    /// 1 for every volume but Ember's breath, and a multiply by 1 is exact.
+    /// <c>fielding.chase.frozenMul</c>. At night the disc is <see cref="NightDiscFt"/>.
     /// </summary>
     public static bool InSlow(Park park, double x, double z, bool night = false, RulesTable? rules = null)
     {
@@ -686,8 +695,7 @@ public static class ParkHazards
         {
             var row = hazards.Of(h.Type);
             if (row.Pattern != HazardPattern.StatusVolume) continue;
-            var r = h.Radius;
-            if (night) r *= row.NightRadiusMul;
+            var r = night ? NightDiscFt(h.Radius, row) : h.Radius;
             if (Diamond.Dist(h.X, h.Z, x, z) <= r) return true;
         }
         return false;
@@ -695,9 +703,10 @@ public static class ParkHazards
 
     /// <summary>
     /// A <see cref="HazardPattern.CatchStealer"/> the fly landed in: an out at the hang, with no
-    /// glove. A row that is <c>nightOnly</c> is not there by day.
+    /// glove. An instance that exists only at night is in the park's night block, so it is in the
+    /// played park's list at night and nowhere by day (FD-11); nothing here reads the clock.
     /// </summary>
-    public static bool ChompFly(Park park, bool night, double x, double z, bool grounder = false, RulesTable? rules = null)
+    public static bool ChompFly(Park park, double x, double z, bool grounder = false, RulesTable? rules = null)
     {
         if (grounder) return false;
         var hazards = Rules.Or(rules).Hazards;
@@ -705,7 +714,6 @@ public static class ParkHazards
         {
             var row = hazards.Of(h.Type);
             if (row.Pattern != HazardPattern.CatchStealer) continue;
-            if (row.NightOnly && !night) continue;
             if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
         }
         return false;

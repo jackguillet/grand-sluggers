@@ -7,26 +7,27 @@
 // fielding.park.emberNightFireMul, and the two reachPadFt were fielding.park.pipeReachPadFt.
 // #730 / #732 still own both. What a status volume costs a body is fielding.chase.frozenMul and the
 // billboard's payout is stars.gains.billboard; neither moved, because a star swing sets the same slow.
+//
+// Whether an instance exists only at night is where the park authors it (its night block, FD-11,
+// F4-d), not a column here: the rows carried nightOnly until then. nightRadiusMul stays, because it
+// is a hazard type's own night number, which FD-11-R2 keeps.
 {
   // Crystal's freezers, Ember's lava and Ember's breath: a landing in the disc slows every chaser
   // for the whole play (fielding.chase.frozenMul). Only the breath widens at night.
   "freezeVolume": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   },
   "lavaPit": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   },
   "fireBreath": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1.6,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   },
   // Funfair's warp cans and Canopy's barrels: a grounder landing inside radius + reachPadFt comes
   // out of another one. The pad is the larger part of the capture disc (#732), not a rounding
@@ -34,37 +35,33 @@
   "warpPipe": {
     "pattern": "ballRedirect",
     "nightRadiusMul": 1,
-    "reachPadFt": 8,
-    "nightOnly": false
+    "reachPadFt": 8
   },
   "barrel": {
     "pattern": "ballRedirect",
     "nightRadiusMul": 1,
-    "reachPadFt": 8,
-    "nightOnly": false
+    "reachPadFt": 8
   },
   // Rooftop's star signs: a landing on one pays the batting team stars.gains.billboard.
   "billboard": {
     "pattern": "rewardTarget",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   },
   // Canopy's climbable wall: a Clamber fielder's longer reach and taller rob. A park-wide flag
   // today; FD-06 makes it a property of a wall span.
   "climbWall": {
     "pattern": "wallTrait",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   },
-  // Funfair's mouths: at night a fly that lands in one is an out with no glove. Park data since
-  // #847; three C# literals behind a park-id test before it.
+  // Funfair's mouths: a fly that lands in one is an out with no glove. Park data since #847 (three
+  // C# literals behind a park-id test before it); night-only since F4-d because Funfair authors them
+  // in its night block, which is also why this row no longer says so.
   "chomper": {
     "pattern": "catchStealer",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": true
+    "reachPadFt": 0
   },
   // Drawn, never played (map §5 Q6, Jack, 2026-09-22). An honest row that says the type changes no
   // play, so a park may list one for the kit. Each gets a real pattern when its park comes up:
@@ -72,25 +69,21 @@
   "statue": {
     "pattern": "decoration",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   },
   "train": {
     "pattern": "decoration",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   },
   "acUnit": {
     "pattern": "decoration",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   },
   "tree": {
     "pattern": "decoration",
     "nightRadiusMul": 1,
-    "reachPadFt": 0,
-    "nightOnly": false
+    "reachPadFt": 0
   }
 }
