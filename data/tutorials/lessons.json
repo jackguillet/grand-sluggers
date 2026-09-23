@@ -214,15 +214,16 @@
     },
     {
       "id": "T-P08",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
-        "pitching.08"
+        "pitching.08",
+        "pitching.11"
       ],
-      "title": "Check an exposed runner at first",
+      "title": "Throw before committing to the pitch",
       "category": "pitching",
       "status": "implemented",
       "issue": 794,
-      "reason": "Headless SET action lesson; standalone learning gate pending",
+      "reason": "Real pickoff reception earns success; charging first produces a typed balk failure. Standalone learning gate pending",
       "profiles": [
         "shipped"
       ],
@@ -1432,15 +1433,15 @@
     },
     {
       "id": "T-R06",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "running.06"
       ],
-      "title": "arm steal and release timing",
+      "title": "time a steal departure",
       "category": "running",
       "status": "implemented",
       "issue": 794,
-      "reason": "Headless real runner-play lesson; standalone learning gate pending",
+      "reason": "Player-timed departure uses continuous runner movement into the catcher play; standalone learning gate pending",
       "profiles": [
         "shipped"
       ],
@@ -1457,7 +1458,7 @@
     },
     {
       "id": "T-R07",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "running.07"
       ],
@@ -1482,7 +1483,7 @@
     },
     {
       "id": "T-R08",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "running.08"
       ],
@@ -1490,7 +1491,7 @@
       "category": "running",
       "status": "implemented",
       "issue": 794,
-      "reason": "Headless real runner-play lesson; standalone learning gate pending",
+      "reason": "Human throw command starts physical transfer before release; geometric tag earns success. Standalone learning gate pending",
       "profiles": [
         "shipped"
       ],

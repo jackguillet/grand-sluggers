@@ -1020,10 +1020,10 @@ namespace GrandSluggers.UnityClient
                 GUI.Label(box, i.ToString(), i == bug.Inning ? _gold : _tiny);
             }
             // The unavailable special (PH-16-R12): that team's Stars flash red and the line under the bug names it.
-            var starNo = _starNo is { } tell && BroadcastHud.StarUnavailableShows(_starNoAge) ? tell : (BroadcastHud.StarUnavailableTell?)null;
+            var starNo = bug.StarsEnabled && _starNo is { } tell && BroadcastHud.StarUnavailableShows(_starNoAge) ? tell : (BroadcastHud.StarUnavailableTell?)null;
             var red = starNo.HasValue && BroadcastHud.StarUnavailableRed(_starNoAge);
-            Row(lay.Score, 0, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match), red && starNo.Value.Row == 0);
-            Row(lay.Score, 1, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match), red && starNo.Value.Row == 1);
+            Row(lay.Score, 0, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match), bug.StarsEnabled, red && starNo.Value.Row == 0);
+            Row(lay.Score, 1, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match), bug.StarsEnabled, red && starNo.Value.Row == 1);
             if (starNo.HasValue)
             {
                 var line = Px(BroadcastHud.StarUnavailableLine(lay.Score));
@@ -1067,15 +1067,16 @@ namespace GrandSluggers.UnityClient
         }
 
         static void Row(BroadcastHud.HudRect score, int row, Team team, int runs, double stars, Texture2D stripe,
-            bool starsRed = false)
+            bool starsEnabled, bool starsRed = false)
         {
             var stripeR = Px(BroadcastHud.StripeCol(score, row));
             var nameR = Px(BroadcastHud.NameCol(score, row));
             var runR = Px(BroadcastHud.RunsCol(score, row));
-            var starR = Px(BroadcastHud.StarsCol(score, row));
             GUI.DrawTexture(stripeR, stripe);
             GUI.Label(nameR, BroadcastHud.BugName(team.Captain.Name), _team);
             GUI.Label(runR, BroadcastHud.RunsLabel(runs), _score);
+            if (!starsEnabled) return;
+            var starR = Px(BroadcastHud.StarsCol(score, row));
             var prev = GUI.color;
             if (starsRed) GUI.color = new Color(1f, 0.25f, 0.22f, 1f);
             Stars(starR.x, starR.y, stars);

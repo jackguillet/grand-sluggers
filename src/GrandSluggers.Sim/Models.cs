@@ -673,7 +673,9 @@ public enum PlayKind
     /// <summary>A pickoff throw with every runner on their bag (§4.5, D3): a beat, no play, no count, no stamp.</summary>
     Pickoff,
     /// <summary>The ball is live and nobody has decided it yet: Complete names the play from the bodies (§10.6). Never stamped.</summary>
-    InPlay
+    InPlay,
+    /// <summary>A committed pitcher abandoned the pitch: dead ball, runners advance, count unchanged.</summary>
+    Balk
 }
 
 /// <summary>The catch feat on the typed outcome (§8.4): what the glove did to make the catch. The stamp reads it (§15).</summary>

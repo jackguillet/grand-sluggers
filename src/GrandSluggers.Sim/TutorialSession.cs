@@ -4,7 +4,8 @@ public enum TutorialPhase { Brief, Attempt, Feedback, Exited }
 public sealed record TutorialFeedback(bool Success, string Code, string Detail);
 public sealed record TutorialInput(double Time, LivePlayCommandSource Source, PitchCommand? Pitch = null,
     SwingCommand? Swing = null, LivePadInput? Field = null, int PickoffBag = 0, string? SwapPitcherId = null,
-    int StealBag = 0, string? ItemId = null, string? ItemTargetId = null, TutorialPlateTick? Plate = null);
+    int StealBag = 0, string? ItemId = null, string? ItemTargetId = null, TutorialPlateTick? Plate = null,
+    bool BeginPitchCharge = false);
 public sealed record TutorialRecording(int Version, string Lesson, int Revision, string Profile, string InputsHash, bool Demonstration, TutorialInput[] Inputs);
 public sealed record TutorialCompletion(string Lesson, int Revision, string Profile);
 
@@ -253,6 +254,13 @@ public sealed partial class TutorialSession
         _inputs.Add(new(Elapsed, source, Field: pad));
         var plateArrival = StealWindupStartsAt + Motion.PitchRelease
             + PitchFlight.AirSeconds(Match.PitchSpeedMph(CpuPitch), Match.Rules);
+        if (_setup.Policy == "steal-offense" && !Match.LivePlay.Active)
+        {
+            Match.PitchSetup.RunnerInput(pad);
+            if (Elapsed >= StealWindupStartsAt) Match.PitchSetup.BeginCharge();
+            if (Elapsed >= StealWindupStartsAt + Motion.PitchRelease) Match.PitchSetup.ReleaseBall();
+            Match.PitchSetup.Advance(seconds);
+        }
         if (_setup.Policy == "steal-offense" && !Match.LivePlay.Active && Elapsed >= plateArrival)
         {
             if (Match.StealOn) BeginStealPitch(Lesson.Objective == "human-double-steal"
@@ -330,13 +338,13 @@ public sealed partial class TutorialSession
             && ((live.TutorialDiver == pos && live.DiveT > previousDive)
                 || divingOut && result.CompletedPlay?.Fielder?.Id == who))
             _divers[who] = Elapsed + Match.Rules.Fielding.Catch.DiveArmSec;
-        // Human-owned defense never supplies its own throw. ThrowPop is emitted once when the actual throw begins,
+        // Human-owned defense never supplies its own throw. ThrowCommitted is emitted once when the throw command is accepted,
         // including an earlier accepted buffer; CPU submissions above are replaced with dead input.
         if (live.Events.Contains(LiveEvent.ThrowQueueCleared)) _queuedHumanThrowBag = 0;
         if (owned && live.Events.Contains(LiveEvent.ThrowQueued))
             _queuedHumanThrowBag = live.QueuedThrowBag is >= 1 and <= 4
                 ? live.QueuedThrowBag : live.CommitBagFor(pad); // The recovery buffer has no onward-throw queue.
-        if (live.Events.Contains(LiveEvent.ThrowPop))
+        if (live.Events.Contains(LiveEvent.ThrowCommitted))
         {
             if ((owned && !IsOffenseLesson && (pad.SouthDown || pad.Cutoff))
                 || _queuedHumanThrowBag == live.ThrowBag) _throws.Add(live.ThrowBag);
@@ -511,13 +519,14 @@ public sealed partial class TutorialSession
             if (input is null || !double.IsFinite(input.Time) || input.Time < run.Elapsed || run.Phase != TutorialPhase.Attempt
                 || new[] { input.Pitch is not null, input.Swing is not null, input.Field is not null,
                     input.PickoffBag > 0, input.SwapPitcherId is not null, input.StealBag > 0, input.ItemId is not null,
-                    input.Plate is not null }.Count(b => b) != 1)
+                    input.Plate is not null, input.BeginPitchCharge }.Count(b => b) != 1)
                 throw new InvalidDataException("Invalid tutorial input timeline.");
             if (input.Field is not null) run.Tick(input.Time - run.Elapsed, input.Field, input.Source);
             else
             {
                 if (input.Time != run.Elapsed) throw new InvalidDataException("Tutorial input omitted clock frames.");
                 var accepted = input.Pitch is not null ? run.Pitch(input.Pitch, input.Source)
+                    : input.BeginPitchCharge ? run.BeginPitchCharge(input.Source)
                     : input.Swing is not null ? run.Swing(input.Swing, input.Source)
                     : input.PickoffBag > 0 ? run.Pickoff(input.PickoffBag, input.Source)
                     : input.StealBag > 0 ? run.ArmSteal(input.StealBag, input.Source)

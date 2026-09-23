@@ -119,7 +119,9 @@ public enum LiveEvent
     /// <summary>The ball hit a reward target this frame (F4-c): <see cref="LivePlaySystem.RewardThisPlay"/>.</summary>
     RewardHit,
     /// <summary>The ball caromed off a solid body or a mover this frame (F4-f): <see cref="LivePlaySystem.CaromsThisPlay"/>.</summary>
-    BodyCarom
+    BodyCarom,
+    /// <summary>A throw command was accepted; transfer begins now, ThrowPop marks actual release.</summary>
+    ThrowCommitted
 }
 
 /// <summary>
@@ -279,6 +281,12 @@ public sealed partial class LivePlaySystem
     public bool Buddy { get; private set; }
     public double ThrowT { get; private set; }
     public double ThrowDur { get; private set; }
+    /// <summary>Command-to-release preparation, part of ThrowDur, never part of ball flight.</summary>
+    public double ThrowReleaseSec { get; private set; }
+    bool _throwReleased;
+    public bool ThrowPreparing => Throwing && !_throwReleased;
+    public bool ThrowInFlight => Throwing && _throwReleased;
+    public double ThrowFlight01 => Math.Clamp((ThrowT - ThrowReleaseSec) / Math.Max(1e-9, ThrowDur - ThrowReleaseSec), 0, 1);
     public (double X, double Y, double Z) ThrowFrom { get; private set; }
     public (double X, double Y, double Z) ThrowTo { get; private set; }
     public int ThrowBag { get; private set; }
@@ -584,6 +592,8 @@ public sealed partial class LivePlaySystem
         Buddy = false;
         ThrowT = 0;
         ThrowDur = 0;
+        ThrowReleaseSec = 0;
+        _throwReleased = false;
         ThrowBag = 0;
         ArmedThrow = null;
         ArmedCut = null;
@@ -817,7 +827,8 @@ public sealed partial class LivePlaySystem
         {
             var traceBeforeFlightT = ThrowT;
             ThrowT += dt;
-            var u = Math.Clamp(ThrowT / Math.Max(0.05, ThrowDur), 0, 1);
+            if (!_throwReleased && ThrowT >= ThrowReleaseSec) ReleaseThrow();
+            var u = ThrowFlight01;
             BallX = ThrowFrom.X + (ThrowTo.X - ThrowFrom.X) * u;
             BallY = ThrowFrom.Y + (ThrowTo.Y - ThrowFrom.Y) * u;
             BallZ = ThrowFrom.Z + (ThrowTo.Z - ThrowFrom.Z) * u;
@@ -1836,40 +1847,7 @@ public sealed partial class LivePlaySystem
     /// The offense pad on the bodies (§9.3): D-pad selects, LB / RB / both send, return, halt every
     /// runner, the stick sends or returns the selected one, a tap of the opposite shoulder halts.
     /// </summary>
-    void ApplyRunPad(LivePadInput run)
-    {
-        var m = _match;
-        if (run.KeysBag is >= 1 and <= 4) m.SelectRunner(run.KeysBag);
-        var advDown = run.AllAdvance && !_prevRun.AllAdvance;
-        var retDown = run.AllReturn && !_prevRun.AllReturn;
-        if (run.Freeze)
-        {
-            var named = run.StickBag > 0 ? Runners.FirstOrDefault(r => r.Live && (r.NextBag == run.StickBag || r.Bag == run.StickBag)) : null;
-            if (named is not null) m.HaltAt(named.FromBag);
-            else m.FreezeRunners();
-        }
-        else if (run.AllAdvance)
-        {
-            if (advDown && Runners.Any(r => r.Live && r.Phase == RunnerPhase.Returning))
-                foreach (var r in Runners.Where(r => r.Live && r.Phase == RunnerPhase.Returning)) r.Halt();
-            else m.AdvanceAll();
-        }
-        else if (run.AllReturn)
-        {
-            if (retDown && Runners.Any(r => r.Live && r.Advancing && r.Feet > 0))
-                foreach (var r in Runners.Where(r => r.Live && r.Advancing)) r.Halt();
-            else m.ReturnAll();
-        }
-        var sel = m.SelectedState;
-        if (sel is not null && run.StickBag > 0 && !run.Freeze)
-        {
-            if (run.StickBag == sel.NextBag && sel.Bag < 4) m.SendRunnerAt(sel.FromBag);
-            else if (run.StickBag == sel.Bag || run.StickBag == Baserunning.PrevBag(Math.Max(1, sel.Bag))) m.ReturnToBagAt(sel.FromBag);
-        }
-        if ((run.WestDown || run.SouthDown) && sel is not null && sel.FeetTo(sel.NextBag) <= RunnerSystem.SlideFt(sel.NextBag, GroundZones.Of(Park, R), R))
-            sel.RequestSlide();
-        _prevRun = run;
-    }
+    void ApplyRunPad(LivePadInput run) => RunnerCommands.Apply(_match, run, ref _prevRun);
 
     /// <summary>The CPU-driven glove runs its route to the ball (or the loose ball) once its reaction lockout is over (§8.2).</summary>
     void ChaseGlove(double dt, FieldingPreview pre)
@@ -3025,6 +3003,11 @@ public sealed partial class LivePlaySystem
         // One clock (§8.5): the ball flies on the same seconds the bag is judged on, the catcher's gun included (§11.3).
         var dist = Diamond.Dist(ThrowFrom.X, ThrowFrom.Z, targetX, targetZ);
         ThrowDur = InPlay.ThrowSec(dist, thr, R);
+        ThrowReleaseSec = thr.ReleaseSec ?? throwRules.ReleaseSec;
+        _throwReleased = false;
+        BallX = ThrowFrom.X;
+        BallY = ThrowFrom.Y;
+        BallZ = ThrowFrom.Z;
         if (bag is >= 1 and <= 4 && FirstThrowBag == 0) FirstThrowBag = bag;
         if (bag is >= 1 and <= 4)
         {
@@ -3037,13 +3020,20 @@ public sealed partial class LivePlaySystem
         _cpuDecided = false;
         _cpuWalkBag = 0;
         _heldSince = -1;
-        // The thrower stays where they are; the YOU ring hands to the receiver (§8.5). No coast: a release is not a run.
+        // Preparation holds possession at the thrower. The ring, sound and trace move on release.
         _fielders[_throwerPos] = (GloveX, GloveZ);
-        if (!string.IsNullOrEmpty(receiverPos) && receiverPos != GlovePos)
-            HandGloveTo(receiverPos, coast: false);
-        _trace?.Mark(PlayTraceMarkKind.ThrowRelease, ElapsedSeconds, _throwerPos, bag,
-            flight: new PlayTraceThrow(_throwerPos, receiverPos, bag, ThrowFrom.X, ThrowFrom.Y, ThrowFrom.Z,
-                ThrowTo.X, ThrowTo.Y, ThrowTo.Z, ThrowDur, thr.SpeedMul, thr.Relation.ToString()));
+        _events.Add(LiveEvent.ThrowCommitted);
+        if (ThrowReleaseSec <= 0) ReleaseThrow();
+    }
+
+    void ReleaseThrow()
+    {
+        _throwReleased = true;
+        if (!string.IsNullOrEmpty(CoverPos) && CoverPos != GlovePos)
+            HandGloveTo(CoverPos, coast: false);
+        _trace?.Mark(PlayTraceMarkKind.ThrowRelease, ElapsedSeconds - Math.Max(0, ThrowT - ThrowReleaseSec), _throwerPos, ThrowBag,
+            flight: new PlayTraceThrow(_throwerPos, CoverPos, ThrowBag, ThrowFrom.X, ThrowFrom.Y, ThrowFrom.Z,
+                ThrowTo.X, ThrowTo.Y, ThrowTo.Z, ThrowDur - ThrowReleaseSec, ArmedThrow!.SpeedMul, ArmedThrow.Relation.ToString()));
         _events.Add(LiveEvent.ThrowPop);
     }
 
@@ -3962,7 +3952,7 @@ public sealed partial class LivePlaySystem
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
         var result = Begin(LivePlayCommand.Begin(PlayKind.InPlay));
         if (!Active) return result;
-        if (!Runners.Any(r => r.Live && r.Broke))
+        if (pickoffBag == 0 && !Runners.Any(r => (r.Live || r.Scored) && r.Broke))
         {
             // Nobody broke: there is no play (a walk entitled every armed runner).
             Reset();
@@ -3984,6 +3974,12 @@ public sealed partial class LivePlaySystem
         var catcher = map.TryGetValue("C", out var c) ? c : _match.Pitcher;
         _cpuThrowAt = _match.RollCatcherRelease(catcher);
         _cpuDecided = false;
+        var buffered = _match.PitchSetup.TakeCatcherInput();
+        if (seats.HumanOwnsThrow && buffered is { } pad)
+        {
+            ReadThrowBag(pad, true);
+            if (pad.SouthDown) BeginPlayerThrowOrCommit(map, pad);
+        }
         return new LivePlayCommandResult(Snapshot);
     }
 

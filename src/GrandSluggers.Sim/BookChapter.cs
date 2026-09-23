@@ -24,6 +24,7 @@ public static class BookChapter
             ["pitch-swing"] = "rio",
             ["the-box"] = "brondo",
             ["running"] = "konga",
+            ["steal-race"] = "konga",
             ["fielding"] = "ashlord",
             ["relay-control"] = "ashlord",
             ["tutorial-sequences"] = "rio",

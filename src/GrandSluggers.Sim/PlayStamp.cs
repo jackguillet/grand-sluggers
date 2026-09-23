@@ -28,7 +28,7 @@ public static class PlayStamp
 
     public static bool Shows(PlayKind kind) => IsCount(kind) || kind is
         PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Strikeout
-        or PlayKind.HitByPitch
+        or PlayKind.HitByPitch or PlayKind.Balk
         or PlayKind.CaughtStealing or PlayKind.StolenBase
         or PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun;
 
@@ -75,6 +75,7 @@ public static class PlayStamp
             PlayKind.TakeStrike or PlayKind.SwingMiss => "STRIKE",
             PlayKind.Foul => "FOUL",
             PlayKind.Walk => "WALK",
+            PlayKind.Balk => "BALK",
             PlayKind.HitByPitch => "HIT BY PITCH",
             PlayKind.Strikeout => "STRIKE OUT",
             PlayKind.StolenBase => "STOLEN BASE",

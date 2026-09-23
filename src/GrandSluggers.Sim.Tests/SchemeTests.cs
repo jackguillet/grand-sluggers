@@ -230,11 +230,12 @@ public class SchemeTests
         Assert.Contains(running, l => l.Contains("highlighted"));
         Assert.Contains(running, l => l.Contains("selected runner"));
         Assert.Contains(running, l => l.Contains("home included"));
-        Assert.Contains(running, l => l.Contains("perfect steal"));
-        Assert.Contains(running, l => l.Contains("catcher") && l.Contains("throws"));
+        Assert.Contains(running, l => l.Contains("steal NOW"));
+        Assert.DoesNotContain(running, l => l.Contains("perfect steal"));
+        Assert.Contains(HowToPlay.Must("steal-race").Lines, l => l.Contains("catcher") && l.Contains("buffer a throw"));
         Assert.Contains(running, l => l.Contains("CAUGHT STEALING"));
         Assert.DoesNotContain(running, l => l.Contains("No steal home"));
-        Assert.Contains(running, l => l.Contains("Dead stick"));
+        Assert.Contains(running, l => l.Contains("Go back or send again"));
         Assert.DoesNotContain(running, l => l.Contains("steal the lead runner"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("landing") && l.Contains("fly"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("hangs"));
