@@ -7,46 +7,60 @@ namespace GrandSluggers.Sim.Tests;
 /// #732, decision 5 of #730: a tag-up is a race, not a distance. At the catch — once — a CPU runner on
 /// second or third goes when the margin to the next bag clears the bag's threshold plus the rung's
 /// slack, on the same estimate every other CPU runner read uses (arm and relay included since #722).
-/// The shipped table keeps the two carry gates and sets the thresholds to a margin no play reaches, so
-/// it decides exactly as it always did; the <c>c80</c> copy sets the gates to never and authors the
-/// thresholds from a measured sweep.
+/// The table sets the two carry gates to never and authors the thresholds from a measured sweep; a
+/// table that sets the gates and puts the thresholds at a margin no play reaches decides by carry alone.
 /// </summary>
 public sealed class TagUpDecisionTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly DataRoot Root = new(Control.Root.Shipped, Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(Root);
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
+
+    /// <summary>The game's table with the carry gates at 200 / 250 ft and the race off: the carry-gated tag-up.</summary>
+    static readonly RulesTable CarryGated = PatchedRunning(
+        ("\"tagThirdMinCarryFt\": 9999", "\"tagThirdMinCarryFt\": 200"),
+        ("\"tagSecondMinCarryFt\": 9999", "\"tagSecondMinCarryFt\": 250"),
+        ("\"tagUpHomeMarginSec\": 0.25", "\"tagUpHomeMarginSec\": 99"),
+        ("\"tagUpThirdMarginSec\": 0.07", "\"tagUpThirdMarginSec\": 99"));
+
+    /// <summary>The shipped rules with <c>rules/running.json</c> patched in a temporary overlay (a whole file, as an overlay must carry).</summary>
+    static RulesTable PatchedRunning(params (string From, string To)[] edits)
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "grand-sluggers-tagup-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var text = File.ReadAllText(Path.Combine(Game.Root.Shipped, "rules", "running.json"));
+            foreach (var (from, to) in edits)
+            {
+                Assert.Contains(from, text);
+                text = text.Replace(from, to);
+            }
+            Directory.CreateDirectory(Path.Combine(dir, "rules"));
+            File.WriteAllText(Path.Combine(dir, "rules", "running.json"), text);
+            return RulesTable.Load(new DataRoot(Game.Root.Shipped, dir));
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
 
     // ---------------------------------------------------------------------------------
     // The tables
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void TheShippedTableGatesByCarryAndTheTrialRaces()
+    public void TheTableRacesAndGatesNothingByCarry()
     {
-        var shipped = Control.Rules.Running.Cpu;
-        Assert.Equal(200, shipped.TagThirdMinCarryFt);
-        Assert.Equal(250, shipped.TagSecondMinCarryFt);
-        Assert.Equal(99, shipped.TagUpHomeMarginSec);
-        Assert.Equal(99, shipped.TagUpThirdMarginSec);
-
-        var trial = Trial.Rules.Running.Cpu;
-        Assert.Equal(9999, trial.TagThirdMinCarryFt);
-        Assert.Equal(9999, trial.TagSecondMinCarryFt);
-        Assert.Equal(0.25, trial.TagUpHomeMarginSec);
-        Assert.Equal(0.07, trial.TagUpThirdMarginSec);
-
-        // The runner clock is the C80 anchor: the carried file changes the tag-up and nothing about the clock.
-        Assert.Equal(Control.Rules.Running.BagSec.BaseSec, Trial.Rules.Running.BagSec.BaseSec);
-        Assert.Equal(Control.Rules.Running.BagSec.SecPerRun, Trial.Rules.Running.BagSec.SecPerRun);
-        Assert.Equal(Control.Rules.Running.Cpu.ReactionSec, Trial.Rules.Running.Cpu.ReactionSec);
-        Assert.Equal(Control.Rules.Running.Cpu.OutfieldGoSec, Trial.Rules.Running.Cpu.OutfieldGoSec);
+        var t = Game.Rules.Running.Cpu;
+        Assert.Equal(9999, t.TagThirdMinCarryFt);
+        Assert.Equal(9999, t.TagSecondMinCarryFt);
+        Assert.Equal(0.25, t.TagUpHomeMarginSec);
+        Assert.Equal(0.07, t.TagUpThirdMarginSec);
 
         // Home from third, third from second, nowhere else.
-        Assert.Equal(trial.TagUpHomeMarginSec, RunnerAi.TagUpThresholdSec(3, trial));
-        Assert.Equal(trial.TagUpThirdMarginSec, RunnerAi.TagUpThresholdSec(2, trial));
-        Assert.Equal(double.PositiveInfinity, RunnerAi.TagUpThresholdSec(1, trial));
+        Assert.Equal(t.TagUpHomeMarginSec, RunnerAi.TagUpThresholdSec(3, t));
+        Assert.Equal(t.TagUpThirdMarginSec, RunnerAi.TagUpThresholdSec(2, t));
+        Assert.Equal(double.PositiveInfinity, RunnerAi.TagUpThresholdSec(1, t));
     }
 
     // ---------------------------------------------------------------------------------
@@ -55,24 +69,24 @@ public sealed class TagUpDecisionTests
 
     /// <summary>
     /// A runner on <paramref name="bag"/>, the fly just caught, the defense's read of the next throw
-    /// dialled to land the margin where the case wants it. The shipped table sends on carry and on
-    /// nothing else; the trial sends on margin, once, at the catch, and never on the carry.
+    /// dialled to land the margin where the case wants it. The table sends on margin, once, at the catch,
+    /// and never on the carry; the carry-gated table sends on carry and on nothing else.
     /// </summary>
     [Theory]
-    [InlineData("control", 3, 222, +2.0, true, true)]    // shipped: deep enough, sent by the gate whatever the margin
-    [InlineData("control", 3, 222, -2.0, true, true)]
-    [InlineData("control", 3, 150, +2.0, true, false)]   // shipped: too shallow, held whatever the margin
-    [InlineData("control", 2, 260, +2.0, true, true)]    // shipped: second goes for third on a deep fly to right
-    [InlineData("trial", 3, 150, +2.0, true, true)]      // trial: a shallow fly with time to spare — go
-    [InlineData("trial", 3, 260, -2.0, true, false)]     // trial: a deep fly the arm beats — hold
-    [InlineData("trial", 3, 260, +2.0, false, false)]    // trial: the same margin read later than the catch — the door is shut
-    [InlineData("trial", 2, 260, +2.0, true, true)]      // trial: second goes for third on the margin
-    [InlineData("trial", 2, 260, -2.0, true, false)]
-    [InlineData("trial", 1, 260, +2.0, true, false)]     // trial: a runner on first has no race here
-    public void AtTheCatchTheShippedRunnerReadsTheCarryAndTheTrialRunnerReadsTheRace(string root, int bag, double carryFt, double marginWanted, bool atCatch, bool expectSent)
+    [InlineData("gated", 3, 222, +2.0, true, true)]    // gated: deep enough, sent by the gate whatever the margin
+    [InlineData("gated", 3, 222, -2.0, true, true)]
+    [InlineData("gated", 3, 150, +2.0, true, false)]   // gated: too shallow, held whatever the margin
+    [InlineData("gated", 2, 260, +2.0, true, true)]    // gated: second goes for third on a deep fly to right
+    [InlineData("race", 3, 150, +2.0, true, true)]     // a shallow fly with time to spare — go
+    [InlineData("race", 3, 260, -2.0, true, false)]    // a deep fly the arm beats — hold
+    [InlineData("race", 3, 260, +2.0, false, false)]   // the same margin read later than the catch — the door is shut
+    [InlineData("race", 2, 260, +2.0, true, true)]     // second goes for third on the margin
+    [InlineData("race", 2, 260, -2.0, true, false)]
+    [InlineData("race", 1, 260, +2.0, true, false)]    // a runner on first has no race here
+    public void AtTheCatchTheRunnerReadsTheRaceAndTheGatedTableReadsTheCarry(string table, int bag, double carryFt, double marginWanted, bool atCatch, bool expectSent)
     {
-        var content = root == "trial" ? Trial : Control;
-        var rules = content.Rules;
+        var content = Game;
+        var rules = table == "gated" ? CarryGated : content.Rules;
         var who = content.Must("cinder");
         var runner = new Runner(who, bag);
         runner.BeginPlay(forced: false, tagAndGo: false);
@@ -99,8 +113,8 @@ public sealed class TagUpDecisionTests
     [InlineData("easy", 0.45, true)]
     public void TheRungsSlackMovesTheLine(string rung, double marginWanted, bool expectSent)
     {
-        var rules = Trial.Rules.AtLevel(rung);
-        var runner = new Runner(Trial.Must("konga"), 3);
+        var rules = Game.Rules.AtLevel(rung);
+        var runner = new Runner(Game.Must("konga"), 3);
         runner.BeginPlay(forced: false, tagAndGo: false);
         var arrival = RunnerSystem.ArrivalSec(runner, 4, 0, 0, rules) + marginWanted - rules.Running.Cpu.ReactionSec;
         var ball = new BallSituation(true, false, 0, 0, 0, 250, 0, true, 0, 250, 250, ThrowClock: (x, z, b) => b == 4 ? arrival : 99);
@@ -110,28 +124,27 @@ public sealed class TagUpDecisionTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-54's play under the trial
+    // S-54's play
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// S-54's own play — vine (Arm 8) in left, konga / cinder / dart on third — read under the trial, at
-    /// 215 ft rather than the row's 222 because at 222 cinder's read margin sits within a hundredth of the
-    /// normal line (the sweep put him at +0.11 here and +0.42 at 230). The shipped rule sends all three
-    /// because the fly is deep; the race sends only the body that can win it. Each send is checked against the margin the runner actually read at the catch,
-    /// through <see cref="LivePlaySystem.RunnerRead"/>, against the threshold plus the rung's slack.
-    /// In process the bodies stand on the shipped spots (the trial README says why), so this is a
-    /// decision test: the geometry the sweep was authored on is the <c>GRAND_SLUGGERS_TRIAL</c> process.
+    /// S-54's own play — vine (Arm 8) in left, konga / cinder / dart on third — at 215 ft rather than the
+    /// row's 222, because at 222 cinder's read margin (+0.257) sits within a hundredth of the normal line;
+    /// at 215 konga reads −0.243, cinder +0.117 and dart +0.597. A carry gate would send all three because
+    /// the fly is deep; the race sends only the body that can win it. Each send is checked against the
+    /// margin the runner actually read at the catch, through <see cref="LivePlaySystem.RunnerRead"/>,
+    /// against the threshold plus the rung's slack.
     /// </summary>
     [Theory]
     [InlineData("konga", false)]
     [InlineData("cinder", false)]
     [InlineData("dart", true)]
-    public void S54sPlayUnderTheTrialSendsOnlyTheRunnerWhoCanWinTheRace(string who, bool expectSent)
+    public void S54sPlaySendsOnlyTheRunnerWhoCanWinTheRace(string who, bool expectSent)
     {
-        var home = Trial.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
-        var away = Trial.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Trial, home, away, 3, 1, parkId: "harbor-diamond");
-        var runner = Trial.Must(who);
+        var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
+        var runner = Game.Must(who);
         Assert.True(match.StationRunner(3, runner));
         Assert.True(match.SetOuts(1));
         var body = match.RunnerAt(3)!;

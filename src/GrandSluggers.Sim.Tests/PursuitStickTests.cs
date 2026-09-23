@@ -7,28 +7,21 @@ namespace GrandSluggers.Sim.Tests;
 /// 3c-2 slice 4 (#718, the human seat): the calibrated radial pursuit stick. Manual pursuit from 0.20, back to
 /// assistance at 0.15 with the owner kept between; the asked speed the linear remap of the magnitude from 0.15 to 1;
 /// a seat arms with a valid profile and one neutral observation; a calibration is a 0.50-s released-stick window with
-/// a centre within 0.10 and every sample within 0.02 of the mean. The shipped table carries <c>enterMag</c> 0 and is the
-/// Manhattan gate at <c>feel.fieldAssistStick</c> the game always had — the same doubles, not a product by one.
+/// a centre within 0.10 and every sample within 0.02 of the mean.
 /// </summary>
 public sealed class PursuitStickTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly DataRoot Root = new(Control.Root.Shipped, Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(Root);
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
-    static FieldStickRules Radial => Trial.Rules.Fielding.Stick;
+    static FieldStickRules Radial => Game.Rules.Fielding.Stick;
 
     [Fact]
-    public void TheShippedStickIsTheManhattanGateAndTheTrialIsTheCalibratedRadialOne()
+    public void TheStickIsTheCalibratedRadialOne()
     {
-        var s = Control.Rules.Fielding.Stick;
-        Assert.Equal((0.0, 0.0, false), (s.EnterMag, s.LeaveMag, s.Radial));
-        Assert.Equal(0.35, Control.Feel.FieldAssistStick);
         var t = Radial;
         Assert.Equal((0.20, 0.15, true), (t.EnterMag, t.LeaveMag, t.Radial));
         Assert.Equal((0.50, 0.10, 0.02), (t.CalibrationSec, t.CenterOffsetMax, t.SampleSpreadMax));
-        Assert.Equal((s.CalibrationSec, s.CenterOffsetMax, s.SampleSpreadMax), (t.CalibrationSec, t.CenterOffsetMax, t.SampleSpreadMax));
     }
 
     // ---------------------------------------------------------------------------------
@@ -174,14 +167,14 @@ public sealed class PursuitStickTests
     // In play
     // ---------------------------------------------------------------------------------
 
-    /// <summary>The human shortstop (zig, 22.48 ft/s on the trial) holds the ball and runs with the stick: half the usable range is half the speed, full is full, the diagonal is still capped.</summary>
+    /// <summary>The human shortstop (zig, 22.48 ft/s) holds the ball and runs with the stick: half the usable range is half the speed, full is full, the diagonal is still capped.</summary>
     [Theory]
     [InlineData(0.0, 0.575, 0.5)]
     [InlineData(0.0, 1.0, 1.0)]
     [InlineData(1.0, 1.0, 1.0)]
-    public void UnderTheTrialTheStickAsksALinearFractionOfTheGloveSpeed(double x, double y, double fraction)
+    public void TheStickAsksALinearFractionOfTheGloveSpeed(double x, double y, double fraction)
     {
-        var (live, rated) = HumanShortstopHoldsTheBall(Trial, "zig");
+        var (live, rated) = HumanShortstopHoldsTheBall(Game, "zig");
         var track = Push(live, new LivePadInput(StickX: x, StickY: y), frames: 24);
         Assert.Equal(22.48, rated, 9);
         Assert.InRange(Speed(track, 20), rated * fraction * 0.97, rated * fraction * 1.03);
@@ -192,9 +185,9 @@ public sealed class PursuitStickTests
 
     /// <summary>With the ball in hand: 0.18 from rest is assistance and the body stands; 0.30 is manual; 0.17 after that is still manual; 0.10 is assistance and the body brakes to rest.</summary>
     [Fact]
-    public void UnderTheTrialTheOwnerIsKeptBetweenTheGatesInPlay()
+    public void TheOwnerIsKeptBetweenTheGatesInPlay()
     {
-        var (live, rated) = HumanShortstopHoldsTheBall(Trial, "zig");
+        var (live, rated) = HumanShortstopHoldsTheBall(Game, "zig");
         var still = Push(live, new LivePadInput(StickY: 0.18), frames: 10);
         Assert.False(live.PursuitManual);
         Assert.Equal(0, Diamond.Dist(still[0].X, still[0].Z, still[^1].X, still[^1].Z), 6);
@@ -214,9 +207,9 @@ public sealed class PursuitStickTests
 
     /// <summary>A stick held from the first frame never arms: the assistance takes the grounder for the seat and the body stands with it; one neutral frame arms the seat and the next push steers.</summary>
     [Fact]
-    public void UnderTheTrialAHeldStickDoesNotSteerUntilTheSeatHasBeenSeenNeutralOnce()
+    public void AHeldStickDoesNotSteerUntilTheSeatHasBeenSeenNeutralOnce()
     {
-        var (match, hit, preview) = Fixture(Trial, "zig");
+        var (match, hit, preview) = Fixture(Game, "zig");
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
         var held = new LivePadInput(StickY: 0.6);
@@ -238,21 +231,6 @@ public sealed class PursuitStickTests
         var going = Push(live, held, frames: 20);
         Assert.True(live.PursuitManual);
         Assert.InRange(Speed(going, 19), 22.48 * (0.45 / 0.85) * 0.97, 22.48 * (0.45 / 0.85) * 1.03);
-    }
-
-    /// <summary>The shipped stick is the one the game always had: |x| + |y| against 0.35, the raw stick vector as the asked velocity, no arming and nothing unready.</summary>
-    [Fact]
-    public void TheControlStickIsTheManhattanGateItAlwaysWas()
-    {
-        var (live, rated) = HumanShortstopHoldsTheBall(Control, "zig");
-        Assert.Equal(38.1, rated, 9);
-        Assert.False(live.PursuitUnready);
-        var still = Push(live, new LivePadInput(StickX: 0.30), frames: 4);            // 0.30 < 0.35: dead
-        Assert.False(live.PursuitManual);
-        Assert.Equal(0, Diamond.Dist(still[0].X, still[0].Z, still[^1].X, still[^1].Z), 9);
-        var going = Push(live, new LivePadInput(StickX: 0.2, StickY: 0.2), frames: 3);   // 0.4 ≥ 0.35: the raw (0.2, 0.2) × 38.1 on the first step
-        Assert.True(live.PursuitManual);
-        Assert.Equal(Math.Sqrt(0.08) * rated, Speed(going, 0), 6);
     }
 
     // ---------------------------------------------------------------------------------
