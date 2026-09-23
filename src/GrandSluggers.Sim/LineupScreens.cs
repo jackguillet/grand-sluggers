@@ -132,7 +132,7 @@ public sealed class LineupScreens
     public int AwayStars => _content.Rules.Stars.StartingReserve;
 
     public Character? Highlighted => InspectedBy(_acting);
-    public Character? InspectedBy(LineupSeat seat) => seat == LineupSeat.Cpu ? null : CharacterAt(FocusOf(seat), IndexOf(seat));
+    public Character? InspectedBy(LineupSeat seat) => seat == LineupSeat.Cpu || (seat != HomeSeat && seat != AwaySeat) ? null : CharacterAt(FocusOf(seat), IndexOf(seat));
     public bool IsReady(LineupSeat seat) => seat == LineupSeat.Cpu || Cur(seat).Ready;
     public bool BothReady => CanPlay && IsReady(HomeSeat) && IsReady(AwaySeat) && !AnyPick;
     public bool ToggleReady(LineupSeat seat)
@@ -484,6 +484,7 @@ public sealed class LineupScreens
             for (var i = Size - 1; i > 0; i--)
                 draft.SwapOrder(i, i - 1);
         }
+        Active.Ready = false;
         OrderIndex = (OrderIndex - dir + Size) % Size;
         return true;
     }
@@ -507,7 +508,9 @@ public sealed class LineupScreens
         if (draft == null) return false;
         var who = Highlighted;
         if (who == null) return false;
-        return draft.CycleGlove(who.Id);
+        var changed = draft.CycleGlove(who.Id);
+        if (changed) Active.Ready = false;
+        return changed;
     }
 
     /// <summary>Stick on the diamond moves that glove onto the neighboring bag.</summary>
@@ -520,6 +523,7 @@ public sealed class LineupScreens
         var from = Diamond.Order[GloveIndex];
         if (!draft.Gloves.TryGetValue(from, out var who) || who == null) return false;
         if (!draft.SetGlove(Diamond.Order[next], who.Id)) return false;
+        Active.Ready = false;
         GloveIndex = next;
         return true;
     }
@@ -829,11 +833,21 @@ public static class LineupLayout
     public static (double X, double Y) FieldSpot(string pos) => pos switch
     {
         "C" => (0.50, 0.90), "P" => (0.50, 0.66),
-        "1B" => (0.88, 0.66), "3B" => (0.12, 0.66),
-        "2B" => (0.70, 0.46), "SS" => (0.30, 0.46),
-        "LF" => (0.18, 0.22), "CF" => (0.50, 0.04), "RF" => (0.82, 0.22),
+        "1B" => (0.78, 0.61), "3B" => (0.22, 0.61),
+        "2B" => (0.70, 0.36), "SS" => (0.30, 0.36),
+        "LF" => (0.13, 0.22), "CF" => (0.50, 0.04), "RF" => (0.87, 0.22),
         _ => (0.50, 0.66)
     };
+
+    public const double FieldHomeY = .90;
+    public const double FieldRadius = .90;
+    public const double FieldXScale = 1.40;
+    public static bool InFairField(double x, double y)
+    {
+        var dx = x - .5;
+        var depth = FieldHomeY - y;
+        return depth >= Math.Abs(dx) && dx * dx * FieldXScale * FieldXScale + depth * depth < FieldRadius * FieldRadius;
+    }
 
     public static LineupCell DiamondHead(bool home, string pos)
     {
