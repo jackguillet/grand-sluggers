@@ -543,6 +543,12 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/874",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/878",
           "status": "in review"
+        },
+        {
+          "child": "F2-b2",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/873",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/875",
+          "status": "in review"
         }
       ],
       "validation_evidence": [
@@ -2408,6 +2414,10 @@
     {
       "date": "2026-09-22",
       "event": "Jack looked at the F6-a2 before / after sheets (PR #885, #881): \"looks like we also need to get rid of those old dugouts. looks great otherwise.\" Not a look pass: PR #885 was extended to remove the five non-Harbor dresses' old dugout benches and awnings at (+-42, 22) (Crystal IceBench1B / 3B; Funfair's whole FunfairBenches; Rooftop Bench1B, Awning1B, Bench3B, Awning3B; Canopy LogBench1B, LeafAwning1B, LogBench3B, LeafAwning3B; Ember StoneBench1B / 3B) and the two materials only they used, and a second source row, FieldKitSourceTests.NoDressPieceStandsInADugout, refuses any dress piece in the dugout region the geometry owner pins at every park (HarborDugout.AlongHome to AlongBag along either foul line, from the chalk to the pit's back wall behind the rail). Harbor's dugouts are HarborKit dress and do not change; the booth awnings stay. The sheets are recaptured for Jack's look."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F2-b2 opened as PR #875 (#873): the drawn rail stays hip-high to the foul pole, as the flight's does (FD-06-R2). Each drawn span of HarborWall.Loop now stands at the top of the flight segment it lies on, read at each of its two ends (HarborWall.FlightSpan / SpanTops, read from FieldBounds.Of(park) and cached on F2-c's FieldBounds.EdgeKey); a vertex stands at the taller of the two spans that meet there, and IsOutfield is 'on a fair flight segment'. RampStartZ and the smoothstep ramp are gone, and so is the half-degree slack that had drawn the last 31-34 ft of rail before each pole (11-12 ft on trials/c80) at full fence height, which map finding 19 had not named: on the shipped root 159-190 ft of drawn rail per side stood above the rail the ball meets, 69-87 ft on trials/c80. FieldKit.Wall draws each span from its own tops, so the wall steps from the fence to the rail at the pole vertex, where the pole stands and the flight's segment kind changes; a span is level wherever its ends match (every span of every catalog park) and sloped only along a polyline span whose points differ (F2-c). No other Unity change. SF-05 claims the whole rail on both roots, on the lopsided fixture and on F2-c's polyline fixture, with the step at each pole; TaperIsARamp became StepsOnlyAtThePoles, the ramp rows were re-authored citing FD-06-R2, and the rail row's Copy=gap on trials/c80 closed. Rebased onto F2-c after the look-gate stills were captured at 21091d3a: the drawn positions and every vertex and span-end top of the six catalog parks are unchanged on both roots, pinned by HarborWallTests.TheCatalogParksDrawTheTopsTheLookGateWasShown. Protocol row drawn-top-recomputes-the-flight. No flight, boundary or rule number moved: seed 7 identical on both roots, seals hash-only. A visible change at every park near both poles; the look gate at the poles of Harbor and the five parks is Jack's. No decision status changed; no human gate passed."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
