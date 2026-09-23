@@ -6,29 +6,29 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// 3c-4 slice 2 (#720: F693-02-grounded-air-catch-recoil): a hard batted ball caught in the air by a body on its feet costs the
 /// same response as a hot ground pickup, off its own anchor pair — the ground pair would charge every liner. A dive, a jump or a
-/// buddy leap is not a grounded catch; a routine fly stays a routine fly; the shipped table charges no catch in the air at all.
+/// buddy leap is not a grounded catch; a routine fly stays a routine fly. With the airborne pair at 0 no catch in the air is
+/// charged at all.
 /// </summary>
 public sealed class AirRecoilTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Control.Root.Shipped, Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80"))));
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
     [Trait("Kind", "Balance")]
-    public void TheAirbornePairIsItsOwnAndOffShipped()
+    public void TheAirbornePairIsItsOwn()
     {
-        var s = Control.Rules.Fielding.Recoil;
-        Assert.Equal((0.0, 0.0), (s.AirOnsetFtPerSec, s.AirFullFtPerSec));
-        Assert.False(s.AirActive);
-        var t = Trial.Rules.Fielding.Recoil;
+        var airOff = new RulesTable { Fielding = new FieldingRules { Recoil = new RecoilRules { AirOnsetFtPerSec = 0, AirFullFtPerSec = 0 } } };
+        Assert.False(airOff.Fielding.Recoil.AirActive);
+        Assert.True(airOff.Fielding.Recoil.Active, "the ground pair is its own switch");
+        var t = Game.Rules.Fielding.Recoil;
         Assert.Equal((80.0, 115.0), (t.AirOnsetFtPerSec, t.AirFullFtPerSec));
         Assert.True(t.AirActive);
         Assert.Equal((55.0, 75.0), (t.OnsetFtPerSec, t.FullFtPerSec));   // the ground pair does not move
 
-        var r = Trial.Rules;
-        Character Hands(int h) => Trial.Must("vale") with { Stats = Trial.Must("vale").Stats with { Hands = h } };
+        var r = Game.Rules;
+        Character Hands(int h) => Game.Must("vale") with { Stats = Game.Must("vale").Stats with { Hands = h } };
         // A routine fly (36–41 ft/s, 0.59 vertical) is under both pairs; a median liner in the air (77) is at the ground pair's
         // cap and under the airborne onset — the one pair cannot serve both, so the air reads its own.
         Assert.Equal(0, FieldingResolver.RecoilSeverity(41, r, airborne: true));
@@ -44,39 +44,35 @@ public sealed class AirRecoilTests
         Assert.Equal(0.11, FieldingResolver.RecoilSec(Hands(10), 115, r, airborne: true), 9);
         Assert.Equal(0.10, FieldingResolver.RecoilSec(Hands(1), 97.5, r, airborne: true), 9);
         Assert.Equal(0.055, FieldingResolver.RecoilSec(Hands(10), 97.5, r, airborne: true), 9);
-        Assert.Equal(0, FieldingResolver.RecoilSec(Control.Must("vale"), 300, Control.Rules, airborne: true));
+        Assert.Equal(0, FieldingResolver.RecoilSec(Game.Must("vale"), 300, airOff, airborne: true));
     }
 
-    /// <summary>An 80-mph Perfect liner at 12° into the hole reaches grit (SS, Hands 6) on his feet at 98 ft/s in 0.38 s: 0.20 × 0.526 × 0.75 = 0.079 s, the catch an out at the take, the same ball twice the same; the shipped table charges nothing.</summary>
+    /// <summary>An 80-mph Perfect liner at 10° into the hole reaches grit (SS, Hands 6) on his feet at 101 ft/s in 0.33 s: 0.20 × 0.594 × 0.75 = 0.089 s, the catch an out at the take, the same ball twice the same.</summary>
     [Fact]
     public void AHotLinerCaughtStandingCostsTheHandsAndTheOutStands()
     {
-        var a = Drive(Trial, 80, 12, -22);
-        var b = Drive(Trial, 80, 12, -22);
+        var a = Drive(Game, 80, 10, -18);
+        var b = Drive(Game, 80, 10, -18);
         Assert.Equal("SS", a.Pos);
         Assert.True(a.TakeAt < a.Hang, "the liner was caught in the air");
         Assert.False(a.Dive || a.Jump || a.Airborne, "a catch on his feet");
         Assert.InRange(a.Speed, 80.01, 115);
-        Assert.Equal(FieldingResolver.RecoilSec(Trial.Must("grit"), a.Speed, Trial.Rules, airborne: true), a.Dur, 9);
-        Assert.InRange(a.Dur, 0.07, 0.09);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("grit"), a.Speed, Game.Rules, airborne: true), a.Dur, 9);
+        Assert.InRange(a.Dur, 0.088, 0.090);
         Assert.Equal(1, a.Events);
         Assert.Equal(PlayKind.FlyOut, a.Play.Kind);
         Assert.True(a.Play.Outcome?.OutsMade.Count >= 1, "the catch is the out");
         Assert.Equal((a.Speed, a.Dur, a.TakeAt), (b.Speed, b.Dur, b.TakeAt));
         Assert.Equal(a.Marks, b.Marks);
 
-        var shipped = Drive(Control, 80, 12, -22);
-        Assert.True(shipped.TakeAt < shipped.Hang);
-        Assert.Equal((0.0, 0, false), (shipped.Dur, shipped.Events, shipped.Impact));
-        Assert.Equal(0, shipped.RecoilFrames);
     }
 
-    /// <summary>A 120-mph rope at 18° reaches hex (RF, Hands 4) at 122 ft/s, past the full speed: the cap binds in the air too — 0.20 × 0.85 = 0.17 s.</summary>
+    /// <summary>A 112-mph rope at 12° reaches hex (RF, Hands 4) at 123 ft/s, past the full speed: the cap binds in the air too — 0.20 × 0.85 = 0.17 s.</summary>
     [Fact]
     [Trait("Kind", "Balance")]
     public void TheCapBindsInTheAir()
     {
-        var run = Drive(Trial, 120, 18, 22);
+        var run = Drive(Game, 112, 12, 24);
         Assert.Equal("RF", run.Pos);
         Assert.True(run.Speed >= 115, $"the rope arrived at {run.Speed:0.0} ft/s");
         Assert.Equal(0.17, run.Dur, 9);
@@ -84,14 +80,13 @@ public sealed class AirRecoilTests
     }
 
     /// <summary>
-    /// A 130-mph liner at 12° into right-centre: the trial's right fielder commits, dives and takes it at 81 ft/s — above the airborne
-    /// onset, and no recoil: a dive is not a grounded catch, and it pays its own 0.555 s instead. (Slice 2 recorded this on the #719 gap
-    /// liner to centre at 85 ft/s, with the outfield's air multiplier at 1.0; at 0.6 nobody reaches that ball.)
+    /// A 130-mph liner at 12° into right-centre: the right fielder commits, dives and takes it at 81 ft/s — above the airborne onset,
+    /// and no recoil: a dive is not a grounded catch, and it pays its own 0.555 s instead.
     /// </summary>
     [Fact]
     public void ADivingCatchIsNotAGroundedOneAndPaysTheDiveInstead()
     {
-        var run = Drive(Trial, 130, 12, 25);
+        var run = Drive(Game, 130, 12, 25);
         Assert.Equal("RF", run.Pos);
         Assert.True(run.Dive, "the right fielder dove");
         Assert.True(run.Speed > 80, $"the liner arrived at {run.Speed:0.0} ft/s, above the airborne onset");
@@ -100,13 +95,11 @@ public sealed class AirRecoilTests
         Assert.Equal(0.555, run.DiveCost, 6);
     }
 
-    /// <summary>A 245-ft fly at 34° comes down to the centre fielder at 36–41 ft/s, more than half of it straight down: nothing, on either table.</summary>
-    [Theory]
-    [InlineData("control")]
-    [InlineData("trial")]
-    public void ARoutineFlyCostsNothing(string root)
+    /// <summary>A 245-ft fly at 34° comes down to the centre fielder at 36–41 ft/s, more than half of it straight down: nothing.</summary>
+    [Fact]
+    public void ARoutineFlyCostsNothing()
     {
-        var content = root == "trial" ? Trial : Control;
+        var content = Game;
         var run = Drive(content, FlightFixtures.ExitForCarry(245, 34, content.Rules), 34, 0);
         Assert.True(run.TakeAt < run.Hang, $"the fly was taken at {run.TakeAt:0.00} of {run.Hang:0.00}");
         Assert.InRange(run.Speed, 30, 60);
@@ -118,7 +111,7 @@ public sealed class AirRecoilTests
     [Fact]
     public void TheHumanSeatIsHeldAndTheThrowWaitsAfterAStandingCatch()
     {
-        var (match, hit, preview) = Fixture(Trial, 80, 12, -22);
+        var (match, hit, preview) = Fixture(Game, 80, 10, -18);
         var live = match.LivePlay;
         live.Recording = true;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);

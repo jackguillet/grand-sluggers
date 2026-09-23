@@ -7,50 +7,42 @@ namespace GrandSluggers.Sim.Tests;
 /// 3c-5 slice 1 (#721: F693-02-handling-error-opportunities, -ordinary-handling-error-chance, -ordinary-handling-error-cap,
 /// -ordinary-handling-chance-curve, -awkward-hop-difficulty-source, -ordinary-bobble-outcome, -bobble-stun, -bobble-stun-duration,
 /// -bobble-recovery-reliability, -bobble-direction-spread, -uniform-error-direction, -local-bobble-*): where an ordinary play is
-/// allowed to go wrong. On the <c>c80</c> copy a legal routine pickup never rolls; the awkward in-between hop is the one difficulty,
-/// its chance the accepted curve off the ball and the hands, capped at 10 %; a failed take is a local bobble with a 0.40-s stun and
-/// a recovery that never rolls again. The shipped table keeps the energy roll and the whole-tick fumble the game shipped with.
+/// allowed to go wrong. A legal routine pickup never rolls; the awkward in-between hop is the one difficulty, its chance the accepted
+/// curve off the ball and the hands, capped at 10 %; a failed take is a local bobble with a 0.40-s stun and a recovery that never
+/// rolls again. With the awkward-hop switch off (awkwardHop 0) nothing rolls on the hop.
 /// </summary>
 public sealed class HandlingErrorTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly string TrialDir = Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80"));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Control.Root.Shipped, TrialDir));
+    static readonly ContentCatalog Game = ContentCatalog.Load();
+    /// <summary>The game's handling table with the awkward-hop switch off.</summary>
+    static readonly RulesTable HopOff = new() { Fielding = new FieldingRules { Handling = new HandlingRules { AwkwardHop = 0 } } };
     const double Frame = 1.0 / 60.0;
     const double G = 32.174;
 
     [Fact]
-    public void TheShippedTableRollsOnEnergyAndTheTrialOnlyOnTheAwkwardHop()
+    public void TheGameRollsOnlyOnTheAwkwardHop()
     {
-        var s = Control.Rules.Fielding.Handling;
-        Assert.Equal(0, s.AwkwardHop);
-        Assert.False(s.Active);
-        var t = Trial.Rules.Fielding.Handling;
-        Assert.Equal(1, t.AwkwardHop);
-        Assert.True(t.Active);
-        // The accepted anchors, the same in both roots.
-        foreach (var h in new[] { s, t })
-        {
-            Assert.Equal((0.10, 0.80, 0.5, 1.5, 0.35, 0.40), (h.ChanceCap, h.HandsCut, h.HopMinApexFt, h.HopFullApexFt, h.HopPhaseHalfWidth, h.StunSec));
-            Assert.Equal((30.0, 0.20, 6.0, 0.50, 0.25), (h.BobbleSpreadDeg, h.BobbleRetain, h.BobbleCapFtPerSec, h.BobbleReboundCapFt, h.BobbleSettleFt));
-        }
+        var h = Game.Rules.Fielding.Handling;
+        Assert.Equal(1, h.AwkwardHop);
+        Assert.True(h.Active);
+        Assert.False(HopOff.Fielding.Handling.Active);
+        // The accepted anchors.
+        Assert.Equal((0.10, 0.80, 0.5, 1.5, 0.35, 0.40), (h.ChanceCap, h.HandsCut, h.HopMinApexFt, h.HopFullApexFt, h.HopPhaseHalfWidth, h.StunSec));
+        Assert.Equal((30.0, 0.20, 6.0, 0.50, 0.25), (h.BobbleSpreadDeg, h.BobbleRetain, h.BobbleCapFtPerSec, h.BobbleReboundCapFt, h.BobbleSettleFt));
         // The bobble's restitution, the roll it keeps per impact and its rolling deceleration are the ground's since F3-c (FD-05): every
-        // ground row carries the same accepted 0.35 / 0.90 / 6, on both roots (the trial reads the shipped grounds.json).
-        foreach (var rules in new[] { Control.Rules, Trial.Rules })
-            foreach (var id in rules.Grounds.Ids)
-            {
-                var b = rules.Grounds.Of(id).Bobble;
-                Assert.Equal((0.35, 0.90, 6.0), (b.Restitution, b.GroundRetain, b.DecelFtPerSec2));
-            }
-        // The shipped bobble block is untouched in both: the energy roll and the 0.58-s fumble are what the shipped table plays.
-        Assert.Equal((78.0, 0.5, 0.58), (Trial.Rules.Fielding.Bobble.MinEnergy, Trial.Rules.Fielding.Bobble.MaxChance, Trial.Rules.Fielding.Bobble.FumbleSec));
+        // ground row carries the same accepted 0.35 / 0.90 / 6.
+        foreach (var id in Game.Rules.Grounds.Ids)
+        {
+            var b = Game.Rules.Grounds.Of(id).Bobble;
+            Assert.Equal((0.35, 0.90, 6.0), (b.Restitution, b.GroundRetain, b.DecelFtPerSec2));
+        }
     }
 
     /// <summary>D off the hop, H off the hands, p off the accepted curve — as numbers, with the 10 % ceiling binding.</summary>
     [Fact]
     public void TheChanceIsTheAcceptedCurveOffTheHopAndTheHands()
     {
-        var r = Trial.Rules;
+        var r = Game.Rules;
         // D: nothing for a roll, a falling ball or a micro-bounce; the middle of a full hop's rise is 1; linear either side.
         Assert.Equal(0, FieldingResolver.HopDifficulty(0, 0, r));
         Assert.Equal(0, FieldingResolver.HopDifficulty(1.0, -5, r));
@@ -62,9 +54,9 @@ public sealed class HandlingErrorTests
         Assert.Equal(0.5, FieldingResolver.HopDifficulty(0.325 * 2, Rise(2, 0.325), r), 6);   // φ 0.325: half way down the band
         Assert.Equal(0, FieldingResolver.HopDifficulty(0.15 * 2, Rise(2, 0.15), r), 6);       // the clean short hop
         Assert.Equal(0, FieldingResolver.HopDifficulty(0.85 * 2, Rise(2, 0.85), r), 6);       // the clean long hop
-        Assert.Equal(0, FieldingResolver.HopDifficulty(0.75, Rise(1.5, 0.5), Control.Rules));   // nothing on the shipped table
-        // H: Hands 1 → 0, 10 → 1, and the glove's help counts as it did for the shipped roll.
-        Character Hands(int h) => Trial.Must("vale") with { Stats = Trial.Must("vale").Stats with { Hands = h } };
+        Assert.Equal(0, FieldingResolver.HopDifficulty(0.75, Rise(1.5, 0.5), HopOff));   // nothing with the switch off
+        // H: Hands 1 → 0, 10 → 1, and the glove's help counts.
+        Character Hands(int h) => Game.Must("vale") with { Stats = Game.Must("vale").Stats with { Hands = h } };
         Assert.Equal(0, FieldingResolver.HandlingQuality(Hands(1), null, r));
         Assert.Equal(0.5, FieldingResolver.HandlingQuality(Hands(5), null, r) + 1.0 / 18, 9);
         Assert.Equal(1, FieldingResolver.HandlingQuality(Hands(10), null, r));
@@ -77,24 +69,25 @@ public sealed class HandlingErrorTests
         Assert.Equal(0.01, FieldingResolver.HandlingErrorChance(0.5, 1, r), 9);
         Assert.Equal(0, FieldingResolver.HandlingErrorChance(0, 0, r));
         Assert.Equal(0.10, FieldingResolver.HandlingErrorChance(5, -1, r), 9);   // the ceiling binds whatever the inputs
-        Assert.Equal(0, FieldingResolver.HandlingErrorChance(1, 0, Control.Rules));
+        Assert.Equal(0, FieldingResolver.HandlingErrorChance(1, 0, HopOff));
     }
 
     /// <summary>
     /// The invariant the design rests on: a routine grounder to a planted infielder never rolls. A roll, a short hop, a long hop and
-    /// a ball dropping from a high bounce, each to the mound, each across forty seeds — no chance, no bobble, on either table's rule.
+    /// a ball dropping from a high bounce, each to the mound, each across forty seeds — no chance, no bobble.
     /// </summary>
     [Theory]
-    [InlineData(60, 2, 0, ContactQuality.Perfect)]   // a short hop: the ball 0.09 ft up, rising off a 0.24-ft bounce
-    [InlineData(60, 4, 0, ContactQuality.Perfect)]   // a long hop: 1.2 ft up and falling
-    [InlineData(60, 6, 0, ContactQuality.Perfect)]   // dropping from 2.7 ft
+    [InlineData(50, 3, 6, ContactQuality.Perfect)]   // a short hop: the ball 0.07 ft up, rising off a 0.26-ft bounce
+    [InlineData(60, 2, 0, ContactQuality.Perfect)]   // 0.45 ft up and falling
+    [InlineData(60, 4, 0, ContactQuality.Perfect)]   // a long hop: 1.8 ft up and falling
+    [InlineData(60, 6, 0, ContactQuality.Perfect)]   // dropping from 3.1 ft
     [InlineData(70, 8, 0, ContactQuality.Nice)]      // the routine grounder of the recoil tests
-    [InlineData(60, 8, 15, ContactQuality.Nice)]     // a roll to the mound at the top of a 0.9-ft hop
+    [InlineData(70, 2, 11, ContactQuality.Nice)]     // a roll to the mound at the top of a half-foot hop
     public void ARoutineGrounderToAPlantedInfielderNeverRolls(double exit, double launch, double spray, ContactQuality q)
     {
         for (var seed = 1; seed <= 40; seed++)
         {
-            var run = Drive(Trial, exit, launch, spray, q, seed);
+            var run = Drive(Game, exit, launch, spray, q, seed);
             Assert.Equal("P", run.Pos);
             Assert.Equal(0, run.Difficulty);
             Assert.Equal(0, run.Chance);
@@ -105,50 +98,41 @@ public sealed class HandlingErrorTests
     }
 
     /// <summary>
-    /// A 100-mph liner at 20° into left lands and comes up at vine 0.9 ft off the grass and rising: 97 % of the way to the hardest ball.
-    /// Hands 8 with the glove faces 3.3 %; authored Hands 1 faces 9.3 %, and nothing faces more than 10 %. The chance is what the curve
-    /// says of the take, the same every time; the shipped table has no such roll and stuns nobody. (#721 recorded this on a 120-mph / 12°
-    /// liner with the outfield's air multiplier at 1.0; at 0.6 the left fielder meets that one on the way down, and this is the ball he
-    /// meets mid-hop.)
+    /// A 78-mph liner at 21.5° into left lands and comes up at vine 0.73 ft off the grass and rising: 90 % of the way to the hardest
+    /// ball. Hands 8 with the glove faces 3.1 %; authored Hands 1 faces 8.7 %, and nothing faces more than 10 %. The chance is what the
+    /// curve says of the take, the same every time.
     /// </summary>
     [Fact]
     [Trait("Kind", "Balance")]
     public void TheAwkwardHopCarriesTheCurvesChanceAndTheCapBinds()
     {
-        var run = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1);
+        var run = Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed: 1);
         Assert.Equal("LF", run.Pos);
-        Assert.InRange(run.Difficulty, 0.95, 1.0);
-        var vine = Trial.Must("vine");
-        Assert.Equal(FieldingResolver.HandlingErrorChance(run.Difficulty, FieldingResolver.HandlingQuality(vine, run.Glove, Trial.Rules), Trial.Rules), run.Chance, 12);
+        Assert.InRange(run.Difficulty, 0.90, 0.91);
+        var vine = Game.Must("vine");
+        Assert.Equal(FieldingResolver.HandlingErrorChance(run.Difficulty, FieldingResolver.HandlingQuality(vine, run.Glove, Game.Rules), Game.Rules), run.Chance, 12);
         Assert.InRange(run.Chance, 0.03, 0.04);
-        var weak = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1, lfHands: 1);
+        var weak = Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed: 1, lfHands: 1);
         Assert.Equal(run.Difficulty, weak.Difficulty);
-        Assert.InRange(weak.Chance, 0.09, 0.10);
+        Assert.InRange(weak.Chance, 0.08, 0.09);
         Assert.True(weak.Chance <= 0.10 + 1e-12);
-        var strong = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1, lfHands: 10);
+        var strong = Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed: 1, lfHands: 10);
         Assert.InRange(strong.Chance, 0.015, 0.025);
-        var again = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1);
+        var again = Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed: 1);
         Assert.Equal((run.Difficulty, run.Chance, run.TakeAt), (again.Difficulty, again.Chance, again.TakeAt));
-
-        // On the shipped field the same swing is a liner caught in the air; with a runner on first the catch is not the completing frame. No roll, no stun.
-        var shipped = Drive(Control, 100, 20, -25, ContactQuality.Perfect, seed: 1, runnerOnFirst: true);
-        Assert.Equal(0, shipped.Chance);
-        Assert.Equal(0, shipped.StunFrames);
     }
 
     /// <summary>
-    /// Seed 35 is the one in thirty where vine's 3.3 % comes up on the 100-mph liner: it came in at 52 ft/s, under the hot line, so the
+    /// Seed 35 is the one in thirty where vine's 3.1 % comes up on the 78-mph liner: it came in at 49.5 ft/s, under the hot line, so the
     /// failed take is the knockdown — the ball never above where it met the glove, six ft/s out inside ±30°, rebounds under six inches,
-    /// rests 3.1 ft away; vine is stunned 24 frames and does not walk; he picks it up himself 0.65 s later with no second roll, and a bobble
-    /// is not by itself the error. Seed 34 is the same ball taken clean; the same seed twice is the same play to the mark. (Slice 1
-    /// recorded this on the 120-mph / 12° liner — a double; slice 2 turned that hot ball into the one that gets past; with the outfield's
-    /// air multiplier at 0.6 neither liner is met mid-hop, and the local bobble's real-table case is this one.)
+    /// rests 3.2 ft away; vine is stunned 24 frames and does not walk; he picks it up himself 0.70 s later with no second roll, and a bobble
+    /// is not by itself the error. Seed 34 is the same ball taken clean; the same seed twice is the same play to the mark.
     /// </summary>
     [Fact]
     [Trait("Kind", "Balance")]
     public void TheFailedTakeIsOneRollOneBobbleOneStunAndAReliableRecovery()
     {
-        var run = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 35);
+        var run = Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed: 35);
         Assert.Equal(1, run.Bobbles);
         Assert.Equal("LF", run.Pos);
         Assert.InRange(run.Chance, 0.03, 0.04);
@@ -164,27 +148,27 @@ public sealed class HandlingErrorTests
         Assert.Equal(1, run.Rolls);
         Assert.False(run.Play.Outcome?.Error ?? true, "a bobble is not by itself the error (§8.6)");
 
-        var again = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 35);
+        var again = Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed: 35);
         Assert.Equal(run.Marks, again.Marks);
         Assert.Equal(run.DirOffsetDeg, again.DirOffsetDeg);
 
-        var clean = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 34);
+        var clean = Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed: 34);
         Assert.Equal(0, clean.Bobbles);
         Assert.Equal(run.Chance, clean.Chance);
     }
 
     /// <summary>
-    /// The direction is one seeded draw, uniform inside the branch's spread: four seeds that fail on the 100-mph liner are knockdowns with
-    /// four different offsets inside ±30°; four that fail on the hot 120-mph liner get past with four different offsets inside ±15°.
+    /// The direction is one seeded draw, uniform inside the branch's spread: four seeds that fail on the 78-mph liner are knockdowns with
+    /// four different offsets inside ±30°; four that fail on the hot 96-mph liner get past with four different offsets inside ±15°.
     /// </summary>
     [Fact]
     public void TheErrorsDirectionIsOneUniformDrawInsideItsSpread()
     {
-        var local = new[] { 14, 16, 35, 37 }.Select(seed => Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
+        var local = new[] { 14, 16, 35, 37 }.Select(seed => Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
         Assert.True(local.Count >= 3, $"only {local.Count} of the four seeds bobbled on the ordinary liner");
         Assert.All(local, r => Assert.InRange(r.DirOffsetDeg, -30, 30));
         Assert.True(local.Select(r => r.DirOffsetDeg).Distinct().Count() == local.Count, "the offsets are one draw each, not one value");
-        var past = new[] { 14, 35, 37, 58 }.Select(seed => Drive(Trial, 120, 16, -18, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
+        var past = new[] { 14, 35, 37, 58 }.Select(seed => Drive(Game, 96, 12, -21, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
         Assert.True(past.Count >= 3, $"only {past.Count} of the four seeds failed on the hot liner");
         Assert.All(past, r => Assert.InRange(r.DirOffsetDeg, -15, 15));
         Assert.True(past.Select(r => r.DirOffsetDeg).Distinct().Count() == past.Count, "the offsets are one draw each, not one value");
@@ -194,10 +178,10 @@ public sealed class HandlingErrorTests
     [Fact]
     public void TheLocalBobblesPhysicsToTheNumberOnACertainFumble()
     {
-        using var certain = new PatchedTrial(text => text
+        using var certain = new PatchedGame(text => text
             .Replace("\"chanceCap\": 0.10", "\"chanceCap\": 1.0").Replace("\"handsCut\": 0.80", "\"handsCut\": 0")
             .Replace("\"hopMinApexFt\": 0.5", "\"hopMinApexFt\": 0").Replace("\"hopFullApexFt\": 1.5", "\"hopFullApexFt\": 0").Replace("\"hopPhaseHalfWidth\": 0.35", "\"hopPhaseHalfWidth\": 100"));
-        var run = Drive(certain.Content, 80, 6, 25, ContactQuality.Perfect, seed: 1);   // a grounder the second baseman meets rising 3 ft/s at 0.44 ft
+        var run = Drive(certain.Content, 80, 4, 20, ContactQuality.Perfect, seed: 1);   // a grounder the second baseman meets rising at 0.55 ft
         Assert.Equal("2B", run.Pos);
         Assert.InRange(run.Chance, 0.99, 1.0);   // the band is 1 − |φ − 0.5| / 100
         Assert.Equal(1, run.Bobbles);
@@ -218,7 +202,7 @@ public sealed class HandlingErrorTests
         double RecoverAt, string RecoverPos, IReadOnlyList<(PlayTraceMarkKind Kind, double T)> Marks);
 
     /// <summary>Harbor, vale on the mound, vine (Hands 8) in left; the CPU plays the ball; the run reads the take, its roll, and what the loose ball and the stunned body did.</summary>
-    static Run Drive(ContentCatalog content, double exitMph, double launchDeg, double sprayDeg, ContactQuality quality, int seed, int lfHands = 0, bool runnerOnFirst = false)
+    static Run Drive(ContentCatalog content, double exitMph, double launchDeg, double sprayDeg, ContactQuality quality, int seed, int lfHands = 0)
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
         if (lfHands > 0)
@@ -231,7 +215,6 @@ public sealed class HandlingErrorTests
         var hit = FlightFixtures.Hit(match.Park, exitMph, launchDeg, sprayDeg, quality, rules: match.Rules);
         Assert.False(hit.Foul);
         var preview = match.PreviewHit(hit);
-        if (runnerOnFirst) Assert.True(match.StationRunner(1, content.Must("gull")));   // so a catch is not the completing frame
         var live = match.LivePlay;
         live.Recording = true;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
@@ -283,26 +266,18 @@ public sealed class HandlingErrorTests
         return new Run(play, pos, takeAt, difficulty, chance, bobbles, rolls, match.DefenseGlove, contactY, looseMaxY, reboundMaxY, looseSpeed, dir, travel, stunFrames, stunMove, recoverAt, recoverPos, marks);
     }
 
-    /// <summary>The c80 copy with its fielding table changed, laid over the shipped root.</summary>
-    sealed class PatchedTrial : IDisposable
+    /// <summary>The game with its fielding table changed: an overlay carrying the one patched file over the shipped root.</summary>
+    sealed class PatchedGame : IDisposable
     {
         readonly string _dir;
 
-        public PatchedTrial(Func<string, string> fielding)
+        public PatchedGame(Func<string, string> fielding)
         {
             _dir = Path.Combine(Path.GetTempPath(), "grand-sluggers-handling-" + Guid.NewGuid().ToString("N"));
-            foreach (var file in Directory.GetFiles(Control.Root.Shipped, "*", SearchOption.AllDirectories))
-            {
-                var relative = Path.GetRelativePath(Control.Root.Shipped, file);
-                var source = Path.Combine(TrialDir, relative);
-                if (!File.Exists(source)) continue;
-                var to = Path.Combine(_dir, relative);
-                Directory.CreateDirectory(Path.GetDirectoryName(to)!);
-                var text = File.ReadAllText(source);
-                if (relative.Replace('\\', '/') == "rules/fielding.json") text = fielding(text);
-                File.WriteAllText(to, text);
-            }
-            Content = ContentCatalog.Load(new DataRoot(Control.Root.Shipped, _dir));
+            var to = Path.Combine(_dir, "rules", "fielding.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+            File.WriteAllText(to, fielding(File.ReadAllText(Path.Combine(Game.Root.Shipped, "rules", "fielding.json"))));
+            Content = ContentCatalog.Load(new DataRoot(Game.Root.Shipped, _dir));
         }
 
         public ContentCatalog Content { get; }

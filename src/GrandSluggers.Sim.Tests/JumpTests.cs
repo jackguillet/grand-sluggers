@@ -4,27 +4,23 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// 3c-3 slice 3 (#719, F693-02-normal-jump-* and -jump-catch-throw-readiness): on the <c>c80</c> copy a fresh eligible West
-/// press is a takeoff — 2.0 ft of root rise over 0.60 s, the same for every character, one profile per press — a blocked press
-/// is remembered 0.10 s, the airborne body answers the stick at a tenth of its ground rates, a neutral body coasts, and a
-/// jumping catch throws only after it lands. The shipped table keeps the arm window the game always had.
+/// 3c-3 slice 3 (#719, F693-02-normal-jump-* and -jump-catch-throw-readiness): a fresh eligible West press is a takeoff — 2.0 ft
+/// of root rise over 0.60 s, the same for every character, one profile per press — a blocked press is remembered 0.10 s, the
+/// airborne body answers the stick at a tenth of its ground rates, a neutral body coasts, and a jumping catch throws only after it
+/// lands. With jumpAirSec 0 the jump is the old arm window instead.
 /// </summary>
 public sealed class JumpTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly DataRoot Root = new(Control.Root.Shipped, Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(Root);
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
     [Trait("Kind", "Balance")]
-    public void TheShippedJumpIsAnArmWindowAndTheTrialsIsAnArc()
+    public void TheJumpIsAnArc()
     {
-        var s = Control.Rules.Fielding.Catch;
-        Assert.False(s.JumpArc);
-        Assert.Equal((0.0, 2.0, 0.0, 0.10, 8.0), (s.JumpAirSec, s.JumpRiseFt, s.JumpBufferSec, s.JumpAirResponseMul, s.JumpReachFt));
-        var t = Trial.Rules.Fielding.Catch;
+        Assert.False(new CatchRules { JumpAirSec = 0 }.JumpArc);
+        var t = Game.Rules.Fielding.Catch;
         Assert.True(t.JumpArc);
         Assert.Equal((0.60, 2.0, 0.10, 0.10, 0.0), (t.JumpAirSec, t.JumpRiseFt, t.JumpBufferSec, t.JumpAirResponseMul, t.JumpReachFt));
     }
@@ -36,7 +32,7 @@ public sealed class JumpTests
     [Trait("Kind", "Balance")]
     public void TheArcIsTwoFeetOverPointSixSecondsForEveryBody(string centre)
     {
-        var (match, hit, preview) = Fixture(Trial, centre);
+        var (match, hit, preview) = Fixture(Game, centre);
         var live = Begin(match, hit, preview);
         Run(live, 60, _ => LivePadInput.Dead);                                   // 1.0 s in: the read is long over, the ball is high
         var heights = new List<double>();
@@ -64,10 +60,10 @@ public sealed class JumpTests
     [Theory]
     [InlineData(0.30, true)]
     [InlineData(1.20, false)]
-    public void UnderTheTrialTheJumpCatchesOnlyWhenTheBodyIsInTheAirAndTheThrowWaitsForTheLanding(double lead, bool catches)
+    public void TheJumpCatchesOnlyWhenTheBodyIsInTheAirAndTheThrowWaitsForTheLanding(double lead, bool catches)
     {
-        var (match, hit, preview) = Fixture(Trial, "basil");
-        Assert.True(match.StationRunner(3, Trial.Must("konga")));
+        var (match, hit, preview) = Fixture(Game, "basil");
+        Assert.True(match.StationRunner(3, Game.Must("konga")));
         var live = match.LivePlay;
         live.Recording = true;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
@@ -114,52 +110,15 @@ public sealed class JumpTests
         }
     }
 
-    /// <summary>The shipped jump: the same press 0.30 s out arms the window and catches, the body never leaves the ground, and South releases at once.</summary>
-    [Fact]
-    public void TheShippedJumpCatchesFromTheGroundAndThrowsAtOnce()
-    {
-        var (match, hit, preview) = Fixture(Control, "basil");
-        Assert.True(match.StationRunner(3, Control.Must("konga")));
-        var live = match.LivePlay;
-        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
-        var hang = preview.HangTimeSec;
-        var plant = FlyCatch.ChaseTarget(preview, match.Park, match.Rules);
-        PlayEvent? play = null;
-        var pressed = false; var caughtAt = -1.0; var throwStartedAt = -1.0; var everAirborne = false; var maxHeight = 0.0;
-        for (var i = 0; i < 60 * 14 && play is null; i++)
-        {
-            var t = live.ElapsedSeconds;
-            LivePadInput pad;
-            if (live.HoldsBall && !live.Throwing) pad = new LivePadInput(KeysBag: 4, SouthDown: true);
-            else if (t < hang - 1.5) pad = LivePadInput.Dead;
-            else if (!pressed && t >= hang - 0.30) { pad = Hold(live, plant, 0.40) with { WestDown = true }; pressed = true; }   // 0.40: past the shipped Manhattan gate
-            else pad = Hold(live, plant, 0.40);
-            var r = live.Apply(LivePlayCommand.Tick(Frame, pad, LivePadInput.Dead, false, LivePlayCommandSource.Human));
-            if (r.CompletedPlay is null)
-            {
-                everAirborne |= live.Airborne; maxHeight = Math.Max(maxHeight, live.JumpHeightFt);
-                if (caughtAt < 0 && live.HoldsBall) caughtAt = live.ElapsedSeconds;
-                if (throwStartedAt < 0 && live.Throwing) throwStartedAt = live.ElapsedSeconds;
-            }
-            play = r.CompletedPlay;
-        }
-        Assert.NotNull(play);
-        Assert.Equal(PlayKind.FlyOut, play.Kind);
-        Assert.Equal(DefensiveFeat.Jump, play.Outcome?.DefensiveFeat);
-        Assert.False(everAirborne);
-        Assert.Equal(0, maxHeight);
-        Assert.InRange(throwStartedAt - caughtAt, 0, 2 * Frame + 1e-9);
-    }
-
     /// <summary>A West press 0.10 s before the centre fielder's read is over is remembered and takes off at the first eligible frame; one 0.15 s before is dropped.</summary>
     [Theory]
     [InlineData(0.10, true)]
     [InlineData(0.15, false)]
     public void ABlockedPressIsRememberedForATenthOfASecond(double early, bool takesOff)
     {
-        var (match, hit, preview) = Fixture(Trial, "basil");
+        var (match, hit, preview) = Fixture(Game, "basil");
         var live = Begin(match, hit, preview);
-        var ready = match.Rules.Fielding.Reaction.OutfieldSec;   // 0.40 on the trial: the centre fielder cannot move before it
+        var ready = match.Rules.Fielding.Reaction.OutfieldSec;   // 0.40: the centre fielder cannot move before it
         Assert.Equal(0.40, ready, 9);
         var pressAt = ready - early;
         var pending = false; var airborneAt = -1.0;
@@ -180,7 +139,7 @@ public sealed class JumpTests
     [Fact]
     public void HoldingWestRepeatsNothing()
     {
-        var (match, hit, preview) = Fixture(Trial, "basil");
+        var (match, hit, preview) = Fixture(Game, "basil");
         var live = Begin(match, hit, preview);
         Run(live, 60, _ => LivePadInput.Dead);
         var takeoffs = 0;
@@ -200,7 +159,7 @@ public sealed class JumpTests
     public void AirborneTheStickWorksAtATenthOfTheGroundRates()
     {
         // From rest: the centre fielder is planted through his read, and West on the first eligible frame with a full stick east.
-        var (match, hit, preview) = Fixture(Trial, "basil");
+        var (match, hit, preview) = Fixture(Game, "basil");
         var live = Begin(match, hit, preview);
         // The read is 0.40 s; the tick that reaches it is the first eligible one, so the press lands there and the body has not yet stepped.
         var readyFrames = (int)Math.Round(match.Rules.Fielding.Reaction.OutfieldSec / Frame) - 1;
@@ -216,7 +175,7 @@ public sealed class JumpTests
         // From full speed: the accepted anchor is a reversal from 18 ft/s. Slice 3 recorded it on this centre fielder under the fly, when
         // the outfield's air multiplier was 1.0; at 0.6 (Jack, 2026-09-18) he runs 10.8 ft/s there, so the body at the one speed under a
         // ball in the air is now an infielder: grit (Run 5) at short under a pop, run for a second, then West with the stick reversed.
-        (match, hit, preview) = PopFixture(Trial);
+        (match, hit, preview) = PopFixture(Game);
         live = Begin(match, hit, preview);
         var shortFrames = (int)Math.Round(match.Rules.Fielding.Reaction.ShortSec / Frame) - 1;
         Run(live, shortFrames, _ => LivePadInput.Dead);
@@ -233,7 +192,7 @@ public sealed class JumpTests
 
         // And the centre fielder under the fly, at what the multiplier leaves him: 10.8 ft/s in, the brake still a tenth of the rated
         // 18 ft/s body's — 18 ft/s² — so the reversal stops him in the 0.60 s of air: 3.24 ft (frame sum 6.48 − 18 × (1/60)² × 666 = 3.15).
-        (match, hit, preview) = Fixture(Trial, "basil");
+        (match, hit, preview) = Fixture(Game, "basil");
         live = Begin(match, hit, preview);
         Run(live, readyFrames, _ => LivePadInput.Dead);
         Run(live, 60, _ => new LivePadInput(StickY: -1.0));
@@ -262,7 +221,7 @@ public sealed class JumpTests
         return (match, hit, preview);
     }
 
-    /// <summary>A 110-ft pop at 60° behind short on Harbor: grit (Run 5) is the shortstop under it, and the infield's air multiplier is 1.0 on the trial.</summary>
+    /// <summary>A 110-ft pop at 60° behind short on Harbor: grit (Run 5) is the shortstop under it, and the infield's air multiplier is 1.0.</summary>
     static (Match Match, AtBatResult Hit, FieldingPreview Preview) PopFixture(ContentCatalog content)
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "marlow", "grit", "vine", "moss", "hex");

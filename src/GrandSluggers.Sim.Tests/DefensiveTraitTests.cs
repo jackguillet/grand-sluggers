@@ -83,23 +83,30 @@ public class DefensiveTraitTests
     }
 
     [Fact]
-    public void AuthoredReachReplacesTheLegacyRadiusAndFieldNoLongerSizesIt()
+    public void AuthoredReachReplacesTheTablesReachAndFieldNoLongerSizesIt()
     {
         var rules = Rules.Default;
         var catchRules = rules.Fielding.Catch;
+        Assert.Equal(6.0, catchRules.StandUpReachFt);
 
-        // Unauthored: exactly the legacy formula, for every Field.
+        // Unauthored: the table's stand-up reach, the same for every Field.
+        foreach (var field in new[] { 1, 5, 10 })
+            Assert.Equal(6.0, FieldingResolver.CatchRadiusFt(Character(field: field), null, rules), 6);
+
+        // A table with no stand-up reach falls back to the legacy formula, which Field sizes.
+        var legacyRules = new RulesTable { Fielding = new FieldingRules { Catch = new CatchRules { StandUpReachFt = 0 } } };
         foreach (var field in new[] { 1, 5, 10 })
         {
-            var legacy = catchRules.RadiusBaseFt + field * catchRules.RadiusPerField;
-            Assert.Equal(legacy, FieldingResolver.CatchRadiusFt(Character(field: field), null), 6);
+            var legacy = legacyRules.Fielding.Catch.RadiusBaseFt + field * legacyRules.Fielding.Catch.RadiusPerField;
+            Assert.Equal(legacy, FieldingResolver.CatchRadiusFt(Character(field: field), null, legacyRules), 6);
         }
 
-        // Authored: the number wins, and changing Field cannot resize it.
-        var small = Character(field: 1, reachFt: 6);
-        var big = Character(field: 10, reachFt: 6);
-        Assert.Equal(6, FieldingResolver.CatchRadiusFt(small, null), 6);
-        Assert.Equal(6, FieldingResolver.CatchRadiusFt(big, null), 6);
+        // Authored: the number wins over either table, and changing Field cannot resize it.
+        var small = Character(field: 1, reachFt: 4);
+        var big = Character(field: 10, reachFt: 4);
+        Assert.Equal(4, FieldingResolver.CatchRadiusFt(small, null, rules), 6);
+        Assert.Equal(4, FieldingResolver.CatchRadiusFt(big, null, rules), 6);
+        Assert.Equal(4, FieldingResolver.CatchRadiusFt(big, null, legacyRules), 6);
     }
 
     [Fact]
