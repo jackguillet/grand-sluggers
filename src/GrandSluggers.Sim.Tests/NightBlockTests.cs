@@ -309,13 +309,14 @@ public sealed class NightBlockTests
     /// (seed 11 sends flies through the chompers). PH-16-R18 (star pitches keep the ordinary window) and PH-16-R19
     /// (no phonyball whiff roll) change play again, so the rows are re-recorded on top of F4-c.
     /// </summary>
-    // F4-f made the statue and the train solid, so these rows are re-recorded from its build.
+    // F4-f made the statue and the train solid, and F2-d moved the outfielders to their fraction of each fence, so these
+    // rows are re-recorded from their builds.
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 2", "18b3ad8ce7bc8be0d2c27d2b9698c51afee74403865afaec018437d995a70052"),
-            ("funfair-park", 11, "Final  Ember Court 4  Spark All-Stars 0", "c701347800255ae2004b0bccc58492f8fb2bfd45fd40c0d7a8c43c70376dd6a7"),
-            ("ember-keep", 1, "Final  Ember Court 5  Spark All-Stars 3", "dcb2290c2e48aaafe1babd809b7b5180e43469afe7eb25cd9aff5a4621277abc"),
-            ("ember-keep", 2, "Final  Ember Court 11  Spark All-Stars 3", "1dac4d1127c66b333037d5b0c9ac1aa9b032a5a33af873e6b0d44987df9bc7ae")
+            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 2", "d583f52c2a9aca27239e1b3ff295dbea73013b1ac5a16e02b3b959b5a54069e1"),
+            ("funfair-park", 11, "Final  Ember Court 2  Spark All-Stars 0", "4e76680e6997abe244e2644e7d6fb30b4399d17ba57dfb45be661b0e55efde82"),
+            ("ember-keep", 1, "Final  Ember Court 7  Spark All-Stars 3", "132483a48f8a7069c02705aac376f3ce79e21e2612ae47460218d1b5c063be83"),
+            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 3", "276b536429bd187f4859619dd73da8875c8bc47a46ce0f8ac72d58ccf8190600")
         ];
 
     /// <summary>
