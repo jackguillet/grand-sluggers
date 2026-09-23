@@ -1,14 +1,26 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Scorebug is the product. Mute it while a special or smash owns the picture.
+/// Plate information gives way to runners and outs during live play. Effects never mute play information.
 /// Title, select, lineup, and final still draw.
 /// Play HUD anchors are normalized 0–1, Y down (IMGUI). 1P and 2P share one layout (#325).
 /// </summary>
 public static class BroadcastHud
 {
-    public static bool MutePlay(bool spectacleActive, double smashSeconds, double freezeSeconds = 0)
-        => spectacleActive || smashSeconds > 0 || freezeSeconds > 0;
+    public enum PlayMode { Plate, InPlay, Hidden }
+
+    /// <summary>
+    /// A synchronous handoff on the play phase, shared by Exhibition and practice, one seat and two.
+    /// Hit-freeze, smash and special lifetimes are deliberately not inputs: the next playable frame
+    /// must already have runners, outs and control prompts. Only explicit capture/debug mute hides it.
+    /// </summary>
+    public static PlayMode Mode(bool inPlay, bool forceMute = false) =>
+        forceMute ? PlayMode.Hidden : inPlay ? PlayMode.InPlay : PlayMode.Plate;
+
+    // Compact in-play readout: diamond above outs, at the scorebug's right edge.
+    public static readonly HudRect LivePanel = new(0.870, 0.025, 0.115, 0.165);
+    public static readonly HudRect LiveDiamond = new(0.879, 0.035, 0.096, 0.105);
+    public static readonly HudRect LiveOuts = new(0.885, 0.145, 0.085, 0.035);
 
     /// <summary>AB card extras. Steal names L3 until it's on.</summary>
     /// <summary>

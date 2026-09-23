@@ -1266,6 +1266,8 @@ The body goes around when around costs less, heading along the tangent. Otherwis
 
 ## 15. Presentation contract per play
 
+**HUD handoff.** At contact, including hit-freeze and the home-run smash, the plate score/count and matchup cards give way immediately to a compact top-right runner diamond with outs below it. The same live display serves throws, steals and pickoffs, in Exhibition and practice, with one or two seats. YOU, switch, throw-target and item prompts remain available while their action applies. Freeze, smash and special VFX never suppress these readouts or delay their return. When live play ends, the ordinary score/count and matchup cards return on that frame; there is no HUD timer or fade. Explicit capture/debug HUD mute still hides play overlays.
+
 No effect draws a line connecting a fielder to the ball or a throw destination. This includes Laser and lick-catch ability effects, in every play and seat configuration. Ability mechanics remain unchanged; the moving ball keeps its short trail and chemistry tint.
 
 For each play class the camera, the stamp, and the hold are data (`data/feel/shots.json`, `table.json`). The sim emits typed `PlayEvent`s; Unity may not infer the play from caption text. ✅ P8 (stamps): every stamp in the table is `PlayStamp.Label(PlayEvent)` over the typed outcome — the outs made, `DefensiveFeat` (buddy jump, the wall robs, a plain JUMP, a DIVE, set at the catch), `Error`, `FieldersChoice`, `RunnerResult` — and the client calls nothing else; the contact word is `PlayStamp.ContactTell` over the typed zone and the release tell is MAX / Nice! alone (#578). ✅ #690: one tell per live event, when it happens, at a named `BroadcastHud` anchor — never a center card. A catch stamps OUT (or the catch word) at the glove; a force or tag stamps OUT at that bag; a runner who crosses stamps SCORE at the plate; SAFE and ERROR stay the small mid-play stickers. `PlayStamp.ShowsAtTime` is the dead-play card (counts, hits, homers); a fly, a grounder, or a caught stealing already named itself live. ✅ P0: `PlayOutcome` carries the outs made (type, bag, runner, fielder), every runner placement, the batter's bag, error, and fielder's choice; `InPlay.ThrowToBag` decides a `ThrowVerdict` and captions are narrated from it last (`InPlay.Narrate`). No rule reads caption text.
@@ -1288,13 +1290,13 @@ The charge begins on the accepted pitch-button press. A pre-charge target plus S
 | Close play | `tag` (a cut) on the bag, third or home inside the margin (§9.6) — the only bag cam on a batted ball; cuts back to the follow on the verdict | — | SAFE (small, mid-play) / OUT |
 | Rundown | `diamond` follows the ball between the bags | — | OUT / SAFE by the tag rule |
 | Throw that sails | the follow stays on the loose ball | — | ERROR (small, mid-play at the sail); no second ERROR card at Time |
-| Star | skill VFX, scorebug mutes 2 s | — | — |
+| Star | skill VFX; HUD follows the current plate/live phase | — | — |
 
 **The SET screen is family-blind** (PH-02-R5, PH-06-R1; #825). Before the ball leaves the hand, nothing the two seats share names the ordinary family the mound selected:
 
 | SET element | What it shows | What it may not show |
 | --- | --- | --- |
-| Pitcher card | The arm's ordinary pitches, in repertoire order, as one short row of two-letter names — `FB · CH` today (`BroadcastHud.ShortFamily` is the one table, `PitcherPitches` the row). Only slots the active `pitching.families` table authors, because only those can be selected. Drawn on both seats' screen, in every phase, at the card's existing anchors | A highlight, a cursor, a press count, or anything else that varies with `PitchSelectionState`. The row is a function of the pitcher and the table alone. The CHANGE tell is retired |
+| Pitcher card | The arm's ordinary pitches, in repertoire order, as one short row of two-letter names — `FB · CH` today (`BroadcastHud.ShortFamily` is the one table, `PitcherPitches` the row). Only slots the active `pitching.families` table authors, because only those can be selected. Drawn on both seats' screen while the plate cards are visible, at the card's existing anchors | A highlight, a cursor, a press count, or anything else that varies with `PitchSelectionState`. The row is a function of the pitcher and the table alone. The CHANGE tell is retired |
 | Aim ring | The rubber the pitcher stands on, at mid-frame height, in SET only (§4.4) | `PitchFlight.Crossing`, which carries the family's drop and sweep. Nothing after release |
 | Pitcher pose | The fastball's shape until the delivery exists (`AtBatDirector.ShownPitchType`) | The selected family |
 | Ball | The fastball's tint until the ball is out of the hand (`BallView` by type, from `_pitchAir`) | The selected family in SET or through the windup |
