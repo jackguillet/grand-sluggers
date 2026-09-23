@@ -222,15 +222,11 @@ public sealed class ParkSchemaTests
                     found.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
         }
 
-        // CarnivalFront still carries a copy line per park id; the field card (F8-a) owns it. It is
-        // not this child's, and it may not grow. Fielding.cs is no longer on this list: F4-a (#847)
-        // moved the chompers into park data and the dispatch onto the hazard library's patterns.
+        // The field card (F8-a) reads the played park, so CarnivalFront names no park; F4-a (#847) took Fielding.cs off the
+        // list. The one literal left is the default park.
         Assert.DoesNotContain(found, l => l.StartsWith("Fielding.cs:", StringComparison.Ordinal));
-        var copy = found.Where(l => l.StartsWith("CarnivalFront.cs:", StringComparison.Ordinal)).ToList();
-        Assert.Equal(7, copy.Count);
-
-        var rest = found.Except(copy).ToList();
-        var only = Assert.Single(rest);
+        Assert.DoesNotContain(found, l => l.StartsWith("CarnivalFront.cs:", StringComparison.Ordinal));
+        var only = Assert.Single(found);
         Assert.StartsWith("ExhibitionPick.cs:", only, StringComparison.Ordinal);
         Assert.Contains("public const string DefaultPark = \"harbor-diamond\"", only, StringComparison.Ordinal);
     }
