@@ -247,9 +247,7 @@ Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by e
 Every child in §3 is merged. Nothing below is a passed gate.
 
 **Sittings**
-- Sitting 4: LT / RT / J / L bunt sides on two pads and the keyboard, the East / G cancel, the leak guards, T-B07 / T-B10 / T-B11.
-- Sitting 5: LB / Q held at release, the NO STARS tell (1.5 s red flash and a scorebug line, an agent's choice), T-G03-U.
-- The fatigue fade: shipped on "Ship it now" without a sitting.
+- Sittings 4 and 5 and the fatigue fade **passed** — Jack on window `main-6ee562315e`, September 23, 2026: "done. looks good." Recorded in the register as the window as delivered.
 - P2-d's drawn oval and P2-e's missing plate chemistry have not been looked at in the game.
 
 **Trials**
