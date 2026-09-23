@@ -75,11 +75,29 @@ public static class BroadcastHud
             ? throw new ArgumentNullException(nameof(match))
             : PitcherPitches(match.Pitcher.Repertoire, match.Rules.Pitching.Families);
 
-    public static string BatterExtra(bool star, bool stealOn, bool canSteal, bool bunt, string item)
+    public static string BatterExtra(bool star, bool stealOn, bool canSteal, bool bunt, string item) =>
+        BatterExtra(star, stealOn, canSteal, bunt ? BuntSide.Third : BuntSide.None, item, sideKnown: false);
+
+    /// <summary>
+    /// The batter card's verb tells. A squared batter reads <c>BUNT 3B</c> or <c>BUNT 1B</c>: the held side
+    /// (§5.8, PH-14-R3) is public, for both seats and the CPU, the same fact the bat angle carries.
+    /// </summary>
+    public static string BatterExtra(bool star, bool stealOn, bool canSteal, BuntSide bunt, string item) =>
+        BatterExtra(star, stealOn, canSteal, bunt, item, sideKnown: true);
+
+    /// <summary>The card word for a held bunt side: <c>BUNT 3B</c>, <c>BUNT 1B</c>, or empty when not squared.</summary>
+    public static string BuntTell(BuntSide side) => side switch
+    {
+        BuntSide.Third => "BUNT 3B",
+        BuntSide.First => "BUNT 1B",
+        _ => ""
+    };
+
+    static string BatterExtra(bool star, bool stealOn, bool canSteal, BuntSide bunt, string item, bool sideKnown)
     {
         var s = "";
         if (star) s += "STAR  ";
-        if (bunt) s += "BUNT  ";
+        if (bunt != BuntSide.None) s += (sideKnown ? BuntTell(bunt) : "BUNT") + "  ";
         if (stealOn) s += "STEAL  ";
         else if (canSteal) s += "L3 STEAL  ";
         if (!string.IsNullOrEmpty(item)) s += item;

@@ -20,7 +20,11 @@ public static class Scheme
         new("steal", "Stick to the next bag / L3", "Z", "Click steal"),
         new("cyclePitch", "RB", "Tab", "Tab"),
         new("swap", "Select", "R", "Click swap"),
-        new("bunt", "West hold", "V", "Left Ctrl hold in the box"),
+        // The held bunt is two directional holds (PH-14-R5): the trigger names the side. Keyboard + mouse is J / L.
+        new("bunt-third", "LT hold", "J hold", "J hold in the box"),
+        new("bunt-first", "RT hold", "L hold", "L hold in the box"),
+        // The explicit swing cancel (PH-13-R1): before the swing button comes up; a committed swing follows through.
+        new("cancel-swing", "East before release", "G", "G before release"),
         new("cutoff", "LB", "X", "Click relay"),
         new("cancel-throw", "RB (fielding)", ".", "Click cancel"),
         new("freeze", "LB+RB", "/", "Click freeze"),

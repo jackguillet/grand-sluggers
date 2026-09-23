@@ -372,6 +372,50 @@ public sealed class BuntHoldScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
+    // S-170  A cancel press the plate took is no other verb until it comes up (PH-13-R1)
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S170_ACancelPressAtThePlateIsSpentUntilTheButtonComesUp()
+    {
+        PlateInput East(bool press, bool held) => new(false, false, false, Cancel: press, CancelHeld: held);
+        var plate = default(PlateButtonsState);
+        Assert.True(PlateButtons.CancelIsFree(plate));
+
+        // A load, then East: the load is discarded and the press is the plate's.
+        Frame(ref plate, new Pad(South: true, SouthDown: true));
+        var cancel = PlateButtons.Advance(plate, new(false, true, false, Cancel: true, CancelHeld: true), Dt, ToFull);
+        plate = cancel.Next;
+        Assert.True(cancel.Swing.Cancelled);
+        Assert.False(PlateButtons.CancelIsFree(plate));
+
+        // Held through the rest of the pitch, a live ball (not accepting) and the next SET: still spent.
+        for (var f = 0; f < 20; f++) plate = PlateButtons.Advance(plate, East(false, true), Dt, ToFull).Next;
+        for (var f = 0; f < 20; f++) plate = PlateButtons.Advance(plate, East(false, true), Dt, ToFull, accepting: false).Next;
+        plate = plate.NextPitch();
+        Assert.False(PlateButtons.CancelIsFree(plate));
+
+        // Up: free. A new press outside the plate (not accepting) is not the plate's and spends nothing.
+        plate = PlateButtons.Advance(plate, East(false, false), Dt, ToFull).Next;
+        Assert.True(PlateButtons.CancelIsFree(plate));
+        plate = PlateButtons.Advance(plate, East(true, true), Dt, ToFull, accepting: false).Next;
+        Assert.True(PlateButtons.CancelIsFree(plate));
+
+        // At the plate a press with nothing loaded is still the plate's verb; a tap is spent on its own tick only.
+        plate = PlateButtons.Advance(default, East(true, false), Dt, ToFull).Next;
+        Assert.False(PlateButtons.CancelIsFree(plate));
+        plate = PlateButtons.Advance(plate, East(false, false), Dt, ToFull).Next;
+        Assert.True(PlateButtons.CancelIsFree(plate));
+
+        // The plate-wide contact is BuntHold.Contact on the triggers down in that tick's input.
+        var squared = default(PlateButtonsState);
+        Frame(ref squared, new Pad(First: true, FirstDown: true));
+        var hit = PlateButtons.Contact(squared, new(false, false, false, FirstHeld: true));
+        Assert.Equal(BuntHold.Contact(squared.Bunt, thirdHeld: false, firstHeld: true), hit.Bunt);
+        Assert.False(BuntHold.IsFree(hit.Bunt, BuntSide.First));
+    }
+
+    // ---------------------------------------------------------------------------------
     // S-165  One path for both seats and the CPU
     // ---------------------------------------------------------------------------------
 

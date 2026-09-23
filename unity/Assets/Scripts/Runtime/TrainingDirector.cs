@@ -81,16 +81,20 @@ namespace GrandSluggers.UnityClient
                 Session.RecordChemThrow(field.Throw);
         }
 
-        public void TickSkip()
+        /// <param name="eastFree">
+        /// False while East / G is a press the plate took as the swing cancel (PH-13-R1,
+        /// <see cref="PlateButtons.CancelIsFree"/>): the same press never also skips the drill.
+        /// </param>
+        public void TickSkip(bool eastFree = true)
         {
             if (Tutorial != null || Session == null || Session.Finished) return;
-            if (Controls.Skip) Session.Skip();
+            if (Controls.Skip && eastFree) Session.Skip();
         }
 
-        public void Tick(Camera cam)
+        public void Tick(Camera cam, bool eastFree = true)
         {
             if (Tutorial != null) return;
-            TickSkip();
+            TickSkip(eastFree);
             if (_board == null) return;
             if (Session == null)
             {

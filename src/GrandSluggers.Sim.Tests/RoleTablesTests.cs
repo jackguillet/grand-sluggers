@@ -59,7 +59,21 @@ public class RoleTablesTests
         Assert.Contains(page.Lines, l => l.Contains("batting") && l.Contains("running"));
         Assert.False(HowToPlay.MixesHardware(string.Join(' ', page.Lines)));
         Assert.Equal(3, RoleTables.OnPage(InputScheme.Pad, "roles").Rows.Count);
-        Assert.Equal(3, RoleTables.OnPage(InputScheme.Pad, "roles-batting-2").Rows.Count);
+        Assert.Equal(4, RoleTables.OnPage(InputScheme.Pad, "roles-batting-2").Rows.Count);
+        // PH-14-R5 / PH-13-R1: the bunt is two held sides and the swing has a cancel, in both schemes; the stick
+        // aims no bunt and nothing bunts on West / V / Ctrl.
+        foreach (var (scheme, third, first, cancel) in new[]
+                 {
+                     (InputScheme.Pad, "Hold LT", "Hold RT", "East before you release"),
+                     (InputScheme.Keys, "Hold J", "Hold L", "G before you release"),
+                 })
+        {
+            var bat = RoleTables.Of(scheme).First(b => b.Id == "batting").Rows;
+            Assert.StartsWith(third, bat.Single(r => r.Verb == "Bunt to third").Press);
+            Assert.StartsWith(first, bat.Single(r => r.Verb == "Bunt to first").Press);
+            Assert.Equal(cancel, bat.Single(r => r.Verb == "Cancel swing").Press);
+            Assert.DoesNotContain(bat, r => r.Verb == "Aim bunt" || r.Press.Contains("West") || r.Press.Contains("V /"));
+        }
         Assert.Equal(4, RoleTables.OnPage(InputScheme.Keys, "roles-pitching").Rows.Count);
         Assert.Equal(4, RoleTables.OnPage(InputScheme.Keys, "roles-pitching-2").Rows.Count);
         // Fielding and running continue onto a second page like batting and pitching; the halves cover every row.

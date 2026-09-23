@@ -17,7 +17,19 @@ namespace GrandSluggers.UnityClient
     public sealed partial class MatchDirector
     {
         ChargeButtonState _pitchButton;
-        ChargeButtonState _swingButton;
+
+        /// <summary>
+        /// The batting seat's plate buttons (spec §5.1, §5.8): the swing button, the two bunt triggers and the East / G
+        /// cancel, stepped by the sim (<see cref="PlateButtons.Advance"/>) every frame in the spec's order. It also holds
+        /// the leak guards (PH-13-R1, PH-14-R6): a trigger held for a bunt at contact and a cancel press the plate took
+        /// are spent until they come up. It belongs to one pad (<see cref="_plateSeat"/>); a new batting pad starts at rest.
+        /// </summary>
+        PlateButtonsState _plate;
+        /// <summary>The pad index whose buttons <see cref="_plate"/> holds; -1 for none (a CPU batter).</summary>
+        int _plateSeat = -1;
+        /// <summary>This frame's plate input and step, read at the plate plane and at contact.</summary>
+        PlateInput _plateInput;
+        PlateButtonsStep _plateStep;
 
         /// <summary>
         /// The mound's pre-charge family selection (spec §3, PH-02-R3/R4/R5). The state is the
@@ -46,7 +58,39 @@ namespace GrandSluggers.UnityClient
         {
             if (_phase == Phase.Set) TickSet(dt);
             else if (_phase == Phase.Flight) TickFlight(dt);
+            // Off the plate the triggers and East square nothing and cancel nothing, but a spent hold still has to be
+            // seen coming up (PH-14-R6, PH-13-R1) before the live ball's readers (after this tick) take it again.
+            else if (HumanBats) TickPlate(dt, accepting: false, commits: false);
         }
+
+        /// <summary>
+        /// One plate tick for the batting seat (spec §5.8's one-tick order, in the sim): the bunt, then the swing
+        /// button with the square and East / G as its cancel. A tutorial plate lesson is handed the same input so its
+        /// verdict rests on the player's own presses.
+        /// </summary>
+        PlateButtonsStep TickPlate(float dt, bool accepting, bool commits)
+        {
+            var pad = BatPad;
+            if (pad.Index != _plateSeat)
+            {
+                _plate = default;
+                _plateSeat = pad.Index;
+            }
+            _plateInput = pad.Plate;
+            _plateStep = PlateButtons.Advance(_plate, _plateInput, dt, _feel.SwingChargeSeconds, accepting, commits);
+            _plate = _plateStep.Next;
+            if (accepting && TutorialOn && _coach.Tutorial.Phase == TutorialPhase.Attempt)
+                _coach.Tutorial.Plate(new TutorialPlateTick(_plateInput, dt, commits));
+            return _plateStep;
+        }
+
+        /// <summary>Whether <paramref name="pad"/>'s <paramref name="trigger"/> may mean any verb on this tick (PH-14-R6).</summary>
+        bool TriggerFree(Controls.Pad pad, BuntSide trigger) =>
+            pad.Index < 0 || pad.Index != _plateSeat || BuntHold.IsFree(_plate.Bunt, trigger);
+
+        /// <summary>Whether <paramref name="pad"/>'s East / G may mean a dive, a dash or a skip on this tick (PH-13-R1).</summary>
+        bool CancelFree(Controls.Pad pad) =>
+            pad.Index < 0 || pad.Index != _plateSeat || PlateButtons.CancelIsFree(_plate);
 
         void BeginSet()
         {
@@ -63,7 +107,8 @@ namespace GrandSluggers.UnityClient
             _pitchCharge = 0;
             _chargePast = 0;
             _pitchButton = default;
-            _swingButton = default;
+            // The next pitch (§5.8): the must-release, the spent triggers and a spent cancel carry; a hold must come up.
+            _plate = _plate.NextPitch();
             // Fastball, unlocked, at every SET entry (PH-02-R5): nothing on the shared screen marks
             // the active family, so the player counts presses from a known start every time.
             _pitchSelect = PitchSelectionState.Reset;
@@ -75,7 +120,7 @@ namespace GrandSluggers.UnityClient
             if (_match != null) _match.Dash01 = 0;
             _match?.LivePlay.Apply(LivePlayCommand.Reset());
             _swung = false;
-            _bunt = false;
+            _buntSide = BuntSide.None;
             _squareSec = 0f;
             _swing = null;
             _pitch = null;
@@ -188,9 +233,17 @@ namespace GrandSluggers.UnityClient
             }
             if (HumanBats)
             {
-                // A press during SET is not a swing (spec §3): the hold builds, the release drops.
-                TickChargeButton(dt, _feel.SwingChargeSeconds, box,
-                    ref _swingButton, ref _charge, ref _chargePast, commits: false);
+                // A press during SET is not a swing (spec §3): the hold builds, the release drops. The triggers
+                // square in SET too (§5.8), and East / G discards a load here as in the flight (§5.1).
+                var plate = TickPlate(dt, accepting: true, commits: false);
+                _charge = (float)_plate.Swing.Fill01;
+                _chargePast = (float)_plate.Swing.SecondsPastFull;
+                _buntSide = plate.Bunt.Showing;
+            }
+            else
+            {
+                _plateSeat = -1;
+                _plate = default;
             }
             _pip += dt * 1.35f;
             // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI's steal table runs once per at-bat.
@@ -211,13 +264,12 @@ namespace GrandSluggers.UnityClient
             TickBaserunning(dt);
             if (HumanBats)
             {
-                _bunt = box.WestHeld;
                 // Down resets the box in SET only (§5.4); in flight the same axis aims launch.
                 if (box.StickY < -0.7f) _match.ResetBatter();
                 else _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
             }
             // The square is a clock (§7.3): the defense crashes for as long as it has been held; released, it winds back.
-            TickSquare(dt, HumanBats ? box.WestHeld : _match.CpuSquared);
+            TickSquare(dt, SquaredNow);
             if (HumanPitches)
             {
                 if (_swapPick != null) { }
@@ -434,7 +486,8 @@ namespace GrandSluggers.UnityClient
             {
                 _charge = 0;
                 _chargePast = 0;
-                _swingButton = default;
+                _plate = default;
+                _plateSeat = -1;
                 // The CPU batter decides at the plate plane from the final trajectory (spec §3, S-04): see TickFlight.
                 _swing = null;
             }
@@ -474,25 +527,31 @@ namespace GrandSluggers.UnityClient
         {
             AimSetCamera();
             _flight += dt;
-            var swingButton = default(ChargeButtonStep);
-            if (HumanBats && !_swung && !(TutorialOn && _coach.Tutorial.IsStealLesson))
+            if (HumanBats && !(TutorialOn && _coach.Tutorial.IsStealLesson))
             {
                 var box = BatPad;
-                swingButton = TickChargeButton(dt, _feel.SwingChargeSeconds, BatPad,
-                    ref _swingButton, ref _charge, ref _chargePast);
-                if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
-                if (box.WestHeld) _bunt = true;
-                // Stick U/D never resets the box once the windup starts (§5.4); in flight it aims only a
-                // Star Swing's launch, because an ordinary swing reads no stick at contact (PH-12).
-                _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
-                ShowCursor();
-                if (swingButton.Committed)
-                    CommitSwing(SwingInputIntent.Capture(
-                        swingButton, box.StickX, box.StickY,
-                        _bunt || box.WestHeld, _match.BatterOffsetX));
+                // Every flight tick, committed or not (§5.8): a committed swing follows through and no trigger squares
+                // (the sim's SwingCommitted), and East stays the plate's until it comes up.
+                var plate = TickPlate(dt, accepting: true, commits: true);
+                _buntSide = plate.Bunt.Showing;
+                if (!_swung)
+                {
+                    _charge = (float)_plate.Swing.Fill01;
+                    _chargePast = (float)_plate.Swing.SecondsPastFull;
+                    if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
+                    // Stick U/D never resets the box once the windup starts (§5.4); in flight it aims only a
+                    // Star Swing's launch, because an ordinary swing reads no stick at contact (PH-12).
+                    _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
+                    ShowCursor();
+                    // The held bunt is not a swing (§5.8): a committed release is always the ordinary swing; the
+                    // square cancels a load before it can commit (PlateButtons), so the two never share a tick.
+                    if (plate.Swing.Committed)
+                        CommitSwing(SwingInputIntent.Capture(
+                            plate.Swing, box.StickX, box.StickY, bunt: false, _match.BatterOffsetX));
+                }
             }
-            // West through the pitch keeps the square (§5.8); the CPU's square holds from SET.
-            TickSquare(dt, HumanBats ? _bunt || (!_swung && BatPad.WestHeld) : _match.CpuSquared);
+            // The held trigger through the pitch keeps the square (§5.8); the CPU's square holds from SET.
+            TickSquare(dt, SquaredNow);
             if (!_pitchAir)
             {
                 HoldPitchInHand();
@@ -543,8 +602,11 @@ namespace GrandSluggers.UnityClient
                 _swingContactSec = SwingContactSec(_swing);
             }
             if (u < 1 || TutorialOn && _coach.Tutorial.IsStealLesson) return;
+            // At the plate a human's squared bat is the held bunt (§5.8, PH-14-R4): no timed press, its held side.
+            // Nothing squared and nothing committed is a take.
             _swing ??= WithSquare(HumanBats
-                ? new SwingCommand(false, _charge, 12, false)
+                ? PlateButtons.HeldBuntAtPlate(_plateStep, _match.BatterOffsetX, _squareSec)
+                  ?? new SwingCommand(false, _charge, 12, false)
                 : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Control, _match.Pitcher.StarPitch))));
             Resolve();
         }
@@ -590,7 +652,12 @@ namespace GrandSluggers.UnityClient
 
         void Resolve()
         {
-            if (!ResolveTutorialOrAtBat(out var hit, out var finished))
+            var live = ResolveTutorialOrAtBat(out var hit, out var finished);
+            // The held bat met the ball (PH-14-R3, PH-14-R6): the side is fixed and every trigger down now is spent,
+            // so a held LT is not the item modifier, and squares nothing next pitch, until it comes up and is pressed.
+            if (HumanBats && _swing != null && _swing.Bunt && hit != null && hit.Quality != ContactQuality.Miss)
+                _plate = PlateButtons.Contact(_plate, _plateInput);
+            if (!live)
             {
                 _last = finished;
                 NoteTrainingPitch();
