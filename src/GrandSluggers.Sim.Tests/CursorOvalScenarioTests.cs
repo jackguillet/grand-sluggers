@@ -5,14 +5,14 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The drawn cursor oval and the placement pins (#889, P2-d), Appendix B.1 rows S-133 … S-136.
+/// The drawn cursor oval and the placement pins (#889, P2-d), Appendix B.1 rows S-134 … S-137.
 ///
-/// <b>S-133</b>: the oval the client draws (<see cref="SweetSpot.Oval"/>) is the oval the resolver
+/// <b>S-134</b>: the oval the client draws (<see cref="SweetSpot.Oval"/>) is the oval the resolver
 /// judges, across Contact 1–10, quick and charged, both hands, every bat and buddies on base —
 /// asserted through <see cref="AtBatResolver.Resolve"/>, not through the helper alone.
-/// <b>S-134</b>: a charge narrows the spatial barrel by <c>cursor.chargeMul</c> and nothing else; it
-/// does not touch the timing window (PH-11-R1). <b>S-135</b>: Contact scales the spatial barrel by
-/// <c>cursor.scalePerContact</c> and nothing else (PH-15-R7). <b>S-136</b>: holding a load before
+/// <b>S-135</b>: a charge narrows the spatial barrel by <c>cursor.chargeMul</c> and nothing else; it
+/// does not touch the timing window (PH-11-R1). <b>S-136</b>: Contact scales the spatial barrel by
+/// <c>cursor.scalePerContact</c> and nothing else (PH-15-R7). <b>S-137</b>: holding a load before
 /// the commit leaves the box walk's speed unchanged (PH-09-R1).
 ///
 /// Every claim is an arithmetic identity recomputed from the same table, a relationship, or the
@@ -36,11 +36,11 @@ public sealed class CursorOvalScenarioTests
     IEnumerable<BatItem?> Bats => new BatItem?[] { null }.Concat(_content.Bats.Values.OrderBy(b => b.Id));
 
     // ---------------------------------------------------------------------------------
-    // S-133  The drawn oval is the judged oval
+    // S-134  The drawn oval is the judged oval
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S133_TheDrawnOvalIsTheOvalTheResolverJudges()
+    public void S134_TheDrawnOvalIsTheOvalTheResolverJudges()
     {
         var resolver = new AtBatResolver(_content.Chemistry, R, _content.StarSkills);
         var pitcher = _content.Must("vale");
@@ -87,7 +87,7 @@ public sealed class CursorOvalScenarioTests
     }
 
     [Fact]
-    public void S133_TheOvalOutlineIsTheBarrelOutlineTheClientDrewBefore()
+    public void S134_TheOvalOutlineIsTheBarrelOutlineTheClientDrewBefore()
     {
         // The client used to draw SweetSpot.Outline(bats, scale); the oval's outline is the same
         // points for the same barrel, so the change of call site moves nothing drawn.
@@ -102,11 +102,11 @@ public sealed class CursorOvalScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-134  A charge narrows the spatial barrel only (PH-11-R1)
+    // S-135  A charge narrows the spatial barrel only (PH-11-R1)
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S134_AChargeNarrowsTheBarrelByChargeMulAndNothingElse()
+    public void S135_AChargeNarrowsTheBarrelByChargeMulAndNothingElse()
     {
         var c = R.Batting.Cursor;
         foreach (var contact in Enumerable.Range(1, 10))
@@ -140,7 +140,7 @@ public sealed class CursorOvalScenarioTests
     }
 
     [Fact]
-    public void S134_AChargeDoesNotTouchTheTimingWindow()
+    public void S135_AChargeDoesNotTouchTheTimingWindow()
     {
         var resolver = new AtBatResolver(_content.Chemistry, R, _content.StarSkills);
         var pitcher = _content.Must("vale");
@@ -174,11 +174,11 @@ public sealed class CursorOvalScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-135  Contact scales the spatial barrel only (PH-15-R7)
+    // S-136  Contact scales the spatial barrel only (PH-15-R7)
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S135_ContactScalesTheBarrelByScalePerContactAndNothingElse()
+    public void S136_ContactScalesTheBarrelByScalePerContactAndNothingElse()
     {
         var c = R.Batting.Cursor;
         foreach (var bats in Hands)
@@ -215,11 +215,11 @@ public sealed class CursorOvalScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-136  Holding a load leaves the box walk's speed unchanged (PH-09-R1)
+    // S-137  Holding a load leaves the box walk's speed unchanged (PH-09-R1)
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S136_HoldingAChargeBeforeTheCommitLeavesTheBoxWalkUnchanged()
+    public void S137_HoldingAChargeBeforeTheCommitLeavesTheBoxWalkUnchanged()
     {
         const float dt = 1f / 60f;
         const float stick = 0.5f;

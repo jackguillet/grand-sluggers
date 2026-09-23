@@ -74,7 +74,7 @@ public static class HomeSet
     /// <summary>
     /// One frame of box walk for a horizontal stick (spec §3, PH-09): stick × dt × <see cref="BoxWalkPerSec"/>,
     /// computed in single precision as the client always did. It takes no charge: holding a load
-    /// before the commit leaves the walk's speed unchanged (PH-09-R1, S-136).
+    /// before the commit leaves the walk's speed unchanged (PH-09-R1, S-137).
     /// </summary>
     public static double BoxWalkStep(float stickX, float dt) => stickX * dt * BoxWalkPerSec;
     /// <summary>Feet the pitcher's body, release hand, and crossing move per unit of rubber walk (spec §4.2): once, the same for both seats.</summary>

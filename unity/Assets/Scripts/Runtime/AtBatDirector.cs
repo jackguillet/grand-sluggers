@@ -377,7 +377,7 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>
         /// The gold oval follows the batter and shows this swing's barrel (contact, charge, buddies):
-        /// the sim's own oval (<see cref="SweetSpot.Oval"/>), the one the resolver judges (S-133).
+        /// the sim's own oval (<see cref="SweetSpot.Oval"/>), the one the resolver judges (S-134).
         /// </summary>
         void ShowCursor()
         {
