@@ -59,7 +59,7 @@
     "secondSec": 0.25,
     "thirdSec": 0.25,
     "shortSec": 0.25,
-    // #609: the reference's 50 frames (P7 had 2.4 to hold S-29). The human glove waits it at every rung; CPU
+    // 0.40 s (#718; #609 had the reference's 50 frames, 0.83, and P7 2.4 to hold S-29). The human glove waits it at every rung; CPU
     // bodies wait it x cpu.reactionMul; a ball in the air caps every lockout at its hang.
     "outfieldSec": 0.40,
     "throwBaseSec": 0.35,
