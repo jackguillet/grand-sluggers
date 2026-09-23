@@ -313,175 +313,42 @@ namespace GrandSluggers.UnityClient
             DirLight("Rim", Color.black, 0f, Vector3.zero, false);
         }
 
-        /// <summary>Harbor afternoon: warm key, cool fill, gold rim. Not a default Directional Light.</summary>
-        public static void RigAfternoon(Camera cam)
+        /// <summary>
+        /// A park's sky and light from data (FD-16, FR-04; F6-c): the rows its kit names in data/art/looks.json, at night the
+        /// night row where there is one. What SetupLighting sets first, each row then overrides, as every rig did. An empty
+        /// slot keeps the greybox default: the plain sky and SetupLighting's sun.
+        /// </summary>
+        public static void Apply(Camera cam, SkyLook sky, LightLook light, bool night)
         {
-            var sky = new Color(0.52f, 0.70f, 0.88f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.78f, 0.80f, 0.72f);
-            RenderSettings.fogStartDistance = 380f;
-            RenderSettings.fogEndDistance = 820f;
-            RenderSettings.ambientSkyColor = new Color(0.58f, 0.74f, 0.90f);
-            RenderSettings.ambientEquatorColor = new Color(0.86f, 0.74f, 0.52f);
-            RenderSettings.ambientGroundColor = new Color(0.30f, 0.24f, 0.16f);
-            DirLight("Sun", new Color(1f, 0.91f, 0.72f), 1.55f, new Vector3(38f, 42f, 0f), true);
-            DirLight("Fill", new Color(0.52f, 0.66f, 0.85f), 0.32f, new Vector3(58f, -78f, 0f), false);
-            DirLight("Rim", new Color(1f, 0.78f, 0.48f), 0.42f, new Vector3(16f, 168f, 0f), false);
+            var s = sky?.At(night);
+            SetupLighting(cam, s != null ? Of(s.Color) : Colors.Sky);
+            if (s != null)
+            {
+                cam.backgroundColor = Of(s.Color);
+                RenderSettings.fogColor = Of(s.Fog.Color);
+                RenderSettings.fogStartDistance = (float)s.Fog.Start;
+                RenderSettings.fogEndDistance = (float)s.Fog.End;
+            }
+            var l = light?.At(night);
+            if (l == null) return;
+            RenderSettings.ambientSkyColor = Of(l.AmbientSky);
+            RenderSettings.ambientEquatorColor = Of(l.AmbientEquator);
+            RenderSettings.ambientGroundColor = Of(l.AmbientGround);
+            DirLight("Sun", l.Sun);
+            DirLight("Fill", l.Fill);
+            DirLight("Rim", l.Rim);
         }
 
-        /// <summary>Crystal ice garden: cool key, cool fill, violet rim. Not Harbor afternoon.</summary>
-        public static void RigIceGarden(Camera cam)
-        {
-            var sky = new Color(0.56f, 0.70f, 0.82f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.70f, 0.82f, 0.90f);
-            RenderSettings.fogStartDistance = 200f;
-            RenderSettings.fogEndDistance = 700f;
-            RenderSettings.ambientSkyColor = new Color(0.62f, 0.76f, 0.90f);
-            RenderSettings.ambientEquatorColor = new Color(0.52f, 0.66f, 0.80f);
-            RenderSettings.ambientGroundColor = new Color(0.30f, 0.36f, 0.44f);
-            DirLight("Sun", new Color(0.82f, 0.91f, 1f), 1.12f, new Vector3(48f, 22f, 0f), true);
-            DirLight("Fill", new Color(0.48f, 0.66f, 0.88f), 0.36f, new Vector3(55f, -95f, 0f), false);
-            DirLight("Rim", new Color(0.78f, 0.70f, 0.95f), 0.24f, new Vector3(18f, 155f, 0f), false);
-        }
+        /// <summary>A data color as a Unity color: a hex the way Colors.Hex reads it, numbers as written.</summary>
+        public static Color Of(LookColor c) =>
+            c.Hex is int hex ? Colors.Hex(hex) : new Color((float)c.R, (float)c.G, (float)c.B, 1f);
 
-        /// <summary>Funfair carnival: amber key, rose fill, gold rim. Not Harbor afternoon, not Crystal ice.</summary>
-        public static void RigCarnival(Camera cam)
-        {
-            var sky = new Color(0.78f, 0.50f, 0.58f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.88f, 0.60f, 0.46f);
-            RenderSettings.fogStartDistance = 220f;
-            RenderSettings.fogEndDistance = 720f;
-            RenderSettings.ambientSkyColor = new Color(0.90f, 0.56f, 0.46f);
-            RenderSettings.ambientEquatorColor = new Color(0.94f, 0.46f, 0.56f);
-            RenderSettings.ambientGroundColor = new Color(0.32f, 0.18f, 0.14f);
-            DirLight("Sun", new Color(1f, 0.76f, 0.40f), 1.38f, new Vector3(42f, 48f, 0f), true);
-            DirLight("Fill", new Color(0.92f, 0.36f, 0.58f), 0.40f, new Vector3(52f, -108f, 0f), false);
-            DirLight("Rim", new Color(1f, 0.86f, 0.30f), 0.50f, new Vector3(20f, 158f, 0f), false);
-        }
+        /// <summary>A greybox surface of a park's palette: its color, its tiled texture if it names one, its smoothness.</summary>
+        public static Material Lit(LookSurface s) =>
+            Lit(Of(s.Color), s.Texture == "grass" ? Grass : s.Texture == "dirt" ? Dirt : null, (float)s.Tile, (float)s.Smooth);
 
-        /// <summary>Rooftop dusk/neon: low amber key, cyan fill, gold rim. Not Harbor afternoon, not carnival.</summary>
-        public static void RigNeon(Camera cam)
-        {
-            var sky = new Color(0.22f, 0.16f, 0.38f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.42f, 0.22f, 0.48f);
-            RenderSettings.fogStartDistance = 180f;
-            RenderSettings.fogEndDistance = 640f;
-            RenderSettings.ambientSkyColor = new Color(0.38f, 0.24f, 0.62f);
-            RenderSettings.ambientEquatorColor = new Color(0.86f, 0.42f, 0.28f);
-            RenderSettings.ambientGroundColor = new Color(0.16f, 0.12f, 0.18f);
-            DirLight("Sun", new Color(1f, 0.52f, 0.28f), 1.05f, new Vector3(18f, 52f, 0f), true);
-            DirLight("Fill", new Color(0.22f, 0.72f, 0.95f), 0.48f, new Vector3(55f, -110f, 0f), false);
-            DirLight("Rim", new Color(1f, 0.78f, 0.22f), 0.55f, new Vector3(12f, 165f, 0f), false);
-        }
-
-        /// <summary>Jungle canopy: dappled green key, moss fill, gold-leaf rim. Not Harbor afternoon.</summary>
-        public static void RigCanopy(Camera cam)
-        {
-            var sky = new Color(0.38f, 0.58f, 0.42f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.32f, 0.48f, 0.28f);
-            RenderSettings.fogStartDistance = 160f;
-            RenderSettings.fogEndDistance = 580f;
-            RenderSettings.ambientSkyColor = new Color(0.42f, 0.62f, 0.38f);
-            RenderSettings.ambientEquatorColor = new Color(0.36f, 0.48f, 0.22f);
-            RenderSettings.ambientGroundColor = new Color(0.18f, 0.16f, 0.10f);
-            DirLight("Sun", new Color(0.92f, 0.95f, 0.62f), 1.18f, new Vector3(62f, 28f, 0f), true);
-            DirLight("Fill", new Color(0.28f, 0.52f, 0.32f), 0.38f, new Vector3(48f, -88f, 0f), false);
-            DirLight("Rim", new Color(0.72f, 0.88f, 0.38f), 0.32f, new Vector3(22f, 148f, 0f), false);
-        }
-
-        /// <summary>Ember courtyard: fire key, warm fill, gold rim. Night-ready even in day. Not Harbor afternoon.</summary>
-        public static void RigCourtyard(Camera cam)
-        {
-            var sky = new Color(0.28f, 0.14f, 0.16f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.42f, 0.18f, 0.12f);
-            RenderSettings.fogStartDistance = 160f;
-            RenderSettings.fogEndDistance = 620f;
-            RenderSettings.ambientSkyColor = new Color(0.48f, 0.22f, 0.16f);
-            RenderSettings.ambientEquatorColor = new Color(0.72f, 0.32f, 0.14f);
-            RenderSettings.ambientGroundColor = new Color(0.14f, 0.08f, 0.08f);
-            DirLight("Sun", new Color(1f, 0.58f, 0.28f), 1.22f, new Vector3(32f, 38f, 0f), true);
-            DirLight("Fill", new Color(0.95f, 0.28f, 0.12f), 0.44f, new Vector3(58f, -96f, 0f), false);
-            DirLight("Rim", new Color(1f, 0.72f, 0.22f), 0.52f, new Vector3(18f, 162f, 0f), false);
-        }
-
-        /// <summary>Harbor night: moon key, cool fill, stadium rim. Fireworks are ParkView, not a skybox.</summary>
-        public static void RigHarborNight(Camera cam)
-        {
-            var sky = new Color(0.07f, 0.10f, 0.20f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.10f, 0.14f, 0.22f);
-            RenderSettings.fogStartDistance = 200f;
-            RenderSettings.fogEndDistance = 700f;
-            RenderSettings.ambientSkyColor = new Color(0.14f, 0.18f, 0.32f);
-            RenderSettings.ambientEquatorColor = new Color(0.28f, 0.26f, 0.22f);
-            RenderSettings.ambientGroundColor = new Color(0.10f, 0.10f, 0.08f);
-            DirLight("Sun", new Color(0.72f, 0.80f, 1f), 0.42f, new Vector3(28f, 50f, 0f), true);
-            DirLight("Fill", new Color(0.35f, 0.42f, 0.62f), 0.22f, new Vector3(58f, -78f, 0f), false);
-            DirLight("Rim", new Color(1f, 0.78f, 0.42f), 0.28f, new Vector3(16f, 168f, 0f), false);
-        }
-
-        /// <summary>Crystal night blackout: almost no key. Follow-spot on the ball is the light.</summary>
-        public static void RigIceGardenNight(Camera cam)
-        {
-            var sky = new Color(0.03f, 0.04f, 0.08f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.04f, 0.05f, 0.08f);
-            RenderSettings.fogStartDistance = 70f;
-            RenderSettings.fogEndDistance = 380f;
-            RenderSettings.ambientSkyColor = new Color(0.05f, 0.07f, 0.12f);
-            RenderSettings.ambientEquatorColor = new Color(0.06f, 0.08f, 0.12f);
-            RenderSettings.ambientGroundColor = new Color(0.03f, 0.04f, 0.06f);
-            DirLight("Sun", new Color(0.30f, 0.38f, 0.52f), 0.06f, new Vector3(48f, 22f, 0f), false);
-            DirLight("Fill", new Color(0.18f, 0.24f, 0.38f), 0.04f, new Vector3(55f, -95f, 0f), false);
-            DirLight("Rim", new Color(0.40f, 0.50f, 0.70f), 0.05f, new Vector3(18f, 155f, 0f), false);
-        }
-
-        /// <summary>Funfair night: dark carnival, amber key, rose fill. Chompers are ParkView.</summary>
-        public static void RigCarnivalNight(Camera cam)
-        {
-            var sky = new Color(0.12f, 0.06f, 0.14f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.28f, 0.10f, 0.16f);
-            RenderSettings.fogStartDistance = 180f;
-            RenderSettings.fogEndDistance = 640f;
-            RenderSettings.ambientSkyColor = new Color(0.32f, 0.12f, 0.22f);
-            RenderSettings.ambientEquatorColor = new Color(0.55f, 0.18f, 0.28f);
-            RenderSettings.ambientGroundColor = new Color(0.14f, 0.08f, 0.08f);
-            DirLight("Sun", new Color(1f, 0.55f, 0.22f), 0.55f, new Vector3(42f, 48f, 0f), true);
-            DirLight("Fill", new Color(0.92f, 0.22f, 0.48f), 0.32f, new Vector3(52f, -108f, 0f), false);
-            DirLight("Rim", new Color(1f, 0.82f, 0.22f), 0.46f, new Vector3(20f, 158f, 0f), false);
-        }
-
-        /// <summary>Ember night: hotter fire key, gold rim. Amp of the day courtyard, not a skybox.</summary>
-        public static void RigCourtyardNight(Camera cam)
-        {
-            var sky = new Color(0.12f, 0.04f, 0.06f);
-            SetupLighting(cam, sky);
-            cam.backgroundColor = sky;
-            RenderSettings.fogColor = new Color(0.48f, 0.16f, 0.08f);
-            RenderSettings.fogStartDistance = 140f;
-            RenderSettings.fogEndDistance = 560f;
-            RenderSettings.ambientSkyColor = new Color(0.62f, 0.22f, 0.10f);
-            RenderSettings.ambientEquatorColor = new Color(0.90f, 0.32f, 0.10f);
-            RenderSettings.ambientGroundColor = new Color(0.12f, 0.05f, 0.04f);
-            DirLight("Sun", new Color(1f, 0.42f, 0.12f), 1.55f, new Vector3(32f, 38f, 0f), true);
-            DirLight("Fill", new Color(1f, 0.22f, 0.06f), 0.62f, new Vector3(58f, -96f, 0f), false);
-            DirLight("Rim", new Color(1f, 0.78f, 0.18f), 0.72f, new Vector3(18f, 162f, 0f), false);
-        }
+        static void DirLight(string name, LookLight l) =>
+            DirLight(name, Of(l.Color), (float)l.Intensity, new Vector3((float)l.EulerX, (float)l.EulerY, (float)l.EulerZ), l.Shadows);
 
         static void DirLight(string name, Color color, float intensity, Vector3 euler, bool shadows)
         {
