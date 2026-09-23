@@ -96,13 +96,13 @@ Two screens. Not a 3D huddle with a name list.
 - **West / F** — remove (captain stays)
 - **Tab** — random fill. A button, not the product path
 
-**Offense / Defense Setup.** Each team has a vertical batting list numbered **1–9** beside a baseball diamond. Home is left and away is right. Heads sit on P / C / 1B / 2B / 3B / SS / LF / CF / RF, on grass with dirt, bags, foul lines and a curved outfield. The player card has its own space on the right. Hover or controller focus shows that player's card and softly highlights their chemistry partners; there are no permanent character-color frames or chemistry badges.
+**Offense / Defense Setup.** Batting bars numbered **1–9** run across the top (home) and bottom (away), with two baseball diamonds between them. Home field is left and away field is right. Heads sit on P / C / 1B / 2B / 3B / SS / LF / CF / RF, on grass with dirt, bags, foul lines and a curved outfield. Each team has its own player card on the right, aligned with its batting bar. P1 and P2 keep independent cursors, picks and cards visible at the same time. Hover or controller focus shows that player's card and softly highlights their chemistry partners; there are no permanent character-color frames or chemistry badges.
 
-- **Stick / WASD** — move through the list or diamond without changing anything
-- **East / G** — switch between batting list and field
-- **South / Space / click a player** — pick them; move to another slot in the same list or diamond and confirm again to swap. Confirm the same player to cancel
+- **Stick / WASD** — move through the bar or diamond without changing anything
+- **East / G** — switch between batting bar and field
+- **South / Space / click a player** — pick them; move to another slot in the same bar or diamond and confirm again to swap. Confirm the same player to cancel
 - **West / F** — cancel a pick; with no pick, back to Team Setup
-- **North / Q / First pitch button** — start when no player is picked
+- **North / Q / Ready button** — ready your team when no player is picked. Every human player must be ready to start; the CPU is ready automatically. Ready again or West/F withdraws your ready state; picking a player to edit clears your ready state
 
 Both controllers edit only their own team. Mouse is Player 1; the other team can be inspected but cannot be edited. There is no automatic start while you inspect the lineup. On Team Setup, click a pool player to add them, click a team slot to focus it, and use **Fill team** or **Continue** as labeled. Continue needs both complete nines.
 

@@ -20,14 +20,14 @@ namespace GrandSluggers.UnityClient
         static readonly Color Muted = new Color(.56f, .66f, .69f);
         static readonly Color Gold = new Color(1f, .83f, .40f);
 
-        public static void UseController() { _hover = false; _pointerMode = false; }
+        public static void UseController(LineupSeat seat) { if (seat == LineupSeat.Pad1) { _hover = false; _pointerMode = false; } }
 
         public static Action Pointer(LineupScreens lineup, out LineupFocus focus, out int index)
         {
             focus = default;
             index = -1;
             var mouse = Mouse.current;
-            if (mouse == null || !Controls.SeatUsesKeyboard(0)) { _hover = false; return Action.None; }
+            if (mouse == null) { _hover = false; return Action.None; }
             var p = mouse.position.ReadValue();
             if (_shown != lineup) { _shown = lineup; _mouse = p; _hover = false; }
             var moved = (p - _mouse).sqrMagnitude > .01f;
@@ -78,21 +78,25 @@ namespace GrandSluggers.UnityClient
             Label(24, 108, 880, 26, lineup.Help, _body);
             Label(936, 32, 320, 24, match == null ? "EXHIBITION" : match.Park.Name.ToUpperInvariant(), _small);
             Label(936, 60, 320, 26, "BOTH TEAMS  ·  " + lineup.HomeStars + " STARTING STARS", _small);
-            var inspected = _pointerMode ? (_hover ? lineup.CharacterAt(_hoverFocus, _hoverIndex) : null) : lineup.Highlighted;
+            var p1 = Inspection(lineup, LineupSeat.Pad1);
+            var p2 = Inspection(lineup, LineupSeat.Pad2);
             if (team)
             {
-                Label(24, 137, 880, 24, "HOME  /  " + lineup.HomeCaptain.Name.ToUpperInvariant(), _heading);
-                DrawCells(lineup, LineupFocus.HomeRow, 9, inspected);
-                DrawCells(lineup, LineupFocus.Pool, lineup.Pool.Count, inspected);
-                Label(24, 613, 880, 24, "AWAY  /  " + lineup.AwayCaptain.Name.ToUpperInvariant(), _heading);
-                DrawCells(lineup, LineupFocus.AwayRow, 9, inspected);
+                TeamLabel(lineup, true, 137);
+                DrawCells(lineup, LineupFocus.HomeRow, 9, p1, p2);
+                DrawCells(lineup, LineupFocus.Pool, lineup.Pool.Count, p1, p2);
+                TeamLabel(lineup, false, 602);
+                DrawCells(lineup, LineupFocus.AwayRow, 9, p1, p2);
             }
             else
             {
-                Side(lineup, true, inspected);
-                Side(lineup, false, inspected);
+                TeamLabel(lineup, true, 137);
+                TeamLabel(lineup, false, 602);
+                Side(lineup, true, p1, p2);
+                Side(lineup, false, p1, p2);
             }
-            PlayerCard(lineup, inspected);
+            PlayerCard(lineup, true, lineup.HomeSeat == LineupSeat.Pad2 ? p2 : lineup.HomeSeat == LineupSeat.Pad1 ? p1 : lineup.HomeCaptain);
+            PlayerCard(lineup, false, lineup.AwaySeat == LineupSeat.Pad2 ? p2 : lineup.AwaySeat == LineupSeat.Pad1 ? p1 : lineup.AwayCaptain);
             var keys = Controls.SeatUsesKeyboard(0);
             Button(LineupLayout.BackButton, team ? (keys ? "F  Remove player" : "West  Remove player") : lineup.AnyPick ? (keys ? "F  Cancel pick" : "West  Cancel pick") : (keys ? "F  Back" : "West  Back"), false);
             if (team)
@@ -100,34 +104,54 @@ namespace GrandSluggers.UnityClient
                 Button(LineupLayout.FillButton, keys ? "Tab  Fill team" : "RB  Fill team", false);
                 Label(390, 716, 605, 46, keys ? "WASD  Move   ·   Space  Add / continue\nEsc  How to play" : "Stick  Move   ·   South  Add / continue\nEsc  How to play", _body);
             }
-            else Label(206, 720, 785, 42, keys ? "WASD  Move     Space / click  Pick & swap\nG  List / field     Esc  How to play" : "Stick  Move     South  Pick & swap\nEast  List / field     Esc  How to play", _body);
-            Button(LineupLayout.ContinueButton, team ? "Continue  →" : (keys ? "Q  First pitch  →" : "North  First pitch  →"), team ? lineup.Ready : !lineup.AnyPick);
+            else Label(206, 720, 785, 42, keys ? "WASD  Move     Space / click  Pick & swap\nG  Order / field     Esc  How to play" : "Stick  Move     South  Pick & swap\nEast  Order / field     Esc  How to play", _body);
+            Button(LineupLayout.ContinueButton, team ? "Continue  →" : lineup.IsReady(LineupSeat.Pad1) ? "P1 Ready · waiting for P2" : (keys ? "Q  Ready  →" : "North  Ready  →"), team ? lineup.Ready : !lineup.HasPick(LineupSeat.Pad1));
             GUI.matrix = old;
         }
 
-        static void Side(LineupScreens lineup, bool home, Character inspected)
+        static string SeatName(LineupSeat seat) => seat == LineupSeat.Cpu ? "CPU" : seat == LineupSeat.Pad1 ? "P1" : "P2";
+        static Character Inspection(LineupScreens lineup, LineupSeat seat) => seat == LineupSeat.Pad1 && _pointerMode
+            ? (_hover ? lineup.CharacterAt(_hoverFocus, _hoverIndex) : null) : lineup.InspectedBy(seat);
+        static void TeamLabel(LineupScreens lineup, bool home, float y)
         {
-            var x = home ? 24 : 472;
             var seat = home ? lineup.HomeSeat : lineup.AwaySeat;
             var captain = home ? lineup.HomeCaptain : lineup.AwayCaptain;
-            Label(x, 151, 432, 27, (home ? "HOME" : "AWAY") + "  /  " + captain.Name.ToUpperInvariant()
-                + "  ·  " + (seat == LineupSeat.Cpu ? "CPU" : seat == LineupSeat.Pad1 ? "P1" : "P2"), _heading);
-            Label(x, 178, 142, 20, "BATTING ORDER", _small);
-            Label(x + 156, 178, 275, 20, "FIELD POSITIONS", _small);
-            GUI.DrawTexture(RectOf(home ? LineupLayout.HomeDiamondPanel : LineupLayout.AwayDiamondPanel), _field);
-            DrawCells(lineup, home ? LineupFocus.HomeOrder : LineupFocus.AwayOrder, 9, inspected);
-            DrawCells(lineup, home ? LineupFocus.HomeDiamond : LineupFocus.AwayDiamond, 9, inspected);
+            var ready = lineup.Step == LineupStep.DefenseSetup && lineup.IsReady(seat);
+            Label(24, y, 880, 24, (home ? "HOME" : "AWAY") + "  /  " + captain.Name.ToUpperInvariant()
+                + "  ·  " + SeatName(seat) + (ready ? "  ·  READY" : ""), _heading);
+        }
+        static void Side(LineupScreens lineup, bool home, Character p1, Character p2)
+        {
+            var panel = RectOf(home ? LineupLayout.HomeDiamondPanel : LineupLayout.AwayDiamondPanel);
+            var seat = home ? lineup.HomeSeat : lineup.AwaySeat;
+            Label(panel.x, 250, panel.width, 23, (home ? "HOME FIELD" : "AWAY FIELD") + "  ·  " + SeatName(seat), _small);
+            GUI.DrawTexture(panel, _field);
+            DrawCells(lineup, home ? LineupFocus.HomeOrder : LineupFocus.AwayOrder, 9, p1, p2);
+            DrawCells(lineup, home ? LineupFocus.HomeDiamond : LineupFocus.AwayDiamond, 9, p1, p2);
         }
 
-        static void DrawCells(LineupScreens lineup, LineupFocus focus, int count, Character inspected)
+        static void DrawCells(LineupScreens lineup, LineupFocus focus, int count, Character p1, Character p2)
         {
             for (var i = 0; i < count; i++)
             {
                 var c = Cell(focus, i, count);
                 var who = lineup.CharacterAt(focus, i);
-                var on = _pointerMode ? _hover && focus == _hoverFocus && i == _hoverIndex : lineup.Lit(focus, i);
+                var one = _pointerMode ? _hover && focus == _hoverFocus && i == _hoverIndex
+                    : lineup.FocusOf(LineupSeat.Pad1) == focus && lineup.IndexOf(LineupSeat.Pad1) == i;
+                var two = (lineup.HomeSeat == LineupSeat.Pad2 || lineup.AwaySeat == LineupSeat.Pad2)
+                    && lineup.FocusOf(LineupSeat.Pad2) == focus && lineup.IndexOf(LineupSeat.Pad2) == i;
+                var on = one || two;
                 var picked = lineup.Picked(focus, i);
-                var buddy = lineup.Buddies(inspected, who);
+                var home = focus is LineupFocus.HomeRow or LineupFocus.HomeOrder or LineupFocus.HomeDiamond;
+                var seat = home ? lineup.HomeSeat : lineup.AwaySeat;
+                var buddy = focus == LineupFocus.Pool
+                    ? lineup.Buddies(p1, who) || lineup.Buddies(p2, who)
+                    : lineup.Buddies(seat == LineupSeat.Pad1 ? p1 : seat == LineupSeat.Pad2 ? p2 : null, who);
+                if (_pointerMode && _hover && focus != LineupFocus.Pool)
+                {
+                    var hoverHome = _hoverFocus is LineupFocus.HomeRow or LineupFocus.HomeOrder or LineupFocus.HomeDiamond;
+                    if (_hoverFocus != LineupFocus.Pool && hoverHome == home) buddy |= lineup.Buddies(p1, who);
+                }
                 var r = RectOf(c);
                 var order = focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder;
                 var field = focus is LineupFocus.HomeDiamond or LineupFocus.AwayDiamond;
@@ -136,49 +160,49 @@ namespace GrandSluggers.UnityClient
                 if (buddy) Fill(r, new Color(.76f, .96f, .88f, .13f));
                 if (on) Fill(r, new Color(1, 1, 1, .10f));
                 if (on || picked) Border(r, picked ? Gold : new Color(1, 1, 1, .65f), picked ? 2 : 1);
-                if (order)
+                var mark = order ? (i + 1).ToString("00") : field ? Diamond.Order[i] : LineupLayout.TeamMark(who);
+                Label(r.x, r.y - 3, r.width, 18, mark, _mark);
+                Portrait(who, new Rect(r.x + 6, r.y + 13, r.width - 12, r.height - 31));
+                Label(r.x - 7, r.yMax - 18, r.width + 14, 20, who?.Name ?? "+", _mark);
+                if (one || two)
                 {
-                    Label(r.x + 6, r.y, 22, r.height, (i + 1).ToString("00"), _mark);
-                    Portrait(who, new Rect(r.x + 28, r.y + 3, 36, 43));
-                    Label(r.x + 67, r.y + 3, r.width - 69, r.height - 6, who?.Name ?? "Empty", _name);
-                }
-                else
-                {
-                    var mark = field ? Diamond.Order[i] : LineupLayout.TeamMark(who);
-                    Label(r.x, r.y - 3, r.width, 18, mark, _mark);
-                    Portrait(who, new Rect(r.x + 6, r.y + 13, r.width - 12, r.height - 31));
-                    Label(r.x - 7, r.yMax - 18, r.width + 14, 20, who?.Name ?? "+", _mark);
+                    var badge = new Rect(r.xMax - 25, r.y + 14, 25, two && one ? 28 : 15);
+                    Fill(badge, Ink);
+                    Label(badge.x, badge.y, badge.width, badge.height, one && two ? "P1\nP2" : one ? "P1" : "P2", _mark);
                 }
             }
         }
 
-        static void PlayerCard(LineupScreens lineup, Character who)
+        static void PlayerCard(LineupScreens lineup, bool home, Character who)
         {
-            var r = RectOf(LineupLayout.CardPanel);
+            var r = RectOf(LineupLayout.CardPanel(home));
+            var seat = home ? lineup.HomeSeat : lineup.AwaySeat;
             Fill(r, new Color(.075f, .115f, .14f));
-            Label(r.x + 20, r.y + 18, r.width - 40, 22, "PLAYER CARD", _small);
+            var ready = lineup.Step == LineupStep.DefenseSetup && lineup.IsReady(seat);
+            Label(r.x + 16, r.y + 10, r.width - 32, 22, SeatName(seat) + "  /  " + (ready ? "READY" : "PLAYER CARD"), _small);
             if (who == null)
             {
-                Label(r.x + 20, r.y + 75, r.width - 40, 100, "Hover over a player\nor move to them\nto see their card.", _body);
+                Label(r.x + 16, r.y + 60, r.width - 32, 70, "Hover over a player or move to them\nto see their card and chemistry.", _body);
                 return;
             }
             var card = lineup.CardFor(who).Value;
-            Portrait(who, new Rect(r.x + 78, r.y + 48, 172, 150));
-            Label(r.x + 20, r.y + 204, r.width - 40, 34, card.Name.ToUpperInvariant(), _heading);
-            Label(r.x + 20, r.y + 239, r.width - 40, 23, HowToPlay.CardBatHand(card.Bats), _small);
+            Portrait(who, new Rect(r.x + 12, r.y + 39, 100, 96));
+            Label(r.x + 125, r.y + 38, r.width - 137, 26, card.Name.ToUpperInvariant(), _heading);
+            Label(r.x + 125, r.y + 64, r.width - 137, 22, HowToPlay.CardBatHand(card.Bats), _small);
             var values = new[] { card.Stats.Pitch, card.Stats.Bat, card.Stats.Field, card.Stats.Run };
             var labels = new[] { "PITCH", "BAT", "FIELD", "RUN" };
             for (var i = 0; i < 4; i++)
             {
-                var y = r.y + 278 + i * 30;
-                Label(r.x + 20, y, 62, 22, labels[i], _small);
-                Fill(new Rect(r.x + 91, y + 6, 170, 8), new Color(1, 1, 1, .10f));
-                Fill(new Rect(r.x + 91, y + 6, 170 * (float)CharacterCard.BarFill(values[i]), 8), new Color(.76f, .85f, .83f));
-                Label(r.x + 277, y, 30, 22, values[i].ToString(), _small);
+                var y = r.y + 91 + i * 21;
+                Label(r.x + 125, y, 45, 20, labels[i], _small);
+                Fill(new Rect(r.x + 175, y + 6, 100, 7), new Color(1, 1, 1, .10f));
+                Fill(new Rect(r.x + 175, y + 6, 100 * (float)CharacterCard.BarFill(values[i]), 7), new Color(.76f, .85f, .83f));
+                Label(r.x + 289, y, 26, 20, values[i].ToString(), _small);
             }
-            Label(r.x + 20, r.y + 410, r.width - 40, 30, card.StarPitch, _body);
-            Label(r.x + 20, r.y + 442, r.width - 40, 30, card.StarSwing, _body);
-            Label(r.x + 20, r.y + 477, r.width - 40, 44, card.FieldVerb, _small);
+            Label(r.x + 16, r.y + 184, r.width - 32, 24, card.StarPitch, _body);
+            Label(r.x + 16, r.y + 207, r.width - 32, 23, card.StarSwing + " · " + card.FieldVerb, _small);
+            if (seat != LineupSeat.Cpu && lineup.Step == LineupStep.DefenseSetup)
+                Label(r.x + 16, r.y + 240, r.width - 32, 20, ready ? "Waiting for other player · West/F to edit" : Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1) ? "Q  Ready when your lineup is set" : "North  Ready when your lineup is set", _small);
         }
 
         static void Portrait(Character who, Rect r)
@@ -227,26 +251,26 @@ namespace GrandSluggers.UnityClient
         // four bags and a mound. Coordinates share the field's board frame; no park art is invented.
         static Texture2D FieldTexture()
         {
-            const int w = 560, h = 896;
+            const int w = 840, h = 600;
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear };
             var pixels = new Color[w * h];
-            var bags = new[] { new Vector2(0, 0), new Vector2(.27f, .19f), new Vector2(0, .38f), new Vector2(-.27f, .19f) };
+            var bags = new[] { new Vector2(0, 0), new Vector2(.27f, .27f), new Vector2(0, .54f), new Vector2(-.27f, .27f) };
             for (var py = 0; py < h; py++)
             for (var px = 0; px < w; px++)
             {
                 var x = (px + .5f) / w - .5f;
                 var y = (py + .5f) / h;
-                var z = y - .16f;
-                var radius = Mathf.Sqrt(x * x * 1.65f * 1.65f + z * z);
-                var fair = z >= Mathf.Abs(x) * .70f && radius < .83f;
+                var z = y - .10f;
+                var radius = Mathf.Sqrt(x * x * 1.40f * 1.40f + z * z);
+                var fair = z >= Mathf.Abs(x) * 1.0f && radius < .83f;
                 var col = Color.clear;
                 if (fair) col = ((int)(z * 15) % 2 == 0) ? new Color(.15f, .30f, .25f) : new Color(.17f, .33f, .27f);
-                var diamond = Mathf.Abs(x) / .27f + Mathf.Abs(z - .19f) / .19f;
+                var diamond = Mathf.Abs(x) / .27f + Mathf.Abs(z - .27f) / .27f;
                 if (fair && diamond < 1.22f) col = new Color(.47f, .36f, .24f);
                 if (diamond < .76f) col = new Color(.20f, .36f, .28f);
-                if (fair && (Mathf.Abs(z - Mathf.Abs(x) * .70f) < .0035f || radius > .822f)) col = new Color(.73f, .79f, .65f, .85f);
+                if (fair && (Mathf.Abs(z - Mathf.Abs(x) * 1.0f) < .0035f || radius > .822f)) col = new Color(.73f, .79f, .65f, .85f);
                 if (Mathf.Abs(diamond - 1) < .024f) col = new Color(.80f, .76f, .60f);
-                if ((x * x + (z - .15f) * (z - .15f)) < .0007f) col = new Color(.54f, .42f, .28f);
+                if ((x * x + (z - .23f) * (z - .23f)) < .0007f) col = new Color(.54f, .42f, .28f);
                 foreach (var bag in bags)
                     if (Mathf.Abs(x - bag.x) + Mathf.Abs(z - bag.y) < .017f) col = new Color(.95f, .93f, .80f);
                 pixels[py * w + px] = col;

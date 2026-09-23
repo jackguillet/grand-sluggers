@@ -393,12 +393,13 @@ namespace GrandSluggers.UnityClient
             else if (action == TeamSheet.Action.Continue)
             {
                 if (_lineup.Step == LineupStep.TeamSetup) _lineup.ConfirmTeam();
-                else if (!_lineup.AnyPick) ConfirmDraft();
+                else ReadyLineup(LineupSeat.Pad1);
             }
             else if (action == TeamSheet.Action.Back) _lineup.West(LineupSeat.Pad1);
             else if (action == TeamSheet.Action.Fill) _lineup.RandomFill(LineupSeat.Pad1);
             if (_phase != Phase.Lineup) return;
             TickLineupPad(Controls.Pad1, LineupSeat.Pad1, ref _lineupX, ref _lineupY);
+            if (_phase != Phase.Lineup) return;
             if (_lineup.HomeSeat == LineupSeat.Pad2 || _lineup.AwaySeat == LineupSeat.Pad2)
                 TickLineupPad(Controls.Pad2, LineupSeat.Pad2, ref _lineupX2, ref _lineupY2);
         }
@@ -432,28 +433,28 @@ namespace GrandSluggers.UnityClient
             TickLineupStick(pad, seat, ref armedX, ref armedY);
             if (pad.WestDown)
             {
-                TeamSheet.UseController();
+                TeamSheet.UseController(seat);
                 _lineup.West(seat);
             }
             if (pad.CyclePitch && _lineup.Step == LineupStep.TeamSetup)
             {
-                TeamSheet.UseController();
+                TeamSheet.UseController(seat);
                 _lineup.RandomFill(seat);
             }
             if (pad.EastDown && _lineup.Step == LineupStep.DefenseSetup)
             {
-                TeamSheet.UseController();
+                TeamSheet.UseController(seat);
                 _lineup.ToggleArea(seat);
             }
-            if (pad.NorthDown && _lineup.CanPlay && !_lineup.AnyPick)
+            if (pad.NorthDown && _lineup.CanPlay)
             {
-                ConfirmDraft();
+                ReadyLineup(seat);
                 return;
             }
             // A pointer click is handled by its hit target above, never also as a global confirm.
             if (pad.SouthDown && !(seat == LineupSeat.Pad1 && Controls.PointerDown))
             {
-                TeamSheet.UseController();
+                TeamSheet.UseController(seat);
                 if (_lineup.Step == LineupStep.TeamSetup) DropLineup(seat);
                 else PickLineup(seat);
             }
@@ -467,8 +468,14 @@ namespace GrandSluggers.UnityClient
             if (dx == 0 && dy == 0) return;
             if (dx != 0 && Mathf.Abs(pad.MenuAxisX) >= Mathf.Abs(pad.MenuAxisY)) dy = 0;
             else if (dy != 0) dx = 0;
-            TeamSheet.UseController();
+            TeamSheet.UseController(seat);
             _lineup.Stick(seat, dx, dy);
+        }
+
+        void ReadyLineup(LineupSeat seat)
+        {
+            _lineup.ToggleReady(seat);
+            if (_lineup.BothReady) ConfirmDraft();
         }
 
         void ConfirmDraft()

@@ -183,20 +183,27 @@ public class LineupScreensTests
     }
 
     [Fact]
-    public void LayoutSeparatesListsDiamondsAndCard()
+    public void LayoutSeparatesBothBattingBarsDiamondsAndCards()
     {
         Assert.True(LineupLayout.HomeSlot(0).Y > LineupLayout.PoolCell(0, 12).Y);
         Assert.True(LineupLayout.PoolCell(0, 12).Y > LineupLayout.AwaySlot(0).Y);
         Assert.True(LineupLayout.HomeDiamondPanel.CX < LineupLayout.AwayDiamondPanel.CX);
-        Assert.True(LineupLayout.HomeOrder(0).Y > LineupLayout.HomeOrder(8).Y);
-        Assert.True(LineupLayout.AwayOrder(0).Y > LineupLayout.AwayOrder(8).Y);
+        Assert.Equal(LineupLayout.HomeOrder(0).Y, LineupLayout.HomeOrder(8).Y);
+        Assert.True(LineupLayout.HomeOrder(0).X < LineupLayout.HomeOrder(8).X);
+        Assert.Equal(LineupLayout.AwayOrder(0).Y, LineupLayout.AwayOrder(8).Y);
+        Assert.False(Overlap(LineupLayout.CardPanel(true), LineupLayout.CardPanel(false)));
         foreach (var home in new[] { true, false })
         {
             var cells = Diamond.Order.Select(pos => LineupLayout.DiamondHead(home, pos)).ToArray();
             foreach (var cell in cells)
             {
-                Assert.False(Overlap(cell, LineupLayout.CardPanel));
-                for (var i = 0; i < 9; i++) Assert.False(Overlap(cell, LineupLayout.OrderCell(home, i)));
+                Assert.False(Overlap(cell, LineupLayout.CardPanel(true)));
+                Assert.False(Overlap(cell, LineupLayout.CardPanel(false)));
+                for (var i = 0; i < 9; i++)
+                {
+                    Assert.False(Overlap(cell, LineupLayout.HomeOrder(i)));
+                    Assert.False(Overlap(cell, LineupLayout.AwayOrder(i)));
+                }
             }
             for (var i = 0; i < cells.Length; i++)
                 for (var j = i + 1; j < cells.Length; j++) Assert.False(Overlap(cells[i], cells[j]), $"{Diamond.Order[i]} overlaps {Diamond.Order[j]}");
@@ -360,7 +367,7 @@ public class LineupScreensTests
         var s = Filled();
         var order = s.Home!.Order.Select(c => c.Id).ToArray();
         var gloves = Diamond.Order.Select(p => s.Home.Gloves[p].Id).ToArray();
-        for (var i = 0; i < 9; i++) s.Stick(0, -1);
+        for (var i = 0; i < 9; i++) s.Stick(1, 0);
         s.ToggleArea(LineupSeat.Pad1);
         foreach (var d in new[] { (1, 0), (0, 1), (-1, 0), (0, -1) }) s.Stick(d.Item1, d.Item2);
         Assert.Equal(order, s.Home.Order.Select(c => c.Id));
@@ -433,6 +440,62 @@ public class LineupScreensTests
         }
         Assert.Null(s.CardFor(null));
         Assert.False(s.Buddies(s.HomeCaptain, null));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TwoPlayersKeepIndependentCardsPicksAndReadyStates(bool reversed)
+    {
+        var s = LineupScreens.Open(_content, "rio", "ashlord",
+            reversed ? LineupSeat.Pad2 : LineupSeat.Pad1, reversed ? LineupSeat.Pad1 : LineupSeat.Pad2);
+        s.RandomFill(LineupSeat.Pad1); s.RandomFill(LineupSeat.Pad2); s.ConfirmTeam();
+        s.FocusCell(LineupSeat.Pad1, reversed ? LineupFocus.AwayOrder : LineupFocus.HomeOrder, 2);
+        var p1Card = s.InspectedBy(LineupSeat.Pad1);
+        s.FocusCell(LineupSeat.Pad2, reversed ? LineupFocus.HomeDiamond : LineupFocus.AwayDiamond, 5);
+        Assert.Same(p1Card, s.InspectedBy(LineupSeat.Pad1));
+        Assert.NotSame(p1Card, s.InspectedBy(LineupSeat.Pad2));
+        s.PickOrSwap(LineupSeat.Pad2);
+        Assert.True(s.ToggleReady(LineupSeat.Pad1));
+        Assert.False(s.BothReady);
+        Assert.False(s.ToggleReady(LineupSeat.Pad2));
+        Assert.True(s.HasPick(LineupSeat.Pad2));
+        s.CancelPick(LineupSeat.Pad2);
+        Assert.True(s.ToggleReady(LineupSeat.Pad2));
+        Assert.True(s.BothReady);
+        s.PickOrSwap(LineupSeat.Pad2);
+        Assert.False(s.IsReady(LineupSeat.Pad2));
+        Assert.True(s.IsReady(LineupSeat.Pad1));
+        Assert.False(s.BothReady);
+        s.West(LineupSeat.Pad1);
+        Assert.False(s.IsReady(LineupSeat.Pad1));
+        Assert.Equal(LineupStep.DefenseSetup, s.Step);
+        s.CancelPick(LineupSeat.Pad2);
+        s.ToggleReady(LineupSeat.Pad1); s.ToggleReady(LineupSeat.Pad2);
+        s.Sit(reversed ? LineupSeat.Cpu : LineupSeat.Pad1, reversed ? LineupSeat.Pad1 : LineupSeat.Cpu);
+        Assert.False(s.BothReady); // Losing a seat must never launch the game.
+        Assert.True(s.ToggleReady(LineupSeat.Pad1));
+        Assert.True(s.BothReady);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void HorizontalOrderAndInwardFieldNavigationFollowEitherSeatsBar(bool away)
+    {
+        var s = LineupScreens.Open(_content, "rio", "ashlord",
+            away ? LineupSeat.Cpu : LineupSeat.Pad1, away ? LineupSeat.Pad1 : LineupSeat.Cpu);
+        s.RandomFill(LineupSeat.Pad1); s.ConfirmTeam();
+        var order = away ? LineupFocus.AwayOrder : LineupFocus.HomeOrder;
+        var field = away ? LineupFocus.AwayDiamond : LineupFocus.HomeDiamond;
+        Assert.True(s.Stick(1, 0));
+        Assert.Equal(1, s.OrderOf(LineupSeat.Pad1));
+        Assert.Equal(order, s.FocusOf(LineupSeat.Pad1));
+        Assert.True(s.Stick(0, away ? 1 : -1));
+        Assert.Equal(field, s.FocusOf(LineupSeat.Pad1));
+        s.FocusCell(LineupSeat.Pad1, field, Array.IndexOf(Diamond.Order, away ? "C" : "CF"));
+        Assert.True(s.Stick(0, away ? -1 : 1));
+        Assert.Equal(order, s.FocusOf(LineupSeat.Pad1));
     }
 
     LineupScreens Filled()

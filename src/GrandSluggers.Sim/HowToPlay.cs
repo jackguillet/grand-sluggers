@@ -384,14 +384,14 @@ public static partial class HowToPlay
         [
             "Team Setup first, then Offense / Defense Setup.",
             "Pick a head. South adds them. Both teams get the same stars. Focus shows a card and softly highlights buddies.",
-            "Two diamonds beside batting lists. Stick moves; East switches list / field. South picks, then swaps. West cancels.",
-            "North    first pitch when no player is picked.",
+            "Two diamonds between batting bars. Stick moves; East switches order / field. South picks, then swaps. West cancels.",
+            "North    ready your team. Both players must be ready.",
         ],
         [
             "Team Setup first, then Offense / Defense Setup.",
             "Click a pool player to add them. Both teams get the same stars. Hover shows a card and softly highlights buddies.",
-            "Two diamonds beside batting lists. WASD moves; G switches list / field. Space or click picks, then swaps. F cancels.",
-            "Q / First pitch button    start when no player is picked.",
+            "Two diamonds between batting bars. WASD moves; G switches order / field. Space or click picks, then swaps. F cancels.",
+            "Q / Ready button    ready your team. Both players must be ready.",
         ]),
         new("two-pads", "Two controllers", "exhibition",
         [
