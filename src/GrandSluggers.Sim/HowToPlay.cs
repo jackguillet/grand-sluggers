@@ -256,7 +256,7 @@ public static partial class HowToPlay
             "The tag decides: CAUGHT STEALING or STOLEN BASE. Before the catch, an inset shows the race. Then the main view keeps both bags in frame, through returns and rundowns.",
             "Fly: everyone goes back to the bag until the catch or the drop; , before the catch is tag and go. Close play and tag are the pictures below. First Space / left click wins. A bang-bang SAFE pops small. Touch a runner off a bag to tag.",
         ]),
-        new("steal-race", "Steals and commitment", "",
+        new("steal-race", "Steals and commitment", "running",
         [
             "L3 sends your runner NOW. Point back to return, forward to go again. Off the bag is vulnerable.",
             "Before charge: D-pad base + South throws there. Any of the four bases, even empty ones.",
