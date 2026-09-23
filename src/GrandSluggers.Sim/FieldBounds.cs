@@ -297,7 +297,10 @@ public static class FieldBounds
         return Diamond.Dist(x, z, c.X, c.Z) < 0.6;
     }
 
-    /// <summary>Clip a glove (or landing) onto the grass for this park: inside every wall by <see cref="InsideFt"/>.</summary>
+    /// <summary>Keep a fielder inside the wall while close enough to recover a loose wall ball.</summary>
+    public static (double X, double Z) ClampFielder(Park park, double x, double z, RulesTable? rules = null) =>
+        Clamp(park, x, z, Rules.Or(rules).Fielding.Chase.WallClearanceFt);
+
     public static (double X, double Z) Clamp(Park park, double x, double z) => Clamp(park, x, z, InsideFt);
 
     public static (double X, double Z) Clamp(Park park, double x, double z, double insetFt)

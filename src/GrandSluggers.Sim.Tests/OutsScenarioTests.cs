@@ -40,7 +40,7 @@ public sealed class OutsScenarioTests
         yield return [new DpRow("S-43 3 then the tag", 92, -6, 43, [1], 0, [0, 2], "1B")];
         // C80: at 110 ft the ball's line passes between the compact first and second basemen and the preview names second; 95 ft is the first baseman's.
         yield return [new DpRow("S-44 3-6-3", 105, -6, 38, [1], 0, [2, 1], "1B")];
-        yield return [new DpRow("S-45 1-6-3", 54, -12, 1, [1], 0, [2, 1], "P")];
+        yield return [new DpRow("S-45 1-6-3", 60, -12, 1, [1], 0, [2, 1], "P")];
         // C80: from the 92-ft ball the CPU's second out goes to second and the batter reaches; 85 ft at 3° is the step on third then the throw to first.
         yield return [new DpRow("S-46 5 unassisted then 3", 67, -12, -44, [1, 2], 0, [0, 1], "3B")];
         yield return [new DpRow("S-47 1-2-3", 41, -12, -6, [1, 2, 3], 0, [4, 1], "P")];
@@ -425,8 +425,8 @@ public sealed class OutsScenarioTests
     public void S73_ThrowWellAheadOfTheRunnerAtThirdIsATagWithNoIcon() =>
         S73_Row(S73Compact);
 
-    /// <summary>C80 (#715): on 80-ft paths the 30° ball leaves the throw 0.20 s ahead, inside the margin; at 26° it is well ahead again.</summary>
-    static readonly (int OrderIndex, double Exit, double Spray) S73Compact = (2, 90, 26);
+    /// <summary>The sharper right-side grounder reaches third before the runner enters the close margin.</summary>
+    static readonly (int OrderIndex, double Exit, double Spray) S73Compact = (2, 120, 26);
 
     void S73_Row((int OrderIndex, double Exit, double Spray) row)
     {
@@ -447,8 +447,8 @@ public sealed class OutsScenarioTests
     public void S74_ThrowJustAheadOfTheRunnerRunsTheMashAndTheFirstPressWins(int pressFramesAfterIcon, bool safe) =>
         S74_Row(pressFramesAfterIcon, safe, S74Compact);
 
-    /// <summary>C80 (#715): the same ball; the Run-5 body that lands inside the margin with the dash is the fifth in the order, not the seventh.</summary>
-    static readonly (int OrderIndex, double Exit, double Spray) S74Compact = (5, 90, 38);
+    /// <summary>The softer right-side grounder puts the dashing Run-5 body inside the close margin.</summary>
+    static readonly (int OrderIndex, double Exit, double Spray) S74Compact = (5, 100, 26);
 
     void S74_Row(int pressFramesAfterIcon, bool safe, (int OrderIndex, double Exit, double Spray) row)
     {

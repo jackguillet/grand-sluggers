@@ -1736,6 +1736,8 @@ public sealed class FieldingRules
 
     internal void Validate(string source, List<string> errors)
     {
+        if (Chase.WallClearanceFt >= Chase.LooseScoopFt)
+            errors.Add($"{source}: fielding.chase.wallClearanceFt must be smaller than looseScoopFt so a wall ball remains reachable");
         RulesValidation.Order(source, "fielding.catcher.cpuReleaseMinSec", Catcher.CpuReleaseMinSec, Catcher.CpuReleaseMaxSec, errors);
         RulesValidation.Order(source, "fielding.chem.slantLateralMinFt", Chem.SlantLateralMinFt, Chem.SlantLateralMaxFt, errors);
         RulesValidation.Order(source, "fielding.throw.minFtPerSec", Throw.MinFtPerSec, Throw.BaseFtPerSec, errors);
@@ -1785,6 +1787,8 @@ public sealed class FieldStickRules
 public sealed class ReactionRules
 {
     [Positive] public double PitcherSec { get; init; } = 0.35;
+    /// <summary>Post-delivery recovery after full-swing contact; no difficulty or hang-time shortening. Bunts use the ordinary read.</summary>
+    [Positive] public double PitcherRecoverySec { get; init; } = 0.65;
     [Positive] public double CatcherSec { get; init; } = 0.45;
     [Positive] public double FirstSec { get; init; } = 0.25;
     [Positive] public double SecondSec { get; init; } = 0.25;
@@ -1882,7 +1886,9 @@ public sealed class ChaseRules
     /// <summary>After a hand-off the body the ring left keeps its velocity for this long, then stops (§8.9): the swap does not jerk.</summary>
     public double HandoffCoastSec { get; init; } = 0.2;
     /// <summary>The nearest body to a loose ball chases it; a throw's receiver steps to a ball inside this of them.</summary>
-    [Positive] public double LooseScoopFt { get; init; } = 3.5;
+    [Positive] public double LooseScoopFt { get; init; } = 2.5;
+    /// <summary>Body clearance inside the fence, small enough to recover a ball with loose scoop reach.</summary>
+    [Positive] public double WallClearanceFt { get; init; } = 2;
     /// <summary>
     /// An outfielder chasing a ball hit in the air runs at the one glove speed × this (§8.1, §8.2). The S-29 lever since the
     /// outfield read went back to the reference (#609): the read is when a body starts, this is how much ground it covers.
@@ -1916,13 +1922,13 @@ public sealed class CatchRules
     /// <summary>
     /// The authored stand-up reach every body without its own <see cref="Character.ReachFt"/> gets (F693-02-catch-reach-envelope,
     /// #719): roughly what the visible glove covers from a planted stance, independent of ratings. 0 keeps the legacy
-    /// <c>radiusBaseFt + Field × radiusPerField</c>; the game plays 6.0. A character's authored
+    /// <c>radiusBaseFt + Field × radiusPerField</c>; the game plays 4.0. A character's authored
     /// <c>reachFt</c> wins over both, and the ability bonuses add to whichever applies.
     /// </summary>
-    public double StandUpReachFt { get; init; } = 6.0;
+    public double StandUpReachFt { get; init; } = 4.0;
     public double ClamberRadiusFt { get; init; } = 6;
-    public double WindowPadFt { get; init; } = 4;
-    public double DiveReachFt { get; init; } = 8;
+    public double WindowPadFt { get; init; } = 1;
+    public double DiveReachFt { get; init; } = 2;
     public double JumpReachFt { get; init; } = 0;
     public double DiveMaxBallY { get; init; } = 7.5;
     public double NeedsJumpReachFt { get; init; } = 22;
@@ -1960,14 +1966,8 @@ public sealed class CatchRules
     /// <summary>East arms the dive reach for this long.</summary>
     public double DiveArmSec { get; init; } = 0.5;
     /// <summary>
-    /// The dive without a decision (#719, F693-02-dive-jump-scoop-reach, -cpu-dive-intent): 1 is the old free dive — the
-    /// dead-stick assistance and the CPU dive at the rim on their own; 0 is the rule — a dive is a press, or
-    /// the CPU's deliberate commitment on the live ball, never free.
-    /// </summary>
-    [Chance] public double AutoDive { get; init; } = 0;
-    /// <summary>
     /// What a dive costs (F693-02-dive-recovery-cost): the diver neither moves nor throws for this long after the
-    /// commitment, at Field 1, caught or missed alike, human and CPU alike — and never revoking a catch already made. The
+    /// commitment, at Field 1, caught or missed alike, player initiated — and never revoking a catch already made. The
     /// later end wins against the bobble's fumble. 0.60 s; 0 is a free dive.
     /// </summary>
     public double DiveRecoverySec { get; init; } = 0.60;
@@ -1996,7 +1996,7 @@ public sealed class FieldDashRules
     [Positive] public double ChaseMul { get; init; } = 1.0;
     public double BuddyTossFt { get; init; } = 28;
     public double KickFt { get; init; } = 22;
-    public double DiveLungeFt { get; init; } = 10;
+    public double DiveLungeFt { get; init; } = 8;
     public double ItemSmashFt { get; init; } = 24;
 }
 

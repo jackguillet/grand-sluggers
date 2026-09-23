@@ -51,13 +51,13 @@ public sealed class AirRecoilTests
     [Fact]
     public void AHotLinerCaughtStandingCostsTheHandsAndTheOutStands()
     {
-        var a = Drive(Game, 125, 1, 0, human: true);
-        var b = Drive(Game, 125, 1, 0, human: true);
-        Assert.Equal("P", a.Pos);
+        var a = Drive(Game, 140, 4, -18, human: true);
+        var b = Drive(Game, 140, 4, -18, human: true);
+        Assert.Equal("SS", a.Pos);
         Assert.True(a.TakeAt < a.Hang, "the liner was caught in the air");
         Assert.False(a.Dive || a.Jump || a.Airborne, "a catch on his feet");
         Assert.InRange(a.Speed, 80.01, 115);
-        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("vale"), a.Speed, Game.Rules, airborne: true), a.Dur, 9);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("grit"), a.Speed, Game.Rules, airborne: true), a.Dur, 9);
         Assert.True(a.Dur > 0);
         Assert.Equal(1, a.Events);
         Assert.Equal(PlayKind.FlyOut, a.Play.Kind);
@@ -86,7 +86,7 @@ public sealed class AirRecoilTests
     [Fact]
     public void ADivingCatchIsNotAGroundedOneAndPaysTheDiveInstead()
     {
-        var run = Drive(Game, 160, 4, -18);
+        var run = Drive(Game, 160, 4, -24, human: true, playerDive: true);
         Assert.Equal("SS", run.Pos);
         Assert.True(run.Dive, "the right fielder dove");
         Assert.True(run.Speed > 80, $"the liner arrived at {run.Speed:0.0} ft/s, above the airborne onset");
@@ -111,7 +111,7 @@ public sealed class AirRecoilTests
     [Fact]
     public void TheHumanSeatIsHeldAndTheThrowWaitsAfterAStandingCatch()
     {
-        var (match, hit, preview) = Fixture(Game, 125, 1, 0);
+        var (match, hit, preview) = Fixture(Game, 140, 4, -18);
         var live = match.LivePlay;
         live.Recording = true;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
@@ -165,7 +165,7 @@ public sealed class AirRecoilTests
     sealed record Run(PlayEvent Play, string Pos, double TakeAt, double Hang, double Speed, double Dur, bool Impact, bool Dive, bool Jump, bool Airborne,
         double DiveCost, int RecoilFrames, int Events, IReadOnlyList<(PlayTraceMarkKind Kind, double T)> Marks);
 
-    static Run Drive(ContentCatalog content, double exitMph, double launchDeg, double sprayDeg, bool human = false)
+    static Run Drive(ContentCatalog content, double exitMph, double launchDeg, double sprayDeg, bool human = false, bool playerDive = false)
     {
         var (match, hit, preview) = Fixture(content, exitMph, launchDeg, sprayDeg);
         var live = match.LivePlay;
@@ -177,6 +177,8 @@ public sealed class AirRecoilTests
         for (var i = 0; i < 60 * 15 && play is null; i++)
         {
             var pad = human && live.HoldsBall ? new LivePadInput(KeysBag: 1, SouthDown: true) : LivePadInput.Dead;
+            if (playerDive && !live.HoldsBall && live.DiveT <= 0 && live.DiveRecoveryT <= 0 && live.ElapsedSeconds >= .7)
+                pad = new LivePadInput(EastDown: true);
             var r = live.Apply(LivePlayCommand.Tick(Frame, pad, LivePadInput.Dead, false, LivePlayCommandSource.Cpu));
             play = r.CompletedPlay;
             if (play is not null) break;

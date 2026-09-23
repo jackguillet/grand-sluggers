@@ -592,16 +592,15 @@ public static class FieldDash
     public static bool KickOffered(double distFt, RulesTable? rules = null) =>
         distFt < Rules.Or(rules).Fielding.Dash.KickFt;
 
-    /// <summary>Dive carries the body toward the ball. Not a teleport.</summary>
+    /// <summary>Project the target onto the lateral axis of a fielder facing home. No forward/backward lunge.</summary>
     public static (double X, double Z) Lunge(double x, double z, double tx, double tz, double? ft = null, RulesTable? rules = null)
     {
         var reach = ft ?? Rules.Or(rules).Fielding.Dash.DiveLungeFt;
-        var dx = tx - x;
-        var dz = tz - z;
-        var d = Math.Sqrt(dx * dx + dz * dz);
-        if (d < 0.01) return (x, z);
-        var u = Math.Min(1, reach / d);
-        return (x + dx * u, z + dz * u);
+        var homeDistance = Math.Sqrt(x * x + z * z);
+        var sideX = homeDistance > 0.01 ? z / homeDistance : 1;
+        var sideZ = homeDistance > 0.01 ? -x / homeDistance : 0;
+        var lateral = Math.Clamp((tx - x) * sideX + (tz - z) * sideZ, -reach, reach);
+        return (x + sideX * lateral, z + sideZ * lateral);
     }
 
     public static bool DestroysItem(bool attack, bool itemFlying, double distFt, RulesTable? rules = null) =>

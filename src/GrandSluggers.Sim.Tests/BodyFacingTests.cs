@@ -181,7 +181,7 @@ public sealed class BodyFacingTests
     public static IEnumerable<object[]> FlyRows()
     {
         yield return new object[] { 175, 34, 0 };     // routine fly 55 ft in front of CF (GameplayTests' fixture); 38 ft on the copy
-        yield return new object[] { 235, 36, 4 };     // a fly over CF's head: the run back, then the backpedal
+        yield return new object[] { 235, 52, 4 };     // a fly over CF's head: the run back, then the backpedal
         yield return new object[] { 190, 32, -30 }; // a fly into the LF–CF gap
     }
 

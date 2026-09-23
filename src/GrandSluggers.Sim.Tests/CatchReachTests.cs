@@ -16,15 +16,15 @@ public sealed class CatchReachTests
     [Trait("Kind", "Balance")]
     public void TheStandUpReachIsSixFeetAndAnAuthoredReachWins()
     {
-        Assert.Equal(6.0, Game.Rules.Fielding.Catch.StandUpReachFt);
+        Assert.Equal(4.0, Game.Rules.Fielding.Catch.StandUpReachFt);
 
         var ashlord = Game.Must("ashlord");   // Field 3, spin-check: no catch bonus
         Assert.Equal(3, ashlord.Stats.Field);
         Assert.Null(ashlord.ReachFt);
-        Assert.Equal(6.0, FieldingResolver.CatchRadiusFt(ashlord, null, Game.Rules), 9);
+        Assert.Equal(4.0, FieldingResolver.CatchRadiusFt(ashlord, null, Game.Rules), 9);
 
         var rio = Game.Must("rio");           // Field 6, grow: +6
-        Assert.Equal(6.0 + 6, FieldingResolver.CatchRadiusFt(rio, null, Game.Rules), 9);
+        Assert.Equal(4.0 + 6, FieldingResolver.CatchRadiusFt(rio, null, Game.Rules), 9);
 
         // An authored reachFt wins over the table.
         var authored = ashlord with { ReachFt = 7.5 };
@@ -37,7 +37,7 @@ public sealed class CatchReachTests
     {
         var r = Game.Rules;
         var standUp = FieldingResolver.CatchRadiusFt(Game.Must("ashlord"), null, r);
-        Assert.Equal(6.0, FieldingResolver.StandUpCatchFt(standUp), 9);
+        Assert.Equal(4.0, FieldingResolver.StandUpCatchFt(standUp), 9);
         Assert.Equal(10.0, FieldingResolver.CatchWindowFt(standUp, dive: false, jump: false, r), 9);   // the 4-ft dirt pad
         Assert.Equal(14.0, FieldingResolver.DiveCatchFt(standUp, r), 9);                              // the earned dive
         // The jump is the arc (catch.jumpReachFt 0), so the armed window is the dirt pad alone.
@@ -56,7 +56,7 @@ public sealed class CatchReachTests
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
-        Assert.Equal(6.0 + FieldAbilities.CatchBonus(preview.Fielder, match.Rules), preview.CatchRadius, 9);
+        Assert.Equal(4.0 + FieldAbilities.CatchBonus(preview.Fielder, match.Rules), preview.CatchRadius, 9);
         Assert.Equal(preview.CatchRadius, LandingMark.RadiusFt(preview), 9);
     }
 

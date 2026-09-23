@@ -52,7 +52,7 @@ public sealed class FielderTellsTests
     /// batter's miss, which carries the bat.
     /// </summary>
     [Theory]
-    [InlineData(150, -12, 0, "P", true)]
+    [InlineData(120, -12, -18, "SS", true)]
     [InlineData(75, 6, 30, "2B", false)]
     public void TheFumblerShowsTheStunAndNoOtherBodyDoes(double exit, double launch, double spray, string fumbler, bool deflects)
     {
@@ -95,7 +95,7 @@ public sealed class FielderTellsTests
     [Fact]
     public void TheDiverStaysDownThenGetsUpThroughTheResultBeat()
     {
-        var (match, live) = BeginCpu(Game, 130, 16, 6, seed: 1);
+        var (match, live) = BeginCpu(Game, 115, 16, 2, seed: 1, human: true);
         var last = FielderTells.Owed.None;
         var commits = 0;
         PlayEvent? play = null;
@@ -139,13 +139,13 @@ public sealed class FielderTellsTests
     [Fact]
     public void AMissedDiveStillLiesTheDiverDownWhoeverHoldsTheRing()
     {
-        var (match, live) = BeginCpu(Game, 130, 16, 6, seed: 1);
+        var (match, live) = BeginCpu(Game, 115, 16, 2, seed: 1, human: true);
         var owedFrames = 0;
         var nudged = false;
         PlayEvent? play = null;
         for (var i = 0; i < 60 * 12 && play is null; i++)
         {
-            play = Tick(live);
+            play = nudged ? live.Apply(LivePlayCommand.Tick(Frame)).CompletedPlay : Tick(live);
             if (play is not null) break;
             if (!nudged && live.Events.Contains(LiveEvent.DiveCommit))
             {
@@ -209,7 +209,7 @@ public sealed class FielderTellsTests
     public void AHardBallBracesTheGloveAndARoutineOneBracesNobody()
     {
         var cap = Game.Rules.Fielding.Recoil.CapSec;
-        var (match, live) = BeginCpu(Game, 145, -3, 0, seed: 1, quality: ContactQuality.Perfect);
+        var (match, live) = BeginCpu(Game, 150, -3, -18, seed: 1, quality: ContactQuality.Perfect);
         var braced = new List<double>();
         var dur = 0.0;
         PlayEvent? play = null;
@@ -218,19 +218,19 @@ public sealed class FielderTellsTests
             play = Tick(live);
             if (play is not null) break;
             var o = FielderTells.Owed.Of(live, match.Rules);
-            foreach (var pos in Diamond.Order.Where(p => p != "P"))
+            foreach (var pos in Diamond.Order.Where(p => p != "SS"))
                 Assert.Equal((1.0, 1.0, 1.0), FielderTells.Brace(o, pos, cap, Feel));
-            var brace = FielderTells.Brace(o, "P", cap, Feel);
+            var brace = FielderTells.Brace(o, "SS", cap, Feel);
             if (!o.Bracing) { Assert.Equal((1.0, 1.0, 1.0), brace); continue; }
-            Assert.Equal("P", live.GlovePos);
+            Assert.Equal("SS", live.GlovePos);
             Assert.Equal(1 - 0.16 * (live.RecoilDur / cap) * (live.RecoilT / live.RecoilDur), brace.Y, 9);
             Assert.Equal(1 + (1 - brace.Y) * 0.5, brace.X, 9);
             braced.Add(brace.Y);
             dur = live.RecoilDur;
         }
-        Assert.Equal(0.13, dur, 9);
-        Assert.InRange(braced.Count, 7, 9);
-        Assert.Equal(1 - 0.16 * 0.65, braced[0], 9);   // the take: the full squash at this ball's weight
+        Assert.Equal(0.15, dur, 9);
+        Assert.InRange(braced.Count, 8, 10);
+        Assert.Equal(1 - 0.16 * 0.75, braced[0], 9);   // the take: the full squash at this ball's weight
         Assert.True(braced.Zip(braced.Skip(1)).All(p => p.Second > p.First), "the brace eases out, never deepens");
 
         // The routine grounder, and the knockback on the same comebacker with the recoil off: nobody braces on any frame.
@@ -270,7 +270,7 @@ public sealed class FielderTellsTests
 
     /// <summary>Harbor, the CPU on both sides of the ball; the contact judged by the flight (Nice unless the source test named Perfect).</summary>
     static (Match Match, LivePlaySystem Live) BeginCpu(ContentCatalog content, double exit, double launch, double spray, int seed,
-        ContactQuality quality = ContactQuality.Nice)
+        ContactQuality quality = ContactQuality.Nice, bool human = false)
     {
         var d = Defense;
         var home = content.Team("Defense", d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8]);
@@ -280,7 +280,7 @@ public sealed class FielderTellsTests
         Assert.False(hit.Foul);
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
-        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, human ? HumanGlove : LiveSeats.CpuOnly, 0, human ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu)).Snapshot.Active);
         return (match, live);
     }
 
@@ -298,8 +298,14 @@ public sealed class FielderTellsTests
         return (match, live);
     }
 
-    static PlayEvent? Tick(LivePlaySystem live) =>
-        live.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu)).CompletedPlay;
+    static PlayEvent? Tick(LivePlaySystem live)
+    {
+        var d = Diamond.Dist(live.GloveX, live.GloveZ, live.BallX, live.BallZ);
+        var dive = live.Seats.HumanFields && live.DiveT <= 0 && live.DiveRecoveryT <= 0 && !live.HoldsBall
+                   && live.ElapsedSeconds >= live.Preview!.HangTimeSec - .35 && d < 14;
+        return live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(EastDown: dive), LivePadInput.Dead, false,
+            live.Seats.HumanFields ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu)).CompletedPlay;
+    }
 
     static void Tick(LivePlaySystem live, int frames, Func<int, LivePadInput> pad, Action? afterEach = null)
     {
