@@ -23,6 +23,8 @@ public class HudCalloutsTests
         Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "landing" && m.Label.Contains("Landing"));
         Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "error" && m.Label.Contains("ERROR")
             && m.Anchor == BroadcastHud.StampDirt);
+        Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "runners-outs" && m.Anchor == BroadcastHud.LivePanel);
+        Assert.DoesNotContain(HudCallouts.InPlay.Marks, m => m.Id == "score");
         Assert.Contains("YOU", BroadcastHud.ControlDisplay(true, "CF", "Rio Sparks"));
         Assert.Contains("TIRED", BroadcastHud.ArmLine(10));
         Assert.Contains("ITEM", BroadcastHud.ItemPointer(true, "Ashlord"));

@@ -545,6 +545,7 @@
       "pr": ""
     },
     {
+<<<<<<< HEAD
       "id": "hit-label-selects-ball-physics",
       "signature": "Ground balls cannot bounce early; near-identical contact changes speed at the liner cutoff; overhead liners are caught through their height.",
       "stage": "sim",
@@ -552,6 +553,15 @@
       "fix": "Use signed continuous ordinary contact, one flight clock, incoming-impact surface response and live 3D catch reach. First surface contact decides catch versus pickup; descriptions do not.",
       "promoted": "ContactFlightTests.LowLinerMeetsTheGloveAndHigherLinerClearsIt",
       "issue": "#973",
+=======
+      "id": "contact-effect-blanks-live-hud",
+      "signature": "HUD disappears after contact and returns late, especially through hit-freeze, smash or a star effect.",
+      "stage": "sitting",
+      "cause": "BroadcastHud.MutePlay tied every play overlay to spectacle, smash and freeze timers; HudView.Draw returned before drawing any match information.",
+      "fix": "BroadcastHud.Mode follows the plate/live phase with a compact runner diamond and outs during play. Effect clocks do not control HUD visibility. Only explicit capture/debug mute hides play overlays.",
+      "promoted": "BroadcastHudTests.ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay",
+      "issue": "#981",
+>>>>>>> origin/main
       "pr": ""
     }
   ]
