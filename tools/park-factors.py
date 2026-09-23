@@ -8,7 +8,7 @@ cannot, because it predates `cli match --night`.
 
     dotnet build src/GrandSluggers.Cli -c Release
     dotnet .artifacts/bin/GrandSluggers.Cli/release/GrandSluggers.Cli.dll match --cohort park-factors --table
-    GRAND_SLUGGERS_TRIAL=trials/c80 dotnet .artifacts/.../GrandSluggers.Cli.dll match --cohort park-factors
+    GRAND_SLUGGERS_TRIAL=trials/<name> dotnet .artifacts/.../GrandSluggers.Cli.dll match --cohort park-factors
 
 This file is kept, unchanged in behaviour, because it is the tool named by
 docs/research/fields-park-baseline.json: that evidence was measured with it at `d0c6e12c` and is
@@ -20,7 +20,7 @@ It changes no rule and passes no gate. It runs `cli match --park <id> --seed <n>
 park on one data root and tallies the printed play kinds.
 
     python3 tools/park-factors.py                       # shipped root
-    python3 tools/park-factors.py --trial trials/c80    # the compact trial
+    python3 tools/park-factors.py --trial trials/<name>    # a trial overlay
     python3 tools/park-factors.py --json out.json
 
 Limits: three-inning day games, one matchup (the CLI default), CPU on both sides. The seed is
@@ -93,7 +93,7 @@ def tally(games):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--trial", help="overlay folder, for example trials/c80")
+    ap.add_argument("--trial", help="overlay folder, for example trials/<name>")
     ap.add_argument("--seeds", type=int, default=50, help="seeds 1..N at every park (default 50)")
     ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 4) // 2))
     ap.add_argument("--json", help="write the rows to this file")

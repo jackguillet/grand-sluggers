@@ -6,20 +6,19 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class TutorialAbilityTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load();
-    public static IEnumerable<object[]> Cases => from profile in new[] { "shipped", "c80" }
+    public static IEnumerable<object[]> Cases => from profile in new[] { "shipped" }
         from id in new[] { "T-F16", "T-A-burrow", "T-A-grow", "T-A-lick-catch", "T-A-withdraw" }
         select new object[] { profile, id };
 
     static (ContentCatalog, TutorialCatalog) Load(string profile)
     {
-        var content = profile == "shipped" ? Shipped : ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped,
-            Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"))));
-        return (content, TutorialCatalog.Load(content));
+        Assert.Equal("shipped", profile);
+        return (Shipped, TutorialCatalog.Load(Shipped));
     }
 
     static void Drive(TutorialSession run, string profile, LivePlayCommandSource source, bool move)
     {
-        var offset = profile == "shipped" ? 16 : run.Lesson.Id is "T-F16" or "T-A-grow" ? 16 : 12;
+        var offset = run.Lesson.Id is "T-F16" or "T-A-grow" ? 16 : 12;
         for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
         {
             var live = run.Match.LivePlay;

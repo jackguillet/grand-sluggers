@@ -13,6 +13,10 @@ if (mode is not ("--check" or "--write")) throw new ArgumentException("Use --che
 var json = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 var outputPath = Path.Combine(root, "docs/research/game-feel-730-scale-derived.json");
 
+// On demand, not in CI. It compared the full-size data/ against trials/c80; 3e (2026-09-22) promoted that overlay into
+// data/ and deleted it, so the probe needs a full-size root rebuilt (the pre-promotion data/) before it can run again.
+if (!Directory.Exists(Path.Combine(root, "trials/c80")))
+    throw new InvalidOperationException("#730 scale probes compare the full-size root against trials/c80, which 3e promoted into data/; rebuild a full-size root first.");
 var shipped = ContentCatalog.Load(Path.Combine(root, "data"));
 var trial = ContentCatalog.Load(new DataRoot(Path.Combine(root, "data"), Path.Combine(root, "trials/c80")));
 

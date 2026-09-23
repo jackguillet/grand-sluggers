@@ -483,10 +483,9 @@ public sealed class StealScenarioTests
         Assert.True(underLock.Count >= (int)Math.Round(lock_ / Frame) - 2, $"the lock held the ring {underLock.Count} frames");
         // Under the lock with a dead stick the body stands still, and the ball is loose, not in its glove.
         var at = (underLock[0].GX, underLock[0].GZ);
-        // The C80 copy's response law (#718) ends the body's brake inside the lock: the last of it is one unit in the last place
+        // The response law (#718) ends the body's brake inside the lock: the last of it is one unit in the last place
         // of the double (3e-18 ft), so "still" there is within a billionth of a foot, not bit-equal.
-        if (TestRoot.Compact) Assert.All(underLock, f => Assert.True(Diamond.Dist(at.GX, at.GZ, f.GX, f.GZ) < 1e-9, "the body stands still"));
-        else Assert.All(underLock, f => Assert.Equal(at, (f.GX, f.GZ)));
+        Assert.All(underLock, f => Assert.True(Diamond.Dist(at.GX, at.GZ, f.GX, f.GZ) < 1e-9, "the body stands still"));
         Assert.All(underLock, f => Assert.True(Diamond.Dist(f.GX, f.GZ, f.BX, f.BZ) > 1, "the ball is loose, not in the glove"));
         Assert.True(looseFrames > underLock.Count, "the chase went on after the lock lifted");
         // Still S-71: the sail is the ERROR and the runner who broke takes second.
@@ -699,7 +698,7 @@ public sealed class StealScenarioTests
             Station(match, [1]);
             Assert.True(match.StartSteal());
             var run = RunPickoff(match, 1, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
-            if (run.Sailed && (!TestRoot.Compact || run.Throws.Count == 1)) sailed = run;
+            if (run.Sailed && run.Throws.Count == 1) sailed = run;
         }
         Assert.NotNull(sailed);
         var facts = sailed!.Play.Outcome!;
