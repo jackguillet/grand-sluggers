@@ -216,7 +216,7 @@ Schema: `ParkKitSlot(Id, Slot, Placed)` (`src/GrandSluggers.Sim/Art.cs:18,389-39
 | DCC stages | Five stages. The schema has exactly two lanes, named `character` and `harbor`; the validator requires keys `id, n, kind, character, harbor` and matches the Harbor lane to fixed script / flag / checkpoint tables. Harbor skips `motion` | `data/agent/dcc-stages.json:5-89`; `src/GrandSluggers.Sim/DccStages.cs:59-92,255-256,299,310,405-410` |
 | Do stages cover kit meshes? | Yes, for the Harbor kit only. Blocking and fill share one script and one checkpoint PNG | `data/agent/dcc-stages.json:16-21,33-38` |
 | Blender start rail | `tools/blender-run.sh` checks Metal before launch | `tools/blender/README.md:19-21`; protocol row `blender-no-metal-device-at-startup` |
-| Agent rule | "Do not start a second park pipeline." Numbers stay in Sim and are copied into Python; "A test should catch drift." | `.grok/rules/harbor-art.md:9-13` |
+| Agent rule | "Do not start a second park pipeline." Numbers stay in Sim and are copied into Python; "A test should catch drift." | `tools/blender/README.md` (Harbor kit) |
 
 ---
 
@@ -327,7 +327,7 @@ Field pick:
 | `tools/still-gate.sh` | Writes a fixed request (8 shots, rio vs ashlord), clicks the Unity menu, copies PNGs. No park argument, no night argument | `tools/still-gate.sh:11-13` |
 | `StillRequest` schema | `shots, swingCaptains, home, away, hudOff, feelDebug, width, height, outDir, charge01`. **No `park`, no `night`**. `field` is an allowed shot | `src/GrandSluggers.Sim/StillRequest.cs:15-34` |
 | `StillCapture` | Uses `NewMatch()`, so the park is the scene's `MatchDirector.ParkId` | `unity/Assets/Scripts/Runtime/StillCapture.cs:218-241` |
-| Reference-vs-live comparison | None automated. "There is no CI image-diff." A read-only look-critic compares PNGs to the rubric and files; Jack passes | `docs/screenshot-gate.md:42-44`; `.grok/skills/look-critic/SKILL.md:8-21` |
+| Reference-vs-live comparison | None automated. "There is no CI image-diff." A read-only look-critic compares PNGs to the rubric and files; Jack passes | `docs/screenshot-gate.md:42-44`; `.claude/skills/look-critic/SKILL.md:8-21` |
 | Named park shots | None beyond the global list in 7 | `data/feel/shots.json` |
 | Editor gates | All open `HarborDiamond` and use Harbor matches | `unity/Assets/Editor/FieldingPursuitGate.cs:87`; `SwingOutcomeGate.cs:265`; `ValidationGate.cs:48-51` |
 | `tools/local-player.py` | Copies the whole `data/` tree (so `data/parks`) beside the app; copies a trial overlay if named. Meshes reach the player only through `Assets/Resources` | `tools/local-player.py:180-186`; `unity/Assets/Scripts/Runtime/DataProfile.cs:19` |
@@ -458,5 +458,5 @@ Doc text: `docs/parks.md` "Why it exists" paragraphs. "Exists" means a primitive
 6. The intended meaning of `placed` in `parks.json` beyond "Harbor is the template" (`docs/art-rails.md:47`); no code reads `Placed` except `cli art` output and one test.
 7. Whether `nightOnly` / `dayOnly` were ever read; no reader exists at this commit.
 8. Issue text for #713, #248, #37, #732 was not read (GitHub not queried); statements about them come from repo docs and code comments only.
-9. `.grok/skills/character-art/` was not read in full; it may hold more kit procedure text.
+9. `.claude/skills/character-art/` was not read in full; it may hold more kit procedure text.
 10. The sim-side behavior of hazards (what is a rule vs what is absent) is owned by the other mapping agent; rows in section 5 list only what the presentation can or cannot key off.

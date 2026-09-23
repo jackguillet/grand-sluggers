@@ -132,8 +132,8 @@ public sealed class DualStillsTests
     public void SkillAndScreenshotGateListBothStills()
     {
         var gate = File.ReadAllText(Path.Combine(Repo, "docs/screenshot-gate.md"));
-        var skill = File.ReadAllText(Path.Combine(Repo, ".grok/skills/character-art/SKILL.md"));
-        var critic = File.ReadAllText(Path.Combine(Repo, ".grok/skills/look-critic/SKILL.md"));
+        var skill = File.ReadAllText(Path.Combine(Repo, ".claude/skills/character-art/SKILL.md"));
+        var critic = File.ReadAllText(Path.Combine(Repo, ".claude/skills/look-critic/SKILL.md"));
         var rails = File.ReadAllText(Path.Combine(Repo, "docs/agent-rails.md"));
 
         Assert.Contains("tools/dcc-still.sh", gate, StringComparison.Ordinal);

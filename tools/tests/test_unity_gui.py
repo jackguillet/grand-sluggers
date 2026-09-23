@@ -302,7 +302,7 @@ class ToolsTakeTheLockTests(unittest.TestCase):
     def test_no_tool_fronts_or_starts_unity_by_name(self):
         by_name = re.compile(r'application\s+"Unity"|process\s+"Unity"|open\s+-a\s+"?Unity(?!\s*Hub)|pkill\s+(-x\s+)?Unity')
         places = list(self.tools()) + [ROOT / "tools" / "unity_gui.py"]
-        places += [p for p in (ROOT / ".grok" / "skills").rglob("*") if p.is_file()]
+        places += [p for p in (ROOT / ".claude" / "skills").rglob("*") if p.is_file()]
         places += [p for p in (ROOT / "unity" / "Assets" / "Editor").rglob("*.cs")]
         for path in places:
             with self.subTest(path=str(path.relative_to(ROOT))):

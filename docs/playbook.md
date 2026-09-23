@@ -65,7 +65,7 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
   1. **File** the child issue under the epic that owns the lie (#342 book, #209 play, #188 toy).
   2. **Append** a row to `data/agent/debug-protocol.json` for a novel signature, in the same PR as the fix, or in the sitting-child PR. A repeat or a PR name is not a row. GitHub children stay; they are not the memory (`cli protocol`).
   3. **Promote on the second firing** to a validator or a scenario (`BagIsInsideTheFoulLine` shape). Do not wait for a third. The protocol `promoted` field names the test that would catch the *next* captain or play, not only the screenshot that found it.
-  4. If the lesson is procedural (how to look, how to bake), add it to `.grok/skills/character-art/` or [agent-rails.md](agent-rails.md), not only the PR body. character-art grew from `swing-*-max-load` (#623 / `bat-through-head`).
+  4. If the lesson is procedural (how to look, how to bake), add it to `.claude/skills/character-art/` or [agent-rails.md](agent-rails.md), not only the PR body. character-art grew from `swing-*-max-load` (#623 / `bat-through-head`).
 
 ## What it produced (2026-09-12)
 
