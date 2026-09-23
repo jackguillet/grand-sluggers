@@ -32,15 +32,11 @@ namespace GrandSluggers.UnityClient
             _root.SetParent(transform, false);
             _night = night;
             _followSpot = null;
+            _freezePose = 0;
+            // The park as it plays tonight (PlayedPark.Of): a played park resolves to itself, so this only matters for a
+            // caller that hands the catalog's park, whose night instances would otherwise be missing at night.
+            park = PlayedPark.Of(park, night, hazards: true, _rules.Hazards);
             Park = park;
-
-            var ice = park.Surface == "ice";
-            var ash = park.Surface == "ash";
-            var jungle = park.Id == "canopy-yard";
-            var crystal = park.Id == "crystal-rink";
-            var funfair = park.Id == "funfair-park";
-            var rooftop = park.Id == "rooftop-city";
-            var ember = park.Id == "ember-keep";
 
             // The park's look is its kit's data (FD-16, FR-04; F6-c): the sky and light rows its slots name, and the
             // palette its greybox draws in. No park id chooses a light, a sky or a color.
@@ -88,39 +84,59 @@ namespace GrandSluggers.UnityClient
             }
             // The dress stands beside the kit, never in it: no dress piece stands inside the kit's
             // backstop or in the dugout span along either foul line (F6-a2 #881, FieldKitSourceTests).
-            if (placed)
-            {
-                // The Harbor kit draws this park: the field kit and the dress its slots name.
-            }
-            else if (crystal)
-            {
-                CrystalGarden(park);
-            }
-            else if (funfair)
-            {
-                FunfairGrounds(park);
-            }
-            else if (rooftop)
-            {
-                RooftopDeck(park);
-            }
-            else if (jungle)
-            {
-                CanopyGrounds(park);
-            }
-            else if (ember)
-            {
-                EmberCourtyard(park);
-            }
-            else
-            {
-                Stands(ice, ash);
-            }
-            Hazards(park);
+            // The Harbor kit draws the dress its slots name; every other park's dress is the builders its
+            // slots name (F6-d, FD-16-R1), never a method chosen by its id.
+            if (!placed) Dress(kitRow, park);
+            Hazards(park, kitRow);
 
             _ball = gameObject.GetComponent<BallView>();
             if (_ball == null) _ball = gameObject.AddComponent<BallView>();
             _ball.Build(_root, _feel.BallShadow);
+        }
+
+        /// <summary>
+        /// The dress of a park the Harbor kit does not draw (FD-16, FD-16-R1, FR-04; F6-d): the builder each of its stands,
+        /// props, backdrop and night slots names (data/art/parks.json). The builders are the old per-park dress, kept as
+        /// greybox and picked by data. An empty stands slot draws the plain greybox stands; an empty prop, backdrop or night
+        /// slot draws nothing.
+        /// </summary>
+        void Dress(ParkKitSlot kitRow, Park park)
+        {
+            var stands = kitRow.Filler(ParkKitSlots.Stands);
+            if (stands == null) GreyboxStands();
+            else DressBy(stands, park);
+            foreach (var slot in new[] { ParkKitSlots.Props, ParkKitSlots.Backdrop, ParkKitSlots.Night })
+            {
+                var builder = kitRow.Filler(slot);
+                if (builder != null) DressBy(builder, park);
+            }
+        }
+
+        /// <summary>One named dress builder. A name the catalog validator allows but this view cannot draw is an error, not a shrug.</summary>
+        void DressBy(string builder, Park park)
+        {
+            switch (builder)
+            {
+                case ParkKitSlots.IcePavilions: IcePavilions(); break;
+                case ParkKitSlots.CircusTents: CircusTents(); break;
+                case ParkKitSlots.RoofStands: RoofStands(); break;
+                case ParkKitSlots.GroveStands: GroveStands(); break;
+                case ParkKitSlots.KeepBattlements: KeepBattlements(); break;
+                case ParkKitSlots.IceGardenProps: IceGardenProps(park); break;
+                case ParkKitSlots.Midway: Midway(); break;
+                case ParkKitSlots.VineWalls: VineWalls(); break;
+                case ParkKitSlots.CourtyardBraziers: CourtyardBraziers(); break;
+                case ParkKitSlots.RoyalPalace: RoyalPalace(); break;
+                case ParkKitSlots.FerrisWheel: FerrisWheel(); break;
+                case ParkKitSlots.Skyline: RooftopSkyline(); break;
+                case ParkKitSlots.TreeLine: TreeLine(); break;
+                case ParkKitSlots.KeepCastle: KeepCastle(); break;
+                case ParkKitSlots.FollowSpot: FollowSpot(); break;
+                case ParkKitSlots.NeonGlare: NeonGlare(); break;
+                case ParkKitSlots.Fireflies: Fireflies(); break;
+                case ParkKitSlots.NightBraziers: NightBraziers(); break;
+                default: Debug.LogError("ParkView: no dress builder " + builder); break;
+            }
         }
 
         /// <summary>
@@ -146,19 +162,16 @@ namespace GrandSluggers.UnityClient
             };
         }
 
-        void Stands(bool ice, bool ash)
+        /// <summary>The stands of a park whose stands slot is empty: plain concrete and three crowd cards.</summary>
+        void GreyboxStands()
         {
-            var conc = Look.Lit(ice ? new Color(0.85f, 0.9f, 0.95f) : new Color(0.78f, 0.8f, 0.82f), smooth: 0.12f);
+            var conc = Look.Lit(new Color(0.78f, 0.8f, 0.82f), smooth: 0.12f);
             Cube("HomePlateStand", new Vector3(0, 16, -56), new Vector3(120, 28, 22), conc);
             Cube("LeftStand", new Vector3(-108, 14, 36), new Vector3(28, 24, 110), conc);
             Cube("RightStand", new Vector3(108, 14, 36), new Vector3(28, 24, 110), conc);
             CrowdCard("CrowdH", new Vector3(0, 18, -66), new Vector3(110, 18, 1));
             CrowdCard("CrowdL", new Vector3(-120, 16, 36), new Vector3(1, 16, 90));
             CrowdCard("CrowdR", new Vector3(120, 16, 36), new Vector3(1, 16, 90));
-            if (ash)
-            {
-                Cube("KeepWall", new Vector3(0, 22, 455), new Vector3(140, 50, 30), Look.Lit(Colors.Ember, smooth: 0.08f));
-            }
         }
 
         void CrowdCard(string name, Vector3 pos, Vector3 scale)
@@ -192,15 +205,11 @@ namespace GrandSluggers.UnityClient
             if (kit != null && kit.OwnsDiamond) kit.BurstFireworks(at);
         }
 
-        void CrystalGarden(Park park)
+        /// <summary>Stands: ice pavilions with a royal-pink roof behind home, and two along the lines.</summary>
+        void IcePavilions()
         {
             var ice = Look.Lit(new Color(0.84f, 0.93f, 0.98f), smooth: 0.72f);
-            var glass = Look.Lit(new Color(0.70f, 0.88f, 0.98f), smooth: 0.88f);
             var pink = Look.Lit(Colors.Royal, smooth: 0.32f);
-            var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
-            var stone = Look.Lit(new Color(0.76f, 0.82f, 0.88f), smooth: 0.28f);
-
-            CrystalBoards(park, glass, pink);
             Cube("HomePavilion", new Vector3(0, 10, -62), new Vector3(80, 18, 16), ice);
             Cube("HomeRoof", new Vector3(0, 20.2f, -62), new Vector3(86, 2.2f, 20), pink);
             Cube("LeftPavilion", new Vector3(-118, 12, 40), new Vector3(16, 20, 90), ice);
@@ -208,9 +217,17 @@ namespace GrandSluggers.UnityClient
             CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(74, 12, 1));
             CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 80));
             CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 80));
+        }
+
+        /// <summary>Props: the glass boards inside the wall and the frozen fountain behind home.</summary>
+        void IceGardenProps(Park park)
+        {
+            var ice = Look.Lit(new Color(0.84f, 0.93f, 0.98f), smooth: 0.72f);
+            var glass = Look.Lit(new Color(0.70f, 0.88f, 0.98f), smooth: 0.88f);
+            var pink = Look.Lit(Colors.Royal, smooth: 0.32f);
+            var stone = Look.Lit(new Color(0.76f, 0.82f, 0.88f), smooth: 0.28f);
+            CrystalBoards(park, glass, pink);
             FrozenFountain(ice, stone);
-            RoyalPalace(ice, pink, gold);
-            CrystalNightHook();
         }
 
         void CrystalBoards(Park park, Material glass, Material kick)
@@ -239,8 +256,12 @@ namespace GrandSluggers.UnityClient
             Cylinder("IceGlobe", new Vector3(0, 11.2f, -48), 1.6f, 1.6f, ice);
         }
 
-        void RoyalPalace(Material ice, Material pink, Material gold)
+        /// <summary>Backdrop: the ice palace past center field.</summary>
+        void RoyalPalace()
         {
+            var ice = Look.Lit(new Color(0.84f, 0.93f, 0.98f), smooth: 0.72f);
+            var pink = Look.Lit(Colors.Royal, smooth: 0.32f);
+            var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
             Cube("Palace", new Vector3(0, 28, 502), new Vector3(88, 56, 34), ice);
             Cube("PalaceRoof", new Vector3(0, 58, 502), new Vector3(96, 8, 40), pink);
             Cylinder("SpireL", new Vector3(-46, 0, 502), 6.5f, 86f, ice);
@@ -253,7 +274,8 @@ namespace GrandSluggers.UnityClient
             Cube("GateCrown", new Vector3(0, 30, 480), new Vector3(18, 4, 6), gold);
         }
 
-        void CrystalNightHook()
+        /// <summary>Night: the follow spot that tracks the ball.</summary>
+        void FollowSpot()
         {
             var go = new GameObject("FollowSpot");
             go.transform.SetParent(_root, false);
@@ -269,7 +291,8 @@ namespace GrandSluggers.UnityClient
             _followSpot = light;
         }
 
-        void FunfairGrounds(Park park)
+        /// <summary>Stands: three striped circus tents.</summary>
+        void CircusTents()
         {
             var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.18f);
             var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.16f);
@@ -283,11 +306,18 @@ namespace GrandSluggers.UnityClient
             CrowdCard("CrowdH", new Vector3(0, 12, -72), new Vector3(64, 12, 1));
             CrowdCard("CrowdL", new Vector3(-128, 12, 38), new Vector3(1, 12, 72));
             CrowdCard("CrowdR", new Vector3(128, 12, 38), new Vector3(1, 12, 72));
+        }
+
+        /// <summary>Props: the striped poles and the booths along the back of the midway.</summary>
+        void Midway()
+        {
+            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.18f);
+            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.16f);
+            var yellow = Look.Lit(Colors.Gold, smooth: 0.4f);
+            var pink = Look.Lit(new Color(1f, 0.31f, 0.63f), smooth: 0.28f);
+            var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
             StripedPoles();
-            FerrisWheel();
             FunfairBooths(wood, red, cream, yellow, pink);
-            FunfairTrain(park, wood, red, cream, yellow);
-            FunfairNightHook(park);
         }
 
         void Tent(string name, Vector3 pos, float w, float d, float h, Material a, Material b, Material pole)
@@ -377,12 +407,18 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void FunfairTrain(Park park, Material wood, Material red, Material cream, Material yellow)
+        /// <summary>
+        /// The train toy, at the park's own train instance, facing along its bearing from home as the old literal train did
+        /// (it stood at a code spot, spray 18°, 12 ft inside the fence, not where the park's data put it).
+        /// </summary>
+        void MidwayTrain(Hazard h)
         {
-            var spray = 18f;
-            var fence = (float)AtBatResolver.FenceAt(park, spray) - 12f;
-            var rad = spray * Mathf.Deg2Rad;
-            var p = new Vector3(Mathf.Sin(rad) * fence, 0, Mathf.Cos(rad) * fence);
+            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.18f);
+            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.16f);
+            var yellow = Look.Lit(Colors.Gold, smooth: 0.4f);
+            var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
+            var p = new Vector3((float)h.X, 0, (float)h.Z);
+            var spray = Mathf.Atan2((float)h.X, (float)h.Z) * Mathf.Rad2Deg;
 
             var root = new GameObject("TrackTrain").transform;
             root.SetParent(_root, false);
@@ -407,23 +443,6 @@ namespace GrandSluggers.UnityClient
             go.transform.localRotation = Quaternion.Euler(0, 0, 90f);
         }
 
-        // The mouths are park data since #847 and night-block data since F4-d (FD-11): drawn from the
-        // park as the match plays it tonight (PlayedPark.Of), never from the night block itself. The
-        // match hands this view its played park, which resolves to itself; the title hands the catalog's.
-        void FunfairNightHook(Park park)
-        {
-            var go = new GameObject("Chompers");
-            go.transform.SetParent(_root, false);
-            go.transform.position = Vector3.zero;
-            if (_night)
-            {
-                foreach (var h in PlayedPark.Of(park, true, true, _rules.Hazards).Hazards)
-                    if (h.Type == HazardType.Chomper)
-                        ChomperMouth(go.transform, h);
-            }
-            go.SetActive(_night);
-        }
-
         void ChomperMouth(Transform parent, Hazard h)
         {
             var stem = Look.Lit(new Color(0.16f, 0.48f, 0.18f), smooth: 0.12f);
@@ -443,13 +462,11 @@ namespace GrandSluggers.UnityClient
             Glow("ChompGlow", new Vector3((float)h.X, 9f, (float)h.Z), new Color(0.7f, 0.12f, 0.18f), 1.1f, 28f);
         }
 
-        void RooftopDeck(Park park)
+        /// <summary>Stands: tar roof stands with a gold neon strip behind home.</summary>
+        void RoofStands()
         {
             var tar = Look.Lit(new Color(0.28f, 0.28f, 0.30f), smooth: 0.12f);
-            var steel = Look.Lit(new Color(0.48f, 0.50f, 0.54f), smooth: 0.32f);
-            var neon = Look.Unlit(new Color(0.22f, 0.82f, 1f));
             var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
-            var magenta = Look.Unlit(new Color(1f, 0.28f, 0.72f));
 
             Cube("HomeRoofStand", new Vector3(0, 10, -62), new Vector3(76, 16, 14), tar);
             Cube("HomeNeon", new Vector3(0, 18.6f, -62), new Vector3(80, 0.5f, 16), gold);
@@ -458,14 +475,16 @@ namespace GrandSluggers.UnityClient
             CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(70, 12, 1));
             CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 76));
             CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 76));
-            AcUnit(new Hazard("ac_unit", -52, 118, 6, null));
-            AcUnit(new Hazard("ac_unit", 72, 188, 6, null));
-            RooftopSkyline(tar, steel, gold, neon, magenta);
-            RooftopNightHook();
         }
 
-        void RooftopSkyline(Material tar, Material steel, Material gold, Material neon, Material magenta)
+        /// <summary>Backdrop: the city skyline past center field.</summary>
+        void RooftopSkyline()
         {
+            var tar = Look.Lit(new Color(0.28f, 0.28f, 0.30f), smooth: 0.12f);
+            var steel = Look.Lit(new Color(0.48f, 0.50f, 0.54f), smooth: 0.32f);
+            var neon = Look.Unlit(new Color(0.22f, 0.82f, 1f));
+            var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
+            var magenta = Look.Unlit(new Color(1f, 0.28f, 0.72f));
             var brick = Look.Lit(new Color(0.42f, 0.22f, 0.18f), smooth: 0.1f);
             var glass = Look.Lit(new Color(0.22f, 0.32f, 0.48f), smooth: 0.62f);
             Building("LoftGold", new Vector3(-70, 0, 498), 28, 22, 52, brick, gold);
@@ -490,7 +509,8 @@ namespace GrandSluggers.UnityClient
             Look.Prim(PrimitiveType.Cube, "Band", root, new Vector3(0, h * 0.62f, d * 0.52f), new Vector3(w * 0.82f, 1.6f, 0.4f), accent);
         }
 
-        void RooftopNightHook()
+        /// <summary>Night: the neon glare over the field.</summary>
+        void NeonGlare()
         {
             var go = new GameObject("NeonGlare");
             go.transform.SetParent(_root, false);
@@ -500,7 +520,8 @@ namespace GrandSluggers.UnityClient
             go.SetActive(_night);
         }
 
-        void CanopyGrounds(Park park)
+        /// <summary>Stands: bark groves under a leaf canopy.</summary>
+        void GroveStands()
         {
             var bark = Look.Lit(new Color(0.36f, 0.21f, 0.11f), smooth: 0.08f);
             var leaf = Look.Lit(new Color(0.12f, 0.4f, 0.18f), smooth: 0.1f);
@@ -513,11 +534,22 @@ namespace GrandSluggers.UnityClient
             CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(64, 12, 1));
             CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 76));
             CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 76));
+        }
+
+        /// <summary>Props: the two vine walls along the lines.</summary>
+        void VineWalls()
+        {
+            var bark = Look.Lit(new Color(0.36f, 0.21f, 0.11f), smooth: 0.08f);
+            var vine = Look.Lit(new Color(0.22f, 0.48f, 0.18f), smooth: 0.12f);
             VineWall("ClimbL", new Vector3(-96, 0, 210), 18, 36, 14, bark, vine);
             VineWall("ClimbR", new Vector3(96, 0, 210), 18, 36, 14, bark, vine);
+        }
+
+        /// <summary>Backdrop: a line of jungle trees past center field.</summary>
+        void TreeLine()
+        {
             for (var i = -3; i <= 3; i++)
                 JungleTree(new Vector3(i * 36f, 0, 448), 10f + (i & 1) * 2f);
-            CanopyNightHook();
         }
 
         void VineWall(string name, Vector3 pos, float w, float h, float d, Material bark, Material vine)
@@ -585,7 +617,8 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void CanopyNightHook()
+        /// <summary>Night: fireflies over the outfield.</summary>
+        void Fireflies()
         {
             var go = new GameObject("Fireflies");
             go.transform.SetParent(_root, false);
@@ -604,12 +637,11 @@ namespace GrandSluggers.UnityClient
             go.SetActive(_night);
         }
 
-        void EmberCourtyard(Park park)
+        /// <summary>Stands: the keep behind home and battlements along the lines.</summary>
+        void KeepBattlements()
         {
             var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
             var iron = Look.Lit(new Color(0.28f, 0.22f, 0.22f), smooth: 0.28f);
-            var fire = Look.Unlit(Colors.EmberFire);
-            var gold = Look.Lit(Colors.Gold, smooth: 0.45f);
 
             Cube("HomeKeep", new Vector3(0, 10, -62), new Vector3(76, 18, 16), stone);
             Cube("HomeCrenel", new Vector3(0, 20.2f, -62), new Vector3(82, 2.4f, 18), iron);
@@ -618,15 +650,25 @@ namespace GrandSluggers.UnityClient
             CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(68, 12, 1));
             CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 80));
             CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 80));
-            KeepCastle(stone, iron, gold, fire);
+        }
+
+        /// <summary>Props: two braziers behind home and the courtyard's fire glow.</summary>
+        void CourtyardBraziers()
+        {
+            var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
+            var fire = Look.Unlit(Colors.EmberFire);
             Brazier(new Vector3(-36, 0, -40), fire, stone);
             Brazier(new Vector3(36, 0, -40), fire, stone);
             Glow("CourtyardGlow", new Vector3(0, 10, 180), Colors.EmberFire, 1.8f, 260f);
-            EmberNightHook();
         }
 
-        void KeepCastle(Material stone, Material iron, Material gold, Material fire)
+        /// <summary>Backdrop: the castle keep past center field.</summary>
+        void KeepCastle()
         {
+            var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
+            var iron = Look.Lit(new Color(0.28f, 0.22f, 0.22f), smooth: 0.28f);
+            var fire = Look.Unlit(Colors.EmberFire);
+            var gold = Look.Lit(Colors.Gold, smooth: 0.45f);
             Cube("KeepHall", new Vector3(0, 28, 500), new Vector3(78, 56, 32), stone);
             Cube("KeepRoof", new Vector3(0, 58, 500), new Vector3(86, 6, 36), iron);
             for (var i = -3; i <= 3; i++)
@@ -682,7 +724,7 @@ namespace GrandSluggers.UnityClient
             Glow("LavaGlow", new Vector3((float)h.X, 1.4f, (float)h.Z), Colors.EmberFire, 1.4f, r * 6f);
         }
 
-        void FireStatue(Vector3 p, float radius, bool breath)
+        void FireStatue(Vector3 p, float radius, bool breath, float nightMul = 1f)
         {
             var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
             var ember = Look.Lit(Colors.Ember, smooth: 0.12f);
@@ -707,11 +749,8 @@ namespace GrandSluggers.UnityClient
             armR.transform.localRotation = Quaternion.Euler(0, 0, -28f);
             if (breath)
             {
-                // The breath's night reach is the fire_breath row's own number since #847; it was
-                // fielding.park.emberNightFireMul, at the same 1.6.
-                var amp = _night
-                    ? (float)(_rules ?? Rules.Default).Hazards.Of(HazardType.FireBreath).NightRadiusMul
-                    : 1f;
+                // The breath's night reach is its own type row's number (#847), handed in by the instance.
+                var amp = _night ? nightMul : 1f;
                 var br = radius * amp;
                 Look.Prim(PrimitiveType.Cylinder, "Breath", root, new Vector3(0, 6.6f, 2.8f), new Vector3(br * 0.55f, br * 0.55f, br * 0.55f), fire);
                 var cone = Look.Prim(PrimitiveType.Cylinder, "Flame", root, new Vector3(0, 6.4f, 5.4f * amp), new Vector3(br * 1.1f, br * 0.7f, br * 1.1f), fire);
@@ -724,7 +763,8 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void EmberNightHook()
+        /// <summary>Night: four more braziers down the lines and a fire fill.</summary>
+        void NightBraziers()
         {
             var fire = Look.Unlit(Colors.EmberFire);
             var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
@@ -861,50 +901,65 @@ namespace GrandSluggers.UnityClient
             _ => Colors.Carnival
         };
 
-        void Hazards(Park park)
+        /// <summary>
+        /// The park's hazards (FD-16, FD-09, FR-13; F6-d): each instance as the toy its type names in
+        /// data/art/hazard-actors.json when the park's hazardActors slot names toy-actors, else the greybox of its pattern;
+        /// and under every instance whose pattern acts in play, a flat ring at the disc the sim reads — the radius, its
+        /// type's night multiple at night, plus the reach pad — in the pattern's ring color. The ring is the size of what
+        /// plays. The park is the played park, so a night-only instance is here at night and nowhere by day.
+        /// </summary>
+        void Hazards(Park park, ParkKitSlot kitRow)
         {
-            var freezePose = 0;
+            var actors = ArtBinder.Art?.Actors;
+            var toys = actors != null && kitRow.Fills(ParkKitSlots.HazardActors, ParkKitSlots.ToyActors);
             foreach (var h in park.Hazards)
             {
-                var p = new Vector3((float)h.X, 0, (float)h.Z);
-                switch (h.Type)
-                {
-                    case "freeze_volume":
-                        FreezeStatue(p, (float)h.Radius, freezePose++);
-                        break;
-                    case "warp_pipe":
-                        WarpCan(h);
-                        break;
-                    case "billboard":
-                        StarBillboard(h);
-                        break;
-                    case "ac_unit":
-                        AcUnit(h);
-                        break;
-                    case "barrel":
-                        BarrelCannon(h);
-                        break;
-                    case "lava_pit":
-                        LavaPit(h);
-                        break;
-                    case "fire_breath":
-                        FireStatue(p, (float)h.Radius, true);
-                        break;
-                    case "statue":
-                        FireStatue(p, (float)h.Radius, false);
-                        break;
-                    case "tree":
-                        JungleTree(p, (float)h.Radius);
-                        break;
-                    case "climb_wall":
-                        ClimbWall(h);
-                        break;
-                    case "chomper":
-                        // Drawn by FunfairNightHook, at night only (#847). Named here so a mouth
-                        // that became park data does not also stand in the sun.
-                        break;
-                }
+                var row = _rules.Hazards.Of(h.Type);
+                var toy = toys ? actors.Toy(h.Type) : null;
+                if (toy != null) Toy(toy, h);
+                else PatternGreybox(h, row, actors);
+                if (actors != null && System.Linq.Enumerable.Contains(HazardPattern.Hazards, row.Pattern)
+                    && actors.Rings.TryGetValue(row.Pattern, out var ring))
+                    Ring(h, (float)HazardActors.PlayDiscFt(h.Radius, row, _night), Look.Of(ring));
             }
+        }
+
+        int _freezePose;
+
+        /// <summary>One toy by name (data/art/hazard-actors.json). A name the catalog allows but this view cannot draw is an error.</summary>
+        void Toy(string toy, Hazard h)
+        {
+            var p = new Vector3((float)h.X, 0, (float)h.Z);
+            switch (toy)
+            {
+                case HazardActors.FreezeStatue: FreezeStatue(p, (float)h.Radius, _freezePose++); break;
+                case HazardActors.LavaPit: LavaPit(h); break;
+                case HazardActors.FireStatue: FireStatue(p, (float)h.Radius, true, (float)_rules.Hazards.Of(h.Type).NightRadiusMul); break;
+                case HazardActors.KeepStatue: FireStatue(p, (float)h.Radius, false); break;
+                case HazardActors.WarpCan: WarpCan(h); break;
+                case HazardActors.BarrelCannon: BarrelCannon(h); break;
+                case HazardActors.StarBillboard: StarBillboard(h); break;
+                case HazardActors.VineClimb: ClimbWall(h); break;
+                case HazardActors.ChomperMouth: ChomperMouth(_root, h); break;
+                case HazardActors.MidwayTrain: MidwayTrain(h); break;
+                case HazardActors.AcUnit: AcUnit(h); break;
+                case HazardActors.JungleTree: JungleTree(p, (float)h.Radius); break;
+                default: Debug.LogError("ParkView: no hazard toy " + toy); break;
+            }
+        }
+
+        /// <summary>The greybox of a hazard whose park names no toys: a post in its pattern's ring color (white for a pattern that does not act).</summary>
+        void PatternGreybox(Hazard h, HazardTypeRules row, HazardActors actors)
+        {
+            var color = actors != null && actors.Rings.TryGetValue(row.Pattern, out var c) ? Look.Of(c) : Color.white;
+            Cylinder("Greybox-" + h.Type, new Vector3((float)h.X, 0, (float)h.Z), 1.5f, 6f, Look.Lit(color, smooth: 0.2f));
+        }
+
+        /// <summary>A flat ring on the grass at <paramref name="discFt"/> around the instance: the size the sim reads.</summary>
+        void Ring(Hazard h, float discFt, Color color)
+        {
+            var ring = Look.Torus("PlayDisc-" + h.Type, _root, discFt, 0.35f, Look.Unlit(color), seg: 48, sides: 6);
+            ring.transform.position = new Vector3((float)h.X, 0.12f, (float)h.Z);
         }
 
         void Glow(string name, Vector3 pos, Color color, float intensity, float range)
