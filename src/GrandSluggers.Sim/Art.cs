@@ -52,7 +52,14 @@ public readonly record struct ParkKitSlot(
 /// <para>
 /// Harbor fills the slots its kit draws today (<c>HarborKit</c>): the striped lawn, the dugouts, the padded wall with ads,
 /// the scoreboard, the bowl of stands, the town and the night fireworks. The Harbor pieces stand on the Harbor lawn: a park
-/// that names one must name the lawn. The hazard actors and the other backdrops are F6-d's.
+/// that names one must name the lawn.
+/// </para>
+///
+/// <para>
+/// <b>The other parks' dress</b> (F6-d, FD-16-R1): the stands, the backdrop, the props and the night dress of the five
+/// greybox parks are named builders too — the old per-park methods, kept as greybox and picked by the park's slots, never
+/// by its id. <c>hazardActors</c> names <see cref="ToyActors"/> (each hazard type's toy, <see cref="HazardActors"/>) or
+/// is empty, which draws the pattern greybox; either way every acting instance draws its ring at the sim's disc.
 /// </para>
 ///
 /// <para>
@@ -73,6 +80,7 @@ public static class ParkKitSlots
     public const string Light = "light";
     public const string Sky = "sky";
     public const string HazardActors = "hazardActors";
+    public const string Props = "props";
 
     public const string HarborLawn = "harbor-lawn";
     public const string HarborDugouts = "harbor-dugouts";
@@ -82,9 +90,29 @@ public static class ParkKitSlots
     public const string HarborTown = "harbor-town";
     public const string HarborFireworks = "harbor-fireworks";
 
+    public const string IcePavilions = "ice-pavilions";
+    public const string CircusTents = "circus-tents";
+    public const string RoofStands = "roof-stands";
+    public const string GroveStands = "grove-stands";
+    public const string KeepBattlements = "keep-battlements";
+    public const string RoyalPalace = "royal-palace";
+    public const string FerrisWheel = "ferris-wheel";
+    public const string Skyline = "skyline";
+    public const string TreeLine = "tree-line";
+    public const string KeepCastle = "keep-castle";
+    public const string FollowSpot = "follow-spot";
+    public const string NeonGlare = "neon-glare";
+    public const string Fireflies = "fireflies";
+    public const string NightBraziers = "night-braziers";
+    public const string IceGardenProps = "ice-garden";
+    public const string Midway = "midway";
+    public const string VineWalls = "vine-walls";
+    public const string CourtyardBraziers = "courtyard-braziers";
+    public const string ToyActors = "toy-actors";
+
     /// <summary>Every slot, in the order <c>cli art</c> prints them.</summary>
     public static IReadOnlyList<string> All { get; } =
-        [Lawn, Dugouts, Wall, Scoreboard, Stands, Backdrop, Night, Light, Sky, HazardActors];
+        [Lawn, Dugouts, Wall, Scoreboard, Stands, Backdrop, Night, Props, Light, Sky, HazardActors];
 
     /// <summary>The builders each slot may name. An empty list is a slot only the greybox fills so far.</summary>
     public static IReadOnlyDictionary<string, IReadOnlyList<string>> Builders { get; } =
@@ -94,12 +122,13 @@ public static class ParkKitSlots
             [Dugouts] = [HarborDugouts],
             [Wall] = [HarborWall],
             [Scoreboard] = [HarborScoreboard],
-            [Stands] = [HarborStands],
-            [Backdrop] = [HarborTown],
-            [Night] = [HarborFireworks],
+            [Stands] = [HarborStands, IcePavilions, CircusTents, RoofStands, GroveStands, KeepBattlements],
+            [Backdrop] = [HarborTown, RoyalPalace, FerrisWheel, Skyline, TreeLine, KeepCastle],
+            [Night] = [HarborFireworks, FollowSpot, NeonGlare, Fireflies, NightBraziers],
+            [Props] = [IceGardenProps, Midway, VineWalls, CourtyardBraziers],
             [Light] = [], // rows of data/art/looks.json, checked against the catalog's looks
             [Sky] = [],
-            [HazardActors] = [],
+            [HazardActors] = [ToyActors],
         };
 
     /// <summary>The builders that are pieces of the Harbor kit, which stand on its lawn.</summary>
@@ -164,9 +193,11 @@ public sealed class ArtCatalog
         IReadOnlyList<NamedSlot> materials,
         IReadOnlyList<ParkKitSlot> parks,
         IReadOnlyList<string> folders,
-        ParkLooks looks)
+        ParkLooks looks,
+        HazardActors actors)
     {
         Looks = looks;
+        Actors = actors;
         Rig = rig;
         Clips = clips;
         Skins = skins;
@@ -188,6 +219,8 @@ public sealed class ArtCatalog
     public IReadOnlyList<ParkKitSlot> Parks { get; }
     /// <summary>The named skies and lights a park's kit names (F6-c, <c>data/art/looks.json</c>).</summary>
     public ParkLooks Looks { get; }
+    /// <summary>How each hazard type is drawn (F6-d, <c>data/art/hazard-actors.json</c>).</summary>
+    public HazardActors Actors { get; }
     public IReadOnlyList<string> Folders { get; }
 
     public SkinSlot SkinOf(Character who)
@@ -377,6 +410,7 @@ public sealed class ArtCatalog
         }
         foreach (var kitRow in Parks)
             errors.AddRange(ParkKitSlots.Validate(kitRow, Looks));
+        errors.AddRange(Actors.Validate());
 
         foreach (var need in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "throw", "crowd-bed", "crowd-swell" })
         {
@@ -466,7 +500,8 @@ public sealed class ArtCatalog
         var looks = ParkLooks.Parse(JsonNode.Parse(File.ReadAllText(Art("looks.json")), documentOptions: nodeOptions), "looks.json");
         var folders = Read<FoldersFile>(Art("folders.json"), json).Folders ?? [];
 
-        return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders, looks);
+        var actors = HazardActors.Parse(JsonNode.Parse(File.ReadAllText(Art("hazard-actors.json")), documentOptions: nodeOptions), "hazard-actors.json");
+        return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders, looks, actors);
     }
 
     static T Read<T>(string path, JsonSerializerOptions json)
