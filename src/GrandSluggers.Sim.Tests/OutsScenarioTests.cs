@@ -111,7 +111,7 @@ public sealed class OutsScenarioTests
             // No double-play attempt with two outs (S-50): the first makeable out ends the inning.
             Assert.Single(outs);
             Assert.Equal(0, play.OutsAfter);
-            Assert.NotEqual(play.Context.Top, play.NextState.Top);
+            Assert.NotEqual(play.Context!.Top, play.NextState!.Top);
             return;
         }
         if (outs.Count >= 2)
