@@ -52,7 +52,7 @@ public static partial class PlayCamera
         return points;
     }
 
-    /// <summary>Fit the whole race by dollying the authored shot, preserving angle, FOV and toy scale at every aspect ratio.</summary>
+    /// <summary>Keep the authored catcher-side eye position; fit the race with the lens instead of retreating behind the backstop.</summary>
     public static Framing RaceFraming(CameraShots shots, IReadOnlyList<Vec3> subjects, double aspect, RaceCameraFeel? feel = null, double travelZ = 0)
     {
         feel ??= new RaceCameraFeel();
@@ -66,31 +66,27 @@ public static partial class PlayCamera
                     points.Add(new Vec3(p.X + side, p.Y, p.Z + depth));
                     points.Add(new Vec3(p.X + side, p.Y + feel.BodyHeightFt, p.Z + depth));
                 }
-        var center = new Vec3(0, shot.Target.Y,
-            (points.Min(p => p.Z) + points.Max(p => p.Z)) / 2);
-        // Both eye and target stay on the home–centerfield axis: no lateral tracking or yaw.
-        var dx = 0.0;
-        var dy = shot.Target.Y - shot.Pos.Y;
-        var dz = shot.Target.Z - shot.Pos.Z;
-        var distance = Math.Sqrt(dx * dx + dy * dy + dz * dz);
-        var fx = dx / distance; var fy = dy / distance; var fz = dz / distance;
-        var horizontal = Math.Sqrt(fx * fx + fz * fz);
-        var rx = fz / horizontal; var rz = -fx / horizontal;
-        var ux = fy * rz; var uy = fz * rx - fx * rz; var uz = -fy * rx;
-        var tanV = Math.Tan(shot.Fov * Math.PI / 360) * (1 - 2 * feel.Margin);
-        var tanH = tanV * Math.Max(.1, aspect);
+        var travel = Math.Clamp(travelZ, -feel.MaxTravelFt, feel.MaxTravelFt);
+        var eye = shot.Pos with { Z = shot.Pos.Z + travel };
+        var look = shot.Target with { Z = shot.Target.Z + travel };
+        // The table owns the physical opening position, inside the home board. Subject bounds
+        // may widen the lens but must never pull this camera back through stadium geometry.
+        var dy = look.Y - eye.Y;
+        var dz = look.Z - eye.Z;
+        var distance = Math.Sqrt(dy * dy + dz * dz);
+        var fy = dy / distance; var fz = dz / distance;
+        var tangent = Math.Tan(shot.Fov * Math.PI / 360);
+        var safe = 1 - 2 * feel.Margin;
         foreach (var p in points)
-        foreach (var reserve in new[] { -feel.MaxTravelFt, feel.MaxTravelFt })
         {
-            // Reserve the full travel envelope before moving, so following the ball cannot crop a bag.
-            var x = p.X - center.X; var y = p.Y - center.Y; var z = p.Z - center.Z - reserve;
-            var forward = x * fx + y * fy + z * fz;
-            distance = Math.Max(distance, Math.Abs(x * rx + z * rz) / tanH - forward);
-            distance = Math.Max(distance, Math.Abs(x * ux + y * uy + z * uz) / tanV - forward);
+            var x = p.X - eye.X; var y = p.Y - eye.Y; var z = p.Z - eye.Z;
+            var forward = Math.Max(1e-6, y * fy + z * fz);
+            var up = y * fz - z * fy;
+            tangent = Math.Max(tangent, Math.Abs(x) / (forward * safe * Math.Max(.1, aspect)));
+            tangent = Math.Max(tangent, Math.Abs(up) / (forward * safe));
         }
-        center = center with { Z = center.Z + Math.Clamp(travelZ, -feel.MaxTravelFt, feel.MaxTravelFt) };
-        return new Framing(shot.Id, new Vec3(center.X - fx * distance, center.Y - fy * distance, center.Z - fz * distance),
-            center, shot.Fov, shot.Blend);
+        var fov = Math.Atan(tangent) * 360 / Math.PI;
+        return new Framing(shot.Id, eye, look, fov, shot.Blend);
     }
 }
 

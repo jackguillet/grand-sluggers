@@ -68,11 +68,16 @@ public sealed class StealPresentationTests
         foreach (var travel in new[] { -12.0, 0.0, 12.0 })
         {
             var frame = PlayCamera.RaceFraming(content.Shots, subjects, 16.0 / 9, content.Feel.RaceCamera, travel);
+            // Harbor home score face is at Z=-37.3 (front at -36.94). Even a return
+            // throw must keep the eye on the field side, rather than framing from behind it.
+            Assert.True(frame.Pos.Z > -36.94);
+            Assert.InRange(frame.Pos.Y, 13, 17);
+            Assert.Equal(content.Shots.Must(PlayCamera.ThrowShot).Pos.Z + travel, frame.Pos.Z);
             Assert.Equal(0, frame.Pos.X);
             Assert.Equal(0, frame.Look.X);
             Assert.True(frame.Pos.Z < frame.Look.Z);
             var pitch = Math.Atan2(frame.Pos.Y - frame.Look.Y, frame.Look.Z - frame.Pos.Z) * 180 / Math.PI;
-            Assert.InRange(pitch, 21, 25); // below the 45° fly view, above catcher eye level
+            Assert.InRange(pitch, 16, 20); // below the 45° fly view, above catcher eye level
             var camera = new CameraShot(frame.Shot, "race", frame.Pos, frame.Look, frame.Fov, frame.Blend);
             var home = PlayCamera.Project(camera, PlayCamera.BagSubject(4), 16.0 / 9);
             var center = PlayCamera.Project(camera, new Vec3(0, 0, 300), 16.0 / 9);
