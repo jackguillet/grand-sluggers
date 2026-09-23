@@ -262,7 +262,7 @@ public static partial class HowToPlay
         new("running", "Running", "running",
         [
             "Hit it and you run. Runners stand on the bag until contact, a steal, or a send: there is no lead. Live runners must settle on a bag for a second. An out with nobody left ends it. 3 outs too.",
-            "LB sends the selection; RB returns it immediately. D-pad Up halts. D-pad Down selects ALL. These commands also work before contact. LT owns Stars.",
+            "The small runner label shows your selection. LB sends the selection; RB returns it immediately. D-pad Up halts. D-pad Down selects ALL. These commands also work before contact. LT owns Stars.",
             "Right stick flick selects: right 1B, up 2B, left 3B, down batter. Selection follows that runner. Recenter before the next flick. Empty selections never order ALL.",
             "The tag decides: CAUGHT STEALING or STOLEN BASE. Before the catch, an inset shows the race. At the catch, the normal live-play camera follows the ball through the throw. Pickoffs and rundowns use that same view.",
             "Fly: everyone goes back to the bag until the catch or the drop; LB before the catch is tag and go. Close play and tag are the pictures below. First South wins. A bang-bang SAFE pops small. Have the ball and touch a runner off a bag to tag.",

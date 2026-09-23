@@ -30,7 +30,7 @@ North jumps or activates an eligible Buddy Jump/wall action. East dives; when a 
 
 ## Running
 
-Right-stick flick selects the runner from first/right, second/up, third/left, or the batter/down after contact. Selection follows that runner's identity through the play. D-pad Down selects ALL. An empty, out or scored selection never silently becomes ALL.
+Right-stick flick selects the runner from first/right, second/up, third/left, or the batter/down after contact. Selection follows that runner's identity through the play. A compact label shows the current selection; the gameplay HUD does not repeat the control instructions. D-pad Down selects ALL. An empty, out or scored selection never silently becomes ALL.
 
 LB advances or steals immediately; RB returns immediately; D-pad Up halts. These meanings stay the same during SET, pitch flight and live play. Holding advance can continue at subsequent bags. Changing selection while holding an order requires a fresh bumper press. Both bumpers together halt and require release before resuming.
 

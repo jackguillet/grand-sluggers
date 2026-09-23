@@ -72,8 +72,9 @@ namespace GrandSluggers.UnityClient
             var old = Begin();
             if (runners != null)
             {
-                Fill(new Rect(24, 680, 560, 52), Ink);
-                Text(36, 684, 540, 44, runners + " • LB go / RB return / D-up halt", _body);
+                var width = Mathf.Min(320, _small.CalcSize(new GUIContent(runners)).x + 24);
+                Fill(new Rect(24, 696, width, 30), Ink);
+                Text(36, 696, width - 24, 30, runners, _small);
             }
             if (target >= 0)
             {
