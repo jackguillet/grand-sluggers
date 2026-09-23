@@ -49,7 +49,7 @@ public sealed class CrystalRinkTests(ITestOutputHelper output)
     {
         var rules = Game.Rules;
         var iced = Harbor with { Zones = new ParkZones(Outfield: Ground.Ice) };
-        foreach (var exit in new[] { 80.0, 95, 110 })
+        foreach (var exit in new[] { 70.0, 80, 95 })
         {
             var grass = BallFlight.Trajectory(exit, -2, 6, Harbor, rules)[^1].Dist;
             var ice = BallFlight.Trajectory(exit, -2, 6, iced, rules)[^1].Dist;

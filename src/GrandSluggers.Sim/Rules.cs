@@ -1019,7 +1019,7 @@ public sealed class LaunchRules
     public double LoftBaseDeg { get; init; } = 16;
     public double LoftPerPower { get; init; } = 1.0;
     /// <summary>Degrees of launch per foot the crossing sits above the zone center.</summary>
-    public double PerFtOfHeight { get; init; } = 6;
+    public double PerFtOfHeight { get; init; } = 18;
     /// <summary>
     /// Stick U/D at contact. Only a Star Swing reads it (until Phase 6); an ordinary swing's launch is
     /// geometry (PH-12), and a bunt's launch is its own band.
@@ -1030,7 +1030,7 @@ public sealed class LaunchRules
     public double TopperSpanDeg { get; init; } = 9;
     public double PopMinDeg { get; init; } = 44;
     public double PopSpanDeg { get; init; } = 8;
-    public double MinDeg { get; init; } = 3;
+    [Signed] public double MinDeg { get; init; } = -45;
     public double MaxDeg { get; init; } = 52;
 }
 
@@ -1243,22 +1243,10 @@ public sealed class FlightRules
     /// runners run on (<see cref="LivePlaySystem.ElapsedSeconds"/>) — one clock (§0.3, §6.1).
     /// </summary>
     [Positive] public double TimeScale { get; init; } = 1.65;
-    /// <summary>
-    /// The liner's stretch (§7.6): a rope has the short hang so a dive is possible and a ball
-    /// past the glove falls in. Read off the launch class at the crack (<see cref="BattedBallClasses.ByLaunch"/>).
-    /// </summary>
-    [Positive] public double LinerTimeScale { get; init; } = 1.0;
-    /// <summary>The stretch for a ball on the dirt (topper, grounder, chopper, bunt): the scoop is a race (§7.1).</summary>
-    [Positive] public double DirtTimeScale { get; init; } = 1.65;
     [Positive] public double PlateHeightFt { get; init; } = 2.5;
 
-    /// <summary>The stretch this contact's flight runs on, by its launch class (§6.1, §6.2).</summary>
-    public double TimeScaleFor(double launchDeg, double exitMph, RulesTable table)
-    {
-        var shape = BattedBallClasses.ByLaunch(launchDeg, exitMph, table);
-        if (shape == BattedBallClass.Liner) return LinerTimeScale;
-        return shape.OnTheDirt() ? DirtTimeScale : TimeScale;
-    }
+    /// <summary>All contacts share the same clock; launch and exit never select a speed mode.</summary>
+    public double TimeScaleFor(double launchDeg, double exitMph, RulesTable table) => TimeScale;
     /// <summary>How much of the flag reading the ball feels at field level (drag is taken relative to the wind).</summary>
     public double WindMul { get; init; } = 0.35;
     [Positive] public int SampleHz { get; init; } = 120;
@@ -1266,13 +1254,12 @@ public sealed class FlightRules
     // The roll, the bounce, the skid and the wall carom are not here (F3-c, FD-05 / FD-03): the ball reads them off the
     // ground row of the zone it is on (grounds.json, through GroundZones.RowAt) and off the wall material of the segment
     // it meets (walls.json, through WallMaterial.OfSegment). One copy of each number, where a park can reach it.
-    public LandingRules Landing { get; init; } = new();
     public BattedBallClassRules Classes { get; init; } = new();
     public DeadBallRules DeadBall { get; init; } = new();
 
     /// <summary>
     /// This table with one park's air (§0.3, FD-03): <c>dragMul</c> multiplies the root's drag and
-    /// <c>windMul</c> replaces the global exposure. Every other number — gravity, the three stretches, the
+    /// <c>windMul</c> replaces the global exposure. Every other number — gravity, the shared stretch, the
     /// plate, the sample clock — is the global one, and the landing, class and dead-ball blocks are shared
     /// by reference. The ground and the wall are not on this table at all: a park reaches them by naming
     /// which ground row each of its zones stands on (<see cref="GroundZones"/>), never by a copy here
@@ -1283,13 +1270,10 @@ public sealed class FlightRules
         Gravity = Gravity,
         Drag = Drag * (env.DragMul ?? 1.0),
         TimeScale = TimeScale,
-        LinerTimeScale = LinerTimeScale,
-        DirtTimeScale = DirtTimeScale,
         PlateHeightFt = PlateHeightFt,
         WindMul = env.WindMul ?? WindMul,
         SampleHz = SampleHz,
         MaxSeconds = MaxSeconds,
-        Landing = Landing,
         Classes = Classes,
         DeadBall = DeadBall
     };
@@ -1300,12 +1284,6 @@ public sealed class FlightRules
         RulesValidation.Order(source, "flight.classes.grounderMaxLaunchDeg", Classes.GrounderMaxLaunchDeg, Classes.ChopperMaxLaunchDeg, errors);
         RulesValidation.Order(source, "flight.classes.chopperMaxLaunchDeg", Classes.ChopperMaxLaunchDeg, Classes.LinerMaxLaunchDeg, errors);
     }
-}
-
-public sealed class LandingRules
-{
-    /// <summary>Samples before this play time are still leaving the bat: the ground does not exist yet (one time base for every landing guard).</summary>
-    public double FirstGrassMinSec { get; init; } = 0.08;
 }
 
 /// <summary>The one batted-ball class table (§6.2): launch and exit at contact, refined by the flight.</summary>
@@ -1379,7 +1357,7 @@ public sealed class GroundLibrary
     {
         Roll = new() { Friction = 12, RestSpeed = 0.8 },
         Bounce = new() { Restitution = 0.40, Horizontal = 0.92, MinVy = 3.6 },
-        Skid = new() { LaunchMinDeg = 14, LaunchMaxDeg = 28, MinVy = 2.2, Restitution = 0.22, Horizontal = 0.97 },
+        Skid = new() { ImpactMinDeg = 14, ImpactMaxDeg = 28, MinVy = 2.2, Restitution = 0.22, Horizontal = 0.97 },
         Overthrow = new() { DecelFtPerSec2 = 10 },
         Bobble = new() { Restitution = 0.35, GroundRetain = 0.90, DecelFtPerSec2 = 3.5 },
         Body = new() { StartMul = 1.3, BrakeMul = 1.6, CutMul = 1.4, SlideMul = 1.35, OverrunMul = 1.5 },
@@ -1429,7 +1407,7 @@ public sealed class GroundLibrary
         foreach (var id in Ids)
         {
             var row = Of(id);
-            RulesValidation.Order(source, $"grounds.{id}.skid.launchMinDeg", row.Skid.LaunchMinDeg, row.Skid.LaunchMaxDeg, errors);
+            RulesValidation.Order(source, $"grounds.{id}.skid.impactMinDeg", row.Skid.ImpactMinDeg, row.Skid.ImpactMaxDeg, errors);
         }
     }
 }
@@ -1443,10 +1421,9 @@ public sealed class GroundLibrary
 /// spill, stun, rebound ceiling and settle are the fumble's (<c>fielding.handling</c>).
 ///
 /// <para>
-/// <b>The skid band is judged against the row under each bounce.</b> The launch angle is the ball's; the
-/// band a rope skids in (<c>skid.launchMinDeg</c> / <c>launchMaxDeg</c>) is the ground's, so a liner
-/// landing on a ground whose band excludes its launch hops there instead. Every row carries today's band,
-/// so no bounce changes.
+/// <b>The skid band is judged against the row under each bounce.</b> The incoming impact angle is the ball's; the
+/// band between skid and hop (<c>skid.impactMinDeg</c> / <c>impactMaxDeg</c>) is the ground's.
+/// Each impact blends the two responses from its current incoming velocity.
 /// </para>
 ///
 /// <para>
@@ -1484,11 +1461,11 @@ public sealed class BounceRules
     public double MinVy { get; init; } = 3.6;
 }
 
-/// <summary>Liners skid instead of hopping: a ball launched inside the ground's band bounces off this block instead of <see cref="BounceRules"/>.</summary>
+/// <summary>Shallow impacts skid; interpolate toward BounceRules across this incoming-impact angle band.</summary>
 public sealed class SkidRules
 {
-    public double LaunchMinDeg { get; init; } = 14;
-    public double LaunchMaxDeg { get; init; } = 22;
+    public double ImpactMinDeg { get; init; } = 14;
+    public double ImpactMaxDeg { get; init; } = 22;
     public double MinVy { get; init; } = 2.2;
     [Chance] public double Restitution { get; init; } = 0.28;
     [Chance] public double Horizontal { get; init; } = 0.93;
@@ -1759,6 +1736,8 @@ public sealed class FieldingRules
 
     internal void Validate(string source, List<string> errors)
     {
+        if (Chase.WallClearanceFt >= Chase.LooseScoopFt)
+            errors.Add($"{source}: fielding.chase.wallClearanceFt must be smaller than looseScoopFt so a wall ball remains reachable");
         RulesValidation.Order(source, "fielding.catcher.cpuReleaseMinSec", Catcher.CpuReleaseMinSec, Catcher.CpuReleaseMaxSec, errors);
         RulesValidation.Order(source, "fielding.chem.slantLateralMinFt", Chem.SlantLateralMinFt, Chem.SlantLateralMaxFt, errors);
         RulesValidation.Order(source, "fielding.throw.minFtPerSec", Throw.MinFtPerSec, Throw.BaseFtPerSec, errors);
@@ -1808,6 +1787,8 @@ public sealed class FieldStickRules
 public sealed class ReactionRules
 {
     [Positive] public double PitcherSec { get; init; } = 0.35;
+    /// <summary>Post-delivery recovery after full-swing contact; no difficulty or hang-time shortening. Bunts use the ordinary read.</summary>
+    [Positive] public double PitcherRecoverySec { get; init; } = 0.65;
     [Positive] public double CatcherSec { get; init; } = 0.45;
     [Positive] public double FirstSec { get; init; } = 0.25;
     [Positive] public double SecondSec { get; init; } = 0.25;
@@ -1905,7 +1886,9 @@ public sealed class ChaseRules
     /// <summary>After a hand-off the body the ring left keeps its velocity for this long, then stops (§8.9): the swap does not jerk.</summary>
     public double HandoffCoastSec { get; init; } = 0.2;
     /// <summary>The nearest body to a loose ball chases it; a throw's receiver steps to a ball inside this of them.</summary>
-    [Positive] public double LooseScoopFt { get; init; } = 3.5;
+    [Positive] public double LooseScoopFt { get; init; } = 2.5;
+    /// <summary>Body clearance inside the fence, small enough to recover a ball with loose scoop reach.</summary>
+    [Positive] public double WallClearanceFt { get; init; } = 2;
     /// <summary>
     /// An outfielder chasing a ball hit in the air runs at the one glove speed × this (§8.1, §8.2). The S-29 lever since the
     /// outfield read went back to the reference (#609): the read is when a body starts, this is how much ground it covers.
@@ -1939,13 +1922,13 @@ public sealed class CatchRules
     /// <summary>
     /// The authored stand-up reach every body without its own <see cref="Character.ReachFt"/> gets (F693-02-catch-reach-envelope,
     /// #719): roughly what the visible glove covers from a planted stance, independent of ratings. 0 keeps the legacy
-    /// <c>radiusBaseFt + Field × radiusPerField</c>; the game plays 6.0. A character's authored
+    /// <c>radiusBaseFt + Field × radiusPerField</c>; the game plays 4.0. A character's authored
     /// <c>reachFt</c> wins over both, and the ability bonuses add to whichever applies.
     /// </summary>
-    public double StandUpReachFt { get; init; } = 6.0;
+    public double StandUpReachFt { get; init; } = 4.0;
     public double ClamberRadiusFt { get; init; } = 6;
-    public double WindowPadFt { get; init; } = 4;
-    public double DiveReachFt { get; init; } = 8;
+    public double WindowPadFt { get; init; } = 1;
+    public double DiveReachFt { get; init; } = 2;
     public double JumpReachFt { get; init; } = 0;
     public double DiveMaxBallY { get; init; } = 7.5;
     public double NeedsJumpReachFt { get; init; } = 22;
@@ -1955,6 +1938,8 @@ public sealed class CatchRules
     public double ClamberRobFt { get; init; } = 28;
     public double BuddyJumpRobFt { get; init; } = 18;
     public double TouchScoopY { get; init; } = 3.2;
+    /// <summary>Highest ball center a planted glove can take; a live jump adds its actual root rise.</summary>
+    [Positive] public double StandingHeightFt { get; init; } = 6.0;
     /// <summary>
     /// Still in the air for a catch (§7.6): a route that meets the ball above this before the first
     /// bounce is a catch; at or below it the hop is a scoop. Chase targeting uses the same floor.
@@ -1981,14 +1966,8 @@ public sealed class CatchRules
     /// <summary>East arms the dive reach for this long.</summary>
     public double DiveArmSec { get; init; } = 0.5;
     /// <summary>
-    /// The dive without a decision (#719, F693-02-dive-jump-scoop-reach, -cpu-dive-intent): 1 is the old free dive — the
-    /// dead-stick assistance and the CPU dive at the rim on their own; 0 is the rule — a dive is a press, or
-    /// the CPU's deliberate commitment on the live ball, never free.
-    /// </summary>
-    [Chance] public double AutoDive { get; init; } = 0;
-    /// <summary>
     /// What a dive costs (F693-02-dive-recovery-cost): the diver neither moves nor throws for this long after the
-    /// commitment, at Field 1, caught or missed alike, human and CPU alike — and never revoking a catch already made. The
+    /// commitment, at Field 1, caught or missed alike, player initiated — and never revoking a catch already made. The
     /// later end wins against the bobble's fumble. 0.60 s; 0 is a free dive.
     /// </summary>
     public double DiveRecoverySec { get; init; } = 0.60;
@@ -2017,7 +1996,7 @@ public sealed class FieldDashRules
     [Positive] public double ChaseMul { get; init; } = 1.0;
     public double BuddyTossFt { get; init; } = 28;
     public double KickFt { get; init; } = 22;
-    public double DiveLungeFt { get; init; } = 10;
+    public double DiveLungeFt { get; init; } = 8;
     public double ItemSmashFt { get; init; } = 24;
 }
 

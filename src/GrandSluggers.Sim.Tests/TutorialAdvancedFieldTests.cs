@@ -33,7 +33,7 @@ public sealed class TutorialAdvancedFieldTests
                 pad = new(KeysBag: wrongBag ? 2 : 3, SouthDown: true);
             else if (act && run.Lesson.Id == "T-F11" && !wallSeen && live.ElapsedSeconds > .5)
                 pad = new(StickX: -1, StickY: 0);
-            else if (act && run.Lesson.Id == "T-F09" && wallSeen && !live.HoldsBall)
+            else if (act && run.Lesson.Id is "T-F09" or "T-F11" && wallSeen && !live.HoldsBall)
             {
                 var dx = live.BallX - live.GloveX;
                 var dz = live.BallZ - live.GloveZ;

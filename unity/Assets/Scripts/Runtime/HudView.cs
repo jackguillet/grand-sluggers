@@ -25,7 +25,7 @@ namespace GrandSluggers.UnityClient
             bool humanPitches = true, bool humanBats = false,
             bool starPitch = false, bool starSwing = false, bool pad1Home = true,
             BuntSide bunt = BuntSide.None, string titleSetup = null,
-            BroadcastHud.StarUnavailableTell? starNo = null, float starNoAge = 99f)
+            BroadcastHud.StarUnavailableTell? starNo = null, float starNoAge = 99f, bool inPlay = false)
         {
             Ensure();
             _starNo = starNo;
@@ -57,16 +57,17 @@ namespace GrandSluggers.UnityClient
                 else Final(match, highlight);
                 return;
             }
+            var mode = BroadcastHud.Mode(inPlay, mutePlay);
+            if (mode == BroadcastHud.PlayMode.Hidden) return;
             if (training)
             {
                 Play(match, pitcherExtra, star, steal, item, charge, timing, showTiming, null, null, seats,
-                    humanPitches, humanBats, starPitch, starSwing, bunt);
+                    humanPitches, humanBats, starPitch, starSwing, bunt, mode);
                 TrainingPlay(banner, sub, drillProgress);
                 return;
             }
-            if (mutePlay) return;
             Play(match, pitcherExtra, star, steal, item, charge, timing, showTiming, banner, sub, seats,
-                humanPitches, humanBats, starPitch, starSwing, bunt);
+                humanPitches, humanBats, starPitch, starSwing, bunt, mode);
         }
 
         static void Title(bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp, string setup = null)
@@ -967,12 +968,23 @@ namespace GrandSluggers.UnityClient
 
         static void Play(Match match, string pitcherExtra, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, int seats,
-            bool humanPitches, bool humanBats, bool starPitch, bool starSwing, BuntSide bunt)
+            bool humanPitches, bool humanBats, bool starPitch, bool starSwing, BuntSide bunt, BroadcastHud.PlayMode mode)
         {
             var lay = BroadcastHud.Layout(seats);
-            Scorebug(match, lay);
-            Cards(match, pitcherExtra, star, steal, item, charge, timing, showTiming, lay,
-                humanPitches, humanBats, starPitch, starSwing, bunt);
+            if (mode == BroadcastHud.PlayMode.InPlay)
+            {
+                var bug = BroadcastHud.From(match);
+                GUI.DrawTexture(Px(BroadcastHud.LivePanel), _panel);
+                MiniDiamond(Px(BroadcastHud.LiveDiamond), bug);
+                CountLine(Px(BroadcastHud.LiveOuts), 0, bug.Outs, 3, "O", _outOn, _outOff, rows: 1);
+                StarUnavailableLine(bug, lay);
+            }
+            else
+            {
+                Scorebug(match, lay);
+                Cards(match, pitcherExtra, star, steal, item, charge, timing, showTiming, lay,
+                    humanPitches, humanBats, starPitch, starSwing, bunt);
+            }
 
             if (!string.IsNullOrEmpty(banner))
             {
@@ -1024,21 +1036,26 @@ namespace GrandSluggers.UnityClient
             var red = starNo.HasValue && BroadcastHud.StarUnavailableRed(_starNoAge);
             Row(lay.Score, 0, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match), bug.StarsEnabled, red && starNo.Value.Row == 0);
             Row(lay.Score, 1, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match), bug.StarsEnabled, red && starNo.Value.Row == 1);
-            if (starNo.HasValue)
-            {
-                var line = Px(BroadcastHud.StarUnavailableLine(lay.Score));
-                GUI.DrawTexture(line, _panel);
-                var prev = GUI.color;
-                GUI.color = new Color(1f, 0.32f, 0.28f, 1f);
-                GUI.Label(new Rect(line.x + 12, line.y + 2, line.width - 24, line.height - 4), starNo.Value.Words, _gold);
-                GUI.color = prev;
-            }
+            StarUnavailableLine(bug, lay);
 
             var c = Px(lay.Count);
             CountLine(c, 0, bug.Balls, 4, "B", _dotOn, _dotOff);
             CountLine(c, 1, bug.Strikes, 3, "S", _dotOn, _dotOff);
             CountLine(c, 2, bug.Outs, 3, "O", _outOn, _outOff);
             MiniDiamond(Px(lay.MiniDiamond), bug);
+        }
+
+        // A rejected swing request still needs its tell when contact has already changed the layout.
+        static void StarUnavailableLine(BroadcastHud.Scorebug bug, BroadcastHud.PlayLayout lay)
+        {
+            if (!bug.StarsEnabled || !_starNo.HasValue || !BroadcastHud.StarUnavailableShows(_starNoAge)) return;
+            var line = Px(BroadcastHud.StarUnavailableLine(lay.Score));
+            GUI.DrawTexture(line, _panel);
+            var prev = GUI.color;
+            GUI.color = BroadcastHud.StarUnavailableRed(_starNoAge)
+                ? new Color(1f, 0.32f, 0.28f, 1f) : Color.white;
+            GUI.Label(new Rect(line.x + 12, line.y + 2, line.width - 24, line.height - 4), _starNo.Value.Words, _gold);
+            GUI.color = prev;
         }
 
         static void MiniDiamond(Rect r, BroadcastHud.Scorebug bug)
@@ -1146,9 +1163,9 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(new Rect(x + i * 16, y, 14, 14), n > i ? _starOn : _starOff);
         }
 
-        static void CountLine(Rect r, int row, int n, int max, string tag, Texture2D on, Texture2D off)
+        static void CountLine(Rect r, int row, int n, int max, string tag, Texture2D on, Texture2D off, int rows = 3)
         {
-            var h = r.height / 3f;
+            var h = r.height / rows;
             var y = r.y + row * h + h * 0.12f;
             var pip = Mathf.Min(14f, h * 0.72f);
             var gap = pip * 0.18f;

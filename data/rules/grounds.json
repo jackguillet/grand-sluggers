@@ -25,8 +25,8 @@
       "minVy": 3.6
     },
     "skid": {
-      "launchMinDeg": 14,
-      "launchMaxDeg": 22,
+      "impactMinDeg": 14,
+      "impactMaxDeg": 22,
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93
@@ -58,8 +58,8 @@
       "minVy": 3.6
     },
     "skid": {
-      "launchMinDeg": 14,
-      "launchMaxDeg": 22,
+      "impactMinDeg": 14,
+      "impactMaxDeg": 22,
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93
@@ -93,8 +93,8 @@
       "minVy": 3.6
     },
     "skid": {
-      "launchMinDeg": 14,
-      "launchMaxDeg": 28,
+      "impactMinDeg": 14,
+      "impactMaxDeg": 28,
       "minVy": 2.2,
       "restitution": 0.22,
       "horizontal": 0.97
@@ -126,8 +126,8 @@
       "minVy": 3.6
     },
     "skid": {
-      "launchMinDeg": 14,
-      "launchMaxDeg": 22,
+      "impactMinDeg": 14,
+      "impactMaxDeg": 22,
       "minVy": 2.2,
       "restitution": 0.28,
       "horizontal": 0.93

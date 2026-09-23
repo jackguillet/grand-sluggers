@@ -37,9 +37,9 @@ public sealed class OutfieldReadTests
     public void ALockoutNeverOutlastsABallInTheAirAndADirtBallKeepsTheInfieldNumbers()
     {
         var rules = _content.Rules;
-        var capped = FieldingResolver.ReactionLockouts(rules, 1, airHangSec: 0.5);
+        var capped = FieldingResolver.ReactionLockouts(rules, 1, airHangSec: 0.5, bunt: true);
         foreach (var kv in capped) Assert.True(kv.Value <= 0.5 + 1e-9, $"{kv.Key} waits {kv.Value} on a 0.5 s hang");
-        var dirt = FieldingResolver.ReactionLockouts(rules);
+        var dirt = FieldingResolver.ReactionLockouts(rules, bunt: true);
         foreach (var pos in Diamond.Order) Assert.Equal(rules.Fielding.Reaction.LockoutSec(pos), dirt[pos], 9);
     }
 
@@ -51,8 +51,8 @@ public sealed class OutfieldReadTests
     {
         var rules = _content.Rules.AtLevel(level);
         var mul = rules.Cpu.Active.ReactionMul;
-        var cpu = FieldingResolver.CpuReactionLockouts(rules);
-        var human = FieldingResolver.ReactionLockouts(rules);
+        var cpu = FieldingResolver.CpuReactionLockouts(rules, bunt: true);
+        var human = FieldingResolver.ReactionLockouts(rules, bunt: true);
         foreach (var pos in Diamond.Order)
         {
             Assert.Equal(rules.Fielding.Reaction.LockoutSec(pos), human[pos], 9);
@@ -73,7 +73,7 @@ public sealed class OutfieldReadTests
         var preview = match.PreviewHit(hit);
         var hang = preview.HangTimeSec;
         _out.WriteLine($"liner {hit.ExitVeloMph:0.0} mph at {hit.LaunchDeg:0}° / {hit.SprayDeg:0}°: hang {hang:0.00} s, landing ({preview.LandingX:0}, {preview.LandingZ:0}), picked {preview.Position}");
-        Assert.InRange(hang, 1.0, 1.5);
+        Assert.InRange(hang, 1.0 * match.Rules.Flight.TimeScale, 1.5 * match.Rules.Flight.TimeScale);
         var movedAt = FirstMove(match, hit, preview, "LF", LiveSeats.CpuOnly);
         _out.WriteLine($"LF moves at {movedAt:0.00} s");
         Assert.True(movedAt < hang, $"LF first moves at {movedAt:0.00} s; the liner lands at {hang:0.00} s");

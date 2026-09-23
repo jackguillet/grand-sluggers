@@ -274,7 +274,7 @@ public class MatchTests
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out _, out _));
         // A hard grounder right at the shortstop: the live ball plays this flight and the CPU turns two by geometry (§8.8).
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 125, -3, -18);
         var field = match.ResolveFielding(hit, match.PreviewHit(hit));
         return (match, paint, swing, hit, field);
     }
@@ -371,7 +371,7 @@ public class MatchTests
         var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out _, out _));
-        var hit = FlightFixtures.Landing(match.Park, 45, 8, -12);
+        var hit = FlightFixtures.Hit(match.Park, 45, -12, -12);
         var laser = new ThrowResult(Chemistry.Good, 1.55, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
         match.FinishAtBat(paint, swing, hit, field);
