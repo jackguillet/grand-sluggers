@@ -4,15 +4,6 @@
   // GitHub sitting children stay; they are not the memory.
   "entries": [
     {
-      "id": "star-runner-input-collision",
-      "signature": "Steal and Star hit compete on LB; moving the batter also sends a selected runner",
-      "stage": "sitting",
-      "cause": "Role and phase-dependent hardware meanings shared the Star bumper and the batter movement stick with runner orders.",
-      "fix": "ControllerLayout keeps LT Star, RT baseball and LB/RB runner orders independent across SET, flight and contact. Right-stick selection is separate from left-stick movement; automatic catches never create a throw request.",
-      "promoted": "ControllerInputTests.StarAndRunnerOrdersAreIndependentDuringASwing; RunnerOrdersTests; AtBatInputGate.VerifyControllerRouting",
-      "issue": "#983"
-    },
-    {
       "id": "brim-in-plate-lens",
       "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
       "stage": "still-gate",
@@ -78,7 +69,7 @@
       "stage": "sitting",
       "cause": "HowToPlay.cs contents KeyLines and ControlDiagram.KeysCallouts lumped H and Esc. docs/how-to-play.md intro and the face table said Esc opens Call time. Scheme and Controls.HowTo already split them (#348): H is Call time, Esc is the book.",
       "fix": "H / Start is Call time. Esc is How to play, including at first pitch. Name each verb in the book, the hardware diagram, and how-to-play.md. Do not change the shortcut.",
-      "promoted": "SchemeTests.HCallsTimeAndEscOpensTheBook",
+      "promoted": "SchemeTests.EveryProductVerbHasControllerOnlyBindings",
       "issue": "#629",
       "pr": "#663"
     },
@@ -582,6 +573,15 @@
       "promoted": "BroadcastHudTests.ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay",
       "issue": "#981",
       "pr": ""
+    },
+    {
+      "id": "star-runner-input-collision",
+      "signature": "Steal and Star hit compete on LB; moving the batter also sends a selected runner",
+      "stage": "sitting",
+      "cause": "Role and phase-dependent hardware meanings shared the Star bumper and the batter movement stick with runner orders.",
+      "fix": "ControllerLayout keeps LT Star, RT baseball and LB/RB runner orders independent across SET, flight and contact. Right-stick selection is separate from left-stick movement; automatic catches never create a throw request.",
+      "promoted": "ControllerInputTests.StarAndRunnerOrdersAreIndependentDuringASwing",
+      "issue": "#983"
     }
   ]
 }
