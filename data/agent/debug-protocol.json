@@ -543,6 +543,16 @@
       "promoted": "BroadcastHudTests.StarMetersFollowTheMatchSettingEvenWithEmptyPools",
       "issue": "#968",
       "pr": ""
+    },
+    {
+      "id": "contact-effect-blanks-live-hud",
+      "signature": "HUD disappears after contact and returns late, especially through hit-freeze, smash or a star effect.",
+      "stage": "sitting",
+      "cause": "BroadcastHud.MutePlay tied every play overlay to spectacle, smash and freeze timers; HudView.Draw returned before drawing any match information.",
+      "fix": "BroadcastHud.Mode follows the plate/live phase with a compact runner diamond and outs during play. Effect clocks do not control HUD visibility. Only explicit capture/debug mute hides play overlays.",
+      "promoted": "BroadcastHudTests.ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay",
+      "issue": "#981",
+      "pr": ""
     }
   ]
 }
