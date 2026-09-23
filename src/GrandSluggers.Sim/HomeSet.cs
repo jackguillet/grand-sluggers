@@ -64,6 +64,19 @@ public static class HomeSet
     public const double BatterX = -BoxX;
     public const double BatterZ = 3.0;
     public const double BatterWalk = 2.4;
+
+    /// <summary>
+    /// The box walk's rate at full stick: box offset per second (spec §3, §5.2, PH-09). The client's
+    /// rate since the box walk shipped, named here unchanged so the rule can be read by the sim.
+    /// </summary>
+    public const float BoxWalkPerSec = 1.6f;
+
+    /// <summary>
+    /// One frame of box walk for a horizontal stick (spec §3, PH-09): stick × dt × <see cref="BoxWalkPerSec"/>,
+    /// computed in single precision as the client always did. It takes no charge: holding a load
+    /// before the commit leaves the walk's speed unchanged (PH-09-R1, S-136).
+    /// </summary>
+    public static double BoxWalkStep(float stickX, float dt) => stickX * dt * BoxWalkPerSec;
     /// <summary>Feet the pitcher's body, release hand, and crossing move per unit of rubber walk (spec §4.2): once, the same for both seats.</summary>
     public const double PitcherWalk = 2.4;
     public const double BatterChestY = 3.2;
