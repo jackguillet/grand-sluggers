@@ -8,14 +8,13 @@ namespace GrandSluggers.Sim.Tests;
 /// -calibration-samples, -arming). A seated controller starts the match with no profile and adopts a released-stick window outside
 /// live baseball; a keyboard never waits; nothing is sampled while the ball is live and no window is stitched across a gap; a
 /// different controller is a replacement, the same one back a recovery; Call time recalibrates every seated controller, and backing
-/// out or failing keeps the old centre. The shipped table's stick reads no calibration, so none of it runs there.
+/// out or failing keeps the old centre. A stick table with the radial stick switched off reads no calibration, so none of it runs
+/// there.
 /// </summary>
 public sealed class PursuitReadinessTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Control.Root.Shipped,
-        Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80"))));
-    static FieldStickRules Radial => Trial.Rules.Fielding.Stick;
+    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static FieldStickRules Radial => Game.Rules.Fielding.Stick;
     const double Frame = 1.0 / 60.0;
 
     static PursuitReadiness.SeatDevice Pad(int id, double x = 0, double y = 0, bool present = true) => new(true, id, false, present, x, y);
@@ -43,11 +42,15 @@ public sealed class PursuitReadinessTests
     }
 
     [Fact]
-    public void TheShippedStickNeedsNoneOfThis()
+    public void TheGameStickIsRadial() => Assert.True(Radial.Radial);
+
+    /// <summary>With the radial stick off (enterMag 0) nothing is sampled, told or offered.</summary>
+    [Fact]
+    public void AStickWithoutTheRadialSwitchNeedsNoneOfThis()
     {
-        var rules = Control.Rules.Fielding.Stick;
+        var rules = new FieldStickRules { EnterMag = 0 };
         Assert.False(rules.Radial);
-        var live = NewLive(Control);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         Run(r, live, rules, 0, 1.0, true, Pad(7, 0.3, 0));
         var stick = live.FieldStick(0);
@@ -62,7 +65,7 @@ public sealed class PursuitReadinessTests
     [Fact]
     public void ASeatedControllerCalibratesOnARestingStickOutsidePlay()
     {
-        var live = NewLive(Trial);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         r.Tick(live, Radial, true, 0, [Pad(7, 0.04, -0.02)]);
         var stick = live.FieldStick(0);
@@ -83,7 +86,7 @@ public sealed class PursuitReadinessTests
     [Fact]
     public void AKeyboardSeatNeverWaits()
     {
-        var live = NewLive(Trial);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         Run(r, live, Radial, 0, 0.1, true, Keys(1, 0));
         Assert.True(live.FieldStick(0).Calibration.Valid);
@@ -96,7 +99,7 @@ public sealed class PursuitReadinessTests
     [Fact]
     public void NothingIsSampledWhileTheBallIsLiveAndAnInterruptedWindowStartsOver()
     {
-        var live = NewLive(Trial);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         var clock = Run(r, live, Radial, 0, 2.0, false, Pad(7));
         var stick = live.FieldStick(0);
@@ -114,7 +117,7 @@ public sealed class PursuitReadinessTests
     [Fact]
     public void AStallStartsTheWindowOverRatherThanSpanTheGap()
     {
-        var live = NewLive(Trial);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         var clock = Run(r, live, Radial, 0, 0.30, true, Pad(7));
         clock += 0.40;   // the input clock ran on and nothing was sampled: a hitch
@@ -130,7 +133,7 @@ public sealed class PursuitReadinessTests
     [InlineData(true)]
     public void AHeldOrJitteryStickIsRefusedAndTheSeatKeepsBeingTold(bool jitter)
     {
-        var live = NewLive(Trial);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         var clock = 0.0;
         for (var i = 0; i < 90; i++, clock += Frame)
@@ -145,7 +148,7 @@ public sealed class PursuitReadinessTests
     [Fact]
     public void ADifferentControllerIsAReplacementAndTheSameOneBackIsARecovery()
     {
-        var live = NewLive(Trial);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         var clock = Run(r, live, Radial, 0, 0.6, true, Pad(7, 0.05, 0));
         var stick = live.FieldStick(0);
@@ -174,7 +177,7 @@ public sealed class PursuitReadinessTests
     [Fact]
     public void CallTimeRecalibratesEverySeatedControllerAndBackingOutKeepsTheOldCentre()
     {
-        var live = NewLive(Trial);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         var clock = Run(r, live, Radial, 0, 0.6, true, Pad(7, 0.02, 0), Pad(9, -0.03, 0.01));
         Assert.True(live.FieldStick(0).Calibration.Valid && live.FieldStick(1).Calibration.Valid);
@@ -205,7 +208,7 @@ public sealed class PursuitReadinessTests
     [Fact]
     public void ACpuSeatIsNeverTouchedAndANewMatchBindsAfresh()
     {
-        var live = NewLive(Trial);
+        var live = NewLive(Game);
         var r = new PursuitReadiness();
         Run(r, live, Radial, 0, 0.6, true, Pad(7), Cpu);
         Assert.True(live.FieldStick(0).Calibration.Valid);
@@ -214,7 +217,7 @@ public sealed class PursuitReadinessTests
         Assert.Equal(PursuitReadiness.Tell.None, r.TellFor(1, live, Radial));
 
         // Restart: a new match is a new set of sticks, and the seated controller owes a window again.
-        var next = NewLive(Trial);
+        var next = NewLive(Game);
         r.Tick(next, Radial, true, 1.0, [Pad(7), Cpu]);
         Assert.False(next.FieldStick(0).Calibration.Valid);
         Assert.Equal(PursuitReadiness.Tell.LetGo, r.TellFor(0, next, Radial));

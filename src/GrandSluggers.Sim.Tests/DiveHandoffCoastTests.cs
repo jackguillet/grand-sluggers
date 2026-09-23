@@ -5,18 +5,15 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// #715, found beside the hand-off coast: the coast (§8.9) keeps "the glove's velocity", measured as the last frame's
-/// displacement over the frame. Under the <c>c80</c> copy's deliberate dive (#719) that last frame can be the lunge — about 10 ft
-/// in one frame, 590 ft/s as a velocity — and a dive that missed with the ring handed to an outfielder on the next frame slid the
-/// diver about 118 ft in the coast's 0.2 s, and further under the response law's brake (#718). A diver paying its recovery is on
-/// the ground: it does not coast. Root-aware: the hybrid's ball in a plain process, the copy's own three under the trial root.
-/// The shipped table had the same slide with a human seat — East lunges 10 ft for free, and Select or a released stick on the next
-/// frame hands the ring off with the lunge as its velocity — so the guard also reads the dive's arm window (<c>DiveT</c>) there.
+/// displacement over the frame. Under the deliberate dive (#719) that last frame can be the lunge — about 10 ft in one frame,
+/// 590 ft/s as a velocity — and a dive that missed with the ring handed to an outfielder on the next frame slid the diver about
+/// 118 ft in the coast's 0.2 s, and further under the response law's brake (#718). A diver paying its recovery is on the ground:
+/// it does not coast. A human seat has the same shape — East lunges, and Select on the next frame hands the ring off with the
+/// lunge as its velocity — so the guard also reads the dive's arm window (<c>DiveT</c>).
 /// </summary>
 public sealed class DiveHandoffCoastTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly DataRoot Root = new(Control.Root.Shipped, Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(Root);
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
     static readonly string[] Defense = ["vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex"];
 
@@ -28,9 +25,9 @@ public sealed class DiveHandoffCoastTests
     [MemberData(nameof(MissedDives))]
     public void ADiverWhoseRingLeavesOnTheNextFrameStaysWhereHeLunged(double exit, double launch, double spray, string diver, string outfielder)
     {
-        var home = Trial.Team("Defense", Defense[0], Defense[1..]);
-        var away = Trial.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Trial, home, away, 3, 1, parkId: "harbor-diamond");
+        var home = Game.Team("Defense", Defense[0], Defense[1..]);
+        var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
         var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
@@ -70,20 +67,19 @@ public sealed class DiveHandoffCoastTests
         Assert.Equal(commitAt + 1, handedAt);   // the defect's frame: the lunge was the glove's whole "velocity" when the ring left
         // The brake's drift after a lunge is under a foot; the coast was 9.8 ft a frame for twelve frames.
         Assert.True(farthest < 1.5, $"the diver slid {farthest:0.0} ft from where he lunged inside his recovery");
-        var rated = Defense.Max(id => FieldingResolver.ChaseSpeedFt(Trial.Must(id), false, match.Rules));
+        var rated = Defense.Max(id => FieldingResolver.ChaseSpeedFt(Game.Must(id), false, match.Rules));
         Assert.True(fastest <= rated, $"the diver moved at {fastest:0} ft/s on the ground; the fastest legs on this defense are rated {rated:0}");
     }
 
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     /// <summary>
-    /// The human's East on this process's own table (the shipped one in a plain process, where the dive is free and nothing is
-    /// owed after it), then Select on the very next frame: the ring leaves the diver, and the diver does not leave with the lunge.
+    /// The human's East, then Select on the very next frame: the ring leaves the diver, and the diver does not leave with the
+    /// lunge.
     /// </summary>
     [Fact]
     public void EastThenSelectOnTheNextFrameLeavesTheDiverWhereHeLunged()
     {
-        // The rope is the left fielder's by then on the shipped diamond; the copy's softer ball is still the shortstop's.
         var (exit, launch, spray, diver) = (70.0, 20.0, -8.0, "SS");
         const int eastAt = 60;
         var run = RunHuman(exit, launch, spray, i => i == eastAt ? new LivePadInput(EastDown: true) : i == eastAt + 1 ? new LivePadInput(Swap: true) : LivePadInput.Dead);
@@ -92,28 +88,12 @@ public sealed class DiveHandoffCoastTests
         Assert.True(run.MaxStepFt < 1.0, $"the diver moved {run.MaxStepFt:0.00} ft in a frame after his lunge; the slide was 10 ft a frame");
     }
 
-    /// <summary>
-    /// The shipped table: the stick runs the shortstop, East, and the stick is let go. The assistance hands the ring to the left
-    /// fielder on the next frame, and the shortstop used to slide 124 ft. (The copy's diver owes his recovery: the rows above.)
-    /// </summary>
-    [Fact]
-    public void EastThenAReleasedStickLeavesTheShippedDiverWhereHeLunged()
-    {
-        if (TestRoot.Compact) return;   // this process plays the copy: its stick is armed at neutral and its hand-off is the CPU rows' above
-        const int eastAt = 30;
-        var run = RunHuman(80, 14, -18, i => i < eastAt ? new LivePadInput(StickX: -0.3, StickY: 1.0)
-            : i == eastAt ? new LivePadInput(StickX: -0.3, StickY: 1.0, EastDown: true) : LivePadInput.Dead);
-        Assert.Equal((eastAt, "SS"), (run.LungeAt, run.Diver));
-        Assert.Equal((eastAt + 1, "LF"), (run.HandedAt, run.HandedTo));
-        Assert.True(run.MaxStepFt < 1.0, $"the diver moved {run.MaxStepFt:0.00} ft in a frame after his lunge; the slide was 9.5 ft a frame");
-    }
-
     sealed record HumanRun(int LungeAt, string Diver, int HandedAt, string HandedTo, double MaxStepFt);
 
-    /// <summary>A human glove on this process's table: the frame and body of the lunge, the frame the ring left it, and the diver's largest step in a frame over the half second after.</summary>
+    /// <summary>A human glove: the frame and body of the lunge, the frame the ring left it, and the diver's largest step in a frame over the half second after.</summary>
     static HumanRun RunHuman(double exit, double launch, double spray, Func<int, LivePadInput> pad)
     {
-        var content = Control;
+        var content = Game;
         var home = content.Team("Defense", Defense[0], Defense[1..]);
         var away = content.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
         var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
