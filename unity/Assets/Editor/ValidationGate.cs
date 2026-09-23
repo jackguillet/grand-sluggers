@@ -54,6 +54,7 @@ namespace GrandSluggers.EditorTools
                 var content = ContentCatalog.Load(data);
                 var artErrors = new List<string>(content.Art.Validate(content));
                 artErrors.AddRange(ArtRailsValidate.ValidateCommonBatImport());
+                artErrors.AddRange(ArtRailsValidate.ValidateHomePlateClearance());
                 evidence.artErrors = artErrors.ToArray();
                 if (artErrors.Count > 0)
                     throw new BuildFailedException("Art validation failed:\n" + string.Join("\n", artErrors));

@@ -19,7 +19,7 @@
       "stage": "still-gate",
       "cause": "HomeSet.cs:35 BoxGap; :98 BoxesClearThePlate — an invented or Minkowski gap instead of OBR Diagram 2's 6 inches.",
       "fix": "BoxGap is 6 inches; BoxesClearThePlate encodes that gap. Cartoon fat is allowed; wrong topology is not.",
-      "promoted": "HomeSetTests.OfficialHomeLayout",
+      "promoted": "HomeSetTests.PlateMatchesStrikeZoneWithoutMovingTheBatters",
       "issue": "#470",
       "pr": "#471"
     },
@@ -572,6 +572,16 @@
       "fix": "BroadcastHud.Mode follows the plate/live phase with a compact runner diamond and outs during play. Effect clocks do not control HUD visibility. Only explicit capture/debug mute hides play overlays.",
       "promoted": "BroadcastHudTests.ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay",
       "issue": "#981",
+      "pr": ""
+    },
+    {
+      "id": "authored-plate-buried-in-home-dirt",
+      "signature": "Home plate is absent although the authored home-plate mesh loads; the primitive fallback is visible when the asset is missing.",
+      "stage": "sitting",
+      "cause": "FieldKit.Plate placed the ground-origin authored mesh at Y=0. Its white top at 0.22 ft and rim below 0.27 ft were buried by the home dirt at 0.38 ft.",
+      "fix": "Seat the authored mesh on ParkDiamond.PathTop in the shared FieldKit. HomeSet ties the footprint to the strike zone and places both boxes outside it. ArtRailsValidate.ValidateHomePlateClearance checks the imported upward white faces against the rendered home pad, zone width and box stripes; this Unity gate is separate from the .NET test catalog.",
+      "promoted": "",
+      "issue": "#989",
       "pr": ""
     }
   ]
