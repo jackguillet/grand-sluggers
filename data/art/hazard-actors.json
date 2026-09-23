@@ -19,6 +19,8 @@
   "rings": {
     "statusVolume": "#1A1A22",
     "ballRedirect": "#FFCC40",
-    "rewardTarget": "#FFCC40"
+    "rewardTarget": "#FFCC40",
+    "solidBody": "#3A3A40",
+    "timedMover": "#E83850"
   }
 }

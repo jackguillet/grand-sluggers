@@ -43,7 +43,9 @@ public enum PlayTraceMarkKind
     /// <summary>The ball went into a redirect (F4-c): <see cref="PlayTraceMark.Hazard"/> is the mouth, its <c>Exit</c> the instance it came out of.</summary>
     BallRedirected,
     /// <summary>The ball hit a reward target (F4-c): <see cref="PlayTraceMark.Hazard"/> is the sign.</summary>
-    RewardHit
+    RewardHit,
+    /// <summary>The ball caromed off a solid body or mover (F4-f): <see cref="PlayTraceMark.Hazard"/> is the body, at the rim point.</summary>
+    BodyCarom
 }
 
 /// <summary>T is the simulation execution clock. LowerT bounds sampled runner arrivals; animation release is unobserved.</summary>
