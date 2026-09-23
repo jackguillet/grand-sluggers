@@ -62,7 +62,6 @@ public sealed class AtBatResolver
         var chargeBat = input.Bat?.ChargeAlwaysFull == true;
         var effective = chargeBat ? 1.0 : Math.Clamp(input.Charge01, 0, 1);
         var charged = ChargeFeel.IsCharge(effective);
-        var buddies = _chem.BuddiesOnBase(input.Batter, input.RunnersOn);
 
         // Timing (§5.3, D13): outside the window the bat is not on the plane.
         var window = ContactWindowFrames(input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, _rules, _skills);
@@ -71,7 +70,7 @@ public sealed class AtBatResolver
         var onPlane = InWindow(err, window);
 
         // Cursor (§5.2): where the crossing meets the bat — the oval the client draws (S-134).
-        var barrel = SweetSpot.SwingBarrel(input.Batter, input.Bat, input.Charge01, buddies, _rules);
+        var barrel = SweetSpot.SwingBarrel(input.Batter, input.Bat, input.Charge01, _rules);
         var quality = onPlane
             ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, input.CrossingY, barrel, _rules)
             : ContactQuality.Miss;
@@ -95,14 +94,14 @@ public sealed class AtBatResolver
                 InZone: input.PitchInZone);
         }
 
-        // Exit (§5.5): base(power) × zone (slap → charge column by the charge) × star × buddies × pitch.
+        // Exit (§5.5): base(power) × zone (slap → charge column by the charge) × star × pitch. Runners
+        // on base add nothing: there is no plate-level chemistry (PH-16-R14, #891).
         var zoneMul = Lerp(b.Quality.Slap.For(quality), b.Quality.Charge.For(quality), effective);
         var starSwingMul = input.UseStarSwing ? StarSkills.SwingExitMul(input.Batter.StarSwing, _skills) : 1.0;
-        var onBaseMul = charged ? _chem.ChargePowerMul(input.Batter, input.RunnersOn) : 1.0;
         var pitchMul = PitchFactor(input.ChargePitch, quality, charged, input.Pitcher.Stats.Pitch, b.PitchFactor);
 
         var exit = b.Exit.BaseMph + power * b.Exit.MphPerPower;
-        exit *= zoneMul * starSwingMul * onBaseMul * pitchMul;
+        exit *= zoneMul * starSwingMul * pitchMul;
         if (input.PitcherStamina < _rules.Pitching.Stamina.TiredBelow)
             exit *= b.Exit.TiredPitcherMul;
 
