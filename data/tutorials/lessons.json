@@ -503,6 +503,29 @@
       ]
     },
     {
+      "id": "T-B10",
+      "revision": 1,
+      "mechanics": [
+        "batting.10"
+      ],
+      "title": "cancel a swing",
+      "category": "batting",
+      "status": "planned",
+      "issue": 803,
+      "reason": "The sim cancel exists (P4-a, S-150 ... S-152); no control reaches it until P4-c adds East / G and the let-go take. Planned: load a swing on a CPU ball, cancel before the plate, and take the ball; a swing, or a release of the cancelled hold, fails",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B04"
+      ],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
       "id": "T-F01",
       "revision": 3,
       "mechanics": [
