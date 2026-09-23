@@ -12,7 +12,7 @@ public sealed class Game : IDisposable
     readonly bool _demo;
     int _seed;
     readonly ContentCatalog _content;
-    readonly string[] _pitches = [.. Training.CorePitches];
+    readonly IReadOnlyList<string> _pitches;
     Match _match;
     Phase _phase = Phase.Title;
     string _homeCaptain = "rio";
@@ -63,6 +63,7 @@ public sealed class Game : IDisposable
         _awayCaptain = awayCaptain;
         _challengeMode = challenge;
         _content = ContentCatalog.Load();
+        _pitches = Training.PitchesOf(_content.Rules);
         _match = NewMatch(seed);
         _cam = WorldView.HighCamera();
     }
@@ -255,7 +256,7 @@ public sealed class Game : IDisposable
     void TickSet(float dt, FrameInput pitcher, FrameInput batter)
     {
         _pip += dt * 1.35f;
-        if (pitcher.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
+        if (pitcher.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Count;
         if (pitcher.Swap) _match.SwapPitcher();
         if (HumanPitches && pitcher.StarPressed && _match.CanStarPitch)
             _starArmed = !_starArmed;
