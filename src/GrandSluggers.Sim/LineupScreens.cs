@@ -1,6 +1,6 @@
 namespace GrandSluggers.Sim;
 
-public enum LineupStep { TeamSetup, DefenseSetup }
+public enum LineupStep { TeamSetup, DefenseSetup, MatchSettings }
 
 /// <summary>Who owns a roster row. Pad 1 is home. Pad 2 sits away when a second pad is plugged in.</summary>
 public enum LineupSeat { Pad1, Pad2, Cpu }
@@ -107,7 +107,7 @@ public sealed class LineupScreens
     public bool HomeFull => Full(_home);
     public bool AwayFull => Full(_away);
     public bool Ready => HomeFull && AwayFull;
-    public bool CanPlay => Step == LineupStep.DefenseSetup && Home != null && Away != null;
+    public bool CanPlay => Step != LineupStep.TeamSetup && Home != null && Away != null;
 
     public IReadOnlyList<Character> Pool
     {
@@ -141,7 +141,22 @@ public sealed class LineupScreens
         Cur(seat).Ready = !Cur(seat).Ready;
         return true;
     }
-    void ResetReady() { _pad1.Ready = false; _pad2.Ready = false; }
+    public void ResetReady() { _pad1.Ready = false; _pad2.Ready = false; }
+
+    public bool OpenSettings()
+    {
+        if (Step != LineupStep.DefenseSetup || !BothReady) return false;
+        Step = LineupStep.MatchSettings;
+        ResetReady();
+        return true;
+    }
+    public bool BackToDefense()
+    {
+        if (Step != LineupStep.MatchSettings) return false;
+        Step = LineupStep.DefenseSetup;
+        ResetReady();
+        return true;
+    }
 
     public Character? CharacterAt(LineupFocus focus, int index)
     {
@@ -354,6 +369,11 @@ public sealed class LineupScreens
     {
         if (seat == LineupSeat.Cpu) return false;
         _acting = seat;
+        if (Step == LineupStep.MatchSettings)
+        {
+            if (IsReady(seat)) { Cur(seat).Ready = false; return true; }
+            return seat == LineupSeat.Pad1 && BackToDefense();
+        }
         if (Step == LineupStep.DefenseSetup)
         {
             if (IsReady(seat)) { Cur(seat).Ready = false; return true; }
@@ -427,11 +447,14 @@ public sealed class LineupScreens
         return Full(row);
     }
 
+    static bool SameRoster(TeamBuilder? draft, Character?[] row) => draft != null && row.All(c => c != null)
+        && draft.Order.Select(c => c.Id).OrderBy(id => id).SequenceEqual(row.Select(c => c!.Id).OrderBy(id => id));
+
     public bool ConfirmTeam()
     {
         if (Step != LineupStep.TeamSetup || !Ready) return false;
-        var home = TeamBuilder.FromRoster(_content, HomeCaptain, Filled(_home), LockCaptain);
-        var away = TeamBuilder.FromRoster(_content, AwayCaptain, Filled(_away), LockCaptain);
+        var home = SameRoster(Home, _home) ? Home : TeamBuilder.FromRoster(_content, HomeCaptain, Filled(_home), LockCaptain);
+        var away = SameRoster(Away, _away) ? Away : TeamBuilder.FromRoster(_content, AwayCaptain, Filled(_away), LockCaptain);
         if (home == null || away == null) return false;
         Home = home;
         Away = away;
@@ -458,8 +481,11 @@ public sealed class LineupScreens
         _pad1.SlotIndex = 0;
         _pad2.Focus = HomeSeat == LineupSeat.Pad2 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
         _pad2.SlotIndex = 0;
-        Home = null;
-        Away = null;
+        for (var i = 0; i < Size; i++)
+        {
+            _home[i] = Home!.Order[i];
+            _away[i] = Away!.Order[i];
+        }
         _acting = LineupSeat.Pad1;
         return true;
     }

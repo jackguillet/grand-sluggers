@@ -8,8 +8,8 @@ public class GettingStartedTests
     [Fact]
     public void GettingStartedIsANumberedPathAndAModeTable()
     {
-        Assert.Equal(["title", "captains", "field", "lineup", "pitch"], GettingStarted.Path.Select(s => s.Id));
-        Assert.Equal(["title", "select", "field", "lineup", "plate"], GettingStarted.Path.Select(s => s.Shot));
+        Assert.Equal(["title", "field", "captains", "lineup", "pitch"], GettingStarted.Path.Select(s => s.Id));
+        Assert.Equal(["title", "field", "select", "lineup", "plate"], GettingStarted.Path.Select(s => s.Shot));
         Assert.Equal(["exhibition", "training", "two-pads"], GettingStarted.Modes.Select(m => m.Id));
         Assert.Equal("Exhibition", GettingStarted.Modes[0].Title);
         Assert.Equal("Training", GettingStarted.Modes[1].Title);

@@ -34,6 +34,7 @@ public static class BookChapter
             ["tutorial-recovery"] = "ashlord",
             ["tutorial-items"] = "vale",
             ["exhibition"] = "rio",
+            ["match-settings"] = "rio",
             ["lineup"] = "vale",
             ["two-pads"] = "zig",
             ["getting-started"] = "rio",

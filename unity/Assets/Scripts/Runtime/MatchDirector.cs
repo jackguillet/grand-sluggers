@@ -35,6 +35,7 @@ namespace GrandSluggers.UnityClient
         readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
         readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
         LineupScreens _lineup;
+        readonly ExhibitionSettings _settings = new ExhibitionSettings();
         MenuNav.Gate _lineupX;
         MenuNav.Gate _lineupX2;
         MenuNav.Gate _lineupY;
@@ -345,9 +346,15 @@ namespace GrandSluggers.UnityClient
                 HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
                     _versusWanted, Controls.Pad2.Present);
             else if (_phase == Phase.Field)
+            {
                 HudView.Field(ParkId, ParkDisplayName(ParkId), Night, Hazards, FieldHazardsLine(), FieldCardLines());
+                SetupSheet.FieldControls(Night, Hazards);
+            }
             else if (_phase == Phase.Lineup && _lineup != null)
-                TeamSheet.Draw(_match, _lineup);
+            {
+                if (_lineup.Step == LineupStep.MatchSettings) SetupSheet.Settings(_settings, _lineup, _match);
+                else TeamSheet.Draw(_match, _lineup);
+            }
             if (_match.Paused && _phase is Phase.Select or Phase.Field or Phase.Lineup)
             {
                 if (_stickReset) DrawStickReset();
@@ -408,7 +415,7 @@ namespace GrandSluggers.UnityClient
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, ShowingSide,
-                CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules, Hazards),
+                CarnivalFront.ExhibitionTitle,
                 _starNo, Time.unscaledTime - _starNoAt);
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
