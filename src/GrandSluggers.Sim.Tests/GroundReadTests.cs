@@ -41,7 +41,8 @@ public sealed class GroundReadTests
         var paths = 0;
         var events = new HashSet<SampleEvent>();
         var catalog = Game;
-        foreach (var park in catalog.Parks.Values)
+        // Every park still at today's numbers (F9-a: Crystal names its own rows and is held by them).
+        foreach (var park in TodaysParks.Of(catalog))
             foreach (var exit in new[] { 42.0, 70, 96, 118 })
                 foreach (var launch in new[] { -9.0, 0, 4, 11, 15, 19, 24, 33, 52 })
                     foreach (var spray in new[] { -52.0, -31, -12, 0, 17, 38, 46 })
@@ -52,7 +53,7 @@ public sealed class GroundReadTests
                         foreach (var s in actual) events.Add(s.Event);
                         paths++;
                     }
-        Assert.Equal(6 * 4 * 9 * 7, paths);
+        Assert.Equal(5 * 4 * 9 * 7, paths); // the five parks at today's numbers (Crystal names its own rows, F9-a)
         // The grid is not all flies into the seats: it hops, rolls, caroms off the fence and off the foul wrap, and leaves.
         Assert.Superset(new HashSet<SampleEvent> { SampleEvent.Ground, SampleEvent.Wall, SampleEvent.FoulWall, SampleEvent.Fence, SampleEvent.Stands }, events);
     }
@@ -68,7 +69,8 @@ public sealed class GroundReadTests
                     SamePath($"open {exit}/{launch}/{wind}", Old.Trajectory(exit, launch, wind, catalog.Rules, Old.Today),
                         BallFlight.Trajectory(exit, launch, wind, catalog.Rules));
 
-        foreach (var park in catalog.Parks.Values)
+        // Every park still at today's numbers (F9-a: Crystal names its own rows and is held by them).
+        foreach (var park in TodaysParks.Of(catalog))
             foreach (var (exit, launch, spray) in new[] { (96.0, 12.0, 0.0), (80.0, 4.0, -20.0), (105.0, 18.0, 30.0), (70.0, 30.0, 10.0) })
             {
                 var path = BallFlight.Trajectory(exit, launch, spray, park, catalog.Rules);
@@ -96,7 +98,8 @@ public sealed class GroundReadTests
         var ticks = 0;
         var catalog = Game;
         var rules = catalog.Rules;
-        foreach (var park in catalog.Parks.Values)
+        // Every park still at today's numbers (F9-a: Crystal names its own rows and is held by them).
+        foreach (var park in TodaysParks.Of(catalog))
         {
             var zones = GroundZones.Of(park, rules);
             var fence = AtBatResolver.FenceAt(park, 0);

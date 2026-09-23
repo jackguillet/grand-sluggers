@@ -47,8 +47,11 @@ public static class WallMaterial
     /// <summary>The padded outfield wall.</summary>
     public const string Padded = "padded";
 
+    /// <summary>Crystal Rink's glass boards (F9-a).</summary>
+    public const string Glass = "glass";
+
     /// <summary>Every material, in library order.</summary>
-    public static IReadOnlyList<string> All { get; } = [Padded];
+    public static IReadOnlyList<string> All { get; } = [Padded, Glass];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);
 
