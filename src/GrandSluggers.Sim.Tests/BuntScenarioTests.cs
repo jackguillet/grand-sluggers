@@ -114,7 +114,7 @@ public sealed class BuntScenarioTests
     {
         var match = Defense();
         Station(match, [1]);
-        var hit = FlightFixtures.Hit(match.Park, BuntExit, BuntLaunch, BuntSpray, bunt: true);
+        var hit = FlightFixtures.Hit(match.Park, 30, -4, BuntSpray, bunt: true);
         Assert.Equal(BattedBallClass.Bunt, hit.Class);
         // From the rest spots the pitcher's route is earliest; after the crash the third baseman's is (§8.2, D16).
         Assert.Equal("P", match.PreviewHit(hit).Position);

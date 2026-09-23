@@ -276,7 +276,7 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
-    public void S12_SourSlapOnAChangeupOrAChargedPitchIsAPopUp()
+    public void S12_OrdinarySourContactKeepsItsLaunchFromTheCrossing()
     {
         var resolver = new AtBatResolver(_content.Chemistry);
         var park = _content.Parks["harbor-diamond"];
@@ -290,10 +290,8 @@ public sealed class AtBatScenarioTests
             var onCharge = resolver.Resolve(sour with { ChargePitch = true }, park, new Random(seed));
             var onPlain = resolver.Resolve(sour, park, new Random(seed));
             Assert.Equal(ContactQuality.Sour, onChange.Quality);
-            Assert.True(onChange.LaunchDeg >= b.Launch.PopMinDeg, $"changeup pop {onChange.LaunchDeg}");
-            Assert.True(onCharge.LaunchDeg >= b.Launch.PopMinDeg, $"charged-pitch pop {onCharge.LaunchDeg}");
-            Assert.True(onPlain.LaunchDeg <= b.Launch.TopperMinDeg + b.Launch.TopperSpanDeg,
-                $"an early sour slap on a plain pitch tops it: {onPlain.LaunchDeg}");
+            Assert.Equal(onPlain.LaunchDeg, onChange.LaunchDeg);
+            Assert.Equal(onPlain.LaunchDeg, onCharge.LaunchDeg);
         }
     }
 

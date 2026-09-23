@@ -42,7 +42,7 @@ public static class HudCallouts
             new("item", "ITEM → name", BroadcastHud.ItemTell),
             new("landing", "Landing ring", null),
             new("error", "ERROR · a throw got away", BroadcastHud.StampDirt),
-            new("score", "Score / inning", BroadcastHud.Standard.Score),
+            new("runners-outs", "Live runners / outs", BroadcastHud.LivePanel),
         ]);
 
     public static readonly IReadOnlyList<Spread> OnScreenPage = [Set, InPlay];

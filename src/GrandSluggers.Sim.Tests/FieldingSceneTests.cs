@@ -97,8 +97,8 @@ public class FieldingSceneTests
         var c = Rules.Default.Fielding.Catch;
         Assert.Equal(10, c.RadiusBaseFt);
         Assert.Equal(0.6, c.RadiusPerField);
-        Assert.Equal(4, c.WindowPadFt);
-        Assert.Equal(8, c.DiveReachFt);
+        Assert.Equal(1, c.WindowPadFt);
+        Assert.Equal(2, c.DiveReachFt);
         // The C80 copy (#719): the jump is a leap of the body (catch.jumpAirSec), not feet on the window.
         Assert.Equal(0, c.JumpReachFt);
         Assert.Equal(c.RadiusBaseFt, FieldingResolver.StandUpCatchFt(c.RadiusBaseFt));
@@ -416,8 +416,9 @@ public class FieldingSceneTests
         var at = start;
         for (var i = 0; i < 90; i++)
             at = FieldingResolver.StepToward(at.X, at.Z, 0, 520, 28, 1.0 / 30, harbor);
-        Assert.True(FieldBounds.Inside(harbor, at.X, at.Z), "running at the wall stops on the grass");
-        Assert.True(at.Z < harbor.CenterFenceFt - 4);
+        Assert.True(FieldBounds.Of(harbor).Contains(at.X, at.Z), "running at the wall stays inside the field");
+        var clearance = _content.Rules.Fielding.Chase.WallClearanceFt;
+        Assert.InRange(harbor.CenterFenceFt - at.Z, clearance - .01, clearance + .5);
     }
 
     /// <summary>A real fly that lands <paramref name="carry"/> out in the open; Harbor's fence then says whether it is gone.</summary>

@@ -215,6 +215,8 @@ public sealed class PitchSetupTests
         var swing = new SwingCommand(true, 0, early, false);
         Assert.True(m.BeginAtBat(pitch, swing, out var hit, out _));
         Assert.True(hit.Foul);
+        // A grounded foul tests restoration; a foul caught in the air is an out.
+        hit = FlightFixtures.Hit(m.Park, 50, -20, 60);
         var preview = m.PreviewHit(hit);
         var foul = new FieldingResult(PlayKind.Foul, preview.Fielder, null, preview.HangTimeSec,
             preview.LandingX, preview.LandingZ, false, false);

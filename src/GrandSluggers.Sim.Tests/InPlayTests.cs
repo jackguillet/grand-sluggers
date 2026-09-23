@@ -76,10 +76,10 @@ public class InPlayTests
         var match = Match.Slice(_content, seed: 4);
         var fielding = new FieldingResolver(_content.Chemistry);
         // Deep hopper: landing is past the infield so the nearest glove cannot scoop it before the grass.
-        var hit = FlightFixtures.Landing(match.Park, 300, 8, 2);
+        var hit = FlightFixtures.Hit(match.Park, 140, -35, 2);
         var rng = new Random(4);
         var pre = fielding.Preview(hit, match.Park, match.Defense.Roster, match.Pitcher, rng);
-        Assert.True(pre.Grounder, "launch 8 must be a hopper");
+        Assert.True(pre.Grounder, "the downward contact must bounce before the infield");
         var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, rng, pre: pre);
         Assert.Equal(PlayKind.InPlay, field.Kind);
         Assert.False(field.Caught);

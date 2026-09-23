@@ -399,9 +399,7 @@ namespace GrandSluggers.UnityClient
             var stamp = _phase == Phase.Result && _last != null && PlayStamp.ShowsAtTime(_last)
                 ? banner : "";
             if (!string.IsNullOrEmpty(stamp)) banner = "";
-            var mutePlay = BroadcastHud.MutePlay(
-                _spec != null && _spec.Active, _smash, _freeze)
-                || _forceMuteHud || StillCapture.ForceMute;
+            var mutePlay = _forceMuteHud || StillCapture.ForceMute;
             if (_match.Paused && _pauseHowTo)
             {
                 HudView.Pause(_pauseItem, true, _pausePage);
@@ -420,8 +418,9 @@ namespace GrandSluggers.UnityClient
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, ShowingSide,
                 CarnivalFront.ExhibitionTitle,
-                _starNo, Time.unscaledTime - _starNoAt);
-            if (_phase == Phase.Title) SetupSheet.TitleMenu(_titleFocus);
+                _starNo, Time.unscaledTime - _starNoAt,
+                inPlay: _phase is Phase.InPlay or Phase.StealThrow);
+            if (_phase == Phase.Title && !_match.Paused) SetupSheet.TitleMenu(_titleFocus);
             if (!_match.Paused && _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow)
                 SetupSheet.LiveOrders(HumanBats ? _match.ControllerRunners.Label(_match) : null,
                     HumanOwnsThrow && _phase is Phase.InPlay or Phase.StealThrow ? FieldPad.ThrowBag : -1);

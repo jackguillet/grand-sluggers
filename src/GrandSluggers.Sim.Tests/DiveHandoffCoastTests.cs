@@ -19,11 +19,11 @@ public sealed class DiveHandoffCoastTests
 
     /// <summary>Exit, launch, spray, the infielder who dives, the outfielder the ring goes to.</summary>
     public static TheoryData<double, double, double, string, string> MissedDives =>
-        new TheoryData<double, double, double, string, string> { { 70, 20, -8, "SS", "LF" }, { 70, 20, -32, "SS", "LF" }, { 70, 20, 0, "2B", "CF" } };
+        new TheoryData<double, double, double, string, string> { { 140, 6, -18, "SS", "LF" }, { 140, 6, -20, "SS", "LF" }, { 140, 6, 18, "2B", "RF" } };
 
     [Theory]
     [MemberData(nameof(MissedDives))]
-    public void ADiverWhoseRingLeavesOnTheNextFrameStaysWhereHeLunged(double exit, double launch, double spray, string diver, string outfielder)
+    public void ADiverHandedOffAfterACaromDoesNotCoastAtLungeSpeed(double exit, double launch, double spray, string diver, string outfielder)
     {
         var home = Game.Team("Defense", Defense[0], Defense[1..]);
         var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
@@ -31,7 +31,7 @@ public sealed class DiveHandoffCoastTests
         var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
-        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
 
         (double X, double Z)? lunged = null;
         var handedAt = -1; var commitAt = -1; var owed = 0.0; var farthest = 0.0; var fastest = 0.0;
@@ -39,7 +39,8 @@ public sealed class DiveHandoffCoastTests
         for (var i = 0; i < 60 * 12; i++)
         {
             // The completing frame resets the live field: nothing is read off it.
-            if (live.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu)).CompletedPlay is not null) break;
+            var pad = lunged is null && live.GlovePos == diver && live.ElapsedSeconds >= .4 ? new LivePadInput(EastDown: true) : LivePadInput.Dead;
+            if (live.Apply(LivePlayCommand.Tick(Frame, pad, LivePadInput.Dead, false, LivePlayCommandSource.Human)).CompletedPlay is not null) break;
             var at = live.Fielders[diver];
             if (lunged is null && live.Events.Contains(LiveEvent.DiveCommit))
             {
@@ -48,6 +49,9 @@ public sealed class DiveHandoffCoastTests
                 lunged = at;
                 commitAt = i;
                 owed = live.DiveRecoveryT;
+                // A carom takes the missed ball into the outfield on the next frame.
+                // This makes the handoff coincide with the lunge velocity, the original failure.
+                live.NudgeBall(diver == "2B" ? 60 : -60, 100);
             }
             else if (lunged is { } spot && live.DiveRecoveryT > 0 && live.DivingPos == diver)
             {
@@ -94,9 +98,9 @@ public sealed class DiveHandoffCoastTests
     static HumanRun RunHuman(double exit, double launch, double spray, Func<int, LivePadInput> pad)
     {
         var content = Game;
-        var home = content.Team("Defense", Defense[0], Defense[1..]);
-        var away = content.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var home = Game.Team("Defense", Defense[0], Defense[1..]);
+        var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
         var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, rules: match.Rules);
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, match.PreviewHit(hit), null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);

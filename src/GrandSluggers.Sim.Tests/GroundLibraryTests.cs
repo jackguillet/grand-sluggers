@@ -57,12 +57,12 @@ public sealed class GroundLibraryTests
         var ice = Game.Rules.Grounds.Of(Ground.Ice);
         Assert.Equal((12.0, 0.8), (ice.Roll.Friction, ice.Roll.RestSpeed));
         Assert.Equal((0.40, 0.92, 3.6), (ice.Bounce.Restitution, ice.Bounce.Horizontal, ice.Bounce.MinVy));
-        Assert.Equal((14.0, 28.0, 2.2, 0.22, 0.97), (ice.Skid.LaunchMinDeg, ice.Skid.LaunchMaxDeg, ice.Skid.MinVy, ice.Skid.Restitution, ice.Skid.Horizontal));
+        Assert.Equal((14.0, 28.0, 2.2, 0.22, 0.97), (ice.Skid.ImpactMinDeg, ice.Skid.ImpactMaxDeg, ice.Skid.MinVy, ice.Skid.Restitution, ice.Skid.Horizontal));
         Assert.Equal(10.0, ice.Overthrow.DecelFtPerSec2);
         Assert.Equal((0.35, 0.90, 3.5), (ice.Bobble.Restitution, ice.Bobble.GroundRetain, ice.Bobble.DecelFtPerSec2));
         Assert.Equal((1.3, 1.6, 1.4, 1.35, 1.5), (ice.Body.StartMul, ice.Body.BrakeMul, ice.Body.CutMul, ice.Body.SlideMul, ice.Body.OverrunMul));
         var grass = Game.Rules.Grounds.Of(Ground.Grass);
-        Assert.True(ice.Roll.Friction < grass.Roll.Friction && ice.Skid.LaunchMaxDeg > grass.Skid.LaunchMaxDeg);
+        Assert.True(ice.Roll.Friction < grass.Roll.Friction && ice.Skid.ImpactMaxDeg > grass.Skid.ImpactMaxDeg);
         Assert.True(ice.Body.StartMul > 1 && ice.Body.BrakeMul > 1 && ice.Body.CutMul > 1, "ice is slower to answer, never faster");
     }
 
@@ -242,10 +242,10 @@ public sealed class GroundLibraryTests
     public void AGroundWhoseSkidBandNeverOpensIsRefused()
     {
         using var fixture = new RulesFileFixture();
-        fixture.Change("grounds.json", json => json["dirt"]!["skid"]!["launchMinDeg"] = 30);
+        fixture.Change("grounds.json", json => json["dirt"]!["skid"]!["impactMinDeg"] = 30);
 
         Assert.Contains(RulesTable.Validate(new DataRoot(fixture.Root)), e =>
-            e.Contains("grounds.dirt.skid.launchMinDeg must not exceed its upper bound", StringComparison.Ordinal));
+            e.Contains("grounds.dirt.skid.impactMinDeg must not exceed its upper bound", StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -639,7 +639,7 @@ public sealed class GroundLibraryTests
         Assert.True((22.0, 1.4) == (row.Roll.Friction, row.Roll.RestSpeed), $"{what}.roll");
         Assert.True((0.48, 0.82, 3.6) == (row.Bounce.Restitution, row.Bounce.Horizontal, row.Bounce.MinVy), $"{what}.bounce");
         Assert.True((14.0, 22.0, 2.2, 0.28, 0.93)
-                    == (row.Skid.LaunchMinDeg, row.Skid.LaunchMaxDeg, row.Skid.MinVy, row.Skid.Restitution, row.Skid.Horizontal), $"{what}.skid");
+                    == (row.Skid.ImpactMinDeg, row.Skid.ImpactMaxDeg, row.Skid.MinVy, row.Skid.Restitution, row.Skid.Horizontal), $"{what}.skid");
         Assert.True(18.0 == row.Overthrow.DecelFtPerSec2, $"{what}.overthrow");
         Assert.True((0.35, 0.90, 6.0) == (row.Bobble.Restitution, row.Bobble.GroundRetain, row.Bobble.DecelFtPerSec2), $"{what}.bobble");
     }
