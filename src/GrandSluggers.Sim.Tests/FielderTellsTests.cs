@@ -52,7 +52,7 @@ public sealed class FielderTellsTests
     /// batter's miss, which carries the bat.
     /// </summary>
     [Theory]
-    [InlineData(150, -12, 0, "P", true)]
+    [InlineData(120, -12, -18, "SS", true)]
     [InlineData(75, 6, 30, "2B", false)]
     public void TheFumblerShowsTheStunAndNoOtherBodyDoes(double exit, double launch, double spray, string fumbler, bool deflects)
     {
@@ -145,7 +145,7 @@ public sealed class FielderTellsTests
         PlayEvent? play = null;
         for (var i = 0; i < 60 * 12 && play is null; i++)
         {
-            play = Tick(live);
+            play = nudged ? live.Apply(LivePlayCommand.Tick(Frame)).CompletedPlay : Tick(live);
             if (play is not null) break;
             if (!nudged && live.Events.Contains(LiveEvent.DiveCommit))
             {
@@ -209,7 +209,7 @@ public sealed class FielderTellsTests
     public void AHardBallBracesTheGloveAndARoutineOneBracesNobody()
     {
         var cap = Game.Rules.Fielding.Recoil.CapSec;
-        var (match, live) = BeginCpu(Game, 145, -3, 0, seed: 1, quality: ContactQuality.Perfect);
+        var (match, live) = BeginCpu(Game, 150, -3, -18, seed: 1, quality: ContactQuality.Perfect);
         var braced = new List<double>();
         var dur = 0.0;
         PlayEvent? play = null;
@@ -218,19 +218,19 @@ public sealed class FielderTellsTests
             play = Tick(live);
             if (play is not null) break;
             var o = FielderTells.Owed.Of(live, match.Rules);
-            foreach (var pos in Diamond.Order.Where(p => p != "P"))
+            foreach (var pos in Diamond.Order.Where(p => p != "SS"))
                 Assert.Equal((1.0, 1.0, 1.0), FielderTells.Brace(o, pos, cap, Feel));
-            var brace = FielderTells.Brace(o, "P", cap, Feel);
+            var brace = FielderTells.Brace(o, "SS", cap, Feel);
             if (!o.Bracing) { Assert.Equal((1.0, 1.0, 1.0), brace); continue; }
-            Assert.Equal("P", live.GlovePos);
+            Assert.Equal("SS", live.GlovePos);
             Assert.Equal(1 - 0.16 * (live.RecoilDur / cap) * (live.RecoilT / live.RecoilDur), brace.Y, 9);
             Assert.Equal(1 + (1 - brace.Y) * 0.5, brace.X, 9);
             braced.Add(brace.Y);
             dur = live.RecoilDur;
         }
-        Assert.Equal(0.13, dur, 9);
-        Assert.InRange(braced.Count, 7, 9);
-        Assert.Equal(1 - 0.16 * 0.65, braced[0], 9);   // the take: the full squash at this ball's weight
+        Assert.Equal(0.15, dur, 9);
+        Assert.InRange(braced.Count, 8, 10);
+        Assert.Equal(1 - 0.16 * 0.75, braced[0], 9);   // the take: the full squash at this ball's weight
         Assert.True(braced.Zip(braced.Skip(1)).All(p => p.Second > p.First), "the brace eases out, never deepens");
 
         // The routine grounder, and the knockback on the same comebacker with the recoil off: nobody braces on any frame.

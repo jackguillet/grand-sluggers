@@ -18,7 +18,7 @@ public sealed class TutorialAbilityTests
 
     static void Drive(TutorialSession run, string profile, LivePlayCommandSource source, bool move)
     {
-        var offset = run.Lesson.Id is "T-F16" or "T-A-grow" ? 16 : 12;
+        const double offset = 9;
         for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
         {
             var live = run.Match.LivePlay;

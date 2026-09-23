@@ -129,7 +129,7 @@ public static class FieldingPursuit
 
         if (lastLegal is not null) return lastLegal.Value;
         var live = BallFlight.PointAt(path, nowSec, rules);
-        var legal = FieldBounds.Clamp(park, live.X, live.Z);
+        var legal = FieldBounds.ClampFielder(park, live.X, live.Z, rules);
         return Fixed(legal.X, legal.Z, nowSec, startSec, fromX, fromZ, speedFtPerSec, airCatch: false, rampSec, rules);
     }
 

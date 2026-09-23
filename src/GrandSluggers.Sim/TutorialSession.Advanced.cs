@@ -351,10 +351,13 @@ public sealed partial class TutorialSession
                 Finish(false, "wrong-carom-bag", "The wall bounce is live. Send the recovered ball to third.");
                 return;
             }
-            var third = Diamond.Bag(3);
-            var received = _wallCaromSeen && _throws.SequenceEqual(new[] { 3 }) && live.FirstThrowBag == 3
-                && !live.Throwing && live.HoldsBall && live.GlovePos == live.CoverPos
-                && Diamond.Dist(live.GloveX, live.GloveZ, third.X, third.Z) <= Match.Rules.Fielding.Cover.RadiusFt;
+            if (result.CompletedPlay is null && !(live.HoldsBall && !live.Throwing && live.FirstThrowBag == 3
+                && live.GlovePos == live.CoverPos)) return;
+            var marks = live.TakeTrace(result.CompletedPlay).Marks ?? [];
+            var release = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease && m.Bag == 3);
+            var received = _wallCaromSeen && _throws.SequenceEqual(new[] { 3 }) && release is not null
+                && marks.Any(m => m.Kind == PlayTraceMarkKind.Reception && m.Bag == 3
+                    && m.Leg == release.Leg && m.T >= release.T);
             if (received)
                 Finish(true, "carom-returned", "You read the wall bounce and your throw reached third.");
             else if (result.CompletedPlay is not null)
