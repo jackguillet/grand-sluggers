@@ -79,7 +79,6 @@
     "bodyRadiusFt": 0.45
   },
   "star": {
-    "phonyballWhiff": 0.4,
     "prismballSpraySpanDeg": 22
   },
   "pitchFactor": {

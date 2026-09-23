@@ -1098,7 +1098,6 @@ public sealed class HbpRules
 /// <summary>Star-swing rules that are not the skill's own numbers (those are star-skills.json, spec §13).</summary>
 public sealed class StarSwingRules
 {
-    [Chance] public double PhonyballWhiff { get; init; } = 0.4;
     public double PrismballSpraySpanDeg { get; init; } = 22;
 }
 

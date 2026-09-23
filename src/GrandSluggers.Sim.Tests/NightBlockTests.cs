@@ -307,14 +307,15 @@ public sealed class NightBlockTests
     /// changes play again; seed 16 no longer chomps, so the chomp row is seed 8. The gradual fade (PH-08-R1) changed
     /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11. F4-c made the redirects live
     /// and the chompers redirects (FD-09-R2): the log now lists each play's redirects, and both Funfair rows are re-recorded
-    /// (seed 11 sends flies through the chompers).
+    /// (seed 11 sends flies through the chompers). PH-16-R18 (star pitches keep the ordinary window) and PH-16-R19
+    /// (no phonyball whiff roll) change play again, so the rows are re-recorded on top of F4-c.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 2", "9575a25c28d882fea6edb1fa5e8bb0566b7d1ac4e8a8c1853473c11ad3135afd"),
+            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 2", "18b3ad8ce7bc8be0d2c27d2b9698c51afee74403865afaec018437d995a70052"),
             ("funfair-park", 11, "Final  Ember Court 7  Spark All-Stars 3", "085af265210807aa2a965005ef30e22ea1112022ced8d58b3cb73ee96dab67f9"),
             ("ember-keep", 1, "Final  Ember Court 1  Spark All-Stars 0", "ee50483141c1372ebcb8c08bb5f14736beb580718c36ca9393b3d28af1bc48f5"),
-            ("ember-keep", 2, "Final  Ember Court 3  Spark All-Stars 1", "a28f29a238e8a6caac068bf39dd45413082fad93a1c0b97a1ba07c0f38024918")
+            ("ember-keep", 2, "Final  Ember Court 0  Spark All-Stars 3", "e0d3eb96234904d04230ac070c72bff764c0a07148df2030ecffee051840fd65")
         ];
 
     /// <summary>
