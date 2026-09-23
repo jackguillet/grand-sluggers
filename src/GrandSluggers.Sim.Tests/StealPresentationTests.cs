@@ -59,6 +59,53 @@ public sealed class StealPresentationTests
         }
     }
 
+    [Theory]
+    [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)]
+    public void EveryThrowKeepsHomeAndCenterVerticalFromTheLowerCatcherSide(int bag)
+    {
+        var content = ContentCatalog.Load();
+        var subjects = new[] { PlayCamera.BagSubject(4), PlayCamera.BagSubject(1), PlayCamera.BagSubject(2), PlayCamera.BagSubject(bag) };
+        foreach (var travel in new[] { -12.0, 0.0, 12.0 })
+        {
+            var frame = PlayCamera.RaceFraming(content.Shots, subjects, 16.0 / 9, content.Feel.RaceCamera, travel);
+            Assert.Equal(0, frame.Pos.X);
+            Assert.Equal(0, frame.Look.X);
+            Assert.True(frame.Pos.Z < frame.Look.Z);
+            var pitch = Math.Atan2(frame.Pos.Y - frame.Look.Y, frame.Look.Z - frame.Pos.Z) * 180 / Math.PI;
+            Assert.InRange(pitch, 25, 31); // below the 45° fly view, above catcher eye level
+            var camera = new CameraShot(frame.Shot, "race", frame.Pos, frame.Look, frame.Fov, frame.Blend);
+            var home = PlayCamera.Project(camera, PlayCamera.BagSubject(4), 16.0 / 9);
+            var center = PlayCamera.Project(camera, new Vec3(0, 0, 300), 16.0 / 9);
+            Assert.NotNull(home); Assert.NotNull(center);
+            Assert.Equal(home.Value.X, center.Value.X, 9);
+            foreach (var p in subjects)
+                Assert.True(PlayCamera.InFrame(PlayCamera.Project(camera, p with { Y = 12 }, 16.0 / 9), .09));
+        }
+        var start = PlayCamera.RaceFraming(content.Shots, subjects, 16.0 / 9, content.Feel.RaceCamera);
+        var end = PlayCamera.RaceFraming(content.Shots, subjects, 16.0 / 9, content.Feel.RaceCamera, 12);
+        Assert.Equal(12, end.Pos.Z - start.Pos.Z, 9);
+        Assert.Equal(12, end.Look.Z - start.Look.Z, 9);
+        Assert.Equal(start.Pos.Y, end.Pos.Y);
+    }
+
+    [Fact]
+    public void TheCameraTravelsWithFlightThenStaysPutAtPossessionAndResetsForTheNextPlay()
+    {
+        var feel = ContentCatalog.Load().Feel.RaceCamera;
+        var travel = new RaceCameraTravel();
+        travel.Reset(0);
+        Assert.Equal(0, travel.Step(2, false, feel)); // catch/transfer hand movement
+        var outbound = travel.Step(52, true, feel);
+        Assert.InRange(outbound, 0.01, 12);
+        var arrived = travel.Step(100, false, feel);
+        Assert.True(arrived > outbound);
+        Assert.Equal(arrived, travel.Step(105, false, feel)); // receiver carrying is not throw flight
+        Assert.True(travel.Step(40, true, feel) < arrived); // return throw follows downfield
+        Assert.InRange(travel.Step(400, true, feel), -12, 12);
+        travel.Reset(0);
+        Assert.Equal(0, travel.Feet);
+    }
+
     [Fact]
     public void BalkIsAVisibleTypedDeadBallCall()
     {

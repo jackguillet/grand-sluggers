@@ -9,6 +9,7 @@ namespace GrandSluggers.UnityClient
     {
         int _previousSetupBag;
         StealRaceInset _stealInset;
+        readonly RaceCameraTravel _raceTravel = new RaceCameraTravel();
 
         void ReadTutorialSteal()
         {
