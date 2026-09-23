@@ -840,6 +840,11 @@ public sealed class OutsScenarioTests
             Environment = null,
             Fence = null,
             Zones = new ParkZones(Outfield: Ground.Grass, FoulApron: Ground.Grass),
+            // And the outfield where it stood when these rows were written: the global starts, not Crystal's fraction (F2-d).
+            OutfieldStarts = new ParkOutfield(
+                new StartSpot(Diamond.Positions["LF"].X, Diamond.Positions["LF"].Z),
+                new StartSpot(Diamond.Positions["CF"].X, Diamond.Positions["CF"].Z),
+                new StartSpot(Diamond.Positions["RF"].X, Diamond.Positions["RF"].Z)),
         };
         return new Match(_content, away, home, field, 3, seed);
     }

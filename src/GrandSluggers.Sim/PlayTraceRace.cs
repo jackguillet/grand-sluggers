@@ -106,7 +106,7 @@ public sealed partial class LivePlaySystem
         return Assigned().OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv =>
         {
             var pos = kv.Key;
-            var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Diamond.Positions[pos];
+            var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Starts[pos];
             var dash = pos == GlovePos && pad.EastHeld;
             return new PlayTraceFielder(pos, kv.Value, at.Item1, at.Item2, ReadyAt(pos), CanMove(pos), pos == GlovePos,
                 HumanGlove(pos), FieldingResolver.ChaseSpeedFt(kv.Value, pos, Preview, R, dash), Preview?.Frozen ?? false,

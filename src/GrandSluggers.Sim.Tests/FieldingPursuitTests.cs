@@ -135,7 +135,9 @@ public class FieldingPursuitTests
         var exit = 78;
         // Every park still at today's numbers: on Crystal's ice (F9-a) the same gap liner runs past the centre fielder to the
         // glass, which is the park's point (CrystalRinkTests.SF11_TheSameGrounderRunsFartherOnTheIce).
-        foreach (var spray in (new[] { 10d, -10d, 8d, -8d, 12d, -12d }))
+        // ±12° left the sweep with F2-d: at a deeper park the centre fielder now starts at his fraction of its fence, and the
+        // widest gap liner is the corner's there. The relationship is held where it holds (the note above).
+        foreach (var spray in (new[] { 10d, -10d, 8d, -8d }))
         foreach (var park in TodaysParks.Of(_content))
         {
             var corner = spray > 0 ? "RF" : "LF";

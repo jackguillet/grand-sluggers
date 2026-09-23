@@ -1646,6 +1646,14 @@ public sealed class WallRules
 /// two fractions are different. See <c>docs/research-game-feel-730.md</c>.
 /// </para>
 /// </summary>
+/// <summary>The fence the outfield starts were authored against (F2-d): the three posts, feet from home.</summary>
+public sealed class AuthoredFenceRules
+{
+    [Positive] public double LeftFt { get; init; } = 232;
+    [Positive] public double CenterFt { get; init; } = 280;
+    [Positive] public double RightFt { get; init; } = 232;
+}
+
 public sealed class FielderRules
 {
     public FielderSpotRules First { get; init; } = new() { XFt = 69.33, ZFt = 64 };
@@ -1655,6 +1663,12 @@ public sealed class FielderRules
     public FielderSpotRules Left { get; init; } = new() { XFt = -77.09, ZFt = 175.19 };
     public FielderSpotRules Center { get; init; } = new() { XFt = 0, ZFt = 213.5 };
     public FielderSpotRules Right { get; init; } = new() { XFt = 77.09, ZFt = 175.19 };
+
+    /// <summary>
+    /// The fence the three outfield starts are authored against (FD-07, F2-d; the default park's posts, 232 / 280 / 232): a
+    /// park that names no start stands each outfielder at his bearing and his fraction of this fence, on its own fence.
+    /// </summary>
+    public AuthoredFenceRules AuthoredFence { get; init; } = new();
 
     /// <summary>
     /// The start for <paramref name="pos"/>, spelled the way the rest of the sim spells a position.
