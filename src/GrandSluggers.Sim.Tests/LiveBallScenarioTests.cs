@@ -285,7 +285,7 @@ public sealed class LiveBallScenarioTests
         return play!;
     }
 
-    static AtBatResult Grounder(AtBatResult hit, Match match, double sprayDeg) => Shape(hit, match, exit: 84, launch: 8, spray: sprayDeg);
+    static AtBatResult Grounder(AtBatResult hit, Match match, double sprayDeg) => Shape(hit, match, exit: 85, launch: -12, spray: sprayDeg);
 
     static AtBatResult Fly(AtBatResult hit, Match match) => Shape(hit, match, exit: 92, launch: 34, spray: 4);
 

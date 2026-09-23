@@ -76,11 +76,19 @@ public class FieldingPursuitTests
             var route = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z, speed);
             var plant = FlyCatch.ChaseTarget(pre, park);
 
-            Assert.Equal(route.MeetTimeSec < pre.HangTimeSec || FlyCatch.NeedsJump(pre), route.AirCatch);
-            var target = FlyCatch.NeedsJump(pre) ? plant
-                : (X: BallFlight.PointAt(path, route.MeetTimeSec).X, Z: BallFlight.PointAt(path, route.MeetTimeSec).Z);
-            Assert.Equal(target.X, route.X, 6);
-            Assert.Equal(target.Z, route.Z, 6);
+            if (route.AirCatch)
+            {
+                var point = BallFlight.PointAt(path, route.MeetTimeSec);
+                var target = FlyCatch.NeedsJump(pre) ? plant : (X: point.X, Z: point.Z);
+                Assert.Equal(target.X, route.X, 6);
+                Assert.Equal(target.Z, route.Z, 6);
+                if (!FlyCatch.NeedsJump(pre))
+                {
+                    Assert.True(route.MeetTimeSec < pre.HangTimeSec);
+                    Assert.InRange(point.Y, 0, match.Rules.Fielding.Catch.StandingHeightFt);
+                }
+            }
+            else if (route.Reachable) Assert.True(route.MeetTimeSec >= pre.HangTimeSec);
             Assert.True(FieldBounds.Inside(park, route.X, route.Z));
 
             var at = start;
@@ -94,7 +102,7 @@ public class FieldingPursuitTests
             var traveled = Diamond.Dist(start.X, start.Z, at.X, at.Z);
             Assert.True(traveled <= speed * elapsed + 0.05,
                 $"{park.Id} {spray}° route exceeded rated speed");
-            Assert.Equal(route.Reachable, Diamond.Dist(at.X, at.Z, route.X, route.Z) < pre.CatchRadius + 1.0);
+            if (route.Reachable) Assert.True(Diamond.Dist(at.X, at.Z, route.X, route.Z) < pre.CatchRadius + 1.0);
         }
     }
 

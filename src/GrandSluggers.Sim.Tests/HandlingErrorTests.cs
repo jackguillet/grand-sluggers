@@ -78,12 +78,12 @@ public sealed class HandlingErrorTests
     /// a ball dropping from a high bounce, each to the mound, each across forty seeds — no chance, no bobble.
     /// </summary>
     [Theory]
-    [InlineData(50, 3, 6, ContactQuality.Perfect)]   // a short hop: the ball 0.07 ft up, rising off a 0.26-ft bounce
-    [InlineData(60, 2, 0, ContactQuality.Perfect)]   // 0.45 ft up and falling
-    [InlineData(60, 4, 0, ContactQuality.Perfect)]   // a long hop: 1.8 ft up and falling
-    [InlineData(60, 6, 0, ContactQuality.Perfect)]   // dropping from 3.1 ft
-    [InlineData(70, 8, 0, ContactQuality.Nice)]      // the routine grounder of the recoil tests
-    [InlineData(70, 2, 11, ContactQuality.Nice)]     // a roll to the mound at the top of a half-foot hop
+    [InlineData(50, -3, 6, ContactQuality.Perfect)]   // a short hop: the ball 0.07 ft up, rising off a 0.26-ft bounce
+    [InlineData(60, -2, 0, ContactQuality.Perfect)]   // 0.45 ft up and falling
+    [InlineData(60, -4, 0, ContactQuality.Perfect)]   // a long hop: 1.8 ft up and falling
+    [InlineData(60, -6, 0, ContactQuality.Perfect)]   // dropping from 3.1 ft
+    [InlineData(70, -8, 0, ContactQuality.Nice)]      // the routine grounder of the recoil tests
+    [InlineData(70, -2, 11, ContactQuality.Nice)]     // a roll to the mound at the top of a half-foot hop
     public void ARoutineGrounderToAPlantedInfielderNeverRolls(double exit, double launch, double spray, ContactQuality q)
     {
         for (var seed = 1; seed <= 40; seed++)

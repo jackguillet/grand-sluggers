@@ -433,8 +433,9 @@ public sealed partial class LivePlaySystem
     {
         if (Preview is not null && Path is not null)
         {
-            if (HoldsBall) return Call == FairFoulCall.Caught ? FlyState.Caught : FlyState.Dropped;
+            if (HoldsBall && Call == FairFoulCall.Caught) return FlyState.Caught;
             if (Preview.Grounder) return FlyState.None;
+            if (HoldsBall) return FlyState.Dropped;
             return ElapsedSeconds < Hang ? FlyState.InAir : FlyState.Dropped;
         }
         if (kind == PlayKind.FlyOut) return catchMade ? FlyState.Caught : FlyState.InAir;

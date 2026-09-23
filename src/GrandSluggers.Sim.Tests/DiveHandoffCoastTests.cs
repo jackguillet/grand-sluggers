@@ -19,7 +19,7 @@ public sealed class DiveHandoffCoastTests
 
     /// <summary>Exit, launch, spray, the infielder who dives, the outfielder the ring goes to.</summary>
     public static TheoryData<double, double, double, string, string> MissedDives =>
-        new TheoryData<double, double, double, string, string> { { 70, 20, -8, "SS", "LF" }, { 70, 20, -32, "SS", "LF" }, { 70, 20, 0, "2B", "CF" } };
+        new TheoryData<double, double, double, string, string> { { 140, 6, -18, "SS", "LF" }, { 140, 6, -20, "SS", "LF" }, { 140, 6, 18, "2B", "RF" } };
 
     [Theory]
     [MemberData(nameof(MissedDives))]

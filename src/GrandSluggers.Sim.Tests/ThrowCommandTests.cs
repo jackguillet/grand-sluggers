@@ -55,7 +55,7 @@ public sealed class ThrowCommandTests
         var konga = content.Must("konga");
         Assert.True(match.StationRunner(3, konga));
         Assert.True(match.SetOuts(1));
-        var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
+        var hit = FlightFixtures.Landing(match.Park, 270, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
         var throws = RunCpu(match, hit, preview);
@@ -120,7 +120,7 @@ public sealed class ThrowCommandTests
         var konga = content.Must("konga");
         Assert.True(match.StationRunner(3, konga));
         Assert.True(match.SetOuts(1));
-        var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
+        var hit = FlightFixtures.Landing(match.Park, 270, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
 

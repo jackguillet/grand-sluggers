@@ -274,7 +274,7 @@ public class MatchTests
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out _, out _));
         // A hard grounder right at the shortstop: the live ball plays this flight and the CPU turns two by geometry (§8.8).
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 125, -3, -18);
         var field = match.ResolveFielding(hit, match.PreviewHit(hit));
         return (match, paint, swing, hit, field);
     }

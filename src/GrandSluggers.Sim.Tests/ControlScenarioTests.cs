@@ -124,7 +124,7 @@ public sealed class ControlScenarioTests
     {
         // The C80 copy: the lip is 137.78 ft and the legs are slower, so the shipped roller is past 2B before it can turn. The
         // high hopper at 9° is the one 2B runs down a foot onto the grass (138.7 ft, 2.06 s) before RF's route gets there (2.75 s).
-        var (carry, launch, spray) = (150.0, 9.0, 14.0);
+        var (carry, launch, spray) = (95.0, -45.0, 14.0);
         S96_Row(human, carry, launch, spray);
     }
 
@@ -132,7 +132,7 @@ public sealed class ControlScenarioTests
     {
         var (match, seats) = human ? HumanDefense(true) : CpuDefense();
         // A ground ball through the right side: 2B's route meets it past the infield lip, before any outfielder's.
-        var hit = FlightFixtures.Landing(match.Park, carry, launch, spray);
+        var hit = FlightFixtures.Hit(match.Park, carry, launch, spray);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Grounder);
         Assert.Equal("2B", preview.Position);
@@ -147,7 +147,7 @@ public sealed class ControlScenarioTests
             FieldingResolver.CpuReactionLockouts(rules, null));
         Assert.True(route.Reachable, "the fixture: 2B reaches the roll");
         Assert.True(Diamond.Dist(0, 0, route.X, route.Z) >= lip, $"the fixture: 2B meets it on the grass ({Diamond.Dist(0, 0, route.X, route.Z):0} ft)");
-        Assert.True(route.MeetTimeSec < outfield.Route.MeetTimeSec, "the fixture: 2B meets it before the outfielder does");
+        Assert.True(FieldingPursuit.Better(route, outfield.Route), "the fixture: 2B has the better route to this hop");
 
         var ring = new List<string>();
         var scoopedBy = "";
@@ -186,7 +186,7 @@ public sealed class ControlScenarioTests
     public void S97_LinerOverShortHandsOffByRouteWhenShortHasNoRouteShortCoastsAndNobodyTeleports()
     {
         var (match, seats) = HumanDefense(true);
-        var hit = FlightFixtures.Hit(match.Park, 95, 13, -18);
+        var hit = FlightFixtures.Hit(match.Park, 110, 10, -8);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Line);
         Assert.Equal("SS", preview.Position);
@@ -448,7 +448,7 @@ public sealed class ControlScenarioTests
     public void S97_ALinerThatHasTouchedTheDirtIsAScoopNotAFlyOut()
     {
         var (match, seats) = CpuDefense();
-        var hit = FlightFixtures.Hit(match.Park, 95, 16, -8);
+        var hit = FlightFixtures.Hit(match.Park, 110, 10, -8);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Line);
         var start = Diamond.Positions[preview.Position];
@@ -479,7 +479,7 @@ public sealed class ControlScenarioTests
     public void S100_ALinerThatBouncesInRightCenterAndRollsToTheWallIsCenters(bool human)
     {
         var (match, seats) = human ? HumanDefense(true) : CpuDefense();
-        var hit = FlightFixtures.Hit(match.Park, 90, 16, 14);
+        var hit = FlightFixtures.Hit(match.Park, 110, 10, 14);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Line);
         var rules = match.Rules;
