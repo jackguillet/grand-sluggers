@@ -42,14 +42,14 @@ public class ThrowTrailTests
     }
 
     [Fact]
-    public void SpecialFxHonorsThrowTrailForEveryCatalogThrowSlot()
+    public void SpecialFxNeverBuildsBallToFielderOrDestinationLines()
     {
         var src = File.ReadAllText(Path.Combine(_repo, "unity/Assets/Scripts/Runtime/SpecialFx.cs"));
-        Assert.Contains("ThrowTrail.Slots", src, StringComparison.Ordinal);
-        Assert.Contains("ThrowTrail.DrawsDestinationLine", src, StringComparison.Ordinal);
-        Assert.Contains("ThrowTrail.DestinationPositions", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("_throw.enabled = on", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("Vector3.Lerp(_throwFrom, _throwTo", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("LineRenderer", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("TrailRenderer", src, StringComparison.Ordinal);
+        // Catalog throw slots remain metadata, never loaded as connector prefabs.
+        foreach (var slot in ThrowTrail.Slots(_content.Art))
+            Assert.DoesNotContain("\"" + slot.Id + "\"", src, StringComparison.Ordinal);
     }
 
     [Fact]

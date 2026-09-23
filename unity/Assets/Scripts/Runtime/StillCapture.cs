@@ -938,7 +938,7 @@ namespace GrandSluggers.UnityClient
                     chest = sw.transform.position + Vector3.up * 3.2f;
                 }
                 var star = _pending != null ? _pending.StarSwingUsed : _match.Batter.StarSwing;
-                _spec.Tick(0, chest, false, true, false, "", star ?? "", chest, chest, false, false, false, false, chest);
+                _spec.Tick(0, chest, false, true, false, "", star ?? "", false, false, chest);
                 _cam.SmashCut(chest);
             }
         }
