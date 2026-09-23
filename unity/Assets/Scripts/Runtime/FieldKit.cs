@@ -109,7 +109,7 @@ namespace GrandSluggers.UnityClient
         /// <summary>The wall cap overhangs each face by this much and stands this tall on the wall's top.</summary>
         const float CapOverhangFt = 0.25f;
         const float CapHeightFt = 0.45f;
-        /// <summary>A span whose ends are both within this of the rail's top is rail, not fence.</summary>
+        /// <summary>A span whose two ends are both within this of the rail's top is rail, not fence.</summary>
         const float RailSlackFt = 0.5f;
 
         readonly Transform _root;
@@ -414,9 +414,19 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// The wall loop, once around (<see cref="HarborWall.Loop"/>): each span a ramp prism from
-        /// <see cref="HarborWall.Height"/> at one end to the other — the park's fence in the outfield
-        /// (D15), the rail's top along the foul wrap and behind the plate — with a cap on top.
+        /// The wall loop, once around (<see cref="HarborWall.Loop"/>): each span a prism from the top of
+        /// the flight's wall under it at one end to its top at the other (<see cref="HarborWall.SpanTops"/>)
+        /// — the park's fence in the outfield (D15; a polyline span's two point heights, straight between
+        /// them, F2-c), the rail's top along the foul wrap to each pole and behind the plate (FD-06-R2) —
+        /// with a cap on top. Level wherever the two ends match, which is every span of a park with no
+        /// polyline.
+        ///
+        /// <para>
+        /// A span takes its own tops, not the tops of its two end vertices. The span that leaves a pole
+        /// starts at a fence vertex and is rail, so reading its end vertices would stretch the step at the
+        /// pole into a steep ramp over one sample; reading the span draws the fence to the pole and the
+        /// rail from it, a vertical step where the pole and its screen stand and the ball's wall steps.
+        /// </para>
         ///
         /// <para>
         /// <paramref name="opens"/> is a dress that stands in the rail and draws it there itself (Harbor's
@@ -439,8 +449,7 @@ namespace GrandSluggers.UnityClient
                 var p0 = HarborWall.LoopPoint(park, i);
                 var p1 = HarborWall.LoopPoint(park, i + 1);
                 var mid = new Vector3((float)((p0.X + p1.X) * 0.5), 0f, (float)((p0.Z + p1.Z) * 0.5));
-                var h0 = HarborWall.Height(park, i);
-                var h1 = HarborWall.Height(park, i + 1);
+                var (h0, h1) = HarborWall.SpanTops(park, i);
                 // Skip the claimed span only. A vertex sits on each end of a claim, so the
                 // span beside it butts the dress instead of leaving a 16-ft gap.
                 var claimed = opens != null && opens((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5);
