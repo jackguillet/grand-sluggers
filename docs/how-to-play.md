@@ -89,21 +89,22 @@ A **postcard**: park name, DAY / NIGHT, HAZARDS ON / OFF, and the **field card**
 
 Two screens. Not a 3D huddle with a name list.
 
-**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Hearts / scribbles vs the captain. Both teams start with the same stars, whatever the draft; the row of stars by the home captain shows them.
+**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Portraits have no faction or chemistry frames. Hover over a player, or move the controller focus to them, to see their card; their chemistry partners get a soft highlight. Both teams start with the same stars, whatever the draft; the row of stars by the home captain shows them.
 
 - **Stick / WASD** — pick a head (center) or a slot (home row)
 - **South / Space** — drop the head into the highlighted empty slot. When the nine are full, South goes to defense
 - **West / F** — remove (captain stays)
 - **Tab** — random fill. A button, not the product path
 
-**Offense / Defense Setup.** Home batting **1–9 as a bar of heads** across the top. Away bar across the bottom. **Two fielding diamonds** in the middle (home left, away right). Heads sit on P / C / 1B / 2B / 3B / SS / LF / CF / RF. The character card stickers the highlighted head — it does not replace the diamonds.
+**Offense / Defense Setup.** Each team has a vertical batting list numbered **1–9** beside a baseball diamond. Home is left and away is right. Heads sit on P / C / 1B / 2B / 3B / SS / LF / CF / RF, on grass with dirt, bags, foul lines and a curved outfield. The player card has its own space on the right. Hover or controller focus shows that player's card and softly highlights their chemistry partners; there are no permanent character-color frames or chemistry badges.
 
-- **Stick on the bar** — reorder batting (1–9 round-trips)
-- **Stick on the diamond** — move the glove
-- **LB / `,` · East / G** — cycle order
-- **RB / Tab** — cycle glove
-- **West / F** — back to Team Setup
-- **South / Space** — first pitch
+- **Stick / WASD** — move through the list or diamond without changing anything
+- **East / G** — switch between batting list and field
+- **South / Space / click a player** — pick them; move to another slot in the same list or diamond and confirm again to swap. Confirm the same player to cancel
+- **West / F** — cancel a pick; with no pick, back to Team Setup
+- **North / Q / First pitch button** — start when no player is picked
+
+Both controllers edit only their own team. Mouse is Player 1; the other team can be inspected but cannot be edited. There is no automatic start while you inspect the lineup. On Team Setup, click a pool player to add them, click a team slot to focus it, and use **Fill team** or **Continue** as labeled. Continue needs both complete nines.
 
 ### Pitching and hitting (same four verbs)
 
@@ -220,7 +221,7 @@ After a success or failure, the same lesson immediately starts a fresh attempt u
 
 ---
 
-Lineup is Team Setup then Offense / Defense Setup. Chemistry still drafts as hearts and scribbles. Defense is nine gloves (P / C / 1B / 2B / 3B / SS / LF / CF / RF) on two diamonds. Home bats the bottom.
+Lineup is Team Setup then Offense / Defense Setup. Chemistry partners softly highlight when a player is inspected. Defense is nine gloves (P / C / 1B / 2B / 3B / SS / LF / CF / RF) on two diamonds. Home bats the bottom.
 
 ### Two controllers (local 1v1)
 

@@ -35,7 +35,6 @@ namespace GrandSluggers.UnityClient
         readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
         readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
         LineupScreens _lineup;
-        bool _lineupTouched;
         MenuNav.Gate _lineupX;
         MenuNav.Gate _lineupX2;
         MenuNav.Gate _lineupY;

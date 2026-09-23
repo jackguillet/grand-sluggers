@@ -354,7 +354,6 @@ namespace GrandSluggers.UnityClient
             {
                 var seats = LiveSeats;
                 _lineup = LineupScreens.Open(_content, HomeCaptain, AwayCaptain, seats.Home, seats.Away);
-                _lineupTouched = false;
                 _lineupX.Catch(Controls.Pad1.MenuAxisX);
                 _lineupX2.Catch(Controls.Pad2.MenuAxisX);
                 _lineupY.Catch(Controls.Pad1.MenuAxisY);
@@ -385,11 +384,23 @@ namespace GrandSluggers.UnityClient
             }
 
             SyncLineupSeats();
+            var action = TeamSheet.Pointer(_lineup, out var focus, out var index);
+            if (action == TeamSheet.Action.Player && _lineup.FocusCell(LineupSeat.Pad1, focus, index))
+            {
+                if (_lineup.Step == LineupStep.DefenseSetup) PickLineup(LineupSeat.Pad1);
+                else if (focus == LineupFocus.Pool) DropLineup(LineupSeat.Pad1);
+            }
+            else if (action == TeamSheet.Action.Continue)
+            {
+                if (_lineup.Step == LineupStep.TeamSetup) _lineup.ConfirmTeam();
+                else if (!_lineup.AnyPick) ConfirmDraft();
+            }
+            else if (action == TeamSheet.Action.Back) _lineup.West(LineupSeat.Pad1);
+            else if (action == TeamSheet.Action.Fill) _lineup.RandomFill(LineupSeat.Pad1);
+            if (_phase != Phase.Lineup) return;
             TickLineupPad(Controls.Pad1, LineupSeat.Pad1, ref _lineupX, ref _lineupY);
-            if (_lineup.AwaySeat == LineupSeat.Pad2)
+            if (_lineup.HomeSeat == LineupSeat.Pad2 || _lineup.AwaySeat == LineupSeat.Pad2)
                 TickLineupPad(Controls.Pad2, LineupSeat.Pad2, ref _lineupX2, ref _lineupY2);
-            else if (_t > 10f && !_lineupTouched)
-                ConfirmDraft();
         }
 
         void SyncLineupSeats()
@@ -400,44 +411,51 @@ namespace GrandSluggers.UnityClient
                 _lineup.Sit(seats.Home, seats.Away);
         }
 
+        void PickLineup(LineupSeat seat)
+        {
+            var focus = _lineup.FocusOf(seat);
+            if (!_lineup.PickOrSwap(seat) || seat != LineupSeat.Pad1 || !GuidedAttempt("T-G01")) return;
+            GuidedObserve(focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder
+                ? GuidedAction.BattingOrderChanged : GuidedAction.GlovePositionChanged);
+        }
+
+        void DropLineup(LineupSeat seat)
+        {
+            var pool = _lineup.Pool;
+            var who = pool.Count == 0 ? null : pool[Mathf.Clamp(_lineup.PoolOf(seat), 0, pool.Count - 1)];
+            var dropped = _lineup.South(seat);
+            GuidedLineupDrop(seat, who, dropped && _lineup.Step == LineupStep.TeamSetup);
+        }
+
         void TickLineupPad(Controls.Pad pad, LineupSeat seat, ref MenuNav.Gate armedX, ref MenuNav.Gate armedY)
         {
             TickLineupStick(pad, seat, ref armedX, ref armedY);
             if (pad.WestDown)
             {
-                _lineupTouched = true;
+                TeamSheet.UseController();
                 _lineup.West(seat);
             }
-            if (pad.CyclePitch)
+            if (pad.CyclePitch && _lineup.Step == LineupStep.TeamSetup)
             {
-                _lineupTouched = true;
-                if (_lineup.Step == LineupStep.TeamSetup) _lineup.RandomFill(seat);
-                else if (_lineup.CycleGlove(seat) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
-                    GuidedObserve(GuidedAction.GlovePositionChanged);
+                TeamSheet.UseController();
+                _lineup.RandomFill(seat);
             }
-            if (pad.AllAdvanceDown)
+            if (pad.EastDown && _lineup.Step == LineupStep.DefenseSetup)
             {
-                _lineupTouched = true;
-                if (_lineup.StepBatting(seat, -1) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
-                    GuidedObserve(GuidedAction.BattingOrderChanged);
+                TeamSheet.UseController();
+                _lineup.ToggleArea(seat);
             }
-            if (pad.EastDown)
+            if (pad.NorthDown && _lineup.CanPlay && !_lineup.AnyPick)
             {
-                _lineupTouched = true;
-                if (_lineup.StepBatting(seat, 1) && seat == LineupSeat.Pad1 && GuidedAttempt("T-G01"))
-                    GuidedObserve(GuidedAction.BattingOrderChanged);
+                ConfirmDraft();
+                return;
             }
-            if (pad.SouthDown)
+            // A pointer click is handled by its hit target above, never also as a global confirm.
+            if (pad.SouthDown && !(seat == LineupSeat.Pad1 && Controls.PointerDown))
             {
-                _lineupTouched = true;
-                if (_lineup.Step == LineupStep.TeamSetup)
-                {
-                    var pool = _lineup.Pool;
-                    var who = pool.Count == 0 ? null : pool[Mathf.Clamp(_lineup.PoolOf(seat), 0, pool.Count - 1)];
-                    var dropped = _lineup.South(seat);
-                    GuidedLineupDrop(seat, who, dropped && _lineup.Step == LineupStep.TeamSetup);
-                }
-                else ConfirmDraft();
+                TeamSheet.UseController();
+                if (_lineup.Step == LineupStep.TeamSetup) DropLineup(seat);
+                else PickLineup(seat);
             }
         }
 
@@ -447,12 +465,9 @@ namespace GrandSluggers.UnityClient
             var dx = armedX.Tick(pad.MenuAxisX, pad.MenuTapX, dt);
             var dy = armedY.Tick(pad.MenuAxisY, pad.MenuTapY, dt);
             if (dx == 0 && dy == 0) return;
-            if (dx != 0 && Mathf.Abs(pad.MenuAxisX) >= Mathf.Abs(pad.MenuAxisY))
-                dy = 0;
-            else if (dy != 0)
-                dx = 0;
-            if (dx == 0 && dy == 0) return;
-            _lineupTouched = true;
+            if (dx != 0 && Mathf.Abs(pad.MenuAxisX) >= Mathf.Abs(pad.MenuAxisY)) dy = 0;
+            else if (dy != 0) dx = 0;
+            TeamSheet.UseController();
             _lineup.Stick(seat, dx, dy);
         }
 

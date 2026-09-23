@@ -60,7 +60,7 @@ public sealed class LineupScreens
         _acting = LineupSeat.Pad1;
         _pad1.Focus = LineupFocus.Pool;
         _pad1.SlotIndex = FirstEmpty(_home);
-        _pad2.Focus = LineupFocus.AwayRow;
+        _pad2.Focus = HomeSeat == LineupSeat.Pad2 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
         _pad2.SlotIndex = FirstEmpty(_away);
     }
 
@@ -77,12 +77,14 @@ public sealed class LineupScreens
         var screens = new LineupScreens(content, homeCap, awayCap, homeSeat, awaySeat, lockCaptain);
         screens._home[0] = homeCap;
         screens._away[0] = awayCap;
+        if (homeSeat == LineupSeat.Cpu)
+            screens.FillRow(screens._home, homeCap, exclude: [awayCap.Id]);
         if (awaySeat == LineupSeat.Cpu)
             screens.FillRow(screens._away, awayCap, exclude: [homeCap.Id]);
         screens._pad1.Focus = LineupFocus.Pool;
-        screens._pad1.SlotIndex = FirstEmpty(screens._home);
+        screens._pad1.SlotIndex = FirstEmpty(homeSeat == LineupSeat.Pad1 ? screens._home : screens._away);
         screens._pad2.Focus = LineupFocus.Pool;
-        screens._pad2.SlotIndex = FirstEmpty(screens._away);
+        screens._pad2.SlotIndex = FirstEmpty(homeSeat == LineupSeat.Pad2 ? screens._home : screens._away);
         return screens;
     }
 
@@ -129,28 +131,104 @@ public sealed class LineupScreens
     public int HomeStars => _content.Rules.Stars.StartingReserve;
     public int AwayStars => _content.Rules.Stars.StartingReserve;
 
-    public Character? Highlighted
-    {
-        get
-        {
-            if (Step == LineupStep.TeamSetup)
-            {
-                if (Focus == LineupFocus.Pool)
-                {
-                    var pool = Pool;
-                    return pool.Count == 0 ? null : pool[Math.Clamp(PoolIndex, 0, pool.Count - 1)];
-                }
-                var row = Focus == LineupFocus.AwayRow ? _away : _home;
-                return row[Math.Clamp(SlotIndex, 0, Size - 1)];
-            }
+    public Character? Highlighted => CharacterAt(Focus, IndexOf(_acting));
 
-            var draft = Focus is LineupFocus.AwayOrder or LineupFocus.AwayDiamond ? Away : Home;
-            if (draft == null) return null;
-            if (Focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder)
-                return draft.Order[Math.Clamp(OrderIndex, 0, draft.Order.Count - 1)];
-            var pos = Diamond.Order[Math.Clamp(GloveIndex, 0, Diamond.Order.Length - 1)];
-            return draft.Gloves.TryGetValue(pos, out var who) ? who : null;
+    public Character? CharacterAt(LineupFocus focus, int index)
+    {
+        if (index < 0) return null;
+        if (focus == LineupFocus.Pool)
+        {
+            var pool = Pool;
+            return Step == LineupStep.TeamSetup && index < pool.Count ? pool[index] : null;
         }
+        if (index >= Size) return null;
+        if (focus == LineupFocus.HomeRow) return _home[index];
+        if (focus == LineupFocus.AwayRow) return _away[index];
+        var draft = focus is LineupFocus.AwayOrder or LineupFocus.AwayDiamond ? Away : Home;
+        if (draft == null) return null;
+        return focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder
+            ? draft.Order[index] : draft.Gloves[Diamond.Order[index]];
+    }
+
+    public int IndexOf(LineupSeat seat)
+    {
+        var c = Cur(seat);
+        return c.Focus switch
+        {
+            LineupFocus.Pool => c.PoolIndex,
+            LineupFocus.HomeRow or LineupFocus.AwayRow => c.SlotIndex,
+            LineupFocus.HomeOrder or LineupFocus.AwayOrder => c.OrderIndex,
+            _ => c.GloveIndex
+        };
+    }
+
+    /// <summary>Inspection never changes a roster or transfers ownership.</summary>
+    public bool FocusCell(LineupSeat seat, LineupFocus focus, int index)
+    {
+        if (!SeatOwns(seat, focus) || index < 0) return false;
+        var teamFocus = focus is LineupFocus.Pool or LineupFocus.HomeRow or LineupFocus.AwayRow;
+        if (teamFocus != (Step == LineupStep.TeamSetup)) return false;
+        if (index >= (focus == LineupFocus.Pool ? Pool.Count : Size)) return false;
+        _acting = seat;
+        Active.Focus = focus;
+        if (focus == LineupFocus.Pool) Active.PoolIndex = index;
+        else if (focus is LineupFocus.HomeRow or LineupFocus.AwayRow) Active.SlotIndex = index;
+        else if (focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder) Active.OrderIndex = index;
+        else Active.GloveIndex = index;
+        return true;
+    }
+
+    public bool Buddies(Character? inspected, Character? other) => inspected != null && other != null
+        && inspected.Id != other.Id && _content.Chemistry.Between(inspected, other) == Chemistry.Good;
+
+    public CharacterCard? CardFor(Character? who) => who == null ? null : CharacterCard.Of(who, Chemistry.Neutral);
+
+    public bool ToggleArea(LineupSeat seat)
+    {
+        if (seat == LineupSeat.Cpu || Step != LineupStep.DefenseSetup) return false;
+        _acting = seat;
+        CancelPick(seat);
+        var away = seat == AwaySeat;
+        Focus = Focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder
+            ? (away ? LineupFocus.AwayDiamond : LineupFocus.HomeDiamond)
+            : (away ? LineupFocus.AwayOrder : LineupFocus.HomeOrder);
+        return true;
+    }
+
+    public bool Picked(LineupFocus focus, int index) => PickedBy(HomeSeat, focus, index)
+        || (HomeSeat != AwaySeat && PickedBy(AwaySeat, focus, index));
+    bool PickedBy(LineupSeat seat, LineupFocus focus, int index) => seat != LineupSeat.Cpu
+        && Cur(seat).PickedIndex == index && Cur(seat).PickedFocus == focus;
+    public bool HasPick(LineupSeat seat) => Cur(seat).PickedIndex >= 0;
+    public bool AnyPick => HasPick(LineupSeat.Pad1) || HasPick(LineupSeat.Pad2);
+    public bool CancelPick(LineupSeat seat)
+    {
+        if (!HasPick(seat)) return false;
+        Cur(seat).PickedIndex = -1;
+        return true;
+    }
+
+    /// <summary>First confirm picks; second confirm swaps in the same list or diamond. No navigation edits.</summary>
+    public bool PickOrSwap(LineupSeat seat)
+    {
+        if (Step != LineupStep.DefenseSetup || !SeatOwns(seat, Cur(seat).Focus)) return false;
+        _acting = seat;
+        var c = Active;
+        var index = IndexOf(seat);
+        if (c.PickedIndex < 0 || c.PickedFocus != c.Focus)
+        {
+            c.PickedFocus = c.Focus;
+            c.PickedIndex = index;
+            return false;
+        }
+        var from = c.PickedIndex;
+        c.PickedIndex = -1;
+        if (from == index) return false;
+        var draft = EditableDraft(seat);
+        if (draft == null) return false;
+        return c.Focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder
+            ? draft.SwapOrder(from, index)
+            : draft.SetGlove(Diamond.Order[index], draft.Gloves[Diamond.Order[from]].Id);
     }
 
     public Character HighlightCaptain =>
@@ -209,7 +287,9 @@ public sealed class LineupScreens
     /// </summary>
     public void Sit(LineupSeat home, LineupSeat away)
     {
-        HomeSeat = home == LineupSeat.Cpu ? LineupSeat.Pad1 : home;
+        CancelPick(LineupSeat.Pad1);
+        CancelPick(LineupSeat.Pad2);
+        HomeSeat = home;
         if (AwaySeat == away) return;
         AwaySeat = away;
         if (away == LineupSeat.Cpu)
@@ -219,7 +299,7 @@ public sealed class LineupScreens
             FillRow(_away, AwayCaptain, blocked);
             if (Step == LineupStep.TeamSetup)
             {
-                _pad2.Focus = LineupFocus.AwayRow;
+                _pad2.Focus = HomeSeat == LineupSeat.Pad2 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
                 _pad2.SlotIndex = 0;
             }
             return;
@@ -227,18 +307,14 @@ public sealed class LineupScreens
         if (Step != LineupStep.TeamSetup) return;
         for (var i = 1; i < Size; i++)
             _away[i] = null;
-        _pad2.Focus = LineupFocus.AwayRow;
+        _pad2.Focus = HomeSeat == LineupSeat.Pad2 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
         _pad2.SlotIndex = FirstEmpty(_away);
         ClampPool();
     }
 
     public string Help => Step == LineupStep.TeamSetup
-        ? AwaySeat == LineupSeat.Pad2
-            ? "controller 1 home    controller 2 away    stick head / slot    South drop    West remove    South when nine    next    Esc how to play"
-            : "stick head / slot    South drop    West remove    Tab fill    South when nine    next    Esc how to play"
-        : AwaySeat == LineupSeat.Pad2
-            ? "controller 1 home    controller 2 away    stick bar order    stick diamond glove    South first pitch    West back    Esc how to play"
-            : "stick bar order    stick diamond glove    LB/East order    RB glove    South first pitch    West back    Esc how to play";
+        ? "Choose a player • Confirm to add • Fill team when you want a quick start"
+        : "Pick a player, then pick their new spot • Soft highlights show chemistry partners";
 
     public bool Stick(int dx, int dy) => Stick(LineupSeat.Pad1, dx, dy);
 
@@ -268,7 +344,7 @@ public sealed class LineupScreens
         if (seat == LineupSeat.Cpu) return false;
         _acting = seat;
         if (Step == LineupStep.DefenseSetup)
-            return seat == HomeSeat && BackToTeam();
+            return CancelPick(seat) || (seat == LineupSeat.Pad1 && BackToTeam());
         return Remove(seat);
     }
 
@@ -346,10 +422,10 @@ public sealed class LineupScreens
         Home = home;
         Away = away;
         Step = LineupStep.DefenseSetup;
-        _pad1.Focus = LineupFocus.HomeOrder;
+        _pad1.Focus = HomeSeat == LineupSeat.Pad1 ? LineupFocus.HomeOrder : LineupFocus.AwayOrder;
         _pad1.OrderIndex = 0;
         _pad1.GloveIndex = 0;
-        _pad2.Focus = LineupFocus.AwayOrder;
+        _pad2.Focus = HomeSeat == LineupSeat.Pad2 ? LineupFocus.HomeOrder : LineupFocus.AwayOrder;
         _pad2.OrderIndex = 0;
         _pad2.GloveIndex = 0;
         _acting = LineupSeat.Pad1;
@@ -360,9 +436,11 @@ public sealed class LineupScreens
     {
         if (Step != LineupStep.DefenseSetup) return false;
         Step = LineupStep.TeamSetup;
-        _pad1.Focus = LineupFocus.HomeRow;
+        CancelPick(LineupSeat.Pad1);
+        CancelPick(LineupSeat.Pad2);
+        _pad1.Focus = HomeSeat == LineupSeat.Pad1 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
         _pad1.SlotIndex = 0;
-        _pad2.Focus = LineupFocus.AwayRow;
+        _pad2.Focus = HomeSeat == LineupSeat.Pad2 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
         _pad2.SlotIndex = 0;
         Home = null;
         Away = null;
@@ -481,28 +559,26 @@ public sealed class LineupScreens
 
     bool StickDefense(LineupSeat seat, int dx, int dy)
     {
-        var away = seat == AwaySeat && AwaySeat != LineupSeat.Cpu;
+        var away = seat == AwaySeat;
         var order = away ? LineupFocus.AwayOrder : LineupFocus.HomeOrder;
         var diamond = away ? LineupFocus.AwayDiamond : LineupFocus.HomeDiamond;
-        if (Focus is LineupFocus.HomeDiamond or LineupFocus.AwayDiamond)
+        if (Focus == diamond)
         {
-            if (dy > 0 && Diamond.Order[GloveIndex] == "C")
+            if (dx < 0 && LineupLayout.FieldSpot(Diamond.Order[GloveIndex]).X <= 0.30)
             {
+                CancelPick(seat);
                 Focus = order;
                 return true;
             }
-            if (dx != 0 || dy != 0) return NudgeGlove(dx, dy);
-            return false;
+            return MoveGloveCursor(dx, dy);
         }
-
-        if (dy < 0)
+        if (dx > 0)
         {
+            CancelPick(seat);
             Focus = diamond;
             return true;
         }
-        if (dx != 0) return StepBatting(seat, dx);
-        if (Focus != order) Focus = order;
-        return false;
+        return dy != 0 && MoveOrderCursor(dy > 0 ? -1 : 1);
     }
 
     bool MovePool(int dx, int dy)
@@ -537,15 +613,15 @@ public sealed class LineupScreens
     int NeighborGlove(int dx, int dy)
     {
         var cur = Diamond.Order[Math.Clamp(GloveIndex, 0, Diamond.Order.Length - 1)];
-        var uv = ChemistryToy.MiniSpot(cur);
+        var uv = LineupLayout.FieldSpot(cur);
         var best = -1;
         var bestDist = double.MaxValue;
         for (var i = 0; i < Diamond.Order.Length; i++)
         {
             if (i == GloveIndex) continue;
-            var p = ChemistryToy.MiniSpot(Diamond.Order[i]);
-            var vx = p.U - uv.U;
-            var vy = p.V - uv.V;
+            var p = LineupLayout.FieldSpot(Diamond.Order[i]);
+            var vx = p.X - uv.X;
+            var vy = uv.Y - p.Y;
             var mag = Math.Sqrt(vx * vx + vy * vy);
             if (mag < 1e-6) continue;
             var dot = (vx * dx + vy * dy) / mag;
@@ -610,6 +686,8 @@ public sealed class LineupScreens
     sealed class SeatCursor
     {
         public LineupFocus Focus;
+        public LineupFocus PickedFocus;
+        public int PickedIndex = -1;
         public int SlotIndex;
         public int PoolIndex;
         public int OrderIndex;
@@ -704,10 +782,16 @@ public static class LineupLayout
     public static LineupCell ParkLine => new(0.018, 0.862, 0.36, 0.022);
     public static LineupCell Help => new(0.018, 0.008, 0.96, 0.032);
 
-    public static LineupCell HomeSlot(int i) => Bar(i, 0.76);
-    public static LineupCell AwaySlot(int i) => Bar(i, 0.08);
-    public static LineupCell HomeOrder(int i) => Bar(i, 0.76);
-    public static LineupCell AwayOrder(int i) => Bar(i, 0.08);
+    public static LineupCell HomeSlot(int i) => Pixels(24 + i * 98, 166, 90, 80);
+    public static LineupCell AwaySlot(int i) => Pixels(24 + i * 98, 639, 90, 64);
+    public static LineupCell HomeOrder(int i) => OrderCell(true, i);
+    public static LineupCell AwayOrder(int i) => OrderCell(false, i);
+    public static LineupCell OrderCell(bool home, int i) => Pixels(home ? 24 : 472, 198 + i * 53, 142, 49);
+    public static LineupCell CardPanel => Pixels(928, 142, 328, 542);
+    public static LineupCell ContinueButton => Pixels(1012, 716, 244, 48);
+    public static LineupCell BackButton => Pixels(24, 716, 160, 48);
+    public static LineupCell FillButton => Pixels(200, 716, 168, 48);
+    public static LineupCell Pixels(double x, double y, double w, double h) => new(x / CouchW, 1 - (y + h) / CouchH, w / CouchW, h / CouchH);
 
     public static LineupCell PoolCell(int index, int count)
     {
@@ -716,28 +800,34 @@ public static class LineupLayout
         var rows = Math.Max(3, (n + cols - 1) / cols);
         var col = index % cols;
         var row = index / cols;
-        const double left = 0.14, width = 0.54, top = 0.66, height = 0.44;
+        const double left = 0.01875, width = 0.69, top = 0.66, height = 0.40;
         var w = width / cols;
         var h = height / rows;
         return new LineupCell(left + col * w + w * 0.04, top - (row + 1) * h + h * 0.08, w * 0.90, h * 0.84);
     }
 
+    // Schematic board positions, shared by drawing, hit testing and spatial navigation.
+    // Origin top-left. Catcher behind home, pitcher inside the bags, middle infield behind second.
+    public static (double X, double Y) FieldSpot(string pos) => pos switch
+    {
+        "C" => (0.50, 0.93), "P" => (0.50, 0.66),
+        "1B" => (0.85, 0.61), "3B" => (0.15, 0.61),
+        "2B" => (0.70, 0.40), "SS" => (0.30, 0.40),
+        "LF" => (0.18, 0.20), "CF" => (0.50, 0.10), "RF" => (0.82, 0.20),
+        _ => (0.50, 0.66)
+    };
+
     public static LineupCell DiamondHead(bool home, string pos)
     {
-        var uv = ChemistryToy.MiniSpot(pos);
-        var u01 = Math.Clamp(uv.U * 0.5 + 0.5, 0, 1);
-        var v01 = Math.Clamp(uv.V, 0, 1);
-        var left = home ? 0.08 : 0.50;
-        const double width = 0.34, bottom = 0.24, height = 0.50, s = 0.078;
-        return new LineupCell(
-            left + u01 * width - s * 0.5,
-            bottom + v01 * height - s * 0.5,
-            s,
-            s * 1.2);
+        var field = home ? HomeDiamondPanel : AwayDiamondPanel;
+        var spot = FieldSpot(pos);
+        const double w = 66 / CouchW, h = 76 / CouchH;
+        return new(field.X + spot.X * field.W - w / 2,
+            field.Y + (1 - spot.Y) * field.H - h / 2, w, h);
     }
 
-    public static LineupCell HomeDiamondPanel => new(0.06, 0.22, 0.38, 0.54);
-    public static LineupCell AwayDiamondPanel => new(0.48, 0.22, 0.38, 0.54);
+    public static LineupCell HomeDiamondPanel => Pixels(172, 206, 280, 448);
+    public static LineupCell AwayDiamondPanel => Pixels(620, 206, 280, 448);
 
     /// <summary>Padded name strip at the bottom of a tile so JESTER does not clip to IESTER.</summary>
     public static LineupCell NameRect(LineupCell cell)
@@ -763,11 +853,4 @@ public static class LineupLayout
     public static string OrderMark(int i) => (Math.Clamp(i, 0, Size - 1) + 1).ToString();
     public static string GloveMark(string pos) => string.IsNullOrEmpty(pos) ? "" : pos;
 
-    static LineupCell Bar(int i, double y)
-    {
-        i = Math.Clamp(i, 0, Size - 1);
-        const double left = 0.12, width = 0.76, h = 0.10;
-        var w = width / Size;
-        return new LineupCell(left + i * w + w * 0.04, y, w * 0.90, h);
-    }
 }

@@ -183,13 +183,30 @@ public class LineupScreensTests
     }
 
     [Fact]
-    public void LayoutIsTwoBarsThenTwoDiamonds()
+    public void LayoutSeparatesListsDiamondsAndCard()
     {
         Assert.True(LineupLayout.HomeSlot(0).Y > LineupLayout.PoolCell(0, 12).Y);
         Assert.True(LineupLayout.PoolCell(0, 12).Y > LineupLayout.AwaySlot(0).Y);
         Assert.True(LineupLayout.HomeDiamondPanel.CX < LineupLayout.AwayDiamondPanel.CX);
-        Assert.True(LineupLayout.HomeOrder(0).Y > LineupLayout.DiamondHead(true, "CF").Y);
-        Assert.True(LineupLayout.DiamondHead(true, "C").Y > LineupLayout.AwayOrder(0).Y);
+        Assert.True(LineupLayout.HomeOrder(0).Y > LineupLayout.HomeOrder(8).Y);
+        Assert.True(LineupLayout.AwayOrder(0).Y > LineupLayout.AwayOrder(8).Y);
+        foreach (var home in new[] { true, false })
+        {
+            var cells = Diamond.Order.Select(pos => LineupLayout.DiamondHead(home, pos)).ToArray();
+            foreach (var cell in cells)
+            {
+                Assert.False(Overlap(cell, LineupLayout.CardPanel));
+                for (var i = 0; i < 9; i++) Assert.False(Overlap(cell, LineupLayout.OrderCell(home, i)));
+            }
+            for (var i = 0; i < cells.Length; i++)
+                for (var j = i + 1; j < cells.Length; j++) Assert.False(Overlap(cells[i], cells[j]), $"{Diamond.Order[i]} overlaps {Diamond.Order[j]}");
+            var catcher = LineupLayout.DiamondHead(home, "C");
+            var pitcher = LineupLayout.DiamondHead(home, "P");
+            Assert.True(catcher.CY < pitcher.CY);
+            Assert.True(LineupLayout.DiamondHead(home, "SS").CY > pitcher.CY);
+            Assert.True(LineupLayout.DiamondHead(home, "3B").CX < pitcher.CX);
+            Assert.True(LineupLayout.DiamondHead(home, "1B").CX > pitcher.CX);
+        }
         var xs = Enumerable.Range(0, 9).Select(i => LineupLayout.HomeSlot(i).CX).ToList();
         for (var i = 1; i < 9; i++)
             Assert.True(xs[i] > xs[i - 1]);
@@ -315,6 +332,90 @@ public class LineupScreensTests
         Assert.Equal(9, b.Order.Count);
         Assert.Equal("vale", b.Captain.Id);
         Assert.Equal("P", b.PosOf("vale"));
+    }
+
+    static bool Overlap(LineupCell a, LineupCell b) => a.X < b.X + b.W && a.X + a.W > b.X
+        && a.Y < b.Y + b.H && a.Y + a.H > b.Y;
+
+    [Fact]
+    public void InspectingAndNavigatingNeverEditsTheTeam()
+    {
+        var s = Filled();
+        var order = s.Home!.Order.Select(c => c.Id).ToArray();
+        var gloves = Diamond.Order.Select(p => s.Home.Gloves[p].Id).ToArray();
+        for (var i = 0; i < 9; i++) s.Stick(0, -1);
+        s.ToggleArea(LineupSeat.Pad1);
+        foreach (var d in new[] { (1, 0), (0, 1), (-1, 0), (0, -1) }) s.Stick(d.Item1, d.Item2);
+        Assert.Equal(order, s.Home.Order.Select(c => c.Id));
+        Assert.Equal(gloves, Diamond.Order.Select(p => s.Home.Gloves[p].Id));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void EachSeatExplicitlySwapsOrderAndGlovesWithoutChangingTheOtherTeam(bool reversed)
+    {
+        var s = LineupScreens.Open(_content, "rio", "ashlord",
+            reversed ? LineupSeat.Pad2 : LineupSeat.Pad1, reversed ? LineupSeat.Pad1 : LineupSeat.Pad2);
+        s.RandomFill(LineupSeat.Pad1); s.RandomFill(LineupSeat.Pad2);
+        Assert.True(s.ConfirmTeam());
+        foreach (var seat in new[] { LineupSeat.Pad1, LineupSeat.Pad2 })
+        {
+            var home = seat == s.HomeSeat;
+            var draft = home ? s.Home! : s.Away!;
+            var other = home ? s.Away! : s.Home!;
+            var otherOrder = other.Order.Select(c => c.Id).ToArray();
+            var otherGloves = Diamond.Order.Select(p => other.Gloves[p].Id).ToArray();
+            var order = home ? LineupFocus.HomeOrder : LineupFocus.AwayOrder;
+            Assert.Equal(order, s.FocusOf(seat));
+            var first = draft.Order[0].Id;
+            Assert.True(s.FocusCell(seat, order, 0));
+            Assert.False(s.PickOrSwap(seat));
+            Assert.True(s.FocusCell(seat, order, 8));
+            Assert.True(s.PickOrSwap(seat));
+            Assert.Equal(first, draft.Order[8].Id);
+            var field = home ? LineupFocus.HomeDiamond : LineupFocus.AwayDiamond;
+            var pitcher = draft.Gloves["P"].Id;
+            s.FocusCell(seat, field, 0); Assert.False(s.PickOrSwap(seat));
+            s.FocusCell(seat, field, 8); Assert.True(s.PickOrSwap(seat));
+            Assert.Equal(pitcher, draft.Gloves["RF"].Id);
+            Assert.Equal(9, draft.Gloves.Values.Select(c => c.Id).Distinct().Count());
+            Assert.Equal(otherOrder, other.Order.Select(c => c.Id));
+            Assert.Equal(otherGloves, Diamond.Order.Select(p => other.Gloves[p].Id));
+            Assert.False(s.FocusCell(seat, home ? LineupFocus.AwayOrder : LineupFocus.HomeOrder, 0));
+        }
+    }
+
+    [Fact]
+    public void CancelAndSameSlotNeverCreditASwapAndBackClearsThePick()
+    {
+        var s = Filled();
+        Assert.False(s.PickOrSwap(LineupSeat.Pad1));
+        Assert.True(s.AnyPick);
+        Assert.True(s.West());
+        Assert.False(s.AnyPick);
+        Assert.Equal(LineupStep.DefenseSetup, s.Step);
+        Assert.False(s.PickOrSwap(LineupSeat.Pad1));
+        Assert.False(s.PickOrSwap(LineupSeat.Pad1));
+        Assert.False(s.AnyPick);
+        s.PickOrSwap(LineupSeat.Pad1);
+        s.ToggleArea(LineupSeat.Pad1);
+        Assert.False(s.AnyPick);
+    }
+
+    [Fact]
+    public void InspectionUsesTheActualPlayerPairAndNeverHighlightsSelf()
+    {
+        var s = LineupScreens.Open(_content, "vale", "brondo");
+        foreach (var who in _content.Characters.Values)
+        {
+            Assert.Equal(who.Name, s.CardFor(who)!.Value.Name);
+            Assert.False(s.Buddies(who, who));
+            foreach (var other in _content.Characters.Values.Where(c => c.Id != who.Id))
+                Assert.Equal(_content.Chemistry.Between(who, other) == Chemistry.Good, s.Buddies(who, other));
+        }
+        Assert.Null(s.CardFor(null));
+        Assert.False(s.Buddies(s.HomeCaptain, null));
     }
 
     LineupScreens Filled()

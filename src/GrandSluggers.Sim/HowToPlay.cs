@@ -383,15 +383,15 @@ public static partial class HowToPlay
         new("lineup", "Lineup", "lineup",
         [
             "Team Setup first, then Offense / Defense Setup.",
-            "Pick a head. South drops them in. Hearts are buddies. Both teams get the same stars.",
-            "Two diamonds: gloves on P C 1B 2B 3B SS LF CF RF.",
-            "South    first pitch.",
+            "Pick a head. South adds them. Both teams get the same stars. Focus shows a card and softly highlights buddies.",
+            "Stick moves. East switches list / diamond. South picks a player; South on another slot swaps them. West cancels.",
+            "North    first pitch when no player is picked.",
         ],
         [
             "Team Setup first, then Offense / Defense Setup.",
-            "Pick a head. Space / left click drops them in. Hearts are buddies. Both teams get the same stars.",
-            "Two diamonds: gloves on P C 1B 2B 3B SS LF CF RF.",
-            "Space / left click    first pitch.",
+            "Click a pool player to add them. Both teams get the same stars. Hover shows a card and softly highlights buddies.",
+            "WASD moves. G switches list / diamond. Space or click picks a player, then another slot swaps them. F cancels.",
+            "Q / First pitch button    start when no player is picked.",
         ]),
         new("two-pads", "Two controllers", "exhibition",
         [
