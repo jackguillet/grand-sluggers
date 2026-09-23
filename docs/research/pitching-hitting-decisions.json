@@ -333,7 +333,8 @@
               "test": "GrandSluggers.Sim.Tests.TrainingScenarioTests.S133_TrainingOffersTheLoadedTablesPitchFamilies",
               "scenarios": "S-133",
               "summary": "Training offered RulesTable.Defaults' authored families (Training.CorePitches), whose optional curveball, slider and sinker rows are null, so practice and the GrandSluggers.Play sandbox offered fastball and changeup while the shipped data authors five. Training.PitchesOf(rules) and a session's Pitches now read the table the catalog loaded: all five in library order on the shipped root, two on a copied root whose pitching.json drops the three rows, two on the code defaults. Training is not in a match: cli match --seed 7 is byte-identical to origin/main apart from the data-root line, and S-29 does not move.",
-              "numeric_trial": "not applicable (no number authored or moved)"
+              "numeric_trial": "not applicable (no number authored or moved)",
+              "pr": "#894"
             }
           ],
           "human_acceptance": null
@@ -1388,6 +1389,15 @@
           "choice": "1",
           "quote": "1",
           "scope": "Pitcher fatigue comes from pitching actions and effort only. Conceding hits, home runs or runs adds no extra stamina penalty. Preserve economical ordinary pitching, greater wear from repeated high-power pitching, Endurance differences, per-character match-long persistence, primary peak-power decline and the tentative-only secondary steering effect. This supersedes the target design of the inspected baseline outcome surcharges for home runs and runs allowed; reconcile gameplay-spec section 4.7 and rule data before implementation. Exact action costs, pitch-family/special costs, charge curves and Endurance response remain open. Direction refinement only; no runtime change, numerical trial or human acceptance."
+        },
+        {
+          "date": "2026-09-22",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "choice": "PH-08-R4",
+          "quote": "i think 1 and 2.",
+          "scope": "The random tired wobble is removed; fatigue is gradual lost speed plus less steering room (PH-08-R4). Shipped after Jack's \"Ship it now\" with no sitting."
         }
       ],
       "refinements": [
@@ -1428,7 +1438,11 @@
             "answer_quote": "definitely 1, maybe a bit of 2"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
+          "implementation_issues": [
+            "#925",
+            "#927",
+            "#930"
+          ],
           "validation_evidence": [],
           "human_acceptance": null,
           "validation_requirements": [
@@ -1469,8 +1483,22 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#919"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#919",
+              "revision": "0af7e6a6",
+              "test": "GrandSluggers.Sim.Tests.AtBatScenarioTests.S146_AReturningArmKeepsItsFatigue",
+              "scenarios": "S-146",
+              "summary": "Pools were already keyed by character; S-146 pins that a starter swapped to a glove and back a half later returns with exactly the pool it left with, and the reliever keeps what it spent.",
+              "numeric_trial": "none",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Preserve individual fatigue across legal pitcher swaps, returns to the mound, innings and time spent in another position; no rest recovery or swap reset.",
@@ -1509,13 +1537,112 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#919"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#919",
+              "revision": "0af7e6a6",
+              "test": "GrandSluggers.Sim.Tests.AtBatScenarioTests.S25_AHomerOrARunAllowedCostsTheArmNothing",
+              "scenarios": "S-25",
+              "summary": "stamina.homerCost and stamina.runCost are removed: only a pitch costs the arm. A grand slam and a bases-loaded walk cost nothing past the pitches thrown. Changes the shipped game (pitchers tire later).",
+              "numeric_trial": "none; a removal",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "For identical pitching actions and effort, fatigue cost is identical whether the result is an out, hit, home run or conceded run; verify all outcome debit paths.",
             "Preserve per-character match-long fatigue and independently specified Endurance/charge costs for both human and CPU pitchers.",
             "Reconcile the baseline home-run and run-allowed surcharges in gameplay-spec section 4.7 and rule data before implementation; numeric costs and human acceptance remain separate."
+          ]
+        },
+        {
+          "id": "PH-08-R4",
+          "question": "P3-c: the random tired wobble moves the crossing at random on every tired pitch, against PH-08-R1 and PH-05-R1 (no random misses). What replaces it?",
+          "status": "implemented",
+          "options": [
+            {
+              "id": "1",
+              "label": "Remove the wobble: a tired arm lands where it was aimed; fatigue is lost power"
+            },
+            {
+              "id": "2",
+              "label": "Swap it for less steering room (the tentative PH-08-R1 secondary effect, P3-d)"
+            },
+            {
+              "id": "3",
+              "label": "Keep the wobble for exhaustion only"
+            }
+          ],
+          "selected_option": "1 and 2",
+          "accepted_scope": "Fatigue is never a random miss: the tired and exhausted crossing wobbles are removed for human and CPU deliveries alike. Fatigue is lost pitch speed plus less steering room, both gradual. This makes PH-08-R1's tentative secondary steering reduction part of the rule and covers P3-d. The CPU pitcher's own aim scatter (tiredScatterMul) is how it picks a location, not a miss on a delivery, and stays.",
+          "contract": {
+            "random_crossing_wobble": false,
+            "primary_effect": "pitch speed lost, gradually, up to exhaustedMph at an empty pool",
+            "secondary_effect": "steering room (break) scaled from 1 to tiredBreakMul at an empty pool",
+            "fade_from_pool": 50,
+            "tired_label": "below tiredBelow 25: the card and sweat tell and the CPU swap trigger only"
+          },
+          "decided_by": "Jack",
+          "decided_at": "2026-09-22",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "e52297ea-ec41-4bdb-8527-410bba5a5146",
+            "question": "P3-c: the random tired wobble. 1. Remove it (recommended). 2. Swap it for the P3-d steering penalty. 3. Keep it for exhaustion only.",
+            "answer_quote": "i think 1 and 2.",
+            "trial_acceptance": {
+              "question": "Ship the gradual fade now, or open the trial window first?",
+              "answer_quote": "Ship it now",
+              "note": "Accepted without a sitting; no human playtest of the fade is recorded."
+            }
+          },
+          "numeric_targets": {
+            "fadeFrom": 50,
+            "exhaustedMph": 10,
+            "tiredBreakMul": 0.6
+          },
+          "implementation_issues": [
+            "#803",
+            "#925",
+            "#927",
+            "#930"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#925",
+              "revision": "b6bb1a1c",
+              "test": "GrandSluggers.Sim.Tests.PitchJudgmentTests.TiredDeliveryIsPreparedOnceAndCrossesWhereItWasAimed; AtBatScenarioTests.S25_TiredPitcherHasFadedSpeedAndSteeringRoomButNeverMissesAtRandom",
+              "scenarios": "S-25",
+              "summary": "tiredWobbleFt and exhaustedWobbleFt removed from pitching.json, StaminaRules and PreparePitch.",
+              "numeric_trial": "none; a removal"
+            },
+            {
+              "kind": "trial-implementation",
+              "pr": "#927",
+              "revision": "83adf7d2",
+              "test": "GrandSluggers.Sim.Tests.FatigueFadeScenarioTests",
+              "scenarios": "S-147, S-148, S-149",
+              "summary": "stamina.fadeFrom switch; trials/fatigue set 50. Both ends of the curve are the old step's own ends, so pace stays inside D7. The PR's claim that headless games never feel fatigue came from seed 7 alone and is wrong (10 of 30 seeds move; corrected on #927 and in #930)."
+            },
+            {
+              "kind": "shipped-promotion",
+              "pr": "#930",
+              "revision": "f135c09d",
+              "promoted": "stamina.fadeFrom 50 in data/rules/pitching.json; tiredMph and the step removed; trials/fatigue deleted",
+              "test": "GrandSluggers.Sim.Tests.FatigueFadeScenarioTests",
+              "scenarios": "S-147, S-148, S-149, S-25",
+              "summary": "Fatigue is the fade on the shipped root. 10 of 30 cli match seeds differ from the step. No balance pass run."
+            }
+          ],
+          "human_acceptance": null,
+          "validation_requirements": [
+            "Jack sits the fade: can a tired arm be felt fading before the TIRED card, and is the steering loss fair?",
+            "The card and sweat tell is still the step at 25; a gradual tell is a Presentation child."
           ]
         }
       ]
@@ -2183,8 +2310,22 @@
         "answer_quote": "2"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        "#803",
+        "#932"
+      ],
+      "validation_evidence": [
+        {
+          "kind": "implementation",
+          "pr": "#932",
+          "revision": "14efea98",
+          "test": "GrandSluggers.Sim.Tests.ChargeCancelScenarioTests",
+          "scenarios": "S-150, S-151, S-152",
+          "summary": "ChargeButton.Advance gains cancel, MustRelease and Cancelled. Same-tick order: not accepting, cancel (beats release), must release, load. No banked charge. The pitch passes no cancel (PH-02-R3).",
+          "numeric_trial": "none",
+          "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -2283,8 +2424,43 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#932",
+            "#935",
+            "#945"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#932",
+              "revision": "14efea98",
+              "test": "GrandSluggers.Sim.Tests.ChargeCancelScenarioTests",
+              "scenarios": "S-150, S-151, S-152",
+              "summary": "ChargeButton.Advance gains cancel, MustRelease and Cancelled. Same-tick order: not accepting, cancel (beats release), must release, load. No banked charge. The pitch passes no cancel (PH-02-R3).",
+              "numeric_trial": "none",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "implementation",
+              "pr": "#935",
+              "revision": "0c83dd4a",
+              "test": "GrandSluggers.Sim.Tests.BuntHoldScenarioTests",
+              "scenarios": "S-19, S-130, S-153 ... S-169",
+              "summary": "BuntHold and PlateButtons: a held side (latest press wins, both-from-nothing is third), changeable until contact, release-all withdraws, no timed press (HeldBunt error 0), the side leans the ball 12 degrees and is a typed fact on the swing, the at-bat and the play. A trigger press during a load is the PH-13-R1 conversion. The CPU sac bunt draws a side 50/50 at SET. 15 of 30 seeds moved. Merged together with #945 so no shipped build bunts without a side.",
+              "numeric_trial": "the bunt response curve is trials/bunt (PH-14-R1)",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "presentation",
+              "pr": "#945",
+              "revision": "adab56f7",
+              "test": "BuntHoldScenarioTests.S186_ACancelPressAtThePlateIsSpentUntilTheButtonComesUp; AtBatInputGate cases (compiled, not executed); HowToPlay, BookletLayout, Scheme, Tutorial tests",
+              "scenarios": "S-186",
+              "summary": "LT / J third, RT / L first, East / G cancel, per pad; West no longer bunts. Leak guards: a trigger held through contact is not the item modifier; East used as the cancel is not a dive, dash or Training skip. Book pair; T-B10 and T-B11 implemented, T-B07 revision 2. Bat angle and the let-go take are Art #943. Nothing looked at in the game.",
+              "gate": "Sitting 4 owed."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "A deliberate directional bunt input during an uncommitted load switches to held bunting and clears the old charge.",
@@ -2511,8 +2687,21 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#935"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "trial-implementation",
+              "pr": "#935",
+              "revision": "0c83dd4a",
+              "test": "GrandSluggers.Sim.Tests.BuntHoldScenarioTests",
+              "scenarios": "S-167, S-168, S-169",
+              "summary": "batting.bunt.response.byContact: off on the shipped root (today's response), on in trials/bunt: exit 22 / 28 / 40 mph and spray spread 10 / 20 / 44 degrees for perfect / nice / sour; a sour bunt pops above the bat's center and chops hard below it; Power and charge do not harden it.",
+              "gate": "Needs Jack's trial acceptance."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Use a bunt-specific contact response rather than multiplying ordinary swing power and assuming that better quality means more speed.",
@@ -2553,8 +2742,22 @@
             "answer_quote": "option 2."
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#935"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#935",
+              "revision": "0c83dd4a",
+              "test": "GrandSluggers.Sim.Tests.BuntHoldScenarioTests",
+              "scenarios": "S-19, S-130, S-153 ... S-169",
+              "summary": "BuntHold and PlateButtons: a held side (latest press wins, both-from-nothing is third), changeable until contact, release-all withdraws, no timed press (HeldBunt error 0), the side leans the ball 12 degrees and is a typed fact on the swing, the at-bat and the play. A trigger press during a load is the PH-13-R1 conversion. The CPU sac bunt draws a side 50/50 at SET. 15 of 30 seeds moved. Merged together with #945 so no shipped build bunts without a side.",
+              "numeric_trial": "the bunt response curve is trials/bunt (PH-14-R1)",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Allow a centered, well-contacted bunt toward either selected side without intentionally worsening contact quality just to choose direction.",
@@ -2594,8 +2797,22 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#935"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#935",
+              "revision": "0c83dd4a",
+              "test": "GrandSluggers.Sim.Tests.BuntHoldScenarioTests",
+              "scenarios": "S-19, S-130, S-153 ... S-169",
+              "summary": "BuntHold and PlateButtons: a held side (latest press wins, both-from-nothing is third), changeable until contact, release-all withdraws, no timed press (HeldBunt error 0), the side leans the ball 12 degrees and is a typed fact on the swing, the at-bat and the play. A trigger press during a load is the PH-13-R1 conversion. The CPU sac bunt draws a side 50/50 at SET. 15 of 30 seeds moved. Merged together with #945 so no shipped build bunts without a side.",
+              "numeric_trial": "the bunt response curve is trials/bunt (PH-14-R1)",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Changing side before contact can change intended direction without reducing otherwise equivalent contact quality; after contact the ball trajectory is fixed.",
@@ -2635,8 +2852,22 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#935"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#935",
+              "revision": "0c83dd4a",
+              "test": "GrandSluggers.Sim.Tests.BuntHoldScenarioTests",
+              "scenarios": "S-19, S-130, S-153 ... S-169",
+              "summary": "BuntHold and PlateButtons: a held side (latest press wins, both-from-nothing is third), changeable until contact, release-all withdraws, no timed press (HeldBunt error 0), the side leans the ball 12 degrees and is a typed fact on the swing, the at-bat and the play. A trigger press during a load is the PH-13-R1 conversion. The CPU sac bunt draws a side 50/50 at SET. 15 of 30 seeds moved. Merged together with #945 so no shipped build bunts without a side.",
+              "numeric_trial": "the bunt response curve is trials/bunt (PH-14-R1)",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Holding alone cannot make contact without actual ball/bat coverage; bunting does not require a swing press or synthesize one to claim geometric correctness.",
@@ -2697,8 +2928,32 @@
             "answer_quote": "1 "
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#935",
+            "#945"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#935",
+              "revision": "0c83dd4a",
+              "test": "GrandSluggers.Sim.Tests.BuntHoldScenarioTests",
+              "scenarios": "S-19, S-130, S-153 ... S-169",
+              "summary": "BuntHold and PlateButtons: a held side (latest press wins, both-from-nothing is third), changeable until contact, release-all withdraws, no timed press (HeldBunt error 0), the side leans the ball 12 degrees and is a typed fact on the swing, the at-bat and the play. A trigger press during a load is the PH-13-R1 conversion. The CPU sac bunt draws a side 50/50 at SET. 15 of 30 seeds moved. Merged together with #945 so no shipped build bunts without a side.",
+              "numeric_trial": "the bunt response curve is trials/bunt (PH-14-R1)",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "presentation",
+              "pr": "#945",
+              "revision": "adab56f7",
+              "test": "BuntHoldScenarioTests.S186_ACancelPressAtThePlateIsSpentUntilTheButtonComesUp; AtBatInputGate cases (compiled, not executed); HowToPlay, BookletLayout, Scheme, Tutorial tests",
+              "scenarios": "S-186",
+              "summary": "LT / J third, RT / L first, East / G cancel, per pad; West no longer bunts. Leak guards: a trigger held through contact is not the item modifier; East used as the cancel is not a dive, dash or Training skip. Book pair; T-B10 and T-B11 implemented, T-B07 revision 2. Bat angle and the let-go take are Art #943. Nothing looked at in the game.",
+              "gate": "Sitting 4 owed."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Direction and square-up share one held action per side; either side works for both batting hands without sacrificing horizontal coverage.",
@@ -2746,8 +3001,32 @@
             "answer_quote": "Fresh press after contact (Recommended)"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#935",
+            "#945"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#935",
+              "revision": "0c83dd4a",
+              "test": "GrandSluggers.Sim.Tests.BuntHoldScenarioTests",
+              "scenarios": "S-19, S-130, S-153 ... S-169",
+              "summary": "BuntHold and PlateButtons: a held side (latest press wins, both-from-nothing is third), changeable until contact, release-all withdraws, no timed press (HeldBunt error 0), the side leans the ball 12 degrees and is a typed fact on the swing, the at-bat and the play. A trigger press during a load is the PH-13-R1 conversion. The CPU sac bunt draws a side 50/50 at SET. 15 of 30 seeds moved. Merged together with #945 so no shipped build bunts without a side.",
+              "numeric_trial": "the bunt response curve is trials/bunt (PH-14-R1)",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "presentation",
+              "pr": "#945",
+              "revision": "adab56f7",
+              "test": "BuntHoldScenarioTests.S186_ACancelPressAtThePlateIsSpentUntilTheButtonComesUp; AtBatInputGate cases (compiled, not executed); HowToPlay, BookletLayout, Scheme, Tutorial tests",
+              "scenarios": "S-186",
+              "summary": "LT / J third, RT / L first, East / G cancel, per pad; West no longer bunts. Leak guards: a trigger held through contact is not the item modifier; East used as the cancel is not a dive, dash or Training skip. Book pair; T-B10 and T-B11 implemented, T-B07 revision 2. Bat angle and the let-go take are Art #943. Nothing looked at in the game.",
+              "gate": "Sitting 4 owed."
+            }
+          ],
           "human_acceptance": null
         }
       ]
@@ -3059,7 +3338,8 @@
               "test": "GrandSluggers.Sim.Tests.TrainingScenarioTests.S133_TrainingOffersTheLoadedTablesPitchFamilies",
               "scenarios": "S-133",
               "summary": "Training offered RulesTable.Defaults' authored families (Training.CorePitches), whose optional curveball, slider and sinker rows are null, so practice and the GrandSluggers.Play sandbox offered fastball and changeup while the shipped data authors five. Training.PitchesOf(rules) and a session's Pitches now read the table the catalog loaded: all five in library order on the shipped root, two on a copied root whose pitching.json drops the three rows, two on the code defaults. Training is not in a match: cli match --seed 7 is byte-identical to origin/main apart from the data-root line, and S-29 does not move.",
-              "numeric_trial": "not applicable (no number authored or moved)"
+              "numeric_trial": "not applicable (no number authored or moved)",
+              "pr": "#894"
             }
           ],
           "human_acceptance": null
@@ -4406,8 +4686,22 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#933"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#933",
+              "revision": "d4592c18",
+              "test": "GrandSluggers.Sim.Tests.StarPitchWindowScenarioTests",
+              "scenarios": "S-10, S-125, S-190 ... S-195",
+              "summary": "batterWindowMul removed from Charmball, Skullball and Fogball and from the loader, validator and window formula; star-skills.json is read strictly. Charmball keeps x0.9 and its wobble; Skullball and Fogball are plain fast and slow. The Phonyball whiff roll and its draw are gone. 4 to 9 of 30 seeds move where those pitchers throw.",
+              "numeric_trial": "none; removals",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched. Replacement effects need Jack's per-ability reviews."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Across Star Pitches and both seats, the timing eligibility window remains the ordinary window; no hidden ability multiplier narrows it.",
@@ -4489,8 +4783,22 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#936"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#936",
+              "revision": "1f7039a4",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177",
+              "summary": "Match settles every released special at release: affordable pays (a whiffed Star Swing pays in full), unaffordable is the ordinary action of the selected family at the same timing, spends nothing and is recorded in PlayOutcome.Stars. Tiers low / mid / top in star-skills.json, priced in stars.json; the validator refuses a top-tier special on a role player. Charge tradeoffs pinned. Shipped tiers all cost 1: 0 of 30 seeds moved.",
+              "numeric_trial": "tier prices are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "A committed Star Swing whiff costs the attempted ability normal price, including when different abilities or roster contexts have different prices.",
@@ -4529,8 +4837,31 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#940",
+            "#936, #940"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-180 ... S-185",
+              "summary": "One pool per team (pinned). Both teams start on startingReserve 4 (the old average); draft chemistry no longer sets it. Both teams gain gains.plateAppearance at NextBatter (shipped 0); event gains stay as the bonuses. A half that ends on a caught stealing or pickoff between pitches does not complete the plate appearance. No play changed.",
+              "numeric_trial": "amounts are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "trial-implementation",
+              "pr": "#936, #940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
+              "gate": "Needs Jack's trial acceptance."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "A Star Pitch debit reduces the same team balance available for Star Swings, and vice versa; changing batting/pitching roles does not select separate balances.",
@@ -4569,8 +4900,31 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#940",
+            "#936, #940"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-180 ... S-185",
+              "summary": "One pool per team (pinned). Both teams start on startingReserve 4 (the old average); draft chemistry no longer sets it. Both teams gain gains.plateAppearance at NextBatter (shipped 0); event gains stay as the bonuses. A half that ends on a caught stealing or pickoff between pitches does not complete the plate appearance. No play changed.",
+              "numeric_trial": "amounts are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "trial-implementation",
+              "pr": "#936, #940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
+              "gate": "Needs Jack's trial acceptance."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "An actual completed plate appearance credits each team base gain once, independent of which team succeeded; individual pitches, pauses and duplicate completion callbacks do not grant extra base gains.",
@@ -4609,8 +4963,31 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#940",
+            "#936, #940"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-180 ... S-185",
+              "summary": "One pool per team (pinned). Both teams start on startingReserve 4 (the old average); draft chemistry no longer sets it. Both teams gain gains.plateAppearance at NextBatter (shipped 0); event gains stay as the bonuses. A half that ends on a caught stealing or pickoff between pitches does not complete the plate appearance. No play changed.",
+              "numeric_trial": "amounts are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "trial-implementation",
+              "pr": "#936, #940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
+              "gate": "Needs Jack's trial acceptance."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Verify each side has an affordable legal special option from the opening plate appearance under the eventual roster and price contract.",
@@ -4667,8 +5044,31 @@
             "clarification_summary": "Assistant illustrated lower-cost Wide Barrel spatial forgiveness, medium-cost Hook Pitch readable late bend, and higher-cost Quake Swing contact-earned localized disruption. Examples were explicitly illustrative, not approved prices or ability designs. Tier count and example assignments remain unselected."
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#936",
+            "#936, #940"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#936",
+              "revision": "1f7039a4",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177",
+              "summary": "Match settles every released special at release: affordable pays (a whiffed Star Swing pays in full), unaffordable is the ordinary action of the selected family at the same timing, spends nothing and is recorded in PlayOutcome.Stars. Tiers low / mid / top in star-skills.json, priced in stars.json; the validator refuses a top-tier special on a role player. Charge tradeoffs pinned. Shipped tiers all cost 1: 0 of 30 seeds moved.",
+              "numeric_trial": "tier prices are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "trial-implementation",
+              "pr": "#936, #940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
+              "gate": "Needs Jack's trial acceptance."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Author ability prices using the eventual reviewed tier structure; full missed-Star-Swing cost uses the attempted ability actual normal price.",
@@ -4708,8 +5108,22 @@
             "resolves_tentative_consideration": "PH-16-R7 captain access to higher-cost specials"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#936"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#936",
+              "revision": "1f7039a4",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177",
+              "summary": "Match settles every released special at release: affordable pays (a whiffed Star Swing pays in full), unaffordable is the ordinary action of the selected family at the same timing, spends nothing and is recorded in PlayOutcome.Stars. Tiers low / mid / top in star-skills.json, priced in stars.json; the validator refuses a top-tier special on a role player. Charge tradeoffs pinned. Shipped tiers all cost 1: 0 of 30 seeds moved.",
+              "numeric_trial": "tier prices are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Validate eventual authored assignments: highest-tier specials are assigned only to captains, never role players.",
@@ -4750,8 +5164,22 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#936"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#936",
+              "revision": "1f7039a4",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177",
+              "summary": "Match settles every released special at release: affordable pays (a whiffed Star Swing pays in full), unaffordable is the ordinary action of the selected family at the same timing, spends nothing and is recorded in PlayOutcome.Stars. Tiers low / mid / top in star-skills.json, priced in stars.json; the validator refuses a top-tier special on a role player. Charge tradeoffs pinned. Shipped tiers all cost 1: 0 of 30 seeds moved.",
+              "numeric_trial": "tier prices are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Every existing character has one reviewed Star Pitch assignment and one Star Swing assignment, with three ordinary pitches remaining separate.",
@@ -4790,8 +5218,21 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#949"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "presentation",
+              "pr": "#949",
+              "revision": "6ee56231",
+              "test": "GrandSluggers.Sim.Tests.StarModifierScenarioTests; AtBatInputGate cases (compiled, not executed)",
+              "scenarios": "S-200 ... S-205",
+              "summary": "LB (Q) held at the accepted South release is the special, both seats; North no longer arms a star. During SET and flight LB (and ,) is not all-advance. An unaffordable request flashes the team's stars red 1.5 s and reads NO STARS from the typed StarRequest. Lineup copy no longer ties stars to the draft. Star lessons at revision 3; T-G03-U added. Nothing looked at in the game.",
+              "gate": "Sitting 5 owed; the flash's place, colour and length are an agent's choice, not Jack's."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Both schemes and both seats request the role-appropriate special using the common action plus held modifier, without a second special-action lifecycle.",
@@ -4831,8 +5272,21 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#949"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "presentation",
+              "pr": "#949",
+              "revision": "6ee56231",
+              "test": "GrandSluggers.Sim.Tests.StarModifierScenarioTests; AtBatInputGate cases (compiled, not executed)",
+              "scenarios": "S-200 ... S-205",
+              "summary": "LB (Q) held at the accepted South release is the special, both seats; North no longer arms a star. During SET and flight LB (and ,) is not all-advance. An unaffordable request flashes the team's stars red 1.5 s and reads NO STARS from the typed StarRequest. Lineup copy no longer ties stars to the draft. Star lessons at revision 3; T-G03-U added. Nothing looked at in the game.",
+              "gate": "Sitting 5 owed; the flash's place, colour and length are an agent's choice, not Jack's."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Modifier changes during charging affect the choice at accepted action release; later changes cannot replace an already committed ordinary/special attempt.",
@@ -4880,8 +5334,32 @@
             "answer_quote": "1, maybe the indication is where the star count is shown. it flashes red or something."
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#936",
+            "#949"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#936",
+              "revision": "1f7039a4",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177",
+              "summary": "Match settles every released special at release: affordable pays (a whiffed Star Swing pays in full), unaffordable is the ordinary action of the selected family at the same timing, spends nothing and is recorded in PlayOutcome.Stars. Tiers low / mid / top in star-skills.json, priced in stars.json; the validator refuses a top-tier special on a role player. Charge tradeoffs pinned. Shipped tiers all cost 1: 0 of 30 seeds moved.",
+              "numeric_trial": "tier prices are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "presentation",
+              "pr": "#949",
+              "revision": "6ee56231",
+              "test": "GrandSluggers.Sim.Tests.StarModifierScenarioTests; AtBatInputGate cases (compiled, not executed)",
+              "scenarios": "S-200 ... S-205",
+              "summary": "LB (Q) held at the accepted South release is the special, both seats; North no longer arms a star. During SET and flight LB (and ,) is not all-advance. An unaffordable request flashes the team's stars red 1.5 s and reads NO STARS from the typed StarRequest. Lineup copy no longer ties stars to the draft. Star lessons at revision 3; T-G03-U added. Nothing looked at in the game.",
+              "gate": "Sitting 5 owed; the flash's place, colour and length are an agent's choice, not Jack's."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Insufficient-resource special releases resolve as the ordinary action with the same release timing and no Star debit; pitching uses the family selected for that attempt.",
@@ -4921,8 +5399,22 @@
             "answer_quote": "1"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#936"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#936",
+              "revision": "1f7039a4",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177",
+              "summary": "Match settles every released special at release: affordable pays (a whiffed Star Swing pays in full), unaffordable is the ordinary action of the selected family at the same timing, spends nothing and is recorded in PlayOutcome.Stars. Tiers low / mid / top in star-skills.json, priced in stars.json; the validator refuses a top-tier special on a role player. Charge tradeoffs pinned. Shipped tiers all cost 1: 0 of 30 seeds moved.",
+              "numeric_trial": "tier prices are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Compare quick/charged special actions for the same character: power trades against steering correction or spatial forgiveness, without narrowing timing windows.",
@@ -4967,8 +5459,23 @@
             "clarification_summary": "Assistant acknowledged the lack of an obvious cooperative partner for the batter, mentioned runner/lineup relationships only as possible indirect mechanisms, and revised its recommendation to option 3. Jack explicitly agreed. Those indirect mechanisms were not accepted."
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#891",
+            "#910"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#891",
+              "pr": "#910",
+              "revision": "76dce898",
+              "test": "GrandSluggers.Sim.Tests.PlateChemistryScenarioTests",
+              "scenarios": "S-144",
+              "summary": "No plate-level chemistry: good-chemistry runners on base no longer widen the oval or add exit, on either root, for every Contact, hand, bat and charge. Changes the shipped game.",
+              "numeric_trial": "none; a removal",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null,
           "validation_requirements": [
             "Plate pitching/hitting attributes and Star gains do not acquire a new chemistry multiplier from lineup neighbors or runners on base.",
@@ -5013,8 +5520,23 @@
             "note": "Jack chose against the recommendation."
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#891",
+            "#910"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "issue": "#891",
+              "pr": "#910",
+              "revision": "76dce898",
+              "test": "GrandSluggers.Sim.Tests.PlateChemistryScenarioTests",
+              "scenarios": "S-145",
+              "summary": "The on-deck item offer is gone; items are dormant. The item lessons (T-X01, T-I-banana, T-I-rocket, T-I-pow) are blocked on #891. #918 re-pinned SF-25 after the merge left main red.",
+              "numeric_trial": "none; a removal",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -5053,8 +5575,31 @@
             "note": "Jack chose against the recommendation."
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#940",
+            "#936, #940"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-180 ... S-185",
+              "summary": "One pool per team (pinned). Both teams start on startingReserve 4 (the old average); draft chemistry no longer sets it. Both teams gain gains.plateAppearance at NextBatter (shipped 0); event gains stay as the bonuses. A half that ends on a caught stealing or pickoff between pitches does not complete the plate appearance. No play changed.",
+              "numeric_trial": "amounts are trials/stars",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
+            },
+            {
+              "kind": "trial-implementation",
+              "pr": "#936, #940",
+              "revision": "2836d606",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
+              "gate": "Needs Jack's trial acceptance."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -5097,8 +5642,21 @@
             "correction_note": "The first option set offered only thumb buttons. Jack's free-text reply set the finger-button principle and suggested RT. RT collides with accepted PH-14-R5 and PH-13-R1 on the batter's pad, so the question was re-asked with finger-button options and Jack chose LB."
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#949"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "presentation",
+              "pr": "#949",
+              "revision": "6ee56231",
+              "test": "GrandSluggers.Sim.Tests.StarModifierScenarioTests; AtBatInputGate cases (compiled, not executed)",
+              "scenarios": "S-200 ... S-205",
+              "summary": "LB (Q) held at the accepted South release is the special, both seats; North no longer arms a star. During SET and flight LB (and ,) is not all-advance. An unaffordable request flashes the team's stars red 1.5 s and reads NO STARS from the typed StarRequest. Lineup copy no longer ties stars to the draft. Star lessons at revision 3; T-G03-U added. Nothing looked at in the game.",
+              "gate": "Sitting 5 owed; the flash's place, colour and length are an agent's choice, not Jack's."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -5136,8 +5694,22 @@
             "answer_quote": "Speed and path only, for now (Recommended)"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#933"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#933",
+              "revision": "d4592c18",
+              "test": "GrandSluggers.Sim.Tests.StarPitchWindowScenarioTests",
+              "scenarios": "S-10, S-125, S-190 ... S-195",
+              "summary": "batterWindowMul removed from Charmball, Skullball and Fogball and from the loader, validator and window formula; star-skills.json is read strictly. Charmball keeps x0.9 and its wobble; Skullball and Fogball are plain fast and slow. The Phonyball whiff roll and its draw are gone. 4 to 9 of 30 seeds move where those pitchers throw.",
+              "numeric_trial": "none; removals",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched. Replacement effects need Jack's per-ability reviews."
+            }
+          ],
           "human_acceptance": null
         },
         {
@@ -5174,8 +5746,22 @@
             "answer_quote": "Remove the roll (Recommended)"
           },
           "numeric_targets": null,
-          "implementation_issues": [],
-          "validation_evidence": [],
+          "implementation_issues": [
+            "#803",
+            "#933"
+          ],
+          "validation_evidence": [
+            {
+              "kind": "implementation",
+              "pr": "#933",
+              "revision": "d4592c18",
+              "test": "GrandSluggers.Sim.Tests.StarPitchWindowScenarioTests",
+              "scenarios": "S-10, S-125, S-190 ... S-195",
+              "summary": "batterWindowMul removed from Charmball, Skullball and Fogball and from the loader, validator and window formula; star-skills.json is read strictly. Charmball keeps x0.9 and its wobble; Skullball and Fogball are plain fast and slow. The Phonyball whiff roll and its draw are gone. 4 to 9 of 30 seeds move where those pitchers throw.",
+              "numeric_trial": "none; removals",
+              "gate": "No human gate closed and none claimed; status and human_acceptance untouched. Replacement effects need Jack's per-ability reviews."
+            }
+          ],
           "human_acceptance": null
         }
       ]
@@ -6138,6 +6724,61 @@
       "date": "2026-09-22",
       "event": "#892 (P2-g) added batting.cpu.commitRead and trials/cpu-read: the CPU batter commits from the flight as it stands, so a late steer can beat it (PH-18 batting half, PH-17). Shipped draws identical; statuses unchanged; human_acceptance untouched.",
       "pr": "#906"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P2-e (#891) removed plate-level chemistry and the on-deck item offer (PH-16-R14, R15); items are dormant and their lessons blocked. It merged with SF-25 red; #918 re-pinned the night games. No human gate closed.",
+      "pr": "#910"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P3-b removed homerCost and runCost (PH-08-R3) and pinned the returning arm's fatigue (PH-08-R2, S-146). No human gate closed.",
+      "pr": "#919"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack ruled the random tired wobble out and chose lost power plus less steering room (PH-08-R4, \"1 and 2\"). #925 removed the wobbles. No human gate closed.",
+      "pr": "#925"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "trials/fatigue proposed the gradual fade (stamina.fadeFrom 50). No human gate closed.",
+      "pr": "#927"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack answered \"Ship it now\" without a sitting; the fade is the shipped rule, tiredMph and the step are gone, PH-08-R4 is implemented. P3-d is covered by it. No human gate closed.",
+      "pr": "#930"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P4-a: the swing cancel and the must-release hold in the sim (PH-13, PH-13-R1). No human gate closed.",
+      "pr": "#932"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P6-a: star pitches keep the ordinary window and the Phonyball whiff roll is gone (PH-16-R1, R18, R19). No human gate closed.",
+      "pr": "#933"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P5-a: specials settle at release; unaffordable is the ordinary action; tiers with a captain-only top tier (PH-16-R3, R7, R8, R9, R12, R13). trials/stars prices 1 / 2 / 3. No human gate closed.",
+      "pr": "#936"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P5-b: an equal starting reserve, a base gain at the completed plate appearance, the caught-stealing edge (PH-16-R4, R5, R6, R16). trials/stars reserve 3, gain 0.1. No human gate closed.",
+      "pr": "#940"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P4-b (#935) and P4-c merged together: the held directional bunt, its triggers, the East cancel and the leak guards (PH-13-R1, PH-14-R1 ... R6). trials/bunt carries the response curve. No human gate closed.",
+      "pr": "#945"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P5-c: the held LB / Q special modifier and the unavailable tell (PH-16-R10, R11, R12, R17). No human gate closed.",
+      "pr": "#949"
     }
   ]
 }
