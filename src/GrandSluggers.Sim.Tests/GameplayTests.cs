@@ -8,8 +8,10 @@ public class GameplayTests
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     [Fact]
-    public void CharmballShrinksTheWindow()
+    public void CharmballKeepsTheWindow()
     {
+        // PH-16-R1, PH-16-R18: the charmball once narrowed the window (batterWindowMul 0.75), so a
+        // swing just inside the plain window missed it. Now the same swing meets both pitches alike.
         var park = _content.Parks["harbor-diamond"];
         var vale = _content.Must("vale");
         var rio = _content.Must("rio");
@@ -17,11 +19,12 @@ public class GameplayTests
         var resolver = new AtBatResolver(_content.Chemistry);
         var hits = 0;
         var charmed = 0;
-        // A frame inside the plain window and outside the charmball window (star-skills batterWindowMul).
         var plain = AtBatResolver.ContactWindowFrames(null, park, false);
         var charm = AtBatResolver.ContactWindowFrames(vale.StarPitch, park, false);
-        Assert.True(charm < plain, $"charm {charm} vs plain {plain}");
-        var edge = (plain + charm) / 4;
+        Assert.Equal(plain, charm);
+        // The frame the old test swung at: inside the plain window, outside the old charmball's
+        // (plain × 0.75), halfway between the two half-widths.
+        var edge = plain * 7 / 16;
         for (var seed = 0; seed < 40; seed++)
         {
             var input = new AtBatInput(vale, rio, _content.Must("nico"), [], false, false, edge, false, false, bat, 80, PitchInZone: true);
@@ -29,7 +32,8 @@ public class GameplayTests
             if (resolver.Resolve(input, park, new Random(seed)).InPlay) hits++;
             if (resolver.Resolve(star, park, new Random(seed)).InPlay) charmed++;
         }
-        Assert.True(charmed < hits, $"charm {charmed} vs plain {hits}");
+        Assert.True(hits > 0, "the edge swing meets the plain pitch");
+        Assert.Equal(hits, charmed);
     }
 
     [Fact]

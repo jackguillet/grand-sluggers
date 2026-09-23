@@ -298,13 +298,15 @@ public sealed class NightBlockTests
     /// games are bit-identical to the trial rows they were. P3-c took the random tired wobble out (PH-08-R1), which
     /// changes play again; seed 16 no longer chomps, so the chomp row is seed 8. The gradual fade (PH-08-R1) changed
     /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11.
+    /// PH-16-R18 changed Funfair seed 1 and Ember seed 2 again: Ashlord's skullball no longer narrows the
+    /// window, so the swings against it land differently; seed 11 still chomps.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 1", "aaef2c68ce62eadd039fec18b9f631cbdb40a7c8eb5ecad5874a26ecb15a65e3"),
+            ("funfair-park", 1, "Final  Ember Court 10  Spark All-Stars 3", "dde9237509d0b72e01007173450e467d46911a37cbbcbaf9f8224aca37666c78"),
             ("funfair-park", 11, "Final  Ember Court 4  Spark All-Stars 0", "53b0a73c68e7c09a34ced21cad1d9418073ab62d8ef9049cbd351938470c6086"),
             ("ember-keep", 1, "Final  Ember Court 1  Spark All-Stars 0", "ee50483141c1372ebcb8c08bb5f14736beb580718c36ca9393b3d28af1bc48f5"),
-            ("ember-keep", 2, "Final  Ember Court 3  Spark All-Stars 1", "a28f29a238e8a6caac068bf39dd45413082fad93a1c0b97a1ba07c0f38024918")
+            ("ember-keep", 2, "Final  Ember Court 0  Spark All-Stars 3", "e0d3eb96234904d04230ac070c72bff764c0a07148df2030ecffee051840fd65")
         ];
 
     /// <summary>
