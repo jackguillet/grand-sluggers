@@ -316,6 +316,7 @@ namespace GrandSluggers.UnityClient
             }
             _actors.Draw(dt);
             _park?.Tick(_ball, dt);
+            _park?.SetPlayClock(_match != null && _match.LivePlay.Active ? _match.LivePlay.ElapsedSeconds : 0);
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);
             _stars?.Set(_match.HomeStars, _match.AwayStars);
             if (HarborKit.Instance != null && HarborKit.Instance.OwnsDiamond)

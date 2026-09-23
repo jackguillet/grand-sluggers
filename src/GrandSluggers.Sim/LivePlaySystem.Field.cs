@@ -117,7 +117,9 @@ public enum LiveEvent
     /// <summary>The ball went into a redirect and came out of another this frame (F4-c): <see cref="LivePlaySystem.RedirectsThisPlay"/>.</summary>
     BallRedirected,
     /// <summary>The ball hit a reward target this frame (F4-c): <see cref="LivePlaySystem.RewardThisPlay"/>.</summary>
-    RewardHit
+    RewardHit,
+    /// <summary>The ball caromed off a solid body or a mover this frame (F4-f): <see cref="LivePlaySystem.CaromsThisPlay"/>.</summary>
+    BodyCarom
 }
 
 /// <summary>
@@ -140,6 +142,9 @@ public sealed partial class LivePlaySystem
     /// <summary>The park's status volumes on the bodies that touch them (F4-b, #896): the touch, the per-body time, the slow.</summary>
     readonly BodySlows _bodySlows = new();
     readonly BallHazards _ballHazards = new();
+    IReadOnlyList<SolidBody> _solids = [];
+    readonly List<BodyCarom> _caromsThisPlay = [];
+    int? _caromLock;
     readonly List<BallRedirected> _redirectsThisPlay = [];
     RewardHit? _reward;
     /// <summary>The fielding positions whose body a volume never slows (Burrow), read with the touches each frame: their route goes straight (F4-g).</summary>
@@ -482,6 +487,8 @@ public sealed partial class LivePlaySystem
         _slowsThisPlay.Clear();
         _redirectsThisPlay.Clear();
         _reward = null;
+        _caromsThisPlay.Clear();
+        _caromLock = null;
         _scoreTold.Clear();
         Pitch = command.Pitch;
         Swing = command.Swing;
@@ -508,6 +515,8 @@ public sealed partial class LivePlaySystem
         _bodySlows.Begin(ParkHazards.StatusVolumes(Park, _match.Night, R));
         // The ball's redirects and reward targets (F4-c): read live off the ball, never off where it lands.
         _ballHazards.Begin(Park, _match.Night, R);
+        // The solid bodies and movers (F4-f): the ball caroms off them and nobody stands in one.
+        _solids = SolidBodies.Of(Park, R);
         var kind = LiveKind();
         var result = Begin(command with { PlayKind = kind });
         if (!Active) return result;
@@ -648,6 +657,7 @@ public sealed partial class LivePlaySystem
         _foil.Clear();
         _bodySlows.Begin([]);
         _ballHazards.Clear();
+        _solids = [];
         _peel = null;
         _peelT = 0;
         _powT = 0;
@@ -2230,13 +2240,58 @@ public sealed partial class LivePlaySystem
     /// (<see cref="VolumeRoute"/>), at the body's own asked speed. A park with no volume, a Burrow body and a straight line
     /// that meets no volume leave the goal exactly as it was. The stick is never steered.
     /// </summary>
-    (double X, double Z) RouteAround(string pos, (double X, double Z) at, (double X, double Z) goal, double speed) =>
-        _bodySlows.Volumes.Count == 0 || _routeImmune.Contains(pos)
+    (double X, double Z) RouteAround(string pos, (double X, double Z) at, (double X, double Z) goal, double speed)
+    {
+        // A solid body first (F4-f): nobody passes through one, so the route always goes around it, at the mover's place now.
+        if (_solids.Count > 0)
+            goal = VolumeRoute.Waypoint(at, goal, _solids.Select(b => b.AsVolume(ElapsedSeconds)).ToList(), speed, 1e-6,
+                R.Fielding.Chase.VolumeClearFt);
+        return _bodySlows.Volumes.Count == 0 || _routeImmune.Contains(pos)
             ? goal
             : VolumeRoute.Waypoint(at, goal, _bodySlows.Volumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
+    }
 
     /// <summary>The redirects the ball went through this play, in order (F4-c).</summary>
     public IReadOnlyList<BallRedirected> RedirectsThisPlay => _redirectsThisPlay;
+
+    /// <summary>The solid bodies the ball caromed off this play, in order (F4-f).</summary>
+    public IReadOnlyList<BodyCarom> CaromsThisPlay => _caromsThisPlay;
+
+    /// <summary>Where a park's solid bodies stand this frame (a mover's place on the play clock), for presentation (F4-f).</summary>
+    public IReadOnlyList<(int Hazard, double X, double Z)> SolidsNow =>
+        _solids.Select(b => { var (x, z) = b.At(ElapsedSeconds); return (b.Hazard, x, z); }).ToList();
+
+    /// <summary>
+    /// The ball off a solid body (F4-f; SF-28): a ball in a body's disc below its top, moving into it, turns the part of its
+    /// speed into the body around at the row's restitution and keeps the rest; the path continues from the rim, the ball is
+    /// re-read and every chaser re-plans. The same body does not take the ball again until it is clear of the disc.
+    /// </summary>
+    void ReadSolidCarom(double dt)
+    {
+        if (_solids.Count == 0 || Path is null || Hit is null || Ball is null || Preview is null) return;
+        var t = ElapsedSeconds;
+        if (_caromLock is { } locked)
+        {
+            var b = _solids.First(s => s.Hazard == locked);
+            var (bx, bz) = b.At(t);
+            if (Diamond.Dist(bx, bz, BallX, BallZ) <= b.RadiusFt + 0.5) return;
+            _caromLock = null;
+        }
+        var before = BallFlight.PointAt(Path, Math.Max(0, t - dt), R);
+        var (vx, vy, vz) = ((BallX - before.X) / dt, (BallY - before.Y) / dt, (BallZ - before.Z) / dt);
+        if (SolidBodies.Carom(_solids, t, BallX, BallY, BallZ, vx, vz) is not { } hit) return;
+        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
+        Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
+        (BallX, BallZ) = (hit.X, hit.Z);
+        _ballPrev = null;
+        Preview = Preview with { LandingX = Ball.LandingX, LandingZ = Ball.LandingZ };
+        CoverBallX = Ball.LandingX;
+        _caromLock = hit.Body.Hazard;
+        _caromsThisPlay.Add(new BodyCarom(hit.Body.Hazard, hit.Body.Type, t, hit.X, hit.Z));
+        if (!_events.Contains(LiveEvent.BodyCarom)) _events.Add(LiveEvent.BodyCarom);
+        _trace?.Mark(PlayTraceMarkKind.BodyCarom, t,
+            hazard: new PlayTraceHazard(hit.Body.Hazard, hit.Body.Type, hit.X, hit.Z, hit.Body.RadiusFt, t));
+    }
 
     /// <summary>The reward target the live ball hit this play, or null (F4-c).</summary>
     public RewardHit? RewardThisPlay => _reward;
@@ -2259,7 +2314,11 @@ public sealed partial class LivePlaySystem
             var h = Park.Hazards[sign.Hazard];
             _trace?.Mark(PlayTraceMarkKind.RewardHit, t, hazard: new PlayTraceHazard(sign.Hazard, sign.Type, h.X, h.Z, h.Radius, t));
         }
-        if (_ballHazards.Entered(BallX, BallY, BallZ) is not { } mouth) return;
+        if (_ballHazards.Entered(BallX, BallY, BallZ) is not { } mouth)
+        {
+            ReadSolidCarom(dt);
+            return;
+        }
         var exits = _ballHazards.ExitsFor(mouth);
         var exit = exits[_match.DrawIndex(exits.Count)];
         var before = BallFlight.PointAt(Path, Math.Max(0, t - dt), R);
@@ -2548,7 +2607,16 @@ public sealed partial class LivePlaySystem
             return;
         }
         foreach (var k in _fielders.Keys.ToList())
-            _fielders[k] = FieldBounds.Clamp(Park, _fielders[k].X, _fielders[k].Z);
+        {
+            var f = FieldBounds.Clamp(Park, _fielders[k].X, _fielders[k].Z);
+            // Nobody stands in a solid body (F4-f): a body stepped into one is on its rim.
+            _fielders[k] = _solids.Count == 0 ? f : SolidBodies.PushOut(_solids, ElapsedSeconds, f.X, f.Z);
+        }
+        if (_solids.Count > 0)
+        {
+            feet = SolidBodies.PushOut(_solids, ElapsedSeconds, feet.X, feet.Z);
+            (GloveX, GloveZ) = feet;
+        }
         _fielders[GlovePos] = feet;
     }
 
