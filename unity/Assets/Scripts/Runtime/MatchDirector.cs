@@ -252,6 +252,7 @@ namespace GrandSluggers.UnityClient
         void Update()
         {
             Controls.Tick(Time.unscaledDeltaTime);
+            TickStarModifiers();
             if (_match == null) return;
             // The pursuit stick's seats (#718) bind every frame, recovery and Call time included, on the input clock.
             TickPursuitSeats();
@@ -408,7 +409,8 @@ namespace GrandSluggers.UnityClient
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, ShowingSide,
-                CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules, Hazards));
+                CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules, Hazards),
+                _starNo, Time.unscaledTime - _starNoAt);
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
                     (float)PlayStamp.SafeScale, (float)PlayStamp.SafePopSeconds,

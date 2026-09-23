@@ -54,6 +54,64 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         float _moundX;
 
+        /// <summary>
+        /// Each seat's held special modifier (spec §12, PH-16-R10, R11, R17), by pad index: LB on the pad, Q on player
+        /// 1's keys. The state is the leak guard; the step that moves it is the sim's (<see cref="StarModifier"/>).
+        /// </summary>
+        readonly StarModifierState[] _starMods = new StarModifierState[2];
+
+        /// <summary>
+        /// The special each side asked for at its accepted release, as the modifier read it. <c>_pitch</c> / <c>_swing</c>
+        /// carry what the pool paid for (the flight, the rumble, the card); the match is handed the request itself
+        /// (<see cref="PitchAsReleased"/>) so it settles it and records the <see cref="StarRequest"/> (PH-16-R12).
+        /// </summary>
+        bool _pitchStarAsked, _swingStarAsked;
+
+        /// <summary>The "special unavailable" tell (PH-16-R12) and when it began, on the unscaled clock.</summary>
+        BroadcastHud.StarUnavailableTell? _starNo;
+        float _starNoAt = -99f;
+
+        /// <summary>One tick of both seats' modifiers, before any reader: a modifier that came up is free again.</summary>
+        internal void TickStarModifiers()
+        {
+            _starMods[0] = StarModifier.Tick(_starMods[0], Controls.Pad1.StarHeld);
+            _starMods[1] = StarModifier.Tick(_starMods[1], Controls.Pad2.StarHeld);
+        }
+
+        /// <summary>Whether <paramref name="pad"/>'s LB may mean all-advance, the cutoff or half the halt on this tick.</summary>
+        bool StarFree(Controls.Pad pad) =>
+            pad.Index < 0 || pad.Index >= _starMods.Length || StarModifier.IsFree(_starMods[pad.Index]);
+
+        /// <summary>The modifier is down and would ask for the special at a release on this tick.</summary>
+        bool StarReady(Controls.Pad pad) => pad.Index >= 0 && pad.StarHeld && StarFree(pad);
+
+        /// <summary>An accepted release on <paramref name="pad"/>: the special it asks for, and the hold spent if it did.</summary>
+        bool ReleaseStar(Controls.Pad pad)
+        {
+            if (pad.Index < 0 || pad.Index >= _starMods.Length) return false;
+            var release = StarModifier.Release(_starMods[pad.Index], pad.StarHeld);
+            _starMods[pad.Index] = release.Next;
+            return release.Request;
+        }
+
+        /// <summary>
+        /// A released request, as the match will record it (<see cref="Match.PitchStarRequest"/>, the record
+        /// <see cref="PlayOutcome.Stars"/> carries): not afforded, the scorebug's Stars flash and name it on this tick.
+        /// </summary>
+        void NoteStarRequest(StarRequest request)
+        {
+            var tell = BroadcastHud.StarUnavailable(request);
+            if (tell == null) return;
+            _starNo = tell;
+            _starNoAt = Time.unscaledTime;
+        }
+
+        /// <summary>The pitch the match is handed: the delivery with the special the pitcher asked for, paid or not.</summary>
+        PitchCommand PitchAsReleased => _pitch != null && _pitchStarAsked && !_pitch.Star ? _pitch with { Star = true } : _pitch;
+
+        /// <summary>The swing the match is handed: the same rule as <see cref="PitchAsReleased"/>.</summary>
+        SwingCommand SwingAsReleased => _swing != null && _swingStarAsked && !_swing.Star ? _swing with { Star = true } : _swing;
+
         internal void TickAtBat(float dt)
         {
             if (_phase == Phase.Set) TickSet(dt);
@@ -142,6 +200,7 @@ namespace GrandSluggers.UnityClient
             _resultBodies = null;
             _starPitch = false;
             _starSwing = false;
+            _pitchStarAsked = _swingStarAsked = false;
             _caught = false;
             _buddy = false;
             _bagStamp = "";
@@ -259,8 +318,10 @@ namespace GrandSluggers.UnityClient
                 _cpuPitch = _match.CpuPitchByInputs(out var cpuPlan);
                 _cpuSteer = Math.Sign(cpuPlan.SteerDir);
             }
-            if (HumanPitches && mound.NorthDown && _match.CanStarPitch) _starPitch = !_starPitch;
-            if (HumanBats && box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
+            // The held special modifier (PH-16-R11): no arming. The card reads STAR while it is down, free and paid for;
+            // the release reads it.
+            _starPitch = HumanPitches && StarReady(mound) && _match.CanStarPitch;
+            _starSwing = HumanBats && StarReady(box) && _match.CanStarSwing;
             TickBaserunning(dt);
             if (HumanBats)
             {
@@ -287,7 +348,8 @@ namespace GrandSluggers.UnityClient
                     }
                     if (pitchButton.Committed)
                     {
-                        Launch(PlayerPitch(pitchButton.CommitFill01, pitchButton.CommitSecondsPastFull, pitchFamily));
+                        Launch(PlayerPitch(pitchButton.CommitFill01, pitchButton.CommitSecondsPastFull, pitchFamily,
+                            ReleaseStar(mound)));
                         return;
                     }
                 }
@@ -458,13 +520,21 @@ namespace GrandSluggers.UnityClient
         /// The committed step's locked family (PH-02-R4). Threaded in rather than re-read: the
         /// selection state has already reset to the fastball for the next SET.
         /// </param>
-        PitchCommand PlayerPitch(double fill01, double secondsPastFull, string family)
+        /// <param name="starAsked">
+        /// The modifier as the accepted release read it (PH-16-R11). Paid for, the delivery is the Star Pitch; not, it is
+        /// the ordinary pitch of <paramref name="family"/> at the same timing, the tell flashes, and the match still
+        /// records the request (PH-16-R12).
+        /// </param>
+        PitchCommand PlayerPitch(double fill01, double secondsPastFull, string family, bool starAsked)
         {
             var nice = ChargeFeel.NiceCopy(true, fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds);
             if (!string.IsNullOrEmpty(nice)) _banner = nice;
+            _pitchStarAsked = starAsked;
+            if (starAsked) NoteStarRequest(_match.PitchStarRequest);
+            _starPitch = starAsked && _match.CanStarPitch;
             return new PitchCommand(family,
                 EffectiveCharge((float)fill01, (float)secondsPastFull),
-                _starPitch && _match.CanStarPitch,
+                _starPitch,
                 RubberX: _match.PitcherOffsetX,
                 Nice: ChargeFeel.NiceRelease(fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds, _match.Rules));
         }
@@ -538,7 +608,7 @@ namespace GrandSluggers.UnityClient
                 {
                     _charge = (float)_plate.Swing.Fill01;
                     _chargePast = (float)_plate.Swing.SecondsPastFull;
-                    if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
+                    _starSwing = StarReady(box) && _match.CanStarSwing;
                     // Stick U/D never resets the box once the windup starts (§5.4); in flight it aims only a
                     // Star Swing's launch, because an ordinary swing reads no stick at contact (PH-12).
                     _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
@@ -547,7 +617,7 @@ namespace GrandSluggers.UnityClient
                     // square cancels a load before it can commit (PlateButtons), so the two never share a tick.
                     if (plate.Swing.Committed)
                         CommitSwing(SwingInputIntent.Capture(
-                            plate.Swing, box.StickX, box.StickY, bunt: false, _match.BatterOffsetX));
+                            plate.Swing, box.StickX, box.StickY, bunt: false, _match.BatterOffsetX), ReleaseStar(box));
                 }
             }
             // The held trigger through the pitch keeps the square (§5.8); the CPU's square holds from SET.
@@ -620,17 +690,21 @@ namespace GrandSluggers.UnityClient
         /// <summary>The swing carries how long the batter had been squared (§7.3): this client's clock, for either seat.</summary>
         SwingCommand WithSquare(SwingCommand swing) => swing.SquareSec == _squareSec ? swing : swing with { SquareSec = _squareSec };
 
-        void CommitSwing(SwingInputIntent intent)
+        /// <param name="starAsked">The modifier as the accepted release read it: the same rule as the pitch's (PH-16-R11, R12).</param>
+        void CommitSwing(SwingInputIntent intent, bool starAsked)
         {
             if (!intent.Committed || _swung) return;
             _swung = true;
+            _swingStarAsked = starAsked;
+            if (starAsked) NoteStarRequest(_match.SwingStarRequest);
+            _starSwing = starAsked && _match.CanStarSwing;
             var effective = EffectiveCharge((float)intent.Fill01, (float)intent.SecondsPastFull);
             _charge = effective;
             var nice = ChargeFeel.NiceCopy(false, intent.Fill01,
                 intent.SecondsPastFull, _feel.ChargeMaxHoldSeconds);
             if (!string.IsNullOrEmpty(nice)) _banner = nice;
             _swing = WithSquare(intent.Resolve(
-                _flight, _pitchDur, effective, _starSwing && _match.CanStarSwing, _match.Rules));
+                _flight, _pitchDur, effective, _starSwing, _match.Rules));
             _swingContactSec = SwingContactSec(_swing);
         }
 

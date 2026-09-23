@@ -147,7 +147,17 @@ namespace GrandSluggers.EditorTools
                 () => VerifySideChangeWhileSquared(play),
                 () => VerifyReleaseAllWithdraws(play),
                 () => VerifyBuntTriggerAfterContactIsNotTheItem(play),
-                () => VerifyEastCancelIsNotATrainingSkip(play)
+                () => VerifyEastCancelIsNotATrainingSkip(play),
+                // P5-c (#803): the held special modifier, read at the accepted release (PH-16-R10 ... R12, R17).
+                () => VerifyStarHeldAtReleaseIsSpecial(play, keys: false),
+                () => VerifyStarHeldAtReleaseIsSpecial(play, keys: true),
+                () => VerifyStarLetGoBeforeReleaseIsOrdinary(play),
+                () => VerifyStarPressedWhileChargingCounts(play),
+                () => VerifyStarAfterReleaseChangesNothing(play),
+                () => VerifyStarSwingOnPadTwo(play),
+                () => VerifyUnaffordableStarIsOrdinaryWithTell(play),
+                () => VerifyLbInTheFlightIsNotAllAdvance(play),
+                () => VerifySpentLbIsNoLiveVerb(play)
             })
             {
                 cases.Add(check());
@@ -716,6 +726,178 @@ namespace GrandSluggers.EditorTools
             return new GateCase { name = "east-cancel-not-training-skip", phase = Phase(play) };
         }
 
+        /// <summary>
+        /// PH-16-R11, R17: LB (or player 1's Q) held at the accepted South (Space) release asks for the Star Pitch; the pool
+        /// pays, the delivery flies as the special, and the hold is spent until it comes up.
+        /// </summary>
+        static GateCase VerifyStarHeldAtReleaseIsSpecial(MatchDirector play, bool keys)
+        {
+            var match = keys ? SetupKeys(play) : Setup(play, Seats.One);
+            Require(match.CanStarPitch, "The star fixture's defense cannot pay for its Star Pitch.");
+            var before = match.DefenseStars;
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            if (keys)
+            {
+                Tick(play, "TickSet", State(), State(), Keys(Key.Space, Key.Q));
+                Require(Get<bool>(play, "_starPitch"), "Q held in SET did not read STAR on the card.");
+                Tick(play, "TickSet", State(), State(), Keys(Key.Q));
+            }
+            else
+            {
+                Tick(play, "TickSet", State(south: true, lb: true), State());
+                Require(Get<bool>(play, "_starPitch"), "LB held in SET did not read STAR on the card.");
+                Tick(play, "TickSet", State(lb: true), State());
+            }
+            var pitch = Get<PitchCommand>(play, "_pitch");
+            Require(Phase(play) == "Flight" && pitch != null && pitch.Star, "The release with the modifier held was not the Star Pitch.");
+            Require(Get<bool>(play, "_pitchStarAsked"), "The release did not record the request.");
+            Require(!Get<StarModifierState[]>(play, "_starMods")[0].IsFreeNow(), "The hold that asked for the special is not spent.");
+            Require(Math.Abs(match.DefenseStars - before) < 1e-9, "The pool paid before the match settled the release.");
+            return new GateCase { name = keys ? "star-held-at-release-keys" : "star-held-at-release-pad1", phase = Phase(play),
+                charge = pitch.Charge01 };
+        }
+
+        /// <summary>PH-16-R11: the modifier let go before the release is the ordinary pitch; nothing is asked or spent.</summary>
+        static GateCase VerifyStarLetGoBeforeReleaseIsOrdinary(MatchDirector play)
+        {
+            Setup(play, Seats.One);
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            for (var f = 0; f < 6; f++) Tick(play, "TickSet", State(south: true, lb: true), State());
+            Tick(play, "TickSet", State(south: true), State());
+            Tick(play, "TickSet", State(), State());
+            var pitch = Get<PitchCommand>(play, "_pitch");
+            Require(Phase(play) == "Flight" && pitch != null && !pitch.Star, "LB let go before the release still threw the special.");
+            Require(!Get<bool>(play, "_pitchStarAsked"), "A release with LB up asked for the special.");
+            Require(Call<bool>(play, "StarFree", Controls.Pad1), "An unused modifier is spent.");
+            return new GateCase { name = "star-let-go-before-release", phase = Phase(play), charge = pitch.Charge01 };
+        }
+
+        /// <summary>PH-16-R11: the intent may change while charging; LB pressed late in the charge counts at the release.</summary>
+        static GateCase VerifyStarPressedWhileChargingCounts(MatchDirector play)
+        {
+            Setup(play, Seats.One);
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            for (var f = 0; f < 6; f++) Tick(play, "TickSet", State(south: true), State());
+            Tick(play, "TickSet", State(south: true, lb: true), State());
+            Tick(play, "TickSet", State(lb: true), State());
+            var pitch = Get<PitchCommand>(play, "_pitch");
+            Require(Phase(play) == "Flight" && pitch != null && pitch.Star, "LB pressed during the charge did not count at the release.");
+            return new GateCase { name = "star-pressed-while-charging", phase = Phase(play), charge = pitch.Charge01 };
+        }
+
+        /// <summary>PH-16-R11: after the release the modifier changes nothing: an ordinary pitch stays ordinary.</summary>
+        static GateCase VerifyStarAfterReleaseChangesNothing(MatchDirector play)
+        {
+            Setup(play, Seats.One);
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            Tick(play, "TickSet", State(south: true), State());
+            Tick(play, "TickSet", State(), State());
+            Require(Phase(play) == "Flight", "The ordinary release did not launch.");
+            for (var f = 0; f < 4; f++) Tick(play, "TickFlight", State(lb: true), State());
+            var pitch = Get<PitchCommand>(play, "_pitch");
+            Require(!pitch.Star && !Get<bool>(play, "_pitchStarAsked") && !Get<bool>(play, "_starPitch"),
+                "LB after the release upgraded the pitch.");
+            return new GateCase { name = "star-after-release-nothing", phase = Phase(play) };
+        }
+
+        /// <summary>PH-16-R17 on the second pad: Player 2 holds LB as the swing's South comes up; that is the Star Swing.</summary>
+        static GateCase VerifyStarSwingOnPadTwo(MatchDirector play)
+        {
+            var match = Setup(play, Seats.Versus);
+            Require(match.CanStarSwing, "The star fixture's offense cannot pay for its Star Swing.");
+            Launch(play);
+            for (var f = 0; f < 4; f++) Tick(play, "TickFlight", State(), State(south: true, lb: true));
+            Tick(play, "TickFlight", State(lb: true), State(lb: true));
+            var swing = Get<SwingCommand>(play, "_swing");
+            Require(Get<bool>(play, "_swung") && swing != null && swing.Swing && swing.Star,
+                "Player 2's release with LB held was not the Star Swing.");
+            Require(Get<bool>(play, "_swingStarAsked"), "Player 2's request was not recorded.");
+            Require(Get<StarModifierState[]>(play, "_starMods")[0].IsFreeNow(), "Player 1's LB was spent by Player 2's swing.");
+            return new GateCase { name = "star-swing-pad2", phase = Phase(play), timingFrames = swing.TimingErrorFrames };
+        }
+
+        /// <summary>
+        /// PH-16-R12: an unaffordable request is the ordinary pitch at the same release, spends nothing, and the tell names
+        /// it on that tick; at the plate the match records the typed request as not afforded.
+        /// </summary>
+        static GateCase VerifyUnaffordableStarIsOrdinaryWithTell(MatchDirector play)
+        {
+            var match = Setup(play, Seats.One);
+            typeof(Match).GetProperty(match.Top ? "HomeStars" : "AwayStars")!.GetSetMethod(true)!.Invoke(match, new object[] { 0.0 });
+            Require(!match.CanStarPitch && match.DefenseStars == 0, "The fixture did not empty the defense's pool.");
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            Tick(play, "TickSet", State(south: true, lb: true), State());
+            Require(!Get<bool>(play, "_starPitch"), "The card read STAR on a pool that cannot pay.");
+            Tick(play, "TickSet", State(lb: true), State());
+            var pitch = Get<PitchCommand>(play, "_pitch");
+            Require(Phase(play) == "Flight" && pitch != null && !pitch.Star, "The unaffordable request did not fly as the ordinary pitch.");
+            Require(Get<bool>(play, "_pitchStarAsked"), "The unaffordable request was not recorded as asked.");
+            var tell = Get<BroadcastHud.StarUnavailableTell?>(play, "_starNo");
+            Require(tell.HasValue && tell.Value.Action == StarAction.Pitch && tell.Value.Home == match.Top,
+                "The unavailable tell did not name the defense's Star Pitch on the release tick.");
+            ReachPlate(play, State(), State());
+            var requests = Get<List<StarRequest>>(match, "_starRequestsThisPlay");
+            var request = requests.SingleOrDefault(r => r.Action == StarAction.Pitch);
+            Require(request != null && !request.Afforded && request.StarsBefore == 0,
+                "The match did not record the typed request as not afforded.");
+            Require(match.DefenseStars == 0, "The unaffordable request spent Stars.");
+            return new GateCase { name = "star-unaffordable-ordinary-tell", phase = Phase(play), charge = pitch.Charge01 };
+        }
+
+        /// <summary>PH-16-R17: during the pitch LB is the modifier, not all-advance: a runner is not armed to tag and go.</summary>
+        static GateCase VerifyLbInTheFlightIsNotAllAdvance(MatchDirector play)
+        {
+            var match = Setup(play, Seats.One, homeAtBat: true);
+            Require(match.StationRunner(1, match.Offense.Roster.Last(c => c.Id != match.Batter.Id)), "Could not station the runner on first.");
+            Tick(play, "TickSet", State(lb: true), State());
+            Launch(play);
+            for (var f = 0; f < 3; f++) Tick(play, "TickFlight", State(lb: true), State());
+            Require(match.Runners.Where(r => r.Live && !r.IsBatter).All(r => !r.TagAndGo),
+                "LB during the pitch armed all-advance.");
+            return new GateCase { name = "lb-in-flight-not-all-advance", phase = Phase(play) };
+        }
+
+        /// <summary>
+        /// PH-16-R10: the LB that asked for a Star Swing, still down after the release, is no all-advance and no cutoff
+        /// until it comes up; up and pressed again, it is.
+        /// </summary>
+        static GateCase VerifySpentLbIsNoLiveVerb(MatchDirector play)
+        {
+            var match = Setup(play, Seats.One, homeAtBat: true);
+            Require(match.CanStarSwing, "The star fixture's offense cannot pay for its Star Swing.");
+            Launch(play);
+            for (var f = 0; f < 4; f++) Tick(play, "TickFlight", State(south: true, lb: true), State());
+            Tick(play, "TickFlight", State(lb: true), State());
+            Require(Get<SwingCommand>(play, "_swing")?.Star == true, "The fixture's release was not the Star Swing.");
+            Tick(play, "TickAtBat", State(lb: true), State());
+            Require(!Call<bool>(play, "StarFree", Controls.Pad1)
+                && !Controls.Pad1.AllAdvanceWith(false) && !Controls.Pad1.CutoffWith(false) && Controls.Pad1.AllAdvanceWith(true),
+                "The spent LB still reads as all-advance or the cutoff.");
+            Tick(play, "TickAtBat", State(), State());
+            Require(Call<bool>(play, "StarFree", Controls.Pad1), "LB released did not free the button.");
+            Tick(play, "TickAtBat", State(lb: true), State());
+            Require(Controls.Pad1.AllAdvanceWith(Call<bool>(play, "StarFree", Controls.Pad1)),
+                "A fresh LB press is not all-advance.");
+            return new GateCase { name = "spent-lb-no-live-verb", phase = Phase(play) };
+        }
+
+        /// <summary>Player 1 seated on keyboard and mouse, pitching the top against the CPU.</summary>
+        static Match SetupKeys(MatchDirector play)
+        {
+            Neutral();
+            var match = Match.Slice(Get<ContentCatalog>(play, "_content"), innings: 3, seed: 1);
+            Set(play, "_match", match);
+            var lifecycle = Get<MatchSeatLifecycle>(play, "_matchSeats");
+            lifecycle.Release();
+            lifecycle.Bind(Seats.One);
+            SetStatic(typeof(Controls), "_matchDevices", new DeviceSeats(null, null, pad1KeyboardMouse: true));
+            SetStatic(typeof(Controls), "_matchDevicesBound", true);
+            Invoke(play, "BeginSet");
+            Set(play, "_gateHold", true);
+            Set(play, "_t", 0f);
+            return match;
+        }
+
         static void Launch(MatchDirector play)
         {
             Invoke(play, "Launch", new PitchCommand("fastball", 0, false));
@@ -796,6 +978,8 @@ namespace GrandSluggers.EditorTools
             InputSystem.QueueStateEvent(_keyboard, keyboard);
             InputSystem.Update();
             Controls.Tick(Step);
+            // The held modifier's guard ticks before any reader, as MatchDirector.Update does (PH-16-R10).
+            Invoke(play, "TickStarModifiers");
             var input = new InputFrame(
                 Controls.Pad1.StickX, Controls.Pad1.StickY, Controls.Pad1.BuntThirdHeld || Controls.Pad1.BuntFirstHeld,
                 Controls.Pad2.StickX, Controls.Pad2.StickY, Controls.Pad2.BuntThirdHeld || Controls.Pad2.BuntFirstHeld);
@@ -814,7 +998,7 @@ namespace GrandSluggers.EditorTools
         }
 
         static GamepadState State(bool south = false, bool west = false, float stickX = 0, float stickY = 0,
-            bool cycle = false, bool east = false, bool lt = false, bool rt = false)
+            bool cycle = false, bool east = false, bool lt = false, bool rt = false, bool lb = false)
         {
             var state = new GamepadState
             {
@@ -825,6 +1009,7 @@ namespace GrandSluggers.EditorTools
             if (south) state = state.WithButton(GamepadButton.South);
             if (cycle) state = state.WithButton(GamepadButton.RightShoulder);
             if (east) state = state.WithButton(GamepadButton.East);
+            if (lb) state = state.WithButton(GamepadButton.LeftShoulder);
             return west ? state.WithButton(GamepadButton.West) : state;
         }
 
@@ -841,6 +1026,7 @@ namespace GrandSluggers.EditorTools
         static string Phase(MatchDirector play) => Get<object>(play, "_phase").ToString();
         static T Get<T>(object owner, string name) =>
             (T)owner.GetType().GetField(name, Hidden)!.GetValue(owner);
+        static bool IsFreeNow(this StarModifierState state) => StarModifier.IsFree(state);
         static T GetProperty<T>(object owner, string name) =>
             (T)owner.GetType().GetProperty(name, Hidden)!.GetValue(owner);
         static void Set(object owner, string name, object value) =>

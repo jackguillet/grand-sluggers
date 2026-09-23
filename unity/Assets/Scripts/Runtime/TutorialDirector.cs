@@ -239,10 +239,11 @@ namespace GrandSluggers.UnityClient
 
         bool ResolveTutorialOrAtBat(out AtBatResult hit, out PlayEvent finished)
         {
-            if (!TutorialOn) return _match.BeginAtBat(_pitch, _swing, out hit, out finished);
+            // The match settles the special each side asked for at its release (PH-16-R12), so it is handed the request.
+            if (!TutorialOn) return _match.BeginAtBat(PitchAsReleased, SwingAsReleased, out hit, out finished);
             var run = _coach.Tutorial;
-            if (_coach.PlayerPitches) run.Pitch(_pitch);
-            else run.Swing(_swing);
+            if (_coach.PlayerPitches) run.Pitch(PitchAsReleased);
+            else run.Swing(SwingAsReleased);
             hit = run.LastHit; finished = run.LastPlay;
             return run.IsGameContactLesson ? run.Match.LivePlay.Active
                 : hit != null && hit.InPlay && finished == null;

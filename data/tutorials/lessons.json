@@ -239,7 +239,7 @@
     },
     {
       "id": "T-P09",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "pitching.09"
       ],
@@ -480,7 +480,7 @@
     },
     {
       "id": "T-B09",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "batting.09"
       ],
@@ -1556,7 +1556,7 @@
     },
     {
       "id": "T-G03",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "game.03"
       ],
@@ -1574,6 +1574,31 @@
       "objective": "star-resource",
       "controls": [
         "control:pitching/Normal pitch",
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-G03-U",
+      "revision": 1,
+      "mechanics": [
+        "game.03"
+      ],
+      "title": "When the stars run out",
+      "category": "game",
+      "status": "implemented",
+      "issue": 803,
+      "reason": "Headless unavailable-special exercise (PH-16-R12); standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-G03-U",
+      "objective": "star-unavailable",
+      "controls": [
         "control:pitching/Star pitch"
       ],
       "tests": [
@@ -1903,7 +1928,7 @@
     },
     {
       "id": "T-SP-heatball",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.heatball"
       ],
@@ -1928,7 +1953,7 @@
     },
     {
       "id": "T-SP-charmball",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.charmball"
       ],
@@ -1953,7 +1978,7 @@
     },
     {
       "id": "T-SP-prismball",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.prismball"
       ],
@@ -1978,7 +2003,7 @@
     },
     {
       "id": "T-SP-phonyball",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.phonyball"
       ],
@@ -2003,7 +2028,7 @@
     },
     {
       "id": "T-SP-caskball",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.caskball"
       ],
@@ -2028,7 +2053,7 @@
     },
     {
       "id": "T-SP-skullball",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.skullball"
       ],
@@ -2053,7 +2078,7 @@
     },
     {
       "id": "T-SP-fogball",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.fogball"
       ],
@@ -2078,7 +2103,7 @@
     },
     {
       "id": "T-SP-fastball",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.fastball"
       ],
@@ -2103,7 +2128,7 @@
     },
     {
       "id": "T-SP-changeup",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.changeup"
       ],
@@ -2128,7 +2153,7 @@
     },
     {
       "id": "T-SP-breaker",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-pitch.breaker"
       ],
@@ -2153,7 +2178,7 @@
     },
     {
       "id": "T-SS-heat-swing",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.heat-swing"
       ],
@@ -2178,7 +2203,7 @@
     },
     {
       "id": "T-SS-heart-swing",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.heart-swing"
       ],
@@ -2203,7 +2228,7 @@
     },
     {
       "id": "T-SS-shell-swing",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.shell-swing"
       ],
@@ -2228,7 +2253,7 @@
     },
     {
       "id": "T-SS-phony-swing",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.phony-swing"
       ],
@@ -2253,7 +2278,7 @@
     },
     {
       "id": "T-SS-cask-swing",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.cask-swing"
       ],
@@ -2278,7 +2303,7 @@
     },
     {
       "id": "T-SS-furnace",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.furnace"
       ],
@@ -2303,7 +2328,7 @@
     },
     {
       "id": "T-SS-staff-swing",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.staff-swing"
       ],
@@ -2328,7 +2353,7 @@
     },
     {
       "id": "T-SS-ground",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.ground"
       ],
@@ -2353,7 +2378,7 @@
     },
     {
       "id": "T-SS-fly",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.fly"
       ],
@@ -2378,7 +2403,7 @@
     },
     {
       "id": "T-SS-line",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "star-swing.line"
       ],
@@ -5246,6 +5271,38 @@
       "strikes": 2,
       "startingStars": 1,
       "skill": "charmball"
+    },
+    {
+      "id": "T-G03-U",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "skill": "charmball",
+      "poolStars": 0
     },
     {
       "id": "T-G02",

@@ -119,6 +119,7 @@ public sealed partial class TutorialSession
             else Match.GiveDefenseStars(_setup.StartingStars);
         }
         if (_setup.OpponentStars > 0) Match.GiveOffenseStars(_setup.OpponentStars);
+        if (_setup.PoolStars is { } pool) Match.SetDefenseStarsForLesson(pool);
         if (!Match.SetOuts(_setup.Outs)) throw new InvalidDataException("Cannot stage tutorial outs.");
         if (_setup.Policy == "game-half") PrepareGameHalf();
         var namedRunners = _setup.RunnerIdsByProfile?.GetValueOrDefault(_catalog.Profile);
@@ -198,6 +199,8 @@ public sealed partial class TutorialSession
             ? EvaluateStarResource(command, play, beforeStars, beforeCost, hadMeter)
             : Lesson.Objective == "star-pitch"
             ? EvaluateStarPitch(command, play, beforeStars, beforeCost, hadMeter)
+            : Lesson.Objective == "star-unavailable"
+            ? EvaluateStarUnavailable(command, play, beforeStars)
             : TutorialPlateObjectives.Pitch(Lesson.Objective, _setup, command, play);
         if (verdict is not null) Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
