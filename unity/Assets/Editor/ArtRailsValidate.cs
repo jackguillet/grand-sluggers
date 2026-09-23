@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using GrandSluggers.Sim;
+using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace GrandSluggers.EditorTools
             AssetDatabase.Refresh();
             var errors = new List<string>(content.Art.Validate(content));
             errors.AddRange(ValidateCommonBatImport());
+            errors.AddRange(ValidateHomePlateClearance());
             if (created.Count > 0)
             {
                 Debug.Log("Grand Sluggers art rails: created " + created.Count + " folders\n" + string.Join("\n", created));
@@ -77,6 +79,70 @@ namespace GrandSluggers.EditorTools
                 errors.Add(visual + " imported geometry lost a handle, barrel, or knob component");
             if (-0.85f < handle.MinY || -0.85f > handle.MaxY)
                 errors.Add(visual + " authored grip -0.85 is outside the imported handle");
+            return errors;
+        }
+
+        /// <summary>Exercise the real kit and imported plate against the rendered home dirt.</summary>
+        public static List<string> ValidateHomePlateClearance()
+        {
+            var errors = new List<string>();
+            var root = new GameObject("PlateClearanceValidation");
+            var materials = new HashSet<Material>();
+            try
+            {
+                var kit = new FieldKit(root.transform);
+                var chalk = kit.Fill(HarborKitPaint.Fill.Chalk);
+                kit.HomePad(chalk);
+                kit.Plate();
+                var plate = kit.Anchor(FieldKit.HomePlateName);
+                var dirt = kit.Anchor(FieldKit.HomeDirtName).GetComponentInChildren<Renderer>().bounds;
+                if (kit.Anchor(FieldKit.HomePointName).gameObject.activeSelf)
+                    errors.Add("home-plate import missing: validation reached the primitive fallback");
+                var whiteTopArea = 0f;
+                var bounds = new Bounds();
+                var first = true;
+                foreach (var filter in plate.GetComponentsInChildren<MeshFilter>())
+                {
+                    var renderer = filter.GetComponent<MeshRenderer>();
+                    if (renderer == null) continue;
+                    if (first) { bounds = renderer.bounds; first = false; }
+                    else bounds.Encapsulate(renderer.bounds);
+                    var mesh = filter.sharedMesh;
+                    var vertices = mesh.vertices;
+                    var mats = renderer.sharedMaterials;
+                    for (var sub = 0; sub < mesh.subMeshCount; sub++)
+                    {
+                        if (sub >= mats.Length || mats[sub] != chalk) continue;
+                        var indices = mesh.GetTriangles(sub);
+                        for (var i = 0; i < indices.Length; i += 3)
+                        {
+                            var a = filter.transform.TransformPoint(vertices[indices[i]]);
+                            var b = filter.transform.TransformPoint(vertices[indices[i + 1]]);
+                            var c = filter.transform.TransformPoint(vertices[indices[i + 2]]);
+                            var normal = Vector3.Cross(b - a, c - a);
+                            if (normal.normalized.y < 0.9f) continue;
+                            if (Mathf.Min(a.y, Mathf.Min(b.y, c.y)) <= dirt.max.y)
+                                errors.Add("home-plate white face is buried in home dirt");
+                            whiteTopArea += normal.y * 0.5f;
+                        }
+                    }
+                }
+                if (whiteTopArea < (float)(HomeSet.PlateW * HomeSet.PlateDepth * 0.5))
+                    errors.Add("home-plate has no readable upward white pentagon");
+                Check(errors, "plate underside on dirt", bounds.min.y, dirt.max.y);
+                Check(errors, "plate left edge", bounds.min.x, (float)(Diamond.Home.X - HomeSet.PlateW * 0.5));
+                Check(errors, "plate right edge", bounds.max.x, (float)(Diamond.Home.X + HomeSet.PlateW * 0.5));
+                Check(errors, "plate catcher point", bounds.min.z, (float)(Diamond.Home.Z + HomeSet.PlatePointZ));
+                Check(errors, "plate pitcher edge", bounds.max.z, (float)(Diamond.Home.Z + HomeSet.PlateFrontZ));
+            }
+            finally
+            {
+                foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+                    foreach (var mat in renderer.sharedMaterials)
+                        if (mat != null) materials.Add(mat);
+                UnityEngine.Object.DestroyImmediate(root);
+                foreach (var mat in materials) UnityEngine.Object.DestroyImmediate(mat);
+            }
             return errors;
         }
 

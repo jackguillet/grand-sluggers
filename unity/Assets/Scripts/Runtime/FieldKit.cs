@@ -173,7 +173,9 @@ namespace GrandSluggers.UnityClient
         {
             var plate = Anchor(HomePlateName);
             var point = Anchor(HomePointName);
-            var home = new Vector3((float)Diamond.Home.X, 0f, (float)Diamond.Home.Z);
+            // The authored mesh's underside is at its origin. Seat it on the
+            // same dirt top as the fallback, not below the packed home pad.
+            var home = new Vector3((float)Diamond.Home.X, ParkDiamond.PathTop, (float)Diamond.Home.Z);
             Wipe(plate);
             Wipe(point);
             Place(plate, home, Vector3.one, Quaternion.identity);
