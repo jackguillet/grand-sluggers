@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>The lineup board uses one layout for rendering, pointer targets and pad navigation.</summary>
-    public static class TeamSheet
+    public static partial class TeamSheet
     {
         public enum Action { None, Player, Continue, Back, Fill }
         static GUIStyle _title, _heading, _body, _small, _name, _mark;
@@ -185,7 +185,19 @@ namespace GrandSluggers.UnityClient
                 Label(r.x + 16, r.y + 60, r.width - 32, 70, "Hover over a player or move to them\nto see their card and chemistry.", _body);
                 return;
             }
-            var card = lineup.CardFor(who).Value;
+            CardDetails(who, r);
+            if (seat != LineupSeat.Cpu && lineup.Step == LineupStep.DefenseSetup)
+            {
+                var keys = Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1);
+                Label(r.x + 16, r.y + 240, r.width - 32, 20, ready
+                    ? (keys ? "Waiting for other player · F to edit" : "Waiting for other player · West to edit")
+                    : (keys ? "Q  Continue to match settings" : "North  Continue to match settings"), _small);
+            }
+        }
+
+        static void CardDetails(Character who, Rect r)
+        {
+            var card = CharacterCard.Of(who);
             Portrait(who, new Rect(r.x + 12, r.y + 39, 100, 96));
             Label(r.x + 125, r.y + 38, r.width - 137, 26, card.Name.ToUpperInvariant(), _heading);
             Label(r.x + 125, r.y + 64, r.width - 137, 22, HowToPlay.CardBatHand(card.Bats), _small);
@@ -201,13 +213,6 @@ namespace GrandSluggers.UnityClient
             }
             Label(r.x + 16, r.y + 184, r.width - 32, 24, card.StarPitch, _body);
             Label(r.x + 16, r.y + 207, r.width - 32, 23, card.StarSwing + " · " + card.FieldVerb, _small);
-            if (seat != LineupSeat.Cpu && lineup.Step == LineupStep.DefenseSetup)
-            {
-                var keys = Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1);
-                Label(r.x + 16, r.y + 240, r.width - 32, 20, ready
-                    ? (keys ? "Waiting for other player · F to edit" : "Waiting for other player · West to edit")
-                    : (keys ? "Q  Continue to match settings" : "North  Continue to match settings"), _small);
-            }
         }
 
         static void Portrait(Character who, Rect r)

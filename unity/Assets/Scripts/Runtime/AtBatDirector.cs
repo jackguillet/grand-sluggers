@@ -269,7 +269,20 @@ namespace GrandSluggers.UnityClient
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
             var pitchFamily = PitchFamily.Fastball;
+            var wasPicking = _swapPick != null;
             if (HumanPitches) TickSwapPick(dt, mound);
+            if (wasPicking || _swapPick != null)
+            {
+                // The window owns this frame, including its open/close edge. No pickoff,
+                // rubber walk, steal or banked charge can leak through a menu action.
+                TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
+                    ref _pitchButton, ref _pitchCharge, ref _pitchPast, accepting: false);
+                _pitchSelect = _pitchSelect with { Locked = false };
+                if (HumanBats) TickPlate(dt, accepting: false, commits: false);
+                _charge = _chargePast = 0;
+                _buntSide = BuntSide.None;
+                return;
+            }
             // The arm edge is read from the button as it stood *before* this tick's step (#813).
             var prevPitchButton = _pitchButton;
             if (HumanPitches)
@@ -427,12 +440,15 @@ namespace GrandSluggers.UnityClient
                 if (mound.SwapPitcher && PitcherSwapPick.CanOpen(_match))
                 {
                     _swapPick = new PitcherSwapPick(_match);
+                    TeamSheet.BeginPitcherPick();
                     _swapArmed = MenuNav.Arm(mound.MenuAxisX);
                     _swapHold = 0f;
                 }
                 return;
             }
-            if (mound.SwapPitcher)
+            var pointer = Controls.SeatUsesKeyboard(mound.Index)
+                ? TeamSheet.PitcherPointer(_swapPick) : TeamSheet.PitcherAction.None;
+            if (mound.SwapPitcher || pointer == TeamSheet.PitcherAction.Confirm)
             {
                 if (!TutorialOn || !_coach.Tutorial.SwapPitcher(_swapPick.Current.Who.Id))
                     _swapPick.Confirm(_match);
@@ -442,7 +458,7 @@ namespace GrandSluggers.UnityClient
                 _pitchSelect = PitchSelectionState.Reset;
                 return;
             }
-            if (mound.EastDown)
+            if (mound.EastDown || pointer == TeamSheet.PitcherAction.Cancel)
             {
                 _swapPick = null;
                 return;

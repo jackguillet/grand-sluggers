@@ -231,7 +231,7 @@ public static partial class HowToPlay
             "The sweet-spot oval follows the batter, never the pitch; the box resets each pitch.",
             "A pale ring in SET marks your rubber, not where the pitch will cross. In the air, stick L/R break.",
             "Take outside the white frame: ball. Swing and miss outside: strike.",
-            "D-pad 1 2 3 + South pickoff: a runner on the bag is safe, one who broke is caught between bags. Select opens the swap: stick picks any fielder, Select again.",
+            "D-pad 1 2 3 + South pickoff: a runner on the bag is safe, one who broke is caught between bags. Select opens a window: inspect any fielder’s stats, ARM and chemistry. Left/right browses; Select confirms, East cancels.",
         ],
         [
             "A/D or mouse walk the rubber (pitch) or the box (hit).",
@@ -239,7 +239,7 @@ public static partial class HowToPlay
             "The sweet-spot oval follows the batter, never the pitch; the box resets each pitch.",
             "A pale ring in SET marks your rubber, not where the pitch will cross. In the air, A/D break.",
             "Take outside the white frame: ball. Swing and miss outside: strike.",
-            "1 2 3 + Space pickoff: a runner on the bag is safe, one who broke is caught between bags. R opens the swap: A/D picks any fielder, R again.",
+            "1 2 3 + Space pickoff: a runner on the bag is safe, one who broke is caught between bags. R opens a window: inspect any fielder’s stats, ARM and chemistry. A/D or hover browses; R confirms, G cancels.",
         ]),
         new("running", "Running", "running",
         [
