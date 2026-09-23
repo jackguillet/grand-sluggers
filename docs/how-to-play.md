@@ -6,7 +6,7 @@ Grand Sluggers uses controllers. One plays against CPU; two control separate tea
 
 Choose **Exhibition** on the title screen. Up/down chooses a row; left/right changes its value; South confirms; East returns. Pick stadium, day/night and hazards, then captains, player count and your home/away side. Home bats in the bottom half. P2 chooses their own captain with their controller.
 
-Build nine players: South adds the focused pool player. West fills from pool focus or removes a focused roster player. After nine, South continues to batting order and field positions. South picks a source, then a destination to swap. LB/RB changes order/field panels. East cancels a pick, withdraws Ready, then returns. North readies your seat. On the settings page P1 changes innings, CPU skill, mercy and Stars; each human readies separately.
+Build nine players: South adds the focused pool player. RB fills your team from any focus. West removes a focused roster player. After nine, South continues to batting order and field positions. South picks a source, then a destination to swap. LB/RB changes order/field panels. East cancels a pick, withdraws Ready, then returns. North readies your seat. On the settings page P1 changes innings, CPU skill, mercy and Stars; each human readies separately.
 
 View/Select opens How to play. LB/RB changes pages; East returns to the same screen. Start opens Call time/options. Resume, Restart, How to play, Reset stick where available, Arrange defense before a pitch, Title and Quit are reachable with the controller.
 

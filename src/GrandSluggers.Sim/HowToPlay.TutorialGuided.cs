@@ -29,7 +29,7 @@ public static partial class HowToPlay
     public static string TutorialGuidedControls(string id, InputScheme scheme) => id switch
     {
         "T-G01" => scheme == InputScheme.Pad
-            ? "South adds a pool player. South after nine opens setup. Pick two batting slots with South to swap. LB/RB switches to the diamond; pick two fielders to swap positions."
+            ? "South adds a pool player; RB fills the remaining places, but the lesson needs your own left-handed pick first. South after nine opens setup. Pick two batting slots with South to swap. LB/RB switches to the diamond; pick two fielders to swap positions."
             : "Click a pool player to add them. Continue after nine opens setup. Click two batting slots to swap, then two fielders to swap positions. WASD moves; Space picks; G switches list / diamond.",
         "T-G05" => "Connect two pads. On captain select choose 2 PLAYERS, then South to confirm both seats.",
         "T-G06" => scheme == InputScheme.Pad

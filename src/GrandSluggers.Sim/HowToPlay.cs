@@ -416,7 +416,7 @@ public static partial class HowToPlay
         new("lineup", "Lineup", "lineup",
         [
             "Team Setup first, then Offense / Defense Setup.",
-            "Pick a head. South adds them. Both teams get the same stars when ON. Focus shows a card and softly highlights buddies.",
+            "Pick a head. South adds them. RB fills your team; West removes a roster player. Both teams get the same stars when ON. Focus shows a card and softly highlights buddies.",
             "Two diamonds between batting bars. Stick moves; LB/RB switches order / field. South picks, then swaps. East cancels.",
             "North continues to settings when both players are ready.",
         ],
