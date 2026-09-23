@@ -37,13 +37,22 @@ public sealed record PlayTraceCommand(int I, double T, LivePlayCommand Input);
 public enum PlayTraceMarkKind
 {
     Contact, RunnerPlayStart, Possession, ThrowRelease, ThrowTargetReached, UncoveredWait,
-    Reception, LooseBall, RunnerArrival, RunnerAward, Out, Verdict
+    Reception, LooseBall, RunnerArrival, RunnerAward, Out, Verdict,
+    /// <summary>A body touched a park's status volume (F4-b, #896): the fielder or the runner, and <see cref="PlayTraceMark.Hazard"/>.</summary>
+    BodySlowed
 }
 
 /// <summary>T is the simulation execution clock. LowerT bounds sampled runner arrivals; animation release is unobserved.</summary>
 public sealed record PlayTraceMark(int I, int Command, PlayTraceMarkKind Kind, double T, double LowerT,
     int? Leg, string? Fielder, int? Bag, PlayTraceRunner? Runner, OutType? OutType,
-    double? PredictedRunnerAt, PlayTraceThrow? Flight, InPlay.ThrowVerdict? Verdict, PlayTraceMarkGeometry? Geometry = null);
+    double? PredictedRunnerAt, PlayTraceThrow? Flight, InPlay.ThrowVerdict? Verdict, PlayTraceMarkGeometry? Geometry = null,
+    PlayTraceHazard? Hazard = null);
+
+/// <summary>
+/// The hazard instance a mark is about (F4-b, #896): its index in the play's <see cref="Park.Hazards"/>, its type, the disc the
+/// play read (the night disc at night) and, for a status volume's touch, the play second the body's slow runs to at least.
+/// </summary>
+public sealed record PlayTraceHazard(int Index, string Type, double X, double Z, double RadiusFt, double UntilT);
 public sealed record PlayTraceMarkGeometry(double BallX, double BallY, double BallZ, string GlovePos,
     double GloveX, double GloveZ, bool HoldsUnthrownBall, string ReceiverPos, double? ReceiverX, double? ReceiverZ,
     double? ReceiverDistanceFt, double CoverRadiusFt, bool ReceiverInReach);
@@ -51,12 +60,18 @@ public sealed record PlayTraceThrow(string FromPos, string ReceiverPos, int Bag,
     double FromX, double FromY, double FromZ, double ToX, double ToY, double ToZ,
     double DurationSec, double SpeedMul, string Chemistry);
 
-/// <summary>Assignments and gates are separate from measured displacement: cover/coast can differ from pursuit speed.</summary>
+/// <summary>
+/// Assignments and gates are separate from measured displacement: cover/coast can differ from pursuit speed.
+/// <see cref="PursuitSpeedFtSec"/> is the speed the table asks (the planner's, at full speed); <see cref="FrozenPreview"/> is the
+/// heart swing's play-wide slow. <see cref="Slowed"/> is true on a frame a park's status volume slowed this body's steps
+/// (F4-b, #896) and absent otherwise, so a trace with no touch is the bytes it always was.
+/// </summary>
 public sealed record PlayTraceFielder(string Pos, Character Who, double X, double Z,
     double ReadEligibleAt, bool ReadEligible, bool Selected, bool HumanOwned,
     double PursuitSpeedFtSec, bool FrozenPreview, bool DashHeld, bool Coasting,
     bool CutoffAssigned, bool BackupAssigned, double DiveRemainingSec, double JumpRemainingSec,
-    double RecoilRemainingSec, double SwapLockRemainingSec, double? ObservedVx = null, double? ObservedVz = null);
+    double RecoilRemainingSec, double SwapLockRemainingSec, double? ObservedVx = null, double? ObservedVz = null,
+    bool? Slowed = null);
 public sealed record PlayTraceCoverage(int Bag, string Pos, double X, double Z, double DistanceFt,
     double RadiusFt, bool InReach, bool PossessionInReach, bool ForceAtBag);
 
@@ -91,7 +106,7 @@ public sealed partial class LivePlaySystem
                 HumanGlove(pos), FieldingResolver.ChaseSpeedFt(kv.Value, pos, Preview, R, dash), Preview?.Frozen ?? false,
                 dash, Coasting(pos), pos == _cutoffPos, pos == _backupPos,
                 pos == GlovePos ? DiveT : 0, pos == GlovePos ? JumpT : 0,
-                pos == GlovePos ? RecoilT : 0, pos == GlovePos ? SwapLock : 0);
+                pos == GlovePos ? RecoilT : 0, pos == GlovePos ? SwapLock : 0, Slowed: IsSlowed(pos) ? true : null);
         }).ToArray();
     }
 

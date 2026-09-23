@@ -236,7 +236,9 @@ public sealed class RulesTests
             // bool joined the leaves with the family library (#810: breakDamped, offSpeed). A flag
             // the JSON and the code disagree on is the same drift as a number, and nothing compared
             // it before there was one.
-            if (p.PropertyType == typeof(double) || p.PropertyType == typeof(int)
+            // double? joined them with a status volume's slowSec (F4-b): a number a row may leave out is still a number
+            // the JSON and the code must agree on, absent included.
+            if (p.PropertyType == typeof(double) || p.PropertyType == typeof(int) || p.PropertyType == typeof(double?)
                 || p.PropertyType == typeof(string) || p.PropertyType == typeof(bool))
             {
                 if (!Equals(va, vb)) differences.Add($"{name}: json {va} vs code {vb}");
