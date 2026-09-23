@@ -458,10 +458,11 @@ public class MatchTests
     }
 
     [Fact]
-    public void SparkStartsWithMoreStars()
+    public void TheSliceStartsBothTeamsOnTheOneReserve()
     {
         var match = Match.Slice(_content, seed: 1);
-        Assert.True(match.HomeStars >= match.AwayStars);
+        Assert.Equal(_content.Rules.Stars.StartingReserve, match.HomeStars);
+        Assert.Equal(match.HomeStars, match.AwayStars);
         Assert.Equal("Rio Sparks", match.Home.Captain.Name);
         Assert.Equal("Ashlord", match.Away.Captain.Name);
     }

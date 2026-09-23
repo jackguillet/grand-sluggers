@@ -2,7 +2,7 @@
 
 Original characters. Factions exist so chemistry has a graph that a player can learn in one sitting.
 
-Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Now in data: **6 captains + 18 role players**. Exhibition auto-fills a 9 from the captain, faction mates, then chemistry, and the lineup is a draft: swap the eight, assign gloves (P, C, IF, OF), hearts and scribbles update starting stars live.
+Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Now in data: **6 captains + 18 role players**. Exhibition auto-fills a 9 from the captain, faction mates, then chemistry, and the lineup is a draft: swap the eight, assign gloves (P, C, IF, OF), and hearts and scribbles show chemistry vs the captain (it pays off in the field; both teams start on the same Stars).
 
 Stats are 1–10. They will move.
 
