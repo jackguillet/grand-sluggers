@@ -46,7 +46,7 @@ public class HowToPlayTests
     [Theory]
     [InlineData(InputScheme.Pad)]
     [InlineData(InputScheme.Keys)]
-    public void RunningSpreadHasPerRunnerVerbsAndTheStealArmWithHome(InputScheme scheme)
+    public void RunningSpreadHasPerRunnerVerbsAndImmediateStealWithHome(InputScheme scheme)
     {
         var running = RoleTables.Of(scheme).First(b => b.Id == "running");
         Row(running, "Select runner");
@@ -55,9 +55,10 @@ public class HowToPlayTests
         Assert.Contains("that runner only", halt.Press);
         var steal = Row(running, "Steal");
         Assert.Contains(scheme == InputScheme.Pad ? "L3" : "Z", steal.Press);
-        Assert.Contains(scheme == InputScheme.Pad ? "Stick to the bag" : "WASD to the bag", steal.Press);
+        Assert.Contains(scheme == InputScheme.Pad ? "Stick forward" : "WASD forward", steal.Press);
         Assert.Contains("Home", steal.Press);
-        Assert.Contains("SET", steal.Press);
+        Assert.Contains("NOW", steal.Press);
+        Assert.Contains("before or during the pitch", steal.Press);
         var close = Row(running, "Close play");
         Assert.Contains("third", close.Press);
         Assert.Contains("home", close.Press);
@@ -67,7 +68,8 @@ public class HowToPlayTests
         // The running page itself: the steal of home, the perfect steal, the per-runner send and return, tag-and-go.
         var page = HowToPlay.Must("running").Shown(scheme);
         Assert.Contains(page, l => l.Contains("home included"));
-        Assert.Contains(page, l => l.Contains("perfect steal"));
+        Assert.Contains(page, l => l.Contains("starts a steal NOW"));
+        Assert.DoesNotContain(page, l => l.Contains("perfect steal"));
         Assert.Contains(page, l => l.Contains("sends the selected runner") && l.Contains("returns them"));
         Assert.Contains(page, l => l.Contains("tag and go"));
         Assert.Contains(page, l => l.Contains("CAUGHT STEALING") && l.Contains("STOLEN BASE"));
@@ -109,8 +111,9 @@ public class HowToPlayTests
         var swap = Row(pitching, "Swap pitcher");
         Assert.Contains("any fielder", swap.Press);
         var pickoff = Row(pitching, "Pickoff");
-        Assert.Contains("On the bag is safe", pickoff.Press);
-        Assert.Contains("SET", pickoff.Press);
+        Assert.Contains("before charge", pickoff.Press);
+        Assert.Contains("any base", pickoff.Press);
+        Assert.Contains("BALK", pickoff.Press);
         Assert.Contains(HowToPlay.Must("the-box").Shown(scheme), l => l.Contains("pickoff") && l.Contains("on the bag is safe"));
     }
 

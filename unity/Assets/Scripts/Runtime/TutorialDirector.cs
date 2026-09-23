@@ -129,8 +129,10 @@ namespace GrandSluggers.UnityClient
                 _tutorialWasModal = false;
                 if (!_coach.Tutorial.IsFieldLesson && !_match.LivePlay.Active && _coach.Tutorial.Phase == TutorialPhase.Attempt)
                 {
+                    if (_coach.Tutorial.IsStealLesson) ReadTutorialSteal();
                     var left = (double)dt;
-                    while (left > 0 && !_match.LivePlay.Active) { var step = Math.Min(left, .05); _coach.Tutorial.Tick(step); left -= step; }
+                    var runnerInput = _coach.Tutorial.IsStealLesson ? RunInput() with { AllAdvance = false, SouthDown = false, WestDown = false } : LivePadInput.Dead;
+                    while (left > 0 && !_match.LivePlay.Active) { var step = Math.Min(left, .05); _coach.Tutorial.Tick(step, runnerInput); left -= step; }
                     if (_coach.Tutorial.IsStealLesson && _match.LivePlay.Active)
                     { StartRunnerPlay(null); return true; }
                 }

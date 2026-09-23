@@ -162,6 +162,10 @@ public static class BroadcastHud
         HudRect Banner);
 
     // Coaching must leave the ordinary score, bases and player cards readable.
+    public static readonly HudRect StealInset = new(0.018, 0.255, 0.29, 0.29);
+    public const string StealInsetTitle = "RUNNER RACE";
+    public const string PitchCommitted = "COMMITTED · deliver the pitch";
+
     public static readonly HudRect TutorialCoach = new(0.02, 0.018, 0.65, 0.19);
 
     /// <summary>

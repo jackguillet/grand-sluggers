@@ -73,6 +73,14 @@
       "blend": 0
     },
     {
+      "id": "steal-race",
+      "look": "race",
+      "pos": { "x": 0, "y": 64, "z": -64 },
+      "target": { "x": 0, "y": 2, "z": 0 },
+      "fov": 50,
+      "blend": 0
+    },
+    {
       "id": "throw",
       "look": "bag",
       "pos": { "x": 0, "y": 6.2, "z": -14 },

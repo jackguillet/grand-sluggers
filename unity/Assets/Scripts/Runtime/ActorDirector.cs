@@ -29,6 +29,7 @@ namespace GrandSluggers.UnityClient
 
         void DrawActors(float dt)
         {
+            UpdateStealInset();
             if (_turntable) return;
             _used.Clear();
             if (_phase is Phase.Title or Phase.Select)
@@ -212,6 +213,8 @@ namespace GrandSluggers.UnityClient
                     DefenseFacing(kv.Key, x, z, highlighted && !buddyPartner));
                 if (pose == Motion.Verb.ThrowPitch && _phase == Phase.Flight)
                     hero.SampleMotion((float)Motion.PitchRelease + _flight, dt);
+                else if (pose == Motion.Verb.Throw && _throwing && kv.Key == _throwFromPos)
+                    hero.SampleMotion((float)StealPresentation.ThrowSample(_throwT, _match.LivePlay.ThrowReleaseSec), dt);
                 else hero.Tick(dt);
             }
 
@@ -304,9 +307,8 @@ namespace GrandSluggers.UnityClient
             }
             else
             {
-                PlaceRunner(_match.First, Diamond.First, 1);
-                PlaceRunner(_match.Second, Diamond.Second, 2);
-                PlaceRunner(_match.Third, Diamond.Third, 3);
+                foreach (var runner in _match.Runners)
+                    if (!runner.IsBatter && !runner.Out) PlaceRunner(runner);
             }
 
             foreach (var kv in _heroes)
@@ -322,6 +324,7 @@ namespace GrandSluggers.UnityClient
             var heat = _last != null && _last.Heatball;
             if ((_caught || _buddy) && !_throwing && _phase is Phase.InPlay or Phase.StealThrow)
                 HoldBallInGlove();
+            if (_throwing && _phase is Phase.InPlay or Phase.StealThrow) HoldPreparingThrow();
             var inFlight = _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow;
             var inPlay = _phase is Phase.InPlay or Phase.StealThrow;
             if (_replaying || inFlight || _phase is Phase.Set || _spec.Active)
@@ -451,12 +454,13 @@ namespace GrandSluggers.UnityClient
             h.Tick(Time.deltaTime);
         }
 
-        void PlaceRunner(Character who, (double X, double Z) bag, int bagNum)
+        void PlaceRunner(Runner state)
         {
-            if (who == null) return;
-            var state = _match.RunnerAt(bagNum);
-            var live = _phase is Phase.InPlay or Phase.StealThrow;
-            // No leads (D1): a runner stands on the bag until contact, a steal break, or a send. Live, the body is the sim's.
+            var who = state.Who;
+            var bagNum = state.FromBag;
+            var bag = Diamond.Bag(bagNum);
+            var live = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow;
+            // Every phase draws the same body; animation never reconstructs steal distance.
             var spot = state != null && live ? state.Position : bag;
             var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
@@ -469,20 +473,6 @@ namespace GrandSluggers.UnityClient
                     : state.Moving && !state.Held ? Motion.Verb.Run
                     : Motion.Verb.Idle;
             }
-            else if (state != null && state.StealArmed && _phase == Phase.Flight)
-            {
-                // The break (§11.2, D2): the armed body runs at the air speed from release (a perfect steal from before it).
-                var feet = StealBreak.FeetAt(who, state.StealArm, _flight, _content.Rules);
-                if (feet > 0)
-                {
-                    var u = feet / Diamond.Baseline;
-                    spot = (bag.X + (next.X - bag.X) * u, bag.Z + (next.Z - bag.Z) * u);
-                    pose = Motion.Verb.Run;
-                }
-                else pose = Motion.Verb.StealLead;
-            }
-            // A perfect arm is the windup's: its pip shows once the windup starts, never in SET (the CPU pitcher cannot read it, §11.6).
-            else if (state != null && state.StealArmed && state.StealArm != StealArm.Perfect) pose = Motion.Verb.StealLead;
             h.SetPose(pose);
             h.SetGear(_match.OffenseBat, _match.DefenseGlove);
             h.SetHeld(false, false);
@@ -495,7 +485,7 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>
         /// The offense pad before the pitch (spec §9.2, §11.1): D-pad selects, stick toward the next
-        /// bag or L3 arms the steal, stick back cancels it, RB returns, LB + RB halts. LB is not
+        /// bag or L3 starts the steal, stick back returns, RB returns, LB + RB halts. LB is not
         /// all-advance here: during SET and the flight it is the held special modifier (PH-16-R17), and
         /// all-advance (tag-and-go on a fly included) is a live-ball verb, read through the sim's Tick
         /// (RunInput) once the ball is in play.
@@ -504,6 +494,8 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null || _match.LeadBag == 0) return;
             if (!HumanBats || _phase is not (Phase.Set or Phase.Flight)) return;
+            // Tutorial UI owns input and evidence before advancing its pre-contact clock.
+            if (TutorialOn && _coach.Tutorial.IsStealLesson) return;
             var run = RunPad;
             if (run.ThrowBag is >= 1 and <= 3)
                 _match.SelectRunner(run.ThrowBag);
@@ -512,17 +504,9 @@ namespace GrandSluggers.UnityClient
             var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
             var stick = InPlay.DiamondBag(run.StickX, run.StickY);
             var verb = Baserunning.StickVerb(stick, bag);
-            // Seconds into the windup (§11.2, D2): SET is before it; the flight clock counts from the release.
-            var windupSec = _phase == Phase.Flight ? _flight + (float)Motion.PitchRelease : -1f;
-            if (TutorialOn && _coach.Tutorial.IsStealLesson)
-            {
-                if (run.Steal || verb == RunStick.Steal && !_match.StealAttempt)
-                    _coach.Tutorial.ArmSteal(bag);
-                return;
-            }
-            if (verb == RunStick.Steal && !_match.StealAttempt) _match.StartSteal(windupSec);
-            else if (verb == RunStick.Return) _match.ReturnToBag();
-            if (run.Steal) _match.ToggleSteal(windupSec);
+            if (verb == RunStick.Steal) _match.StartStealAt(bag);
+            else if (verb == RunStick.Return) _match.ReturnToBagAt(bag);
+            if (run.Steal) _match.StartStealAt(bag);
             if (TrainingOn) _coach.OnRun(_match);
         }
 

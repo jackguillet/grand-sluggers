@@ -165,6 +165,7 @@ namespace GrandSluggers.UnityClient
             _pitchCharge = 0;
             _chargePast = 0;
             _pitchButton = default;
+            _previousSetupBag = 0;
             // The next pitch (§5.8): the must-release, the spent triggers and a spent cancel carry; a hold must come up.
             _plate = _plate.NextPitch();
             // Fastball, unlocked, at every SET entry (PH-02-R5): nothing on the shared screen marks
@@ -269,7 +270,9 @@ namespace GrandSluggers.UnityClient
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
             var pitchFamily = PitchFamily.Fastball;
-            if (HumanPitches) TickSwapPick(dt, mound);
+            if (HumanPitches && !_match.PitchSetup.Committed) TickSwapPick(dt, mound);
+            // A legal base throw is read before South can begin a pitch charge.
+            if (HumanPitches && ReadSetupThrow(mound, _t >= (float)_feel.PitcherReadySeconds && _swapPick == null)) return;
             // The arm edge is read from the button as it stood *before* this tick's step (#813).
             var prevPitchButton = _pitchButton;
             if (HumanPitches)
@@ -278,6 +281,8 @@ namespace GrandSluggers.UnityClient
                     _t >= (float)_feel.PitcherReadySeconds && _swapPick == null);
             else
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
+            if (HumanPitches && (pitchButton.Next.Armed || pitchButton.Committed) && !_match.PitchSetup.Committed)
+                CommitPitchSetup();
             if (HumanPitches)
             {
                 // One SET tick of the cycle (spec §3, PH-02-R3/R4/R5). Cycling is legal before the
@@ -323,6 +328,7 @@ namespace GrandSluggers.UnityClient
             _starPitch = HumanPitches && StarReady(mound) && _match.CanStarPitch;
             _starSwing = HumanBats && StarReady(box) && _match.CanStarSwing;
             TickBaserunning(dt);
+            if (AdvanceSetup(dt)) return;
             if (HumanBats)
             {
                 // Down resets the box in SET only (§5.4); in flight the same axis aims launch.
@@ -333,7 +339,7 @@ namespace GrandSluggers.UnityClient
             TickSquare(dt, SquaredNow);
             if (HumanPitches)
             {
-                if (_swapPick != null) { }
+                if (_swapPick != null || _match.PitchSetup.Committed) { }
                 else if (mound.StickY < -0.7f) _match.ResetPitcher();
                 else _match.WalkPitcher(PitchWorldX(mound.StickX) * dt * 1.6f);
                 _moundX = (float)_match.PitcherOffsetX;
@@ -341,11 +347,6 @@ namespace GrandSluggers.UnityClient
                 _aimY = 0;
                 if (_t >= (float)_feel.PitcherReadySeconds)
                 {
-                    if (mound.ThrowBag > 0 && mound.SouthDown)
-                    {
-                        BeginPickoff(mound.ThrowBag);
-                        return;
-                    }
                     if (pitchButton.Committed)
                     {
                         Launch(PlayerPitch(pitchButton.CommitFill01, pitchButton.CommitSecondsPastFull, pitchFamily,
@@ -383,6 +384,8 @@ namespace GrandSluggers.UnityClient
             if (TutorialOn && _coach.Tutorial.Pickoff(bag))
             {
                 if (_match.LivePlay.Active) StartRunnerPlay(null);
+                else if (_coach.Tutorial.LastPlay is { } tutorialPlay)
+                { _last = tutorialPlay; Banner(); BeginResult(); }
                 return;
             }
             if (_match.BeginPickoff(bag, LiveSeatsNow(), out var dead, _match.LivePlay.Source))
@@ -403,6 +406,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return "";
             var set = _phase == Phase.Set && HumanPitches;
+            if (set && _match.PitchSetup.Committed) return BroadcastHud.PitchCommitted;
             return BroadcastHud.PitcherExtra(
                 _starPitch && HumanPitches,
                 set ? _swapPick?.Tell : null,
@@ -541,6 +545,7 @@ namespace GrandSluggers.UnityClient
 
         void Launch(PitchCommand pitch)
         {
+            CommitPitchSetup();
             pitch = _match.PreparePitch(pitch);
             _pitch = pitch;
             var mph = _match.PitchSpeedMph(pitch);
@@ -596,7 +601,13 @@ namespace GrandSluggers.UnityClient
         void TickFlight(float dt)
         {
             AimSetCamera();
+            var previousFlight = _flight;
             _flight += dt;
+            TickBaserunning(dt);
+            // Split a render frame at release so the setup and airborne speed clocks agree.
+            var heldSeconds = Mathf.Min(dt, Mathf.Max(0, -previousFlight));
+            if (AdvanceSetup(heldSeconds)) return;
+            if (HumanPitches && !_pitchAir && ReadSetupThrow(PitchPad, true)) return;
             if (HumanBats && !(TutorialOn && _coach.Tutorial.IsStealLesson))
             {
                 var box = BatPad;
@@ -630,15 +641,17 @@ namespace GrandSluggers.UnityClient
                 var due = (float)Motion.PitchRelease;
                 if (_flight < 0)
                 {
-                    if (TutorialOn && _coach.Tutorial.IsStealLesson) TickBaserunning(dt);
                     return;
                 }
                 PitcherHero()?.SampleMotion(due);
                 CaptureReleaseFromHand();
                 _park.Ball.Release();
                 _pitchAir = true;
+                _match.PitchSetup.ReleaseBall();
                 dt = Mathf.Min(dt, _flight);
             }
+            BufferCatcherInput();
+            if (AdvanceSetup(Mathf.Min(dt, Mathf.Max(0, _pitchDur - Mathf.Max(0, previousFlight))))) return;
             var u = Mathf.Clamp01(_flight / _pitchDur);
             // Break is a stick direction after release (spec §4.1): screen-relative from either camera.
             if (HumanPitches)
@@ -658,7 +671,6 @@ namespace GrandSluggers.UnityClient
             var p = PitchFlight.Point(shown, u, _match.Pitcher.StarPitch, from);
             _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             ShowAimTell(HumanPitches ? _pitch : null);
-            TickBaserunning(dt);
             // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9):
             // the break it can see is the one drawn so far, never the steer still to come (PH-18).
             if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
@@ -770,6 +782,7 @@ namespace GrandSluggers.UnityClient
         void StartFly(AtBatResult hit, bool alreadyLive = false)
         {
             _phase = Phase.InPlay;
+            _liveBeganFrame = Time.frameCount;
             _t = 0;
             _path = null;
             // Every batted ball — foul territory included (§7.11) — is one live ball the sim plays out.
