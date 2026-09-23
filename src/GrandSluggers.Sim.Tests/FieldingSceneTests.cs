@@ -88,8 +88,7 @@ public class FieldingSceneTests
             else
                 Assert.Equal(0.90, bad.SpeedMul);
         }
-        if (TestRoot.Compact) Assert.Equal(0, slanted);
-        else Assert.InRange(slanted, 400 * 0.12, 400 * 0.30);
+        Assert.Equal(0, slanted);
     }
 
     [Fact]
@@ -111,8 +110,7 @@ public class FieldingSceneTests
         Assert.Equal(c.RadiusBaseFt + c.WindowPadFt, plain);
         Assert.Equal(plain + c.DiveReachFt, dive);
         Assert.Equal(plain + c.JumpReachFt, jump);
-        if (TestRoot.Compact) Assert.Equal(dive, both);
-        else Assert.True(both > dive);
+        Assert.Equal(dive, both);
         Assert.True(both > jump);
         var lunged = FieldDash.Lunge(0, 0, 30, 0, 10);
         Assert.InRange(lunged.X, 9, 11);

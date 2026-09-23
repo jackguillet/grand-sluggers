@@ -6,20 +6,18 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class TutorialGameTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load();
-    public static IEnumerable<object[]> Cases => from profile in new[] { "shipped", "c80" }
+    public static IEnumerable<object[]> Cases => from profile in new[] { "shipped" }
         from id in new[] { "T-G04", "T-G04-F", "T-G04-H" }
         select new object[] { profile, id };
 
     static (ContentCatalog Content, TutorialCatalog Catalog) Load(string profile)
     {
-        var content = profile == "shipped" ? Shipped : ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped,
-            Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"))));
-        return (content, TutorialCatalog.Load(content));
+        Assert.Equal("shipped", profile);
+        return (Shipped, TutorialCatalog.Load(Shipped));
     }
 
     [Theory]
     [InlineData("shipped")]
-    [InlineData("c80")]
     public void CountBallUsesReachableMoundCameraStickAndRubberWalk(string profile)
     {
         var (content, catalog) = Load(profile);

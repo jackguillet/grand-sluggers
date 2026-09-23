@@ -75,7 +75,7 @@ def sync_main(main):
 
 
 def trial_overlay(source, name):
-    """The trial overlay the window plays, as the game names it (trials/c80), or None for the shipped data.
+    """The trial overlay the window plays, as the game names it (trials/<name>), or None for the shipped data.
 
     It must be a folder under trials/ in the revision being built: the game refuses a named overlay it cannot find,
     and a window that quietly played the shipped table under a trial's name would be worse."""
@@ -83,7 +83,7 @@ def trial_overlay(source, name):
         return None
     relative = Path(name)
     if relative.is_absolute() or '..' in relative.parts or len(relative.parts) < 2 or relative.parts[0] != 'trials':
-        raise RuntimeError('Name a trial overlay under trials/, such as trials/c80: ' + name)
+        raise RuntimeError('Name a trial overlay under trials/, such as trials/<name>: ' + name)
     if not (source / relative).is_dir():
         raise RuntimeError('Revision has no trial overlay ' + name + '; nothing was restarted.')
     return relative.as_posix()
@@ -320,7 +320,7 @@ def deliver(args):
         # Application.dataPath is <app>/Contents; the game loads ../../data.
         shutil.copytree(source / 'data', release / 'data')
         if trial:
-            # A trial overlay resolves beside data/ (GRAND_SLUGGERS_TRIAL=trials/c80 names <release>/trials/c80).
+            # A trial overlay resolves beside data/ (GRAND_SLUGGERS_TRIAL=trials/<name> names <release>/trials/<name>).
             shutil.copytree(source / trial, release / trial)
         profile = trial or 'shipped'
         (release / 'revision.json').write_text(json.dumps(dict(revision=revision, kind=label, source=str(source),
@@ -365,7 +365,7 @@ def main():
     parser.add_argument('--preview', metavar='WORKTREE', help='Build a committed worktree without updating main.')
     parser.add_argument('--timeout', type=int, default=900, help='Build timeout in seconds (default: 900).')
     parser.add_argument('--trial', metavar='OVERLAY',
-                        help='Play a trial overlay over the shipped data, e.g. trials/c80 (GRAND_SLUGGERS_TRIAL).')
+                        help='Play a trial overlay over the shipped data, e.g. trials/<name> (GRAND_SLUGGERS_TRIAL).')
     parser.add_argument('--replace', action='store_true',
                         help='Close the delivered game window this replaces. Without it, delivery names the open '
                              "window's revision and trial and stops before building.")

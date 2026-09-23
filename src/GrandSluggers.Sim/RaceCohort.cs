@@ -52,7 +52,7 @@ public sealed record RaceCohortReport(int SchemaVersion, string Cohort, IReadOnl
 /// are declared in code, and night is measured at all — the CLI could not play a night game before
 /// #828. The park list is the catalog's: a park added to <c>data/parks/</c> appears with no code
 /// change. The row set says which data root and overlay produced it, so a shipped run and a
-/// <c>trials/c80</c> run can be filed side by side.
+/// <c>trials/example</c> run can be filed side by side.
 /// </para>
 /// <para>
 /// Four conditions, as FD-10's acceptance asks (F4-h, #858): day and night, each with hazards on and

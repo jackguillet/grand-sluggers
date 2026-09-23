@@ -252,7 +252,7 @@ public sealed class TutorialOutsTests
                 var pad = iconAt >= 0 && run.Elapsed >= iconAt + 2.0 / 60
                     && run.Elapsed < iconAt + 2.0 / 60 + frame ? new LivePadInput(SouthDown: true)
                     : live.HoldsBall && !live.Throwing && run.HumanThrows.Count == 0
-                        && run.Match.Runners.Any(r => r.FromBag == 2 && r.Feet > (TestRoot.Compact ? 35 : 45))
+                        && run.Match.Runners.Any(r => r.FromBag == 2 && r.Feet > 35)
                         ? new LivePadInput(KeysBag: 3, SouthDown: true) : LivePadInput.Dead;
                 run.Tick(frame, pad);
             }
@@ -272,7 +272,7 @@ public sealed class TutorialOutsTests
         {
             var live = run.Match.LivePlay;
             var pad = live.HoldsBall && !live.Throwing && run.HumanThrows.Count == 0
-                && run.Match.Runners.Any(r => r.FromBag == 2 && r.Feet > (TestRoot.Compact ? 35 : 45))
+                && run.Match.Runners.Any(r => r.FromBag == 2 && r.Feet > 35)
                 ? new LivePadInput(KeysBag: 3, SouthDown: true) : LivePadInput.Dead;
             run.Tick(Frame, pad);
         }

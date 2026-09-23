@@ -256,9 +256,8 @@ public sealed class ControlScenarioTests
         var ssAtHandoff = at.At["SS"];
         Assert.Equal(ssBefore, ssAtHandoff);
         var ssAfterCoast = frames[h + coastFrames].At["SS"];
-        if (TestRoot.Compact)
         {
-            // The C80 copy's response law (#718): the body keeps the coast's velocity for exactly chase.handoffCoastSec — every coast
+            // The response law (#718): the body keeps the coast's velocity for exactly chase.handoffCoastSec — every coast
             // frame at the coast's speed, none faster — and brakes over chase.brakeSec from the very next frame: each frame slower by
             // the brake rate of its rated speed, no standing frame between the coast and the brake, and at rest once the brake is spent.
             double StepFt(int i) => Diamond.Dist(frames[i - 1].At["SS"].X, frames[i - 1].At["SS"].Z, frames[i].At["SS"].X, frames[i].At["SS"].Z);
@@ -272,14 +271,7 @@ public sealed class ControlScenarioTests
             var rated = FieldingResolver.ChaseSpeedFt(map["SS"], false, rules);
             for (var k = 1; k <= 24 - coastFrames; k++)
                 Assert.Equal(Math.Max(0, speed - k * Frame * rated / brakeSec) * Frame, StepFt(h + coastFrames + k), 3);
-            return;
         }
-        Assert.Equal(speed * coast, Diamond.Dist(ssAtHandoff.X, ssAtHandoff.Z, ssAfterCoast.X, ssAfterCoast.Z), 1);
-        Assert.Equal(ssAtHandoff.X + vX * coast, ssAfterCoast.X, 1);
-        Assert.Equal(ssAtHandoff.Z + vZ * coast, ssAfterCoast.Z, 1);
-        var ssLater = frames[h + coastFrames + 12].At["SS"];
-        Assert.Equal(ssAfterCoast.X, ssLater.X, 3);
-        Assert.Equal(ssAfterCoast.Z, ssLater.Z, 3);
     }
 
     // #636: the in-air D17. SS runs the one speed at a liner (§8.1: fielding.chase.infieldAirMul is for the stretched clock only),
@@ -289,16 +281,16 @@ public sealed class ControlScenarioTests
     [InlineData(false)]  // the CPU seat
     public void S97_ALinerTheShortstopReachesPastTheLipIsNeverHandedOffAndShortCatchesIt(bool human)
     {
-        // The C80 copy has no such ball: across the liners planted within 10 ft past its 137.78 ft lip, SS reaches none (the
-        // nearest misses by 2.8 ft), so the position-only hand-off never argues with SS's route there. The row on the copy is the
+        // On the 80-ft diamond there is no such ball: across the liners planted within 10 ft past the 137.78 ft lip, SS reaches
+        // none (the nearest misses by 2.8 ft), so the position-only hand-off never argues with SS's route there. The row is the
         // deepest rope SS does reach (74 mph at 15°, planted 132.9 ft out): never handed off, and SS catches it. The tripwire
         // below says when a ball past the lip exists again; then this row takes it.
         var (exit, launch, spray) = (74.0, 15.0, -18.0);
-        S97_PastTheLip_Row(human, exit, launch, spray, pastTheLip: !TestRoot.Compact);
-        if (TestRoot.Compact) Assert.Empty(LinersShortReachesPastTheLip());
+        S97_PastTheLip_Row(human, exit, launch, spray, pastTheLip: false);
+        Assert.Empty(LinersShortReachesPastTheLip());
     }
 
-    /// <summary>The liners to SS's side whose plant is on the grass and that SS's route reaches from its start: none on the C80 copy.</summary>
+    /// <summary>The liners to SS's side whose plant is on the grass and that SS's route reaches from its start: none on the 80-ft diamond.</summary>
     List<string> LinersShortReachesPastTheLip()
     {
         var (match, _) = CpuDefense();

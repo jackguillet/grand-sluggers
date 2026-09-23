@@ -117,8 +117,8 @@ public static class RunnerAi
                     runner.Send(3);
                 // The race (#732, decision 5 of #730): once, at the catch, a runner on second or third goes when the margin to the
                 // next bag clears the bag's threshold plus the rung's slack — the same estimate every other CPU runner read uses,
-                // the thrower's arm and the fielder's relay included (§9.9). The shipped thresholds are ones no margin reaches, so
-                // there the gates above are the whole rule; the c80 copy sets the gates to never and authors the thresholds.
+                // the thrower's arm and the fielder's relay included (§9.9). The gates above are never as shipped; a table whose
+                // thresholds no margin reaches decides by the gates alone.
                 else if (ctx.AtCatch && !blocked && runner.Bag is 2 or 3 && (runner.Bag != 3 || ctx.Outs < 2)
                          && Margin(runner, next, ctx, r) > TagUpThresholdSec(runner.Bag, cpu) + slack)
                     runner.Send(next);

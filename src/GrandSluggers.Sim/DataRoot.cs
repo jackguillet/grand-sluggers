@@ -38,7 +38,7 @@ public sealed class DataRoot
     /// <summary>
     /// The environment variable that lays a trial overlay over the data root for a whole process.
     /// An absolute path is taken as given; a relative one is resolved beside the shipped root, so
-    /// <c>GRAND_SLUGGERS_TRIAL=trials/c80</c> means the same thing from any working directory.
+    /// <c>GRAND_SLUGGERS_TRIAL=trials/example</c> means the same thing from any working directory.
     /// </summary>
     public const string OverlayVariable = "GRAND_SLUGGERS_TRIAL";
 
@@ -157,7 +157,7 @@ public sealed class DataRoot
 
     /// <summary>
     /// The overlay as a run would name it: the path below the folder <see cref="Shipped"/> sits in
-    /// when it is one of that folder's own (<c>trials/c80</c>), else the absolute path. This is what
+    /// when it is one of that folder's own (<c>trials/example</c>), else the absolute path. This is what
     /// a saved trace records, so a trial authored in the repository attributes the same way on any
     /// machine. Null when there is no overlay.
     /// </summary>
@@ -188,7 +188,7 @@ public sealed class DataRoot
         if (System.IO.Directory.Exists(path)) return path;
         throw new DirectoryNotFoundException(
             $"{OverlayVariable}={value} is not a folder (looked in {path}) — "
-            + "name a trial overlay such as trials/c80, relative to the folder data/ sits in");
+            + "name a trial overlay such as trials/example, relative to the folder data/ sits in");
     }
 
     /// <summary>

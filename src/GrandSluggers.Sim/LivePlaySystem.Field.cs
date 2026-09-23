@@ -879,7 +879,7 @@ public sealed partial class LivePlaySystem
         NoteSwitchHint(map, pre, pad);
         if (SelectTakes(pad, buddyOn)) TakeSelect(map, pad);
 
-        // West: the arm window on the shipped table; on the c80 copy a takeoff, read before the frame's step so the airborne
+        // West: a takeoff (the old arm window at jumpAirSec 0), read before the frame's step so the airborne
         // steering begins at the press (#719, F693-02-normal-jump-startup-trial).
         if (!catchRules.JumpArc)
         {
@@ -988,7 +988,7 @@ public sealed partial class LivePlaySystem
                     ElapsedSeconds, hang, needsJump, R);
                 var distPlant = Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z);
                 var diveDist = pre.Line ? d : distPlant;
-                // The leap: the arm window on the shipped table; the body actually in the air on the c80 copy (#719).
+                // The leap: the body actually in the air (#719); the old arm window at jumpAirSec 0.
                 var leaping = catchRules.JumpArc ? Airborne : JumpT > 0;
                 var jumpTry = leaping && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
                 var buddyRob = buddyOn && distPlant < catchRules.BuddyPlantFt;
@@ -1125,7 +1125,7 @@ public sealed partial class LivePlaySystem
                               && Diamond.Dist(buddySpot.X, buddySpot.Z, plant.X, plant.Z) < catchRules.BuddyPlantFt;
                 var canRob = needsJump && FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyAt, R);
                 var autoStand = FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob, linerInAir: linerInAir);
-                // The rim (#719): on the shipped table the CPU dives there for free; on the c80 copy it commits on the live
+                // The rim (#719): the CPU commits on the live (at autoDive 1 it would dive there for free)
                 // ball at the last makeable moment, pays the recovery, and takes the ball only if it actually comes.
                 var free = catchRules.AutoDive > 0;
                 if (!free && DiveT <= 0 && !underStand && CpuDiveCommits(pre, hang, cpuStandUp, cpuDiveWin, needsJump, out var at))
@@ -1941,8 +1941,8 @@ public sealed partial class LivePlaySystem
         _receivedClean = false;
         _fielders[GlovePos] = (GloveX, GloveZ);
         // A body in its dive is on the ground: it does not coast. Its last frame can be the lunge — a displacement, not a
-        // run — and read as a velocity it slid the diver a hundred feet. The dive's arm window on every table (East on the
-        // shipped one, where the dive costs nothing), and the recovery the c80 copy's diver still owes after it (#719).
+        // run — and read as a velocity it slid the diver a hundred feet. The dive's arm window on every table, and the
+        // recovery the diver still owes after it (#719).
         var down = DiveT > 0 && _lungePos == GlovePos || DiveRecoveryT > 0 && DivingPos == GlovePos;
         if (coast && !down && (_gloveVel.X != 0 || _gloveVel.Z != 0))
         {
@@ -2071,14 +2071,14 @@ public sealed partial class LivePlaySystem
 
     /// <summary>
     /// The speed the body at <paramref name="pos"/> walks to a bag, the throw line or a backup spot (§8.7): the flat cover
-    /// speed on the shipped table, the body's own pursuit speed as far as the c80 copy reads it (#718).
+    /// speed at chaseSpeedWeight 0, the body's own pursuit speed as far as the table reads it (#718).
     /// </summary>
     double CoverSpeed(string pos, IReadOnlyDictionary<string, Character> bodies) =>
         bodies.TryGetValue(pos, out var who) ? FieldingResolver.CoverSpeedFt(who, R) : R.Fielding.Cover.FtPerSec;
 
     /// <summary>
-    /// Cover bodies walk to their bags (§8.7): on the shipped table at the flat cover speed after the start delay and the
-    /// body's reaction lockout (D11); on the c80 copy at the body's own pursuit speed from contact, with no read
+    /// Cover bodies walk to their bags (§8.7) at the body's own pursuit speed from contact, with no read (the old rule, at
+    /// lockoutMul 1: the flat cover speed after the start delay and the body's reaction lockout, D11)
     /// (F693-02-coverage-budget, #718) — <c>cover.lockoutMul</c> 0 and <c>cover.startSec</c> 0.
     /// </summary>
     void TickCoverBags(double dt)
@@ -2659,7 +2659,7 @@ public sealed partial class LivePlaySystem
     bool JumpEligible() => !Airborne && !HoldsBall && !Throwing && DiveT <= 0 && RecoilT <= 0 && CanMove(GlovePos);
 
     /// <summary>
-    /// West on the c80 copy (F693-02-normal-jump-takeoff-ownership, -input-buffer, -input-profile): a fresh grounded press takes
+    /// West (F693-02-normal-jump-takeoff-ownership, -input-buffer, -input-profile): a fresh grounded press takes
     /// off at once when eligible; blocked by the read or a recovery it is remembered for <c>catch.jumpBufferSec</c>, bound to
     /// this body, and takes off at the first eligible instant; a press in the air queues nothing, and holding through the landing
     /// repeats nothing. A throw or a dive already committed prevents the buffer.
@@ -3451,8 +3451,8 @@ public sealed partial class LivePlaySystem
     void ArmRecoil(bool landed)
     {
         if (_recoilArmed || Preview is null || Buddy) return;
-        // The c80 copy (#721): a legal routine pickup never rolls; an awkward in-between hop rolls once, and a failed take is a
-        // local bobble. A clean take then pays the impact recoil (#720) as any other. The energy roll below is the shipped rule.
+        // #721: a legal routine pickup never rolls; an awkward in-between hop rolls once, and a failed take is a local bobble.
+        // A clean take then pays the impact recoil (#720) as any other. The energy roll below is the old rule (awkwardHop 0).
         if (landed && R.Fielding.Handling.Active && Hit is not null)
         {
             _recoilArmed = true;
@@ -3468,8 +3468,8 @@ public sealed partial class LivePlaySystem
         }
         if (!Preview.Grounder)
         {
-            // A landed liner or fly picked up off the grass: no bobble roll today and none here. On the c80 copy the take still
-            // costs what its speed says (F693-02-ground-pickup-recoil-basis); the shipped table charges nothing, as it did.
+            // A landed liner or fly picked up off the grass: no bobble roll, and none here. The take still
+            // costs what its speed says (F693-02-ground-pickup-recoil-basis); a table with the recoil off charges nothing.
             if (landed && R.Fielding.Recoil.Active && Hit is not null)
             {
                 _recoilArmed = true;

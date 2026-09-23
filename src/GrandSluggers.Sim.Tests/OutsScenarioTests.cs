@@ -277,7 +277,6 @@ public sealed class OutsScenarioTests
     public void S54_TagUpFromThirdOnADeepFlyIsARaceHomeAndTheIconOnlyInsideTheMargin(string who) =>
         S54_Row(who, S54Compact);
 
-    static readonly (double Carry, double Launch, double Spray) S54Shipped = (222, 34, -30);
     /// <summary>C80 (#715): the runner reads the race now (#732), and against a 222-ft fly and vine's arm he holds; 250 ft at −26° is the fly he tags on.</summary>
     static readonly (double Carry, double Launch, double Spray) S54Compact = (250, 34, -26);
 
@@ -319,7 +318,6 @@ public sealed class OutsScenarioTests
     public void S55_PopDroppedOnPurposeWithTheBasesLoadedIsLiveWithTheForceAtHomeOnly() =>
         S55_Row(S55Compact, S55NeutralFrames);
 
-    static readonly (double Carry, double Launch, double Spray) S55Shipped = (120, 62, -12);
     /// <summary>C80 (#715): a 107-ft pop at −16° is the shortstop's; and the copy's pursuit stick takes the glove only after it has been seen at neutral (#718), so the seat waits six frames before it steps off.</summary>
     static readonly (double Carry, double Launch, double Spray) S55Compact = (107, 62, -16);
     static int S55NeutralFrames => 6;
@@ -376,7 +374,6 @@ public sealed class OutsScenarioTests
     public void S55b_ACaughtFlyIsNotReReadAsADropWhenTheRelayLosesTheBall() =>
         S55b_Row(S55bCompact);
 
-    static readonly (int Seed, double Carry, double Launch, double Spray) S55bShipped = (33, 210, 34, 34);
     /// <summary>C80 (#715): the same seed and line, 235 ft — the fly deep enough that the runner tags on the race and the relay still loses the ball.</summary>
     static readonly (int Seed, double Carry, double Launch, double Spray) S55bCompact = (33, 235, 34, 34);
 
@@ -427,7 +424,6 @@ public sealed class OutsScenarioTests
     public void S73_ThrowWellAheadOfTheRunnerAtThirdIsATagWithNoIcon() =>
         S73_Row(S73Compact);
 
-    static readonly (int OrderIndex, double Exit, double Spray) S73Shipped = (2, 90, 30);
     /// <summary>C80 (#715): on 80-ft paths the 30° ball leaves the throw 0.20 s ahead, inside the margin; at 26° it is well ahead again.</summary>
     static readonly (int OrderIndex, double Exit, double Spray) S73Compact = (2, 90, 26);
 
@@ -450,7 +446,6 @@ public sealed class OutsScenarioTests
     public void S74_ThrowJustAheadOfTheRunnerRunsTheMashAndTheFirstPressWins(int pressFramesAfterIcon, bool safe) =>
         S74_Row(pressFramesAfterIcon, safe, S74Compact);
 
-    static readonly (int OrderIndex, double Exit, double Spray) S74Shipped = (7, 90, 38);
     /// <summary>C80 (#715): the same ball; the Run-5 body that lands inside the margin with the dash is the fifth in the order, not the seventh.</summary>
     static readonly (int OrderIndex, double Exit, double Spray) S74Compact = (5, 90, 38);
 
@@ -520,7 +515,6 @@ public sealed class OutsScenarioTests
     public void S76_RunnerOffFirstWithTheBallInTheGloveNearbyIsARundownEndedByTagBagOrOverthrow() =>
         S76_Row(S76Compact);
 
-    static readonly (double Carry, double Launch, double Spray) S76Shipped = (92, 4, 41);
     /// <summary>C80 (#715): the ball the first baseman takes on the 80-ft bag is 80 ft at 43°.</summary>
     static readonly (double Carry, double Launch, double Spray) S76Compact = (80, 4, 43);
 
@@ -619,9 +613,8 @@ public sealed class OutsScenarioTests
 
     [Fact]
     public void TriplePlayIsReachableThroughTheForcesAloneAndStampsTriplePlay() =>
-        TriplePlay_Row(TriplePlayCompact, human: TestRoot.Compact);
+        TriplePlay_Row(TriplePlayCompact, human: true);
 
-    static readonly (double Carry, double Launch, double Spray) TriplePlayShipped = (92, 4, -44);
     /// <summary>
     /// C80 (#715): three forces are still there on the 80-ft diamond — 80 ft at 3° beside third — but the CPU's table takes the sure out at
     /// first after the step on third, so the compact row turns it from the human seat: the step, the throw to second, the throw to first.

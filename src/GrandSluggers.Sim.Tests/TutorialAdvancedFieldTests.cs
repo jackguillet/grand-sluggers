@@ -42,9 +42,7 @@ public sealed class TutorialAdvancedFieldTests
             }
             else if (act && run.Lesson.Id == "T-F09" && !wallSeen && live.ElapsedSeconds > .5)
                 pad = new(StickX: -1, StickY: 0);
-            else if (act && !skipOnward && run.Lesson.Id == "T-F09-S" && bobbleSeen && live.HoldsBall && !live.Throwing)
-                pad = new(KeysBag: 1, SouthDown: true);
-            else if (act && run.Lesson.Id is ("T-F09-B" or "T-F09-S") && bobbleSeen && !live.HoldsBall)
+            else if (act && run.Lesson.Id == "T-F09-B" && bobbleSeen && !live.HoldsBall)
             {
                 var dx = live.BallX - live.GloveX;
                 var dz = live.BallZ - live.GloveZ;
@@ -149,27 +147,28 @@ public sealed class TutorialAdvancedFieldTests
     }
 
     [Fact]
-    public void RetryNeedsAFreshWallCaromEvent()
+    public void RetryEarnsCreditOnlyForAFreshReturnedCarom()
     {
-        if (TestRoot.Compact) return; // On C80 the unattended contact also reaches the wall.
+        // On the 80-ft diamond's 280-ft Harbor the unattended contact reaches the wall too, so a dead attempt cannot show the
+        // carom flag resetting by its absence; it shows that the carom alone earns nothing, and the next acted attempt earns
+        // its own success.
         var run = Start("T-F11");
         Drive(run, act: true);
         Assert.Equal("carom-returned", run.Feedback?.Code);
         Assert.Equal(1, run.Successes);
         run.Retry();
         Drive(run, act: false);
-        Assert.Equal("no-carom", run.Feedback?.Code);
+        Assert.False(run.Feedback?.Success ?? false);
         Assert.Equal(1, run.Successes);
+        run.Retry();
+        Drive(run, act: true);
+        Assert.Equal("carom-returned", run.Feedback?.Code);
+        Assert.Equal(2, run.Successes);
     }
 
     [Fact]
     public void BallDashIsEarnedOnlyByHumanCarryOnTheProfileWithAnEligibleHolder()
     {
-        if (!TestRoot.Compact)
-        {
-            Assert.DoesNotContain(_content.Characters.Values, FieldAbilities.HasBallDash);
-            return;
-        }
         var run = Start("T-F13");
         for (var attempt = 1; attempt <= 3; attempt++)
         {
@@ -210,7 +209,6 @@ public sealed class TutorialAdvancedFieldTests
         var cpu = Start(id);
         Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
         Assert.False(cpu.Feedback?.Success ?? false);
-        if (TestRoot.Compact)
         {
             var noSecond = Start(id);
             Drive(noSecond, act: true, skipOnward: true);
@@ -276,7 +274,6 @@ public sealed class TutorialAdvancedFieldTests
     [InlineData("T-F08-C", "relay-cancelled")]
     public void BufferedRelayQueueEditsNeedHumanEvidence(string id, string code)
     {
-        if (!TestRoot.Compact) return;
         var run = Start(id);
         for (var attempt = 1; attempt <= 3; attempt++)
         {
@@ -371,7 +368,6 @@ public sealed class TutorialAdvancedFieldTests
     [Fact]
     public void OrdinaryLocalBobbleNeedsHumanTakeoverAndLiveScoop()
     {
-        if (!TestRoot.Compact) return;
         var run = Start("T-F09-B");
         for (var attempt = 1; attempt <= 3; attempt++)
         {
@@ -390,38 +386,10 @@ public sealed class TutorialAdvancedFieldTests
         Assert.Equal(0, cpu.Successes);
     }
 
-    [Fact]
-    public void ShippedFumbleNeedsHumanTakeoverAndLiveScoop()
-    {
-        if (TestRoot.Compact) return;
-        var run = Start("T-F09-S");
-        for (var attempt = 1; attempt <= 3; attempt++)
-        {
-            Drive(run, act: true);
-            Assert.Equal("fumble-recovered", run.Feedback?.Code);
-            Assert.Equal(attempt, run.Successes);
-            Assert.Contains(1, run.HumanThrows);
-            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
-            Assert.Equal(run.Feedback, replay.Feedback);
-            run.Retry();
-        }
-        var dead = Start("T-F09-S");
-        Drive(dead, act: false);
-        Assert.Equal(0, dead.Successes);
-        var cpu = Start("T-F09-S");
-        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
-        Assert.Equal(0, cpu.Successes);
-        var scoopOnly = Start("T-F09-S");
-        Drive(scoopOnly, act: true, skipOnward: true);
-        Assert.Equal(0, scoopOnly.Successes);
-    }
-
     [Theory]
     [InlineData("T-F09-B")]
-    [InlineData("T-F09-S")]
     public void AssistedScoopAfterOneHumanBobbleStepDoesNotEarnCredit(string id)
     {
-        if (TestRoot.Compact != (id == "T-F09-B")) return;
         var run = Start(id);
         var bobbled = false;
         var stepped = false;
