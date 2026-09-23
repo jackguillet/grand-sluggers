@@ -218,7 +218,7 @@ namespace GrandSluggers.UnityClient
                 _bunt = box.WestHeld;
                 // Down resets the box in SET only (§5.4); in flight the same axis aims launch.
                 if (box.StickY < -0.7f) _match.ResetBatter();
-                else _match.WalkBatter(box.StickX * dt * 1.6f);
+                else _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
             }
             // The square is a clock (§7.3): the defense crashes for as long as it has been held; released, it winds back.
             TickSquare(dt, HumanBats ? box.WestHeld : _match.CpuSquared);
@@ -375,16 +375,16 @@ namespace GrandSluggers.UnityClient
             _zone.AimTell(true, (float)x, (float)y);
         }
 
-        /// <summary>The gold oval follows the batter and shows this swing's barrel (contact, charge, buddies).</summary>
+        /// <summary>
+        /// The gold oval follows the batter and shows this swing's barrel (contact, charge, buddies):
+        /// the sim's own oval (<see cref="SweetSpot.Oval"/>), the one the resolver judges (S-134).
+        /// </summary>
         void ShowCursor()
         {
             if (_match == null) return;
-            var contact = Math.Clamp(_match.Batter.Stats.Contact + (_match.OffenseBat?.ContactMod ?? 0), 1, 10);
-            var chargeBat = _match.OffenseBat?.ChargeAlwaysFull == true;
-            var charged = chargeBat || ChargeFeel.IsCharge(EffectiveCharge(_charge, _chargePast));
             var buddies = _match.Chemistry.BuddiesOnBase(_match.Batter, _match.RunnersOn());
-            var scale = SweetSpot.BarrelScale(contact, charged, chargeBat, buddies, _match.Rules);
-            _zone.Show(true, BatterCursorX, _match.Batter.Bats, (float)scale);
+            _zone.Show(SweetSpot.Oval(_match.Batter, _match.OffenseBat, EffectiveCharge(_charge, _chargePast),
+                buddies, _match.BatterOffsetX, _match.Rules));
         }
 
         static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,
@@ -488,7 +488,7 @@ namespace GrandSluggers.UnityClient
                 if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
                 if (box.WestHeld) _bunt = true;
                 // Stick U/D aims launch here; it never resets the box once the windup starts (§5.4).
-                _match.WalkBatter(box.StickX * dt * 1.6f);
+                _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
                 ShowCursor();
                 if (swingButton.Committed)
                     CommitSwing(SwingInputIntent.Capture(
@@ -590,8 +590,6 @@ namespace GrandSluggers.UnityClient
                 HumanPitches ? _pitchCharge : _charge, _aimX, _aimY, TrainingOn, LiveSeats.Count);
             return (float)AtBatControl.WorldHorizontal(screenX, _content.Shots.Must(shotId));
         }
-
-        float BatterCursorX => _match != null ? (float)_match.BatterOffsetX : 0f;
 
         void Resolve()
         {

@@ -8,7 +8,7 @@ namespace GrandSluggers.UnityClient
         Transform _root;
         Transform _target;
 
-        public void Build(Transform parent, RulesTable rules)
+        public void Build(Transform parent)
         {
             if (_root != null) Destroy(_root.gameObject);
             _root = new GameObject("StrikeZone").transform;
@@ -39,8 +39,8 @@ namespace GrandSluggers.UnityClient
             _oval.sharedMaterial = gold;
             _oval.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _oval.receiveShadows = false;
-            _rules = rules;
-            Outline(Hand.R, 1f);
+            // Nothing is drawn until the first Show hands over the swing's oval; the zone starts hidden.
+            _drawn = default;
             var centerMarker = Look.Prim(PrimitiveType.Sphere, "SweetSpot", cursor.transform,
                 Vector3.zero, Vector3.one * 0.13f, gold);
             Object.Destroy(centerMarker.GetComponent<Collider>());
@@ -84,36 +84,40 @@ namespace GrandSluggers.UnityClient
 
         const int Segments = 40;
         LineRenderer _oval;
-        RulesTable _rules;
-        Hand _drawnHand = Hand.R;
-        float _drawnScale = -1f;
+        CursorOval _drawn;
 
-        /// <summary>The drawn oval is the hitbox the sim judges: tip side long, handle side short (spec §5.2).</summary>
-        void Outline(Hand bats, float barrelScale)
+        /// <summary>
+        /// The drawn oval is the hitbox the sim judges: tip side long, handle side short (spec §5.2).
+        /// Rebuilt only when the swing's oval changes size or hand.
+        /// </summary>
+        void Outline(CursorOval oval)
         {
             if (_oval == null) return;
-            if (bats == _drawnHand && Mathf.Approximately(barrelScale, _drawnScale)) return;
-            _drawnHand = bats;
-            _drawnScale = barrelScale;
-            var pts = SweetSpot.Outline(bats, barrelScale, Segments, _rules);
+            if (oval.Bats == _drawn.Bats && oval.TipHalfFt == _drawn.TipHalfFt
+                && oval.HandleHalfFt == _drawn.HandleHalfFt && oval.HalfHeightFt == _drawn.HalfHeightFt) return;
+            _drawn = oval;
+            var pts = SweetSpot.Outline(oval, Segments);
             for (var i = 0; i < pts.Count; i++)
                 _oval.SetPosition(i, new Vector3((float)pts[i].X, (float)pts[i].Y, 0));
         }
 
-        /// <summary>
-        /// Follow the batter, never the pitch: the box walk in X, the zone center in Y.
-        /// <paramref name="barrelScale"/> is the swing's bat scale (contact, charge, buddies).
-        /// </summary>
-        public void Hide() => Show(false, 0, Hand.R);
-
-        public void Show(bool on, float boxOffsetX, Hand bats, float barrelScale = 1f)
+        public void Hide()
         {
             if (_root == null) return;
-            _root.gameObject.SetActive(on);
-            if (!on || _target == null) return;
-            Outline(bats, barrelScale);
-            var (x, y) = SweetSpot.WorldCenter(boxOffsetX);
-            _target.localPosition = new Vector3((float)x, (float)y, (float)StrikeZoneGeometry.PlateZ);
+            _root.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Follow the batter, never the pitch: draw <paramref name="oval"/> — the sim's
+        /// <see cref="SweetSpot.Oval"/> for this swing — at its own center and half-extents.
+        /// </summary>
+        public void Show(CursorOval oval)
+        {
+            if (_root == null) return;
+            _root.gameObject.SetActive(true);
+            if (_target == null) return;
+            Outline(oval);
+            _target.localPosition = new Vector3((float)oval.CenterX, (float)oval.CenterY, (float)StrikeZoneGeometry.PlateZ);
         }
     }
 }
