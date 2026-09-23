@@ -264,7 +264,7 @@ namespace GrandSluggers.UnityClient
                     : HumanBats ? _charge : 0f;
                 bHero.SetPose(bPose, swingCharge);
                 if (presentingSwing) bHero.SetSwingContact(_swingContactSec);
-                bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats && _swingButton.Armed
+                bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats && _plate.Swing.Armed
                     ? _charge : 0f);
                 bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 var batting = bPose is Motion.Verb.ChargeSwing or Motion.Verb.Swing

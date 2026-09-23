@@ -215,14 +215,14 @@ public static partial class HowToPlay
         [
             "Swing when the ball is on the plate (gold streak). Tap: normal. Hold/release at MAX: charge.",
             "One controller: pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
-            "Two controllers: SET stays on the plate, behind home.",
-            "Cycle pitch: RB before the charge (FB, 2nd, 3rd). Bunt: hold West. Star: North + South. Past line: foul; Strike unless two.",
+            "Two controllers: SET stays behind the plate.",
+            "Cycle pitch: RB before the charge (FB, 2nd, 3rd). Bunt: hold LT or RT. East cancels a load. Star: North + South. Past line: foul; Strike unless two.",
         ],
         [
             "Swing when the ball is on the plate (gold streak). Tap: normal. Hold/release at MAX: charge.",
             "Pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
-            "Two controllers: SET stays on the plate, behind home.",
-            "Cycle pitch: Tab before the charge (FB, 2nd, 3rd). Bunt: hold V/Ctrl. Star: Q+Space. Past line foul; Strike unless two.",
+            "Two controllers: SET stays behind the plate.",
+            "Cycle pitch: Tab before the charge (FB, 2nd, 3rd). Bunt: hold J or L. G cancels a load. Star: Q+Space. Past line foul; Strike unless two.",
         ]),
         new("the-box", "The box and the rubber", "the-box",
         [
@@ -524,7 +524,7 @@ public static partial class HowToPlay
             (p.KeyLines != null && p.KeyLines.Any(l => l.Contains(needle, StringComparison.OrdinalIgnoreCase))));
 
     static readonly string[] PadHardware =
-        ["South", "East", "West", "North", "D-pad", "LT", "LB", "RB", "L3", "Select", "Start", "Gamepad"];
+        ["South", "East", "West", "North", "D-pad", "LT", "RT", "LB", "RB", "L3", "Select", "Start", "Gamepad"];
 
     static readonly string[] KeyHardware =
         ["Space", "WASD", "left click", "right click", "Shift", "middle click", "Right-drag", "Tab", "Ctrl", "Enter"];

@@ -27,14 +27,14 @@ public sealed class AtBatResolver
         Math.Clamp(stickX, -1, 1) * Rules.Or(rules).Batting.Spray.StickDeg;
 
     /// <summary>
-    /// Whether the stick at contact shapes this swing's ball (spec §5.3, §5.4, PH-12): only a bunt
-    /// (its direction, until P4-b gives the bunt a held side, PH-14-R5) and a Star Swing (until
-    /// Phase 6 reviews each one). An ordinary swing's flight is timing, contact position, pitch
-    /// height and the swing, and its two aims are read as 0. The CPU batter asks the same question
-    /// before it draws an aim (<see cref="Match.CpuSwing"/>, PH-18). It says nothing about the box
-    /// walk or the SET recenter, which read the same stick and stay (PH-09).
+    /// Whether the stick at contact shapes this swing's ball (spec §5.3, §5.4, §5.8, PH-12): only a
+    /// Star Swing (until Phase 6 reviews each one). An ordinary swing's flight is timing, contact
+    /// position, pitch height and the swing; a bunt's direction is its held side
+    /// (<see cref="BuntHold.LeanDeg"/>, PH-14-R5). Their two aims are read as 0. The CPU batter asks
+    /// the same question before it draws an aim (<see cref="Match.CpuSwing"/>, PH-18). It says nothing
+    /// about the box walk or the SET recenter, which read the same stick and stay (PH-09).
     /// </summary>
-    public static bool StickShapesContact(bool bunt, bool starSwing) => bunt || starSwing;
+    public static bool StickShapesContact(bool bunt, bool starSwing) => starSwing && !bunt;
 
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
@@ -66,7 +66,8 @@ public sealed class AtBatResolver
         // Timing (§5.3, D13): outside the window the bat is not on the plane.
         var window = ContactWindowFrames(input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, _rules, _skills);
         var half = window / 2;
-        var err = input.TimingErrorFrames;
+        // A held bunt has no timed press (§5.8, PH-14-R4): the bat is already on the plane, square.
+        var err = input.Bunt ? 0 : input.TimingErrorFrames;
         var onPlane = InWindow(err, window);
 
         // Cursor (§5.2): where the crossing meets the bat — the oval the client draws (S-134).
@@ -121,10 +122,17 @@ public sealed class AtBatResolver
                 : b.Launch.TopperMinDeg + rng.NextDouble() * b.Launch.TopperSpanDeg;
         }
 
+        var response = b.Bunt.Response;
         if (input.Bunt)
         {
-            exit *= b.Bunt.ExitMul;
-            var pop = quality == ContactQuality.Sour || height > b.Bunt.PopAboveCenterFt;
+            // The bunt's response (§5.8, PH-14-R1). Shipped: the ordinary exit deadened, a sour bunt pops.
+            // Under the trial the exit is the bunt's own by quality, and a sour bunt pops only when the ball
+            // crossed above the bat's center; below it the bat chops it down at the sour pace.
+            exit = response.ByContact ? response.ExitMph.For(quality) : exit * b.Bunt.ExitMul;
+            var sourPops = response.ByContact
+                ? quality == ContactQuality.Sour && input.CrossingY > SweetSpot.WorldCenter(input.BoxOffsetX).Y
+                : quality == ContactQuality.Sour;
+            var pop = sourPops || height > b.Bunt.PopAboveCenterFt;
             launch = pop
                 ? b.Launch.PopMinDeg + rng.NextDouble() * b.Launch.PopSpanDeg
                 : b.Bunt.LaunchMinDeg + rng.NextDouble() * b.Bunt.LaunchSpanDeg;
@@ -135,14 +143,16 @@ public sealed class AtBatResolver
             launch = StarSkills.SwingLaunchDeg(input.Batter.StarSwing, _skills) ?? launch;
 
         // Direction (§5.3): early pulls, late pushes; the stick shifts while it shapes this swing; the
-        // zone spreads.
-        var spray = (input.Bunt ? 0 : TimingSprayDeg(err, window, bats, _rules))
-                    + sprayAim + (rng.NextDouble() - 0.5) * SpraySpread(quality, b.Spray);
+        // zone spreads. A bunt leans toward its held side instead (§5.8, PH-14-R2); under the bunt
+        // trial its spread is its own by quality (PH-14-R1).
+        var spread = input.Bunt && response.ByContact ? response.SpreadDeg.For(quality) : SpraySpread(quality, b.Spray);
+        var spray = (input.Bunt ? BuntHold.LeanDeg(input.BuntSide, _rules) : TimingSprayDeg(err, window, bats, _rules))
+                    + sprayAim + (rng.NextDouble() - 0.5) * spread;
         if (input.UseStarPitch && input.Pitcher.StarPitch == "prismball")
             spray += (rng.NextDouble() - 0.5) * b.Star.PrismballSpraySpanDeg;
         if (!input.PitchInZone)
             spray += (rng.NextDouble() - 0.5) * b.Spray.OutOfZoneSpanDeg;
-        if (input.Bunt)
+        if (input.Bunt && !response.ByContact)
             spray += (rng.NextDouble() - 0.5) * b.Bunt.SpraySpanDeg;
         spray = Math.Round(SourFoulPull(quality, spray, rng, b.Foul), 1);
 

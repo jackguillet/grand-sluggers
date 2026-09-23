@@ -146,6 +146,10 @@ public class BroadcastHudTests
         Assert.Equal("STEAL", BroadcastHud.BatterExtra(false, true, true, false, ""));
         Assert.Contains("L3 STEAL", BroadcastHud.BatterExtra(false, false, true, false, ""));
         Assert.Contains("BUNT", BroadcastHud.BatterExtra(false, false, false, true, ""));
+        // §5.8, PH-14-R3: the card names the held side, the same public fact the bat angle carries.
+        Assert.Equal("BUNT 3B", BroadcastHud.BatterExtra(false, false, false, BuntSide.Third, ""));
+        Assert.Equal("BUNT 1B  STEAL", BroadcastHud.BatterExtra(false, true, true, BuntSide.First, ""));
+        Assert.Equal("", BroadcastHud.BatterExtra(false, false, false, BuntSide.None, ""));
     }
 
     [Fact]

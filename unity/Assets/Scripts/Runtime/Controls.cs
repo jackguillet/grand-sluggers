@@ -107,25 +107,50 @@ namespace GrandSluggers.UnityClient
             public bool EastDown => KeyDown(Key.G) || Pressed(Device?.buttonEast);
             public bool EastHeld => Kb(Key.G) || Held(Device?.buttonEast);
             public bool WestDown => KeyDown(Key.F) || Pressed(Device?.buttonWest);
-            public bool WestHeld => Kb(Key.V) || Kb(Key.F) || Kb(Key.LeftCtrl) || Held(Device?.buttonWest);
             public bool Attack => NorthDown || KeyDown(Key.B);
 
-            public float Charge01
+            /// <summary>
+            /// The held bunt's two sides at the plate (spec §5.8, PH-14-R5): LT / J toward third, RT / L toward
+            /// first. The trigger counts at the Input System's press point. Each seat reads only its own pad; the
+            /// keys belong to player 1. A trigger held for a bunt at contact is spent (PH-14-R6): every other
+            /// reader of LT / RT / J / L asks <see cref="BuntHold.IsFree"/> first.
+            /// </summary>
+            public bool BuntThirdDown => KeyDown(Key.J) || Pressed(Device?.leftTrigger);
+            public bool BuntThirdHeld => Kb(Key.J) || Held(Device?.leftTrigger);
+            public bool BuntFirstDown => KeyDown(Key.L) || Pressed(Device?.rightTrigger);
+            public bool BuntFirstHeld => Kb(Key.L) || Held(Device?.rightTrigger);
+
+            /// <summary>
+            /// The explicit swing cancel (spec §5.1, PH-13-R1): East / G, the same button as the dive and the
+            /// Training skip. A press the plate took is spent until it comes up
+            /// (<see cref="PlateButtons.CancelIsFree"/>).
+            /// </summary>
+            public bool CancelDown => EastDown;
+            public bool CancelHeld => EastHeld;
+
+            /// <summary>The plate's buttons on this frame, for <see cref="PlateButtons.Advance"/>.</summary>
+            public PlateInput Plate => new(SouthDown, SouthHeld, SouthUp,
+                BuntThirdDown, BuntThirdHeld, BuntFirstDown, BuntFirstHeld, CancelDown, CancelHeld);
+
+            public float Charge01 => ChargeWith(true);
+
+            /// <summary>
+            /// The item modifier (LT, Shift, right mouse). <paramref name="triggerFree"/> is false while LT is still
+            /// down from a bunt that made contact (PH-14-R6): that hold is no modifier until it comes up.
+            /// </summary>
+            public float ChargeWith(bool triggerFree)
             {
-                get
-                {
-                    var v = Kb(Key.LeftShift) || (KeysEnabled && MouseRightHeld) ? 1f : 0f;
-                    var pad = Device;
-                    if (pad != null) v = Mathf.Max(v, pad.leftTrigger.ReadValue());
-                    return Mathf.Clamp01(v);
-                }
+                var v = Kb(Key.LeftShift) || (KeysEnabled && MouseRightHeld) ? 1f : 0f;
+                var pad = Device;
+                if (pad != null && triggerFree) v = Mathf.Max(v, pad.leftTrigger.ReadValue());
+                return Mathf.Clamp01(v);
             }
 
             public bool Charge => Charge01 >= ChargePull;
             /// <summary>
             /// The mound's pre-charge family cycle in SET (spec §3, §4.1; PH-02-R3/R4/R5). A press
-            /// edge: one press is one advance. West is no longer a pitching modifier — the batter's
-            /// bunt keeps it (#825).
+            /// edge: one press is one advance. West is no longer a pitching modifier (#825), and no
+            /// longer the bunt either: the triggers hold it (PH-14-R5).
             /// </summary>
             public bool CyclePitch => KeyDown(Key.Tab) || Pressed(Device?.rightShoulder);
             public bool Skip => EastDown;
@@ -137,8 +162,15 @@ namespace GrandSluggers.UnityClient
             public bool FreezeRunners => Kb(Key.Slash) || (Held(Device?.leftShoulder) && Held(Device?.rightShoulder));
             public bool Steal => KeyDown(Key.Z) || Pressed(Device?.leftStickButton);
             public bool Cutoff => Kb(Key.X) || Held(Device?.leftShoulder);
-            public bool Item => KeyDown(Key.E) || (Charge && Pressed(Device?.rightShoulder));
-            public bool ItemConfirm => Item || (SouthDown && Charge);
+            public bool Item => ItemWith(true);
+            public bool ItemConfirm => ItemConfirmWith(true);
+
+            /// <summary>The item throw with the LT modifier guarded (PH-14-R6; see <see cref="ChargeWith"/>).</summary>
+            public bool ItemWith(bool triggerFree) =>
+                KeyDown(Key.E) || (ChargeWith(triggerFree) >= ChargePull && Pressed(Device?.rightShoulder));
+
+            public bool ItemConfirmWith(bool triggerFree) =>
+                ItemWith(triggerFree) || (SouthDown && ChargeWith(triggerFree) >= ChargePull);
             public bool SwapPitcher => KeyDown(Key.R) || Pressed(Device?.selectButton);
             public bool NightToggle => KeyDown(Key.N) || Pressed(Device?.rightStickButton);
             /// <summary>Title and field: hazards on / off (FD-10), the match option.</summary>
@@ -445,7 +477,6 @@ namespace GrandSluggers.UnityClient
         public static bool EastDown => Pad1.EastDown;
         public static bool EastHeld => Pad1.EastHeld;
         public static bool WestDown => Pad1.WestDown;
-        public static bool WestHeld => Pad1.WestHeld;
         public static float Charge01 => Pad1.Charge01;
         public static bool Charge => Pad1.Charge;
         public static bool CyclePitch => Pad1.CyclePitch;
@@ -648,7 +679,7 @@ namespace GrandSluggers.UnityClient
                     || g.startButton.wasPressedThisFrame || g.selectButton.wasPressedThisFrame
                     || g.leftShoulder.wasPressedThisFrame || g.rightShoulder.wasPressedThisFrame
                     || g.leftStickButton.wasPressedThisFrame
-                    || g.leftTrigger.ReadValue() > 0.25f
+                    || g.leftTrigger.ReadValue() > 0.25f || g.rightTrigger.ReadValue() > 0.25f
                     || g.leftStick.ReadValue().sqrMagnitude > 0.2f)
                     return true;
             }

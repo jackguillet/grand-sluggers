@@ -293,6 +293,7 @@ public sealed class Match
     // The CPU batter's square (§5.9, §7.3): read once per pitch at SET, spent at the plate plane.
     bool _cpuSquareDecided;
     bool _cpuSquared;
+    BuntSide _cpuBuntSide;
 
     sealed record PlayOrigin(PlayContext Context, Character Batter, Character Pitcher);
     PlayOrigin? _pendingPlay;
@@ -1065,6 +1066,7 @@ public sealed class Match
         // The square was spent on this pitch's swing; the next pitch reads it again at SET (§5.9).
         _cpuSquareDecided = false;
         _cpuSquared = false;
+        _cpuBuntSide = BuntSide.None;
 
         pitch = PreparePitch(pitch);
         // A released special is settled before anything reads it (PH-16-R12): the flight, the stamina, the
@@ -1100,7 +1102,7 @@ public sealed class Match
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             PitcherStamina,
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
-            swing.Charge01, box, crossing.X, crossing.Y);
+            swing.Charge01, box, crossing.X, crossing.Y, swing.BuntSide);
 
         hit = _atBat.Resolve(input, Park, _rng, Night);
         if (hit.Quality == ContactQuality.Miss)
@@ -1410,15 +1412,14 @@ public sealed class Match
         var zone = CpuZoneClass(cx, cy, inZone, c);
         var take = new SwingCommand(false, 0, 0, false);
 
-        // Sac bunt (§5.9, §7.3): the square was read at SET (<see cref="CpuSquaresBunt"/>); in the zone it is the
-        // bunt, out of it the batter pulls back and takes — the corners are in either way, that is the tell's cost.
+        // Sac bunt (§5.9, §7.3): the square and its side were read at SET (<see cref="CpuSquaresBunt"/>); in the
+        // zone the held bat meets the ball (§5.8: no timed press, the same held bunt a pad lays down), out of it the
+        // batter pulls the bat back and takes — the corners are in either way, that is the tell's cost.
         if (CpuSquaresBunt())
         {
             var squareSec = c.SacBuntSquareSec;
             if (!inZone) return take with { SquareSec = squareSec };
-            return new SwingCommand(true, 0, Gauss() * c.SacBuntErrorSigma * level.TimingSigmaMul, false,
-                Gauss() * c.SacBuntSpraySigma, Bunt: true, LaunchAim: c.SacBuntLaunchAim,
-                BoxOffsetX: CpuTrackedBox(cx, c, level), SquareSec: squareSec);
+            return SwingCommand.HeldBunt(_cpuBuntSide, CpuTrackedBox(cx, c, level), squareSec, human: false);
         }
 
         var swing = zone switch
@@ -1453,7 +1454,7 @@ public sealed class Match
         var box = tracked ? Math.Clamp(cx / HomeSet.BatterWalk, -1, 1) : CpuTrackedBox(cx, c, level);
         // The stick at contact (§5.9, PH-12, PH-18). No human's stick shapes an ordinary swing, so
         // the CPU holds none: 0 / 0 and neither Gaussian is drawn. A Star Swing still steers and
-        // draws both aims; the sac bunt above is untouched.
+        // draws both aims; the sac bunt above holds a side instead (§5.8).
         if (!AtBatResolver.StickShapesContact(bunt: false, star))
             return new SwingCommand(true, charge, err, star, BoxOffsetX: box);
         return new SwingCommand(true, charge, err, star, Gauss() * c.SpraySigmaDeg,
@@ -1532,6 +1533,12 @@ public sealed class Match
     public bool CpuSquared => _cpuSquared;
 
     /// <summary>
+    /// The side the squared CPU batter holds on this pitch (§5.8, §5.9; PH-14-R2), decided at SET with the square so
+    /// the bat angle is a tell before the pitch. <see cref="BuntSide.None"/> when it is not squared.
+    /// </summary>
+    public BuntSide CpuBuntSide => _cpuSquared ? _cpuBuntSide : BuntSide.None;
+
+    /// <summary>
     /// The CPU batter's sac-bunt read (§5.9's row), once per pitch at SET so the square is a tell the defense
     /// reads before the pitch (§7.3): runner on first only, no outs, a light bat, a close game, at the table's
     /// chance, on the one seeded stream. At the plate plane the square is the bunt if the pitch is in the zone
@@ -1548,6 +1555,10 @@ public sealed class Match
         _cpuSquared = First is not null && Second is null && Third is null && Outs == 0
                       && Batter.Stats.Contact <= c.SacBuntBatMax && trailing <= c.SacBuntTrailMax
                       && _rng.NextDouble() < c.SacBuntChance;
+        // The side is held with the square (PH-14-R2): one draw, only when it squares.
+        _cpuBuntSide = _cpuSquared
+            ? (_rng.NextDouble() < c.SacBuntFirstSideChance ? BuntSide.First : BuntSide.Third)
+            : BuntSide.None;
         return _cpuSquared;
     }
 
