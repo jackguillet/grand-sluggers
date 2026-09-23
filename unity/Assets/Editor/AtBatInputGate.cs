@@ -210,6 +210,8 @@ namespace GrandSluggers.EditorTools
         static IEnumerator VerifyControllerScreens(MatchDirector play)
         {
             Setup(play, Seats.One);
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(_pad1.deviceId, _pad2.deviceId));
+            Neutral();
             Set(play, "_versusWanted", false); play.Pad1Home = true;
             Invoke(play, "OpenTitle");
             var folder = Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("GS_AT_BAT_INPUT_EVIDENCE")
@@ -273,6 +275,12 @@ namespace GrandSluggers.EditorTools
             Require(Phase(play) == "Select", "Two-player setup did not reach the board.");
             board = Get<CaptainSelection>(play, "_captains");
             Require(board.Versus && !board.Pad1Home, "Player count or P1 away did not persist.");
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(_pad1.deviceId, int.MaxValue));
+            Press(GamepadButton.South);
+            Require(Phase(play) == "Select" && !board.Ready(1), "Missing P2 silently became a CPU opponent.");
+            shot = Capture("captain-waiting-pad2"); while (shot.MoveNext()) yield return shot.Current;
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(_pad1.deviceId, _pad2.deviceId));
+            Controls.CatchPlay(); Press(GamepadButton.East);
             var start = board.Id(1);
             Press(GamepadButton.DpadRight, true);
             Require(start != board.Id(1), "P2 cannot move its own cursor.");
