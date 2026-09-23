@@ -130,7 +130,7 @@ public class PitchJudgmentTests
         Assert.Equal(StrikeZoneGeometry.Contains(ready), result.AtBat.InZone);
     }
     [Fact]
-    public void FatigueDriftIsSampledOnceBeforeVisibleFlight()
+    public void TiredDeliveryIsPreparedOnceAndCrossesWhereItWasAimed()
     {
         var match = Match.Slice(content, innings: 99, seed: 17);
         // Repeated taken outside pitches spend stamina without retiring the side.
@@ -140,7 +140,10 @@ public class PitchJudgmentTests
         var raw = new PitchCommand("fastball", 0, false);
         var ready = match.PreparePitch(raw);
         Assert.True(ready.DeliveryPrepared);
-        Assert.True(ready.AimX != raw.AimX || ready.AimY != raw.AimY);
+        // No random miss (PH-08-R1): the aim is the aim.
+        Assert.Equal((raw.AimX, raw.AimY), (ready.AimX, ready.AimY));
+        Assert.Equal(PitchFlight.Point(raw with { DeliveryPrepared = true, RubberX = ready.RubberX, Throws = ready.Throws }, 1),
+            PitchFlight.Point(ready, 1));
         var crossing = PitchFlight.Point(ready, 1);
         for (var i = 0; i < 5; i++) Assert.Same(ready, match.PreparePitch(ready));
         var result = match.Play(ready, Take);
