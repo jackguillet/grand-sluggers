@@ -7,7 +7,7 @@ namespace GrandSluggers.UnityClient
     /// <summary>
     /// HUD-off specials: change the ball or the field for ~2 seconds, then baseball resumes.
     /// Heat-swing lives on the body (core + tight embers + fire ring), not a dirt pancake.
-    /// Throw-kind catalog slots stay; they do not draw a destination line (ThrowTrail).
+    /// Throw-kind catalog slots stay as metadata; no ball-to-fielder beams are built.
     /// Groups are catalog VFX ids. Missing Unity prefabs keep the procedural stand-in.
     /// No full-screen paint, no input invert, no invisible ball.
     /// </summary>
@@ -17,7 +17,7 @@ namespace GrandSluggers.UnityClient
         {
             "heatball", "charmball", "prismball", "phonyball", "caskball", "skullball", "fogball",
             "heat-swing", "heart-swing", "shell-swing", "phony-swing", "cask-swing", "furnace", "staff-swing",
-            "buddy-flash", "throw-trail-good", "throw-trail-bad"
+            "buddy-flash"
         };
 
         Transform _root;
@@ -34,10 +34,6 @@ namespace GrandSluggers.UnityClient
         readonly Transform[] _swingEmbers = new Transform[12];
         readonly Transform[] _furnaceEmbers = new Transform[12];
         readonly Transform[] _prism = new Transform[3];
-        LineRenderer _laser;
-        LineRenderer _tongue;
-        NamedSlot[] _throwSlots;
-        LineRenderer[] _throwLines;
         Transform _burn;
         Transform _heatBurn;
         Transform _heatCore;
@@ -62,8 +58,6 @@ namespace GrandSluggers.UnityClient
         float _t;
         float _pitchLinger;
         float _swingLinger;
-        float _throwLinger;
-        float _throwDur;
         string _pitchId = "";
         string _swingId = "";
         Vector3 _decoyPos;
@@ -135,10 +129,6 @@ namespace GrandSluggers.UnityClient
             for (var i = 0; i < _prism.Length; i++)
                 _prism[i] = Ballish(Group("prismball"), "Prism" + i, Color.HSVToRGB(i / 3f, 0.75f, 1f), 1.25f);
 
-            _laser = Line(_root, "Laser", Colors.EmberFire, 0.35f);
-            _tongue = Line(_root, "Tongue", new Color(1f, 0.4f, 0.55f), 0.28f);
-            BuildThrowTrails();
-
             _heatBurn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("heat-swing"), Vector3.zero, new Vector3(2.8f, 0.08f, 2.8f),
                 Look.Lit(Colors.EmberFire, smooth: 0.35f)).transform;
             _burn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("furnace"), Vector3.zero, new Vector3(7.4f, 0.12f, 7.4f),
@@ -162,10 +152,6 @@ namespace GrandSluggers.UnityClient
             bool starPitch,
             string starPitchId,
             string starSwingId,
-            Vector3 tongueFrom,
-            Vector3 laserTo,
-            bool showTongue,
-            bool showLaser,
             bool showBurn,
             bool showFrags,
             Vector3 swingAt = default)
@@ -232,17 +218,6 @@ namespace GrandSluggers.UnityClient
             Burn(_burn, showBurn || swingOn && IdIs(_swingId, "furnace"), body);
             FurnaceRim(swingOn && IdIs(_swingId, "furnace"), body);
             Crack(swingOn && IdIs(_swingId, "furnace"), body);
-            Beam(_tongue, showTongue, tongueFrom, ball);
-            Beam(_laser, showLaser, tongueFrom, laserTo == Vector3.zero ? ball : laserTo);
-            DrawThrow(dt);
-        }
-
-        public void ArmThrow(Vector3 from, Vector3 to, ThrowResult thr)
-        {
-            _ = from;
-            _ = to;
-            _throwDur = Mathf.Clamp(1.12f / Mathf.Max(0.45f, (float)thr.SpeedMul), 0.55f, 1.55f);
-            _throwLinger = _throwDur;
         }
 
         public static Color ThrowColor(Chemistry rel)
@@ -250,8 +225,6 @@ namespace GrandSluggers.UnityClient
             var rgb = ThrowTrail.BallRgb(rel);
             return new Color((float)rgb.R, (float)rgb.G, (float)rgb.B, 1f);
         }
-
-        public float ThrowSeconds => _throwDur;
 
         public Vector3 DecoyBall => _decoyPos;
         public bool Active => _pitchLinger > 0 || _swingLinger > 0;
@@ -505,15 +478,6 @@ namespace GrandSluggers.UnityClient
             _crack.rotation = Quaternion.Euler(0, 28f, 0);
         }
 
-        void Beam(LineRenderer lr, bool on, Vector3 from, Vector3 to)
-        {
-            if (lr == null) return;
-            lr.enabled = on;
-            if (!on) return;
-            lr.SetPosition(0, from + Vector3.up * 2.4f);
-            lr.SetPosition(1, to);
-        }
-
         public void ResetDecoy()
         {
             _decoyPos = Vector3.zero;
@@ -538,13 +502,6 @@ namespace GrandSluggers.UnityClient
         {
             foreach (var kv in _groups)
                 if (kv.Value != null) kv.Value.gameObject.SetActive(false);
-            if (_laser != null) _laser.enabled = false;
-            if (_tongue != null) _tongue.enabled = false;
-            if (_throwLines != null)
-            {
-                for (var i = 0; i < _throwLines.Length; i++)
-                    if (_throwLines[i] != null) _throwLines[i].enabled = false;
-            }
         }
 
         Transform Heart(Transform parent, string name, Material mat)
@@ -613,61 +570,6 @@ namespace GrandSluggers.UnityClient
             var go = Look.Prim(PrimitiveType.Sphere, name, parent, Vector3.zero, Vector3.one * scale, Look.Unlit(c));
             go.SetActive(false);
             return go.transform;
-        }
-
-        void BuildThrowTrails()
-        {
-            var slots = ThrowTrail.Slots(ArtBinder.Art);
-            if (slots.Count == 0)
-            {
-                slots = new[]
-                {
-                    new NamedSlot("throw-trail-good", "", ThrowTrail.Kind),
-                    new NamedSlot("throw-trail-bad", "", ThrowTrail.Kind)
-                };
-            }
-            _throwSlots = new NamedSlot[slots.Count];
-            _throwLines = new LineRenderer[slots.Count];
-            for (var i = 0; i < slots.Count; i++)
-            {
-                var slot = slots[i];
-                _throwSlots[i] = slot;
-                var lr = Line(Group(slot.Id), "Trail", Colors.Gold, 0.42f);
-                lr.positionCount = ThrowTrail.DestinationPositions(slot);
-                lr.enabled = ThrowTrail.DrawsDestinationLine(slot);
-                _throwLines[i] = lr;
-            }
-        }
-
-        void DrawThrow(float dt)
-        {
-            _throwLinger = Mathf.Max(0, _throwLinger - dt);
-            if (_throwLines == null || _throwSlots == null) return;
-            for (var i = 0; i < _throwLines.Length; i++)
-            {
-                var slot = _throwSlots[i];
-                var lr = _throwLines[i];
-                var on = ThrowTrail.DrawsDestinationLine(slot) && _throwLinger > 0;
-                Show(slot.Id, on);
-                if (lr == null) continue;
-                lr.positionCount = ThrowTrail.DestinationPositions(slot);
-                lr.enabled = on;
-            }
-        }
-
-        LineRenderer Line(Transform parent, string name, Color c, float width)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var lr = go.AddComponent<LineRenderer>();
-            lr.positionCount = 2;
-            lr.startWidth = width;
-            lr.endWidth = width * 0.4f;
-            lr.material = new Material(Shader.Find("Sprites/Default") ?? Look.LitShader);
-            lr.startColor = c;
-            lr.endColor = new Color(c.r, c.g, c.b, 0.2f);
-            lr.enabled = false;
-            return lr;
         }
 
         Transform Group(string id)

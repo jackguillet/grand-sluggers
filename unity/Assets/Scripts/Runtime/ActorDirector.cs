@@ -339,16 +339,6 @@ namespace GrandSluggers.UnityClient
             else _zone.Hide();
             _park.Ball.EmitTrail(SetTells.TrailOn(_phase is Phase.Flight or Phase.InPlay or Phase.StealThrow));
 
-            Character fielder = null;
-            if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var gloveNow))
-                fielder = gloveNow;
-            else if (_preview != null) fielder = _preview.Fielder;
-            else if (_last != null) fielder = _last.Fielder;
-            var from = Vector3.zero;
-            if (fielder != null && _heroes.TryGetValue(fielder.Id, out var fh) && fh != null)
-                from = fh.transform.position;
-            var lick = fielder != null && fielder.FieldAbility == "lick-catch" && _phase == Phase.InPlay;
-            var laser = fielder != null && fielder.FieldAbility == "laser" && (_caught || (_last != null && _last.Throw != null));
             var burn = starSwing == "furnace" || starSwing == "heat-swing";
             var frags = starSwing == "cask-swing" || starSwing == "shell-swing";
             var swingAt = Vector3.zero;
@@ -356,7 +346,7 @@ namespace GrandSluggers.UnityClient
                 && _heroes.TryGetValue(_match.Batter.Id, out var bat) && bat != null)
                 swingAt = bat.transform.position + Vector3.up * 3.2f;
             _spec.Tick(dt, _ball, _phase == Phase.Flight, _phase == Phase.InPlay,
-                _pitch != null && _pitch.Star, starPitch, starSwing ?? "", from, _ball, lick, laser, burn, frags, swingAt);
+                _pitch != null && _pitch.Star, starPitch, starSwing ?? "", burn, frags, swingAt);
             var flash = _phase == Phase.InPlay && BuddySet && !_buddy && !_throwing;
             var flashAt = Vector3.zero;
             if (flash && !string.IsNullOrEmpty(_buddyPos) && _gloveAt.TryGetValue(_buddyPos, out var planted))

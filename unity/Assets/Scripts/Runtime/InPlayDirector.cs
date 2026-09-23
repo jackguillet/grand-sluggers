@@ -197,7 +197,6 @@ namespace GrandSluggers.UnityClient
                         break;
                     case LiveEvent.ThrowPop:
                         _park.Ball.Release();
-                        if (_armedThrow != null) _spec.ArmThrow(_throwFrom, _throwTo, _armedThrow);
                         _audio?.ThrowPop();
                         break;
                     case LiveEvent.ItemSmashed:
