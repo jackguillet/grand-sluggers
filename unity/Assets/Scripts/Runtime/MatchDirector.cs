@@ -338,7 +338,7 @@ namespace GrandSluggers.UnityClient
                 HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
                     _versusWanted, Controls.Pad2.Present);
             else if (_phase == Phase.Field)
-                HudView.Field(ParkId, ParkDisplayName(ParkId), Night, Hazards, FieldHazardsLine());
+                HudView.Field(ParkId, ParkDisplayName(ParkId), Night, Hazards, FieldHazardsLine(), FieldCardLines());
             else if (_phase == Phase.Lineup && _lineup != null)
                 TeamSheet.Draw(_match, _lineup);
             if (_match.Paused && _phase is Phase.Select or Phase.Field or Phase.Lineup)
@@ -657,6 +657,12 @@ namespace GrandSluggers.UnityClient
             _campaign = null;
             return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night, Difficulty, Hazards);
         }
+
+        /// <summary>The field card of the park as this exhibition will play it (F8-a): tonight's instances, the hazards switch applied.</summary>
+        System.Collections.Generic.IReadOnlyList<string> FieldCardLines() =>
+            _content != null && _content.Parks.TryGetValue(ParkId, out var park)
+                ? CarnivalFront.FieldCard(PlayedPark.Of(park, Night, Hazards, _content.Rules.Hazards), _content.Rules)
+                : null;
 
         string FieldHazardsLine() =>
             _content != null && _content.Parks.TryGetValue(ParkId, out var park)

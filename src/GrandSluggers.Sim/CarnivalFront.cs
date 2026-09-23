@@ -260,17 +260,61 @@ public static class CarnivalFront
     public const string HazardsOffCopy = "Hazards off. The fence, the walls, the air and the ground stay.";
 
     public static bool HarborIsTheProduct(string parkId) =>
-        parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase);
+        parkId.Equals(ExhibitionPick.DefaultPark, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>One line. Day vs night when the gimmick changes.</summary>
-    public static string Gimmick(string parkId, bool night) => parkId.ToLowerInvariant() switch
+    /// <summary>
+    /// The field card (FD-15, F8-a): what the played park changes, one short line each, read from the park itself — its outfield
+    /// ground, its wall, its air, then each hazard type it plays tonight in park order. The copy is keyed by ground, material and
+    /// hazard type, never by a park id, so a new park gets its card from its data. A park that changes nothing says so.
+    /// </summary>
+    public static IReadOnlyList<string> FieldCard(Park played, RulesTable rules)
     {
-        "harbor-diamond" => night ? "Night fireworks. Still the real diamond." : "The real diamond.",
-        "crystal-rink" => night ? "Ice. The lights go out." : "Ice. Don't fall down.",
-        "funfair-park" => night ? "Chompers eat flies." : "Pipes swallow hoppers.",
-        "rooftop-city" => "Billboards on a city roof.",
-        "canopy-yard" => "Vines and barrels. Climb the wall.",
-        "ember-keep" => night ? "Lava breathes farther." : "Lava in the grass.",
-        _ => "A park."
+        var lines = new List<string>();
+        var ground = GroundZones.Of(played, rules).Outfield;
+        if (GroundLine.TryGetValue(ground, out var g)) lines.Add(g);
+        if (played.Fence?.Points.Any(p => p.Material is { } m && m != WallMaterial.Padded) == true
+            && played.Fence.Points.First(p => p.Material is not null).Material is { } wall && WallLine.TryGetValue(wall, out var w))
+            lines.Add(w);
+        if (played.Environment?.DragMul is { } drag && drag != 1)
+            lines.Add(drag > 1 ? "Heavy air: flies die a little early." : "Thin air: flies carry.");
+        foreach (var type in played.Hazards.Select(h => h.Type).Distinct())
+            if (HazardLine(type, rules) is { } line) lines.Add(line);
+        if (lines.Count == 0) lines.Add("A true field: no hazards, the real diamond.");
+        return lines;
+    }
+
+    static readonly Dictionary<string, string> GroundLine = new(StringComparer.Ordinal)
+    {
+        [Ground.Ice] = "Ice outfield: grounders run and skid; fielders are slow to stop.",
+        [Ground.Ash] = "Ash outfield.",
+        [Ground.Dirt] = "Dirt outfield."
     };
+
+    static readonly Dictionary<string, string> WallLine = new(StringComparer.Ordinal)
+    {
+        [WallMaterial.Glass] = "Glass boards: balls come off them hot."
+    };
+
+    /// <summary>One hazard type's line (F8-a), with its row's own numbers where they matter to a player.</summary>
+    public static string? HazardLine(string type, RulesTable rules)
+    {
+        var row = rules.Hazards.Of(type);
+        var slow = row.SlowSec is { } s ? $"{s:0.#} s" : "";
+        return type switch
+        {
+            HazardType.FreezeVolume => $"Freezers: a fielder who runs through one slows for {slow}.",
+            HazardType.LavaPit => $"Lava pits: a fielder who runs through one slows for {slow}.",
+            HazardType.FireBreath => $"The statue breathes fire: it slows a fielder for {slow}" + (row.NightRadiusMul > 1 ? ", farther at night." : "."),
+            HazardType.WarpPipe => "Warp cans: a ball in one pops out of another.",
+            HazardType.Barrel => "Barrel cannons fire the ball out of another barrel.",
+            HazardType.Chomper => "Chompers spit a fly out of another mouth.",
+            HazardType.Billboard => "Put a ball under a billboard for a star.",
+            HazardType.ClimbWall => "A Clamber fielder climbs the vine wall to rob.",
+            HazardType.Statue => "A statue stands in play: balls bounce off it.",
+            HazardType.AcUnit => "An AC unit sits in play: balls bounce off it.",
+            HazardType.Tree => "Trees stand in play: balls bounce off them.",
+            HazardType.Train => "A train runs along the wall.",
+            _ => null
+        };
+    }
 }
