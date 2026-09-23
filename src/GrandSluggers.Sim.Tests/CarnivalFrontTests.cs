@@ -31,8 +31,8 @@ public class CarnivalFrontTests
         Assert.Equal(false, CarnivalFront.HitSeatMode(one.X + 8, one.Y + 8, w, h));
         Assert.Equal(true, CarnivalFront.HitSeatMode(two.X + 8, two.Y + 8, w, h));
         Assert.Null(CarnivalFront.HitSeatMode(8, 8, w, h));
-        Assert.Contains("1 player", CarnivalFront.SelectHelp, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("2 players", CarnivalFront.SelectHelp, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Up/down", CarnivalFront.SelectHelp, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Left/right", CarnivalFront.SelectHelp, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

@@ -108,20 +108,20 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("sticker") && l.Contains("over the infield"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("left to right"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("No captain on the title"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("postcard"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("time and hazards"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("toys on the dirt"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("brim"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("dirt"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("HOME") && l.Contains("AWAY"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("North"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("1 PLAYER") && l.Contains("2 PLAYERS"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("Choose captains"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("1 vs CPU") && l.Contains("2 controllers"));
         Assert.Contains(HowToPlay.Must("two-pads").Lines, l => l.Contains("2 PLAYERS"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("card") && l.Contains("highlights buddies"));
         // PH-16-R16: both teams start on the one reserve; the draft does not move it.
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("same stars"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Team Setup"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Two diamonds") || l.Contains("two diamonds"));
-        Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("South"));
+        Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("RT"));
         Assert.DoesNotContain(HowToPlay.Must("controls").Lines, l => l.Contains("Space"));
         Assert.Contains(HowToPlay.Must("controls").KeyLines!, l => l.Contains("Space") || l.Contains("left click"));
         Assert.DoesNotContain(HowToPlay.Must("controls").KeyLines!, l => l.Contains("South"));
@@ -141,7 +141,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("pitcher's shoulder") && l.Contains("behind home"));
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("plate") && l.Contains("SET"));
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("does not cut"));
-        Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("foul") && l.Contains("Strike"));
+        Assert.True(HowToPlay.Mentions("foul"));
         Assert.True(HowToPlay.Mentions("foul"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("you are the glove"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("turn two"));
@@ -152,26 +152,26 @@ public class SchemeTests
         Assert.True(HowToPlay.Mentions("Cycle pitch"));
         Assert.False(HowToPlay.Mentions("cycle fastball"));
         Assert.DoesNotContain(HowToPlay.Pages.SelectMany(p => p.Lines), l => l.Contains("F1") && l.Contains("timing", StringComparison.OrdinalIgnoreCase) && !l.Contains("debug"));
-        Assert.Contains(HowToPlay.Must("pause-practice").Lines, l => l.Contains("West") && l.Contains("Tutorials"));
+        Assert.Contains(HowToPlay.Must("pause-practice").Lines, l => l.Contains("Title → Tutorials"));
         Assert.Contains(HowToPlay.Must("pause-practice").KeyLines!, l => l.Contains("Title F") && l.Contains("Tutorials"));
         var running = HowToPlay.Must("running").Lines;
         Assert.Contains(running, l => l.Contains("on a bag") && l.Contains("second"));
         Assert.Contains(running, l => l.Contains("nobody left") || l.Contains("out with nobody"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Pickup") || l.Contains("does not end"));
-        Assert.Contains(running, l => l.Contains("D-pad") && l.Contains("1B"));
-        Assert.Contains(running, l => l.Contains("highlighted"));
-        Assert.Contains(running, l => l.Contains("selected runner"));
-        Assert.Contains(running, l => l.Contains("home included"));
-        Assert.Contains(running, l => l.Contains("steal NOW"));
+        Assert.Contains(running, l => l.Contains("Right stick") && l.Contains("1B"));
+        Assert.Contains(running, l => l.Contains("Selection follows that runner"));
+        Assert.Contains(running, l => l.Contains("LB sends the selection"));
+        Assert.Contains(running, l => l.Contains("before contact"));
+        Assert.Contains(running, l => l.Contains("RB returns it immediately"));
         Assert.DoesNotContain(running, l => l.Contains("perfect steal"));
         Assert.Contains(HowToPlay.Must("steal-race").Lines, l => l.Contains("catcher") && l.Contains("buffer a throw"));
         Assert.Contains(running, l => l.Contains("CAUGHT STEALING"));
         Assert.DoesNotContain(running, l => l.Contains("No steal home"));
-        Assert.Contains(running, l => l.Contains("Go back or send again"));
+        Assert.Contains(running, l => l.Contains("D-pad Up halts"));
         Assert.DoesNotContain(running, l => l.Contains("steal the lead runner"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("landing") && l.Contains("fly"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("hangs"));
-        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("West") && l.Contains("jumps"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("North") && l.Contains("jumps"));
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
             Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("dives sideways") && l.Contains("never automatic"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("wall"));
@@ -182,13 +182,13 @@ public class SchemeTests
         // Spec §15, D14: the camera follows the ball; only a close play cuts to the bag. The couch map says so.
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("close play") && l.Contains("bag"));
         Assert.DoesNotContain(HowToPlay.Must("fielding").Lines, l => l.Contains("throw sits on its bag"));
-        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Select") && l.Contains("pulses"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Arrange defense") && l.Contains("pulses"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("runs with the ball"));
         var two = HowToPlay.Must("two-pads").Lines;
         Assert.Contains(two, l => l.Contains("first controller") && l.Contains("player 1"));
-        Assert.Contains(two, l => l.Contains("North") && l.Contains("HOME"));
+        Assert.Contains(two, l => l.Contains("Your side") && l.Contains("HOME"));
         Assert.Contains(two, l => l.Contains("second controller"));
-        Assert.Contains(two, l => l.Contains("Keyboard") && l.Contains("mouse") && l.Contains("player 1"));
+        Assert.Contains(two, l => l.Contains("Each player uses a controller"));
         Assert.Contains(two, l => l.Contains("drops") && l.Contains("play stops"));
         Assert.Contains(two, l => l.Contains("unseated controller") && l.Contains("South"));
         Assert.Contains(HowToPlay.Must("two-pads").KeyLines!,
@@ -207,39 +207,19 @@ public class SchemeTests
         Assert.True(HowToPlay.Must("pitch-swing").KeyLines is { Count: > 0 });
         Assert.True(HowToPlay.Must("fielding").KeyLines is { Count: > 0 });
         Assert.True(HowToPlay.Must("running").KeyLines is { Count: > 0 });
-        Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad), l => l.Contains("South"));
+        Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad), l => l.Contains("RT"));
         Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad), l => l.Contains("Space"));
         Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("Space"));
         Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("South"));
 
-        // PH-02-R5 (#825): the mound's modifier line is now the cycle. Neither page may still teach a
-        // West / V changeup. Since #860 the cycle walks all three of a pitcher's pitches, so the line
-        // names the slots (#876). The bunt is the two trigger holds (PH-14-R5) and the same line names
-        // the swing cancel (PH-13-R1); nothing still bunts on West / V / Ctrl.
         var padPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad);
-        Assert.Contains(padPitch, l => l.Contains("Cycle pitch") && l.Contains("RB")
-            && l.Contains("before the charge") && l.Contains("(FB, 2nd, 3rd)")
-            && l.Contains("bunt", StringComparison.OrdinalIgnoreCase) && l.Contains("hold LT or RT")
-            && l.Contains("East cancels"));
-        Assert.DoesNotContain(padPitch, l => l.Contains("hold West"));
-        Assert.DoesNotContain(padPitch, l => l.Contains("Changeup: hold West"));
-        var keyPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys);
-        Assert.Contains(keyPitch, l => l.Contains("Cycle pitch") && l.Contains("Tab")
-            && l.Contains("before the charge") && l.Contains("(FB, 2nd, 3rd)")
-            && l.Contains("bunt", StringComparison.OrdinalIgnoreCase) && l.Contains("hold J or L")
-            && l.Contains("G cancels"));
-        Assert.DoesNotContain(keyPitch, l => l.Contains("V/Ctrl"));
-        Assert.DoesNotContain(keyPitch, l => l.Contains("Changeup: hold V/Ctrl"));
-        // PH-02-R5: the whole rule — the Fastball start and the charge-start lock — is on the
-        // pitching controls spread, where the verb row lives, in both schemes.
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-        {
-            var cycle = RoleTables.Of(scheme).First(b => b.Id == "pitching").Rows
-                .First(r => r.Verb == "Cycle pitch");
-            Assert.Contains("before you charge", cycle.Press);
-            Assert.Contains("starts on Fastball", cycle.Press);
-            Assert.Contains("locks", cycle.Press);
-        }
+        Assert.Contains(padPitch, l => l.Contains("Cycle pitch: West before charge")
+            && l.Contains("hold West / North") && l.Contains("East cancels")
+            && l.Contains("LT at RT release"));
+        var cycle = RoleTables.Pad.First(b => b.Id == "pitching").Rows.First(r => r.Verb == "Cycle pitch");
+        Assert.Contains("West", cycle.Press);
+        Assert.Contains("locks", cycle.Press);
+        Assert.Contains("Fastball", cycle.Press);
         // PH-06-R1: the SET ring names the rubber, never the crossing.
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {

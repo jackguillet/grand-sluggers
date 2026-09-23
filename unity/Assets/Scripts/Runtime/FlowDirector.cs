@@ -89,6 +89,7 @@ namespace GrandSluggers.UnityClient
 
         void OpenControlsBook()
         {
+            _pausePad = Controls.Pad1;
             _match.SetPaused(true);
             _pauseHowTo = _pauseFromHowTo = true;
             _pausePage = 0; _t = 0;
