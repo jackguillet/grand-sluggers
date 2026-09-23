@@ -503,6 +503,16 @@
       "promoted": "HarborWallTests.SF05_TheDrawnWallIsTheFlightWallOnEverySpan",
       "issue": "#873",
       "pr": "#875"
+    },
+    {
+      "id": "lineup-navigation-edits-team",
+      "signature": "Moving through the lineup changes the batting order or field assignments before the player has chosen a destination; inspection cards overlap the away field.",
+      "stage": "sitting",
+      "cause": "LineupScreens.StickDefense used navigation to rotate the batting order and nudge gloves, while TeamSheet placed a fixed-width card over the right diamond.",
+      "fix": "Use explicit source/destination selection per seat. Navigation and hover only inspect. One shared LineupLayout reserves non-overlapping batting lists, diamonds and a card area and supplies pointer targets; completed swaps alone credit the guided tutorial.",
+      "promoted": "LineupScreensTests.InspectingAndNavigatingNeverEditsTheTeam",
+      "issue": "#955",
+      "pr": ""
     }
   ]
 }

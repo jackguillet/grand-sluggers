@@ -184,7 +184,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("North"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("1 PLAYER") && l.Contains("2 PLAYERS"));
         Assert.Contains(HowToPlay.Must("two-pads").Lines, l => l.Contains("2 PLAYERS"));
-        Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Hearts"));
+        Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("card") && l.Contains("highlights buddies"));
         // PH-16-R16: both teams start on the one reserve; the draft does not move it.
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("same stars"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Team Setup"));

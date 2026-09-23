@@ -29,8 +29,8 @@ public static partial class HowToPlay
     public static string TutorialGuidedControls(string id, InputScheme scheme) => id switch
     {
         "T-G01" => scheme == InputScheme.Pad
-            ? "South drops a pool head. South after nine opens defense. East changes order; Right shoulder changes the glove."
-            : "Space drops a pool head. Space after nine opens defense. G changes order; N changes the glove.",
+            ? "South adds a pool player. South after nine opens setup. Pick two batting slots with South to swap. East switches to the diamond; pick two fielders to swap positions."
+            : "Click a pool player to add them. Continue after nine opens setup. Click two batting slots to swap, then two fielders to swap positions. WASD moves; Space picks; G switches list / diamond.",
         "T-G05" => "Connect two pads. On captain select choose 2 PLAYERS, then South to confirm both seats.",
         "T-G06" => scheme == InputScheme.Pad
             ? "Start opens Call time. Choose How to play, return to Call time, then choose Restart."
