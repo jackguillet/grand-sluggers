@@ -1,6 +1,6 @@
 namespace GrandSluggers.Sim;
 
-public sealed class Match
+public sealed partial class Match
 {
     public const int DefaultInnings = 3;
 
@@ -84,6 +84,8 @@ public sealed class Match
     public string Difficulty => Rules.Cpu.Level;
     /// <summary>Portable command boundary for the ball between contact and Time.</summary>
     public LivePlaySystem LivePlay { get; }
+    /// <summary>The live runners and pitcher commitment before contact or the catch.</summary>
+    public PitchSetupSystem PitchSetup { get; }
     /// <summary>The seed this match was constructed with. Tracing and <c>cli match --seed</c> both read it.</summary>
     public int Seed { get; }
     bool _tracing;
@@ -136,6 +138,7 @@ public sealed class Match
         _atBat = new AtBatResolver(content.Chemistry, _rules, content.StarSkills);
         _fielding = new FieldingResolver(content.Chemistry, _rules);
         LivePlay = new LivePlaySystem(this);
+        PitchSetup = new PitchSetupSystem(this);
         AwayOrder = away.BattingOrder;
         HomeOrder = home.BattingOrder;
         // One pool per team, the same usable reserve for both, set once here and never again (PH-16-R4, R6, R16):
@@ -307,8 +310,6 @@ public sealed class Match
     /// <summary>A steal is armed on any runner (§11.1): the HUD tell and the CPU pitcher's read.</summary>
     public bool StealOn => _runners.Any(r => r.Live && r.StealArmed);
     public double Dash01 { get; set; }
-    /// <summary>The last pitch's flight to the plate: the clock an armed runner's break runs on (§11.2).</summary>
-    double _lastAirSec;
     /// <summary>The CPU steal table runs once per at-bat (§11.6).</summary>
     bool _cpuStealDecided;
     // The CPU batter's square (§5.9, §7.3): read once per pitch at SET, spent at the plate plane.
@@ -365,16 +366,18 @@ public sealed class Match
     public bool CanSteal => CanStealFrom(SelectedBag);
 
     /// <summary>A steal is offered toward an open bag, or toward a bag whose runner is armed too (the double steal, §11.1).</summary>
-    public bool CanStealFrom(int fromBag) =>
-        !Over && Outs < 3 &&
-        Baserunning.CanSteal(fromBag, First is not null, Second is not null, Third is not null,
-            RunnerAt(Baserunning.StealTarget(fromBag))?.StealArmed == true);
+    public bool CanStealFrom(int fromBag)
+    {
+        var body = RunnerAt(fromBag);
+        if (Over || Paused || Outs >= 3 || body is null || body.Bag is < 1 or > 3) return false;
+        return !_runners.Any(ahead => ahead != body && ahead.Live && ahead.Bag == body.NextBag && !ahead.Advancing);
+    }
     /// <summary>
     /// A runner broke on the pitch and the ball is dead in the catcher's glove (§11.3): the catcher's
     /// throw play is next — <see cref="RunStealPlay"/> headless, or the client's ticks.
     /// </summary>
     public bool StealThrowPending =>
-        !Over && Outs < 3 && !LivePlay.Active && _runners.Any(r => r.Live && r.Broke);
+        !Over && Outs < 3 && !LivePlay.Active && _runners.Any(r => (r.Live || r.Scored) && r.Broke);
 
     /// <summary>The live runner who started the play on <paramref name="fromBag"/> (0 the batter-runner), or null.</summary>
     public Runner? RunnerAt(int fromBag)
@@ -412,7 +415,7 @@ public sealed class Match
         return true;
     }
 
-    /// <summary>Stick back on the selected runner: before the pitch it cancels their steal; live, it brings them back (§9.3).</summary>
+    /// <summary>Stick back on the selected runner: return from the current position in every phase (§9.3).</summary>
     public bool ReturnToBag() => ReturnToBagAt(SelectedBag);
 
     public bool ReturnToBagAt(int fromBag)
@@ -420,7 +423,7 @@ public sealed class Match
         var state = RunnerAt(fromBag);
         if (state is null) return false;
         state.CancelSteal();
-        if (LivePlay.Active) state.Return(human: true);
+        state.Return(human: true);
         return true;
     }
 
@@ -430,15 +433,23 @@ public sealed class Match
     public bool SendRunnerAt(int fromBag)
     {
         var state = RunnerAt(fromBag);
-        if (state is null || !LivePlay.Active) return false;
+        if (state is null) return false;
+        if (!LivePlay.Active) return StartStealAt(fromBag);
         state.Send(state.NextBag, human: true);
         return true;
     }
 
-    /// <summary>All-advance: live, send every runner (§9.3, §9.5); before the pitch, arm tag-and-go. The client reads LB for it only once the ball is live: during SET and the flight LB is the held special modifier (PH-16-R17).</summary>
+    /// <summary>All-advance: live, send every runner (§9.3, §9.5); before the pitch, depart immediately. The client reads LB for it only once the ball is live: during SET and the flight LB is the held special modifier (PH-16-R17).</summary>
     public bool AdvanceAll()
     {
         if (Over || Outs >= 3) return false;
+        if (!LivePlay.Active)
+        {
+            var sent = false;
+            foreach (var runner in _runners.Where(r => r.Live).OrderByDescending(r => r.Progress))
+                sent |= StartStealAt(runner.FromBag);
+            return sent;
+        }
         var any = false;
         foreach (var r in _runners)
         {
@@ -463,7 +474,7 @@ public sealed class Match
             if (!r.Live) continue;
             any = true;
             r.SetTagAndGo(false);
-            if (LivePlay.Active) r.Return(human: true);
+            r.Return(human: true);
         }
         SendAll = false;
         ClearSteal();
@@ -477,7 +488,7 @@ public sealed class Match
         SendAll = false;
         ClearSteal();
         foreach (var r in _runners)
-            if (r.Live && LivePlay.Active) r.Halt();
+            if (r.Live) r.Halt();
         return true;
     }
 
@@ -487,14 +498,13 @@ public sealed class Match
         var state = RunnerAt(fromBag);
         if (state is null) return false;
         state.CancelSteal();
-        if (LivePlay.Active) state.Halt();
+        state.Halt();
         return true;
     }
 
     /// <summary>
-    /// Arm the selected runner's steal (§11.1, D2): <paramref name="windupSec"/> is seconds into the
-    /// windup (negative or NaN in SET); inside running.steal.perfectWindowSec it is the perfect steal,
-    /// past release it is too late. Other runners' arms stand — a double steal is two arms.
+    /// Start the selected body now (§11.1). The compatibility timestamp is not a movement credit;
+    /// PitchSetup.Advance moves the body until contact or catcher possession. Other runners keep their orders.
     /// </summary>
     public bool StartSteal(double windupSec = -1) => StartStealAt(SelectedBag, windupSec);
 
@@ -502,10 +512,10 @@ public sealed class Match
     {
         if (!CanStealFrom(fromBag) || LivePlay.Active) return false;
         var state = RunnerAt(fromBag);
-        if (state is null || state.Broke) return false;
-        var arm = StealBreak.ArmFor(windupSec, Rules);
-        if (arm == StealArm.None) return false;
-        state.ArmSteal(arm);
+        if (state is null || state.Bag >= 4) return false;
+        // A press is a departure. The legacy timestamp parameter grants no retroactive jump.
+        state.ArmSteal(StealArm.Set);
+        state.Break(state.Feet);
         return true;
     }
 
@@ -578,13 +588,12 @@ public sealed class Match
     /// </summary>
     internal void BeginRunners(double startX, double startZ)
     {
-        _runners.RemoveAll(r => r.IsBatter || !r.Live);
+        _runners.RemoveAll(r => r.IsBatter || r.Out);
         var forces = InPlay.ForceState.FromOccupancy(First is not null, Second is not null, Third is not null);
         foreach (var r in _runners)
         {
             r.BeginPlay(forces.At(r.Bag + 1), SendAll);
             // A runner who broke on the pitch is on the path with their head start (§11.2): the steal is running now (S-64).
-            if (r.Broke) r.Break(StealBreak.HeadStartFt(r.Who, r.StealArm, _lastAirSec, Rules));
         }
         _runners.Add(Runner.BatterRunner(Batter, startX, startZ));
         _thirdOutAt = double.PositiveInfinity;
@@ -592,29 +601,9 @@ public sealed class Match
     }
 
     /// <summary>
-    /// The pitch was thrown (§11.2): every armed runner has broken toward their steal bag — unless
-    /// that bag holds a runner who is not going (no steal into a body, §11.1), which drops the arm.
-    /// The bodies are placed when the live ball begins.
-    /// </summary>
-    void BreakArmedRunners()
-    {
-        foreach (var r in _runners.Where(x => x.Live && x.StealArmed && !x.Broke).OrderByDescending(x => x.Bag).ToList())
-        {
-            var ahead = RunnerAt(r.Bag + 1);
-            if (ahead is not null && ahead.Live && !ahead.StealArmed)
-            {
-                r.CancelSteal();
-                continue;
-            }
-            r.MarkBroke();
-        }
-    }
-
-    /// <summary>
     /// The dead-ball runner play (§11.3, §11.4): the catcher's throw after a take or a miss, or the
     /// pickoff from the rubber. The pitch's play continues (its strikeout stays on the play: two outs
-    /// on one pitch is a DOUBLE PLAY), there is no batter body, and every runner who broke is placed
-    /// on the path with the head start the pitch's clock gave them (0 on the pickoff motion).
+    /// on one pitch is a DOUBLE PLAY), there is no batter body, and each departing runner retains the position and direction already reached.
     /// </summary>
     internal void BeginRunnerPlay(PlayEvent? pitch, bool pickoff)
     {
@@ -622,11 +611,10 @@ public sealed class Match
             _pendingPlay = new PlayOrigin(context, pitch.Batter, pitch.Pitcher);
         else
             CurrentPlay();
-        _runners.RemoveAll(r => r.IsBatter || !r.Live);
+        _runners.RemoveAll(r => r.IsBatter || r.Out);
         foreach (var r in _runners)
         {
             r.BeginPlay(forced: false, tagAndGo: false);
-            if (r.Broke) r.Break(pickoff ? 0 : StealBreak.HeadStartFt(r.Who, r.StealArm, _lastAirSec, Rules));
         }
         _thirdOutAt = double.PositiveInfinity;
         _thirdOutKillsRuns = false;
@@ -901,20 +889,17 @@ public sealed class Match
     public bool BeginPickoff(int bag, LiveSeats seats, out PlayEvent? dead, LivePlayCommandSource source = LivePlayCommandSource.Cpu)
     {
         dead = null;
-        if (Over || Outs >= 3 || bag is < 1 or > 3 || LivePlay.Active) return false;
-        var state = RunnerAt(bag);
-        if (state is null) return false;
-        var breaking = _runners.Where(r => r.Live && !r.Broke && StealBreak.BreaksOnPickoff(r.StealArm)).ToList();
+        if (Over || Outs >= 3 || bag is < 1 or > 4 || LivePlay.Active) return false;
+        if (PitchSetup.Phase == PitchSetupPhase.Flight || Paused) return false;
+        if (PitchSetup.Committed)
+        {
+            dead = RecordBalk();
+            return false;
+        }
+        PitchSetup.PitchResolved();
         BeginPlay();
         var fake = new PitchCommand(PitchFamily.Fastball, 0, false);
         var take = new SwingCommand(false, 0, 0, false);
-        if (breaking.Count == 0)
-        {
-            dead = FinishEvent(Emit(PlayKind.Pickoff, fake, take, EmptyHit(true), $"{state.Who.Name} back to the bag.", 0, [],
-                Pitcher, outcome: new PlayOutcome(ThrowEndpoint: new ThrowEndpoint(ThrowOrigin.PitcherRubber, bag))));
-            return false;
-        }
-        foreach (var r in breaking) r.MarkBroke();
         var ev = Emit(PlayKind.Pickoff, fake, take, EmptyHit(true), "Pickoff.", 0, [], Pitcher);
         LivePlay.Apply(LivePlayCommand.BeginPickoff(ev, bag, seats, source));
         return LivePlay.Active;
@@ -972,6 +957,15 @@ public sealed class Match
     public PlayEvent Play(PitchCommand pitch, SwingCommand swing, string? item = null)
     {
         pitch = PreparePitch(pitch);
+        // Headless callers traverse the same pre-contact runner clock as the client.
+        if (PitchSetup.Phase != PitchSetupPhase.Flight)
+        {
+            PitchSetup.BeginCharge();
+            var setupPlay = PitchSetup.Advance(Motion.PitchRelease);
+            if (Over && setupPlay is not null) return setupPlay;
+            PitchSetup.ReleaseBall();
+            PitchSetup.Advance(PitchFlight.AirSeconds(PitchSpeedMph(pitch), Rules));
+        }
         PlayEvent ev;
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             ev = StealThrowPending ? RunStealPlay(finished!) : finished!;
@@ -1092,6 +1086,7 @@ public sealed class Match
         hit = EmptyHit(true);
         finished = null;
         if (Over) throw new InvalidOperationException("game over");
+        PitchSetup.PitchResolved();
         BeginPlay();
         // The square was spent on this pitch's swing; the next pitch reads it again at SET (§5.9).
         _cpuSquareDecided = false;
@@ -1107,9 +1102,7 @@ public sealed class Match
         var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
         SpendPitch(pitch);
         if (Top) _awayLastCrossingX = crossing.X; else _homeLastCrossingX = crossing.X;
-        // The pitch is thrown: every armed runner breaks at release (§11.2, D2) on this pitch's clock.
-        _lastAirSec = PitchFlight.AirSeconds(PitchSpeedMph(pitch), Rules);
-        BreakArmedRunners();
+        // Runner positions already came from the pre-contact clock; never recalculate a head start.
         var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
         BatterContactOffsetX = box;
 
@@ -1143,6 +1136,7 @@ public sealed class Match
         // Every batted ball is live from here, foul territory included (§7.11): the flight is
         // fielded, a caught foul fly is an out, and the call is made where the ball lands or is
         // first touched. FinishInPlay stamps FOUL when it is dead.
+        PitchSetup.TakeCatcherInput(); // contact supersedes a queued catcher throw
         return true;
     }
 
@@ -1589,7 +1583,7 @@ public sealed class Match
 
     /// <summary>
     /// The CPU offense's steal decision (§11.6): the runner AI's table, once per at-bat at SET, on
-    /// the one seeded stream. A perfect arm is the windup's; the rest are SET's, exposed to the pickoff.
+    /// the one seeded stream. A chosen runner departs now and is exposed to a legal pitcher throw.
     /// </summary>
     public bool CpuArmSteal()
     {
@@ -1598,10 +1592,9 @@ public sealed class Match
         var trailing = Top ? HomeScore - AwayScore : AwayScore - HomeScore;
         var plan = RunnerAi.StealPlan(_runners, Batter.Captain, Outs, trailing, _rng, Rules);
         var any = false;
-        foreach (var (runner, arm) in plan)
+        foreach (var (runner, _) in plan)
         {
-            runner.ArmSteal(arm);
-            any = true;
+            any |= StartStealAt(runner.FromBag);
         }
         return any;
     }
@@ -2120,6 +2113,13 @@ public sealed class Match
     (int Runs, IReadOnlyList<string> Scorers) PlaceByWalk(Character batter)
     {
         var scorers = new List<string>();
+        foreach (var scored in _runners.Where(r => r.Scored).ToList())
+        {
+            Score(scored.Who);
+            scorers.Add(scored.Who.Name);
+            RecordMove(scored.Who, scored.FromBag, 4);
+            _runners.Remove(scored);
+        }
         var f = RunnerAt(1);
         var second = RunnerAt(2);
         var third = RunnerAt(3);
@@ -2191,7 +2191,7 @@ public sealed class Match
     /// <summary>A dead foul (§5.6): the batter goes back to the box, every runner back to their bag.</summary>
     void ResetRunnersToBags()
     {
-        _runners.RemoveAll(r => r.IsBatter || !r.Live);
+        _runners.RemoveAll(r => r.IsBatter || r.Out);
         foreach (var r in _runners) r.Seat(r.FromBag);
         SyncSelection();
     }
@@ -2271,6 +2271,8 @@ public sealed class Match
     /// </summary>
     PlayEvent AfterPitch(PlayEvent ev)
     {
+        if (!StealThrowPending || ev.Kind is not (PlayKind.TakeBall or PlayKind.TakeStrike or PlayKind.SwingMiss or PlayKind.Strikeout))
+            PitchSetup.TakeCatcherInput();
         ResetBatter();
         return ev;
     }

@@ -116,7 +116,7 @@ public sealed partial class TutorialSession
                     _fumbleScooped = true;
                 }
             }
-            if (_fumbleScooped && live.Events.Contains(LiveEvent.ThrowPop)
+            if (_fumbleScooped && live.Events.Contains(LiveEvent.ThrowCommitted)
                 && live.ThrowBag == 1 && _throws.LastOrDefault() == 1)
             {
                 Finish(true, "fumble-recovered", "You recovered the fumble and threw to first.");
@@ -133,7 +133,7 @@ public sealed partial class TutorialSession
         {
             var input = _inputs[^1];
             if (input.Source == LivePlayCommandSource.Human && !Demonstration
-                && input.Field?.SouthDown == true && live.Events.Contains(LiveEvent.ThrowPop)
+                && input.Field?.SouthDown == true && live.Events.Contains(LiveEvent.ThrowCommitted)
                 && live.ThrowBag == 1 && _throws.LastOrDefault() == 1)
                 _coverHumanThrow = true;
             if (result.CompletedPlay is not { } coverPlay) return;
@@ -188,7 +188,7 @@ public sealed partial class TutorialSession
         {
             var input = _inputs[^1];
             if (input.Source == LivePlayCommandSource.Human && !Demonstration
-                && input.Field?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 0)
+                && input.Field?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag == 0)
                 _relayHumanFeed = true;
             if (result.CompletedPlay is not { } chemistryPlay) return;
             var marks = live.TakeTrace(chemistryPlay).Marks ?? [];
@@ -211,7 +211,7 @@ public sealed partial class TutorialSession
             var input = _inputs[^1];
             var owned = input.Source == LivePlayCommandSource.Human && !Demonstration;
             var pad = input.Field;
-            if (owned && pad?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 0)
+            if (owned && pad?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag == 0)
                 _relayHumanFeed = true;
             if (owned && pad?.SouthDown == true && live.Events.Contains(LiveEvent.ThrowQueued))
             {
@@ -258,7 +258,7 @@ public sealed partial class TutorialSession
             var input = _inputs[^1];
             if (input.Source == LivePlayCommandSource.Human && !Demonstration
                 && input.Field is { SouthDown: true } && !_laserWasThrowing
-                && live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 4
+                && live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag == 4
                 && _throws.LastOrDefault() == 4)
                 _laserHumanThrow = true;
             _laserWasThrowing = live.Throwing;
@@ -293,12 +293,12 @@ public sealed partial class TutorialSession
             var input = _inputs[^1];
             var owned = input.Source == LivePlayCommandSource.Human && !Demonstration;
             var pad = input.Field;
-            if (owned && pad?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 0)
+            if (owned && pad?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag == 0)
                 _relayHumanFeed = true;
             if (live.Events.Contains(LiveEvent.ThrowQueueCleared)) _relayHumanOnward = false;
             if (owned && pad?.SouthDown == true &&
                 (live.Events.Contains(LiveEvent.ThrowQueued) && live.QueuedThrowBag == 4
-                 || live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 4))
+                 || live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag == 4))
                 _relayHumanOnward = true;
             if (result.CompletedPlay is not { } relayPlay) return;
             var marks = live.TakeTrace(relayPlay).Marks ?? [];
@@ -335,7 +335,7 @@ public sealed partial class TutorialSession
                     var expected = InPlay.ThrowSec(distance,
                         new ThrowResult(Chemistry.Neutral, flight.SpeedMul, false, Arm: snap!.Stats.Arm,
                             ReleaseSec: abilities.SnapReleaseSec), Match.Rules);
-                    success = Math.Abs(flight.DurationSec - expected) <= 1e-5;
+                    success = Math.Abs(flight.DurationSec - (expected - abilities.SnapReleaseSec)) <= 1e-5;
                 }
             }
             Finish(success, success ? Lesson.Objective == "human-snap-relay" ? "snap-relay" : "relay-handoff" : "relay-not-completed",

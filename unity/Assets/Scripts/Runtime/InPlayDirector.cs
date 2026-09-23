@@ -20,8 +20,12 @@ namespace GrandSluggers.UnityClient
 
     public sealed partial class MatchDirector
     {
+        int _liveBeganFrame = -1;
+
         internal void TickLive(float dt)
         {
+            // A pre-contact tick already consumed this frame before handing off to live play.
+            if (_liveBeganFrame == Time.frameCount) return;
             if (_phase == Phase.InPlay)
                 TickInPlay(dt);
             else if (_phase == Phase.StealThrow) TickStealThrow(dt);
@@ -353,6 +357,7 @@ namespace GrandSluggers.UnityClient
         {
             if (pitch != null) _last = pitch;
             _phase = Phase.StealThrow;
+            _liveBeganFrame = Time.frameCount;
             _t = 0;
             _camHold.Reset();
             _pending = null;

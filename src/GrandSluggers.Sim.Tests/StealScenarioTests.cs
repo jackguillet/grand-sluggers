@@ -22,36 +22,17 @@ public sealed class StealScenarioTests
     // The jump (§11.2, D2)
     // ---------------------------------------------------------------------------------
 
-    [Fact]
-    public void TheArmIsReadOffTheWindupClock()
+    [Theory]
+    [InlineData(-1)] [InlineData(.2)] [InlineData(.3)] [InlineData(1)]
+    public void ADepartureTimestampNeverGrantsRetroactiveMovement(double when)
     {
-        var r = _content.Rules;
-        Assert.Equal(StealArm.Set, StealBreak.ArmFor(-1, r));
-        Assert.Equal(StealArm.Set, StealBreak.ArmFor(double.NaN, r));
-        Assert.Equal(StealArm.Perfect, StealBreak.ArmFor(0.2, r));
-        Assert.Equal(StealArm.Perfect, StealBreak.ArmFor(r.Running.Steal.PerfectWindowSec, r));
-        Assert.Equal(StealArm.Windup, StealBreak.ArmFor(0.3, r));
-        Assert.Equal(StealArm.None, StealBreak.ArmFor(Motion.PitchRelease, r)); // after release is too late
-    }
-
-    [Fact]
-    public void TheBreakRunsAtTheAirSpeedFromReleaseAndThePerfectStealFourTenthsEarlier()
-    {
-        var r = _content.Rules;
-        var who = _content.Must("dart");
-        var speed = RunnerSystem.SpeedFtPerSec(who, 0, r);
-        var air = 0.95;
-        var plain = StealBreak.HeadStartFt(who, StealArm.Set, air, r);
-        var perfect = StealBreak.HeadStartFt(who, StealArm.Perfect, air, r);
-        Assert.Equal(speed * r.Running.Steal.AirSpeedMul * air, plain, 6);
-        Assert.Equal(speed * r.Running.Steal.AirSpeedMul * (air + r.Running.Steal.PerfectEarlySec), perfect, 6);
-        Assert.Equal(plain, StealBreak.HeadStartFt(who, StealArm.Windup, air, r), 6);
-        Assert.Equal(0, StealBreak.HeadStartFt(who, StealArm.None, air, r));
-        Assert.Equal(0, StealBreak.FeetAt(who, StealArm.Set, -0.2, r)); // nothing before release
-        Assert.True(StealBreak.FeetAt(who, StealArm.Perfect, -0.2, r) > 0, "the perfect steal is off the bag before release");
-        Assert.True(StealBreak.BreaksOnPickoff(StealArm.Set));
-        Assert.False(StealBreak.BreaksOnPickoff(StealArm.Perfect));
-        Assert.False(StealBreak.BreaksOnPickoff(StealArm.Windup));
+        var match = Defense();
+        Station(match, [1]);
+        Assert.True(match.StartSteal(windupSec: when));
+        Assert.True(match.RunnerAt(1)!.Broke);
+        Assert.Equal(0, match.RunnerAt(1)!.Feet);
+        match.PitchSetup.Advance(.1);
+        Assert.Equal(RunnerSystem.SpeedFtPerSec(match.First!, 0, match.Rules) * .1, match.RunnerAt(1)!.Feet, 6);
     }
 
     [Fact]
@@ -69,7 +50,7 @@ public sealed class StealScenarioTests
         Assert.Equal(2, match.ArmedStealBag);
         // Stick back on one runner takes only that arm off.
         Assert.True(match.ReturnToBagAt(2));
-        Assert.False(match.RunnerAt(2)!.StealArmed);
+        Assert.Equal(2, match.RunnerAt(2)!.DestBag);
         Assert.True(match.RunnerAt(1)!.StealArmed);
     }
 
@@ -196,7 +177,10 @@ public sealed class StealScenarioTests
         Station(match, [1]);
         var runner = match.First!;
         Assert.True(match.StartSteal());
-        // The pitch is thrown and hit: the armed runner broke at release (§11.2); the fixture names the batted ball.
+        match.PitchSetup.ReleaseBall();
+        match.PitchSetup.Advance(PitchFlight.AirSeconds(match.PitchSpeedMph(match.PreparePitch(Scenario.Paint)), match.Rules));
+        var expectedFeet = match.RunnerAt(1)!.Feet;
+        // Contact preserves the actual departure, not a recalculated head start.
         Assert.True(match.BeginAtBat(Scenario.Paint, Scenario.SwingAt(0), out _, out _), "the scripted swing must put the ball in play");
         var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
         var preview = match.PreviewHit(hit);
@@ -208,8 +192,7 @@ public sealed class StealScenarioTests
         Assert.True(body.Broke);
         Assert.Equal(RunnerPhase.Stealing, body.Phase);
         Assert.Equal(2, body.DestBag);
-        var expected = StealBreak.HeadStartFt(runner, StealArm.Set, PitchFlight.AirSeconds(match.PitchSpeedMph(match.PreparePitch(Scenario.Paint)), match.Rules), match.Rules);
-        Assert.Equal(expected, body.Feet, 3);
+        Assert.Equal(expectedFeet, body.Feet, 3);
         Assert.True(body.Feet > 10, $"a head start of {body.Feet:0.0} ft");
         PlayEvent? play = null;
         for (var i = 0; i < 60 * 30 && play is null; i++)
@@ -445,7 +428,7 @@ public sealed class StealScenarioTests
                 fieldPad: (i, live) =>
                 {
                     var atPitcher = Toward(live, Diamond.Rubber.X, Diamond.Rubber.Z, swap: true);
-                    if (live.Throwing)
+                    if (live.ThrowInFlight)
                     {
                         inFlightRing.Add(live.GlovePos);
                         return atPitcher;
@@ -514,7 +497,7 @@ public sealed class StealScenarioTests
         var burner = Defense(leadoff: "zig");
         Assert.True(burner.StationRunner(3, _content.Must("zig")));
         Assert.True(burner.StartSteal(windupSec: 0.2));
-        Assert.Equal(StealArm.Perfect, burner.RunnerAt(3)!.StealArm);
+        burner.PitchSetup.Advance(.25);
         var slow = Scenario.PitchAt(0, StrikeZoneGeometry.CenterY, family: PitchFamily.Changeup);
         var dash = RunSteal(burner, slow, Scenario.Take, HumanRunners, LivePlayCommandSource.Human,
             runPad: (i, _) => i % 4 == 0 ? new LivePadInput(SouthDown: true) : LivePadInput.Dead);
@@ -635,22 +618,24 @@ public sealed class StealScenarioTests
     }
 
     [Fact]
-    public void S69b_APerfectArmIsTheWindupsAndAPickoffInSetFindsThemOnTheBag()
+    public void S69b_AnEarlyDepartureCanReturnBeforeAPickoff()
     {
         var match = Defense();
         Station(match, [1]);
-        Assert.True(match.StartSteal(windupSec: 0.1));
-        Assert.Equal(StealArm.Perfect, match.RunnerAt(1)!.StealArm);
+        Assert.True(match.StartSteal(windupSec: .1));
+        match.PitchSetup.Advance(.1);
+        match.ReturnToBag();
+        match.PitchSetup.Advance(.2);
+        Assert.True(match.RunnerAt(1)!.IsOn(1));
         var ev = match.Pickoff(1);
         Assert.Equal(PlayKind.Pickoff, ev!.Kind);
         Assert.Empty(ev.Outcome!.OutsMade);
-        Assert.True(match.RunnerAt(1)!.StealArmed, "the arm stands for the pitch");
     }
 
     [Theory]
     [InlineData("soot", false)]
     [InlineData("lace", true)]
-    public void S70_PerfectStealAgainstTheCatcherIsTheRace(string catcherId, bool niceRelease)
+    public void S70_AnEarlierPhysicalDepartureAgainstTheCatcherIsTheRace(string catcherId, bool niceRelease)
     {
         // Zig (Run 9) armed 0.2 s into the windup breaks 0.4 s early (D2). Against a Field-5 CPU catcher the body
         // is in ahead of the ball; against the roster's best arm (Field 8; the spec row names 9) released at once
@@ -658,7 +643,8 @@ public sealed class StealScenarioTests
         var match = Defense(catcher: catcherId);
         Assert.True(match.StationRunner(1, _content.Must("zig")));
         Assert.True(match.StartSteal(windupSec: 0.2));
-        Assert.Equal(StealArm.Perfect, match.RunnerAt(1)!.StealArm);
+        Assert.True(match.RunnerAt(1)!.Broke);
+        match.PitchSetup.Advance(.25);
         var seats = niceRelease ? HumanCatcher : LiveSeats.CpuOnly;
         var source = niceRelease ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu;
         var script = new DefenseScript([2]);
@@ -668,7 +654,7 @@ public sealed class StealScenarioTests
         if (niceRelease)
         {
             var throwToSecond = Assert.Single(run.Throws, t => t.Bag == 2);
-            Assert.True(throwToSecond.ReleaseSec <= Frame + 1e-9, $"released at once; got {throwToSecond.ReleaseSec:0.000}");
+            Assert.True(throwToSecond.ReleaseSec <= match.Rules.Fielding.Throw.ReleaseSec + Frame + 1e-9, $"released at once; got {throwToSecond.ReleaseSec:0.000}");
             var tag = Assert.Single(facts.OutsMade);
             Assert.Equal((OutType.Tag, 2, 1), (tag.Type, tag.Bag, tag.FromBag));
             Assert.Equal(PlayKind.CaughtStealing, run.Play.Kind);
@@ -862,6 +848,8 @@ public sealed class StealScenarioTests
         Func<int, LivePlaySystem, LivePadInput>? fieldPad = null, Func<int, LivePlaySystem, LivePadInput>? runPad = null,
         Action<LivePlaySystem>? observe = null)
     {
+        match.PitchSetup.ReleaseBall();
+        match.PitchSetup.Advance(PitchFlight.AirSeconds(match.PitchSpeedMph(match.PreparePitch(pitch)), match.Rules));
         Assert.False(match.BeginAtBat(pitch, swing, out _, out var finished), "a take or a miss");
         Assert.NotNull(finished);
         var result = new RunResult { PitchKind = finished!.Kind };
@@ -903,7 +891,7 @@ public sealed class StealScenarioTests
         ThrowRecord? inFlight = null;
         PlayEvent? play = null;
         // Throws the play began with (the pickoff) pop before the first tick.
-        if (live.Throwing)
+        if (live.ThrowInFlight)
         {
             inFlight = new ThrowRecord { Bag = live.ThrowBag, FromPos = live.ThrowFromPos, ReleaseSec = live.ElapsedSeconds };
             result.Throws.Add(inFlight);
