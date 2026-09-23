@@ -13,7 +13,7 @@ namespace GrandSluggers.Sim.Tests;
 /// They run the smallest honest plan — one matchup, one seed, so one game a cell — because coverage,
 /// shape and determinism do not need fifty games a park, and a cohort row that plays hundreds of
 /// games would become the whole suite's long pole. <c>cli match --cohort park-factors</c> always runs
-/// the predeclared plan. The first row is <c>Rows=compact</c>, so CI asks it of <c>trials/c80</c>.
+/// the predeclared plan.
 /// </para>
 /// </summary>
 [Trait("Kind", "Balance")]
@@ -35,7 +35,7 @@ public class ParkFactorsCohortTests
         Assert.Equal(2, report.SchemaVersion);
         Assert.Equal(ParkFactorCohort.Innings, report.Innings);
 
-        // The root is named, so a shipped run and a trials/c80 run can be filed side by side.
+        // The root is named, so a run on the data root and a run on an overlay can be filed side by side.
         Assert.Equal(_content.Root.Provenance, report.Root);
         Assert.Contains("data root", report.Root);
 

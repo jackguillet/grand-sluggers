@@ -11,9 +11,8 @@ namespace GrandSluggers.Sim.Tests;
 ///
 /// <para>
 /// The pose is computed from the geometry owner for the park being captured (<see cref="StillShots.Frame"/>), so every
-/// row here runs every park in <see cref="ContentCatalog.ParkPickOrder"/> on the shipped root and on <c>trials/c80</c>,
-/// both loaded by hand, both sides, plus a polyline fixture whose pole stands on a short, tall porch. The framing
-/// numbers are the <c>parkShots</c> rows of <c>data/feel/shots.json</c>; nothing here restates them.
+/// row here runs every park in <see cref="ContentCatalog.ParkPickOrder"/>, both sides, plus a polyline fixture whose pole
+/// stands on a short, tall porch. The framing numbers are the <c>parkShots</c> rows of <c>data/feel/shots.json</c>; nothing here restates them.
 /// </para>
 ///
 /// <para>
@@ -30,14 +29,7 @@ public sealed class StillShotsTests
     /// <summary>A framed point sits inside the middle 90 % of the picture's width and height.</summary>
     const double SafeFrame = 0.9;
 
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
-
-    static string TrialDir =>
-        Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"));
-
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped, TrialDir));
-
-    static IEnumerable<ContentCatalog> BothRoots => [Shipped, Trial];
+    static readonly ContentCatalog Game = ContentCatalog.Load();
 
     static readonly string[] PoleIds = ["pole-left", "pole-right"];
 
@@ -55,20 +47,18 @@ public sealed class StillShotsTests
         PoleIds.Select(id => catalog.Shots.ParkById[id]);
 
     [Fact]
-    public void EveryPoleShotFramesItsPoleAtEveryParkOnBothRootsAndBothSides()
+    public void EveryPoleShotFramesItsPoleAtEveryParkAndBothSides()
     {
         var framed = 0;
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var bounds = ParkBoundary.From(catalog.Rules.Boundary);
+        foreach (var id in catalog.ParkPickOrder)
+        foreach (var row in PoleRows(catalog))
         {
-            var bounds = ParkBoundary.From(catalog.Rules.Boundary);
-            foreach (var id in catalog.ParkPickOrder)
-            foreach (var row in PoleRows(catalog))
-            {
-                AssertFramesThePole(catalog.MustPark(id), row, bounds, $"{catalog.Root.Provenance} {id} {row.Id}");
-                framed++;
-            }
+            AssertFramesThePole(catalog.MustPark(id), row, bounds, $"{catalog.Root.Provenance} {id} {row.Id}");
+            framed++;
         }
-        Assert.Equal(2 * 2 * Shipped.ParkPickOrder.Count, framed);
+        Assert.Equal(2 * Game.ParkPickOrder.Count, framed);
     }
 
     /// <summary>
@@ -78,23 +68,21 @@ public sealed class StillShotsTests
     [Fact]
     public void ALopsidedParksTwoShotsStandTheSameWayFromTwoDifferentPoles()
     {
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var bounds = ParkBoundary.From(catalog.Rules.Boundary);
+        var lopsided = catalog.ParkPickOrder.Select(catalog.MustPark)
+            .Where(p => p.LeftFenceFt != p.RightFenceFt).ToList();
+        Assert.NotEmpty(lopsided);
+        foreach (var park in lopsided)
         {
-            var bounds = ParkBoundary.From(catalog.Rules.Boundary);
-            var lopsided = catalog.ParkPickOrder.Select(catalog.MustPark)
-                .Where(p => p.LeftFenceFt != p.RightFenceFt).ToList();
-            Assert.NotEmpty(lopsided);
-            foreach (var park in lopsided)
-            {
-                var left = StillShots.Frame(catalog.Shots.ParkById["pole-left"], park, bounds);
-                var right = StillShots.Frame(catalog.Shots.ParkById["pole-right"], park, bounds);
-                var dl = Math.Sqrt(left.Pos.X * left.Pos.X + left.Pos.Z * left.Pos.Z);
-                var dr = Math.Sqrt(right.Pos.X * right.Pos.X + right.Pos.Z * right.Pos.Z);
-                // The shot on the deeper pole stands deeper, by the difference between the poles.
-                var poleGap = AtBatResolver.FenceAt(park, 45) - AtBatResolver.FenceAt(park, -45);
-                Assert.True(Math.Sign(dr - dl) == Math.Sign(poleGap), $"{park.Id}: the shots do not follow the poles");
-                Assert.Equal(Reach(left, park, -1), Reach(right, park, 1), 9);
-            }
+            var left = StillShots.Frame(catalog.Shots.ParkById["pole-left"], park, bounds);
+            var right = StillShots.Frame(catalog.Shots.ParkById["pole-right"], park, bounds);
+            var dl = Math.Sqrt(left.Pos.X * left.Pos.X + left.Pos.Z * left.Pos.Z);
+            var dr = Math.Sqrt(right.Pos.X * right.Pos.X + right.Pos.Z * right.Pos.Z);
+            // The shot on the deeper pole stands deeper, by the difference between the poles.
+            var poleGap = AtBatResolver.FenceAt(park, 45) - AtBatResolver.FenceAt(park, -45);
+            Assert.True(Math.Sign(dr - dl) == Math.Sign(poleGap), $"{park.Id}: the shots do not follow the poles");
+            Assert.Equal(Reach(left, park, -1), Reach(right, park, 1), 9);
         }
     }
 
@@ -114,23 +102,21 @@ public sealed class StillShotsTests
             new(40, 1.06, 9),
             new(45, 1.06, 9)
         ];
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var bounds = ParkBoundary.From(catalog.Rules.Boundary);
+        foreach (var id in catalog.ParkPickOrder)
         {
-            var bounds = ParkBoundary.From(catalog.Rules.Boundary);
-            foreach (var id in catalog.ParkPickOrder)
+            var plain = catalog.MustPark(id);
+            var fenced = plain with { Id = plain.Id + "-f7b1", Fence = new ParkFence(points) };
+            foreach (var row in PoleRows(catalog))
             {
-                var plain = catalog.MustPark(id);
-                var fenced = plain with { Id = plain.Id + "-f7b1", Fence = new ParkFence(points) };
-                foreach (var row in PoleRows(catalog))
-                {
-                    var what = $"{catalog.Root.Provenance} {fenced.Id} {row.Id}";
-                    AssertFramesThePole(fenced, row, bounds, what);
-                    var before = StillShots.Frame(row, plain, bounds);
-                    var after = StillShots.Frame(row, fenced, bounds);
-                    Assert.NotEqual(before.Target, after.Target);
-                    var top = row.Side < 0 ? 18 : 9;
-                    Assert.True(Math.Abs(after.Target.Y - (bounds.RailTopFt + top) * 0.5) <= ExactFt, what);
-                }
+                var what = $"{catalog.Root.Provenance} {fenced.Id} {row.Id}";
+                AssertFramesThePole(fenced, row, bounds, what);
+                var before = StillShots.Frame(row, plain, bounds);
+                var after = StillShots.Frame(row, fenced, bounds);
+                Assert.NotEqual(before.Target, after.Target);
+                var top = row.Side < 0 ? 18 : 9;
+                Assert.True(Math.Abs(after.Target.Y - (bounds.RailTopFt + top) * 0.5) <= ExactFt, what);
             }
         }
     }
@@ -138,23 +124,21 @@ public sealed class StillShotsTests
     [Fact]
     public void TheParkShotsAreTheStillsTheRequestAcceptsAndNoneIsAFixedPose()
     {
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        Assert.Equal(PoleIds, catalog.Shots.ParkById.Keys.OrderBy(k => k, StringComparer.Ordinal));
+        foreach (var (id, row) in catalog.Shots.ParkById)
         {
-            Assert.Equal(PoleIds, catalog.Shots.ParkById.Keys.OrderBy(k => k, StringComparer.Ordinal));
-            foreach (var (id, row) in catalog.Shots.ParkById)
-            {
-                Assert.Equal(id, row.Id);
-                Assert.Equal(StillShots.PoleFrame, row.Frame);
-                Assert.Contains(id, StillRequest.AllowedShots);
-                Assert.DoesNotContain(id, StillRequest.DefaultShots);
-                Assert.False(catalog.Shots.TryGet(id, out _), id + " has a fixed pose");
-            }
-            Assert.Equal(-1, catalog.Shots.ParkById["pole-left"].Side);
-            Assert.Equal(1, catalog.Shots.ParkById["pole-right"].Side);
+            Assert.Equal(id, row.Id);
+            Assert.Equal(StillShots.PoleFrame, row.Frame);
+            Assert.Contains(id, StillRequest.AllowedShots);
+            Assert.DoesNotContain(id, StillRequest.DefaultShots);
+            Assert.False(catalog.Shots.TryGet(id, out _), id + " has a fixed pose");
         }
+        Assert.Equal(-1, catalog.Shots.ParkById["pole-left"].Side);
+        Assert.Equal(1, catalog.Shots.ParkById["pole-right"].Side);
         // Every pole the request accepts has a row: a request for one cannot reach a capture with no pose.
         foreach (var id in StillRequest.AllowedShots.Where(s => s.StartsWith("pole-", StringComparison.Ordinal)))
-            Assert.True(Shipped.Shots.TryGetPark(id, out _), id);
+            Assert.True(Game.Shots.TryGetPark(id, out _), id);
     }
 
     public static TheoryData<string, string, string> BadRows => new()
@@ -177,7 +161,7 @@ public sealed class StillShotsTests
     public void TheValidatorRefusesABadRowByName(string label, string patch, string reason)
     {
         _ = label;
-        var file = JsonNode.Parse(File.ReadAllText(Shipped.Root.Resolve("feel", "shots.json")))!.AsObject();
+        var file = JsonNode.Parse(File.ReadAllText(Game.Root.Resolve("feel", "shots.json")))!.AsObject();
         var row = file["parkShots"]!.AsArray()[0]!.AsObject();
         // A null in the patch removes the key; anything else replaces it.
         foreach (var (key, value) in JsonNode.Parse(patch)!.AsObject())
@@ -193,7 +177,7 @@ public sealed class StillShotsTests
     [Fact]
     public void TwoRowsWithOneIdAreRefusedAndTheShippedFileLoadsAsIs()
     {
-        var file = JsonNode.Parse(File.ReadAllText(Shipped.Root.Resolve("feel", "shots.json")))!.AsObject();
+        var file = JsonNode.Parse(File.ReadAllText(Game.Root.Resolve("feel", "shots.json")))!.AsObject();
         var shots = Load(file);
         Assert.Equal(PoleIds.Length, shots.ParkById.Count);
 
@@ -207,10 +191,10 @@ public sealed class StillShotsTests
     [Fact]
     public void AShotThatWouldStandBehindThePlateIsRefused()
     {
-        var park = Shipped.MustPark(ExhibitionPick.DefaultPark);
-        var row = Shipped.Shots.ParkById["pole-right"] with { BackFt = park.RightFenceFt + 10 };
+        var park = Game.MustPark(ExhibitionPick.DefaultPark);
+        var row = Game.Shots.ParkById["pole-right"] with { BackFt = park.RightFenceFt + 10 };
         var ex = Assert.Throws<InvalidDataException>(() =>
-            StillShots.Frame(row, park, ParkBoundary.From(Shipped.Rules.Boundary)));
+            StillShots.Frame(row, park, ParkBoundary.From(Game.Rules.Boundary)));
         Assert.Contains("behind the plate", ex.Message);
     }
 

@@ -8,7 +8,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// The park's air (§0.3 D21, FD-03; §6.1, §16): a match plays on one resolved table,
 /// <c>content.Rules.AtLevel(difficulty).AtPark(park)</c>, and a park is Harbor plus the differences it
-/// names. Today <b>no park names any</b>, on either root, so every one of them resolves to the global
+/// names. Today <b>no park names any</b>, so every one of them resolves to the global
 /// table itself — that is <c>SF-01</c>, and it is why this PR changes no behavior.
 ///
 /// <para>
@@ -26,19 +26,10 @@ namespace GrandSluggers.Sim.Tests;
 /// through <see cref="Match"/> and <see cref="LivePlaySystem"/>, and a walk of every resolver's table by
 /// reference — because a row that calls <see cref="BallFlight"/> by hand passes either way.
 /// </para>
-///
-/// <para>
-/// Tagged <c>Rows=compact</c>: every row here holds on the shipped root and on <c>trials/c80</c>, and
-/// CI plays them a second time on the copy. The two-root rows do not wait for that run — they load the
-/// overlay by hand as well, the way <see cref="CompactGeometryTests"/> does.
-/// </para>
 /// </summary>
 public sealed class ParkEnvironmentTests
 {
     static readonly ContentCatalog Catalog = ContentCatalog.Load();
-    static readonly DataRoot TrialRoot =
-        new(Catalog.Root.Shipped, Path.GetFullPath(Path.Combine(Catalog.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(TrialRoot);
 
     /// <summary>A park that exists only here. Harbor's posts, so the only thing that can move a flight is the air.</summary>
     static Park Air(ParkEnvironment? environment, double windMph = 0, double windDeg = 0) =>
@@ -50,24 +41,22 @@ public sealed class ParkEnvironmentTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-01</c>, both roots. Every shipped and trial park resolves to the global table <em>itself</em> —
+    /// <c>SF-01</c>. Every park resolves to the global table <em>itself</em> —
     /// the same reference, so there is nothing to compare field by field and nothing that can drift.
     /// </summary>
     [Fact]
-    public void SF01_EveryParksResolvedTableIsTheGlobalTableOnBothRoots()
+    public void SF01_EveryParksResolvedTableIsTheGlobalTable()
     {
-        foreach (var catalog in new[] { Catalog, Trial })
+        var catalog = Catalog;
+        Assert.Equal(6, catalog.Parks.Count);
+        foreach (var park in catalog.Parks.Values)
         {
-            Assert.Equal(6, catalog.Parks.Count);
-            foreach (var park in catalog.Parks.Values)
-            {
-                Assert.Null(park.Environment);
-                Assert.Same(catalog.Rules, catalog.Rules.AtPark(park));
-                Assert.Same(catalog.Rules, catalog.Rules.AtLevel(null).AtPark(park));
-                // The rung is still the rung: a park resolves after it and takes the table it is given.
-                var hard = catalog.Rules.AtLevel("hard");
-                Assert.Same(hard, hard.AtPark(park));
-            }
+            Assert.Null(park.Environment);
+            Assert.Same(catalog.Rules, catalog.Rules.AtPark(park));
+            Assert.Same(catalog.Rules, catalog.Rules.AtLevel(null).AtPark(park));
+            // The rung is still the rung: a park resolves after it and takes the table it is given.
+            var hard = catalog.Rules.AtLevel("hard");
+            Assert.Same(hard, hard.AtPark(park));
         }
     }
 
@@ -89,35 +78,33 @@ public sealed class ParkEnvironmentTests
     /// ball of a play, and the defense's, which previews it. Before this child both were built with the
     /// catalog's global table, so a park's air reached the deflected ball and not the swing, and the preview's
     /// CPU reaction lockouts were read at the shipped rung in an EASY or HARD game while
-    /// <see cref="LivePlaySystem"/> waited the match's. Walked over both roots, every park and every rung,
+    /// <see cref="LivePlaySystem"/> waited the match's. Walked over every park and every rung,
     /// because a park that names no air must still hand over the global table itself.
     /// </summary>
     [Fact]
     public void SF01_EveryResolverInTheMatchHoldsTheMatchsResolvedTable()
     {
-        foreach (var catalog in new[] { Catalog, Trial })
+        var catalog = Catalog;
+        var (home, away) = PresetTeams.Pair(catalog, "rio", "ashlord");
+        foreach (var park in catalog.Parks.Values)
         {
-            var (home, away) = PresetTeams.Pair(catalog, "rio", "ashlord");
-            foreach (var park in catalog.Parks.Values)
+            foreach (var level in new string?[] { null, "easy", "normal", "hard" })
             {
-                foreach (var level in new string?[] { null, "easy", "normal", "hard" })
-                {
-                    var match = new Match(catalog, away, home, park, innings: 3, seed: 7, difficulty: level);
-                    Assert.Same(match.Rules, TableOf(match, "_atBat"));
-                    Assert.Same(match.Rules, TableOf(match, "_fielding"));
-                    // No shipped or trial park names air, so that one table is the catalog's own — and the
-                    // rung it carries is the match's, which is the whole of what AtLevel replaces.
-                    Assert.Same(catalog.Rules.Flight, match.Rules.Flight);
-                    Assert.Equal(level ?? catalog.Rules.Cpu.Level, TableOf(match, "_fielding").Cpu.Level);
-                }
+                var match = new Match(catalog, away, home, park, innings: 3, seed: 7, difficulty: level);
+                Assert.Same(match.Rules, TableOf(match, "_atBat"));
+                Assert.Same(match.Rules, TableOf(match, "_fielding"));
+                // No catalog park names air, so that one table is the catalog's own — and the
+                // rung it carries is the match's, which is the whole of what AtLevel replaces.
+                Assert.Same(catalog.Rules.Flight, match.Rules.Flight);
+                Assert.Equal(level ?? catalog.Rules.Cpu.Level, TableOf(match, "_fielding").Cpu.Level);
             }
-
-            // And a park that does name air: the resolvers hold the parked table, not the global one.
-            var thick = new Match(catalog, away, home, Air(new ParkEnvironment(DragMul: 2.0)), innings: 3, seed: 7);
-            Assert.NotSame(catalog.Rules, thick.Rules);
-            Assert.Same(thick.Rules, TableOf(thick, "_atBat"));
-            Assert.Same(thick.Rules, TableOf(thick, "_fielding"));
         }
+
+        // And a park that does name air: the resolvers hold the parked table, not the global one.
+        var thick = new Match(catalog, away, home, Air(new ParkEnvironment(DragMul: 2.0)), innings: 3, seed: 7);
+        Assert.NotSame(catalog.Rules, thick.Rules);
+        Assert.Same(thick.Rules, TableOf(thick, "_atBat"));
+        Assert.Same(thick.Rules, TableOf(thick, "_fielding"));
     }
 
     // ---------------------------------------------------------------------------------
