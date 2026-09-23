@@ -739,9 +739,13 @@ public sealed record PlayOutcome(
     bool Error = false,
     bool FieldersChoice = false,
     bool GroundRuleDouble = false,
-    IReadOnlyList<FieldBody>? Bodies = null)
+    IReadOnlyList<FieldBody>? Bodies = null,
+    IReadOnlyList<StarRequest>? StarRequests = null)
 {
     public static PlayOutcome Empty { get; } = new();
+
+    /// <summary>Every Star Pitch and Star Swing released on this pitch, as the match settled it (§12, PH-16-R12).</summary>
+    public IReadOnlyList<StarRequest> Stars => StarRequests ?? [];
 
     /// <summary>Every body on the field at Time, where it stood (§10.6, #574): gloves and live runners.</summary>
     public IReadOnlyList<FieldBody> BodiesAtTime => Bodies ?? [];
@@ -751,6 +755,32 @@ public sealed record PlayOutcome(
 
     /// <summary>Every runner who changed bags, including the batter-runner (from bag 0).</summary>
     public IReadOnlyList<RunnerMove> Moves => Advances ?? [];
+}
+
+public enum StarAction
+{
+    Pitch,
+    Swing
+}
+
+/// <summary>
+/// One released special as <see cref="Match"/> settled it (§12, PH-16-R3, PH-16-R12). <paramref name="Afforded"/>
+/// false is the typed "special unavailable" event: the team held fewer Stars than <paramref name="Cost"/>, so the
+/// action went out as the ordinary pitch or swing at the same timing and nothing was spent. Afforded, the team paid
+/// <paramref name="Cost"/> at the release, whatever the swing then met — a miss pays in full.
+/// <paramref name="Home"/> names the team whose pool it read.
+/// </summary>
+public sealed record StarRequest(
+    StarAction Action,
+    bool Home,
+    string CharacterId,
+    string? AbilityId,
+    int Cost,
+    double StarsBefore,
+    bool Afforded)
+{
+    /// <summary>What left the pool: the cost when afforded, nothing when the special was unavailable.</summary>
+    public int Spent => Afforded ? Cost : 0;
 }
 
 /// <summary>The actors and match state at the start of one pitch or pickoff play.</summary>

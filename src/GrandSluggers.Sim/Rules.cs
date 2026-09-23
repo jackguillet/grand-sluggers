@@ -263,6 +263,7 @@ public static class RulesValidation
         Walk(table.Stars, RulesTable.PathFor(root, "stars"), "stars", errors);
         Walk(table.Cpu, RulesTable.PathFor(root, "cpu"), "cpu", errors);
         table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
+        table.Stars.Tiers.Validate(table.Stars.MeterMax, RulesTable.PathFor(root, "stars"), errors);
         table.Flight.Validate(RulesTable.PathFor(root, "flight"), errors);
         table.Grounds.Validate(RulesTable.PathFor(root, "grounds"), errors);
         table.Infield.Validate(RulesTable.PathFor(root, "infield"), errors);
@@ -2725,6 +2726,8 @@ public sealed class StarRules
 {
     [Positive] public double MeterMax { get; init; } = 5;
     public StarGainRules Gains { get; init; } = new();
+    /// <summary>The price of each cost tier (§12, PH-16-R7): every Star Pitch and Star Swing names one in star-skills.json.</summary>
+    public StarTierRules Tiers { get; init; } = new();
     public StarCostRules Costs { get; init; } = new();
     public StartingStarRules Starting { get; init; } = new();
     public MvpRules Mvp { get; init; } = new();
@@ -2779,10 +2782,58 @@ public sealed class MvpRules
     public int KeptMovingAt { get; init; } = 4;
 }
 
+/// <summary>
+/// The Star cost tiers (§12, PH-16-R7, PH-16-R8): a small, fixed set of named prices. Each ability in
+/// <c>data/abilities/star-skills.json</c> names its tier; <see cref="Top"/> is the highest, and only a captain may
+/// carry a top-tier ability (the content validator refuses anything else). A trial prices the tiers and may leave
+/// one unassigned; the count in use and the prices are numbers Jack accepts.
+/// </summary>
+public sealed class StarTierRules
+{
+    public const string LowId = "low";
+    public const string MidId = "mid";
+    public const string TopId = "top";
+
+    /// <summary>Every tier id, cheapest first.</summary>
+    public static readonly IReadOnlyList<string> Ids = [LowId, MidId, TopId];
+
+    public static bool IsTier(string? id) => id is not null && Ids.Contains(id, StringComparer.Ordinal);
+
+    public int Low { get; init; } = 1;
+    public int Mid { get; init; } = 1;
+    public int Top { get; init; } = 1;
+
+    /// <summary>The price of <paramref name="tier"/>. An unknown tier never loads (the content validator), so the fallback is only for a character with no ability.</summary>
+    public int Of(string? tier) => tier switch
+    {
+        TopId => Top,
+        MidId => Mid,
+        _ => Low
+    };
+
+    internal void Validate(double meterMax, string source, List<string> errors)
+    {
+        foreach (var (name, cost) in new[] { (LowId, Low), (MidId, Mid), (TopId, Top) })
+        {
+            // A free special is not a resource (PH-16 acceptance), and one the meter cannot hold is never usable.
+            if (cost < 1)
+                errors.Add($"{source}: stars.tiers.{name} must cost at least 1; got {cost}");
+            else if (cost > meterMax)
+                errors.Add($"{source}: stars.tiers.{name} must fit the meter (meterMax {meterMax}); got {cost}");
+        }
+        // The top tier is the captains' (PH-16-R8), so it has to be the highest price.
+        if (Low > Mid || Mid > Top)
+            errors.Add($"{source}: stars.tiers must not get cheaper up the ladder; got low {Low}, mid {Mid}, top {Top}");
+    }
+}
+
 public sealed class StarCostRules
 {
-    public int Own { get; init; } = 1;
-    public int GuestCaptain { get; init; } = 2;
+    /// <summary>
+    /// Added to the ability's tier price when a captain throws or swings for a team he does not captain: a guest
+    /// captain from the draft, or a captain swapped onto the mound (§4.7).
+    /// </summary>
+    public int GuestCaptainSurcharge { get; init; } = 1;
 }
 
 /// <summary>Roster chemistry with the captain → starting meter (<see cref="ChemistryTable.StartingStars(Team)"/>).</summary>

@@ -261,6 +261,12 @@ public static class ContentDataValidator
 
         foreach (var row in data.Characters)
             ValidateCharacter(row, pitches, swings, errors);
+        // The top cost tier is the captains' (§12, PH-16-R8): a role player carrying a top-tier special is refused.
+        foreach (var row in data.Characters.Where(r => !r.Value.Captain))
+        {
+            TopTierIsCaptainOnly(row, "starPitch", row.Value.StarPitch, data.StarSkills.Pitches, errors);
+            TopTierIsCaptainOnly(row, "starSwing", row.Value.StarSwing, data.StarSkills.Swings, errors);
+        }
         // The hazard type set is the library's table, not a list this file keeps (FD-09, FR-02), and
         // so is the ground set a park's surface and zones are checked against (FD-05, SF-03). Both are
         // the tables this root loaded, so a trial that authors either file is checked against its own
@@ -330,6 +336,9 @@ public static class ContentDataValidator
                 errors.Add($"{source}: star {kind} '{key}' has an empty id");
             else if (!value.Id.Equals(key, StringComparison.Ordinal))
                 errors.Add($"{source}: star {kind} key '{key}' does not match id '{value.Id}'");
+            // Every special names the cost tier stars.json prices (§12, PH-16-R7).
+            if (!StarTierRules.IsTier(value.Tier))
+                errors.Add($"{source}: star {kind} '{key}' tier must be one of [{string.Join(", ", StarTierRules.Ids)}]; got '{value.Tier ?? "null"}'");
             // The numbers the sim reads (spec §13): a value outside its range is a data error, not a fallback.
             if (kind == "pitch")
             {
@@ -347,6 +356,14 @@ public static class ContentDataValidator
             }
         }
         return ids;
+    }
+
+    static void TopTierIsCaptainOnly(
+        Sourced<CharacterDto> row, string field, string? skill, Dictionary<string, StarSkillDto?>? rows, List<string> errors)
+    {
+        if (string.IsNullOrEmpty(skill) || rows is null || !rows.TryGetValue(skill, out var dto) || dto is null) return;
+        if (dto.Tier == StarTierRules.TopId)
+            errors.Add($"{row.Source}: character '{row.Value.Id}' {field} '{skill}' is a top-tier special, and the top tier is for captains only");
     }
 
     static void DuplicateIds(string kind, IEnumerable<(string Id, string Source)> candidates, List<string> errors)
@@ -1347,10 +1364,12 @@ internal sealed class StarSkillDto
     public double? FielderPauseSec { get; set; }
     public bool InfieldChaos { get; set; }
     public bool Fragments { get; set; }
+    /// <summary>The cost tier (PH-16-R7): one of <see cref="StarTierRules.Ids"/>. Required.</summary>
+    public string? Tier { get; set; }
 
     public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
-        LateBreak, Decoy, OnCatch);
+        LateBreak, Decoy, OnCatch, Tier ?? StarTierRules.LowId);
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
-        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments);
+        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, Tier ?? StarTierRules.LowId);
 }
