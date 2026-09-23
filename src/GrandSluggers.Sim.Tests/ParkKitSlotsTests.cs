@@ -34,8 +34,8 @@ public sealed class ParkKitSlotsTests
     }
 
     /// <summary>
-    /// Harbor fills the seven pieces <c>HarborKit</c> draws today and leaves light, sky and the hazard actors empty (F6-c,
-    /// F6-d); every other park fills nothing yet, so each draws the greybox the field kit and its old dress draw.
+    /// Harbor fills the seven pieces <c>HarborKit</c> draws today, and every park names its light and sky (F6-c); the hazard
+    /// actors are empty everywhere (F6-d), and the other parks' dress slots are empty, so each draws the greybox.
     /// </summary>
     [Fact]
     public void FD16_HarborFillsItsKitsSevenPiecesAndTheOtherParksNone()
@@ -48,9 +48,9 @@ public sealed class ParkKitSlotsTests
         Assert.Equal(ParkKitSlots.HarborStands, harbor.Filler(ParkKitSlots.Stands));
         Assert.Equal(ParkKitSlots.HarborTown, harbor.Filler(ParkKitSlots.Backdrop));
         Assert.Equal(ParkKitSlots.HarborFireworks, harbor.Filler(ParkKitSlots.Night));
-        Assert.Equal([ParkKitSlots.Light, ParkKitSlots.Sky, ParkKitSlots.HazardActors], harbor.Empty);
+        Assert.Equal([ParkKitSlots.HazardActors], harbor.Empty);
         foreach (var park in Catalog.Parks.Keys.Where(p => p != "harbor-diamond"))
-            Assert.Equal(ParkKitSlots.All, Kit(park).Empty);
+            Assert.Equal(ParkKitSlots.All.Where(s => s is not (ParkKitSlots.Light or ParkKitSlots.Sky)), Kit(park).Empty);
     }
 
     /// <summary>The validator names each fault: a slot left out, a slot that is not one, a builder that is not the slot's, and a Harbor piece off the Harbor lawn.</summary>

@@ -37,61 +37,30 @@ namespace GrandSluggers.UnityClient
             var ice = park.Surface == "ice";
             var ash = park.Surface == "ash";
             var jungle = park.Id == "canopy-yard";
-            var harbor = park.Id == "harbor-diamond";
             var crystal = park.Id == "crystal-rink";
             var funfair = park.Id == "funfair-park";
             var rooftop = park.Id == "rooftop-city";
             var ember = park.Id == "ember-keep";
 
-            var sky = ice ? Colors.Ice : ash ? new Color(0.22f, 0.1f, 0.12f) : Colors.Sky;
+            // The park's look is its kit's data (FD-16, FR-04; F6-c): the sky and light rows its slots name, and the
+            // palette its greybox draws in. No park id chooses a light, a sky or a color.
+            var kitRow = ArtBinder.ParkKit(park.Id);
+            var looks = ArtBinder.Art?.Looks;
             if (Camera.main != null)
             {
-                if (harbor)
-                {
-                    if (night) Look.RigHarborNight(Camera.main);
-                    else Look.RigAfternoon(Camera.main);
-                }
-                else if (crystal)
-                {
-                    if (night) Look.RigIceGardenNight(Camera.main);
-                    else Look.RigIceGarden(Camera.main);
-                }
-                else if (funfair)
-                {
-                    if (night) Look.RigCarnivalNight(Camera.main);
-                    else Look.RigCarnival(Camera.main);
-                }
-                else if (rooftop) Look.RigNeon(Camera.main);
-                else if (jungle) Look.RigCanopy(Camera.main);
-                else if (ember)
-                {
-                    if (night) Look.RigCourtyardNight(Camera.main);
-                    else Look.RigCourtyard(Camera.main);
-                }
-                else Look.SetupLighting(Camera.main, sky);
+                SkyLook skyLook = null;
+                LightLook lightLook = null;
+                var skyId = kitRow.Filler(ParkKitSlots.Sky);
+                var lightId = kitRow.Filler(ParkKitSlots.Light);
+                if (looks != null && skyId != null) looks.Skies.TryGetValue(skyId, out skyLook);
+                if (looks != null && lightId != null) looks.Lights.TryGetValue(lightId, out lightLook);
+                Look.Apply(Camera.main, skyLook, lightLook, night);
             }
 
-            var grassCol = ice ? Colors.Ice
-                : ash ? new Color(0.28f, 0.19f, 0.16f)
-                : jungle ? new Color(0.14f, 0.43f, 0.2f)
-                : rooftop ? new Color(0.32f, 0.32f, 0.34f)
-                : Colors.Grass;
-            var waterCol = ash ? new Color(0.35f, 0.11f, 0.07f)
-                : ice ? new Color(0.55f, 0.78f, 0.92f)
-                : funfair ? new Color(0.46f, 0.32f, 0.22f)
-                : rooftop ? new Color(0.08f, 0.08f, 0.12f)
-                : jungle ? new Color(0.08f, 0.18f, 0.10f)
-                : Colors.Water;
-            var skipGrass = ice || ash || rooftop;
-            var grassMat = Look.Lit(grassCol, skipGrass ? null : Look.Grass, skipGrass ? 1f : 18f, ice ? 0.72f : rooftop ? 0.18f : 0.08f);
-            var dirtMat = crystal
-                ? Look.Lit(new Color(0.74f, 0.84f, 0.90f), Look.Dirt, 6f, 0.35f)
-                : rooftop
-                    ? Look.Lit(new Color(0.42f, 0.40f, 0.38f), Look.Dirt, 8f, 0.15f)
-                    : jungle
-                        ? Look.Lit(new Color(0.42f, 0.32f, 0.18f), Look.Dirt, 8f, 0.1f)
-                        : Look.Lit(Colors.Dirt, Look.Dirt, 8f, 0.12f);
-            var waterMat = Look.Lit(waterCol, smooth: ice ? 0.92f : 0.85f);
+            var palette = kitRow.Palette;
+            var grassMat = palette != null ? Look.Lit(palette.Grass) : Look.Lit(Colors.Grass, Look.Grass, 18f, 0.08f);
+            var dirtMat = palette != null ? Look.Lit(palette.Dirt) : Look.Lit(Colors.Dirt, Look.Dirt, 8f, 0.12f);
+            var waterMat = palette != null ? Look.Lit(palette.Water) : Look.Lit(Colors.Water, smooth: 0.85f);
 
             var kit = HarborKit.Instance != null
                 ? HarborKit.Instance
@@ -115,7 +84,7 @@ namespace GrandSluggers.UnityClient
                 Quad("Outfield", new Vector3(0, -0.12f, 190), new Vector3(620, 0.35f, 620), grassMat);
                 // The one field kit (FD-16, #859): the diamond, rail and wall Harbor draws, from the same
                 // geometry owner, in this park's dirt and wall. HarborKit draws it for Harbor.
-                new FieldKit(_root).Build(park, FieldSkin(park, dirtMat, ash));
+                new FieldKit(_root).Build(park, FieldSkin(palette, dirtMat));
             }
             // The dress stands beside the kit, never in it: no dress piece stands inside the kit's
             // backstop or in the dugout span along either foul line (F6-a2 #881, FieldKitSourceTests).
@@ -155,37 +124,21 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// What this park hands the field kit: its dirt, the warning track, and its wall, cap and pole,
-        /// chosen here as they were before the kit (F6-c moves the choice into data). The chalk, the
-        /// bags, the plate and the mound are the kit's own.
+        /// What this park hands the field kit: its dirt, the warning track, and its wall, cap and pole, from the palette of
+        /// its kit row (F6-c; data/art/parks.json). The chalk, the bags, the plate and the mound are the kit's own. The
+        /// panels alternate from the first span; a palette with no alternate repeats the wall.
         /// </summary>
-        FieldKit.Skin FieldSkin(Park park, Material dirt, bool ash)
+        FieldKit.Skin FieldSkin(ParkPalette palette, Material dirt)
         {
-            var crystal = park.Id == "crystal-rink";
-            var funfair = park.Id == "funfair-park";
-            var rooftop = park.Id == "rooftop-city";
-            var jungle = park.Id == "canopy-yard";
-            var wall = Look.Lit(
-                ash ? Colors.EmberFire
-                    : crystal ? new Color(0.52f, 0.76f, 0.88f)
-                    : funfair ? new Color(0.86f, 0.18f, 0.28f)
-                    : rooftop ? new Color(0.38f, 0.38f, 0.42f)
-                    : jungle ? new Color(0.28f, 0.42f, 0.18f)
-                    : new Color(0.22f, 0.48f, 0.28f),
-                smooth: crystal ? 0.62f : rooftop ? 0.32f : 0.18f);
-            var wallAlt = funfair ? Look.Lit(new Color(0.96f, 0.90f, 0.72f), smooth: 0.18f) : wall;
-            var cap = Look.Lit(
-                crystal ? new Color(0.88f, 0.94f, 1f)
-                    : rooftop ? new Color(0.72f, 0.72f, 0.76f)
-                    : Colors.Gold,
-                smooth: crystal ? 0.75f : rooftop ? 0.28f : 0.4f);
-            var pole = Look.Lit(crystal ? Colors.Royal : rooftop ? Colors.Goldrush : Colors.Gold, smooth: 0.45f);
+            var wall = palette != null ? Look.Lit(palette.Wall) : Look.Lit(new Color(0.22f, 0.48f, 0.28f), smooth: 0.18f);
+            var wallAlt = palette?.WallAlt != null ? Look.Lit(palette.WallAlt) : wall;
+            var cap = palette != null ? Look.Lit(palette.Cap) : Look.Lit(Colors.Gold, smooth: 0.4f);
+            var pole = palette != null ? Look.Lit(palette.Pole) : Look.Lit(Colors.Gold, smooth: 0.45f);
             return new FieldKit.Skin
             {
                 Dirt = dirt,
                 HomeDirt = dirt,
                 Track = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f),
-                // The panels alternate from the first span, as they did from the first fence box.
                 WallFaces = new[] { wallAlt, wall },
                 WallCap = cap,
                 Pole = pole,
