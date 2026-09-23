@@ -137,30 +137,29 @@ public sealed class HazardsOffTests
     /// <summary>
     /// The seed set, found by a scan at every park with a hazard, day and night, on each root, with the
     /// first matchup and the same detector as <see cref="HazardOutcomes"/> (#858). Seeds 1–12 first; where
-    /// they held no outcome the scan ran on (Crystal on the copy to 15, a chomp on the shipped root to 58).
-    /// Rescanned after F4-e (#862) moved Crystal's and Ember's volumes, and again after the #860 promotion
-    /// (#871) reseeded every game. Each row is a game in which hazards on plays at least one hazard
+    /// they held no outcome the scan ran on (a chomp to 16 on the copy). Rescanned after F4-e (#862) moved
+    /// Crystal's and Ember's volumes, and again after each promotion that reseeded every game (#871, #886). Each row is a game in which hazards on plays at least one hazard
     /// outcome, so the hazards-off twin of the same game proves something. Chompers bite only at night
     /// (their row is <c>nightOnly</c>), so Funfair's row is a night game with a chomp in it.
     /// </summary>
     static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds => TestRoot.Pick<IReadOnlyList<(string, bool, int)>>(
         [
-            ("crystal-rink", true, 7),    // a freeze volume slows the chase
-            ("ember-keep", true, 2),      // a lava pit or the breath slows the chase
-            ("funfair-park", true, 58),   // a chomper eats a fly, and a can warps a grounder
-            ("canopy-yard", false, 2),    // a barrel warps a grounder
-            ("rooftop-city", false, 12)   // a billboard pays the batting team
+            ("crystal-rink", true, 10),   // a freeze volume slows the chase
+            ("ember-keep", true, 1),      // a lava pit or the breath slows the chase
+            ("funfair-park", true, 7),    // a chomper eats a fly
+            ("canopy-yard", false, 1),    // a barrel warps a grounder
+            ("rooftop-city", false, 5)    // a billboard pays the batting team
         ],
         [
-            ("crystal-rink", false, 15),
-            ("ember-keep", true, 2),
-            ("funfair-park", true, 3),
-            ("canopy-yard", false, 7),
-            ("rooftop-city", false, 9)
+            ("crystal-rink", false, 1),
+            ("ember-keep", true, 1),
+            ("funfair-park", true, 16),
+            ("canopy-yard", false, 4),
+            ("rooftop-city", false, 2)
         ]);
 
     /// <summary>A park, a condition and a seed at which the switch changes the whole game, by root.</summary>
-    static (string Park, bool Night, int Seed) DefaultOnGame => TestRoot.Pick(("canopy-yard", true, 2), ("canopy-yard", false, 7));
+    static (string Park, bool Night, int Seed) DefaultOnGame => TestRoot.Pick(("canopy-yard", true, 1), ("canopy-yard", false, 4));
 
     /// <summary>
     /// <c>SF-24</c>, the event half. Over the fixed seed set, hazards on plays at least one hazard outcome
