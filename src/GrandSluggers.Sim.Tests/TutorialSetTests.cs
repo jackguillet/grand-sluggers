@@ -8,6 +8,26 @@ public sealed class TutorialSetTests
     readonly ContentCatalog _content = ContentCatalog.Load();
     const double Frame = 1.0 / 60;
 
+    [Fact]
+    public void ChargeThenPickoffIsATypedBalkFailureAndReplayKeepsTheCharge()
+    {
+        var run = Start("T-P08");
+        Assert.False(run.BeginPitchCharge(LivePlayCommandSource.Cpu));
+        Assert.True(run.BeginPitchCharge());
+        Assert.True(run.Pickoff(1));
+        Assert.False(run.Feedback!.Success);
+        Assert.Equal("balk-after-charge", run.Feedback.Code);
+        Assert.Equal(PlayKind.Balk, run.LastPlay!.Kind);
+        Assert.Empty(run.LastPlay.Outcome!.OutsMade);
+        Assert.Equal(0, run.Successes);
+        var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+        Assert.Equal(run.Feedback, replay.Feedback);
+        Assert.Equal(PlayKind.Balk, replay.LastPlay!.Kind);
+        run.Retry();
+        DrivePickoff(run, 1);
+        Assert.True(run.Feedback!.Success);
+    }
+
     TutorialSession Start(string id)
     {
         var run = new TutorialSession(_content, TutorialCatalog.Load(_content), id);

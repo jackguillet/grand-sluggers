@@ -40,16 +40,26 @@ public sealed partial class TutorialSession
         return true;
     }
 
+    public bool BeginPitchCharge(LivePlayCommandSource source = LivePlayCommandSource.Human)
+    {
+        if (!Accepts(source) || _setup.Policy != "pickoff" || !Match.PitchSetup.BeginCharge()) return false;
+        _inputs.Add(new(Elapsed, source, BeginPitchCharge: true));
+        return true;
+    }
+
     public bool Pickoff(int bag, LivePlayCommandSource source = LivePlayCommandSource.Human)
     {
-        if (!Accepts(source) || _setup.Policy != "pickoff" || bag is < 1 or > 3) return false;
+        if (!Accepts(source) || _setup.Policy != "pickoff" || bag is < 1 or > 4) return false;
         _inputs.Add(new(Elapsed, source, PickoffBag: bag));
         _humanPickoffBag = source == LivePlayCommandSource.Human && !Demonstration ? bag : 0;
         var started = Match.BeginPickoff(bag, new LiveSeats(false, true, true, false), out var dead, source);
         if (!started)
         {
             LastPlay = dead;
-            Finish(false, "pickoff-no-runner", "That bag had no exposed runner to catch.");
+            var balk = dead?.Kind == PlayKind.Balk;
+            Finish(false, balk ? "balk-after-charge" : "pickoff-no-runner",
+                balk ? "Charging commits the pitch. Throw to the base before you begin the windup."
+                    : "That bag had no exposed runner to catch.");
         }
         return true;
     }

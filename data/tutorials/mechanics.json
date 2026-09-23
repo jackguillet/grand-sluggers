@@ -81,6 +81,13 @@
       ]
     },
     {
+      "id": "pitching.11",
+      "title": "pitch commitment and balks",
+      "category": "pitching",
+      "spec": "gameplay-spec:4",
+      "sources": []
+    },
+    {
       "id": "pitching.10",
       "title": "cycling past the second pitch to the third",
       "category": "pitching",

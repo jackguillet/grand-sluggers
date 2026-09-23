@@ -513,6 +513,16 @@
       "promoted": "LineupScreensTests.InspectingAndNavigatingNeverEditsTheTeam",
       "issue": "#955",
       "pr": ""
+    },
+    {
+      "id": "steal-restarts-at-catcher-possession",
+      "signature": "A runner departs or turns back during SET or pitch flight, then jumps forward or returns to the bag at contact or catcher possession; a later steal press receives distance for time before it was pressed.",
+      "stage": "sim",
+      "cause": "The old armed-steal transition reconstructed a head start from the full pitch duration and reset runner orders when beginning the live play.",
+      "fix": "Advance the same runner bodies through PitchSetupSystem, rebase their event clocks at possession, and preserve their position, direction and hold in Runner.BeginPlay. Never derive runner position from a pitch animation or an armed timestamp. A dead foul explicitly restores the origin bag.",
+      "promoted": "PitchSetupTests.CatcherPossessionPreservesAReturningRunnersPositionAndDestination",
+      "issue": "#963",
+      "pr": ""
     }
   ]
 }
