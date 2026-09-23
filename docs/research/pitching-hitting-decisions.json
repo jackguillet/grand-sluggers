@@ -1555,8 +1555,21 @@
         "answer_quote": "1"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        "#889"
+      ],
+      "validation_evidence": [
+        {
+          "kind": "implementation",
+          "issue": "#889",
+          "pr": "#897",
+          "revision": "issue-889-cursor",
+          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-133 ... S-136) and the full suite; the c80 compact rows",
+          "numeric_trial": "none. No number was selected or moved; cli match --seed 7 is byte-identical to main apart from the data-root line; the #708 and #818 evidence moved by source hashes only.",
+          "gate": "No human gate closed and none claimed. The drawn oval is Jack's to judge in the game; nothing was looked at in Unity and no frame was played (tools/unity-compile.sh only). status, numeric_targets and human_acceptance are untouched.",
+          "summary": "P2-d pins PH-09-R1: the box walk is HomeSet.BoxWalkStep (stick x frame x BoxWalkPerSec 1.6, the client's rate unchanged and computed in single precision as before), which takes no charge argument, and AtBatDirector's two batter walk sites call it. S-136 holds a load to MAX and past it for 45 frames beside a seat that never touches the button: equal BatterOffsetX every frame, full speed, the same committed box."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -1854,9 +1867,21 @@
       },
       "numeric_targets": null,
       "implementation_issues": [
-        "#844"
+        "#844",
+        "#889"
       ],
-      "validation_evidence": [],
+      "validation_evidence": [
+        {
+          "kind": "implementation",
+          "issue": "#889",
+          "pr": "#897",
+          "revision": "issue-889-cursor",
+          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-133 ... S-136) and the full suite; the c80 compact rows",
+          "numeric_trial": "none. No number was selected or moved; cli match --seed 7 is byte-identical to main apart from the data-root line; the #708 and #818 evidence moved by source hashes only.",
+          "gate": "No human gate closed and none claimed. The drawn oval is Jack's to judge in the game; nothing was looked at in Unity and no frame was played (tools/unity-compile.sh only). status, numeric_targets and human_acceptance are untouched.",
+          "summary": "P2-d pins PH-11-R1 on the shipped root: a charge multiplies the spatial barrel by cursor.chargeMul and nothing else - same center, same half height, the same timing window and the same on-plane edge through the resolver; the Charge Bat keeps the slap's barrel (S-134). The drawn oval is the judged oval: SweetSpot.Oval / SwingBarrel serve both the resolver and the Unity cursor (S-133)."
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -2748,7 +2773,8 @@
         "#824",
         "#837",
         "#839",
-        "#844"
+        "#844",
+        "#889"
       ],
       "validation_evidence": [
         {
@@ -2799,6 +2825,16 @@
           "summary": "P2-a gave Contact and Power a home and routed every reader, seeded equal to bat so nothing moved. Stats carries them the way it already carries Arm and Hands: optional ratings whose unauthored (0) value tracks Bat, [JsonIgnore] ContactAuthored / PowerAuthored saying which it was, and Clamp() keeping an unauthored trait unauthored so it goes on tracking the clamped aggregate. CharacterDto accepts optional contact and power and ValidateCharacter refuses either outside 1-10 by character and field name; no character file and no trial overlay authors a value, because PH-15-R5 leaves the values open and they are Jack's later choice. Every Bat reader that means contact or power now reads the trait: the cursor barrel and the exit/loft in AtBatResolver, the Unity cursor's one token in AtBatDirector, and the four CPU reads - chase chance, timing sigma, the CpuChargeChance technique gate and the sac-bunt gate are Contact; the forced charge and the archetype split against Run are Power. The window read in SwingWindowFrames reads Contact on purpose and is marked in the code and in spec 5.3 as the timing half PH-15-R7 does not want, so P2-b removes one thing rather than two. Teams.Tools, the character card, the Raylib HUD, CardToy and the CLI keep Bat: it stays the displayed aggregate and P2-f decides what the card shows. Zero behaviour change, because with nothing authored every read returns the same integer and no _rng draw moves: cli match --seed 7 is byte-identical to main on the shipped root and under GRAND_SLUGGERS_TRIAL=trials/pitch5, the suite and the c80 rerun are green with the three new rows added, and the #708 evidence regenerated with source-hash changes only. Two new serialized properties do change PlayTraceIdentity's roster bytes, so identity SHAs recorded from here on differ from ones recorded before; an old trace still reads, because an absent key is unauthored and tracks Bat, and no schema version was bumped. Spec section 2 now says Contact and Power are ratings of their own rather than an internal split of Bat, 5.2 / 5.3 / 5.4 / 5.5 name the trait each formula reads, 5.9 carries the CPU mapping table, and Appendix B.1 gained S-121 ... S-123 (ContactPowerScenarioTests), which assert directions and integer identities only so an authored value can move without editing a test.",
           "numeric_trial": "not applicable (seeded equal; no value authored)",
           "gate": "no human gate for this child: no player-facing change, so it does not move sitting 1, #534, #346 or D7 and no human_acceptance field is filled. No status change - the traits exist and every reader is routed, but until Jack authors a value the game plays exactly as it did."
+        },
+        {
+          "kind": "implementation",
+          "issue": "#889",
+          "pr": "#897",
+          "revision": "issue-889-cursor",
+          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-133 ... S-136) and the full suite; the c80 compact rows",
+          "numeric_trial": "none. No number was selected or moved; cli match --seed 7 is byte-identical to main apart from the data-root line; the #708 and #818 evidence moved by source hashes only.",
+          "gate": "No human gate closed and none claimed. The drawn oval is Jack's to judge in the game; nothing was looked at in Unity and no frame was played (tools/unity-compile.sh only). status, numeric_targets and human_acceptance are untouched.",
+          "summary": "P2-d pins PH-15-R7 on the shipped root: Contact (plus the bat's contactMod, clamped 1-10) multiplies the spatial barrel by 1 + (Contact - 5) x scalePerContact and nothing else; the window is the same number at every Contact (S-135). AtBatDirector no longer re-derives the clamp or the barrel: it draws SweetSpot.Oval, the oval the resolver judges (S-133)."
         }
       ],
       "human_acceptance": null,
@@ -5984,6 +6020,11 @@
       "date": "2026-09-22",
       "event": "#883 (PR #886) promoted the accepted stick rule to the shipped root: batting.geometryOnly true in data/rules/batting.json and as the Rules.cs default, and deleted trials/pitch5. PH-12 human-accepted -> implemented; PH-18 gets a shipped-promotion row and keeps its status. human_acceptance untouched.",
       "pr": "#886"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "#889 (P2-d) gave the drawn cursor oval one sim helper (SweetSpot.Oval / SwingBarrel) that the resolver and the Unity cursor share, named the box walk step in the sim (HomeSet.BoxWalkStep), and pinned PH-09-R1, PH-11-R1 and PH-15-R7 as S-133 ... S-136. Behaviour-identical. No status change; human_acceptance untouched.",
+      "pr": "#897"
     }
   ]
 }
