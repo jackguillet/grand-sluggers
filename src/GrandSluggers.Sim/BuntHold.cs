@@ -145,7 +145,9 @@ public static class BuntHold
 
 /// <summary>
 /// The plate's buttons on one tick: the swing button, the two bunt triggers and the cancel
-/// (<see cref="PlateButtons.Advance"/>).
+/// (<see cref="PlateButtons.Advance"/>). <paramref name="Cancel"/> is the cancel's press edge (East / G);
+/// <paramref name="CancelHeld"/> is the same button still down, which keeps a cancel press spent
+/// (<see cref="PlateButtonsState.CancelSpent"/>).
 /// </summary>
 public readonly record struct PlateInput(
     bool SouthPressed,
@@ -155,22 +157,28 @@ public readonly record struct PlateInput(
     bool ThirdHeld = false,
     bool FirstPressed = false,
     bool FirstHeld = false,
-    bool Cancel = false);
+    bool Cancel = false,
+    bool CancelHeld = false);
 
 /// <summary>
 /// The plate between ticks: the swing button, the bunt triggers, and whether a swing already committed on this
 /// pitch (<paramref name="SwingCommitted"/>), after which the swing follows through and no bunt squares.
+/// <paramref name="CancelSpent"/> is the PH-13-R1 guard on the cancel button: a press the plate read as the
+/// swing cancel (East / G while the plate accepts) counts as no other verb (a dive, a dash, a Training skip)
+/// until the button comes up. <see cref="PlateButtons.CancelIsFree"/> asks it.
 /// </summary>
 public readonly record struct PlateButtonsState(
     ChargeButtonState Swing,
     BuntHoldState Bunt,
-    bool SwingCommitted = false)
+    bool SwingCommitted = false,
+    bool CancelSpent = false)
 {
     /// <summary>
     /// The next pitch: no swing is committed and contact no longer fixes a side. The swing button's
-    /// must-release and the spent triggers carry: a hold still has to come up.
+    /// must-release, the spent triggers and a spent cancel carry: a hold still has to come up.
     /// </summary>
-    public PlateButtonsState NextPitch() => new(Swing with { Armed = false, Fill01 = 0, SecondsPastFull = 0 }, Bunt.NextPitch());
+    public PlateButtonsState NextPitch() =>
+        new(Swing with { Armed = false, Fill01 = 0, SecondsPastFull = 0 }, Bunt.NextPitch(), CancelSpent: CancelSpent);
 }
 
 /// <summary>
@@ -195,6 +203,9 @@ public readonly record struct PlateButtonsStep(
 /// as cancel does), and a button still down must come up before a fresh press loads a new swing from zero. The
 /// explicit cancel (East / G) is the same cancel. To swing from a square, release every trigger, then press
 /// South.</item>
+/// <item><b>Cancel spent.</b> A cancel press while the plate accepts is the plate's verb, whether or not a load
+/// was there to discard: it is spent until the button comes up (<see cref="CancelIsFree"/>). Outside the plate
+/// (not accepting) a new press is not the plate's and spends nothing.</item>
 /// </list>
 /// Pure: the caller owns the state, the clock and the charge seconds.
 /// </summary>
@@ -213,10 +224,25 @@ public static class PlateButtons
         var swing = ChargeButton.Advance(state.Swing, input.SouthPressed, input.SouthHeld, input.SouthReleased,
             deltaSeconds, secondsToFull, accepting, commits, cancel: input.Cancel || bunt.Squared);
         var converted = bunt.Pressed && swing.Cancelled && state.Swing.Armed;
+        var cancelSpent = (accepting && input.Cancel) || (state.CancelSpent && input.CancelHeld);
         return new PlateButtonsStep(
-            new PlateButtonsState(swing.Next, bunt.Next, state.SwingCommitted || swing.Committed),
+            new PlateButtonsState(swing.Next, bunt.Next, state.SwingCommitted || swing.Committed, cancelSpent),
             swing, bunt, converted);
     }
+
+    /// <summary>
+    /// Whether the cancel button (East / G) may be read as any other verb on this tick (PH-13-R1): false while a
+    /// press the plate took as the swing cancel is still down. A dive, a dash hold or a Training skip read from
+    /// the batting seat's pad asks this first.
+    /// </summary>
+    public static bool CancelIsFree(PlateButtonsState state) => !state.CancelSpent;
+
+    /// <summary>
+    /// The held bunt met the ball (<see cref="BuntHold.Contact"/>) on the plate as a whole: the side is fixed and
+    /// every trigger down in <paramref name="input"/> is spent (PH-14-R6).
+    /// </summary>
+    public static PlateButtonsState Contact(PlateButtonsState state, PlateInput input) =>
+        state with { Bunt = BuntHold.Contact(state.Bunt, input.ThirdHeld, input.FirstHeld) };
 
     /// <summary>
     /// What the plate offers when the ball reaches it (spec §5.8): the held bunt if the bat is out, else

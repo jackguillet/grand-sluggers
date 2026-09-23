@@ -6,7 +6,8 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class TutorialPlateTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
-    static readonly string[] Added = ["T-P04", "T-P05", "T-P06", "T-B02", "T-B04", "T-B07", "T-B08"];
+    static readonly string[] Added = ["T-P04", "T-P05", "T-P06", "T-B02", "T-B04", "T-B07", "T-B08", "T-B10", "T-B11"];
+    const double Tick = 1 / 60.0;
     public static IEnumerable<object[]> Lessons => Added.Select(id => new object[] { id });
     TutorialSession Start(string id)
     {
@@ -19,10 +20,27 @@ public sealed class TutorialPlateTests
         "T-P06" => run.Pitch(new("fastball", 0, false, RubberX: .2), source),
         "T-B02" => run.Swing(new(true, 0, 0, false), source),
         "T-B04" => run.Swing(new(true, 1, 0, false), source),
-        "T-B07" => run.Swing(new(true, 0, 0, false, Bunt: true, SquareSec: 1), source),
+        // The held bunt (§5.8, PH-14-R5): the client sends the held side at the plate, no timed press.
+        "T-B07" => run.Swing(SwingCommand.HeldBunt(BuntSide.Third, 0, squareSec: 1), source),
         "T-B08" => run.Swing(new(false, 0, 0, false), source),
+        "T-B10" => CancelThenTake(run, source),
+        "T-B11" => run.Swing(SwingCommand.HeldBunt(BuntSide.First, 0, squareSec: 1), source),
         _ => throw new InvalidOperationException()
     };
+
+    /// <summary>
+    /// T-B10's player input (PH-13-R1): South loads in SET and holds into the flight, East / G cancels the armed load,
+    /// the cancelled hold comes up (which commits nothing), and the pitch reaches the plate with no swing.
+    /// </summary>
+    static bool CancelThenTake(TutorialSession run, LivePlayCommandSource source)
+    {
+        var plate = run.Plate(new(new(true, true, false), Tick, Commits: false), source)
+            && run.Plate(new(new(false, true, false), Tick, Commits: true), source)
+            && run.Plate(new(new(false, true, false, Cancel: true, CancelHeld: true), Tick, Commits: true), source)
+            && run.Plate(new(new(false, false, true), Tick, Commits: true), source);
+        _ = plate;
+        return run.Swing(new(false, 0, 0, false), source);
+    }
 
     [Theory, MemberData(nameof(Lessons))]
     public void EachPlateLessonRequiresThreeRealResultsAndReplaysItsInputs(string id)
@@ -97,6 +115,57 @@ public sealed class TutorialPlateTests
         run.Retry(); run.Swing(new(false, 0, 0, false, Bunt: true)); Assert.False(run.Feedback!.Success);
         run.Retry(); Perform(run);
         Assert.Equal(PlayKind.TakeBall, run.LastPlay!.Kind); Assert.Equal(1, run.Match.Balls); Assert.Equal(1, run.Successes);
+    }
+
+    [Fact]
+    public void CancelASwingNeedsTheExplicitCancelOfARealLoadAndATakenBall()
+    {
+        // T-B10 (PH-13-R1). The session steps the player's own plate buttons: the pass rests on East / G discarding
+        // an armed load, never on a flag the client sets. The released hold after the cancel commits nothing.
+        var run = Start("T-B10"); Assert.False(AtBatResolver.PitchInZone(run.CpuPitch, run.Match.Pitcher.Stats.Pitch));
+        Assert.True(CancelThenTake(run, LivePlayCommandSource.Human));
+        Assert.True(run.CancelledLoad); Assert.False(run.PlateState.SwingCommitted);
+        Assert.Equal("cancelled-take", run.Feedback!.Code); Assert.Equal(PlayKind.TakeBall, run.LastPlay!.Kind);
+
+        // A take with nothing loaded is T-B08, not this lesson.
+        run.Retry(); Assert.False(run.CancelledLoad);
+        run.Swing(new(false, 0, 0, false)); Assert.Equal("load-then-cancel", run.Feedback!.Code);
+
+        // East with nothing armed discards nothing: still no cancelled load.
+        run.Retry();
+        run.Plate(new(new(false, false, false, Cancel: true, CancelHeld: true), Tick, Commits: true));
+        Assert.True(run.PlateState.CancelSpent); Assert.False(run.CancelledLoad);
+        run.Swing(new(false, 0, 0, false)); Assert.Equal("load-then-cancel", run.Feedback!.Code);
+
+        // A swing that went is a swing, whatever came before.
+        run.Retry(); run.Swing(new(true, 0, 0, false)); Assert.Equal("cancel-swung", run.Feedback!.Code);
+
+        // A bunt press converts the load (PH-13-R1) but it is not the explicit cancel, and the bunt is not a take.
+        run.Retry();
+        run.Plate(new(new(true, true, false), Tick, Commits: false));
+        run.Plate(new(new(false, true, false, ThirdPressed: true, ThirdHeld: true), Tick, Commits: true));
+        Assert.False(run.CancelledLoad);
+        run.Swing(SwingCommand.HeldBunt(BuntSide.Third, 0)); Assert.Equal("cancel-swung", run.Feedback!.Code);
+        Assert.Equal(1, run.Successes); // only the first attempt earned one
+    }
+
+    [Fact]
+    public void BuntTowardFirstNeedsTheFirstBaseSideAndABallThatWentThere()
+    {
+        // T-B11 (§5.8, PH-14-R2 … R5): the named side is the first-base trigger (RT / L), and the fair bunt must
+        // have gone toward first. The runner on first is real.
+        var run = Start("T-B11"); Assert.NotNull(run.Match.First);
+        Perform(run);
+        Assert.True(run.Feedback!.Success, run.Feedback.Detail);
+        Assert.Equal("fair-bunt-first", run.Feedback.Code); Assert.True(run.LastHit!.SprayDeg > 0);
+        run.Retry(); run.Swing(SwingCommand.HeldBunt(BuntSide.Third, 0, squareSec: 1));
+        Assert.Equal("use-first-side", run.Feedback!.Code);
+        run.Retry(); run.Swing(new(true, 0, 0, false)); Assert.Equal("use-bunt", run.Feedback!.Code);
+        // Released every trigger before the plate: the bat came back and the pitch was taken.
+        run.Retry(); run.Swing(new(false, 0, 0, false)); Assert.Equal("use-bunt", run.Feedback!.Code);
+        run.Retry(); run.Swing(SwingCommand.HeldBunt(BuntSide.First, boxOffsetX: 1));
+        Assert.Equal("bunt-miss", run.Feedback!.Code);
+        Assert.Equal(1, run.Successes);
     }
 
     [Fact]

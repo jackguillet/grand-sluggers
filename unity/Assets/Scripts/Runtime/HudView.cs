@@ -24,7 +24,7 @@ namespace GrandSluggers.UnityClient
             bool mutePlay = false, int seats = 1,
             bool humanPitches = true, bool humanBats = false,
             bool starPitch = false, bool starSwing = false, bool pad1Home = true,
-            bool bunt = false, string titleSetup = null)
+            BuntSide bunt = BuntSide.None, string titleSetup = null)
         {
             Ensure();
             if (phase == PhaseUi.Title)
@@ -953,7 +953,7 @@ namespace GrandSluggers.UnityClient
 
         static void Play(Match match, string pitcherExtra, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, int seats,
-            bool humanPitches, bool humanBats, bool starPitch, bool starSwing, bool bunt)
+            bool humanPitches, bool humanBats, bool starPitch, bool starSwing, BuntSide bunt)
         {
             var lay = BroadcastHud.Layout(seats);
             Scorebug(match, lay);
@@ -1050,7 +1050,7 @@ namespace GrandSluggers.UnityClient
 
         static void Cards(Match match, string pitcherExtra, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, BroadcastHud.PlayLayout lay,
-            bool humanPitches, bool humanBats, bool starPitch, bool starSwing, bool bunt)
+            bool humanPitches, bool humanBats, bool starPitch, bool starSwing, BuntSide bunt)
         {
             var bug = BroadcastHud.From(match);
             var bStar = starSwing || (star && humanBats);

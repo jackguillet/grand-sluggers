@@ -37,10 +37,13 @@ namespace GrandSluggers.UnityClient
             // The calibrated radial stick (#718) reads the device coordinate before any dead zone; the shipped Manhattan gate
             // keeps the stick it always read. One coordinate per table, handed to the sim once.
             var radial = _match != null && _match.Rules.Fielding.Stick.Radial;
+            // One pad can bat and field (Training): an East press the plate took as the swing cancel is no dive and no
+            // dash until it comes up (PH-13-R1), and LT held for a bunt at contact is no item modifier (PH-14-R6).
+            var eastFree = CancelFree(pad);
             return new LivePadInput(
                 radial ? pad.PursuitX : pad.StickX, radial ? pad.PursuitY : pad.StickY,
-                pad.SouthDown, pad.WestDown, pad.EastDown, pad.EastHeld,
-                pad.Cutoff, pad.SwapPitcher, pad.Item, pad.Attack,
+                pad.SouthDown, pad.WestDown, pad.EastDown && eastFree, pad.EastHeld && eastFree,
+                pad.Cutoff, pad.SwapPitcher, pad.ItemWith(TriggerFree(pad, BuntSide.Third)), pad.Attack,
                 pad.ThrowBag, pad.StickBag, pad.ArrowBag,
                 Cancel: pad.AllReturn,
                 Device: pad.Index);

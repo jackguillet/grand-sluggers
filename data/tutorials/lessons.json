@@ -425,7 +425,7 @@
     },
     {
       "id": "T-B07",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.07"
       ],
@@ -444,7 +444,8 @@
       "setup": "T-B07",
       "objective": "bunt-fair",
       "controls": [
-        "control:batting/Bunt"
+        "control:batting/Bunt to third",
+        "control:batting/Bunt to first"
       ],
       "tests": [
         "TutorialPlateTests"
@@ -510,9 +511,9 @@
       ],
       "title": "cancel a swing",
       "category": "batting",
-      "status": "planned",
+      "status": "implemented",
       "issue": 803,
-      "reason": "The sim cancel exists (P4-a, S-150 ... S-152); no control reaches it until P4-c adds East / G and the let-go take. Planned: load a swing on a CPU ball, cancel before the plate, and take the ball; a swing, or a release of the cancelled hold, fails",
+      "reason": "Headless plate exercise; human learning gate pending. The session steps the player's own plate buttons (PlateButtons) and passes only when East / G discarded an armed load and the high pitch went by for a ball",
       "profiles": [
         "shipped"
       ],
@@ -520,10 +521,14 @@
       "prerequisites": [
         "T-B04"
       ],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-B10",
+      "objective": "cancel-take",
+      "controls": [
+        "control:batting/Cancel swing"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-B11",
@@ -533,9 +538,9 @@
       ],
       "title": "bunt to a side",
       "category": "batting",
-      "status": "planned",
+      "status": "implemented",
       "issue": 803,
-      "reason": "The held side exists in the sim (P4-b, S-153 ... S-166); no control reaches it until P4-c binds LT / J and RT / L. Planned: a CPU strike with a runner on first; hold the named side through the pitch and put the bunt down fair on that side of the mound; a swing, a withdrawn bat, the other side or a foul fails",
+      "reason": "Headless plate exercise; human learning gate pending. A CPU strike with a runner on first: hold the first-base side (RT / L) through the pitch and put the bunt down fair toward first; a swing, a withdrawn bat, the third-base side, a foul or a bunt that rolls toward third fails",
       "profiles": [
         "shipped"
       ],
@@ -543,10 +548,14 @@
       "prerequisites": [
         "T-B07"
       ],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
+      "setup": "T-B11",
+      "objective": "bunt-first-fair",
+      "controls": [
+        "control:batting/Bunt to first"
+      ],
+      "tests": [
+        "TutorialPlateTests"
+      ]
     },
     {
       "id": "T-F01",
@@ -3130,6 +3139,74 @@
         "star": false,
         "aimY": 2
       }
+    },
+    {
+      "id": "T-B10",
+      "policy": "cpu-ball",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "pitch": {
+        "type": "fastball",
+        "charge01": 0,
+        "star": false,
+        "aimY": 2
+      }
+    },
+    {
+      "id": "T-B11",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        1
+      ],
+      "balls": {}
     },
     {
       "id": "T-P02",

@@ -102,10 +102,10 @@ public sealed class TutorialDirectionTests
         Assert.DoesNotContain("fly-fair", TutorialPlateObjectives.SwingIds);
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {
-            // The one stick-at-contact row left names the bunt, which keeps the stick until P4-b.
+            // The bunt's side is its held trigger since P4-b / P4-c (PH-14-R5): no row aims anything at contact.
             var rows = RoleTables.Of(scheme).SelectMany(b => b.Rows).ToArray();
             Assert.DoesNotContain(rows, r => r.Verb == "Spray");
-            Assert.All(rows.Where(r => r.Press.Contains("at contact")), r => Assert.Equal("Aim bunt", r.Verb));
+            Assert.DoesNotContain(rows, r => r.Press.Contains("at contact") || r.Verb == "Aim bunt");
         }
     }
     [Theory]
