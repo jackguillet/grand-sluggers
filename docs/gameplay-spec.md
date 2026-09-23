@@ -1269,6 +1269,8 @@ The body goes around when around costs less, heading along the tangent. Otherwis
 
 ## 15. Presentation contract per play
 
+**Home plate.** The shared field kit seats the authored plate's underside on the home dirt surface (`ParkDiamond.PathTop`, 0.38 ft). Its white face stays above the dirt, with the 17-inch pentagon, catcher-facing point at home, and six-inch batter-box gap unchanged at every park and for either seat count.
+
 **HUD handoff.** At contact, including hit-freeze and the home-run smash, the plate score/count and matchup cards give way immediately to a compact top-right runner diamond with outs below it. The same live display serves throws, steals and pickoffs, in Exhibition and practice, with one or two seats. YOU, switch, throw-target and item prompts remain available while their action applies. Freeze, smash and special VFX never suppress these readouts or delay their return. When live play ends, the ordinary score/count and matchup cards return on that frame; there is no HUD timer or fade. Explicit capture/debug HUD mute still hides play overlays.
 
 No effect draws a line connecting a fielder to the ball or a throw destination. This includes Laser and lick-catch ability effects, in every play and seat configuration. Ability mechanics remain unchanged; the moving ball keeps its short trail and chemistry tint.
