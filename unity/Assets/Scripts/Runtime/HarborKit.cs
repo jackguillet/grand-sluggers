@@ -63,6 +63,7 @@ namespace GrandSluggers.UnityClient
         Material _ledOff;
         readonly Firework[] _sparks = new Firework[28];
         public bool OwnsDiamond { get; private set; }
+        ParkKitSlot _slots;
 
         struct Firework
         {
@@ -86,7 +87,9 @@ namespace GrandSluggers.UnityClient
         {
             _park = park;
             _night = night;
-            OwnsDiamond = HarborPostcard.Owns(park != null ? park.Id : null);
+            // The Harbor kit draws a park whose lawn slot it fills (FD-16, FR-13), never a park chosen by its id.
+            _slots = ArtBinder.ParkKit(park != null ? park.Id : null);
+            OwnsDiamond = _slots.Fills(ParkKitSlots.Lawn, ParkKitSlots.HarborLawn);
             gameObject.SetActive(OwnsDiamond);
             if (OwnsDiamond)
             {
@@ -341,13 +344,16 @@ namespace GrandSluggers.UnityClient
             var yellow = Look.Unlit(Colors.Gold);
             field.Poles(_park, yellow, yellow);
             DressBackstop();
-            DressDugouts();
-            DressWall();
-            DressScoreboard();
-            DressBleachers();
-            DressTown();
-            DressNight();
+            // Each piece of Harbor's dress fills its kit slot (FD-16); a slot the park leaves empty draws nothing here.
+            if (Fills(ParkKitSlots.Dugouts, ParkKitSlots.HarborDugouts)) DressDugouts(); else Wipe(Dugouts);
+            if (Fills(ParkKitSlots.Wall, ParkKitSlots.HarborWall)) DressWall(); else Wipe(WallDress);
+            if (Fills(ParkKitSlots.Scoreboard, ParkKitSlots.HarborScoreboard)) DressScoreboard(); else Wipe(Scoreboard);
+            if (Fills(ParkKitSlots.Stands, ParkKitSlots.HarborStands)) DressBleachers(); else Wipe(Bleachers);
+            if (Fills(ParkKitSlots.Backdrop, ParkKitSlots.HarborTown)) DressTown(); else Wipe(Town);
+            if (Fills(ParkKitSlots.Night, ParkKitSlots.HarborFireworks)) DressNight(); else Wipe(Fireworks);
         }
+
+        bool Fills(string slot, string builder) => _slots.Fills(slot, builder);
 
         void DressBackstop()
         {

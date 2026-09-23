@@ -114,12 +114,12 @@ public sealed class SharedWindowScenarioTests
         // spatial forgiveness. Both live in the cursor.
         foreach (var contact in Enumerable.Range(1, 10))
         {
-            Assert.True(SweetSpot.BarrelScale(contact, true, false, 0, trial)
-                        < SweetSpot.BarrelScale(contact, false, false, 0, trial),
+            Assert.True(SweetSpot.BarrelScale(contact, true, false, trial)
+                        < SweetSpot.BarrelScale(contact, false, false, trial),
                 $"a charge still narrows the barrel at Contact {contact}");
             if (contact < 10)
-                Assert.True(SweetSpot.BarrelScale(contact + 1, false, false, 0, trial)
-                            > SweetSpot.BarrelScale(contact, false, false, 0, trial),
+                Assert.True(SweetSpot.BarrelScale(contact + 1, false, false, trial)
+                            > SweetSpot.BarrelScale(contact, false, false, trial),
                     $"Contact {contact + 1} still carries a wider barrel than {contact}");
         }
 
@@ -127,8 +127,8 @@ public sealed class SharedWindowScenarioTests
         var sure = Hitter(contact: 9, power: 2);
         var slugger = Hitter(contact: 2, power: 9);
         Assert.Equal(sure.Stats.Bat, slugger.Stats.Bat);
-        Assert.True(SweetSpot.BarrelScale(sure.Stats.Contact, false, false, 0, trial)
-                    > SweetSpot.BarrelScale(slugger.Stats.Contact, false, false, 0, trial));
+        Assert.True(SweetSpot.BarrelScale(sure.Stats.Contact, false, false, trial)
+                    > SweetSpot.BarrelScale(slugger.Stats.Contact, false, false, trial));
     }
 
     // ---------------------------------------------------------------------------------

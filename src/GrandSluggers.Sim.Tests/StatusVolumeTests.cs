@@ -188,8 +188,8 @@ public sealed class StatusVolumeTests
 
     /// <summary>
     /// <c>SF-20</c>: the glove that goes out for a shallow fly to centre (the centre fielder on the shipped root, the second
-    /// baseman on the copy — whoever the preview sends) crosses a freeze volume set two fifths of the way along his run. He is
-    /// slowed from the frame he stands in it, for 3 s from that touch (longer only while he is still inside), at 0.45 of the
+    /// baseman on the copy — whoever the preview sends) runs into a freeze volume that covers the ball's landing: the route
+    /// cannot go around a volume the ball lies in (FD-14, F4-g), so he takes the slow. He is slowed from the frame he stands in it, for 3 s from that touch (longer only while he is still inside), at 0.45 of the
     /// speed the chase asks; nobody else on the field is slowed; the touch is one typed fact and one trace mark naming him and
     /// the instance. The volume does not change the preview: the same ball at plain Harbor sends the same glove.
     /// </summary>
@@ -203,7 +203,7 @@ public sealed class StatusVolumeTests
         var chaser = plain.Position;
         var from = Diamond.Positions[chaser];
         var (park, index) = HarborWith(HazardType.FreezeVolume,
-            from.X + (plain.LandingX - from.X) * 0.4, from.Z + (plain.LandingZ - from.Z) * 0.4, 8);
+            plain.LandingX, plain.LandingZ, 10);
         Assert.True(Diamond.Dist(from.X, from.Z, park.Hazards[index].X, park.Hazards[index].Z) > 12, "he starts outside it");
         var match = new Match(Catalog, PresetTeams.EmberCourt(Catalog), PresetTeams.SparkAllStars(Catalog), park, seed: 1);
         var p = Play(match, FlightFixtures.Landing(park, carry, 40, 0));

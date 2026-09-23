@@ -135,6 +135,8 @@ public sealed partial class LivePlaySystem
     readonly List<LiveStamp> _stampsThisPlay = [];
     /// <summary>The park's status volumes on the bodies that touch them (F4-b, #896): the touch, the per-body time, the slow.</summary>
     readonly BodySlows _bodySlows = new();
+    /// <summary>The fielding positions whose body a volume never slows (Burrow), read with the touches each frame: their route goes straight (F4-g).</summary>
+    readonly HashSet<string> _routeImmune = new(StringComparer.OrdinalIgnoreCase);
     readonly List<BodySlowed> _slows = [];
     readonly List<BodySlowed> _slowsThisPlay = [];
     readonly HashSet<Runner> _scoreTold = [];
@@ -2186,9 +2188,11 @@ public sealed partial class LivePlaySystem
         if (_bodySlows.Volumes.Count == 0) return;
         var t = ElapsedSeconds;
         var map = Assigned();
+        _routeImmune.Clear();
         foreach (var pos in Diamond.Order)
         {
             if (!map.TryGetValue(pos, out var who)) continue;
+            if (FieldAbilities.IgnoresParkSlow(who)) _routeImmune.Add(pos);
             var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Diamond.Positions[pos];
             foreach (var (v, until) in _bodySlows.Read(pos, at.Item1, at.Item2, t, FieldAbilities.IgnoresParkSlow(who)))
                 Slowed(new BodySlowed(pos, who, v.Hazard, v.Type, t, until), v, null);
@@ -2218,6 +2222,17 @@ public sealed partial class LivePlaySystem
     /// heart swing's slow (<paramref name="specialSlowed"/>; a special, outside this phase) is not slowed again: the special and
     /// the volume are the one slow, never two stacked — stacking stays with the specials (the 3e boundary).
     /// </summary>
+    /// <summary>
+    /// The route cost of a status volume (FD-14, SF-26; F4-g): every step to a goal — the CPU's chase, cover, cutoff and backup
+    /// walk and the assistance's — heads around a volume in the way when that costs less time than its slow
+    /// (<see cref="VolumeRoute"/>), at the body's own asked speed. A park with no volume, a Burrow body and a straight line
+    /// that meets no volume leave the goal exactly as it was. The stick is never steered.
+    /// </summary>
+    (double X, double Z) RouteAround(string pos, (double X, double Z) at, (double X, double Z) goal, double speed) =>
+        _bodySlows.Volumes.Count == 0 || _routeImmune.Contains(pos)
+            ? goal
+            : VolumeRoute.Waypoint(at, goal, _bodySlows.Volumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
+
     double VolumeMul(string pos, bool specialSlowed) => BodySlows.Mul(!specialSlowed && _bodySlows.Slowed(pos), R);
 
     // ---------------------------------------------------------------------------------
@@ -2317,6 +2332,7 @@ public sealed partial class LivePlaySystem
     {
         // A status volume slows the body that touched it (F4-b): every step it takes. The flat step is the cover, cutoff and
         // backup walk, whose speed never carries the heart swing's slow; every other step is a chase over the preview.
+        goal = RouteAround(pos, at, goal, speed);
         speed *= VolumeMul(pos, specialSlowed: !flat && Preview?.Frozen == true);
         if (!ResponseLaw)
             return flat ? StepFlat(at, goal, speed, stopFt, dt) : FieldingResolver.StepToward(at.X, at.Z, goal.X, goal.Z, speed, dt, Park, R);
