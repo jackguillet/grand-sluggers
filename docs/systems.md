@@ -50,9 +50,9 @@ Buddy Badge (rare gear) treats all pairs as good for one game. Do not put it in 
 
 ## Star meter
 
-- 0–5 stars in one pool per team, shared by its Star Pitches and Star Swings. Both teams start on `startingReserve` (4).
+- 0–5 stars in one pool per team, shared by its Star Pitches and Star Swings. Both teams start on `startingReserve` (3). A special costs its tier: low 1, mid 2, top 3, plus 1 for a guest captain.
 - A special costs its ability's tier price (`tiers`, all 1 shipped), plus 1 for a *guest* captain (not the team’s captain). A special the team cannot pay for is the ordinary pitch or swing and costs nothing. A missed Star Swing pays in full.
-- Both teams gain `gains.plateAppearance` (0 shipped) when a plate appearance completes. On top of that, the side whose play it was gains per event from `data/rules/stars.json` (`gains`): single 0.4, extra-base hit 0.8, home run 1, strikeout 0.8, out 0.35 / live out 0.4, stolen base 0.35, double play 1, robbed homer 1, billboard 1. Tiers, costs and the MVP point table (`mvp`) live in the same file (spec §12).
+- Both teams gain `gains.plateAppearance` (0.1) when a plate appearance completes. On top of that, the side whose play it was gains per event from `data/rules/stars.json` (`gains`): single 0.4, extra-base hit 0.8, home run 1, strikeout 0.8, out 0.35 / live out 0.4, stolen base 0.35, double play 1, robbed homer 1, billboard 1. Tiers, costs and the MVP point table (`mvp`) live in the same file (spec §12).
 - Star skills **cannot** be a free home run. They change the ball or the field.
 
 ## Batting (arcade)
