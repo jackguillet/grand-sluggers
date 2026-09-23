@@ -18,8 +18,8 @@ public class GameplayTests
         var hits = 0;
         var charmed = 0;
         // A frame inside the plain window and outside the charmball window (star-skills batterWindowMul).
-        var plain = AtBatResolver.ContactWindowFrames(rio.Stats.Bat, false, null, park, false);
-        var charm = AtBatResolver.ContactWindowFrames(rio.Stats.Bat, false, vale.StarPitch, park, false);
+        var plain = AtBatResolver.ContactWindowFrames(null, park, false);
+        var charm = AtBatResolver.ContactWindowFrames(vale.StarPitch, park, false);
         Assert.True(charm < plain, $"charm {charm} vs plain {plain}");
         var edge = (plain + charm) / 4;
         for (var seed = 0; seed < 40; seed++)

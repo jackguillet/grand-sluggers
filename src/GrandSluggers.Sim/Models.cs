@@ -58,9 +58,8 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
     /// Contact: spatial forgiveness at the plate (PH-15-R7) — it scales the cursor's barrel, so a
     /// crossing further from the center still finds the bat. Unauthored (0) tracks <see cref="Bat"/>.
     ///
-    /// On the <b>shipped root</b> it also still widens the timing window
-    /// (<see cref="AtBatResolver.SwingWindowFrames"/>); under <c>batting.window.shared</c> it does
-    /// not, and the barrel is all it does (#844, spec §2, §5.3). The CPU batter's timing error also
+    /// It does not widen the timing window (<see cref="AtBatResolver.ContactWindowFrames"/>): the
+    /// barrel is all it does at the plate (#844, spec §2, §5.3). The CPU batter's timing error also
     /// reads it, and that is a separate thing: how far off the ball that bat arrives, not how wide
     /// its window is (§5.9; whether it should read Contact at all is P2-g's).
     /// </summary>
@@ -439,8 +438,7 @@ public sealed record Team(
 /// One swing at one crossing. <paramref name="CrossingX"/> / <paramref name="CrossingY"/> are the
 /// pitch at the plate plane in world feet (the same point the umpire and the aim tell read);
 /// <paramref name="TimingErrorFrames"/> is the press minus the square press (the ball's plate time
-/// less <c>batting.window.leadSec</c>) at 60 Hz, D13. <paramref name="HumanWindowMul"/> is the
-/// difficulty rung's widening of a human batter's window (1 for the CPU).
+/// less <c>batting.window.leadSec</c>) at 60 Hz, D13.
 /// </summary>
 public sealed record AtBatInput(
     Character Pitcher,
@@ -461,8 +459,7 @@ public sealed record AtBatInput(
     double Charge01 = 0,
     double BoxOffsetX = 0,
     double CrossingX = 0,
-    double CrossingY = PitchFlight.PlateY,
-    double HumanWindowMul = 1);
+    double CrossingY = PitchFlight.PlateY);
 
 public sealed record AtBatResult(
     ContactQuality Quality,
@@ -526,7 +523,7 @@ public sealed record SwingCommand(
     bool Bunt = false,
     double LaunchAim = 0,
     double BoxOffsetX = 0,
-    /// <summary>A seat's pad pressed it: the rung's <see cref="CpuLevelRules.HumanWindowMul"/> applies.</summary>
+    /// <summary>A seat's pad pressed it, not the CPU batter. No rule reads it: one window for every seat (PH-17).</summary>
     bool Human = false,
     /// <summary>
     /// The square clock at the plate time (§5.8, §7.3): play seconds the batter had been squared (West held), wound back

@@ -58,59 +58,29 @@ public sealed class BalanceTests
             Assert.DoesNotContain("WINDOW", CarnivalFront.TitleSetup(3, level, _content.Rules));
     }
 
-    [Theory]
-    [InlineData("easy", 1.3)]
-    [InlineData("normal", 1.0)]
-    [InlineData("hard", 0.9)]
-    public void TheRungWidensOnlyAPadsSwingWindow(string level, double mul)
-    {
-        // The switch's off path (batting.window.shared false), built here: #860 shipped the shared
-        // window (PH-17; Jack, September 22, 2026: "trial was good."), so the rung widening a pad's
-        // window is no longer the shipped rule — the half below this one is.
-        var content = SwitchOffPaths.SplitWindowContent;
-        var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level);
-        Assert.False(match.Rules.Batting.Window.Shared);
-        Assert.Equal(mul, match.Rules.Cpu.Active.HumanWindowMul, 8);
-        var pitch = new PitchCommand("fastball", 0, false);
-        var cpu = new SwingCommand(true, 0, 0, false);
-        var human = cpu with { Human = true };
-        var floor = content.Rules.Batting.Window.FloorFrames;
-        var table = match.SwingWindowFrames(pitch, cpu);
-        Assert.Equal(AtBatResolver.SwingWindowFrames(match.Batter, match.OffenseBat, 0, null, match.Park, match.Night,
-            rules: content.Rules, skills: content.StarSkills), table, 8);
-        Assert.Equal(Math.Max(floor, table * mul), match.SwingWindowFrames(pitch, human), 8);
-
-        // The same press, just past the table's half window, is a whiff for the CPU and on the bat
-        // for a pad on EASY (spec §5.3, off path).
-        var err = table / 2 + 0.3;
-        var edge = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level);
-        var cpuEv = edge.Play(pitch, cpu with { TimingErrorFrames = err });
-        Assert.Equal(PlayKind.SwingMiss, cpuEv.Kind);
-        var pad = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level);
-        var padInWindow = AtBatResolver.InWindow(err, pad.SwingWindowFrames(pitch, human));
-        Assert.Equal(mul > 1.0, padInWindow);
-    }
-
     /// <summary>
     /// The shipped rule since #860 (PH-17, one fixed challenge; Jack accepted the shared window in
-    /// the <c>trials/pitch5</c> window on September 22, 2026: "trial was good."): the rung's
-    /// <c>humanWindowMul</c> is still authored and still read by the rung, but it does not enter a
-    /// pad's window — a pad and the CPU are judged in the same window on every rung.
+    /// the <c>trials/pitch5</c> window on September 22, 2026: "trial was good."): a pad and the CPU
+    /// are judged in the same window on every rung. The rung's <c>humanWindowMul</c> and the
+    /// split-window half that it widened (<c>TheRungWidensOnlyAPadsSwingWindow</c>) were retired by #887.
     /// </summary>
     [Theory]
-    [InlineData("easy", 1.3)]
-    [InlineData("normal", 1.0)]
-    [InlineData("hard", 0.9)]
-    public void OnTheShippedRootTheRungLeavesAPadsSwingWindowAlone(string level, double mul)
+    [InlineData("easy")]
+    [InlineData("normal")]
+    [InlineData("hard")]
+    public void OnTheShippedRootTheRungLeavesAPadsSwingWindowAlone(string level)
     {
         var match = Match.Exhibition(_content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level);
-        Assert.True(match.Rules.Batting.Window.Shared);
-        Assert.Equal(mul, match.Rules.Cpu.Active.HumanWindowMul, 8);
         var pitch = new PitchCommand("fastball", 0, false);
-        var cpu = new SwingCommand(true, 0, 0, false);
-        var table = match.SwingWindowFrames(pitch, cpu);
+        var table = match.SwingWindowFrames(pitch);
         Assert.Equal(_content.Rules.Batting.Window.Frames, table, 8);
-        Assert.Equal(table, match.SwingWindowFrames(pitch, cpu with { Human = true }), 8);
+
+        // The same press, just past the half window, is a whiff for the CPU and for a pad alike.
+        var cpu = new SwingCommand(true, 0, table / 2 + 0.3, false);
+        var cpuEv = Match.Exhibition(_content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level).Play(pitch, cpu);
+        var padEv = Match.Exhibition(_content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level).Play(pitch, cpu with { Human = true });
+        Assert.Equal(PlayKind.SwingMiss, cpuEv.Kind);
+        Assert.Equal(PlayKind.SwingMiss, padEv.Kind);
     }
 
     [Fact]
@@ -275,8 +245,8 @@ public sealed class BalanceTests
         Assert.Equal(0.85, _content.Parks["crystal-rink"].NightContactWindowMul);
         Assert.Equal(1.0, _content.Parks["harbor-diamond"].NightContactWindowMul);
         Assert.Null(typeof(ParkHazardRules).GetProperty("CrystalNightWindowMul"));
-        var day = AtBatResolver.ContactWindowFrames(5, false, null, _content.Parks["crystal-rink"], false);
-        var night = AtBatResolver.ContactWindowFrames(5, false, null, _content.Parks["crystal-rink"], true);
+        var day = AtBatResolver.ContactWindowFrames(null, _content.Parks["crystal-rink"], false);
+        var night = AtBatResolver.ContactWindowFrames(null, _content.Parks["crystal-rink"], true);
         Assert.True(night < day, $"night {night} day {day}");
     }
 }

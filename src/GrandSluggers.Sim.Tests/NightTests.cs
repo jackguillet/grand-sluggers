@@ -53,8 +53,8 @@ public class NightTests
         Assert.Equal(1.0, ParkHazards.ContactWindowMul(_content.Parks["harbor-diamond"], true));
 
         var rio = _content.Must("rio");
-        var dayWindow = AtBatResolver.ContactWindowFrames(rio.Stats.Bat, false, null, park, false);
-        var nightWindow = AtBatResolver.ContactWindowFrames(rio.Stats.Bat, false, null, park, true);
+        var dayWindow = AtBatResolver.ContactWindowFrames(null, park, false);
+        var nightWindow = AtBatResolver.ContactWindowFrames(null, park, true);
         Assert.True(nightWindow < dayWindow);
         var input = new AtBatInput(
             _content.Must("ashlord"), rio, _content.Must("nico"), [],
