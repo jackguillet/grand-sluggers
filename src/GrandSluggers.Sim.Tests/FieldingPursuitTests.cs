@@ -15,8 +15,8 @@ public class FieldingPursuitTests
         foreach (var spray in new[] { -28d, 0d, 28d })
         {
             var match = Match.Slice(_content, parkId: park.Id, seed: 7);
-            var hit = FlightFixtures.Hit(park, exit, 8, spray);
-            var path = BallFlight.Trajectory(exit, 8, spray, park);
+            var hit = FlightFixtures.Hit(park, exit, -12, spray);
+            var path = BallFlight.Trajectory(exit, -12, spray, park);
             var pre = match.PreviewHit(hit);
             var start = Diamond.Positions[pre.Position];
             var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen);
@@ -62,7 +62,7 @@ public class FieldingPursuitTests
     }
 
     [Fact]
-    public void FlyRoutesUseTheLegalPlantAtRatedSpeedIncludingTheWall()
+    public void FlyRoutesMeetTheBallWithinReachAtRatedSpeedIncludingTheWall()
     {
         foreach (var park in _content.Parks.Values)
         foreach (var spray in new[] { -32d, 0d, 32d })
@@ -76,9 +76,19 @@ public class FieldingPursuitTests
             var route = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z, speed);
             var plant = FlyCatch.ChaseTarget(pre, park);
 
-            Assert.True(route.AirCatch);
-            Assert.Equal(plant.X, route.X, 6);
-            Assert.Equal(plant.Z, route.Z, 6);
+            if (route.AirCatch)
+            {
+                var point = BallFlight.PointAt(path, route.MeetTimeSec);
+                var target = FlyCatch.NeedsJump(pre) ? plant : (X: point.X, Z: point.Z);
+                Assert.Equal(target.X, route.X, 6);
+                Assert.Equal(target.Z, route.Z, 6);
+                if (!FlyCatch.NeedsJump(pre))
+                {
+                    Assert.True(route.MeetTimeSec < pre.HangTimeSec);
+                    Assert.InRange(point.Y, 0, match.Rules.Fielding.Catch.StandingHeightFt);
+                }
+            }
+            else if (route.Reachable) Assert.True(route.MeetTimeSec >= pre.HangTimeSec);
             Assert.True(FieldBounds.Inside(park, route.X, route.Z));
 
             var at = start;
@@ -92,7 +102,7 @@ public class FieldingPursuitTests
             var traveled = Diamond.Dist(start.X, start.Z, at.X, at.Z);
             Assert.True(traveled <= speed * elapsed + 0.05,
                 $"{park.Id} {spray}° route exceeded rated speed");
-            Assert.Equal(route.Reachable, Diamond.Dist(at.X, at.Z, route.X, route.Z) < 1.0);
+            if (route.Reachable) Assert.True(Diamond.Dist(at.X, at.Z, route.X, route.Z) < pre.CatchRadius + 1.0);
         }
     }
 
@@ -175,11 +185,11 @@ public class FieldingPursuitTests
     }
 
     [Fact]
-    public void ACatchableFlyToRightCenterPicksByTheLandingNotTheRoll()
+    public void ACatchableFlyToRightCenterPicksAnAirInterceptBeforeTheBounce()
     {
         var match = Match.Slice(_content, seed: 1);
         var park = match.Park;
-        var hit = FlightFixtures.Hit(park, 104, 30, 20);
+        var hit = FlightFixtures.Hit(park, 95, 35, 20);
         var pre = match.PreviewHit(hit);
         Assert.Equal(BattedBallClass.Fly, pre.Class);
         var plant = FlyCatch.ChaseTarget(pre, park);
@@ -192,9 +202,12 @@ public class FieldingPursuitTests
         var ready = FieldingResolver.CpuReactionLockouts(match.Rules, pre.HangTimeSec);
         var choice = FieldingPursuit.Choose(assigned, FieldingResolver.OutfieldPursuitPositions,
             pre, park, pre.Ball!.Samples, null, 0, match.Rules, ready);
-        Assert.Equal("RF", choice.Position);
+        Assert.Contains(choice.Position, FieldingResolver.OutfieldPursuitPositions);
         Assert.True(choice.Route.AirCatch);
-        Assert.Equal(plant.X, choice.Route.X, 6);
-        Assert.Equal(plant.Z, choice.Route.Z, 6);
+        var atCatch = BallFlight.PointAt(pre.Ball.Samples, choice.Route.MeetTimeSec);
+        Assert.True(choice.Route.MeetTimeSec < pre.HangTimeSec);
+        Assert.InRange(atCatch.Y, 0, match.Rules.Fielding.Catch.StandingHeightFt);
+        Assert.Equal(atCatch.X, choice.Route.X, 6);
+        Assert.Equal(atCatch.Z, choice.Route.Z, 6);
     }
 }

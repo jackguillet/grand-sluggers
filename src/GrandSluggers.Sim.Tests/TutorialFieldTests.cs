@@ -187,7 +187,12 @@ public sealed class TutorialFieldTests
     [Fact]
     public void BufferedRecoveryPressKeepsHumanOwnershipWhenLaterTicksAreCpu()
     {
-        var run = Start("T-F03-2");
+        var catalog = TutorialCatalog.Load(_content);
+        var setup = catalog.Setups.Single(s => s.Id == "T-F03-2");
+        // This regression specifically needs a retained hot pickup, independent of the ordinary lesson's pace.
+        setup.Balls["shipped"] = new TutorialBall(0, 145, -3, -18);
+        var run = new TutorialSession(_content, catalog, "T-F03-2");
+        run.Begin();
         for (var i = 0; i < 600 && !run.Match.LivePlay.HoldsBall && run.Phase == TutorialPhase.Attempt; i++)
             run.Tick(Frame);
         Assert.True(run.Match.LivePlay.HoldsBall);
@@ -202,7 +207,7 @@ public sealed class TutorialFieldTests
         Assert.Equal(new[] { 2 }, run.HumanThrows);
         Assert.Equal("throw-second", run.Feedback?.Code);
         Assert.True(run.Feedback!.Success);
-        var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
+        var replay = TutorialSession.Replay(_content, catalog, run.Recording());
         Assert.Equal(run.Feedback, replay.Feedback);
         Assert.Equal(run.HumanThrows, replay.HumanThrows);
     }

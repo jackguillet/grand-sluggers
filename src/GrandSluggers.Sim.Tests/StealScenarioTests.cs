@@ -182,7 +182,7 @@ public sealed class StealScenarioTests
         var expectedFeet = match.RunnerAt(1)!.Feet;
         // Contact preserves the actual departure, not a recalculated head start.
         Assert.True(match.BeginAtBat(Scenario.Paint, Scenario.SwingAt(0), out _, out _), "the scripted swing must put the ball in play");
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var live = match.LivePlay;

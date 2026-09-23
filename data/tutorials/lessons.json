@@ -1174,7 +1174,7 @@
     },
     {
       "id": "T-D06",
-      "revision": 3,
+      "revision": 5,
       "mechanics": [
         "outs.06"
       ],
@@ -2550,7 +2550,7 @@
     },
     {
       "id": "T-F09-B",
-      "revision": 3,
+      "revision": 5,
       "mechanics": [
         "fielding.09"
       ],
@@ -3039,9 +3039,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -3077,9 +3077,9 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 120,
+          "exitMph": 115,
           "launchDeg": 16,
-          "sprayDeg": 0
+          "sprayDeg": 2
         }
       }
     },
@@ -3115,9 +3115,9 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -3568,9 +3568,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -3605,9 +3605,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -3642,9 +3642,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -3679,9 +3679,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -3716,9 +3716,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -3829,9 +3829,9 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       },
@@ -3908,9 +3908,9 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       },
@@ -3946,9 +3946,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       },
@@ -3986,9 +3986,9 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -4159,9 +4159,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       }
@@ -5416,9 +5416,9 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 280,
+          "carryFt": 250,
           "exitMph": 0,
-          "launchDeg": 30,
+          "launchDeg": 34,
           "sprayDeg": 2
         }
       }
@@ -5700,10 +5700,10 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 38,
-          "exitMph": 0,
-          "launchDeg": 3,
-          "sprayDeg": -6
+          "carryFt": 0,
+          "exitMph": 125,
+          "launchDeg": -3,
+          "sprayDeg": -18
         }
       }
     },
@@ -5921,9 +5921,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
           "sprayDeg": -18
         }
       },
@@ -5967,9 +5967,9 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 90,
-          "launchDeg": 3,
-          "sprayDeg": 38
+          "exitMph": 100,
+          "launchDeg": -6,
+          "sprayDeg": 26
         }
       },
       "seat": "offense"
@@ -6053,10 +6053,10 @@
       "outs": 2,
       "balls": {
         "shipped": {
-          "carryFt": 38,
-          "exitMph": 0,
-          "launchDeg": 3,
-          "sprayDeg": -6
+          "carryFt": 0,
+          "exitMph": 125,
+          "launchDeg": -3,
+          "sprayDeg": -18
         }
       }
     },
@@ -6204,14 +6204,14 @@
     },
     {
       "id": "T-F09-B",
-      "policy": "grounder",
-      "seed": 146,
+      "policy": "liner",
+      "seed": 35,
       "timeoutSec": 30,
       "home": [
         "vale",
         "pewter",
         "lace",
-        "dart",
+        "frost",
         "basil",
         "grit",
         "vine",
@@ -6233,9 +6233,9 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 55,
+          "exitMph": 110,
           "launchDeg": 10,
-          "sprayDeg": 25
+          "sprayDeg": 0
         }
       },
       "seat": "assisted-defense"
@@ -6318,10 +6318,10 @@
       "outs": 2,
       "balls": {
         "shipped": {
-          "carryFt": 38,
-          "exitMph": 0,
-          "launchDeg": 3,
-          "sprayDeg": -6
+          "carryFt": 0,
+          "exitMph": 125,
+          "launchDeg": -3,
+          "sprayDeg": -18
         }
       }
     },
@@ -6365,10 +6365,10 @@
       "outs": 2,
       "balls": {
         "shipped": {
-          "carryFt": 38,
-          "exitMph": 0,
-          "launchDeg": 3,
-          "sprayDeg": -6
+          "carryFt": 0,
+          "exitMph": 125,
+          "launchDeg": -3,
+          "sprayDeg": -18
         }
       }
     },
@@ -6402,9 +6402,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 150,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 110,
+          "launchDeg": -20,
           "sprayDeg": -14
         }
       },
@@ -6518,7 +6518,7 @@
         "shipped": {
           "carryFt": 0,
           "exitMph": 95,
-          "launchDeg": 11,
+          "launchDeg": 14,
           "sprayDeg": 9.2
         }
       },

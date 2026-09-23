@@ -232,7 +232,7 @@ public class PlayStampTests
         // Same occupancy and ball as S-40 (OutsScenarioTests): the DP matrix already turns two;
         // this pins that each out stamped when it was recorded, not as one Time card.
         var tests = new OutsScenarioTests();
-        tests.DoublePlayMatrix_CpuSeat(new OutsScenarioTests.DpRow("S-40 6-4-3", 118, 4, -18, [1], 0, [2, 1], "SS"));
+        tests.DoublePlayMatrix_CpuSeat(new OutsScenarioTests.DpRow("S-40 6-4-3", 125, -3, -18, [1], 0, [2, 1], "SS"));
     }
 
     sealed record LiveStampRun(PlayEvent Play, List<LiveStamp> Tells);

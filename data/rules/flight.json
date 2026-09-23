@@ -2,15 +2,10 @@
   "gravity": 32.174,
   "drag": 0.0040,
   "timeScale": 1.65,
-  "linerTimeScale": 1.0,
-  "dirtTimeScale": 1.65,
   "plateHeightFt": 2.5,
   "windMul": 0.35,
   "sampleHz": 120,
   "maxSeconds": 12,
-  "landing": {
-    "firstGrassMinSec": 0.08
-  },
   "classes": {
     "topperMaxLaunchDeg": 3,
     "grounderMaxLaunchDeg": 10,

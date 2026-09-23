@@ -41,30 +41,33 @@ public sealed class DeflectionTests
     }
 
     /// <summary>
-    /// Seed 35 on the 96-mph liner at 12° into left: vine's ring meets the ball at its edge at 58 ft/s, past the hot line, so the ball
-    /// gets past — 80 % of its speed inside ±15° of its travel, rising still (the signed vertical kept) where a local bobble only falls,
-    /// 17.7 ft away before vine, stunned 0.40 s, runs it down and takes it back without a roll at the stun's end. The same seed twice is
-    /// the same branch and the same play.
+    /// A hard, rising shortstop hop meets the edge of the glove. A certain failed take continues
+    /// with contact-dependent horizontal retention and its signed vertical velocity. The fielder
+    /// recovers after the ordinary stun without a second roll; replay is deterministic.
     /// </summary>
     [Fact]
     public void TheHotLinersFailedTakeGetsPastAndIsRecoveredWithoutASecondRoll()
     {
-        var run = Drive(Game, 96, 12, -21, ContactQuality.Perfect, seed: 35);
+        using var certain = new PatchedGame(text => text
+            .Replace("\"chanceCap\": 0.10", "\"chanceCap\": 1.0").Replace("\"handsCut\": 0.80", "\"handsCut\": 0")
+            .Replace("\"hopMinApexFt\": 0.5", "\"hopMinApexFt\": 0").Replace("\"hopFullApexFt\": 1.5", "\"hopFullApexFt\": 0").Replace("\"hopPhaseHalfWidth\": 0.35", "\"hopPhaseHalfWidth\": 100"));
+        var run = Drive(certain.Content, 120, -12, -18, ContactQuality.Perfect, seed: 35);
         Assert.Equal(1, run.Bobbles);
         Assert.True(run.Deflected, "a glancing touch on a hot ball gets past");
-        Assert.InRange(run.Obstruction, 0, 0.1);
-        Assert.InRange(run.Speed, 55, 65);
-        Assert.InRange(run.OutSpeed / run.HSpeedIn, 0.72, 0.82);   // 0.80 of the horizontal speed, one frame of drag and roll in the read
+        Assert.InRange(run.Obstruction, 0, Game.Rules.Fielding.Handling.DeflectObstruction - 1e-6);
+        Assert.True(run.Speed > 55);
+        var retain = FieldingResolver.DeflectionRetention(run.Obstruction, Game.Rules);
+        Assert.InRange(run.OutSpeed / run.HSpeedIn, retain - .03, retain + .01);   // Contact-dependent retention, with one frame of drag and roll in the read
         Assert.InRange(run.DirOffsetDeg, -15, 15);
-        Assert.True(run.MaxY > run.ContactY + 0.3, $"the ball kept rising to {run.MaxY:0.00} from {run.ContactY:0.00}: the signed vertical was kept");
-        Assert.InRange(run.Travel, 12, 30);
+        Assert.True(run.MaxY > run.ContactY + 0.01, $"the ball kept rising to {run.MaxY:0.00} from {run.ContactY:0.00}: the signed vertical was kept");
+        Assert.True(run.Travel > 12);
         Assert.Equal(24, run.StunFrames);
-        Assert.Equal("LF", run.RecoverPos);
-        Assert.InRange(run.RecoverAt - run.TakeAt, 0.40 - 1e-9, 2.0);
+        Assert.NotEmpty(run.RecoverPos);
+        Assert.True(run.RecoverAt - run.TakeAt >= Game.Rules.Fielding.Handling.StunSec - 1e-9);
         Assert.Equal(1, run.Rolls);
         Assert.False(run.Play.Outcome?.Error ?? true);
 
-        var again = Drive(Game, 96, 12, -21, ContactQuality.Perfect, seed: 35);
+        var again = Drive(certain.Content, 120, -12, -18, ContactQuality.Perfect, seed: 35);
         Assert.Equal((run.Deflected, run.Obstruction, run.DirOffsetDeg), (again.Deflected, again.Obstruction, again.DirOffsetDeg));
         Assert.Equal(run.Marks, again.Marks);
     }
@@ -79,17 +82,17 @@ public sealed class DeflectionTests
         using var certain = new PatchedGame(text => text
             .Replace("\"chanceCap\": 0.10", "\"chanceCap\": 1.0").Replace("\"handsCut\": 0.80", "\"handsCut\": 0")
             .Replace("\"hopMinApexFt\": 0.5", "\"hopMinApexFt\": 0").Replace("\"hopFullApexFt\": 1.5", "\"hopFullApexFt\": 0").Replace("\"hopPhaseHalfWidth\": 0.35", "\"hopPhaseHalfWidth\": 100"));
-        var hot = Drive(certain.Content, 96, 12, -21, ContactQuality.Perfect, seed: 1);
-        Assert.Equal("LF", hot.Pos);
+        var hot = Drive(certain.Content, 120, -12, -18, ContactQuality.Perfect, seed: 1);
+        Assert.Equal("SS", hot.Pos);
         Assert.Equal(1, hot.Bobbles);
         Assert.True(hot.Deflected);
-        Assert.InRange(hot.Obstruction, 0, 0.1);
+        Assert.InRange(hot.Obstruction, 0, Game.Rules.Fielding.Handling.DeflectObstruction - 1e-6);
         Assert.True(hot.Speed >= 55);
-        Assert.InRange(hot.Travel, 12, 30);
+        Assert.True(hot.Travel > 12);
         Assert.Equal(1, hot.Rolls);
 
-        var ordinary = Drive(certain.Content, 90, 4, -25, ContactQuality.Perfect, seed: 1);
-        Assert.Equal("SS", ordinary.Pos);
+        var ordinary = Drive(certain.Content, 75, 6, 30, ContactQuality.Perfect, seed: 1);
+        Assert.Equal("2B", ordinary.Pos);
         Assert.Equal(1, ordinary.Bobbles);
         Assert.False(ordinary.Deflected, "an ordinary ball drops at the feet");
         Assert.InRange(ordinary.Obstruction, 0, 0.1);

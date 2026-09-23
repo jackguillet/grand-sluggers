@@ -47,7 +47,7 @@ public sealed class ResponseLawTests
         var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
         var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
         var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var lace = Game.Must("lace");
@@ -91,10 +91,15 @@ public sealed class ResponseLawTests
     [InlineData(0.021)]
     public void TheBodyTheRingLeavesCoastsThenBrakesWithNoFasterFrameAndNoStandingFrame(double dt)
     {
-        var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
-        var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
-        var hit = FlightFixtures.Hit(match.Park, 90, 10, -8);
+        // A uniform faster fixture clock recreates the one-frame handoff race; production keeps 1.65.
+        using var fixture = new ContentFixture();
+        var flightFile = fixture.Path("rules/flight.json");
+        File.WriteAllText(flightFile, File.ReadAllText(flightFile).Replace("\"timeScale\": 1.65", "\"timeScale\": 1.0"));
+        var content = ContentCatalog.Load(new DataRoot(fixture.Root));
+        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = content.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var hit = FlightFixtures.Hit(match.Park, 90, 10, -8, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var chase = match.Rules.Fielding.Chase;
         var live = match.LivePlay;
@@ -142,7 +147,7 @@ public sealed class ResponseLawTests
         var away = instant.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
         var match = Match.Exhibition(instant, home, away, 3, 1, parkId: "harbor-diamond");
         var rated = FieldingResolver.CoverSpeedFt(instant.Must("lace"), match.Rules);
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);

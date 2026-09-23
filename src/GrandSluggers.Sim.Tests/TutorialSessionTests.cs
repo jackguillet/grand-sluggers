@@ -252,8 +252,9 @@ public sealed class TutorialSessionTests
             }
             else if (run.Lesson.Id == "T-F05" && live.ElapsedSeconds >= live.Preview!.HangTimeSec-.6)
             {
-                var dive=!dove && live.ElapsedSeconds >= live.Preview.HangTimeSec-.12;
-                pad=new(StickX:-.8,EastDown:dive);if(dive)dove=true;
+                var d = Diamond.Dist(live.GloveX, live.GloveZ, live.BallX, live.BallZ);
+                var dive = !dove && live.ElapsedSeconds >= live.Preview.HangTimeSec - .35 && d < 14;
+                pad = new(EastDown: dive); if (dive) dove = true;
             }
             else if (run.Lesson.Id == "T-D02" && live.HoldsBall && !live.Throwing)
                 pad=new(KeysBag:run.HumanThrows.Count==0 ? 2 : 1,SouthDown:true);

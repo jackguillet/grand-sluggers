@@ -24,29 +24,29 @@ public sealed class OutsScenarioTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>One row of §10.4: the ball, the bodies on base, the outs at contact, and the human's throws (0 = step on the force bag).</summary>
-    public sealed record DpRow(string Id, double Carry, double Launch, double Spray, int[] Runners, int Outs, int[] HumanPlays, string Fielder, string Leadoff = "cinder")
+    public sealed record DpRow(string Id, double Exit, double Launch, double Spray, int[] Runners, int Outs, int[] HumanPlays, string Fielder, string Leadoff = "cinder")
     {
         public override string ToString() => Id;
     }
 
     public static IEnumerable<object[]> DpRows()
     {
-        yield return [new DpRow("S-40 6-4-3", 118, 4, -18, [1], 0, [2, 1], "SS")];
+        yield return [new DpRow("S-40 6-4-3", 125, -3, -18, [1], 0, [2, 1], "SS")];
         // The C80 copy (#715): the second baseman stands at (37, 105) not (42, 118), and the 120-ft ball up the middle is past him — the
         // compact 4-6-3 is 105 ft at 9°.
-        yield return [new DpRow("S-41 4-6-3 / unassisted", 105, 4, 9, [1], 0, [0, 1], "2B")];
-        yield return [new DpRow("S-42 5-4-3", 100, 4, -40, [1], 0, [2, 1], "3B")];
+        yield return [new DpRow("S-41 4-6-3", 125, -3, 14, [1], 0, [2, 1], "2B")];
+        yield return [new DpRow("S-42 5-4-3", 110, -6, -40, [1], 0, [2, 1], "3B")];
         // C80: the 92-ft ball is taken 16 ft in front of the 80-ft bag, a throw away from it; the ball the first baseman takes beside the bag is 70 ft at 43°.
-        yield return [new DpRow("S-43 3 then the tag", 70, 4, 43, [1], 0, [0, 2], "1B")];
+        yield return [new DpRow("S-43 3 then the tag", 92, -6, 43, [1], 0, [0, 2], "1B")];
         // C80: at 110 ft the ball's line passes between the compact first and second basemen and the preview names second; 95 ft is the first baseman's.
-        yield return [new DpRow("S-44 3-6-3", 95, 4, 38, [1], 0, [2, 1], "1B")];
-        yield return [new DpRow("S-45 1-6-3", 62, 3, 1, [1], 0, [2, 1], "P")];
+        yield return [new DpRow("S-44 3-6-3", 105, -6, 38, [1], 0, [2, 1], "1B")];
+        yield return [new DpRow("S-45 1-6-3", 60, -12, 1, [1], 0, [2, 1], "P")];
         // C80: from the 92-ft ball the CPU's second out goes to second and the batter reaches; 85 ft at 3° is the step on third then the throw to first.
-        yield return [new DpRow("S-46 5 unassisted then 3", 85, 3, -44, [1, 2], 0, [0, 1], "3B")];
-        yield return [new DpRow("S-47 1-2-3", 38, 3, -6, [1, 2, 3], 0, [4, 1], "P")];
+        yield return [new DpRow("S-46 5 unassisted then 3", 67, -12, -44, [1, 2], 0, [0, 1], "3B")];
+        yield return [new DpRow("S-47 1-2-3", 41, -12, -6, [1, 2, 3], 0, [4, 1], "P")];
         // C80: the same ball as S-43's compact row — beside the bag.
-        yield return [new DpRow("S-48 3 then the tag at the plate", 70, 4, 43, [1, 2, 3], 0, [0, 4], "1B")];
-        yield return [new DpRow("S-50 two outs", 118, 4, -18, [1], 2, [2], "SS")];
+        yield return [new DpRow("S-48 3 then the tag at the plate", 92, -6, 43, [1, 2, 3], 0, [0, 4], "1B")];
+        yield return [new DpRow("S-50 two outs", 125, -3, -18, [1], 2, [2], "SS")];
     }
 
     [Theory]
@@ -56,7 +56,7 @@ public sealed class OutsScenarioTests
         var match = Defense(row.Leadoff);
         Station(match, row.Runners);
         Assert.True(match.SetOuts(row.Outs));
-        var hit = FlightFixtures.Landing(match.Park, row.Carry, row.Launch, row.Spray);
+        var hit = FlightFixtures.Hit(match.Park, row.Exit, row.Launch, row.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal(row.Fielder, preview.Position);
         var run = Run(match, hit, preview, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
@@ -70,7 +70,7 @@ public sealed class OutsScenarioTests
         var match = Defense(row.Leadoff);
         Station(match, row.Runners);
         Assert.True(match.SetOuts(row.Outs));
-        var hit = FlightFixtures.Landing(match.Park, row.Carry, row.Launch, row.Spray);
+        var hit = FlightFixtures.Hit(match.Park, row.Exit, row.Launch, row.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal(row.Fielder, preview.Position);
         // One press is one throw (§10.4): the human throws both legs, or walks onto the force bag.
@@ -123,7 +123,7 @@ public sealed class OutsScenarioTests
                 $"{row.Id}: {outs.Count} outs must stamp as they happen; got {outTells.Count}: {string.Join(",", run.Stamps.Select(s => s.Word))}");
             Assert.False(PlayStamp.ShowsAtTime(play));
         }
-        else
+        else if (batterOutIndex < 0)
         {
             // One out and the batter on first: the fielder's choice (§10.4). The stamp and the caption both name it, from the typed flag.
             Assert.Equal(1, facts.BatterToBag);
@@ -389,7 +389,8 @@ public sealed class OutsScenarioTests
         var lostAfterTheCatch = false;
         var caught = false;
         var reRead = new List<string>();
-        var run = Run(match, hit, preview, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu,
+        var run = Run(match, hit, preview, HumanRunners, LivePlayCommandSource.Human,
+            runPad: (i, _) => i < 3 ? new LivePadInput(AllAdvance: true) : LivePadInput.Dead,
             observe: live =>
             {
                 // The clock resets to 0 when the play commits; only the live play is evidence.
@@ -424,8 +425,8 @@ public sealed class OutsScenarioTests
     public void S73_ThrowWellAheadOfTheRunnerAtThirdIsATagWithNoIcon() =>
         S73_Row(S73Compact);
 
-    /// <summary>C80 (#715): on 80-ft paths the 30° ball leaves the throw 0.20 s ahead, inside the margin; at 26° it is well ahead again.</summary>
-    static readonly (int OrderIndex, double Exit, double Spray) S73Compact = (2, 90, 26);
+    /// <summary>The sharper right-side grounder reaches third before the runner enters the close margin.</summary>
+    static readonly (int OrderIndex, double Exit, double Spray) S73Compact = (2, 120, 26);
 
     void S73_Row((int OrderIndex, double Exit, double Spray) row)
     {
@@ -446,8 +447,8 @@ public sealed class OutsScenarioTests
     public void S74_ThrowJustAheadOfTheRunnerRunsTheMashAndTheFirstPressWins(int pressFramesAfterIcon, bool safe) =>
         S74_Row(pressFramesAfterIcon, safe, S74Compact);
 
-    /// <summary>C80 (#715): the same ball; the Run-5 body that lands inside the margin with the dash is the fifth in the order, not the seventh.</summary>
-    static readonly (int OrderIndex, double Exit, double Spray) S74Compact = (5, 90, 38);
+    /// <summary>The softer right-side grounder puts the dashing Run-5 body inside the close margin.</summary>
+    static readonly (int OrderIndex, double Exit, double Spray) S74Compact = (5, 100, 26);
 
     void S74_Row(int pressFramesAfterIcon, bool safe, (int OrderIndex, double Exit, double Spray) row)
     {
@@ -516,7 +517,7 @@ public sealed class OutsScenarioTests
         S76_Row(S76Compact);
 
     /// <summary>C80 (#715): the ball the first baseman takes on the 80-ft bag is 80 ft at 43°.</summary>
-    static readonly (double Carry, double Launch, double Spray) S76Compact = (80, 4, 43);
+    static readonly (double Carry, double Launch, double Spray) S76Compact = (92, -6, 43);
 
     void S76_Row((double Carry, double Launch, double Spray) ball)
     {
@@ -525,7 +526,7 @@ public sealed class OutsScenarioTests
         var match = Defense("cinder");
         Station(match, [1]);
         var runner = match.First!;
-        var hit = FlightFixtures.Landing(match.Park, ball.Carry, ball.Launch, ball.Spray);
+        var hit = FlightFixtures.Hit(match.Park, ball.Carry, ball.Launch, ball.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal("1B", preview.Position);
         var rundownFrames = 0;
@@ -619,7 +620,7 @@ public sealed class OutsScenarioTests
     /// C80 (#715): three forces are still there on the 80-ft diamond — 80 ft at 3° beside third — but the CPU's table takes the sure out at
     /// first after the step on third, so the compact row turns it from the human seat: the step, the throw to second, the throw to first.
     /// </summary>
-    static readonly (double Carry, double Launch, double Spray) TriplePlayCompact = (80, 3, -44);
+    static readonly (double Carry, double Launch, double Spray) TriplePlayCompact = (125, -3, -44);
 
     void TriplePlay_Row((double Carry, double Launch, double Spray) ball, string leadoff = "cinder", bool human = false)
     {
@@ -627,7 +628,7 @@ public sealed class OutsScenarioTests
         // third, the force at second, the throw to first — three bodies short of their bags (§10.7).
         var match = Defense(leadoff);
         Station(match, [1, 2]);
-        var hit = FlightFixtures.Landing(match.Park, ball.Carry, ball.Launch, ball.Spray);
+        var hit = FlightFixtures.Hit(match.Park, ball.Carry, ball.Launch, ball.Spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal("3B", preview.Position);
         var script = new DefenseScript([0, 2, 1]);
@@ -653,7 +654,7 @@ public sealed class OutsScenarioTests
         var match = Defense("cinder");
         Station(match, [1]);
         Assert.True(match.SetOuts(2));
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         var run = Run(match, hit, preview, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
         Assert.Single(run.Play.Outcome!.OutsMade);
@@ -819,7 +820,7 @@ public sealed class OutsScenarioTests
         var scenario = new Scenario(_content, seed: 5).Runner(2, orderIndex);
         var match = scenario.Match;
         var runner = match.Second!;
-        var hit = FlightFixtures.Hit(match.Park, exit, 3, spray);
+        var hit = FlightFixtures.Hit(match.Park, exit, -6, spray);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Position is "1B" or "2B", preview.Position);
         return (match, runner, hit, preview);
