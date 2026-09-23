@@ -17,7 +17,7 @@
     "tree": "jungle-tree"
   },
   "rings": {
-    "statusVolume": "#9FD8FF",
+    "statusVolume": "#1A1A22",
     "ballRedirect": "#FFCC40",
     "rewardTarget": "#FFCC40",
     "catchStealer": "#E83850"
