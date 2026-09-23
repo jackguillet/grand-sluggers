@@ -52,7 +52,7 @@ Name the stage. Stop at its checkpoint. The next prompt continues from that stag
 4. **export** — `--out` into the catalog slot. Do not skip here from a one-shot mesh.
 5. **still** — dual stills (R4):
    1. Capture the **DCC still**: `tools/dcc-still.sh body|extras|takes [clip]|harbor`. Named PNG: `scratchpad/stills/dcc-body.png` (or `dcc-extras.png` / `dcc-{clip}.png` / `dcc-harbor-kit.png`).
-   2. `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `tools/unity-compile.sh` print OK. These are not a still.
+   2. `tools/test-fast.sh <Classes you touched>` (never the full suite locally), `dotnet run --project src/GrandSluggers.Cli -- art`, `tools/unity-compile.sh` print OK. These are not a still.
    3. Capture the **in-game still**: `tools/still-gate-character.sh {id}` (Harbor kit: `tools/still-gate.sh`). Named PNGs: `scratchpad/stills/char-{id}-rest.png` and `char-{id}-pose.png`.
    4. Swing or stance change: also run the Unity swing matrix (`docs/screenshot-gate.md`).
    5. Link both PNGs in the PR. Spawn **look-critic** (read-only). It files diffs; it cannot mark #188 done. **Stop**.

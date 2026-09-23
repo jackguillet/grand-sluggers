@@ -35,28 +35,32 @@
     {
       "type": "train",
       "z": 310
-    },
-    {
-      "type": "chomper",
-      "x": -72,
-      "z": 205,
-      "radius": 16,
-      "tag": "L"
-    },
-    {
-      "type": "chomper",
-      "x": 0,
-      "z": 228,
-      "radius": 18,
-      "tag": "C"
-    },
-    {
-      "type": "chomper",
-      "x": 78,
-      "z": 198,
-      "radius": 16,
-      "tag": "R"
     }
   ],
+  "night": {
+    "hazards": [
+      {
+        "type": "chomper",
+        "x": -72,
+        "z": 205,
+        "radius": 16,
+        "tag": "L"
+      },
+      {
+        "type": "chomper",
+        "x": 0,
+        "z": 228,
+        "radius": 18,
+        "tag": "C"
+      },
+      {
+        "type": "chomper",
+        "x": 78,
+        "z": 198,
+        "radius": 16,
+        "tag": "R"
+      }
+    ]
+  },
   "notes": "Grounders that enter a warp can exit another. Night chompers in the outfield eat flies."
 }

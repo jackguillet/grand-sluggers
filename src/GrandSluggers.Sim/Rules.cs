@@ -2239,12 +2239,11 @@ public sealed class HazardRules
     /// <summary>Canopy's climbable wall: a Clamber fielder's reach and rob.</summary>
     public HazardTypeRules ClimbWall { get; init; } = new() { Pattern = HazardPattern.WallTrait };
 
-    /// <summary>Funfair's mouths: at night a fly that lands in one is an out with no glove.</summary>
-    public HazardTypeRules Chomper { get; init; } = new()
-    {
-        Pattern = HazardPattern.CatchStealer,
-        NightOnly = true
-    };
+    /// <summary>
+    /// Funfair's mouths: a fly that lands in one is an out with no glove. They bite only at night
+    /// because Funfair authors them in its night block (FD-11, F4-d), not because of this row.
+    /// </summary>
+    public HazardTypeRules Chomper { get; init; } = new() { Pattern = HazardPattern.CatchStealer };
 
     /// <summary>Ember's captain statue. Drawn, never played.</summary>
     public HazardTypeRules Statue { get; init; } = new() { Pattern = HazardPattern.Decoration };
@@ -2367,9 +2366,6 @@ public sealed class HazardTypeRules
     /// larger part of the capture disc (#732), not a rounding allowance.
     /// </summary>
     public double ReachPadFt { get; init; }
-
-    /// <summary>True for a type that acts only at night. A day game plays as if it were not there.</summary>
-    public bool NightOnly { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------

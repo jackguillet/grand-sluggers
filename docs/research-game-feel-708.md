@@ -1,6 +1,8 @@
 # Compact field proposal — first numerical decision
 
-**Continuing in a new session?** Read the [research handoff](handoff-game-feel-693.md) first for the current direction, accepted anchors, worktree, evidence limits and next research action.
+**Reference, not required reading** ([AGENTS.md](../AGENTS.md) "Start here"). Look up the sections your work touches.
+
+**Continuing this research line in a new session?** Read the [research handoff](handoff-game-feel-693.md) first for the current direction, accepted anchors, worktree, evidence limits and next research action.
 
 September 14, 2026. [#708](https://github.com/jackguillet/grand-sluggers/issues/708), under [#693](https://github.com/jackguillet/grand-sluggers/issues/693). **Gameplay research/documentation. No runtime tuning.** Stacked after the #702 measurement work at `59f3762` / draft [#707](https://github.com/jackguillet/grand-sluggers/pull/707).
 

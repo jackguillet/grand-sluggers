@@ -180,9 +180,18 @@ public sealed class AtBatResolver
     /// <summary>
     /// The timing window one swing is judged in, in frames at 60 Hz (spec §5.3). Inside is ± half of
     /// this. It is <c>batting.window.frames</c> for every hitter, both swings and every human rung
-    /// (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), × the star pitch's window multiplier × the park's,
-    /// floored. The resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>)
-    /// read this one number.
+    /// (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), × the star pitch's window multiplier, floored. The
+    /// resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>) read this one
+    /// number.
+    ///
+    /// <para>
+    /// <b>No park term, day or night (FD-11-R2, F4-d).</b> Night keeps the stadium lights, so it
+    /// changes no rule of the at-bat: Crystal's night multiplier (× 0.85, <c>nightContactWindowMul</c>)
+    /// is gone on both roots and night at Crystal plays the day window. Removing it left every other
+    /// window bit-identical — it was × 1.0 by day and at every other park. <paramref name="park"/> and
+    /// <paramref name="night"/> are no longer read; they stay in the signature so this child does not
+    /// rewrite every caller the pitching track shares.
+    /// </para>
     /// </summary>
     public static double ContactWindowFrames(string? starPitch, Park? park, bool night,
         RulesTable? rules = null, StarSkillTable? skills = null)
@@ -192,8 +201,6 @@ public sealed class AtBatResolver
         var one = w.Frames;
         if (starPitch is not null)
             one *= StarSkills.BatterWindowMul(starPitch, skills);
-        if (park is not null)
-            one *= ParkHazards.ContactWindowMul(park, night, r);
         return Math.Max(w.FloorFrames, one);
     }
 

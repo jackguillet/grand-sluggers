@@ -185,8 +185,10 @@ public static class ContentDataValidator
             if (!declared.TryGetValue(field.Name, out var p))
             {
                 var names = declared.Values.Select(x => Camel(x.Name)).OrderBy(x => x, StringComparer.Ordinal);
+                var why = type.GetCustomAttribute<OnlyKeysAttribute>()?.Why;
                 errors.Add($"{source}: {path}{field.Name} is not a key this file declares; "
-                    + $"the keys of {Camel(TypeLabel(type))} are [{string.Join(", ", names)}]");
+                    + $"the keys of {Camel(TypeLabel(type))} are [{string.Join(", ", names)}]"
+                    + (why is null ? "" : "; " + why));
                 continue;
             }
             if (RowType(p.PropertyType) is { } row && field.Value.ValueKind == JsonValueKind.Array)
@@ -466,44 +468,84 @@ public static class ContentDataValidator
         // fence stands over the rail the ball meets, and no park's name decides another park's rule.
         else if (p.FenceHeightFt <= ParkBoundary.Default.RailHeightFt)
             errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must stand over the {ParkBoundary.Default.RailHeightFt} ft foul rail (the drawn wall ramps up to it, D15); got {p.FenceHeightFt}");
-        if (!(p.NightContactWindowMul > 0 && p.NightContactWindowMul <= 1))
-            errors.Add($"{row.Source}: park '{p.Id}' nightContactWindowMul must be in (0, 1]; got {p.NightContactWindowMul}");
         ValidateParkEnvironment(row.Source, p.Id, p.Environment, errors);
         ValidateParkZones(row.Source, p.Id, p.Zones, grounds, groundsSource, errors);
         ValidateParkFence(row.Source, p, fence, errors);
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)
+            ValidateHazard(row.Source, $"park '{p.Id}' hazard[{i}]", p.Hazards![i], hazards, infield, nightOnly: false, errors);
+        ValidateParkNight(row.Source, p.Id, p.Night, hazards, infield, errors);
+    }
+
+    /// <summary>
+    /// One hazard instance, from the day block (<c>hazards[i]</c>) or the night block
+    /// (<c>night.hazards[i]</c>): the same rules for both (FD-11: the night block is validated like the
+    /// day block) — a real object, a finite centre, a radius that is not negative, a type in the library
+    /// with an authored row (<c>SF-03</c>), a disc for anything that acts, and the FD-19 placement rule
+    /// at the disc the instance plays (<see cref="HazardPlace"/>). A night instance must also be one the
+    /// hazards-off switch removes (<see cref="ValidateParkNight"/>).
+    /// </summary>
+    static void ValidateHazard(
+        string source, string where, HazardDto? h, HazardRules hazards, InfieldRules infield, bool nightOnly, List<string> errors)
+    {
+        if (h is null)
         {
-            var h = p.Hazards![i];
-            var where = $"park '{p.Id}' hazard[{i}]";
-            if (h is null)
-            {
-                errors.Add($"{row.Source}: {where} must be an object; got null");
-                continue;
-            }
-            Finite(row.Source, where + " x", h.X, errors);
-            Finite(row.Source, where + " z", h.Z, errors);
-            NonNegative(row.Source, where + " radius", h.Radius, errors);
-            // The set of types is derived from the hazard library's table (SF-03, FD-09): an id
-            // outside the library and an id inside it with no authored row are different mistakes,
-            // and each is named for what it is.
-            if (!HazardType.IsKnown(h.Type))
-            {
-                errors.Add($"{row.Source}: {where} type must be one of "
-                    + $"[{string.Join(", ", hazards.Authored.OrderBy(x => x, StringComparer.Ordinal))}]; got '{h.Type}'");
-                continue;
-            }
-            if (!hazards.IsAuthored(h.Type))
-            {
-                errors.Add($"{row.Source}: {where} type '{h.Type}' is in the library but has no authored row "
-                    + "in hazards.json; every hazard type a park may name carries a row (FD-09)");
-                continue;
-            }
-            // A disc that acts needs a disc. A decoration is drawn and never played, so it may have
-            // none at all — which is why Funfair's boxcar no longer needs a special case by name.
-            if (h.Radius == 0 && hazards.Of(h.Type).Pattern != HazardPattern.Decoration)
-                errors.Add($"{row.Source}: {where} radius must be greater than 0; got {h.Radius}");
-            HazardPlace(row.Source, where, h, infield, errors);
+            errors.Add($"{source}: {where} must be an object; got null");
+            return;
         }
+        Finite(source, where + " x", h.X, errors);
+        Finite(source, where + " z", h.Z, errors);
+        NonNegative(source, where + " radius", h.Radius, errors);
+        // The set of types is derived from the hazard library's table (SF-03, FD-09): an id
+        // outside the library and an id inside it with no authored row are different mistakes,
+        // and each is named for what it is.
+        if (!HazardType.IsKnown(h.Type))
+        {
+            errors.Add($"{source}: {where} type must be one of "
+                + $"[{string.Join(", ", hazards.Authored.OrderBy(x => x, StringComparer.Ordinal))}]; got '{h.Type}'");
+            return;
+        }
+        if (!hazards.IsAuthored(h.Type))
+        {
+            errors.Add($"{source}: {where} type '{h.Type}' is in the library but has no authored row "
+                + "in hazards.json; every hazard type a park may name carries a row (FD-09)");
+            return;
+        }
+        var row = hazards.Of(h.Type);
+        // A disc that acts needs a disc. A decoration is drawn and never played, so it may have
+        // none at all — which is why Funfair's boxcar no longer needs a special case by name.
+        if (h.Radius == 0 && row.Pattern != HazardPattern.Decoration)
+            errors.Add($"{source}: {where} radius must be greater than 0; got {h.Radius}");
+        // Night hazard instances are hazards (FD-11), so the switch removes every one of them
+        // (FD-10-R1). A wall trait is part of the wall (FD-06) and a decoration does nothing in play:
+        // the switch keeps both, and night changes neither the wall nor the look inside the bowl.
+        if (nightOnly && !HazardPattern.IsHazard(row.Pattern))
+            errors.Add($"{source}: {where} type '{h.Type}' is a {row.Pattern}, which the hazards switch keeps; "
+                + $"a night block carries hazard instances only — [{string.Join(", ", HazardPattern.Hazards)}], "
+                + "each one the switch removes (FD-11, FD-10-R1) — so author it in the day block");
+        HazardPlace(source, where, h, row, nightOnly, infield, errors);
+    }
+
+    /// <summary>
+    /// The park's night block (§0.3, §14, §16; FD-11 B, FD-11-R2; F4-d). Optional, and absent is a park
+    /// whose night is its day. Night keeps the stadium lights, so the block may name hazard instances and
+    /// — once F6-c defines them — look fields for the view outside the stadium, and nothing else: a key
+    /// that names a rule or a number is refused by name by the strict read, with the reason
+    /// (<see cref="OnlyKeysAttribute"/> on <see cref="ParkNightDto"/>). Each instance passes the day
+    /// block's rules (<see cref="ValidateHazard"/>), measured at its night disc. A block that names
+    /// nothing is refused as well: it changes nothing, and a dead block is how a misspelled one would read.
+    /// </summary>
+    static void ValidateParkNight(
+        string source, string id, ParkNightDto? night, HazardRules hazards, InfieldRules infield, List<string> errors)
+    {
+        if (night is null) return;
+        if ((night.Hazards?.Count ?? 0) == 0)
+        {
+            errors.Add($"{source}: park '{id}' night names nothing; a night block carries the park's night-only "
+                + "hazards (FD-11) — remove the empty block");
+            return;
+        }
+        for (var i = 0; i < night.Hazards!.Count; i++)
+            ValidateHazard(source, $"park '{id}' night.hazards[{i}]", night.Hazards[i], hazards, infield, nightOnly: true, errors);
     }
 
     /// <summary>
@@ -511,16 +553,30 @@ public static class ContentDataValidator
     /// pads, the mound and the plate area. One refusal per hazard, naming every piece of ground its disc
     /// crosses and by how many feet, deepest first, so the author can see how far it has to go. A disc
     /// whose centre or radius is not a number has already been refused for that, and is not measured.
+    ///
+    /// <para>
+    /// <b>The disc the instance plays, day and night</b> (map finding 31, F4-d). A day instance stands by
+    /// day and at night, so it is measured at the larger of its radius and its night disc
+    /// (<see cref="ParkHazards.NightDiscFt"/>, the type row's own <c>nightRadiusMul</c>); a night-block
+    /// instance stands only at night, so at its night disc. For every row but Ember's breath the two are
+    /// the same number and the refusal reads exactly as it always has; where they differ it names both.
+    /// </para>
     /// </summary>
-    static void HazardPlace(string source, string where, HazardDto h, InfieldRules infield, List<string> errors)
+    static void HazardPlace(
+        string source, string where, HazardDto h, HazardTypeRules row, bool nightOnly, InfieldRules infield, List<string> errors)
     {
         if (!double.IsFinite(h.X) || !double.IsFinite(h.Z) || !double.IsFinite(h.Radius) || h.Radius < 0) return;
-        var crossings = HazardPlacement.Crossings(h.X, h.Z, h.Radius, infield);
+        var atNight = ParkHazards.NightDiscFt(h.Radius, row);
+        var disc = nightOnly ? atNight : Math.Max(h.Radius, atNight);
+        var crossings = HazardPlacement.Crossings(h.X, h.Z, disc, infield);
         if (crossings.Count == 0) return;
         var what = string.Join(", ", crossings.Select(c =>
             $"{c.What} by {c.ByFt.ToString("0.00", CultureInfo.InvariantCulture)} ft"));
+        var radius = h.Radius.ToString(CultureInfo.InvariantCulture)
+            + (disc == h.Radius ? "" : $" ({disc.ToString(CultureInfo.InvariantCulture)} at night, "
+                + $"hazards.{HazardType.Key(h.Type)}.nightRadiusMul {row.NightRadiusMul.ToString(CultureInfo.InvariantCulture)})");
         errors.Add($"{source}: {where} {h.Type} at ({h.X.ToString(CultureInfo.InvariantCulture)}, "
-            + $"{h.Z.ToString(CultureInfo.InvariantCulture)}) radius {h.Radius.ToString(CultureInfo.InvariantCulture)} "
+            + $"{h.Z.ToString(CultureInfo.InvariantCulture)}) radius {radius} "
             + $"crosses {what}; a hazard stays off the running lanes, the mound-to-plate lane, the bag pads, "
             + "the mound and the plate area (FD-19, SF-23)");
     }
@@ -997,8 +1053,6 @@ internal sealed class ParkDto
     public double WindDeg { get; set; }
     /// <summary>Outfield fence top. Below it the ball caroms; above it between the poles is a home run (§6.1).</summary>
     public double FenceHeightFt { get; set; }
-    /// <summary>The contact window at night as a fraction of the day's (§14): a blackout park shrinks it; 1 (the default) is no change.</summary>
-    public double NightContactWindowMul { get; set; } = 1.0;
     public List<HazardDto?>? Hazards { get; set; }
     /// <summary>
     /// Authored prose about the park, for whoever opens the file. Declared here so the strict read
@@ -1032,12 +1086,57 @@ internal sealed class ParkDto
     /// </summary>
     public ParkFenceDto? Fence { get; set; }
 
+    /// <summary>
+    /// What this park is at night (§0.3, §14, §16; FD-11 B, FD-11-R2; F4-d). Optional, and absent is a park
+    /// whose night is its day. Carried onto <see cref="Park"/>, where only the one resolution reads it
+    /// (<see cref="PlayedPark.Of"/>); a park that names none writes nothing into <see cref="PlayTraceIdentity"/>.
+    /// Crystal's night contact window (<c>nightContactWindowMul</c>) was a park key and is gone on both roots
+    /// (FD-11-R2): night keeps the stadium lights and changes no rule of the at-bat.
+    /// </summary>
+    public ParkNightDto? Night { get; set; }
+
     public Park ToPark() => new(
         Id, Name, Faction, Surface,
         LeftFenceFt, CenterFenceFt, RightFenceFt, WindMph,
-        (Hazards ?? []).Select(h => new Hazard(h!.Type, h.X, h.Z, h.Radius, h.Tag)).ToList(),
-        WindDeg, FenceHeightFt, NightContactWindowMul, Environment?.ToEnvironment(), Zones?.ToZones(),
-        Fence?.ToFence());
+        ToHazards(Hazards),
+        WindDeg, FenceHeightFt, Environment?.ToEnvironment(), Zones?.ToZones(),
+        Fence?.ToFence(), Night?.ToNight());
+
+    /// <summary>Only after <see cref="ContentDataValidator"/> has accepted the rows, which is when a catalog is built.</summary>
+    internal static List<Hazard> ToHazards(List<HazardDto?>? rows) =>
+        (rows ?? []).Select(h => new Hazard(h!.Type, h.X, h.Z, h.Radius, h.Tag)).ToList();
+}
+
+/// <summary>
+/// The optional <c>night</c> block of a park file (§0.3, §14, §16; FD-11 B, FD-11-R2; F4-d). One key today,
+/// <c>hazards</c>: the instances that exist only at night, in the day block's shape. The block has room for
+/// look fields — the view outside the stadium, F6-c's — and defines none. Inside the strict park read, so
+/// any other key (a rule, a number, a misspelling) is refused by name, with the reason.
+/// </summary>
+[OnlyKeys("night keeps the stadium lights, so a night block names the park's night-only hazards (and, once "
+    + "F6-c defines them, the view outside the stadium) and never a rule of the at-bat, the flight, the ground "
+    + "or the bodies (FD-11-R2)")]
+internal sealed class ParkNightDto
+{
+    /// <summary>The night-only instances, each validated like a day instance and each a hazard the switch removes.</summary>
+    public List<HazardDto?>? Hazards { get; set; }
+
+    /// <summary>Only after <see cref="ContentDataValidator"/> has accepted the block, which is when a catalog is built.</summary>
+    public ParkNight ToNight() => new(ParkDto.ToHazards(Hazards));
+}
+
+/// <summary>
+/// Why a block of a strictly read file declares only the keys it does. The strict read
+/// (<c>ContentDataValidator.UnknownKeys</c>) appends it to the refusal of any other key, so the author
+/// reads the rule and not only the key list.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+internal sealed class OnlyKeysAttribute : Attribute
+{
+    public OnlyKeysAttribute(string why) => Why = why;
+
+    /// <summary>The rule, in words, that the declared keys are all of.</summary>
+    public string Why { get; }
 }
 
 /// <summary>

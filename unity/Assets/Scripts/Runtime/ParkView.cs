@@ -453,8 +453,9 @@ namespace GrandSluggers.UnityClient
             go.transform.localRotation = Quaternion.Euler(0, 0, 90f);
         }
 
-        // The mouths are park data since #847; they were three Sim literals before it, which is why
-        // this hook read ParkHazards rather than the park it was drawing.
+        // The mouths are park data since #847 and night-block data since F4-d (FD-11): drawn from the
+        // park as the match plays it tonight (PlayedPark.Of), never from the night block itself. The
+        // match hands this view its played park, which resolves to itself; the title hands the catalog's.
         void FunfairNightHook(Park park)
         {
             var go = new GameObject("Chompers");
@@ -462,7 +463,7 @@ namespace GrandSluggers.UnityClient
             go.transform.position = Vector3.zero;
             if (_night)
             {
-                foreach (var h in park.Hazards)
+                foreach (var h in PlayedPark.Of(park, true, true, _rules.Hazards).Hazards)
                     if (h.Type == HazardType.Chomper)
                         ChomperMouth(go.transform, h);
             }

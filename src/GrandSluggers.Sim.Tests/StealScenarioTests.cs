@@ -741,6 +741,7 @@ public sealed class StealScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void CpuStealTableIsBaseByRunTimesSituationAndNeverIntoABody()
     {
         var cpu = _content.Rules.Running.Cpu;
@@ -773,6 +774,7 @@ public sealed class StealScenarioTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void CpuPickoffReadIsARateThatRisesWhenItSeesAnArmAndNeverSeesAPerfectOne()
     {
         var r = _content.Rules;

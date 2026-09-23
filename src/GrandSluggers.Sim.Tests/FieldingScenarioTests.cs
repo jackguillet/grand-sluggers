@@ -109,6 +109,7 @@ public sealed class FieldingScenarioTests
     // flies at badSpeedMul 0.90 with the thrower's own Field spread, so across the same 100 seeds no throw slants, none sails
     // past the cover, and the row there is "0 errors, the slow throw still retires the batter".
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S35_BadChemistryThrowsToFirstSailPastTheCoverAsLiveErrorsAcrossASeedSweep()
     {
         var errors = 0;

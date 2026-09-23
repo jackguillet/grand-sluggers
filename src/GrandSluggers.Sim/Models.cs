@@ -287,7 +287,6 @@ public sealed record Park(
     IReadOnlyList<Hazard> Hazards,
     double WindDeg = 0,
     double FenceHeightFt = 8,
-    double NightContactWindowMul = 1.0,
     /// <summary>
     /// What this park changes about the ball's air (§0.3 D21, FD-03). Null — no shipped or trial park
     /// names one — is the global table, so the park plays Harbor's air. Last, with a default, because
@@ -308,7 +307,16 @@ public sealed record Park(
     /// Last and defaulted for the same reason <see cref="Environment"/> is, and null is not written into
     /// <see cref="PlayTraceIdentity"/>, so no stored identity moves while no park names one.
     /// </summary>
-    ParkFence? Fence = null)
+    ParkFence? Fence = null,
+    /// <summary>
+    /// What this park is at night (§0.3, §14; FD-11 B, FD-11-R2; F4-d): the hazard instances that
+    /// exist only at night. Null is a park whose night is its day. <b>Never read directly</b>: a match
+    /// resolves it once (<see cref="PlayedPark.Of"/>), and every reader plays that park's
+    /// <see cref="Hazards"/>, so the park a match holds carries no night block of its own. Last and
+    /// defaulted for the same reason <see cref="Environment"/> is; null is not written into
+    /// <see cref="PlayTraceIdentity"/>.
+    /// </summary>
+    ParkNight? Night = null)
 {
     /// <summary>Where the wind blows toward, in the field frame: 0 out to CF, 90 toward the right-field line, 180 in at the plate.</summary>
     public (double X, double Z) WindDirection
@@ -437,6 +445,24 @@ public sealed record ParkFence(IReadOnlyList<FencePoint> Points)
 /// <see cref="WallMaterial.Padded"/>. The right-field pole ends the fence, so its point names none.
 /// </param>
 public sealed record FencePoint(double BearingDeg, double FenceFrac, double HeightFt, string? Material = null);
+
+/// <summary>
+/// A park's night block (§0.3, §14, §16; FD-11 B, FD-11-R2, FD-10-R1; F4-d). Night keeps the stadium
+/// lights, so play visibility is the day's: night changes only the view outside the stadium and the
+/// hazards. The block may therefore carry <b>hazard instances</b> and, when F6-c defines them, look
+/// fields — and never a rule that changes the at-bat, the flight, the ground or the bodies, which the
+/// park validator refuses by name.
+///
+/// <para>
+/// <see cref="Hazards"/> are in the day block's shape and pass the day block's rules (the type library,
+/// the strict read, the FD-19 placement rule at the disc they play at night), and each is an instance of
+/// a pattern that counts as a hazard (<see cref="HazardPattern.IsHazard"/>), so the hazards-off switch
+/// removes every one of them (FD-10-R1). A hazard type's own night number (<c>fireBreath.nightRadiusMul</c>)
+/// is the type's row, not this block's: it widens a day instance at night wherever it is authored.
+/// </para>
+/// </summary>
+/// <param name="Hazards">The instances that exist only at night, in the order the file lists them. Played after the day's.</param>
+public sealed record ParkNight(IReadOnlyList<Hazard> Hazards);
 
 /// <summary>
 /// The fence where the ray from home at one bearing meets it (§6.1; FD-06): how far out it stands, how
