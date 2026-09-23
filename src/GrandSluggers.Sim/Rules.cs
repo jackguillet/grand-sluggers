@@ -548,7 +548,7 @@ public sealed class PitchFlightRules
     [Positive] public double ReleaseHandY { get; init; } = 6.2;
     public double ReleaseTowardPlate { get; init; } = 2.6;
     [Positive] public double ArcadeScale { get; init; } = 2.05;
-    [Positive] public double AirMinSec { get; init; } = 0.78;
+    [Positive] public double AirMinSec { get; init; } = 0.69;
     [Positive] public double AirMaxSec { get; init; } = 1.28;
     [Positive] public double MinMph { get; init; } = 40;
     /// <summary>Feet the crossing moves at full break: half the zone width (spec §4.2).</summary>

@@ -209,10 +209,7 @@ public sealed class CpuPitcherScenarioTests
     // S-117  Trial: the bend is what a held stick reaches, never an instant ±1
     // ---------------------------------------------------------------------------------
 
-    // Open finding for Jack (3e): on the 53.78-ft mound every pitch from about 96 mph up reaches the plate on the 0.78-s
-    // pitching.flight.airMinSec floor, so the slowest arm's hardest pitch sits on the floor and cannot bend the whole stick.
-    // pitching.json was not part of the compact profile; whether the floor moves with the mound is Jack's call (S-107 too).
-    [Fact(Skip = "3e finding for Jack: on the 80-ft diamond the fastest pitches reach the 0.78-s air-time floor (S-107 / S-117)")]
+    [Fact]
     public void S117_TheTrialCpuNeverBendsFurtherThanAHeldStickReaches()
     {
         var trial = Trial;
@@ -256,12 +253,16 @@ public sealed class CpuPitcherScenarioTests
         var flight = rules.Pitching.Flight;
         Assert.True(PitchFlight.BreakReach(1, flight.AirMinSec, rules) < 1,
             "the slowest arm cannot bend the whole stick inside the shortest flight the clamps allow");
-        // And the margin at the tightest *real* case — the slowest arm's own hardest pitch — is the
-        // number that would have to close for the bound to start showing on the field.
+        // And the margin at the tightest *real* case — the slowest roster arm's own hardest pitch — is the
+        // number that would have to close for the bound to start showing on the field. The claim is about the
+        // arms the game fields: a Pitch-1 arm is legal content but on no roster, and on the 53.78-ft mound its
+        // hardest pitch (0.754 s) would bend 0.94 of the stick. A roster that adds one reopens this row.
+        var slowest = Roster(trial).Min(c => c.Stats.Pitch);
         var hardest = new PitchCommand(PitchFamily.Fastball, 1, false, Nice: true);
-        var shortestReal = PitchFlight.AirSeconds(AtBatResolver.PitchSpeedMph(hardest, 1, rules), rules);
+        var shortestReal = PitchFlight.AirSeconds(AtBatResolver.PitchSpeedMph(hardest, slowest, rules), rules);
         Assert.True(shortestReal > flight.AirMinSec, "no real pitch leans on the air-time floor (S-107)");
-        Assert.True(PitchFlight.BreakReach(1, shortestReal, rules) >= 1);
+        Assert.True(PitchFlight.BreakReach(slowest, shortestReal, rules) >= 1,
+            $"the slowest roster arm (Pitch {slowest}) bends the whole stick inside its hardest pitch's flight");
 
         // And the reach is monotone in both of its inputs, which is what makes it readable.
         Assert.True(PitchFlight.BreakReach(10, 0.5, rules) > PitchFlight.BreakReach(1, 0.5, rules));
