@@ -50,13 +50,15 @@ public class GameplayTests
     }
 
     [Fact]
-    public void GuestCaptainStarCostsTwo()
+    public void AGuestCaptainPaysHisTierPricePlusTheSurcharge()
     {
+        var stars = _content.Rules.Stars;
         var match = Match.Slice(_content, seed: 1);
-        Assert.Equal(1, match.PitchStarCost);
+        Assert.Equal(stars.Tiers.Of(_content.StarSkills.Pitch(match.Pitcher.StarPitch)!.Tier), match.PitchStarCost);
         Assert.True(match.SwapPitcher());
         Assert.Equal("vale", match.Pitcher.Id);
-        Assert.Equal(2, match.PitchStarCost);
+        var vale = stars.Tiers.Of(_content.StarSkills.Pitch(match.Pitcher.StarPitch)!.Tier);
+        Assert.Equal(vale + stars.Costs.GuestCaptainSurcharge, match.PitchStarCost);
     }
 
     [Fact]

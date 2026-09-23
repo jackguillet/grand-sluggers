@@ -295,7 +295,7 @@ public sealed class NightBlockTests
 
     /// <summary>
     /// Night games at Funfair and Ember before the move: the park, the seed, the final line and the
-    /// SHA-256 of <see cref="Log"/>. Funfair's rows include a game with a chomp in it (seed 3, the first night seed after 1 with one), so a mouth that moved, resized or
+    /// SHA-256 of <see cref="Log"/>. Funfair's rows include a game with a chomp in it (seed 11, the first night seed after 1 with one), so a mouth that moved, resized or
     /// stopped biting fails here. A child that changes play at either park re-records these from the build
     /// before it and says why; F4-d changes neither. F4-b (#896) re-recorded Ember's four rows: its lava pits and
     /// breath slow the body that touches them for 3 s instead of every chaser, and the park's drop roll is gone.
@@ -312,16 +312,17 @@ public sealed class NightBlockTests
     /// </summary>
     // F4-f made the statue and the train solid, and F2-d moved the outfielders to their fraction of each fence, so these
     // rows are re-recorded from their builds. P4-b's held CPU sac bunt on top of them changes Funfair seed 1 and Ember
-    // seed 2 again (the other two do not change); re-recorded from the merged build. The bunt's own response by contact
-    // quality (PH-14-R1) and the CPU batter's commit read (PH-18) became the only rules, which changes Funfair seed 1 and
-    // Ember seed 2 again. Seed 1 lost its redirect and seed 11 has none, so seed 11 gives way to seed 3, the first Funfair
-    // night after 1 with a chomper redirect.
+    // seed 2 again (the other two do not change); re-recorded from the merged build. The accepted Star prices and reserve
+    // (tiers 1 / 2 / 3, reserve 3, base gain 0.1) change how often the CPU can pay for a special, so Funfair seed 11 and
+    // both Ember rows are re-recorded again (Funfair seed 1 does not change; seed 11 still sends a fly through a chomper).
+    // The bunt's own response by contact quality (PH-14-R1) and the CPU batter's commit read (PH-18) became the only rules,
+    // which changes Funfair seed 1; the other three do not change.
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
             ("funfair-park", 1, "Final  Ember Court 1  Spark All-Stars 2", "a928a8f526953c9af7e498c64055b46ec030e393b392aaf755c090a6929b9ea7"),
-            ("funfair-park", 3, "Final  Ember Court 9  Spark All-Stars 8", "136f00d3dca621e18752657a8b231c59624faea0a9cdc3d03ff49c1af0ab9e3b"),
-            ("ember-keep", 1, "Final  Ember Court 7  Spark All-Stars 3", "132483a48f8a7069c02705aac376f3ce79e21e2612ae47460218d1b5c063be83"),
-            ("ember-keep", 2, "Final  Ember Court 3  Spark All-Stars 4", "99af01aa5d733e4231ca39ebcf8d385b3c0fb74121870b505df0f08d3071f04c")
+            ("funfair-park", 11, "Final  Ember Court 6  Spark All-Stars 0", "6ffb6300f93abc12fdb204f360724bbc2f59d49632418ad09e118f6ce589db57"),
+            ("ember-keep", 1, "Final  Ember Court 10  Spark All-Stars 1", "9c6a235c68e7504cab69877a85be45e19a1f354a465733a03687d18914dadb0c"),
+            ("ember-keep", 2, "Final  Ember Court 9  Spark All-Stars 0", "51e83e5058368a038c726ff540f02f71f1af5327b743b7b8bdce616fa25d9e92")
         ];
 
     /// <summary>
