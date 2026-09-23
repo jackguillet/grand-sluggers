@@ -11,6 +11,7 @@ public sealed class PitchSetupSystem
     readonly Match _match;
     double _queuedAt = double.NegativeInfinity;
     int _catcherBag;
+    bool _explicitTarget;
     LivePadInput _previousRun = LivePadInput.Dead;
     public PitchSetupPhase Phase { get; private set; }
     public bool Committed => Phase != PitchSetupPhase.Set;
@@ -38,17 +39,18 @@ public sealed class PitchSetupSystem
     public void CatcherInput(LivePadInput pad)
     {
         if (_match.Paused || _match.Over || _match.LivePlay.Active) return;
+        _explicitTarget = pad.ExplicitTarget;
         var bag = pad.KeysBag > 0 ? pad.KeysBag : pad.StickBag > 0 ? pad.StickBag : pad.ArrowBag;
         if (bag is >= 1 and <= 4) _catcherBag = bag;
         if (pad.Cancel) _queuedAt = double.NegativeInfinity;
-        else if (pad.SouthDown) _queuedAt = ElapsedSeconds;
+        else if (pad.SouthDown && (!pad.ExplicitTarget || _catcherBag > 0)) _queuedAt = ElapsedSeconds;
     }
 
     internal LivePadInput? TakeCatcherInput()
     {
         var buffered = ElapsedSeconds - _queuedAt <= _match.Rules.Fielding.Throw.RelayBufferSec;
         var result = _catcherBag > 0 || buffered
-            ? new LivePadInput(KeysBag: _catcherBag, SouthDown: buffered) : null;
+            ? new LivePadInput(KeysBag: _catcherBag, SouthDown: buffered, ExplicitTarget: _explicitTarget) : null;
         _queuedAt = double.NegativeInfinity;
         _catcherBag = 0;
         return result;
@@ -86,6 +88,7 @@ public sealed class PitchSetupSystem
 
     internal void Reset()
     {
+        _match.ControllerRunners.Reset();
         Phase = PitchSetupPhase.Set;
         ElapsedSeconds = 0;
         _queuedAt = double.NegativeInfinity;
