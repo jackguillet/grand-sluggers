@@ -202,6 +202,12 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/828",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/834",
           "status": "merged"
+        },
+        {
+          "child": "F9-a",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/929",
+          "status": "merged"
         }
       ],
       "validation_evidence": [],
@@ -280,6 +286,12 @@
           "child": "F3-c",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/856",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/869",
+          "status": "merged"
+        },
+        {
+          "child": "F9-a",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/929",
           "status": "merged"
         }
       ],
@@ -360,6 +372,12 @@
           "child": "F3-d",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/857",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/864",
+          "status": "merged"
+        },
+        {
+          "child": "F9-a",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/929",
           "status": "merged"
         }
       ],
@@ -548,6 +566,12 @@
           "child": "F2-b2",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/873",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/875",
+          "status": "merged"
+        },
+        {
+          "child": "F9-a",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/929",
           "status": "merged"
         }
       ],
@@ -1466,6 +1490,21 @@
               "F6-c"
             ]
           }
+        },
+        {
+          "id": "FD-11-R3",
+          "question": "Crystal's night look is still the blackout (sun 0.06), against FD-11-R2's lights on: brighten it in F9-a or leave it?",
+          "status": "direction-accepted",
+          "selected_option": "leave",
+          "accepted_scope": "Crystal's night look stays as it is for now; the rule (night keeps the lights, changes no play) is unchanged and the look is revisited later.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-23",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "9248a50b-7c48-4b50-a6b6-10dfff196226",
+            "question": "trials/c80 is gone since C80's promotion (#915): where do Crystal's numbers live? A: a new trial trials/crystal; B: straight into the shipped data. And: brighten Crystal's night blackout (FD-11-R2) or leave it?",
+            "answer_quote": "b. this is fine for now."
+          }
         }
       ]
     },
@@ -1700,6 +1739,34 @@
             "revisited_by": [
               "F9-a"
             ]
+          }
+        },
+        {
+          "id": "FD-13-R3",
+          "question": "Where do a park's numbers live now that trials/c80 is gone (C80 promoted, #915)?",
+          "status": "direction-accepted",
+          "options": [
+            {
+              "id": "new-trial",
+              "label": "A new trial of its own (trials/crystal)",
+              "tradeoff": "The shipped game stays; Jack plays a trial window and accepts."
+            },
+            {
+              "id": "shipped",
+              "label": "Straight into the shipped data",
+              "tradeoff": "Faster; Crystal changes for everyone before Jack has played it."
+            }
+          ],
+          "recommendation": "new-trial.",
+          "selected_option": "shipped",
+          "accepted_scope": "Crystal's numbers (F9-a) ship in data/: the ice row, the glass material and fence, the air. Supersedes FD-13-R1's trial-only home, which C80's promotion removed. The numbers are a proposal Jack judges in play; Harbor stays the calibrated park.",
+          "decided_by": "Jack",
+          "decided_at": "2026-09-23",
+          "decision_evidence": {
+            "kind": "conversation",
+            "thread_id": "9248a50b-7c48-4b50-a6b6-10dfff196226",
+            "question": "trials/c80 is gone since C80's promotion (#915): where do Crystal's numbers live? A: a new trial trials/crystal; B: straight into the shipped data. And: brighten Crystal's night blackout (FD-11-R2) or leave it?",
+            "answer_quote": "b. this is fine for now."
           }
         }
       ]
@@ -2145,7 +2212,14 @@
         "answer_quote": "a"
       },
       "numeric_targets": "not applicable: an ordering decision",
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F9-a",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/929",
+          "status": "merged"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -2546,6 +2620,10 @@
     {
       "date": "2026-09-23",
       "event": "Merged: F4-g #911 (c20cdf32; CPU route cost of a status volume, FD-14), F4-i #912 (d83f68bb; hazards on / off on the title and the field postcard, FD-10), F6-b #913 (2bd27a6c; kit slots per park), F6-c #916 (6637a670; light, sky and greybox colors as data; the night look is art data, so the park night block stays rules-only), #918 (69c842f4; NightBlockTests re-recorded after P2-e changed play; main had been red), F6-d #920 (27720ab7; hazards drawn at the sim's disc; the five parks' dress picked by slot). Jack signed off F4-g and F4-i ('sign off. resume.') and passed F6-d's look ('looks good. go with your reommendation. merge it.'). No decision's human_acceptance is written. Findings 59-67 recorded in the implementation map."
+    },
+    {
+      "date": "2026-09-23",
+      "event": "Jack's answers: FD-13-R3 (Crystal's numbers ship in data/, not a trial; C80's promotion removed trials/c80) and FD-11-R3 (Crystal's night look left for now), 'b. this is fine for now.' Merged: ledger #926 (2d9c52ab), F9-a #929 (fc2b7380; Crystal's ice row, glass wall and fence, dragMul 1.06, proposed not tuned; only Crystal changes). No decision's human_acceptance is written. Findings 68-72 recorded in the implementation map. Workstream paused at F9-b (Crystal greybox playable, then Jack's sitting)."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
