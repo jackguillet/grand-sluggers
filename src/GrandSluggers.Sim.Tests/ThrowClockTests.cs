@@ -10,6 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// and is the flat clock the game always had, checked to the bit; the <c>c80</c> copy carries the
 /// curve. Both are read here through the same code, so the switch is the table and nothing else.
 /// </summary>
+[Trait("Kind", "Balance")]
 public sealed class ThrowClockTests
 {
     static readonly ContentCatalog Control = ContentCatalog.Load();

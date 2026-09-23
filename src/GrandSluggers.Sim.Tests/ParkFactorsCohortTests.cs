@@ -16,6 +16,8 @@ namespace GrandSluggers.Sim.Tests;
 /// the predeclared plan. The first row is <c>Rows=compact</c>, so CI asks it of <c>trials/c80</c>.
 /// </para>
 /// </summary>
+[Trait("Kind", "Balance")]
+[Trait("Cost", "Heavy")]
 public class ParkFactorsCohortTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -114,6 +116,8 @@ public class ParkFactorsCohortTests
 /// Its own class so xUnit plays these games beside the report's, not after them: a cohort row is the
 /// slowest thing in the suite, and two of them in one collection would run back to back.
 /// </summary>
+[Trait("Kind", "Balance")]
+[Trait("Cost", "Heavy")]
 public class ParkFactorsNightTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -154,6 +158,8 @@ public class ParkFactorsNightTests
 /// <see cref="ParkFactorsCohortTests"/>.
 /// </summary>
 [Trait("Rows", "compact")]
+[Trait("Kind", "Balance")]
+[Trait("Cost", "Heavy")]
 public class ParkFactorsHazardsTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();

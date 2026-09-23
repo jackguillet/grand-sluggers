@@ -42,6 +42,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <c>GRAND_SLUGGERS_WRITE_PITCH_GOLDEN=1 dotnet test --filter "FullyQualifiedName~PitchFamilyGolden"</c>.
 /// A regeneration that changes a single byte is a behaviour change and has to be argued, not merged.
 /// </summary>
+[Trait("Kind", "Balance")]
 public sealed class PitchFamilyGoldenTests
 {
     /// <summary>Set to 1 to rewrite the fixture from the current code. Never set in CI.</summary>
