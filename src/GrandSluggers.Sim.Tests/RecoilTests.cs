@@ -20,6 +20,7 @@ public sealed class RecoilTests
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheShippedTableKeepsTheKnockbackAndTheTrialReadsTheBallsSpeed()
     {
         var s = Control.Rules.Fielding.Recoil;
@@ -37,6 +38,7 @@ public sealed class RecoilTests
 
     /// <summary>The curve (F693-02-recoil-severity-curve), the hands (F693-02-recoil-field-factors), the shaping (bounded severity first) and both caps, as numbers.</summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheCostIsAPureFunctionOfIncomingSpeedAndHands()
     {
         var r = Trial.Rules;
@@ -153,6 +155,7 @@ public sealed class RecoilTests
     [Theory]
     [InlineData(1, 0.20, 1.0)]
     [InlineData(10, 0.11, 0.3025)]
+    [Trait("Kind", "Balance")]
     public void BothCapsBindOnARocketAndTheHandsStillTellAtTheCap(int hands, double sec, double skidFt)
     {
         var run = RunCpu(Trial, 125, 2, 0, ContactQuality.Perfect, pitcherHands: hands);

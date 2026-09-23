@@ -23,6 +23,7 @@ public sealed class PursuitContractTests
 
     /// <summary>18.0 ft/s at Run 5 against today's 30.5, the whole curve scaled so the spread between characters is kept.</summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void ARunFiveBodyRunsEighteenFeetASecondAndTheSpreadIsKept()
     {
         var shipped = Control.Rules.Fielding.Chase;
@@ -52,6 +53,7 @@ public sealed class PursuitContractTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheFourReadClocksAreTheAcceptedNumbersAndTheShippedOnesDoNotMove()
     {
         var shipped = Control.Rules.Fielding.Reaction;
@@ -74,6 +76,7 @@ public sealed class PursuitContractTests
 
     /// <summary>The shipped walk is the flat 28 for every body, the same double; the trial walk is the body's own pursuit speed.</summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheCoverSpeedIsFlatOnTheShippedTableAndTheBodysOwnOnTheTrial()
     {
         Assert.Equal((0.23, 1.0, 0.0), (Control.Rules.Fielding.Cover.StartSec, Control.Rules.Fielding.Cover.LockoutMul, Control.Rules.Fielding.Cover.ChaseSpeedWeight));

@@ -21,6 +21,7 @@ namespace GrandSluggers.Sim.Tests;
 /// and the comparison the trial README prescribes.
 /// </para>
 /// </summary>
+[Trait("Kind", "Balance")]
 public sealed class CompactGeometryTests
 {
     static readonly ContentCatalog Control = ContentCatalog.Load();
