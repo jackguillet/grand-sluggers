@@ -2810,7 +2810,8 @@
         "#837",
         "#839",
         "#844",
-        "#889"
+        "#889",
+        "#890"
       ],
       "validation_evidence": [
         {
@@ -2871,6 +2872,15 @@
           "numeric_trial": "none. No number was selected or moved; cli match --seed 7 is byte-identical to main apart from the data-root line; the #708 and #818 evidence moved by source hashes only.",
           "gate": "No human gate closed and none claimed. The drawn oval is Jack's to judge in the game; nothing was looked at in Unity and no frame was played (tools/unity-compile.sh only). status, numeric_targets and human_acceptance are untouched.",
           "summary": "P2-d pins PH-15-R7 on the shipped root: Contact (plus the bat's contactMod, clamped 1-10) multiplies the spatial barrel by 1 + (Contact - 5) x scalePerContact and nothing else; the window is the same number at every Contact (S-136). AtBatDirector no longer re-derives the clamp or the barrel: it draws SweetSpot.Oval, the oval the resolver judges (S-134)."
+        },
+        {
+          "kind": "implementation",
+          "issue": "#890",
+          "revision": "76b7fc63",
+          "test": "GrandSluggers.Sim.Tests.PitchRatingsScenarioTests (S-138, S-139, S-140)",
+          "summary": "P3-a gave Velocity, Movement, Control and Endurance a home and routed every Pitch reader, seeded equal to pitch so nothing moved. Stats carries them the way it carries Arm, Hands, Contact and Power: optional ratings whose unauthored (0) value tracks Pitch, [JsonIgnore] VelocityAuthored ... EnduranceAuthored saying which it was, and Clamp() keeping an unauthored rating unauthored so it goes on tracking the clamped aggregate. CharacterDto accepts optional velocity / movement / control / endurance and ValidateCharacter refuses any outside 1-10 by character and field name; no character file and no trial overlay authors a value, because PH-15-R6 leaves the values open and they are Jack's later choice. Every Pitch reader now reads the rating it means: pitch mph (speed.mphPerPitchStat, AtBatResolver.PitchSpeedMph from a Character, so the air time, the client's mph and the CPU's reach follow) is Velocity; the arm's damping of non-perfect contact (batting.pitchFactor) is Movement, its only read, because no family's authored break reads a rating today and a Movement term in the family break would be a number; the steer rate (PitchFlight.BreakStep for the hand in AtBatDirector, PitchFlight.BreakReach for the CPU) and the CPU arm's scatter are Control; the stamina pool is Endurance. PitchInZone's discarded stat argument is passed Control. The swap pick (SwapPitcher with nobody named, PitcherSwapPick's starting arm) keeps the displayed Pitch as a selection, not a read, and the card, the CLI, the Raylib HUD, HudView, CardToy and Teams.Tools keep Pitch as the displayed aggregate. Fatigue itself (the TIRED / exhausted costs and the CPU swap) is left for P3-b / P3-c. Zero behaviour change, because with nothing authored every read returns the same integer and no _rng draw moves: cli match --seed 7 is byte-identical to main on the shipped root, the new rows and the pitching, trace, stamina and validation classes pass, and the #708 and pitch-family evidence regenerated with source-hash lines only. Four new serialized properties change PlayTraceIdentity's roster bytes, as in #839, so identity SHAs recorded from here on differ from ones recorded before; an old trace still reads, because an absent key is unauthored and tracks Pitch. Spec section 2 carries the reader mapping table, 4.1 / 4.7 / 4.8 / 5.5 name the rating each formula reads, and Appendix B.1 gained S-138 ... S-140 (PitchRatingsScenarioTests), which assert directions and integer identities only so an authored value can move without editing a test.",
+          "numeric_trial": "not applicable (seeded equal; no value authored)",
+          "gate": "no human gate for this child: no player-facing change, so it does not move sitting 1, #534, #346 or D7 and no human_acceptance field is filled. No status change - the ratings exist and every reader is routed, but until Jack authors a value the game plays exactly as it did."
         }
       ],
       "human_acceptance": null,
@@ -3632,7 +3642,8 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#818",
-            "#821"
+            "#821",
+            "#890"
           ],
           "validation_evidence": [
             {
@@ -3645,6 +3656,15 @@
               "summary": "Natural movement and player steering are distinct terms in one flight: PitchFlight composes shape, then the family's sweep, then the stick's shift, then the star term. The sweep is not scaled by the stick and not damped by a charge; the stick keeps its own unchanged cap. All three trial rows author breakDamped false, so they steer like a fastball and their identity is the movement they have without the player. The throwing hand reaches the flight for the first time: PitchCommand carries a trailing defaulted Throws that Match.PreparePitch stamps from the pitcher, and the glove-side sign is derived once from first base's own X.",
               "numeric_trial": "proposed in trials/pitch5; not accepted; judged in sitting 1 (PH-20-R1)",
               "gate": "no human gate closed. Jack's trial-window sitting (sitting 1) is not yet possible - the mound is wired to a seat in P1-f. The shipped root is unchanged (cli match --seed 7 byte-identical, the #810 golden unedited, the #708 seals hash-only) and the overlay is inert unless named, so this child may merge without one. No status change; numeric_targets stays null."
+            },
+            {
+              "kind": "implementation",
+              "issue": "#890",
+              "revision": "76b7fc63",
+              "test": "GrandSluggers.Sim.Tests.PitchRatingsScenarioTests (S-138, S-139, S-140)",
+              "summary": "P3-a gave Velocity, Movement, Control and Endurance a home and routed every Pitch reader, seeded equal to pitch so nothing moved. Stats carries them the way it carries Arm, Hands, Contact and Power: optional ratings whose unauthored (0) value tracks Pitch, [JsonIgnore] VelocityAuthored ... EnduranceAuthored saying which it was, and Clamp() keeping an unauthored rating unauthored so it goes on tracking the clamped aggregate. CharacterDto accepts optional velocity / movement / control / endurance and ValidateCharacter refuses any outside 1-10 by character and field name; no character file and no trial overlay authors a value, because PH-15-R6 leaves the values open and they are Jack's later choice. Every Pitch reader now reads the rating it means: pitch mph (speed.mphPerPitchStat, AtBatResolver.PitchSpeedMph from a Character, so the air time, the client's mph and the CPU's reach follow) is Velocity; the arm's damping of non-perfect contact (batting.pitchFactor) is Movement, its only read, because no family's authored break reads a rating today and a Movement term in the family break would be a number; the steer rate (PitchFlight.BreakStep for the hand in AtBatDirector, PitchFlight.BreakReach for the CPU) and the CPU arm's scatter are Control; the stamina pool is Endurance. PitchInZone's discarded stat argument is passed Control. The swap pick (SwapPitcher with nobody named, PitcherSwapPick's starting arm) keeps the displayed Pitch as a selection, not a read, and the card, the CLI, the Raylib HUD, HudView, CardToy and Teams.Tools keep Pitch as the displayed aggregate. Fatigue itself (the TIRED / exhausted costs and the CPU swap) is left for P3-b / P3-c. Zero behaviour change, because with nothing authored every read returns the same integer and no _rng draw moves: cli match --seed 7 is byte-identical to main on the shipped root, the new rows and the pitching, trace, stamina and validation classes pass, and the #708 and pitch-family evidence regenerated with source-hash lines only. Four new serialized properties change PlayTraceIdentity's roster bytes, as in #839, so identity SHAs recorded from here on differ from ones recorded before; an old trace still reads, because an absent key is unauthored and tracks Pitch. Spec section 2 carries the reader mapping table, 4.1 / 4.7 / 4.8 / 5.5 name the rating each formula reads, and Appendix B.1 gained S-138 ... S-140 (PitchRatingsScenarioTests), which assert directions and integer identities only so an authored value can move without editing a test.",
+              "numeric_trial": "not applicable (seeded equal; no value authored)",
+              "gate": "no human gate for this child: no player-facing change, so it does not move sitting 1, #534, #346 or D7 and no human_acceptance field is filled. No status change - the ratings exist and every reader is routed, but until Jack authors a value the game plays exactly as it did."
             }
           ],
           "human_acceptance": null,
@@ -6093,6 +6113,11 @@
       "date": "2026-09-22",
       "event": "#887 removed the three trial switches' off paths now that each is on in shipped data: batting.window.shared (PH-10-R1), pitching.cpu.humanInputs (PH-18-R1) and batting.geometryOnly (PH-12), with the keys only those paths read, their validators and the SwitchOffPaths test rows. Behaviour-identical: seed 7 and S-29 on both roots unchanged; seals hash-only. Statuses unchanged; human_acceptance untouched.",
       "pr": "#899"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "P3-a (#890) made Velocity, Movement, Control and Endurance ratings of their own (PH-15-R6) and routed every Pitch reader to them, seeded equal to pitch so nothing a player can feel moved. Characters may author the four as 1-10 keys; nothing authors one. Velocity is the mph, Movement the arm's damping of non-perfect contact (its only read today), Control the steer rate and the CPU's scatter, Endurance the stamina pool. Pitch stays the displayed aggregate and the swap pick's ranking. Fatigue is left for P3-b / P3-c. Seed 7 byte-identical; seals hash-only; PlayTraceIdentity roster bytes move as in #839. Spec 2 carries the mapping table and Appendix B.1 gained S-138 ... S-140. No status change, no numeric target, no human acceptance.",
+      "pr": "#890"
     }
   ]
 }
