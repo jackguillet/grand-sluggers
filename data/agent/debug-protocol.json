@@ -579,8 +579,8 @@
       "signature": "Home plate is absent although the authored home-plate mesh loads; the primitive fallback is visible when the asset is missing.",
       "stage": "sitting",
       "cause": "FieldKit.Plate placed the ground-origin authored mesh at Y=0. Its white top at 0.22 ft and rim below 0.27 ft were buried by the home dirt at 0.38 ft.",
-      "fix": "Seat the authored mesh on ParkDiamond.PathTop in the shared FieldKit, preserving X/Z and scale. Validate the imported upward white faces against the rendered home pad and retain the plate footprint.",
-      "promoted": "ArtRailsValidate.ValidateHomePlateClearance",
+      "fix": "Seat the authored mesh on ParkDiamond.PathTop in the shared FieldKit. HomeSet ties the footprint to the strike zone and places both boxes outside it. ArtRailsValidate.ValidateHomePlateClearance checks the imported upward white faces against the rendered home pad, zone width and box stripes; this Unity gate is separate from the .NET test catalog.",
+      "promoted": "",
       "issue": "#989",
       "pr": ""
     }
