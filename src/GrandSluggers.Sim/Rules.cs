@@ -1736,6 +1736,8 @@ public sealed class FieldingRules
 
     internal void Validate(string source, List<string> errors)
     {
+        if (Chase.WallClearanceFt >= Chase.LooseScoopFt)
+            errors.Add($"{source}: fielding.chase.wallClearanceFt must be smaller than looseScoopFt so a wall ball remains reachable");
         RulesValidation.Order(source, "fielding.catcher.cpuReleaseMinSec", Catcher.CpuReleaseMinSec, Catcher.CpuReleaseMaxSec, errors);
         RulesValidation.Order(source, "fielding.chem.slantLateralMinFt", Chem.SlantLateralMinFt, Chem.SlantLateralMaxFt, errors);
         RulesValidation.Order(source, "fielding.throw.minFtPerSec", Throw.MinFtPerSec, Throw.BaseFtPerSec, errors);
@@ -1786,7 +1788,7 @@ public sealed class ReactionRules
 {
     [Positive] public double PitcherSec { get; init; } = 0.35;
     /// <summary>Post-delivery recovery after full-swing contact; no difficulty or hang-time shortening. Bunts use the ordinary read.</summary>
-    [Positive] public double PitcherRecoverySec { get; init; } = 1.0;
+    [Positive] public double PitcherRecoverySec { get; init; } = 0.65;
     [Positive] public double CatcherSec { get; init; } = 0.45;
     [Positive] public double FirstSec { get; init; } = 0.25;
     [Positive] public double SecondSec { get; init; } = 0.25;
@@ -1885,6 +1887,8 @@ public sealed class ChaseRules
     public double HandoffCoastSec { get; init; } = 0.2;
     /// <summary>The nearest body to a loose ball chases it; a throw's receiver steps to a ball inside this of them.</summary>
     [Positive] public double LooseScoopFt { get; init; } = 2.5;
+    /// <summary>Body clearance inside the fence, small enough to recover a ball with loose scoop reach.</summary>
+    [Positive] public double WallClearanceFt { get; init; } = 2;
     /// <summary>
     /// An outfielder chasing a ball hit in the air runs at the one glove speed × this (§8.1, §8.2). The S-29 lever since the
     /// outfield read went back to the reference (#609): the read is when a body starts, this is how much ground it covers.
@@ -1918,7 +1922,7 @@ public sealed class CatchRules
     /// <summary>
     /// The authored stand-up reach every body without its own <see cref="Character.ReachFt"/> gets (F693-02-catch-reach-envelope,
     /// #719): roughly what the visible glove covers from a planted stance, independent of ratings. 0 keeps the legacy
-    /// <c>radiusBaseFt + Field × radiusPerField</c>; the game plays 6.0. A character's authored
+    /// <c>radiusBaseFt + Field × radiusPerField</c>; the game plays 4.0. A character's authored
     /// <c>reachFt</c> wins over both, and the ability bonuses add to whichever applies.
     /// </summary>
     public double StandUpReachFt { get; init; } = 4.0;

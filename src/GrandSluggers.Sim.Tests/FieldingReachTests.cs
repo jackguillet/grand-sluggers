@@ -21,7 +21,7 @@ public sealed class FieldingReachTests
         l.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, pre, null, human ? Human : LiveSeats.CpuOnly));
         var start = l.Fielders["P"];
         var crossed = false;
-        for (var i = 0; i < 59 && l.Active; i++)
+        for (var i = 0; (i + 1) * Dt < m.Rules.Fielding.Reaction.PitcherRecoverySec && l.Active; i++)
         {
             l.Apply(LivePlayCommand.Tick(Dt, human ? new LivePadInput(StickX: 1, SouthDown: true, EastDown: true) : LivePadInput.Dead));
             Assert.Equal(start, l.Fielders["P"]);
@@ -57,6 +57,39 @@ public sealed class FieldingReachTests
             }
         }
         Assert.Fail("the pitcher did not pursue and scoop the bunt");
+    }
+
+    [Theory]
+    [InlineData(40, false)] [InlineData(50, false)] [InlineData(60, false)]
+    [InlineData(40, true)] [InlineData(50, true)] [InlineData(60, true)]
+    public void PitcherRecoversInTimeForWeakFullSwingGrounders(double exitMph, bool human)
+    {
+        var m = Match.Exhibition(Game, seed: 1, parkId: "harbor-diamond");
+        var hit = FlightFixtures.Hit(m.Park, exitMph, -12, 0, rules: m.Rules);
+        var pre = m.PreviewHit(hit);
+        Assert.Equal("P", pre.Position);
+        var l = m.LivePlay;
+        l.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, pre, null, human ? Human : LiveSeats.CpuOnly));
+        for (var i = 0; i < 360 && l.Active; i++)
+        {
+            l.Apply(LivePlayCommand.Tick(Dt));
+            if (!l.HoldsBall) continue;
+            Assert.Equal("P", l.GlovePos);
+            Assert.True(l.ElapsedSeconds >= m.Rules.Fielding.Reaction.PitcherRecoverySec);
+            Assert.NotEqual(FairFoulCall.Caught, l.Call);
+            return;
+        }
+        Assert.Fail("the pitcher did not field the weak full-swing grounder");
+    }
+
+    [Fact]
+    public void FielderCanReachALooseBallAgainstTheWall()
+    {
+        var park = Game.Parks["harbor-diamond"];
+        var wall = FieldBounds.Of(park).RadiusAt(0);
+        var at = FieldBounds.ClampFielder(park, 0, wall, Game.Rules);
+        Assert.True(Diamond.Dist(0, wall, at.X, at.Z) < Game.Rules.Fielding.Chase.LooseScoopFt);
+        Assert.True(FieldBounds.Of(park).Contains(at.X, at.Z));
     }
 
     [Theory]

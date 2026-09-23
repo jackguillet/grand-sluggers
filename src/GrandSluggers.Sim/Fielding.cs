@@ -471,10 +471,10 @@ public sealed class FieldingResolver
         var dx = tx - x;
         var dz = tz - z;
         var dist = Math.Sqrt(dx * dx + dz * dz);
-        if (dist <= Rules.Or(rules).Fielding.Chase.StepStopFt) return park == null ? (x, z) : FieldBounds.Clamp(park, x, z);
+        if (dist <= Rules.Or(rules).Fielding.Chase.StepStopFt) return park == null ? (x, z) : FieldBounds.ClampFielder(park, x, z, rules);
         var step = Math.Min(dist, speed * dt);
         var next = (X: x + dx / dist * step, Z: z + dz / dist * step);
-        return park == null ? next : FieldBounds.Clamp(park, next.X, next.Z);
+        return park == null ? next : FieldBounds.ClampFielder(park, next.X, next.Z, rules);
     }
 
     /// <summary>Timed wall leap. Two good-chem outfielders under a would-be homer, not a flag on any fly.</summary>

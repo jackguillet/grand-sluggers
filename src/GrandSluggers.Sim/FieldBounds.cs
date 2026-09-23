@@ -298,6 +298,9 @@ public static class FieldBounds
     }
 
     /// <summary>Clip a glove (or landing) onto the grass for this park: inside every wall by <see cref="InsideFt"/>.</summary>
+    public static (double X, double Z) ClampFielder(Park park, double x, double z, RulesTable? rules = null) =>
+        Clamp(park, x, z, Rules.Or(rules).Fielding.Chase.WallClearanceFt);
+
     public static (double X, double Z) Clamp(Park park, double x, double z) => Clamp(park, x, z, InsideFt);
 
     public static (double X, double Z) Clamp(Park park, double x, double z, double insetFt)

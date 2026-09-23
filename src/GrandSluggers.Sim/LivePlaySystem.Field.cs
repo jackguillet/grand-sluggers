@@ -1019,7 +1019,7 @@ public sealed partial class LivePlaySystem
                 var jumpTry = leaping && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
                 var buddyRob = buddyOn && distPlant < catchRules.BuddyPlantFt;
                 var canRob = !needsJump || FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyRob, R);
-                // Dead stick = CPU runs the glove (§8.2): stand-up under the ring, dive at the rim (#669).
+                // Dead stick runs the glove and may take a standing catch, never a dive.
                 if (dead && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
                     TakeBattedBall();
                 if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, underStand, inWin, needsJump, canRob))
@@ -1936,7 +1936,7 @@ public sealed partial class LivePlaySystem
             return;
         }
         var step = Math.Min(dt, _coastT);
-        _fielders[_coastPos] = FieldBounds.Clamp(Park, at.X + _coastVel.X * step, at.Z + _coastVel.Z * step);
+        _fielders[_coastPos] = FieldBounds.ClampFielder(Park, at.X + _coastVel.X * step, at.Z + _coastVel.Z * step, R);
         _coastT -= dt;
         if (ResponseLaw)
         {
@@ -2395,7 +2395,7 @@ public sealed partial class LivePlaySystem
             ? (X: 0.0, Z: 0.0)
             : (X: dx / dist * Math.Min(speed, dist / dt), Z: dz / dist * Math.Min(speed, dist / dt));
         var v = Respond(pos, at, want, speed, dt);
-        return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
+        return FieldBounds.ClampFielder(Park, at.X + v.X * dt, at.Z + v.Z * dt, R);
     }
 
     /// <summary>
@@ -2405,9 +2405,9 @@ public sealed partial class LivePlaySystem
     (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt, bool specialSlowed)
     {
         speed *= VolumeMul(pos, specialSlowed);
-        if (!ResponseLaw) return FieldBounds.Clamp(Park, at.X + stickX * speed * dt, at.Z + stickY * speed * dt);
+        if (!ResponseLaw) return FieldBounds.ClampFielder(Park, at.X + stickX * speed * dt, at.Z + stickY * speed * dt, R);
         var v = Respond(pos, at, (stickX * speed, stickY * speed), speed, dt);
-        return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
+        return FieldBounds.ClampFielder(Park, at.X + v.X * dt, at.Z + v.Z * dt, R);
     }
 
     /// <summary>
@@ -2442,7 +2442,7 @@ public sealed partial class LivePlaySystem
     {
         // Nobody's intent in the air is a coast, not a brake (#719): the airborne glove keeps its velocity.
         var nv = Airborne && pos == GlovePos ? v : Respond(pos, at, (0, 0), 0, dt);
-        var next = FieldBounds.Clamp(Park, at.X + nv.X * dt, at.Z + nv.Z * dt);
+        var next = FieldBounds.ClampFielder(Park, at.X + nv.X * dt, at.Z + nv.Z * dt, R);
         _fielders[pos] = next;
         if (pos == GlovePos && !Throwing)
         {
@@ -2538,12 +2538,12 @@ public sealed partial class LivePlaySystem
         var dist = Math.Sqrt(dx * dx + dz * dz);
         if (dist < stopFt) return at;
         var step = Math.Min(dist, speed * dt);
-        return FieldBounds.Clamp(Park, at.X + dx / dist * step, at.Z + dz / dist * step);
+        return FieldBounds.ClampFielder(Park, at.X + dx / dist * step, at.Z + dz / dist * step, R);
     }
 
     void ClampField()
     {
-        var feet = FieldBounds.Clamp(Park, GloveX, GloveZ);
+        var feet = FieldBounds.ClampFielder(Park, GloveX, GloveZ, R);
         GloveX = feet.X;
         GloveZ = feet.Z;
         if (_fielders.Count == 0)
@@ -2553,7 +2553,7 @@ public sealed partial class LivePlaySystem
         }
         foreach (var k in _fielders.Keys.ToList())
         {
-            var f = FieldBounds.Clamp(Park, _fielders[k].X, _fielders[k].Z);
+            var f = FieldBounds.ClampFielder(Park, _fielders[k].X, _fielders[k].Z, R);
             // Nobody stands in a solid body (F4-f): a body stepped into one is on its rim.
             _fielders[k] = _solids.Count == 0 ? f : SolidBodies.PushOut(_solids, ElapsedSeconds, f.X, f.Z);
         }
@@ -2955,7 +2955,7 @@ public sealed partial class LivePlaySystem
         {
             var cover = R.Fielding.Cover;
             var behind = InPlay.BackupSpot(GloveX, GloveZ, targetX, targetZ, cover.BackupFt);
-            _backupSpot = FieldBounds.Clamp(Park, behind.X, behind.Z);
+            _backupSpot = FieldBounds.ClampFielder(Park, behind.X, behind.Z, R);
             _backupPos = InPlay.BackupPos(bag, _backupSpot.X, _backupSpot.Z, _fielders, GlovePos, receiverPos);
         }
         _cpuThrowAt = -1;
@@ -3627,7 +3627,7 @@ public sealed partial class LivePlaySystem
         if (RecoilDur > 0 && t1 > t0)
         {
             var s = (t1 - t0) - (t1 * t1 - t0 * t0) / (2 * RecoilDur);
-            var next = FieldBounds.Clamp(Park, GloveX + _kick.X * s, GloveZ + _kick.Z * s);
+            var next = FieldBounds.ClampFielder(Park, GloveX + _kick.X * s, GloveZ + _kick.Z * s, R);
             GloveX = next.X;
             GloveZ = next.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);

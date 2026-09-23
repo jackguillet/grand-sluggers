@@ -15,6 +15,7 @@
     // "move assistance" idea, spec §8.9). The thrower at a release does not coast (§8.5).
     "handoffCoastSec": 0.2,
     "looseScoopFt": 2.5,
+    "wallClearanceFt": 2,
     // #609: the S-29 lever since the outfield read went back to the reference. An outfielder on a ball hit in
     // the air runs at the one glove speed x this. S-29 seeds 1-5: 1.18 / 1.48 runs a side at 1.0 with the 0.83 s
     // read, 2.20 / 2.62 at 0.6 (P7's 2.4 s read at 1.0: 2.52 / 2.72). The fly stretch (flight.timeScale 1.1-1.65)
@@ -57,7 +58,7 @@
     // largest single change in the profile, and the one most likely to show in 3d.
     "pitcherSec": 0.35,
     // Full-swing contact leaves the delivery body recovering; bunts retain the quick read.
-    "pitcherRecoverySec": 1.0,
+    "pitcherRecoverySec": 0.65,
     "catcherSec": 0.45,
     "firstSec": 0.25,
     "secondSec": 0.25,
