@@ -23,10 +23,12 @@ public class SchemeTests
         }
         Assert.Equal("Space / Enter", Scheme.Keys("confirm"));
         Assert.Equal("Space hold", Scheme.Keys("charge"));
-        Assert.Equal("Q", Scheme.Keys("star"));
+        // PH-16-R17: the special modifier is held and read at the release; LB on the pad, Q on the keys.
+        Assert.Equal("Q hold at release", Scheme.Keys("star"));
+        Assert.Equal("LB hold at release", Scheme.Pad("star"));
         Assert.Equal("WASD", Scheme.Keys("aim-run"));
         Assert.Equal("1 2 3 4", Scheme.Keys("bags"));
-        Assert.Equal(",", Scheme.Keys("all-advance"));
+        Assert.Equal(", after contact", Scheme.Keys("all-advance"));
         Assert.Equal(".", Scheme.Keys("all-return"));
         Assert.Equal("Z", Scheme.Keys("steal"));
         // PH-02-R5 (#825): the West changeup modifier is retired; RB / Tab cycles the family in SET.
@@ -52,7 +54,7 @@ public class SchemeTests
         Assert.Equal("Right-drag", Scheme.Mouse("aim-run"));
         Assert.Equal("South", Scheme.Pad("confirm"));
         Assert.Equal("South hold", Scheme.Pad("charge"));
-        Assert.Equal("LB", Scheme.Pad("all-advance"));
+        Assert.Equal("LB after contact", Scheme.Pad("all-advance"));
         Assert.Equal("RB", Scheme.Pad("all-return"));
         Assert.Equal("Stick to the next bag / L3", Scheme.Pad("steal"));
     }
@@ -183,7 +185,8 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("1 PLAYER") && l.Contains("2 PLAYERS"));
         Assert.Contains(HowToPlay.Must("two-pads").Lines, l => l.Contains("2 PLAYERS"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Hearts"));
-        Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Stars jump"));
+        // PH-16-R16: both teams start on the one reserve; the draft does not move it.
+        Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("same stars"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Team Setup"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Two diamonds") || l.Contains("two diamonds"));
         Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("South"));

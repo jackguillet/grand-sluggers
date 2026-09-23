@@ -12,10 +12,13 @@ public static class Scheme
     [
         new("confirm", "South", "Space / Enter", "Left click"),
         new("charge", "South hold", "Space hold", "Left click hold"),
-        new("star", "North", "Q", "Middle click"),
+        // The special modifier (PH-16-R10, R11, R17): held, read at the accepted release of the pitch or the swing.
+        // A finger button, never a thumb: the right thumb works South. Keyboard + mouse is player 1's Q.
+        new("star", "LB hold at release", "Q hold at release", "Q hold at release"),
         new("aim-run", "Left stick", "WASD", "Right-drag"),
         new("bags", "D-pad", "1 2 3 4", "Click bag / mouse quadrant"),
-        new("all-advance", "LB", ",", "Click advance"),
+        // During the pitch (SET and flight) LB is the special modifier, not all-advance (PH-16-R17).
+        new("all-advance", "LB after contact", ", after contact", "Click advance"),
         new("all-return", "RB", ".", "Click return"),
         new("steal", "Stick to the next bag / L3", "Z", "Click steal"),
         new("cyclePitch", "RB", "Tab", "Tab"),

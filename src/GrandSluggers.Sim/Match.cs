@@ -252,6 +252,18 @@ public sealed class Match
         else AwayStars = Math.Max(AwayStars, n);
     }
 
+    /// <summary>
+    /// A lesson's short pool (§12, PH-16-R12): the defense's Stars set to exactly <paramref name="n"/>, so the Star
+    /// Pitch it asks for can be unaffordable. Only a tutorial setup that names <c>poolStars</c> calls it; a match's
+    /// pools start on the one reserve and move only by gains and prices.
+    /// </summary>
+    internal void SetDefenseStarsForLesson(double n)
+    {
+        n = Math.Clamp(n, 0, Rules.Stars.MeterMax);
+        if (Top) HomeStars = n;
+        else AwayStars = n;
+    }
+
     public Team Offense => Top ? Away : Home;
     public Team Defense => Top ? Home : Away;
     public Character Batter => (Top ? AwayOrder : HomeOrder)[Top ? AwayBatter : HomeBatter];
@@ -414,7 +426,7 @@ public sealed class Match
         return true;
     }
 
-    /// <summary>LB: before the pitch, arm tag-and-go; live, send every runner (§9.3, §9.5).</summary>
+    /// <summary>All-advance: live, send every runner (§9.3, §9.5); before the pitch, arm tag-and-go. The client reads LB for it only once the ball is live: during SET and the flight LB is the held special modifier (PH-16-R17).</summary>
     public bool AdvanceAll()
     {
         if (Over || Outs >= 3) return false;
@@ -754,6 +766,19 @@ public sealed class Match
     public bool CanStarSwing => OffenseStars >= SwingStarCost;
 
     /// <summary>
+    /// The Star Pitch request a release now would record (§12, PH-16-R12): the same typed <see cref="StarRequest"/>
+    /// the play stamps on <see cref="PlayOutcome.Stars"/> when the match settles it. The client reads it at the
+    /// accepted release to show the "special unavailable" tell on that tick; nothing changes the pool between the
+    /// release and the settle, so the two agree (S-201).
+    /// </summary>
+    public StarRequest PitchStarRequest =>
+        new(StarAction.Pitch, Top, Pitcher.Id, Pitcher.StarPitch, PitchStarCost, DefenseStars, DefenseStars >= PitchStarCost);
+
+    /// <summary>The Star Swing request a release now would record: the same rule as <see cref="PitchStarRequest"/>.</summary>
+    public StarRequest SwingStarRequest =>
+        new(StarAction.Swing, !Top, Batter.Id, Batter.StarSwing, SwingStarCost, OffenseStars, OffenseStars >= SwingStarCost);
+
+    /// <summary>
     /// Settle a released Star Pitch (§12, PH-16-R12): affordable, it is paid now and flies as the special; not, it
     /// is the ordinary pitch of the family already selected, at the same timing, and costs nothing. Either way the
     /// play records a typed <see cref="StarRequest"/>. A pitch with no special asked for passes untouched.
@@ -761,13 +786,11 @@ public sealed class Match
     PitchCommand SettleStarPitch(PitchCommand pitch)
     {
         if (!pitch.Star) return pitch;
-        var cost = PitchStarCost;
-        var before = DefenseStars;
-        var afforded = before >= cost;
-        _starRequestsThisPlay.Add(new StarRequest(StarAction.Pitch, Top, Pitcher.Id, Pitcher.StarPitch, cost, before, afforded));
-        if (!afforded) return pitch with { Star = false };
-        if (Top) HomeStars = before - cost;
-        else AwayStars = before - cost;
+        var request = PitchStarRequest;
+        _starRequestsThisPlay.Add(request);
+        if (!request.Afforded) return pitch with { Star = false };
+        if (Top) HomeStars = request.StarsBefore - request.Cost;
+        else AwayStars = request.StarsBefore - request.Cost;
         return pitch;
     }
 
@@ -779,13 +802,11 @@ public sealed class Match
     SwingCommand SettleStarSwing(SwingCommand swing)
     {
         if (!swing.Star || !swing.Swing) return swing;
-        var cost = SwingStarCost;
-        var before = OffenseStars;
-        var afforded = before >= cost;
-        _starRequestsThisPlay.Add(new StarRequest(StarAction.Swing, !Top, Batter.Id, Batter.StarSwing, cost, before, afforded));
-        if (!afforded) return swing with { Star = false };
-        if (Top) AwayStars = before - cost;
-        else HomeStars = before - cost;
+        var request = SwingStarRequest;
+        _starRequestsThisPlay.Add(request);
+        if (!request.Afforded) return swing with { Star = false };
+        if (Top) AwayStars = request.StarsBefore - request.Cost;
+        else HomeStars = request.StarsBefore - request.Cost;
         return swing;
     }
 

@@ -13,7 +13,12 @@ public sealed record TutorialSetup(string Id, string Policy, int Seed, double Ti
     string Skill = "", string PitcherId = "", string BatterId = "", string OnDeckId = "", double OpponentStars = 0,
     Dictionary<string, string[]>? RunnerIdsByProfile = null, int Outs = 0,
     /// <summary>The park the lesson is played at (F8-c): a hazard or a ground lesson names its park; empty is the training park.</summary>
-    string Park = "", bool Night = false);
+    string Park = "", bool Night = false,
+    /// <summary>
+    /// The teaching side's pool set exactly, below the reserve if need be (§12, PH-16-R12): a lesson about an
+    /// unaffordable special names it. Null leaves the pool on the reserve (raised by <c>startingStars</c>).
+    /// </summary>
+    double? PoolStars = null);
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -34,7 +39,7 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run", "game-count-sequence", "game-foul-fair", "game-half-change", "human-triple-off", "human-bobble-recovery", "human-corner-dash", "human-early-fly-return", "human-fumble-recovery", "human-third-force-cancels-run", "human-third-tag-counts-run"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "star-unavailable", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run", "game-count-sequence", "game-foul-fair", "game-half-change", "human-triple-off", "human-bobble-recovery", "human-corner-dash", "human-early-fly-return", "human-fumble-recovery", "human-third-force-cancels-run", "human-third-tag-counts-run"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground", "game-count", "game-contact", "game-half"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -137,6 +142,7 @@ public sealed class TutorialCatalog
             Require((setup.Policy == "cpu-take" && TutorialPlateObjectives.PitchIds.Contains(l.Objective))
                 || (setup.Policy == "cpu-take" && l.Objective == "star-pitch")
                 || (setup.Policy == "cpu-take" && l.Objective == "star-resource")
+                || (setup.Policy == "cpu-take" && l.Objective == "star-unavailable")
                 || (setup.Policy == "cpu-strike" && TutorialPlateObjectives.SwingIds.Contains(l.Objective) && l.Objective is not ("take-ball" or "cancel-take"))
                 || (setup.Policy == "cpu-strike" && l.Objective == "star-swing")
                 || (setup.Policy == "cpu-item" && l.Objective == "item-effect")
@@ -179,6 +185,12 @@ public sealed class TutorialCatalog
             if (l.Objective == "star-resource") Require(l.Id == "T-G03" && setup.Strikes == 2
                 && setup.Skill == content.Characters[setup.Home[0]].StarPitch && setup.StartingStars > 0,
                 l.Id + " needs a two-strike star gain/spend setup");
+            // The unavailable special (PH-16-R12): the defense asks for its Star Pitch on a pool short of its price.
+            if (l.Objective == "star-unavailable") Require(l.Id == "T-G03-U" && setup.Seat == "defense"
+                && setup.StartingStars == 0 && setup.Strikes == 0
+                && setup.Skill == content.Characters[setup.Home[0]].StarPitch
+                && setup.PoolStars is { } pool && pool < PitchPrice(setup, setup.Home[0]),
+                l.Id + " needs the named pitcher on a pool short of the Star Pitch's price");
             if (l.Objective == "item-effect") Require((l.Id == "T-X01" || l.Id == "T-I-" + setup.Skill)
                 && ErrorItems.Known(setup.Skill) && setup.Seat == "offense"
                 && setup.Away.Contains(setup.BatterId) && setup.Away.Contains(setup.OnDeckId)
@@ -222,6 +234,8 @@ public sealed class TutorialCatalog
                 s.Id + " has invalid starting stars");
             Require(double.IsFinite(s.OpponentStars) && s.OpponentStars >= 0 && s.OpponentStars <= content.Rules.Stars.MeterMax,
                 s.Id + " has invalid opponent stars");
+            Require(s.PoolStars is null || (double.IsFinite(s.PoolStars.Value) && s.PoolStars >= 0 && s.PoolStars <= content.Rules.Stars.MeterMax),
+                s.Id + " has invalid pool stars");
             Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
             Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball" or "cpu-take" or "game-half"), s.Id + " has invalid starting strikes");
             Require(s.Outs is >= 0 and <= 2, s.Id + " has invalid starting outs");

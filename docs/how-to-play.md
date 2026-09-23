@@ -18,10 +18,10 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 | --- | --- | --- | --- |
 | Confirm / pitch / swing / catch / throw | South | Space / Enter | Left click |
 | Charge | Hold/release South | Hold/release Space / Enter | Hold/release left click |
-| Star | North | Q | Middle click |
+| Star (hold as you let go of the pitch or swing) | LB hold | Q hold | Q hold |
 | Aim / run | Left stick | WASD | Mouse move |
 | Bags | D-pad diamond | 1 2 3 4 (arrows when not running) | Mouse quadrant / click bag |
-| All advance / all return | LB / RB | `,` / `.` | — |
+| All advance / all return (after contact) | LB / RB | `,` / `.` | — |
 | Freeze | LB+RB | `/` | — |
 | Steal | Stick toward the next bag, or L3 | Z | — |
 | Cycle pitch (mound, in SET) | RB | Tab | Tab |
@@ -36,7 +36,7 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 | Night | R3 | N | — |
 | Hazards on / off (title, field) | Select | R | — |
 
-South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F / Q. The bunt is on the triggers (LT / RT) and on J / L.
+South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F / Q. The bunt is on the triggers (LT / RT) and on J / L. The star is a finger button held with the pitch or swing: LB on either controller, Q on the keyboard.
 
 One player with controller 1, or two controllers. Hold **South** to charge and release it to pitch or swing. Space / Enter / left click is the same one-button load for keyboard and mouse. Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Controller 2 is a second gamepad. Mouse analog is **right-click hold and drag this frame** — a parked cursor is dead, including while you charge, so the pitcher stays on the rubber. WASD still walks; a key already down when SET starts does not. A sitting stick is dead until it passes through rest. Left click is confirm.
 
@@ -89,7 +89,7 @@ A **postcard**: park name, DAY / NIGHT, HAZARDS ON / OFF, and the **field card**
 
 Two screens. Not a 3D huddle with a name list.
 
-**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Hearts / scribbles vs the captain. Starting stars **jump** on the home row.
+**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Hearts / scribbles vs the captain. Both teams start with the same stars, whatever the draft; the row of stars by the home captain shows them.
 
 - **Stick / WASD** — pick a head (center) or a slot (home row)
 - **South / Space** — drop the head into the highlighted empty slot. When the nine are full, South goes to defense
@@ -112,7 +112,7 @@ Two screens. Not a 3D huddle with a name list.
 | Tap and release South / Space / left click | Normal — easier control | Slap — better contact |
 | Hold the same button, release at MAX | Charge pitch — fast; rings line up then **decay** | Charge swing — extra-base; same rings |
 | Modifier | **RB / Tab in SET, before the charge** = cycle the family — Fastball → your second pitch → your third → Fastball. The charge locks what is showing; nothing is re-read at release. Every pitch starts on Fastball, and the card lists your three pitches in cycle order (FB · CH · CU for Rio) with **no mark**. Every pitcher owns Fastball plus two of changeup, curveball, slider and sinker | **LT / J hold** = bunt toward third, **RT / L hold** = bunt toward first; **East / G** before the release = cancel the load |
-| North + South / Q + Space | Star pitch (costs a star even if hit) | Star swing (costs a star even on a miss) |
+| Hold **LB / Q** as you let go of South / Space / left click | Star pitch (costs its stars even if hit) | Star swing (costs its stars even on a miss) |
 
 Press South / Space / left click to start the load; release the same button to throw or swing. A quick tap is the normal pitch or full slap swing. Hold until the rings line up, then release → **Nice!** on the mound, **MAX** at the plate; that is the charge tell, not a verdict. The word for the contact — **PERFECT**, **NICE**, **SOUR** — comes only when the bat meets the ball. Holding beyond the MAX band loses power. The pitch has a **gold streak** so you can see it come in. **Swing when the ball is on the plate.** The press is judged against the ball reaching home (a tenth of a second early is square), and anywhere inside the window the bat speeds its swing up to meet the ball. Outside the window it swings at its own pace and misses. The window is one width for every hitter, both swings and every difficulty: the title's difficulty line changes the CPU's skill, never your window.
 
@@ -120,7 +120,7 @@ Press South / Space / left click to start the load; release the same button to t
 
 **Bunt.** Hold **LT / J** to square toward **third base** or **RT / L** toward **first base**, and keep it held through the pitch. There is no press to time: the squared bat meets the ball if the oval is on it, and the oval decides how good the bunt is. Walk the box with the stick / A-D as usual. Change sides any time before contact by pressing the other trigger (the latest press wins; let go of it and the bat goes back to the one still held). Let go of both to pull the bat back and take the pitch. The side leans the ball toward that base; it does not place it, and a bad bunt still goes foul or pops up. Pressing a trigger while a swing is loading throws the load away and squares at once. With a swing already let go, the triggers do nothing until the next pitch. The batter card reads **BUNT 3B** or **BUNT 1B** for the held side, yours or the CPU's (the bat itself does not yet angle toward the side: #943). A trigger you held through contact means nothing else — not the item modifier, not the next pitch's bunt — until you let it up and press it again. The pitcher releases the ball at the 0.42-second mark of the delivery after button release. Pitcher, batter, and ball share contact slow-down and pause.
 
-This input shape is confirmed by the original *Mario Super Sluggers* booklet: the sideways Wii Remote uses one button for a normal action and hold-then-release for a charge; its batting cursor moves with the batter; and pitch curve is applied left/right after release. Harbor adapts that contract to South / Space / left click, keeps the star modifier, and makes the changeup a family the pre-charge cycle selects instead of a held button (PH-02-R5). The current feel values — 0.55 seconds to fill a pitch, 0.45 seconds to fill a swing, a 0.50-second MAX band, and 0.80 charge/second overcharge decay — are Grand Sluggers tuning pending the human parity gate, not measured Nintendo values. Reference: [Nintendo instruction booklet, printed pp. 6–9](https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf).
+This input shape is confirmed by the original *Mario Super Sluggers* booklet: the sideways Wii Remote uses one button for a normal action and hold-then-release for a charge; its batting cursor moves with the batter; and pitch curve is applied left/right after release. Harbor adapts that contract to South / Space / left click, keeps the star as a held modifier (LB / Q), and makes the changeup a family the pre-charge cycle selects instead of a held button (PH-02-R5). The current feel values — 0.55 seconds to fill a pitch, 0.45 seconds to fill a swing, a 0.50-second MAX band, and 0.80 charge/second overcharge decay — are Grand Sluggers tuning pending the human parity gate, not measured Nintendo values. Reference: [Nintendo instruction booklet, printed pp. 6–9](https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf).
 
 SET forks **by role in 1P**, and **stays behind home in 1v1**. **One controller, pitching:** camera stays on the **mound 3/4** (`mound`) — first-base over-the-shoulder behind the rubber, pitcher large on the right, rubber in the bottom, looking at the box — through SET and the throw. **One controller, batting:** camera stays on the **plate 3/4** (`plate`) — behind home looking at the mound, batter left of the look, pitcher in the diamond — through SET and the throw. Catcher crouches behind the camera. Pentagon and two boxes have dirt between them. It does not cut to `pitch`. **Two controllers:** camera stays on the **plate 3/4** (`plate`) — behind home — through SET and the throw, whether you pitch or hit. Controller 2 does not fork the HUD. Pink/gold charge ring **around the box** on the packed dirt (not a pancake under the feet). ~1s to the plate (Sluggers pace, not MLB 90). Home bats the bottom. Scorebug sits top-right; batter card bottom-left; pitcher card bottom-right. Highlight “your” card. Those anchors do not move.
 
@@ -134,11 +134,13 @@ SET forks **by role in 1P**, and **stays behind home in 1v1**. **One controller,
 - **Start / H** during SET or in-play — **call time**: Resume, Restart, How to play, Title. **WASD or arrows** choose. South / Space / left click ok. Click a row. Wheel turns How to play pages. East / right click resume. From Call time, Esc also resumes. Tab on the title cycles 3 / 6 / 9 innings; X / LB cycles the CPU difficulty.
 - **Esc** during SET or in-play — **How to play** (the book), same as title. H does not open the book.
 
+**Star pitch / star swing.** Hold **LB** (controller) or **Q** (keyboard) as you let go of the pitch or the swing. Only the moment you let go counts: press or let go of LB while you charge and change your mind freely; after the release LB changes nothing. Each toy has one star pitch and one star swing, so there is nothing to pick. The card reads **STAR** while you hold LB and your team can pay. **Not enough stars:** the ordinary pitch or swing goes out at the same moment, with the pitch you already chose, and nothing is spent; your team's stars on the scorebug flash red and the line under it reads **NO STARS**. An LB you held for the star means nothing else — not all advance, not the cutoff — until you let it up.
+
 Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 
 ### Batting (running)
 
-- **LB / `,`** — all advance · **RB / `.`** — all return · **both / `/`** — halt all. A tap of the opposite shoulder halts a runner who is going; holding it turns them around. Forced runners cannot be held: they are going anyway.
+- **LB / `,`** — all advance, **once the ball is in play** · **RB / `.`** — all return · **both / `/`** — halt all. A tap of the opposite shoulder halts a runner who is going; holding it turns them around. Forced runners cannot be held: they are going anyway. During the pitch (SET and the flight) LB is the star, not all advance: arm steals per runner (D-pad + L3, or the stick), and send everyone after contact (on a fly, LB before the catch is still tag and go).
 - **Stick toward a bag + halt (LB+RB / `/`)** — freeze that runner only, where they stand.
 - **D-pad / 1 2 3** — select a runner (right 1B, up 2B, left 3B). **Down / 4** is the batter-runner once the ball is live (before the pitch it is home — not a runner). Default highlight is the lead runner.
 - **Stick** toward the next bag — in SET or the windup, arm a **steal** on the highlighted runner (same as L3); back cancels it. Once the ball is live, the same stick **sends** that runner to the next bag and back **returns** them. Runners stand on the bag until contact, a steal, or a send: there is no lead.
@@ -262,7 +264,7 @@ The Tutorials list includes Build your lineup, Seat two players, Call time, Reco
 
 The steal lessons use the normal runner controls. Time a steal: select first and arm before release, then beat the throw to second. Delay the break for home: arm first, wait for the catcher to throw to second, then select third and send home as the throw passes the mound. Catch a stealing runner: select second and make the catcher throw yourself. A runner being tagged at home does not pass the delayed-steal lesson.
 
-Each named star pitch and star swing has a prepared batter or pitcher with the matching skill and enough meter. North / Q selects the star; South / Space delivers it. A star swing needs fair contact. Earn and spend stars begins with two strikes: first finish the strikeout with an ordinary pitch, then use a star pitch against the next batter. One strikeout followed by one star pitch is one success; complete that sequence three times.
+Each named star pitch and star swing has a prepared batter or pitcher with the matching skill and enough meter. Hold LB / Q as you let go of South / Space. A star swing needs fair contact. **When the stars run out** starts your pitcher with no stars: hold LB / Q as you let go anyway, and the ordinary pitch goes out, nothing is spent, and your stars flash red. Earn and spend stars begins with two strikes: first finish the strikeout with an ordinary pitch, then use a star pitch against the next batter. One strikeout followed by one star pitch is one success; complete that sequence three times.
 
 Item lessons start with a chemistry pair that offers an item on fair contact. Hit first, cycle with RB / Tab, aim with the stick / WASD, then throw with LT + RB (or LT + South) / E. Each lesson checks its named item landed and affected the defender. Field a star grounder asks you to take over and collect the CPU's star hit yourself. Tag up from third asks you to hold the runner until the catch, then hold LB / comma to send home. Double off a runner asks you to catch the fly and return the throw to second before the early runner retouches.
 

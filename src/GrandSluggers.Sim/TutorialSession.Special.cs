@@ -89,6 +89,24 @@ public sealed partial class TutorialSession
             : new(false, "no-star-spent", "Spend the earned meter on your star pitch.");
     }
 
+    /// <summary>
+    /// The unavailable special (PH-16-R12): the player held the modifier at the release on a pool short of the price.
+    /// Success is the play's own typed record — one Star Pitch request, not afforded, at the named ability's price — with
+    /// the ordinary pitch thrown and nothing spent. A release without the modifier asked for nothing and teaches nothing.
+    /// </summary>
+    TutorialFeedback EvaluateStarUnavailable(PitchCommand command, PlayEvent? play, double beforeStars)
+    {
+        var requests = play?.Outcome?.Stars ?? [];
+        var request = requests.Count == 1 ? requests[0] : null;
+        var shown = command.Star && play is not null && !play.Pitch.Star
+            && request is { Action: StarAction.Pitch, Afforded: false } && request.AbilityId == _setup.Skill
+            && request.Cost == Match.PitchStarCost && Math.Abs(request.StarsBefore - beforeStars) < 0.0001
+            && Math.Abs(Match.DefenseStars - beforeStars) < 0.0001;
+        return shown
+            ? new(true, "star-unavailable", "No stars: your pitch went out ordinary and spent nothing.")
+            : new(false, "star-not-asked", "Hold the star modifier as you let go of the pitch.");
+    }
+
     TutorialFeedback EvaluateStarPitch(PitchCommand command, PlayEvent? play,
         double beforeStars, int cost, bool hadMeter)
     {

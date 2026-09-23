@@ -104,6 +104,14 @@ namespace GrandSluggers.UnityClient
             public bool SouthUp => KeyUp(Key.Space) || KeyUp(Key.Enter) || Released(Device?.buttonSouth)
                 || (KeysEnabled && MouseLeftUp);
             public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth) || (KeysEnabled && MouseMiddleDown);
+
+            /// <summary>
+            /// The held special modifier (spec §12, PH-16-R10, R11, R17): LB on either seat's own pad, Q for player 1's
+            /// keys. A finger button, never a thumb (the right thumb works South). Read at the accepted release of the
+            /// pitch or the swing (<see cref="StarModifier.Release"/>); a hold that asked for a special is spent for LB's
+            /// other verbs until it comes up (<see cref="StarModifier.IsFree"/>).
+            /// </summary>
+            public bool StarHeld => Kb(Key.Q) || Held(Device?.leftShoulder);
             public bool EastDown => KeyDown(Key.G) || Pressed(Device?.buttonEast);
             public bool EastHeld => Kb(Key.G) || Held(Device?.buttonEast);
             public bool WestDown => KeyDown(Key.F) || Pressed(Device?.buttonWest);
@@ -156,12 +164,27 @@ namespace GrandSluggers.UnityClient
             public bool Skip => EastDown;
             public bool Start => KeyDown(Key.H) || Pressed(Device?.startButton);
             public bool Esc => KeyDown(Key.Escape);
-            public bool AllAdvance => Kb(Key.Comma) || Held(Device?.leftShoulder);
+            public bool AllAdvance => AllAdvanceWith(true);
+            /// <summary>The LB / comma press edge. The menus read it (1 PLAYER, the batting order); play does not.</summary>
             public bool AllAdvanceDown => KeyDown(Key.Comma) || Pressed(Device?.leftShoulder);
             public bool AllReturn => Kb(Key.Period) || Held(Device?.rightShoulder);
-            public bool FreezeRunners => Kb(Key.Slash) || (Held(Device?.leftShoulder) && Held(Device?.rightShoulder));
+            public bool FreezeRunners => FreezeRunnersWith(true);
             public bool Steal => KeyDown(Key.Z) || Pressed(Device?.leftStickButton);
-            public bool Cutoff => Kb(Key.X) || Held(Device?.leftShoulder);
+            public bool Cutoff => CutoffWith(true);
+
+            /// <summary>
+            /// LB's live-ball verbs with the special modifier guarded (PH-16-R10, R17): <paramref name="lbFree"/> is false
+            /// while LB is still down from a release that asked for a special, so that hold is no all-advance, no cutoff
+            /// and no half of the halt until it comes up. The keys (comma, X, slash) are not the modifier.
+            /// </summary>
+            public bool AllAdvanceWith(bool lbFree) => Kb(Key.Comma) || (lbFree && Held(Device?.leftShoulder));
+
+            /// <inheritdoc cref="AllAdvanceWith"/>
+            public bool FreezeRunnersWith(bool lbFree) =>
+                Kb(Key.Slash) || (lbFree && Held(Device?.leftShoulder) && Held(Device?.rightShoulder));
+
+            /// <inheritdoc cref="AllAdvanceWith"/>
+            public bool CutoffWith(bool lbFree) => Kb(Key.X) || (lbFree && Held(Device?.leftShoulder));
             public bool Item => ItemWith(true);
             public bool ItemConfirm => ItemConfirmWith(true);
 
