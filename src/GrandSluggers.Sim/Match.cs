@@ -964,17 +964,17 @@ public sealed class Match
         // same pitch, and the shipped families sweep 0, so this moves nothing that flies today.
         var ready = pitch with { RubberX = pitch.RubberX != 0 ? pitch.RubberX : PitcherOffsetX,
             DeliveryPrepared = true, Throws = Pitcher.Throws };
-        // TIRED (spec §4.7): less steering room. Fatigue is never a random miss (PH-08-R1): the arm lands
+        // Fatigue (spec §4.7) takes steering room. It is never a random miss (PH-08-R1): the arm lands
         // where it was aimed and steered.
-        if (PitcherTired) ready = ready with { BreakMul = Rules.Pitching.Stamina.TiredBreakMul };
+        var breakMul = Rules.Pitching.Stamina.BreakMul(PitcherStamina);
+        if (breakMul != 1) ready = ready with { BreakMul = breakMul };
         return ready;
     }
 
     /// <summary>The pitch's speed from this arm: shape, stat, charge, Nice!, the star skill, and fatigue (spec §4.7).</summary>
     public double PitchSpeedMph(PitchCommand pitch)
     {
-        var st = Rules.Pitching.Stamina;
-        var penalty = PitcherExhausted ? st.ExhaustedMph : PitcherTired ? st.TiredMph : 0;
+        var penalty = Rules.Pitching.Stamina.MphLost(PitcherStamina);
         return AtBatResolver.PitchSpeedMph(pitch, Pitcher, Rules, Content.StarSkills, penalty);
     }
 
