@@ -374,20 +374,18 @@ public sealed class NightBlockTests
     /// <summary>
     /// <c>SF-25</c> (FD-11-R2): Crystal's night contact window is dropped on both roots, so a match at the rink
     /// at night judges a swing in the window it judges it in by day, which is Harbor's; no park carries a
-    /// window any more. On the process's root, through the match's own window read, for the CPU and a pad.
+    /// window any more. On the process's root, through the match's own window read, with and without the star pitch.
     /// </summary>
     [Fact]
     public void SF25_CrystalsNightAtBatUsesTheDayWindow()
     {
         Assert.Null(typeof(Park).GetProperty("NightContactWindowMul"));
         Assert.Null(typeof(ParkHazards).GetMethod("ContactWindowMul"));
-        var pitch = new PitchCommand("fastball", 0, false);
-        var cpu = new SwingCommand(true, 0, 0, false);
-        foreach (var swing in new[] { cpu, cpu with { Human = true }, cpu with { Charge01 = 1 } })
+        foreach (var pitch in new[] { new PitchCommand("fastball", 0, false), new PitchCommand("fastball", 0, true) })
         {
-            var harbor = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "harbor-diamond").SwingWindowFrames(pitch, swing);
-            var day = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink").SwingWindowFrames(pitch, swing);
-            var night = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink", night: true).SwingWindowFrames(pitch, swing);
+            var harbor = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "harbor-diamond").SwingWindowFrames(pitch);
+            var day = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink").SwingWindowFrames(pitch);
+            var night = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink", night: true).SwingWindowFrames(pitch);
             Assert.Equal(day, night);
             Assert.Equal(harbor, night);
         }
