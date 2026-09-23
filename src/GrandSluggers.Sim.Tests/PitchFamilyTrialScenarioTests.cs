@@ -426,7 +426,7 @@ public sealed class PitchFamilyTrialScenarioTests
                 () => PitchFlight.Crossing(new PitchCommand(family, 0, false), rules: bare));
         }
         Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, bare.Pitching.Families.Authored);
-        Assert.Equal(new[] { "fastball", "changeup" }, Training.CorePitches);
+        Assert.Equal(new[] { "fastball", "changeup" }, Training.PitchesOf(bare));
 
         // (b) The shipped root authors all five, and the CPU pitcher runs on human inputs.
         var shipped = ShippedRules.Pitching.Families;
