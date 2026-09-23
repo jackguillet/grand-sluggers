@@ -25,16 +25,18 @@ Three read-only maps (pitching code, batting / fatigue / Star code, spec and tea
 
 ## 2. Rails every child carries
 
-- **Evidence seals.** CI hashes `Match.cs`, `Rules.cs`, `Models.cs`, `AtBatFeel.cs`, `AtBatResolver.cs`, `ContentValidation.cs`, `StarSkillTable.cs`, `role-players.json`, `vale.json`, `brondo.json`, `star-skills.json`, `batting.json`, `table.json`, Unity `Controls.cs`, `AtBatDirector.cs`, `MatchDirector.cs`. Order: `dotnet run --project tools/game-feel-flight-probes -- --write`, then `python3 tools/compact-field-report.py`, then both `--check`. A behaviour-identical child must change hashes only.
-- **One seeded stream.** Any change to the count or order of `_rng` draws in `CpuPitch` / `CpuSwing` reseeds every `AutoPlay` game. That child re-reports S-29 and S-27 before and after. It never tunes to pass.
+What a PR owes is [agent-rails.md](agent-rails.md) §1.2 (2026-09-22). Where a rail below asks for more, §1.2 wins: no local full suite, no reseal, no `trials/` twin, no register or ledger edit in a feature child. Balance runs on demand.
+
+- **Evidence seals.** The seals hash `Match.cs`, `Rules.cs`, `Models.cs`, `AtBatFeel.cs`, `AtBatResolver.cs`, `ContentValidation.cs`, `StarSkillTable.cs`, `role-players.json`, `vale.json`, `brondo.json`, `star-skills.json`, `batting.json`, `table.json`, Unity `Controls.cs`, `AtBatDirector.cs`, `MatchDirector.cs`. A feature child does not reseal. A tuning PR or an evidence packet reseals, in this order: `dotnet run --project tools/game-feel-flight-probes -- --write`, then `python3 tools/compact-field-report.py`, then both `--check`.
+- **One seeded stream.** Any change to the count or order of `_rng` draws in `CpuPitch` / `CpuSwing` reseeds every `AutoPlay` game. That child says so in the PR body and never tunes to pass. S-29 and S-27 are re-reported on demand (Actions → Full tests).
 - **Rules tables use named properties.** A `Dictionary` or `List` bypasses the reflective validator and the JSON = code parity tests (`Rules.cs:239-268`, `RulesTests.cs:36,48`).
-- **c80 parity.** `trials/c80` overlays whole files. A new required field in `role-players.json` or a rules file needs the same row there.
+- **c80 parity.** On demand. `trials/c80` overlays whole files, so a new required field in `role-players.json` or a rules file is missing there until the trial is next used. If a breakage-suite test fails on the missing field, add that row and nothing more. Freeze, promote or retire C80 is open for Jack ([agent-rails.md](agent-rails.md) §1.3).
 - **Tutorial validator coupling.** `RoleTables` rows, `mechanics.json` and `lessons.json` move together or `cli tutorials` fails. A mechanic with no `RoleTables` row is invisible to the gate, so a new verb needs a row.
 - **Second client.** `src/GrandSluggers.Play` compiles against the sim. A signature change must keep it building.
 - **`unity/` is not in the solution.** `dotnet build` and the test suite cannot see a Unity call site. Only `tools/unity-compile.sh` does, and a positional argument hides from a grep for the parameter name (#811, `StillCapture.cs`).
 - **A stored double pins the platform.** `Math.Sin` differs by 1 ULP between macOS and glibc. A golden stores only libm-free bits and composes the rest on the running platform, still exact (#811). A child is not done until `portable` CI is green on its final head.
 - **Unity reads `Rules.Default`** in `PitchFlight` calls (`AtBatDirector.cs:337,355,425`). A family table must be read through the match's table or a trial overlay diverges.
-- **Register.** Each child appends its issue and PR to `implementation_issues`, adds `validation_evidence`, appends `history`, and never writes `human_acceptance`. Numbers need `trial-accepted` from Jack first.
+- **Register.** A child does not edit the register. One batched docs PR, at a phase checkpoint or when Jack asks, records Jack's answers and refinements and updates `implementation_issues`, `validation_evidence` and `history`. Nobody but Jack writes `human_acceptance`. Numbers need `trial-accepted` from Jack first.
 - **Session kinds.** Sim and data = Gameplay. Unity wiring, HUD, book pair, lesson copy = Presentation. Separate PRs. The book pair (`HowToPlay.cs` + `docs/how-to-play.md`) moves in the PR where the couch verb actually changes.
 
 ## 3. Dependency map
@@ -200,6 +202,8 @@ Consequences for the map:
 - **Phase 6 starts with one removal child** (PH-16-R18 + R19), then one reviewed proposal per ability.
 
 ## 6. Ledger
+
+Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by each child ([agent-rails.md](agent-rails.md) §1.2).
 
 | Child | Issue | PR | Merged | Tested revision | Human gate |
 | --- | --- | --- | --- | --- | --- |
