@@ -825,12 +825,23 @@ public sealed class OutsScenarioTests
         return (match, runner, hit, preview);
     }
 
-    /// <summary>Home nine on defense: captain vale on the mound, lace at first, ashlord at short, the rest a neutral mix; the away leadoff bats.</summary>
+    /// <summary>
+    /// Home nine on defense: captain vale on the mound, lace at first, ashlord at short, the rest a neutral mix; the away
+    /// leadoff bats. A Royal captain's home is Crystal, so these rows were written on Crystal's field; they are the outs
+    /// geometry, not the park, so they keep that field (its fences, bags and freezers) without the ice, the glass and the
+    /// air F9-a gave it, which would change the ball under every row.
+    /// </summary>
     Match Defense(string leadoff, int seed = 1)
     {
         var home = _content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
         var away = _content.Team("Offense", "zig", leadoff, "dart", "jester", "cinder", "grit", "soot", "boom", "nugget");
-        return Match.Exhibition(_content, home, away, 3, seed);
+        var field = _content.MustPark(PresetTeams.HomeParkId(_content, "vale")) with
+        {
+            Environment = null,
+            Fence = null,
+            Zones = new ParkZones(Outfield: Ground.Grass, FoulApron: Ground.Grass),
+        };
+        return new Match(_content, away, home, field, 3, seed);
     }
 
     /// <summary>Station the away order's next hitters on the given bags (bag 1 gets the second hitter, and so on).</summary>
