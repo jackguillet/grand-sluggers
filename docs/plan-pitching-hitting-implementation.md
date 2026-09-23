@@ -251,9 +251,8 @@ Every child in §3 is merged. Nothing below is a passed gate.
 - P2-d's drawn oval and P2-e's missing plate chemistry have not been looked at in the game.
 
 **Trials**
-- `trials/bunt` (PH-14-R1): exit 22 / 28 / 40 mph and spread 10 / 20 / 44 degrees for perfect / nice / sour; a sour bunt pops above the bat's center.
+- `trials/bunt` (PH-14-R1) and `trials/cpu-read` (PH-18) are no longer open: Jack accepted both on September 23, 2026 ("1-3 approve", without a sitting), and they are the shipped rules.
 - `trials/stars` (PH-16-R7, R4 … R6, R16): tier prices 1 / 2 / 3, guest-captain surcharge 1, reserve 3, base gain 0.1 per plate appearance; the mid / top assignment per captain.
-- `trials/cpu-read` (PH-18): the CPU batter commits from the flight as it stands.
 
 **Questions the children raised**
 - Bunt: should the CPU corner on the called side crash harder? Is a 50 / 50 CPU sac-bunt side right? A trigger held after a take keeps the bat squared into the next pitch: intended? Trigger press point (0.5)? East always the cancel at the plate, never a Training skip? A third-base T-B11? T-B07's progress reset?

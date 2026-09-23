@@ -157,18 +157,10 @@ public sealed class StarPitchWindowScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S194_TheRetiredWhiffChanceIsRefusedByNameOnEveryRootThatCarriesABattingTable()
+    public void S194_TheRetiredWhiffChanceIsRefusedByName()
     {
-        var batting = new[]
-        {
-            Path.Combine(_content.Root.Shipped, "rules", "batting.json"),
-            Path.Combine(_content.Root.Shipped, "..", "trials", "cpu-read", "rules", "batting.json")
-        };
-        foreach (var file in batting)
-        {
-            var star = Parse(file)["star"]!.AsObject();
-            Assert.False(star.ContainsKey("phonyballWhiff"), file);
-        }
+        var file = Path.Combine(_content.Root.Shipped, "rules", "batting.json");
+        Assert.False(Parse(file)["star"]!.AsObject().ContainsKey("phonyballWhiff"), file);
 
         using var fixture = new ContentFixture();
         var path = fixture.Path("rules/batting.json");

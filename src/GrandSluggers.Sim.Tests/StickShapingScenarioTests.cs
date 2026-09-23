@@ -283,8 +283,8 @@ public sealed class StickShapingScenarioTests
         {
             var match = Match.Slice(_shipped, innings: 3, seed: seed);
             AssertTheComposedPath(match);
-            var first = match.CpuSwing(Middle, inZone: true);
-            var second = match.CpuSwing(Middle, inZone: true);
+            var first = match.CpuSwing(Middle);
+            var second = match.CpuSwing(Middle);
 
             Assert.False(first.Star);
             Assert.Equal(0, first.SprayAimDeg);
@@ -303,7 +303,7 @@ public sealed class StickShapingScenarioTests
         var ordinary = 0;
         foreach (var seed in Enumerable.Range(1, 120))
         {
-            var onShipped = CaptainUp(_shipped, seed).CpuSwing(Middle, inZone: true);
+            var onShipped = CaptainUp(_shipped, seed).CpuSwing(Middle);
             Assert.True(onShipped.Swing);
             if (onShipped.Bunt) continue;
             if (onShipped.Star)
@@ -337,7 +337,7 @@ public sealed class StickShapingScenarioTests
         {
             var onShipped = LightBatWithARunnerOnFirst(_shipped, seed);
             if (!onShipped.CpuSquaresBunt()) continue;
-            var shippedBunt = onShipped.CpuSwing(Middle, inZone: true);
+            var shippedBunt = onShipped.CpuSwing(Middle);
             Assert.True(shippedBunt.Bunt);
             Assert.NotEqual(BuntSide.None, shippedBunt.BuntSide);
             Assert.Equal(onShipped.CpuBuntSide, shippedBunt.BuntSide);

@@ -14,15 +14,13 @@ namespace GrandSluggers.Sim.Tests;
 /// comes up. The input rows drive <see cref="PlateButtons.Advance"/> frame by frame, the way a client does; the ball
 /// rows go through <see cref="AtBatResolver"/> and <see cref="Match.Play"/>.
 ///
-/// The bunt response by contact quality (PH-14-R1) is a trial: <c>batting.bunt.response.byContact</c> is off on the
-/// shipped root and on in <c>trials/bunt</c>. Both roots are loaded in process (S-167 … S-169), so nothing here
-/// depends on <c>GRAND_SLUGGERS_TRIAL</c>. No row stores a double.
+/// The ball off the held bat is the bunt's own response by contact quality (PH-14-R1, S-167 … S-169), with no switch
+/// and no swing term. The shipped root is loaded in process, so nothing here depends on <c>GRAND_SLUGGERS_TRIAL</c>.
+/// No row stores a double.
 /// </summary>
 public sealed class BuntHoldScenarioTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
-    static readonly string TrialDir = Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "bunt"));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped, TrialDir));
 
     const double Dt = 1.0 / 60;
     static double ToFull => Shipped.Feel.SwingChargeSeconds;
@@ -190,15 +188,22 @@ public sealed class BuntHoldScenarioTests
         {
             var third = new List<double>();
             var first = new List<double>();
+            var sourThird = new List<double>();
+            var sourFirst = new List<double>();
+            var sour = CrossingFor(Shipped, Rio(bats), ContactQuality.Sour, -0.3);
             for (var seed = 1; seed <= 200; seed++)
             {
                 third.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, 0, 0, CenterY), park, new Random(seed)).SprayDeg);
                 first.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.First, 0, 0, CenterY), park, new Random(seed)).SprayDeg);
+                sourThird.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, 0, sour, CenterY - 0.3), park, new Random(seed)).SprayDeg);
+                sourFirst.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.First, 0, sour, CenterY - 0.3), park, new Random(seed)).SprayDeg);
             }
             Assert.True(third.Average() < 0 && first.Average() > 0, $"{bats}: {third.Average()} / {first.Average()}");
-            // A bias: some third-side bunts still roll to the right of straight, some first-side ones to the left.
-            Assert.Contains(third, x => x > 0);
-            Assert.Contains(first, x => x < 0);
+            // A bias, not a landing point: the ball spreads around the lean (by quality, §5.8), and a poorly met bunt
+            // can still roll across straight — some third-side sour bunts to the right, some first-side ones to the left.
+            Assert.True(third.Distinct().Count() > 1 && first.Distinct().Count() > 1, $"{bats}: the side is not a point");
+            Assert.Contains(sourThird, x => x > 0);
+            Assert.Contains(sourFirst, x => x < 0);
         }
     }
 
@@ -471,11 +476,11 @@ public sealed class BuntHoldScenarioTests
             Assert.Equal(side, match.CpuBuntSide);
 
             // Out of the zone the bat is pulled back: a take, the corners still in.
-            var ball = match.CpuSwing(Scenario.PitchAt(2.5, CenterY), inZone: false);
+            var ball = match.CpuSwing(Scenario.PitchAt(2.5, CenterY));
             Assert.False(ball.Swing);
             Assert.True(ball.SquareSec > 0);
             // In the zone: the held bunt, toward the side, with no timed press.
-            var bunt = match.CpuSwing(Scenario.PitchAt(0, CenterY), inZone: true);
+            var bunt = match.CpuSwing(Scenario.PitchAt(0, CenterY));
             Assert.Equal((true, side, 0.0), (bunt.Bunt, bunt.BuntSide, bunt.TimingErrorFrames));
             var ev = match.Play(Scenario.PitchAt(0, CenterY), bunt);
             Assert.Equal(side, ev.Swing.BuntSide);
@@ -486,64 +491,80 @@ public sealed class BuntHoldScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-167  Shipped: the bunt keeps today's response
+    // S-167  The bunt's exit is its own: no swing term reaches it, and no switch or old term is a rule
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S167_OnTheShippedRootTheBuntKeepsTodaysResponse()
+    public void S167_TheBuntsExitIsItsOwnByQualityAndNoSwingTermReachesIt()
     {
-        Assert.False(Shipped.Rules.Batting.Bunt.Response.ByContact);
         var resolver = Resolver(Shipped);
         var park = Harbor(Shipped);
-        var b = Shipped.Rules.Batting;
+        var r = Shipped.Rules.Batting.Bunt.Response;
         var rio = Rio(Hand.R);
         foreach (var zone in new[] { ContactQuality.Perfect, ContactQuality.Nice })
         foreach (var seed in new[] { 1, 7, 42 })
         {
             var x = CrossingFor(Shipped, rio, zone, 0);
-            var swing = resolver.Resolve(Input(Shipped, rio, BuntSide.None, 0, x, CenterY) with { Bunt = false }, park, new Random(seed));
-            var bunt = resolver.Resolve(Input(Shipped, rio, BuntSide.None, 0, x, CenterY), park, new Random(seed));
-            Assert.Equal(zone, bunt.Quality);
-            // The ordinary exit deadened by exitMul (both rounded to a tenth once).
-            Assert.True(Math.Abs(swing.ExitVeloMph * b.Bunt.ExitMul - bunt.ExitVeloMph) <= 0.1,
-                $"{zone} seed {seed}: {swing.ExitVeloMph} x {b.Bunt.ExitMul} vs {bunt.ExitVeloMph}");
-            Assert.InRange(bunt.LaunchDeg, b.Bunt.LaunchMinDeg, b.Bunt.LaunchMinDeg + b.Bunt.LaunchSpanDeg);
+            var input = Input(Shipped, rio, BuntSide.None, 0, x, CenterY);
+            var swing = resolver.Resolve(input with { Bunt = false }, park, new Random(seed));
+            // The swing's charged pitch, the tired arm and the swing's own exit move nothing on the held bat.
+            foreach (var bunt in new[]
+                     {
+                         resolver.Resolve(input, park, new Random(seed)),
+                         resolver.Resolve(input with { ChargePitch = true }, park, new Random(seed)),
+                         resolver.Resolve(input with { PitcherStamina = 1 }, park, new Random(seed)),
+                     })
+            {
+                Assert.Equal(zone, bunt.Quality);
+                Assert.Equal(r.ExitMph.For(zone), bunt.ExitVeloMph);
+                Assert.InRange(bunt.LaunchDeg, Shipped.Rules.Batting.Bunt.LaunchMinDeg,
+                    Shipped.Rules.Batting.Bunt.LaunchMinDeg + Shipped.Rules.Batting.Bunt.LaunchSpanDeg);
+            }
+            Assert.True(swing.ExitVeloMph > r.ExitMph.For(zone), $"{zone} seed {seed}: the swing {swing.ExitVeloMph} is the harder ball");
         }
-        // A sour bunt pops, above or below the bat's center.
-        foreach (var dy in new[] { -0.3, 0.3 })
+
+        // The bunt table authors no switch and none of the retired swing-derived terms; a copy that does is refused by name.
+        var opts = new System.Text.Json.JsonDocumentOptions { CommentHandling = System.Text.Json.JsonCommentHandling.Skip };
+        foreach (var (key, value) in new (string, JsonNode)[] { ("response.byContact", false), ("exitMul", 0.42), ("spraySpanDeg", 28) })
         {
-            var x = CrossingFor(Shipped, rio, ContactQuality.Sour, dy);
-            var sour = resolver.Resolve(Input(Shipped, rio, BuntSide.None, 0, x, CenterY + dy), park, new Random(1));
-            Assert.Equal(ContactQuality.Sour, sour.Quality);
-            Assert.True(sour.LaunchDeg >= b.Launch.PopMinDeg, $"dy {dy}: {sour.LaunchDeg}");
+            using var fixture = new ContentFixture();
+            var path = fixture.Path("rules/batting.json");
+            var json = JsonNode.Parse(File.ReadAllText(path), documentOptions: opts)!;
+            var parts = key.Split('.');
+            var node = json["bunt"]!;
+            foreach (var part in parts[..^1]) node = node[part]!;
+            Assert.False(node.AsObject().ContainsKey(parts[^1]), key);
+            node[parts[^1]] = value;
+            File.WriteAllText(path, json.ToJsonString());
+            Assert.Contains(RulesTable.Validate(new DataRoot(fixture.Root)),
+                e => e.Contains($"batting.bunt.{key} is not a rule this table owns", StringComparison.Ordinal));
         }
     }
 
     // ---------------------------------------------------------------------------------
-    // S-168  Trial: the bunt's own response by contact quality (PH-14-R1)
+    // S-168  A square bunt is the dead, controlled one, and Power does not harden it (PH-14-R1)
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S168_UnderTheTrialASquareBuntIsTheDeadControlledOneAndPowerDoesNotHardenIt()
+    public void S168_ASquareBuntIsTheDeadControlledOneAndPowerDoesNotHardenIt()
     {
-        var r = Trial.Rules.Batting.Bunt.Response;
-        Assert.True(r.ByContact);
+        var r = Shipped.Rules.Batting.Bunt.Response;
         Assert.True(r.ExitMph.Perfect < r.ExitMph.Nice && r.ExitMph.Nice < r.ExitMph.Sour, "better contact is softer");
         Assert.True(r.SpreadDeg.Perfect < r.SpreadDeg.Nice && r.SpreadDeg.Nice < r.SpreadDeg.Sour, "better contact is tighter");
-        Assert.True(r.ExitMph.Sour >= Trial.Rules.Fielding.Bunt.HardExitMph, "a poor chop is too hard for the sac");
-        var resolver = Resolver(Trial);
-        var park = Harbor(Trial);
-        var lean = BuntHold.LeanDeg(BuntSide.First, Trial.Rules);
+        Assert.True(r.ExitMph.Sour >= Shipped.Rules.Fielding.Bunt.HardExitMph, "a poor chop is too hard for the sac");
+        var resolver = Resolver(Shipped);
+        var park = Harbor(Shipped);
+        var lean = BuntHold.LeanDeg(BuntSide.First, Shipped.Rules);
         foreach (var zone in new[] { ContactQuality.Perfect, ContactQuality.Nice })
         {
             var widest = 0.0;
             foreach (var power in new[] { 2, 9 })
             {
                 var batter = Rio(Hand.R) with { Stats = Rio(Hand.R).Stats with { Power = power } };
-                var x = CrossingFor(Trial, batter, zone, 0);
+                var x = CrossingFor(Shipped, batter, zone, 0);
                 for (var seed = 1; seed <= 100; seed++)
                 {
-                    var hit = resolver.Resolve(Input(Trial, batter, BuntSide.First, 0, x, CenterY), park, new Random(seed));
+                    var hit = resolver.Resolve(Input(Shipped, batter, BuntSide.First, 0, x, CenterY), park, new Random(seed));
                     Assert.Equal(zone, hit.Quality);
                     Assert.Equal(r.ExitMph.For(zone), hit.ExitVeloMph);
                     widest = Math.Max(widest, Math.Abs(hit.SprayDeg - lean));
@@ -554,44 +575,32 @@ public sealed class BuntHoldScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-169  Trial: a sour bunt pops above the bat's center and is chopped below it; the overlay
+    // S-169  A sour bunt pops above the bat's center and is chopped below it
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S169_UnderTheTrialASourBuntPopsAboveTheBatsCenterAndIsChoppedHardBelowIt()
+    public void S169_ASourBuntPopsAboveTheBatsCenterAndIsChoppedHardBelowIt()
     {
-        var resolver = Resolver(Trial);
-        var park = Harbor(Trial);
-        var b = Trial.Rules.Batting;
+        var resolver = Resolver(Shipped);
+        var park = Harbor(Shipped);
+        var b = Shipped.Rules.Batting;
         var rio = Rio(Hand.R);
         foreach (var seed in new[] { 1, 7, 42 })
         {
-            var above = CrossingFor(Trial, rio, ContactQuality.Sour, 0.3);
-            var pop = resolver.Resolve(Input(Trial, rio, BuntSide.Third, 0, above, CenterY + 0.3), park, new Random(seed));
+            var above = CrossingFor(Shipped, rio, ContactQuality.Sour, 0.3);
+            var pop = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, above, CenterY + 0.3), park, new Random(seed));
             Assert.Equal(ContactQuality.Sour, pop.Quality);
             Assert.True(pop.LaunchDeg >= b.Launch.PopMinDeg, $"above: {pop.LaunchDeg}");
 
-            var below = CrossingFor(Trial, rio, ContactQuality.Sour, -0.3);
-            var chop = resolver.Resolve(Input(Trial, rio, BuntSide.Third, 0, below, CenterY - 0.3), park, new Random(seed));
+            var below = CrossingFor(Shipped, rio, ContactQuality.Sour, -0.3);
+            var chop = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, below, CenterY - 0.3), park, new Random(seed));
             Assert.Equal(ContactQuality.Sour, chop.Quality);
             Assert.InRange(chop.LaunchDeg, b.Bunt.LaunchMinDeg, b.Bunt.LaunchMinDeg + b.Bunt.LaunchSpanDeg);
             Assert.Equal(b.Bunt.Response.ExitMph.Sour, chop.ExitVeloMph);
         }
-        // A crossing high over the zone still pops whatever the quality (the high rule is shipped and trial alike).
-        var high = resolver.Resolve(Input(Trial, rio, BuntSide.Third, 0, 0, CenterY + b.Bunt.PopAboveCenterFt + 0.1), park, new Random(1));
+        // A crossing high over the zone still pops whatever the quality.
+        var high = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, 0, CenterY + b.Bunt.PopAboveCenterFt + 0.1), park, new Random(1));
         Assert.True(high.LaunchDeg >= b.Launch.PopMinDeg);
-
-        // The overlay is the shipped batting file with the one switch on.
-        var files = Directory.GetFiles(TrialDir, "*.json", SearchOption.AllDirectories)
-            .Select(f => Path.GetRelativePath(TrialDir, f).Replace('\\', '/')).ToArray();
-        Assert.Equal(["rules/batting.json"], files);
-        var opts = new System.Text.Json.JsonDocumentOptions { CommentHandling = System.Text.Json.JsonCommentHandling.Skip };
-        var shipped = JsonNode.Parse(File.ReadAllText(Path.Combine(Shipped.Root.Shipped, "rules", "batting.json")), documentOptions: opts)!;
-        var trial = JsonNode.Parse(File.ReadAllText(Path.Combine(TrialDir, "rules", "batting.json")), documentOptions: opts)!;
-        Assert.False(shipped["bunt"]!["response"]!["byContact"]!.GetValue<bool>());
-        Assert.True(trial["bunt"]!["response"]!["byContact"]!.GetValue<bool>());
-        trial["bunt"]!["response"]!["byContact"] = false;
-        Assert.Equal(shipped.ToJsonString(), trial.ToJsonString());
     }
 
     // ---- helpers ---------------------------------------------------------------------
