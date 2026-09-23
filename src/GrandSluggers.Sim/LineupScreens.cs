@@ -6,7 +6,7 @@ public enum LineupStep { TeamSetup, DefenseSetup }
 public enum LineupSeat { Pad1, Pad2, Cpu }
 
 /// <summary>
-/// Stick target. Team Setup: a row or the pool. Defense Setup: a batting bar or a diamond.
+/// Stick target. Team Setup: a row or the pool. Defense Setup: a batting list or a diamond.
 /// </summary>
 public enum LineupFocus
 {
@@ -28,7 +28,7 @@ public readonly record struct LineupCell(double X, double Y, double W, double H)
 
 /// <summary>
 /// Exhibition lineup is two screens: Team Setup (two bars + pool) then Offense/Defense Setup
-/// (two batting bars + two fielding diamonds). Unity draws this. Seats own a row; 1v1
+/// (two batting lists + two fielding diamonds). Unity draws this. Seats own a row; 1v1
 /// sits pad 2 on the away side without a second toolkit.
 /// </summary>
 public sealed class LineupScreens
@@ -281,35 +281,34 @@ public sealed class LineupScreens
         return false;
     }
 
-    /// <summary>
-    /// Live pad 2: sit away as human (empty the CPU nine) or unplug (CPU fills).
-    /// Does not restart the inning — Unity remaps seats around the same match.
-    /// </summary>
+    /// <summary>Seat changes preserve human drafts; a newly human side starts with its captain.</summary>
     public void Sit(LineupSeat home, LineupSeat away)
     {
+        if (HomeSeat == home && AwaySeat == away) return;
         CancelPick(LineupSeat.Pad1);
         CancelPick(LineupSeat.Pad2);
+        UpdateSide(_home, HomeCaptain, HomeSeat, home);
+        UpdateSide(_away, AwayCaptain, AwaySeat, away);
         HomeSeat = home;
-        if (AwaySeat == away) return;
         AwaySeat = away;
-        if (away == LineupSeat.Cpu)
+        foreach (var seat in new[] { LineupSeat.Pad1, LineupSeat.Pad2 })
         {
-            var blocked = Occupied().Where(id =>
-                !_away.Any(c => c != null && c.Id.Equals(id, StringComparison.OrdinalIgnoreCase)));
-            FillRow(_away, AwayCaptain, blocked);
-            if (Step == LineupStep.TeamSetup)
-            {
-                _pad2.Focus = HomeSeat == LineupSeat.Pad2 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
-                _pad2.SlotIndex = 0;
-            }
-            return;
+            var c = Cur(seat);
+            var ownsHome = home == seat;
+            c.Focus = Step == LineupStep.TeamSetup ? LineupFocus.Pool
+                : ownsHome ? LineupFocus.HomeOrder : LineupFocus.AwayOrder;
+            c.SlotIndex = FirstEmpty(ownsHome ? _home : _away);
+            c.PoolIndex = Math.Clamp(c.PoolIndex, 0, Math.Max(0, Pool.Count - 1));
         }
-        if (Step != LineupStep.TeamSetup) return;
-        for (var i = 1; i < Size; i++)
-            _away[i] = null;
-        _pad2.Focus = HomeSeat == LineupSeat.Pad2 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
-        _pad2.SlotIndex = FirstEmpty(_away);
-        ClampPool();
+    }
+
+    void UpdateSide(Character?[] row, Character captain, LineupSeat previous, LineupSeat next)
+    {
+        if (previous == next) return;
+        if (next == LineupSeat.Cpu)
+            FillRow(row, captain, Occupied().Where(id => !row.Any(c => c != null && c.Id == id)));
+        else if (previous == LineupSeat.Cpu && Step == LineupStep.TeamSetup)
+            for (var i = 1; i < Size; i++) row[i] = null;
     }
 
     public string Help => Step == LineupStep.TeamSetup

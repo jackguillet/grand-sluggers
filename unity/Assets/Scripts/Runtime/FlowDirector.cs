@@ -373,12 +373,12 @@ namespace GrandSluggers.UnityClient
 
         void TickLineup()
         {
-            if (Key(KeyCode.B)) _match.CycleBat(true);
-            if (Key(KeyCode.G)) _match.CycleGlove(true);
-            if (Key(KeyCode.N)) _match.CycleBat(false);
-            if (Key(KeyCode.M)) _match.CycleGlove(false);
             if (_lineup == null)
             {
+                if (Key(KeyCode.B)) _match.CycleBat(true);
+                if (Key(KeyCode.G)) _match.CycleGlove(true);
+                if (Key(KeyCode.N)) _match.CycleBat(false);
+                if (Key(KeyCode.M)) _match.CycleGlove(false);
                 if (Controls.SouthDown || _t > 10f) BeginSet();
                 return;
             }
