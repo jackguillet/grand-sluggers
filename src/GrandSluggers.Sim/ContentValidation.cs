@@ -85,7 +85,9 @@ public static class ContentDataValidator
         data.ChemistrySource = chemistryPath;
 
         var skillsPath = root.Resolve("abilities", "star-skills.json");
-        data.StarSkills = ReadJson<StarSkillsDto>(skillsPath, json, data.ReadErrors) ?? new();
+        // Read strictly (spec §13): a key no skill declares is a stop, so a retired key such as
+        // batterWindowMul (PH-16-R1) cannot sit in the file looking like it still bends a pitch.
+        data.StarSkills = ReadJson<StarSkillsDto>(skillsPath, json, data.ReadErrors, strict: true) ?? new();
         data.StarSkillsSource = skillsPath;
 
         // Rule numbers (spec §16). Missing fields fall back to code; unknown fields and bad ranges are errors.
@@ -201,6 +203,14 @@ public static class ContentDataValidator
                     i++;
                 }
             }
+            else if (DictionaryRowType(p.PropertyType) is { } keyed && field.Value.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var entry in field.Value.EnumerateObject())
+                {
+                    if (entry.Value.ValueKind != JsonValueKind.Null)
+                        UnknownKeys(entry.Value, keyed, $"{path}{Camel(p.Name)}.{entry.Name}.", source, errors);
+                }
+            }
             else if (Nested(p.PropertyType))
                 UnknownKeys(field.Value, p.PropertyType, $"{path}{Camel(p.Name)}.", source, errors);
         }
@@ -212,6 +222,16 @@ public static class ContentDataValidator
         if (!type.IsGenericType) return null;
         var arg = type.GetGenericArguments()[0];
         arg = Nullable.GetUnderlyingType(arg) ?? arg;
+        return Nested(arg) ? arg : null;
+    }
+
+    /// <summary>The row type behind a <c>Dictionary&lt;string, T?&gt;</c> of authored rows keyed by id, else null.</summary>
+    static Type? DictionaryRowType(Type type)
+    {
+        if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(Dictionary<,>)) return null;
+        var args = type.GetGenericArguments();
+        if (args[0] != typeof(string)) return null;
+        var arg = Nullable.GetUnderlyingType(args[1]) ?? args[1];
         return Nested(arg) ? arg : null;
     }
 
@@ -317,8 +337,6 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' speedMul must be greater than 0; got {value.SpeedMul?.ToString() ?? "null"}");
                 if (value.StaminaCost is null || value.StaminaCost < 0)
                     errors.Add($"{source}: star pitch '{key}' staminaCost must be at least 0; got {value.StaminaCost?.ToString() ?? "null"}");
-                if (value.BatterWindowMul is not null && (value.BatterWindowMul <= 0 || value.BatterWindowMul > 1))
-                    errors.Add($"{source}: star pitch '{key}' batterWindowMul must be in (0, 1]; got {value.BatterWindowMul}");
             }
             else
             {
@@ -1260,7 +1278,6 @@ internal sealed class StarSkillDto
     public string Kind { get; set; } = "";
     public double? SpeedMul { get; set; }
     public int? StaminaCost { get; set; }
-    public double? BatterWindowMul { get; set; }
     public bool LateBreak { get; set; }
     public bool Decoy { get; set; }
     public string? OnCatch { get; set; }
@@ -1272,7 +1289,7 @@ internal sealed class StarSkillDto
     public bool Fragments { get; set; }
 
     public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
-        BatterWindowMul ?? 1.0, LateBreak, Decoy, OnCatch);
+        LateBreak, Decoy, OnCatch);
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments);
