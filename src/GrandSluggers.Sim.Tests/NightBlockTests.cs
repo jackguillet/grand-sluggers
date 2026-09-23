@@ -328,6 +328,24 @@ public sealed class NightBlockTests
             ("ember-keep", 2, "Final  Ember Court 5  Spark All-Stars 4", "0cccb80d999ed2fc01850712f797d85915dcdd4488f6d2697a30afb58e3f1989")
         ]);
 
+    [Fact]
+    public void ZZ_Probe()
+    {
+        var rows = new List<string> { $"compact={TestRoot.Compact}" };
+        string Row(string park, int seed)
+        {
+            var log = Log(Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: seed, parkId: park, night: true));
+            rows.Add($"(\"{park}\", {seed}, \"{log[(log.LastIndexOf('\n') + 1)..]}\", \"{Sha(log)}\") chomp={log.Contains("A chomper ate it!", StringComparison.Ordinal)}");
+            return log;
+        }
+        Row("funfair-park", 1);
+        for (var s = 2; s < 80; s++)
+            if (Row("funfair-park", s).Contains("A chomper ate it!", StringComparison.Ordinal)) break;
+        Row("ember-keep", 1);
+        Row("ember-keep", 2);
+        Assert.Fail(string.Join("\n", rows));
+    }
+
     /// <summary>
     /// <c>SF-25</c> parity, on the process's root: Funfair's night games are bit-identical to the games they
     /// were before the chompers moved into the night block, and Ember's are unchanged (its breath's reach is
