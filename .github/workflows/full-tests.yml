@@ -1,0 +1,44 @@
+name: Full tests
+
+# The whole suite: every test class, the C80 re-run, the tool tests and the evidence seals.
+# Not run on PRs. Start it from the Actions tab (Run workflow) on any branch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Install tooling shell
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes zsh
+      - run: dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj
+      # The diamond is process-wide, so a scenario row is only honest on the C80 copy in a process whose data root
+      # is the copy (#715). Classes whose every row holds on both roots carry [Trait("Rows", "compact")]; this run
+      # plays them on the compact diamond, where TestRoot.Pick takes each row's compact fixture. A row tagged
+      # [Trait("Copy", "gap")] records something the copy does not carry yet (a camera, a code literal in feet):
+      # reported, not repaired, and skipped here until promotion decides it.
+      - name: The scenario rows hold on the C80 copy
+        run: dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj --no-build --filter "Rows=compact&Copy!=gap"
+        env:
+          GRAND_SLUGGERS_TRIAL: trials/c80
+      - run: dotnet run --project src/GrandSluggers.Cli -- art
+      - run: dotnet run --project src/GrandSluggers.Cli -- tutorials
+      - run: python3 -m unittest discover -s tools/tests -p 'test_*.py'
+      # Both research evidence files seal the sources they were derived from.
+      # Refresh order matters: the compact-field report asserts the flight seals
+      # inside derive(), so a stale flight file blocks it in either mode. Regenerate
+      # with the probe's --write first, then run the report with no flag.
+      - name: Flight evidence seals are current
+        run: dotnet run --project tools/game-feel-flight-probes -- --check
+      - name: Compact field evidence seals are current
+        run: python3 tools/compact-field-report.py --check
+
