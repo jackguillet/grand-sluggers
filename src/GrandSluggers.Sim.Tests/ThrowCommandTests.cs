@@ -181,7 +181,8 @@ public sealed class ThrowCommandTests
                 Assert.False(clearedSeen);
                 Assert.NotNull(onward);
                 Assert.Equal(4, onward!.Bag);
-                Assert.InRange(onwardAt - catchAt, 0, Frame + 1e-9);
+                Assert.InRange(onwardAt - catchAt, match.Rules.Fielding.Abilities.SnapReleaseSec - Frame,
+                    match.Rules.Fielding.Abilities.SnapReleaseSec + Frame + 1e-9);
                 break;
             case "late":
             case "cancel":
@@ -201,8 +202,8 @@ public sealed class ThrowCommandTests
             var dist = Diamond.Dist(onward.FromX, onward.FromZ, home.X, home.Z);
             var snap = new ThrowResult(Chemistry.Neutral, onward.SpeedMul, false, Arm: who.Stats.Arm, ReleaseSec: match.Rules.Fielding.Abilities.SnapReleaseSec);
             var ordinary = snap with { ReleaseSec = null };
-            Assert.Equal(InPlay.ThrowSec(dist, snap, match.Rules), onward.DurationSec, 6);
-            Assert.Equal(0.08, InPlay.ThrowSec(dist, ordinary, match.Rules) - onward.DurationSec, 6);
+            Assert.Equal(InPlay.ThrowSec(dist, snap, match.Rules), onward.DurationSec + snap.ReleaseSec!.Value, 6);
+            Assert.Equal(0.08, InPlay.ThrowSec(dist, ordinary, match.Rules) - (onward.DurationSec + snap.ReleaseSec.Value), 6);
         }
     }
 

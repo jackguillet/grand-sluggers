@@ -219,10 +219,9 @@ public class GameplayTests
         Assert.True(match.StartSteal());
         Assert.True(match.StealAttempt);
         Assert.True(match.StealOn);
-        // D1: no lead to walk back; stick back on the runner is the steal coming off.
+        // Return is an order on the same body, not an arm toggle.
         Assert.True(match.ReturnToBag());
-        Assert.False(match.StealAttempt);
-        Assert.False(match.StealOn);
+        Assert.Equal(match.SelectedState!.Bag, match.SelectedState.DestBag);
         Assert.True(match.Slide());
     }
 
@@ -390,16 +389,16 @@ public class GameplayTests
         WalkOnSecond(match);
         Assert.NotNull(match.First);
         Assert.NotNull(match.Second);
-        // Before the pitch (D1): LB arms tag-and-go, RB and both shoulders take it off; nobody moves.
         Assert.True(match.AdvanceAll());
-        Assert.True(match.SendAll);
-        Assert.All(match.Runners, r => Assert.True(r.OnBag));
+        match.PitchSetup.Advance(.2);
+        Assert.All(match.Runners, r => Assert.True(r.Feet > 0));
         Assert.True(match.ReturnAll());
-        Assert.False(match.SendAll);
+        match.PitchSetup.Advance(.3);
+        Assert.All(match.Runners, r => Assert.True(r.OnBag));
         Assert.True(match.AdvanceAll());
+        match.PitchSetup.Advance(.1);
         Assert.True(match.FreezeRunners());
-        Assert.False(match.SendAll);
-        Assert.False(match.StealOn);
+        Assert.All(match.Runners, r => Assert.True(r.Held));
         Assert.True(match.ToggleSteal());
         Assert.True(match.StealOn);
     }
@@ -441,7 +440,6 @@ public class GameplayTests
         var match = Match.Slice(_content, seed: 1);
         var runner = _content.Must("rio");
         match.StationRunner(1, runner);
-        Assert.True(match.AdvanceAll());
         var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(pitch, swing, out _, out _));
@@ -449,7 +447,7 @@ public class GameplayTests
         var hit = FlightFixtures.Landing(match.Park, 250, 34, 0);
         var preview = match.PreviewHit(hit);
         var field = new FieldingResult(PlayKind.FlyOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
-        var ev = match.FinishAtBat(pitch, swing, hit, field);
+        var ev = FlyWithOrder(match, pitch, swing, hit, preview, field, LiveSeats.CpuOnly, true);
 
         // All-advance before the catch is tag and go (§9.5): the runner leaves first at the catch; the
         // throw to second decides whether they make it. Either way they are not on first any more.
@@ -471,7 +469,6 @@ public class GameplayTests
             WalkOnThird(match);
             if (match.Third is null) continue;
             var thirdId = match.Third.Id;
-            if (sendAll) match.AdvanceAll();
             var paint = new PitchCommand("fastball", 0, false);
             var swing = new SwingCommand(true, 0, 0, false);
             if (!match.BeginAtBat(paint, swing, out _, out _))
@@ -479,15 +476,28 @@ public class GameplayTests
             var deep = FlightFixtures.Landing(match.Park, 280, 32, 0);
             var preview = match.PreviewHit(deep);
             var field = new FieldingResult(PlayKind.FlyOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
-            // The offense is a human seat with nothing pressed: the default is the hold (§9.5); LB before the pitch is tag and go.
+            // The offense is a human seat with nothing pressed: the default is the hold (§9.5); LB after contact and before the catch is tag and go.
             var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
-            var ev = match.RunLive(paint, swing, deep, preview, field, seats, LivePlayCommandSource.Human);
+            var ev = FlyWithOrder(match, paint, swing, deep, preview, field, seats, sendAll);
             var scored = ev.RunsScored > 0;
             if (!sendAll)
                 Assert.True(match.Third is null || match.Third.Id == thirdId || match.Outs >= 3);
             return (scored, ev.Kind);
         }
         return (false, PlayKind.FlyOut);
+    }
+
+    static PlayEvent FlyWithOrder(Match match, PitchCommand pitch, SwingCommand swing, AtBatResult hit,
+        FieldingPreview preview, FieldingResult field, LiveSeats seats, bool sendAll)
+    {
+        match.LivePlay.Apply(LivePlayCommand.BeginLive(pitch, swing, hit, preview, field, seats, 0, LivePlayCommandSource.Human));
+        if (sendAll) Assert.True(match.AdvanceAll());
+        for (var i = 0; i < 60 * 45; i++)
+        {
+            var result = match.LivePlay.Apply(LivePlayCommand.Tick(Match.HeadlessTickSec));
+            if (result.CompletedPlay is { } play) return play;
+        }
+        throw new InvalidOperationException("fly did not finish");
     }
 
     static void WalkOnThird(Match match)

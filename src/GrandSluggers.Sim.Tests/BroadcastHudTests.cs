@@ -51,6 +51,26 @@ public class BroadcastHudTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void StarMetersFollowTheMatchSettingEvenWithEmptyPools(bool stars)
+    {
+        foreach (var bottom in new[] { false, true })
+        {
+            var match = Match.Exhibition(_content, "rio", "ashlord", stars: stars);
+            if (bottom) match.SkipToHomeHalf();
+            if (match.Pitcher.Id != match.Defense.Captain.Id)
+                Assert.True(match.SwapPitcher(match.Defense.Captain));
+            Assert.Equal(stars, BroadcastHud.From(match).StarsEnabled);
+            // Each captain's own top-tier pitch spends the reserve without completing a plate appearance.
+            match.Play(Scenario.PitchAt(2.5, StrikeZoneGeometry.CenterY) with { Star = true }, Scenario.Take);
+            var bug = BroadcastHud.From(match);
+            Assert.Equal(0, bug.DefenseStars);
+            Assert.Equal(stars, bug.StarsEnabled);
+        }
+    }
+
+    [Theory]
     [InlineData(1280, 800)]
     [InlineData(1920, 1080)]
     public void PlayHudRectsStayInFrameWithMargin(int screenW, int screenH)

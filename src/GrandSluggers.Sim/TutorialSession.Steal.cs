@@ -21,13 +21,17 @@ public sealed partial class TutorialSession
         _stealRunner = Match.RunnerAt(1)?.Who.Id ?? "";
         if (_stealRunner.Length == 0 || !Match.StartStealAt(1))
             throw new InvalidDataException("Tutorial catcher setup could not arm its CPU runner.");
+        Match.PitchSetup.BeginCharge();
+        Match.PitchSetup.Advance(Motion.PitchRelease);
+        Match.PitchSetup.ReleaseBall();
+        Match.PitchSetup.Advance(PitchFlight.AirSeconds(Match.PitchSpeedMph(CpuPitch), Match.Rules));
         BeginStealPitch(new LiveSeats(false, true, true, false));
     }
 
     public bool ArmSteal(int bag, LivePlayCommandSource source = LivePlayCommandSource.Human)
     {
         if (!Accepts(source) || _setup.Policy != "steal-offense" || bag is < 1 or > 3
-            || Match.LivePlay.Active || Elapsed >= StealWindupStartsAt + Motion.PitchRelease) return false;
+            || Match.LivePlay.Active) return false;
         var runner = Match.RunnerAt(bag);
         var windup = Elapsed < StealWindupStartsAt ? -1 : Elapsed - StealWindupStartsAt;
         if (runner is null || !Match.SelectRunner(bag)) return false;
@@ -81,8 +85,8 @@ public sealed partial class TutorialSession
                 && outcome?.RunnerResult == RunnerPlayResult.StolenBase
                 && outcome.Moves.Any(m => m.Runner.Id == _stealRunner && m.FromBag == 1 && m.ToBag == 2);
             Finish(success, success ? "stole-second" : "steal-missed",
-                success ? "Your armed runner broke on the pitch and reached second safely."
-                    : "Arm the runner in the windup so their break can beat the catcher throw.");
+                success ? "Your runner left on your command and reached second safely."
+                    : "Time the departure against the windup; return if the defense can beat you.");
         }
         else if (Lesson.Objective == "human-double-steal")
         {

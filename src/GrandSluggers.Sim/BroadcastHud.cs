@@ -162,6 +162,10 @@ public static class BroadcastHud
         HudRect Banner);
 
     // Coaching must leave the ordinary score, bases and player cards readable.
+    public static readonly HudRect StealInset = new(0.018, 0.255, 0.29, 0.29);
+    public const string StealInsetTitle = "RUNNER RACE";
+    public const string PitchCommitted = "COMMITTED · deliver the pitch";
+
     public static readonly HudRect TutorialCoach = new(0.02, 0.018, 0.65, 0.19);
 
     /// <summary>
@@ -322,7 +326,8 @@ public static class BroadcastHud
         int DefenseStars,
         string AwayName,
         string HomeName,
-        IReadOnlyList<RunnerPip> Runners);
+        IReadOnlyList<RunnerPip> Runners,
+        bool StarsEnabled);
 
     /// <summary>
     /// One live runner on the mini diamond (spec §15, #606): who, the bag they started this play on (0 is the
@@ -393,7 +398,8 @@ public static class BroadcastHud
             (int)Math.Floor(match.DefenseStars),
             match.Away.Name,
             match.Home.Name,
-            RunnerPips(match));
+            RunnerPips(match),
+            match.StarsEnabled);
     }
 
     /// <summary>Booklet Game Rules spread. Copy a stranger can read without F2.</summary>

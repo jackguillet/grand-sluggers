@@ -193,10 +193,19 @@ public sealed class Runner
         InRundown = false;
     }
 
-    /// <summary>Contact: snapshot the force, clear the play flags. The steal arm survives (P6 reads it).</summary>
+    /// <summary>Contact or catcher possession: snapshot forces and preserve already departing bodies.</summary>
     public void BeginPlay(bool forced, bool tagAndGo)
     {
         Forced = forced;
+        // A departure is already a moving body. Contact/catcher possession must not reset its
+        // feet, direction or hold and then manufacture a second head start from pitch duration.
+        if (Broke)
+        {
+            TagAndGo = tagAndGo;
+            ArrivedThisTick = false;
+            InRundown = false;
+            return;
+        }
         Phase = RunnerPhase.OnBag;
         DestBag = IsBatter ? 1 : Bag;
         Velocity = 0;
@@ -273,8 +282,8 @@ public sealed class Runner
     }
 
     /// <summary>
-    /// The break (§11.2, D2 / D3): the armed body leaves the bag toward its steal target with the
-    /// head start the clock gave it (<see cref="StealBreak.HeadStartFt"/>), full speed from here.
+    /// The departure (§11.2): set the next destination. Match passes the existing feet so
+    /// this changes the order without granting distance; explicit fixtures may supply a position.
     /// </summary>
     public void Break(double headStartFt)
     {
@@ -337,6 +346,11 @@ public sealed class Runner
     // ---- the tick (called by RunnerSystem only) ----
 
     internal void SetVelocity(double v) => Velocity = v;
+    internal void RebaseClock(double seconds)
+    {
+        if (!double.IsNaN(ScoredAt)) ScoredAt -= seconds;
+        if (!double.IsNaN(LastTouchAt)) LastTouchAt -= seconds;
+    }
     /// <summary>The batter-runner touched first stopping there: run through it (§9.4).</summary>
     internal void BeginOverrun(double startFt)
     {

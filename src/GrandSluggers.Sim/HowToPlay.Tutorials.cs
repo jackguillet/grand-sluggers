@@ -191,6 +191,7 @@ public static partial class HowToPlay
         "guided-complete" => "You completed the steps on the game screens.",
         "fresh-pitcher" => "The tired pitcher is out and your fresh arm is on the mound.",
         "swap-missed" => "Choose a fresh eligible fielder and confirm the pitcher change.",
+        "balk-after-charge" => "Starting a charge commits the pitcher. Throw to first before charging; then try again.",
         "pickoff-checked" => "Your pickoff throw reached the receiver at first. A runner on the bag is safe.",
         "pickoff-safe" or "pickoff-no-runner" => "Select first for this runner and make the pickoff throw before the opportunity ends.",
         "ball-dash-carried" => "Ball Dash sped up your fielder while you carried the secured ball.",

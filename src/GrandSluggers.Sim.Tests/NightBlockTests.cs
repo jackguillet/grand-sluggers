@@ -330,7 +330,11 @@ public sealed class NightBlockTests
     /// were before the chompers moved into the night block, and Ember's are unchanged (its breath's reach is
     /// its type's own night number, left where it was). The chomp is still there to see.
     /// </summary>
+    // Historical whole-game score/checksum calibration. Mechanics changes invalidate it;
+    // preserve its values until a requested balance pass, alongside the other evidence seals.
+    // The structural night-block contracts above remain in the breakage suite.
     [Fact]
+    [Trait("Kind", "Balance")]
     public void SF25_FunfairAndEmberNightGamesAreTheGamesTheyWere()
     {
         var chomped = false;
