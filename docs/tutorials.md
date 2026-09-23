@@ -242,3 +242,7 @@ T-R06 uses player-timed departure and the continuous pre-contact runner clock; T
 The presentation adapters route pitch-charge presses into T-P08’s commitment input and show `balk-after-charge` as a retryable failure. T-R06/07 show actual departure/return positions and the race inset; T-R08 uses the same release-aligned throw view as Exhibition. Coaching explains immediate departure. From catcher possession, the ordinary live-play camera follows the ball through transfer, throw and reception. Human learning/transfer acceptance remains pending.
 
 Full-defense rearrangement extends the guided lineup mechanic T-G01 into SET. The match command and regression coverage are implemented; a guided in-game two-fielder swap objective remains planned in the companion Presentation child #970. T-P07 still credits only the player-confirmed fresh-arm change, never a swap between two other gloves. Setup/CPU policy, retries and shipped-profile support of those lessons are unchanged.
+
+## Controller-only catching and runner orders
+
+Ordinary aerial catches require human positioning and a real catch out, with no catch press. T-F04 and ability-reach objectives reject assisted pursuit after the last human movement. T-F06 and jump/dive lessons still require a deliberate human action and the typed feat. Controller runner orders use explicit selection and advance/return/halt through SET and live play; selection alone moves nothing. Presentation binding and teaching migration follows in #983. Physical-controller learning gates remain pending.

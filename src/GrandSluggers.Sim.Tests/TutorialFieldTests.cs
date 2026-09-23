@@ -41,16 +41,16 @@ public sealed class TutorialFieldTests
                 else if (run.Lesson.Id is "T-F04" or "T-F06" && live.Preview is { } preview)
                 {
                     var hang = preview.HangTimeSec;
-                    if (live.ElapsedSeconds >= hang - 1.5 && !live.HoldsBall)
+                    if (live.ElapsedSeconds >= .4 && !live.HoldsBall)
                     {
                         var target = FlyCatch.ChaseTarget(preview, run.Match.Park, run.Match.Rules);
                         var dx = target.X - live.GloveX;
                         var dz = target.Z - live.GloveZ;
                         var len = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
-                        var mag = .21;
+                        var mag = len > 2 ? 1 : .21;
                         pad = new(StickX: dx / len * mag, StickY: dz / len * mag,
-                            SouthDown: (run.Lesson.Id == "T-F04" && !wrong || run.Lesson.Id == "T-F06" && wrong) && live.ElapsedSeconds >= hang - .6,
-                            WestDown: (run.Lesson.Id == "T-F06" && !wrong || run.Lesson.Id == "T-F04" && wrong) && !jumped && live.ElapsedSeconds >= hang - .3);
+                            SouthDown: run.Lesson.Id == "T-F06" && wrong && live.ElapsedSeconds >= hang - .6,
+                            WestDown: (run.Lesson.Id == "T-F06" && !wrong || run.Lesson.Id == "T-F04" && wrong) && !jumped && live.ElapsedSeconds >= hang - .6);
                         if (neutralJump && pad.WestDown) pad = pad with { StickX = 0, StickY = 0 };
                         if (pad.WestDown) jumped = true;
                     }

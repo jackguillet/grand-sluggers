@@ -5,6 +5,16 @@ public static class RunnerCommands
 {
     public static void Apply(Match m, LivePadInput run, ref LivePadInput previous)
     {
+        if (run.Orders is { } orders)
+        {
+            m.ControllerRunners.Apply(m, orders);
+            var selected = m.ControllerRunners.Selected(m);
+            if (run.WestDown && selected is not null
+                && selected.FeetTo(selected.NextBag) <= RunnerSystem.SlideFt(selected.NextBag, GroundZones.Of(m.Park, m.Rules), m.Rules))
+                selected.RequestSlide();
+            previous = run;
+            return;
+        }
         if (run.KeysBag is >= 1 and <= 4) m.SelectRunner(run.KeysBag);
         var advDown = run.AllAdvance && !previous.AllAdvance;
         var retDown = run.AllReturn && !previous.AllReturn;

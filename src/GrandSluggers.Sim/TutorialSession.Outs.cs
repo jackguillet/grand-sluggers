@@ -70,7 +70,7 @@ public sealed partial class TutorialSession
     void ObserveCloseDefense(bool iconBefore, LivePadInput pad, bool owned, LivePlayCommandResult result)
     {
         if (Lesson.Objective != "human-close-defense") return;
-        if (owned && iconBefore && pad.SouthDown) _humanCloseDefPress = true;
+        if (owned && iconBefore && (pad.CloseResponse ?? pad.SouthDown)) _humanCloseDefPress = true;
         if (result.CompletedPlay is not { } play) return;
         var tagged = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Tag && o.Bag == 3
             && o.Runner.Id == _secondRunner) == true;

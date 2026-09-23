@@ -256,7 +256,15 @@ public sealed partial class TutorialSession
             + PitchFlight.AirSeconds(Match.PitchSpeedMph(CpuPitch), Match.Rules);
         if (_setup.Policy == "steal-offense" && !Match.LivePlay.Active)
         {
+            var beforeSteals = Match.Runners.Where(r => r.Broke).Select(r => r.Who.Id).ToHashSet();
             Match.PitchSetup.RunnerInput(pad);
+            if (pad.Orders is not null && source == LivePlayCommandSource.Human && !Demonstration)
+                foreach (var r in Match.Runners.Where(r => r.Broke && !beforeSteals.Contains(r.Who.Id)))
+                {
+                    _humanStealArms.Add(r.FromBag);
+                    if (r.FromBag == 1) _stealRunner = r.Who.Id;
+                    if (r.FromBag == 3) _homeStealRunner = r.Who.Id;
+                }
             if (Elapsed >= StealWindupStartsAt) Match.PitchSetup.BeginCharge();
             if (Elapsed >= StealWindupStartsAt + Motion.PitchRelease) Match.PitchSetup.ReleaseBall();
             Match.PitchSetup.Advance(seconds);
@@ -297,6 +305,7 @@ public sealed partial class TutorialSession
         if (IsGameContactLesson) { ObserveGameContact(result); return; }
         ObserveScoringRunner();
         var owned = source == LivePlayCommandSource.Human && !Demonstration;
+        pad = RunnerEvidence(pad);
         ObserveCloseOffense(closeIconBefore, pad, owned, result);
         ObserveCloseDefense(closeIconBefore, pad, owned, result);
         ObserveDelayedHomeSend(pad, owned, thirdWasOnBag);
@@ -352,7 +361,9 @@ public sealed partial class TutorialSession
         }
         if (owned && live.Events.Contains(LiveEvent.Glove) && live.Caught && live.PursuitManual)
         {
-            if (pad.SouthDown && !live.CatchJump && !live.CatchDive) _humanAerialCatcher = live.TutorialFirstGloveId;
+            if (!live.CatchJump && !live.CatchDive && _manualGloves.Contains(live.TutorialFirstGloveId)
+                && !_assistedSinceManual.Contains(live.TutorialFirstGloveId))
+                _humanAerialCatcher = live.TutorialFirstGloveId;
         }
         LastPlay = result.CompletedPlay;
         if (Lesson.Objective == "manual-ground-possession" && live.HoldsBall && live.Preview?.Grounder == true)
@@ -484,11 +495,12 @@ public sealed partial class TutorialSession
         var catchOut = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true;
         if (Lesson.Objective == "human-aerial-out")
         {
-            var success = catchOut && _humanAerialCatcher.Length > 0
-                && play.Fielder?.Id == _humanAerialCatcher && play.Outcome?.DefensiveFeat == DefensiveFeat.None;
+            var catcher = play.Fielder?.Id ?? "";
+            var success = catchOut && _manualGloves.Contains(catcher)
+                && !_assistedSinceManual.Contains(catcher) && play.Outcome?.DefensiveFeat == DefensiveFeat.None;
             Finish(success, success ? "aerial-out" : "no-aerial-out",
-                success ? "Your South press secured the airborne ball for an out."
-                    : "Catch the ball in the air with your own South press while controlling the glove.");
+                success ? "Your positioning secured the airborne ball for an out."
+                    : "Move the glove into position to catch the ball in the air. No catch button.");
         }
         else
         {

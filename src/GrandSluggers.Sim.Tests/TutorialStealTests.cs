@@ -37,6 +37,18 @@ public sealed class TutorialStealTests
         }
     }
 
+    [Fact]
+    public void ControllerAdvanceDuringWindupOwnsTheStealAndReplays()
+    {
+        var run = Start("T-R06");
+        while (run.Elapsed < run.StealWindupStartsAt + .2 - 1e-9) run.Tick(Frame);
+        run.Tick(Frame, new LivePadInput(Orders: new(SelectBag: 1, Advance: true)));
+        for (var i = 0; i < 2700 && run.Phase == TutorialPhase.Attempt; i++)
+            run.Tick(Frame, new LivePadInput(SouthDown: i % 4 == 0, Orders: new()));
+        Assert.True(run.Feedback?.Success, run.Feedback?.Detail);
+        Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+    }
+
     [Theory]
     [InlineData("T-R06")]
     [InlineData("T-R07")]
