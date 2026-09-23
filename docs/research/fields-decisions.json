@@ -1183,6 +1183,12 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/858",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/870",
           "status": "merged"
+        },
+        {
+          "child": "F4-i",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/912",
+          "status": "merged"
         }
       ],
       "validation_evidence": [
@@ -1194,6 +1200,16 @@
           "summary": "F4-h builds FD-10 B in the sim and the CLI. Match and both Match.Exhibition overloads take bool hazards = true, last; off, Match.Park is the catalog park with { Hazards = kept } and every other member the same value, and the table resolves from the park as authored, so a hazards-off match plays the same RulesTable reference as its hazards-on twin (SF-01). What counts as a hazard is a property of the pattern set, HazardPattern.Hazards: statusVolume, ballRedirect, rewardTarget and catchStealer go; wallTrait (FD-06) and decoration stay. HazardPattern.HazardsOff builds the kept park from the library rows without dispatching. cli match --hazards on|off; the park-factors cohort reports four conditions (day and night, each with hazards on and off; schema 2) and --hazards on|off narrows it. SF-24 (HazardsOffTests): no instance of a hazard pattern and every other park member unchanged, every park, both roots; over a scanned seed set covering every park with a hazard, hazards on freezes, warps, chomps or pays a billboard and the same game with hazards off does none; a human-seat fixture and the CPU read the same park; default on, seed for seed. SF-30: the hazards-on rows are main's rows cell for cell on both roots, measured on 11fbbe2e beside main's own build (seed 7 Final identical; the header gains 'hazards on'). Full dotnet test and the trials/c80 compact rows green (the hazards-off and cohort rows on both roots locally; portable CI on the PR head), cli art / tutorials / protocol and unity-compile OK, seals hash-only (Match.cs).",
           "numeric_trial": "not applicable (a match option; no number authored, no hazard number, position or radius moved)",
           "gate": "no human gate for this child: no player-facing change; the title option and its book pair are F4-i. Status unchanged. The pattern split (which patterns count as a hazard) was contract work FD-10 left open, written by the issue and implemented here; Jack confirmed it, recorded as FD-10-R1."
+        },
+        {
+          "date": "2026-09-23",
+          "child": "F4-i",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/912",
+          "kind": "play gate (human)",
+          "judged_by": "Jack",
+          "quote": "sign off. resume.",
+          "evidence": "Select / R toggles hazards on the title and the field postcard, in the standalone window delivered at d83f68bb",
+          "scope": "F4-i's option and copy only; FD-10 as a whole is not accepted by it"
         }
       ],
       "human_acceptance": null,
@@ -1316,6 +1332,12 @@
           "child": "F4-d",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/895",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/902",
+          "status": "merged"
+        },
+        {
+          "child": "F6-c",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/916",
           "status": "merged"
         }
       ],
@@ -1717,8 +1739,26 @@
         "answer_quote": "a"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
-      "validation_evidence": [],
+      "implementation_issues": [
+        {
+          "child": "F4-g",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/911",
+          "status": "merged"
+        }
+      ],
+      "validation_evidence": [
+        {
+          "date": "2026-09-23",
+          "child": "F4-g",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/911",
+          "kind": "play gate (human)",
+          "judged_by": "Jack",
+          "quote": "sign off. resume.",
+          "evidence": "the CPU route around a status volume, in the standalone window delivered at d83f68bb",
+          "scope": "F4-g's route cost of a status volume only; solid bodies, runner margins, the batter and depth stay open"
+        }
+      ],
       "human_acceptance": null,
       "history": [
         {
@@ -1843,6 +1883,24 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/881",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/885",
           "status": "merged"
+        },
+        {
+          "child": "F6-b",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/913",
+          "status": "merged"
+        },
+        {
+          "child": "F6-c",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/916",
+          "status": "merged"
+        },
+        {
+          "child": "F6-d",
+          "issue": null,
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/920",
+          "status": "merged"
         }
       ],
       "validation_evidence": [
@@ -1877,6 +1935,16 @@
           "quote": "merge them.",
           "evidence": "the old backstop pieces, ledges and dugouts gone at the five non-Harbor parks, on plate / diamond stills, day and night",
           "scope": "F6-a2's look only; FD-16 as a whole is not accepted by it"
+        },
+        {
+          "date": "2026-09-23",
+          "child": "F6-d",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/920",
+          "kind": "look gate (human)",
+          "judged_by": "Jack",
+          "quote": "looks good. go with your reommendation. merge it.",
+          "evidence": "before / after sheets of five parks, day and night (title, diamond, both poles): rings at the sim's disc, the dress unchanged, Rooftop's two literal AC units gone; the status-volume ring darkened after the sheets on his recommendation, not recaptured",
+          "scope": "F6-d's look only; FD-16 as a whole is not accepted by it"
         }
       ],
       "human_acceptance": null,
@@ -2474,6 +2542,10 @@
     {
       "date": "2026-09-23",
       "event": "Merged: F4-d #902 (ce5975b0) and F4-b #905 (f80e63cc), each on a green portable run on its final head. Jack approved the merges. The 3 s slow is still unplayed: it is Jack's number and a sitting judges it. No decision's human_acceptance is written; no human gate passed. Findings 53-58 recorded in the implementation map."
+    },
+    {
+      "date": "2026-09-23",
+      "event": "Merged: F4-g #911 (c20cdf32; CPU route cost of a status volume, FD-14), F4-i #912 (d83f68bb; hazards on / off on the title and the field postcard, FD-10), F6-b #913 (2bd27a6c; kit slots per park), F6-c #916 (6637a670; light, sky and greybox colors as data; the night look is art data, so the park night block stays rules-only), #918 (69c842f4; NightBlockTests re-recorded after P2-e changed play; main had been red), F6-d #920 (27720ab7; hazards drawn at the sim's disc; the five parks' dress picked by slot). Jack signed off F4-g and F4-i ('sign off. resume.') and passed F6-d's look ('looks good. go with your reommendation. merge it.'). No decision's human_acceptance is written. Findings 59-67 recorded in the implementation map."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",

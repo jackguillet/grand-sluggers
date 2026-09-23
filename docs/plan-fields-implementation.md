@@ -87,6 +87,20 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 57 | Two sub-agents ran wide local test filters, S-29 and park factors after being told not to, and loaded the shared Mac. | PRs #902, #905 | The orchestrator finishes a child itself: rebase, fix only the tests that broke, run only those classes, seed 7 before and after. |
 | 58 | In zsh, `${park:+--park $park}` passes one argument, so the CLI saw `--park crystal` as one word. | PR #905 | Build the argument list as an array. |
 
+### Found by the sixth batch (September 23, 2026)
+
+| # | Finding | Where | Effect |
+| --- | --- | --- | --- |
+| 59 | A new rules key must land in the `trials/c80` copy of its file too: the whole-file rule refuses a trial file that leaves a key out (`fielding.chase.volumeClearFt`). | PR #911 | Name both files in a child that adds a rule number. |
+| 60 | F4-g changed shipped play only at Crystal and Ember (seed 7: Ember 4-5 → 3-4); every park with no volume was byte-identical. | PR #911 | A report, not a target (FD-13). |
+| 61 | The book's Captain and field page is full at 1024×768 (`BookletLayoutTests`); the hazards line went on Pause and Practice beside the other title verb. | PR #912 | The next title verb needs a page plan, not one more line. |
+| 62 | P2-e (#910) changed play and turned `main` red: every stored night game in `NightBlockTests` moved on both roots, and shipped seed 7 lost its chomp (now seed 22). | PR #918 | A stored whole game breaks on any play change; its owner re-records it in the PR that changes play. |
+| 63 | The night look is art data: each sky and light row in `data/art/looks.json` has a night, so a park file's night block stays rules-only (a contract choice F6-c made). | PR #916 | F9-a names no look in a park file. |
+| 64 | Crystal's night row is still the blackout (sun 0.06), which contradicts FD-11-R2 (night keeps the stadium lights). F6-c kept the look. | PR #916 | Open for Jack. |
+| 65 | A pale status-volume ring vanished on white ice and on dark lava; a dark ring reads on both (Jack took the recommendation). | PR #920 | Ring colors are one data value per pattern. |
+| 66 | C80's promotion (#915) landed mid-PR and moved the warp pad from 8 to 5.6 ft. | PR #920 | Presentation tests read numbers from the rows, never a shipped literal. F9-a's "trial only" (FD-13-R1) needs re-reading now that C80 is the shipped game. |
+| 67 | Another session's post-merge delivery took the GUI lock between "capture" and its start. | stills for PR #920 | Wait on `unity_gui.py status` until free, then capture; 20 park-and-light captures take about 8 min. |
+
 ## 2. Rails every child carries
 
 What a PR owes is [agent-rails.md](agent-rails.md) §1.2 (2026-09-22). Where a rail below asks for more, §1.2 wins: no local full suite, no reseal, no `trials/c80` twin, no register or ledger edit in a feature child. Balance runs on demand.
@@ -196,10 +210,10 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | F4-a #847 ✅ | The pattern library at parity: a closed type table as named rows (pattern, acts-on, numbers); `ParkHazards` reads rows, not type strings; chompers become data instances; `pipeReachPadFt` and `emberNightFireMul` move under their rows at today's values. SF-03, SF-04. Same outcomes as today, rolls included. | FD-09, FR-08 | §5 Q6 answered: **decoration** (Jack, 2026-09-22) |
 | F4-e #862 ✅ | The placement validator on both roots, and the eight volumes moved outward along their own bearings until they clear (FD-19-R1). SF-23. **Moves where the landing-point test fires at Crystal and Ember**: re-report S-29 and park factors. | FD-19, FD-19-R1 | §5 Q1 answered |
 | F4-b | Status volume, live: a per-body touch test in the tick, a duration, a typed event; the play-wide flag and the park's `drops.frozen` roll go. `ParkSlowRowsTests` is re-authored to the decision. SF-20, SF-22. **Behavior change**: re-report S-29 and park factors. | FD-08-R1, FD-08-R2, FR-07 | §5 Q7 answered: 3 s; 0.45 unchanged. After F4-e |
-| F4-g | The CPU route costs a volume and goes around a body; no foresight of a draw. SF-26. | FD-14 | Nothing |
+| F4-g ✅ | The CPU route costs a volume and goes around a body; no foresight of a draw. SF-26. | FD-14 | Nothing |
 | F4-d | Night blocks: Ember's reach and Funfair's chompers move into `night` at parity; **Crystal's contact window is dropped on both roots** (FD-11-R2: night keeps the stadium lights and changes only the outside view and the hazards), so night Crystal changes: re-report park factors. A night block may name hazards and look fields only. SF-25. | FD-11, FD-11-R1, FD-11-R2 | §5 Q9 answered: Crystal's trial night block drops the contact window. After F4-h (both touch `ParkHazards`) |
 | F4-h #858 ✅ | Hazards off in the sim and the CLI: the four hazard patterns removed; wall traits and decorations kept (FD-10-R1, Jack "4. a"). SF-24. | FD-10, FD-10-R1 | Nothing |
-| F4-i | Presentation: the title option, the book pair, `HowToPlay`. | FD-10 | Placement on the title (at review) |
+| F4-i ✅ | Presentation: the title option, the book pair, `HowToPlay`. | FD-10 | Placement on the title (at review) |
 | F4-c | Ball redirect, live: the ball leaves at the entry and re-enters at the exit; the exit is a seeded draw and a typed event. SF-21, SF-27. With the second park. | FD-08, FD-08-R1, FD-09-R2 | Exit speed and heading as a trial; the chomper joins it as a ball redirect (§5 Q8 answered) |
 | F4-f | Solid body and timed mover. SF-28. With the park that needs them. | FD-09 | Nothing (§5 Q8 answered: the chomper goes to F4-c) |
 
@@ -215,9 +229,9 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | --- | --- | --- | --- |
 | F6-a2 #881 ✅ | The old backstop pieces, ledges and dugouts in the five parks' dress go; two source rows keep any dress piece out of the kit's backstop and the dugout span. Asked for by Jack. | FD-16 | **Jack passed the look** |
 | F6-a #859 ✅ | Every park draws the one diamond from the geometry owner: bags, chalk, boxes, mound, dirt, the foul rail and backstop. The `ParkView` fallback diamond retires. Harbor does not change. `StarMeter` reads the geometry owner. | FD-16, FR-13 | A look at five parks: **passed by Jack**, September 22, 2026 |
-| F6-b | Kit slots in `data/art/parks.json` with a validator; `cli art` lists each park's empty slots. Harbor fills them with no visual change. | FD-16 | Nothing |
-| F6-c | Light, sky, fog, ground and wall colors as data chosen by the park, not by an id `if` chain. Same looks. | FD-16, FR-04 | Nothing |
-| F6-d | Hazard actors by pattern, drawn at the sim's true size (the pad included). Greybox dress from data. The five per-park methods retire. | FD-16, FD-16-R1 | §5 Q12 answered: keep them behind the backdrop slot |
+| F6-b ✅ | Kit slots in `data/art/parks.json` with a validator; `cli art` lists each park's empty slots. Harbor fills them with no visual change. | FD-16 | Nothing |
+| F6-c ✅ | Light, sky, fog, ground and wall colors as data chosen by the park, not by an id `if` chain. Same looks. | FD-16, FR-04 | Nothing |
+| F6-d ✅ | Hazard actors by pattern, drawn at the sim's true size (the pad included). Greybox dress from data. The five per-park methods retire. | FD-16, FD-16-R1 | §5 Q12 answered: keep them behind the backdrop slot |
 
 ### F7 — Look gates (Presentation / Art process)
 
@@ -310,4 +324,10 @@ Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by e
 | F2-b2 the drawn rail stays hip-high to the foul pole | #873 | #875 | `12345a76` | `f83aead9`: 2069 / 2069, 859 / 859 before the last rebases; seed 7 identical; seals hash-only; pole stills at six parks, day and night | **Jack passed the look** ("merge them") |
 | F4-d night blocks; one played park (`PlayedPark.Of`); Crystal's night window dropped on both roots | #895 | #902 | `ce5975b0` | `10ba5486`: filtered classes 21 / 21; seed 7 identical except Crystal night, which now equals Crystal day; seals hash-only; balance not measured | none |
 | F4-b a status volume slows the body that touches it for 3 s at 0.45; `BodySlowed`; the park's `drops.frozen` roll retired | #896 | #905 | `f80e63cc` | `29894d58`: filtered classes green on the shipped root; seed 7 Harbor identical, Crystal and Ember changed on the shipped root, `trials/c80` identical; seals hash-only; balance not measured | none; a sitting judges the 3 s slow |
+| F4-g the CPU route goes around a status volume when that is cheaper than the slow (`VolumeRoute`) | — | #911 | `c20cdf32` | `83462dbe`: `VolumeRouteTests`, `StatusVolumeTests`, `NightBlockTests`, `ParkSlowRowsTests`, `HazardsOffTests` on both roots; seed 7 changed only at Crystal and Ember (shipped); seals hash-only; balance not measured | **Jack signed off** ("sign off. resume.") |
+| F4-i hazards on / off on the title and the field postcard; the book pair | — | #912 | `d83f68bb` | `404097ea`: `CarnivalFrontTests`, `HowToPlayTests`, `BookletLayoutTests`, `BookSchemeTests`, `SchemeTests`; unity-compile OK; seals hash-only | **Jack signed off** in the delivered window ("sign off. resume.") |
+| F6-b kit slots per park in `data/art/parks.json`; `cli art` lists the empty ones | — | #913 | `2bd27a6c` | `84b98948`: `ParkKitSlotsTests`; `cli art` OK; unity-compile OK; no seal moved; Harbor unchanged by construction, not looked at | none |
+| F6-c light, sky and greybox colors as data (`looks.json`, `palette`); `Look.Rig*` retired | — | #916 | `6637a670` | `5da85fa8`: `ParkLooksTests`, `ParkKitSlotsTests`; `cli art` OK; unity-compile OK; no seal moved; same looks by construction, not looked at | none |
+| `NightBlockTests` re-recorded after P2-e changed play (main was red) | — | #918 | `69c842f4` | `7a9b68c2`: `NightBlockTests` on both roots | none |
+| F6-d hazards drawn at the sim's disc by type row; the five parks' dress picked by slot | — | #920 | `27720ab7` | `49864107`: `HazardActorsTests`, `ParkKitSlotsTests`, `ParkLooksTests`, `FieldKitSourceTests`; unity-compile OK; before / after sheets of five parks day and night | **Jack passed the look** ("looks good. go with your reommendation. merge it.") |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
