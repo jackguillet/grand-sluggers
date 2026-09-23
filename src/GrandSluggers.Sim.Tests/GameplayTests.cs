@@ -473,7 +473,7 @@ public class GameplayTests
             var swing = new SwingCommand(true, 0, 0, false);
             if (!match.BeginAtBat(paint, swing, out _, out _))
                 continue;
-            var deep = FlightFixtures.Landing(match.Park, 280, 32, 0);
+            var deep = FlightFixtures.Landing(match.Park, 250, 34, 0);
             var preview = match.PreviewHit(deep);
             var field = new FieldingResult(PlayKind.FlyOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
             // The offense is a human seat with nothing pressed: the default is the hold (§9.5); LB after contact and before the catch is tag and go.

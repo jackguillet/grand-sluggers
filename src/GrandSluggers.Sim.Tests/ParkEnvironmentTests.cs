@@ -124,7 +124,7 @@ public sealed class ParkEnvironmentTests
         Assert.Equal(global.Flight.Drag * 2.0, thick.Flight.Drag, 12);
         Assert.Equal(global.Flight.Gravity, thick.Flight.Gravity);
         Assert.Equal(global.Flight.TimeScale, thick.Flight.TimeScale);
-        Assert.Equal(global.Flight.LinerTimeScale, thick.Flight.LinerTimeScale);
+        Assert.Equal(global.Flight.TimeScale, thick.Flight.TimeScale);
         Assert.Equal(global.Flight.WindMul, thick.Flight.WindMul);
 
         var open = BallFlight.Trajectory(95, 28, 0, global);

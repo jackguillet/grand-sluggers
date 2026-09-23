@@ -13,7 +13,7 @@ public sealed class RaceTraceTests
     public void RoutineRaceRetainsPossessionThrowAndRunnerEvidence(string batter, string id, PlayKind expected)
     {
         var match = Defense(batter);
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var trace = Run(match, hit);
         Assert.Equal(expected, trace.Completed!.Kind);
         Assert.Equal(2, trace.SchemaVersion);
@@ -59,7 +59,7 @@ public sealed class RaceTraceTests
     {
         var match = Defense("cinder");
         var seats = new LiveSeats(versus, true, true, versus);
-        var trace = Run(match, FlightFixtures.Landing(match.Park, 118, 4, -18), seats);
+        var trace = Run(match, FlightFixtures.Hit(match.Park, 85, -12, -18), seats);
         Assert.Contains(trace.Marks!, m => m.Kind == PlayTraceMarkKind.Possession);
         Assert.DoesNotContain(trace.Marks!, m => m.Kind == PlayTraceMarkKind.ThrowRelease);
         Assert.Equal(PlayKind.Single, trace.Completed!.Kind);
@@ -70,7 +70,7 @@ public sealed class RaceTraceTests
     public void SerializedCommandsReplayTheSameGeometryAfterTheSameFixtureSetup()
     {
         var first = Defense("cinder");
-        var trace = Run(first, FlightFixtures.Landing(first.Park, 118, 4, -18));
+        var trace = Run(first, FlightFixtures.Hit(first.Park, 85, -12, -18));
         var parsed = PlayTrace.Parse(trace.ToJson());
         var replay = Defense("cinder");
         replay.LivePlay.Recording = true;
@@ -106,7 +106,7 @@ public sealed class RaceTraceTests
     {
         var match = Defense("cinder", "harbor-diamond");
         var fixedHit = FlightFixtures.Hit(match.Park, 84, 8, -12);
-        var tactical = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var tactical = FlightFixtures.Hit(match.Park, 85, -12, -18);
         Assert.Equal(84, fixedHit.ExitVeloMph);
         Assert.NotEqual(fixedHit.ExitVeloMph, tactical.ExitVeloMph);
         Write("harbor-fixed-grounder", Run(match, fixedHit));
@@ -120,7 +120,7 @@ public sealed class RaceTraceTests
         {
             var match = Defense("cinder");
             Assert.True(match.StationRunner(1, match.AwayOrder[2]));
-            var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+            var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
             return Run(match, hit, new LiveSeats(false, true, true, false), source,
                 pad: live => live.HoldsBall && !live.Throwing
                     ? new LivePadInput(KeysBag: live.Throws == 0 ? 2 : 1, SouthDown: true) : LivePadInput.Dead);
@@ -142,10 +142,11 @@ public sealed class RaceTraceTests
     {
         var match = Defense("cinder");
         var live = match.LivePlay;
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 100, 30, -18);
         live.Recording = true;
         live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, match.PreviewHit(hit), null,
             new LiveSeats(false, true, true, false)));
+        for (var i = 0; i < 6; i++) live.Apply(LivePlayCommand.Tick(Frame));
         for (var i = 0; i < 60; i++) live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(StickX: 1)));
         var x = live.GloveX;
         var t = live.ElapsedSeconds;
@@ -154,7 +155,7 @@ public sealed class RaceTraceTests
         Assert.Equal(t, live.ElapsedSeconds);
         Assert.Equal(x, live.GloveX);
         live.Apply(LivePlayCommand.Resume());
-        for (var i = 0; i < 10; i++) live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(StickX: -1)));
+        for (var i = 0; i < 30; i++) live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(StickX: -1)));
         var trace = live.TakeTrace();
         var first = trace.Ticks[0].Fielders!.First(f => f.Selected);
         var motion = trace.Ticks.Where(tick => tick.T < t).SelectMany(tick => tick.Fielders!.Where(f => f.Pos == first.Pos));
@@ -187,7 +188,7 @@ public sealed class RaceTraceTests
             File.WriteAllText(path, json.ToJsonString());
             var content = ContentCatalog.Load(root);
             var match = Defense("cinder", content: content);
-            var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
+            var hit = FlightFixtures.Hit(match.Park, 85, -12, -18, rules: match.Rules);
             var trace = Run(match, hit, new LiveSeats(false, true, true, false), pad: live =>
                 live.HoldsBall && !live.Throwing ? new LivePadInput(KeysBag: 1, SouthDown: true) : LivePadInput.Dead);
             var wait = trace.Marks!.First(m => m.Kind == PlayTraceMarkKind.UncoveredWait);

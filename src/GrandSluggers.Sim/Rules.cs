@@ -1019,7 +1019,7 @@ public sealed class LaunchRules
     public double LoftBaseDeg { get; init; } = 16;
     public double LoftPerPower { get; init; } = 1.0;
     /// <summary>Degrees of launch per foot the crossing sits above the zone center.</summary>
-    public double PerFtOfHeight { get; init; } = 6;
+    public double PerFtOfHeight { get; init; } = 18;
     /// <summary>
     /// Stick U/D at contact. Only a Star Swing reads it (until Phase 6); an ordinary swing's launch is
     /// geometry (PH-12), and a bunt's launch is its own band.
@@ -1030,7 +1030,7 @@ public sealed class LaunchRules
     public double TopperSpanDeg { get; init; } = 9;
     public double PopMinDeg { get; init; } = 44;
     public double PopSpanDeg { get; init; } = 8;
-    public double MinDeg { get; init; } = 3;
+    [Signed] public double MinDeg { get; init; } = -45;
     public double MaxDeg { get; init; } = 52;
 }
 
@@ -1243,22 +1243,10 @@ public sealed class FlightRules
     /// runners run on (<see cref="LivePlaySystem.ElapsedSeconds"/>) — one clock (§0.3, §6.1).
     /// </summary>
     [Positive] public double TimeScale { get; init; } = 1.65;
-    /// <summary>
-    /// The liner's stretch (§7.6): a rope has the short hang so a dive is possible and a ball
-    /// past the glove falls in. Read off the launch class at the crack (<see cref="BattedBallClasses.ByLaunch"/>).
-    /// </summary>
-    [Positive] public double LinerTimeScale { get; init; } = 1.0;
-    /// <summary>The stretch for a ball on the dirt (topper, grounder, chopper, bunt): the scoop is a race (§7.1).</summary>
-    [Positive] public double DirtTimeScale { get; init; } = 1.65;
     [Positive] public double PlateHeightFt { get; init; } = 2.5;
 
-    /// <summary>The stretch this contact's flight runs on, by its launch class (§6.1, §6.2).</summary>
-    public double TimeScaleFor(double launchDeg, double exitMph, RulesTable table)
-    {
-        var shape = BattedBallClasses.ByLaunch(launchDeg, exitMph, table);
-        if (shape == BattedBallClass.Liner) return LinerTimeScale;
-        return shape.OnTheDirt() ? DirtTimeScale : TimeScale;
-    }
+    /// <summary>All contacts share the same clock; launch and exit never select a speed mode.</summary>
+    public double TimeScaleFor(double launchDeg, double exitMph, RulesTable table) => TimeScale;
     /// <summary>How much of the flag reading the ball feels at field level (drag is taken relative to the wind).</summary>
     public double WindMul { get; init; } = 0.35;
     [Positive] public int SampleHz { get; init; } = 120;
@@ -1266,13 +1254,12 @@ public sealed class FlightRules
     // The roll, the bounce, the skid and the wall carom are not here (F3-c, FD-05 / FD-03): the ball reads them off the
     // ground row of the zone it is on (grounds.json, through GroundZones.RowAt) and off the wall material of the segment
     // it meets (walls.json, through WallMaterial.OfSegment). One copy of each number, where a park can reach it.
-    public LandingRules Landing { get; init; } = new();
     public BattedBallClassRules Classes { get; init; } = new();
     public DeadBallRules DeadBall { get; init; } = new();
 
     /// <summary>
     /// This table with one park's air (§0.3, FD-03): <c>dragMul</c> multiplies the root's drag and
-    /// <c>windMul</c> replaces the global exposure. Every other number — gravity, the three stretches, the
+    /// <c>windMul</c> replaces the global exposure. Every other number — gravity, the shared stretch, the
     /// plate, the sample clock — is the global one, and the landing, class and dead-ball blocks are shared
     /// by reference. The ground and the wall are not on this table at all: a park reaches them by naming
     /// which ground row each of its zones stands on (<see cref="GroundZones"/>), never by a copy here
@@ -1283,13 +1270,10 @@ public sealed class FlightRules
         Gravity = Gravity,
         Drag = Drag * (env.DragMul ?? 1.0),
         TimeScale = TimeScale,
-        LinerTimeScale = LinerTimeScale,
-        DirtTimeScale = DirtTimeScale,
         PlateHeightFt = PlateHeightFt,
         WindMul = env.WindMul ?? WindMul,
         SampleHz = SampleHz,
         MaxSeconds = MaxSeconds,
-        Landing = Landing,
         Classes = Classes,
         DeadBall = DeadBall
     };
@@ -1300,12 +1284,6 @@ public sealed class FlightRules
         RulesValidation.Order(source, "flight.classes.grounderMaxLaunchDeg", Classes.GrounderMaxLaunchDeg, Classes.ChopperMaxLaunchDeg, errors);
         RulesValidation.Order(source, "flight.classes.chopperMaxLaunchDeg", Classes.ChopperMaxLaunchDeg, Classes.LinerMaxLaunchDeg, errors);
     }
-}
-
-public sealed class LandingRules
-{
-    /// <summary>Samples before this play time are still leaving the bat: the ground does not exist yet (one time base for every landing guard).</summary>
-    public double FirstGrassMinSec { get; init; } = 0.08;
 }
 
 /// <summary>The one batted-ball class table (§6.2): launch and exit at contact, refined by the flight.</summary>
@@ -1379,7 +1357,7 @@ public sealed class GroundLibrary
     {
         Roll = new() { Friction = 12, RestSpeed = 0.8 },
         Bounce = new() { Restitution = 0.40, Horizontal = 0.92, MinVy = 3.6 },
-        Skid = new() { LaunchMinDeg = 14, LaunchMaxDeg = 28, MinVy = 2.2, Restitution = 0.22, Horizontal = 0.97 },
+        Skid = new() { ImpactMinDeg = 14, ImpactMaxDeg = 28, MinVy = 2.2, Restitution = 0.22, Horizontal = 0.97 },
         Overthrow = new() { DecelFtPerSec2 = 10 },
         Bobble = new() { Restitution = 0.35, GroundRetain = 0.90, DecelFtPerSec2 = 3.5 },
         Body = new() { StartMul = 1.3, BrakeMul = 1.6, CutMul = 1.4, SlideMul = 1.35, OverrunMul = 1.5 },
@@ -1429,7 +1407,7 @@ public sealed class GroundLibrary
         foreach (var id in Ids)
         {
             var row = Of(id);
-            RulesValidation.Order(source, $"grounds.{id}.skid.launchMinDeg", row.Skid.LaunchMinDeg, row.Skid.LaunchMaxDeg, errors);
+            RulesValidation.Order(source, $"grounds.{id}.skid.impactMinDeg", row.Skid.ImpactMinDeg, row.Skid.ImpactMaxDeg, errors);
         }
     }
 }
@@ -1443,10 +1421,9 @@ public sealed class GroundLibrary
 /// spill, stun, rebound ceiling and settle are the fumble's (<c>fielding.handling</c>).
 ///
 /// <para>
-/// <b>The skid band is judged against the row under each bounce.</b> The launch angle is the ball's; the
-/// band a rope skids in (<c>skid.launchMinDeg</c> / <c>launchMaxDeg</c>) is the ground's, so a liner
-/// landing on a ground whose band excludes its launch hops there instead. Every row carries today's band,
-/// so no bounce changes.
+/// <b>The skid band is judged against the row under each bounce.</b> The incoming impact angle is the ball's; the
+/// band between skid and hop (<c>skid.impactMinDeg</c> / <c>impactMaxDeg</c>) is the ground's.
+/// Each impact blends the two responses from its current incoming velocity.
 /// </para>
 ///
 /// <para>
@@ -1484,11 +1461,11 @@ public sealed class BounceRules
     public double MinVy { get; init; } = 3.6;
 }
 
-/// <summary>Liners skid instead of hopping: a ball launched inside the ground's band bounces off this block instead of <see cref="BounceRules"/>.</summary>
+/// <summary>Shallow impacts skid; interpolate toward BounceRules across this incoming-impact angle band.</summary>
 public sealed class SkidRules
 {
-    public double LaunchMinDeg { get; init; } = 14;
-    public double LaunchMaxDeg { get; init; } = 22;
+    public double ImpactMinDeg { get; init; } = 14;
+    public double ImpactMaxDeg { get; init; } = 22;
     public double MinVy { get; init; } = 2.2;
     [Chance] public double Restitution { get; init; } = 0.28;
     [Chance] public double Horizontal { get; init; } = 0.93;
@@ -1955,6 +1932,8 @@ public sealed class CatchRules
     public double ClamberRobFt { get; init; } = 28;
     public double BuddyJumpRobFt { get; init; } = 18;
     public double TouchScoopY { get; init; } = 3.2;
+    /// <summary>Highest ball center a planted glove can take; a live jump adds its actual root rise.</summary>
+    [Positive] public double StandingHeightFt { get; init; } = 6.0;
     /// <summary>
     /// Still in the air for a catch (§7.6): a route that meets the ball above this before the first
     /// bounce is a catch; at or below it the hop is a scoop. Chase targeting uses the same floor.

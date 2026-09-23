@@ -160,10 +160,9 @@ public static class FlyCatch
         && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
 
     /// <summary>
-    /// Where the glove has to be to hold this ball. A fly is the landing ring (§8.3). A liner is
-    /// the live ball above <c>catch.inAirMinY</c> before the bounce (§7.6) — a straight-at-you
-    /// rope is a South catch — or the plant in the hang window so a body that ran the landing
-    /// route still takes it. Standing at the bounce after the ball has touched the dirt is a scoop.
+    /// Ordinary catches require the live ball to meet the glove's horizontal reach and
+    /// standing height plus its actual jump rise before the first surface contact.
+    /// Wall robs use the wall plant and their separate timed leap window.
     /// </summary>
     public static bool InPosition(
         FieldingPreview pre,
@@ -178,15 +177,17 @@ public static class FlyCatch
         double hitT,
         double hangSec,
         bool needsJump,
-        RulesTable? rules = null)
+        RulesTable? rules = null,
+        double gloveRiseFt = 0)
     {
-        var atPlant = Under(gloveX, gloveZ, ballX, ballZ, plantX, plantZ, windowFt, needsJump, rules);
-        if (!pre.Line) return atPlant;
-        // A liner held after the bounce is a scoop, even if the glove is standing on the plant.
+        // A catch requires the untouched ball to meet the glove in three dimensions.
+        // The projected landing and the hit's label cannot award possession.
+        if (needsJump)
+            return Under(gloveX, gloveZ, ballX, ballZ, plantX, plantZ, windowFt, true, rules);
         if (hitT >= hangSec) return false;
-        if (atPlant) return true;
-        var minY = Rules.Or(rules).Fielding.Catch.InAirMinY;
-        return ballY > minY && Diamond.Dist(gloveX, gloveZ, ballX, ballZ) < windowFt;
+        var c = Rules.Or(rules).Fielding.Catch;
+        return ballY >= 0 && ballY <= c.StandingHeightFt + Math.Max(0, gloveRiseFt)
+            && Diamond.Dist(gloveX, gloveZ, ballX, ballZ) < windowFt;
     }
 
     /// <summary>
@@ -208,7 +209,7 @@ public static class FlyCatch
     /// </summary>
     public static bool PickupInPlay(FieldingPreview pre, Park park, double ballX, double ballZ,
         double hitT, double hangSec, RulesTable? rules = null) =>
-        (pre.Grounder || hitT >= hangSec)
+        (hitT >= hangSec)
         && FieldBounds.InPark(park, ballX, ballZ);
 
     /// <summary>
@@ -222,7 +223,7 @@ public static class FlyCatch
     public static PlayKind PlayerKind(bool caught, FieldingPreview pre, bool inAir = true, bool? foul = null)
     {
         var isFoul = foul ?? pre.Foul;
-        if (caught && inAir && !pre.Grounder) return PlayKind.FlyOut;
+        if (caught && inAir) return PlayKind.FlyOut;
         if (isFoul) return PlayKind.Foul;
         if (pre.HomeRunLikely && !caught) return PlayKind.HomeRun;
         return PlayKind.InPlay;

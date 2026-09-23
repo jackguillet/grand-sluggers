@@ -61,6 +61,7 @@ public sealed class FieldingResolver
             park,
             samples,
             at,
+            rules: _rules,
             readyAt: CpuReactionLockouts(_rules, grounder ? null : hang));
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;

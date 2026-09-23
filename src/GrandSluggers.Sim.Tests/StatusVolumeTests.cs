@@ -345,7 +345,7 @@ public sealed class StatusVolumeTests
         var batter = match.Batter;
         // A grounder to the left side: the batter runs it out.
         var third = Diamond.Positions["3B"];
-        var p = Play(match, FlightFixtures.Landing(park, Diamond.Dist(0, 0, third.X, third.Z) * 0.9, 4, -30));
+        var p = Play(match, FlightFixtures.Hit(park, 80, -12, -30));
         var touch = Assert.Single(p.Live.SlowsThisPlay, t => t.IsRunner);
         Assert.Same(batter, touch.Who);
         Assert.Equal(index, touch.Hazard);
@@ -385,7 +385,7 @@ public sealed class StatusVolumeTests
         var spray = Math.Atan2(deep.h.X, deep.h.Z) * 180 / Math.PI;
         var match = Match.Slice(Catalog, seed: 1, parkId: "crystal-rink");
         // A high fly (50°): the second baseman who goes out for it is still under it when it comes down, in the disc.
-        var p = Play(match, FlightFixtures.Landing(rink, carry, 50, spray));
+        var p = Play(match, FlightFixtures.Landing(rink, carry + 10, 50, spray));
         Assert.False(p.Preview.Frozen);
         Assert.NotEmpty(p.Live.SlowsThisPlay);
         Assert.All(p.Live.SlowsThisPlay, t => Assert.Equal(deep.i, t.Hazard));

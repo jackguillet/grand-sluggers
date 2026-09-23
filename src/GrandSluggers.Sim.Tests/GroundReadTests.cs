@@ -339,7 +339,8 @@ public sealed class GroundReadTests
 
             // The batted ball, dropped rolling at the point: its first step loses the row's friction.
             var batted = BallFlight.Continue([], 0, 0, 0, z, 6, 0, 0, 0, 80, park, rules);
-            Assert.True(Math.Abs(6 - Speed(batted, 1, dt) - row.Roll.Friction * dt) < 1e-9, $"batted roll at {z:0.00}: {Speed(batted, 1, dt)}");
+            var scale = rules.Flight.TimeScale;
+            Assert.True(Math.Abs(6 - Speed(batted, 1, dt * scale) - row.Roll.Friction * dt / scale) < 1e-9, $"batted roll at {z:0.00}: {Speed(batted, 1, dt * scale)}");
 
             // The overthrow: the row's deceleration.
             var thrown = BallFlight.OverthrowTick(zones, rules.Grounds, 0, z, 6, 0, Frame);
@@ -563,7 +564,7 @@ public sealed class GroundReadTests
 
         public static Numbers Of(GroundRules g, WallRules w) => new(
             g.Roll.Friction, g.Roll.RestSpeed, g.Bounce.Restitution, g.Bounce.Horizontal, g.Bounce.MinVy,
-            g.Skid.LaunchMinDeg, g.Skid.LaunchMaxDeg, g.Skid.MinVy, g.Skid.Restitution, g.Skid.Horizontal, w.Restitution, w.Tangential);
+            g.Skid.ImpactMinDeg, g.Skid.ImpactMaxDeg, g.Skid.MinVy, g.Skid.Restitution, g.Skid.Horizontal, w.Restitution, w.Tangential);
 
         public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double windMph, RulesTable rules, Numbers g) =>
             Integrate(exitMph, launchDeg, 0, windMph, (0, 1), null, rules, g);
@@ -606,7 +607,7 @@ public sealed class GroundReadTests
             var y0 = Math.Max(0, y);
             list.Add(new Sample(fromT, Math.Sqrt(x * x + z * z), y0, x, z));
             var rolling = y0 <= 1e-9 && Math.Abs(vy) < 1e-9;
-            Run(list, f, g, FieldBounds.Of(park), fromT, x, y0, z, vx, vy, vz, wx, wz, skid, scale, rolling, grounded: true);
+            Run(list, f, g, FieldBounds.Of(park), fromT, x, y0, z, vx * scale, vy * scale, vz * scale, wx, wz, skid, scale, rolling, grounded: true);
             return list;
         }
 
@@ -674,7 +675,7 @@ public sealed class GroundReadTests
                     }
                 }
 
-                if (ny <= 0 && (grounded || t > f.Landing.FirstGrassMinSec))
+                if (ny <= 0)
                 {
                     ny = 0;
                     if (gone)
@@ -688,9 +689,11 @@ public sealed class GroundReadTests
                     if (evt == SampleEvent.None) evt = SampleEvent.Ground;
                     if (vy < 0)
                     {
-                        var minVy = skid ? g.SkidMinVy : g.BounceMinVy;
-                        var rest = skid ? g.SkidRestitution : g.BounceRestitution;
-                        var horiz = skid ? g.SkidHorizontal : g.BounceHorizontal;
+                        var angle = Math.Atan2(-vy, Math.Sqrt(vx * vx + vz * vz)) * 180 / Math.PI;
+                        var blend = Math.Clamp((angle - g.SkidLaunchMinDeg) / (g.SkidLaunchMaxDeg - g.SkidLaunchMinDeg), 0, 1);
+                        var minVy = g.SkidMinVy + blend * (g.BounceMinVy - g.SkidMinVy);
+                        var rest = g.SkidRestitution + blend * (g.BounceRestitution - g.SkidRestitution);
+                        var horiz = g.SkidHorizontal + blend * (g.BounceHorizontal - g.SkidHorizontal);
                         if (-vy < minVy)
                         {
                             vy = 0;

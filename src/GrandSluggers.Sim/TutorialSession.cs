@@ -355,7 +355,7 @@ public sealed partial class TutorialSession
             if (pad.SouthDown && !live.CatchJump && !live.CatchDive) _humanAerialCatcher = live.TutorialFirstGloveId;
         }
         LastPlay = result.CompletedPlay;
-        if (Lesson.Objective == "manual-ground-possession" && live.HoldsBall && live.Preview?.Grounder == true)
+        if (Lesson.Objective == "manual-ground-possession" && live.HoldsBall && live.Call != FairFoulCall.Caught)
         {
             var manual = _manualGloves.Contains(live.TutorialFirstGloveId)
                 && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);

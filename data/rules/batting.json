@@ -36,14 +36,14 @@
   "launch": {
     "loftBaseDeg": 16,
     "loftPerPower": 1.0,
-    "perFtOfHeight": 6,
+    "perFtOfHeight": 18,
     "stickDeg": 12,
     "noiseDeg": 14,
     "topperMinDeg": 3,
     "topperSpanDeg": 9,
     "popMinDeg": 44,
     "popSpanDeg": 8,
-    "minDeg": 3,
+    "minDeg": -45,
     "maxDeg": 52
   },
   "bunt": {

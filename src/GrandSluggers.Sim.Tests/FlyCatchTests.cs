@@ -240,15 +240,15 @@ public class FlyCatchTests
         // Already bounced: a scoop, never a silent catch.
         Assert.False(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 6,
             plantX, plantZ, window, hitT: liner.HangTimeSec + 0.05, hangSec: liner.HangTimeSec, needsJump: false));
-        Assert.False(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: minY,
+        Assert.True(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: minY,
             plantX, plantZ, window, hitT: 0.7, hangSec: liner.HangTimeSec, needsJump: false),
-            "at or below inAirMinY the hop is a scoop");
+            "a low ball before first ground contact is still a catch");
         Assert.Equal(PlayKind.InPlay, FlyCatch.PlayerKind(true, liner, inAir: false));
         var fly = Routine(rio);
         Assert.False(FlyCatch.InPosition(fly, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 18,
             fly.LandingX, fly.LandingZ, window, hitT: 0.4, hangSec: fly.HangTimeSec, needsJump: false),
-            "a fly is still the landing ring, not the live ball");
-        Assert.True(FlyCatch.InPosition(fly, gloveX: fly.LandingX, gloveZ: fly.LandingZ, ballX: 0, ballZ: 40, ballY: 18,
+            "an overhead fly is outside the standing envelope");
+        Assert.False(FlyCatch.InPosition(fly, gloveX: fly.LandingX, gloveZ: fly.LandingZ, ballX: 0, ballZ: 40, ballY: 18,
             fly.LandingX, fly.LandingZ, window, hitT: fly.HangTimeSec - 0.2, hangSec: fly.HangTimeSec, needsJump: false));
     }
 
