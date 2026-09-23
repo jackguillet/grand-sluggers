@@ -266,7 +266,7 @@ namespace GrandSluggers.UnityClient
             if (decoy == null) return;
             decoy.gameObject.SetActive(on);
             if (!on) return;
-            if (_decoyPos.sqrMagnitude < 0.01f) _decoyPos = new Vector3(0, 5.4f, 60.5f);
+            if (_decoyPos.sqrMagnitude < 0.01f) _decoyPos = new Vector3(0, 5.4f, (float)Diamond.Mound);
             _decoyPos = Vector3.Lerp(_decoyPos, new Vector3(-1.6f, 2.6f, 4f), 1f - Mathf.Exp(-1.8f * dt));
             decoy.position = _decoyPos;
             decoy.localScale = Vector3.one * (1.35f + 0.12f * Mathf.Sin(_t * 9f));
