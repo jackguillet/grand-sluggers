@@ -488,6 +488,13 @@ public static partial class HowToPlay
             "A stamp on the field: BALL, STRIKE, FOUL, WALK, BALK, outs, hits, steals, homers, ERROR; SET starts the next pitch.",
             "OUT / SCORE pop mid-play. Close play: bag cam.",
         ]),
+        new("screen-live", "After contact", "exhibition",
+        [
+            "Live: runners and outs replace the score panel and player cards.",
+            "Effects never hide runners or outs. Follow the runner pips while you play.",
+            "YOU names your glove. Throw and item prompts stay with their actions.",
+            "When play ends, the plate HUD returns immediately, ready for the next pitch.",
+        ]),
         new("chemistry", "Chemistry", "chemistry",
         [
             "Hearts are buddies. Scribbles are rivals.",
