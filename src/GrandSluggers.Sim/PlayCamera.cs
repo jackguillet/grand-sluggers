@@ -95,7 +95,8 @@ public static partial class PlayCamera
         Vec3 Ball,
         Vec3 Batter,
         IReadOnlyList<Vec3>? RaceSubjects = null,
-        double Aspect = 16.0 / 9.0);
+        double Aspect = 16.0 / 9.0,
+        double RaceTravelZ = 0);
 
     /// <summary>
     /// Which beat the live ball is in (§15, D14). Priority: the runner play frames its whole race; a home run
@@ -152,7 +153,7 @@ public static partial class PlayCamera
     public static Framing? Frame(CameraShots shots, LiveView v, Beat beat, int bag, RaceCameraFeel? raceFeel = null)
     {
         if (beat == Beat.Set) return null;
-        if (v.RunnerPlay) return RaceFraming(shots, v.RaceSubjects ?? new[] { v.Ball, BagSubject(v.PlayBag) }, v.Aspect, raceFeel);
+        if (v.RunnerPlay) return RaceFraming(shots, v.RaceSubjects ?? new[] { v.Ball, BagSubject(v.PlayBag) }, v.Aspect, raceFeel, v.RaceTravelZ);
         var shot = shots.Must(Shot(beat));
         if (IsBagBeat(beat) && bag > 0)
         {

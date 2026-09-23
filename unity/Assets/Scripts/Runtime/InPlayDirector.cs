@@ -325,7 +325,8 @@ namespace GrandSluggers.UnityClient
                 LiveTime, _pending, live.RunnerPlay, _closePlay, _closeBag,
                 live.InRundown, live.RunnerPlayBag, _smash,
                 new Vec3(_ball.x, _ball.y, _ball.z), new Vec3(batter.x, batter.y, batter.z),
-                live.RunnerPlay ? PlayCamera.RaceSubjects(_match) : null, (double)Screen.width / Screen.height);
+                live.RunnerPlay ? PlayCamera.RaceSubjects(_match) : null, (double)Screen.width / Screen.height,
+                live.RunnerPlay ? _raceTravel.Step(live.BallZ, live.ThrowInFlight, _feel.RaceCamera) : 0);
             var framed = PlayCamera.LiveFraming(_content.Shots, view, _feel, _camHold);
             if (framed is { } f) _cam.Live(f);
         }
@@ -369,6 +370,7 @@ namespace GrandSluggers.UnityClient
             if (pitch != null)
                 _match.LivePlay.Apply(LivePlayCommand.BeginSteal(pitch, LiveSeatsNow(), _match.LivePlay.Source));
             SyncFromLive();
+            _raceTravel.Reset(_match.LivePlay.BallZ);
             PlayLiveCues(new LivePlayCommandResult(_match.LivePlay.Snapshot));
             if (!_match.LivePlay.Active)
             {
