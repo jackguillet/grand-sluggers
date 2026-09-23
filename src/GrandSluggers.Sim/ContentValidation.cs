@@ -506,6 +506,7 @@ public static class ContentDataValidator
         ValidateParkEnvironment(row.Source, p.Id, p.Environment, errors);
         ValidateParkZones(row.Source, p.Id, p.Zones, grounds, groundsSource, errors);
         ValidateParkFence(row.Source, p, fence, errors);
+        ValidateParkFoulAndStarts(row.Source, p, fence, errors);
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)
             ValidateHazard(row.Source, $"park '{p.Id}' hazard[{i}]", p.Hazards![i], hazards, infield, nightOnly: false, errors);
         ValidateParkNight(row.Source, p.Id, p.Night, hazards, infield, errors);
@@ -622,6 +623,34 @@ public static class ContentDataValidator
     /// <see cref="MaxParkDragMul"/> is the sane envelope the schema refuses past, not an accepted value.
     /// No park names one; the first number is a trial, not a validator change.
     /// </summary>
+    /// <summary>
+    /// The park's foul territory and outfield starts (FD-07 C, F2-d; <c>SF-09</c>): each foul value is optional and positive, a
+    /// rail under the park's fence; each named start stands past the infield lip and inside the park's fence at its bearing.
+    /// </summary>
+    static void ValidateParkFoulAndStarts(string source, ParkDto p, FenceLimits limits, List<string> errors)
+    {
+        if (p.Foul is { } foul)
+        {
+            foreach (var (name, value) in new[] { ("offsetFt", foul.OffsetFt), ("flareStartFt", foul.FlareStartFt), ("railHeightFt", foul.RailHeightFt) })
+                if (value is { } v && !(v > 0 && double.IsFinite(v)))
+                    errors.Add($"{source}: park '{p.Id}' foul.{name} must be greater than 0; got {v}");
+            if (foul.RailHeightFt is { } rail && rail >= p.FenceHeightFt)
+                errors.Add($"{source}: park '{p.Id}' foul.railHeightFt {rail} must stand under the fence ({p.FenceHeightFt} ft)");
+        }
+        if (p.OutfieldStarts is not { } starts) return;
+        var park = p.ToPark();
+        foreach (var (pos, spot) in new[] { ("LF", starts.LF), ("CF", starts.CF), ("RF", starts.RF) })
+        {
+            if (spot is null) continue;
+            var d = Math.Sqrt(spot.X * spot.X + spot.Z * spot.Z);
+            var bearing = Math.Atan2(spot.X, spot.Z) * 180 / Math.PI;
+            if (d <= limits.LipFt)
+                errors.Add($"{source}: park '{p.Id}' outfieldStarts.{pos} ({spot.X}, {spot.Z}) must stand past the infield lip ({limits.LipFt} ft)");
+            else if (Math.Abs(bearing) > 45 || d >= AtBatResolver.FenceAt(park, bearing))
+                errors.Add($"{source}: park '{p.Id}' outfieldStarts.{pos} ({spot.X}, {spot.Z}) must stand in fair ground inside the fence");
+        }
+    }
+
     static void ValidateParkEnvironment(string source, string id, ParkEnvironmentDto? env, List<string> errors)
     {
         if (env is null) return;
@@ -1130,12 +1159,20 @@ internal sealed class ParkDto
     /// </summary>
     public ParkNightDto? Night { get; set; }
 
+    /// <summary>This park's foul territory where it differs from <c>boundary.json</c> (FD-07 C, F2-d). Optional; no park names one.</summary>
+    public ParkFoulDto? Foul { get; set; }
+
+    /// <summary>This park's named outfield starts (FD-07 C, F2-d; <c>SF-09</c>). Optional; no park names one.</summary>
+    public ParkOutfieldDto? OutfieldStarts { get; set; }
+
     public Park ToPark() => new(
         Id, Name, Faction, Surface,
         LeftFenceFt, CenterFenceFt, RightFenceFt, WindMph,
         ToHazards(Hazards),
         WindDeg, FenceHeightFt, Environment?.ToEnvironment(), Zones?.ToZones(),
-        Fence?.ToFence(), Night?.ToNight());
+        Fence?.ToFence(), Night?.ToNight(),
+        Foul is null ? null : new ParkFoul(Foul.OffsetFt, Foul.FlareStartFt, Foul.RailHeightFt),
+        OutfieldStarts?.ToOutfield());
 
     /// <summary>Only after <see cref="ContentDataValidator"/> has accepted the rows, which is when a catalog is built.</summary>
     internal static List<Hazard> ToHazards(List<HazardDto?>? rows) =>
@@ -1244,6 +1281,29 @@ internal sealed class ParkZonesDto
 /// The optional <c>environment</c> block of a park file (§0.3 FD-03, §16). Air only, both fields optional:
 /// an absent field is the global table's number, never a zero.
 /// </summary>
+internal sealed class ParkFoulDto
+{
+    public double? OffsetFt { get; set; }
+    public double? FlareStartFt { get; set; }
+    public double? RailHeightFt { get; set; }
+}
+
+internal sealed class StartSpotDto
+{
+    public double X { get; set; }
+    public double Z { get; set; }
+}
+
+internal sealed class ParkOutfieldDto
+{
+    public StartSpotDto? LF { get; set; }
+    public StartSpotDto? CF { get; set; }
+    public StartSpotDto? RF { get; set; }
+
+    static StartSpot? Of(StartSpotDto? s) => s is null ? null : new StartSpot(s.X, s.Z);
+    public ParkOutfield ToOutfield() => new(Of(LF), Of(CF), Of(RF));
+}
+
 internal sealed class ParkEnvironmentDto
 {
     /// <summary>Multiplies the root's <c>flight.drag</c>.</summary>

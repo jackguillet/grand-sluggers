@@ -6,6 +6,7 @@
     "unity/Assets/Art/Characters/",
     "unity/Assets/Art/Animation/Clips/",
     "unity/Assets/Art/Parks/harbor-diamond/",
+    "unity/Assets/Art/Parks/",
     "tools/blender/"
   ],
   "kinds": [
@@ -40,6 +41,15 @@
       "dccCommand": "tools/dcc-still.sh harbor",
       "inGame": ["plate.png", "mound.png", "diamond-grounder.png"],
       "inGameCommand": "tools/still-gate.sh"
+    },
+    {
+      // A park's lane (F7-b): the named park shots at one park, day and night; the DCC half only once the park has a kit
+      // (its art stage, F9-c, after Jack's greybox sitting). A greybox is judged on the in-game half alone.
+      "id": "park",
+      "dcc": "dcc-park-{park}.png",
+      "dccCommand": "tools/dcc-still.sh park {park}",
+      "inGame": ["title-{park}.png", "diamond-{park}.png", "pole-left-{park}.png", "pole-right-{park}.png"],
+      "inGameCommand": "tools/still-gate.sh --park {park} [--night]"
     }
   ],
   "critic": {

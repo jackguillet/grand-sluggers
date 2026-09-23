@@ -71,6 +71,17 @@ public readonly record struct ParkBoundary
     public static ParkBoundary Default => From(Rules.Default.Boundary);
 
     /// <summary>
+    /// The boundary a park plays (FD-07 C, F2-d): <see cref="Default"/> with the park's own <see cref="Park.Foul"/> values over
+    /// it. A park that names none is <see cref="Default"/> itself, value for value.
+    /// </summary>
+    public static ParkBoundary For(Park park) => park.Foul is not { } foul ? Default : Default with
+    {
+        FoulOffsetFt = foul.OffsetFt ?? Default.FoulOffsetFt,
+        FlareStartFt = foul.FlareStartFt ?? Default.FlareStartFt,
+        RailHeightFt = foul.RailHeightFt ?? Default.RailHeightFt,
+    };
+
+    /// <summary>
     /// A point on the foul rail: <paramref name="alongFt"/> out from home along the line (0 at the
     /// plate, <paramref name="poleFt"/> at the pole), offset into foul so the rail stays off the
     /// dirt and outside the dugout. The offset is full through the infield and smoothsteps to 0 at
