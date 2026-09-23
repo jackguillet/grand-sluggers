@@ -16,7 +16,10 @@ Existing flags --out and --clay still run. This script does not retarget a rig.
 from __future__ import annotations
 
 import argparse
+import json
 import math
+import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -24,6 +27,43 @@ import bmesh
 import bpy
 from mathutils import Matrix
 
+REPO = Path(__file__).resolve().parents[2]
+PARK_ID = "harbor-diamond"
+
+
+def read_jsonc(path: Path) -> dict:
+    """Data files carry // notes (data/rules/*.json). Strip them outside strings, then parse."""
+    text = path.read_text()
+    out, i, n, in_str = [], 0, len(text), False
+    while i < n:
+        c = text[i]
+        if in_str:
+            out.append(c)
+            if c == "\\" and i + 1 < n:
+                out.append(text[i + 1])
+                i += 1
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+            out.append(c)
+        elif text.startswith("//", i):
+            while i < n and text[i] != "\n":
+                i += 1
+            continue
+        else:
+            out.append(c)
+        i += 1
+    return json.loads(re.sub(r",(\s*[}\]])", r"\1", "".join(out)))
+
+
+# The diamond the sim plays (data/rules/infield.json) and the park's fence
+# (data/parks/harbor-diamond.json). The next geometry change rebakes with no code edit.
+INFIELD = read_jsonc(REPO / "data" / "rules" / "infield.json")
+PARK = read_jsonc(REPO / "data" / "parks" / (PARK_ID + ".json"))
+CORNER = float(INFIELD["cornerFt"])
+SECOND = float(INFIELD["secondFt"])
+MOUND_FT = float(INFIELD["moundFt"])
 
 # Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
 HALF_ALONG = 21.3
@@ -34,14 +74,15 @@ STAIR_DEPTH = 0.70
 FIELD_STAIR_RUN = 1.2
 # Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
 BAG_SIZE = 4.0
+# The park's fence (D15: the drawn wall is the fence the flight clips against).
+LEFT_FENCE = float(PARK["leftFenceFt"])
+CENTER_FENCE = float(PARK["centerFenceFt"])
+RIGHT_FENCE = float(PARK["rightFenceFt"])
 # Keep in sync with HarborWall / HarborPostcard / HarborDugout.
-LEFT_FENCE = 330.0
-CENTER_FENCE = 400.0
-RIGHT_FENCE = 330.0
 FOUL_DEG = 45.0
 HOME_RADIUS = 34.0
 WRAP_SEGS = 120
-WALL_H = 26.0
+WALL_H = float(PARK["fenceHeightFt"])
 WALL_THICK = 3.4
 DUGOUT_X = 70.0
 DUGOUT_Z = 40.0
@@ -535,9 +576,9 @@ def build_infield_dirt(dirt):
     not in it (a 0.16-ft slab at z=0.11 z-fights the grass and vanishes).
     """
     home = (0.0, 0.0)
-    first = (63.64, 63.64)
-    second = (0.0, 127.28)
-    third = (-63.64, 63.64)
+    first = (CORNER, CORNER)
+    second = (0.0, SECOND)
+    third = (-CORNER, CORNER)
     inset = PATH_CORNER
     pieces = []
 
@@ -591,6 +632,8 @@ def build_fan(name, sit, jersey, flesh, cap):
 
 def build():
     nuke()
+    print("diamond", "baselineFt", INFIELD["baselineFt"], "cornerFt", CORNER, "secondFt", SECOND,
+          "moundFt", MOUND_FT, "fence", LEFT_FENCE, CENTER_FENCE, RIGHT_FENCE, "wallH", WALL_H)
     wood = mat("wood", (0.42, 0.26, 0.12))
     roof = mat("roof", (0.14, 0.32, 0.20))
     gold = mat("gold", (1.0, 0.80, 0.25))
@@ -619,6 +662,50 @@ def build():
     build_infield_dirt(dirt)
 
 
+def diamond_tile(clay, path: Path, width: int, height: int):
+    """Overhead of the diamond the kit bakes: infield-dirt, bag at 1B/2B/3B, mound on the rubber
+    distance, plate at home — all from data/rules/infield.json. Layout proof only: the stand-ins are
+    removed before export, and Unity places the bag and the mound itself (FieldKit)."""
+    clay.setup(width, height)
+    scene = bpy.context.scene
+    stand_ins = []
+    for name, loc in (
+        ("bag", (CORNER, CORNER, 0.0)),
+        ("bag", (0.0, SECOND, 0.0)),
+        ("bag", (-CORNER, CORNER, 0.0)),
+        ("mound", (0.0, MOUND_FT, 0.0)),
+        ("home-plate", (0.0, 0.0, 0.0)),
+    ):
+        src = bpy.data.objects[name]
+        dup = src.copy()
+        dup.name = "diamond-" + name
+        dup.location = loc
+        scene.collection.objects.link(dup)
+        stand_ins.append(dup)
+    shown = {"infield-dirt"} | {o.name for o in stand_ins}
+    for o in bpy.data.objects:
+        if o.type == "MESH":
+            o.hide_render = o.name not in shown
+    cam_data = bpy.data.cameras.new("diamond-cam")
+    cam_data.type = "ORTHO"
+    # Fixed frame: a 90-ft diamond would overrun it, so the still itself reads the size change.
+    cam_data.ortho_scale = 200.0
+    cam = bpy.data.objects.new("diamond-cam", cam_data)
+    scene.collection.objects.link(cam)
+    cam.location = (0.0, 55.0, 300.0)
+    cam.rotation_euler = (0.0, 0.0, 0.0)
+    previous = scene.camera
+    scene.camera = cam
+    scene.render.filepath = str(path)
+    bpy.ops.render.render(write_still=True)
+    scene.camera = previous
+    for o in stand_ins:
+        bpy.data.objects.remove(o, do_unlink=True)
+    bpy.data.objects.remove(cam, do_unlink=True)
+    bpy.data.cameras.remove(cam_data)
+    return path
+
+
 def clay_check(folder: Path):
     """Named DCC still of origin-centered kit pieces (docs/agent-rails.md §4)."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -634,9 +721,10 @@ def clay_check(folder: Path):
         for o in meshes:
             o.hide_render = o.name != name
         tiles.append(clay.render(folder / f"kit-{name}.png", "three-quarter", 360, 480))
+    tiles.append(diamond_tile(clay, folder / "kit-diamond.png", 360, 480))
     for o in meshes:
         o.hide_render = False
-    out = clay.sheet(tiles, folder / "harbor-kit.png", columns=4)
+    out = clay.sheet(tiles, folder / "harbor-kit.png", columns=len(tiles))
     print("clay", out)
     return out
 
@@ -665,11 +753,19 @@ def main(argv):
     p = argparse.ArgumentParser()
     p.add_argument("--out", required=True)
     p.add_argument("--clay", default="", help="Folder for the named DCC kit still.")
+    p.add_argument("--resources", default="",
+                   help="Player copy folder (Assets/Resources/...); the same bytes as --out.")
     args = p.parse_args(argv)
     build()
     if args.clay:
         clay_check(Path(args.clay))
-    export_fbx(Path(args.out).resolve())
+    out = Path(args.out).resolve()
+    export_fbx(out)
+    if args.resources:
+        dest = Path(args.resources).resolve() / out.name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(out, dest)
+        print("resources", dest)
 
 
 if __name__ == "__main__":
