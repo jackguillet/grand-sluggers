@@ -68,7 +68,10 @@ public sealed class NightBlockTests
             Assert.All(nightMatch.Park.Hazards, h => Assert.Contains(park.Hazards.Concat(night), a => ReferenceEquals(a, h)));
             Assert.Equal(park with { Night = null }, dayMatch.Park with { Hazards = park.Hazards });
             Assert.Equal(park with { Night = null }, nightMatch.Park with { Hazards = park.Hazards });
-            Assert.Same(dayMatch.Rules, nightMatch.Rules);
+            // Night reaches no rule (FD-11-R2): the same table, by reference at a park with no air of its own, by value at
+            // one that names it (Crystal, F9-a).
+            if (park.Environment is null) Assert.Same(dayMatch.Rules, nightMatch.Rules);
+            else Assert.Equal((dayMatch.Rules.Flight.Drag, dayMatch.Rules.Flight.WindMul), (nightMatch.Rules.Flight.Drag, nightMatch.Rules.Flight.WindMul));
 
             if (park.Night is null)
             {

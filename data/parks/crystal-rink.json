@@ -10,6 +10,26 @@
   "windMph": 2,
   "windDeg": 180,
   "fenceHeightFt": 8,
+  "environment": {
+    "dragMul": 1.06
+  },
+  "fence": {
+    "points": [
+      {"bearingDeg": -45.0, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": -37.5, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": -30.0, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": -22.5, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": -15.0, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": -7.5, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": 0.0, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": 7.5, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": 15.0, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": 22.5, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": 30.0, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": 37.5, "fenceFrac": 1.0, "heightFt": 8, "material": "glass"},
+      {"bearingDeg": 45.0, "fenceFrac": 1.0, "heightFt": 8}
+    ]
+  },
   "hazards": [
     {
       "type": "freeze_volume",
@@ -30,5 +50,5 @@
       "radius": 7
     }
   ],
-  "notes": "Players do not skate. Freezers stun on touch. Night keeps the stadium lights and changes no rule of the at-bat (FD-11-R2); the follow-spot on the ball is presentation."
+  "notes": "Intent (F9-a): an ice outfield where grounders run and skid farther and fielders are slower to start, stop and turn, glass boards that give a livelier carom, and cold air that carries a little less. Players do not skate. Freezers stun on touch. Night keeps the stadium lights and changes no rule of the at-bat (FD-11-R2); the follow-spot on the ball is presentation."
 }

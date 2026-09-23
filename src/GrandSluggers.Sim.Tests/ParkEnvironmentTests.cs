@@ -49,7 +49,9 @@ public sealed class ParkEnvironmentTests
     {
         var catalog = Catalog;
         Assert.Equal(6, catalog.Parks.Count);
-        foreach (var park in catalog.Parks.Values)
+        // Every park that names no air (F9-a: Crystal names its cold air and resolves to a copy, F9A_… below).
+        Assert.Equal(["crystal-rink"], catalog.Parks.Values.Where(p => p.Environment is not null).Select(p => p.Id));
+        foreach (var park in catalog.Parks.Values.Where(p => p.Environment is null))
         {
             Assert.Null(park.Environment);
             Assert.Same(catalog.Rules, catalog.Rules.AtPark(park));
@@ -93,9 +95,10 @@ public sealed class ParkEnvironmentTests
                 var match = new Match(catalog, away, home, park, innings: 3, seed: 7, difficulty: level);
                 Assert.Same(match.Rules, TableOf(match, "_atBat"));
                 Assert.Same(match.Rules, TableOf(match, "_fielding"));
-                // No catalog park names air, so that one table is the catalog's own — and the
-                // rung it carries is the match's, which is the whole of what AtLevel replaces.
-                Assert.Same(catalog.Rules.Flight, match.Rules.Flight);
+                // A park that names no air plays the catalog's own table — and the rung it carries is the match's,
+                // which is the whole of what AtLevel replaces. Crystal names air (F9-a), so its flight is its own.
+                if (park.Environment is null) Assert.Same(catalog.Rules.Flight, match.Rules.Flight);
+                else Assert.NotSame(catalog.Rules.Flight, match.Rules.Flight);
                 Assert.Equal(level ?? catalog.Rules.Cpu.Level, TableOf(match, "_fielding").Cpu.Level);
             }
         }
@@ -331,11 +334,14 @@ public sealed class ParkEnvironmentTests
         // And the parity side of the same fact: a park that names no air writes no air, so an identity
         // taken at Harbor is the string it has always been and no stored SHA moves (the trace options
         // omit a null). This row is why this PR regenerates no evidence dataset.
-        foreach (var park in Catalog.Parks.Values)
+        foreach (var park in Catalog.Parks.Values.Where(p => p.Environment is null))
         {
             var match = new Match(Catalog, away, home, park, innings: 3, seed: 7);
             Assert.DoesNotContain("environment", PlayTraceIdentity.Capture(match).InputsJson, StringComparison.OrdinalIgnoreCase);
         }
+        // Crystal names its air (F9-a), so its identity carries it.
+        var crystal = new Match(Catalog, away, home, Catalog.MustPark("crystal-rink"), innings: 3, seed: 7);
+        Assert.Contains("\"dragMul\":1.06", PlayTraceIdentity.Capture(crystal).InputsJson);
     }
 
     // ---------------------------------------------------------------------------------

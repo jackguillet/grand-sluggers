@@ -96,7 +96,11 @@ public sealed class HazardsOffTests
 
             Assert.Equal(park with { Night = null }, off.Park with { Hazards = park.Hazards });
             Assert.Equal(park.Id, off.Park.Id);
-            Assert.Same(on.Rules, off.Rules);
+            // The same resolved table: the reference at a park with no air of its own, the same air and libraries at one
+            // that names it (Crystal, F9-a), whose table AtPark derives afresh per match.
+            if (park.Environment is null) Assert.Same(on.Rules, off.Rules);
+            else Assert.Equal((on.Rules.Flight.Drag, on.Rules.Flight.WindMul), (off.Rules.Flight.Drag, off.Rules.Flight.WindMul));
+            Assert.Same(on.Rules.Grounds, off.Rules.Grounds);
             Assert.Equal(on.Night, off.Night);
 
             removed += park.Hazards.Count - off.Park.Hazards.Count;
