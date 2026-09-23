@@ -89,7 +89,7 @@ public static class FieldingPursuit
             if (!assigned.TryGetValue(position, out var fielder)) continue;
             var start = at != null && at.TryGetValue(position, out var live)
                 ? live
-                : Diamond.Positions[position];
+                : OutfieldStarts.Of(park, rules)[position];
             var speed = FieldingResolver.ChaseSpeedFt(fielder, position, preview, rules);
             var ready = readyAt != null && readyAt.TryGetValue(position, out var r0) ? r0 : 0;
             var route = Plan(preview, park, path, nowSec, start.X, start.Z, speed, rules, ready);
