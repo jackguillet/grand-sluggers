@@ -1647,6 +1647,14 @@ public sealed class WallRules
 /// two fractions are different. See <c>docs/research-game-feel-730.md</c>.
 /// </para>
 /// </summary>
+/// <summary>The fence the outfield starts were authored against (F2-d): the three posts, feet from home.</summary>
+public sealed class AuthoredFenceRules
+{
+    [Positive] public double LeftFt { get; init; } = 232;
+    [Positive] public double CenterFt { get; init; } = 280;
+    [Positive] public double RightFt { get; init; } = 232;
+}
+
 public sealed class FielderRules
 {
     public FielderSpotRules First { get; init; } = new() { XFt = 69.33, ZFt = 64 };
@@ -1656,6 +1664,12 @@ public sealed class FielderRules
     public FielderSpotRules Left { get; init; } = new() { XFt = -77.09, ZFt = 175.19 };
     public FielderSpotRules Center { get; init; } = new() { XFt = 0, ZFt = 213.5 };
     public FielderSpotRules Right { get; init; } = new() { XFt = 77.09, ZFt = 175.19 };
+
+    /// <summary>
+    /// The fence the three outfield starts are authored against (FD-07, F2-d; the default park's posts, 232 / 280 / 232): a
+    /// park that names no start stands each outfielder at his bearing and his fraction of this fence, on its own fence.
+    /// </summary>
+    public AuthoredFenceRules AuthoredFence { get; init; } = new();
 
     /// <summary>
     /// The start for <paramref name="pos"/>, spelled the way the rest of the sim spells a position.
@@ -2309,17 +2323,24 @@ public sealed class HazardRules
         ExitVyFtPerSec = 16
     };
 
-    /// <summary>Ember's captain statue. Drawn, never played.</summary>
-    public HazardTypeRules Statue { get; init; } = new() { Pattern = HazardPattern.Decoration };
+    /// <summary>Ember's captain statue: a solid body (F4-f).</summary>
+    public HazardTypeRules Statue { get; init; } = new() { Pattern = HazardPattern.SolidBody, HeightFt = 9, Restitution = 0.45 };
 
-    /// <summary>Funfair's boxcar. Drawn, never played; the timed mover is F4-f's.</summary>
-    public HazardTypeRules Train { get; init; } = new() { Pattern = HazardPattern.Decoration };
+    /// <summary>Funfair's train: a solid body that runs along the fence on the play clock (F4-f).</summary>
+    public HazardTypeRules Train { get; init; } = new()
+    {
+        Pattern = HazardPattern.TimedMover,
+        HeightFt = 10,
+        Restitution = 0.45,
+        PeriodSec = 10,
+        TravelFt = 50
+    };
 
-    /// <summary>Rooftop's air-conditioning units. Drawn, never played; the solid body is F4-g's.</summary>
-    public HazardTypeRules AcUnit { get; init; } = new() { Pattern = HazardPattern.Decoration };
+    /// <summary>Rooftop's air-conditioning unit: a solid body (F4-f).</summary>
+    public HazardTypeRules AcUnit { get; init; } = new() { Pattern = HazardPattern.SolidBody, HeightFt = 5, Restitution = 0.55 };
 
-    /// <summary>Canopy's trees. Drawn, never played; the solid body is F4-g's.</summary>
-    public HazardTypeRules Tree { get; init; } = new() { Pattern = HazardPattern.Decoration };
+    /// <summary>Canopy's trees: solid bodies (F4-f).</summary>
+    public HazardTypeRules Tree { get; init; } = new() { Pattern = HazardPattern.SolidBody, HeightFt = 20, Restitution = 0.35 };
 
     /// <summary>
     /// This table's row for a library id, or null when the data does not author one. Not public:
@@ -2430,6 +2451,20 @@ public sealed class HazardRules
             if (row.MouthFloorFt is { } floor && (!redirect || row.MouthFt is not { } mouthTop || floor >= mouthTop))
                 errors.Add($"{source}: {key}.mouthFloorFt is {floor}, but it is read only on a {HazardPattern.BallRedirect}, "
                            + "below its mouthFt");
+            // A solid body and a timed mover (F4-f): both say how tall they stand and how they give the ball back; a mover
+            // also says its clock and its run. Nothing else reads these.
+            var solid = row.Pattern is HazardPattern.SolidBody or HazardPattern.TimedMover;
+            var mover = row.Pattern == HazardPattern.TimedMover;
+            foreach (var (name, value, needed) in new[] { ("heightFt", row.HeightFt, solid), ("restitution", row.Restitution, solid),
+                         ("periodSec", row.PeriodSec, mover), ("travelFt", row.TravelFt, mover) })
+            {
+                if (needed && value is null)
+                    errors.Add($"{source}: {key} is a {row.Pattern} and must author {name} (F4-f)");
+                if (!needed && value is { } v)
+                    errors.Add($"{source}: {key}.{name} is {v}, but a {row.Pattern} does not read it; leave {name} out");
+            }
+            if (row.Restitution is > 1)
+                errors.Add($"{source}: {key}.restitution must be between 0 and 1; got {row.Restitution}");
             if (row.Pattern == HazardPattern.RewardTarget && row.TopFt is null)
                 errors.Add($"{source}: {key} is a {HazardPattern.RewardTarget} and must author topFt, the top of the sign (F4-c)");
             if (row.TopFt is { } top && row.Pattern != HazardPattern.RewardTarget)
@@ -2487,6 +2522,18 @@ public sealed class HazardTypeRules
 
     /// <summary>A <c>rewardTarget</c>'s sign (F4-c): a ball inside the disc at or below this height hits it.</summary>
     [Optional, Positive] public double? TopFt { get; init; }
+
+    /// <summary>A <c>solidBody</c> or <c>timedMover</c> (F4-f): how tall it stands; a ball over it passes.</summary>
+    [Optional, Positive] public double? HeightFt { get; init; }
+
+    /// <summary>A <c>solidBody</c> or <c>timedMover</c> (F4-f): the share of the ball's speed into the body it keeps off it.</summary>
+    [Optional, Positive] public double? Restitution { get; init; }
+
+    /// <summary>A <c>timedMover</c> (F4-f): seconds for one run out and back along the fence.</summary>
+    [Optional, Positive] public double? PeriodSec { get; init; }
+
+    /// <summary>A <c>timedMover</c> (F4-f): how far to either side of its authored spot it runs, along the fence.</summary>
+    [Optional, Positive] public double? TravelFt { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------

@@ -291,6 +291,32 @@ the two swing keys preserve their authored direction, the loaded barrel rises, t
 the drawn head on every beat (#623), and the physical barrel segment crosses the plate volume. Normal and MAX each
 run for every selected captain in one editor launch.
 
+### A park's greybox sitting (FD-17, F7-b)
+
+A park earns its art stage only after Jack has sat its greybox (FD-17, #37). The sitting is played in the standalone window, not
+judged from stills, but the stills are the record: capture the park's lane (`data/agent/dual-stills.json` kind `park`) by day
+and at night before the sitting, with `tools/still-gate.sh --park <id>` and `--night`. A greybox has no DCC half.
+
+| Park | What it must read as, HUD off | Where to look |
+| --- | --- | --- |
+| Crystal Rink | ice outfield, glass boards, freezers | grounders skid past the outfield; balls come off the glass livelier; flies die a little sooner; a fielder who runs through a freezer slows for 3 s |
+| Funfair Park | pipes, the train, the night chompers | a grounder into a can pops out of another; the train slides along the wall; at night a fly into a mouth is spat out |
+| Rooftop City | billboards, the AC unit | a ball under a sign pays a star; a ball into the AC unit bounces off |
+| Canopy Yard | barrels, trees, the climb wall | a grounder into a barrel is fired out of another; balls come off the trees; a Clamber fielder climbs to rob |
+| Ember Keep | lava pits, the breath, the statue | a fielder through a pit or the breath slows for 3 s; the breath reaches farther at night; balls come off the statue |
+
+For each park, the sitting answers:
+
+1. **Does it read as its own park at gameplay distance, HUD off?** Name the park from the diamond shot.
+2. **Is every hazard its true size?** The ring under each hazard is the disc the sim reads. A ball or a body that is plainly outside the ring must not be touched.
+3. **Is the difference noticeable (FD-02) and fair?** Write it as a number when it is wrong (Q10): "grounders skid too far: 229 ft should be about 210".
+4. **Can a CPU fielder be seen going around a freezer or a body, and a slowed one be seen slowing?**
+5. **With hazards off (Select / R on the title), is the park still the park?** Fence, walls, air and ground stay.
+6. **Night:** the stadium lights stay on (FD-11-R2); only the view outside and the night hazards change.
+
+Write each finding on the still it came from, file it under #814, and say "pass" only when every row reads. Agents do not pass a
+sitting.
+
 ### Shared motion revision 2
 
 The swing matrix now runs **every requested captain × both batting hands ×

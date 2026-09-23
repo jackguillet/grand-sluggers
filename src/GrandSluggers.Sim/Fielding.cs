@@ -67,7 +67,7 @@ public sealed class FieldingResolver
         // A park's redirects act on the live ball (F4-c, FR-07): the preview plans the path as hit and nothing is foreseen.
         var warped = false;
         var buddyPlant = FlyCatch.ChaseTarget(seed with { Fielder = fielder, Position = pos }, park, _rules);
-        var buddy = Buddy(assigned, fielder, pos, buddyPlant.X, buddyPlant.Z);
+        var buddy = Buddy(assigned, fielder, pos, buddyPlant.X, buddyPlant.Z, OutfieldStarts.Of(park, _rules));
         // The heart swing's slow (a special, §13; outside D21 and the 3e boundary): every chaser for the play, exactly as it
         // shipped. A park's status volume is not read here any more (F4-b, #896, FR-07): it slows the body that touches it,
         // live (BodySlows), and nothing is decided from where the ball lands.
@@ -511,7 +511,8 @@ public sealed class FieldingResolver
         Character fielder,
         string fielderPos,
         double x,
-        double z)
+        double z,
+        IReadOnlyDictionary<string, (double X, double Z)> starts)
     {
         if (!IsOutfield(fielderPos)) return null;
         Character? best = null;
@@ -520,7 +521,7 @@ public sealed class FieldingResolver
         {
             if (!keyed.TryGetValue(pos, out var c) || c.Id == fielder.Id) continue;
             if (_chem.Between(fielder, c) != Chemistry.Good) continue;
-            var p = Diamond.Positions[pos];
+            var p = starts[pos];
             var d = Diamond.Dist(p.X, p.Z, x, z);
             if (d < bestD) { bestD = d; best = c; }
         }

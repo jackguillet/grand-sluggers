@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using GrandSluggers.Sim;
 using UnityEngine;
 
@@ -11,6 +13,21 @@ namespace GrandSluggers.UnityClient
         Light _followSpot;
 
         public BallView Ball => _ball;
+        readonly System.Collections.Generic.List<(SolidBody Body, Transform Actor)> _movers = new();
+
+        /// <summary>
+        /// The play clock (F4-f): every drawn mover stands where the sim places it at this second, so the train the player sees
+        /// is the train the ball meets. Outside a live play the clock is 0 and each mover is at its spot.
+        /// </summary>
+        public void SetPlayClock(double t)
+        {
+            foreach (var (body, actor) in _movers)
+            {
+                if (actor == null) continue;
+                var (x, z) = body.At(t);
+                actor.position = new Vector3((float)x, actor.position.y, (float)z);
+            }
+        }
         public bool Night => _night;
         /// <summary>The park this view last built: the one being played.</summary>
         public Park Park { get; private set; }
@@ -33,6 +50,7 @@ namespace GrandSluggers.UnityClient
             _night = night;
             _followSpot = null;
             _freezePose = 0;
+            _movers.Clear();
             // The park as it plays tonight (PlayedPark.Of): a played park resolves to itself, so this only matters for a
             // caller that hands the catalog's park, whose night instances would otherwise be missing at night.
             park = PlayedPark.Of(park, night, hazards: true, _rules.Hazards);
@@ -421,6 +439,9 @@ namespace GrandSluggers.UnityClient
             var spray = Mathf.Atan2((float)h.X, (float)h.Z) * Mathf.Rad2Deg;
 
             var root = new GameObject("TrackTrain").transform;
+            // A mover (F4-f): the sim places it on the play clock; SetPlayClock moves the drawn one to the same place.
+            var mover = SolidBodies.Of(Park, _rules).FirstOrDefault(b => b.Moves && Math.Abs(b.X - h.X) < 1e-6 && Math.Abs(b.Z - h.Z) < 1e-6);
+            if (mover != null) _movers.Add((mover, root));
             root.SetParent(_root, false);
             root.position = p;
             root.rotation = Quaternion.Euler(0, spray, 0);
