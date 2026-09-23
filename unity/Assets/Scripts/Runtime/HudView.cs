@@ -90,7 +90,7 @@ namespace GrandSluggers.UnityClient
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                $"South / Space pick stadium    West / F tutorials    Esc how to play    Start / H mode    F6 input: {Controls.Player1InputLabel}", _tiny);
+                "South confirm    East back    View how to play    Start options", _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,
@@ -332,7 +332,7 @@ namespace GrandSluggers.UnityClient
                 Screen.width, Screen.height, MeasureWidth(_bookHeader, pageLabel));
             GUI.Label(ToRect(header.Title), p.Title.ToUpperInvariant(), _bookHeader);
             GUI.Label(ToRect(header.Page), pageLabel, _bookHeaderNumber);
-            DrawSchemeToggle(scheme);
+
             DrawSchemeBadges(p, scheme);
             if (p.Id == "contents")
                 DrawContentsToc(p);

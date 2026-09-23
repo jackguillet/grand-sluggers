@@ -16,7 +16,7 @@ public static class RoleTables
     public sealed record Block(string Id, string Title, IReadOnlyList<Row> Rows);
 
     public static IReadOnlyList<Block> Of(InputScheme scheme) =>
-        scheme == InputScheme.Keys ? Keys : Pad;
+        Pad;
 
     public static Block OnPage(InputScheme scheme, string pageId)
     {
@@ -57,112 +57,51 @@ public static class RoleTables
     [
         new("batting", "Batting",
         [
-            new("Move batter", "Stick L/R. Resets each pitch."),
-            new("Normal swing", "Tap South"),
-            new("Charge swing", "Hold South; release at MAX"),
-            new("Cancel swing", "East before you release"),
-            new("Star swing", "Hold LB as you let go of South"),
-            new("Bunt to third", "Hold LT. Let go to pull back."),
-            new("Bunt to first", "Hold RT. Let go to pull back."),
+            new("Move batter", "Left stick"),
+            new("Normal swing", "Tap RT"),
+            new("Charge swing", "Hold RT; release at MAX"),
+            new("Cancel swing", "East before release"),
+            new("Star swing", "Hold LT at RT release"),
+            new("Bunt to third", "Hold West"),
+            new("Bunt to first", "Hold North"),
         ]),
         new("pitching", "Pitching",
         [
-            new("Move pitcher", "Stick L/R. Down resets."),
-            new("Normal pitch", "Tap South"),
-            new("Charge pitch", "Hold South; release at MAX"),
-            new("Cycle pitch", "RB before you charge. Every pitch starts on Fastball; the charge locks it."),
-            new("Star pitch", "Hold LB as you let go of South"),
-            new("Break", "Stick L/R after release"),
-            new("Pickoff", "D-pad + South before charge: any base. After charge: BALK."),
-            new("Swap pitcher", "Select opens; stick inspects any fielder; South swaps two; Select to P"),
+            new("Move pitcher", "Left stick L/R. Down resets."),
+            new("Normal pitch", "Tap RT"),
+            new("Charge pitch", "Hold RT; release at MAX"),
+            new("Cycle pitch", "West before charge"),
+            new("Star pitch", "Hold LT at RT release"),
+            new("Break", "Left stick after release"),
+            new("Pickoff", "Hold right stick + RT. After charge: BALK."),
+            new("Swap pitcher", "Start → Arrange defense"),
         ]),
         new("fielding", "Fielding",
         [
-            new("Take the glove", "Stick"),
-            new("Catch", "South in the window"),
-            new("Throw", "D-pad + South. You become the glove at that bag."),
-            new("Cutoff / relay", "LB after the catch. The cutoff sends it on."),
-            new("Tag", "Have the ball. Touch them off a bag."),
-            new("Rundown", "Chase them; throw to the covered bag."),
-            new("Jump", "West in the window"),
-            new("Dive", "East"),
-            new("Attack", "North"),
-            new("Swap", "Select"),
+            new("Take the glove", "Left stick"),
+            new("Catch", "Automatic in reach"),
+            new("Throw", "Right stick target + RT"),
+            new("Cutoff / relay", "RB; RT sends next leg"),
+            new("Tag", "Ball in glove; touch runner"),
+            new("Rundown", "Move / throw ahead"),
+            new("Jump", "North / Buddy Jump"),
+            new("Dive", "East; queued throw: cancel"),
+            new("Attack", "West at eligible target"),
+            new("Swap", "LB"),
         ]),
         new("running", "Running",
         [
-            new("All advance", "LB after contact. LB + RB halts all."),
-            new("All return", "RB. A tap halts a runner going."),
-            new("Select runner", "D-pad 1B 2B 3B; down the batter"),
-            new("Send", "Stick to the next bag. Back returns."),
-            new("Halt", "Stick at a bag + LB + RB: that runner only"),
-            new("Steal", "Stick forward or L3 sends NOW, before or during the pitch. Home counts."),
+            new("All advance", "D-pad Down selects ALL; LB sends"),
+            new("All return", "RB reverses selection now"),
+            new("Select runner", "Right stick flick; D-pad Down ALL"),
+            new("Send", "LB before or after contact"),
+            new("Halt", "D-pad Up; fresh bumper to resume"),
+            new("Steal", "LB departs NOW; home too"),
             new("Dash", "Mash South"),
-            new("Close play", "First South, at third or home"),
-            new("Rundown", "Stick back or forward turns you"),
-            new("Throw item", "LT + RB / South + LT after contact"),
+            new("Close play", "Fresh South at icon"),
+            new("Rundown", "RB return / LB go"),
+            new("Throw item", "Offered lessons: D-left/right picks; North throws"),
         ]),
     ];
-
-    public static readonly IReadOnlyList<Block> Keys =
-    [
-        new("batting", "Batting",
-        [
-            new("Move batter", "A/D or mouse. Resets each pitch."),
-            new("Normal swing", "Tap Space / left click"),
-            new("Charge swing", "Hold Space / left click; release at MAX"),
-            new("Cancel swing", "G before you release"),
-            new("Star swing", "Hold Q as you let go of Space"),
-            new("Bunt to third", "Hold J. Let go to pull back."),
-            new("Bunt to first", "Hold L. Let go to pull back."),
-        ]),
-        new("pitching", "Pitching",
-        [
-            new("Move pitcher", "A/D or mouse. S resets."),
-            new("Normal pitch", "Tap Space / left click"),
-            new("Charge pitch", "Hold Space / left click; release at MAX"),
-            new("Cycle pitch", "Tab before you charge. Every pitch starts on Fastball; the charge locks it."),
-            new("Star pitch", "Hold Q as you let go of Space"),
-            new("Break", "A/D after release"),
-            new("Pickoff", "1 2 3 4 + Space before charge: any base. After charge: BALK."),
-            new("Swap pitcher", "R opens; WASD inspects any fielder; Space swaps two; R to P"),
-        ]),
-        new("fielding", "Fielding",
-        [
-            new("Take the glove", "WASD"),
-            new("Catch", "Space / left click in the window"),
-            new("Throw", "1 2 3 4 + Space. You become the glove at that bag."),
-            new("Cutoff / relay", "X after the catch. The cutoff sends it on."),
-            new("Tag", "Have the ball. Touch them off a bag."),
-            new("Rundown", "Chase them; throw to the covered bag."),
-            new("Jump", "F in the window"),
-            new("Dive", "G"),
-            new("Attack", "B"),
-            new("Swap", "R"),
-        ]),
-        new("running", "Running",
-        [
-            new("All advance", ", after contact. / halts all."),
-            new("All return", ".  A tap halts a runner going."),
-            new("Select runner", "1 2 3; 4 the batter"),
-            new("Send", "WASD to the next bag. Back returns."),
-            new("Halt", "WASD at a bag + /: that runner only"),
-            new("Steal", "WASD forward or Z sends NOW, before or during the pitch. Home counts."),
-            new("Dash", "Mash Space / left click"),
-            new("Close play", "First Space / left click, at third or home"),
-            new("Rundown", "WASD back or forward turns you"),
-            new("Throw item", "E after contact"),
-        ]),
-    ];
-
-    public static (float X, float Y, float W, float H) Cell(int index, float screenW, float screenH)
-    {
-        var board = ControlDiagram.Board(screenW, screenH);
-        const float gap = 12f;
-        var w = (board.W - gap) * 0.5f;
-        var h = (board.H - gap) * 0.5f;
-        var col = index % 2;
-        var row = index / 2;
-        return (board.X + col * (w + gap), board.Y + row * (h + gap), w, h);
-    }
+    public static readonly IReadOnlyList<Block> Keys = Pad;
 }

@@ -9,7 +9,7 @@ public class CarnivalFrontTests
     public void HarborIsTheRealDiamondPostcard()
     {
         Assert.Equal("GRAND SLUGGERS", CarnivalFront.Logo);
-        Assert.Contains("play ball", CarnivalFront.PlayBall, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("EXHIBITION", CarnivalFront.PlayBall, StringComparison.OrdinalIgnoreCase);
         Assert.True(CarnivalFront.HarborIsTheProduct("harbor-diamond"));
         Assert.False(CarnivalFront.HarborIsTheProduct("crystal-rink"));
         Assert.Contains("real diamond", CarnivalFront.FieldCard(ContentCatalog.Load().MustPark("harbor-diamond"), ContentCatalog.Load().Rules)[0], StringComparison.OrdinalIgnoreCase);
@@ -201,7 +201,7 @@ public class CarnivalFrontTests
         Assert.Equal("3 INNINGS  ·  NORMAL  ·  CPU SKILL  ·  HAZARDS ON", CarnivalFront.TitleSetup(3, "normal", rules, true));
         Assert.Equal("3 INNINGS  ·  NORMAL  ·  CPU SKILL  ·  HAZARDS OFF", CarnivalFront.TitleSetup(3, "normal", rules, false));
         Assert.StartsWith(CarnivalFront.TitleSetup(3, "normal", rules), CarnivalFront.TitleSetup(3, "normal", rules, false));
-        Assert.Contains("N night    R hazards", CarnivalFront.FieldFooter);
+        Assert.Contains("Up/down choose", CarnivalFront.FieldFooter);
     }
 
     /// <summary>
@@ -230,10 +230,10 @@ public class CarnivalFrontTests
     public void FD10_TheBookPairNamesTheHazardsSwitchOnBothSchemes()
     {
         var page = HowToPlay.Pages.Single(p => p.Id == "pause-practice");
-        Assert.Contains(page.Lines, l => l.Contains("Select    hazards on / off", StringComparison.Ordinal));
+        Assert.Contains(page.Lines, l => l.Contains("Hazards    on / off", StringComparison.Ordinal));
         Assert.Contains(page.KeyLines!, l => l.Contains("R    hazards on / off", StringComparison.Ordinal));
         var book = File.ReadAllText(Path.Combine(Catalog.Root.Shipped, "..", "docs", "how-to-play.md"));
-        Assert.Contains("| Hazards on / off (stadium) | Select | R | — |", book);
-        Assert.Contains("- **Select / R** — hazards on / off.", book);
+        Assert.Contains("Pick stadium, day/night and hazards", book);
+        Assert.Contains("Up/down chooses a row", book);
     }
 }

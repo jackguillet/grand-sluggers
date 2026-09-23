@@ -45,51 +45,48 @@ public class HowToPlayTests
 
     [Theory]
     [InlineData(InputScheme.Pad)]
-    [InlineData(InputScheme.Keys)]
-    public void RunningSpreadHasPerRunnerVerbsAndImmediateStealWithHome(InputScheme scheme)
+        public void RunningSpreadHasPerRunnerVerbsAndImmediateStealWithHome(InputScheme scheme)
     {
         var running = RoleTables.Of(scheme).First(b => b.Id == "running");
         Row(running, "Select runner");
         Row(running, "Send");
         var halt = Row(running, "Halt");
-        Assert.Contains("that runner only", halt.Press);
+        Assert.Contains("D-pad Up", halt.Press);
         var steal = Row(running, "Steal");
-        Assert.Contains(scheme == InputScheme.Pad ? "L3" : "Z", steal.Press);
-        Assert.Contains(scheme == InputScheme.Pad ? "Stick forward" : "WASD forward", steal.Press);
-        Assert.Contains("Home", steal.Press);
+        Assert.Contains("LB", steal.Press);
+        Assert.DoesNotContain("L3", steal.Press);
+        Assert.Contains("home", steal.Press);
         Assert.Contains("NOW", steal.Press);
-        Assert.Contains("before or during the pitch", steal.Press);
         var close = Row(running, "Close play");
-        Assert.Contains("third", close.Press);
-        Assert.Contains("home", close.Press);
+        Assert.Contains("South", close.Press);
+        Assert.Contains("icon", close.Press);
         Row(running, "Rundown");
         Row(running, "Dash");
         Assert.DoesNotContain(running.Rows, r => r.Verb == "Tag");
         // The running page itself: the steal of home, the perfect steal, the per-runner send and return, tag-and-go.
         var page = HowToPlay.Must("running").Shown(scheme);
-        Assert.Contains(page, l => l.Contains("home included"));
-        Assert.Contains(page, l => l.Contains("starts a steal NOW"));
+        Assert.Contains(page, l => l.Contains("D-pad Down"));
+        Assert.Contains(page, l => l.Contains("before contact"));
         Assert.DoesNotContain(page, l => l.Contains("perfect steal"));
-        Assert.Contains(page, l => l.Contains("sends the selected runner") && l.Contains("returns them"));
+        Assert.Contains(page, l => l.Contains("RB returns"));
         Assert.Contains(page, l => l.Contains("tag and go"));
         Assert.Contains(page, l => l.Contains("CAUGHT STEALING") && l.Contains("STOLEN BASE"));
     }
 
     [Theory]
     [InlineData(InputScheme.Pad)]
-    [InlineData(InputScheme.Keys)]
-    public void FieldingSpreadHasThrowCutoffRelayTagAndRundown(InputScheme scheme)
+        public void FieldingSpreadHasThrowCutoffRelayTagAndRundown(InputScheme scheme)
     {
         var fielding = RoleTables.Of(scheme).First(b => b.Id == "fielding");
         var throwRow = Row(fielding, "Throw");
-        Assert.Contains("glove at that bag", throwRow.Press);
+        Assert.Contains("Right stick", throwRow.Press);
         var cutoff = Row(fielding, "Cutoff / relay");
-        Assert.Contains(scheme == InputScheme.Pad ? "LB" : "X", cutoff.Press);
-        Assert.Contains("sends it on", cutoff.Press);
+        Assert.Contains("RB", cutoff.Press);
+        Assert.Contains("RT sends", cutoff.Press);
         var tag = Row(fielding, "Tag");
-        Assert.Contains("off a bag", tag.Press);
+        Assert.Contains("touch runner", tag.Press);
         var rundown = Row(fielding, "Rundown");
-        Assert.Contains("covered bag", rundown.Press);
+        Assert.Contains("throw ahead", rundown.Press);
         Row(fielding, "Jump");
         Row(fielding, "Dive");
         Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("close play") && l.Contains("bag"));
@@ -98,21 +95,18 @@ public class HowToPlayTests
 
     [Theory]
     [InlineData(InputScheme.Pad)]
-    [InlineData(InputScheme.Keys)]
-    public void PitchingSpreadHasTheCycleBreakTheVisibleSwapAndThePickoffRule(InputScheme scheme)
+        public void PitchingSpreadHasTheCycleBreakTheVisibleSwapAndThePickoffRule(InputScheme scheme)
     {
         var pitching = RoleTables.Of(scheme).First(b => b.Id == "pitching");
         // PH-02-R5 (#825): the pre-charge family cycle replaces the West changeup row.
         var cycle = Row(pitching, "Cycle pitch");
-        Assert.Contains(scheme == InputScheme.Pad ? "RB" : "Tab", cycle.Press);
+        Assert.Contains("West", cycle.Press);
         Assert.Contains("charge", cycle.Press);
-        Assert.Contains("Fastball", cycle.Press);
         Row(pitching, "Break");
         var swap = Row(pitching, "Swap pitcher");
-        Assert.Contains("any fielder", swap.Press);
+        Assert.Contains("Arrange defense", swap.Press);
         var pickoff = Row(pitching, "Pickoff");
-        Assert.Contains("before charge", pickoff.Press);
-        Assert.Contains("any base", pickoff.Press);
+        Assert.Contains("right stick + RT", pickoff.Press);
         Assert.Contains("BALK", pickoff.Press);
         Assert.Contains(HowToPlay.Must("the-box").Shown(scheme), l => l.Contains("pickoff") && l.Contains("on the bag is safe"));
     }
