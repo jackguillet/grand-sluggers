@@ -212,7 +212,7 @@ namespace GrandSluggers.UnityClient
             _items = gameObject.AddComponent<ItemView>();
             _items.Build(transform);
             _zone = gameObject.AddComponent<StrikeZone>();
-            _zone.Build(transform, _content.Rules);
+            _zone.Build(transform);
             _ring = gameObject.AddComponent<LandingRing>();
             _ring.Build(transform);
             _audio = gameObject.AddComponent<AudioBus>();

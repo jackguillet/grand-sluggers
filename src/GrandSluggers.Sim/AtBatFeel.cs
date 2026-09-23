@@ -354,6 +354,21 @@ public static class PitchSelection
 }
 
 /// <summary>
+/// One swing's cursor oval in world feet on the plate plane (spec §5.2): what the client draws and
+/// what the resolver judges (<see cref="SweetSpot.Oval"/>). The nice boundary is the ellipse with
+/// <see cref="TipHalfFt"/> toward the bat tip, <see cref="HandleHalfFt"/> toward the handle and
+/// <see cref="HalfHeightFt"/> up and down, around (<see cref="CenterX"/>, <see cref="CenterY"/>).
+/// </summary>
+public readonly record struct CursorOval(
+    Hand Bats,
+    double CenterX,
+    double CenterY,
+    double TipHalfFt,
+    double HandleHalfFt,
+    double HalfHeightFt,
+    double BarrelScale);
+
+/// <summary>
 /// The cursor (spec §5.2, D4): the bat drawn on the plate plane in world feet. It follows the
 /// batter (box walk moves it the same distance as the body, <see cref="HomeSet.BatterWalk"/>),
 /// never the pitch; it is as tall as the zone so any strike is hittable; along the barrel it is
@@ -399,6 +414,41 @@ public static class SweetSpot
         var scale = ContactScale(contact, rules);
         if (charged) return chargeBat ? scale : scale * c.ChargeMul;
         return scale * BuddyWiden(buddies, rules);
+    }
+
+    /// <summary>
+    /// The barrel scale of one swing from what the plate knows (spec §5.2): the hitter's Contact
+    /// plus the bat's <c>contactMod</c>, clamped 1–10 (PH-15-R7); the charge as it stands, where the
+    /// Charge Bat is a MAX charge (§5.5); the good-chemistry runners on base. The resolver judges
+    /// with this and <see cref="Oval"/> draws with it, so the two cannot drift (P2-d, #889).
+    /// </summary>
+    /// <param name="charge01">The effective charge (after overcharge decay), 0–1.</param>
+    public static double SwingBarrel(Character batter, BatItem? bat, double charge01, int buddies,
+        RulesTable? rules = null)
+    {
+        var contact = Math.Clamp(batter.Stats.Contact + (bat?.ContactMod ?? 0), 1, 10);
+        var chargeBat = bat?.ChargeAlwaysFull == true;
+        var charged = ChargeFeel.IsCharge(chargeBat ? 1.0 : Math.Clamp(charge01, 0, 1));
+        return BarrelScale(contact, charged, chargeBat, buddies, rules);
+    }
+
+    /// <summary>
+    /// The oval the client draws for one swing, which is the nice boundary the resolver judges
+    /// (spec §5.2, S-133): the center from the box walk, the half-extents from
+    /// <see cref="SwingBarrel"/>. A charge and Contact move the two barrel half-extents only; the
+    /// height is the zone's and never scales (PH-11-R1, PH-15-R7, S-134).
+    /// </summary>
+    public static CursorOval Oval(Character batter, BatItem? bat, double charge01, int buddies,
+        double boxOffsetX, RulesTable? rules = null)
+    {
+        var scale = SwingBarrel(batter, bat, charge01, buddies, rules);
+        var bats = batter.Bats;
+        var (x, y) = WorldCenter(boxOffsetX);
+        var tip = TipSign(bats);
+        return new CursorOval(bats, x, y,
+            NiceHalfWidthFt(bats, tip, scale, rules),
+            NiceHalfWidthFt(bats, -tip, scale, rules),
+            HalfHeightFt, scale);
     }
 
     /// <summary>Nice half-axis along the barrel on the side of <paramref name="dx"/> (world feet from the center).</summary>
@@ -461,6 +511,25 @@ public static class SweetSpot
             var ux = Math.Cos(a);
             var nx = NiceHalfWidthFt(bats, ux, barrelScale, rules);
             pts.Add((ux * nx, Math.Sin(a) * HalfHeightFt));
+        }
+        return pts;
+    }
+
+    /// <summary>
+    /// The drawn outline of <paramref name="oval"/>, local to its center: the tip half-extent on the
+    /// tip side, the handle half-extent on the other, the zone's half height up and down. The same
+    /// points as <see cref="Outline(Hand, double, int, RulesTable?)"/> for the oval's own barrel.
+    /// </summary>
+    public static IReadOnlyList<(double X, double Y)> Outline(CursorOval oval, int segments = 40)
+    {
+        var pts = new List<(double X, double Y)>(segments);
+        var tip = TipSign(oval.Bats);
+        for (var i = 0; i < segments; i++)
+        {
+            var a = i * Math.PI * 2 / segments;
+            var ux = Math.Cos(a);
+            var nx = ux * tip >= 0 ? oval.TipHalfFt : oval.HandleHalfFt;
+            pts.Add((ux * nx, Math.Sin(a) * oval.HalfHeightFt));
         }
         return pts;
     }
