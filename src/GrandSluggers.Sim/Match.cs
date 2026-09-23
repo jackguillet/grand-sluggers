@@ -56,6 +56,7 @@ public sealed class Match
     public Character? Third => RunnerAt(3)?.Who;
     /// <summary>Mercy rule on (spec §1): off below the table's scheduled-innings floor whatever this says.</summary>
     public bool Mercy { get; }
+    public bool StarsEnabled { get; }
     int _selectedBag;
     bool _pickedRunner;
     public int AwayBatter { get; private set; }
@@ -107,9 +108,9 @@ public sealed class Match
         new(Seed, Home.Captain.Id, Away.Captain.Id, Park.Id, _traces.ToArray(),
             SchemaVersion: 2,
             Identity: PlayTraceIdentity.Capture(this),
-            Trial: PlayTraceTrial.For(Content.Root));
+            Trial: PlayTraceTrial.For(Content.Root), StarsEnabled: StarsEnabled ? null : false);
 
-    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null, bool hazards = true)
+    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null, bool hazards = true, bool stars = true)
     {
         Content = content;
         // The table resolves from the park as the catalog authored it, so neither the switch nor the
@@ -117,6 +118,7 @@ public sealed class Match
         // hazards-on day twin plays (SF-01, FD-10, FD-11-R2).
         _rules = content.Rules.AtLevel(difficulty).AtPark(park);
         Mercy = mercy;
+        StarsEnabled = stars;
         Away = away;
         Home = home;
         Hazards = hazards;
@@ -138,8 +140,8 @@ public sealed class Match
         HomeOrder = home.BattingOrder;
         // One pool per team, the same usable reserve for both, set once here and never again (PH-16-R4, R6, R16):
         // chemistry does not move it, and no half, role change or restart of a play grants it again.
-        AwayStars = _rules.Stars.StartingReserve;
-        HomeStars = _rules.Stars.StartingReserve;
+        AwayStars = stars ? _rules.Stars.StartingReserve : 0;
+        HomeStars = stars ? _rules.Stars.StartingReserve : 0;
         _homePitcher = home.Pitcher;
         _awayPitcher = away.Pitcher;
         _homeDefense = home.Roster.ToList();
@@ -189,10 +191,12 @@ public sealed class Match
         string? parkId = null,
         bool night = false,
         string? difficulty = null,
-        bool hazards = true)
+        bool hazards = true,
+        bool mercy = true,
+        bool stars = true)
     {
         var (home, away) = PresetTeams.Pair(content, homeCaptain, awayCaptain);
-        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(content, homeCaptain), night, difficulty, hazards);
+        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(content, homeCaptain), night, difficulty, hazards, mercy, stars);
     }
 
     public static Match Exhibition(
@@ -204,10 +208,12 @@ public sealed class Match
         string? parkId = null,
         bool night = false,
         string? difficulty = null,
-        bool hazards = true)
+        bool hazards = true,
+        bool mercy = true,
+        bool stars = true)
     {
         parkId ??= PresetTeams.HomeParkId(content, home.Captain.Id);
-        return new Match(content, away, home, content.MustPark(parkId), innings, seed, night, difficulty: difficulty, hazards: hazards);
+        return new Match(content, away, home, content.MustPark(parkId), innings, seed, night, difficulty: difficulty, hazards: hazards, mercy: mercy, stars: stars);
     }
 
     /// <summary>
@@ -240,6 +246,7 @@ public sealed class Match
 
     public void GiveOffenseStars(double n)
     {
+        if (!StarsEnabled) return;
         n = Math.Clamp(n, 0, 5);
         if (Top) AwayStars = Math.Max(AwayStars, n);
         else HomeStars = Math.Max(HomeStars, n);
@@ -247,6 +254,7 @@ public sealed class Match
 
     public void GiveDefenseStars(double n)
     {
+        if (!StarsEnabled) return;
         n = Math.Clamp(n, 0, Rules.Stars.MeterMax);
         if (Top) HomeStars = Math.Max(HomeStars, n);
         else AwayStars = Math.Max(AwayStars, n);
@@ -259,6 +267,7 @@ public sealed class Match
     /// </summary>
     internal void SetDefenseStarsForLesson(double n)
     {
+        if (!StarsEnabled) return;
         n = Math.Clamp(n, 0, Rules.Stars.MeterMax);
         if (Top) HomeStars = n;
         else AwayStars = n;
@@ -762,8 +771,8 @@ public sealed class Match
     /// The defense can pay for its Star Pitch. A read for the clients and the CPU; the match itself settles a released
     /// special in <see cref="BeginAtBat"/>, where an unaffordable one is thrown as the ordinary pitch (PH-16-R12).
     /// </summary>
-    public bool CanStarPitch => DefenseStars >= PitchStarCost;
-    public bool CanStarSwing => OffenseStars >= SwingStarCost;
+    public bool CanStarPitch => StarsEnabled && DefenseStars >= PitchStarCost;
+    public bool CanStarSwing => StarsEnabled && OffenseStars >= SwingStarCost;
 
     /// <summary>
     /// The Star Pitch request a release now would record (§12, PH-16-R12): the same typed <see cref="StarRequest"/>
@@ -772,11 +781,11 @@ public sealed class Match
     /// release and the settle, so the two agree (S-201).
     /// </summary>
     public StarRequest PitchStarRequest =>
-        new(StarAction.Pitch, Top, Pitcher.Id, Pitcher.StarPitch, PitchStarCost, DefenseStars, DefenseStars >= PitchStarCost);
+        new(StarAction.Pitch, Top, Pitcher.Id, Pitcher.StarPitch, PitchStarCost, DefenseStars, CanStarPitch);
 
     /// <summary>The Star Swing request a release now would record: the same rule as <see cref="PitchStarRequest"/>.</summary>
     public StarRequest SwingStarRequest =>
-        new(StarAction.Swing, !Top, Batter.Id, Batter.StarSwing, SwingStarCost, OffenseStars, OffenseStars >= SwingStarCost);
+        new(StarAction.Swing, !Top, Batter.Id, Batter.StarSwing, SwingStarCost, OffenseStars, CanStarSwing);
 
     /// <summary>
     /// Settle a released Star Pitch (§12, PH-16-R12): affordable, it is paid now and flies as the special; not, it
@@ -2268,6 +2277,7 @@ public sealed class Match
 
     void AddStars(bool defense, double amount)
     {
+        if (!StarsEnabled) return;
         var max = Rules.Stars.MeterMax;
         if (defense)
         {

@@ -52,7 +52,8 @@ public sealed record PlayTraceLog(
     IReadOnlyList<PlayTrace> Plays,
     int SchemaVersion = 1,
     PlayTraceIdentity? Identity = null,
-    PlayTraceTrial? Trial = null)
+    PlayTraceTrial? Trial = null,
+    bool? StarsEnabled = null)
 {
     public string ToJson(bool indented = false) =>
         JsonSerializer.Serialize(this, indented ? PlayTrace.IndentedJson : PlayTrace.Json);
