@@ -14,12 +14,11 @@ namespace GrandSluggers.Sim.Tests;
 /// list of its own.
 ///
 /// <para>
-/// <b>The parity oracle.</b> <see cref="OldDispatch"/> below is the pre-#847 code, verbatim: the type
-/// strings, the <c>fielding.park</c> numbers at their shipped values, and the
-/// <c>park.Id != "funfair-park"</c> chomper literals. Every dispatch test compares the new pattern
-/// dispatch against it over a grid of points, so "same outcomes as today" is a measurement and not a
-/// claim. It is dead weight the day F4-b changes what a hazard does — and it is the only thing that
-/// can prove F4-a did not.
+/// <b>The oracle.</b> <see cref="OldDispatch"/> below is the pre-#847 code's shape: dispatch by type
+/// string, the shipped numbers typed out (the redirect pad, Ember's night widening), and the
+/// <c>park.Id != "funfair-park"</c> chomper discs as literals. Every dispatch test compares the pattern
+/// dispatch against it over a grid of points, so "the table plays what the numbers say" is a
+/// measurement and not a claim. It is dead weight the day F4-b changes what a hazard does.
 /// </para>
 /// </summary>
 public sealed class HazardLibraryTests
@@ -88,56 +87,51 @@ public sealed class HazardLibraryTests
             .ToList();
         Assert.Equal(HazardType.All.Select(HazardType.Key).OrderBy(n => n, StringComparer.Ordinal), properties);
 
-        foreach (var root in Roots())
-        {
-            var json = JsonNode.Parse(File.ReadAllText(RulesTable.PathFor(root, "hazards")), null, JsonComments)!.AsObject();
-            Assert.Equal(
-                HazardType.All.Select(HazardType.Key).OrderBy(n => n, StringComparer.Ordinal),
-                json.Select(kv => kv.Key).OrderBy(n => n, StringComparer.Ordinal));
-        }
+        var json = JsonNode.Parse(File.ReadAllText(RulesTable.PathFor(Content.Root, "hazards")), null, JsonComments)!.AsObject();
+        Assert.Equal(
+            HazardType.All.Select(HazardType.Key).OrderBy(n => n, StringComparer.Ordinal),
+            json.Select(kv => kv.Key).OrderBy(n => n, StringComparer.Ordinal));
     }
 
-    /// <summary>The twelve rows, by name, on both roots. This is the table the rest of the file measures against.</summary>
+    /// <summary>The twelve rows, by name. This is the table the rest of the file measures against.</summary>
     [Fact]
     public void EveryTypeNamesThePatternItPlaysAndTheNumbersThatAreItsOwn()
     {
-        foreach (var (root, pad) in new[] { (Content.Root, 8.0), (TrialRoot(), 5.6) })
+        var root = Content.Root;
+        var hazards = RulesTable.Load(root).Hazards;
+        Assert.Equal(HazardPattern.StatusVolume, hazards.Of(HazardType.FreezeVolume).Pattern);
+        Assert.Equal(HazardPattern.StatusVolume, hazards.Of(HazardType.LavaPit).Pattern);
+        Assert.Equal(HazardPattern.StatusVolume, hazards.Of(HazardType.FireBreath).Pattern);
+        Assert.Equal(HazardPattern.BallRedirect, hazards.Of(HazardType.WarpPipe).Pattern);
+        Assert.Equal(HazardPattern.BallRedirect, hazards.Of(HazardType.Barrel).Pattern);
+        Assert.Equal(HazardPattern.RewardTarget, hazards.Of(HazardType.Billboard).Pattern);
+        Assert.Equal(HazardPattern.WallTrait, hazards.Of(HazardType.ClimbWall).Pattern);
+        Assert.Equal(HazardPattern.CatchStealer, hazards.Of(HazardType.Chomper).Pattern);
+        foreach (var inert in new[] { HazardType.Statue, HazardType.Train, HazardType.AcUnit, HazardType.Tree })
+            Assert.Equal(HazardPattern.Decoration, hazards.Of(inert).Pattern);
+
+        // The numbers that are the rows' own.
+        Assert.Equal(1.6, hazards.Of(HazardType.FireBreath).NightRadiusMul);
+        Assert.Equal(5.6, hazards.Of(HazardType.WarpPipe).ReachPadFt);
+        Assert.Equal(5.6, hazards.Of(HazardType.Barrel).ReachPadFt);
+        // The chomper row no longer says "night only" (F4-d, FD-11): Funfair's night block does.
+
+        // And the numbers that are not: the slow's size and the sign's payout keep their homes,
+        // because a star swing sets the same slow and the specials are outside this phase.
+        var rules = RulesTable.Load(root);
+        Assert.Equal(0.45, rules.Fielding.Chase.FrozenMul);
+        Assert.Equal(0.4, rules.Fielding.Drops.Frozen);
+        Assert.Equal(1.0, rules.Stars.Gains.Billboard);
+        Assert.Equal(0.6, rules.Fielding.Park.ShellWarpChance);
+
+        // Only a status volume widens at night, only a redirect has a pad, and only a status volume slows a body for a
+        // time (F4-b, FD-08-R2: 3.0 s).
+        foreach (var type in HazardType.All)
         {
-            var hazards = RulesTable.Load(root).Hazards;
-            Assert.Equal(HazardPattern.StatusVolume, hazards.Of(HazardType.FreezeVolume).Pattern);
-            Assert.Equal(HazardPattern.StatusVolume, hazards.Of(HazardType.LavaPit).Pattern);
-            Assert.Equal(HazardPattern.StatusVolume, hazards.Of(HazardType.FireBreath).Pattern);
-            Assert.Equal(HazardPattern.BallRedirect, hazards.Of(HazardType.WarpPipe).Pattern);
-            Assert.Equal(HazardPattern.BallRedirect, hazards.Of(HazardType.Barrel).Pattern);
-            Assert.Equal(HazardPattern.RewardTarget, hazards.Of(HazardType.Billboard).Pattern);
-            Assert.Equal(HazardPattern.WallTrait, hazards.Of(HazardType.ClimbWall).Pattern);
-            Assert.Equal(HazardPattern.CatchStealer, hazards.Of(HazardType.Chomper).Pattern);
-            foreach (var inert in new[] { HazardType.Statue, HazardType.Train, HazardType.AcUnit, HazardType.Tree })
-                Assert.Equal(HazardPattern.Decoration, hazards.Of(inert).Pattern);
-
-            // The numbers that moved, at the values they moved from.
-            Assert.Equal(1.6, hazards.Of(HazardType.FireBreath).NightRadiusMul);
-            Assert.Equal(pad, hazards.Of(HazardType.WarpPipe).ReachPadFt);
-            Assert.Equal(pad, hazards.Of(HazardType.Barrel).ReachPadFt);
-            // The chomper row no longer says "night only" (F4-d, FD-11): Funfair's night block does.
-
-            // And the numbers that did not: the slow's size and the sign's payout keep their homes,
-            // because a star swing sets the same slow and the specials are outside this phase.
-            var rules = RulesTable.Load(root);
-            Assert.Equal(0.45, rules.Fielding.Chase.FrozenMul);
-            Assert.Equal(0.4, rules.Fielding.Drops.Frozen);
-            Assert.Equal(1.0, rules.Stars.Gains.Billboard);
-            Assert.Equal(0.6, rules.Fielding.Park.ShellWarpChance);
-
-            // Only a status volume widens at night, only a redirect has a pad, and only a status volume slows a body for a
-            // time (F4-b, FD-08-R2: 3.0 s on both roots).
-            foreach (var type in HazardType.All)
-            {
-                var row = hazards.Of(type);
-                Assert.True(row.NightRadiusMul == 1 || row.Pattern == HazardPattern.StatusVolume, type);
-                Assert.True(row.ReachPadFt == 0 || row.Pattern == HazardPattern.BallRedirect, type);
-                Assert.Equal(row.Pattern == HazardPattern.StatusVolume ? (double?)3.0 : null, row.SlowSec);
-            }
+            var row = hazards.Of(type);
+            Assert.True(row.NightRadiusMul == 1 || row.Pattern == HazardPattern.StatusVolume, type);
+            Assert.True(row.ReachPadFt == 0 || row.Pattern == HazardPattern.BallRedirect, type);
+            Assert.Equal(row.Pattern == HazardPattern.StatusVolume ? (double?)3.0 : null, row.SlowSec);
         }
     }
 
@@ -147,14 +141,15 @@ public sealed class HazardLibraryTests
 
     /// <summary>
     /// SF-03 (the hazard half): a hazard type with no authored row stops the load and names the id.
-    /// Both roots, because a trial writes whole files and could drop a row the shipped table has.
+    /// On the shipped root and through an overlay, because an overlay writes whole files and could
+    /// carry a park the shipped table does not agree with.
     /// </summary>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void SF03_AParkHazardTypeOutsideTheLibraryStopsTheLoadAndNamesIt(bool trial)
+    public void SF03_AParkHazardTypeOutsideTheLibraryStopsTheLoadAndNamesIt(bool overlay)
     {
-        using var fixture = new HazardFixture(trial);
+        using var fixture = new HazardFixture(overlay);
         fixture.Park("funfair-park", json => json["hazards"]![0]!["type"] = "sprinkler");
 
         var errors = ContentDataValidator.Validate(fixture.Root());
@@ -174,7 +169,7 @@ public sealed class HazardLibraryTests
     [Fact]
     public void SF03_ALibraryTypeWithNoAuthoredRowStopsTheLoadAndNamesIt()
     {
-        using var fixture = new HazardFixture(trial: false);
+        using var fixture = new HazardFixture(overlay: false);
         fixture.Hazards(json => json["warpPipe"] = null);
 
         var errors = RulesTable.Validate(fixture.Root());
@@ -194,14 +189,14 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// SF-03 on a trial root: the overlay's own rule gets there first. A trial writes whole files
+    /// SF-03 through an overlay: the overlay's own rule gets there first. An overlay writes whole files
     /// (#716), so a copy of <c>hazards.json</c> that dropped a row is refused by name before the
     /// table is ever built — which is the stricter of the two nets, not a hole in this one.
     /// </summary>
     [Fact]
-    public void SF03_ATrialCopyMissingARowIsRefusedByTheWholeFileRule()
+    public void SF03_AnOverlayCopyMissingARowIsRefusedByTheWholeFileRule()
     {
-        using var fixture = new HazardFixture(trial: true);
+        using var fixture = new HazardFixture(overlay: true);
         fixture.Hazards(json => json.Remove("warpPipe"));
 
         var ex = Assert.Throws<InvalidDataException>(() => fixture.Root());
@@ -216,9 +211,9 @@ public sealed class HazardLibraryTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void SF03_ARowWithAnUnknownPatternStopsTheLoadAndNamesIt(bool trial)
+    public void SF03_ARowWithAnUnknownPatternStopsTheLoadAndNamesIt(bool overlay)
     {
-        using var fixture = new HazardFixture(trial);
+        using var fixture = new HazardFixture(overlay);
         fixture.Hazards(json => json["tree"]!["pattern"] = "solidBody");
 
         var errors = RulesTable.Validate(fixture.Root());
@@ -231,7 +226,7 @@ public sealed class HazardLibraryTests
     [Fact]
     public void ANumberThePatternNeverReadsIsRefused()
     {
-        using var fixture = new HazardFixture(trial: false);
+        using var fixture = new HazardFixture(overlay: false);
         fixture.Hazards(json =>
         {
             json["tree"]!["nightRadiusMul"] = 1.4;
@@ -257,7 +252,7 @@ public sealed class HazardLibraryTests
         Assert.Equal(HazardPattern.Decoration, Table.Hazards.Of(HazardType.Train).Pattern);
         Assert.Empty(ContentDataValidator.Validate(Content.Root));
 
-        using var fixture = new HazardFixture(trial: false);
+        using var fixture = new HazardFixture(overlay: false);
         fixture.Park("funfair-park", json => json["hazards"]![0]!["radius"] = 0);
         Assert.Contains(
             ContentDataValidator.Validate(fixture.Root()),
@@ -265,17 +260,17 @@ public sealed class HazardLibraryTests
     }
 
     // ---------------------------------------------------------------------------------
-    // The dispatch is the old dispatch
+    // The dispatch is the oracle's dispatch
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Every status volume in every park, against the pre-#847 code, by day and by night, at eight
-    /// radii around each disc's rim. The night ring is the one that matters: the old code widened a
-    /// <c>fire_breath</c> and nothing else, and the new one widens a row whose
+    /// Every status volume in every park, against the oracle, by day and by night, at eight radii
+    /// around each disc's rim. The night ring is the one that matters: the oracle widens a
+    /// <c>fire_breath</c> and nothing else, and the table widens a row whose
     /// <c>nightRadiusMul</c> is not 1 — the same three discs, the same 1.6.
     /// </summary>
     [Fact]
-    public void TheStatusVolumeDispatchEqualsTheOldOne()
+    public void TheStatusVolumeDispatchEqualsTheOracle()
     {
         foreach (var park in Parks)
             foreach (var (x, z) in Probes(park))
@@ -286,12 +281,12 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// Every redirect, against the pre-#847 code, on the same seeded stream: a pipe that catches the
-    /// ball must catch it at the same reach and send it to the same exit, because the exit is a draw
-    /// and a draw that moved would reseed every game from there.
+    /// Every redirect, against the oracle, on the same seeded stream: a pipe that catches the ball
+    /// must catch it at the same reach and send it to the same exit, because the exit is a draw and
+    /// a draw that moved would reseed every game from there.
     /// </summary>
     [Fact]
-    public void TheBallRedirectDispatchEqualsTheOldOneIncludingTheDraw()
+    public void TheBallRedirectDispatchEqualsTheOracleIncludingTheDraw()
     {
         foreach (var park in Parks)
             foreach (var (x, z) in Probes(park))
@@ -300,9 +295,9 @@ public sealed class HazardLibraryTests
                     ParkHazards.WarpIfPipe(park, x, z, new Random(847), Table));
     }
 
-    /// <summary>Every sign, against the pre-#847 code. The <c>tag</c> is still not read.</summary>
+    /// <summary>Every sign, against the oracle. The <c>tag</c> is still not read.</summary>
     [Fact]
-    public void TheRewardTargetDispatchEqualsTheOldOne()
+    public void TheRewardTargetDispatchEqualsTheOracle()
     {
         foreach (var park in Parks)
             foreach (var (x, z) in Probes(park))
@@ -310,11 +305,11 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// The wall trait, against the pre-#847 code, for a Clamber fielder and for one without the
+    /// The wall trait, against the oracle, for a Clamber fielder and for one without the
     /// ability, in every park. It is still a park-wide flag and the row's disc is still never read.
     /// </summary>
     [Fact]
-    public void TheWallTraitDispatchEqualsTheOldOne()
+    public void TheWallTraitDispatchEqualsTheOracle()
     {
         foreach (var park in Parks)
             foreach (var id in new[] { "konga", "rio", "ashlord" })
@@ -325,20 +320,20 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// The catch stealer, against the pre-#847 code — the one place where "today's outcome" had to
-    /// survive a park id turning into three data rows. The old code tested three literal discs when
-    /// the park was Funfair and it was night; the new one tests the <c>chomper</c> instances of the park
-    /// a match plays, which on the shipped root are those three literals at the same places.
+    /// The catch stealer, against the oracle — the one place where a park id turned into three data
+    /// rows. The oracle tests three literal discs when the park is Funfair and it is night; the live
+    /// dispatch tests the <c>chomper</c> instances of the park a match plays, which are those three
+    /// discs at the same places.
     ///
     /// <para>
-    /// Re-read through the night block since F4-d (FD-11): the mouths are Funfair's night-block
-    /// instances, so the live dispatch is handed the played park (<see cref="Played"/>) — by day without
-    /// them, at night with them — and no longer takes the clock at all. The oracle is unchanged, and the
-    /// probes ring the night park's instances, so every mouth is still probed by day and by night.
+    /// The mouths are Funfair's night-block instances (FD-11, F4-d), so the live dispatch is handed the
+    /// played park (<see cref="Played"/>) — by day without them, at night with them — and does not take
+    /// the clock at all. The probes ring the night park's instances, so every mouth is probed by day
+    /// and by night.
     /// </para>
     /// </summary>
     [Fact]
-    public void TheCatchStealerDispatchEqualsTheOldOneOnTheShippedRoot()
+    public void TheCatchStealerDispatchEqualsTheOracle()
     {
         foreach (var park in Parks)
             foreach (var (x, z) in Probes(Played(park, night: true)))
@@ -350,21 +345,24 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// The chomper rows reproduce the literal discs. The old array is written out here rather than
-    /// read from the sim, because the sim no longer has it — that is the point of the child. Since F4-d
-    /// they are Funfair's night block (FD-11): the park a night match plays holds them after the day's
-    /// four instances, in file order, and the park a day match plays has none.
+    /// The chomper rows are the oracle's literal discs, typed out here rather than read from the sim,
+    /// because the sim has no copy of them. They are Funfair's night block (FD-11): the park a night
+    /// match plays holds them after the day's four instances, in file order, and the park a day match
+    /// plays has none.
     /// </summary>
     [Fact]
-    public void TheChomperRowsReproduceTheCodeLiteralOnTheShippedRoot()
+    public void TheChomperRowsAreTheOracleLiterals()
     {
         var funfair = Content.Parks["funfair-park"];
         var rows = Played(funfair, night: true).Hazards
             .Where(h => h.Type == HazardType.Chomper)
             .ToList();
         Assert.Equal(
-            [(-72.0, 205.0, 16.0, "L"), (0.0, 228.0, 18.0, "C"), (78.0, 198.0, 16.0, "R")],
+            [(-50.0, 144.0, 11.2, "L"), (0.0, 160.0, 12.6, "C"), (55.0, 139.0, 11.2, "R")],
             rows.Select(h => (h.X, h.Z, h.Radius, h.Tag)).ToList());
+        Assert.Equal(
+            OldDispatch.FunfairChompers.Select(h => (h.X, h.Z, h.Radius, h.Tag)),
+            rows.Select(h => (h.X, h.Z, h.Radius, h.Tag)));
         Assert.Equal(funfair.Night!.Hazards, rows);
         Assert.DoesNotContain(funfair.Hazards, h => h.Type == HazardType.Chomper);
         Assert.DoesNotContain(Played(funfair, night: false).Hazards, h => h.Type == HazardType.Chomper);
@@ -372,35 +370,6 @@ public sealed class HazardLibraryTests
         // And nowhere else: the mouths are one park's rows, not a rule about a park.
         foreach (var park in Parks.Where(p => p.Id != "funfair-park"))
             Assert.DoesNotContain(Played(park, night: true).Hazards, h => h.Type == HazardType.Chomper);
-    }
-
-    /// <summary>
-    /// The trial's rows are the shipped ones through the accepted migration rule (F693-04): the
-    /// fence scale beyond the lip, radii × 0.70, rounded the way <c>trials/c80</c> spells them.
-    /// <c>CompactGeometryTests</c> holds the rule for every hazard; this holds it for the three that
-    /// are new, so a chomper row edited on one root alone fails here by name.
-    /// </summary>
-    [Fact]
-    public void TheTrialChomperRowsFollowTheAcceptedZoneRule()
-    {
-        var trial = ContentCatalog.Load(TrialRoot());
-        // The night block on each root (FD-11, F4-d), read as a night match plays it.
-        var was = Played(Content.Parks["funfair-park"], night: true).Hazards.Where(h => h.Type == HazardType.Chomper).ToList();
-        var now = PlayedPark.Of(trial.Parks["funfair-park"], night: true, hazards: true, trial.Rules.Hazards).Hazards
-            .Where(h => h.Type == HazardType.Chomper).ToList();
-        Assert.Equal(3, now.Count);
-        for (var i = 0; i < was.Count; i++)
-        {
-            // Every mouth stood on the grass, so every one takes the fence scale.
-            Assert.True(FieldingResolver.OutfieldGrass(was[i].X, was[i].Z, Content.Rules), was[i].Tag);
-            Assert.Equal(was[i].Tag, now[i].Tag);
-            Assert.Equal(Math.Round(was[i].X * 0.70, MidpointRounding.AwayFromZero), now[i].X, 6);
-            Assert.Equal(Math.Round(was[i].Z * 0.70, MidpointRounding.AwayFromZero), now[i].Z, 6);
-            Assert.Equal(Math.Round(was[i].Radius * 0.70, 2), now[i].Radius, 6);
-        }
-        Assert.Equal(
-            [(-50.0, 144.0, 11.2), (0.0, 160.0, 12.6), (55.0, 139.0, 11.2)],
-            now.Select(h => (h.X, h.Z, h.Radius)).ToList());
     }
 
     // ---------------------------------------------------------------------------------
@@ -452,14 +421,6 @@ public sealed class HazardLibraryTests
     // Helpers
     // ---------------------------------------------------------------------------------
 
-    static DataRoot TrialRoot()
-    {
-        var shipped = Content.Root.Shipped;
-        return new DataRoot(shipped, Path.GetFullPath(Path.Combine(shipped, "..", "trials", "c80")));
-    }
-
-    static IEnumerable<DataRoot> Roots() => [Content.Root, TrialRoot()];
-
     /// <summary>Points around every hazard in the park, plus the plate and a deep centre mark.</summary>
     static IEnumerable<(double X, double Z)> Probes(Park park)
     {
@@ -470,11 +431,12 @@ public sealed class HazardLibraryTests
                 yield return p;
     }
 
-    /// <summary>The centre, then just inside and just outside the rim on four bearings, then well past the pad.</summary>
+    /// <summary>The centre, then just inside and just outside the rim on four bearings, then either side of the redirect pad.</summary>
     static IEnumerable<(double X, double Z)> Ring(double x, double z, double radius)
     {
         yield return (x, z);
-        foreach (var d in new[] { radius - 0.1, radius + 0.1, radius + 7.9, radius + 8.1 })
+        var pad = OldDispatch.PipeReachPadFt;
+        foreach (var d in new[] { radius - 0.1, radius + 0.1, radius + pad - 0.1, radius + pad + 0.1 })
         {
             if (d <= 0) continue;
             yield return (x + d, z);
@@ -485,20 +447,19 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// <b>ParkHazards as it was before #847</b>, copied line for line. The numbers are the shipped
-    /// <c>fielding.park</c> values it read; the trial's own pad is exercised through the live code in
-    /// <c>CompactGeometryTests</c>, because this oracle exists to pin the shipped root's behaviour.
+    /// <b>ParkHazards in its pre-#847 shape</b>: dispatch by type string, with the shipped numbers
+    /// typed out rather than read from the table, so a row that drifted from them fails by name.
     /// </summary>
     static class OldDispatch
     {
         const double EmberNightFireMul = 1.6;
-        const double PipeReachPadFt = 8;
+        public const double PipeReachPadFt = 5.6;
 
-        static readonly Hazard[] FunfairChompers =
+        public static readonly Hazard[] FunfairChompers =
         [
-            new("chomper", -72, 205, 16, "L"),
-            new("chomper", 0, 228, 18, "C"),
-            new("chomper", 78, 198, 16, "R")
+            new("chomper", -50, 144, 11.2, "L"),
+            new("chomper", 0, 160, 12.6, "C"),
+            new("chomper", 55, 139, 11.2, "R")
         ];
 
         public static bool InSlow(Park park, double x, double z, bool night)
@@ -555,35 +516,51 @@ public sealed class HazardLibraryTests
             park.Hazards.Any(h => h.Type == "climb_wall");
     }
 
-    /// <summary>A whole copy of a data root, optionally with the trial overlay laid over it, that a test may break.</summary>
+    /// <summary>
+    /// A whole copy of the shipped data root that a test may break, optionally with an overlay laid over
+    /// it. The overlay carries whole-file copies of the hazard library and of any park a test changes
+    /// (#716: an overlay may only carry files the shipped root has, whole), so a change lands in the
+    /// overlay's copy, which is the one that is read.
+    /// </summary>
     sealed class HazardFixture : IDisposable
     {
         readonly string _shipped;
         readonly string? _overlay;
 
-        public HazardFixture(bool trial)
+        public HazardFixture(bool overlay)
         {
             var source = ContentCatalog.Load().Root.Shipped;
-            var repo = Path.GetFullPath(Path.Combine(source, ".."));
             var temp = Path.Combine(Path.GetTempPath(), "grand-sluggers-hazards-" + Guid.NewGuid().ToString("N"));
             _shipped = Path.Combine(temp, "data");
             Copy(source, _shipped);
-            if (trial)
+            if (overlay)
             {
-                _overlay = Path.Combine(temp, "trials", "c80");
-                Copy(Path.Combine(repo, "trials", "c80"), _overlay);
+                _overlay = Path.Combine(temp, "overlay");
+                CopyFile(Path.Combine("rules", "hazards.json"));
             }
         }
 
         public DataRoot Root() => _overlay is null ? new DataRoot(_shipped) : new DataRoot(_shipped, _overlay);
 
-        /// <summary>Change the hazard library. On a trial fixture the overlay's copy is the one that is read.</summary>
+        /// <summary>Change the hazard library. On an overlay fixture the overlay's copy is the one that is read.</summary>
         public void Hazards(Action<JsonObject> change) =>
             Edit(Path.Combine(_overlay ?? _shipped, "rules", "hazards.json"), change);
 
-        /// <summary>Change a park. On a trial fixture the overlay's copy is the one that is read.</summary>
-        public void Park(string id, Action<JsonObject> change) =>
-            Edit(Path.Combine(_overlay ?? _shipped, "parks", id + ".json"), change);
+        /// <summary>Change a park. On an overlay fixture the park is copied into the overlay whole, and that copy is changed.</summary>
+        public void Park(string id, Action<JsonObject> change)
+        {
+            var relative = Path.Combine("parks", id + ".json");
+            if (_overlay is not null) CopyFile(relative);
+            Edit(Path.Combine(_overlay ?? _shipped, relative), change);
+        }
+
+        void CopyFile(string relative)
+        {
+            var destination = Path.Combine(_overlay!, relative);
+            if (File.Exists(destination)) return;
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.Copy(Path.Combine(_shipped, relative), destination);
+        }
 
         static void Edit(string path, Action<JsonObject> change)
         {

@@ -352,7 +352,7 @@ public static class HarborWall
     /// Until F2-b2 (#873) this was its own rule: the fence within half a degree of the foul line,
     /// then a smoothstep from the rail's top up to the fence past a literal 95 ft out
     /// (<c>RampStartZ</c>), while the flight's rail stayed hip-high to the pole — 150–177 ft of drawn
-    /// rail per side on the shipped root and 64–82 ft on <c>trials/c80</c> stood over a ball that
+    /// rail per side on the 90-ft field and 64–82 ft on the 80-ft one stood over a ball that
     /// went through it (map finding 19). Jack chose the flight's rail (FD-06-R2): the drawn rail stays
     /// hip-high to the pole and the wall steps up at the pole. No flight number moved.
     /// </para>

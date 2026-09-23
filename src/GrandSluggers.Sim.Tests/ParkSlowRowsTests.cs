@@ -15,7 +15,6 @@ namespace GrandSluggers.Sim.Tests;
 /// that come from special attacks are excluded from 3e with the specials and have no rows here; the heart swing's
 /// play-wide slow and its <c>drops.frozen</c> roll are left exactly as they were.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class ParkSlowRowsTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -41,7 +40,7 @@ public sealed class ParkSlowRowsTests
     /// (10, 180) / (7, 126) until FD-19-R1 moved the volume outward along its own bearing off the copy's second-base pad
     /// (F4-e, #862). The hang is long enough that the glove that goes out for it runs into the disc before it comes down.
     /// </summary>
-    static (double Carry, double Spray) RinkFly => TestRoot.Pick((187.3, 3.06), (131.2, 3.06));
+    static (double Carry, double Spray) RinkFly => (131.2, 3.06);
 
     /// <summary>
     /// FD-08-R1 / FD-08-R2, both seats: the glove that runs the fly into the Rink's deep volume runs at the table's chase speed
@@ -138,7 +137,7 @@ public sealed class ParkSlowRowsTests
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, seats, 0, source)).Snapshot.Active);
         var plant = FlyCatch.ChaseTarget(preview, match.Park, rules);
         // The copy's pursuit stick (#718) takes the glove only after it has been seen at neutral: six dead frames first.
-        var neutral = TestRoot.Pick(0, 6);
+        var neutral = 6;
         var frames = new List<(string Glove, double Step, bool Slowed)>();
         BodySlowed? touch = null;
         var touchAt = -1;

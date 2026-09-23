@@ -3,7 +3,6 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public class MatchTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -475,7 +474,7 @@ public class MatchTests
         Assert.Equal("ice", match.Park.Surface);
         // The C80 copy carries the hazards at the field's scale (#732): this volume stands at (47, 83). It stood at
         // (40, 70) / (36, 62) on the first-second lane until FD-19-R1 moved it outward along its own bearing (F4-e, #862).
-        var (iceX, iceZ) = TestRoot.Pick((53.0, 93.0), (47.0, 83.0));
+        var (iceX, iceZ) = (47.0, 83.0);
         Assert.True(ParkHazards.InFreeze(match.Park, iceX, iceZ));
         Assert.False(ParkHazards.InFreeze(match.Park, 0, 0));
     }
@@ -523,7 +522,7 @@ public class MatchTests
         Assert.Contains(park.Hazards, h => h.Type == "billboard");
         Assert.Contains(park.Hazards, h => h.Type == "ac_unit");
         // The C80 copy carries the hazards at the field's scale (#732): this sign stands at (-56, 168).
-        var (signX, signZ) = TestRoot.Pick((-80.0, 240.0), (-56.0, 168.0));
+        var (signX, signZ) = (-56.0, 168.0);
         Assert.True(ParkHazards.HitStarSign(park, signX, signZ));
         Assert.False(ParkHazards.HitStarSign(park, 0, 0));
     }
@@ -578,7 +577,7 @@ public class MatchTests
         Assert.Contains(park.Hazards, h => h.Type == "statue");
         // The C80 copy carries the hazards at the field's scale (#732): this pit stands at (44, 89). It stood at
         // (38, 78) / (34, 69) on the first-second lane until FD-19-R1 moved it outward along its own bearing (F4-e, #862).
-        var (pitX, pitZ) = TestRoot.Pick((49.0, 100.0), (44.0, 89.0));
+        var (pitX, pitZ) = (44.0, 89.0);
         Assert.True(ParkHazards.InSlow(park, pitX, pitZ));
         Assert.False(ParkHazards.InSlow(park, 0, 0));
         Assert.Equal("ember-keep", PresetTeams.HomeParkId(_content, "ashlord"));

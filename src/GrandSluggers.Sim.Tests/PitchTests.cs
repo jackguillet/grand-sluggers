@@ -3,7 +3,6 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public class PitchTests
 {
     [Fact]
@@ -82,7 +81,7 @@ public class PitchTests
         Assert.InRange(plate.X, -0.2, 0.2);
         Assert.True(mid.Y > plate.Y, $"fastball should drop, mid {mid.Y} plate {plate.Y}");
         // The C80 copy's mound is at 8/9 of the distance: halfway is 25.6 ft, inside the same band at 8/9.
-        var (lo, hi) = TestRoot.Pick((26.0, 34.0), (23.0, 30.0));
+        var (lo, hi) = (23.0, 30.0);
         Assert.InRange(mid.Z, lo, hi);
         Assert.InRange(plate.Z, -0.05, 0.05);
         Assert.True(Math.Abs(mid.X - rel.X) > 0.3, "hand offset fades toward the plate");

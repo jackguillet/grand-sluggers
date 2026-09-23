@@ -25,27 +25,14 @@ namespace GrandSluggers.Sim.Tests;
 /// <b>Parity.</b> Funfair's chompers moved into its night block at their exact places and radii, and Ember's
 /// breath keeps its type's own night number where it was, so their night games are the games they were:
 /// pinned against the log of the build before the move (<see cref="Before"/>). Crystal's night contact window
-/// is dropped on both roots, so night at the rink changes, on purpose; the park-factors report in PR #895
+/// is dropped, so night at the rink changes, on purpose; the park-factors report in PR #895
 /// shows by how much, and nothing is tuned (FD-13).
 /// </para>
-///
-/// <para>
-/// Tagged <c>Rows=compact</c>: every row holds on the shipped root and on <c>trials/c80</c>. The rows that
-/// build a park but play no ball load both roots by hand; the rows that play games run on the process's root,
-/// because the diamond is process-wide (#715), and take their fixtures by root.
-/// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class NightBlockTests
 {
-    static readonly ContentCatalog Process = ContentCatalog.Load();
-    static readonly string ShippedPath = Process.Root.Shipped;
-    static readonly DataRoot TrialRoot =
-        new(ShippedPath, Path.GetFullPath(Path.Combine(ShippedPath, "..", "trials", "c80")));
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ShippedPath));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(TrialRoot);
-
-    static IEnumerable<ContentCatalog> Roots => [Shipped, Trial];
+    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly string ShippedPath = Game.Root.Shipped;
 
     static Park Played(ContentCatalog content, string id, bool night, bool hazards = true) =>
         PlayedPark.Of(content.Parks[id], night, hazards, content.Rules.Hazards);
@@ -55,51 +42,49 @@ public sealed class NightBlockTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-25</c>, both roots, every park in the pick order. By day the match plays the day block and
+    /// <c>SF-25</c>, every park in the pick order. By day the match plays the day block and
     /// nothing else; at night the day block and then the night block, in file order; the park it holds carries
     /// no night block of its own either way; and every other member is the catalog's. A park with no night
     /// block is the catalog's own object by day and at night, and a match plays the same resolved table by day
     /// and at night, so night cannot have reached a rule (<c>SF-01</c>, FD-11-R2).
     /// </summary>
     [Fact]
-    public void SF25_ANightBlocksHazardsExistOnlyAtNightOnBothRoots()
+    public void SF25_ANightBlocksHazardsExistOnlyAtNight()
     {
-        foreach (var content in Roots)
+        var content = Game;
+        var withBlock = 0;
+        foreach (var id in content.ParkPickOrder)
         {
-            var withBlock = 0;
-            foreach (var id in content.ParkPickOrder)
+            var park = content.Parks[id];
+            var dayMatch = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id);
+            var nightMatch = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id, night: true);
+            var night = park.Night?.Hazards ?? [];
+
+            Assert.Null(dayMatch.Park.Night);
+            Assert.Null(nightMatch.Park.Night);
+            Assert.Equal(park.Hazards, dayMatch.Park.Hazards);
+            Assert.Equal(park.Hazards.Concat(night), nightMatch.Park.Hazards);
+            // The same instances, not copies: the resolution moves no hazard and resizes none.
+            Assert.All(nightMatch.Park.Hazards, h => Assert.Contains(park.Hazards.Concat(night), a => ReferenceEquals(a, h)));
+            Assert.Equal(park with { Night = null }, dayMatch.Park with { Hazards = park.Hazards });
+            Assert.Equal(park with { Night = null }, nightMatch.Park with { Hazards = park.Hazards });
+            Assert.Same(dayMatch.Rules, nightMatch.Rules);
+
+            if (park.Night is null)
             {
-                var park = content.Parks[id];
-                var dayMatch = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id);
-                var nightMatch = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id, night: true);
-                var night = park.Night?.Hazards ?? [];
-
-                Assert.Null(dayMatch.Park.Night);
-                Assert.Null(nightMatch.Park.Night);
-                Assert.Equal(park.Hazards, dayMatch.Park.Hazards);
-                Assert.Equal(park.Hazards.Concat(night), nightMatch.Park.Hazards);
-                // The same instances, not copies: the resolution moves no hazard and resizes none.
-                Assert.All(nightMatch.Park.Hazards, h => Assert.Contains(park.Hazards.Concat(night), a => ReferenceEquals(a, h)));
-                Assert.Equal(park with { Night = null }, dayMatch.Park with { Hazards = park.Hazards });
-                Assert.Equal(park with { Night = null }, nightMatch.Park with { Hazards = park.Hazards });
-                Assert.Same(dayMatch.Rules, nightMatch.Rules);
-
-                if (park.Night is null)
-                {
-                    Assert.Same(park, dayMatch.Park);
-                    Assert.Same(park, nightMatch.Park);
-                    continue;
-                }
-                withBlock++;
-                Assert.NotEmpty(night);
-                Assert.All(night, h => Assert.DoesNotContain(dayMatch.Park.Hazards, d => ReferenceEquals(d, h)));
+                Assert.Same(park, dayMatch.Park);
+                Assert.Same(park, nightMatch.Park);
+                continue;
             }
-            // Not vacuous: Funfair's mouths are a night block on every root, and nothing else is yet.
-            Assert.Equal(1, withBlock);
-            Assert.Equal(
-                ["L", "C", "R"],
-                content.Parks["funfair-park"].Night!.Hazards.Select(h => h.Type == HazardType.Chomper ? h.Tag : "not a chomper"));
+            withBlock++;
+            Assert.NotEmpty(night);
+            Assert.All(night, h => Assert.DoesNotContain(dayMatch.Park.Hazards, d => ReferenceEquals(d, h)));
         }
+        // Not vacuous: Funfair's mouths are a night block, and nothing else is yet.
+        Assert.Equal(1, withBlock);
+        Assert.Equal(
+            ["L", "C", "R"],
+            content.Parks["funfair-park"].Night!.Hazards.Select(h => h.Type == HazardType.Chomper ? h.Tag : "not a chomper"));
     }
 
     /// <summary>
@@ -111,14 +96,14 @@ public sealed class NightBlockTests
     [Fact]
     public void SF25_ThePlayedParkResolvesToItself()
     {
-        foreach (var content in Roots)
-            foreach (var id in content.ParkPickOrder)
-                foreach (var night in new[] { false, true })
-                    foreach (var hazards in new[] { true, false })
-                    {
-                        var played = Played(content, id, night, hazards);
-                        Assert.Same(played, PlayedPark.Of(played, night, hazards: true, content.Rules.Hazards));
-                    }
+        var content = Game;
+        foreach (var id in content.ParkPickOrder)
+            foreach (var night in new[] { false, true })
+                foreach (var hazards in new[] { true, false })
+                {
+                    var played = Played(content, id, night, hazards);
+                    Assert.Same(played, PlayedPark.Of(played, night, hazards: true, content.Rules.Hazards));
+                }
     }
 
     // ---------------------------------------------------------------------------------
@@ -126,37 +111,35 @@ public sealed class NightBlockTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-25</c> with <c>SF-24</c>, both roots: night hazard instances are hazards, so the hazards switch
+    /// <c>SF-25</c> with <c>SF-24</c>: night hazard instances are hazards, so the hazards switch
     /// removes every one of them (FD-11, FD-10-R1). The switch is the last step of the one resolution, so a
     /// hazards-off night is the hazards-on night with the switch applied, and at Funfair it keeps the boxcar
-    /// and loses the cans and every mouth. Every night-block instance on each root is of a pattern that counts
-    /// as a hazard — the validator refuses any other (<see cref="SF25_ANightBlockIsValidatedLikeTheDayBlockOnBothRoots"/>).
+    /// and loses the cans and every mouth. Every night-block instance is of a pattern that counts
+    /// as a hazard — the validator refuses any other (<see cref="SF25_ANightBlockIsValidatedLikeTheDayBlock"/>).
     /// </summary>
     [Fact]
-    public void SF25_TheHazardsSwitchRemovesTheNightBlocksHazardsOnBothRoots()
+    public void SF25_TheHazardsSwitchRemovesTheNightBlocksHazards()
     {
-        foreach (var content in Roots)
+        var content = Game;
+        var library = content.Rules.Hazards;
+        foreach (var id in content.ParkPickOrder)
         {
-            var library = content.Rules.Hazards;
-            foreach (var id in content.ParkPickOrder)
+            var on = Played(content, id, night: true);
+            var off = Played(content, id, night: true, hazards: false);
+            var switched = HazardPattern.HazardsOff(on, library);
+            Assert.Equal(switched.Hazards, off.Hazards);
+            Assert.Equal(switched with { Hazards = off.Hazards }, off);
+            Assert.DoesNotContain(off.Hazards, h => HazardPattern.IsHazard(library.Of(h.Type).Pattern));
+            foreach (var h in content.Parks[id].Night?.Hazards ?? [])
             {
-                var on = Played(content, id, night: true);
-                var off = Played(content, id, night: true, hazards: false);
-                var switched = HazardPattern.HazardsOff(on, library);
-                Assert.Equal(switched.Hazards, off.Hazards);
-                Assert.Equal(switched with { Hazards = off.Hazards }, off);
-                Assert.DoesNotContain(off.Hazards, h => HazardPattern.IsHazard(library.Of(h.Type).Pattern));
-                foreach (var h in content.Parks[id].Night?.Hazards ?? [])
-                {
-                    Assert.True(HazardPattern.IsHazard(library.Of(h.Type).Pattern), $"{id} night {h.Type}");
-                    Assert.DoesNotContain(off.Hazards, k => ReferenceEquals(k, h));
-                }
+                Assert.True(HazardPattern.IsHazard(library.Of(h.Type).Pattern), $"{id} night {h.Type}");
+                Assert.DoesNotContain(off.Hazards, k => ReferenceEquals(k, h));
             }
-
-            var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: "funfair-park", night: true, hazards: false);
-            Assert.Equal([HazardType.Train], match.Park.Hazards.Select(h => h.Type));
-            Assert.Null(match.Park.Night);
         }
+
+        var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: "funfair-park", night: true, hazards: false);
+        Assert.Equal([HazardType.Train], match.Park.Hazards.Select(h => h.Type));
+        Assert.Null(match.Park.Night);
     }
 
     // ---------------------------------------------------------------------------------
@@ -164,18 +147,16 @@ public sealed class NightBlockTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-25</c> (the schema half, FD-11-R2), both roots: a night block that names a rule, a number or an
+    /// <c>SF-25</c> (the schema half, FD-11-R2): a night block that names a rule, a number or an
     /// unknown key is refused by name, with the reason, by the strict park read — a day park's rule
     /// (<c>windMph</c>, <c>fenceHeightFt</c>, the <c>environment</c> block), the dropped window under either
     /// spelling, and a look key F6-c has not defined yet. The window is refused at the park's top level as
     /// well, and so is a key inside a night hazard row (the <c>nightOnly</c> column that left the rows).
     /// </summary>
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void SF25_ANightBlockNamingARuleOrAnUnknownKeyIsRefusedByName(bool trial)
+    [Fact]
+    public void SF25_ANightBlockNamingARuleOrAnUnknownKeyIsRefusedByName()
     {
-        using var fixture = new NightFixture(trial);
+        using var fixture = new NightFixture();
         var named = new (string Key, JsonNode Value)[]
         {
             ("windMph", 12),
@@ -210,7 +191,7 @@ public sealed class NightBlockTests
     }
 
     /// <summary>
-    /// <c>SF-25</c>: the night block is validated like the day block (FD-11), both roots. A night instance is
+    /// <c>SF-25</c>: the night block is validated like the day block (FD-11). A night instance is
     /// refused for what a day instance is refused for — a type outside the library, a missing disc, a disc on
     /// the base paths (FD-19) — and for one thing more: it must be an instance the hazards switch removes,
     /// because night hazard instances are hazards (FD-11, FD-10-R1). The placement rule measures the disc the
@@ -218,13 +199,11 @@ public sealed class NightBlockTests
     /// radius clears the lane and whose night disc does not is refused, in the night block and in the day
     /// block alike, and the refusal names both discs. An empty block is refused. The data as it stands passes.
     /// </summary>
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void SF25_ANightBlockIsValidatedLikeTheDayBlockOnBothRoots(bool trial)
+    [Fact]
+    public void SF25_ANightBlockIsValidatedLikeTheDayBlock()
     {
-        var content = trial ? Trial : Shipped;
-        Assert.Empty(ContentDataValidator.Validate(trial ? TrialRoot : Shipped.Root));
+        var content = Game;
+        Assert.Empty(ContentDataValidator.Validate(Game.Root));
         var infield = content.Rules.Infield;
         var mul = content.Rules.Hazards.Of(HazardType.FireBreath).NightRadiusMul;
         Assert.Equal(1.6, mul);
@@ -239,7 +218,7 @@ public sealed class NightBlockTests
         Assert.Equal(1, HazardPlacement.ClearanceFt(x, z, r, infield), 9);
         Assert.Equal(1 - r * (mul - 1), HazardPlacement.ClearanceFt(x, z, ParkHazards.NightDiscFt(r, content.Rules.Hazards.Of(HazardType.FireBreath)), infield), 9);
 
-        using var fixture = new NightFixture(trial);
+        using var fixture = new NightFixture();
         fixture.Park("funfair-park", json =>
         {
             var night = json["night"]!["hazards"]!.AsArray();
@@ -305,34 +284,26 @@ public sealed class NightBlockTests
     static string Sha(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
 
     /// <summary>
-    /// Night games at Funfair and Ember before the move, by root: the park, the seed, the final line and the
-    /// SHA-256 of <see cref="Log"/>. Funfair's rows include a game with a chomp in it on each root (shipped
-    /// seed 2, trial seed 16), so a mouth that moved, resized or
+    /// Night games at Funfair and Ember before the move: the park, the seed, the final line and the
+    /// SHA-256 of <see cref="Log"/>. Funfair's rows include a game with a chomp in it (seed 16, the seed <see cref="HazardsOffTests"/> found), so a mouth that moved, resized or
     /// stopped biting fails here. A child that changes play at either park re-records these from the build
     /// before it and says why; F4-d changes neither. F4-b (#896) re-recorded Ember's four rows: its lava pits and
     /// breath slow the body that touches them for 3 s instead of every chaser, and the park's drop roll is gone.
     /// F4-g re-recorded the trial's Ember seed 2: a CPU glove now goes around a volume when that costs less than
-    /// the slow (FD-14). P2-e (#891, no plate chemistry) changed play everywhere, so all eight games are re-recorded
-    /// from its build; the shipped chomp moved from seed 7, which no longer has one, to seed 22, the first that does.
-    /// P3-b (only a pitch costs the arm, PH-08-R3) changed when pitchers tire, so all eight are re-recorded again;
-    /// the shipped chomp moved from seed 22, which no longer has one, to seed 2, the first that does.
+    /// the slow (FD-14). The other seven games do not change.
+    /// P2-e and P3-b re-recorded them again. 3e promoted the compact profile into the shipped data, and the four
+    /// games are bit-identical to the trial rows they were.
     /// </summary>
-    static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before => TestRoot.Pick<IReadOnlyList<(string, int, string, string)>>(
-        [
-            ("funfair-park", 1, "Final  Ember Court 8  Spark All-Stars 2", "0fa5dc2e27a35329dd665f1fe1428afdf33cd9126e8d2cabc183a294035664a4"),
-            ("funfair-park", 2, "Final  Ember Court 4  Spark All-Stars 0", "e71fcffe11de90bf1ca57770c2f4edc4b4de0e36a2e5f7556312073f7dd57bc4"),
-            ("ember-keep", 1, "Final  Ember Court 3  Spark All-Stars 1", "b9eee4feeb57e075f93c9c5c55195e507003dd1d66b960cc73c5e6e8add7ed27"),
-            ("ember-keep", 2, "Final  Ember Court 3  Spark All-Stars 0", "7122398bef7a500431fef950f4497e6490a97156c4dc29b853222d204e9a0d33")
-        ],
+    static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
             ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 1", "6feacdf134ce0ffcc5bed01d9bbe76b1afd0f7a0d990656ed35efc8b48d84181"),
             ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "0907d82f3d88d899a0a5a9d147f33ed748860e2037d7df098a8142e394a1a473"),
             ("ember-keep", 1, "Final  Ember Court 4  Spark All-Stars 0", "0a8a7fbf5212662fc6827166a7236bc447e97af8251b359c0477d4436f882abe"),
             ("ember-keep", 2, "Final  Ember Court 7  Spark All-Stars 2", "abae84e076e25c4c08320733f23116267a7197bb1a772daa03e59ab0ffb49942")
-        ]);
+        ];
 
     /// <summary>
-    /// <c>SF-25</c> parity, on the process's root: Funfair's night games are bit-identical to the games they
+    /// <c>SF-25</c> parity: Funfair's night games are bit-identical to the games they
     /// were before the chompers moved into the night block, and Ember's are unchanged (its breath's reach is
     /// its type's own night number, left where it was). The chomp is still there to see.
     /// </summary>
@@ -342,7 +313,7 @@ public sealed class NightBlockTests
         var chomped = false;
         foreach (var (park, seed, final, sha) in Before)
         {
-            var log = Log(Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: seed, parkId: park, night: true));
+            var log = Log(Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: seed, parkId: park, night: true));
             Assert.Equal(final, log[(log.LastIndexOf('\n') + 1)..]);
             Assert.True(sha == Sha(log), $"{park} night seed {seed} is not the game it was:\n{log}");
             chomped |= log.Contains("A chomper ate it!", StringComparison.Ordinal);
@@ -353,24 +324,21 @@ public sealed class NightBlockTests
     /// <summary>
     /// Ember's breath still reaches farther at night through the park a match plays: a day instance, so it is
     /// in the played park by day and at night, and its disc is <see cref="ParkHazards.NightDiscFt"/> at night.
-    /// Both roots.
     /// </summary>
     [Fact]
     public void SF25_EmbersBreathKeepsItsTypesNightReach()
     {
-        foreach (var content in Roots)
-        {
-            var row = content.Rules.Hazards.Of(HazardType.FireBreath);
-            var byDay = Played(content, "ember-keep", night: false);
-            var atNight = Played(content, "ember-keep", night: true);
-            Assert.Same(content.Parks["ember-keep"], atNight);
-            var breath = Assert.Single(atNight.Hazards, h => h.Type == HazardType.FireBreath);
-            var reach = ParkHazards.NightDiscFt(breath.Radius, row);
-            Assert.Equal(breath.Radius * 1.6, reach);
-            var past = breath.Z + (breath.Radius + reach) / 2;
-            Assert.False(ParkHazards.InSlow(byDay, breath.X, past, night: false, content.Rules));
-            Assert.True(ParkHazards.InSlow(atNight, breath.X, past, night: true, content.Rules));
-        }
+        var content = Game;
+        var row = content.Rules.Hazards.Of(HazardType.FireBreath);
+        var byDay = Played(content, "ember-keep", night: false);
+        var atNight = Played(content, "ember-keep", night: true);
+        Assert.Same(content.Parks["ember-keep"], atNight);
+        var breath = Assert.Single(atNight.Hazards, h => h.Type == HazardType.FireBreath);
+        var reach = ParkHazards.NightDiscFt(breath.Radius, row);
+        Assert.Equal(breath.Radius * 1.6, reach);
+        var past = breath.Z + (breath.Radius + reach) / 2;
+        Assert.False(ParkHazards.InSlow(byDay, breath.X, past, night: false, content.Rules));
+        Assert.True(ParkHazards.InSlow(atNight, breath.X, past, night: true, content.Rules));
     }
 
     // ---------------------------------------------------------------------------------
@@ -378,9 +346,9 @@ public sealed class NightBlockTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-25</c> (FD-11-R2): Crystal's night contact window is dropped on both roots, so a match at the rink
+    /// <c>SF-25</c> (FD-11-R2): Crystal's night contact window is dropped, so a match at the rink
     /// at night judges a swing in the window it judges it in by day, which is Harbor's; no park carries a
-    /// window any more. On the process's root, through the match's own window read, with and without the star pitch.
+    /// window any more. Through the match's own window read, with and without the star pitch.
     /// </summary>
     [Fact]
     public void SF25_CrystalsNightAtBatUsesTheDayWindow()
@@ -389,9 +357,9 @@ public sealed class NightBlockTests
         Assert.Null(typeof(ParkHazards).GetMethod("ContactWindowMul"));
         foreach (var pitch in new[] { new PitchCommand("fastball", 0, false), new PitchCommand("fastball", 0, true) })
         {
-            var harbor = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "harbor-diamond").SwingWindowFrames(pitch);
-            var day = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink").SwingWindowFrames(pitch);
-            var night = Match.Exhibition(Process, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink", night: true).SwingWindowFrames(pitch);
+            var harbor = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: "harbor-diamond").SwingWindowFrames(pitch);
+            var day = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink").SwingWindowFrames(pitch);
+            var night = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink", night: true).SwingWindowFrames(pitch);
             Assert.Equal(day, night);
             Assert.Equal(harbor, night);
         }
@@ -408,28 +376,22 @@ public sealed class NightBlockTests
     };
 
     /// <summary>
-    /// A throwaway copy of the shipped data root, and of <c>trials/c80</c> when asked, that a row may break on
-    /// purpose. On a trial fixture a park edit lands in the overlay's copy, which is the one that is read.
+    /// A throwaway copy of the data root that a row may break on purpose.
     /// </summary>
     sealed class NightFixture : IDisposable
     {
         readonly string _shipped;
-        readonly string? _overlay;
 
-        public NightFixture(bool trial)
+        public NightFixture()
         {
-            var repo = Path.GetFullPath(Path.Combine(ShippedPath, ".."));
             var temp = Path.Combine(Path.GetTempPath(), "grand-sluggers-night-" + Guid.NewGuid().ToString("N"));
             _shipped = Path.Combine(temp, "data");
             Copy(ShippedPath, _shipped);
-            if (!trial) return;
-            _overlay = Path.Combine(temp, "trials", "c80");
-            Copy(Path.Combine(repo, "trials", "c80"), _overlay);
         }
 
-        public DataRoot Root() => _overlay is null ? new DataRoot(_shipped) : new DataRoot(_shipped, _overlay);
+        public DataRoot Root() => new(_shipped);
 
-        public string ParkFile(string id) => Path.Combine(_overlay ?? _shipped, "parks", id + ".json");
+        public string ParkFile(string id) => Path.Combine(_shipped, "parks", id + ".json");
 
         public void Park(string id, Action<JsonObject> change)
         {

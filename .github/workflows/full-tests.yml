@@ -1,6 +1,6 @@
 name: Full tests
 
-# The whole suite: every test class, the C80 re-run, the tool tests and the evidence seals.
+# The whole suite: every test class, the tool tests and the evidence seals.
 # Not run on PRs. Start it from the Actions tab (Run workflow) on any branch.
 # Tick "balance only" to run just the balance and calibration tests ([Trait("Kind", "Balance")]):
 # rate bands, seed sweeps, cohorts and pinned tuned numbers.
@@ -42,16 +42,6 @@ jobs:
       - name: Every test
         if: ${{ !inputs.balance_only }}
         run: dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj -- xUnit.MaxParallelThreads=0
-      # The diamond is process-wide, so a scenario row is only honest on the C80 copy in a process whose data root
-      # is the copy (#715). Classes whose every row holds on both roots carry [Trait("Rows", "compact")]; this run
-      # plays them on the compact diamond, where TestRoot.Pick takes each row's compact fixture. A row tagged
-      # [Trait("Copy", "gap")] records something the copy does not carry yet (a camera, a code literal in feet):
-      # reported, not repaired, and skipped here until promotion decides it.
-      - name: The scenario rows hold on the C80 copy
-        if: ${{ !inputs.balance_only }}
-        run: dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj --no-build --filter "Rows=compact&Copy!=gap" -- xUnit.MaxParallelThreads=0
-        env:
-          GRAND_SLUGGERS_TRIAL: trials/c80
       - name: Art catalog
         if: ${{ !inputs.balance_only }}
         run: dotnet run --project src/GrandSluggers.Cli -- art

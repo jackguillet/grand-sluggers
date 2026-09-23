@@ -21,15 +21,17 @@ public sealed class TutorialNavigationTests
     [Theory]
     [InlineData("T-F07")]
     [InlineData("T-F14")]
-    public void RelayInstructionsMatchTheActiveProfilesOnwardThrowOwnership(string id)
+    public void RelayInstructionsNameTheSecondThrowCommand(string id)
     {
+        // Each human relay leg needs its own command (fielding.throw.relayAutoContinue 0): the book never says the receiver
+        // sends it on its own.
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {
-            Assert.NotEqual(HowToPlay.TutorialControls(id, scheme, "shipped"), HowToPlay.TutorialControls(id, scheme, "c80"));
-            Assert.Contains("receiver", HowToPlay.TutorialSetup(id, "c80"));
+            Assert.Contains("catch", HowToPlay.TutorialControls(id, scheme, "shipped"));
+            Assert.Contains("receiver", HowToPlay.TutorialSetup(id, "shipped"));
+            Assert.DoesNotContain("automatically", HowToPlay.TutorialSetup(id, "shipped"));
         }
-        Assert.Contains("automatically", HowToPlay.TutorialSetup("T-F07", "shipped"));
-        Assert.Contains("second throw", HowToPlay.TutorialSetup("T-F07", "c80"));
+        Assert.Contains("second throw", HowToPlay.TutorialSetup("T-F07", "shipped"));
     }
 
     [Fact]

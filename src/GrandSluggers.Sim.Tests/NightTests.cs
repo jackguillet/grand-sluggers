@@ -11,7 +11,6 @@ namespace GrandSluggers.Sim.Tests;
 /// that is its hazard type's own night number. Re-authored to FD-11-R2 from the three night rules that
 /// hung off <c>Match.Night</c> in three shapes; the night block's own rows are <see cref="NightBlockTests"/>.
 /// </summary>
-[Trait("Rows", "compact")]
 public class NightTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -95,7 +94,7 @@ public class NightTests
         var catalog = _content.Parks["funfair-park"];
         var byDay = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "funfair-park").Park;
         var atNight = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "funfair-park", night: true).Park;
-        var mouthZ = TestRoot.Pick(228.0, 160.0);
+        var mouthZ = 160.0;
         Assert.DoesNotContain(catalog.Hazards, h => h.Type == HazardType.Chomper);
         Assert.DoesNotContain(byDay.Hazards, h => h.Type == HazardType.Chomper);
         Assert.Equal(mouthZ, atNight.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C").Z);
@@ -127,7 +126,7 @@ public class NightTests
         var park = _content.Parks["ember-keep"];
         // The C80 copy carries the statue's breath at the field's scale (#732): (0, 175) with a 11.2 ft disc, so the same two
         // points are 175 ft and 189 ft out (20 ft past the mouth at 0.70).
-        var (mouthZ, pastZ) = TestRoot.Pick((250.0, 270.0), (175.0, 189.0));
+        var (mouthZ, pastZ) = (175.0, 189.0);
         Assert.True(ParkHazards.InSlow(park, 0, mouthZ));
         Assert.False(ParkHazards.InSlow(park, 0, pastZ));
         Assert.False(ParkHazards.InSlow(park, 0, pastZ, night: false));

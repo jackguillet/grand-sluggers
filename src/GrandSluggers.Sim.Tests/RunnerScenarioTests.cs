@@ -8,7 +8,6 @@ namespace GrandSluggers.Sim.Tests;
 /// and S-90 with runner objects. Every runner here is a body the live ball moves; nothing is
 /// placed by a table.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class RunnerScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -24,7 +23,7 @@ public sealed class RunnerScenarioTests
     {
         // The C80 copy: the shipped ball runs through the hole between third and short (3B's slower legs never meet it, LF picks
         // it up at 4.0 s and the batter has a single). The same grounder at 8/9 of the carry is 3B's, in front of the runner.
-        var (carry, launch, spray) = TestRoot.Pick((90.0, 5.0, -35.0), (80.0, 5.0, -35.0));
+        var (carry, launch, spray) = (80.0, 5.0, -35.0);
         S36_Row(carry, launch, spray);
     }
 

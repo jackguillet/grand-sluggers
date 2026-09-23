@@ -3,7 +3,6 @@ using Xunit;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public sealed class TutorialMasteryTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -74,7 +73,7 @@ public sealed class TutorialMasteryTests
         ], c);
         Assert.Equal(1, progress.Count(run.Lesson, c.Profile)); Assert.Empty(progress.Completed);
         Assert.Equal(0, progress.Count(c.Lesson("T-P03"), c.Profile));
-        Assert.Equal(0, progress.Count(run.Lesson, c.Profile == "shipped" ? "c80" : "shipped"));
+        Assert.Equal(0, progress.Count(run.Lesson, c.Profile == "shipped" ? "some-trial" : "shipped"));
         var resume = new TutorialSession(_content, c, "T-P01", progress); resume.Begin();
         resume.Pitch(new("fastball", 0, false)); Assert.Equal(2, resume.Successes); Assert.False(resume.Passed);
         resume.Retry(); resume.Pitch(new("fastball", 0, false)); Assert.True(resume.Passed);

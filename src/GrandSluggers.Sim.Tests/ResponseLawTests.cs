@@ -4,24 +4,20 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// 3c-2 slice 2 (#718, F693-02-carry-movement-response): the response law. Under the <c>c80</c> copy a
-/// body builds from rest to its rated speed over 0.20 s and brakes to rest over 0.10 s; a reversal is the
-/// brake and then the ramp. The shipped table carries 0 / 0, and at 0 / 0 every step is the instant step
-/// the game always had — the same code path, not a product by one.
+/// 3c-2 slice 2 (#718, F693-02-carry-movement-response): the response law. A body builds from rest to its
+/// rated speed over 0.20 s and brakes to rest over 0.10 s; a reversal is the brake and then the ramp. A
+/// table at 0 / 0 steps instantly — the same code path, not a product by one.
 /// </summary>
 public sealed class ResponseLawTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly DataRoot Root = new(Control.Root.Shipped, Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(Root);
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
 
     [Fact]
     [Trait("Kind", "Balance")]
-    public void TheShippedStepIsInstantAndTheTrialRampsAndBrakes()
+    public void TheStepRampsAndBrakes()
     {
-        Assert.Equal((0.0, 0.0), (Control.Rules.Fielding.Chase.AccelSec, Control.Rules.Fielding.Chase.BrakeSec));
-        Assert.Equal((0.20, 0.10), (Trial.Rules.Fielding.Chase.AccelSec, Trial.Rules.Fielding.Chase.BrakeSec));
+        Assert.Equal((0.20, 0.10), (Game.Rules.Fielding.Chase.AccelSec, Game.Rules.Fielding.Chase.BrakeSec));
     }
 
     /// <summary>
@@ -41,21 +37,20 @@ public sealed class ResponseLawTests
     }
 
     /// <summary>
-    /// 1B covering first on a grounder to short. On the trial his first frames are the build-up — a fifth of the
-    /// rated speed after two frames, the rated speed by the end of the ramp — and he settles at the bag rather
-    /// than stopping dead: inside the cover stop plus the brake's overshoot, and at rest. On the control the first
-    /// frame is already at 28 ft/s, which the pursuit-contract test pins.
+    /// 1B covering first on a grounder to short. His first frames are the build-up — a fifth of the rated speed
+    /// after two frames, the rated speed by the end of the ramp — and he settles at the bag rather than stopping
+    /// dead: inside the cover stop plus the brake's overshoot, and at rest.
     /// </summary>
     [Fact]
     public void ACoverBodyBuildsToSpeedOverTheRampAndSettlesAtTheBag()
     {
-        var home = Trial.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
-        var away = Trial.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Trial, home, away, 3, 1, parkId: "harbor-diamond");
+        var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
         var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
-        var lace = Trial.Must("lace");
+        var lace = Game.Must("lace");
         var rated = FieldingResolver.ChaseSpeedFt(lace, false, match.Rules);
         var first = Diamond.Bag(1);
 
@@ -96,9 +91,9 @@ public sealed class ResponseLawTests
     [InlineData(0.021)]
     public void TheBodyTheRingLeavesCoastsThenBrakesWithNoFasterFrameAndNoStandingFrame(double dt)
     {
-        var home = Trial.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
-        var away = Trial.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Trial, home, away, 3, 1, parkId: "harbor-diamond");
+        var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
         var hit = FlightFixtures.Hit(match.Park, 90, 10, -8);
         var preview = match.PreviewHit(hit);
         var chase = match.Rules.Fielding.Chase;
@@ -136,14 +131,17 @@ public sealed class ResponseLawTests
         Assert.InRange(slid, ideal - v * dt, ideal + 0.01);
     }
 
-    /// <summary>The control's cover body is at the flat speed on its very first step: the law's code path is not taken at 0 / 0.</summary>
+    /// <summary>At 0 / 0 the cover body is at its rated speed on its very first step: the law's code path is not taken.</summary>
     [Fact]
     [Trait("Kind", "Balance")]
-    public void TheControlsFirstStepIsAlreadyAtSpeed()
+    public void AtZeroZeroTheFirstStepIsAlreadyAtSpeed()
     {
-        var home = Control.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
-        var away = Control.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Control, home, away, 3, 1, parkId: "harbor-diamond");
+        var instant = InstantStep();
+        Assert.Equal((0.0, 0.0), (instant.Rules.Fielding.Chase.AccelSec, instant.Rules.Fielding.Chase.BrakeSec));
+        var home = instant.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = instant.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(instant, home, away, 3, 1, parkId: "harbor-diamond");
+        var rated = FieldingResolver.CoverSpeedFt(instant.Must("lace"), match.Rules);
         var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
@@ -157,10 +155,32 @@ public sealed class ResponseLawTests
             if (Diamond.Dist(at.X, at.Z, before.X, before.Z) > 1e-6)
             {
                 moved = true;
-                Assert.InRange(Diamond.Dist(at.X, at.Z, before.X, before.Z) / Frame, 28 * 0.99, 28 * 1.01);
+                Assert.InRange(Diamond.Dist(at.X, at.Z, before.X, before.Z) / Frame, rated * 0.99, rated * 1.01);
             }
             before = at;
         }
         Assert.True(moved);
+    }
+
+    /// <summary>The game's catalog with <c>chase.accelSec</c> and <c>chase.brakeSec</c> at 0, laid over the shipped root.</summary>
+    static ContentCatalog InstantStep()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "grand-sluggers-response-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var text = File.ReadAllText(Path.Combine(Game.Root.Shipped, "rules", "fielding.json"));
+            foreach (var (from, to) in new[] { ("\"accelSec\": 0.20", "\"accelSec\": 0"), ("\"brakeSec\": 0.10", "\"brakeSec\": 0") })
+            {
+                Assert.Contains(from, text);
+                text = text.Replace(from, to);
+            }
+            Directory.CreateDirectory(Path.Combine(dir, "rules"));
+            File.WriteAllText(Path.Combine(dir, "rules", "fielding.json"), text);
+            return ContentCatalog.Load(new DataRoot(Game.Root.Shipped, dir));
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
     }
 }

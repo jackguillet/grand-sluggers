@@ -3,7 +3,6 @@ using Xunit;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public sealed class TutorialSpecialTests
 {
     static readonly ContentCatalog Control = ContentCatalog.Load();
@@ -13,16 +12,15 @@ public sealed class TutorialSpecialTests
         "T-SS-heat-swing", "T-SS-heart-swing", "T-SS-shell-swing", "T-SS-phony-swing",
         "T-SS-cask-swing", "T-SS-furnace", "T-SS-staff-swing", "T-SS-ground", "T-SS-fly", "T-SS-line"];
     static readonly string[] ItemLessons = ["T-X01", "T-I-banana", "T-I-rocket", "T-I-pow"];
-    public static IEnumerable<object[]> Cases => from profile in new[] { "shipped", "c80" }
+    public static IEnumerable<object[]> Cases => from profile in new[] { "shipped" }
         from lesson in StarLessons select new object[] { profile, lesson };
-    public static IEnumerable<object[]> ItemCases => from profile in new[] { "shipped", "c80" }
+    public static IEnumerable<object[]> ItemCases => from profile in new[] { "shipped" }
         from lesson in ItemLessons select new object[] { profile, lesson };
 
     static (ContentCatalog Content, TutorialCatalog Catalog) Load(string profile)
     {
-        var root = new DataRoot(Control.Root.Shipped, profile == "c80"
-            ? Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80")) : null);
-        var content = ContentCatalog.Load(root);
+        Assert.Equal("shipped", profile);
+        var content = ContentCatalog.Load(new DataRoot(Control.Root.Shipped));
         return (content, TutorialCatalog.Load(content));
     }
 
@@ -64,7 +62,7 @@ public sealed class TutorialSpecialTests
     }
 
     [Theory]
-    [InlineData("shipped")][InlineData("c80")]
+    [InlineData("shipped")]
     public void ResourceLessonRequiresEarnThenSpendAcrossThreeFreshAtBats(string profile)
     {
         var (content, catalog) = Load(profile);
@@ -90,7 +88,7 @@ public sealed class TutorialSpecialTests
     }
 
     [Theory]
-    [InlineData("shipped")][InlineData("c80")]
+    [InlineData("shipped")]
     public void ResourceLessonRejectsOutOfOrderAndCpuOrDemoGains(string profile)
     {
         var (content, catalog) = Load(profile);
@@ -147,7 +145,7 @@ public sealed class TutorialSpecialTests
     }
 
     [Theory]
-    [InlineData("shipped")][InlineData("c80")]
+    [InlineData("shipped")]
     public void CounterplayFieldsRealCpuStarGrounderWithHumanGloveThreeTimes(string profile)
     {
         var (content, catalog) = Load(profile);
@@ -166,7 +164,7 @@ public sealed class TutorialSpecialTests
     }
 
     [Theory]
-    [InlineData("shipped")][InlineData("c80")]
+    [InlineData("shipped")]
     public void CounterplayRejectsCpuAssistAndDemonstration(string profile)
     {
         var (content, catalog) = Load(profile);

@@ -28,14 +28,11 @@ public static partial class HowToPlay
             "During SET, D-pad Right selects first. Tap South to make the pickoff throw.",
             "During SET, 1 selects first. Tap Space to make the pickoff throw."),
         "T-F07" => new("Throw through the cutoff", "Feed the cutoff and send the relay to home plate.",
-            profile == "c80" ? "Collect the fly, arm home and feed the cutoff. The receiver waits for your second throw command. Press again near the catch."
-                : "Collect the fly, arm home and feed the cutoff. The receiver automatically sends the next leg to home.",
-            profile == "c80" ? "D-pad Down arms home; LB feeds the cutoff. Tap South again as the receiver catches."
-                : "D-pad Down arms home; LB feeds the cutoff. The receiver sends it home.",
-            profile == "c80" ? "4 arms home; X feeds the cutoff. Tap Space again as the receiver catches."
-                : "4 arms home; X feeds the cutoff. The receiver sends it home."),
+            "Collect the fly, arm home and feed the cutoff. The receiver waits for your second throw command. Press again near the catch.",
+            "D-pad Down arms home; LB feeds the cutoff. Tap South again as the receiver catches.",
+            "4 arms home; X feeds the cutoff. Tap Space again as the receiver catches."),
         "T-F08" => new("Queue the next throw", "Queue the onward throw just before the cutoff receives the ball.",
-            "Arm home and feed the cutoff. In this C80 drill, press throw during the final moment before reception to queue the next leg.",
+            "Arm home and feed the cutoff. Press throw during the final moment before reception to queue the next leg.",
             "D-pad Down arms home; LB feeds the cutoff. Tap South just before the receiver catches.",
             "4 arms home; X feeds the cutoff. Tap Space just before the receiver catches."),
         "T-F08-R" => new("Retarget a queued throw", "Queue third, then change the queued destination to home before reception.",
@@ -54,12 +51,8 @@ public static partial class HowToPlay
             "Watch the wall bounce. Steer your glove toward the moving ball and collect it yourself; letting the helper finish does not count.",
             "After the wall bounce, use the left stick to chase the live ball and scoop it.",
             "After the wall bounce, use WASD to chase the live ball and scoop it."),
-        "T-F09-S" => new("Recover and throw after a fumble", "Scoop the fumbled ball yourself, then make a throw to first.",
-            "The helper fumbles an ordinary grounder. Take over by moving toward the loose ball, keep control through the scoop, then return it to first.",
-            "After the fumble, steer with the left stick and scoop. D-pad Right selects first; South makes the return throw.",
-            "After the fumble, steer with WASD and scoop. 1 selects first; Space makes the return throw."),
         "T-F09-B" => new("Recover a bobbled ball", "Take over after the bobble and scoop the loose ball yourself.",
-            "In this C80 drill the helper bobbles an ordinary grounder. After the error, steer toward the loose ball and keep control through the scoop.",
+            "The helper bobbles an ordinary grounder. After the error, steer toward the loose ball and keep control through the scoop.",
             "Wait for the bobble, then use the left stick to chase and collect the loose ball.",
             "Wait for the bobble, then use WASD to chase and collect the loose ball."),
         "T-F10" => new("Throw to the arriving cover", "Throw to first while its covering teammate is still arriving.",
@@ -79,12 +72,9 @@ public static partial class HowToPlay
             "Collect the ball, then push the left stick fully to run with it.",
             "Collect the ball, then use WASD to run with it."),
         "T-F14" => new("Make a Snap Throw", "Feed a clean throw to a Snap Throw receiver and send it home.",
-            profile == "c80" ? "Snap Throw shortens this receiver's release after a clean catch. Feed the cutoff and command the onward throw near the catch."
-                : "Snap Throw speeds up this receiver's onward throw. Feed the cutoff and watch the clean handoff to home.",
-            profile == "c80" ? "D-pad Down arms home; LB feeds the cutoff. South near the catch sends the next leg."
-                : "D-pad Down arms home; LB feeds the cutoff. Watch the receiver's Snap Throw.",
-            profile == "c80" ? "4 arms home; X feeds the cutoff. Space near the catch sends the next leg."
-                : "4 arms home; X feeds the cutoff. Watch the receiver's Snap Throw."),
+            "Snap Throw shortens this receiver's release after a clean catch. Feed the cutoff and command the onward throw near the catch.",
+            "D-pad Down arms home; LB feeds the cutoff. South near the catch sends the next leg.",
+            "4 arms home; X feeds the cutoff. Space near the catch sends the next leg."),
         "T-F15" => new("Fire a Laser Throw", "Use a Laser fielder to send the ball home.",
             "The runner threatens home. Collect the ball with the Laser fielder and make the throw to the catcher.",
             "Collect the ball. D-pad Down selects home; South throws.",

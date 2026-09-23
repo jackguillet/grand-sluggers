@@ -3,7 +3,6 @@ using Xunit;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public sealed class TutorialCatalogTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -20,10 +19,10 @@ public sealed class TutorialCatalogTests
         {
             Assert.NotEmpty(l.Profiles);
             foreach (var profile in l.Profiles)
-                Assert.Contains(profile, new[] { "shipped", "c80" });
+                Assert.Equal("shipped", profile);
         }
         Assert.Contains(c.Lessons,l=>l.Id=="T-P01" && l.Status=="implemented" && l.Profiles.Contains(c.Profile));
-        Assert.Contains(c.Lessons,l=>l.Id=="T-F08" && l.Status=="implemented" && l.Profiles.SequenceEqual(new[] { "c80" }));
+        Assert.Contains(c.Lessons,l=>l.Id=="T-F08" && l.Status=="implemented" && l.Profiles.SequenceEqual(new[] { "shipped" }));
     }
 
     [Fact]

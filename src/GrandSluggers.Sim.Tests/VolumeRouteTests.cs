@@ -10,11 +10,10 @@ namespace GrandSluggers.Sim.Tests;
 ///
 /// <para>
 /// The live rows add one volume to Harbor as a <see cref="Park"/> record, the way <see cref="StatusVolumeTests"/> does, so
-/// the volume sits where a body will certainly run. Tagged <c>Rows=compact</c>: every row holds on the shipped root and on
-/// <c>trials/c80</c>.
+/// the volume sits where a body will certainly run.
+///
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class VolumeRouteTests
 {
     static readonly ContentCatalog Catalog = ContentCatalog.Load();

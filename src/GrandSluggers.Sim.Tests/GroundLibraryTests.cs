@@ -17,49 +17,32 @@ namespace GrandSluggers.Sim.Tests;
 /// parity rows now pin every row to the shipped numbers written here (FD-05, FR-06). A row that is not
 /// these numbers is a behavior change, and it arrives as a trial Jack has accepted.
 /// </para>
-///
-/// <para>
-/// Every row runs against the shipped root and against <c>trials/c80</c>, both loaded by hand, so the
-/// class is independent of <c>GRAND_SLUGGERS_TRIAL</c>. It is tagged <c>Rows=compact</c> all the same:
-/// CI plays it a second time under the overlay, and a row that quietly started depending on the
-/// process root would fail there.
-/// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class GroundLibraryTests
 {
-    /// <summary>The shipped root, named explicitly so the process's own overlay cannot stand in for it.</summary>
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
-
-    static string TrialDir =>
-        Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"));
-
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped, TrialDir));
-
-    static IEnumerable<ContentCatalog> BothRoots => [Shipped, Trial];
+    /// <summary>The data root, named explicitly so the process's own overlay cannot stand in for it.</summary>
+    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
 
     // ---------------------------------------------------------------------------------
     // Parity — every row is today's number, written here
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Every ground row is the shipped number, field for field, on both roots (FD-05). Until F3-c this row
+    /// Every ground row is the shipped number, field for field (FD-05). Until F3-c this row
     /// held each ground equal to <c>flight.json</c>'s own <c>roll</c> / <c>bounce</c> / <c>skid</c>; F3-c
     /// retired that copy and moved the overthrow's deceleration and the local bobble's three ground numbers
-    /// in, so the expectation is now the numbers themselves — the values those keys carried on both roots
-    /// the day they moved. A tune to any of them fails here by name, and a tune is a trial Jack accepts
-    /// (F9-a), never a side effect.
+    /// in, so the expectation is now the numbers themselves — the values those keys carried the day they
+    /// moved. A tune to any of them fails here by name, and a tune is a trial Jack accepts (F9-a), never a
+    /// side effect.
     /// </summary>
     [Fact]
     public void EveryGroundRowIsTodaysNumberFieldForField()
     {
-        foreach (var catalog in BothRoots)
-        {
-            var grounds = catalog.Rules.Grounds;
-            Assert.Equal(["grass", "dirt", "ice", "ash"], grounds.Ids);
-            foreach (var id in grounds.Ids)
-                AssertTodaysGround($"grounds.{id}", grounds.Of(id));
-        }
+        var catalog = Game;
+        var grounds = catalog.Rules.Grounds;
+        Assert.Equal(["grass", "dirt", "ice", "ash"], grounds.Ids);
+        foreach (var id in grounds.Ids)
+            AssertTodaysGround($"grounds.{id}", grounds.Of(id));
     }
 
     /// <summary>
@@ -72,36 +55,32 @@ public sealed class GroundLibraryTests
     [Fact]
     public void EveryGroundRowIsEqualToEveryOtherToday()
     {
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var grounds = catalog.Rules.Grounds;
+        var grass = grounds.Of(Ground.Grass);
+        foreach (var id in grounds.Ids)
         {
-            var grounds = catalog.Rules.Grounds;
-            var grass = grounds.Of(Ground.Grass);
-            foreach (var id in grounds.Ids)
-            {
-                SameNumbers($"grounds.{id}.roll", grass.Roll, grounds.Of(id).Roll);
-                SameNumbers($"grounds.{id}.bounce", grass.Bounce, grounds.Of(id).Bounce);
-                SameNumbers($"grounds.{id}.skid", grass.Skid, grounds.Of(id).Skid);
-                SameNumbers($"grounds.{id}.overthrow", grass.Overthrow, grounds.Of(id).Overthrow);
-                SameNumbers($"grounds.{id}.bobble", grass.Bobble, grounds.Of(id).Bobble);
-                SameNumbers($"grounds.{id}.body", grass.Body, grounds.Of(id).Body);
-            }
+            SameNumbers($"grounds.{id}.roll", grass.Roll, grounds.Of(id).Roll);
+            SameNumbers($"grounds.{id}.bounce", grass.Bounce, grounds.Of(id).Bounce);
+            SameNumbers($"grounds.{id}.skid", grass.Skid, grounds.Of(id).Skid);
+            SameNumbers($"grounds.{id}.overthrow", grass.Overthrow, grounds.Of(id).Overthrow);
+            SameNumbers($"grounds.{id}.bobble", grass.Bobble, grounds.Of(id).Bobble);
+            SameNumbers($"grounds.{id}.body", grass.Body, grounds.Of(id).Body);
         }
     }
 
     /// <summary>
-    /// The one wall material is the shipped carom, written here, on both roots (FD-05 / FD-06). Until F3-c
+    /// The one wall material is the shipped carom, written here (FD-05 / FD-06). Until F3-c
     /// this row held it equal to <c>flight.wall</c>; F3-c retired that copy, so the expectation is the
-    /// numbers <c>flight.wall</c> carried on both roots the day it moved.
+    /// numbers <c>flight.wall</c> carried the day it moved.
     /// </summary>
     [Fact]
     public void TheWallRowIsTodaysNumber()
     {
-        foreach (var catalog in BothRoots)
-        {
-            Assert.Equal(["padded"], catalog.Rules.Walls.Ids);
-            var padded = catalog.Rules.Walls.Of(WallMaterial.Padded);
-            Assert.Equal((0.48, 0.82), (padded.Restitution, padded.Tangential));
-        }
+        var catalog = Game;
+        Assert.Equal(["padded"], catalog.Rules.Walls.Ids);
+        var padded = catalog.Rules.Walls.Of(WallMaterial.Padded);
+        Assert.Equal((0.48, 0.82), (padded.Restitution, padded.Tangential));
     }
 
     /// <summary>
@@ -122,7 +101,7 @@ public sealed class GroundLibraryTests
         Assert.DoesNotContain("DecelFtPerSec2", Declared(typeof(OverthrowRules)));
         Assert.Empty(Declared(typeof(HandlingRules)).Intersect(["BobbleRestitution", "BobbleGroundRetain", "BobbleDecelFtPerSec2"]));
 
-        var source = Path.Combine(Shipped.Root.Shipped, "..", "src", "GrandSluggers.Sim", "BallFlight.cs");
+        var source = Path.Combine(Game.Root.Shipped, "..", "src", "GrandSluggers.Sim", "BallFlight.cs");
         var text = File.ReadAllText(Path.GetFullPath(source));
         Assert.Contains(".RowAt(", text, StringComparison.Ordinal);
         Assert.Contains("WallMaterial.OfSegment(", text, StringComparison.Ordinal);
@@ -144,9 +123,9 @@ public sealed class GroundLibraryTests
         Assert.Contains("grounds", RulesTable.Files);
         Assert.Contains("walls", RulesTable.Files);
         foreach (var name in new[] { "grounds", "walls" })
-            Assert.True(File.Exists(Path.Combine(Shipped.Root.Shipped, RulesTable.Directory, name + ".json")), name);
+            Assert.True(File.Exists(Path.Combine(Game.Root.Shipped, RulesTable.Directory, name + ".json")), name);
 
-        var loaded = RulesTable.Load(Shipped.Root);
+        var loaded = RulesTable.Load(Game.Root);
         var defaults = RulesTable.Defaults;
         foreach (var id in defaults.Grounds.Ids)
         {
@@ -171,7 +150,7 @@ public sealed class GroundLibraryTests
     public void TheFileNamesEveryRowAndEveryRuleInIt(string file, string[] rows)
     {
         var json = JsonNode.Parse(
-            File.ReadAllText(Path.Combine(Shipped.Root.Shipped, RulesTable.Directory, file + ".json")),
+            File.ReadAllText(Path.Combine(Game.Root.Shipped, RulesTable.Directory, file + ".json")),
             null,
             new System.Text.Json.JsonDocumentOptions
             {
@@ -253,9 +232,9 @@ public sealed class GroundLibraryTests
     [Fact]
     public void BothDerivedTablesShareTheLibrariesByReference()
     {
-        var global = Shipped.Rules;
+        var global = Game.Rules;
         var air = new ParkEnvironment(DragMul: 1.5);
-        var park = Shipped.Parks["harbor-diamond"] with { Environment = air };
+        var park = Game.Parks["harbor-diamond"] with { Environment = air };
 
         foreach (var derived in new[] { global.AtLevel("hard"), global.AtPark(park), global.AtLevel("easy").AtPark(park) })
         {
@@ -294,33 +273,33 @@ public sealed class GroundLibraryTests
     }
 
     /// <summary>
-    /// <c>SF-03</c>, the trial root. The same refusal, reported against the <em>trial's</em> park file,
-    /// because that is the copy the id was written in — and against the shipped library, because
-    /// <c>trials/c80</c> carries no <c>grounds.json</c> and the rows it is checked against are the
-    /// shipped ones (§16, per-file resolution).
+    /// <c>SF-03</c>, an overlay root. The same refusal, reported against the <em>overlay's</em> park file,
+    /// because that is the copy the id was written in — and against the data root's library, because the
+    /// overlay carries no <c>grounds.json</c> and the rows it is checked against are the data root's
+    /// (§16, per-file resolution).
     /// </summary>
     [Fact]
-    public void SF03_ASurfaceWithNoGroundRowIsRefusedOnTheTrialRootToo()
+    public void SF03_ASurfaceWithNoGroundRowIsRefusedOnAnOverlayToo()
     {
         using var shipped = new ContentFixture();
-        using var trial = new TrialCopy(shipped.Root);
-        trial.ChangeObject("parks/crystal-rink.json", json => json["surface"] = "slush");
+        using var overlay = new OverlayCopy(shipped.Root, "parks/crystal-rink.json");
+        overlay.ChangeObject("parks/crystal-rink.json", json => json["surface"] = "slush");
 
-        var error = Assert.Single(ContentDataValidator.Validate(trial.Root), e =>
+        var error = Assert.Single(ContentDataValidator.Validate(overlay.Root), e =>
             e.Contains("park 'crystal-rink' surface", StringComparison.Ordinal));
-        Assert.StartsWith(trial.Path("parks/crystal-rink.json"), error, StringComparison.Ordinal);
+        Assert.StartsWith(overlay.Path("parks/crystal-rink.json"), error, StringComparison.Ordinal);
         Assert.Contains(Path.Combine(shipped.Root, "rules", "grounds.json"), error, StringComparison.Ordinal);
         Assert.Contains("got 'slush'", error, StringComparison.Ordinal);
-        Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(trial.Root));
+        Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(overlay.Root));
     }
 
-    /// <summary><c>SF-03</c>: a zone that names a ground with no row is the same stop, on both roots, per zone.</summary>
+    /// <summary><c>SF-03</c>: a zone that names a ground with no row is the same stop, per zone, on the data root and on an overlay.</summary>
     [Theory]
     [InlineData("infieldDirt")]
     [InlineData("outfield")]
     [InlineData("warningTrack")]
     [InlineData("foulApron")]
-    public void SF03_AZoneIdWithNoGroundRowStopsTheLoadOnBothRoots(string zone)
+    public void SF03_AZoneIdWithNoGroundRowStopsTheLoadOnTheRootAndAnOverlay(string zone)
     {
         using var shipped = new ContentFixture();
         shipped.ChangeObject("parks/harbor-diamond.json",
@@ -332,13 +311,13 @@ public sealed class GroundLibraryTests
         Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(new DataRoot(shipped.Root)));
 
         using var clean = new ContentFixture();
-        using var trial = new TrialCopy(clean.Root);
-        trial.ChangeObject("parks/ember-keep.json",
+        using var overlay = new OverlayCopy(clean.Root, "parks/ember-keep.json");
+        overlay.ChangeObject("parks/ember-keep.json",
             json => json["zones"] = new JsonObject { [zone] = "astroturf" });
-        var onTrial = Assert.Single(ContentDataValidator.Validate(trial.Root), e =>
+        var onOverlay = Assert.Single(ContentDataValidator.Validate(overlay.Root), e =>
             e.Contains($"park 'ember-keep' zones.{zone}", StringComparison.Ordinal));
-        Assert.StartsWith(trial.Path("parks/ember-keep.json"), onTrial, StringComparison.Ordinal);
-        Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(trial.Root));
+        Assert.StartsWith(overlay.Path("parks/ember-keep.json"), onOverlay, StringComparison.Ordinal);
+        Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(overlay.Root));
     }
 
     /// <summary>
@@ -349,30 +328,26 @@ public sealed class GroundLibraryTests
     [Fact]
     public void SF03_AWallMaterialWithNoRowIsAStopThatNamesTheIdAndTheFile()
     {
-        foreach (var catalog in BothRoots)
-        {
-            var thrown = Assert.Throws<ArgumentException>(() => catalog.Rules.Walls.Of("brick"));
-            Assert.Contains("'brick' is not a wall material with a row in rules/walls.json", thrown.Message, StringComparison.Ordinal);
-            Assert.Contains("[padded]", thrown.Message, StringComparison.Ordinal);
-            Assert.False(catalog.Rules.Walls.Has("brick"));
-            Assert.False(catalog.Rules.Walls.Has(null));
-        }
+        var catalog = Game;
+        var thrown = Assert.Throws<ArgumentException>(() => catalog.Rules.Walls.Of("brick"));
+        Assert.Contains("'brick' is not a wall material with a row in rules/walls.json", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains("[padded]", thrown.Message, StringComparison.Ordinal);
+        Assert.False(catalog.Rules.Walls.Has("brick"));
+        Assert.False(catalog.Rules.Walls.Has(null));
     }
 
     /// <summary>And the same for a ground asked for in code rather than written in a park file.</summary>
     [Fact]
     public void SF03_AGroundWithNoRowIsAStopThatNamesTheIdAndTheFile()
     {
-        foreach (var catalog in BothRoots)
-        {
-            var thrown = Assert.Throws<ArgumentException>(() => catalog.Rules.Grounds.Of("mud"));
-            Assert.Contains("'mud' is not a ground with a row in rules/grounds.json", thrown.Message, StringComparison.Ordinal);
-            Assert.Contains("[grass, dirt, ice, ash]", thrown.Message, StringComparison.Ordinal);
-            Assert.False(catalog.Rules.Grounds.Has("mud"));
-            Assert.False(catalog.Rules.Grounds.Has(null));
-            // Case is part of the id: the library spells them lowercase and so does a park file.
-            Assert.False(catalog.Rules.Grounds.Has("Grass"));
-        }
+        var catalog = Game;
+        var thrown = Assert.Throws<ArgumentException>(() => catalog.Rules.Grounds.Of("mud"));
+        Assert.Contains("'mud' is not a ground with a row in rules/grounds.json", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains("[grass, dirt, ice, ash]", thrown.Message, StringComparison.Ordinal);
+        Assert.False(catalog.Rules.Grounds.Has("mud"));
+        Assert.False(catalog.Rules.Grounds.Has(null));
+        // Case is part of the id: the library spells them lowercase and so does a park file.
+        Assert.False(catalog.Rules.Grounds.Has("Grass"));
     }
 
     /// <summary>The block is inside the strict park schema (#820): a zone the file does not declare is named, not dropped.</summary>
@@ -394,7 +369,7 @@ public sealed class GroundLibraryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// No park names a <c>zones</c> block, on either root, and every park's resolved map is the one
+    /// No park names a <c>zones</c> block, and every park's resolved map is the one
     /// derived from its <c>surface</c>: the outfield and the apron are the surface, the infield and the
     /// track are dirt. That derivation is chosen so <c>surface</c> keeps exactly the meaning it has
     /// today — so this child gives the field a ground map without moving any park's ground.
@@ -402,20 +377,18 @@ public sealed class GroundLibraryTests
     [Fact]
     public void TheDefaultZoneMapOfEveryParkIsItsSurfacePlusDirt()
     {
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        Assert.Equal(6, catalog.Parks.Count);
+        foreach (var park in catalog.Parks.Values)
         {
-            Assert.Equal(6, catalog.Parks.Count);
-            foreach (var park in catalog.Parks.Values)
-            {
-                Assert.Null(park.Zones);
-                var zones = GroundZones.Of(park, catalog.Rules);
-                Assert.Equal(park.Surface, zones.Outfield);
-                Assert.Equal(park.Surface, zones.FoulApron);
-                Assert.Equal(Ground.Dirt, zones.InfieldDirt);
-                Assert.Equal(Ground.Dirt, zones.WarningTrack);
-                foreach (var (_, ground) in zones.All())
-                    Assert.True(catalog.Rules.Grounds.Has(ground), $"{park.Id}: {ground}");
-            }
+            Assert.Null(park.Zones);
+            var zones = GroundZones.Of(park, catalog.Rules);
+            Assert.Equal(park.Surface, zones.Outfield);
+            Assert.Equal(park.Surface, zones.FoulApron);
+            Assert.Equal(Ground.Dirt, zones.InfieldDirt);
+            Assert.Equal(Ground.Dirt, zones.WarningTrack);
+            foreach (var (_, ground) in zones.All())
+                Assert.True(catalog.Rules.Grounds.Has(ground), $"{park.Id}: {ground}");
         }
     }
 
@@ -426,55 +399,52 @@ public sealed class GroundLibraryTests
     [Fact]
     public void EveryGroundInTheLibraryIsSomeParksSurface()
     {
-        foreach (var catalog in BothRoots)
-            Assert.Equal(
-                catalog.Rules.Grounds.Ids.OrderBy(x => x, StringComparer.Ordinal),
-                catalog.Parks.Values.Select(p => p.Surface).Distinct().OrderBy(x => x, StringComparer.Ordinal));
+        var catalog = Game;
+        Assert.Equal(
+            catalog.Rules.Grounds.Ids.OrderBy(x => x, StringComparer.Ordinal),
+            catalog.Parks.Values.Select(p => p.Surface).Distinct().OrderBy(x => x, StringComparer.Ordinal));
     }
 
     /// <summary>
-    /// The lip, the track and the apron, named point by point at Harbor and at the compact diamond. The
-    /// two roots have different fences (330 / 400 / 330 against 232 / 280 / 232) and different lips (155
-    /// against 137.78), so a row that hard-coded either would fail on the other.
+    /// The lip, the track and the apron, named point by point at Harbor. Every edge is read from the park and
+    /// the table (fences 232 / 280 / 232, lip 137.78), never hard-coded.
     /// </summary>
     [Fact]
     public void ZoneAtNamesTheDirtTheGrassTheTrackAndTheApron()
     {
-        foreach (var catalog in BothRoots)
-        {
-            var park = catalog.Parks["harbor-diamond"];
-            var zones = GroundZones.Of(park, catalog.Rules);
-            var lip = catalog.Rules.Flight.Classes.InfieldLipFt;
-            var fence = AtBatResolver.FenceAt(park, 0);
+        var catalog = Game;
+        var park = catalog.Parks["harbor-diamond"];
+        var zones = GroundZones.Of(park, catalog.Rules);
+        var lip = catalog.Rules.Flight.Classes.InfieldLipFt;
+        var fence = AtBatResolver.FenceAt(park, 0);
 
-            // Straight out to centre: dirt, grass, track.
-            Assert.Equal(GroundZone.InfieldDirt, zones.ZoneAt(0, lip * 0.5));
-            Assert.Equal(GroundZone.Outfield, zones.ZoneAt(0, (lip + fence - ParkDiamond.TrackWidth) * 0.5));
-            Assert.Equal(GroundZone.WarningTrack, zones.ZoneAt(0, fence - 1));
+        // Straight out to centre: dirt, grass, track.
+        Assert.Equal(GroundZone.InfieldDirt, zones.ZoneAt(0, lip * 0.5));
+        Assert.Equal(GroundZone.Outfield, zones.ZoneAt(0, (lip + fence - ParkDiamond.TrackWidth) * 0.5));
+        Assert.Equal(GroundZone.WarningTrack, zones.ZoneAt(0, fence - 1));
 
-            // The lip is the same edge, and the same side of it, FieldingResolver splits dirt from grass at.
-            Assert.Equal(GroundZone.InfieldDirt, zones.ZoneAt(0, lip - 0.001));
-            Assert.Equal(GroundZone.Outfield, zones.ZoneAt(0, lip));
-            Assert.False(FieldingResolver.OutfieldGrass(0, lip - 0.001, catalog.Rules));
-            Assert.True(FieldingResolver.OutfieldGrass(0, lip, catalog.Rules));
+        // The lip is the same edge, and the same side of it, FieldingResolver splits dirt from grass at.
+        Assert.Equal(GroundZone.InfieldDirt, zones.ZoneAt(0, lip - 0.001));
+        Assert.Equal(GroundZone.Outfield, zones.ZoneAt(0, lip));
+        Assert.False(FieldingResolver.OutfieldGrass(0, lip - 0.001, catalog.Rules));
+        Assert.True(FieldingResolver.OutfieldGrass(0, lip, catalog.Rules));
 
-            // The track's inner edge is where ParkDiamond draws it.
-            var inner = ParkDiamond.TrackInner(park, 0);
-            var innerR = Diamond.Dist(0, 0, inner.X, inner.Z);
-            Assert.Equal(GroundZone.Outfield, zones.ZoneAt(0, innerR - 0.001));
-            Assert.Equal(GroundZone.WarningTrack, zones.ZoneAt(0, innerR));
+        // The track's inner edge is where ParkDiamond draws it.
+        var inner = ParkDiamond.TrackInner(park, 0);
+        var innerR = Diamond.Dist(0, 0, inner.X, inner.Z);
+        Assert.Equal(GroundZone.Outfield, zones.ZoneAt(0, innerR - 0.001));
+        Assert.Equal(GroundZone.WarningTrack, zones.ZoneAt(0, innerR));
 
-            // Outside the chalk, and behind the plate, is the apron at any distance.
-            Assert.Equal(GroundZone.FoulApron, zones.ZoneAt(60, 40));
-            Assert.Equal(GroundZone.FoulApron, zones.ZoneAt(-300, 100));
-            Assert.Equal(GroundZone.FoulApron, zones.ZoneAt(0, -10));
-            // The chalk itself is fair (FieldBounds.IsFair), so the line at short range is infield dirt.
-            Assert.Equal(GroundZone.InfieldDirt, zones.ZoneAt(50, 50));
-        }
+        // Outside the chalk, and behind the plate, is the apron at any distance.
+        Assert.Equal(GroundZone.FoulApron, zones.ZoneAt(60, 40));
+        Assert.Equal(GroundZone.FoulApron, zones.ZoneAt(-300, 100));
+        Assert.Equal(GroundZone.FoulApron, zones.ZoneAt(0, -10));
+        // The chalk itself is fair (FieldBounds.IsFair), so the line at short range is infield dirt.
+        Assert.Equal(GroundZone.InfieldDirt, zones.ZoneAt(50, 50));
     }
 
     /// <summary>
-    /// The boundaries are read, not chosen (#730 / #732). Swept over both roots, all six parks and a
+    /// The boundaries are read, not chosen (#730 / #732). Swept over all six parks and a
     /// grid of bearings and radii, <see cref="GroundZones.ZoneAt"/> agrees with the geometry that
     /// already existed — the chalk (<see cref="FieldBounds.IsFair"/>), the lip
     /// (<see cref="FieldingResolver.OutfieldGrass"/>) and the track's inner edge
@@ -484,33 +454,31 @@ public sealed class GroundLibraryTests
     [Fact]
     public void ZoneAtIsTheGeometryTheFieldAlreadyHad()
     {
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        foreach (var park in catalog.Parks.Values)
         {
-            foreach (var park in catalog.Parks.Values)
+            var zones = GroundZones.Of(park, catalog.Rules);
+            for (var sprayDeg = -80.0; sprayDeg <= 80.0; sprayDeg += 2.5)
             {
-                var zones = GroundZones.Of(park, catalog.Rules);
-                for (var sprayDeg = -80.0; sprayDeg <= 80.0; sprayDeg += 2.5)
+                var rad = sprayDeg * Math.PI / 180.0;
+                for (var r = 5.0; r <= 420.0; r += 5)
                 {
-                    var rad = sprayDeg * Math.PI / 180.0;
-                    for (var r = 5.0; r <= 420.0; r += 5)
-                    {
-                        var x = r * Math.Sin(rad);
-                        var z = r * Math.Cos(rad);
-                        var inner = ParkDiamond.TrackInner(park, sprayDeg);
-                        var innerR = Diamond.Dist(0, 0, inner.X, inner.Z);
-                        // The two sides reach each edge by different arithmetic, so the last ulp is
-                        // noise rather than a rule. A grid point that lands on an edge (the compact
-                        // Harbor track's inner radius is exactly 265) is skipped here and asserted
-                        // exactly, from both sides, in ZoneAtNamesTheDirtTheGrassTheTrackAndTheApron.
-                        var lip = catalog.Rules.Flight.Classes.InfieldLipFt;
-                        if (Math.Abs(r - innerR) < 1e-6 || Math.Abs(r - lip) < 1e-6) continue;
-                        var expected =
-                            !FieldBounds.IsFair(x, z) ? GroundZone.FoulApron
-                            : !FieldingResolver.OutfieldGrass(x, z, catalog.Rules) ? GroundZone.InfieldDirt
-                            : r >= innerR ? GroundZone.WarningTrack
-                            : GroundZone.Outfield;
-                        Assert.Equal(expected, zones.ZoneAt(x, z));
-                    }
+                    var x = r * Math.Sin(rad);
+                    var z = r * Math.Cos(rad);
+                    var inner = ParkDiamond.TrackInner(park, sprayDeg);
+                    var innerR = Diamond.Dist(0, 0, inner.X, inner.Z);
+                    // The two sides reach each edge by different arithmetic, so the last ulp is
+                    // noise rather than a rule. A grid point that lands on an edge (the
+                    // Harbor track's inner radius is exactly 265) is skipped here and asserted
+                    // exactly, from both sides, in ZoneAtNamesTheDirtTheGrassTheTrackAndTheApron.
+                    var lip = catalog.Rules.Flight.Classes.InfieldLipFt;
+                    if (Math.Abs(r - innerR) < 1e-6 || Math.Abs(r - lip) < 1e-6) continue;
+                    var expected =
+                        !FieldBounds.IsFair(x, z) ? GroundZone.FoulApron
+                        : !FieldingResolver.OutfieldGrass(x, z, catalog.Rules) ? GroundZone.InfieldDirt
+                        : r >= innerR ? GroundZone.WarningTrack
+                        : GroundZone.Outfield;
+                    Assert.Equal(expected, zones.ZoneAt(x, z));
                 }
             }
         }
@@ -518,17 +486,17 @@ public sealed class GroundLibraryTests
 
     /// <summary>
     /// A park may override one zone and leave the rest derived, and <c>GroundAt</c> answers the id the
-    /// ball will be handed. Proved on a park built in this file, because no shipped or trial park names
+    /// ball will be handed. Proved on a park built in this file, because no catalog park names
     /// a block — the lever exists and nothing pulls it (FR-06).
     /// </summary>
     [Fact]
     public void AParkMayOverrideOneZoneAndLeaveTheRestDerived()
     {
-        var harbor = Shipped.Parks["harbor-diamond"];
+        var harbor = Game.Parks["harbor-diamond"];
         Assert.Equal(Ground.Grass, harbor.Surface);
 
         var iced = harbor with { Zones = new ParkZones(InfieldDirt: Ground.Ice) };
-        var zones = GroundZones.Of(iced, Shipped.Rules);
+        var zones = GroundZones.Of(iced, Game.Rules);
         Assert.Equal(Ground.Ice, zones.InfieldDirt);
         Assert.Equal(Ground.Grass, zones.Outfield);
         Assert.Equal(Ground.Dirt, zones.WarningTrack);
@@ -539,11 +507,11 @@ public sealed class GroundLibraryTests
         Assert.Equal(Ground.Grass, zones.GroundAt(60, 40));
 
         // An empty block is not an override: every zone is the derived one.
-        var empty = GroundZones.Of(harbor with { Zones = new ParkZones() }, Shipped.Rules);
+        var empty = GroundZones.Of(harbor with { Zones = new ParkZones() }, Game.Rules);
         Assert.False(new ParkZones().Names);
         Assert.True(new ParkZones(Outfield: Ground.Ash).Names);
         foreach (var (zone, ground) in empty.All())
-            Assert.Equal(GroundZones.Of(harbor, Shipped.Rules).IdOf(zone), ground);
+            Assert.Equal(GroundZones.Of(harbor, Game.Rules).IdOf(zone), ground);
     }
 
     /// <summary>And the way through: a park file may name the block, it loads, and the resolved map reads it.</summary>
@@ -581,7 +549,7 @@ public sealed class GroundLibraryTests
     [Fact]
     public void TheNoTableOverloadTakesTheProcessWideTableAndNothingElse()
     {
-        var park = Shipped.Parks["harbor-diamond"] with { Zones = new ParkZones(WarningTrack: Ground.Ash) };
+        var park = Game.Parks["harbor-diamond"] with { Zones = new ParkZones(WarningTrack: Ground.Ash) };
         Assert.Equal(GroundZones.Of(park, Rules.Default), GroundZones.Of(park));
         Assert.Equal(Rules.Default.Flight.Classes.InfieldLipFt, GroundZones.Of(park).InfieldLipFt);
         // The zones themselves come from the park either way; only the lip is the table's.
@@ -598,16 +566,14 @@ public sealed class GroundLibraryTests
     [Fact]
     public void TheZoneMapDoesNotMakeAParksResolvedTableACopy()
     {
-        foreach (var catalog in BothRoots)
-        {
-            foreach (var park in catalog.Parks.Values)
-                Assert.Same(catalog.Rules, catalog.Rules.AtPark(park));
+        var catalog = Game;
+        foreach (var park in catalog.Parks.Values)
+            Assert.Same(catalog.Rules, catalog.Rules.AtPark(park));
 
-            // A park that names zones and no air is still the global table: zones are not on it.
-            var zoned = catalog.Parks["harbor-diamond"] with { Zones = new ParkZones(Outfield: Ground.Ice) };
-            Assert.Same(catalog.Rules, catalog.Rules.AtPark(zoned));
-            Assert.Equal(Ground.Ice, GroundZones.Of(zoned, catalog.Rules).Outfield);
-        }
+        // A park that names zones and no air is still the global table: zones are not on it.
+        var zoned = catalog.Parks["harbor-diamond"] with { Zones = new ParkZones(Outfield: Ground.Ice) };
+        Assert.Same(catalog.Rules, catalog.Rules.AtPark(zoned));
+        Assert.Equal(Ground.Ice, GroundZones.Of(zoned, catalog.Rules).Outfield);
     }
 
     /// <summary>
@@ -619,20 +585,20 @@ public sealed class GroundLibraryTests
     [Fact]
     public void TheParksZonesAreInTheTraceIdentityAndTodaysParksWriteNone()
     {
-        var (home, away) = PresetTeams.Pair(Shipped, "rio", "ashlord");
-        foreach (var park in Shipped.Parks.Values)
+        var (home, away) = PresetTeams.Pair(Game, "rio", "ashlord");
+        foreach (var park in Game.Parks.Values)
         {
-            var match = new Match(Shipped, away, home, park, innings: 3, seed: 7);
+            var match = new Match(Game, away, home, park, innings: 3, seed: 7);
             // The quoted key, not the bare word: `batting.spray.outOfZoneSpanDeg` contains "zones".
             Assert.DoesNotContain("\"zones\"", PlayTraceIdentity.Capture(match).InputsJson, StringComparison.Ordinal);
         }
 
-        var plain = Shipped.Parks["harbor-diamond"];
+        var plain = Game.Parks["harbor-diamond"];
         var iced = plain with { Zones = new ParkZones(Outfield: Ground.Ice) };
-        var identity = PlayTraceIdentity.Capture(new Match(Shipped, away, home, iced, innings: 3, seed: 7));
+        var identity = PlayTraceIdentity.Capture(new Match(Game, away, home, iced, innings: 3, seed: 7));
         Assert.Contains("\"zones\":{\"outfield\":\"ice\"", identity.InputsJson, StringComparison.Ordinal);
         Assert.NotEqual(
-            PlayTraceIdentity.Capture(new Match(Shipped, away, home, plain, innings: 3, seed: 7)).Sha256,
+            PlayTraceIdentity.Capture(new Match(Game, away, home, plain, innings: 3, seed: 7)).Sha256,
             identity.Sha256);
     }
 
@@ -641,7 +607,7 @@ public sealed class GroundLibraryTests
     /// <summary>
     /// The shipped ground, written out (FD-05): what <c>flight.json</c>'s <c>roll</c> / <c>bounce</c> /
     /// <c>skid</c> and <c>fielding.json</c>'s <c>overthrow.decelFtPerSec2</c> and <c>handling.bobbleRestitution</c>
-    /// / <c>bobbleGroundRetain</c> / <c>bobbleDecelFtPerSec2</c> carried, on both roots, when F3-c moved them.
+    /// / <c>bobbleGroundRetain</c> / <c>bobbleDecelFtPerSec2</c> carried when F3-c moved them.
     /// </summary>
     static void AssertTodaysGround(string what, GroundRules row)
     {
@@ -713,18 +679,24 @@ public sealed class GroundLibraryTests
     }
 
     /// <summary>
-    /// A throwaway copy of <c>trials/c80</c> laid over a throwaway shipped root, so an <c>SF-03</c> row
-    /// can break the trial's copy of a park and read the refusal back against the trial's own path.
+    /// A throwaway overlay laid over a throwaway data root, carrying whole copies of the named files from that
+    /// root, so an <c>SF-03</c> row can break the overlay's copy of a park and read the refusal back against
+    /// the overlay's own path.
     /// </summary>
-    sealed class TrialCopy : IDisposable
+    sealed class OverlayCopy : IDisposable
     {
         readonly string _shipped;
 
-        public TrialCopy(string shipped)
+        public OverlayCopy(string shipped, params string[] files)
         {
             _shipped = shipped;
-            Dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-trial-" + Guid.NewGuid().ToString("N"));
-            CopyTree(TrialDir, Dir);
+            Dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-overlay-" + Guid.NewGuid().ToString("N"));
+            foreach (var file in files)
+            {
+                var to = Path(file);
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(to)!);
+                File.Copy(System.IO.Path.Combine(shipped, file.Replace('/', System.IO.Path.DirectorySeparatorChar)), to);
+            }
         }
 
         public string Dir { get; }

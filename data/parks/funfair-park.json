@@ -4,60 +4,60 @@
   "faction": "carnival",
   "pickOrder": 3,
   "surface": "grass",
-  "leftFenceFt": 315,
-  "centerFenceFt": 390,
-  "rightFenceFt": 340,
+  "leftFenceFt": 220,
+  "centerFenceFt": 273,
+  "rightFenceFt": 238,
   "windMph": 6,
   "windDeg": 0,
   "fenceHeightFt": 8,
   "hazards": [
     {
       "type": "warp_pipe",
-      "x": 20,
-      "z": 55,
-      "radius": 4,
+      "x": 18,
+      "z": 49,
+      "radius": 2.8,
       "tag": "A"
     },
     {
       "type": "warp_pipe",
-      "x": -25,
-      "z": 60,
-      "radius": 4,
+      "x": -22,
+      "z": 53,
+      "radius": 2.8,
       "tag": "B"
     },
     {
       "type": "warp_pipe",
       "x": 0,
-      "z": 95,
-      "radius": 4,
+      "z": 84,
+      "radius": 2.8,
       "tag": "C"
     },
     {
       "type": "train",
-      "z": 310
+      "z": 217
     }
   ],
   "night": {
     "hazards": [
       {
         "type": "chomper",
-        "x": -72,
-        "z": 205,
-        "radius": 16,
+        "x": -50,
+        "z": 144,
+        "radius": 11.2,
         "tag": "L"
       },
       {
         "type": "chomper",
         "x": 0,
-        "z": 228,
-        "radius": 18,
+        "z": 160,
+        "radius": 12.6,
         "tag": "C"
       },
       {
         "type": "chomper",
-        "x": 78,
-        "z": 198,
-        "radius": 16,
+        "x": 55,
+        "z": 139,
+        "radius": 11.2,
         "tag": "R"
       }
     ]

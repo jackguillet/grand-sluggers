@@ -11,7 +11,6 @@ namespace GrandSluggers.Sim.Tests;
 /// here, and §5.9's sac-bunt row runs as a live play. Every assertion reads the typed outcome:
 /// the out's type, bag and runner, the cover the throw went to, the bodies at Time.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class BuntScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -54,12 +53,12 @@ public sealed class BuntScenarioTests
         {
             var rest = Diamond.Positions[pos];
             // The C80 copy (#718): a cover walks at the body's own pursuit speed (cover.chaseSpeedWeight 1), not the flat 28 ft/s.
-            var walkFt = TestRoot.Pick(cover.FtPerSec, FieldingResolver.CoverSpeedFt(map[pos], r));
+            var walkFt = FieldingResolver.CoverSpeedFt(map[pos], r);
             var expectWalk = Math.Min(Diamond.Dist(rest.X, rest.Z, bag.X, bag.Z) - cover.StopFt, walkFt * 1.8);
             Assert.Equal(expectWalk, Diamond.Dist(rest.X, rest.Z, full[pos].X, full[pos].Z), 2);
         }
         // At the copy's own legs the second baseman's 51 ft takes 2.7 s: both are on their bags by 3.0 s there.
-        var settled = BuntDefense.Spots(map, TestRoot.Pick(2.5, 3.0), r);
+        var settled = BuntDefense.Spots(map, 3.0, r);
         Assert.True(Diamond.Dist(settled["2B"].X, settled["2B"].Z, Diamond.First.X, Diamond.First.Z) <= cover.StopFt + 1e-6);
         Assert.True(Diamond.Dist(settled["SS"].X, settled["SS"].Z, Diamond.Second.X, Diamond.Second.Z) <= cover.StopFt + 1e-6);
         // Everyone else stays: the pitcher on the rubber, the catcher behind the plate, the outfield.
@@ -149,7 +148,7 @@ public sealed class BuntScenarioTests
         var thrown = false;
         // The C80 copy's pursuit stick (#718) takes the glove only after it has been seen at neutral: six dead frames first.
         // Without them the stick never takes the body, and the first human frame is the CPU's own pickup.
-        var neutralSec = TestRoot.Pick(0, 6) * Frame;
+        var neutralSec = 6 * Frame;
         var run = Run(match, hit, preview, SquaredBunt, HumanDefense, LivePlayCommandSource.Human, fieldPad: live =>
         {
             if (thrown || live.Throwing) return LivePadInput.Dead;

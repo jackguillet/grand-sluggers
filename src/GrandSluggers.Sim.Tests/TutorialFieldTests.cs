@@ -3,7 +3,6 @@ using Xunit;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public sealed class TutorialFieldTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -48,7 +47,7 @@ public sealed class TutorialFieldTests
                         var dx = target.X - live.GloveX;
                         var dz = target.Z - live.GloveZ;
                         var len = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
-                        var mag = TestRoot.Compact ? .21 : .40;
+                        var mag = .21;
                         pad = new(StickX: dx / len * mag, StickY: dz / len * mag,
                             SouthDown: (run.Lesson.Id == "T-F04" && !wrong || run.Lesson.Id == "T-F06" && wrong) && live.ElapsedSeconds >= hang - .6,
                             WestDown: (run.Lesson.Id == "T-F06" && !wrong || run.Lesson.Id == "T-F04" && wrong) && !jumped && live.ElapsedSeconds >= hang - .3);
@@ -188,7 +187,6 @@ public sealed class TutorialFieldTests
     [Fact]
     public void BufferedRecoveryPressKeepsHumanOwnershipWhenLaterTicksAreCpu()
     {
-        if (!TestRoot.Compact) return; // the shipped table has no recovery buffer; the direct-release row covers it.
         var run = Start("T-F03-2");
         for (var i = 0; i < 600 && !run.Match.LivePlay.HoldsBall && run.Phase == TutorialPhase.Attempt; i++)
             run.Tick(Frame);

@@ -15,11 +15,10 @@ namespace GrandSluggers.Sim.Tests;
 /// <para>
 /// The fixtures that need a volume where a body will certainly run add one to Harbor as a <see cref="Park"/> record, which
 /// the content validator never sees — the placement rule (FD-19, <c>SF-23</c>) keeps every catalog volume off the lanes,
-/// so no catalog runner can reach one. The Rink rows play the catalog's own volumes. Tagged <c>Rows=compact</c>: every row
-/// holds on the shipped root and on <c>trials/c80</c> (whose response law ramps a body into and out of the slow).
+/// so no catalog runner can reach one. The Rink rows play the catalog's own volumes; the response law ramps a body into and
+/// out of the slow.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class StatusVolumeTests
 {
     static readonly ContentCatalog Catalog = ContentCatalog.Load();
@@ -32,24 +31,20 @@ public sealed class StatusVolumeTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>slowSec</c> is 3.0 on the three status volumes on both roots — Jack's number (FD-08-R2), not tuned per root —
+    /// <c>slowSec</c> is 3.0 on the three status volumes — Jack's number (FD-08-R2) —
     /// and absent from every other row; the JSON is the code fallback; the slow's factor is still <c>frozenMul</c> 0.45.
     /// </summary>
     [Fact]
-    public void FD08R2_EveryStatusVolumeSlowsForThreeSecondsOnBothRootsAndNothingElseCarriesATime()
+    public void FD08R2_EveryStatusVolumeSlowsForThreeSecondsAndNothingElseCarriesATime()
     {
-        var trial = new DataRoot(Catalog.Root.Shipped, Path.GetFullPath(Path.Combine(Catalog.Root.Shipped, "..", "trials", "c80")));
-        foreach (var root in new[] { Catalog.Root, trial })
+        var rules = RulesTable.Load(Catalog.Root);
+        Assert.Equal(0.45, rules.Fielding.Chase.FrozenMul);
+        foreach (var type in HazardType.All)
         {
-            var rules = RulesTable.Load(root);
-            Assert.Equal(0.45, rules.Fielding.Chase.FrozenMul);
-            foreach (var type in HazardType.All)
-            {
-                var row = rules.Hazards.Of(type);
-                Assert.Equal(RulesTable.Defaults.Hazards.Of(type).SlowSec, row.SlowSec);
-                if (row.Pattern == HazardPattern.StatusVolume) Assert.Equal(SlowSec, row.SlowSec);
-                else Assert.Null(row.SlowSec);
-            }
+            var row = rules.Hazards.Of(type);
+            Assert.Equal(RulesTable.Defaults.Hazards.Of(type).SlowSec, row.SlowSec);
+            if (row.Pattern == HazardPattern.StatusVolume) Assert.Equal(SlowSec, row.SlowSec);
+            else Assert.Null(row.SlowSec);
         }
         Assert.Equal(
             new[] { HazardType.FreezeVolume, HazardType.LavaPit, HazardType.FireBreath },
@@ -286,7 +281,7 @@ public sealed class StatusVolumeTests
         // A high fly to the short stop's spot: he owns it, and it hangs while the stick walks him.
         var carry = Diamond.Dist(0, 0, ss.X, ss.Z);
         var spray = Math.Atan2(ss.X, ss.Z) * 180 / Math.PI;
-        var neutral = TestRoot.Pick(0, 6);
+        var neutral = 6;
         var disc = new StatusVolume(index, HazardType.LavaPit, ss.X - 9, ss.Z, 4, SlowSec);
         // West until he stands in the disc, east until he has been out of it for a sixth of a second, then west again.
         var phase = 0;
@@ -431,7 +426,7 @@ public sealed class StatusVolumeTests
     }
 
     /// <summary>
-    /// <c>SF-22</c>, both roots, over a seed set: a fly to the short stop, who stands in a freeze volume from the crack and is
+    /// <c>SF-22</c>, over a seed set: a fly to the short stop, who stands in a freeze volume from the crack and is
     /// slowed the whole play, is caught by the glove on every seed, and the live ball draws nothing from the match's stream —
     /// no <c>drops.frozen</c> roll. The heart swing, the special that still owns that table, is the control: the same ball
     /// under it draws the one drop roll, so the probe sees a draw when there is one.

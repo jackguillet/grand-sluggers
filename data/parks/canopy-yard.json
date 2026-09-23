@@ -4,63 +4,63 @@
   "faction": "canopy",
   "pickOrder": 5,
   "surface": "dirt",
-  "leftFenceFt": 312,
-  "centerFenceFt": 378,
-  "rightFenceFt": 318,
+  "leftFenceFt": 218,
+  "centerFenceFt": 265,
+  "rightFenceFt": 223,
   "windMph": 3,
   "windDeg": 200,
   "fenceHeightFt": 12,
   "hazards": [
     {
       "type": "barrel",
-      "x": 22,
-      "z": 58,
-      "radius": 5,
+      "x": 20,
+      "z": 52,
+      "radius": 3.5,
       "tag": "A"
     },
     {
       "type": "barrel",
-      "x": -30,
-      "z": 64,
-      "radius": 5,
+      "x": -27,
+      "z": 57,
+      "radius": 3.5,
       "tag": "B"
     },
     {
       "type": "barrel",
-      "x": 6,
-      "z": 102,
-      "radius": 5,
+      "x": 5,
+      "z": 91,
+      "radius": 3.5,
       "tag": "C"
     },
     {
       "type": "climb_wall",
       "x": 0,
-      "z": 370,
-      "radius": 90
+      "z": 259,
+      "radius": 63
     },
     {
       "type": "tree",
-      "x": -70,
+      "x": -49,
+      "z": 147,
+      "radius": 5.6
+    },
+    {
+      "type": "tree",
+      "x": 56,
+      "z": 161,
+      "radius": 5.6
+    },
+    {
+      "type": "tree",
+      "x": -28,
       "z": 210,
-      "radius": 8
+      "radius": 7
     },
     {
       "type": "tree",
-      "x": 80,
-      "z": 230,
-      "radius": 8
-    },
-    {
-      "type": "tree",
-      "x": -40,
-      "z": 300,
-      "radius": 10
-    },
-    {
-      "type": "tree",
-      "x": 50,
-      "z": 310,
-      "radius": 10
+      "x": 35,
+      "z": 217,
+      "radius": 7
     }
   ],
   "notes": "Barrel cannons warp grounders. Clamber fielders can rob homers off the outfield wall."
