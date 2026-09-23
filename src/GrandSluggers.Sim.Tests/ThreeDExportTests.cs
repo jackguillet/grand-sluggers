@@ -4,6 +4,7 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>3d (#715): export the #702 race fixtures, the #719 gap liner, the §10.4 double-play rows and the S-60 steal as version-2 traces on whichever root the environment names. Asserts nothing; records what would not run.</summary>
+[Trait("Kind", "Balance")]
 public sealed class ThreeDExportTests
 {
     static readonly ContentCatalog Content = ContentCatalog.Load();

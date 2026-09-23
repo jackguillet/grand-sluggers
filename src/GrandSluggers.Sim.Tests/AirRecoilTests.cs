@@ -16,6 +16,7 @@ public sealed class AirRecoilTests
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheAirbornePairIsItsOwnAndOffShipped()
     {
         var s = Control.Rules.Fielding.Recoil;
@@ -72,6 +73,7 @@ public sealed class AirRecoilTests
 
     /// <summary>A 120-mph rope at 18° reaches hex (RF, Hands 4) at 122 ft/s, past the full speed: the cap binds in the air too — 0.20 × 0.85 = 0.17 s.</summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheCapBindsInTheAir()
     {
         var run = Drive(Trial, 120, 18, 22);

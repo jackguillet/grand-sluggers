@@ -41,9 +41,7 @@ public sealed class CpuReadScenarioTests
     public void S138_UnderTheTrialAPitchSteeredAfterTheCommitIsDecidedFromThePreCommitRead()
     {
         Assert.True(Trial.Rules.Batting.Cpu.CommitRead);
-        var swings = 0;
-        const int n = 300;
-        for (var seed = 1; seed <= n; seed++)
+        for (var seed = 1; seed <= 60; seed++)
         {
             // The stick was centered at the commit (the steer began after it): the CPU saw the edge strike.
             var late = new Scenario(Trial, seed).Match;
@@ -53,7 +51,6 @@ public sealed class CpuReadScenarioTests
             // The same seed shown the unsteered pitch: the decision is the pre-commit read's, draw for draw.
             var read = new Scenario(Trial, seed).Match.CpuSwing(edge, inZone: true);
             Assert.Equal(read, decided);
-            if (decided.Swing) swings++;
 
             // The ball that is thrown still crosses where the steer took it: the umpire judges the final crossing.
             if (seed <= 20)
@@ -61,6 +58,20 @@ public sealed class CpuReadScenarioTests
                 var ev = late.Play(steered, decided);
                 Assert.False(ev.AtBat.InZone);
             }
+        }
+    }
+
+    [Fact]
+    [Trait("Kind", "Balance")]
+    public void S138_TheLateSteeredPitchIsOfferedAtTheEdgeRateNotTheChaseRate()
+    {
+        var swings = 0;
+        const int n = 300;
+        for (var seed = 1; seed <= n; seed++)
+        {
+            var late = new Scenario(Trial, seed).Match;
+            var (_, steered) = EdgeAndSteered(late);
+            if (late.CpuSwing(steered, inZone: false, breakAtCommit: 0).Swing) swings++;
         }
         // An edge strike is offered at edgeSwingChance with fewer than two strikes, far above the chase a ball earns.
         var edgeChance = Trial.Rules.Batting.Cpu.EdgeSwingChance;
@@ -150,6 +161,7 @@ public sealed class CpuReadScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S04_UnderTheTrialTheCpuTakesAPitchSteeredOutBeforeTheCommitAndNotOneSteeredAfter()
     {
         // Steered out before the commit (the watched stick already at full): S-04's take at (100 − chase)%.

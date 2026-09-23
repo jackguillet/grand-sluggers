@@ -35,6 +35,13 @@ public sealed class HazardLibraryTests
 
     static IEnumerable<Park> Parks => Content.ParkPickOrder.Select(id => Content.Parks[id]);
 
+    /// <summary>
+    /// The park a match plays at <paramref name="park"/> by day or at night, hazards on — the one resolution
+    /// (<see cref="PlayedPark.Of"/>, FD-11, F4-d). The oracle below takes the catalog park and the clock, as
+    /// the pre-#847 code did; the live dispatch takes the played park, as <see cref="Match"/> hands it over.
+    /// </summary>
+    static Park Played(Park park, bool night) => PlayedPark.Of(park, night, hazards: true, Table.Hazards);
+
     // ---------------------------------------------------------------------------------
     // The table
     // ---------------------------------------------------------------------------------
@@ -56,8 +63,11 @@ public sealed class HazardLibraryTests
             Assert.Equal(code.Pattern, json.Pattern);
             Assert.Equal(code.NightRadiusMul, json.NightRadiusMul);
             Assert.Equal(code.ReachPadFt, json.ReachPadFt);
-            Assert.Equal(code.NightOnly, json.NightOnly);
+            Assert.Equal(code.SlowSec, json.SlowSec);
         }
+        // nightOnly left the rows with F4-d (FD-11): whether an instance exists only at night is where
+        // the park authors it, its night block, so no row carries it and no row can drift from it.
+        Assert.Null(typeof(HazardTypeRules).GetProperty("NightOnly"));
     }
 
     /// <summary>
@@ -109,7 +119,7 @@ public sealed class HazardLibraryTests
             Assert.Equal(1.6, hazards.Of(HazardType.FireBreath).NightRadiusMul);
             Assert.Equal(pad, hazards.Of(HazardType.WarpPipe).ReachPadFt);
             Assert.Equal(pad, hazards.Of(HazardType.Barrel).ReachPadFt);
-            Assert.True(hazards.Of(HazardType.Chomper).NightOnly);
+            // The chomper row no longer says "night only" (F4-d, FD-11): Funfair's night block does.
 
             // And the numbers that did not: the slow's size and the sign's payout keep their homes,
             // because a star swing sets the same slow and the specials are outside this phase.
@@ -119,12 +129,14 @@ public sealed class HazardLibraryTests
             Assert.Equal(1.0, rules.Stars.Gains.Billboard);
             Assert.Equal(0.6, rules.Fielding.Park.ShellWarpChance);
 
-            // Only a status volume widens at night, and only a redirect has a pad.
+            // Only a status volume widens at night, only a redirect has a pad, and only a status volume slows a body for a
+            // time (F4-b, FD-08-R2: 3.0 s on both roots).
             foreach (var type in HazardType.All)
             {
                 var row = hazards.Of(type);
                 Assert.True(row.NightRadiusMul == 1 || row.Pattern == HazardPattern.StatusVolume, type);
                 Assert.True(row.ReachPadFt == 0 || row.Pattern == HazardPattern.BallRedirect, type);
+                Assert.Equal(row.Pattern == HazardPattern.StatusVolume ? (double?)3.0 : null, row.SlowSec);
             }
         }
     }
@@ -315,38 +327,51 @@ public sealed class HazardLibraryTests
     /// <summary>
     /// The catch stealer, against the pre-#847 code — the one place where "today's outcome" had to
     /// survive a park id turning into three data rows. The old code tested three literal discs when
-    /// the park was Funfair and it was night; the new one tests the park's own <c>chomper</c> rows,
-    /// which on the shipped root are those three literals at the same places.
+    /// the park was Funfair and it was night; the new one tests the <c>chomper</c> instances of the park
+    /// a match plays, which on the shipped root are those three literals at the same places.
+    ///
+    /// <para>
+    /// Re-read through the night block since F4-d (FD-11): the mouths are Funfair's night-block
+    /// instances, so the live dispatch is handed the played park (<see cref="Played"/>) — by day without
+    /// them, at night with them — and no longer takes the clock at all. The oracle is unchanged, and the
+    /// probes ring the night park's instances, so every mouth is still probed by day and by night.
+    /// </para>
     /// </summary>
     [Fact]
     public void TheCatchStealerDispatchEqualsTheOldOneOnTheShippedRoot()
     {
         foreach (var park in Parks)
-            foreach (var (x, z) in Probes(park))
+            foreach (var (x, z) in Probes(Played(park, night: true)))
                 foreach (var night in new[] { false, true })
                     foreach (var grounder in new[] { false, true })
                         Assert.Equal(
                             OldDispatch.ChompFly(park, night, x, z, grounder),
-                            ParkHazards.ChompFly(park, night, x, z, grounder, Table));
+                            ParkHazards.ChompFly(Played(park, night), x, z, grounder, Table));
     }
 
     /// <summary>
     /// The chomper rows reproduce the literal discs. The old array is written out here rather than
-    /// read from the sim, because the sim no longer has it — that is the point of the child.
+    /// read from the sim, because the sim no longer has it — that is the point of the child. Since F4-d
+    /// they are Funfair's night block (FD-11): the park a night match plays holds them after the day's
+    /// four instances, in file order, and the park a day match plays has none.
     /// </summary>
     [Fact]
     public void TheChomperRowsReproduceTheCodeLiteralOnTheShippedRoot()
     {
-        var rows = Content.Parks["funfair-park"].Hazards
+        var funfair = Content.Parks["funfair-park"];
+        var rows = Played(funfair, night: true).Hazards
             .Where(h => h.Type == HazardType.Chomper)
             .ToList();
         Assert.Equal(
             [(-72.0, 205.0, 16.0, "L"), (0.0, 228.0, 18.0, "C"), (78.0, 198.0, 16.0, "R")],
             rows.Select(h => (h.X, h.Z, h.Radius, h.Tag)).ToList());
+        Assert.Equal(funfair.Night!.Hazards, rows);
+        Assert.DoesNotContain(funfair.Hazards, h => h.Type == HazardType.Chomper);
+        Assert.DoesNotContain(Played(funfair, night: false).Hazards, h => h.Type == HazardType.Chomper);
 
         // And nowhere else: the mouths are one park's rows, not a rule about a park.
         foreach (var park in Parks.Where(p => p.Id != "funfair-park"))
-            Assert.DoesNotContain(park.Hazards, h => h.Type == HazardType.Chomper);
+            Assert.DoesNotContain(Played(park, night: true).Hazards, h => h.Type == HazardType.Chomper);
     }
 
     /// <summary>
@@ -359,8 +384,10 @@ public sealed class HazardLibraryTests
     public void TheTrialChomperRowsFollowTheAcceptedZoneRule()
     {
         var trial = ContentCatalog.Load(TrialRoot());
-        var was = Content.Parks["funfair-park"].Hazards.Where(h => h.Type == HazardType.Chomper).ToList();
-        var now = trial.Parks["funfair-park"].Hazards.Where(h => h.Type == HazardType.Chomper).ToList();
+        // The night block on each root (FD-11, F4-d), read as a night match plays it.
+        var was = Played(Content.Parks["funfair-park"], night: true).Hazards.Where(h => h.Type == HazardType.Chomper).ToList();
+        var now = PlayedPark.Of(trial.Parks["funfair-park"], night: true, hazards: true, trial.Rules.Hazards).Hazards
+            .Where(h => h.Type == HazardType.Chomper).ToList();
         Assert.Equal(3, now.Count);
         for (var i = 0; i < was.Count; i++)
         {
@@ -400,9 +427,10 @@ public sealed class HazardLibraryTests
                     foreach (var night in new[] { false, true })
                     {
                         var where = $"{park.Id} {h.Type} at ({x}, {z}) night {night}";
-                        Assert.False(ParkHazards.InSlow(park, x, z, night, Table), where);
-                        Assert.False(ParkHazards.ChompFly(park, night, x, z, rules: Table), where);
-                        Assert.False(ParkHazards.HitStarSign(park, x, z, Table), where);
+                        var played = Played(park, night);
+                        Assert.False(ParkHazards.InSlow(played, x, z, night, Table), where);
+                        Assert.False(ParkHazards.ChompFly(played, x, z, rules: Table), where);
+                        Assert.False(ParkHazards.HitStarSign(played, x, z, Table), where);
                     }
             }
 

@@ -40,6 +40,7 @@ public sealed class BallDashTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheAbilityIsWorthOneTwentyInBothRootsAndOnlyTheTrialRetiresTheSprint()
     {
         Assert.Equal((1.35, 1.20), (Control.Rules.Fielding.Dash.ChaseMul, Control.Rules.Fielding.Abilities.BallDashMul));
