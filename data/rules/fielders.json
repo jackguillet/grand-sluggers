@@ -35,5 +35,12 @@
   "right": {
     "xFt": 77.09,
     "zFt": 175.19
+  },
+  // F2-d (FD-07): the fence the three outfield starts are authored against - the default park's posts. A park that
+  // names no outfield start stands each outfielder at his bearing and his fraction of this fence, on its own fence.
+  "authoredFence": {
+    "leftFt": 232,
+    "centerFt": 280,
+    "rightFt": 232
   }
 }

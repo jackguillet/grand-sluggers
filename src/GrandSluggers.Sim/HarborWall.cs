@@ -81,7 +81,7 @@ public static class HarborWall
     /// </summary>
     static readonly System.Collections.Concurrent.ConcurrentDictionary<FieldBounds.EdgeKey, (double X, double Z)[]> Loops = new();
 
-    public static (double X, double Z)[] Loop(Park park) => Loop(park, Bounds);
+    public static (double X, double Z)[] Loop(Park park) => Loop(park, ParkBoundary.For(park));
 
     /// <summary>The loop this park draws on a given edge. <see cref="FieldBounds.Of(Park, ParkBoundary)"/>'s sibling.</summary>
     public static (double X, double Z)[] Loop(Park park, ParkBoundary bounds) =>
