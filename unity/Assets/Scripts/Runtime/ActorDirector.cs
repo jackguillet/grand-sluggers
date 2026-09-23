@@ -99,7 +99,7 @@ namespace GrandSluggers.UnityClient
                 var who = kv.Value;
                 if (_phase == Phase.Result && boxBatter != null && who.Id == boxBatter.Id)
                     continue;
-                var pos = Diamond.Positions[kv.Key];
+                var pos = OutfieldStarts.Of(_match.Park, _match.Rules)[kv.Key]; // the park's starts (F2-d)
                 double x = pos.X, z = pos.Z;
                 if (_gloveAt.TryGetValue(kv.Key, out var live))
                 {

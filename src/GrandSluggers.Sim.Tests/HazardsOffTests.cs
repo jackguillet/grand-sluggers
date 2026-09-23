@@ -37,11 +37,11 @@ public sealed class HazardsOffTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void TheSwitchRemovesTheThreeActingPatternsAndKeepsTheWallAndTheScenery()
+    public void TheSwitchRemovesTheActingPatternsAndKeepsTheWallAndTheScenery()
     {
-        // The catch stealer retired into the redirect (FD-09-R2, F4-c): three patterns act on a play.
+        // The catch stealer retired into the redirect (FD-09-R2, F4-c); the solid body and the mover act since F4-f.
         Assert.Equal(
-            new[] { HazardPattern.StatusVolume, HazardPattern.BallRedirect, HazardPattern.RewardTarget },
+            new[] { HazardPattern.StatusVolume, HazardPattern.BallRedirect, HazardPattern.RewardTarget, HazardPattern.SolidBody, HazardPattern.TimedMover },
             HazardPattern.Hazards);
         // Every pattern in the closed set is on one side or the other, and the other side is exactly these two.
         Assert.Equal(new[] { HazardPattern.WallTrait, HazardPattern.Decoration },

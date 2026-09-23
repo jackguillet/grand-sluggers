@@ -9,7 +9,9 @@ public sealed record StarPitchSkill(
     int StaminaCost,
     bool LateBreak,
     bool Decoy,
-    string? OnCatch);
+    string? OnCatch,
+    /// <summary>The cost tier (<see cref="StarTierRules"/>, PH-16-R7): stars.json prices it.</summary>
+    string Tier = StarTierRules.LowId);
 
 /// <summary>A captain's star swing (data/abilities/star-skills.json, spec §13).</summary>
 public sealed record StarSwingSkill(
@@ -22,7 +24,9 @@ public sealed record StarSwingSkill(
     double FielderPauseSec,
     bool InfieldChaos,
     bool Decoy,
-    bool Fragments);
+    bool Fragments,
+    /// <summary>The cost tier (<see cref="StarTierRules"/>, PH-16-R7): stars.json prices it.</summary>
+    string Tier = StarTierRules.LowId);
 
 /// <summary>
 /// The star skills as loaded from JSON. The JSON is the only copy (spec §13): no C# switch may
@@ -92,6 +96,23 @@ public static class StarSkills
     /// <summary>A role player's star swing names its launch; a captain's keeps the swing's own.</summary>
     public static double? SwingLaunchDeg(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.LaunchDeg;
+
+    /// <summary>
+    /// What <paramref name="who"/>'s Star Pitch costs his team (§12, PH-16-R7): the ability's tier price, plus
+    /// <c>costs.guestCaptainSurcharge</c> when he is a captain acting for a team <paramref name="teamCaptain"/> captains.
+    /// </summary>
+    public static int PitchCost(Character who, Character teamCaptain, RulesTable rules, StarSkillTable? table = null) =>
+        Price(who, teamCaptain, StarSkillTable.Or(table).Pitch(who.StarPitch)?.Tier, rules);
+
+    /// <summary>What <paramref name="who"/>'s Star Swing costs his team: the same rule as <see cref="PitchCost"/>.</summary>
+    public static int SwingCost(Character who, Character teamCaptain, RulesTable rules, StarSkillTable? table = null) =>
+        Price(who, teamCaptain, StarSkillTable.Or(table).Swing(who.StarSwing)?.Tier, rules);
+
+    static int Price(Character who, Character teamCaptain, string? tier, RulesTable rules) =>
+        rules.Stars.Tiers.Of(tier)
+        + (who.Captain && !who.Id.Equals(teamCaptain.Id, StringComparison.OrdinalIgnoreCase)
+            ? rules.Stars.Costs.GuestCaptainSurcharge
+            : 0);
 
     /// <summary>
     /// How long a special owns the ball or the field before baseball resumes.

@@ -136,8 +136,10 @@ public sealed class Match
         LivePlay = new LivePlaySystem(this);
         AwayOrder = away.BattingOrder;
         HomeOrder = home.BattingOrder;
-        AwayStars = content.Chemistry.StartingStars(away);
-        HomeStars = content.Chemistry.StartingStars(home);
+        // One pool per team, the same usable reserve for both, set once here and never again (PH-16-R4, R6, R16):
+        // chemistry does not move it, and no half, role change or restart of a play grants it again.
+        AwayStars = _rules.Stars.StartingReserve;
+        HomeStars = _rules.Stars.StartingReserve;
         _homePitcher = home.Pitcher;
         _awayPitcher = away.Pitcher;
         _homeDefense = home.Roster.ToList();
@@ -298,6 +300,8 @@ public sealed class Match
     /// <summary>Every out and every runner placement on the current play, in order. Emit stamps them on the outcome.</summary>
     readonly List<OutRecord> _outsThisPlay = [];
     readonly List<RunnerMove> _movesThisPlay = [];
+    /// <summary>The specials released on the current pitch, as settled (§12, PH-16-R12). Emit stamps them on the outcome.</summary>
+    readonly List<StarRequest> _starRequestsThisPlay = [];
     int _outsOnCurrentPlay => _outsThisPlay.Count;
     public double PitcherOffsetX { get; private set; }
     public double BatterOffsetX { get; private set; }
@@ -738,15 +742,62 @@ public sealed class Match
     internal double RollCatcherRelease(Character catcher) =>
         StealThrow.CpuReleaseSec(catcher, _rng, Rules);
 
-    public int StarCost(Character who, Character teamCaptain) =>
-        who.Captain && !who.Id.Equals(teamCaptain.Id, StringComparison.OrdinalIgnoreCase)
-            ? Rules.Stars.Costs.GuestCaptain
-            : Rules.Stars.Costs.Own;
-
-    public int PitchStarCost => StarCost(Pitcher, Defense.Captain);
-    public int SwingStarCost => StarCost(Batter, Offense.Captain);
+    /// <summary>The Star Pitch on the mound's price now (§12, PH-16-R7): its tier, plus the guest-captain surcharge.</summary>
+    public int PitchStarCost => StarSkills.PitchCost(Pitcher, Defense.Captain, Rules, Content.StarSkills);
+    /// <summary>The Star Swing at the plate's price now: the same rule as <see cref="PitchStarCost"/>.</summary>
+    public int SwingStarCost => StarSkills.SwingCost(Batter, Offense.Captain, Rules, Content.StarSkills);
+    /// <summary>
+    /// The defense can pay for its Star Pitch. A read for the clients and the CPU; the match itself settles a released
+    /// special in <see cref="BeginAtBat"/>, where an unaffordable one is thrown as the ordinary pitch (PH-16-R12).
+    /// </summary>
     public bool CanStarPitch => DefenseStars >= PitchStarCost;
     public bool CanStarSwing => OffenseStars >= SwingStarCost;
+
+    /// <summary>
+    /// Settle a released Star Pitch (§12, PH-16-R12): affordable, it is paid now and flies as the special; not, it
+    /// is the ordinary pitch of the family already selected, at the same timing, and costs nothing. Either way the
+    /// play records a typed <see cref="StarRequest"/>. A pitch with no special asked for passes untouched.
+    /// </summary>
+    PitchCommand SettleStarPitch(PitchCommand pitch)
+    {
+        if (!pitch.Star) return pitch;
+        var cost = PitchStarCost;
+        var before = DefenseStars;
+        var afforded = before >= cost;
+        _starRequestsThisPlay.Add(new StarRequest(StarAction.Pitch, Top, Pitcher.Id, Pitcher.StarPitch, cost, before, afforded));
+        if (!afforded) return pitch with { Star = false };
+        if (Top) HomeStars = before - cost;
+        else AwayStars = before - cost;
+        return pitch;
+    }
+
+    /// <summary>
+    /// Settle a released Star Swing (§12, PH-16-R3, PH-16-R12): affordable, the full price is paid at the release,
+    /// before the bat meets anything, so a whiff pays exactly what contact would; not, it is the ordinary swing and
+    /// costs nothing. A take is not a swing and settles nothing.
+    /// </summary>
+    SwingCommand SettleStarSwing(SwingCommand swing)
+    {
+        if (!swing.Star || !swing.Swing) return swing;
+        var cost = SwingStarCost;
+        var before = OffenseStars;
+        var afforded = before >= cost;
+        _starRequestsThisPlay.Add(new StarRequest(StarAction.Swing, !Top, Batter.Id, Batter.StarSwing, cost, before, afforded));
+        if (!afforded) return swing with { Star = false };
+        if (Top) AwayStars = before - cost;
+        else HomeStars = before - cost;
+        return swing;
+    }
+
+    /// <summary>
+    /// The commands as this play settled them: a special the team could not afford is the ordinary action on the log,
+    /// in the trace and in the live ball, whatever the client sent (PH-16-R12).
+    /// </summary>
+    PitchCommand Settled(PitchCommand pitch) =>
+        pitch.Star && _starRequestsThisPlay.Any(r => r.Action == StarAction.Pitch && !r.Afforded) ? pitch with { Star = false } : pitch;
+
+    SwingCommand Settled(SwingCommand swing) =>
+        swing.Star && _starRequestsThisPlay.Any(r => r.Action == StarAction.Swing && !r.Afforded) ? swing with { Star = false } : swing;
 
     public bool WalkPitcher(double delta)
     {
@@ -896,6 +947,9 @@ public sealed class Match
             ev = StealThrowPending ? RunStealPlay(finished!) : finished!;
         else
         {
+            // The live ball carries the settled commands: an unaffordable special went out as the ordinary action.
+            pitch = Settled(pitch);
+            swing = Settled(swing);
             var preview = PreviewHit(hit, swing);
             var field = ResolveFielding(hit, preview);
             field = ApplyOffenseItem(hit, field, item);
@@ -1015,6 +1069,9 @@ public sealed class Match
         _cpuBuntSide = BuntSide.None;
 
         pitch = PreparePitch(pitch);
+        // A released special is settled before anything reads it (PH-16-R12): the flight, the stamina, the
+        // resolver and the log all see the pitch the team could pay for.
+        pitch = SettleStarPitch(pitch);
         // One crossing for the umpire, the body, and the bat: the shown pitch is the judged pitch (§3).
         var crossing = PitchFlight.Point(pitch, 1, Pitcher.StarPitch, rules: Rules);
         var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
@@ -1036,7 +1093,7 @@ public sealed class Match
             return false;
         }
 
-        SpendSwing(swing);
+        swing = SettleStarSwing(swing);
 
         var bat = OffenseBat;
         var input = new AtBatInput(
@@ -1887,6 +1944,8 @@ public sealed class Match
     {
         var origin = CurrentPlay();
         var next = CaptureMatchState();
+        pitch = Settled(pitch);
+        swing = Settled(swing);
         var ev = new PlayEvent(
             kind, hit, pitch, swing, origin.Batter, origin.Pitcher, fielder, throwRes, runs, scorers, caption,
             heat, furnace, hang, lx, lz, next.Outs, next.AwayScore, next.HomeScore,
@@ -1902,7 +1961,8 @@ public sealed class Match
         var facts = outcome ?? PlayOutcome.Empty;
         var outs = _outsThisPlay.ToList();
         var moves = _movesThisPlay.ToList();
-        return facts with { Outs = outs, Advances = moves, FieldersChoice = FieldersChoiceNow(facts.BatterToBag) };
+        var stars = _starRequestsThisPlay.Count > 0 ? _starRequestsThisPlay.ToList() : facts.StarRequests;
+        return facts with { Outs = outs, Advances = moves, FieldersChoice = FieldersChoiceNow(facts.BatterToBag), StarRequests = stars };
     }
 
     /// <summary>The batter on first with an out recorded on another body this play (§10.4).</summary>
@@ -1918,6 +1978,7 @@ public sealed class Match
         _pendingPlay = new PlayOrigin(context, batter, pitcher);
         _outsThisPlay.Clear();
         _movesThisPlay.Clear();
+        _starRequestsThisPlay.Clear();
         return _pendingPlay;
     }
 
@@ -1944,8 +2005,21 @@ public sealed class Match
         return result;
     }
 
+    /// <summary>
+    /// The plate appearance is complete: the one seam every strikeout, walk, hit-by-pitch and ball in play passes
+    /// once (§12). Both teams earn the base gain here (PH-16-R5), each into its own pool, whoever won the
+    /// appearance, on top of any bonus the play earned. A half that ends on a runner out between pitches (a caught
+    /// stealing or a pickoff for the third out) never reaches it: that appearance did not complete, and its batter
+    /// leads off his side's next half with a fresh count.
+    /// </summary>
     void NextBatter()
     {
+        var pa = Rules.Stars.Gains.PlateAppearance;
+        if (pa > 0)
+        {
+            AddStars(defense: true, pa);
+            AddStars(defense: false, pa);
+        }
         Balls = 0;
         Strikes = 0;
         _cpuStealDecided = false;
@@ -2163,20 +2237,6 @@ public sealed class Match
                    + (pitch.Star ? StarSkills.StaminaCost(Pitcher.StarPitch, Content.StarSkills) : 0);
         ChargeArm(Pitcher, cost);
         _lastPitchRubberX = pitch.RubberX;
-        if (pitch.Star)
-        {
-            var starsCost = PitchStarCost;
-            if (Top) HomeStars = Math.Max(0, HomeStars - starsCost);
-            else AwayStars = Math.Max(0, AwayStars - starsCost);
-        }
-    }
-
-    void SpendSwing(SwingCommand swing)
-    {
-        if (!swing.Star) return;
-        var cost = SwingStarCost;
-        if (Top) AwayStars = Math.Max(0, AwayStars - cost);
-        else HomeStars = Math.Max(0, HomeStars - cost);
     }
 
     /// <summary>A dead pitch. The random pickoff that used to ride here is gone with the leads (D1, D3).</summary>

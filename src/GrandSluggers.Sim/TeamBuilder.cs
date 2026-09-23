@@ -59,8 +59,8 @@ public sealed class TeamBuilder
 
     public IReadOnlyList<Character> Order => _order;
     public IReadOnlyDictionary<string, Character> Gloves => _glove;
-    public int StartingStars => _content.Chemistry.StartingStars(ToTeam());
-    public double AverageWithCaptain => _content.Chemistry.AverageWithCaptain(ToTeam());
+    /// <summary>The Stars this side starts with: the one reserve for every team; the draft does not move it (PH-16-R16).</summary>
+    public int StartingStars => _content.Rules.Stars.StartingReserve;
 
     public Chemistry Chem(Character c) => _content.Chemistry.Between(Captain, c);
 

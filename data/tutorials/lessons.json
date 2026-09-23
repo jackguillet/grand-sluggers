@@ -4399,7 +4399,7 @@
       ],
       "runners": [],
       "balls": {},
-      "startingStars": 3,
+      "startingStars": 5,
       "skill": "heatball",
       "pitcherId": "rio"
     },
@@ -4530,7 +4530,7 @@
       ],
       "runners": [],
       "balls": {},
-      "startingStars": 3,
+      "startingStars": 5,
       "skill": "caskball",
       "pitcherId": "konga"
     },
@@ -4563,7 +4563,7 @@
       ],
       "runners": [],
       "balls": {},
-      "startingStars": 3,
+      "startingStars": 5,
       "skill": "skullball",
       "pitcherId": "ashlord"
     },
@@ -4728,7 +4728,7 @@
       ],
       "runners": [],
       "balls": {},
-      "startingStars": 3,
+      "startingStars": 5,
       "skill": "heat-swing",
       "batterId": "rio",
       "seat": "offense"
@@ -4864,7 +4864,7 @@
       ],
       "runners": [],
       "balls": {},
-      "startingStars": 3,
+      "startingStars": 5,
       "skill": "cask-swing",
       "batterId": "konga",
       "seat": "offense"
@@ -4898,7 +4898,7 @@
       ],
       "runners": [],
       "balls": {},
-      "startingStars": 3,
+      "startingStars": 5,
       "skill": "furnace",
       "batterId": "ashlord",
       "seat": "offense"

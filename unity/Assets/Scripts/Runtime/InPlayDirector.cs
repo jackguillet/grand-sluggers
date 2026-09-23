@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using GrandSluggers.Sim;
 using UnityEngine;
 
@@ -149,6 +150,29 @@ namespace GrandSluggers.UnityClient
                 _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
             }
             if (!string.IsNullOrEmpty(live.Sub)) _sub = live.Sub;
+            ShowSlowRings(live);
+        }
+
+        readonly Dictionary<string, GameObject> _slowRings = new Dictionary<string, GameObject>();
+
+        /// <summary>
+        /// The body tell of a status volume (FD-15, F8-b): a frost ring at the feet of every fielder the volume is slowing, this
+        /// frame, read from the sim (<c>IsSlowed</c>); it goes when the slow runs out.
+        /// </summary>
+        void ShowSlowRings(LivePlaySystem live)
+        {
+            foreach (var kv in _gloveAt)
+            {
+                var slowed = live.Active && live.IsSlowed(kv.Key);
+                if (!_slowRings.TryGetValue(kv.Key, out var ring))
+                {
+                    if (!slowed) continue;
+                    ring = Look.Torus("SlowRing-" + kv.Key, transform, 2.2f, 0.18f, Look.Unlit(new Color(0.62f, 0.88f, 1f)), seg: 28, sides: 6);
+                    _slowRings[kv.Key] = ring;
+                }
+                ring.SetActive(slowed);
+                if (slowed) ring.transform.position = new Vector3((float)kv.Value.X, 0.15f, (float)kv.Value.Z);
+            }
         }
 
         void PlayLiveCues(LivePlayCommandResult result)
@@ -172,6 +196,23 @@ namespace GrandSluggers.UnityClient
                         _itemFlying = false;
                         _itemId = "";
                         _items?.Hide();
+                        break;
+                    // The hazards' tells (FD-15, F8-b): the word where it happened and a puff, from the typed events.
+                    case LiveEvent.BodySlowed:
+                        if (live.Slows.Any(s => s.Pos == _glovePos)) StampSmall(PlayStamp.HazardTell(cue));
+                        break;
+                    case LiveEvent.BallRedirected:
+                        StampSmall(PlayStamp.HazardTell(cue, live.RedirectsThisPlay.Count > 0 ? live.RedirectsThisPlay[^1].Type : null));
+                        _park.Ball.ContactPuff(_ball);
+                        break;
+                    case LiveEvent.RewardHit:
+                        StampSmall(PlayStamp.HazardTell(cue));
+                        _audio?.Swell();
+                        break;
+                    case LiveEvent.BodyCarom:
+                        StampSmall(PlayStamp.HazardTell(cue));
+                        _park.Ball.ContactPuff(_ball);
+                        _audio?.Glove();
                         break;
                     case LiveEvent.WallCarom:
                         // The ball met the fence below its top (§7.9): a thump and dust at the wall; the sim plays the carom.
@@ -221,6 +262,7 @@ namespace GrandSluggers.UnityClient
 
         void FinishLive(PlayEvent play, FieldingResult fieldResult)
         {
+            foreach (var ring in _slowRings.Values) if (ring != null) ring.SetActive(false);
             _last = play;
             MirrorBodiesAtTime(play);
             if (fieldResult != null) _coach?.OnField(fieldResult, _match);

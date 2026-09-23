@@ -34,15 +34,14 @@ public class ChemistryTests
     }
 
     [Fact]
-    public void SparkTeamStartsWithMoreStarsThanMixedRivals()
+    public void S180_TheBestAndTheWorstChemistryTeamsStartWithTheSameStars()
     {
+        // Spark All-Stars are all buddies of their captain; Mixed Rivals are not. Chemistry no longer sets the meter (PH-16-R16).
         var spark = PresetTeams.SparkAllStars(_content);
         var mixed = PresetTeams.MixedRivals(_content);
-        var sparkStars = _content.Chemistry.StartingStars(spark);
-        var mixedStars = _content.Chemistry.StartingStars(mixed);
-        Assert.True(sparkStars > mixedStars, $"spark {sparkStars} vs mixed {mixedStars}");
-        Assert.InRange(sparkStars, 4, 5);
-        Assert.InRange(mixedStars, 1, 3);
+        var m = Match.Exhibition(_content, spark, mixed, seed: 1);
+        Assert.Equal(_content.Rules.Stars.StartingReserve, m.HomeStars);
+        Assert.Equal(m.HomeStars, m.AwayStars);
     }
 
     [Fact]

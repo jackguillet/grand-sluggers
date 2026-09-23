@@ -107,8 +107,10 @@ public sealed class HazardLibraryTests
         Assert.Equal(HazardPattern.RewardTarget, hazards.Of(HazardType.Billboard).Pattern);
         Assert.Equal(HazardPattern.WallTrait, hazards.Of(HazardType.ClimbWall).Pattern);
         Assert.Equal(HazardPattern.BallRedirect, hazards.Of(HazardType.Chomper).Pattern); // FD-09-R2, F4-c
-        foreach (var inert in new[] { HazardType.Statue, HazardType.Train, HazardType.AcUnit, HazardType.Tree })
-            Assert.Equal(HazardPattern.Decoration, hazards.Of(inert).Pattern);
+        // F4-f: the four types that were scenery act now — three solid bodies and the mover.
+        foreach (var body in new[] { HazardType.Statue, HazardType.AcUnit, HazardType.Tree })
+            Assert.Equal(HazardPattern.SolidBody, hazards.Of(body).Pattern);
+        Assert.Equal(HazardPattern.TimedMover, hazards.Of(HazardType.Train).Pattern);
 
         // The numbers that are the rows' own.
         Assert.Equal(1.6, hazards.Of(HazardType.FireBreath).NightRadiusMul);
@@ -214,11 +216,11 @@ public sealed class HazardLibraryTests
     public void SF03_ARowWithAnUnknownPatternStopsTheLoadAndNamesIt(bool overlay)
     {
         using var fixture = new HazardFixture(overlay);
-        fixture.Hazards(json => json["tree"]!["pattern"] = "solidBody");
+        fixture.Hazards(json => json["tree"]!["pattern"] = "catchStealer");
 
         var errors = RulesTable.Validate(fixture.Root());
         Assert.Contains(errors, e => e.Contains("hazards.tree.pattern must be one of", StringComparison.Ordinal)
-            && e.Contains("got 'solidBody'", StringComparison.Ordinal));
+            && e.Contains("got 'catchStealer'", StringComparison.Ordinal));
         Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root()));
     }
 
@@ -241,15 +243,14 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// The train's radius is no longer a special case by name. A decoration is drawn and never
-    /// played, so it may carry no disc; anything that acts still needs one.
+    /// The train is a mover since F4-f, so it carries a disc like everything that acts; a hazard with no disc is refused.
     /// </summary>
     [Fact]
-    public void ADecorationMayHaveNoDiscAndEveryActingHazardMustHaveOne()
+    public void EveryActingHazardMustHaveADisc()
     {
         var train = Content.Parks["funfair-park"].Hazards.Single(h => h.Type == HazardType.Train);
-        Assert.Equal(0, train.Radius);
-        Assert.Equal(HazardPattern.Decoration, Table.Hazards.Of(HazardType.Train).Pattern);
+        Assert.Equal(6, train.Radius);
+        Assert.Equal(HazardPattern.TimedMover, Table.Hazards.Of(HazardType.Train).Pattern);
         Assert.Empty(ContentDataValidator.Validate(Content.Root));
 
         using var fixture = new HazardFixture(overlay: false);
@@ -376,39 +377,19 @@ public sealed class HazardLibraryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// The four inert types do nothing, on purpose and by name (map §5 Q6, Jack, 2026-09-22). Each
-    /// is probed at its own centre and around its rim, in the park that lists it, through every
-    /// pattern the sim runs: a decoration slows nobody, redirects nothing, pays nothing, steals no
-    /// catch and lends no reach.
+    /// No library type is scenery since F4-f: the four that were (statue, AC unit, tree, train) are solid bodies and a mover,
+    /// every one in some park. The decoration pattern stays for the next piece of scenery. A park whose only hazards are bodies
+    /// lends no Clamber reach, redirects nothing and pays nothing.
     /// </summary>
     [Fact]
-    public void TheFourDecorationsDoNothing()
+    public void TheFourFormerDecorationsAreBodies()
     {
+        Assert.DoesNotContain(HazardType.All, t => Table.Hazards.Of(t).Pattern == HazardPattern.Decoration);
+        var bodies = Parks.SelectMany(p => p.Hazards).Where(h => Table.Hazards.Of(h.Type).Pattern is HazardPattern.SolidBody or HazardPattern.TimedMover)
+            .Select(h => h.Type).Distinct().OrderBy(t => t, StringComparer.Ordinal).ToList();
+        Assert.Equal([HazardType.AcUnit, HazardType.Statue, HazardType.Train, HazardType.Tree], bodies);
+
         var konga = Content.Must("konga");
-        var seen = new List<string>();
-        foreach (var park in Parks)
-            foreach (var h in park.Hazards)
-            {
-                if (Table.Hazards.Of(h.Type).Pattern != HazardPattern.Decoration) continue;
-                seen.Add(h.Type);
-                foreach (var (x, z) in Ring(h.X, h.Z, h.Radius))
-                    foreach (var night in new[] { false, true })
-                    {
-                        var where = $"{park.Id} {h.Type} at ({x}, {z}) night {night}";
-                        var played = Played(park, night);
-                        Assert.False(ParkHazards.InSlow(played, x, z, night, Table), where);
-                        var live = Live(played, night);
-                        Assert.True(live.Entered(x, 0, z) is null || Table.Hazards.Of(live.Entered(x, 0, z)!.Type).Pattern != HazardPattern.Decoration, where);
-                        Assert.True(live.Reward(x, 0, z) is null || OldDispatch.HitStarSign(park, x, z), where);
-                    }
-            }
-
-        // Every inert type was actually reached, so a silent "nothing listed one" cannot pass this.
-        Assert.Equal(
-            [HazardType.AcUnit, HazardType.Statue, HazardType.Train, HazardType.Tree],
-            seen.Distinct().OrderBy(t => t, StringComparer.Ordinal).ToList());
-
-        // A park whose only hazards are decorations lends no Clamber reach and no redirect.
         var scenery = new Park(
             "scenery", "Scenery", "none", "grass", 330, 400, 330, 0,
             [new Hazard(HazardType.Tree, 40, 200, 6, null), new Hazard(HazardType.Statue, -40, 200, 6, null)],
@@ -416,6 +397,7 @@ public sealed class HazardLibraryTests
         Assert.False(ParkHazards.CanClamber(scenery, konga, Table));
         Assert.Empty(Live(scenery).Mouths);
         Assert.Null(Live(scenery).Reward(40, 0, 200));
+        Assert.Equal(2, SolidBodies.Of(scenery, Table).Count);
     }
 
     // ---------------------------------------------------------------------------------

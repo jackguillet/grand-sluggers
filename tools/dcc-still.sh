@@ -11,7 +11,7 @@ clip="swing"
 print_only=0
 
 usage() {
-  echo "usage: tools/dcc-still.sh body|extras|takes [clip]|harbor [--print]"
+  echo "usage: tools/dcc-still.sh body|extras|takes [clip]|harbor|park <park-id> [--print]"
   echo "PR still: $drop/dcc-body.png (etc). In-game pair: tools/still-gate-character.sh."
 }
 
@@ -29,6 +29,16 @@ for arg in "$@"; do
 done
 
 [[ "$kind" == "harbor" ]] && kind="harbor-kit"
+# A park's kit (F7-b): Harbor's is harbor_kit.py; any other park has no DCC kit until its art stage (F9-c, after
+# its greybox sitting), so its lane names the still and refuses to invent one.
+if [[ "$kind" == "park" ]]; then
+  if [[ "$clip" == "harbor-diamond" ]]; then kind="harbor-kit"
+  elif [[ ! -f "$root/tools/blender/park_kit_${clip}.py" && $print_only -eq 0 ]]; then
+    echo "park $clip has no DCC kit yet (tools/blender/park_kit_${clip}.py): its greybox is drawn from data in Unity;"
+    echo "the DCC half of its dual still arrives with its art stage, after Jack's greybox sitting (F9-c)."
+    exit 2
+  fi
+fi
 
 named=""
 case "$kind" in
@@ -36,6 +46,7 @@ case "$kind" in
   extras) named="dcc-extras.png" ;;
   takes) named="dcc-${clip}.png" ;;
   harbor-kit) named="dcc-harbor-kit.png" ;;
+  park) named="dcc-park-${clip}.png" ;;
   *) usage; exit 1 ;;
 esac
 
@@ -79,6 +90,13 @@ case "$kind" in
       --resources "$root/unity/Assets/Resources/Art/Parks/harbor-diamond" \
       --clay "$takes"
     cp "$takes/harbor-kit.png" "$drop/$named"
+    ;;
+  park)
+    "$B" -b --python "$root/tools/blender/park_kit_${clip}.py" -- \
+      --out "$root/unity/Assets/Art/Parks/${clip}/park-kit.fbx" \
+      --resources "$root/unity/Assets/Resources/Art/Parks/${clip}" \
+      --clay "$takes"
+    cp "$takes/park-kit-${clip}.png" "$drop/$named"
     ;;
 esac
 

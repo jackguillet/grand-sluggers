@@ -101,6 +101,12 @@ public static class HazardPattern
     /// <summary>A target that pays the batting team when the ball hits it (<c>billboard</c>).</summary>
     public const string RewardTarget = "rewardTarget";
 
+    /// <summary>A body the ball caroms off and a fielder cannot stand in (<c>statue</c>, <c>ac_unit</c>, <c>tree</c>; F4-f).</summary>
+    public const string SolidBody = "solidBody";
+
+    /// <summary>A solid body that moves along the fence on the play clock (<c>train</c>; F4-f).</summary>
+    public const string TimedMover = "timedMover";
+
     /// <summary>A property of the wall a fielder works at (<c>climb_wall</c>).</summary>
     public const string WallTrait = "wallTrait";
 
@@ -109,17 +115,17 @@ public static class HazardPattern
 
     /// <summary>Every pattern, in the order §14 lists them.</summary>
     public static IReadOnlyList<string> All { get; } =
-        [StatusVolume, BallRedirect, RewardTarget, WallTrait, Decoration];
+        [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover, WallTrait, Decoration];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);
 
-    /// <summary>True for one of the five patterns the sim implements (the catch stealer retired into the redirect, FD-09-R2).</summary>
+    /// <summary>True for one of the seven patterns the sim implements (the catch stealer retired into the redirect, FD-09-R2).</summary>
     public static bool IsKnown(string? pattern) => pattern is not null && KnownIds.Contains(pattern);
 
     /// <summary>
     /// The patterns that count as a hazard, which are the ones the match's hazards switch removes
-    /// (FD-10, §14, SF-24): a status volume, a ball redirect and a reward target — the three that act on a
-    /// play. <see cref="WallTrait"/> is not one, because a climbable span is a
+    /// (FD-10, §14, SF-24): a status volume, a ball redirect, a reward target, a solid body and a timed mover —
+    /// the five that act on a play. <see cref="WallTrait"/> is not one, because a climbable span is a
     /// property of the wall (FD-06) and the park keeps its walls with hazards off. <see cref="Decoration"/>
     /// is not one, because it does nothing in play and the kit still draws it.
     ///
@@ -130,7 +136,7 @@ public static class HazardPattern
     /// 2026).
     /// </para>
     /// </summary>
-    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget];
+    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover];
 
     static readonly HashSet<string> HazardIds = new(Hazards, StringComparer.Ordinal);
 

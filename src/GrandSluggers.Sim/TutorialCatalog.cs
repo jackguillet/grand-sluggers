@@ -74,6 +74,11 @@ public sealed class TutorialCatalog
     {
         var errors = new List<string>();
         void Require(bool ok, string message) { if (!ok) errors.Add("tutorials: " + message); }
+        // A lesson's meter has to pay for the named special at its tier price on the team it plays for (§12, PH-16-R7).
+        int PitchPrice(TutorialSetup s, string id) =>
+            StarSkills.PitchCost(content.Characters[id], content.Characters[s.Home[0]], content.Rules, content.StarSkills);
+        int SwingPrice(TutorialSetup s, string id) =>
+            StarSkills.SwingCost(content.Characters[id], content.Characters[s.Away[0]], content.Rules, content.StarSkills);
         static bool Text(string? s) => !string.IsNullOrWhiteSpace(s);
         void Ids(IEnumerable<string> ids, string kind)
         {
@@ -173,19 +178,22 @@ public sealed class TutorialCatalog
                 && content.Chemistry.ChemistryItemOffered(content.Characters[setup.BatterId], content.Characters[setup.OnDeckId]),
                 l.Id + " needs an offered item and named item fixture");
             if (l.Objective == "human-special-ground") Require(l.Id == "T-X02" && setup.Skill == "ground"
-                && setup.OpponentStars >= content.Rules.Stars.Costs.Own && setup.Away.Contains(setup.BatterId)
-                && content.Characters[setup.BatterId].StarSwing == setup.Skill,
+                && setup.Away.Contains(setup.BatterId)
+                && content.Characters[setup.BatterId].StarSwing == setup.Skill
+                && setup.OpponentStars >= SwingPrice(setup, setup.BatterId),
                 l.Id + " needs a funded opponent star-ground swing");
             if (l.Objective == "star-pitch") Require((l.Id == "T-P09" || l.Id == "T-SP-" + setup.Skill)
                 && content.StarSkills.Pitches.ContainsKey(setup.Skill)
                 && setup.Home.Contains(setup.PitcherId.Length > 0 ? setup.PitcherId : setup.Home[0])
                 && content.Characters[setup.PitcherId.Length > 0 ? setup.PitcherId : setup.Home[0]].StarPitch == setup.Skill
-                && setup.StartingStars >= content.Rules.Stars.Costs.Own, l.Id + " requires the named pitcher and meter");
+                && setup.StartingStars >= PitchPrice(setup, setup.PitcherId.Length > 0 ? setup.PitcherId : setup.Home[0]),
+                l.Id + " requires the named pitcher and meter");
             if (l.Objective == "star-swing") Require((l.Id == "T-B09" || l.Id == "T-SS-" + setup.Skill)
                 && content.StarSkills.Swings.ContainsKey(setup.Skill)
                 && setup.Away.Contains(setup.BatterId.Length > 0 ? setup.BatterId : setup.Away[0])
                 && content.Characters[setup.BatterId.Length > 0 ? setup.BatterId : setup.Away[0]].StarSwing == setup.Skill
-                && setup.StartingStars >= content.Rules.Stars.Costs.Own, l.Id + " requires the named batter and meter");
+                && setup.StartingStars >= SwingPrice(setup, setup.BatterId.Length > 0 ? setup.BatterId : setup.Away[0]),
+                l.Id + " requires the named batter and meter");
             if (setup.Policy is "grounder" or "liner" or "airborne")
                 Require(l.Profiles.All(setup.Balls.ContainsKey), l.Id + " lacks a profile ball fixture");
         }

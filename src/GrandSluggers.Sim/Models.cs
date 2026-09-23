@@ -275,6 +275,15 @@ public sealed record Character(
     public Repertoire Repertoire { get; init; } = GrandSluggers.Sim.Repertoire.Default;
 }
 
+/// <summary>A park's foul territory where it differs from <c>boundary.json</c> (F2-d): each member null keeps the table's.</summary>
+public sealed record ParkFoul(double? OffsetFt = null, double? FlareStartFt = null, double? RailHeightFt = null);
+
+/// <summary>A named outfield start (F2-d): feet from home, +Z toward centre.</summary>
+public sealed record StartSpot(double X, double Z);
+
+/// <summary>A park's named outfield starts (F2-d): each null keeps the default rule for that position.</summary>
+public sealed record ParkOutfield(StartSpot? LF = null, StartSpot? CF = null, StartSpot? RF = null);
+
 public sealed record Park(
     string Id,
     string Name,
@@ -316,7 +325,19 @@ public sealed record Park(
     /// defaulted for the same reason <see cref="Environment"/> is; null is not written into
     /// <see cref="PlayTraceIdentity"/>.
     /// </summary>
-    ParkNight? Night = null)
+    ParkNight? Night = null,
+    /// <summary>
+    /// This park's foul territory (§6.1; FD-07 C; F2-d): any of the foul wrap's offset, the flare's start and the rail's height
+    /// that differ from <c>boundary.json</c>. Null — no park names one — is the table's, exactly as every park has played.
+    /// Last and defaulted, and null is not written into <see cref="PlayTraceIdentity"/>.
+    /// </summary>
+    ParkFoul? Foul = null,
+    /// <summary>
+    /// Where this park's outfielders start, when its shape needs its own (FD-07 C; F2-d; <c>SF-09</c>). Null, or a position it
+    /// does not name, is the default rule: the global start's bearing and its fraction of the fence it was authored against,
+    /// on this park's fence (<see cref="OutfieldStarts"/>). Last and defaulted; null is not written into the identity.
+    /// </summary>
+    ParkOutfield? OutfieldStarts = null)
 {
     /// <summary>Where the wind blows toward, in the field frame: 0 out to CF, 90 toward the right-field line, 180 in at the plate.</summary>
     public (double X, double Z) WindDirection
@@ -732,9 +753,13 @@ public sealed record PlayOutcome(
     bool Error = false,
     bool FieldersChoice = false,
     bool GroundRuleDouble = false,
-    IReadOnlyList<FieldBody>? Bodies = null)
+    IReadOnlyList<FieldBody>? Bodies = null,
+    IReadOnlyList<StarRequest>? StarRequests = null)
 {
     public static PlayOutcome Empty { get; } = new();
+
+    /// <summary>Every Star Pitch and Star Swing released on this pitch, as the match settled it (§12, PH-16-R12).</summary>
+    public IReadOnlyList<StarRequest> Stars => StarRequests ?? [];
 
     /// <summary>Every body on the field at Time, where it stood (§10.6, #574): gloves and live runners.</summary>
     public IReadOnlyList<FieldBody> BodiesAtTime => Bodies ?? [];
@@ -744,6 +769,32 @@ public sealed record PlayOutcome(
 
     /// <summary>Every runner who changed bags, including the batter-runner (from bag 0).</summary>
     public IReadOnlyList<RunnerMove> Moves => Advances ?? [];
+}
+
+public enum StarAction
+{
+    Pitch,
+    Swing
+}
+
+/// <summary>
+/// One released special as <see cref="Match"/> settled it (§12, PH-16-R3, PH-16-R12). <paramref name="Afforded"/>
+/// false is the typed "special unavailable" event: the team held fewer Stars than <paramref name="Cost"/>, so the
+/// action went out as the ordinary pitch or swing at the same timing and nothing was spent. Afforded, the team paid
+/// <paramref name="Cost"/> at the release, whatever the swing then met — a miss pays in full.
+/// <paramref name="Home"/> names the team whose pool it read.
+/// </summary>
+public sealed record StarRequest(
+    StarAction Action,
+    bool Home,
+    string CharacterId,
+    string? AbilityId,
+    int Cost,
+    double StarsBefore,
+    bool Afforded)
+{
+    /// <summary>What left the pool: the cost when afforded, nothing when the special was unavailable.</summary>
+    public int Spent => Afforded ? Cost : 0;
 }
 
 /// <summary>The actors and match state at the start of one pitch or pickoff play.</summary>
