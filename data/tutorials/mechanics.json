@@ -750,6 +750,55 @@
       "sources": [
         "item:pow"
       ]
+    },
+    {
+      "id": "fields.ice",
+      "title": "a grounder on an ice outfield",
+      "category": "fielding",
+      "spec": "gameplay-spec:14",
+      "sources": []
+    },
+    {
+      "id": "fields.status-volume",
+      "title": "a status volume slows the body that touches it",
+      "category": "fielding",
+      "spec": "gameplay-spec:14",
+      "sources": []
+    },
+    {
+      "id": "fields.redirect",
+      "title": "a ball redirect sends the ball out of another mouth",
+      "category": "fielding",
+      "spec": "gameplay-spec:14",
+      "sources": []
+    },
+    {
+      "id": "fields.solid-body",
+      "title": "a solid body gives the ball back",
+      "category": "fielding",
+      "spec": "gameplay-spec:14",
+      "sources": []
+    },
+    {
+      "id": "fields.mover",
+      "title": "a timed mover runs on the play clock",
+      "category": "fielding",
+      "spec": "gameplay-spec:14",
+      "sources": []
+    },
+    {
+      "id": "fields.reward",
+      "title": "a reward target pays a star",
+      "category": "batting",
+      "spec": "gameplay-spec:14",
+      "sources": []
+    },
+    {
+      "id": "fields.wall-trait",
+      "title": "a Clamber fielder climbs the wall",
+      "category": "fielding",
+      "spec": "gameplay-spec:14",
+      "sources": []
     }
   ]
 }

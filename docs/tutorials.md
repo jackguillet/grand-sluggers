@@ -212,3 +212,19 @@ Verification on that revision:
 - The Mac standalone preview built and rendered. Keyboard/mouse `T-P03` returned directly to live SET after a wrong pitch at saved 1/3, retaining the correction and count. `T-P06` also reset after a missed objective and a timeout. `T-SP-heatball` advanced from 0/3 through 1/3 and 2/3 without a Continue press or briefing, then stopped on LESSON COMPLETE at 3/3 after the third Q + Space pitch. Call time still allowed leaving an unfinished lesson. These UI checks are agent evidence, not a human learning gate.
 - Separate sitting-found child #806 records the pre-existing title navigation footer disappearing after a pitch; no unrelated repair is included here.
 - Preview left at title; primary checkout and human/controller gates remain unchanged. Physical pads and live guided repetition were not exercised in this sitting.
+
+## Field lessons — F8-c (#814)
+
+A setup may name a `park` and `night`. The lesson plays at that park with its hazards on, from the setup's seed, so the opportunity repeats. One lesson per hazard pattern and per ground that changes the ball:
+
+| Lesson | Park | Opportunity | Passes | Fails |
+| --- | --- | --- | --- | --- |
+| T-H01 | Crystal Rink | grounder onto the ice | manual ground possession | assistance's pickup, dead pad |
+| T-H02 | Crystal Rink | fly behind the freezer at (7, 131) from 2B | the player's catch, no slow on the catcher | the straight run through the freezer (`slowed`), no catch |
+| T-H03 | Funfair Park | grounder into the warp can at (18, 49) | the player's glove takes it after it leaves the other can | the assistance's take, a take before the redirect |
+| T-H04 | Canopy Yard | liner off the tree at (35, 217) | the player's glove takes it after the carom | the assistance's take, a take before the carom |
+| T-H05 | Funfair Park | the train (timed mover) | planned | |
+| T-H06 | Rooftop City | a billboard star (batting) | planned | |
+| T-H07 | Canopy Yard | the Clamber wall | planned | |
+
+Regression: `HazardLessonTests` earns each implemented lesson with a scripted human pad and fails it with a dead pad; T-H02 also fails the straight run. The mover, reward and wall-trait mechanics are migration debt on #814. The standalone learning gate is Jack's.

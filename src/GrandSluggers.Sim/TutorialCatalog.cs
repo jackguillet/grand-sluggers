@@ -11,7 +11,9 @@ public sealed record TutorialSetup(string Id, string Policy, int Seed, double Ti
     string[] Away, int[] Runners, Dictionary<string, TutorialBall> Balls, PitchCommand? Pitch = null,
     double MinMovement01 = 0, int Strikes = 0, double MinTimingFrames = 0, string Seat = "defense", double StartingStars = 0,
     string Skill = "", string PitcherId = "", string BatterId = "", string OnDeckId = "", double OpponentStars = 0,
-    Dictionary<string, string[]>? RunnerIdsByProfile = null, int Outs = 0);
+    Dictionary<string, string[]>? RunnerIdsByProfile = null, int Outs = 0,
+    /// <summary>The park the lesson is played at (F8-c): a hazard or a ground lesson names its park; empty is the training park.</summary>
+    string Park = "", bool Night = false);
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -27,6 +29,7 @@ public sealed class TutorialCatalog
     public static readonly string[] Objectives = [.. TutorialPlateObjectives.PitchIds, .. TutorialPlateObjectives.SwingIds,
         "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
+        "hazard-dodge-catch", "hazard-redirect-take", "hazard-carom-take",
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide", "human-tag-up", "human-double-off",
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
@@ -151,6 +154,10 @@ public sealed class TutorialCatalog
                     or "runner-send-halt-return" or "human-dash-run" or "all-runner-return" or "human-slide"
                     or "human-choice-second" or "human-ball-dash" or "human-uncovered-receiver" or "human-force-home" or "human-ability-reach" or "human-close-offense" or "human-close-defense" or "human-third-force-zero-run" or "human-bobble-recovery" or "human-fumble-recovery" or "human-third-force-cancels-run" or "human-third-tag-counts-run")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
+                // The field's lessons (F8-c): a hazard lesson plays at the park it names.
+                || (setup.Policy == "airborne" && l.Objective == "hazard-dodge-catch" && setup.Park.Length > 0)
+                || (setup.Policy == "grounder" && l.Objective == "hazard-redirect-take" && setup.Park.Length > 0)
+                || (setup.Policy is "grounder" or "liner" && l.Objective == "hazard-carom-take" && setup.Park.Length > 0)
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
                     or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw" or "human-tag-up" or "human-double-off" or "human-loose-recovery" or "human-ability-reach" or "human-triple-off" or "human-corner-dash" or "human-early-fly-return"), l.Id + " setup/objective mismatch");
             if (l.Objective is "game-count-sequence" or "game-half-change" or "game-foul-fair")
@@ -218,6 +225,7 @@ public sealed class TutorialCatalog
             Require(double.IsFinite(s.MinTimingFrames) && s.MinTimingFrames is >= 0 and <= 4, s.Id + " has invalid timing threshold");
             Require(s.Strikes is >= 0 and <= 2 && (s.Strikes == 0 || s.Policy is "cpu-strike" or "cpu-ball" or "cpu-take" or "game-half"), s.Id + " has invalid starting strikes");
             Require(s.Outs is >= 0 and <= 2, s.Id + " has invalid starting outs");
+            Require(s.Park.Length == 0 || content.Parks.ContainsKey(s.Park), s.Id + " names an unknown park " + s.Park);
             Require(double.IsFinite(s.MinMovement01) && s.MinMovement01 is >= 0 and <= 1, s.Id + " has invalid movement threshold");
             if (s.Policy is "cpu-strike" or "cpu-ball" or "cpu-item" or "game-contact")
             {
