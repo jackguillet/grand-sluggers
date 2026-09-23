@@ -44,6 +44,59 @@ namespace GrandSluggers.UnityClient
             GUI.matrix = Matrix4x4.Scale(new Vector3(Screen.width / 1280f, Screen.height / 800f, 1));
             return old;
         }
+        public static void ConnectController()
+        {
+            var old = Begin();
+            Fill(new Rect(270, 290, 740, 180), Ink);
+            Text(300, 315, 680, 48, "CONNECT A CONTROLLER", _title);
+            Text(300, 378, 680, 54, "Plug in or pair a controller to play. Two controllers play together.", _label);
+            GUI.matrix = old;
+        }
+        public static void TitleMenu(int focus)
+        {
+            var old = Begin();
+            FocusRows(40, 235, 410, focus, new[] { "Exhibition", "Tutorials", "Controls", "Quit" });
+            GUI.matrix = old;
+        }
+        public static void FieldFocus(int focus, string park, bool night, bool hazards)
+        {
+            var old = Begin();
+            FocusRows(40, 390, 630, focus, new[] { "Stadium: " + park, "Time: " + (night ? "Night" : "Day"),
+                "Hazards: " + (hazards ? "On" : "Off"), "Choose captains" });
+            Text(40, 688, 1130, 65, "Up/down choose • Left/right change • South confirm • East back", _label);
+            GUI.matrix = old;
+        }
+        public static void CaptainFocus(int focus, bool versus, bool home)
+        {
+            var old = Begin();
+            FocusRows(700, 285, 540, focus, new[] { "Your captain • Left/right", versus ? "P2 captain • P2 left/right" : "Opponent • Left/right",
+                "Players: " + (versus ? "2 controllers" : "1 vs CPU"), "Your side: " + (home ? "Home" : "Away"), "Choose lineup" });
+            GUI.matrix = old;
+        }
+        public static void LiveOrders(string runners, int target)
+        {
+            var old = Begin();
+            if (runners != null)
+            {
+                Fill(new Rect(24, 680, 560, 52), Ink);
+                Text(36, 684, 540, 44, runners + " • LB go / RB return / D-up halt", _body);
+            }
+            if (target >= 0)
+            {
+                Fill(new Rect(700, 680, 556, 52), Ink);
+                Text(712, 684, 532, 44, target == 0 ? "Right stick: choose base • RT throw" : "THROW " + (target == 4 ? "HOME" : target + "B") + " • RT", _label);
+            }
+            GUI.matrix = old;
+        }
+        static void FocusRows(float x, float y, float width, int focus, string[] rows)
+        {
+            for (var i = 0; i < rows.Length; i++)
+            {
+                var r = new Rect(x, y + i * 54, width, 48);
+                Fill(r, i == focus ? new Color(.16f, .32f, .34f) : Ink);
+                Text(x + 16, r.y + 2, width - 32, 44, (i == focus ? "> " : "") + rows[i], _label);
+            }
+        }
         public static void FieldControls(bool night, bool hazards)
         {
             var old = Begin();

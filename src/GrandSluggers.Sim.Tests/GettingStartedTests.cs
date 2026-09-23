@@ -30,7 +30,7 @@ public class GettingStartedTests
         Assert.DoesNotContain("Space", GettingStarted.Caption(GettingStarted.Path[0], InputScheme.Pad));
         Assert.Contains("Space", GettingStarted.Caption(GettingStarted.Path[0], InputScheme.Keys));
         Assert.DoesNotContain("South", GettingStarted.Caption(GettingStarted.Path[0], InputScheme.Keys));
-        Assert.Contains("West", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Pad));
+        Assert.Contains("Tutorials", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Pad));
         Assert.Contains("F", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Keys));
         Assert.DoesNotContain("West", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Keys));
         Assert.Contains("Controller", GettingStarted.Line(GettingStarted.Modes[2], InputScheme.Pad));
@@ -44,7 +44,7 @@ public class GettingStartedTests
             Assert.DoesNotContain(copy, l => l.Contains(needle, StringComparison.OrdinalIgnoreCase));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Exhibition"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Training"));
-        Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Esc"));
+        Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("View"));
         const float w = 1280, h = 800;
         var path = GettingStarted.PathRow(w, h);
         var table = GettingStarted.ModeTable(w, h);

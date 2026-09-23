@@ -10,17 +10,6 @@ namespace GrandSluggers.UnityClient
         int _previousSetupBag;
         StealRaceInset _stealInset;
 
-        void ReadTutorialSteal()
-        {
-            if (!HumanBats || _match.LeadBag == 0) return;
-            var pad = RunPad;
-            if (pad.ThrowBag is >= 1 and <= 3) _match.SelectRunner(pad.ThrowBag);
-            var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
-            var verb = Baserunning.StickVerb(InPlay.DiamondBag(pad.StickX, pad.StickY), bag);
-            if (pad.Steal || verb == RunStick.Steal && _match.SelectedState?.Advancing != true)
-                _coach.Tutorial.ArmSteal(bag);
-        }
-
         void UpdateStealInset()
         {
             var show = _match != null && !_match.Paused && !TutorialModal && !_turntable
@@ -34,11 +23,11 @@ namespace GrandSluggers.UnityClient
 
         bool ReadSetupThrow(Controls.Pad pad, bool accepting)
         {
-            var wants = accepting && StealPresentation.BaseThrow(pad.ThrowBag, _previousSetupBag,
-                pad.SouthDown, pad.SouthHeld, _match.PitchSetup.Committed);
-            _previousSetupBag = pad.ThrowBag;
+            var wants = accepting && StealPresentation.BaseThrow(pad.PickoffBag, _previousSetupBag,
+                pad.BallDown, pad.BallHeld, _match.PitchSetup.Committed);
+            _previousSetupBag = pad.PickoffBag;
             if (!wants) return false;
-            BeginPickoff(pad.ThrowBag);
+            BeginPickoff(pad.PickoffBag);
             return true;
         }
 

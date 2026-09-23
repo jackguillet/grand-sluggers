@@ -146,18 +146,15 @@ namespace GrandSluggers.EditorTools
                 () => VerifyTriggerConvertsLoad(play, padTwo: true, first: true),
                 () => VerifySideChangeWhileSquared(play),
                 () => VerifyReleaseAllWithdraws(play),
-                () => VerifyBuntTriggerAfterContactIsNotTheItem(play),
                 () => VerifyEastCancelIsNotATrainingSkip(play),
                 // P5-c (#803): the held special modifier, read at the accepted release (PH-16-R10 ... R12, R17).
                 () => VerifyStarHeldAtReleaseIsSpecial(play, keys: false),
-                () => VerifyStarHeldAtReleaseIsSpecial(play, keys: true),
                 () => VerifyStarLetGoBeforeReleaseIsOrdinary(play),
                 () => VerifyStarPressedWhileChargingCounts(play),
                 () => VerifyStarAfterReleaseChangesNothing(play),
                 () => VerifyStarSwingOnPadTwo(play),
                 () => VerifyUnaffordableStarIsOrdinaryWithTell(play),
                 () => VerifyLbInTheFlightIsNotAllAdvance(play),
-                () => VerifySpentLbIsNoLiveVerb(play)
             })
             {
                 cases.Add(check());
@@ -890,8 +887,7 @@ namespace GrandSluggers.EditorTools
             var lifecycle = Get<MatchSeatLifecycle>(play, "_matchSeats");
             lifecycle.Release();
             lifecycle.Bind(Seats.One);
-            SetStatic(typeof(Controls), "_matchDevices", new DeviceSeats(null, null, pad1KeyboardMouse: true));
-            SetStatic(typeof(Controls), "_matchDevicesBound", true);
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(null, null, pad1KeyboardMouse: true));
             Invoke(play, "BeginSet");
             Set(play, "_gateHold", true);
             Set(play, "_t", 0f);
@@ -921,8 +917,8 @@ namespace GrandSluggers.EditorTools
             var match = padTwo ? Setup(play, Seats.Versus, homeAtBat: true) : Setup(play, Seats.One);
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
             var before = match.Pitcher.Id;
-            var select = State().WithButton(GamepadButton.Select);
-            Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
+            var select = State().WithButton(GamepadButton.West);
+            Require(Call<bool>(play, "OpenDefenseSetup"), "Call time could not open Arrange defense.");
             var pick = Get<DefenseSetupPick>(play, "_swapPick");
             Require(pick != null, "Select did not open the swap pick.");
             var start = pick.Index;
@@ -932,7 +928,7 @@ namespace GrandSluggers.EditorTools
             Require(Get<object>(play, "_swapPick") == null && match.Pitcher.Id == before && match.CanSwapPitcher,
                 "Cancelling the window changed or consumed the pitcher swap.");
             Tick(play, "TickSet", State(), State());
-            Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
+            Require(Call<bool>(play, "OpenDefenseSetup"), "Could not reopen Arrange defense.");
             pick = Get<DefenseSetupPick>(play, "_swapPick");
             Require(pick != null && pick.Index == start, "The cancelled window could not reopen.");
             Tick(play, "TickSet", State(), State());
@@ -973,9 +969,8 @@ namespace GrandSluggers.EditorTools
             var lifecycle = Get<MatchSeatLifecycle>(play, "_matchSeats");
             lifecycle.Release();
             lifecycle.Bind(seats);
-            SetStatic(typeof(Controls), "_matchDevices", new DeviceSeats(
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(
                 _pad1.deviceId, seats.BothHuman ? _pad2.deviceId : null));
-            SetStatic(typeof(Controls), "_matchDevicesBound", true);
             Invoke(play, "BeginSet");
             Set(play, "_gateHold", true);
             Set(play, "_t", 0f);
@@ -1020,13 +1015,13 @@ namespace GrandSluggers.EditorTools
             var state = new GamepadState
             {
                 leftStick = new Vector2(stickX, stickY),
-                leftTrigger = lt ? 1f : 0f,
-                rightTrigger = rt ? 1f : 0f
+                leftTrigger = lb ? 1f : 0f,
+                rightTrigger = south ? 1f : 0f
             };
-            if (south) state = state.WithButton(GamepadButton.South);
-            if (cycle) state = state.WithButton(GamepadButton.RightShoulder);
+            if (lt) state = state.WithButton(GamepadButton.West);
+            if (rt) state = state.WithButton(GamepadButton.North);
+            if (cycle) state = state.WithButton(GamepadButton.West);
             if (east) state = state.WithButton(GamepadButton.East);
-            if (lb) state = state.WithButton(GamepadButton.LeftShoulder);
             return west ? state.WithButton(GamepadButton.West) : state;
         }
 

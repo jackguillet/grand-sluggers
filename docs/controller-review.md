@@ -2,8 +2,7 @@
 
 Presentation design review, September 23, 2026. Audited against `355f3bf2`.
 Jack accepted the overall layout with corrections that catching needs no
-button and North on defense activates Jump / Buddy Jump. This is the revised design, not shipped controls or an implemented
-gameplay-spec revision. No game code, active bindings or running player changed.
+button and North on defense activates Jump / Buddy Jump. The implementation follows this design. The physical-controller sitting remains open.
 Reported control collision: [#983](https://github.com/jackguillet/grand-sluggers/issues/983), under #209.
 
 ## The recommendation
@@ -177,8 +176,7 @@ Nintendo layout from Xbox letters alone.
   batter-runner. Holding Star, swinging, bunting and moving the batter never
   changes runner selection or issues a runner order.
 
-No required gameplay action uses L3/R3. D-pad left/right are unassigned during
-live play. LT is unused for fielding/running after the Star release. An unused
+No required gameplay action uses L3/R3. D-pad left/right are unassigned in ordinary play; an offered item lesson uses them to choose its item. LT is unused for fielding/running after the Star release. An unused
 control is preferable to making a hidden extra mode.
 
 ## Transition and device rules

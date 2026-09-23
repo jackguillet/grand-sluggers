@@ -70,40 +70,29 @@ namespace GrandSluggers.UnityClient
             if (Controls.SouthDown && _t > 0.2f) ConfirmGameOver();
         }
 
+        int _titleFocus, _fieldFocus, _captainFocus;
         void TickTitle()
         {
-            if (Controls.Player1InputToggleDown)
-                Controls.CyclePlayer1Input();
-            if (Controls.Start)
-            {
-                _mode = _mode == PlayMode.Exhibition ? PlayMode.Challenge
-                    : _mode == PlayMode.Challenge ? PlayMode.Training
-                    : PlayMode.Exhibition;
-                if (_mode == PlayMode.Training) ParkId = Training.ParkId;
-            }
-            if (Controls.WestDown || (_mode == PlayMode.Training && Controls.SouthDown && _t > 0.15f))
-            {
-                OpenTutorials();
-                return;
-            }
+            var dy = _selectY.Tick(Controls.MenuY, Controls.MenuTapY, Time.unscaledDeltaTime);
+            if (dy != 0) _titleFocus = (_titleFocus + (dy > 0 ? 3 : 1)) % 4;
             _cam.Cut("title");
-            if (Controls.SouthDown)
-            {
-                if (_mode == PlayMode.Training)
-                {
-                    OpenTutorials();
-                    return;
-                }
-                _match = NewMatch();
-                _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-                _spec.Build(transform);
-                _items.Build(transform);
-                _stars?.Build(transform);
-                if (_mode == PlayMode.Challenge)
-                    OpenLineup();
-                else
-                    OpenField();
-            }
+            if (!Controls.SouthDown || _t <= .15f) return;
+            if (_titleFocus == 1) { OpenTutorials(); return; }
+            if (_titleFocus == 2) { OpenControlsBook(); return; }
+            if (_titleFocus == 3) { Application.Quit(); return; }
+            _mode = PlayMode.Exhibition;
+            _match = NewMatch();
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
+            _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
+            OpenField();
+        }
+
+        void OpenControlsBook()
+        {
+            _match.SetPaused(true);
+            _pauseHowTo = _pauseFromHowTo = true;
+            _pausePage = 0; _t = 0;
+            BookScheme.Open(); Controls.CatchPlay();
         }
 
         void RebuildTitlePark()
@@ -122,6 +111,7 @@ namespace GrandSluggers.UnityClient
             ReleaseMatchSeats();
             _match = NewMatch();
             _phase = Phase.Select;
+            _captainFocus = 0;
             _t = 0;
             _selectX.Catch(Controls.Pad1.MenuAxisX);
             _selectY.Catch(Controls.Pad1.MenuAxisY);
@@ -137,28 +127,31 @@ namespace GrandSluggers.UnityClient
             var p1 = Controls.Pad1;
             var p2 = Controls.Pad2;
             var pad2Sits = _versusWanted && p2.Present;
-            if (p1.NorthDown && _t > 0.15f)
-                ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
-            if (p1.AllAdvanceDown && _t > 0.15f)
-                WantVersus(false);
-            if (p1.CyclePitch && _t > 0.15f)
-                WantVersus(true);
             var dt = Time.unscaledDeltaTime;
-            var dx = _selectX.Tick(p1.MenuAxisX, p1.MenuTapX, dt);
             var dy = _selectY.Tick(p1.MenuAxisY, p1.MenuTapY, dt);
+            var dx = _selectX.Tick(p1.MenuAxisX, p1.MenuTapX, dt);
+            if (dy != 0) _captainFocus = (_captainFocus + (dy > 0 ? 4 : 1)) % 5;
             if (dx != 0)
-                ApplyPick(ExhibitionPick.CycleYours(CurrentPick(), dx));
-            else if (dy != 0 && !pad2Sits)
-                ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), dy > 0 ? -1 : 1));
+            {
+                if (_captainFocus == 0) ApplyPick(ExhibitionPick.CycleYours(CurrentPick(), dx));
+                if (_captainFocus == 1 && !pad2Sits) ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), dx));
+                if (_captainFocus == 2) WantVersus(!_versusWanted);
+                if (_captainFocus == 3) ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
+            }
             if (pad2Sits)
             {
                 var d2 = _selectX2.Tick(p2.MenuAxisX, p2.MenuTapX, dt);
-                if (d2 != 0)
-                    ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), d2));
+                if (d2 != 0) ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), d2));
+            }
+            if (p1.SouthDown && _captainFocus is 2 or 3 && _t > .15f)
+            {
+                if (_captainFocus == 2) WantVersus(!_versusWanted);
+                else ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
+                return;
             }
             LookAtYourCaptain();
             var navigation = SetupSheet.Pointer(false, out _);
-            if ((Controls.WestDown || navigation == SetupSheet.Action.Back) && _t > 0.15f)
+            if ((Controls.EastDown || navigation == SetupSheet.Action.Back) && _t > 0.15f)
             {
                 OpenField();
                 return;
@@ -172,7 +165,7 @@ namespace GrandSluggers.UnityClient
                     return;
                 }
             }
-            if ((navigation == SetupSheet.Action.Next || (Controls.SouthDown && !Controls.PointerDown)) && _t > 0.15f)
+            if ((navigation == SetupSheet.Action.Next || (Controls.SouthDown && _captainFocus == 4 && !Controls.PointerDown)) && _t > 0.15f)
             {
                 BindMatchSeats();
                 GuidedSeatsBound();
@@ -192,6 +185,8 @@ namespace GrandSluggers.UnityClient
         {
             ReleaseMatchSeats();
             _phase = Phase.Field;
+            _fieldFocus = 0;
+            _selectY.Catch(Controls.MenuY);
             _t = 0;
             _selectX.Catch(Controls.MenuX);
             _clip = null;
@@ -204,29 +199,20 @@ namespace GrandSluggers.UnityClient
 
         void TickField()
         {
-            var action = SetupSheet.Pointer(false, out _);
+            var dy = _selectY.Tick(Controls.MenuY, Controls.MenuTapY, Time.unscaledDeltaTime);
             var dx = _selectX.Tick(Controls.MenuX, Controls.MenuTapX, Time.unscaledDeltaTime);
-            if (action == SetupSheet.Action.PreviousPark) dx = -1;
-            if (action == SetupSheet.Action.NextPark) dx = 1;
-            if (dx != 0)
+            if (dy != 0) _fieldFocus = (_fieldFocus + (dy > 0 ? 3 : 1)) % 4;
+            if (_t <= .15f) return;
+            if (Controls.EastDown) { OpenTitle(); return; }
+            if (dx != 0 || Controls.SouthDown)
             {
-                ApplyPick(ExhibitionPick.CyclePark(_content, CurrentPick(), dx));
-                RebuildTitlePark();
-            }
-            if (Controls.NightToggle || action == SetupSheet.Action.Night)
-            {
-                Night = !Night;
-                RebuildTitlePark();
-            }
-            if (Controls.HazardsToggle || action == SetupSheet.Action.Hazards)
-            {
-                Hazards = !Hazards;
+                if (_fieldFocus == 0) ApplyPick(ExhibitionPick.CyclePark(_content, CurrentPick(), dx == 0 ? 1 : dx));
+                if (_fieldFocus == 1) Night = !Night;
+                if (_fieldFocus == 2) Hazards = !Hazards;
+                if (_fieldFocus == 3 && Controls.SouthDown) { OpenSelect(); return; }
                 RebuildTitlePark();
             }
             _cam.Play("field");
-            if (_t <= .15f) return;
-            if (Controls.WestDown || action == SetupSheet.Action.Back) { OpenTitle(); return; }
-            if (action == SetupSheet.Action.Next || (Controls.SouthDown && !Controls.PointerDown)) OpenSelect();
         }
 
         ExhibitionPick CurrentPick() => new(HomeCaptain, AwayCaptain, ParkId, Pad1Home);
@@ -371,10 +357,6 @@ namespace GrandSluggers.UnityClient
         {
             if (_lineup == null)
             {
-                if (Key(KeyCode.B)) _match.CycleBat(true);
-                if (Key(KeyCode.G)) _match.CycleGlove(true);
-                if (Key(KeyCode.N)) _match.CycleBat(false);
-                if (Key(KeyCode.M)) _match.CycleGlove(false);
                 if (Controls.SouthDown || _t > 10f) BeginSet();
                 return;
             }
@@ -432,22 +414,20 @@ namespace GrandSluggers.UnityClient
         void TickLineupPad(Controls.Pad pad, LineupSeat seat, ref MenuNav.Gate armedX, ref MenuNav.Gate armedY)
         {
             TickLineupStick(pad, seat, ref armedX, ref armedY);
-            if (pad.WestDown)
+            if (pad.WestDown && _lineup.Step == LineupStep.TeamSetup)
             {
                 TeamSheet.UseController(seat);
-                _lineup.West(seat);
+                if (_lineup.FocusOf(seat) == LineupFocus.Pool) _lineup.RandomFill(seat);
+                else _lineup.Remove(seat);
             }
-            if (pad.CyclePitch && _lineup.Step == LineupStep.TeamSetup)
+            if (pad.EastDown)
             {
                 TeamSheet.UseController(seat);
-                _lineup.RandomFill(seat);
-            }
-            if (pad.EastDown && _lineup.Step == LineupStep.TeamSetup && seat == LineupSeat.Pad1)
-            {
-                OpenSelect();
+                if (_lineup.Step == LineupStep.TeamSetup) { if (seat == LineupSeat.Pad1) OpenSelect(); }
+                else _lineup.West(seat); // cancel pick, withdraw ready, then back; never change panels
                 return;
             }
-            if (pad.EastDown && _lineup.Step == LineupStep.DefenseSetup)
+            if ((pad.PagePrevious || pad.PageNext) && _lineup.Step == LineupStep.DefenseSetup)
             {
                 TeamSheet.UseController(seat);
                 _lineup.ToggleArea(seat);
@@ -506,12 +486,12 @@ namespace GrandSluggers.UnityClient
                 Innings = _settings.Innings;
                 Difficulty = _settings.Difficulty;
             }
-            if (pad.WestDown || action == SetupSheet.Action.Back) { _lineup.West(LineupSeat.Pad1); return; }
+            if (pad.EastDown || action == SetupSheet.Action.Back) { _lineup.West(LineupSeat.Pad1); return; }
             if (pad.NorthDown || action == SetupSheet.Action.Next) ReadyLineup(LineupSeat.Pad1);
             if (_phase != Phase.Lineup || _lineup.Step != LineupStep.MatchSettings) return;
             if (_lineup.HomeSeat == LineupSeat.Pad2 || _lineup.AwaySeat == LineupSeat.Pad2)
             {
-                if (Controls.Pad2.WestDown) _lineup.West(LineupSeat.Pad2);
+                if (Controls.Pad2.EastDown) _lineup.West(LineupSeat.Pad2);
                 else if (Controls.Pad2.NorthDown) ReadyLineup(LineupSeat.Pad2);
             }
         }

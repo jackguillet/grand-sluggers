@@ -65,7 +65,7 @@ public class PauseMenuTests
         Assert.True(f.Y >= p.Y && f.Y + f.H <= p.Y + p.H + 0.01f);
         Assert.True(f.W >= 400);
         Assert.Equal(2, PauseMenu.FooterLines.Count);
-        Assert.Contains("Esc / East / right click resume", PauseMenu.FooterLines[1]);
+        Assert.Contains("East / Start resume", PauseMenu.FooterLines[1]);
         Assert.DoesNotContain("Esc /", PauseMenu.FooterLines[0]);
     }
 }

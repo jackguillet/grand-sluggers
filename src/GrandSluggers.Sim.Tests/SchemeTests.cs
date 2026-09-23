@@ -6,90 +6,22 @@ namespace GrandSluggers.Sim.Tests;
 public class SchemeTests
 {
     [Fact]
-    public void EveryProductVerbHasPadAndKeyboard()
+    public void EveryProductVerbHasControllerOnlyBindings()
     {
-        foreach (var id in new[]
+        foreach (var v in Scheme.Product)
         {
-            "confirm", "charge", "star", "aim-run", "bags",
-            "all-advance", "all-return", "steal", "cyclePitch", "swap", "bunt-third", "bunt-first", "cancel-swing",
-            "call-time", "how-to", "dash", "pickoff", "skip"
-        })
-        {
-            var v = Scheme.Must(id);
-            Assert.False(string.IsNullOrWhiteSpace(v.Pad), id);
-            Assert.False(string.IsNullOrWhiteSpace(v.Keys), id);
-            Assert.False(string.IsNullOrWhiteSpace(v.Mouse), id);
-            Assert.False(Scheme.IsDebug(v.Keys));
+            Assert.False(string.IsNullOrWhiteSpace(v.Pad), v.Id);
+            Assert.Empty(v.Keys); Assert.Empty(v.Mouse);
         }
-        Assert.Equal("Space / Enter", Scheme.Keys("confirm"));
-        Assert.Equal("Space hold", Scheme.Keys("charge"));
-        // PH-16-R17: the special modifier is held and read at the release; LB on the pad, Q on the keys.
-        Assert.Equal("Q hold at release", Scheme.Keys("star"));
-        Assert.Equal("LB hold at release", Scheme.Pad("star"));
-        Assert.Equal("WASD", Scheme.Keys("aim-run"));
-        Assert.Equal("1 2 3 4", Scheme.Keys("bags"));
-        Assert.Equal(", after contact", Scheme.Keys("all-advance"));
-        Assert.Equal(".", Scheme.Keys("all-return"));
-        Assert.Equal("Z", Scheme.Keys("steal"));
-        // PH-02-R5 (#825): the West changeup modifier is retired; RB / Tab cycles the family in SET.
-        Assert.Equal("RB", Scheme.Pad("cyclePitch"));
-        Assert.Equal("Tab", Scheme.Keys("cyclePitch"));
-        Assert.Equal("Tab", Scheme.Mouse("cyclePitch"));
-        Assert.False(Scheme.IsProductVerb("changeup"));
-        Assert.Equal("R", Scheme.Keys("swap"));
-        // PH-14-R5: two directional holds replace the West / V / Ctrl bunt; PH-13-R1: East / G cancels a load.
-        Assert.False(Scheme.IsProductVerb("bunt"));
-        Assert.Equal("LT hold", Scheme.Pad("bunt-third"));
-        Assert.Equal("RT hold", Scheme.Pad("bunt-first"));
-        Assert.Equal("J hold", Scheme.Keys("bunt-third"));
-        Assert.Equal("L hold", Scheme.Keys("bunt-first"));
-        Assert.Equal("East before release", Scheme.Pad("cancel-swing"));
-        Assert.Equal("G", Scheme.Keys("cancel-swing"));
-        Assert.Equal("H", Scheme.Keys("call-time"));
-        Assert.Equal("H", Scheme.Mouse("call-time"));
-        Assert.Equal("Esc", Scheme.Keys("how-to"));
-        Assert.Equal("Esc", Scheme.Mouse("how-to"));
-        Assert.Equal("Left click", Scheme.Mouse("confirm"));
-        Assert.Equal("Left click hold", Scheme.Mouse("charge"));
-        Assert.Equal("Right-drag", Scheme.Mouse("aim-run"));
-        Assert.Equal("South", Scheme.Pad("confirm"));
-        Assert.Equal("South hold", Scheme.Pad("charge"));
-        Assert.Equal("LB after contact", Scheme.Pad("all-advance"));
-        Assert.Equal("RB", Scheme.Pad("all-return"));
-        Assert.Equal("Stick to the next bag / L3", Scheme.Pad("steal"));
-    }
-
-    [Fact]
-    public void HCallsTimeAndEscOpensTheBook()
-    {
-        // #629: first-pitch Esc is the book, H is Call time. Copy must name each verb.
+        Assert.Equal("RT hold / release", Scheme.Pad("charge"));
+        Assert.Equal("LT hold at RT release", Scheme.Pad("star"));
+        Assert.Equal("LB", Scheme.Pad("steal"));
+        Assert.Equal("North", Scheme.Pad("jump"));
+        Assert.Equal("West hold", Scheme.Pad("bunt-third"));
+        Assert.Equal("North hold", Scheme.Pad("bunt-first"));
+        Assert.Equal("Automatic by position", Scheme.Pad("catch"));
         Assert.Equal("Start", Scheme.Pad("call-time"));
-        Assert.Equal("H", Scheme.Keys("call-time"));
-        Assert.Equal("H", Scheme.Mouse("call-time"));
-        Assert.Equal("Esc", Scheme.Pad("how-to"));
-        Assert.Equal("Esc", Scheme.Keys("how-to"));
-        Assert.Equal("Esc", Scheme.Mouse("how-to"));
-        Assert.DoesNotContain("Esc", Scheme.Keys("call-time"));
-        Assert.DoesNotContain("H", Scheme.Keys("how-to"));
-
-        var contentsKeys = HowToPlay.Must("contents").KeyLines!;
-        Assert.Contains(contentsKeys, l => l.Contains("H") && l.Contains("time"));
-        Assert.Contains(contentsKeys, l => l.Contains("Esc") && l.Contains("book"));
-        Assert.DoesNotContain(contentsKeys, l => l.Contains("H or Esc"));
-        Assert.DoesNotContain(contentsKeys, l => l.Contains("opens this instruction booklet"));
-
-        var controlsKeys = HowToPlay.Must("controls").KeyLines!;
-        Assert.Contains(controlsKeys, l => l.Contains("H") && l.Contains("time"));
-        Assert.Contains(controlsKeys, l => l.Contains("Esc") && l.Contains("book"));
-
-        var pauseKeys = HowToPlay.Must("pause-practice").KeyLines!;
-        Assert.Contains(pauseKeys, l => l.Contains("H") && l.Contains("call time"));
-        Assert.Contains(pauseKeys, l => l.Contains("Esc") && l.Contains("book") && l.Contains("pitch"));
-
-        Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware == "H" && c.Always == "Call time");
-        Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware == "Esc" && c.Always.Contains("book", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(ControlDiagram.KeysCallouts, c => c.Hardware.Contains("H") && c.Hardware.Contains("Esc"));
-        Assert.Contains(ControlDiagram.PadCallouts, c => c.Hardware == "Start" && c.Always == "Call time");
+        Assert.Equal("View / Select", Scheme.Pad("how-to"));
     }
 
     [Fact]
@@ -106,13 +38,13 @@ public class SchemeTests
     [Fact]
     public void PauseMenuAndHowToPlayAreTheInGameCouchMap()
     {
-        Assert.Equal(4, PauseMenu.Items.Count);
+        Assert.Equal(6, PauseMenu.Items.Count);
         Assert.Equal(PauseMenu.Item.Resume, PauseMenu.At(0));
         Assert.Equal(PauseMenu.Item.Restart, PauseMenu.At(1));
         Assert.Equal(PauseMenu.Item.HowToPlay, PauseMenu.At(2));
-        Assert.Equal(PauseMenu.Item.Title, PauseMenu.At(3));
+        Assert.Equal(PauseMenu.Item.ArrangeDefense, PauseMenu.At(3));
         Assert.Equal("How to play", PauseMenu.Label(PauseMenu.Item.HowToPlay));
-        Assert.Equal(PauseMenu.Item.Title, PauseMenu.At(PauseMenu.Wrap(0, -1)));
+        Assert.Equal(PauseMenu.Item.Quit, PauseMenu.At(PauseMenu.Wrap(0, -1)));
         Assert.Equal(PauseMenu.Item.Restart, PauseMenu.At(PauseMenu.Wrap(0, 1)));
         Assert.True(HowToPlay.Pages.Count >= 4);
         Assert.Equal("contents", HowToPlay.Pages[0].Id);
@@ -141,7 +73,7 @@ public class SchemeTests
         Assert.True(text.W > 1000, "type uses the page, not a strip beside a photo");
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Exhibition"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Training"));
-        Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Esc"));
+        Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("View"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("landing ring") && l.Contains("circle"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("circle") && l.Contains("red"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("YOU"));
@@ -162,7 +94,7 @@ public class SchemeTests
         // pitching card names the slots rather than the old two-pitch "FB, CH changeup".
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {
-            Assert.Contains(HowToPlay.Must("pitch-swing").Shown(scheme), l => l.Contains("Cycle pitch") && l.Contains("(FB, 2nd, 3rd)"));
+            Assert.Contains(HowToPlay.Must("pitch-swing").Shown(scheme), l => l.Contains("Cycle pitch") && l.Contains("charge"));
             Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(scheme), l => l.Contains("CH changeup"));
         }
         Assert.True(HowToPlay.Mentions("call time"));
