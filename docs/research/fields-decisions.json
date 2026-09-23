@@ -543,6 +543,12 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/874",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/878",
           "status": "in review"
+        },
+        {
+          "child": "F2-b2",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/873",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/875",
+          "status": "in review"
         }
       ],
       "validation_evidence": [
@@ -1801,6 +1807,12 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/859",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/863",
           "status": "merged"
+        },
+        {
+          "child": "F6-a2",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/881",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/885",
+          "status": "in review"
         }
       ],
       "validation_evidence": [
@@ -1814,6 +1826,17 @@
           "quote": "pass",
           "evidence": "22 stills under the #866 GUI lock: all six parks after (76854194) and the five non-Harbor parks before (a13925a3), day and night, shots field / diamond / plate on contact sheets. Harbor against e14bc513: day unchanged within the run-to-run noise (title, lineup, field pixel-identical); night: the backstop's shading moves by 1-6 of 255. Five parks now draw the kit diamond, chalk, boxes, foul lines, dirt cut, track and foul rail; their old dress backstops still stand inside the kit backstop (F6-d).",
           "scope": "F6-a's look only; FD-16 as a whole (slots F6-b, looks as data F6-c, hazard actors F6-d) is not accepted by it"
+        },
+        {
+          "child": "F6-a2",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/881",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/885",
+          "kind": "source row (no look accepted)",
+          "tests": [
+            "FieldKitSourceTests.NoDressPieceStandsInsideTheKitsBackstop",
+            "FieldKitSourceTests.TheBackstopScanCatchesThePiecesF6a2Retired"
+          ],
+          "summary": "The dress no longer builds a backstop. Removed from ParkView: Crystal GlassBack (0, -24), GlassL (-20, -12), GlassR (20, -12), IceLip (0, -36); Funfair's whole FunfairBackstop (BuntHome (0, -24), BuntStripe (0, -23.6), BuntL (-20, -12), BuntR (20, -12), PostL (-19, -24), PostR (19, -24)); Rooftop ChainBack, ChainL, ChainR, ParapetLip; Canopy VineBack, VineL, VineR; Ember IronBack, IronL, IronR, AshLip (each at the same spots), and the fallback dress's Lip (0, -38), which no catalog park draws, as the same pre-kit ledge with its front face on the backstop line. The source row reads every spot ParkView places a piece at and refuses one inside the kit's backstop wall: the drawn loop's wrap radius around the plate (36 ft at all six parks, from ParkBoundary) plus half the kit's 3.4-ft wall, 37.7 ft. On the old source it names exactly the 21 listed pieces; the fixture row proves the scan on those lines verbatim and on each placement route, and that it skips the two lights. Nothing added; Harbor, the kit, the sim and every rule untouched. The look is Jack's gate (before / after sheets, plate and diamond, day and night)."
         }
       ],
       "human_acceptance": null,
@@ -2383,6 +2406,18 @@
     {
       "date": "2026-09-22",
       "event": "F4-h (#858, PR #870) in review: hazards off as a match option in the sim and the CLI (FD-10 B). Match / Match.Exhibition take hazards = true, last; off, the match plays the catalog park with every instance of a hazard pattern removed (HazardPattern.Hazards: statusVolume, ballRedirect, rewardTarget, catchStealer) and keeps wallTrait (FD-06) and decoration, every other park member, and the same resolved table by reference. Night: instances only - Crystal's window stays, Funfair's chompers and Ember's breath go; FD-11 decides whether a night layer follows. cli match --hazards on|off; the park-factors cohort reports day and night with hazards on and off (schema 2), and its hazards-on rows are main's rows cell for cell on both roots (measured on 11fbbe2e, after F4-e, F2-c and the promotions in #871 and #886). Findings, not targets (FD-13): with hazards off every factor, runs and home runs, on both roots, moves by at most 0.09, inside the report's own 0.15 noise band; Rooftop's rows do not move on either root, because a billboard's star changes no play in a CPU-vs-CPU game. The cohort plays 1,200 games instead of 600, so its run time roughly doubles. Seed 7 Final identical; seals hash-only; fresh trace identities of hazards-off matches differ from hazards-on ones (the kept list), and no stored identity was regenerated. The pattern split is the one Jack confirmed as FD-10-R1. No number accepted; no human gate."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F6-a2 opened as PR #885 (#881, FD-16 B, FD-01; FR-13, FR-05): the five non-Harbor dresses no longer build the pre-kit backstop, side panels and ledges that stood inside the kit's backstop around the batter (implementation map finding 29); the fallback dress's Lip went with them. A source row beside FieldKitSourceTests refuses any dress piece placed inside the kit's backstop wall, read from the geometry owner. No piece, mesh or color added; Harbor unchanged; no decision status changed; no human gate passed."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "Jack looked at the F6-a2 before / after sheets (PR #885, #881): \"looks like we also need to get rid of those old dugouts. looks great otherwise.\" Not a look pass: PR #885 was extended to remove the five non-Harbor dresses' old dugout benches and awnings at (+-42, 22) (Crystal IceBench1B / 3B; Funfair's whole FunfairBenches; Rooftop Bench1B, Awning1B, Bench3B, Awning3B; Canopy LogBench1B, LeafAwning1B, LogBench3B, LeafAwning3B; Ember StoneBench1B / 3B) and the two materials only they used, and a second source row, FieldKitSourceTests.NoDressPieceStandsInADugout, refuses any dress piece in the dugout region the geometry owner pins at every park (HarborDugout.AlongHome to AlongBag along either foul line, from the chalk to the pit's back wall behind the rail). Harbor's dugouts are HarborKit dress and do not change; the booth awnings stay. The sheets are recaptured for Jack's look."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "F2-b2 opened as PR #875 (#873): the drawn rail stays hip-high to the foul pole, as the flight's does (FD-06-R2). Each drawn span of HarborWall.Loop now stands at the top of the flight segment it lies on, read at each of its two ends (HarborWall.FlightSpan / SpanTops, read from FieldBounds.Of(park) and cached on F2-c's FieldBounds.EdgeKey); a vertex stands at the taller of the two spans that meet there, and IsOutfield is 'on a fair flight segment'. RampStartZ and the smoothstep ramp are gone, and so is the half-degree slack that had drawn the last 31-34 ft of rail before each pole (11-12 ft on trials/c80) at full fence height, which map finding 19 had not named: on the shipped root 159-190 ft of drawn rail per side stood above the rail the ball meets, 69-87 ft on trials/c80. FieldKit.Wall draws each span from its own tops, so the wall steps from the fence to the rail at the pole vertex, where the pole stands and the flight's segment kind changes; a span is level wherever its ends match (every span of every catalog park) and sloped only along a polyline span whose points differ (F2-c). No other Unity change. SF-05 claims the whole rail on both roots, on the lopsided fixture and on F2-c's polyline fixture, with the step at each pole; TaperIsARamp became StepsOnlyAtThePoles, the ramp rows were re-authored citing FD-06-R2, and the rail row's Copy=gap on trials/c80 closed. Rebased onto F2-c after the look-gate stills were captured at 21091d3a: the drawn positions and every vertex and span-end top of the six catalog parks are unchanged on both roots, pinned by HarborWallTests.TheCatalogParksDrawTheTopsTheLookGateWasShown. Protocol row drawn-top-recomputes-the-flight. No flight, boundary or rule number moved: seed 7 identical on both roots, seals hash-only. A visible change at every park near both poles; the look gate at the poles of Harbor and the five parks is Jack's. No decision status changed; no human gate passed."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
