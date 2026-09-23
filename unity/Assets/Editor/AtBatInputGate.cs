@@ -571,8 +571,7 @@ namespace GrandSluggers.EditorTools
         {
             var match = padTwo ? Setup(play, Seats.Versus, homeAtBat: true) : Setup(play, Seats.One);
             Require(padTwo == !match.Top, "Fixture half does not put the expected controller on the mound.");
-            Require(match.Pitcher.Repertoire.Second == PitchFamily.Changeup,
-                "Fixture pitcher's second ordinary pitch is not the changeup.");
+            var secondFamily = match.Pitcher.Repertoire.Second;
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
             var cycle = State(cycle: true);
             Tick(play, "TickSet", padTwo ? State() : cycle, padTwo ? cycle : State());
@@ -586,7 +585,7 @@ namespace GrandSluggers.EditorTools
             Tick(play, "TickSet", State(), State());
             var pitch = Get<PitchCommand>(play, "_pitch");
             Require(Phase(play) == "Flight" && pitch != null, "The release did not launch.");
-            Require(pitch.Type == PitchFamily.Changeup, "One cycle press did not throw the changeup.");
+            Require(pitch.Type == secondFamily, "One cycle press did not throw this pitcher's second family.");
             return new GateCase { name = padTwo ? "cycle-once-changeup-pad2" : "cycle-once-changeup-pad1", phase = Phase(play), charge = pitch.Charge01 };
         }
 
