@@ -1,10 +1,29 @@
 {
+  // Each park fills the kit slots (FD-16, FR-13; ParkKitSlots): a named builder, or null for the greybox.
   "kits": [
-    { "id": "harbor-diamond", "slot": "Assets/Art/Parks/harbor-diamond", "placed": true },
-    { "id": "crystal-rink", "slot": "Assets/Art/Parks/crystal-rink", "placed": false },
-    { "id": "funfair-park", "slot": "Assets/Art/Parks/funfair-park", "placed": false },
-    { "id": "rooftop-city", "slot": "Assets/Art/Parks/rooftop-city", "placed": false },
-    { "id": "canopy-yard", "slot": "Assets/Art/Parks/canopy-yard", "placed": false },
-    { "id": "ember-keep", "slot": "Assets/Art/Parks/ember-keep", "placed": false }
+    {
+      "id": "harbor-diamond", "slot": "Assets/Art/Parks/harbor-diamond", "placed": true,
+      "slots": { "lawn": "harbor-lawn", "dugouts": "harbor-dugouts", "wall": "harbor-ads", "scoreboard": "harbor-scoreboard", "stands": "harbor-bowl", "backdrop": "harbor-town", "night": "harbor-fireworks", "light": null, "sky": null, "hazardActors": null }
+    },
+    {
+      "id": "crystal-rink", "slot": "Assets/Art/Parks/crystal-rink", "placed": false,
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": null, "backdrop": null, "night": null, "light": null, "sky": null, "hazardActors": null }
+    },
+    {
+      "id": "funfair-park", "slot": "Assets/Art/Parks/funfair-park", "placed": false,
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": null, "backdrop": null, "night": null, "light": null, "sky": null, "hazardActors": null }
+    },
+    {
+      "id": "rooftop-city", "slot": "Assets/Art/Parks/rooftop-city", "placed": false,
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": null, "backdrop": null, "night": null, "light": null, "sky": null, "hazardActors": null }
+    },
+    {
+      "id": "canopy-yard", "slot": "Assets/Art/Parks/canopy-yard", "placed": false,
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": null, "backdrop": null, "night": null, "light": null, "sky": null, "hazardActors": null }
+    },
+    {
+      "id": "ember-keep", "slot": "Assets/Art/Parks/ember-keep", "placed": false,
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": null, "backdrop": null, "night": null, "light": null, "sky": null, "hazardActors": null }
+    }
   ]
 }
