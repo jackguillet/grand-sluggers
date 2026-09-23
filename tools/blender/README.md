@@ -52,7 +52,7 @@ Look before Unity: the clay sheets are the author's own check, and `tools/dcc-st
 `harbor_kit.py` authors the sunken dugout, wall panel, crowd, home plate, and bag. Missing file keeps HarborKit primitives. The diamond comes from `data/rules/infield.json` (bags, mound) and the fence from `data/parks/harbor-diamond.json`, so a geometry change is a rebake, not a code edit (#908). The clay sheet ends with an overhead of that diamond at a fixed frame. Walk blocking → fill → export → still (Harbor skips motion). One-shotting a kit mesh is a patch.
 
 ```bash
-$B -b --python tools/blender/harbor_kit.py -- --out unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx --clay scratchpad/takes
+$B -b --python tools/blender/harbor_kit.py -- --out unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx --resources unity/Assets/Resources/Art/Parks/harbor-diamond --clay scratchpad/takes
 ```
 
 Named PR stills (dual stills, #651): `tools/dcc-still.sh body|extras|takes [clip]|harbor` copies the clay sheet to `scratchpad/stills/dcc-*.png`. Pair with `tools/still-gate-character.sh` / `tools/still-gate.sh`. A look-critic files; Jack passes.

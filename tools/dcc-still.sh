@@ -76,6 +76,7 @@ case "$kind" in
   harbor-kit)
     "$B" -b --python "$root/tools/blender/harbor_kit.py" -- \
       --out "$root/unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx" \
+      --resources "$root/unity/Assets/Resources/Art/Parks/harbor-diamond" \
       --clay "$takes"
     cp "$takes/harbor-kit.png" "$drop/$named"
     ;;
