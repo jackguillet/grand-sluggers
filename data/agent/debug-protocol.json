@@ -4,16 +4,6 @@
   // GitHub sitting children stay; they are not the memory.
   "entries": [
     {
-      "id": "lineup-fill-button-binding-drift",
-      "signature": "RB Fill team is displayed but pressing RB does nothing in Team Setup.",
-      "stage": "sitting",
-      "cause": "FlowDirector.TickLineupPad moved fill to West only from pool focus while TeamSheet still advertised RB.",
-      "fix": "RB fills the acting seat from any team-setup focus; West removes. Validate both controllers in both home/away assignments through real input routing.",
-      "promoted": "AtBatInputGate.VerifyLineupFill",
-      "issue": "#988",
-      "pr": ""
-    },
-    {
       "id": "brim-in-plate-lens",
       "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
       "stage": "still-gate",
@@ -600,6 +590,16 @@
       "cause": "Observed macOS synthetic controller connection stall shared by an older editor and a new editor, before the new editor ran game code. Underlying OS cause is unproven.",
       "fix": "Follow docs/editor-startup.md: identify PIDs and stacks, disconnect only the implicated controller, preserve pairing and unsaved work, and obtain explicit approval before force-quitting stuck editors. Clearing the approved stale sessions restored startup and 35 real input checks. Do not disable OS protections.",
       "issue": "#983"
+    },
+    {
+      "id": "lineup-fill-button-binding-drift",
+      "signature": "RB Fill team is displayed but pressing RB does nothing in Team Setup.",
+      "stage": "sitting",
+      "cause": "FlowDirector.TickLineupPad moved fill to West only from pool focus while TeamSheet still advertised RB.",
+      "fix": "RB fills the acting seat from any team-setup focus; West removes. Validate both controllers in both home/away assignments through real input routing.",
+      "promoted": "AtBatInputGate.VerifyLineupFill",
+      "issue": "#988",
+      "pr": ""
     }
   ]
 }
