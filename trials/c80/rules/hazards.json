@@ -5,23 +5,27 @@
 // rules/fielding.json under park.pipeReachPadFt until the pattern library moved it here, and it did
 // not change when it moved.
 //
-// fireBreath.nightRadiusMul is dimensionless and does not move. Apart from the two reachPadFt below,
-// every value in this file is the shipped table, byte for byte.
+// fireBreath.nightRadiusMul is dimensionless and does not move, and neither does slowSec: the three
+// volumes' 3.0 s is Jack's number on both roots (FD-08-R2, F4-b #896; a time, not a length). Apart
+// from the two reachPadFt below, every value in this file is the shipped table, byte for byte.
 {
   "freezeVolume": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "slowSec": 3.0
   },
   "lavaPit": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "slowSec": 3.0
   },
   "fireBreath": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1.6,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "slowSec": 3.0
   },
   "warpPipe": {
     "pattern": "ballRedirect",

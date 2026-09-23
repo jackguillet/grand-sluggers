@@ -4,13 +4,16 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The ordinary movement/status interaction (#715, the 3e deferred-work boundary): the park's slow. A ball that lands in a
-/// freeze volume, a lava pit or the statue's breath slows the glove that plays it to <c>fielding.chase.frozenMul</c> of its
-/// speed for the play (§8.1). It is the one status the ordinary loop carries, it is the same rule on the shipped table and on
-/// the <c>c80</c> copy, and these rows hold it against the copy's new movement: the slow is a restriction on how fast a body
-/// moves and on nothing else (F693-02-mixed-status-action-readiness, its ordinary form), so the response law ramps to the
-/// slowed speed, both seats run it, and what the take costs the hands is the table's own function of the ball with no term for
-/// the slow. The statuses that come from special attacks are excluded from 3e with the specials and have no rows here.
+/// The ordinary movement/status interaction (#715, the 3e deferred-work boundary): the park's slow, re-authored to FD-08-R1
+/// and FD-08-R2 by F4-b (#896). A body that touches a freeze volume, a lava pit or the statue's breath runs at
+/// <c>fielding.chase.frozenMul</c> of its speed for the row's <c>slowSec</c> (3 s, Jack's number, not yet played) from the
+/// touch — the body that touched it, not every chaser, and not for a play decided at the landing mark. It is the one status
+/// the ordinary loop carries, it is the same rule on the shipped table and on the <c>c80</c> copy, and these rows hold it
+/// against the copy's new movement: the slow is a restriction on how fast a body moves and on nothing else
+/// (F693-02-mixed-status-action-readiness, its ordinary form), so the response law ramps to the slowed speed, both seats run
+/// it, and what the take costs the hands is the table's own function of the ball with no term for the slow. The statuses
+/// that come from special attacks are excluded from 3e with the specials and have no rows here; the heart swing's
+/// play-wide slow and its <c>drops.frozen</c> roll are left exactly as they were.
 /// </summary>
 [Trait("Rows", "compact")]
 public sealed class ParkSlowRowsTests
@@ -26,56 +29,69 @@ public sealed class ParkSlowRowsTests
         Assert.Equal(0.45, chase.FrozenMul);
         var rio = _content.Must("rio");
         Assert.Equal(FieldingResolver.ChaseSpeedFt(rio, false) * chase.FrozenMul, FieldingResolver.ChaseSpeedFt(rio, true), 9);
-        // Burrow is the one glove the park cannot slow (§8.1), on both tables.
+        Assert.Equal(chase.FrozenMul, BodySlows.Mul(true));
+        Assert.Equal(1.0, BodySlows.Mul(false));
+        // Burrow is the one body the park cannot slow (§8.1), on both tables.
         Assert.True(FieldAbilities.IgnoresParkSlow(_content.Must("soot")));
         Assert.False(FieldAbilities.IgnoresParkSlow(rio));
     }
 
     /// <summary>
-    /// The fly into the Rink's deep freeze volume, by root: (10, 187) shipped, (7, 131) on the copy (#732). It was (10, 180) /
-    /// (7, 126) until FD-19-R1 moved the volume outward along its own bearing off the copy's second-base pad (F4-e, #862).
+    /// A high fly (50°) into the Rink's deep freeze volume, by root: (10, 187) shipped, (7, 131) on the copy (#732). It was
+    /// (10, 180) / (7, 126) until FD-19-R1 moved the volume outward along its own bearing off the copy's second-base pad
+    /// (F4-e, #862). The hang is long enough that the glove that goes out for it runs into the disc before it comes down.
     /// </summary>
     static (double Carry, double Spray) RinkFly => TestRoot.Pick((187.3, 3.06), (131.2, 3.06));
 
+    /// <summary>
+    /// FD-08-R1 / FD-08-R2, both seats: the glove that runs the fly into the Rink's deep volume runs at the table's chase speed
+    /// until it touches the disc, and at <c>frozenMul</c> of it once it has (after the response law's brake on the copy). The
+    /// ball landing in the disc slows nobody: the preview is not frozen, and the same ball at Harbor never slows anyone.
+    /// </summary>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void AGloveSlowedByTheParkRunsAtFrozenMulOfItsSpeed(bool human)
+    public void AGloveThatTouchesTheRinksVolumeRunsAtFrozenMulOfItsSpeed(bool human)
     {
         var (carry, spray) = RinkFly;
-        var slowed = TopChaseSpeed("crystal-rink", carry, 30, spray, human, out var slowPre, out var slowPos, out var slowWho, out var rules);
-        Assert.True(slowPre.Frozen, "the fixture: the ball lands in the freeze volume");
-        var free = TopChaseSpeed("harbor-diamond", carry, 30, spray, human, out var freePre, out var freePos, out var freeWho, out _);
-        Assert.False(freePre.Frozen, "the fixture: Harbor has no hazards");
-        Assert.Equal((slowPos, slowWho.Id), (freePos, freeWho.Id));
+        var rink = Chase("crystal-rink", carry, 50, spray, human);
+        Assert.False(rink.Preview.Frozen, "the landing mark slows nobody (FD-08-R1)");
+        Assert.True(rink.Touch is not null, "the fixture: the glove runs into the deep freeze volume");
+        var rules = rink.Rules;
+        var asked = FieldingResolver.ChaseSpeedFt(rink.Who!, rink.Pos, rink.Preview, rules);
+        // The body reaches exactly the speed the table asks of it, free and then slowed: the response law ramps to each.
+        Assert.Equal(asked, rink.TopFree, 6);
+        Assert.Equal(asked * rules.Fielding.Chase.FrozenMul, rink.TopSlowed, 6);
 
-        // The body reaches exactly the speed the table asks of it, slowed or not: the response law ramps to the asked speed.
-        Assert.Equal(FieldingResolver.ChaseSpeedFt(slowWho, slowPos, slowPre, rules), slowed, 6);
-        Assert.Equal(FieldingResolver.ChaseSpeedFt(freeWho, freePos, freePre, rules), free, 6);
-        Assert.Equal(rules.Fielding.Chase.FrozenMul, slowed / free, 6);
+        var harbor = Chase("harbor-diamond", carry, 50, spray, human);
+        Assert.False(harbor.Preview.Frozen);
+        Assert.Null(harbor.Touch);
+        Assert.Equal(0, harbor.SlowedFrames);
     }
 
     /// <summary>
-    /// The grounder into Ember's first-base-side lava pit, by root: (49, 100) shipped, (44, 89) on the copy (#732). It was
-    /// (38, 78) / (34, 69), on the first-second lane, until FD-19-R1 moved the pit outward along its own bearing (F4-e, #862).
+    /// FD-08-R2: what the take costs the hands has no term for the slow. The short stop stands in a lava pit from the crack
+    /// (a fixture at Harbor: FD-19 keeps every catalog volume off his spot), so he is slowed when he takes the grounder hit at
+    /// him; the recoil he owes is the table's own function of the ball and his hands.
     /// </summary>
-    static (double Carry, double Spray) EmberGrounder => TestRoot.Pick((111.4, 26.10), (99.3, 26.31));
-
     [Fact]
     public void TheSlowIsMovementOnlyWhatTheTakeCostsHasNoTermForIt()
     {
-        var (carry, spray) = EmberGrounder;
-        var match = Match.Slice(_content, seed: 1, parkId: "ember-keep");
-        var hit = FlightFixtures.Landing(match.Park, carry, 4, spray);
+        var ss = Diamond.Positions["SS"];
+        var harbor = _content.MustPark("harbor-diamond");
+        var park = harbor with { Hazards = [.. harbor.Hazards, new Hazard(HazardType.LavaPit, ss.X, ss.Z, 12, null)] };
+        var match = new Match(_content, PresetTeams.EmberCourt(_content), PresetTeams.SparkAllStars(_content), park, seed: 1);
+        var hit = FlightFixtures.Landing(park, Diamond.Dist(0, 0, ss.X, ss.Z) * 0.8, 4, Math.Atan2(ss.X, ss.Z) * 180 / Math.PI);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Grounder);
-        Assert.True(preview.Frozen, "the fixture: the grounder lands in the lava pit");
+        Assert.False(preview.Frozen);
         var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
         var rules = match.Rules;
         var live = match.LivePlay;
         var field = match.ResolveFielding(hit, preview);
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, LiveSeats.CpuOnly)).Snapshot.Active);
         var took = "";
+        var slowedAtTake = false;
         var owed = double.NaN;
         var incoming = double.NaN;
         PlayEvent? play = null;
@@ -84,11 +100,13 @@ public sealed class ParkSlowRowsTests
             play = live.Apply(LivePlayCommand.Tick(Frame)).CompletedPlay;
             if (took != "" || !live.Events.Contains(LiveEvent.Glove)) continue;
             took = live.GlovePos;
+            slowedAtTake = live.IsSlowed(took);
             owed = live.RecoilT;
             incoming = live.IncomingFtPerSec;
         }
         Assert.NotNull(play);
-        Assert.NotEqual("", took);
+        Assert.Equal("SS", took);
+        Assert.True(slowedAtTake, "the fixture: the glove that takes the ball stands in the pit");
         // What the take costs is the table's own function of the ball and the hands, and the slow is not in it: the copy reads
         // the ball's incoming speed (#720), the shipped table the hit's energy.
         var expected = rules.Fielding.Recoil.Active
@@ -97,17 +115,21 @@ public sealed class ParkSlowRowsTests
         Assert.Equal(expected, owed, 6);
     }
 
+    sealed record Run(FieldingPreview Preview, RulesTable Rules, string Pos, Character? Who, BodySlowed? Touch,
+        double TopFree, double TopSlowed, int SlowedFrames);
+
     /// <summary>
-    /// The fastest the play glove ran (ft/s, frame to frame) in the first second and a half of this ball: the chase at speed, before
-    /// any dive or catch. <paramref name="pos"/> is the body that ran it (the CPU's chaser is its route's, not always the preview's).
+    /// The play glove's chase on this ball until it holds it (or 10 s). The body measured is the first glove a status volume
+    /// slows (else the preview's): its fastest frame-to-frame speed while it wore the ring before the touch, its fastest once
+    /// slowed and past the response law's brake (the copy decelerates into the slow), and how many frames any glove ran
+    /// slowed. The CPU's chaser is its route's, not always the preview's, so the body is read frame by frame.
     /// </summary>
-    double TopChaseSpeed(string parkId, double carry, double launch, double spray, bool human,
-        out FieldingPreview preview, out string pos, out Character who, out RulesTable rules)
+    Run Chase(string parkId, double carry, double launch, double spray, bool human)
     {
         var match = Match.Slice(_content, seed: 1, parkId: parkId);
         var hit = FlightFixtures.Landing(match.Park, carry, launch, spray);
-        preview = match.PreviewHit(hit);
-        rules = match.Rules;
+        var preview = match.PreviewHit(hit);
+        var rules = match.Rules;
         var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
         var live = match.LivePlay;
         var seats = human ? HumanGlove : LiveSeats.CpuOnly;
@@ -117,10 +139,11 @@ public sealed class ParkSlowRowsTests
         var plant = FlyCatch.ChaseTarget(preview, match.Park, rules);
         // The copy's pursuit stick (#718) takes the glove only after it has been seen at neutral: six dead frames first.
         var neutral = TestRoot.Pick(0, 6);
-        var top = 0.0;
-        pos = "";
+        var frames = new List<(string Glove, double Step, bool Slowed)>();
+        BodySlowed? touch = null;
+        var touchAt = -1;
         var last = (live.GlovePos, live.GloveX, live.GloveZ);
-        for (var i = 0; i < 90 && live.Active; i++)
+        for (var i = 0; i < 600 && live.Active; i++)
         {
             var pad = LivePadInput.Dead;
             if (human && i >= neutral)
@@ -132,16 +155,22 @@ public sealed class ParkSlowRowsTests
             }
             live.Apply(LivePlayCommand.Tick(Frame, pad, LivePadInput.Dead, false, source));
             if (!live.Active || live.HoldsBall) break;
-            var step = live.GlovePos == last.GlovePos ? Diamond.Dist(last.GloveX, last.GloveZ, live.GloveX, live.GloveZ) / Frame : 0;
-            if (step > top)
+            var glove = live.GlovePos;
+            if (touch is null && live.Slows.FirstOrDefault(t => t.Pos == glove) is { } mine)
             {
-                top = step;
-                pos = live.GlovePos;
+                touch = mine;
+                touchAt = frames.Count;
             }
-            last = (live.GlovePos, live.GloveX, live.GloveZ);
+            var step = glove == last.GlovePos ? Diamond.Dist(last.GloveX, last.GloveZ, live.GloveX, live.GloveZ) / Frame : 0;
+            frames.Add((glove, step, live.IsSlowed(glove)));
+            last = (glove, live.GloveX, live.GloveZ);
         }
-        Assert.NotEqual("", pos);
-        who = map[pos];
-        return top;
+        var pos = touch?.Pos ?? preview.Position;
+        var brake = (int)Math.Ceiling(rules.Fielding.Chase.BrakeSec / Frame) + 1;
+        var before = touchAt < 0 ? frames : frames.Take(touchAt).ToList();
+        var topFree = before.Where(f => f.Glove == pos).Select(f => f.Step).DefaultIfEmpty(0).Max();
+        var topSlowed = touchAt < 0 ? 0 : frames.Skip(touchAt + brake).Where(f => f.Glove == pos && f.Slowed).Select(f => f.Step).DefaultIfEmpty(0).Max();
+        Assert.True(topFree > 0, "the glove ran");
+        return new Run(preview, rules, pos, map[pos], touch, topFree, topSlowed, frames.Count(f => f.Slowed));
     }
 }
