@@ -954,7 +954,7 @@ public sealed class Match
         return forced.CompletedPlay ?? throw new InvalidOperationException("the runner play did not complete");
     }
 
-    /// <summary>Sample delivery error once, before flight, so the visible pitch is the judged pitch.</summary>
+    /// <summary>Stamp the delivery once, before flight, so the visible pitch is the judged pitch.</summary>
     public PitchCommand PreparePitch(PitchCommand pitch)
     {
         if (pitch.DeliveryPrepared) return pitch;
@@ -964,18 +964,9 @@ public sealed class Match
         // same pitch, and the shipped families sweep 0, so this moves nothing that flies today.
         var ready = pitch with { RubberX = pitch.RubberX != 0 ? pitch.RubberX : PitcherOffsetX,
             DeliveryPrepared = true, Throws = Pitcher.Throws };
-        if (PitcherTired)
-        {
-            // TIRED (spec §4.7): a crossing wobble in feet and less break; exhausted is worse.
-            var st = Rules.Pitching.Stamina;
-            var wobble = PitcherExhausted ? st.ExhaustedWobbleFt : st.TiredWobbleFt;
-            ready = ready with
-            {
-                AimX = ready.AimX + Gauss() * wobble / PitchFlight.PlateScaleX,
-                AimY = ready.AimY + Gauss() * wobble / PitchFlight.PlateScaleY,
-                BreakMul = st.TiredBreakMul
-            };
-        }
+        // TIRED (spec §4.7): less steering room. Fatigue is never a random miss (PH-08-R1): the arm lands
+        // where it was aimed and steered.
+        if (PitcherTired) ready = ready with { BreakMul = Rules.Pitching.Stamina.TiredBreakMul };
         return ready;
     }
 
@@ -1203,8 +1194,8 @@ public sealed class Match
     /// <item><b>Steer is what a held stick reaches.</b> <see cref="PitchFlight.BreakReach"/> over
     /// this delivery's own air time, never an instant ±1 no arm could get to.</item>
     /// <item><b>Scatter is a legal mistake.</b> The Gaussian lands on the CPU's own rubber intent, in
-    /// X only, and TIRED still widens it. The TIRED aim wobble in <see cref="PreparePitch"/> is
-    /// unchanged and is not a CPU privilege — a human's delivery takes the same one.</item>
+    /// X only, and TIRED still widens it. Fatigue lays no random miss on the delivery itself, the CPU's
+    /// or a human's (PH-08-R1).</item>
     /// </list>
     /// </summary>
     /// <param name="plan">What the pitch was built from, for a scenario to read: the press count, the

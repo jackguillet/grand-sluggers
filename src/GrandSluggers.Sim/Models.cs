@@ -571,7 +571,7 @@ public sealed record AtBatResult(
 /// Location is the rubber walk (<paramref name="RubberX"/>, world feet per
 /// <see cref="HomeSet.PitcherWalk"/>) and the stick after release (<paramref name="BreakX"/>, −1..1,
 /// capped at half a zone); <paramref name="AimX"/> / <paramref name="AimY"/> are the CPU's plate-aim
-/// target and the tired wobble. <paramref name="Nice"/> is a release inside the Nice band of MAX
+/// target. <paramref name="Nice"/> is a release inside the Nice band of MAX
 /// (+5% mph).
 ///
 /// The id is <b>not</b> checked here. The record is deserialized from stored traces and built on the
