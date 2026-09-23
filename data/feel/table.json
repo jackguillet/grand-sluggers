@@ -29,9 +29,7 @@
   "raceCamera": {
     "margin": 0.06,
     "bodyHeightFt": 12,
-    "bodyRadiusFt": 3,
-    "throwFollow": 0.12,
-    "maxTravelFt": 12
+    "bodyRadiusFt": 3
   },
   "fieldTells": {
     "diveGetUpSec": 0.20,

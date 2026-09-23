@@ -5,13 +5,10 @@ public sealed record RaceCameraFeel
     public double Margin { get; init; } = .06;
     public double BodyHeightFt { get; init; } = 12;
     public double BodyRadiusFt { get; init; } = 3;
-    public double ThrowFollow { get; init; } = .12;
-    public double MaxTravelFt { get; init; } = 12;
 
     public void Validate()
     {
-        if (!(Margin > 0 && Margin < .4 && BodyHeightFt > 0 && BodyRadiusFt > 0
-            && ThrowFollow >= 0 && ThrowFollow <= 1 && MaxTravelFt >= 0))
+        if (!(Margin > 0 && Margin < .4 && BodyHeightFt > 0 && BodyRadiusFt > 0))
             throw new InvalidDataException("Race camera needs a safe viewport margin and positive body bounds.");
     }
 }
@@ -53,10 +50,10 @@ public static partial class PlayCamera
     }
 
     /// <summary>Keep the authored catcher-side eye position; fit the race with the lens instead of retreating behind the backstop.</summary>
-    public static Framing RaceFraming(CameraShots shots, IReadOnlyList<Vec3> subjects, double aspect, RaceCameraFeel? feel = null, double travelZ = 0)
+    public static Framing RaceFraming(CameraShots shots, IReadOnlyList<Vec3> subjects, double aspect, RaceCameraFeel? feel = null)
     {
         feel ??= new RaceCameraFeel();
-        var shot = shots.Must(ThrowShot);
+        var shot = shots.Must(RaceInsetShot);
         if (subjects.Count == 0) return new Framing(shot.Id, shot.Pos, shot.Target, shot.Fov, shot.Blend);
         var points = new List<Vec3>();
         foreach (var p in subjects)
@@ -66,9 +63,8 @@ public static partial class PlayCamera
                     points.Add(new Vec3(p.X + side, p.Y, p.Z + depth));
                     points.Add(new Vec3(p.X + side, p.Y + feel.BodyHeightFt, p.Z + depth));
                 }
-        var travel = Math.Clamp(travelZ, -feel.MaxTravelFt, feel.MaxTravelFt);
-        var eye = shot.Pos with { Z = shot.Pos.Z + travel };
-        var look = shot.Target with { Z = shot.Target.Z + travel };
+        var eye = shot.Pos;
+        var look = shot.Target;
         // The table owns the physical opening position, inside the home board. Subject bounds
         // may widen the lens but must never pull this camera back through stadium geometry.
         var dy = look.Y - eye.Y;
@@ -87,29 +83,5 @@ public static partial class PlayCamera
         }
         var fov = Math.Atan(tangent) * 360 / Math.PI;
         return new Framing(shot.Id, eye, look, fov, shot.Blend);
-    }
-}
-
-/// <summary>A bounded upfield track driven by actual throw flight. Holding and transfer never move it.</summary>
-public sealed class RaceCameraTravel
-{
-    double _previousBallZ;
-    bool _wasInFlight;
-    public double Feet { get; private set; }
-
-    public void Reset(double ballZ)
-    {
-        _previousBallZ = ballZ;
-        _wasInFlight = false;
-        Feet = 0;
-    }
-
-    public double Step(double ballZ, bool inFlight, RaceCameraFeel feel)
-    {
-        if (inFlight || _wasInFlight)
-            Feet = Math.Clamp(Feet + (ballZ - _previousBallZ) * feel.ThrowFollow, -feel.MaxTravelFt, feel.MaxTravelFt);
-        _previousBallZ = ballZ;
-        _wasInFlight = inFlight;
-        return Feet;
     }
 }
