@@ -4,16 +4,17 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814). Desig
 
 This file orders the work. It does not reopen a decision and it selects no number. The register stays the record of what Jack accepted. A child issue is filed only when its contract is ready (plan rule 6); the rows below are a map, not thirty filed tasks.
 
-## 0. Where the workstream stands (paused September 23, 2026)
+## 0. Where the workstream stands (code-complete September 22, 2026)
 
-**Done.** Every rail through F4 and F6 that the plan named for the first park, and Crystal's numbers (F9-a): the park schema and one resolution (`PlayedPark.Of`); the boundary, the polyline fence and the rail to the pole; the ground and wall libraries, the zone map and the body multipliers; the hazard pattern library, the live status volume, night blocks, the placement validator, hazards off and its title option, the CPU route around a volume; the one field kit, kit slots, looks as data and hazards drawn at the sim's disc; still shots for both poles. Crystal ships its ice, glass boards and cold air.
+**Done.** Every child the plan names, except the ones that wait on a human: the park schema and one resolution (`PlayedPark.Of`); the boundary, the polyline fence, the rail to the pole, per-park foul territory and outfield starts; the ground and wall libraries, the zone map and the body multipliers; the hazard pattern library with every pattern live (status volume, ball redirect with the chompers, reward target, solid body, timed mover), night blocks, the placement validator, hazards off and its title option, the CPU route around a volume; the one field kit, kit slots, looks as data and hazards drawn at the sim's disc; still shots for both poles, the park lane in the still pipeline and the greybox-sitting checklist; the field card, tells and stamps, and a Practice lesson per hazard pattern and ground (four implemented, three planned). Crystal ships its ice, glass boards and cold air, and plays as a greybox in the standalone (F9-b's code).
 
 **Next, in order.**
-1. **F9-b**: Crystal plays as a greybox in the standalone, then **Jack's greybox sitting**, which judges F9-a's numbers (Q10: what counts as noticeable) and FD-04 C (full traction).
+1. **Jack's greybox sitting at Crystal** (F9-b's gate; checklist in `docs/screenshot-gate.md`). It judges F9-a's numbers (Q10: what counts as noticeable) and FD-04 C (full traction).
 2. **F9-c**: Crystal's art, only after the sitting; Jack passes the look.
-3. Waiting on a need: F4-c (ball redirect; the chomper joins it) with the second park, F4-f (solid bodies, timed movers), F2-d (foul territory, outfield depth), F7-b (park lane in the still pipeline, sitting checklist), F8-a/b/c (field card, tells and stamps, one lesson per hazard pattern and ground; the ice ground now needs its lesson).
+3. The three planned lessons (T-H05 train, T-H06 billboard, T-H07 Clamber wall) are debt on #814.
+4. At tuning: park factors and S-29 (findings 53, 72, 75).
 
-**Open for Jack.** Q10 and Q11 (until tuning); Crystal's night look (the blackout against FD-11-R2, left for now by FD-11-R3). Park factors and S-29 have not been re-reported since F4-d (finding 53).
+**Open for Jack.** Q10 and Q11 (until tuning); Crystal's night look (the blackout against FD-11-R2, left for now by FD-11-R3); the look of the field card, the tells and the hazard rings; the standalone learning gate for T-H01 to T-H04.
 
 ## 1. What the audit found that sets the order
 
@@ -121,6 +122,19 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 70 | `OutsScenarioTests`' defense is Vale's, whose home park is Crystal, so those outs rows had been running on Crystal by accident. | PR #929 | They keep Crystal's field without F9-a's ice, glass and air. A scenario should name its park. |
 | 71 | A park with its own air gets a fresh `AtPark` table per match, so "the same table" holds by value there, not by reference. | PR #929 | Tests compare the air and share the libraries. |
 | 72 | F9-a changed seed 7 only at Crystal (2–3 → 0–1 by day). Balance was not measured. | PR #929 | Due at tuning, with finding 53. |
+
+### Found by the eighth batch (September 22, 2026)
+
+| # | Finding | Where | Effect |
+| --- | --- | --- | --- |
+| 73 | A redirected ball that leaves its exit inside the exit's own disc re-enters it. The exit lock now holds until the ball is horizontally clear of the exit disc. | PR #934 | One redirect per mouth per pass; covered by `BallHazardTests`. |
+| 74 | A chomper that ate grounders ate most of Funfair's infield. The chomper is a ball redirect with a mouth floor (4 ft), so grounders pass under it. | PR #934 | Only a ball in the air enters a chomper. |
+| 75 | F4-c moved Funfair's scoring (10 seeds, 108 to 114 runs). Balance was not measured. | PR #934 | Due at tuning, with findings 53 and 72. |
+| 76 | Outfield starts are now a fraction of each park's own fence. The pursuit sweep's ±12° rows started a fielder on the ball at one park, so they left the sweep. | PR #941 | `OutfieldStartsTests` hold the rule; the sweep keeps the other angles. |
+| 77 | `harbor_kit.py` disagrees with the data: HOME_RADIUS 34 against 36 and DUGOUT_PAD 14 against 18. | PR #942 | `HarborKitScriptTests` pin today's values; the fix waits on Harbor's next kit pass. |
+| 78 | The evidence seals went stale on main after F8-b (source hashes of `Match.cs`, `MatchDirector.cs`, `InPlayDirector.cs`); the light PR check does not read them. | this PR | Resealed here, hashes only. |
+| 79 | In Practice the assistance moves the human's glove on a dead pad. A take lesson's ball must therefore reach its hazard before any glove can, and the fail case is the assistance's take, not an eager player. | PR #947 | Fixtures: the warp can at (18, 49), the tree at (35, 217) by a liner. |
+| 80 | The freezer lesson needs the fielder's straight run to cross the disc while the route around still arrives: a fly landing 13 ft from the freezer, fielded by 2B. | PR #947 | T-H02 fails `slowed` on the straight run and passes around it. |
 
 ## 2. Rails every child carries
 
@@ -354,3 +368,11 @@ Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by e
 | Ledger: F4-g, F4-i, F6-b, F6-c, F6-d; findings 59-67 | #814 | #926 | `2d9c52ab` | docs only | none |
 | F9-a Crystal's ice row, glass wall and fence, `dragMul` 1.06, in the shipped data (FD-13-R3) | — | #929 | `fc2b7380` | `933ce2b3`: `CrystalRinkTests` (probe table) and the re-authored parity classes; seed 7 changed only at Crystal; seals hash-only; balance not measured | none to merge; **Jack plays it at the F9-b sitting** |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
+| F4-c the ball redirect and the reward target are live; chompers are redirects | — | #934 | `3b2dbde3` | CI green; `BallHazardTests`, `NightBlockTests` | the feel of a redirect (Jack) |
+| F4-f solid bodies and the timed mover are live | — | #939 | `ae402090` | CI green; `SolidBodyTests` | the feel of a carom (Jack) |
+| F2-d per-park foul territory and outfield starts | — | #941 | `62b6facf` | CI green; `OutfieldStartsTests` | none |
+| F7-b a park lane in the still pipeline; the greybox-sitting checklist | — | #942 | `557566bb` | CI green; `HarborKitScriptTests` | none |
+| F8-a the field card is read from the played park | — | #944 | `0db4b8e1` | CI green; `CarnivalFrontTests`, `ParkSchemaTests` | the card's look (Jack) |
+| F8-b tells and stamps from the hazards' typed events | — | #946 | `b1ae9a7d` | CI green; `HazardTellTests` | the tells' look (Jack) |
+| F8-c a Practice lesson per hazard pattern and ground (T-H01 to T-H04; T-H05 to T-H07 planned) | — | #947 | `44666787` | CI green; `HazardLessonTests`, tutorial classes | the learning gate (Jack) |
+| F9-b Crystal plays as a greybox in the standalone | — | — | — | code complete through F9-a and F4 | Jack's greybox sitting |
