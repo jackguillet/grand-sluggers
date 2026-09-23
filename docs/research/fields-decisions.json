@@ -542,13 +542,13 @@
           "child": "F2-c",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/874",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/878",
-          "status": "in review"
+          "status": "merged"
         },
         {
           "child": "F2-b2",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/873",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/875",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [
@@ -571,6 +571,16 @@
             "HarborWallTests.SF05_APolylineParkDrawsEveryPointAndEverySpanAtTheFlightsTop"
           ],
           "summary": "A park may name fence.points from the left-field pole to the right: each point a bearing, a fraction of the park's own three-post fence at that bearing and a height, each span a walls.json material (default padded). FD-06-R1 is enforced by the park validator by park, index and reason on both roots (first point at -45, last at 45, bearings strictly increasing: equal is a fence behind a fence, smaller an overhang), with a point or a straight span inside the root's lip, a height not over the rail and a material with no row refused too. AtBatResolver.FenceAt stays the one fence function (the ray meets exactly one span; else the three-post circle, bit for bit), FenceSpotAt gives the top and the span material from the same resolution, the clip polygon keeps every point as a vertex with its top at both ends of each piece and its span material, the flight compares the ball with the top where it crossed, WallMaterial.OfSegment returns the span's material (the foul rail stays padded), the polygon and the drawn loop share one cache key carrying the fence by value, and the drawn loop walks the same bearings at the flight's top (SF-05 on a polyline fixture). No shipped or trial park names points: seed 7 and the park-factors table (day and night) byte-identical on both roots, every catalog park's FenceAt, polygon and drawn loop identical to the pre-polyline code to the bit, fresh trace identities unmoved, seals hash-only. Not built here: two spans caroming off two different rows (the closed library has one row; a second material is content, F9-a), and BattedBall's rob clearance still measures against fenceHeightFt rather than the crossed span's top."
+        },
+        {
+          "date": "2026-09-22",
+          "child": "F2-b2",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/875",
+          "kind": "look gate (human)",
+          "judged_by": "Jack",
+          "quote": "merge them.",
+          "evidence": "the drawn rail hip-high to the foul pole and the step at the pole, on pole-left / pole-right stills of all six parks, day and night",
+          "scope": "F2-b2's look only; FD-06 as a whole is not accepted by it"
         }
       ],
       "human_acceptance": null,
@@ -1159,7 +1169,7 @@
           "child": "F4-h",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/858",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/870",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [
@@ -1462,7 +1472,7 @@
           "child": "F2-c",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/874",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/878",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [
@@ -1812,7 +1822,7 @@
           "child": "F6-a2",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/881",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/885",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [
@@ -1837,6 +1847,16 @@
             "FieldKitSourceTests.TheBackstopScanCatchesThePiecesF6a2Retired"
           ],
           "summary": "The dress no longer builds a backstop. Removed from ParkView: Crystal GlassBack (0, -24), GlassL (-20, -12), GlassR (20, -12), IceLip (0, -36); Funfair's whole FunfairBackstop (BuntHome (0, -24), BuntStripe (0, -23.6), BuntL (-20, -12), BuntR (20, -12), PostL (-19, -24), PostR (19, -24)); Rooftop ChainBack, ChainL, ChainR, ParapetLip; Canopy VineBack, VineL, VineR; Ember IronBack, IronL, IronR, AshLip (each at the same spots), and the fallback dress's Lip (0, -38), which no catalog park draws, as the same pre-kit ledge with its front face on the backstop line. The source row reads every spot ParkView places a piece at and refuses one inside the kit's backstop wall: the drawn loop's wrap radius around the plate (36 ft at all six parks, from ParkBoundary) plus half the kit's 3.4-ft wall, 37.7 ft. On the old source it names exactly the 21 listed pieces; the fixture row proves the scan on those lines verbatim and on each placement route, and that it skips the two lights. Nothing added; Harbor, the kit, the sim and every rule untouched. The look is Jack's gate (before / after sheets, plate and diamond, day and night)."
+        },
+        {
+          "date": "2026-09-22",
+          "child": "F6-a2",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/885",
+          "kind": "look gate (human)",
+          "judged_by": "Jack",
+          "quote": "merge them.",
+          "evidence": "the old backstop pieces, ledges and dugouts gone at the five non-Harbor parks, on plate / diamond stills, day and night",
+          "scope": "F6-a2's look only; FD-16 as a whole is not accepted by it"
         }
       ],
       "human_acceptance": null,
@@ -1958,7 +1978,7 @@
           "child": "F7-b1",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/882",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/884",
-          "status": "in review"
+          "status": "merged"
         }
       ],
       "validation_evidence": [
@@ -2418,6 +2438,10 @@
     {
       "date": "2026-09-22",
       "event": "F2-b2 opened as PR #875 (#873): the drawn rail stays hip-high to the foul pole, as the flight's does (FD-06-R2). Each drawn span of HarborWall.Loop now stands at the top of the flight segment it lies on, read at each of its two ends (HarborWall.FlightSpan / SpanTops, read from FieldBounds.Of(park) and cached on F2-c's FieldBounds.EdgeKey); a vertex stands at the taller of the two spans that meet there, and IsOutfield is 'on a fair flight segment'. RampStartZ and the smoothstep ramp are gone, and so is the half-degree slack that had drawn the last 31-34 ft of rail before each pole (11-12 ft on trials/c80) at full fence height, which map finding 19 had not named: on the shipped root 159-190 ft of drawn rail per side stood above the rail the ball meets, 69-87 ft on trials/c80. FieldKit.Wall draws each span from its own tops, so the wall steps from the fence to the rail at the pole vertex, where the pole stands and the flight's segment kind changes; a span is level wherever its ends match (every span of every catalog park) and sloped only along a polyline span whose points differ (F2-c). No other Unity change. SF-05 claims the whole rail on both roots, on the lopsided fixture and on F2-c's polyline fixture, with the step at each pole; TaperIsARamp became StepsOnlyAtThePoles, the ramp rows were re-authored citing FD-06-R2, and the rail row's Copy=gap on trials/c80 closed. Rebased onto F2-c after the look-gate stills were captured at 21091d3a: the drawn positions and every vertex and span-end top of the six catalog parks are unchanged on both roots, pinned by HarborWallTests.TheCatalogParksDrawTheTopsTheLookGateWasShown. Protocol row drawn-top-recomputes-the-flight. No flight, boundary or rule number moved: seed 7 identical on both roots, seals hash-only. A visible change at every park near both poles; the look gate at the poles of Harbor and the five parks is Jack's. No decision status changed; no human gate passed."
+    },
+    {
+      "date": "2026-09-23",
+      "event": "Merged: F4-h #870 (3cac6e09; merged by Jack), F2-c #878 (4b47ad4e), Jack's answers #879 (0f93da5a), F7-b1 #884 (b64bf799), F6-a2 #885 (b72fd0b0) and F2-b2 #875 (12345a76). Jack passed the looks of F6-a2 (first with the dugouts to go too: 'looks like we also need to get rid of those old dugouts. looks great otherwise.') and F2-b2 on before / after sheets captured under the GUI lock after the pitching session agreed the time ('merge them.'). Findings 38-52 recorded in the implementation map."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
