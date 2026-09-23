@@ -161,8 +161,8 @@ public class ContactPowerScenarioTests
         var slugger = Hitter(contact: 2, power: 9);
 
         // The barrel the resolver judges with, and the one AtBatDirector draws, is Contact's.
-        Assert.True(SweetSpot.BarrelScale(sure.Stats.Contact, false, false, 0, _content.Rules)
-                    > SweetSpot.BarrelScale(slugger.Stats.Contact, false, false, 0, _content.Rules),
+        Assert.True(SweetSpot.BarrelScale(sure.Stats.Contact, false, false, _content.Rules)
+                    > SweetSpot.BarrelScale(slugger.Stats.Contact, false, false, _content.Rules),
             "a better-Contact hitter carries the wider barrel");
 
         // A crossing out toward the tip that the wide barrel still squares up and the narrow one does not.

@@ -57,7 +57,7 @@
     "game.04": 770,
     "game.05": 770,
     "game.06": 770,
-    "special.01": 770,
+    "special.01": 891,
     "special.02": 770,
     "special.03": 770,
     "ability.burrow": 770,
@@ -85,9 +85,9 @@
     "star-swing.ground": 770,
     "star-swing.fly": 770,
     "star-swing.line": 770,
-    "item.banana": 770,
-    "item.rocket": 770,
-    "item.pow": 770,
+    "item.banana": 891,
+    "item.rocket": 891,
+    "item.pow": 891,
     "running.09": 794
   }
 }
