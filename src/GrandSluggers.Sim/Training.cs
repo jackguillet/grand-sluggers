@@ -18,11 +18,12 @@ public sealed class Training
     public const string ParkId = ExhibitionPick.DefaultPark;
     public const int DrillCount = 5;
     /// <summary>
-    /// The families a practice pitcher can actually throw, in library order (spec §4.3): the rows
-    /// <c>pitching.json</c> authors, not a second list. Charge and break are verbs on a family, not
-    /// families; the other three library ids have no numbers yet (P1-d), so they are not here.
+    /// The families a practice pitcher can actually throw on <paramref name="rules"/>, in library order
+    /// (spec §4.3): the rows that table's <c>pitching.json</c> authors, not a second list and not the
+    /// code defaults (#888). Charge and break are verbs on a family, not families. The shipped root
+    /// authors all five; a table that leaves the optional rows null offers fastball and changeup.
     /// </summary>
-    public static readonly string[] CorePitches = [.. RulesTable.Defaults.Pitching.Families.Authored];
+    public static IReadOnlyList<string> PitchesOf(RulesTable rules) => rules.Pitching.Families.Authored;
     public static readonly PracticeLesson[] Lessons =
     [
         PracticeLesson.Pitching, PracticeLesson.Batting, PracticeLesson.Fielding,
@@ -42,9 +43,15 @@ public sealed class Training
     bool _ranDash;
     bool _skipped;
 
-    Training(Park park) => Park = park;
+    Training(Park park, IReadOnlyList<string> pitches)
+    {
+        Park = park;
+        Pitches = pitches;
+    }
 
     public Park Park { get; }
+    /// <summary>The families this session offers: <see cref="PitchesOf"/> the catalog it started from (#888).</summary>
+    public IReadOnlyList<string> Pitches { get; }
     public PracticeLesson Lesson { get; private set; } = PracticeLesson.Pitching;
     public int LessonPart { get; private set; } = 1;
     public int CurrentDrill
@@ -69,7 +76,7 @@ public sealed class Training
     {
         if (!content.Parks.TryGetValue(ParkId, out var park))
             throw new InvalidDataException("harbor-diamond is missing");
-        return new Training(park);
+        return new Training(park, PitchesOf(content.Rules));
     }
 
     public Match MakeMatch(ContentCatalog content, int seed = 1, int innings = 9)

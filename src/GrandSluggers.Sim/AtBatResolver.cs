@@ -54,8 +54,7 @@ public sealed class AtBatResolver
         var stickShapes = StickShapesContact(input.Bunt, input.UseStarSwing);
         var launchAim = stickShapes ? input.LaunchAim : 0;
         var sprayAim = stickShapes ? input.SprayAimDeg : 0;
-        // The cursor is Contact's (spec §5.2, PH-15-R7); the exit and the loft are Power's (§5.4, §5.5).
-        var contact = Math.Clamp(input.Batter.Stats.Contact + (input.Bat?.ContactMod ?? 0), 1, 10);
+        // The cursor is Contact's (spec §5.2, PH-15-R7; SweetSpot.SwingBarrel); the exit and the loft are Power's (§5.4, §5.5).
         var power = Math.Clamp(input.Batter.Stats.Power + (input.Bat?.PowerMod ?? 0), 1, 10);
         var bats = input.Batter.Bats;
 
@@ -71,8 +70,8 @@ public sealed class AtBatResolver
         var err = input.TimingErrorFrames;
         var onPlane = InWindow(err, window);
 
-        // Cursor (§5.2): where the crossing meets the bat.
-        var barrel = SweetSpot.BarrelScale(contact, charged, chargeBat, buddies, _rules);
+        // Cursor (§5.2): where the crossing meets the bat — the oval the client draws (S-134).
+        var barrel = SweetSpot.SwingBarrel(input.Batter, input.Bat, input.Charge01, buddies, _rules);
         var quality = onPlane
             ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, input.CrossingY, barrel, _rules)
             : ContactQuality.Miss;
