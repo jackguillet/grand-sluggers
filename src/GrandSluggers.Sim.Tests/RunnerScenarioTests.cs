@@ -23,7 +23,7 @@ public sealed class RunnerScenarioTests
     {
         // The C80 copy: the shipped ball runs through the hole between third and short (3B's slower legs never meet it, LF picks
         // it up at 4.0 s and the batter has a single). The same grounder at 8/9 of the carry is 3B's, in front of the runner.
-        var (carry, launch, spray) = (80.0, 5.0, -35.0);
+        var (carry, launch, spray) = (80.0, -12.0, -35.0);
         S36_Row(carry, launch, spray);
     }
 
@@ -33,7 +33,7 @@ public sealed class RunnerScenarioTests
         var match = scenario.Match;
         var runner = match.Second!;
         scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, carry, launch, spray);
+        var hit = FlightFixtures.Hit(match.Park, carry, launch, spray);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Position is "3B" or "SS", preview.Position);
         var throwsTo = new List<int>();
@@ -46,15 +46,15 @@ public sealed class RunnerScenarioTests
     }
 
     [Theory]
-    [InlineData(130, 4, 22)]   // hard, straight at the second baseman: the margin is thin
-    [InlineData(110, 5, 30)]   // slower, to the first baseman: the throw across is long
+    [InlineData(110, -6, 22)]   // hard, straight at the second baseman: the margin is thin
+    [InlineData(90, -12, 30)]   // slower, to the first baseman: the throw across is long
     public void S37_RunnerOnSecondGoesForThirdOnAGrounderBehindThemWhenTheMarginSaysSo(double carry, double launch, double spray)
     {
         var scenario = new Scenario(_content, seed: 1).Runner(2, 2);
         var match = scenario.Match;
         var runner = match.RunnerAt(2)!;
         scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, carry, launch, spray);
+        var hit = FlightFixtures.Hit(match.Park, carry, launch, spray);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Position is "2B" or "1B", preview.Position);
         // The margin the runner reads at contact (§9.9): the fielder's route to the ball, the reaction, the throw across.
@@ -99,7 +99,7 @@ public sealed class RunnerScenarioTests
         var match = scenario.Match;
         var runner = match.Third!;
         scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, 100, 4, -22);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -22);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var throwsTo = new List<int>();
@@ -130,7 +130,7 @@ public sealed class RunnerScenarioTests
         var match = scenario.Match;
         var runner = match.RunnerAt(3)!;
         scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, 40, 4, 0);
+        var hit = FlightFixtures.Hit(match.Park, 45, -12, 0);
         var preview = match.PreviewHit(hit);
         var wentAt = -1.0;
         Run(match, hit, preview, GroundOut(match, preview), LiveSeats.CpuOnly, live =>
@@ -310,7 +310,7 @@ public sealed class RunnerScenarioTests
         var scenario = new Scenario(_content, seed: 1).Runner(1, 1).Runner(3, 3);
         var match = scenario.Match;
         scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, 260, 6, 8);
+        var hit = FlightFixtures.Hit(match.Park, 140, -25, 8);
         var preview = match.PreviewHit(hit);
         var lastSettled = -1.0;
         var play = Run(match, hit, preview, null, LiveSeats.CpuOnly, live =>

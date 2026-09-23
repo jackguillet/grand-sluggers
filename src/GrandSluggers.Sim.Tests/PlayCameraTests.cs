@@ -238,7 +238,7 @@ public class PlayCameraTests
     {
         var content = ContentCatalog.Load();
         var match = Match.Slice(content, seed: 2);
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var field = match.ResolveFielding(hit, preview);

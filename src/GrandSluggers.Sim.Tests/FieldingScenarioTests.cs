@@ -26,7 +26,7 @@ public sealed class FieldingScenarioTests
     {
         var match = Defense(leadoff: "cinder");
         Assert.Equal(5, match.Batter.Stats.Run);
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var batter = match.Batter;
@@ -50,7 +50,7 @@ public sealed class FieldingScenarioTests
         // glove carries the Laser arm, so the weak arm here is ashlord (Field 3, no throw ability).
         var match = Defense(leadoff: "dart");
         Assert.Equal(9, match.Batter.Stats.Run);
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var (play, throwLandedAt, _) = RunCpu(match, hit, preview, out _);
@@ -75,7 +75,7 @@ public sealed class FieldingScenarioTests
     public void S34_HumanArmsThirdWithNobodyOnAndThrowsThere_BatterSafeAndTheCaptionNamesIt()
     {
         var match = Defense(leadoff: "cinder");
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var seats = new LiveSeats(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
@@ -118,7 +118,7 @@ public sealed class FieldingScenarioTests
         {
             // SS rio throwing to 1B ashlord: authored rivals (bad chemistry).
             var match = Defense(leadoff: "cinder", first: "ashlord", shortstop: "rio", seed: seed);
-            var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+            var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
             var preview = match.PreviewHit(hit);
             Assert.Equal("SS", preview.Position);
             var sailed = false;
@@ -166,7 +166,7 @@ public sealed class FieldingScenarioTests
         var scenario = new Scenario(_content, seed: 1);
         var match = scenario.Match;
         scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, 38, 3, -6);
+        var hit = FlightFixtures.Hit(match.Park, 41, -12, -6);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Grounder);
         Assert.True(preview.Position is "P" or "C" or "3B" or "1B", preview.Position);
@@ -183,7 +183,7 @@ public sealed class FieldingScenarioTests
         var match = scenario.Match;
         scenario.Contact();
         // A hard chop into the dirt in front of the plate: the high first bounce is the chopper (§6.2).
-        var hit = FlightFixtures.Hit(match.Park, 105, -12, -12);
+        var hit = FlightFixtures.Hit(match.Park, 105, -25, -12);
         Assert.Equal(BattedBallClass.Chopper, hit.Class);
         var preview = match.PreviewHit(hit);
         Assert.False(FieldingResolver.IsOutfield(preview.Position));
@@ -208,7 +208,7 @@ public sealed class FieldingScenarioTests
         var match = scenario.Match;
         var runner = match.First!;
         scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, 230, 8, 22);
+        var hit = FlightFixtures.Hit(match.Park, 140, -35, 22);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Grounder);
         var throwsTo = new List<int>();

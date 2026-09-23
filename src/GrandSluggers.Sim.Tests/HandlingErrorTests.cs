@@ -78,12 +78,12 @@ public sealed class HandlingErrorTests
     /// a ball dropping from a high bounce, each to the mound, each across forty seeds — no chance, no bobble.
     /// </summary>
     [Theory]
-    [InlineData(50, 3, 6, ContactQuality.Perfect)]   // a short hop: the ball 0.07 ft up, rising off a 0.26-ft bounce
-    [InlineData(60, 2, 0, ContactQuality.Perfect)]   // 0.45 ft up and falling
-    [InlineData(60, 4, 0, ContactQuality.Perfect)]   // a long hop: 1.8 ft up and falling
-    [InlineData(60, 6, 0, ContactQuality.Perfect)]   // dropping from 3.1 ft
-    [InlineData(70, 8, 0, ContactQuality.Nice)]      // the routine grounder of the recoil tests
-    [InlineData(70, 2, 11, ContactQuality.Nice)]     // a roll to the mound at the top of a half-foot hop
+    [InlineData(50, -3, 6, ContactQuality.Perfect)]   // a short hop: the ball 0.07 ft up, rising off a 0.26-ft bounce
+    [InlineData(60, -2, 0, ContactQuality.Perfect)]   // 0.45 ft up and falling
+    [InlineData(60, -4, 0, ContactQuality.Perfect)]   // a long hop: 1.8 ft up and falling
+    [InlineData(60, -6, 0, ContactQuality.Perfect)]   // dropping from 3.1 ft
+    [InlineData(70, -8, 0, ContactQuality.Nice)]      // the routine grounder of the recoil tests
+    [InlineData(70, -2, 11, ContactQuality.Nice)]     // a roll to the mound at the top of a half-foot hop
     public void ARoutineGrounderToAPlantedInfielderNeverRolls(double exit, double launch, double spray, ContactQuality q)
     {
         for (var seed = 1; seed <= 40; seed++)
@@ -165,11 +165,15 @@ public sealed class HandlingErrorTests
     [Fact]
     public void TheErrorsDirectionIsOneUniformDrawInsideItsSpread()
     {
-        var local = new[] { 14, 16, 35, 37 }.Select(seed => Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
+        // Isolate direction selection from the chance curve: each rising contact fails on this fixture table.
+        using var certain = new PatchedGame(text => text
+            .Replace("\"chanceCap\": 0.10", "\"chanceCap\": 1.0").Replace("\"handsCut\": 0.80", "\"handsCut\": 0")
+            .Replace("\"hopMinApexFt\": 0.5", "\"hopMinApexFt\": 0").Replace("\"hopFullApexFt\": 1.5", "\"hopFullApexFt\": 0").Replace("\"hopPhaseHalfWidth\": 0.35", "\"hopPhaseHalfWidth\": 100"));
+        var local = new[] { 14, 16, 35, 37 }.Select(seed => Drive(certain.Content, 75, 6, 30, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
         Assert.True(local.Count >= 3, $"only {local.Count} of the four seeds bobbled on the ordinary liner");
         Assert.All(local, r => Assert.InRange(r.DirOffsetDeg, -30, 30));
         Assert.True(local.Select(r => r.DirOffsetDeg).Distinct().Count() == local.Count, "the offsets are one draw each, not one value");
-        var past = new[] { 14, 35, 37, 58 }.Select(seed => Drive(Game, 96, 12, -21, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
+        var past = new[] { 14, 35, 37, 58 }.Select(seed => Drive(certain.Content, 150, -12, 0, ContactQuality.Perfect, seed, lfHands: 1)).Where(r => r.Bobbles == 1).ToList();
         Assert.True(past.Count >= 3, $"only {past.Count} of the four seeds failed on the hot liner");
         Assert.All(past, r => Assert.InRange(r.DirOffsetDeg, -15, 15));
         Assert.True(past.Select(r => r.DirOffsetDeg).Distinct().Count() == past.Count, "the offsets are one draw each, not one value");

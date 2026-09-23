@@ -40,7 +40,7 @@ public sealed class ParkSlowRowsTests
     /// (10, 180) / (7, 126) until FD-19-R1 moved the volume outward along its own bearing off the copy's second-base pad
     /// (F4-e, #862). The hang is long enough that the glove that goes out for it runs into the disc before it comes down.
     /// </summary>
-    static (double Carry, double Spray) RinkFly => (131.2, 3.06);
+    static (double Carry, double Spray) RinkFly => (141.2, 3.06);
 
     /// <summary>
     /// FD-08-R1 / FD-08-R2, both seats: the glove that runs the fly into the Rink's deep volume runs at the table's chase speed
@@ -80,7 +80,7 @@ public sealed class ParkSlowRowsTests
         var harbor = _content.MustPark("harbor-diamond");
         var park = harbor with { Hazards = [.. harbor.Hazards, new Hazard(HazardType.LavaPit, ss.X, ss.Z, 12, null)] };
         var match = new Match(_content, PresetTeams.EmberCourt(_content), PresetTeams.SparkAllStars(_content), park, seed: 1);
-        var hit = FlightFixtures.Landing(park, Diamond.Dist(0, 0, ss.X, ss.Z) * 0.8, 4, Math.Atan2(ss.X, ss.Z) * 180 / Math.PI);
+        var hit = FlightFixtures.Hit(park, 100, -12, Math.Atan2(ss.X, ss.Z) * 180 / Math.PI);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Grounder);
         Assert.False(preview.Frozen);

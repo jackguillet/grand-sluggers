@@ -223,7 +223,7 @@ public class BroadcastHudTests
         Assert.DoesNotContain(set.Runners, p => p.Batter);
 
         // S-40's hopper to short: the runner from first and the batter-runner both run.
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         var field = match.ResolveFielding(hit, preview);
         var live = match.LivePlay;

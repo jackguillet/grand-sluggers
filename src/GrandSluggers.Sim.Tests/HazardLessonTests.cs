@@ -70,6 +70,7 @@ public sealed class HazardLessonTests
                 {
                     var acted = live.RedirectsThisPlay.Count > 0 || live.CaromsThisPlay.Count > 0
                         || run.Lesson.Objective == "manual-ground-possession";
+                    if (!acted && read == Read.Patient) pad = new LivePadInput(StickY: -1);
                     if (acted || read == Read.Eager) pad = Toward(live.BallX - live.GloveX, live.BallZ - live.GloveZ, south: true);
                 }
             }

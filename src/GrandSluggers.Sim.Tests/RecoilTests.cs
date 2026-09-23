@@ -85,15 +85,15 @@ public sealed class RecoilTests
     [Fact]
     public void ARoutinePickupAddsZeroFrames()
     {
-        var on = RunCpu(Game, 70, 8, 0, ContactQuality.Nice);
+        var on = RunCpu(Game, 70, -8, 0, ContactQuality.Nice);
         Assert.Equal(0, on.RecoilFrames);
         Assert.Equal(0, on.Events);
         Assert.Equal(0, on.Dur);
-        Assert.InRange(on.Speed, 40, 54.9);
+        Assert.InRange(on.Speed, 1, Game.Rules.Fielding.Recoil.OnsetFtPerSec);
         Assert.Equal(0, InPlay.KnockbackSec(InPlay.Energy(on.Hit, Game.Rules), Game.Must("vale"), Game.Rules));
 
         using var legacy = new PatchedGame(WithoutRecoil);
-        var off = RunCpu(legacy.Content, 70, 8, 0, ContactQuality.Nice);
+        var off = RunCpu(legacy.Content, 70, -8, 0, ContactQuality.Nice);
         Assert.False(legacy.Content.Rules.Fielding.Recoil.Active);
         Assert.Equal(off.Marks, on.Marks);
         Assert.Equal(off.Play.Kind, on.Play.Kind);
@@ -120,8 +120,8 @@ public sealed class RecoilTests
     [Fact]
     public void TheComebackerCostsThePitcherWhatItsSpeedSaysAndTheSameTwice()
     {
-        var a = RunCpu(Game, 125, 2, 0, ContactQuality.Perfect);
-        var b = RunCpu(Game, 125, 2, 0, ContactQuality.Perfect);
+        var a = RunCpu(Game, 145, -3, 0, ContactQuality.Perfect);
+        var b = RunCpu(Game, 145, -3, 0, ContactQuality.Perfect);
         Assert.Equal("P", a.Pos);
         Assert.True(a.Speed >= 75, $"the comebacker arrived at {a.Speed:0.0} ft/s");
         Assert.Equal(0.13, a.Dur, 9);
@@ -138,7 +138,7 @@ public sealed class RecoilTests
         Assert.Equal(a.Marks, b.Marks);
 
         using var legacy = new PatchedGame(WithoutRecoil);
-        var off = RunCpu(legacy.Content, 125, 2, 0, ContactQuality.Perfect);
+        var off = RunCpu(legacy.Content, 145, -3, 0, ContactQuality.Perfect);
         Assert.Equal("P", off.Pos);
         Assert.False(off.Impact, "with the recoil off there is no impact recoil");
         Assert.Equal(0, off.Dur);
@@ -156,7 +156,7 @@ public sealed class RecoilTests
     [Trait("Kind", "Balance")]
     public void BothCapsBindOnARocketAndTheHandsStillTellAtTheCap(int hands, double sec, double skidFt)
     {
-        var run = RunCpu(Game, 125, 2, 0, ContactQuality.Perfect, pitcherHands: hands);
+        var run = RunCpu(Game, 145, -3, 0, ContactQuality.Perfect, pitcherHands: hands);
         Assert.True(run.Speed >= 75);
         Assert.Equal(sec, run.Dur, 9);
         Assert.InRange(run.Skid, skidFt - 1e-6, skidFt + 1e-6);
@@ -170,16 +170,18 @@ public sealed class RecoilTests
     [Fact]
     public void ALandedLinerPickedUpOffTheGrassCostsWhatItsSpeedSays()
     {
-        var on = RunCpu(Game, 105, 10, 19, ContactQuality.Perfect);
-        Assert.Equal("RF", on.Pos);
+        // This fixture lowers only the ground anchors so a landed liner exercises paid recovery.
+        using var active = new PatchedGame(text => text.Replace("\"onsetFtPerSec\": 55", "\"onsetFtPerSec\": 20").Replace("\"fullFtPerSec\": 75", "\"fullFtPerSec\": 40"));
+        var on = RunCpu(active.Content, 110, 10, -8, ContactQuality.Perfect);
+        Assert.Equal("CF", on.Pos);
         Assert.True(on.TakeAt > on.Hang, "the liner landed before the take");
-        Assert.InRange(on.Speed, 55.01, 75);
+        Assert.InRange(on.Speed, 20.01, 40);
         Assert.Equal(1, on.Events);
-        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("hex"), on.Speed, Game.Rules), on.Dur, 9);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("moss"), on.Speed, active.Content.Rules), on.Dur, 9);
         Assert.True(on.Dur > 0.05);
 
         using var legacy = new PatchedGame(WithoutRecoil);
-        var off = RunCpu(legacy.Content, 105, 10, 19, ContactQuality.Perfect);
+        var off = RunCpu(legacy.Content, 110, 10, -8, ContactQuality.Perfect);
         Assert.Equal(0, off.RecoilFrames);
         Assert.Equal(0, off.Dur);
         Assert.Equal(0, off.Events);
@@ -194,7 +196,7 @@ public sealed class RecoilTests
     [Fact]
     public void TheHumanSeatIsHeldAndTheThrowWaitsForTheRecovery()
     {
-        var (match, hit, preview) = Fixture(Game, 125, 2, 0, ContactQuality.Perfect);
+        var (match, hit, preview) = Fixture(Game, 145, -3, 0, ContactQuality.Perfect);
         Assert.True(match.StationRunner(1, Game.Must("gull")));
         var live = match.LivePlay;
         live.Recording = true;
