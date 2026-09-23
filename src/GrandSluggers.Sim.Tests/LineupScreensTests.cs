@@ -184,6 +184,29 @@ public class LineupScreensTests
         Assert.DoesNotContain(s.AwaySlots, c => c != null && c.Id.Equals("vale", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Theory]
+    [InlineData(7)]
+    [InlineData(15)]
+    [InlineData(23)]
+    public void DraftPortraitsStayBetweenRosterRowsAndClearBothInspectionCards(int poolSize)
+    {
+        var roster = Enumerable.Range(0, 9).SelectMany(i => new[] { LineupLayout.HomeSlot(i), LineupLayout.AwaySlot(i) }).ToArray();
+        var pool = Enumerable.Range(0, poolSize).Select(i => LineupLayout.PoolCell(i, poolSize)).ToArray();
+        foreach (var tile in pool)
+        {
+            foreach (var slot in roster) Assert.False(Overlap(tile, slot));
+            Assert.False(Overlap(tile, LineupLayout.CardPanel(true)));
+            Assert.False(Overlap(tile, LineupLayout.CardPanel(false)));
+        }
+        for (var i = 0; i < pool.Length; i++)
+            for (var j = i + 1; j < pool.Length; j++) Assert.False(Overlap(pool[i], pool[j]));
+        foreach (var home in new[] { true, false })
+        {
+            Assert.False(Overlap(LineupLayout.CardPanel(home), LineupLayout.ContinueButton));
+            foreach (var slot in roster) Assert.False(Overlap(slot, LineupLayout.CardPanel(home)));
+        }
+    }
+
     [Fact]
     public void LayoutSeparatesBothBattingBarsDiamondsAndCards()
     {
