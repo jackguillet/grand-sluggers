@@ -26,7 +26,6 @@ public class ParkFactorsCohortTests
     static IReadOnlyList<(string Home, string Away)> OneMatchup => ParkFactorCohort.Matchups.Take(1).ToArray();
 
     [Fact]
-    [Trait("Rows", "compact")]
     public void SF30_CohortCoversEveryCatalogParkDayAndNightHazardsOnAndOff_NamesItsRoot_AndRepeatsByteForByte()
     {
         var report = ParkFactorCohort.Run(_content, OneSeed, OneMatchup);
@@ -169,7 +168,6 @@ public class ParkFactorsNightTests
 /// narrowed to hazards on (<c>--hazards on</c>). The hazards-off half is narrowed and compared in
 /// <see cref="ParkFactorsCohortTests"/>.
 /// </summary>
-[Trait("Rows", "compact")]
 [Trait("Kind", "Balance")]
 [Trait("Cost", "Heavy")]
 public class ParkFactorsHazardsTests

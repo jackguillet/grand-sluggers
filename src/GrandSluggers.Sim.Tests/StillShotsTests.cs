@@ -22,7 +22,6 @@ namespace GrandSluggers.Sim.Tests;
 /// <see cref="SafeFrame"/> border, so a point on the very edge of the picture does not count as framed.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class StillShotsTests
 {
     const double ExactFt = 1e-9;

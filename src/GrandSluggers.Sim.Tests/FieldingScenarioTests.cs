@@ -10,7 +10,6 @@ namespace GrandSluggers.Sim.Tests;
 /// does not, a throw lands inside its cover's reach or it does not, and the runner bodies race
 /// the one throw clock.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class FieldingScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();

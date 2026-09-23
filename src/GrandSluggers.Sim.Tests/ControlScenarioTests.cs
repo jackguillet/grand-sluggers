@@ -11,7 +11,6 @@ namespace GrandSluggers.Sim.Tests;
 /// holding the ball. Headless on <see cref="LivePlaySystem"/>, the human seat's pad scripted per frame, both seats where
 /// the row lives on one (S-94 / S-95).
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class ControlScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -125,7 +124,7 @@ public sealed class ControlScenarioTests
     {
         // The C80 copy: the lip is 137.78 ft and the legs are slower, so the shipped roller is past 2B before it can turn. The
         // high hopper at 9° is the one 2B runs down a foot onto the grass (138.7 ft, 2.06 s) before RF's route gets there (2.75 s).
-        var (carry, launch, spray) = TestRoot.Pick((190.0, 5.0, 14.0), (150.0, 9.0, 14.0));
+        var (carry, launch, spray) = (150.0, 9.0, 14.0);
         S96_Row(human, carry, launch, spray);
     }
 
@@ -294,7 +293,7 @@ public sealed class ControlScenarioTests
         // nearest misses by 2.8 ft), so the position-only hand-off never argues with SS's route there. The row on the copy is the
         // deepest rope SS does reach (74 mph at 15°, planted 132.9 ft out): never handed off, and SS catches it. The tripwire
         // below says when a ball past the lip exists again; then this row takes it.
-        var (exit, launch, spray) = TestRoot.Pick((88.0, 10.0, -18.0), (74.0, 15.0, -18.0));
+        var (exit, launch, spray) = (74.0, 15.0, -18.0);
         S97_PastTheLip_Row(human, exit, launch, spray, pastTheLip: !TestRoot.Compact);
         if (TestRoot.Compact) Assert.Empty(LinersShortReachesPastTheLip());
     }
@@ -364,7 +363,7 @@ public sealed class ControlScenarioTests
     {
         // The same rope on both roots. The C80 copy's pursuit stick (#718) takes the glove only after it has been seen at
         // neutral, so the pad there is dead for six frames before it runs SS at the intercept.
-        S97_South_Row(88, 10, -18, TestRoot.Pick(0, 6));
+        S97_South_Row(88, 10, -18, 6);
     }
 
     void S97_South_Row(double exit, double launch, double spray, int neutralFrames)

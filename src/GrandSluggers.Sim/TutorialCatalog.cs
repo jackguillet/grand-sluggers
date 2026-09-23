@@ -102,7 +102,7 @@ public sealed class TutorialCatalog
         {
             Require(l.Revision > 0 && l.Issue > 0 && Text(l.Title) && Text(l.Reason), l.Id + " needs revision/title/issue/reason");
             Require(l.Mechanics.Length > 0 && l.Mechanics.All(id => Mechanics.Any(m => m.Id == id)), l.Id + " has unknown mechanic");
-            Require(l.Profiles.Length > 0 && l.Profiles.All(p => p is "shipped" or "c80"), l.Id + " has unknown profile");
+            Require(l.Profiles.Length > 0 && l.Profiles.All(p => p is "shipped"), l.Id + " has unknown profile");
             Require(l.Prerequisites.All(id => id != l.Id && Lessons.Any(x => x.Id == id)), l.Id + " has unknown/self prerequisite");
             Require(l.Requires.All(a => ContentDataValidator.TutorialFieldAbilities.Contains(a)), l.Id + " has unknown ability");
             Require(l.Controls.All(sources.Contains), l.Id + " has unknown controls");
@@ -118,8 +118,7 @@ public sealed class TutorialCatalog
                     l.Id + " has unknown guided objective");
                 if (l.Objective == "guided-calibration")
                 {
-                    Require(l.Profiles.Length == 1 && l.Profiles[0] == "c80", l.Id + " requires the radial pursuit profile");
-                    if (Profile == "c80") Require(content.Rules.Fielding.Stick.Radial, l.Id + " profile does not offer Reset stick");
+                    if (l.Profiles.Contains(Profile)) Require(content.Rules.Fielding.Stick.Radial, l.Id + " profile does not offer Reset stick");
                 }
                 Require(l.Setup == "", l.Id + " guided lesson must use existing screens");
                 continue;
@@ -243,13 +242,13 @@ public sealed class TutorialCatalog
             Require(s.Runners.All(b => b is >= 1 and <= 3) && s.Runners.Distinct().Count() == s.Runners.Length, s.Id + " has invalid runners");
             if (s.RunnerIdsByProfile is { } named)
                 foreach (var pair in named)
-                    Require(pair.Key is "shipped" or "c80" && pair.Value is not null
+                    Require(pair.Key is "shipped" && pair.Value is not null
                         && pair.Value.Length == s.Runners.Length && pair.Value.Distinct().Count() == pair.Value.Length
                         && pair.Value.All(s.Away.Contains), s.Id + " has invalid profile runner identities");
             foreach (var pair in s.Balls)
             {
                 var b = pair.Value;
-                Require(pair.Key is "shipped" or "c80" && b is not null && double.IsFinite(b.CarryFt) && double.IsFinite(b.ExitMph)
+                Require(pair.Key is "shipped" && b is not null && double.IsFinite(b.CarryFt) && double.IsFinite(b.ExitMph)
                     && double.IsFinite(b.LaunchDeg) && double.IsFinite(b.SprayDeg) && b.CarryFt >= 0 && b.ExitMph >= 0
                     && ((b.CarryFt > 0) != (b.ExitMph > 0)) && b.LaunchDeg is > 0 and < 90 && Math.Abs(b.SprayDeg) < 45, s.Id + " has invalid ball fixture");
             }

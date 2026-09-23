@@ -19,7 +19,6 @@ namespace GrandSluggers.Sim.Tests;
 /// holds on the shipped root and on <c>trials/c80</c> (whose response law ramps a body into and out of the slow).
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class StatusVolumeTests
 {
     static readonly ContentCatalog Catalog = ContentCatalog.Load();
@@ -286,7 +285,7 @@ public sealed class StatusVolumeTests
         // A high fly to the short stop's spot: he owns it, and it hangs while the stick walks him.
         var carry = Diamond.Dist(0, 0, ss.X, ss.Z);
         var spray = Math.Atan2(ss.X, ss.Z) * 180 / Math.PI;
-        var neutral = TestRoot.Pick(0, 6);
+        var neutral = 6;
         var disc = new StatusVolume(index, HazardType.LavaPit, ss.X - 9, ss.Z, 4, SlowSec);
         // West until he stands in the disc, east until he has been out of it for a sixth of a second, then west again.
         var phase = 0;

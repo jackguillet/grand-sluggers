@@ -23,7 +23,6 @@ namespace GrandSluggers.Sim.Tests;
 /// plays it again under the overlay.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class GroundReadTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));

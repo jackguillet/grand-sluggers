@@ -3,7 +3,6 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public class BallFlightTests
 {
     [Fact]
@@ -40,7 +39,7 @@ public class BallFlightTests
         var carry = BallFlight.CarryFeet(95, 28, 0);
         Assert.True(hang > 4.5, $"fly should hang for gloves, hang {hang}");
         // The C80 copy's drag is 0.0040: the same fly carries 233 ft, inside the same band at 0.70.
-        var (lo, hi) = TestRoot.Pick((300.0, 450.0), (210.0, 315.0));
+        var (lo, hi) = (210.0, 315.0);
         Assert.InRange(carry, lo, hi);
     }
 
@@ -50,7 +49,7 @@ public class BallFlightTests
         var carry = BallFlight.CarryFeet(95, 28, 0);
         var samples = BallFlight.Trajectory(95, 28, 0);
         Assert.Equal(BallFlight.FirstLandingDist(samples), carry);
-        var (lo, hi) = TestRoot.Pick((300.0, 450.0), (210.0, 315.0));
+        var (lo, hi) = (210.0, 315.0);
         Assert.InRange(carry, lo, hi);
         Assert.True(samples[^1].Dist + 0.01 >= carry);
     }

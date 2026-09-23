@@ -20,7 +20,6 @@ namespace GrandSluggers.Sim.Tests;
 /// new one. A transcription also reads the same on both roots, where a golden would need two copies.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class BoundaryTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();

@@ -11,7 +11,6 @@ namespace GrandSluggers.Sim.Tests;
 /// short of the bag as the ball landed: two outs only if both arrivals win, otherwise one out
 /// and the fielder's choice.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class OutsScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -35,18 +34,18 @@ public sealed class OutsScenarioTests
         yield return [new DpRow("S-40 6-4-3", 118, 4, -18, [1], 0, [2, 1], "SS")];
         // The C80 copy (#715): the second baseman stands at (37, 105) not (42, 118), and the 120-ft ball up the middle is past him — the
         // compact 4-6-3 is 105 ft at 9°.
-        yield return [TestRoot.Pick(new DpRow("S-41 4-6-3 / unassisted", 120, 4, 5, [1], 0, [0, 1], "2B"), new DpRow("S-41 4-6-3 / unassisted", 105, 4, 9, [1], 0, [0, 1], "2B"))];
+        yield return [new DpRow("S-41 4-6-3 / unassisted", 105, 4, 9, [1], 0, [0, 1], "2B")];
         yield return [new DpRow("S-42 5-4-3", 100, 4, -40, [1], 0, [2, 1], "3B")];
         // C80: the 92-ft ball is taken 16 ft in front of the 80-ft bag, a throw away from it; the ball the first baseman takes beside the bag is 70 ft at 43°.
-        yield return [TestRoot.Pick(new DpRow("S-43 3 then the tag", 92, 4, 41, [1], 0, [0, 2], "1B"), new DpRow("S-43 3 then the tag", 70, 4, 43, [1], 0, [0, 2], "1B"))];
+        yield return [new DpRow("S-43 3 then the tag", 70, 4, 43, [1], 0, [0, 2], "1B")];
         // C80: at 110 ft the ball's line passes between the compact first and second basemen and the preview names second; 95 ft is the first baseman's.
-        yield return [TestRoot.Pick(new DpRow("S-44 3-6-3", 110, 4, 38, [1], 0, [2, 1], "1B"), new DpRow("S-44 3-6-3", 95, 4, 38, [1], 0, [2, 1], "1B"))];
+        yield return [new DpRow("S-44 3-6-3", 95, 4, 38, [1], 0, [2, 1], "1B")];
         yield return [new DpRow("S-45 1-6-3", 62, 3, 1, [1], 0, [2, 1], "P")];
         // C80: from the 92-ft ball the CPU's second out goes to second and the batter reaches; 85 ft at 3° is the step on third then the throw to first.
-        yield return [TestRoot.Pick(new DpRow("S-46 5 unassisted then 3", 92, 4, -44, [1, 2], 0, [0, 1], "3B"), new DpRow("S-46 5 unassisted then 3", 85, 3, -44, [1, 2], 0, [0, 1], "3B"))];
+        yield return [new DpRow("S-46 5 unassisted then 3", 85, 3, -44, [1, 2], 0, [0, 1], "3B")];
         yield return [new DpRow("S-47 1-2-3", 38, 3, -6, [1, 2, 3], 0, [4, 1], "P")];
         // C80: the same ball as S-43's compact row — beside the bag.
-        yield return [TestRoot.Pick(new DpRow("S-48 3 then the tag at the plate", 92, 4, 41, [1, 2, 3], 0, [0, 4], "1B"), new DpRow("S-48 3 then the tag at the plate", 70, 4, 43, [1, 2, 3], 0, [0, 4], "1B"))];
+        yield return [new DpRow("S-48 3 then the tag at the plate", 70, 4, 43, [1, 2, 3], 0, [0, 4], "1B")];
         yield return [new DpRow("S-50 two outs", 118, 4, -18, [1], 2, [2], "SS")];
     }
 
@@ -276,7 +275,7 @@ public sealed class OutsScenarioTests
     [InlineData("cinder")]
     [InlineData("dart")]
     public void S54_TagUpFromThirdOnADeepFlyIsARaceHomeAndTheIconOnlyInsideTheMargin(string who) =>
-        S54_Row(who, TestRoot.Pick(S54Shipped, S54Compact));
+        S54_Row(who, S54Compact);
 
     static readonly (double Carry, double Launch, double Spray) S54Shipped = (222, 34, -30);
     /// <summary>C80 (#715): the runner reads the race now (#732), and against a 222-ft fly and vine's arm he holds; 250 ft at −26° is the fly he tags on.</summary>
@@ -318,12 +317,12 @@ public sealed class OutsScenarioTests
 
     [Fact]
     public void S55_PopDroppedOnPurposeWithTheBasesLoadedIsLiveWithTheForceAtHomeOnly() =>
-        S55_Row(TestRoot.Pick(S55Shipped, S55Compact), S55NeutralFrames);
+        S55_Row(S55Compact, S55NeutralFrames);
 
     static readonly (double Carry, double Launch, double Spray) S55Shipped = (120, 62, -12);
     /// <summary>C80 (#715): a 107-ft pop at −16° is the shortstop's; and the copy's pursuit stick takes the glove only after it has been seen at neutral (#718), so the seat waits six frames before it steps off.</summary>
     static readonly (double Carry, double Launch, double Spray) S55Compact = (107, 62, -16);
-    static int S55NeutralFrames => TestRoot.Pick(0, 6);
+    static int S55NeutralFrames => 6;
 
     void S55_Row((double Carry, double Launch, double Spray) pop, int neutralFrames = 0)
     {
@@ -375,7 +374,7 @@ public sealed class OutsScenarioTests
     /// </summary>
     [Fact]
     public void S55b_ACaughtFlyIsNotReReadAsADropWhenTheRelayLosesTheBall() =>
-        S55b_Row(TestRoot.Pick(S55bShipped, S55bCompact));
+        S55b_Row(S55bCompact);
 
     static readonly (int Seed, double Carry, double Launch, double Spray) S55bShipped = (33, 210, 34, 34);
     /// <summary>C80 (#715): the same seed and line, 235 ft — the fly deep enough that the runner tags on the race and the relay still loses the ball.</summary>
@@ -426,7 +425,7 @@ public sealed class OutsScenarioTests
 
     [Fact]
     public void S73_ThrowWellAheadOfTheRunnerAtThirdIsATagWithNoIcon() =>
-        S73_Row(TestRoot.Pick(S73Shipped, S73Compact));
+        S73_Row(S73Compact);
 
     static readonly (int OrderIndex, double Exit, double Spray) S73Shipped = (2, 90, 30);
     /// <summary>C80 (#715): on 80-ft paths the 30° ball leaves the throw 0.20 s ahead, inside the margin; at 26° it is well ahead again.</summary>
@@ -449,7 +448,7 @@ public sealed class OutsScenarioTests
     [InlineData(2, true)]
     [InlineData(45, false)]
     public void S74_ThrowJustAheadOfTheRunnerRunsTheMashAndTheFirstPressWins(int pressFramesAfterIcon, bool safe) =>
-        S74_Row(pressFramesAfterIcon, safe, TestRoot.Pick(S74Shipped, S74Compact));
+        S74_Row(pressFramesAfterIcon, safe, S74Compact);
 
     static readonly (int OrderIndex, double Exit, double Spray) S74Shipped = (7, 90, 38);
     /// <summary>C80 (#715): the same ball; the Run-5 body that lands inside the margin with the dash is the fifth in the order, not the seventh.</summary>
@@ -494,7 +493,7 @@ public sealed class OutsScenarioTests
 
     [Fact]
     public void S75_NobodyPressesAndTheCpuReactionDecides() =>
-        S75_Row(TestRoot.Pick(S74Shipped, S74Compact));
+        S75_Row(S74Compact);
 
     void S75_Row((int OrderIndex, double Exit, double Spray) row)
     {
@@ -519,7 +518,7 @@ public sealed class OutsScenarioTests
 
     [Fact]
     public void S76_RunnerOffFirstWithTheBallInTheGloveNearbyIsARundownEndedByTagBagOrOverthrow() =>
-        S76_Row(TestRoot.Pick(S76Shipped, S76Compact));
+        S76_Row(S76Compact);
 
     static readonly (double Carry, double Launch, double Spray) S76Shipped = (92, 4, 41);
     /// <summary>C80 (#715): the ball the first baseman takes on the 80-ft bag is 80 ft at 43°.</summary>
@@ -620,7 +619,7 @@ public sealed class OutsScenarioTests
 
     [Fact]
     public void TriplePlayIsReachableThroughTheForcesAloneAndStampsTriplePlay() =>
-        TriplePlay_Row(TestRoot.Pick(TriplePlayShipped, TriplePlayCompact), human: TestRoot.Compact);
+        TriplePlay_Row(TriplePlayCompact, human: TestRoot.Compact);
 
     static readonly (double Carry, double Launch, double Spray) TriplePlayShipped = (92, 4, -44);
     /// <summary>
