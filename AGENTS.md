@@ -43,11 +43,11 @@ Behavior docs stay. Bookkeeping and balance run on demand. Contract: `docs/agent
 
 - Never run the full test suite locally; it freezes the shared Mac. Run `tools/test-fast.sh <Classes you touched>`. CI runs the breakage suite on every PR.
 - A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are noted.
-- **Do not balance the game until Jack says he wants to.** Balance means the full test suite (Actions → Full tests, on GitHub too, not only locally), the `Kind=Balance` tests, S-29 and cohort bands, park-factor reports, flight probes, evidence seals and C80 parity. Constant balancing costs too much time. A PR that moves a feel or rule number, even a tuning PR, names the move in its body and stops at the breakage suite. Jack starts a balance pass; then run Full tests (`balance_only` for the balance set only).
+- **Do not balance the game until Jack says he wants to.** Balance means the full test suite (Actions → Full tests, on GitHub too, not only locally), the `Kind=Balance` tests, S-29 and cohort bands, park-factor reports, flight probes and evidence seals. Constant balancing costs too much time. A PR that moves a feel or rule number, even a tuning PR, names the move in its body and stops at the breakage suite. Jack starts a balance pass; then run Full tests (`balance_only` for the balance set only).
 - A feature PR does not reseal the evidence seals, edit a `trials/` twin, or touch a decision register or an implementation ledger. One batched docs PR updates registers and ledgers at a phase checkpoint or when Jack asks.
 - A behavior change updates its rule in `docs/gameplay-spec.md` in the same PR. Write the rule, not the provenance: no PR numbers, no "✅ (#nnn, PR #nnn)". Existing provenance stays.
 - A debug-protocol row is for a novel failure signature only.
-- Open for Jack: freeze, promote or retire `trials/c80` (`docs/agent-rails.md` §1.3).
+- C80 is the shipped game (Jack promoted it, 2026-09-22; `docs/agent-rails.md` §1.3). There is one diamond, 80-ft basepaths; `trials/c80` is gone.
 
 ## Rails, not patches
 
