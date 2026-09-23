@@ -4,7 +4,7 @@ Grand Sluggers uses controllers. One plays against CPU; two control separate tea
 
 ## Start a game
 
-Choose **Exhibition** on the title screen. Up/down chooses a row; left/right changes its value; South confirms; East returns. Pick stadium, day/night and hazards, then captains, player count and your home/away side. Home bats in the bottom half. P2 chooses their own captain with their controller.
+Choose **Exhibition** on the title screen. Up/down chooses a row; left/right changes its value; South confirms; East returns. Pick stadium, day/night, hazards, player count and your home/away side, then choose captains. Home bats in the bottom half. On the captain board, left/right moves through the portraits; South confirms. One player chooses their captain first, then the CPU captain. With two controllers, each player confirms their own captain. A confirmed captain is reserved; the other player must choose someone else. East undoes a confirmation, then returns to stadium setup. Two-player mode waits for controller 2; it never silently starts against CPU.
 
 Build nine players: South adds the focused pool player. RB fills your team from any focus. West removes a focused roster player. After nine, South continues to batting order and field positions. South picks a source, then a destination to swap. LB/RB changes order/field panels. East cancels a pick, withdraws Ready, then returns. North readies your seat. On the settings page P1 changes innings, CPU skill, mercy and Stars; each human readies separately.
 

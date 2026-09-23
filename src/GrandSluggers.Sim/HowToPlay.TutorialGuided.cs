@@ -11,7 +11,7 @@ public static partial class HowToPlay
     public static string TutorialGuidedGoal(string id) => id switch
     {
         "T-G01" => "Put a left-handed batter on your team, change batting order, and give a fielder a new glove position.",
-        "T-G05" => "Connect two gamepads, choose 2 PLAYERS on captain select, and seat both players in one match.",
+        "T-G05" => "Connect two gamepads, choose 2 controllers in stadium setup, and seat both players in one match.",
         "T-G06" => "Call time, open How to play from that menu, then restart the match from Call time.",
         "T-G06-R" => "Lose an active controller and recover that same player's seat without changing teams.",
         "T-G06-C" => "Complete Reset stick from Call time on a supported controller.",
@@ -31,7 +31,7 @@ public static partial class HowToPlay
         "T-G01" => scheme == InputScheme.Pad
             ? "South adds a pool player; RB fills the remaining places, but the lesson needs your own left-handed pick first. South after nine opens setup. Pick two batting slots with South to swap. LB/RB switches to the diamond; pick two fielders to swap positions."
             : "Click a pool player to add them. Continue after nine opens setup. Click two batting slots to swap, then two fielders to swap positions. WASD moves; Space picks; G switches list / diamond.",
-        "T-G05" => "Connect two pads. On captain select choose 2 PLAYERS, then South to confirm both seats.",
+        "T-G05" => "Connect two pads. In stadium setup choose 2 controllers. Each player chooses a captain and presses South to confirm their own seat.",
         "T-G06" => scheme == InputScheme.Pad
             ? "Start opens Call time. Choose How to play, return to Call time, then choose Restart."
             : "H opens Call time. Choose How to play, return to Call time, then choose Restart.",

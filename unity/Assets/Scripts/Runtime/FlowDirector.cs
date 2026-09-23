@@ -70,7 +70,8 @@ namespace GrandSluggers.UnityClient
             if (Controls.SouthDown && _t > 0.2f) ConfirmGameOver();
         }
 
-        int _titleFocus, _fieldFocus, _captainFocus;
+        int _titleFocus, _fieldFocus;
+        CaptainSelection _captains;
         void TickTitle()
         {
             var dy = _selectY.Tick(Controls.MenuY, Controls.MenuTapY, Time.unscaledDeltaTime);
@@ -112,7 +113,7 @@ namespace GrandSluggers.UnityClient
             ReleaseMatchSeats();
             _match = NewMatch();
             _phase = Phase.Select;
-            _captainFocus = 0;
+            _captains = new CaptainSelection(CurrentPick(), _versusWanted);
             _t = 0;
             _selectX.Catch(Controls.Pad1.MenuAxisX);
             _selectY.Catch(Controls.Pad1.MenuAxisY);
@@ -127,51 +128,25 @@ namespace GrandSluggers.UnityClient
         {
             var p1 = Controls.Pad1;
             var p2 = Controls.Pad2;
-            var pad2Sits = _versusWanted && p2.Present;
             var dt = Time.unscaledDeltaTime;
-            var dy = _selectY.Tick(p1.MenuAxisY, p1.MenuTapY, dt);
             var dx = _selectX.Tick(p1.MenuAxisX, p1.MenuTapX, dt);
-            if (dy != 0) _captainFocus = (_captainFocus + (dy > 0 ? 4 : 1)) % 5;
-            if (dx != 0)
+            var dx2 = _selectX2.Tick(p2.MenuAxisX, p2.MenuTapX, dt);
+            _captains.Move(_captains.ActiveOne, dx);
+            if (_captains.Versus && p2.Present) _captains.Move(1, dx2);
+            if (_t <= .15f) return;
+            if (p1.EastDown)
             {
-                if (_captainFocus == 0) ApplyPick(ExhibitionPick.CycleYours(CurrentPick(), dx));
-                if (_captainFocus == 1 && !pad2Sits) ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), dx));
-                if (_captainFocus == 2) WantVersus(!_versusWanted);
-                if (_captainFocus == 3) ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
-            }
-            if (pad2Sits)
-            {
-                var d2 = _selectX2.Tick(p2.MenuAxisX, p2.MenuTapX, dt);
-                if (d2 != 0) ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), d2));
-            }
-            if (p1.SouthDown && _captainFocus is 2 or 3 && _t > .15f)
-            {
-                if (_captainFocus == 2) WantVersus(!_versusWanted);
-                else ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
+                if (_captains.Back(0)) OpenField();
                 return;
             }
-            LookAtYourCaptain();
-            var navigation = SetupSheet.Pointer(false, out _);
-            if ((Controls.EastDown || navigation == SetupSheet.Action.Back) && _t > 0.15f)
-            {
-                OpenField();
-                return;
-            }
-            if (Controls.PointerDown && _t > 0.15f)
-            {
-                var mouse = Controls.GuiMouse;
-                if (CarnivalFront.HitSeatMode(mouse.x, mouse.y, Screen.width, Screen.height) is { } versus)
-                {
-                    WantVersus(versus);
-                    return;
-                }
-            }
-            if ((navigation == SetupSheet.Action.Next || (Controls.SouthDown && _captainFocus == 4 && !Controls.PointerDown)) && _t > 0.15f)
-            {
-                BindMatchSeats();
-                GuidedSeatsBound();
-                if (_guided?.Phase != TutorialPhase.Feedback) OpenLineup();
-            }
+            if (_captains.Versus && p2.EastDown) _captains.Back(1);
+            if (p1.SouthDown) _captains.Confirm(_captains.ActiveOne);
+            if (_captains.Versus && p2.Present && p2.SouthDown) _captains.Confirm(1);
+            if (!_captains.Complete || (_captains.Versus && !p2.Present)) return;
+            ApplyPick(_captains.ApplyTo(CurrentPick()));
+            BindMatchSeats();
+            GuidedSeatsBound();
+            if (_guided?.Phase != TutorialPhase.Feedback) OpenLineup();
         }
 
         void WantVersus(bool versus)
@@ -202,7 +177,7 @@ namespace GrandSluggers.UnityClient
         {
             var dy = _selectY.Tick(Controls.MenuY, Controls.MenuTapY, Time.unscaledDeltaTime);
             var dx = _selectX.Tick(Controls.MenuX, Controls.MenuTapX, Time.unscaledDeltaTime);
-            if (dy != 0) _fieldFocus = (_fieldFocus + (dy > 0 ? 3 : 1)) % 4;
+            if (dy != 0) _fieldFocus = (_fieldFocus + (dy > 0 ? 5 : 1)) % 6;
             if (_t <= .15f) return;
             if (Controls.EastDown) { OpenTitle(); return; }
             if (dx != 0 || Controls.SouthDown)
@@ -210,7 +185,9 @@ namespace GrandSluggers.UnityClient
                 if (_fieldFocus == 0) ApplyPick(ExhibitionPick.CyclePark(_content, CurrentPick(), dx == 0 ? 1 : dx));
                 if (_fieldFocus == 1) Night = !Night;
                 if (_fieldFocus == 2) Hazards = !Hazards;
-                if (_fieldFocus == 3 && Controls.SouthDown) { OpenSelect(); return; }
+                if (_fieldFocus == 3) WantVersus(!_versusWanted);
+                if (_fieldFocus == 4) ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
+                if (_fieldFocus == 5 && Controls.SouthDown) { OpenSelect(); return; }
                 RebuildTitlePark();
             }
             _cam.Play("field");
@@ -242,18 +219,6 @@ namespace GrandSluggers.UnityClient
             _replaying = false;
             RebuildTitlePark();
             _cam.Cut("title");
-        }
-
-        void LookAtYourCaptain()
-        {
-            var yours = CurrentPick().Yours;
-            var ids = PresetTeams.CaptainIds;
-            var i = 0;
-            for (; i < ids.Length; i++)
-                if (ids[i] == yours) break;
-            if (i >= ids.Length) i = 0;
-            var look = CarnivalFront.SelectLook(i, ids.Length);
-            _cam.PlayLook("select", new Vector3(look.X, look.Y, look.Z));
         }
 
         void BeginTraining()
