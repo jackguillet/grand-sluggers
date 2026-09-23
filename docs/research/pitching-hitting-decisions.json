@@ -1398,6 +1398,14 @@
           "choice": "PH-08-R4",
           "quote": "i think 1 and 2.",
           "scope": "The random tired wobble is removed; fatigue is gradual lost speed plus less steering room (PH-08-R4). Shipped after Jack's \"Ship it now\" with no sitting."
+        },
+        {
+          "date": "2026-09-23",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "quote": "done. looks good.",
+          "scope": "Sitting on main-6ee562315e: PH-08-R4 human-accepted (see human_acceptance)."
         }
       ],
       "refinements": [
@@ -1639,7 +1647,16 @@
               "summary": "Fatigue is the fade on the shipped root. 10 of 30 cli match seeds differ from the step. No balance pass run."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Jack sits the fade: can a tired arm be felt fading before the TIRED card, and is the steering loss fair?",
             "The card and sweat tell is still the step at 25; a gradual tell is a Presentation child."
@@ -2271,7 +2288,7 @@
       "id": "PH-13",
       "area": "Hitting",
       "question": "What happens when the hitter changes their mind?",
-      "status": "direction-accepted",
+      "status": "human-accepted",
       "depends_on": [
         "PH-11"
       ],
@@ -2326,7 +2343,16 @@
           "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
         }
       ],
-      "human_acceptance": null,
+      "human_acceptance": {
+        "by": "Jack",
+        "date": "2026-09-23",
+        "quote": "done. looks good.",
+        "kind": "sitting",
+        "window": "main-6ee562315e",
+        "trial": null,
+        "trial_revision": null,
+        "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+      },
       "history": [
         {
           "date": "2026-09-20",
@@ -2346,6 +2372,14 @@
           "choice": "1",
           "quote": "1",
           "scope": "East/G deliberately cancels an uncommitted ordinary swing load and discards its charge. Pressing an accepted directional bunt hold during an uncommitted load also discards that load and squares up directly toward the selected side, without requiring a separate cancel press. Releasing the ordinary swing button commits that swing; once committed it follows through and cannot be converted into a bunt or canceled. After cancellation or conversion, releasing the old swing hold cannot trigger a swing; a new ordinary swing requires release and a fresh press, with no banked charge. Preserve held-bunt contact/withdrawal, live defense and geometric judgment. Exact same-tick input arbitration and authored transition timing remain contract work. This does not select automatic hesitation detection, a mid-swing rescue, new numerical timing or runtime changes; human acceptance remains open."
+        },
+        {
+          "date": "2026-09-23",
+          "from": "direction-accepted",
+          "to": "human-accepted",
+          "author": "Jack",
+          "quote": "done. looks good.",
+          "scope": "Sitting on main-6ee562315e: PH-13, PH-13-R1 human-accepted (see human_acceptance)."
         }
       ],
       "validation_requirements": [
@@ -2391,7 +2425,7 @@
         {
           "id": "PH-13-R1",
           "question": "How should a loaded ordinary swing transition into a bunt?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -2461,7 +2495,16 @@
               "gate": "Sitting 4 owed."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "A deliberate directional bunt input during an uncommitted load switches to held bunting and clears the old charge.",
             "East/G before release cancels the load; the later release cannot produce a swing or restore banked charge.",
@@ -2588,6 +2631,14 @@
           "choice": "1",
           "quote": "Fresh press after contact (Recommended)",
           "scope": "A trigger that was held for a bunt does not count as any other verb after contact until it is released and pressed again. This is the PH-13-R1 principle applied to the triggers: a held input never turns into a different verb. No binding moves. Scenarios cover both triggers, both seats and two pads. With PH-16-R15 the item offer leaves play, so the LT item-modifier collision cannot occur for now; the guard stays as the general rule. No runtime change and no passed playtest; human acceptance stays open."
+        },
+        {
+          "date": "2026-09-23",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "quote": "done. looks good.",
+          "scope": "Sitting on main-6ee562315e: PH-14-R2, PH-14-R3, PH-14-R4, PH-14-R5, PH-14-R6 human-accepted (see human_acceptance)."
         }
       ],
       "discussion": [
@@ -2713,7 +2764,7 @@
         {
           "id": "PH-14-R2",
           "question": "How should the player direct a bunt?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -2758,7 +2809,16 @@
               "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Allow a centered, well-contacted bunt toward either selected side without intentionally worsening contact quality just to choose direction.",
             "Use side preference as an input to the actual outgoing ball calculation; landing, fair/foul and defensive outcome remain geometric.",
@@ -2769,7 +2829,7 @@
         {
           "id": "PH-14-R3",
           "question": "When can you change the intended bunt side?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -2813,7 +2873,16 @@
               "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Changing side before contact can change intended direction without reducing otherwise equivalent contact quality; after contact the ball trajectory is fixed.",
             "Authored bat-angle presentation communicates the selected side and agrees with resolved direction intent for both hands and seats; no unseen direction flip or guaranteed landing marker.",
@@ -2823,7 +2892,7 @@
         {
           "id": "PH-14-R4",
           "question": "How should bunting make contact?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -2868,7 +2937,16 @@
               "gate": "No human gate closed and none claimed; status and human_acceptance untouched."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Holding alone cannot make contact without actual ball/bat coverage; bunting does not require a swing press or synthesize one to claim geometric correctness.",
             "Releasing before contact withdraws the bat and cannot leave a stale bunt intent that contacts later or trigger an ordinary swing.",
@@ -2879,7 +2957,7 @@
         {
           "id": "PH-14-R5",
           "question": "Should bunt posture and side use two directional hold inputs or retain a separate bunt button?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -2954,7 +3032,16 @@
               "gate": "Sitting 4 owed."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Direction and square-up share one held action per side; either side works for both batting hands without sacrificing horizontal coverage.",
             "Latest press wins when both sides are held; releasing all withdraws before contact without leaving a latched bunt. Specify exact same-tick arbitration in the implementation contract.",
@@ -2965,7 +3052,7 @@
         {
           "id": "PH-14-R6",
           "question": "How is the LT bunt hold kept apart from the LT item modifier?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -3027,7 +3114,16 @@
               "gate": "Sitting 4 owed."
             }
           ],
-          "human_acceptance": null
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          }
         }
       ]
     },
@@ -4651,6 +4747,14 @@
           "choice": "1",
           "quote": "Remove the roll (Recommended)",
           "scope": "The Phonyball roll that turns non-Perfect contact into a miss is removed. If the bat meets the ball, it is contact; the decoy path (the late lateral switch) is the whole effect and reading it is the counterplay. It lands in the same child as PH-16-R18. If Phonyball then plays too weak, it gets a geometric change in its own review, never a roll. No runtime change and no passed playtest; human acceptance stays open."
+        },
+        {
+          "date": "2026-09-23",
+          "from": "direction-accepted",
+          "to": "direction-accepted",
+          "author": "Jack",
+          "quote": "done. looks good.",
+          "scope": "Sitting on main-6ee562315e: PH-16-R10, PH-16-R11, PH-16-R12, PH-16-R17 human-accepted (see human_acceptance)."
         }
       ],
       "refinements": [
@@ -5190,7 +5294,7 @@
         {
           "id": "PH-16-R10",
           "question": "How should players activate specials?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -5233,7 +5337,16 @@
               "gate": "Sitting 5 owed; the flash's place, colour and length are an agent's choice, not Jack's."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Both schemes and both seats request the role-appropriate special using the common action plus held modifier, without a second special-action lifecycle.",
             "Specify modifier sampling and commitment, insufficient resources, cancellation and phase ownership before implementation; held inputs cannot leak into later actions.",
@@ -5243,7 +5356,7 @@
         {
           "id": "PH-16-R11",
           "question": "When should the special choice lock?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -5287,7 +5400,16 @@
               "gate": "Sitting 5 owed; the flash's place, colour and length are an agent's choice, not Jack's."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Modifier changes during charging affect the choice at accepted action release; later changes cannot replace an already committed ordinary/special attempt.",
             "Physical pitch release, animation markers and contact must use the captured attempt rather than re-reading live modifier state.",
@@ -5297,7 +5419,7 @@
         {
           "id": "PH-16-R12",
           "question": "What happens if you request a special without enough Stars?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -5360,7 +5482,16 @@
               "gate": "Sitting 5 owed; the flash's place, colour and length are an agent's choice, not Jack's."
             }
           ],
-          "human_acceptance": null,
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          },
           "validation_requirements": [
             "Insufficient-resource special releases resolve as the ordinary action with the same release timing and no Star debit; pitching uses the family selected for that attempt.",
             "Fallback uses ordinary charge/contact rules without retaining special contact-area or flight effects and cannot upgrade later when a gain occurs.",
@@ -5605,7 +5736,7 @@
         {
           "id": "PH-16-R17",
           "question": "Which input is the held special modifier?",
-          "status": "direction-accepted",
+          "status": "human-accepted",
           "options": [
             {
               "id": "1",
@@ -5657,7 +5788,16 @@
               "gate": "Sitting 5 owed; the flash's place, colour and length are an agent's choice, not Jack's."
             }
           ],
-          "human_acceptance": null
+          "human_acceptance": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "done. looks good.",
+            "kind": "sitting",
+            "window": "main-6ee562315e",
+            "trial": null,
+            "trial_revision": null,
+            "scope": "Sittings 4 and 5 and the fatigue fade on the shipped window main-6ee562315e (main 6ee56231, no trial): the held bunt with LT / RT / J / L sides, the East / G swing cancel and the leak guards, T-B07 / T-B10 / T-B11 (#935, #945); the LB / Q special modifier read at release and the NO STARS tell (#949); gradual fatigue with no random miss (#925, #930). Not covered: trials/bunt, trials/stars and trials/cpu-read, which were not on that window; the bunt response curve (PH-14-R1), the tier prices and the Star amounts stay trial proposals. Jack did not itemize the sitting checklists; the acceptance is of the window as delivered."
+          }
         },
         {
           "id": "PH-16-R18",
@@ -6779,6 +6919,11 @@
       "date": "2026-09-22",
       "event": "P5-c: the held LB / Q special modifier and the unavailable tell (PH-16-R10, R11, R12, R17). No human gate closed.",
       "pr": "#949"
+    },
+    {
+      "date": "2026-09-23",
+      "event": "Jack sat the shipped window main-6ee562315e and said \"done. looks good.\": sittings 4 and 5 and the fatigue fade. PH-13, PH-13-R1, PH-14-R2, PH-14-R3, PH-14-R4, PH-14-R5, PH-14-R6, PH-16-R10, PH-16-R11, PH-16-R12, PH-16-R17, PH-08-R4 record human_acceptance; the direction rows among them move to human-accepted, PH-08-R4 stays implemented. The three trials were not on the window and are untouched.",
+      "pr": "this PR"
     }
   ]
 }
