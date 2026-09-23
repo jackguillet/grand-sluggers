@@ -998,6 +998,9 @@ until promotion decides them. `dotnet test --filter "Copy=gap"` under the overla
 2. **The foul rail's taper.** `HarborWall` starts the rail's ramp at a literal 95 ft (`hipZ`, `flareStart`), which no overlay
    can move. On the copy's 0.70 lines the ramp is shorter: the two 8-ft parks (`funfair-park`, `crystal-rink`) get 4 taper
    vertices where `TaperIsARamp` asks for 6 (7 and 6 shipped); the other four parks still pass. Presentation only.
+   ✅ Closed by F2-b2 (#873, FD-06-R2): the drawn rail no longer tapers. It stays hip-high to each pole on both roots, as
+   the ball's rail does, and the wall steps up at the pole. The literal and `TaperIsARamp` are gone, and the row
+   (`HarborWallTests.TheFoulRailStaysHipHighToThePoleAndMatchesTheFlightsFoulWall`) runs in the copy's CI run.
 
 Also seen: ground-rule doubles are rarer on the copy. In the same probe grid Harbor gives 338 where the shipped table gives
 1 382, because the steeper descent under the higher drag seldom hops a 12-ft wall.
