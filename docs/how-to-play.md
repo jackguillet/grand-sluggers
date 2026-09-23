@@ -4,7 +4,7 @@ Living spec for couch play. **Controller is the couch product. Keyboard and mous
 
 Contents keeps navigation in the selected scheme through the shared footer: South/East on the controller page, click/Space/Esc on the keyboard page. The F6 input-mode reminder belongs to the keyboard intro. Booklet paragraphs use their rendered font height, and the intro band allows wrapped lines without colliding with the next paragraph or footer. Dense hardware controls continue across three pages; in-game controls show one role at a time, each role over two pages of five rows (batting, pitching, fielding, running; `RoleTables`). The batting table carries the swing cancel (East / G before the release) and the two held bunt sides (LT / J toward third, RT / L toward first); the fielding table carries throw, cutoff / relay, tag, and rundown; the running table carries the per-runner select, send, halt, the steal arm (stick toward the bag or L3, home included), the close play at third or home, and the rundown; the pitching table carries the pitch cycle (RB / Tab, before the charge), the break, the visible swap pick, and the pickoff with its rule (a runner on the bag is always safe). `HowToPlayTests` pins those spreads, requires the cycle row, and asserts the retired verbs (leads, the West / V changeup modifier, the West / V / Ctrl bunt and the stick-aimed bunt, the post-release trajectory cycle) stay gone. Getting started separates its five-step path from its mode table so every card keeps couch-size type.
 
-**In the game:** Start / H during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. Esc opens **How to play** directly on title, captains, field, lineup, and a pitch. From Call time, Esc / East / right click resume. How to play is an **opaque full-screen book** — HUD and field do not show through. Big white type on dark cards. Pages, captains, and the field step once per flick; hold the stick or d-pad to repeat after a beat. A sitting stick is recentered so drift does not walk the pitcher or run the roster. Right-drag aim is not a menu stick. It opens on the last input you used. A **Controller | Keyboard + mouse** toggle at the top of the book locks the scheme until you close it. Scheme- or seat-specific spreads get a pill (`BookScheme.SeatBadge` / `PageBadge`) — Two controllers, Player 1 only. Each chapter has one roster captain in a circle (`BookChapter`). Every page that names a verb has controller copy and key copy (`Page.Shown`). **Contents** is a table of contents (`ContentsToc`): chapter titles and page numbers. Numbers match the book header. **Getting started** is a numbered first-time path (`GettingStarted`): title → captains → field → lineup → first pitch, followed by a mode spread for Exhibition, Training, and two-controller seating. Not Challenge, Toy Field, minigames, or records. **Controls** is three measured hardware spreads (`ControlDiagram.CalloutCell`): hardware, always, **green offense / red defense**. No tiny schematic. **In-game controls** gives batting, pitching, fielding, and running their own measured role spreads (`RoleTables`): verb | what you press, one scheme at a time. **Pitch and swing** is two cards (`HowToComic`): charge chip → commit chip, one caption. **Running** is three `BagDiagrams` (bag map, all-advance, all-return) plus **Close play** and **Tag** callouts. Right is 1B, up 2B, left 3B, down home — the same map as runner selection and throw tells. **The game screen** is two labeled HUD maps (`HudCallouts`): SET (scorebug, B/S/O, on-base, cards, TIRED) and in-play (YOU, landing ring, ITEM). **Chemistry** is two cards (`ChemBook`): hearts vs scribbles. **Who you are** uses one spread for the select card (PIT / BAT / FLD / RUN) and a continuation with four full-width ability rows (pitches / swings / running / fielding). Charge at MAX is the picture. Never print South / Space / left click on one line. If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
+**In the game:** Start / H during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. Esc opens **How to play** directly on title, captains, field, lineup, and a pitch. From Call time, Esc / East / right click resume. How to play is an **opaque full-screen book** — HUD and field do not show through. Big white type on dark cards. Pages, captains, and the field step once per flick; hold the stick or d-pad to repeat after a beat. A sitting stick is recentered so drift does not walk the pitcher or run the roster. Right-drag aim is not a menu stick. It opens on the last input you used. A **Controller | Keyboard + mouse** toggle at the top of the book locks the scheme until you close it. Scheme- or seat-specific spreads get a pill (`BookScheme.SeatBadge` / `PageBadge`) — Two controllers, Player 1 only. Each chapter has one roster captain in a circle (`BookChapter`). Every page that names a verb has controller copy and key copy (`Page.Shown`). **Contents** is a table of contents (`ContentsToc`): chapter titles and page numbers. Numbers match the book header. **Getting started** is a numbered first-time path (`GettingStarted`): title → stadium → captains → lineup → positions/order → settings → first pitch, followed by a mode spread for Exhibition, Training, and two-controller seating. Not Challenge, Toy Field, minigames, or records. **Controls** is three measured hardware spreads (`ControlDiagram.CalloutCell`): hardware, always, **green offense / red defense**. No tiny schematic. **In-game controls** gives batting, pitching, fielding, and running their own measured role spreads (`RoleTables`): verb | what you press, one scheme at a time. **Pitch and swing** is two cards (`HowToComic`): charge chip → commit chip, one caption. **Running** is three `BagDiagrams` (bag map, all-advance, all-return) plus **Close play** and **Tag** callouts. Right is 1B, up 2B, left 3B, down home — the same map as runner selection and throw tells. **The game screen** is two labeled HUD maps (`HudCallouts`): SET (scorebug, B/S/O, on-base, cards, TIRED) and in-play (YOU, landing ring, ITEM). **Chemistry** is two cards (`ChemBook`): hearts vs scribbles. **Who you are** uses one spread for the select card (PIT / BAT / FLD / RUN) and a continuation with four full-width ability rows (pitches / swings / running / fielding). Charge at MAX is the picture. Never print South / Space / left click on one line. If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
 
 Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**. Agents capture those from Play without grinding the top of the first (`Grand Sluggers → Capture Still Gate`).
 
@@ -34,7 +34,7 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 | Start / call time | Menu / Start | H | H |
 | How to play | Esc | Esc | Esc |
 | Night | R3 | N | — |
-| Hazards on / off (title, field) | Select | R | — |
+| Hazards on / off (stadium) | Select | R | — |
 
 South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F / Q. The bunt is on the triggers (LT / RT) and on J / L. The star is a finger button held with the pitch or swing: LB on either controller, Q on the keyboard.
 
@@ -52,16 +52,22 @@ Three innings at Harbor. Home bats in the bottom. **1 PLAYER** (the default): co
 
 The park is the poster: dirt and the diamond, from in front of the backstop. **GRAND SLUGGERS** is a sticker over the infield — reads left to right, readable without F2. No captain on the title. Captains wait for select.
 
-- **South / Space** — play ball (pick captain)
+- **South / Space** — play ball (pick stadium)
 - **Start / H** — cycle Exhibition / Challenge / Training (Challenge stays later)
 - **Esc** — How to play (the book). Works on title, captains, field, lineup, and during a pitch.
 - **West / F** — Training drills on Harbor
-- **R3 / N** — night (sky gag)
-- **Tab** — 3 / 6 / 9 innings
-- **X / LB** — CPU difficulty EASY / NORMAL / HARD (the line under PLAY BALL reads both). Normal plays the rules as written; easy hesitates and mistracks more, hard reads faster and steals sharper.
-- **Select / R** — hazards ON / OFF (the same line reads it; on by default). Off, a park loses its hazards: freeze volumes and lava, pipes, billboards and chompers. It keeps its fence, walls, air and ground. Harbor has no hazards, so it plays the same either way.
 
-Captains and the field are two screens. The park does not follow the captain.
+Setup order: **stadium → captain → lineup → positions/order → settings**. The park does not follow the captain.
+
+### Pick stadium
+
+A **postcard**: park name, DAY / NIGHT, HAZARDS ON / OFF, and the **field card**: one line for each thing the park changes (its ground, its wall, its air, each hazard, with its own numbers). Harbor is the slice — crowd of people, padded wall with ads, a scoreboard that keeps the score, brick town. Not an empty diamond.
+
+- **Stick / WASD L/R** — cycle the park. Captains stay put.
+- **South / Space** — pick captains
+- **West / F** — back to title
+- **R3 / N** — night
+- **Select / R** — hazards on / off. The postcard reads HAZARDS ON or HAZARDS OFF, and the park redraws without them.
 
 ### Pick captain
 
@@ -71,30 +77,21 @@ The toys are the UI. Highlighted captain **steps forward**. They stand on the di
 - **LB / `,`** — 1 player · **RB / Tab** — 2 players. Click the tabs. Two players needs controller 2.
 - **Stick / WASD L/R** — your team · **U/D** — the other (controller 2 L/R their team when 2 PLAYERS)
 - **North / Q** — you are **HOME** or **AWAY**. HOME bats the bottom. AWAY bats the top.
-- **South / Space** — pick the field
-- **West / F** — title
+- **South / Space** — pick the lineup
+- **West / F** — back to stadium
 - Camera looks at the home captain. The title shot (West) sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture. No body on that shot.
-
-### Pick the field
-
-A **postcard**: park name, DAY / NIGHT, HAZARDS ON / OFF, and the **field card**: one line for each thing the park changes (its ground, its wall, its air, each hazard, with its own numbers). Harbor is the slice — crowd of people, padded wall with ads, a scoreboard that keeps the score, brick town. Not an empty diamond.
-
-- **Stick / WASD L/R** — cycle the park. Captains stay put.
-- **South / Space** — lineup
-- **West / F** — back to captains
-- **R3 / N** — night
-- **Select / R** — hazards on / off. The postcard reads HAZARDS ON or HAZARDS OFF, and the park redraws without them.
 
 ### Lineup (Team Setup, then Offense / Defense Setup)
 
 Two screens. Not a 3D huddle with a name list.
 
-**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Portraits have no faction or chemistry frames. Hover over a player, or move the controller focus to them, to see their card; their chemistry partners get a soft highlight. Both teams start with the same stars, whatever the draft; the header shows that shared starting reserve.
+**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Portraits have no faction or chemistry frames. Hover over a player, or move the controller focus to them, to see their card; their chemistry partners get a soft highlight. Stars are chosen later on Match settings.
 
 - **Stick / WASD** — pick a head (center) or a slot (home row)
 - **South / Space** — drop the head into the highlighted empty slot. When the nine are full, South goes to defense
 - **West / F** — remove (captain stays)
-- **Tab** — random fill. A button, not the product path
+- **RB / Tab** — random fill
+- **East / G / Back to captains** — return to captain selection
 
 **Offense / Defense Setup.** Batting bars numbered **1–9** run across the top (home) and bottom (away), with two baseball diamonds between them. Home field is left and away field is right. Heads sit on P / C / 1B / 2B / 3B / SS / LF / CF / RF, on grass with dirt, bags, foul lines and a curved outfield. Each team has its own player card on the right, aligned with its batting bar. P1 and P2 keep independent cursors, picks and cards visible at the same time. Hover or controller focus shows that player's card and softly highlights their chemistry partners; there are no permanent character-color frames or chemistry badges.
 
@@ -102,9 +99,15 @@ Two screens. Not a 3D huddle with a name list.
 - **East / G** — switch between batting bar and field
 - **South / Space / click a player** — pick them; move to another slot in the same bar or diamond and confirm again to swap. Confirm the same player to cancel
 - **West / F** — withdraw ready, or cancel a pick; with neither, Player 1 goes back to Team Setup
-- **North / Q / Ready button** — ready your team when no player is picked. Every human player must be ready to start; the CPU is ready automatically. Ready again or West/F withdraws your ready state; picking a player to edit clears your ready state
+- **North / Q / Ready button** — ready your team when no player is picked. Every human player must be ready to continue to settings; the CPU is ready automatically. Ready again or West/F withdraws your ready state; picking a player to edit clears your ready state
 
 Both controllers edit only their own team. Mouse is Player 1; the other team can be inspected but cannot be edited. There is no automatic start while you inspect the lineup. On Team Setup, click a pool player to add them, click a team slot to focus it, and use **Fill team** or **Continue** as labeled. Continue needs both complete nines.
+
+### Match settings
+
+Player 1 selects a row with **stick up/down / W/S** and changes it with **left/right / A/D / South / Space**, or clicks the setting. **Stars** defaults ON; OFF disables Star pitches, swings and gains for both teams. **Items** is labeled **UNAVAILABLE** because no item source is active. **Innings** cycles 3 / 6 / 9. **Mercy rule** defaults ON; it applies only to games scheduled for at least 6 innings, with a 10-run lead from the third after the trailing team bats. **CPU skill** cycles EASY / NORMAL / HARD without changing human timing windows.
+
+**North / Q / Ready** readies your seat. Both human players must ready on this page before the game starts; CPU is always ready. A settings change clears both ready states. **West / F** withdraws readiness; when Player 1 is not ready it returns to positions/order. Going back through setup preserves existing order and positions for an unchanged roster.
 
 ### Pitching and hitting (same four verbs)
 
