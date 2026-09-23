@@ -31,7 +31,9 @@ public sealed class BoundaryTests
     [MemberData(nameof(Parks))]
     public void SF08_TheBoundaryFromTheTableIsTodaysPolygon(string id)
     {
-        var park = _content.Parks[id];
+        // The table's boundary on the park's three posts. A park's own fence points (Crystal's glass, F9-a) are the
+        // polyline's, held by PolylineFenceTests (SF-07), not this extraction.
+        var park = _content.Parks[id] with { Fence = null };
         var expected = TodaysPolygon(park);
         var actual = FieldBounds.Of(park).Segments;
 

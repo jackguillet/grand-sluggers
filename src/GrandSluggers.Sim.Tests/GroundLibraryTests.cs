@@ -41,8 +41,29 @@ public sealed class GroundLibraryTests
         var catalog = Game;
         var grounds = catalog.Rules.Grounds;
         Assert.Equal(["grass", "dirt", "ice", "ash"], grounds.Ids);
-        foreach (var id in grounds.Ids)
+        foreach (var id in grounds.Ids.Where(id => id != Ground.Ice))
             AssertTodaysGround($"grounds.{id}", grounds.Of(id));
+    }
+
+    /// <summary>
+    /// F9-a: the ice row is Crystal's, the first row that is not today's number. It is written here so a tune fails by
+    /// name. The ball runs and skids farther (less friction, a lower rest speed, a wider skid band, a flatter bounce, a
+    /// longer overthrow and bobble) and the body is slower to start, stop and turn. Proposed, not tuned; Jack judges it
+    /// in play (FD-13-R2).
+    /// </summary>
+    [Fact]
+    public void F9A_TheIceRowIsCrystalsNumbersFieldForField()
+    {
+        var ice = Game.Rules.Grounds.Of(Ground.Ice);
+        Assert.Equal((12.0, 0.8), (ice.Roll.Friction, ice.Roll.RestSpeed));
+        Assert.Equal((0.40, 0.92, 3.6), (ice.Bounce.Restitution, ice.Bounce.Horizontal, ice.Bounce.MinVy));
+        Assert.Equal((14.0, 28.0, 2.2, 0.22, 0.97), (ice.Skid.LaunchMinDeg, ice.Skid.LaunchMaxDeg, ice.Skid.MinVy, ice.Skid.Restitution, ice.Skid.Horizontal));
+        Assert.Equal(10.0, ice.Overthrow.DecelFtPerSec2);
+        Assert.Equal((0.35, 0.90, 3.5), (ice.Bobble.Restitution, ice.Bobble.GroundRetain, ice.Bobble.DecelFtPerSec2));
+        Assert.Equal((1.3, 1.6, 1.4, 1.35, 1.5), (ice.Body.StartMul, ice.Body.BrakeMul, ice.Body.CutMul, ice.Body.SlideMul, ice.Body.OverrunMul));
+        var grass = Game.Rules.Grounds.Of(Ground.Grass);
+        Assert.True(ice.Roll.Friction < grass.Roll.Friction && ice.Skid.LaunchMaxDeg > grass.Skid.LaunchMaxDeg);
+        Assert.True(ice.Body.StartMul > 1 && ice.Body.BrakeMul > 1 && ice.Body.CutMul > 1, "ice is slower to answer, never faster");
     }
 
     /// <summary>
@@ -58,7 +79,8 @@ public sealed class GroundLibraryTests
         var catalog = Game;
         var grounds = catalog.Rules.Grounds;
         var grass = grounds.Of(Ground.Grass);
-        foreach (var id in grounds.Ids)
+        // Ice is Crystal's own row since F9-a (F9A_TheIceRowIsCrystalsNumbersFieldForField); every other row is still one ground.
+        foreach (var id in grounds.Ids.Where(id => id != Ground.Ice))
         {
             SameNumbers($"grounds.{id}.roll", grass.Roll, grounds.Of(id).Roll);
             SameNumbers($"grounds.{id}.bounce", grass.Bounce, grounds.Of(id).Bounce);
@@ -78,9 +100,12 @@ public sealed class GroundLibraryTests
     public void TheWallRowIsTodaysNumber()
     {
         var catalog = Game;
-        Assert.Equal(["padded"], catalog.Rules.Walls.Ids);
+        Assert.Equal(["padded", "glass"], catalog.Rules.Walls.Ids);
         var padded = catalog.Rules.Walls.Of(WallMaterial.Padded);
         Assert.Equal((0.48, 0.82), (padded.Restitution, padded.Tangential));
+        // F9-a: Crystal's glass boards, a livelier carom than the pad. Proposed, not tuned.
+        var glass = catalog.Rules.Walls.Of(WallMaterial.Glass);
+        Assert.Equal((0.62, 0.90), (glass.Restitution, glass.Tangential));
     }
 
     /// <summary>
@@ -146,7 +171,7 @@ public sealed class GroundLibraryTests
     /// </summary>
     [Theory]
     [InlineData("grounds", new[] { "grass", "dirt", "ice", "ash" })]
-    [InlineData("walls", new[] { "padded" })]
+    [InlineData("walls", new[] { "padded", "glass" })]
     public void TheFileNamesEveryRowAndEveryRuleInIt(string file, string[] rows)
     {
         var json = JsonNode.Parse(
@@ -331,7 +356,7 @@ public sealed class GroundLibraryTests
         var catalog = Game;
         var thrown = Assert.Throws<ArgumentException>(() => catalog.Rules.Walls.Of("brick"));
         Assert.Contains("'brick' is not a wall material with a row in rules/walls.json", thrown.Message, StringComparison.Ordinal);
-        Assert.Contains("[padded]", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains("[padded, glass]", thrown.Message, StringComparison.Ordinal);
         Assert.False(catalog.Rules.Walls.Has("brick"));
         Assert.False(catalog.Rules.Walls.Has(null));
     }
@@ -567,7 +592,7 @@ public sealed class GroundLibraryTests
     public void TheZoneMapDoesNotMakeAParksResolvedTableACopy()
     {
         var catalog = Game;
-        foreach (var park in catalog.Parks.Values)
+        foreach (var park in catalog.Parks.Values.Where(p => p.Environment is null))
             Assert.Same(catalog.Rules, catalog.Rules.AtPark(park));
 
         // A park that names zones and no air is still the global table: zones are not on it.

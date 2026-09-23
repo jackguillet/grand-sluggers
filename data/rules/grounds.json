@@ -4,7 +4,7 @@
   // the overthrow's roll and the local bobble each read the row of the zone the ball is in. Every
   // row is today's number - what flight.json's roll / bounce / skid and fielding.json's
   // overthrow.decelFtPerSec2 and handling.bobble* carried - so the ground under the ball changes no
-  // play. A value that is not today's arrives with Crystal (F9-a), as a trial Jack has accepted.
+  // play - except `ice`, Crystal Rink's own row since F9-a (Jack: numbers straight into the shipped game).
   //
   // `body` is what the ground does to a body standing on it (spec §8, §9; FD-04 B, F3-d). Each
   // multiplier scales a TIME or a LENGTH, never a speed, so above 1 always reads "more slippery":
@@ -80,37 +80,39 @@
       "overrunMul": 1.0
     }
   },
+  // Crystal Rink (F9-a): the ball runs and skids farther, the body is slower to start, stop and turn. Proposed
+  // numbers, not tuned; Jack judges them in play (FD-13-R2).
   "ice": {
     "roll": {
-      "friction": 22,
-      "restSpeed": 1.4
+      "friction": 12,
+      "restSpeed": 0.8
     },
     "bounce": {
-      "restitution": 0.48,
-      "horizontal": 0.82,
+      "restitution": 0.40,
+      "horizontal": 0.92,
       "minVy": 3.6
     },
     "skid": {
       "launchMinDeg": 14,
-      "launchMaxDeg": 22,
+      "launchMaxDeg": 28,
       "minVy": 2.2,
-      "restitution": 0.28,
-      "horizontal": 0.93
+      "restitution": 0.22,
+      "horizontal": 0.97
     },
     "overthrow": {
-      "decelFtPerSec2": 18
+      "decelFtPerSec2": 10
     },
     "bobble": {
       "restitution": 0.35,
       "groundRetain": 0.90,
-      "decelFtPerSec2": 6
+      "decelFtPerSec2": 3.5
     },
     "body": {
-      "startMul": 1.0,
-      "brakeMul": 1.0,
-      "cutMul": 1.0,
-      "slideMul": 1.0,
-      "overrunMul": 1.0
+      "startMul": 1.3,
+      "brakeMul": 1.6,
+      "cutMul": 1.4,
+      "slideMul": 1.35,
+      "overrunMul": 1.5
     }
   },
   "ash": {

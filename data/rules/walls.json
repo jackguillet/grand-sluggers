@@ -7,5 +7,10 @@
   "padded": {
     "restitution": 0.48,
     "tangential": 0.82
+  },
+  // Crystal Rink's glass boards (F9-a): a livelier carom than the pad. Proposed, not tuned.
+  "glass": {
+    "restitution": 0.62,
+    "tangential": 0.90
   }
 }
