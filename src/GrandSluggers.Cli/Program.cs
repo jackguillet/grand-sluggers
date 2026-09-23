@@ -236,6 +236,12 @@ static void PrintArt(ContentCatalog content)
     Console.WriteLine($"VFX    {art.Vfx.Count} events");
     Console.WriteLine($"AUDIO  {art.Audio.Count} events ({art.Audio.Count(e => e.Authored)} authored)");
     Console.WriteLine($"PARKS  {art.Parks.Count} kit slots ({art.Parks.Count(p => p.Placed)} placed)");
+    foreach (var kit in art.Parks)
+    {
+        var empty = kit.Empty;
+        var filled = ParkKitSlots.All.Count - empty.Count;
+        Console.WriteLine($"  {kit.Id,-15} {filled,2}/{ParkKitSlots.All.Count} filled  empty: {(empty.Count == 0 ? "none" : string.Join(" ", empty))}");
+    }
     Console.WriteLine($"FOLDERS {art.Folders.Count}");
     var errors = art.Validate(content)
         .Concat(DebugProtocol.Validate(content.Root))
