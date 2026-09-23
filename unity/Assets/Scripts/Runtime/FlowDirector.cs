@@ -415,11 +415,15 @@ namespace GrandSluggers.UnityClient
         void TickLineupPad(Controls.Pad pad, LineupSeat seat, ref MenuNav.Gate armedX, ref MenuNav.Gate armedY)
         {
             TickLineupStick(pad, seat, ref armedX, ref armedY);
+            if (pad.PageNext && _lineup.Step == LineupStep.TeamSetup)
+            {
+                TeamSheet.UseController(seat);
+                _lineup.RandomFill(seat);
+            }
             if (pad.WestDown && _lineup.Step == LineupStep.TeamSetup)
             {
                 TeamSheet.UseController(seat);
-                if (_lineup.FocusOf(seat) == LineupFocus.Pool) _lineup.RandomFill(seat);
-                else _lineup.Remove(seat);
+                _lineup.Remove(seat);
             }
             if (pad.EastDown)
             {

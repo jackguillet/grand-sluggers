@@ -4,6 +4,16 @@
   // GitHub sitting children stay; they are not the memory.
   "entries": [
     {
+      "id": "lineup-fill-button-binding-drift",
+      "signature": "RB Fill team is displayed but pressing RB does nothing in Team Setup.",
+      "stage": "sitting",
+      "cause": "FlowDirector.TickLineupPad moved fill to West only from pool focus while TeamSheet still advertised RB.",
+      "fix": "RB fills the acting seat from any team-setup focus; West removes. Validate both controllers in both home/away assignments through real input routing.",
+      "promoted": "AtBatInputGate.VerifyLineupFill",
+      "issue": "#988",
+      "pr": ""
+    },
+    {
       "id": "brim-in-plate-lens",
       "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
       "stage": "still-gate",

@@ -73,7 +73,7 @@ namespace GrandSluggers.UnityClient
             if (team)
             {
                 Button(LineupLayout.FillButton, keys ? "Tab  Fill team" : "RB  Fill team", false);
-                Label(390, 716, 605, 46, keys ? "WASD  Move · Space  Add / continue\nF  Remove · G  Captains · View  How to play" : "Stick  Move · South  Add / continue\nWest  Fill / remove · East  Captains · View  How to play", _body);
+                Label(390, 716, 605, 46, keys ? "WASD  Move · Space  Add / continue\nF  Remove · G  Captains · View  How to play" : "Stick  Move · South  Add / continue\nWest  Remove · East  Captains · View  How to play", _body);
             }
             else Label(206, 720, 785, 42, keys ? "WASD  Move     Space / click  Pick & swap\nG  Order / field     View  How to play" : "Stick  Move     South  Pick & swap\nLB/RB  Order / field     View  How to play", _body);
             Button(LineupLayout.ContinueButton, team ? "Continue  →" : lineup.IsReady(LineupSeat.Pad1) ? "P1 Ready · waiting for P2" : (keys ? "Q  Next: settings  →" : "North  Next: settings  →"), team ? lineup.Ready : !lineup.HasPick(LineupSeat.Pad1));

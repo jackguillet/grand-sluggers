@@ -124,6 +124,8 @@ namespace GrandSluggers.EditorTools
             foreach (var check in new Func<GateCase>[]
             {
                 () => VerifyControllerRouting(play),
+                () => VerifyLineupFill(play, false),
+                () => VerifyLineupFill(play, true),
                 () => VerifyNormalTap(play),
                 () => VerifyHeldRelease(play),
                 () => VerifyCpuFlightRelease(play),
@@ -170,6 +172,32 @@ namespace GrandSluggers.EditorTools
             }
             evidence.ok = true;
             Debug.Log("Grand Sluggers at-bat input OK: " + cases.Count + " real Controls/TickSet/TickFlight cases.");
+        }
+
+        static GateCase VerifyLineupFill(MatchDirector play, bool swapSeats)
+        {
+            Setup(play, swapSeats ? Seats.AwayVersus : Seats.Versus);
+            Set(play, "Pad1Home", !swapSeats);
+            Set(play, "_versusWanted", true);
+            Set(play, "_lineup", null);
+            Invoke(play, "OpenLineup");
+            var lineup = Get<LineupScreens>(play, "_lineup");
+            foreach (var seat in new[] { LineupSeat.Pad1, LineupSeat.Pad2 })
+            {
+                var home = lineup.HomeSeat == seat;
+                lineup.FocusCell(seat, home ? LineupFocus.HomeRow : LineupFocus.AwayRow, 0);
+                var other = (home ? lineup.AwaySlots : lineup.HomeSlots).Select(c => c?.Id).ToArray();
+                var rb = State().WithButton(GamepadButton.RightShoulder);
+                Neutral();
+                InputSystem.QueueStateEvent(seat == LineupSeat.Pad1 ? _pad1 : _pad2, rb);
+                InputSystem.Update(); Controls.Tick(Step);
+                Invoke(play, "TickLineup");
+                Require(home ? lineup.HomeFull : lineup.AwayFull, "RB failed to fill the acting seat from roster focus.");
+                Require(other.SequenceEqual((home ? lineup.AwaySlots : lineup.HomeSlots).Select(c => c?.Id)),
+                    "RB changed the other seat's roster.");
+                Require(lineup.Step == LineupStep.TeamSetup, "Fill advanced the page without confirmation.");
+            }
+            return new GateCase { name = "lineup-rb-fill-both-seats-" + swapSeats, phase = Phase(play) };
         }
 
         static IEnumerator VerifyControllerScreens(MatchDirector play)
