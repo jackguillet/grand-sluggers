@@ -94,9 +94,13 @@ namespace GrandSluggers.UnityClient
             }
             PlayerCard(lineup, inspected);
             var keys = Controls.SeatUsesKeyboard(0);
-            Button(LineupLayout.BackButton, lineup.AnyPick ? (keys ? "F  Cancel pick" : "West  Cancel pick") : (keys ? "F  Back" : "West  Back"), false);
-            if (team) Button(LineupLayout.FillButton, keys ? "Tab  Fill team" : "RB  Fill team", false);
-            else Label(206, 720, 785, 42, keys ? "WASD  Move     Space / click  Pick & swap     G  List / field" : "Stick  Move     South  Pick & swap     East  List / field", _body);
+            Button(LineupLayout.BackButton, team ? (keys ? "F  Remove player" : "West  Remove player") : lineup.AnyPick ? (keys ? "F  Cancel pick" : "West  Cancel pick") : (keys ? "F  Back" : "West  Back"), false);
+            if (team)
+            {
+                Button(LineupLayout.FillButton, keys ? "Tab  Fill team" : "RB  Fill team", false);
+                Label(390, 716, 605, 46, keys ? "WASD  Move   ·   Space  Add / continue\nEsc  How to play" : "Stick  Move   ·   South  Add / continue\nEsc  How to play", _body);
+            }
+            else Label(206, 720, 785, 42, keys ? "WASD  Move     Space / click  Pick & swap\nG  List / field     Esc  How to play" : "Stick  Move     South  Pick & swap\nEast  List / field     Esc  How to play", _body);
             Button(LineupLayout.ContinueButton, team ? "Continue  →" : (keys ? "Q  First pitch  →" : "North  First pitch  →"), team ? lineup.Ready : !lineup.AnyPick);
             GUI.matrix = old;
         }

@@ -334,6 +334,23 @@ public class LineupScreensTests
         Assert.Equal("P", b.PosOf("vale"));
     }
 
+    [Fact]
+    public void AwayPlayerCanDraftAndASecondPlayerCanJoinHome()
+    {
+        var s = LineupScreens.Open(_content, "rio", "ashlord", LineupSeat.Cpu, LineupSeat.Pad1);
+        Assert.True(s.HomeFull);
+        Assert.False(s.AwayFull);
+        Assert.True(s.RandomFill(LineupSeat.Pad1));
+        var away = s.AwaySlots.Select(c => c!.Id).ToArray();
+        s.Sit(LineupSeat.Pad2, LineupSeat.Pad1);
+        Assert.False(s.HomeFull);
+        Assert.Equal(away, s.AwaySlots.Select(c => c!.Id));
+        Assert.True(s.RandomFill(LineupSeat.Pad2));
+        Assert.True(s.ConfirmTeam());
+        Assert.Equal(LineupFocus.AwayOrder, s.FocusOf(LineupSeat.Pad1));
+        Assert.Equal(LineupFocus.HomeOrder, s.FocusOf(LineupSeat.Pad2));
+    }
+
     static bool Overlap(LineupCell a, LineupCell b) => a.X < b.X + b.W && a.X + a.W > b.X
         && a.Y < b.Y + b.H && a.Y + a.H > b.Y;
 

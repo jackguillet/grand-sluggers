@@ -89,7 +89,7 @@ A **postcard**: park name, DAY / NIGHT, HAZARDS ON / OFF, and the **field card**
 
 Two screens. Not a 3D huddle with a name list.
 
-**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Portraits have no faction or chemistry frames. Hover over a player, or move the controller focus to them, to see their card; their chemistry partners get a soft highlight. Both teams start with the same stars, whatever the draft; the row of stars by the home captain shows them.
+**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Portraits have no faction or chemistry frames. Hover over a player, or move the controller focus to them, to see their card; their chemistry partners get a soft highlight. Both teams start with the same stars, whatever the draft; the header shows that shared starting reserve.
 
 - **Stick / WASD** — pick a head (center) or a slot (home row)
 - **South / Space** — drop the head into the highlighted empty slot. When the nine are full, South goes to defense
