@@ -82,14 +82,13 @@ public class NightTests
     }
 
     /// <summary>
-    /// Funfair's mouths eat outfield flies at night. They are park data since #847 and Funfair's night
-    /// block since F4-d (FD-11): the park a night match plays holds them after the day's instances, the
-    /// park a day match plays does not, and <see cref="ParkHazards.ChompFly"/> no longer takes the clock.
-    /// The C80 copy carries them at the field's scale: the centre one is at (0, 228) r 18 shipped and
-    /// (0, 160) r 12.60 on the trial.
+    /// Funfair's mouths take a fly on its way down at night and spit it out of another (FD-09-R2, F4-c). They are park
+    /// data since #847 and Funfair's night block since F4-d (FD-11): the park a night match plays holds them after the day's
+    /// instances, the park a day match plays does not, and nothing reads the clock. The centre one is at (0, 160) r 12.60.
+    /// A mouth is a redirect, not an out: the preview plans the fly as hit and nobody is out by a mouth.
     /// </summary>
     [Fact]
-    public void FunfairNightChompersEatOutfieldFlies()
+    public void FunfairNightChompersTakeFliesOnlyAtNight()
     {
         var catalog = _content.Parks["funfair-park"];
         var byDay = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "funfair-park").Park;
@@ -98,21 +97,20 @@ public class NightTests
         Assert.DoesNotContain(catalog.Hazards, h => h.Type == HazardType.Chomper);
         Assert.DoesNotContain(byDay.Hazards, h => h.Type == HazardType.Chomper);
         Assert.Equal(mouthZ, atNight.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C").Z);
-        Assert.False(ParkHazards.ChompFly(byDay, 0, mouthZ));
-        Assert.True(ParkHazards.ChompFly(atNight, 0, mouthZ));
-        Assert.False(ParkHazards.ChompFly(atNight, 0, 0));
-        Assert.False(ParkHazards.ChompFly(atNight, 0, mouthZ, grounder: true));
-        Assert.False(ParkHazards.ChompFly(
-            Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "harbor-diamond", night: true).Park, 0, mouthZ));
+        bool Mouth(Park park, double y) { var b = new BallHazards(); b.Begin(park, false, _content.Rules); return b.Entered(0, y, mouthZ) is { Type: HazardType.Chomper }; }
+        Assert.False(Mouth(byDay, 6));
+        Assert.True(Mouth(atNight, 6));
+        Assert.False(Mouth(atNight, 20), "above the mouth");
+        Assert.False(Mouth(Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "harbor-diamond", night: true).Park, 6));
 
+        // The same fly is the same preview by day and at night: nothing is decided from where it lands.
         var hit = FlightFixtures.Landing(catalog, mouthZ, 22, 0);
         var spark = PresetTeams.SparkAllStars(_content);
         var fielding = new FieldingResolver(_content.Chemistry);
         var day = fielding.Resolve(hit, byDay, spark.Roster, spark.Captain, new Random(1));
         var night = fielding.Resolve(hit, atNight, spark.Roster, spark.Captain, new Random(1), night: true);
-        Assert.False(day.Chomped);
-        Assert.True(night.Chomped);
-        Assert.Equal(PlayKind.FlyOut, night.Kind);
+        Assert.Equal(day.Kind, night.Kind);
+        Assert.NotEqual(PlayKind.FlyOut, night.Kind);
     }
 
     /// <summary>

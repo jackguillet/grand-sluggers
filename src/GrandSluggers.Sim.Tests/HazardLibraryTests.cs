@@ -106,7 +106,7 @@ public sealed class HazardLibraryTests
         Assert.Equal(HazardPattern.BallRedirect, hazards.Of(HazardType.Barrel).Pattern);
         Assert.Equal(HazardPattern.RewardTarget, hazards.Of(HazardType.Billboard).Pattern);
         Assert.Equal(HazardPattern.WallTrait, hazards.Of(HazardType.ClimbWall).Pattern);
-        Assert.Equal(HazardPattern.CatchStealer, hazards.Of(HazardType.Chomper).Pattern);
+        Assert.Equal(HazardPattern.BallRedirect, hazards.Of(HazardType.Chomper).Pattern); // FD-09-R2, F4-c
         foreach (var inert in new[] { HazardType.Statue, HazardType.Train, HazardType.AcUnit, HazardType.Tree })
             Assert.Equal(HazardPattern.Decoration, hazards.Of(inert).Pattern);
 
@@ -280,28 +280,36 @@ public sealed class HazardLibraryTests
                         ParkHazards.InSlow(park, x, z, night, Table));
     }
 
-    /// <summary>
-    /// Every redirect, against the oracle, on the same seeded stream: a pipe that catches the ball
-    /// must catch it at the same reach and send it to the same exit, because the exit is a draw and
-    /// a draw that moved would reseed every game from there.
-    /// </summary>
-    [Fact]
-    public void TheBallRedirectDispatchEqualsTheOracleIncludingTheDraw()
+    static BallHazards Live(Park park, bool night = false)
     {
-        foreach (var park in Parks)
-            foreach (var (x, z) in Probes(park))
-                Assert.Equal(
-                    OldDispatch.WarpIfPipe(park, x, z, new Random(847)),
-                    ParkHazards.WarpIfPipe(park, x, z, new Random(847), Table));
+        var b = new BallHazards();
+        b.Begin(park, night, Table);
+        return b;
     }
 
-    /// <summary>Every sign, against the oracle. The <c>tag</c> is still not read.</summary>
+    /// <summary>
+    /// Every redirect's mouth, against the oracle (F4-c): a ball on the ground is in a mouth exactly where the old landing
+    /// test caught a grounder — the same disc, radius plus the reach pad — so the redirect moved from the landing to the live
+    /// ball without moving a disc. Where it goes is now the live ball's (<c>BallRedirectTests</c>).
+    /// </summary>
     [Fact]
-    public void TheRewardTargetDispatchEqualsTheOracle()
+    public void TheBallRedirectMouthIsTheOraclesDisc()
     {
         foreach (var park in Parks)
             foreach (var (x, z) in Probes(park))
-                Assert.Equal(OldDispatch.HitStarSign(park, x, z), ParkHazards.HitStarSign(park, x, z, Table));
+            {
+                var mouth = Live(park).Entered(x, 0, z);
+                Assert.Equal(OldDispatch.WarpIfPipe(park, x, z, new Random(847)).Warped, mouth is not null && mouth.Type != HazardType.Chomper);
+            }
+    }
+
+    /// <summary>Every sign, against the oracle: a ball at the ground is under a sign exactly where the old landing test paid.</summary>
+    [Fact]
+    public void TheRewardTargetDiscIsTheOraclesDisc()
+    {
+        foreach (var park in Parks)
+            foreach (var (x, z) in Probes(park))
+                Assert.Equal(OldDispatch.HitStarSign(park, x, z), Live(park).Reward(x, 0, z) is not null);
     }
 
     /// <summary>
@@ -320,28 +328,19 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// The catch stealer, against the oracle — the one place where a park id turned into three data
-    /// rows. The oracle tests three literal discs when the park is Funfair and it is night; the live
-    /// dispatch tests the <c>chomper</c> instances of the park a match plays, which are those three
-    /// discs at the same places.
-    ///
-    /// <para>
-    /// The mouths are Funfair's night-block instances (FD-11, F4-d), so the live dispatch is handed the
-    /// played park (<see cref="Played"/>) — by day without them, at night with them — and does not take
-    /// the clock at all. The probes ring the night park's instances, so every mouth is probed by day
-    /// and by night.
-    /// </para>
+    /// The chompers' mouths, against the oracle's discs (FD-09-R2, F4-c): a fly on its way down (6 ft up) is in a chomper
+    /// exactly where the old catch stealer ate one — the three literal discs, by night only, at Funfair only. The mouth is a
+    /// redirect now, not an out.
     /// </summary>
     [Fact]
-    public void TheCatchStealerDispatchEqualsTheOracle()
+    public void TheChomperMouthIsTheOraclesDisc()
     {
         foreach (var park in Parks)
             foreach (var (x, z) in Probes(Played(park, night: true)))
                 foreach (var night in new[] { false, true })
-                    foreach (var grounder in new[] { false, true })
-                        Assert.Equal(
-                            OldDispatch.ChompFly(park, night, x, z, grounder),
-                            ParkHazards.ChompFly(Played(park, night), x, z, grounder, Table));
+                    Assert.Equal(
+                        OldDispatch.ChompFly(park, night, x, z, grounder: false),
+                        Live(Played(park, night), night).Entered(x, 6, z) is { Type: HazardType.Chomper });
     }
 
     /// <summary>
@@ -398,8 +397,9 @@ public sealed class HazardLibraryTests
                         var where = $"{park.Id} {h.Type} at ({x}, {z}) night {night}";
                         var played = Played(park, night);
                         Assert.False(ParkHazards.InSlow(played, x, z, night, Table), where);
-                        Assert.False(ParkHazards.ChompFly(played, x, z, rules: Table), where);
-                        Assert.False(ParkHazards.HitStarSign(played, x, z, Table), where);
+                        var live = Live(played, night);
+                        Assert.True(live.Entered(x, 0, z) is null || Table.Hazards.Of(live.Entered(x, 0, z)!.Type).Pattern != HazardPattern.Decoration, where);
+                        Assert.True(live.Reward(x, 0, z) is null || OldDispatch.HitStarSign(park, x, z), where);
                     }
             }
 
@@ -414,7 +414,8 @@ public sealed class HazardLibraryTests
             [new Hazard(HazardType.Tree, 40, 200, 6, null), new Hazard(HazardType.Statue, -40, 200, 6, null)],
             WindDeg: 0, FenceHeightFt: 12);
         Assert.False(ParkHazards.CanClamber(scenery, konga, Table));
-        Assert.False(ParkHazards.WarpIfPipe(scenery, 40, 200, new Random(1), Table).Warped);
+        Assert.Empty(Live(scenery).Mouths);
+        Assert.Null(Live(scenery).Reward(40, 0, 200));
     }
 
     // ---------------------------------------------------------------------------------
