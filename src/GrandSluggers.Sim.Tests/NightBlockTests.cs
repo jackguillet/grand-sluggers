@@ -142,7 +142,9 @@ public sealed class NightBlockTests
             {
                 var on = Played(content, id, night: true);
                 var off = Played(content, id, night: true, hazards: false);
-                Assert.Equal(HazardPattern.HazardsOff(on, library), off);
+                var switched = HazardPattern.HazardsOff(on, library);
+                Assert.Equal(switched.Hazards, off.Hazards);
+                Assert.Equal(switched with { Hazards = off.Hazards }, off);
                 Assert.DoesNotContain(off.Hazards, h => HazardPattern.IsHazard(library.Of(h.Type).Pattern));
                 foreach (var h in content.Parks[id].Night?.Hazards ?? [])
                 {
