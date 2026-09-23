@@ -252,12 +252,14 @@ Every child in §3 is merged. Nothing below is a passed gate.
 
 **Trials**
 - `trials/bunt` (PH-14-R1): exit 22 / 28 / 40 mph and spread 10 / 20 / 44 degrees for perfect / nice / sour; a sour bunt pops above the bat's center.
-- `trials/stars` (PH-16-R7, R4 … R6, R16): tier prices 1 / 2 / 3, guest-captain surcharge 1, reserve 3, base gain 0.1 per plate appearance; the mid / top assignment per captain.
 - `trials/cpu-read` (PH-18): the CPU batter commits from the flight as it stands.
+
+**Promoted**
+- `trials/stars` (PH-16-R7, R4 … R6, R16) — Jack, September 23, 2026: "1-3 approve", with the mid / top assignment per captain as built (no sitting on the trial window). Tier prices 1 / 2 / 3, guest-captain surcharge 1, reserve 3 and base gain 0.1 ship.
 
 **Questions the children raised**
 - Bunt: should the CPU corner on the called side crash harder? Is a 50 / 50 CPU sac-bunt side right? A trigger held after a take keeps the bat squared into the next pitch: intended? Trigger press point (0.5)? East always the cancel at the plate, never a Training skip? A third-base T-B11? T-B07's progress reset?
-- Stars: retune the event bonuses now that a base gain exists? The CPU's special rate follows its per-pitch chance, not its stars; review it with the prices? Should keyboard Q stop being North?
+- Stars: answered September 23, 2026 — the event bonuses, the CPU's per-pitch special chance and keyboard Q stay as they are.
 - Phase 6: replacement effects for Charmball, Skullball, Fogball and Phonyball (PH-16-R18, R19 follow-ups); the Star Swing contact-area field (PH-16-R2) as the next child.
 - Art #943: the bat angle by bunt side and the let-go take.
 - A gradual TIRED tell (the card still switches at 25).
