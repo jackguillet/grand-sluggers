@@ -200,9 +200,9 @@ public sealed class PitchSelectionScenarioTests
         Assert.Equal(PlayKind.Foul, match.FinishAtBat(Scenario.Paint, Scenario.Swing, foul, dead).Kind);
         Assert.Equal(PitchFamily.Fastball, match.FamilyAt(PitchSelectionState.Reset));
 
-        // A SET after a dead pickoff (§4.5: nobody broke, so it is the beat and no count).
+        // A SET after a legal pitcher throw: the on-bag runner remains safe.
         Assert.True(match.StationRunner(1, match.AwayOrder[0]));
-        Assert.False(match.BeginPickoff(1, LiveSeats.CpuOnly, out var beat), "nobody broke: a dead-ball beat");
+        var beat = match.Pickoff(1);
         Assert.NotNull(beat);
         Assert.Equal(PitchFamily.Fastball, match.FamilyAt(PitchSelectionState.Reset));
 

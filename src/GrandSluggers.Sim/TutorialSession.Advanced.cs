@@ -335,7 +335,7 @@ public sealed partial class TutorialSession
                     var expected = InPlay.ThrowSec(distance,
                         new ThrowResult(Chemistry.Neutral, flight.SpeedMul, false, Arm: snap!.Stats.Arm,
                             ReleaseSec: abilities.SnapReleaseSec), Match.Rules);
-                    success = Math.Abs(flight.DurationSec - expected) <= 1e-5;
+                    success = Math.Abs(flight.DurationSec - (expected - abilities.SnapReleaseSec)) <= 1e-5;
                 }
             }
             Finish(success, success ? Lesson.Objective == "human-snap-relay" ? "snap-relay" : "relay-handoff" : "relay-not-completed",

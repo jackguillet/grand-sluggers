@@ -193,7 +193,7 @@ public sealed class Runner
         InRundown = false;
     }
 
-    /// <summary>Contact: snapshot the force, clear the play flags. The steal arm survives (P6 reads it).</summary>
+    /// <summary>Contact or catcher possession: snapshot forces and preserve already departing bodies.</summary>
     public void BeginPlay(bool forced, bool tagAndGo)
     {
         Forced = forced;
@@ -282,8 +282,8 @@ public sealed class Runner
     }
 
     /// <summary>
-    /// The break (§11.2, D2 / D3): the armed body leaves the bag toward its steal target with the
-    /// head start the clock gave it (<see cref="StealBreak.HeadStartFt"/>), full speed from here.
+    /// The departure (§11.2): set the next destination. Match passes the existing feet so
+    /// this changes the order without granting distance; explicit fixtures may supply a position.
     /// </summary>
     public void Break(double headStartFt)
     {

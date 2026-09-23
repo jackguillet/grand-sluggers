@@ -148,21 +148,23 @@ public sealed class PlayTraceTests
     }
 
     [Fact]
-    public void StealTrace_BreakAtReleaseAndPickoffOnlyIfAlreadyBroke()
+    public void StealTrace_PreservesTheDepartureAndPitcherThrowBodies()
     {
-        // Break at release (D2 / D3): armed in SET, still on the bag; the pitch's first motion
-        // (release on a take) is the break. The live steal play then shows the body off first.
+        // Departure is immediate but position changes only with elapsed time. The live
+        // steal play preserves the body that travelled during pitch flight.
         var steal = StealDefense();
         Assert.True(steal.StationRunner(1, steal.AwayOrder[2]));
         var who = steal.First!;
         Assert.True(steal.StartSteal());
         Assert.Equal(StealArm.Set, steal.RunnerAt(1)!.StealArm);
-        Assert.False(steal.RunnerAt(1)!.Broke);
+        Assert.True(steal.RunnerAt(1)!.Broke);
         Assert.True(InPlay.OnThisBag(1, steal.RunnerAt(1)!.Position.X, steal.RunnerAt(1)!.Position.Z,
             steal.Rules.Running.Bags.OccupyRadiusFt, steal.Rules));
+        steal.PitchSetup.ReleaseBall();
+        steal.PitchSetup.Advance(.7);
         steal.LivePlay.Recording = true;
         Assert.False(steal.BeginAtBat(Scenario.Paint, Scenario.Take, out _, out var pitch));
-        Assert.True(steal.RunnerAt(1)!.Broke, "the armed runner broke at release (D2)");
+        Assert.True(steal.RunnerAt(1)!.Broke, "the departing body survives catcher possession");
         Assert.True(steal.StealThrowPending);
         steal.LivePlay.Apply(LivePlayCommand.BeginSteal(pitch!, LiveSeats.CpuOnly));
         PlayEvent? stealPlay = null;
@@ -179,7 +181,7 @@ public sealed class PlayTraceTests
         Assert.True(Diamond.Dist(body.X, body.Z, Diamond.First.X, Diamond.First.Z) > steal.Rules.Running.Bags.TagSafeRadiusFt,
             "the break put the body off the bag; a pickoff of a runner still on it is the beat, not this play");
 
-        // Pickoff of a runner on the bag (never broke): the beat, no live play, no out (S-68, D3).
+        // A throw to an on-bag runner is live but cannot retire the safe body.
         var onBag = StealDefense();
         Assert.True(onBag.StationRunner(1, onBag.AwayOrder[2]));
         onBag.Tracing = true;
@@ -189,17 +191,16 @@ public sealed class PlayTraceTests
         Assert.Empty(beat.Outcome!.OutsMade);
         Assert.Equal(onBag.AwayOrder[2].Id, onBag.First?.Id);
         var beatTrace = Assert.Single(onBag.Traces);
-        Assert.Empty(beatTrace.Ticks);
+        Assert.NotEmpty(beatTrace.Ticks);
         Assert.Equal(PlayKind.Pickoff, beatTrace.Completed!.Kind);
         Assert.Empty(beatTrace.Completed.Outs);
 
-        // Pickoff of a SET arm: the motion is the break (D3). The trace shows Broke, not a caption.
+        // A pitcher throw preserves the already departing body.
         var setArm = StealDefense();
         Assert.True(setArm.StationRunner(1, setArm.AwayOrder[2]));
         Assert.True(setArm.StartSteal());
         Assert.Equal(StealArm.Set, setArm.RunnerAt(1)!.StealArm);
-        Assert.True(StealBreak.BreaksOnPickoff(StealArm.Set));
-        Assert.False(StealBreak.BreaksOnPickoff(StealArm.Perfect));
+        setArm.PitchSetup.Advance(.3);
         setArm.Tracing = true;
         var pick = setArm.Pickoff(1);
         Assert.NotNull(pick);
@@ -207,7 +208,7 @@ public sealed class PlayTraceTests
         if (pick!.Kind == PlayKind.Pickoff)
         {
             Assert.Empty(pick.Outcome!.OutsMade);
-            Assert.Empty(pickTrace.Ticks);
+            Assert.NotEmpty(pickTrace.Ticks);
         }
         else
         {

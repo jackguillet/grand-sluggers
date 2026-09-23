@@ -47,9 +47,9 @@ public class ClosePlayTests
     }
 
     [Fact]
-    public void HaltBeforeThePitchCancelsThatRunnersSteal()
+    public void HaltBeforeThePitchHoldsTheDepartedRunnerWhereTheyStand()
     {
-        // D1: there is no lead to keep; before the pitch a halt on a runner is the steal coming off.
+        // A departure creates a live body; halt stops it without restoring the bag.
         var match = Match.Slice(ContentCatalog.Load(), seed: 1);
         Assert.False(match.HaltAt(1));
         var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
@@ -60,9 +60,13 @@ public class ClosePlayTests
         Assert.True(match.SelectRunner(1));
         Assert.True(match.StartSteal());
         Assert.True(match.StealOn);
+        match.PitchSetup.Advance(.3);
+        var feet = match.RunnerAt(1)!.Feet;
+        Assert.True(feet > 0);
         Assert.True(match.HaltAt(1));
-        Assert.False(match.StealAttempt);
-        Assert.False(match.StealOn);
+        match.PitchSetup.Advance(.3);
+        Assert.Equal(feet, match.RunnerAt(1)!.Feet);
+        Assert.True(match.RunnerAt(1)!.Held);
     }
 
     [Fact]

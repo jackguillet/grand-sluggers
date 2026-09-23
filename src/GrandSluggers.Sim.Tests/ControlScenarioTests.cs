@@ -94,7 +94,7 @@ public sealed class ControlScenarioTests
                     if (!double.IsNaN(distBefore) && d < distBefore - 0.05) chasedAfterDead = true;
                     distBefore = d;
                 }
-                if (live.Throwing && releaseGlove == "")
+                if (live.ThrowInFlight && releaseGlove == "")
                 {
                     releaseGlove = live.GlovePos;
                     releaseFrom = live.ThrowFromPos;
@@ -564,7 +564,7 @@ public sealed class ControlScenarioTests
             (live, _) =>
             {
                 if (!live.Active) return;
-                if (live.Throwing && releaseGlove == "")
+                if (live.ThrowInFlight && releaseGlove == "")
                 {
                     releaseGlove = live.GlovePos;
                     releaseFrom = live.ThrowFromPos;
