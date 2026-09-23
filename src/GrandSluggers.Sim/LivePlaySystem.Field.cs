@@ -896,7 +896,7 @@ public sealed partial class LivePlaySystem
         // A ball not yet in a glove is chased, on the grass after a drop or a carom as much as before the landing (§7.6, §7.8).
         var chasing = !HoldsBall;
         // A fly or a liner is in the air until it lands; after that (or once loose) it is a pickup.
-        var onTheGround = _loose || (!pre.Grounder && ElapsedSeconds >= hang);
+        var onTheGround = _loose || ElapsedSeconds >= hang;
         var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
         var needsJump = FlyCatch.NeedsJump(pre);
         var plant = FlyCatch.ChaseTarget(pre, Park, R);
@@ -989,7 +989,7 @@ public sealed partial class LivePlaySystem
         var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
         if (!HoldsBall && GloveMayTake(GlovePos))
         {
-            if (pre.Grounder || onTheGround)
+            if (onTheGround)
             {
                 // A loose ball (a fumble, an overthrow) is picked up by touching it (fielding.chase.looseScoopFt), never by the catch radius.
                 var dirtStand = _loose ? R.Fielding.Chase.LooseScoopFt : scoopStand;
@@ -998,7 +998,7 @@ public sealed partial class LivePlaySystem
                     : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, d, dirtStand, R))
                     TakeBattedBall();
                 var pickupInPlay = _loose || FlyCatch.PickupInPlay(pre, Park, BallX, BallZ, ElapsedSeconds, hang, R);
-                if (pickupInPlay && pad.SouthDown && d < dirtStand)
+                if (pickupInPlay && pad.SouthDown && d < dirtStand && BallY <= catchRules.TouchScoopY)
                     TakeBattedBall();
                 if (pickupInPlay && FlyCatch.PlayerDiveCatch(DiveT > 0, d, dirtStand, dirtDive, BallY, R))
                 {
@@ -1009,13 +1009,13 @@ public sealed partial class LivePlaySystem
             else
             {
                 var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-                var linerInAir = pre.Line && ElapsedSeconds < hang;
+                var linerInAir = ElapsedSeconds < hang;
                 var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, standUp,
-                    ElapsedSeconds, hang, needsJump, R);
+                    ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, diveWin,
-                    ElapsedSeconds, hang, needsJump, R);
+                    ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var distPlant = Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z);
-                var diveDist = pre.Line ? d : distPlant;
+                var diveDist = needsJump ? distPlant : d;
                 // The leap: the body actually in the air (#719); the old arm window at jumpAirSec 0.
                 var leaping = catchRules.JumpArc ? Airborne : JumpT > 0;
                 var jumpTry = leaping && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
@@ -1045,7 +1045,7 @@ public sealed partial class LivePlaySystem
                     }
                     TakeBattedBall();
                 }
-                if (!needsJump && FlyCatch.PlayerDiveCatch(DiveT > 0, diveDist, standUp, diveWin, BallY, R))
+                if (!needsJump && underDive && FlyCatch.PlayerDiveCatch(DiveT > 0, diveDist, standUp, diveWin, BallY, R))
                 {
                     CatchDive = true;
                     TakeBattedBall();
@@ -1137,17 +1137,17 @@ public sealed partial class LivePlaySystem
             if (_loose ? FlyCatch.TouchScoop(cpuDist, R.Fielding.Chase.LooseScoopFt, BallY, R)
                 : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, cpuDist, cpuScoop, R))
                 TakeBattedBall();
-            else if (!grounder && !_loose && !_dropped)
+            else if (ElapsedSeconds < hang && !_loose && !_dropped)
             {
                 var plant = FlyCatch.ChaseTarget(pre, Park, R);
                 var needsJump = FlyCatch.NeedsJump(pre);
                 var who = PlayFielder();
                 var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-                var linerInAir = pre.Line && ElapsedSeconds < hang;
+                var linerInAir = ElapsedSeconds < hang;
                 var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuStandUp,
-                    ElapsedSeconds, hang, needsJump, R);
+                    ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuDiveWin,
-                    ElapsedSeconds, hang, needsJump, R);
+                    ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
                 var buddyAt = buddyOn && !string.IsNullOrEmpty(BuddyPos) && _fielders.TryGetValue(BuddyPos, out var buddySpot)
                               && Diamond.Dist(buddySpot.X, buddySpot.Z, plant.X, plant.Z) < catchRules.BuddyPlantFt;
@@ -3562,13 +3562,13 @@ public sealed partial class LivePlaySystem
         if (_call == FairFoulCall.Undecided && !wasLoose)
         {
             // In the air = before the ball's first ground contact (the landing mark), read off the path, not a height.
-            var inTheAir = !Preview.Grounder && ElapsedSeconds <= Hang + 1e-6;
+            var inTheAir = ElapsedSeconds < Hang;
             _call = inTheAir ? FairFoulCall.Caught
                 : FieldBounds.IsFair(BallX, BallZ) ? FairFoulCall.Fair
                 : FairFoulCall.Foul;
         }
         // On the ground = a grounder, or any ball past its landing: what the impact recoil (#720) charges for a pickup.
-        var landed = Preview.Grounder || ElapsedSeconds > Hang + 1e-6;
+        var landed = ElapsedSeconds >= Hang;
         // The take's difficulty (F693-02-awkward-hop-difficulty-source, #721): the hop the ball is in, read off its height and rise. Sampled on both tables.
         HopDifficulty = landed && !wasLoose ? FieldingResolver.HopDifficulty(BallY, _ballVel.Y, R) : 0;
         if (!wasLoose) ArmRecoil(landed);

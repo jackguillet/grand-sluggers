@@ -40,17 +40,24 @@ public static class FieldingPursuit
     {
         var r = Rules.Or(rules);
         var hang = BallFlight.HangTime(path, r);
-        var live = BallFlight.PointAt(path, nowSec, r);
         var startSec = Math.Max(nowSec, readySec);
         var ramp = RampSec(park, fromX, fromZ, r);
-        if (FieldingResolver.InAir(preview, live.Y, nowSec, hang, r))
+        if (nowSec < hang)
         {
-            var plant = FlyCatch.ChaseTarget(preview, park, r);
-            var air = Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, airCatch: true, ramp, r);
-            // A fly always runs the plant. A liner this body can take in the air is the same catch.
-            // A liner still up that this body cannot catch: first reachable point on the roll, not the bounce (#667).
-            if (preview.Class.IsFlyShape() || CanTakeInAir(air, preview, r))
-                return air;
+            if (FlyCatch.NeedsJump(preview))
+            {
+                var plant = FlyCatch.ChaseTarget(preview, park, r);
+                return Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, true, ramp, r);
+            }
+            foreach (var sample in path)
+            {
+                if (sample.T < nowSec || sample.T < startSec) continue;
+                if (sample.T >= hang) break;
+                if (sample.Height > r.Fielding.Catch.StandingHeightFt) continue;
+                if (!FieldBounds.Inside(park, sample.X, sample.Z)) continue;
+                var air = Fixed(sample.X, sample.Z, sample.T, startSec, fromX, fromZ, speedFtPerSec, true, ramp, r, preview.CatchRadius);
+                if (air.Reachable) return air;
+            }
         }
         return Rolling(path, park, nowSec, startSec, fromX, fromZ, speedFtPerSec, ramp, r);
     }
@@ -62,14 +69,6 @@ public static class FieldingPursuit
     /// </summary>
     static double RampSec(Park park, double fromX, double fromZ, RulesTable rules) =>
         rules.Fielding.Chase.AccelSec * GroundZones.Of(park, rules).RowAt(fromX, fromZ, rules.Grounds).Body.StartMul / 2;
-
-    /// <summary>Inside the catch window of the plant at hang: the body holds it in the air, so the plant is the route.</summary>
-    static bool CanTakeInAir(Route air, FieldingPreview preview, RulesTable rules)
-    {
-        if (air.Reachable) return true;
-        var window = FieldingResolver.CatchWindowFt(preview.CatchRadius, false, false, rules);
-        return air.MissFt < window;
-    }
 
     /// <param name="readyAt">Per position, the play seconds each body may start moving (the reaction lockout, §8.2).</param>
     public static Choice Choose(
@@ -114,10 +113,11 @@ public static class FieldingPursuit
     {
         Route? lastLegal = null;
         var scoopY = rules.Fielding.Catch.TouchScoopY;
+        var firstTouch = BallFlight.HangTime(path, rules);
         for (var i = 0; i < path.Count; i++)
         {
             var sample = path[i];
-            if (sample.T + 1e-6 < nowSec) continue;
+            if (sample.T + 1e-6 < nowSec || sample.T < firstTouch) continue;
             if (sample.Height >= scoopY) continue;
             // Gone over a wall: nothing past this sample is a pickup.
             if (sample.Event is SampleEvent.Fence or SampleEvent.Stands) break;
@@ -143,9 +143,10 @@ public static class FieldingPursuit
         double speedFtPerSec,
         bool airCatch,
         double ramp,
-        RulesTable rules)
+        RulesTable rules,
+        double reachFt = 0)
     {
-        var travel = Diamond.Dist(fromX, fromZ, x, z);
+        var travel = Math.Max(0, Diamond.Dist(fromX, fromZ, x, z) - reachFt);
         var available = Math.Max(0, meetSec - nowSec);
         var speed = Math.Max(0, speedFtPerSec);
         // The response law (#718): a body from rest reaches its speed over the ramp, which costs it half that ramp of travel (RampSec).

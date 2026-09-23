@@ -563,7 +563,7 @@ public sealed class GroundReadTests
 
         public static Numbers Of(GroundRules g, WallRules w) => new(
             g.Roll.Friction, g.Roll.RestSpeed, g.Bounce.Restitution, g.Bounce.Horizontal, g.Bounce.MinVy,
-            g.Skid.LaunchMinDeg, g.Skid.LaunchMaxDeg, g.Skid.MinVy, g.Skid.Restitution, g.Skid.Horizontal, w.Restitution, w.Tangential);
+            g.Skid.ImpactMinDeg, g.Skid.ImpactMaxDeg, g.Skid.MinVy, g.Skid.Restitution, g.Skid.Horizontal, w.Restitution, w.Tangential);
 
         public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double windMph, RulesTable rules, Numbers g) =>
             Integrate(exitMph, launchDeg, 0, windMph, (0, 1), null, rules, g);
@@ -674,7 +674,7 @@ public sealed class GroundReadTests
                     }
                 }
 
-                if (ny <= 0 && (grounded || t > f.Landing.FirstGrassMinSec))
+                if (ny <= 0)
                 {
                     ny = 0;
                     if (gone)
@@ -688,9 +688,11 @@ public sealed class GroundReadTests
                     if (evt == SampleEvent.None) evt = SampleEvent.Ground;
                     if (vy < 0)
                     {
-                        var minVy = skid ? g.SkidMinVy : g.BounceMinVy;
-                        var rest = skid ? g.SkidRestitution : g.BounceRestitution;
-                        var horiz = skid ? g.SkidHorizontal : g.BounceHorizontal;
+                        var angle = Math.Atan2(-vy, Math.Sqrt(vx * vx + vz * vz)) * 180 / Math.PI;
+                        var blend = Math.Clamp((angle - g.SkidLaunchMinDeg) / (g.SkidLaunchMaxDeg - g.SkidLaunchMinDeg), 0, 1);
+                        var minVy = g.SkidMinVy + blend * (g.BounceMinVy - g.SkidMinVy);
+                        var rest = g.SkidRestitution + blend * (g.BounceRestitution - g.SkidRestitution);
+                        var horiz = g.SkidHorizontal + blend * (g.BounceHorizontal - g.SkidHorizontal);
                         if (-vy < minVy)
                         {
                             vy = 0;

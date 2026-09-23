@@ -107,6 +107,7 @@
     "clamberRobFt": 28,
     "buddyJumpRobFt": 18,
     "touchScoopY": 3.2,
+    "standingHeightFt": 6.0,
     // §7.6: a liner (or fly) held above this before the first bounce is a catch; at or below it the hop is a scoop.
     "inAirMinY": 0.75,
     "jumpBallY": 2.2,

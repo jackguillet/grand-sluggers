@@ -178,15 +178,17 @@ public static class FlyCatch
         double hitT,
         double hangSec,
         bool needsJump,
-        RulesTable? rules = null)
+        RulesTable? rules = null,
+        double gloveRiseFt = 0)
     {
-        var atPlant = Under(gloveX, gloveZ, ballX, ballZ, plantX, plantZ, windowFt, needsJump, rules);
-        if (!pre.Line) return atPlant;
-        // A liner held after the bounce is a scoop, even if the glove is standing on the plant.
+        // A catch requires the untouched ball to meet the glove in three dimensions.
+        // The projected landing and the hit's label cannot award possession.
         if (hitT >= hangSec) return false;
-        if (atPlant) return true;
-        var minY = Rules.Or(rules).Fielding.Catch.InAirMinY;
-        return ballY > minY && Diamond.Dist(gloveX, gloveZ, ballX, ballZ) < windowFt;
+        if (needsJump)
+            return Under(gloveX, gloveZ, ballX, ballZ, plantX, plantZ, windowFt, true, rules);
+        var c = Rules.Or(rules).Fielding.Catch;
+        return ballY >= 0 && ballY <= c.StandingHeightFt + Math.Max(0, gloveRiseFt)
+            && Diamond.Dist(gloveX, gloveZ, ballX, ballZ) < windowFt;
     }
 
     /// <summary>
@@ -208,7 +210,7 @@ public static class FlyCatch
     /// </summary>
     public static bool PickupInPlay(FieldingPreview pre, Park park, double ballX, double ballZ,
         double hitT, double hangSec, RulesTable? rules = null) =>
-        (pre.Grounder || hitT >= hangSec)
+        (hitT >= hangSec)
         && FieldBounds.InPark(park, ballX, ballZ);
 
     /// <summary>
@@ -222,7 +224,7 @@ public static class FlyCatch
     public static PlayKind PlayerKind(bool caught, FieldingPreview pre, bool inAir = true, bool? foul = null)
     {
         var isFoul = foul ?? pre.Foul;
-        if (caught && inAir && !pre.Grounder) return PlayKind.FlyOut;
+        if (caught && inAir) return PlayKind.FlyOut;
         if (isFoul) return PlayKind.Foul;
         if (pre.HomeRunLikely && !caught) return PlayKind.HomeRun;
         return PlayKind.InPlay;

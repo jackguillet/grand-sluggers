@@ -543,6 +543,16 @@
       "promoted": "BroadcastHudTests.StarMetersFollowTheMatchSettingEvenWithEmptyPools",
       "issue": "#968",
       "pr": ""
+    },
+    {
+      "id": "hit-label-selects-ball-physics",
+      "signature": "Ground balls cannot bounce early; near-identical contact changes speed at the liner cutoff; overhead liners are caught through their height.",
+      "stage": "sim",
+      "cause": "Launch was clamped to +3 degrees, ordinary sour contact selected a separate launch band, FlightRules selected a class clock, and catches used class/landing XZ without an upper reach bound.",
+      "fix": "Use signed continuous ordinary contact, one flight clock, incoming-impact surface response and live 3D catch reach. First surface contact decides catch versus pickup; descriptions do not.",
+      "promoted": "ContactFlightTests.LowLinerMeetsTheGloveAndHigherLinerClearsIt",
+      "issue": "#973",
+      "pr": ""
     }
   ]
 }
