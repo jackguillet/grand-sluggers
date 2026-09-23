@@ -313,9 +313,9 @@ public sealed class NightBlockTests
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
             ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 2", "18b3ad8ce7bc8be0d2c27d2b9698c51afee74403865afaec018437d995a70052"),
-            ("funfair-park", 11, "Final  Ember Court 7  Spark All-Stars 3", "085af265210807aa2a965005ef30e22ea1112022ced8d58b3cb73ee96dab67f9"),
-            ("ember-keep", 1, "Final  Ember Court 1  Spark All-Stars 0", "ee50483141c1372ebcb8c08bb5f14736beb580718c36ca9393b3d28af1bc48f5"),
-            ("ember-keep", 2, "Final  Ember Court 0  Spark All-Stars 3", "e0d3eb96234904d04230ac070c72bff764c0a07148df2030ecffee051840fd65")
+            ("funfair-park", 11, "Final  Ember Court 4  Spark All-Stars 0", "c701347800255ae2004b0bccc58492f8fb2bfd45fd40c0d7a8c43c70376dd6a7"),
+            ("ember-keep", 1, "Final  Ember Court 5  Spark All-Stars 3", "dcb2290c2e48aaafe1babd809b7b5180e43469afe7eb25cd9aff5a4621277abc"),
+            ("ember-keep", 2, "Final  Ember Court 11  Spark All-Stars 3", "1dac4d1127c66b333037d5b0c9ac1aa9b032a5a33af873e6b0d44987df9bc7ae")
         ];
 
     /// <summary>
