@@ -241,6 +241,10 @@ Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by e
 | P5-b equal starting reserve; base gain at the completed plate appearance; the caught-stealing edge (S-180 … S-185) | #803 | #940 | `2836d606` | `portable` green; no play moves | trial acceptance: play `trials/stars` |
 | P4-c triggers LT / RT / J / L, East / G cancel, leak guards, book, T-B10 / T-B11, T-B07 r2 (S-186) | #803 | #945 | `adab56f7` | `portable` green, `unity-compile.sh` OK; editor gates compiled, not run | **sitting 4**; Art #943 (bat angle, let-go) |
 | P5-c held LB / Q special modifier, the NO STARS tell, lineup copy, star lessons r3, T-G03-U (S-200 … S-205) | #803 | #949 | `6ee56231` | `portable` green, `unity-compile.sh` OK; editor gates compiled, not run | **sitting 5** |
+| Register, ledger and map for the second wave (PH-08-R4 added) | #803 | #950 | `0dbfaa80` | docs only | none |
+| Sittings 4, 5 and the fade passed on `main-6ee562315e` ("done. looks good.") recorded | #803 | #951 | `1ac43a49` | docs only | recorded, not claimed |
+| Promote the accepted Star prices and reserve; retire `trials/stars` | #803 | #952 | `0c4d7199` | `portable` green; 23 of 30 seeds move | approved in chat ("1-3 approve"), no sitting on the trial |
+| Promote the accepted bunt response and CPU read; retire `trials/bunt` and `trials/cpu-read` | #803 | #953 | `a0549c2b` | `portable` green, `unity-compile.sh` OK; 16 of 30 seeds move | approved in chat ("1-3 approve"), no sitting on the trials |
 
 ## 7. Open for Jack after the second wave
 
