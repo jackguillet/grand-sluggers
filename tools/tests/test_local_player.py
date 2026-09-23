@@ -140,7 +140,7 @@ class ReplaceTests(unittest.TestCase):
         self.addCleanup(environment.stop)
 
     def args(self, **overrides):
-        values = dict(preview=None, trial=None, timeout=900, replace=False)
+        values = dict(preview=None, trial=None, timeout=900, replace=False, fresh_library=False, keep=3, prune_only=False)
         values.update(overrides)
         return argparse.Namespace(**values)
 
@@ -180,6 +180,93 @@ class ReplaceTests(unittest.TestCase):
             with self.assertRaises(player.unity_gui.LockHeld) as refused:
                 player.deliver(self.args())
         self.assertIn("tools/still-gate.sh --park crystal-rink (pid " + str(holder.pid), str(refused.exception))
+
+
+class LibrarySeedAndPruneTests(unittest.TestCase):
+    """Delivery clones the last good build's Library and keeps only the newest few releases and build worktrees."""
+
+    def git(self, cwd, *args):
+        return subprocess.check_output(["git", *args], cwd=cwd, text=True, stderr=subprocess.DEVNULL).strip()
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name).resolve()
+        self.main = self.root / "main"
+        self.main.mkdir()
+        self.git(self.main, "init", "-b", "main")
+        self.git(self.main, "config", "user.name", "Delivery test")
+        self.git(self.main, "config", "user.email", "test@example.invalid")
+        (self.main / "unity/ProjectSettings").mkdir(parents=True)
+        (self.main / "unity/ProjectSettings/ProjectVersion.txt").write_text("m_EditorVersion: 6000.0.1f1\n")
+        self.git(self.main, "add", "unity")
+        self.git(self.main, "commit", "-m", "initial")
+        self.state = self.root / "state"
+        (self.state / "releases").mkdir(parents=True)
+        for patcher in (patch.object(player.unity_gui, "players", return_value=[]),
+                        patch.object(player.unity_gui, "editor_for", return_value=None),
+                        patch.object(player, "log")):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def build(self, stamp, library=True, version="6000.0.1f1"):
+        worktree = self.root / "scratchpad" / ("wt-player-abcdef1234-" + str(stamp))
+        worktree.parent.mkdir(exist_ok=True)
+        self.git(self.main, "worktree", "add", "--detach", str(worktree), "HEAD")
+        (worktree / "unity/ProjectSettings/ProjectVersion.txt").write_text("m_EditorVersion: " + version + "\n")
+        if library:
+            (worktree / "unity/Library").mkdir()
+            (worktree / "unity/Library/marker").write_text(str(stamp))
+        return worktree
+
+    def release(self, stamp, source):
+        release = self.state / "releases" / ("main-abcdef1234-" + str(stamp))
+        (release / "GrandSluggers.app").mkdir(parents=True)
+        (release / "revision.json").write_text(player.json.dumps(dict(source=str(source))))
+        return release
+
+    @unittest.skipUnless(player.sys.platform == "darwin", "APFS clone (cp -c) is the Mac delivery path")
+    def test_the_newest_good_build_seeds_the_library(self):
+        old, new = self.build(1), self.build(2)
+        self.release(1, old)
+        self.release(2, new)
+        fresh = self.build(3, library=False)
+        seed = player.seed_library(fresh / "unity", "6000.0.1f1", self.state)
+        self.assertEqual(new, seed)
+        self.assertEqual("2", (fresh / "unity/Library/marker").read_text())
+
+    def test_no_seed_from_another_unity_version_an_open_editor_or_a_failed_build(self):
+        other = self.build(1, version="2022.3.1f1")
+        self.release(1, other)
+        self.build(2)  # built, but no release names it: never a seed
+        opened = self.build(3)
+        self.release(3, opened)
+        fresh = self.build(4, library=False)
+        with patch.object(player.unity_gui, "editor_for",
+                          side_effect=lambda project, listing=None: dict(pid=9) if project == opened / "unity" else None):
+            self.assertIsNone(player.seed_library(fresh / "unity", "6000.0.1f1", self.state))
+        self.assertFalse((fresh / "unity/Library").exists())
+
+    def test_prune_keeps_the_newest_and_every_open_windows_release(self):
+        builds = [self.build(i) for i in range(1, 7)]
+        releases = [self.release(i, b) for i, b in enumerate(builds, 1)]
+        window = dict(pid=1, app=str(releases[0] / "GrandSluggers.app"))
+        with patch.object(player.unity_gui, "players", return_value=[window]):
+            removed = player.prune(self.main, self.state, keep=2)
+        self.assertEqual((3, 3), removed)
+        self.assertEqual({releases[0], releases[4], releases[5]}, set(player.releases_newest_first(self.state)))
+        remaining = {b for b in builds if b.exists()}
+        self.assertEqual({builds[0], builds[4], builds[5]}, remaining)
+        self.assertNotIn(str(builds[1]), self.git(self.main, "worktree", "list"))
+
+    def test_prune_never_removes_a_worktree_with_an_editor_open(self):
+        builds = [self.build(i) for i in range(1, 4)]
+        with patch.object(player.unity_gui, "editor_for",
+                          side_effect=lambda project, listing=None: dict(pid=9) if project == builds[0] / "unity" else None):
+            player.prune(self.main, self.state, keep=1)
+        self.assertTrue(builds[0].exists())
+        self.assertFalse(builds[1].exists())
+        self.assertTrue(builds[2].exists())
 
 
 class EditorShutdownTests(unittest.TestCase):
