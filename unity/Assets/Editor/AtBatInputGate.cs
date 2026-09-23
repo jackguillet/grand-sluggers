@@ -923,20 +923,37 @@ namespace GrandSluggers.EditorTools
             var before = match.Pitcher.Id;
             var select = State().WithButton(GamepadButton.Select);
             Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
-            var pick = Get<PitcherSwapPick>(play, "_swapPick");
+            var pick = Get<DefenseSetupPick>(play, "_swapPick");
             Require(pick != null, "Select did not open the swap pick.");
             var start = pick.Index;
+            Tick(play, "TickSet", State(), State());
+            var cancel = State().WithButton(GamepadButton.East);
+            Tick(play, "TickSet", padTwo ? State() : cancel, padTwo ? cancel : State());
+            Require(Get<object>(play, "_swapPick") == null && match.Pitcher.Id == before && match.CanSwapPitcher,
+                "Cancelling the window changed or consumed the pitcher swap.");
+            Tick(play, "TickSet", State(), State());
+            Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
+            pick = Get<DefenseSetupPick>(play, "_swapPick");
+            Require(pick != null && pick.Index == start, "The cancelled window could not reopen.");
             Tick(play, "TickSet", State(), State());
             var right = State().WithButton(GamepadButton.DpadRight);
             Tick(play, "TickSet", padTwo ? State() : right, padTwo ? right : State());
             Require(pick.Index != start, "D-pad did not step the pick.");
+            // A menu direction plus South must never become a pickoff, on either seat.
+            Tick(play, "TickSet", State(), State());
+            var pickoff = State().WithButton(GamepadButton.DpadRight).WithButton(GamepadButton.South);
+            Tick(play, "TickSet", padTwo ? State() : pickoff, padTwo ? pickoff : State());
+            Require(Phase(play) == "Set" && !match.LivePlay.Active, "Picker input leaked into a pickoff.");
+            Require(!Get<ChargeButtonState>(play, "_pitchButton").Armed, "Picker banked a pitch charge.");
             Require(Phase(play) == "Set" && match.Pitcher.Id == before, "The pick changed the mound before confirm.");
             Tick(play, "TickSet", State(), State());
             var chosen = pick.Current.Who.Id;
             Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
-            Require(Get<object>(play, "_swapPick") == null, "Select again did not close the pick.");
+            Require(Get<object>(play, "_swapPick") != null, "Quick pitcher swap should keep defense editing open.");
             Require(match.Pitcher.Id == chosen && match.Pitcher.Id != before, "Select again did not put the pick on the mound.");
             Require(Phase(play) == "Set", "The swap left SET.");
+            Tick(play, "TickSet", State(), State());
+            Require(Phase(play) == "Set", "Releasing the picker input launched a pitch.");
             return new GateCase { name = padTwo ? "select-swap-pick-pad2" : "select-swap-pick-pad1", phase = Phase(play) };
         }
 

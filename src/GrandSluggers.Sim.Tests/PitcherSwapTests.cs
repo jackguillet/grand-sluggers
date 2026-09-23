@@ -53,7 +53,7 @@ public class PitcherSwapTests
         // same for both seats.
         Assert.Equal("", BroadcastHud.PitcherExtra(false));
         Assert.Equal("STAR", BroadcastHud.PitcherExtra(true));
-        Assert.Equal("Select SWAP", BroadcastHud.PitcherExtra(false, null, canSwap: true));
+        Assert.Equal("Select DEFENSE", BroadcastHud.PitcherExtra(false, null, canSwap: true));
         Assert.Equal("SWAP → SS Nugget  ·  Select", BroadcastHud.PitcherExtra(false, "SWAP → SS Nugget", canSwap: true));
         // The SET HUD map names the swap on the pitcher card (the mark cell is one measured line).
         Assert.Contains("SWAP", HudCallouts.Set.Marks.First(m => m.Id == "pitcher").Label);
