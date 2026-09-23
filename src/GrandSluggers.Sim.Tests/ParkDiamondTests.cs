@@ -72,7 +72,14 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.TrackMid(Harbor, 0) < Harbor.CenterFenceFt);
         Assert.True(ParkDiamond.GrassZ1(Harbor) > Rules.Default.Flight.Classes.InfieldLipFt);
 
-        var shortPark = Harbor with { LeftFenceFt = 280, CenterFenceFt = 320, RightFenceFt = 280 };
+        // A park 50 ft shorter down the lines and 80 ft shorter to centre than Harbor, whatever
+        // Harbor's own fence is.
+        var shortPark = Harbor with
+        {
+            LeftFenceFt = Harbor.LeftFenceFt - 50,
+            CenterFenceFt = Harbor.CenterFenceFt - 80,
+            RightFenceFt = Harbor.RightFenceFt - 50
+        };
         Assert.True(ParkDiamond.PoleIsOnTheFoulLine(shortPark));
         Assert.True(ParkDiamond.PoleSitsOnThatParkFence(shortPark));
         Assert.True(ParkDiamond.TrackIsInsideTheWall(shortPark));
@@ -80,7 +87,7 @@ public class ParkDiamondTests
         var shortPole = ParkDiamond.FoulPole(shortPark, 1);
         Assert.True(Diamond.Dist(0, 0, shortPole.X, shortPole.Z)
             < Diamond.Dist(0, 0, harborPole.X, harborPole.Z) - 20,
-            "a shorter fence must pull the pole in — not a Harbor 330 hardcode");
+            "a shorter fence must pull the pole in — not a hardcoded Harbor pole");
         Assert.True(ParkDiamond.TrackMid(shortPark, 0) < ParkDiamond.TrackMid(Harbor, 0) - 20);
     }
 
@@ -113,12 +120,14 @@ public class ParkDiamondTests
     [Fact]
     public void OutfieldLawnFillsPastTheDirtArc()
     {
-        Assert.False(ParkDiamond.OnDirt(50, 145), "past the curved apron");
-        Assert.True(50 < ParkDiamond.DirtMaxX && 145 < ParkDiamond.DirtMaxZ,
+        // (44, 129) is 87 ft from the rubber, past the 81.78-ft back arc, yet inside the dirt's
+        // bounding box (DirtMaxX 81.78, DirtMaxZ 135.56).
+        Assert.False(ParkDiamond.OnDirt(44, 129), "past the curved apron");
+        Assert.True(44 < ParkDiamond.DirtMaxX && 129 < ParkDiamond.DirtMaxZ,
             "this is the AABB hole the old CF stripes left as water");
-        Assert.True(ParkDiamond.LawnCovers(50, 145, Harbor),
+        Assert.True(ParkDiamond.LawnCovers(44, 129, Harbor),
             "mow must cover the gap between the dirt arc and DirtMaxZ");
-        Assert.True(ParkDiamond.LawnCovers(70, 130, Harbor));
+        Assert.True(ParkDiamond.LawnCovers(62, 116, Harbor));
         Assert.True(ParkDiamond.LawnCovers(0, 220, Harbor));
         Assert.False(ParkDiamond.LawnCovers(0, Harbor.CenterFenceFt + 20, Harbor));
         Assert.False(ParkDiamond.LawnCovers(HarborDugout.X, HarborDugout.Z, Harbor),

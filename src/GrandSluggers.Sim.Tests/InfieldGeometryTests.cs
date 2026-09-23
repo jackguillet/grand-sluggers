@@ -36,22 +36,23 @@ public sealed class InfieldGeometryTests
     }
 
     /// <summary>
-    /// The values #711 migrated, spelled out. If a later change to the table moves a bag, this is
-    /// the test that says so out loud instead of letting six hundred routes drift quietly.
+    /// The shipped infield, spelled out: 80-ft basepaths, the rubber at 53.78 ft, the corners and
+    /// second on that square. If a later change to the table moves a bag, this is the test that
+    /// says so out loud instead of letting six hundred routes drift quietly.
     /// </summary>
     [Fact]
-    public void TheShippedInfieldIsTheOneThatWasMigrated()
+    public void TheShippedInfieldIsTheEightyFootSquare()
     {
         var infield = RulesTable.Load(_content.Root).Infield;
 
-        Assert.Equal(90, infield.BaselineFt);
-        Assert.Equal(60.5, infield.MoundFt);
-        Assert.Equal(63.64, infield.CornerFt);
-        Assert.Equal(127.28, infield.SecondFt);
+        Assert.Equal(80, infield.BaselineFt);
+        Assert.Equal(53.78, infield.MoundFt);
+        Assert.Equal(56.57, infield.CornerFt);
+        Assert.Equal(113.14, infield.SecondFt);
 
-        // #729's two, at the constants they replaced on ParkDiamond.
-        Assert.Equal(50, infield.InnerHalfFt);
-        Assert.Equal(92, infield.BackArcFt);
+        // The dress, on the same square.
+        Assert.Equal(44.44, infield.InnerHalfFt);
+        Assert.Equal(81.78, infield.BackArcFt);
     }
 
     /// <summary>
@@ -82,8 +83,8 @@ public sealed class InfieldGeometryTests
         Assert.Equal(18f, ParkDiamond.HomePackedR);
 
         // The grass vertex clears the bag pad it points at. This is the hairline the validator
-        // deliberately does not refuse a table over: 1.64 ft shipped, and only 0.13 ft at C80.
-        Assert.Equal(1.64, infield.CornerFt - (infield.InnerHalfFt + ParkDiamond.BagPadR), 2);
+        // deliberately does not refuse a table over: 0.13 ft on the 80-ft square.
+        Assert.Equal(0.13, infield.CornerFt - (infield.InnerHalfFt + ParkDiamond.BagPadR), 2);
     }
 
     [Fact]
@@ -141,52 +142,50 @@ public sealed class InfieldGeometryTests
     }
 
     /// <summary>
-    /// The values #725 migrated, spelled out. This is the parity proof in this process: the left side
-    /// is read through <see cref="Diamond.Positions"/> — the path the whole sim uses — and the right
-    /// side is typed, so it is independent of both the JSON and the C# initializers the JSON is
-    /// compared against. <c>RulesTests.ShippedJsonEqualsTheCodeFallbackFieldForField</c> is not a
-    /// parity proof for this change: it pins the file to the new initializers, and a digit typed the
-    /// same way in both would pass it.
+    /// The shipped starts, spelled out. The left side is read through <see cref="Diamond.Positions"/>
+    /// — the path the whole sim uses — and the right side is typed, so it is independent of both the
+    /// JSON and the C# initializers the JSON is compared against.
+    /// <c>RulesTests.ShippedJsonEqualsTheCodeFallbackFieldForField</c> pins the file to the
+    /// initializers, and a digit typed the same way in both would pass it.
     /// </summary>
     [Fact]
-    public void TheShippedStartsAreTheOnesThatWereMigrated()
+    public void TheShippedStartsAreSpelledOut()
     {
-        Assert.Equal((78d, 72d), Diamond.Positions["1B"]);
-        Assert.Equal((42d, 118d), Diamond.Positions["2B"]);
-        Assert.Equal((-78d, 72d), Diamond.Positions["3B"]);
-        Assert.Equal((-42d, 118d), Diamond.Positions["SS"]);
-        Assert.Equal((-110d, 250d), Diamond.Positions["LF"]);
-        Assert.Equal((0d, 305d), Diamond.Positions["CF"]);
-        Assert.Equal((110d, 250d), Diamond.Positions["RF"]);
+        Assert.Equal((69.33d, 64d), Diamond.Positions["1B"]);
+        Assert.Equal((37.33d, 104.89d), Diamond.Positions["2B"]);
+        Assert.Equal((-69.33d, 64d), Diamond.Positions["3B"]);
+        Assert.Equal((-37.33d, 104.89d), Diamond.Positions["SS"]);
+        Assert.Equal((-77.09d, 175.19d), Diamond.Positions["LF"]);
+        Assert.Equal((0d, 213.5d), Diamond.Positions["CF"]);
+        Assert.Equal((77.09d, 175.19d), Diamond.Positions["RF"]);
 
-        // The two that did not migrate, at the numbers they have always been.
-        Assert.Equal((0d, 60.5d), Diamond.Positions["P"]);
+        // The two that are not in fielders.json: the rubber and the catcher's set.
+        Assert.Equal((0d, 53.78d), Diamond.Positions["P"]);
         Assert.Equal((0d, -15d), Diamond.Positions["C"]);
     }
 
     /// <summary>
-    /// The point of the migration, for the starts: another data root stands another defence. Before
-    /// #725 no root could — the seven were C# literals, so a compact park was played by fielders
-    /// standing where a 90-ft field put them.
+    /// Another data root stands another defence: the seven starts are table values, not C#
+    /// literals, so a root with a deeper outfield (here the 90-ft field's) stands its fielders there.
     /// </summary>
     [Fact]
     public void AnotherDataRootStandsAnotherDefence()
     {
-        using var trial = new CopiedRoot();
-        trial.Change("fielders.json", json =>
+        using var other = new CopiedRoot();
+        other.Change("fielders.json", json =>
         {
-            json["center"]!["zFt"] = 213.5;
-            json["left"]!["xFt"] = -77.09;
-            json["left"]!["zFt"] = 175.19;
+            json["center"]!["zFt"] = 305;
+            json["left"]!["xFt"] = -110;
+            json["left"]!["zFt"] = 250;
         });
 
-        var fielders = RulesTable.Load(trial.Root).Fielders;
+        var fielders = RulesTable.Load(other.Root).Fielders;
 
-        Assert.Equal((0d, 213.5d), fielders.Spot("CF"));
-        Assert.Equal((-77.09d, 175.19d), fielders.Spot("LF"));
+        Assert.Equal((0d, 305d), fielders.Spot("CF"));
+        Assert.Equal((-110d, 250d), fielders.Spot("LF"));
 
         // The shipped table is untouched, and the running process still stands it.
-        Assert.Equal((0d, 305d), Diamond.Positions["CF"]);
+        Assert.Equal((0d, 213.5d), Diamond.Positions["CF"]);
     }
 
     /// <summary>
@@ -222,7 +221,7 @@ public sealed class InfieldGeometryTests
         Assert.Contains(swappedErrors, e => e.Contains("fielders.left.xFt"));
         Assert.Contains(swappedErrors, e => e.Contains("fielders.right.xFt"));
 
-        // The shipped and the compact tables both pass, which is what makes the guard usable.
+        // The shipped table passes, which is what makes the guard usable.
         Assert.DoesNotContain(RulesTable.Validate(_content.Root), e => e.Contains("fielders."));
     }
 
@@ -233,10 +232,10 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void AFielderStartOutOfRangeIsNamedByPath()
     {
-        using var trial = new CopiedRoot();
-        trial.Change("fielders.json", json => json["center"]!["zFt"] = -5);
+        using var copy = new CopiedRoot();
+        copy.Change("fielders.json", json => json["center"]!["zFt"] = -5);
 
-        var errors = RulesTable.Validate(trial.Root);
+        var errors = RulesTable.Validate(copy.Root);
         Assert.Contains(errors, e => e.Contains("fielders.center.zFt") && e.Contains("greater than 0"));
 
         // The signed half: the left side of the field is negative x and that is not an error.
@@ -248,68 +247,68 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void TheCornersOfTheOutfieldMustStayOnTheirOwnSides()
     {
-        using var trial = new CopiedRoot();
-        trial.Change("fielders.json", json => json["left"]!["xFt"] = 120);
+        using var copy = new CopiedRoot();
+        copy.Change("fielders.json", json => json["left"]!["xFt"] = 120);
 
-        Assert.Contains(RulesTable.Validate(trial.Root), e => e.Contains("fielders.left.xFt"));
+        Assert.Contains(RulesTable.Validate(copy.Root), e => e.Contains("fielders.left.xFt"));
     }
 
     /// <summary>
-    /// The point of the migration: another data root plays another infield. This is what the
-    /// compact profile will supply, and it never edits the shipped table to do it.
+    /// Another data root plays another infield (here the 90-ft square), and it never edits the
+    /// shipped table to do it.
     /// </summary>
     [Fact]
     public void AnotherDataRootPlaysAnotherInfield()
     {
-        using var trial = new CopiedRoot();
-        trial.Change("infield.json", json =>
+        using var other = new CopiedRoot();
+        other.Change("infield.json", json =>
         {
-            json["baselineFt"] = 80;
-            json["cornerFt"] = 56.57;
-            json["secondFt"] = 113.14;
+            json["baselineFt"] = 90;
+            json["cornerFt"] = 63.64;
+            json["secondFt"] = 127.28;
         });
 
-        var infield = RulesTable.Load(trial.Root).Infield;
+        var infield = RulesTable.Load(other.Root).Infield;
 
-        Assert.Equal(80, infield.BaselineFt);
-        Assert.Equal((56.57, 56.57), (infield.CornerFt, infield.CornerFt));
-        Assert.Equal(113.14, infield.SecondFt);
-        Assert.Equal(60.5, infield.MoundFt);
+        Assert.Equal(90, infield.BaselineFt);
+        Assert.Equal((63.64, 63.64), (infield.CornerFt, infield.CornerFt));
+        Assert.Equal(127.28, infield.SecondFt);
+        Assert.Equal(53.78, infield.MoundFt);
 
         // The shipped table is untouched, and the running process still plays it.
-        Assert.Equal(90, Diamond.Baseline);
+        Assert.Equal(80, Diamond.Baseline);
     }
 
     /// <summary>
     /// The same point for the dress (#729): another data root draws another infield. Without this
-    /// the compact profile would play an 80-ft diamond on 90-ft dirt.
+    /// a root that moves the bags would play its diamond on the shipped dirt.
     /// </summary>
     [Fact]
     public void AnotherDataRootPlaysAnotherDress()
     {
-        using var trial = new CopiedRoot();
-        trial.Change("infield.json", json =>
+        using var other = new CopiedRoot();
+        other.Change("infield.json", json =>
         {
-            json["innerHalfFt"] = 44.44;
-            json["backArcFt"] = 81.78;
+            json["innerHalfFt"] = 50;
+            json["backArcFt"] = 92;
         });
 
-        var infield = RulesTable.Load(trial.Root).Infield;
+        var infield = RulesTable.Load(other.Root).Infield;
 
-        Assert.Equal(44.44, infield.InnerHalfFt);
-        Assert.Equal(81.78, infield.BackArcFt);
+        Assert.Equal(50, infield.InnerHalfFt);
+        Assert.Equal(92, infield.BackArcFt);
 
         // The shipped table is untouched, and the running process still draws it.
-        Assert.Equal(50f, ParkDiamond.InnerHalf);
-        Assert.Equal(92f, ParkDiamond.BackR);
+        Assert.Equal(44.44f, ParkDiamond.InnerHalf);
+        Assert.Equal(81.78f, ParkDiamond.BackR);
     }
 
-    /// <summary>A trial root is named to a whole process, so the control and the trial are two runs to diff.</summary>
+    /// <summary>A data root is named to a whole process, so two roots are two runs to diff.</summary>
     [Fact]
     public void TheNamedRootIsTakenWhenItIsADataRoot()
     {
-        using var trial = new CopiedRoot();
-        Assert.Equal(trial.Root, ContentCatalog.NamedDataRoot(trial.Root));
+        using var copy = new CopiedRoot();
+        Assert.Equal(copy.Root, ContentCatalog.NamedDataRoot(copy.Root));
     }
 
     [Theory]
@@ -323,7 +322,7 @@ public sealed class InfieldGeometryTests
 
     /// <summary>
     /// Pointing at the rules folder instead of the data root must stop. Falling back silently would
-    /// run the control while the operator believed they were running the trial.
+    /// run the shipped root while the operator believed they were running another one.
     /// </summary>
     [Fact]
     public void ARootThatIsNotADataRootIsRefusedRatherThanIgnored()
@@ -336,11 +335,11 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void AnInfieldOutOfRangeIsNamedByPath()
     {
-        using var trial = new CopiedRoot();
-        trial.Change("infield.json", json => json["baselineFt"] = 0);
+        using var copy = new CopiedRoot();
+        copy.Change("infield.json", json => json["baselineFt"] = 0);
 
         Assert.Contains(
-            RulesTable.Validate(trial.Root),
+            RulesTable.Validate(copy.Root),
             e => e.Contains("infield.baselineFt") && e.Contains("greater than 0"));
     }
 
@@ -348,10 +347,10 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void SecondMustSitBeyondTheRubberAndTheCorners()
     {
-        using var trial = new CopiedRoot();
-        trial.Change("infield.json", json => json["secondFt"] = 10);
+        using var copy = new CopiedRoot();
+        copy.Change("infield.json", json => json["secondFt"] = 10);
 
-        var errors = RulesTable.Validate(trial.Root);
+        var errors = RulesTable.Validate(copy.Root);
         Assert.Contains(errors, e => e.Contains("infield.moundFt"));
         Assert.Contains(errors, e => e.Contains("infield.cornerFt"));
     }
@@ -364,16 +363,16 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void TheGrassDiamondMustStayInsideTheBagsAndTheArc()
     {
-        using var trial = new CopiedRoot();
-        trial.Change("infield.json", json => json["innerHalfFt"] = 200);
+        using var copy = new CopiedRoot();
+        copy.Change("infield.json", json => json["innerHalfFt"] = 200);
 
-        var errors = RulesTable.Validate(trial.Root);
+        var errors = RulesTable.Validate(copy.Root);
         Assert.Contains(errors, e => e.Contains("infield.innerHalfFt"));
         Assert.Equal(2, errors.Count(e => e.Contains("infield.innerHalfFt")));
     }
 
     /// <summary>
-    /// The geometry must not survive as a bare literal anywhere in the sim, or a trial root would
+    /// The geometry must not survive as a bare literal anywhere in the sim, or another root would
     /// give a correct sim and a diamond drawn in the old place — #711 found the bags in the play
     /// view and the mound in the pitch reset, none of which would have moved on their own.
     ///
@@ -382,9 +381,9 @@ public sealed class InfieldGeometryTests
     /// fallback for a field the JSON does not name, not a second copy of the table.
     /// </summary>
     [Theory]
-    [InlineData("63.64")]
-    [InlineData("127.28")]
-    [InlineData("60.5")]
+    [InlineData("56.57")]
+    [InlineData("113.14")]
+    [InlineData("53.78")]
     public void NoBareInfieldLiteralIsLeftInTheSource(string literal)
     {
         var offenders = Offenders(literal);
@@ -393,23 +392,13 @@ public sealed class InfieldGeometryTests
     }
 
     /// <summary>
-    /// The same guard for the starts (#725), and it can only hold one of the seven. The rule the
-    /// test above applies is a substring scan, and six of the migrated numbers are plain two- and
-    /// three-digit integers that the sim spells for unrelated reasons: on this branch "78" still
-    /// appears on 24 lines, "72" on 34 and "42" on 28 — colours, glove scales and one irrational
-    /// constant — and "118", "110" and "250" on four or five each (<c>Palette.Sky</c> is
-    /// <c>C(118, 186, 232)</c>). Adding them would fail on lines that have nothing to do with a
-    /// fielder.
-    ///
-    /// <para>
-    /// Centre field's depth is the exception: it appears nowhere else in the sim, so this one
-    /// permanently refuses a re-introduced copy of it. The other six are held by
-    /// <see cref="TheShippedStartsAreTheOnesThatWereMigrated"/> and by the byte-diff of a
-    /// <c>cli match</c> run, which is the gate the PR actually leans on.
-    /// </para>
+    /// The same guard for the starts (#725), held on centre field's depth, which appears nowhere
+    /// else in the sim. The rule is a substring scan, and short numbers such as "64" are spelled by
+    /// the sim for unrelated reasons (colours, glove scales), so the other six are held by
+    /// <see cref="TheShippedStartsAreSpelledOut"/> instead.
     /// </summary>
     [Theory]
-    [InlineData("305")]
+    [InlineData("213.5")]
     public void NoBareFielderStartLiteralIsLeftInTheSource(string literal)
     {
         var offenders = Offenders(literal);
@@ -442,8 +431,8 @@ public sealed class InfieldGeometryTests
     }
 
     /// <summary>
-    /// A whole copy of the shipped data root, free to be edited. The shipped one never is. A trial
-    /// carries only its own diff instead (#716, <see cref="TrialOverlayTests"/>); this fixture is a
+    /// A whole copy of the shipped data root, free to be edited. The shipped one never is. An overlay
+    /// carries only its own files instead (#716, <see cref="TrialOverlayTests"/>); this fixture is a
     /// second root, which is what <see cref="ContentCatalog.DataRootVariable"/> points a process at.
     /// </summary>
     sealed class CopiedRoot : IDisposable
