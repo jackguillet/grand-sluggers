@@ -280,7 +280,7 @@ public sealed class TutorialCatalog
                 var b = pair.Value;
                 Require(pair.Key is "shipped" && b is not null && double.IsFinite(b.CarryFt) && double.IsFinite(b.ExitMph)
                     && double.IsFinite(b.LaunchDeg) && double.IsFinite(b.SprayDeg) && b.CarryFt >= 0 && b.ExitMph >= 0
-                    && ((b.CarryFt > 0) != (b.ExitMph > 0)) && b.LaunchDeg is > 0 and < 90 && Math.Abs(b.SprayDeg) < 45, s.Id + " has invalid ball fixture");
+                    && ((b.CarryFt > 0) != (b.ExitMph > 0)) && b.LaunchDeg is > -90 and < 90 && (b.LaunchDeg > 0 || b.ExitMph > 0) && Math.Abs(b.SprayDeg) < 45, s.Id + " has invalid ball fixture");
             }
         }
         return errors;

@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim;
 /// <para>
 /// <b>The ground under the ball (FD-05, F3-c).</b> Every roll step reads <c>roll</c> from the row of
 /// the zone the ball is in at the start of that step, and every bounce reads <c>bounce</c> — or
-/// <c>skid</c>, when the ball's launch is inside that row's band — from the row of the zone at the
+/// <c>skid</c>, blended by the incoming impact angle on that row — from the row of the zone at the
 /// bounce point (<see cref="GroundZones.RowAt"/>, on the table the caller hands over). A carom reads
 /// the row of the wall material the segment is made of (<see cref="WallMaterial.OfSegment"/>). The
 /// two loose-ball models the live play runs, the overthrow and the local bobble, live here beside
@@ -97,7 +97,7 @@ public static class BallFlight
     /// <summary>
     /// One integration of the flight and ground physics, appending to <paramref name="list"/> from the given state until the ball
     /// rests or the clock runs out. <paramref name="zones"/> is the park's ground (null for the open field, which stands on
-    /// <see cref="OpenFieldGround"/>); <paramref name="launchDeg"/> is the ball's, judged against each bounce's own skid band.
+    /// <see cref="OpenFieldGround"/>); <paramref name="launchDeg"/> is retained for caller compatibility; impact velocity determines each ground response.
     /// </summary>
     static void Run(List<Sample> list, RulesTable rules, FieldBounds.Boundary? walls, GroundZones? zones, double t0, double x, double y, double z,
         double vx, double vy, double vz, double wx, double wz, double launchDeg, double scale, bool rolling, bool grounded)
@@ -173,7 +173,7 @@ public static class BallFlight
                 }
             }
 
-            if (ny <= 0 && (grounded || t > f.Landing.FirstGrassMinSec))
+            if (ny <= 0)
             {
                 ny = 0;
                 if (gone)
@@ -187,12 +187,15 @@ public static class BallFlight
                 if (evt == SampleEvent.None) evt = SampleEvent.Ground;
                 if (vy < 0)
                 {
-                    // The row under the bounce point: its hop, or its skid when the ball's launch is inside that ground's band.
+                    // A shallow impact skids; a steep one hops. Blend continuously from the incoming
+                    // velocity on this surface, including every later bounce and deflection.
                     var ground = Under(nx, nz);
-                    var skid = launchDeg >= ground.Skid.LaunchMinDeg && launchDeg < ground.Skid.LaunchMaxDeg;
-                    var minVy = skid ? ground.Skid.MinVy : ground.Bounce.MinVy;
-                    var rest = skid ? ground.Skid.Restitution : ground.Bounce.Restitution;
-                    var horiz = skid ? ground.Skid.Horizontal : ground.Bounce.Horizontal;
+                    var impact = Math.Atan2(-vy, Math.Sqrt(vx * vx + vz * vz)) * 180 / Math.PI;
+                    var blend = Math.Clamp((impact - ground.Skid.ImpactMinDeg)
+                        / (ground.Skid.ImpactMaxDeg - ground.Skid.ImpactMinDeg), 0, 1);
+                    var minVy = ground.Skid.MinVy + blend * (ground.Bounce.MinVy - ground.Skid.MinVy);
+                    var rest = ground.Skid.Restitution + blend * (ground.Bounce.Restitution - ground.Skid.Restitution);
+                    var horiz = ground.Skid.Horizontal + blend * (ground.Bounce.Horizontal - ground.Skid.Horizontal);
                     if (-vy < minVy)
                     {
                         vy = 0;

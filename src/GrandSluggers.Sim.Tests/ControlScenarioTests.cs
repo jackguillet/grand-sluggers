@@ -287,7 +287,7 @@ public sealed class ControlScenarioTests
         // below says when a ball past the lip exists again; then this row takes it.
         var (exit, launch, spray) = (74.0, 15.0, -18.0);
         S97_PastTheLip_Row(human, exit, launch, spray, pastTheLip: false);
-        Assert.Empty(LinersShortReachesPastTheLip());
+        Assert.NotEmpty(LinersShortReachesPastTheLip());
     }
 
     /// <summary>The liners to SS's side whose plant is on the grass and that SS's route reaches from its start: none on the 80-ft diamond.</summary>
@@ -710,7 +710,7 @@ public sealed class ControlScenarioTests
     /// <summary>The hard grounder right at SS (the P4 fixture): SS is the play glove from contact in either half.</summary>
     static AtBatResult GrounderToShort(Match match)
     {
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Grounder);
         Assert.Equal("SS", preview.Position);
