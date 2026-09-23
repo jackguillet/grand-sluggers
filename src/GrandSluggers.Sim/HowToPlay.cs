@@ -232,7 +232,7 @@ public static partial class HowToPlay
             "A pale ring in SET marks your rubber, not where the pitch will cross. In the air, stick L/R break.",
             "Take outside the white frame: ball. Swing and miss outside: strike.",
             "D-pad base + South: pickoff before charge; on the bag is safe.",
-            "Select before charging opens a window: inspect any fielder’s stats, ARM and chemistry. Left/right browses; Select confirms, East cancels.",
+            "Select before charging opens Arrange defense: inspect any fielder’s stats, ARM and chemistry. Stick moves; South picks two positions to swap. Select quick-swaps to P. East cancels / closes.",
         ],
         [
             "A/D or mouse walk the rubber (pitch) or the box (hit).",
@@ -241,7 +241,7 @@ public static partial class HowToPlay
             "A pale ring in SET marks your rubber, not where the pitch will cross. In the air, A/D break.",
             "Take outside the white frame: ball. Swing and miss outside: strike.",
             "1/2/3/4 + Space: pickoff before charge; on the bag is safe.",
-            "R before charging opens a window: inspect any fielder’s stats, ARM and chemistry. A/D or hover browses; R confirms, G cancels.",
+            "R before charging opens Arrange defense: inspect any fielder’s stats, ARM and chemistry. WASD / hover moves; Space / click picks two positions to swap. R quick-swaps to P. G cancels / closes.",
         ]),
         new("running", "Running", "running",
         [

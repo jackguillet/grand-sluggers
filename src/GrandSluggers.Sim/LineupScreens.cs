@@ -657,30 +657,7 @@ public sealed class LineupScreens
         return Math.Max(1, (n + LineupLayout.PoolColumns - 1) / LineupLayout.PoolColumns);
     }
 
-    int NeighborGlove(int dx, int dy)
-    {
-        var cur = Diamond.Order[Math.Clamp(GloveIndex, 0, Diamond.Order.Length - 1)];
-        var uv = LineupLayout.FieldSpot(cur);
-        var best = -1;
-        var bestDist = double.MaxValue;
-        for (var i = 0; i < Diamond.Order.Length; i++)
-        {
-            if (i == GloveIndex) continue;
-            var p = LineupLayout.FieldSpot(Diamond.Order[i]);
-            var vx = p.X - uv.X;
-            var vy = uv.Y - p.Y;
-            var mag = Math.Sqrt(vx * vx + vy * vy);
-            if (mag < 1e-6) continue;
-            var dot = (vx * dx + vy * dy) / mag;
-            if (dot < 0.35) continue;
-            if (mag < bestDist)
-            {
-                bestDist = mag;
-                best = i;
-            }
-        }
-        return best;
-    }
+    int NeighborGlove(int dx, int dy) => LineupLayout.NeighborPosition(GloveIndex, dx, dy);
 
     Character?[]? EditableRow() => EditableRow(_acting);
 
@@ -864,6 +841,32 @@ public static class LineupLayout
         "LF" => (0.15, 0.22), "CF" => (0.50, 0.04), "RF" => (0.85, 0.22),
         _ => (0.50, 0.66)
     };
+
+    /// <summary>Nearest glove in a stick direction, shared by pregame and in-game defense editing.</summary>
+    public static int NeighborPosition(int index, int dx, int dy)
+    {
+        var cur = Diamond.Order[Math.Clamp(index, 0, Diamond.Order.Length - 1)];
+        var uv = LineupLayout.FieldSpot(cur);
+        var best = -1;
+        var bestDist = double.MaxValue;
+        for (var i = 0; i < Diamond.Order.Length; i++)
+        {
+            if (i == index) continue;
+            var p = LineupLayout.FieldSpot(Diamond.Order[i]);
+            var vx = p.X - uv.X;
+            var vy = uv.Y - p.Y;
+            var mag = Math.Sqrt(vx * vx + vy * vy);
+            if (mag < 1e-6) continue;
+            var dot = (vx * dx + vy * dy) / mag;
+            if (dot < 0.35) continue;
+            if (mag < bestDist)
+            {
+                bestDist = mag;
+                best = i;
+            }
+        }
+        return best;
+    }
 
     public const double FieldHomeY = .90;
     public const double FieldRadius = .90;

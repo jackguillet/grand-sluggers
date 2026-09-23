@@ -923,7 +923,7 @@ namespace GrandSluggers.EditorTools
             var before = match.Pitcher.Id;
             var select = State().WithButton(GamepadButton.Select);
             Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
-            var pick = Get<PitcherSwapPick>(play, "_swapPick");
+            var pick = Get<DefenseSetupPick>(play, "_swapPick");
             Require(pick != null, "Select did not open the swap pick.");
             var start = pick.Index;
             Tick(play, "TickSet", State(), State());
@@ -933,7 +933,7 @@ namespace GrandSluggers.EditorTools
                 "Cancelling the window changed or consumed the pitcher swap.");
             Tick(play, "TickSet", State(), State());
             Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
-            pick = Get<PitcherSwapPick>(play, "_swapPick");
+            pick = Get<DefenseSetupPick>(play, "_swapPick");
             Require(pick != null && pick.Index == start, "The cancelled window could not reopen.");
             Tick(play, "TickSet", State(), State());
             var right = State().WithButton(GamepadButton.DpadRight);
@@ -949,7 +949,7 @@ namespace GrandSluggers.EditorTools
             Tick(play, "TickSet", State(), State());
             var chosen = pick.Current.Who.Id;
             Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
-            Require(Get<object>(play, "_swapPick") == null, "Select again did not close the pick.");
+            Require(Get<object>(play, "_swapPick") != null, "Quick pitcher swap should keep defense editing open.");
             Require(match.Pitcher.Id == chosen && match.Pitcher.Id != before, "Select again did not put the pick on the mound.");
             Require(Phase(play) == "Set", "The swap left SET.");
             Tick(play, "TickSet", State(), State());

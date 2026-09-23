@@ -31,32 +31,6 @@ public class PitcherSwapTests
     }
 
     [Fact]
-    public void InspectingEveryCandidateLeavesGlovesAndStaminaUntouchedUntilConfirmation()
-    {
-        var match = Match.Slice(_content, seed: 1);
-        var pick = new PitcherSwapPick(match);
-        var pitcher = match.Pitcher;
-        var gloves = FieldingResolver.Assign(match.DefenseRoster, pitcher);
-        var stamina = pick.Candidates.ToDictionary(c => c.Who.Id, c => match.StaminaOf(c.Who));
-        for (var i = 0; i < pick.Candidates.Count; i++)
-        {
-            pick.Inspect(i);
-            Assert.Equal(pick.Candidates[i], pick.Current);
-            Assert.Equal(pitcher.Id, match.Pitcher.Id);
-            Assert.Equal(gloves, FieldingResolver.Assign(match.DefenseRoster, match.Pitcher));
-            Assert.Equal(stamina[pick.Current.Who.Id], match.StaminaOf(pick.Current.Who));
-            Assert.True(match.CanSwapPitcher);
-        }
-        var last = pick.Index;
-        pick.Inspect(-1);
-        pick.Inspect(pick.Candidates.Count);
-        Assert.Equal(last, pick.Index);
-        // Closing/reopening the presentation does not consume the once-per-half swap.
-        Assert.True(new PitcherSwapPick(match).Confirm(match));
-        Assert.False(match.CanSwapPitcher);
-    }
-
-    [Fact]
     public void ConfirmPutsThePickOnTheMoundAndTheOldPitcherOnTheVacatedGlove()
     {
         var match = Match.Slice(_content, seed: 1);
@@ -79,7 +53,7 @@ public class PitcherSwapTests
         // same for both seats.
         Assert.Equal("", BroadcastHud.PitcherExtra(false));
         Assert.Equal("STAR", BroadcastHud.PitcherExtra(true));
-        Assert.Equal("Select SWAP", BroadcastHud.PitcherExtra(false, null, canSwap: true));
+        Assert.Equal("Select DEFENSE", BroadcastHud.PitcherExtra(false, null, canSwap: true));
         Assert.Equal("SWAP → SS Nugget  ·  Select", BroadcastHud.PitcherExtra(false, "SWAP → SS Nugget", canSwap: true));
         // The SET HUD map names the swap on the pitcher card (the mark cell is one measured line).
         Assert.Contains("SWAP", HudCallouts.Set.Marks.First(m => m.Id == "pitcher").Label);

@@ -27,7 +27,7 @@ public static class BroadcastHud
         var s = "";
         if (star) s += "STAR  ";
         if (!string.IsNullOrEmpty(swapTell)) s += swapTell + "  ·  Select";
-        else if (canSwap) s += "Select SWAP";
+        else if (canSwap) s += "Select DEFENSE";
         return s.Trim();
     }
 
