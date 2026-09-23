@@ -47,19 +47,15 @@
     "maxDeg": 52
   },
   "bunt": {
-    "exitMul": 0.42,
     "launchMinDeg": 3,
     "launchSpanDeg": 9,
-    "spraySpanDeg": 28,
     "popAboveCenterFt": 0.8,
     // PH-14-R2: the held side (LT / J third, RT / L first) leans the bunt this many degrees of spray toward its
     // side. 12 is the full stick's lean the bunt had before it had a side (spray.stickDeg).
     "sideDeg": 12,
-    // PH-14-R1 trial switch: byContact false keeps today's response (the ordinary exit x exitMul, a sour bunt pops,
-    // the zone's spread + spraySpanDeg). true (trials/bunt): the exit and the spread are the bunt's own by
-    // quality, and a sour bunt pops only above the bat's center; below it the bat chops it down at the sour pace.
+    // PH-14-R1: the exit and the spread are the bunt's own by quality (no Power, charge, star, pitch or tired-arm
+    // term), and a sour bunt pops only above the bat's center; below it the bat chops it down at the sour pace.
     "response": {
-      "byContact": false,
       "exitMph": {
         "perfect": 22,
         "nice": 28,
@@ -150,9 +146,8 @@
       "splitStat": 2,
       "techniqueMin": 7
     },
-    "decideLeadSec": 0.12,
-    // #892 (PH-18): false reads the final crossing at the plate plane; true commits from the flight as it stands at the
-    // commit instant (the break so far, no future steering), so a late steer can beat it. trials/cpu-read switches it on.
-    "commitRead": false
+    // PH-18: the CPU batter commits this long before the square press, from the flight as it stands then (the break so
+    // far, no future steering), so a late steer can beat it.
+    "decideLeadSec": 0.12
   }
 }
