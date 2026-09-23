@@ -99,7 +99,7 @@ public sealed class StealScenarioTests
         var run = RunSteal(match, Scenario.Paint, Scenario.Take, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
         Assert.True(run.PitchKind is PlayKind.TakeBall or PlayKind.TakeStrike, run.PitchKind.ToString());
         Assert.True(run.Broke, "the armed runner broke on the pitch (D2)");
-        var throwToSecond = Assert.Single(run.Throws.Where(t => t.Bag == 2));
+        var throwToSecond = Assert.Single(run.Throws, t => t.Bag == 2);
         Assert.Equal("C", throwToSecond.FromPos);
         AssertStealRaceAtBag(run, runner, 2);
         // The bodies at Time ride the outcome (#574): the catcher near the plate, the cover on second.
@@ -121,7 +121,7 @@ public sealed class StealScenarioTests
         var whiff = Scenario.PitchAt(0.9, StrikeZoneGeometry.CenterY);
         var run = RunSteal(match, whiff, Scenario.SwingAt(14), LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
         Assert.Equal(PlayKind.SwingMiss, run.PitchKind);
-        Assert.Single(run.Throws.Where(t => t.Bag == 2));
+        Assert.Single(run.Throws, t => t.Bag == 2);
         AssertStealRaceAtBag(run, runner, 2);
     }
 
@@ -507,7 +507,7 @@ public sealed class StealScenarioTests
         var tag = Assert.Single(run.Play.Outcome!.OutsMade);
         Assert.Equal((OutType.Tag, 4, 3, walker.Id), (tag.Type, tag.Bag, tag.FromBag, tag.Runner.Id));
         Assert.Equal(PlayKind.CaughtStealing, run.Play.Kind);
-        Assert.Empty(run.Throws.Where(t => t.Bag == 4 && t.FromPos == "C"));
+        Assert.DoesNotContain(run.Throws, t => t.Bag == 4 && t.FromPos == "C");
         Assert.Equal(0, run.Play.RunsScored);
 
         // A Run-9 body armed inside the window, on a changeup, has the race: whichever way it goes it is the plate that decides.
@@ -667,7 +667,7 @@ public sealed class StealScenarioTests
         var facts = run.Play.Outcome!;
         if (niceRelease)
         {
-            var throwToSecond = Assert.Single(run.Throws.Where(t => t.Bag == 2));
+            var throwToSecond = Assert.Single(run.Throws, t => t.Bag == 2);
             Assert.True(throwToSecond.ReleaseSec <= Frame + 1e-9, $"released at once; got {throwToSecond.ReleaseSec:0.000}");
             var tag = Assert.Single(facts.OutsMade);
             Assert.Equal((OutType.Tag, 2, 1), (tag.Type, tag.Bag, tag.FromBag));
@@ -675,7 +675,7 @@ public sealed class StealScenarioTests
         }
         else
         {
-            Assert.Single(run.Throws.Where(t => t.Bag == 2)); // the catcher throws on a close race rather than conceding (§8.8)
+            Assert.Single(run.Throws, t => t.Bag == 2); // the catcher throws on a close race rather than conceding (§8.8)
             Assert.Empty(facts.OutsMade);
             Assert.Contains(facts.Moves, m => m.FromBag == 1 && m.ToBag == 2);
             Assert.Equal(PlayKind.StolenBase, run.Play.Kind);
