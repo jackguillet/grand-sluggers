@@ -2709,7 +2709,7 @@
         {
           "id": "PH-14-R1",
           "question": "How should contact quality affect bunts?",
-          "status": "direction-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -2740,7 +2740,8 @@
           "numeric_targets": null,
           "implementation_issues": [
             "#803",
-            "#935"
+            "#935",
+            "#953"
           ],
           "validation_evidence": [
             {
@@ -2751,6 +2752,22 @@
               "scenarios": "S-167, S-168, S-169",
               "summary": "batting.bunt.response.byContact: off on the shipped root (today's response), on in trials/bunt: exit 22 / 28 / 40 mph and spray spread 10 / 20 / 44 degrees for perfect / nice / sour; a sour bunt pops above the bat's center and chops hard below it; Power and charge do not harden it.",
               "gate": "Needs Jack's trial acceptance."
+            },
+            {
+              "kind": "shipped-promotion",
+              "pr": "#953",
+              "revision": "a0549c2b",
+              "promoted": "bunt response by contact is the only bunt response; batting.bunt.response.byContact, bunt.exitMul, bunt.spraySpanDeg and trials/bunt removed",
+              "test": "GrandSluggers.Sim.Tests.BuntHoldScenarioTests",
+              "scenarios": "S-158, S-167, S-168, S-169",
+              "summary": "Exit 22 / 28 / 40 mph and spray spread 10 / 20 / 44 degrees for perfect / nice / sour; a sour bunt pops above the bat's center and is chopped at 40 mph below it; no Power, charge, star, pitch or tired-arm term. 16 of 30 cli match seeds differ. No balance pass.",
+              "approval": {
+                "by": "Jack",
+                "date": "2026-09-23",
+                "quote": "1-3 approve",
+                "kind": "chat",
+                "note": "Approved in chat without a sitting on the trial window."
+              }
             }
           ],
           "human_acceptance": null,
@@ -4913,7 +4930,7 @@
         {
           "id": "PH-16-R4",
           "question": "Should Star Pitches and Star Swings share a resource pool?",
-          "status": "direction-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -4944,7 +4961,8 @@
           "implementation_issues": [
             "#803",
             "#940",
-            "#936, #940"
+            "#936, #940",
+            "#952"
           ],
           "validation_evidence": [
             {
@@ -4964,6 +4982,22 @@
               "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
               "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
               "gate": "Needs Jack's trial acceptance."
+            },
+            {
+              "kind": "shipped-promotion",
+              "pr": "#952",
+              "revision": "0c4d7199",
+              "promoted": "stars.json: tier prices low / mid / top 1 / 2 / 3, guest-captain surcharge 1, startingReserve 3, gains.plateAppearance 0.1; trials/stars removed",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177, S-180 ... S-185",
+              "summary": "Tier assignment as built (Rio, Konga, Ashlord top; Vale, Zig, Brondo, Fenn mid; role players low); event bonuses, the CPU's per-pitch special chance and keyboard Q unchanged by Jack's choice. 23 of 30 seeds differ. No balance pass.",
+              "approval": {
+                "by": "Jack",
+                "date": "2026-09-23",
+                "quote": "1-3 approve",
+                "kind": "chat",
+                "note": "Approved in chat without a sitting on the trial window."
+              }
             }
           ],
           "human_acceptance": null,
@@ -4976,7 +5010,7 @@
         {
           "id": "PH-16-R5",
           "question": "How should teams earn Stars?",
-          "status": "direction-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -5007,7 +5041,8 @@
           "implementation_issues": [
             "#803",
             "#940",
-            "#936, #940"
+            "#936, #940",
+            "#952"
           ],
           "validation_evidence": [
             {
@@ -5027,6 +5062,22 @@
               "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
               "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
               "gate": "Needs Jack's trial acceptance."
+            },
+            {
+              "kind": "shipped-promotion",
+              "pr": "#952",
+              "revision": "0c4d7199",
+              "promoted": "stars.json: tier prices low / mid / top 1 / 2 / 3, guest-captain surcharge 1, startingReserve 3, gains.plateAppearance 0.1; trials/stars removed",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177, S-180 ... S-185",
+              "summary": "Tier assignment as built (Rio, Konga, Ashlord top; Vale, Zig, Brondo, Fenn mid; role players low); event bonuses, the CPU's per-pitch special chance and keyboard Q unchanged by Jack's choice. 23 of 30 seeds differ. No balance pass.",
+              "approval": {
+                "by": "Jack",
+                "date": "2026-09-23",
+                "quote": "1-3 approve",
+                "kind": "chat",
+                "note": "Approved in chat without a sitting on the trial window."
+              }
             }
           ],
           "human_acceptance": null,
@@ -5039,7 +5090,7 @@
         {
           "id": "PH-16-R6",
           "question": "Should teams start with Stars?",
-          "status": "direction-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -5070,7 +5121,8 @@
           "implementation_issues": [
             "#803",
             "#940",
-            "#936, #940"
+            "#936, #940",
+            "#952"
           ],
           "validation_evidence": [
             {
@@ -5090,6 +5142,22 @@
               "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
               "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
               "gate": "Needs Jack's trial acceptance."
+            },
+            {
+              "kind": "shipped-promotion",
+              "pr": "#952",
+              "revision": "0c4d7199",
+              "promoted": "stars.json: tier prices low / mid / top 1 / 2 / 3, guest-captain surcharge 1, startingReserve 3, gains.plateAppearance 0.1; trials/stars removed",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177, S-180 ... S-185",
+              "summary": "Tier assignment as built (Rio, Konga, Ashlord top; Vale, Zig, Brondo, Fenn mid; role players low); event bonuses, the CPU's per-pitch special chance and keyboard Q unchanged by Jack's choice. 23 of 30 seeds differ. No balance pass.",
+              "approval": {
+                "by": "Jack",
+                "date": "2026-09-23",
+                "quote": "1-3 approve",
+                "kind": "chat",
+                "note": "Approved in chat without a sitting on the trial window."
+              }
             }
           ],
           "human_acceptance": null,
@@ -5102,7 +5170,7 @@
         {
           "id": "PH-16-R7",
           "question": "Should specials have different prices?",
-          "status": "direction-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -5151,7 +5219,8 @@
           "implementation_issues": [
             "#803",
             "#936",
-            "#936, #940"
+            "#936, #940",
+            "#952"
           ],
           "validation_evidence": [
             {
@@ -5171,6 +5240,22 @@
               "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
               "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
               "gate": "Needs Jack's trial acceptance."
+            },
+            {
+              "kind": "shipped-promotion",
+              "pr": "#952",
+              "revision": "0c4d7199",
+              "promoted": "stars.json: tier prices low / mid / top 1 / 2 / 3, guest-captain surcharge 1, startingReserve 3, gains.plateAppearance 0.1; trials/stars removed",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177, S-180 ... S-185",
+              "summary": "Tier assignment as built (Rio, Konga, Ashlord top; Vale, Zig, Brondo, Fenn mid; role players low); event bonuses, the CPU's per-pitch special chance and keyboard Q unchanged by Jack's choice. 23 of 30 seeds differ. No balance pass.",
+              "approval": {
+                "by": "Jack",
+                "date": "2026-09-23",
+                "quote": "1-3 approve",
+                "kind": "chat",
+                "note": "Approved in chat without a sitting on the trial window."
+              }
             }
           ],
           "human_acceptance": null,
@@ -5673,7 +5758,7 @@
         {
           "id": "PH-16-R16",
           "question": "What sets each team's starting Stars?",
-          "status": "direction-accepted",
+          "status": "implemented",
           "options": [
             {
               "id": "1",
@@ -5709,7 +5794,8 @@
           "implementation_issues": [
             "#803",
             "#940",
-            "#936, #940"
+            "#936, #940",
+            "#952"
           ],
           "validation_evidence": [
             {
@@ -5729,6 +5815,22 @@
               "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
               "summary": "trials/stars: tier prices 1 / 2 / 3 with a guest-captain surcharge of 1, starting reserve 3, base gain 0.1 per completed plate appearance. 22 of 30 seeds play differently. CPU pools sit near the 5-star cap in both; the CPU's special rate follows its per-pitch chance, not its stars.",
               "gate": "Needs Jack's trial acceptance."
+            },
+            {
+              "kind": "shipped-promotion",
+              "pr": "#952",
+              "revision": "0c4d7199",
+              "promoted": "stars.json: tier prices low / mid / top 1 / 2 / 3, guest-captain surcharge 1, startingReserve 3, gains.plateAppearance 0.1; trials/stars removed",
+              "test": "GrandSluggers.Sim.Tests.StarResourceScenarioTests",
+              "scenarios": "S-170 ... S-177, S-180 ... S-185",
+              "summary": "Tier assignment as built (Rio, Konga, Ashlord top; Vale, Zig, Brondo, Fenn mid; role players low); event bonuses, the CPU's per-pitch special chance and keyboard Q unchanged by Jack's choice. 23 of 30 seeds differ. No balance pass.",
+              "approval": {
+                "by": "Jack",
+                "date": "2026-09-23",
+                "quote": "1-3 approve",
+                "kind": "chat",
+                "note": "Approved in chat without a sitting on the trial window."
+              }
             }
           ],
           "human_acceptance": null
@@ -6028,7 +6130,7 @@
       "id": "PH-18",
       "area": "CPU",
       "question": "What information and commitment rules may CPU players use?",
-      "status": "direction-accepted",
+      "status": "implemented",
       "depends_on": [
         "PH-03",
         "PH-04",
@@ -6075,7 +6177,8 @@
         "#835",
         "#855",
         "#883",
-        "#892"
+        "#892",
+        "#953"
       ],
       "validation_evidence": [
         {
@@ -6134,6 +6237,22 @@
           "summary": "The batting half of PH-18 (P2-g). Audit: batting.cpu.decideLeadSec named when the CPU batter commits but not what it read; Match.CpuSwing classified PitchFlight.Crossing (u = 1) of whatever command it was handed. The client with a human pitching already handed it the stick so far; the headless sim (AutoPlay, cli match) and a CPU pitcher handed it the whole steer, a destination the batter cannot see. New switch batting.cpu.commitRead (false shipped, true in trials/cpu-read, one overridden file): on, CpuSwing reads Match.CpuReadPitch, the delivery with the stick's break frozen at the commit (a watched break when the caller passes one - AtBatDirector passes its drawn _breakX - else the stick held from release, min(|BreakX|, BreakReach(Pitch, commit))), and judges the zone on that read. The switch adds no draw: shipped commands and draw order are unchanged (S-139) and cli match --seed 7 is byte-identical to main apart from the data-root line. Under the trial a steer after the commit is decided from the pre-commit read, command for command (S-138).",
           "numeric_trial": "none. No number was selected or moved. Seed 7 under trials/cpu-read is identical to the shipped log: on today's pitching.flight numbers most CPU steers reach the whole reach by the commit, so the trial is felt from the mound. The CPU's timing skill source, (11 - Contact) x errorFramesPerBatStat, already keys to Contact and was left alone (P2-b re-reads it).",
           "gate": "Jack sits trials/cpu-read: does a late steer fool the CPU batter fairly?"
+        },
+        {
+          "kind": "shipped-promotion",
+          "pr": "#953",
+          "revision": "a0549c2b",
+          "promoted": "the CPU batter commits from the flight as it stands; batting.cpu.commitRead, its off path, Match.CpuSwing's inZone parameter and trials/cpu-read removed",
+          "test": "GrandSluggers.Sim.Tests.CpuReadScenarioTests",
+          "scenarios": "S-04, S-28, S-141, S-142, S-143",
+          "summary": "A steer the pitcher starts after the CPU's commit can beat it. Test methods renamed S141 ... S143 to match their rows. No balance pass.",
+          "approval": {
+            "by": "Jack",
+            "date": "2026-09-23",
+            "quote": "1-3 approve",
+            "kind": "chat",
+            "note": "Approved in chat without a sitting on the trial window."
+          }
         }
       ],
       "human_acceptance": null,
@@ -6923,6 +7042,11 @@
     {
       "date": "2026-09-23",
       "event": "Jack sat the shipped window main-6ee562315e and said \"done. looks good.\": sittings 4 and 5 and the fatigue fade. PH-13, PH-13-R1, PH-14-R2, PH-14-R3, PH-14-R4, PH-14-R5, PH-14-R6, PH-16-R10, PH-16-R11, PH-16-R12, PH-16-R17, PH-08-R4 record human_acceptance; the direction rows among them move to human-accepted, PH-08-R4 stays implemented. The three trials were not on the window and are untouched.",
+      "pr": "this PR"
+    },
+    {
+      "date": "2026-09-23",
+      "event": "Jack approved the three open trials in chat (\"1-3 approve\"), with no sitting on their windows, and left the children's bunt and Star questions as built. #952 promoted trials/stars and #953 promoted trials/bunt and trials/cpu-read; PH-14-R1, PH-18, PH-16-R4 ... R7 and R16 are implemented. human_acceptance untouched: no playtest of the promoted numbers is recorded.",
       "pr": "this PR"
     }
   ]
