@@ -12,8 +12,7 @@ public class CarnivalFrontTests
         Assert.Contains("play ball", CarnivalFront.PlayBall, StringComparison.OrdinalIgnoreCase);
         Assert.True(CarnivalFront.HarborIsTheProduct("harbor-diamond"));
         Assert.False(CarnivalFront.HarborIsTheProduct("crystal-rink"));
-        Assert.Contains("real diamond", CarnivalFront.Gimmick("harbor-diamond", false), StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Fireworks", CarnivalFront.Gimmick("harbor-diamond", true), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("real diamond", CarnivalFront.FieldCard(ContentCatalog.Load().MustPark("harbor-diamond"), ContentCatalog.Load().Rules)[0], StringComparison.OrdinalIgnoreCase);
         Assert.Equal("DAY", CarnivalFront.SkyGag(false));
         Assert.Equal("NIGHT", CarnivalFront.SkyGag(true));
         Assert.Equal("HOME", CarnivalFront.SeatMark(true));
@@ -36,13 +35,29 @@ public class CarnivalFrontTests
         Assert.Contains("2 players", CarnivalFront.SelectHelp, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// The field card (FD-15, F8-a) is read from the played park: Crystal's ice, glass and air and its freezers; Funfair's cans
+    /// and train by day and its chompers only at night; every hazard type and every ground a park can name has its line; and
+    /// hazards off leaves the ground, wall and air lines and no hazard's.
+    /// </summary>
     [Fact]
-    public void CrystalAndFunfairGimmicksChangeAtNight()
+    public void F8A_TheFieldCardIsReadFromThePlayedPark()
     {
-        Assert.Contains("Ice", CarnivalFront.Gimmick("crystal-rink", false));
-        Assert.Contains("lights", CarnivalFront.Gimmick("crystal-rink", true), StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Pipes", CarnivalFront.Gimmick("funfair-park", false));
-        Assert.Contains("Chompers", CarnivalFront.Gimmick("funfair-park", true));
+        var c = ContentCatalog.Load();
+        IReadOnlyList<string> Card(string id, bool night = false, bool hazards = true) =>
+            CarnivalFront.FieldCard(PlayedPark.Of(c.MustPark(id), night, hazards, c.Rules.Hazards), c.Rules);
+        var crystal = Card("crystal-rink");
+        Assert.Contains(crystal, l => l.StartsWith("Ice outfield", StringComparison.Ordinal));
+        Assert.Contains(crystal, l => l.StartsWith("Glass boards", StringComparison.Ordinal));
+        Assert.Contains(crystal, l => l.StartsWith("Heavy air", StringComparison.Ordinal));
+        Assert.Contains(crystal, l => l.StartsWith("Freezers", StringComparison.Ordinal) && l.Contains("3 s", StringComparison.Ordinal));
+        Assert.Contains(Card("funfair-park"), l => l.StartsWith("Warp cans", StringComparison.Ordinal));
+        Assert.DoesNotContain(Card("funfair-park"), l => l.StartsWith("Chompers", StringComparison.Ordinal));
+        Assert.Contains(Card("funfair-park", night: true), l => l.StartsWith("Chompers", StringComparison.Ordinal));
+        var off = Card("crystal-rink", hazards: false);
+        Assert.Contains(off, l => l.StartsWith("Ice outfield", StringComparison.Ordinal));
+        Assert.DoesNotContain(off, l => l.StartsWith("Freezers", StringComparison.Ordinal));
+        foreach (var type in HazardType.All) Assert.NotNull(CarnivalFront.HazardLine(type, c.Rules));
     }
 
     [Fact]
