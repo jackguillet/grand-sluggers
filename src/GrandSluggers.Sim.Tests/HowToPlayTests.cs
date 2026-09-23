@@ -29,7 +29,7 @@ public class HowToPlayTests
     [InlineData(InputScheme.Keys)]
     public void ScreenPageExplainsTheLiveHandoffAndImmediateReturn(InputScheme scheme)
     {
-        var lines = HowToPlay.Must("screen").Shown(scheme);
+        var lines = HowToPlay.Must("screen-live").Shown(scheme);
         Assert.Contains(lines, line => line.Contains("Live: runners and outs"));
         Assert.Contains(lines, line => line.Contains("Effects never hide runners or outs"));
         Assert.Contains(lines, line => line.Contains("plate HUD returns immediately"));
