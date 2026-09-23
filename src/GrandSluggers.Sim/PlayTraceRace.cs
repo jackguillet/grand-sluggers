@@ -43,7 +43,9 @@ public enum PlayTraceMarkKind
     /// <summary>The ball went into a redirect (F4-c): <see cref="PlayTraceMark.Hazard"/> is the mouth, its <c>Exit</c> the instance it came out of.</summary>
     BallRedirected,
     /// <summary>The ball hit a reward target (F4-c): <see cref="PlayTraceMark.Hazard"/> is the sign.</summary>
-    RewardHit
+    RewardHit,
+    /// <summary>The ball caromed off a solid body or mover (F4-f): <see cref="PlayTraceMark.Hazard"/> is the body, at the rim point.</summary>
+    BodyCarom
 }
 
 /// <summary>T is the simulation execution clock. LowerT bounds sampled runner arrivals; animation release is unobserved.</summary>
@@ -104,7 +106,7 @@ public sealed partial class LivePlaySystem
         return Assigned().OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv =>
         {
             var pos = kv.Key;
-            var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Diamond.Positions[pos];
+            var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Starts[pos];
             var dash = pos == GlovePos && pad.EastHeld;
             return new PlayTraceFielder(pos, kv.Value, at.Item1, at.Item2, ReadyAt(pos), CanMove(pos), pos == GlovePos,
                 HumanGlove(pos), FieldingResolver.ChaseSpeedFt(kv.Value, pos, Preview, R, dash), Preview?.Frozen ?? false,

@@ -141,7 +141,7 @@ public sealed class NightBlockTests
         }
 
         var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: "funfair-park", night: true, hazards: false);
-        Assert.Equal([HazardType.Train], match.Park.Hazards.Select(h => h.Type));
+        Assert.Empty(match.Park.Hazards); // the train is a mover since F4-f, so the switch removes it too
         Assert.Null(match.Park.Night);
     }
 
@@ -242,7 +242,6 @@ public sealed class NightBlockTests
         Assert.Contains("type must be one of", Refusal("park 'funfair-park' night.hazards[3] "), StringComparison.Ordinal);
         Assert.Contains("radius must be greater than 0", Refusal("park 'funfair-park' night.hazards[4] "), StringComparison.Ordinal);
         Assert.Contains("type 'climb_wall' is a wallTrait, which the hazards switch keeps", Refusal("park 'funfair-park' night.hazards[5] "), StringComparison.Ordinal);
-        Assert.Contains("type 'tree' is a decoration, which the hazards switch keeps", Refusal("park 'funfair-park' night.hazards[6] "), StringComparison.Ordinal);
         Assert.Contains("crosses first base's pad by", Refusal("park 'funfair-park' night.hazards[7] "), StringComparison.Ordinal);
         var nightBreath = Refusal("park 'funfair-park' night.hazards[8] ");
         Assert.Contains("radius 4 (6.4 at night, hazards.fireBreath.nightRadiusMul 1.6) crosses the first-second lane by 1.40 ft",
@@ -311,12 +310,15 @@ public sealed class NightBlockTests
     /// (no phonyball whiff roll) change play again, so the rows are re-recorded on top of F4-c. P4-b's held bunt
     /// changed the CPU sac bunt (a side drawn with the square, no timing or aim draws), so they are re-recorded again.
     /// </summary>
+    // F4-f made the statue and the train solid, and F2-d moved the outfielders to their fraction of each fence, so these
+    // rows are re-recorded from their builds. P4-b's held CPU sac bunt on top of them changes Funfair seed 1 and Ember
+    // seed 2 again (the other two do not change); re-recorded from the merged build.
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 4  Spark All-Stars 1", "1a3dc8366ca9ab742696ccecf8345e18b2b58ba1c93cda9ab51ce02dcff8ec5c"),
-            ("funfair-park", 11, "Final  Ember Court 13  Spark All-Stars 2", "a1275ad64de30a164bee0dfa883b901c50f4d997f36054f7a177eb034220cb95"),
-            ("ember-keep", 1, "Final  Ember Court 3  Spark All-Stars 0", "100d0c85fffd2ef1eee188330856affcc65da43533ce86175189a8263a39448c"),
-            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 1", "c1049914e5542825e46cbe3225143bd212126317a8be1775cc7e5e59070fb6bb")
+            ("funfair-park", 1, "Final  Ember Court 7  Spark All-Stars 1", "601cf23378686bf903cf8a42d559a0e8ce6507d9742a45ee454525e25ddbc747"),
+            ("funfair-park", 11, "Final  Ember Court 2  Spark All-Stars 0", "4e76680e6997abe244e2644e7d6fb30b4399d17ba57dfb45be661b0e55efde82"),
+            ("ember-keep", 1, "Final  Ember Court 7  Spark All-Stars 3", "132483a48f8a7069c02705aac376f3ce79e21e2612ae47460218d1b5c063be83"),
+            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 1", "cd6fa139f530291d9c0b9e308deb3c5f9684fdbc6342cfbdcde247d5117b90ac")
         ];
 
     /// <summary>
@@ -333,9 +335,9 @@ public sealed class NightBlockTests
             var log = Log(Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: seed, parkId: park, night: true));
             Assert.Equal(final, log[(log.LastIndexOf('\n') + 1)..]);
             Assert.True(sha == Sha(log), $"{park} night seed {seed} is not the game it was:\n{log}");
-            chomped |= log.Contains("redirect chomper", StringComparison.Ordinal);
+            chomped |= log.Contains("    redirect ", StringComparison.Ordinal);
         }
-        Assert.True(chomped, "the premise: one pinned Funfair night has a ball through a chomper in it");
+        Assert.True(chomped, "the premise: one pinned Funfair night has a redirect in it (the chompers' own are BallRedirectTests')");
     }
 
     /// <summary>

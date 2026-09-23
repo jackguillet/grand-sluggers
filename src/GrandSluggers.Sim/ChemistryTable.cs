@@ -2,7 +2,8 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Pairwise chemistry. Same faction is good unless rivaled; authored buddies/rivals win.
-/// Starting stars come from the roster's average affinity with the captain — the Sluggers draft puzzle.
+/// Chemistry pays off in the field only (§8.5, §12): it does not set starting Stars (PH-16-R16), which are the
+/// same for both teams (<see cref="StarRules.StartingReserve"/>).
 /// </summary>
 public sealed class ChemistryTable
 {
@@ -46,47 +47,6 @@ public sealed class ChemistryTable
     }
 
     public Chemistry Between(Character a, Character b) => Between(a.Id, b.Id);
-
-    /// <summary>Affinity score of a pairing (stars.starting.*Score).</summary>
-    public static double Score(Chemistry c, RulesTable? rules = null)
-    {
-        var st = Rules.Or(rules).Stars.Starting;
-        return c switch
-        {
-            Chemistry.Good => st.GoodScore,
-            Chemistry.Neutral => st.NeutralScore,
-            Chemistry.Bad => st.BadScore,
-            _ => st.NeutralScore
-        };
-    }
-
-    /// <summary>Average chemistry of everyone except the captain, with the captain.</summary>
-    public double AverageWithCaptain(Character captain, IEnumerable<Character> mates)
-    {
-        var others = mates
-            .Where(c => !c.Id.Equals(captain.Id, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-        if (others.Count == 0)
-            return Score(Chemistry.Neutral, _rules);
-        return others.Average(c => Score(Between(captain, c), _rules));
-    }
-
-    public double AverageWithCaptain(Team team) => AverageWithCaptain(team.Captain, team.Roster);
-
-    /// <summary>Starting meter from the roster's affinity with the captain (stars.starting).</summary>
-    public int StartingStars(Character captain, IEnumerable<Character> mates)
-    {
-        var st = _rules.Stars.Starting;
-        var avg = AverageWithCaptain(captain, mates);
-        if (avg >= st.FiveAt) return 5;
-        if (avg >= st.FourAt) return 4;
-        if (avg >= st.ThreeAt) return 3;
-        if (avg >= st.TwoAt) return 2;
-        if (avg > 0) return 1;
-        return 0;
-    }
-
-    public int StartingStars(Team team) => StartingStars(team.Captain, team.Roster);
 
     /// <summary>Throw pair chemistry. Trails read this: good gold/purple, bad muddy and off-line.</summary>
     public Chemistry ThrowChemistry(Character from, Character to) => Between(from, to);

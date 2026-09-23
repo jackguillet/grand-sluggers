@@ -34,20 +34,11 @@ Three states: `good`, `neutral`, `bad`. Stored as a sparse pair list in `data/ch
 - Listed buddies (cross-faction) → good.
 - Else → neutral.
 
-### Draft: starting stars
+### Draft
 
 Exhibition pregame is two picks: captains, then the field. Cycling a captain does not move the park (`ExhibitionPick`).
 
-Exhibition lineup is two screens (`LineupScreens`): **Team Setup** (home nine along the top, away nine along the bottom, pool of heads in the center) then **Offense / Defense Setup** (batting 1–9 as a bar of heads, two fielding diamonds with gloves on P / C / 1B / 2B / 3B / SS / LF / CF / RF). Chemistry is hearts and scribbles vs the captain. Average the roster’s chemistry score with the **captain** (good=100, neutral=50, bad=10), then:
-
-| Average | Stars |
-| --- | --- |
-| ≥ 70 | 5 |
-| ≥ 55 | 4 |
-| ≥ 35 | 3 |
-| ≥ 15 | 2 |
-| > 0 | 1 |
-| 0 | 0 |
+Exhibition lineup is two screens (`LineupScreens`): **Team Setup** (home nine along the top, away nine along the bottom, pool of heads in the center) then **Offense / Defense Setup** (batting 1–9 as a bar of heads, two fielding diamonds with gloves on P / C / 1B / 2B / 3B / SS / LF / CF / RF). Chemistry is hearts and scribbles vs the captain. It pays off in the field only (below). It does not set starting Stars: both teams start on the same reserve, `stars.json` `startingReserve`, whatever they drafted (PH-16-R16, spec §12).
 
 ### In play
 
@@ -59,9 +50,9 @@ Buddy Badge (rare gear) treats all pairs as good for one game. Do not put it in 
 
 ## Star meter
 
-- 0–5 stars, shared by the team.
-- Spend 1 for the acting player’s star skill. A *guest* captain (not the team’s captain) spends 2.
-- Gain per event from `data/rules/stars.json` (`gains`): single 0.4, extra-base hit 0.8, home run 1, strikeout 0.8, out 0.35 / live out 0.4, stolen base 0.35, double play 1, robbed homer 1, billboard 1. Costs (`costs`) and the MVP point table (`mvp`) live in the same file (spec §12).
+- 0–5 stars in one pool per team, shared by its Star Pitches and Star Swings. Both teams start on `startingReserve` (4).
+- A special costs its ability's tier price (`tiers`, all 1 shipped), plus 1 for a *guest* captain (not the team’s captain). A special the team cannot pay for is the ordinary pitch or swing and costs nothing. A missed Star Swing pays in full.
+- Both teams gain `gains.plateAppearance` (0 shipped) when a plate appearance completes. On top of that, the side whose play it was gains per event from `data/rules/stars.json` (`gains`): single 0.4, extra-base hit 0.8, home run 1, strikeout 0.8, out 0.35 / live out 0.4, stolen base 0.35, double play 1, robbed homer 1, billboard 1. Tiers, costs and the MVP point table (`mvp`) live in the same file (spec §12).
 - Star skills **cannot** be a free home run. They change the ball or the field.
 
 ## Batting (arcade)

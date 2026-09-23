@@ -263,6 +263,7 @@ public static class RulesValidation
         Walk(table.Stars, RulesTable.PathFor(root, "stars"), "stars", errors);
         Walk(table.Cpu, RulesTable.PathFor(root, "cpu"), "cpu", errors);
         table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
+        table.Stars.Validate(RulesTable.PathFor(root, "stars"), errors);
         table.Flight.Validate(RulesTable.PathFor(root, "flight"), errors);
         table.Grounds.Validate(RulesTable.PathFor(root, "grounds"), errors);
         table.Infield.Validate(RulesTable.PathFor(root, "infield"), errors);
@@ -1671,6 +1672,14 @@ public sealed class WallRules
 /// two fractions are different. See <c>docs/research-game-feel-730.md</c>.
 /// </para>
 /// </summary>
+/// <summary>The fence the outfield starts were authored against (F2-d): the three posts, feet from home.</summary>
+public sealed class AuthoredFenceRules
+{
+    [Positive] public double LeftFt { get; init; } = 232;
+    [Positive] public double CenterFt { get; init; } = 280;
+    [Positive] public double RightFt { get; init; } = 232;
+}
+
 public sealed class FielderRules
 {
     public FielderSpotRules First { get; init; } = new() { XFt = 69.33, ZFt = 64 };
@@ -1680,6 +1689,12 @@ public sealed class FielderRules
     public FielderSpotRules Left { get; init; } = new() { XFt = -77.09, ZFt = 175.19 };
     public FielderSpotRules Center { get; init; } = new() { XFt = 0, ZFt = 213.5 };
     public FielderSpotRules Right { get; init; } = new() { XFt = 77.09, ZFt = 175.19 };
+
+    /// <summary>
+    /// The fence the three outfield starts are authored against (FD-07, F2-d; the default park's posts, 232 / 280 / 232): a
+    /// park that names no start stands each outfielder at his bearing and his fraction of this fence, on its own fence.
+    /// </summary>
+    public AuthoredFenceRules AuthoredFence { get; init; } = new();
 
     /// <summary>
     /// The start for <paramref name="pos"/>, spelled the way the rest of the sim spells a position.
@@ -2333,17 +2348,24 @@ public sealed class HazardRules
         ExitVyFtPerSec = 16
     };
 
-    /// <summary>Ember's captain statue. Drawn, never played.</summary>
-    public HazardTypeRules Statue { get; init; } = new() { Pattern = HazardPattern.Decoration };
+    /// <summary>Ember's captain statue: a solid body (F4-f).</summary>
+    public HazardTypeRules Statue { get; init; } = new() { Pattern = HazardPattern.SolidBody, HeightFt = 9, Restitution = 0.45 };
 
-    /// <summary>Funfair's boxcar. Drawn, never played; the timed mover is F4-f's.</summary>
-    public HazardTypeRules Train { get; init; } = new() { Pattern = HazardPattern.Decoration };
+    /// <summary>Funfair's train: a solid body that runs along the fence on the play clock (F4-f).</summary>
+    public HazardTypeRules Train { get; init; } = new()
+    {
+        Pattern = HazardPattern.TimedMover,
+        HeightFt = 10,
+        Restitution = 0.45,
+        PeriodSec = 10,
+        TravelFt = 50
+    };
 
-    /// <summary>Rooftop's air-conditioning units. Drawn, never played; the solid body is F4-g's.</summary>
-    public HazardTypeRules AcUnit { get; init; } = new() { Pattern = HazardPattern.Decoration };
+    /// <summary>Rooftop's air-conditioning unit: a solid body (F4-f).</summary>
+    public HazardTypeRules AcUnit { get; init; } = new() { Pattern = HazardPattern.SolidBody, HeightFt = 5, Restitution = 0.55 };
 
-    /// <summary>Canopy's trees. Drawn, never played; the solid body is F4-g's.</summary>
-    public HazardTypeRules Tree { get; init; } = new() { Pattern = HazardPattern.Decoration };
+    /// <summary>Canopy's trees: solid bodies (F4-f).</summary>
+    public HazardTypeRules Tree { get; init; } = new() { Pattern = HazardPattern.SolidBody, HeightFt = 20, Restitution = 0.35 };
 
     /// <summary>
     /// This table's row for a library id, or null when the data does not author one. Not public:
@@ -2454,6 +2476,20 @@ public sealed class HazardRules
             if (row.MouthFloorFt is { } floor && (!redirect || row.MouthFt is not { } mouthTop || floor >= mouthTop))
                 errors.Add($"{source}: {key}.mouthFloorFt is {floor}, but it is read only on a {HazardPattern.BallRedirect}, "
                            + "below its mouthFt");
+            // A solid body and a timed mover (F4-f): both say how tall they stand and how they give the ball back; a mover
+            // also says its clock and its run. Nothing else reads these.
+            var solid = row.Pattern is HazardPattern.SolidBody or HazardPattern.TimedMover;
+            var mover = row.Pattern == HazardPattern.TimedMover;
+            foreach (var (name, value, needed) in new[] { ("heightFt", row.HeightFt, solid), ("restitution", row.Restitution, solid),
+                         ("periodSec", row.PeriodSec, mover), ("travelFt", row.TravelFt, mover) })
+            {
+                if (needed && value is null)
+                    errors.Add($"{source}: {key} is a {row.Pattern} and must author {name} (F4-f)");
+                if (!needed && value is { } v)
+                    errors.Add($"{source}: {key}.{name} is {v}, but a {row.Pattern} does not read it; leave {name} out");
+            }
+            if (row.Restitution is > 1)
+                errors.Add($"{source}: {key}.restitution must be between 0 and 1; got {row.Restitution}");
             if (row.Pattern == HazardPattern.RewardTarget && row.TopFt is null)
                 errors.Add($"{source}: {key} is a {HazardPattern.RewardTarget} and must author topFt, the top of the sign (F4-c)");
             if (row.TopFt is { } top && row.Pattern != HazardPattern.RewardTarget)
@@ -2511,6 +2547,18 @@ public sealed class HazardTypeRules
 
     /// <summary>A <c>rewardTarget</c>'s sign (F4-c): a ball inside the disc at or below this height hits it.</summary>
     [Optional, Positive] public double? TopFt { get; init; }
+
+    /// <summary>A <c>solidBody</c> or <c>timedMover</c> (F4-f): how tall it stands; a ball over it passes.</summary>
+    [Optional, Positive] public double? HeightFt { get; init; }
+
+    /// <summary>A <c>solidBody</c> or <c>timedMover</c> (F4-f): the share of the ball's speed into the body it keeps off it.</summary>
+    [Optional, Positive] public double? Restitution { get; init; }
+
+    /// <summary>A <c>timedMover</c> (F4-f): seconds for one run out and back along the fence.</summary>
+    [Optional, Positive] public double? PeriodSec { get; init; }
+
+    /// <summary>A <c>timedMover</c> (F4-f): how far to either side of its authored spot it runs, along the fence.</summary>
+    [Optional, Positive] public double? TravelFt { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2703,13 +2751,35 @@ public sealed class StarRules
 {
     [Positive] public double MeterMax { get; init; } = 5;
     public StarGainRules Gains { get; init; } = new();
+    /// <summary>The price of each cost tier (§12, PH-16-R7): every Star Pitch and Star Swing names one in star-skills.json.</summary>
+    public StarTierRules Tiers { get; init; } = new();
     public StarCostRules Costs { get; init; } = new();
-    public StartingStarRules Starting { get; init; } = new();
+    /// <summary>
+    /// The Stars each team's one pool holds at the first pitch (§12, PH-16-R6, PH-16-R16): the same for both teams,
+    /// whatever they drafted. Chemistry does not set it. It must buy the cheapest tier and fit the meter.
+    /// </summary>
+    public int StartingReserve { get; init; } = 4;
     public MvpRules Mvp { get; init; } = new();
+
+    internal void Validate(string source, List<string> errors)
+    {
+        Tiers.Validate(MeterMax, source, errors);
+        if (StartingReserve > MeterMax)
+            errors.Add($"{source}: stars.startingReserve must fit the meter (meterMax {MeterMax}); got {StartingReserve}");
+        // A usable reserve (PH-16-R6): at least the cheapest special is affordable from the first plate appearance.
+        if (StartingReserve < Tiers.Low)
+            errors.Add($"{source}: stars.startingReserve must buy the cheapest tier (low {Tiers.Low}); got {StartingReserve}");
+    }
 }
 
+/// <summary>
+/// What each team's pool earns (§12, PH-16-R5). <see cref="PlateAppearance"/> is the base: both teams, once, when a
+/// plate appearance completes. Every other row is a bonus to the side whose play it was, stacking on the base.
+/// </summary>
 public sealed class StarGainRules
 {
+    /// <summary>Both teams, once per completed plate appearance (Match.NextBatter). A half that ends mid-appearance earns none.</summary>
+    public double PlateAppearance { get; init; } = 0;
     public double Strikeout { get; init; } = 0.8;
     public double HomeRun { get; init; } = 1.0;
     public double ExtraBaseHit { get; init; } = 0.8;
@@ -2757,22 +2827,58 @@ public sealed class MvpRules
     public int KeptMovingAt { get; init; } = 4;
 }
 
-public sealed class StarCostRules
+/// <summary>
+/// The Star cost tiers (§12, PH-16-R7, PH-16-R8): a small, fixed set of named prices. Each ability in
+/// <c>data/abilities/star-skills.json</c> names its tier; <see cref="Top"/> is the highest, and only a captain may
+/// carry a top-tier ability (the content validator refuses anything else). A trial prices the tiers and may leave
+/// one unassigned; the count in use and the prices are numbers Jack accepts.
+/// </summary>
+public sealed class StarTierRules
 {
-    public int Own { get; init; } = 1;
-    public int GuestCaptain { get; init; } = 2;
+    public const string LowId = "low";
+    public const string MidId = "mid";
+    public const string TopId = "top";
+
+    /// <summary>Every tier id, cheapest first.</summary>
+    public static readonly IReadOnlyList<string> Ids = [LowId, MidId, TopId];
+
+    public static bool IsTier(string? id) => id is not null && Ids.Contains(id, StringComparer.Ordinal);
+
+    public int Low { get; init; } = 1;
+    public int Mid { get; init; } = 1;
+    public int Top { get; init; } = 1;
+
+    /// <summary>The price of <paramref name="tier"/>. An unknown tier never loads (the content validator), so the fallback is only for a character with no ability.</summary>
+    public int Of(string? tier) => tier switch
+    {
+        TopId => Top,
+        MidId => Mid,
+        _ => Low
+    };
+
+    internal void Validate(double meterMax, string source, List<string> errors)
+    {
+        foreach (var (name, cost) in new[] { (LowId, Low), (MidId, Mid), (TopId, Top) })
+        {
+            // A free special is not a resource (PH-16 acceptance), and one the meter cannot hold is never usable.
+            if (cost < 1)
+                errors.Add($"{source}: stars.tiers.{name} must cost at least 1; got {cost}");
+            else if (cost > meterMax)
+                errors.Add($"{source}: stars.tiers.{name} must fit the meter (meterMax {meterMax}); got {cost}");
+        }
+        // The top tier is the captains' (PH-16-R8), so it has to be the highest price.
+        if (Low > Mid || Mid > Top)
+            errors.Add($"{source}: stars.tiers must not get cheaper up the ladder; got low {Low}, mid {Mid}, top {Top}");
+    }
 }
 
-/// <summary>Roster chemistry with the captain → starting meter (<see cref="ChemistryTable.StartingStars(Team)"/>).</summary>
-public sealed class StartingStarRules
+public sealed class StarCostRules
 {
-    public double GoodScore { get; init; } = 100;
-    public double NeutralScore { get; init; } = 50;
-    public double BadScore { get; init; } = 10;
-    public double FiveAt { get; init; } = 70;
-    public double FourAt { get; init; } = 55;
-    public double ThreeAt { get; init; } = 35;
-    public double TwoAt { get; init; } = 15;
+    /// <summary>
+    /// Added to the ability's tier price when a captain throws or swings for a team he does not captain: a guest
+    /// captain from the draft, or a captain swapped onto the mound (§4.7).
+    /// </summary>
+    public int GuestCaptainSurcharge { get; init; } = 1;
 }
 
 // ---------------------------------------------------------------------------------------
