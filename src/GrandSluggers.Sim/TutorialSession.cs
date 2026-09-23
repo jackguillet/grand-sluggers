@@ -110,7 +110,9 @@ public sealed partial class TutorialSession
             away = away with { Order = [away.Roster.Single(c => c.Id == _setup.BatterId),
                 .. away.Roster.Where(c => c.Id == _setup.OnDeckId),
                 .. away.Roster.Where(c => c.Id != _setup.BatterId && c.Id != _setup.OnDeckId)] };
-        Match = Match.Exhibition(_content, home, away, 3, _setup.Seed, parkId: Training.ParkId);
+        // A field lesson plays at the park its setup names (F8-c); every other lesson at the training park.
+        Match = Match.Exhibition(_content, home, away, 3, _setup.Seed,
+            parkId: _setup.Park.Length > 0 ? _setup.Park : Training.ParkId, night: _setup.Night);
         if (_setup.StartingStars > 0)
         {
             if (_setup.Seat == "offense") Match.GiveOffenseStars(_setup.StartingStars);
@@ -345,6 +347,8 @@ public sealed partial class TutorialSession
                 && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
             Finish(manual, manual ? "ground-possession" : "assisted-pickup", manual ? "You moved to the ground ball and secured it." : "The assistance collected that ball. Retry and move the glove yourself.");
         }
+        else if (Lesson.Objective is "hazard-redirect-take" or "hazard-carom-take") EvaluateHazardTake(live, result);
+        else if (Lesson.Objective == "hazard-dodge-catch") EvaluateHazardDodge(live, result);
         else if (Lesson.Objective == "human-special-ground") EvaluateSpecialGround(live, result);
         else if (Lesson.Objective == "human-ability-reach") EvaluateAbilityReach(live, result);
         else if (Lesson.Objective == "human-dive-out")
@@ -378,6 +382,44 @@ public sealed partial class TutorialSession
     }
 
     /// <summary>Expansion field lessons read accepted human commands and the resulting live glove/throw/out state.</summary>
+    /// <summary>
+    /// The field's take lessons (F8-c): the ball goes through a redirect, or off a solid body, and the player's own glove takes
+    /// it after — moved there by the player, not the assistance. A take before the hazard acted, or a play that ends first, fails.
+    /// </summary>
+    void EvaluateHazardTake(LivePlaySystem live, LivePlayCommandResult result)
+    {
+        var acted = Lesson.Objective == "hazard-redirect-take" ? live.RedirectsThisPlay.Count > 0 : live.CaromsThisPlay.Count > 0;
+        var what = Lesson.Objective == "hazard-redirect-take" ? "came out of the other mouth" : "bounced off the body";
+        if (live.HoldsBall)
+        {
+            var manual = _manualGloves.Contains(live.TutorialFirstGloveId) && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
+            var success = acted && manual;
+            Finish(success, success ? "hazard-take" : acted ? "assisted-pickup" : "before-hazard",
+                success ? $"You read where the ball {what} and took it yourself."
+                    : acted ? "The assistance collected that ball. Retry and move the glove yourself."
+                    : $"You took it before it {what}. Let the hazard act, then go get it.");
+        }
+        else if (result.CompletedPlay is not null)
+            Finish(false, "no-take", "The play ended before your glove took the ball.");
+    }
+
+    /// <summary>
+    /// The status volume's lesson (F8-c): catch the fly with your own press, and never let the catching glove touch a volume on
+    /// the way — the slow would have cost the catch. A slowed catcher, or no catch, fails.
+    /// </summary>
+    void EvaluateHazardDodge(LivePlaySystem live, LivePlayCommandResult result)
+    {
+        if (result.CompletedPlay is not { } play) return;
+        var catchOut = play.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true;
+        var caught = catchOut && _humanAerialCatcher.Length > 0 && play.Fielder?.Id == _humanAerialCatcher;
+        var slowed = live.SlowsThisPlay.Any(s => !s.IsRunner && s.Who.Id == _humanAerialCatcher);
+        var success = caught && !slowed;
+        Finish(success, success ? "dodged-catch" : slowed ? "slowed" : "no-catch",
+            success ? "You went around the volume and made the catch."
+                : slowed ? "You ran through the volume and it slowed you. Go around it."
+                : "Catch the fly yourself with a South press.");
+    }
+
     void EvaluateExpandedFieldObjective(LivePlaySystem live, LivePlayCommandResult result)
     {
         if (Lesson.Objective == "manual-takeover")

@@ -2651,6 +2651,181 @@
       "tests": [
         "TutorialOutsTests"
       ]
+    },
+    {
+      "id": "T-H01",
+      "revision": 1,
+      "mechanics": [
+        "fields.ice"
+      ],
+      "title": "field on the ice",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 814,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H01",
+      "objective": "manual-ground-possession",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
+    },
+    {
+      "id": "T-H02",
+      "revision": 1,
+      "mechanics": [
+        "fields.status-volume"
+      ],
+      "title": "go around the freezer",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 814,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H02",
+      "objective": "hazard-dodge-catch",
+      "controls": [
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
+    },
+    {
+      "id": "T-H03",
+      "revision": 1,
+      "mechanics": [
+        "fields.redirect"
+      ],
+      "title": "read the warp can",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 814,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H03",
+      "objective": "hazard-redirect-take",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
+    },
+    {
+      "id": "T-H04",
+      "revision": 1,
+      "mechanics": [
+        "fields.solid-body"
+      ],
+      "title": "play the tree",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 814,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H04",
+      "objective": "hazard-carom-take",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
+    },
+    {
+      "id": "T-H05",
+      "revision": 1,
+      "mechanics": [
+        "fields.mover"
+      ],
+      "title": "beat the train",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 814,
+      "reason": "Needs a fixture where the fly meets the moving train on a fixed clock",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H02",
+      "objective": "hazard-dodge-catch",
+      "controls": [
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
+    },
+    {
+      "id": "T-H06",
+      "revision": 1,
+      "mechanics": [
+        "fields.reward"
+      ],
+      "title": "hit the billboard",
+      "category": "batting",
+      "status": "planned",
+      "issue": 814,
+      "reason": "A batting lesson needs a swing objective for a reward target",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H02",
+      "objective": "hazard-dodge-catch",
+      "controls": [
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
+    },
+    {
+      "id": "T-H07",
+      "revision": 1,
+      "mechanics": [
+        "fields.wall-trait"
+      ],
+      "title": "climb the wall",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 814,
+      "reason": "Needs a Clamber rob objective at a wall trait",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H02",
+      "objective": "hazard-dodge-catch",
+      "controls": [
+        "control:fielding/Catch"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
     }
   ],
   "setups": [
@@ -6038,6 +6213,158 @@
           "sprayDeg": -6
         }
       }
+    },
+    {
+      "id": "T-H01",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 150,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": -14
+        }
+      },
+      "park": "crystal-rink"
+    },
+    {
+      "id": "T-H02",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 145,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0.8
+        }
+      },
+      "park": "crystal-rink"
+    },
+    {
+      "id": "T-H03",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 44,
+          "exitMph": 0,
+          "launchDeg": 4,
+          "sprayDeg": 20.2
+        }
+      },
+      "park": "funfair-park"
+    },
+    {
+      "id": "T-H04",
+      "policy": "liner",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 95,
+          "launchDeg": 11,
+          "sprayDeg": 9.2
+        }
+      },
+      "park": "canopy-yard"
     }
   ]
 }

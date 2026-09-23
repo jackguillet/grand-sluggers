@@ -89,6 +89,9 @@
     "item.banana": 891,
     "item.rocket": 891,
     "item.pow": 891,
-    "running.09": 794
+    "running.09": 794,
+    "fields.mover": 814,
+    "fields.reward": 814,
+    "fields.wall-trait": 814
   }
 }
