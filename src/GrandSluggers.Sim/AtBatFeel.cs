@@ -38,16 +38,26 @@ public static class ChargeFeel
             : "";
 }
 
+/// <summary>
+/// The button between ticks. <paramref name="MustRelease"/> is the cancelled hold (PH-13-R1): the load is
+/// gone and the button is still down, so nothing it does counts until it comes up.
+/// </summary>
 public readonly record struct ChargeButtonState(
     bool Armed,
     double Fill01,
-    double SecondsPastFull);
+    double SecondsPastFull,
+    bool MustRelease = false);
 
+/// <summary>
+/// One tick of <see cref="ChargeButton.Advance"/>. <paramref name="Cancelled"/> is the tick a load (or a
+/// press) was discarded by a cancel: the edge a client plays the let-go on.
+/// </summary>
 public readonly record struct ChargeButtonStep(
     ChargeButtonState Next,
     bool Committed,
     double CommitFill01,
-    double CommitSecondsPastFull);
+    double CommitSecondsPastFull,
+    bool Cancelled = false);
 
 /// <summary>
 /// One Flight release-edge swing, captured before presentation can change.
@@ -96,6 +106,25 @@ public readonly record struct SwingInputIntent(
 /// <summary>
 /// Super Sluggers' button load: press starts the windup, holding fills it,
 /// and releasing commits either a quick normal action or the stored charge.
+///
+/// <para>
+/// <b>Cancel</b> (PH-13, PH-13-R1; spec §5.1) discards an uncommitted load, the swing's only. One tick applies,
+/// in this order:
+/// </para>
+/// <list type="number">
+/// <item><b>Not accepting.</b> Nothing: the button is at rest.</item>
+/// <item><b>Cancel.</b> A load that is armed, or a press on this tick, is discarded with its charge, even
+/// when the release is on the same tick: cancel beats release. If the button is still down, the state is
+/// <see cref="ChargeButtonState.MustRelease"/>. A cancel with nothing loaded does nothing.</item>
+/// <item><b>Must release.</b> The old hold cannot swing: its release commits nothing and clears the state.
+/// A press, a hold or a release on such a tick counts for nothing; only a press on a later tick starts a
+/// new load, from zero (no banked charge).</item>
+/// <item><b>Load.</b> Press arms, hold fills, release commits (or, when it cannot commit, disarms).</item>
+/// </list>
+/// <para>
+/// A committed swing is gone from the button, so there is nothing left to cancel. The pitch never passes
+/// a cancel: the mound has no pitcher cancel (PH-02-R3).
+/// </para>
 /// </summary>
 public static class ChargeButton
 {
@@ -107,10 +136,23 @@ public static class ChargeButton
         double deltaSeconds,
         double secondsToFull,
         bool accepting = true,
-        bool commits = true)
+        bool commits = true,
+        bool cancel = false)
     {
         if (!accepting)
             return default;
+
+        if (cancel && (state.Armed || pressed))
+        {
+            var down = (held || pressed) && !released;
+            return new ChargeButtonStep(new ChargeButtonState(false, 0, 0, MustRelease: down), false, 0, 0, Cancelled: true);
+        }
+
+        if (state.MustRelease)
+        {
+            var stillDown = held && !released;
+            return new ChargeButtonStep(new ChargeButtonState(false, 0, 0, MustRelease: stillDown), false, 0, 0);
+        }
 
         var armed = state.Armed || pressed;
         var fill = Math.Clamp(state.Fill01, 0, 1);
