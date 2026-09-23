@@ -184,7 +184,7 @@ namespace GrandSluggers.EditorTools
         static GateCase VerifyLineupFill(MatchDirector play, bool swapSeats)
         {
             Setup(play, swapSeats ? Seats.AwayVersus : Seats.Versus);
-            Set(play, "Pad1Home", !swapSeats);
+            play.Pad1Home = !swapSeats;
             Set(play, "_versusWanted", true);
             Set(play, "_lineup", null);
             Invoke(play, "OpenLineup");
@@ -210,7 +210,7 @@ namespace GrandSluggers.EditorTools
         static IEnumerator VerifyControllerScreens(MatchDirector play)
         {
             Setup(play, Seats.One);
-            Set(play, "_versusWanted", false); Set(play, "Pad1Home", true);
+            Set(play, "_versusWanted", false); play.Pad1Home = true;
             Invoke(play, "OpenTitle");
             var folder = Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("GS_AT_BAT_INPUT_EVIDENCE")
                 ?? Application.dataPath)!, "controller-screens");
