@@ -19,6 +19,7 @@ import argparse
 import json
 import math
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -752,11 +753,19 @@ def main(argv):
     p = argparse.ArgumentParser()
     p.add_argument("--out", required=True)
     p.add_argument("--clay", default="", help="Folder for the named DCC kit still.")
+    p.add_argument("--resources", default="",
+                   help="Player copy folder (Assets/Resources/...); the same bytes as --out.")
     args = p.parse_args(argv)
     build()
     if args.clay:
         clay_check(Path(args.clay))
-    export_fbx(Path(args.out).resolve())
+    out = Path(args.out).resolve()
+    export_fbx(out)
+    if args.resources:
+        dest = Path(args.resources).resolve() / out.name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(out, dest)
+        print("resources", dest)
 
 
 if __name__ == "__main__":
