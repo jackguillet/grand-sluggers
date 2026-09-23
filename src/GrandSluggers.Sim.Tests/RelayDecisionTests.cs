@@ -5,22 +5,13 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// 3c-6 slice 2 (#722, decision 6 of #730): the CPU chooses relay or direct by the total time each takes
-/// to reach the bag, graded by rung, and the CPU runner reads the same plan. On the shipped table the
-/// forced-relay ceiling (200 ft) and a bias no relay can save reproduce the rule the game shipped with;
-/// the <c>c80</c> copy sets the ceiling to never and lets time decide.
-///
-/// <para>
-/// The scenarios run the trial catalog in process, which plays the compact park and the trial clock
-/// while the bodies start on the shipped 90-ft spots (<see cref="Diamond"/> reads the shipped root; the
-/// trial README says so). That is fine for a decision test: every assertion recomputes the plan from
-/// the live positions at the release frame and asks only that the CPU did what its own arithmetic says.
-/// </para>
+/// to reach the bag, graded by rung, and the CPU runner reads the same plan. The forced-relay ceiling
+/// is set to never, so time decides. Every scenario assertion recomputes the plan from the live
+/// positions at the release frame and asks only that the CPU did what its own arithmetic says.
 /// </summary>
 public sealed class RelayDecisionTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly DataRoot Root = new(Control.Root.Shipped, Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(Root);
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
 
     // ---------------------------------------------------------------------------------
@@ -31,7 +22,7 @@ public sealed class RelayDecisionTests
     public void TheCeilingForcesTheRelayAndTheBiasGradesTheRest()
     {
         Assert.True(InPlay.RelayWins(3.0, 4.0, forced: true, relayBiasSec: 99));
-        Assert.False(InPlay.RelayWins(3.0, 2.9, forced: false, relayBiasSec: 99));   // the shipped bias: never by time
+        Assert.False(InPlay.RelayWins(3.0, 2.9, forced: false, relayBiasSec: 99));   // the never bias: no relay by time
         Assert.True(InPlay.RelayWins(3.0, 2.9, forced: false, relayBiasSec: 0));     // hard: any saving
         Assert.False(InPlay.RelayWins(3.0, 2.95, forced: false, relayBiasSec: 0.1)); // normal: a tenth is not enough
         Assert.True(InPlay.RelayWins(3.0, 2.85, forced: false, relayBiasSec: 0.1));
@@ -40,22 +31,14 @@ public sealed class RelayDecisionTests
         Assert.False(InPlay.RelayWins(3.0, 3.0, forced: false, relayBiasSec: 0));    // a tie is the direct throw
     }
 
-    /// <summary>The shipped rungs read nothing new, and the trial's read what the README says they read.</summary>
+    /// <summary>The ceiling is never, and each rung reads what its table says.</summary>
     [Fact]
     public void TheRungsReadWhatTheirTableSays()
     {
-        foreach (var rung in new[] { Control.Rules.Cpu.Easy, Control.Rules.Cpu.Normal, Control.Rules.Cpu.Hard })
-        {
-            Assert.Equal(99, rung.RelayBiasSec);
-            Assert.Equal(0, rung.RunnerReadsArm);
-            Assert.Equal(0, rung.RunnerReadsRelay);
-            Assert.Equal(0, rung.ReadsChemistry);
-        }
-        Assert.Equal(200, Control.Rules.Fielding.Throw.OnTheFlyFt);
-        Assert.Equal(9999, Trial.Rules.Fielding.Throw.OnTheFlyFt);
-        Assert.Equal((0.3, 0.5, 0.0, 0.0), (Trial.Rules.Cpu.Easy.RelayBiasSec, Trial.Rules.Cpu.Easy.RunnerReadsArm, Trial.Rules.Cpu.Easy.RunnerReadsRelay, Trial.Rules.Cpu.Easy.ReadsChemistry));
-        Assert.Equal((0.1, 1.0, 1.0, 1.0), (Trial.Rules.Cpu.Normal.RelayBiasSec, Trial.Rules.Cpu.Normal.RunnerReadsArm, Trial.Rules.Cpu.Normal.RunnerReadsRelay, Trial.Rules.Cpu.Normal.ReadsChemistry));
-        Assert.Equal((0.0, 1.0, 1.0, 1.0), (Trial.Rules.Cpu.Hard.RelayBiasSec, Trial.Rules.Cpu.Hard.RunnerReadsArm, Trial.Rules.Cpu.Hard.RunnerReadsRelay, Trial.Rules.Cpu.Hard.ReadsChemistry));
+        Assert.Equal(9999, Game.Rules.Fielding.Throw.OnTheFlyFt);
+        Assert.Equal((0.3, 0.5, 0.0, 0.0), (Game.Rules.Cpu.Easy.RelayBiasSec, Game.Rules.Cpu.Easy.RunnerReadsArm, Game.Rules.Cpu.Easy.RunnerReadsRelay, Game.Rules.Cpu.Easy.ReadsChemistry));
+        Assert.Equal((0.1, 1.0, 1.0, 1.0), (Game.Rules.Cpu.Normal.RelayBiasSec, Game.Rules.Cpu.Normal.RunnerReadsArm, Game.Rules.Cpu.Normal.RunnerReadsRelay, Game.Rules.Cpu.Normal.ReadsChemistry));
+        Assert.Equal((0.0, 1.0, 1.0, 1.0), (Game.Rules.Cpu.Hard.RelayBiasSec, Game.Rules.Cpu.Hard.RunnerReadsArm, Game.Rules.Cpu.Hard.RunnerReadsRelay, Game.Rules.Cpu.Hard.ReadsChemistry));
     }
 
     /// <summary>
@@ -66,7 +49,7 @@ public sealed class RelayDecisionTests
     [Fact]
     public void TheRunnerReadsTheClockTheBallCarriesAndTheNeutralThrowWithoutOne()
     {
-        var r = Control.Rules;
+        var r = Game.Rules;
         var reaction = r.Running.Cpu.ReactionSec;
         var held = new BallSituation(true, false, 0, 0, 0, 250, 3.0, true, 0, 250, 250);
         Assert.Equal(reaction + InPlay.ThrowArrivalSec(0, 250, 4, null, r), RunnerAi.ThrowArrivalSec(held, 4, 3.0, r), 9);
@@ -75,10 +58,10 @@ public sealed class RelayDecisionTests
         Assert.Equal(reaction + 5.5, RunnerAi.ThrowArrivalSec(clocked, 4, 3.0, r), 9);
         Assert.Equal(reaction + 4.5, RunnerAi.ThrowArrivalSec(clocked, 3, 3.0, r), 9);
 
-        // In the air to second, read for home: the landing plus the reaction plus the clock from second.
-        var inAir = new BallSituation(false, true, 2, 4.0, 0, 127.28, 3.0, false, 0, 127.28, 120, ThrowClock: (x, z, bag) => 0.25 * bag + z / 1000);
+        // In the air to second, read for home: the landing plus the reaction plus the clock from second (z 113.14).
+        var inAir = new BallSituation(false, true, 2, 4.0, 0, 113.14, 3.0, false, 0, 113.14, 120, ThrowClock: (x, z, bag) => 0.25 * bag + z / 1000);
         Assert.Equal(1.0, RunnerAi.ThrowArrivalSec(inAir, 2, 3.0, r), 9);
-        Assert.Equal(1.0 + reaction + 1.0 + 0.12728, RunnerAi.ThrowArrivalSec(inAir, 4, 3.0, r), 6);
+        Assert.Equal(1.0 + reaction + 1.0 + 0.11314, RunnerAi.ThrowArrivalSec(inAir, 4, 3.0, r), 6);
     }
 
     // ---------------------------------------------------------------------------------
@@ -86,28 +69,24 @@ public sealed class RelayDecisionTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// A fly to dead centre with konga on third and one out. The gate sends konga (245 ft ≥ 200), the
-    /// centre fielder decides how to get the ball to the plate. Weak arm in centre: moss (Field 4);
+    /// A fly to dead centre with konga on third and one out. The gate sends konga, the centre fielder decides how to get the ball to the plate. Weak arm in centre: moss (Field 4);
     /// strong arm: vine (Field 8); the middle arm: soot (Field 5). None carries a throw ability, and none
     /// shares a faction with the cutter or the catcher, so the chemistry read is 1.0 and the arms alone
     /// decide.
     /// </summary>
     [Theory]
-    [InlineData("control", "moss", "normal", true)]    // 245 ft is past the shipped ceiling: forced through the cutoff
-    [InlineData("control", "vine", "normal", true)]
-    [InlineData("trial", "moss", "normal", true)]      // Arm 4 from 245 ft: the relay arrives first
-    [InlineData("trial", "vine", "normal", false)]     // Arm 8 from 245 ft: direct, the break-even is 258
-    [InlineData("trial", "soot", "hard", true)]        // Arm 5: the relay saves under three tenths — hard takes it
-    [InlineData("trial", "soot", "easy", false)]       // … and easy does not
-    public void TheCentreFielderRelaysWhenTheRelayArrivesFirstByTheRungsBias(string root, string centre, string difficulty, bool expectRelay)
+    [InlineData("moss", "normal", true)]      // Arm 4 from 245 ft: the relay arrives first
+    [InlineData("vine", "normal", false)]     // Arm 8 from 245 ft: direct, the break-even is 258
+    [InlineData("soot", "hard", true)]        // Arm 5: the relay saves under three tenths — hard takes it
+    [InlineData("soot", "easy", false)]       // … and easy does not
+    public void TheCentreFielderRelaysWhenTheRelayArrivesFirstByTheRungsBias(string centre, string difficulty, bool expectRelay)
     {
-        var content = root == "trial" ? Trial : Control;
-        var (match, cf, cutters) = Game(content, centre, difficulty);
+        var content = Game;
+        var (match, cf, cutters) = Defence(content, centre, difficulty);
         var konga = content.Must("konga");
         Assert.True(match.StationRunner(3, konga));
         Assert.True(match.SetOuts(1));
-        // The fixture flies on the match's own table: under the trial the drag is 0.0040, and an exit found for the
-        // shipped drag would land 70 ft short and hand the ball to an infielder.
+        // The fixture flies on the match's own table (drag 0.0040), so the ball lands where it is asked to.
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
@@ -115,7 +94,7 @@ public sealed class RelayDecisionTests
         var (throws, play, caught) = Run(match, hit, preview);
         var first = throws.FirstOrDefault(t => t.FromPos == "CF");
         Assert.True(first is not null,
-            $"{root} {centre} {difficulty}: no throw by CF. caught {caught}; play {play.Kind} \"{play.Caption}\"; throws: {string.Join(" | ", throws.Select(t => $"{t.FromPos}->{t.Bag}/{t.Receiver} from ({t.FromX:0},{t.FromZ:0})"))}");
+            $"{centre} {difficulty}: no throw by CF. caught {caught}; play {play.Kind} \"{play.Caption}\"; throws: {string.Join(" | ", throws.Select(t => $"{t.FromPos}->{t.Bag}/{t.Receiver} from ({t.FromX:0},{t.FromZ:0})"))}");
         var relayed = first!.Bag == 0;
 
         // The plan, recomputed from the live positions at the release frame with the same arithmetic.
@@ -124,14 +103,14 @@ public sealed class RelayDecisionTests
         var home = Diamond.Bag(4);
         var catcher = match.Defense.Roster.First(c => c.Id == "pewter");
         var cut = InPlay.CutoffFor(first.FromX, first.FromZ, home.X, home.Z, first.Spots, "CF", "C");
-        Assert.True(cut is not null, $"{root} {centre} {difficulty}: no cutoff between ({first.FromX:0},{first.FromZ:0}) and home; spots {string.Join(" ", first.Spots.Select(kv => $"{kv.Key}({kv.Value.X:0},{kv.Value.Z:0})"))}");
+        Assert.True(cut is not null, $"{centre} {difficulty}: no cutoff between ({first.FromX:0},{first.FromZ:0}) and home; spots {string.Join(" ", first.Spots.Select(kv => $"{kv.Key}({kv.Value.X:0},{kv.Value.Z:0})"))}");
         var cutter = cutters[cut!.Value.Pos];
         var direct = InPlay.ThrowSec(Diamond.Dist(first.FromX, first.FromZ, home.X, home.Z), Forecast(content, cf, catcher, level, rules), rules);
         var relay = InPlay.ThrowSec(Diamond.Dist(first.FromX, first.FromZ, cut.Value.X, cut.Value.Z), Forecast(content, cf, cutter, level, rules), rules)
                     + InPlay.ThrowReactionSec(cutter, rules)
                     + InPlay.ThrowSec(Diamond.Dist(cut.Value.X, cut.Value.Z, home.X, home.Z), Forecast(content, cutter, catcher, level, rules), rules);
         var forced = Diamond.Dist(first.FromX, first.FromZ, home.X, home.Z) > rules.Fielding.Throw.OnTheFlyFt;
-        var why = $"{root} {centre} {difficulty}: from ({first.FromX:0.0},{first.FromZ:0.0}) direct {direct:0.000} relay {relay:0.000} via {cut.Value.Pos} bias {level.RelayBiasSec} forced {forced}";
+        var why = $"{centre} {difficulty}: from ({first.FromX:0.0},{first.FromZ:0.0}) direct {direct:0.000} relay {relay:0.000} via {cut.Value.Pos} bias {level.RelayBiasSec} forced {forced}";
         Assert.True(InPlay.RelayWins(direct, relay, forced, level.RelayBiasSec) == relayed, why);
         Assert.Equal(expectRelay, relayed);
         if (relayed)
@@ -174,7 +153,7 @@ public sealed class RelayDecisionTests
     /// marlow (Field 6) and jester (Field 5), neither with a throw ability and neither in the centre fielder's
     /// faction.
     /// </summary>
-    static (Match Match, Character Centre, Dictionary<string, Character> Cutters) Game(ContentCatalog content, string centre, string difficulty)
+    static (Match Match, Character Centre, Dictionary<string, Character> Cutters) Defence(ContentCatalog content, string centre, string difficulty)
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "jester", "grit", "marlow", "basil", centre, "gull");
         var away = content.Team("Offense", "zig", "dart", "cinder", "nugget", "hex", "boom", "konga", "ashlord", "frost");
