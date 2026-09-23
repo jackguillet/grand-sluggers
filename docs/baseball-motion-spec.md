@@ -71,7 +71,7 @@ blender -b -t 2 --python tools/blender/hero_shared_blockout.py -- --out unity/As
 blender -b -t 2 --python tools/blender/hero_shared_extras.py -- --out unity/Assets/Art/Characters/SharedRig/extras.fbx --resources unity/Assets/Resources/Art/Characters/SharedRig --clay /tmp/gs-motion-review/extras
 blender -b -t 2 --python tools/blender/hero_shared_takes.py -- --out unity/Assets/Art/Animation/Clips --resources unity/Assets/Resources/Art/Animation/Clips --sheets /tmp/gs-motion-review/takes --blend /tmp/gs-motion-review/default-motion.blend
 python3 tools/blender/sync_swing_contract.py --check
-dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj -m:1 -nodeReuse:false -p:UseSharedCompilation=false
+tools/test-fast.sh <Classes you touched>   # never the full suite locally; CI runs the breakage suite
 dotnet run --project src/GrandSluggers.Cli -- art
 dotnet run --project src/GrandSluggers.Cli -- match
 tools/unity-compile.sh

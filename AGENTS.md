@@ -2,11 +2,17 @@
 
 Grand Sluggers is a **complete, polished party baseball game** we will still want in five years. The bar is Nintendo-level Exhibition (then local 1v1): Super Sluggers *systems* — cameras, HUD, plays, lineup, juice — with **original toys**. Not a prototype that lucks into a still. Not a Mario clone.
 
-Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. **How agents work: `docs/agent-rails.md`** (when a session and that document disagree, the session is wrong). Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`. Fields: `docs/plan-fields.md` (#814).
+## Start here
+
+1. Read this file.
+2. Read only the sections of `docs/gameplay-spec.md` your change touches.
+3. Look up the other docs when the work needs them. Research reports (`docs/research-*.md`, `docs/research/`, for example `docs/research-game-feel-708.md`) and handoffs are reference, not required reading.
+
+Where to look things up. Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. **How agents work: `docs/agent-rails.md`** (when a session and that document disagree, the session is wrong). Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`. Fields: `docs/plan-fields.md` (#814).
 
 ## The stack (do this, in order)
 
-Agents start here. Do not pick a lower row because it is easier.
+Pick work from the top. Do not pick a lower row because it is easier.
 
 1. **Harbor Exhibition is playable.** Jack finishes a half from Call time How to play, pad and keyboard+mouse, no Slack. [#346](https://github.com/jackguillet/grand-sluggers/issues/346) / [#209](https://github.com/jackguillet/grand-sluggers/issues/209). Agents **do not pass** human gates.
 2. **Sitting-found children.** File them. Do not silently patch. Parent is the epic that owns the lie (#342 book, #209 play, #188 toy).
@@ -30,6 +36,18 @@ Unit tests are necessary and not sufficient. **Exact** is the bar; similar is a 
 - Look / character work is a human gate. Dual stills in `docs/screenshot-gate.md` (DCC `dcc-*.png` + in-game `char-{id}-rest.png` / `char-{id}-pose.png`) are the falsifier. A critic files; Jack passes. `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. Agents do not pass look.
 - Fail if a stranger would need Slack, F2, or `docs/how-to-play.md` on disk to finish the path you touched.
 - Ask before coding: *will this still be right with two pads, a pop fly instead of a hopper, Ashlord as well as Rio, and a friend on the couch?* If not, put the system in the right place.
+
+## What a PR owes
+
+Behavior docs stay. Bookkeeping and balance run on demand. Contract: `docs/agent-rails.md` §1.2.
+
+- Never run the full test suite locally; it freezes the shared Mac. Run `tools/test-fast.sh <Classes you touched>`. CI runs the breakage suite on every PR.
+- A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are noted.
+- Balance runs on demand: `Kind=Balance` tests, S-29 and cohort bands, park-factor reports, flight probes, evidence seals, C80 parity. Run it in a tuning PR or when Jack asks (Actions → Full tests; `balance_only` for the balance set only). A feature PR that moves a feel number names the move and owes no cohort report.
+- A feature PR does not reseal the evidence seals, edit a `trials/` twin, or touch a decision register or an implementation ledger. One batched docs PR updates registers and ledgers at a phase checkpoint or when Jack asks.
+- A behavior change updates its rule in `docs/gameplay-spec.md` in the same PR. Write the rule, not the provenance: no PR numbers, no "✅ (#nnn, PR #nnn)". Existing provenance stays.
+- A debug-protocol row is for a novel failure signature only.
+- Open for Jack: freeze, promote or retire `trials/c80` (`docs/agent-rails.md` §1.3).
 
 ## Rails, not patches
 
@@ -69,7 +87,7 @@ Declare one kind per session. Mixing them is a patch (shrinking a mesh to save a
 | **Presentation** | cameras, HUD, `HowToPlay` / `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
 | **Art** | one `data/art/` slot, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
 
-End the session with the artifact of its kind: gameplay → `dotnet test` + `cli match`; presentation → named shot or book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the `.app` as proof of look.
+End the session with the artifact of its kind: gameplay → `tools/test-fast.sh <Classes you touched>` + `cli match`; presentation → named shot or book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the `.app` as proof of look.
 
 ## Art — Super Sluggers weight, original toys
 
@@ -88,12 +106,12 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 ## Operating
 
 - One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`.
-- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix. If the signature has fired twice, promote it to a validator or a scenario. If the lesson is procedural, grow `.grok/skills/character-art/` or `docs/agent-rails.md`. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`) and `data/agent/dcc-stages.json` (`cli stages`): walk blocking → fill → motion → export → still; DCC still + in-game still in `scratchpad/stills/`; a look-critic files; Jack passes. One-shotting a captain extra or a kit mesh is a patch.
+- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix; a repeat or a PR name is not a row. If the signature has fired twice, promote it to a validator or a scenario. If the lesson is procedural, grow `.grok/skills/character-art/` or `docs/agent-rails.md`. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`) and `data/agent/dcc-stages.json` (`cli stages`): walk blocking → fill → motion → export → still; DCC still + in-game still in `scratchpad/stills/`; a look-critic files; Jack passes. One-shotting a captain extra or a kit mesh is a patch.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
 - Gamepad is the couch product. Keyboard + mouse are the same scheme, player 1 only. Pad 2 is a second gamepad.
 - Couch copy lives in `HowToPlay` / `CarnivalFront` / `BroadcastHud`, not scattered strings.
 - Content ids in `data/` stay stable. Feel numbers live in `data/feel/`. Do not grow `MatchDirector`.
-- Falsify with `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Look/character: DCC still + in-game still in `scratchpad/stills/` in the PR (`tools/dcc-still.sh`, `tools/still-gate-character.sh`). A critic files; Jack passes. Personal Unity cannot `-batchmode`.
+- Falsify with `tools/test-fast.sh <Classes you touched>` (never the full suite locally), `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Look/character: DCC still + in-game still in `scratchpad/stills/` in the PR (`tools/dcc-still.sh`, `tools/still-gate-character.sh`). A critic files; Jack passes. Personal Unity cannot `-batchmode`.
 - After a feel or look merge: a skeptic pass plays the named path. A still that only works because of a one-off is not done.
 
 ## Local standalone delivery (Jack's default)
