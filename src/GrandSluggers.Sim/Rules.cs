@@ -1422,9 +1422,8 @@ public sealed class GroundLibrary
 ///
 /// <para>
 /// <b>The skid band is judged against the row under each bounce.</b> The incoming impact angle is the ball's; the
-/// band between skid and hop (<c>skid.impactMinDeg</c> / <c>launchMaxDeg</c>) is the ground's, so a liner
-/// landing on a ground whose band excludes its launch hops there instead. Every row carries today's band,
-/// so no bounce changes.
+/// band between skid and hop (<c>skid.impactMinDeg</c> / <c>impactMaxDeg</c>) is the ground's.
+/// Each impact blends the two responses from its current incoming velocity.
 /// </para>
 ///
 /// <para>

@@ -2,9 +2,9 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// A glove runs to where it can meet the ball, rather than following the ball's
-/// current position. Flies (and a liner this body can take in the air) use the
-/// legal catch plant; hops, rolls, and a liner that will bounce use the first
-/// future trajectory sample the glove can reach at its rated speed (D16, #667).
+/// current position. Ordinary air routes meet a reachable sample within standing
+/// catch height before the first bounce. Ground routes meet a scoopable sample
+/// after that bounce; wall robs retain their legal plant (D16, #667).
 /// </summary>
 public static class FieldingPursuit
 {

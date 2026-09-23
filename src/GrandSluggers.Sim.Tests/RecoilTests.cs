@@ -170,16 +170,18 @@ public sealed class RecoilTests
     [Fact]
     public void ALandedLinerPickedUpOffTheGrassCostsWhatItsSpeedSays()
     {
-        var on = RunCpu(Game, 130, 10, 19, ContactQuality.Perfect);
-        Assert.Equal("RF", on.Pos);
+        // This fixture lowers only the ground anchors so a landed liner exercises paid recovery.
+        using var active = new PatchedGame(text => text.Replace("\"onsetFtPerSec\": 55", "\"onsetFtPerSec\": 20").Replace("\"fullFtPerSec\": 75", "\"fullFtPerSec\": 40"));
+        var on = RunCpu(active.Content, 110, 10, -8, ContactQuality.Perfect);
+        Assert.Equal("CF", on.Pos);
         Assert.True(on.TakeAt > on.Hang, "the liner landed before the take");
-        Assert.InRange(on.Speed, 55.01, 75);
+        Assert.InRange(on.Speed, 20.01, 40);
         Assert.Equal(1, on.Events);
-        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("hex"), on.Speed, Game.Rules), on.Dur, 9);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("moss"), on.Speed, active.Content.Rules), on.Dur, 9);
         Assert.True(on.Dur > 0.05);
 
         using var legacy = new PatchedGame(WithoutRecoil);
-        var off = RunCpu(legacy.Content, 130, 10, 19, ContactQuality.Perfect);
+        var off = RunCpu(legacy.Content, 110, 10, -8, ContactQuality.Perfect);
         Assert.Equal(0, off.RecoilFrames);
         Assert.Equal(0, off.Dur);
         Assert.Equal(0, off.Events);

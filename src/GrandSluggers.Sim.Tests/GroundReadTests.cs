@@ -339,7 +339,8 @@ public sealed class GroundReadTests
 
             // The batted ball, dropped rolling at the point: its first step loses the row's friction.
             var batted = BallFlight.Continue([], 0, 0, 0, z, 6, 0, 0, 0, 80, park, rules);
-            Assert.True(Math.Abs(6 - Speed(batted, 1, dt) - row.Roll.Friction * dt) < 1e-9, $"batted roll at {z:0.00}: {Speed(batted, 1, dt)}");
+            var scale = rules.Flight.TimeScale;
+            Assert.True(Math.Abs(6 - Speed(batted, 1, dt * scale) - row.Roll.Friction * dt / scale) < 1e-9, $"batted roll at {z:0.00}: {Speed(batted, 1, dt * scale)}");
 
             // The overthrow: the row's deceleration.
             var thrown = BallFlight.OverthrowTick(zones, rules.Grounds, 0, z, 6, 0, Frame);
@@ -606,7 +607,7 @@ public sealed class GroundReadTests
             var y0 = Math.Max(0, y);
             list.Add(new Sample(fromT, Math.Sqrt(x * x + z * z), y0, x, z));
             var rolling = y0 <= 1e-9 && Math.Abs(vy) < 1e-9;
-            Run(list, f, g, FieldBounds.Of(park), fromT, x, y0, z, vx, vy, vz, wx, wz, skid, scale, rolling, grounded: true);
+            Run(list, f, g, FieldBounds.Of(park), fromT, x, y0, z, vx * scale, vy * scale, vz * scale, wx, wz, skid, scale, rolling, grounded: true);
             return list;
         }
 
