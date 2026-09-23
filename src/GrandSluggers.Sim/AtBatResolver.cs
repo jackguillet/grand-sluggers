@@ -79,9 +79,8 @@ public sealed class AtBatResolver
         if (quality > ContactQuality.Sour && Math.Abs(err) > half * b.Window.SquareFraction)
             quality--;
 
-        if (input.UseStarPitch && input.Pitcher.StarPitch == "phonyball"
-            && quality != ContactQuality.Perfect && rng.NextDouble() < b.Star.PhonyballWhiff)
-            quality = ContactQuality.Miss;
+        // No star pitch turns contact into a miss (PH-16-R19): a bat that meets the ball is contact.
+        // The phonyball's effect is its decoy path (PitchFlight.Point), read before the swing.
 
         if (quality == ContactQuality.Miss)
         {
@@ -189,9 +188,15 @@ public sealed class AtBatResolver
     /// <summary>
     /// The timing window one swing is judged in, in frames at 60 Hz (spec §5.3). Inside is ± half of
     /// this. It is <c>batting.window.frames</c> for every hitter, both swings and every human rung
-    /// (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), × the star pitch's window multiplier, floored. The
-    /// resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>) read this one
-    /// number.
+    /// (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), floored. The resolver and the swing take's warp
+    /// (<see cref="AtBatMotion.SwingContactSec"/>) read this one number.
+    ///
+    /// <para>
+    /// <b>No star term (PH-16-R1, PH-16-R18).</b> A Star Pitch keeps the ordinary window: its
+    /// challenge is the ball's own speed and path, which the hitter can see. The star skills carry
+    /// no window multiplier any more and the file refuses one by name. <paramref name="starPitch"/>
+    /// and <paramref name="skills"/> are no longer read, for the same reason as the park below.
+    /// </para>
     ///
     /// <para>
     /// <b>No park term, day or night (FD-11-R2, F4-d).</b> Night keeps the stadium lights, so it
@@ -207,10 +212,7 @@ public sealed class AtBatResolver
     {
         var r = Rules.Or(rules);
         var w = r.Batting.Window;
-        var one = w.Frames;
-        if (starPitch is not null)
-            one *= StarSkills.BatterWindowMul(starPitch, skills);
-        return Math.Max(w.FloorFrames, one);
+        return Math.Max(w.FloorFrames, w.Frames);
     }
 
     /// <summary>

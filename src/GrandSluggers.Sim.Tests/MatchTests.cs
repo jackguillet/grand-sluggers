@@ -508,9 +508,14 @@ public class MatchTests
         Assert.Contains(park.Hazards, h => h.Type == "warp_pipe" && h.Tag == "A");
         Assert.Contains(park.Hazards, h => h.Type == "warp_pipe" && h.Tag == "B");
         Assert.Contains(park.Hazards, h => h.Type == "warp_pipe" && h.Tag == "C");
-        var w = ParkHazards.WarpIfPipe(park, 20, 55, new Random(3));
-        Assert.True(w.Warped);
-        Assert.False(Math.Abs(w.X - 20) < 0.01 && Math.Abs(w.Z - 55) < 0.01);
+        // A ball on the ground at the A can is in its mouth, and it can come out of B or C, never A (F4-c).
+        var mouths = new BallHazards();
+        mouths.Begin(park, false, _content.Rules);
+        var a = park.Hazards.Single(h => h.Type == "warp_pipe" && h.Tag == "A");
+        var entered = mouths.Entered(a.X, 0, a.Z);
+        Assert.NotNull(entered);
+        Assert.Equal(2, mouths.ExitsFor(entered!).Count);
+        Assert.DoesNotContain(mouths.ExitsFor(entered!), m => m.Hazard == entered!.Hazard);
     }
 
     [Fact]
@@ -523,8 +528,11 @@ public class MatchTests
         Assert.Contains(park.Hazards, h => h.Type == "ac_unit");
         // The C80 copy carries the hazards at the field's scale (#732): this sign stands at (-56, 168).
         var (signX, signZ) = (-56.0, 168.0);
-        Assert.True(ParkHazards.HitStarSign(park, signX, signZ));
-        Assert.False(ParkHazards.HitStarSign(park, 0, 0));
+        var signs = new BallHazards();
+        signs.Begin(park, false, _content.Rules);
+        Assert.NotNull(signs.Reward(signX, 10, signZ));
+        Assert.Null(signs.Reward(signX, 40, signZ)); // over the top of the sign
+        Assert.Null(signs.Reward(0, 0, 0));
     }
 
     [Fact]
@@ -559,9 +567,10 @@ public class MatchTests
         Assert.Contains(park.Hazards, h => h.Type == "barrel");
         Assert.Contains(park.Hazards, h => h.Type == "tree");
         Assert.Contains(park.Hazards, h => h.Type == "climb_wall");
-        var w = ParkHazards.WarpIfPipe(park, 22, 58, new Random(3));
-        Assert.True(w.Warped);
-        Assert.Equal("barrel cannon", ParkHazards.WarpName(park));
+        var barrels = new BallHazards();
+        barrels.Begin(park, false, _content.Rules);
+        Assert.NotNull(barrels.Entered(22, 0, 58));
+        Assert.Equal("barrel cannon", CarnivalFront.RedirectName(HazardType.Barrel));
         Assert.True(ParkHazards.CanClamber(park, _content.Must("konga")));
         Assert.False(ParkHazards.CanClamber(park, _content.Must("rio")));
     }

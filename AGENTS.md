@@ -25,9 +25,9 @@ Pick work from the top. Do not pick a lower row because it is easier.
 
 ## Done means you played it
 
-Unit tests are necessary and not sufficient. **Exact** is the bar; similar is a fail. Rule: `.grok/rules/exact-work.md`.
+Unit tests are necessary and not sufficient. When Jack names a thing (a batter's box, a dirt shape, a camera, a HUD), **exact** is the bar; similar is a fail. Your job is to not hand Jack a cousin of what he asked for.
 
-- Research the spec (MLB, the reference still, existing tables, `docs/gameplay-spec.md`) **before** coding. Write the numbers. Tests must encode those relationships, not "a mesh exists." A play is decided by geometry (ball, runner, glove, bag), never by a roll or a caption; rule numbers live in `data/rules/` (a trial's own copies in `trials/`, never a second default).
+- Research the spec (MLB, the reference still, existing tables, `docs/gameplay-spec.md`) **before** coding. Write the numbers and name the relationships the still must show (bags *inside* the foul line, the 1B–2B–3B apron thicker and more curved than the home legs, a 6-inch box gap). Tests must encode those relationships (`BagIsInsideTheFoulLine`, `BoxesClearThePlate`), not "a mesh exists." Cartoon fat is allowed; wrong topology is not. A play is decided by geometry (ball, runner, glove, bag), never by a roll or a caption; rule numbers live in `data/rules/` (a trial's own copies in `trials/`, never a second default).
 - **View the change** (Play `HarborDiamond` + Scene orbit, still, live bounds vs the reference). Math-only is not verification. If you cannot look, say so — do not claim look done.
 - "Close" / "better" from Jack is a correction, not acceptance.
 - If you change a screen, **be that screen as a player**: every captain if select, both schemes if controls, title → lineup → first pitch if front-of-house.
@@ -47,7 +47,7 @@ Behavior docs stay. Bookkeeping and balance run on demand. Contract: `docs/agent
 - A feature PR does not reseal the evidence seals, edit a `trials/` twin, or touch a decision register or an implementation ledger. One batched docs PR updates registers and ledgers at a phase checkpoint or when Jack asks.
 - A behavior change updates its rule in `docs/gameplay-spec.md` in the same PR. Write the rule, not the provenance: no PR numbers, no "✅ (#nnn, PR #nnn)". Existing provenance stays.
 - A debug-protocol row is for a novel failure signature only.
-- C80 is the shipped game (Jack promoted it, 2026-09-22; `docs/agent-rails.md` §1.3). There is one diamond, 80-ft basepaths; `trials/c80` is gone.
+- There is one diamond: 80-ft basepaths. Its numbers are the defaults in `data/`.
 
 ## Rails, not patches
 
@@ -95,8 +95,8 @@ Steal the *feel* of Mario Super Sluggers. Do not steal Mario.
 
 - **Look:** oversized cartoon toys, fat silhouettes, saturated toon. Identity is palette + size. Heads read at catcher-eye. 10-foot UI.
 - **Cast:** Rio, Vale, Zig, Brondo, Konga, Ashlord, Elder Fenn + faction role players. Role players reuse the captain body type. No skin lists extras until they read as toys (#687).
-- **Characters are DCC assets.** One rig (`hero-shared`), one body script, one takes script; every verb is a Blender take baked for both hands; C# holds no pose. A captain is proportions + palette in data. Contract: `docs/character-motion.md`. Procedure: `.grok/skills/character-art/`. Style lock: `tools/blender/style-lock/`. No caps yet; hats come back as accessories.
-- **Harbor is the expensive diamond** (the “real stadium”). Other parks stay JSON until Exhibition is the reason people stay; their rules and their greybox may be built first (`docs/plan-fields.md`), their art may not. Harbor kit meshes are authored in **Blender MCP** (`tools/blender/harbor_kit.py`, server in `.grok/config.toml`). Do not invent Unity-only park art when a kit slot exists.
+- **Characters are DCC assets.** One rig (`hero-shared`), one body script, one takes script; every verb is a Blender take baked for both hands; C# holds no pose. A captain is proportions + palette in data. Contract: `docs/character-motion.md`. Procedure: `.claude/skills/character-art/`. Style lock: `tools/blender/style-lock/`. No caps yet; hats come back as accessories.
+- **Harbor is the expensive diamond** (the “real stadium”). Other parks stay JSON until Exhibition is the reason people stay; their rules and their greybox may be built first (`docs/plan-fields.md`), their art may not. Harbor kit meshes are authored in `tools/blender/harbor_kit.py` (procedure: `tools/blender/README.md`). Do not invent Unity-only park art when a kit slot exists.
 - **Original pictures, original tones.** No Nintendo samples, meshes, mushrooms, plumbers, princesses, or set dressing.
 - Missing art is a placeholder that does not crash. Do not invent a new pipeline to hide a missing file.
 - Gameplay cameras look at the **chest / dirt / bag**, not the brim. Ashlord’s hat in the lens is a framing bug, not a scale bug.
@@ -106,12 +106,12 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 ## Operating
 
 - One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`.
-- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix; a repeat or a PR name is not a row. If the signature has fired twice, promote it to a validator or a scenario. If the lesson is procedural, grow `.grok/skills/character-art/` or `docs/agent-rails.md`. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`) and `data/agent/dcc-stages.json` (`cli stages`): walk blocking → fill → motion → export → still; DCC still + in-game still in `scratchpad/stills/`; a look-critic files; Jack passes. One-shotting a captain extra or a kit mesh is a patch.
+- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix; a repeat or a PR name is not a row. If the signature has fired twice, promote it to a validator or a scenario. If the lesson is procedural, grow `.claude/skills/character-art/` or `docs/agent-rails.md`. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`) and `data/agent/dcc-stages.json` (`cli stages`) and walk the stages: blocking → fill → motion → export → still. One-shotting a captain extra or a kit mesh is a patch.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
 - Gamepad is the couch product. Keyboard + mouse are the same scheme, player 1 only. Pad 2 is a second gamepad.
 - Couch copy lives in `HowToPlay` / `CarnivalFront` / `BroadcastHud`, not scattered strings.
 - Content ids in `data/` stay stable. Feel numbers live in `data/feel/`. Do not grow `MatchDirector`.
-- Falsify with `tools/test-fast.sh <Classes you touched>` (never the full suite locally), `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Look/character: DCC still + in-game still in `scratchpad/stills/` in the PR (`tools/dcc-still.sh`, `tools/still-gate-character.sh`). A critic files; Jack passes. Personal Unity cannot `-batchmode`.
+- Falsify with `tools/test-fast.sh <Classes you touched>`, `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Capture look stills with `tools/dcc-still.sh` and `tools/still-gate-character.sh`. Personal Unity cannot `-batchmode`.
 - After a feel or look merge: a skeptic pass plays the named path. A still that only works because of a one-off is not done.
 
 ## Local standalone delivery (Jack's default)

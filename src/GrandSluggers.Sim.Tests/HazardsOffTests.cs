@@ -37,10 +37,11 @@ public sealed class HazardsOffTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void TheSwitchRemovesTheFourActingPatternsAndKeepsTheWallAndTheScenery()
+    public void TheSwitchRemovesTheThreeActingPatternsAndKeepsTheWallAndTheScenery()
     {
+        // The catch stealer retired into the redirect (FD-09-R2, F4-c): three patterns act on a play.
         Assert.Equal(
-            new[] { HazardPattern.StatusVolume, HazardPattern.BallRedirect, HazardPattern.RewardTarget, HazardPattern.CatchStealer },
+            new[] { HazardPattern.StatusVolume, HazardPattern.BallRedirect, HazardPattern.RewardTarget },
             HazardPattern.Hazards);
         // Every pattern in the closed set is on one side or the other, and the other side is exactly these two.
         Assert.Equal(new[] { HazardPattern.WallTrait, HazardPattern.Decoration },
@@ -150,8 +151,8 @@ public sealed class HazardsOffTests
         [
             ("crystal-rink", false, 1),   // a freeze volume slows the chase (a Crystal night is its day since FD-11-R2)
             ("ember-keep", true, 1),      // a lava pit or the breath slows the chase
-            ("funfair-park", true, 16),   // a chomper eats a fly
-            ("canopy-yard", false, 4),    // a barrel warps a grounder
+            ("funfair-park", true, 16),   // a chomper or a can redirects the ball
+            ("canopy-yard", false, 4),    // a barrel redirects the ball
             ("rooftop-city", false, 2)    // a billboard pays the batting team
         ];
 
@@ -188,10 +189,10 @@ public sealed class HazardsOffTests
     /// What a game's hazards did, play by play, from the sim's own facts. A status volume's is the live touch
     /// (F4-b, #896): a <see cref="PlayTraceMarkKind.BodySlowed"/> mark in the play's trace, since the preview
     /// no longer reads a volume at all — the heart swing's slow, a special, never makes one. The redirect and
-    /// the catch stealer are still the preview the live ball played (<c>Warped</c>, <c>Chomped</c>), read off
-    /// the trace's <c>BeginLive</c> command; the star swings that warp without a hazard (the shell and cask
-    /// swings) are not counted, because the switch does not touch the specials. The billboard's payment has
-    /// no typed fact of its own; its only record is the line the match appends where it pays. The game is
+    /// the reward target are live too (F4-c): a <see cref="PlayTraceMarkKind.BallRedirected"/> or
+    /// <see cref="PlayTraceMarkKind.RewardHit"/> mark (the chompers are redirects since FD-09-R2). The star
+    /// swings that warp the preview without a hazard (the shell and cask swings) are not counted, because the
+    /// switch does not touch the specials, and nothing reads a preview warp from a park any more. The game is
     /// <see cref="Match.AutoPlayGame"/>'s loop, one <see cref="Match.AutoPlay"/> at a time, so each play's
     /// trace is read and dropped as it lands (a whole traced game held at once is the slow part).
     /// </summary>
@@ -205,21 +206,20 @@ public sealed class HazardsOffTests
         var guard = 0;
         while (!match.Over && guard++ < 2000)
         {
-            var logged = match.Log.Count;
             match.AutoPlay();
             foreach (var trace in match.Traces)
             {
                 if (trace.Marks?.Any(m => m.Kind == PlayTraceMarkKind.BodySlowed) == true) found.Add("slowed");
+                if (trace.Marks?.Any(m => m.Kind == PlayTraceMarkKind.BallRedirected) == true) found.Add("redirected");
+                if (trace.Marks?.Any(m => m.Kind == PlayTraceMarkKind.RewardHit) == true) found.Add("reward");
                 var begin = trace.Commands?.FirstOrDefault(c => c.Input.Kind == LivePlayCommandKind.BeginLive)?.Input;
                 if (begin?.Preview is not { } pre) continue;
                 Assert.Same(match.Park, trace.Context!.Park);
                 var star = begin.Hit?.StarSwingUsed;
                 // A park's volume never freezes the preview (FD-08-R1): only the heart swing does.
                 Assert.True(!pre.Frozen || star == "heart-swing", "a frozen preview without the heart swing");
-                if (pre.Warped && star is not ("shell-swing" or "cask-swing")) found.Add("warped");
-                if (pre.Chomped) found.Add("chomped");
+                Assert.True(!pre.Warped || star is "shell-swing" or "cask-swing", "a park never warps the preview (F4-c)");
             }
-            found.AddRange(match.Log.Skip(logged).Where(e => e.Caption.Contains("Billboard STAR!")).Select(_ => "billboard"));
             match.Tracing = true; // drops the traces just read; tracing is observation and moves no play
             if (stopAtFirst && found.Count > 0) return found;
         }

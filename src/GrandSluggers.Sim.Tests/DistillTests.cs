@@ -21,7 +21,7 @@ public sealed class DistillTests
         Assert.Contains("data/agent/debug-protocol.json", section, StringComparison.Ordinal);
         Assert.Contains("second firing", section, StringComparison.Ordinal);
         Assert.Contains("promoted", section, StringComparison.Ordinal);
-        Assert.Contains(".grok/skills/character-art/", section, StringComparison.Ordinal);
+        Assert.Contains(".claude/skills/character-art/", section, StringComparison.Ordinal);
         Assert.Contains("swing-*-max-load", section, StringComparison.Ordinal);
         Assert.DoesNotContain("When R2 (#649) ships", section, StringComparison.Ordinal);
     }
@@ -29,7 +29,7 @@ public sealed class DistillTests
     [Fact]
     public void CharacterArtSkillNamesTheThreeSteps()
     {
-        var skill = File.ReadAllText(Path.Combine(Repo, ".grok/skills/character-art/SKILL.md"));
+        var skill = File.ReadAllText(Path.Combine(Repo, ".claude/skills/character-art/SKILL.md"));
         Assert.Contains("## Distill", skill, StringComparison.Ordinal);
         Assert.Contains("data/agent/debug-protocol.json", skill, StringComparison.Ordinal);
         Assert.Contains("second", skill, StringComparison.Ordinal);
@@ -41,7 +41,7 @@ public sealed class DistillTests
     [Fact]
     public void CharacterArtGrewFromTheBatThroughHeadStill()
     {
-        var skill = File.ReadAllText(Path.Combine(Repo, ".grok/skills/character-art/SKILL.md"));
+        var skill = File.ReadAllText(Path.Combine(Repo, ".claude/skills/character-art/SKILL.md"));
         Assert.Contains("swing-*-max-load", skill, StringComparison.Ordinal);
         Assert.Contains("#623", skill, StringComparison.Ordinal);
         Assert.Contains("bat-through-head", skill, StringComparison.Ordinal);
@@ -63,7 +63,7 @@ public sealed class DistillTests
     [Fact]
     public void CharacterArtGrewFromExtrasAsGeometryJunk()
     {
-        var skill = File.ReadAllText(Path.Combine(Repo, ".grok/skills/character-art/SKILL.md"));
+        var skill = File.ReadAllText(Path.Combine(Repo, ".claude/skills/character-art/SKILL.md"));
         Assert.Contains("#687", skill, StringComparison.Ordinal);
         Assert.Contains("extras-are-geometry-junk", skill, StringComparison.Ordinal);
         Assert.Contains("leave extras off the skin", skill, StringComparison.Ordinal);

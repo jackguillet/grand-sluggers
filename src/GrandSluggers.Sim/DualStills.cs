@@ -12,7 +12,7 @@ public sealed class DualStills
     public const string Directory = "agent";
     public const string FileName = "dual-stills.json";
     public const string DropFolder = "scratchpad/stills";
-    public const string CriticSkill = ".grok/skills/look-critic/SKILL.md";
+    public const string CriticSkill = ".claude/skills/look-critic/SKILL.md";
 
     public static readonly IReadOnlyList<string> RequiredTriggers =
     [

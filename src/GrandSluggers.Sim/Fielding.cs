@@ -51,7 +51,6 @@ public sealed class FieldingResolver
         var landing = (X: ball.LandingX, Z: ball.LandingZ);
         var shape = ball.Shape;
         var grounder = shape.OnTheDirt();
-        var line = shape == BattedBallClass.Liner;
         var assigned = Assign(defense, pitcher, gloves);
         var seed = new FieldingPreview(
             pitcher, "P", null, hang, landing.X, landing.Z, shape, false, false, false, 10, Foul: ball.Foul, Ball: ball);
@@ -65,16 +64,8 @@ public sealed class FieldingResolver
             readyAt: CpuReactionLockouts(_rules, grounder ? null : hang));
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
+        // A park's redirects act on the live ball (F4-c, FR-07): the preview plans the path as hit and nothing is foreseen.
         var warped = false;
-        if (grounder)
-        {
-            var w = ParkHazards.WarpIfPipe(park, landing.X, landing.Z, rng, _rules);
-            if (w.Warped)
-            {
-                landing = (w.X, w.Z);
-                warped = true;
-            }
-        }
         var buddyPlant = FlyCatch.ChaseTarget(seed with { Fielder = fielder, Position = pos }, park, _rules);
         var buddy = Buddy(assigned, fielder, pos, buddyPlant.X, buddyPlant.Z);
         // The heart swing's slow (a special, §13; outside D21 and the 3e boundary): every chaser for the play, exactly as it
@@ -86,15 +77,14 @@ public sealed class FieldingResolver
         var radius = CatchRadiusFt(fielder, park, _rules);
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
-        var chomped = ParkHazards.ChompFly(park, landing.X, landing.Z, grounder || line, _rules);
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, shape,
-            heat, furnace, freeze, radius, warped, Chomped: chomped, Foul: ball.Foul, Ball: ball);
+            heat, furnace, freeze, radius, warped, Foul: ball.Foul, Ball: ball);
     }
 
     /// <summary>
     /// What the batted ball decides on its own, before any glove (§7): a homer at the crossing, a
-    /// foul on the untouched path, a chomped fly. Everything else is <see cref="PlayKind.InPlay"/>:
+    /// foul on the untouched path. Everything else is <see cref="PlayKind.InPlay"/>:
     /// the live ball's gloves, throws and runner bodies decide it, never a roll (§8.3, §8.8, A.4 #37).
     /// </summary>
     public FieldingResult Resolve(
@@ -111,13 +101,12 @@ public sealed class FieldingResolver
         _ = glove;
         var shown = pre ?? Preview(hit, park, defense, pitcher, rng, night, gloves);
         var ball = shown.Ball ?? BattedBall.Of(hit, park, _rules);
-        var kind = shown.Chomped ? PlayKind.FlyOut
-            : shown.HomeRunLikely ? PlayKind.HomeRun
+        var kind = shown.HomeRunLikely ? PlayKind.HomeRun
             : shown.Foul ? PlayKind.Foul
             : PlayKind.InPlay;
         return new FieldingResult(
             kind, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace,
-            Buddy: shown.Buddy, Warped: shown.Warped, Chomped: shown.Chomped, GroundRule: ball.GroundRule);
+            Buddy: shown.Buddy, Warped: shown.Warped, GroundRule: ball.GroundRule);
     }
 
     /// <summary>The resolved catch verb, kept as a fact so copy can change without changing behavior.</summary>
@@ -604,7 +593,6 @@ public sealed record FieldingResult(
     Character? Buddy = null,
     bool Warped = false,
     string? Item = null,
-    bool Chomped = false,
     bool Bobble = false,
     double KnockbackSec = 0,
     DefensiveFeat Feat = DefensiveFeat.None,
@@ -615,7 +603,9 @@ public sealed record FieldingResult(
     bool ThrowSailed = false,
     /// <summary>The thrown item landed on its body (§12); <see cref="ItemTarget"/> is who.</summary>
     bool ItemHit = false,
-    Character? ItemTarget = null);
+    Character? ItemTarget = null,
+    /// <summary>The type of the last redirect the live ball went through this play (F4-c), or null.</summary>
+    string? RedirectType = null);
 
 /// <summary>
 /// What the defense is looking at from the crack: the glove on it, the landing mark, and the
@@ -643,7 +633,6 @@ public sealed record FieldingPreview(
     bool Frozen,
     double CatchRadius,
     bool Warped = false,
-    bool Chomped = false,
     bool Foul = false,
     BattedBall? Ball = null)
 {
@@ -733,65 +722,6 @@ public static class ParkHazards
             (list ??= []).Add(new StatusVolume(i, h.Type, h.X, h.Z, r, slow));
         }
         return list is null ? [] : list;
-    }
-
-    /// <summary>
-    /// A <see cref="HazardPattern.CatchStealer"/> the fly landed in: an out at the hang, with no
-    /// glove. An instance that exists only at night is in the park's night block, so it is in the
-    /// played park's list at night and nowhere by day (FD-11); nothing here reads the clock.
-    /// </summary>
-    public static bool ChompFly(Park park, double x, double z, bool grounder = false, RulesTable? rules = null)
-    {
-        if (grounder) return false;
-        var hazards = Rules.Or(rules).Hazards;
-        foreach (var h in park.Hazards)
-        {
-            var row = hazards.Of(h.Type);
-            if (row.Pattern != HazardPattern.CatchStealer) continue;
-            if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// A grounder that landed inside a <see cref="HazardPattern.BallRedirect"/>'s own radius plus its
-    /// row's reach pad: the preview landing moves to another one of the park's, drawn from the
-    /// match's stream. Needs two, because a mouth cannot be its own exit.
-    /// </summary>
-    public static (double X, double Z, bool Warped) WarpIfPipe(Park park, double x, double z, Random rng, RulesTable? rules = null)
-    {
-        var hazards = Rules.Or(rules).Hazards;
-        var pipes = park.Hazards.Where(h => hazards.Of(h.Type).Pattern == HazardPattern.BallRedirect).ToList();
-        if (pipes.Count < 2) return (x, z, false);
-        Hazard? hit = null;
-        foreach (var p in pipes)
-        {
-            if (Diamond.Dist(p.X, p.Z, x, z) <= p.Radius + hazards.Of(p.Type).ReachPadFt)
-            {
-                hit = p;
-                break;
-            }
-        }
-        if (hit is null) return (x, z, false);
-        var exits = pipes.Where(p => !ReferenceEquals(p, hit)).ToList();
-        var dest = exits[rng.Next(exits.Count)];
-        return (dest.X, dest.Z, true);
-    }
-
-    /// <summary>What the caption calls this park's redirect. Copy, not a rule.</summary>
-    public static string WarpName(Park park) =>
-        park.Hazards.Any(h => h.Type == HazardType.Barrel) ? "barrel cannon" : "warp can";
-
-    /// <summary>A <see cref="HazardPattern.RewardTarget"/> the ball landed on: the batting team is paid <c>stars.gains.billboard</c>.</summary>
-    public static bool HitStarSign(Park park, double x, double z, RulesTable? rules = null)
-    {
-        var hazards = Rules.Or(rules).Hazards;
-        foreach (var h in park.Hazards)
-        {
-            if (hazards.Of(h.Type).Pattern != HazardPattern.RewardTarget) continue;
-            if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
-        }
-        return false;
     }
 
     /// <summary>

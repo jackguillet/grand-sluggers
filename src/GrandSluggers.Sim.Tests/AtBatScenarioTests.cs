@@ -227,10 +227,11 @@ public sealed class AtBatScenarioTests
 
     /// <summary>
     /// #844, PH-10-R1; shipped by #860 — "trial was good.", September 22, 2026: every hitter and both
-    /// swings share one window (the formula reads neither since #887), and the charmball still
-    /// multiplies it (PH-16-R18 removes the Star Pitch multiplier later, not here). No frame count is
-    /// stored: the row reads the window from the table it is asserting about. The Bat 1 charged swing
-    /// against a charmball that the split window floored (the off-path half) was retired by #887.
+    /// swings share one window (the formula reads neither since #887), and a charmball is judged in
+    /// the same window (PH-16-R1, PH-16-R18: no Star Pitch narrows it; S-190 holds every star pitch).
+    /// No frame count is stored: the row reads the window from the table it is asserting about. The
+    /// Bat 1 charged swing against a charmball that the split window floored (the off-path half) was
+    /// retired by #887.
     /// </summary>
     [Fact]
     public void S10_OnTheShippedRootTheWindowIsOneNumberForEverySwingAndEveryHitter()
@@ -249,10 +250,8 @@ public sealed class AtBatScenarioTests
             Assert.Equal(ContactQuality.Miss, resolver.Resolve(Input(bat, frames / 2 + 0.1, charge), park, new Random(1)).Quality);
         }
 
-        // The charmball still narrows it, by its own table value, and stays over the floor.
-        var charmed = AtBatResolver.ContactWindowFrames("charmball", park, false, trial, _content.StarSkills);
-        Assert.Equal(Math.Max(trial.Batting.Window.FloorFrames, frames * StarSkills.BatterWindowMul("charmball", _content.StarSkills)), charmed);
-        Assert.True(charmed < frames && charmed >= trial.Batting.Window.FloorFrames, $"charmed {charmed} of {frames}");
+        // The charmball is judged in the same window (PH-16-R18).
+        Assert.Equal(frames, AtBatResolver.ContactWindowFrames("charmball", park, false, trial, _content.StarSkills));
     }
 
     // ---------------------------------------------------------------------------------

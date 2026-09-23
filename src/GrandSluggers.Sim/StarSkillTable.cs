@@ -7,7 +7,6 @@ public sealed record StarPitchSkill(
     string Kind,
     double SpeedMul,
     int StaminaCost,
-    double BatterWindowMul,
     bool LateBreak,
     bool Decoy,
     string? OnCatch);
@@ -83,9 +82,6 @@ public static class StarSkills
 {
     public static double PitchSpeedMul(string? id, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Pitch(id)?.SpeedMul ?? 1.0;
-
-    public static double BatterWindowMul(string? starPitch, StarSkillTable? table = null) =>
-        StarSkillTable.Or(table).Pitch(starPitch)?.BatterWindowMul ?? 1.0;
 
     public static int StaminaCost(string? starPitch, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Pitch(starPitch)?.StaminaCost ?? 0;

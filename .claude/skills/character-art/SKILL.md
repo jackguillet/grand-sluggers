@@ -11,7 +11,7 @@ Contract: `docs/character-motion.md`. Stills: `docs/screenshot-gate.md`. Dual st
 
 Do not add a bone, a second rig, a procedural pose in C#, a runtime mirror, a cap, or a per-captain branch. Do not declare look done from tests, the DCC bake, or a rebuilt `.app`. File both stills, spawn look-critic, **stop**. Jack passes look.
 
-**One-shotting a captain extra or a Harbor kit mesh is banned.** Walk the stages. The next prompt names the stage it continues.
+**One-shotting a captain extra or a Harbor kit mesh is banned.** Walk the stages.
 
 ## Process startup
 
@@ -19,17 +19,18 @@ Use `tools/blender-run.sh` (also used by `tools/dcc-still.sh`). On macOS, the ag
 
 ## Stages
 
-Art sessions walk named checkpoints. Save after each (the script edit + the still). Do not jump to export or still to "just make the still pass."
+Art sessions walk named checkpoints. Name the stage, stop at its checkpoint, and save (the script edit + the still). The next prompt names the stage it continues. Do not jump to export or still to "just make the still pass." Existing bake flags (`--clay`, `--sheets`, `--out`) still run. A `.blend` is a cache, not the source.
 
-| # | Stage | Character | Harbor kit | Checkpoint |
-| --- | --- | --- | --- | --- |
-| 1 | **blocking** | `hero_shared_blockout.py` silhouette | diamond / wall ring volumes | `--clay` sheet (`scratchpad/takes/body.png` / `harbor-kit.png`) |
-| 2 | **fill** | extras from `hero_shared_extras.py` + `extras.json` | kit slots from `harbor_kit.py` | `--clay` sheet (`extras.png` / `harbor-kit.png`) |
-| 3 | **motion** | takes from `hero_shared_takes.py` | — (Harbor has no takes) | `--sheets` (`{clip}.png`) |
-| 4 | **export** | FBX into the catalog slot | FBX into the catalog slot | `--out` |
-| 5 | **still** | DCC still + in-game character still (R4) | in-game park still | `scratchpad/stills/` dual stills |
-
-Existing bake flags (`--clay`, `--sheets`, `--out`) still run. This rail does not retarget the rig or add a take. A `.blend` is a cache, not the source.
+1. **blocking**: `hero_shared_blockout.py` silhouette (Harbor: diamond / wall ring volumes). `--clay`. Checkpoint: `scratchpad/takes/body.png` (Harbor: `harbor-kit.png`).
+2. **fill**: extras from `hero_shared_extras.py` + `extras.json` (Harbor: kit slots from `harbor_kit.py`). `--clay`. Checkpoint: `extras.png` / `harbor-kit.png`.
+3. **motion**: takes from `hero_shared_takes.py` (Harbor has no takes). `--sheets`. Checkpoint: `{clip}.png`. The takes script refuses a take that misses its contract; extend the falsifier, do not loosen it. A left-handed batter or thrower plays `{clip}-L.fbx`, the baked reflection.
+4. **export**: `--out` into the catalog slot. Do not skip here from a one-shot mesh.
+5. **still**: dual stills (R4):
+   1. Capture the **DCC still**: `tools/dcc-still.sh body|extras|takes [clip]|harbor`. Named PNG: `scratchpad/stills/dcc-body.png` (or `dcc-extras.png` / `dcc-{clip}.png` / `dcc-harbor-kit.png`).
+   2. `tools/test-fast.sh <Classes you touched>`, `dotnet run --project src/GrandSluggers.Cli -- art`, `tools/unity-compile.sh` print OK. These are not a still.
+   3. Capture the **in-game still**: `tools/still-gate-character.sh {id}` (Harbor kit: `tools/still-gate.sh`). Named PNGs: `scratchpad/stills/char-{id}-rest.png` and `char-{id}-pose.png`.
+   4. Swing or stance change: also run the Unity swing matrix (`docs/screenshot-gate.md`).
+   5. Link both PNGs in the PR. Spawn **look-critic** (read-only). It files diffs; it cannot mark #188 done. **Stop**.
 
 ## Where a change goes
 
@@ -41,21 +42,6 @@ Existing bake flags (`--clay`, `--sheets`, `--out`) still run. This rail does no
 | a pose or timing | `hero_shared_takes.py` pose table; markers in `Motion.Clips` and `data/art/clips.json` |
 | the swing grip or stance | `SwingPresentation.Keys` / `data/art/batting-stance.json`, then re-bake |
 | which hand plays which file | `Motion.ClipFile` (do not special-case a captain) |
-
-## Loop
-
-Name the stage. Stop at its checkpoint. The next prompt continues from that stage.
-
-1. **blocking** — edit `hero_shared_blockout.py` (Harbor: diamond / wall ring volumes). `--clay`. Checkpoint: `scratchpad/takes/body.png` (Harbor: `harbor-kit.png`).
-2. **fill** — extras / kit slots. `--clay`. Checkpoint: `extras.png` / `harbor-kit.png`.
-3. **motion** — takes (skip for Harbor). `--sheets`. Checkpoint: `{clip}.png`.
-4. **export** — `--out` into the catalog slot. Do not skip here from a one-shot mesh.
-5. **still** — dual stills (R4):
-   1. Capture the **DCC still**: `tools/dcc-still.sh body|extras|takes [clip]|harbor`. Named PNG: `scratchpad/stills/dcc-body.png` (or `dcc-extras.png` / `dcc-{clip}.png` / `dcc-harbor-kit.png`).
-   2. `tools/test-fast.sh <Classes you touched>` (never the full suite locally), `dotnet run --project src/GrandSluggers.Cli -- art`, `tools/unity-compile.sh` print OK. These are not a still.
-   3. Capture the **in-game still**: `tools/still-gate-character.sh {id}` (Harbor kit: `tools/still-gate.sh`). Named PNGs: `scratchpad/stills/char-{id}-rest.png` and `char-{id}-pose.png`.
-   4. Swing or stance change: also run the Unity swing matrix (`docs/screenshot-gate.md`).
-   5. Link both PNGs in the PR. Spawn **look-critic** (read-only). It files diffs; it cannot mark #188 done. **Stop**.
 
 ## Distill (from failed stills)
 
