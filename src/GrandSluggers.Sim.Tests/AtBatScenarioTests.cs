@@ -529,7 +529,7 @@ public sealed class AtBatScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S25_TiredPitcherLosesSixMphAndSteeringRoomButNeverMissesAtRandom()
+    public void S25_TiredPitcherHasFadedSpeedAndSteeringRoomButNeverMissesAtRandom()
     {
         var s = new Scenario(_content);
         var match = s.Match;
@@ -546,7 +546,8 @@ public sealed class AtBatScenarioTests
         Assert.InRange(match.PitcherStamina, 20 - st.PitchCost, 20);
         Assert.True(match.PitcherTired);
         Assert.False(match.PitcherExhausted);
-        Assert.Equal(fresh - st.TiredMph, match.PitchSpeedMph(Scenario.Paint), 6);
+        Assert.Equal(fresh - st.MphLost(match.PitcherStamina), match.PitchSpeedMph(Scenario.Paint), 6);
+        Assert.True(match.PitchSpeedMph(Scenario.Paint) < fresh - st.ExhaustedMph / 2, "past the middle of the fade at 20");
         Assert.True(BroadcastHud.PoorArm(match.PitcherStamina, match.Rules), "the card reads TIRED");
         Assert.Contains("TIRED", BroadcastHud.ArmLine(match.PitcherStamina, match.Rules));
 
@@ -556,9 +557,11 @@ public sealed class AtBatScenarioTests
         Assert.Equal((aimed.AimX, aimed.AimY), (ready.AimX, ready.AimY));
         for (var i = 0; i < 20; i++)
             Assert.Equal(PitchFlight.Crossing(ready), PitchFlight.Crossing(match.PreparePitch(aimed)));
-        Assert.Equal(st.TiredBreakMul, ready.BreakMul);
+        var breakMul = st.BreakMul(match.PitcherStamina);
+        Assert.Equal(breakMul, ready.BreakMul, 12);
+        Assert.InRange(breakMul, st.TiredBreakMul, 1 - 1e-9);
         var damped = PitchFlight.Crossing(ready).X - PitchFlight.Crossing(ready with { BreakX = 0 }).X;
-        Assert.Equal(_content.Rules.Pitching.Flight.BreakMaxFt * st.TiredBreakMul, damped, 6);
+        Assert.Equal(_content.Rules.Pitching.Flight.BreakMaxFt * breakMul, damped, 6);
     }
 
     [Fact]
