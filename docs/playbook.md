@@ -52,7 +52,7 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 ## 4. Integrate, then verify main, not the branch
 
 - **Stacked PRs go against `main`**, or the top of the stack is merged into `main` at the end. P1 and P2 merged their parts into their own parent branches; `main` only had part (a) of each until #593 / #594 integrated them. Check with `git merge-base --is-ancestor <merge sha> origin/main` for every merged PR before believing "done".
-- After every merge: `dotnet test`, `cli art`, `unity-compile.sh` on `main`, then `python3 tools/local-player.py` so the window Jack plays is the revision the checklist names. Say the revision.
+- After every merge: CI's breakage suite on `main`, then `python3 tools/local-player.py` so the window Jack plays is the revision the checklist names. Say the revision. Never run the full test suite locally; it freezes the shared Mac ([agent-rails.md](agent-rails.md) §1.2).
 - Close the issues whose PRs shipped; leave epics whose exit is a sitting open and say so.
 - A statistics gate that goes red at integration (S-29 when P1's power met P2's fence) is **skipped with a reason naming the epic that reopens it**, never tuned to pass. P7 owned it and turned it green with table edits and one rail.
 
@@ -63,7 +63,7 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 - "Do not silently patch" held: every sitting finding has an issue number and a PR number.
 - File *and* remember (R7 #654). After a sitting or a failed still:
   1. **File** the child issue under the epic that owns the lie (#342 book, #209 play, #188 toy).
-  2. **Append** a row to `data/agent/debug-protocol.json` in the same PR as the fix, or in the sitting-child PR. GitHub children stay; they are not the memory (`cli protocol`).
+  2. **Append** a row to `data/agent/debug-protocol.json` for a novel signature, in the same PR as the fix, or in the sitting-child PR. A repeat or a PR name is not a row. GitHub children stay; they are not the memory (`cli protocol`).
   3. **Promote on the second firing** to a validator or a scenario (`BagIsInsideTheFoulLine` shape). Do not wait for a third. The protocol `promoted` field names the test that would catch the *next* captain or play, not only the screenshot that found it.
   4. If the lesson is procedural (how to look, how to bake), add it to `.grok/skills/character-art/` or [agent-rails.md](agent-rails.md), not only the PR body. character-art grew from `swing-*-max-load` (#623 / `bat-through-head`).
 
@@ -84,11 +84,12 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 - Status tags, gap audit with lines, scenario ids, numbered decisions.
 - Epics own sections; prompts are self-contained; one worktree per session.
 - Verify `main`, rebuild the window, name the revision.
-- File findings; never patch from a sitting note. Append the signature to `data/agent/debug-protocol.json` in the same PR as the fix; promote on the second firing; grow the skill from a failed still (R7 #654).
+- File findings; never patch from a sitting note. Append a novel signature to `data/agent/debug-protocol.json` in the same PR as the fix; promote on the second firing; grow the skill from a failed still (R7 #654).
 - Declare the session kind (gameplay / presentation / art) and stay in its file list ([agent-rails.md](agent-rails.md) §1).
 
 ## What to do better
 
 - Say "PRs against `main`" in every prompt (now in the P8 prompt onward).
 - Have the session that ships an epic close the sitting children it fixed, with the PR number.
-- Keep the fifty-seed check in every epic's gate once it is green, so integration drift shows up in the branch, not on `main`.
+- ~~Keep the fifty-seed check in every epic's gate.~~ Superseded 2026-09-22: S-29 and the cohorts are balance checks. They run on demand (Actions → Full tests), in a tuning PR or when Jack asks, not in every epic's gate ([agent-rails.md](agent-rails.md) §1.2).
+- Keep bookkeeping out of feature PRs. Registers and ledgers move in one batched docs PR at a phase checkpoint. The spec keeps the rule, not the PR that built it.
