@@ -311,6 +311,8 @@ public sealed class NightBlockTests
     /// stopped biting fails here. A child that changes play at either park re-records these from the build
     /// before it and says why; F4-d changes neither. F4-b (#896) re-recorded Ember's four rows: its lava pits and
     /// breath slow the body that touches them for 3 s instead of every chaser, and the park's drop roll is gone.
+    /// F4-g re-recorded the trial's Ember seed 2: a CPU glove now goes around a volume when that costs less than
+    /// the slow (FD-14). The other seven games do not change.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before => TestRoot.Pick<IReadOnlyList<(string, int, string, string)>>(
         [
@@ -323,7 +325,7 @@ public sealed class NightBlockTests
             ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 4", "387423150ccacab917ba047dbc8665e01514454490d6548b9be5d2739907b20b"),
             ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "bbc8b7176300582b595e4e26b745c4f5d4698d569b90c0a935b144eba1fd551c"),
             ("ember-keep", 1, "Final  Ember Court 4  Spark All-Stars 6", "ba0eeeda3354659a0dca1eeb7018031c72cb7c08efa652a1910e1929672f3ebe"),
-            ("ember-keep", 2, "Final  Ember Court 4  Spark All-Stars 3", "3a2b6e0a1afda339426e02267d0aa365b210dcb55e254b5f9ff968fa78781ee0")
+            ("ember-keep", 2, "Final  Ember Court 5  Spark All-Stars 4", "0cccb80d999ed2fc01850712f797d85915dcdd4488f6d2697a30afb58e3f1989")
         ]);
 
     /// <summary>

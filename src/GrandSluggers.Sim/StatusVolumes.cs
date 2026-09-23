@@ -48,8 +48,8 @@ public sealed record BodySlowed(string Pos, Character Who, int Hazard, string Ty
 ///
 /// <para>
 /// <b>Who is never slowed.</b> A body with <see cref="FieldAbilities.IgnoresParkSlow"/> (Burrow) touches nothing: no
-/// event, no slow, whether it is fielding or running. Nobody plans for a slow: the fielding preview, the CPU's route and
-/// every estimate of arrival read the full speed (the CPU's cost of a volume is F4-g's).
+/// event, no slow, whether it is fielding or running. The fielding preview and every estimate of arrival read the full speed;
+/// the step toward a goal may go around a volume (<see cref="VolumeRoute"/>).
 /// </para>
 /// </summary>
 public sealed class BodySlows
@@ -135,5 +135,118 @@ public sealed class BodySlows
         s.Inside.UnionWith(_inside);
         s.Slowed = s.Inside.Count > 0 || t < s.Until - Eps;
         return touched is null ? [] : touched;
+    }
+}
+
+/// <summary>
+/// The route cost of a status volume (§14; FD-14, SF-26; F4-g): a body walking to a goal goes around a volume when going
+/// around costs less time than the slow it would pay going through, and goes through when it does not. The CPU and the
+/// assistance read the same discs the touch test does (<see cref="BodySlows.Volumes"/>), the same <c>slowSec</c> and the
+/// same <c>fielding.chase.frozenMul</c>; the stick is never steered.
+///
+/// <para>
+/// <b>The disc the route keeps off.</b> The volume's disc plus <c>fielding.chase.volumeClearFt</c>, so a body that bends
+/// its path on the rim is not clipped by its own ramp. A goal inside that disc (the ball lies in the volume), or a body
+/// already inside the volume itself, goes straight: there is no way around a slow it must take or has taken.
+/// </para>
+///
+/// <para>
+/// <b>The two costs, in seconds at the body's own speed <c>v</c>.</b> Through: from the entry the body is slowed for the
+/// row's time or for as long as it is inside, whichever is longer, but never past the goal; each slowed foot costs
+/// <c>(1 / frozenMul − 1) / v</c> more than a free one. Around: the shortest path that keeps off the disc — tangent, arc,
+/// tangent — less the straight line, over <c>v</c>. The side is the shorter arc. Only the first volume the straight line
+/// meets is costed each frame; the next frame costs the next one.
+/// </para>
+///
+/// <para>
+/// <b>No foresight of a draw (FD-14).</b> The route reads the park's volumes, which are geometry, and nothing else: no
+/// draw, no stream, nothing a hazard has not yet done. It is a function of where the body stands and where it is going,
+/// so the same frame always steers the same way.
+/// </para>
+/// </summary>
+public static class VolumeRoute
+{
+    /// <summary>
+    /// Where a body at <paramref name="at"/> going to <paramref name="goal"/> at <paramref name="speed"/> ft/s should head this
+    /// frame: <paramref name="goal"/> itself when the straight line costs no more (exactly the same doubles), else a point along
+    /// the tangent that goes around the first volume in the way, as far out as the whole detour, so the step never brakes for it.
+    /// </summary>
+    public static (double X, double Z) Waypoint(
+        (double X, double Z) at, (double X, double Z) goal, IReadOnlyList<StatusVolume> volumes,
+        double speed, double frozenMul, double clearFt)
+    {
+        var plan = Plan(at, goal, volumes, speed, frozenMul, clearFt);
+        return plan.Around ? plan.Waypoint : goal;
+    }
+
+    /// <summary>What <see cref="Waypoint"/> decided and why, for tests and the trace: the volume costed (or null), both costs in seconds, and the heading point.</summary>
+    public readonly record struct Decision(StatusVolume? Volume, double ThroughSec, double AroundSec, bool Around, (double X, double Z) Waypoint);
+
+    public static Decision Plan(
+        (double X, double Z) at, (double X, double Z) goal, IReadOnlyList<StatusVolume> volumes,
+        double speed, double frozenMul, double clearFt)
+    {
+        var none = new Decision(null, 0, 0, false, goal);
+        if (volumes.Count == 0 || speed <= 0 || frozenMul <= 0 || frozenMul >= 1) return none;
+        var dx = goal.X - at.X;
+        var dz = goal.Z - at.Z;
+        var dist = Math.Sqrt(dx * dx + dz * dz);
+        if (dist < 1e-9) return none;
+        var ux = dx / dist;
+        var uz = dz / dist;
+
+        // The first volume the straight line meets.
+        StatusVolume? hit = null;
+        double entry = double.PositiveInfinity, chord = 0, radius = 0;
+        foreach (var v in volumes)
+        {
+            if (v.Contains(at.X, at.Z)) continue;
+            var r = v.RadiusFt + Math.Max(0, clearFt);
+            if (Diamond.Dist(v.X, v.Z, goal.X, goal.Z) <= r) continue;
+            var along = (v.X - at.X) * ux + (v.Z - at.Z) * uz;
+            if (along <= 0) continue;
+            var cx = at.X + ux * along - v.X;
+            var cz = at.Z + uz * along - v.Z;
+            var h2 = cx * cx + cz * cz;
+            if (h2 >= r * r) continue;
+            var half = Math.Sqrt(r * r - h2);
+            var e = Math.Max(0, along - half);
+            if (e >= dist || e >= entry) continue;
+            hit = v;
+            entry = e;
+            chord = Math.Min(along + half, dist) - e;
+            radius = r;
+        }
+        if (hit is null) return none;
+
+        // Through: the slowed feet, each dearer by (1 / m − 1) / v.
+        var rest = dist - entry;
+        var slowedFt = Math.Max(chord, Math.Min(rest, hit.SlowSec * speed * frozenMul));
+        var throughSec = slowedFt * (1 / frozenMul - 1) / speed;
+
+        // Around: tangent, arc, tangent on the shorter side, less the straight line.
+        var ax = at.X - hit.X;
+        var az = at.Z - hit.Z;
+        var gx = goal.X - hit.X;
+        var gz = goal.Z - hit.Z;
+        var dA = Math.Max(radius, Math.Sqrt(ax * ax + az * az));
+        var dG = Math.Sqrt(gx * gx + gz * gz);
+        var cross = ax * gz - az * gx;
+        var dot = ax * gx + az * gz;
+        var theta = Math.Atan2(Math.Abs(cross), dot);
+        var arc = Math.Max(0, theta - Math.Acos(radius / dA) - Math.Acos(radius / dG));
+        var around = Math.Sqrt(dA * dA - radius * radius) + Math.Sqrt(dG * dG - radius * radius) + radius * arc;
+        var aroundSec = Math.Max(0, around - dist) / speed;
+        if (aroundSec >= throughSec) return new Decision(hit, throughSec, aroundSec, false, goal);
+
+        // The heading: toward the centre, turned off it by the tangent angle, to the side the shorter arc goes round.
+        var toC = Math.Sqrt(ax * ax + az * az);
+        var (cxu, czu) = toC < 1e-9 ? (ux, uz) : (-ax / toC, -az / toC);
+        var alpha = Math.Asin(Math.Min(1, radius / dA));
+        var turn = (cross >= 0 ? -1 : 1) * alpha;
+        var (s, c) = (Math.Sin(turn), Math.Cos(turn));
+        var hx = cxu * c - czu * s;
+        var hz = cxu * s + czu * c;
+        return new Decision(hit, throughSec, aroundSec, true, (at.X + hx * around, at.Z + hz * around));
     }
 }
