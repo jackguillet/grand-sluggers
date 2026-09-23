@@ -33,7 +33,6 @@ namespace GrandSluggers.Sim.Tests;
 /// overlay by hand as well, the way <see cref="CompactGeometryTests"/> does.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class ParkEnvironmentTests
 {
     static readonly ContentCatalog Catalog = ContentCatalog.Load();

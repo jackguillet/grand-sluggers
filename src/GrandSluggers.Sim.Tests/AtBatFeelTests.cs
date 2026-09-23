@@ -3,7 +3,6 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public class AtBatFeelTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();

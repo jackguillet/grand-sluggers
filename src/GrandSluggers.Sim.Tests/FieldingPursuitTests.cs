@@ -3,7 +3,6 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public class FieldingPursuitTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -31,7 +30,7 @@ public class FieldingPursuitTests
                 $"route must cut ahead of the live hop: {park.Id} {exit} mph {spray}°");
             // Reachable carries chase.reachSlackFt (0.35 ft) of slack, which is under 0.02 s at the shipped legs. The C80 copy's
             // legs are slower (12.4 + 1.12 x Run ft/s), so the same slack is more time: the bound there is the slack over the speed.
-            var slackSec = TestRoot.Pick(0.02, Rules.Default.Fielding.Chase.ReachSlackFt / speed + 1e-6);
+            var slackSec = (Rules.Default.Fielding.Chase.ReachSlackFt / speed + 1e-6);
             if (route.Reachable)
                 Assert.True(route.TravelTimeSec <= route.AvailableSec + slackSec,
                     $"reachable route {route.TravelTimeSec:0.00}s > {route.AvailableSec:0.00}s");
@@ -133,8 +132,8 @@ public class FieldingPursuitTests
         // The C80 copy: the shipped 90 mph liner at 14° beats CF to the wall in every park (CF is still the choice, 13 to 26 ft
         // short), so nobody meets that roll. 78 mph between 8° and 12° is the gap liner CF runs down in every park there.
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        var exit = TestRoot.Pick(90, 78);
-        foreach (var spray in TestRoot.Pick(new[] { 14d, -14d, 10d, -10d, 18d, -18d }, new[] { 10d, -10d, 8d, -8d, 12d, -12d }))
+        var exit = 78;
+        foreach (var spray in (new[] { 10d, -10d, 8d, -8d, 12d, -12d }))
         foreach (var park in _content.Parks.Values)
         {
             var corner = spray > 0 ? "RF" : "LF";
@@ -168,7 +167,7 @@ public class FieldingPursuitTests
                 $"{park.Id} {spray}°: the meet is the wall, not the bounce");
             seen.Add($"{park.Id}:{spray:0}");
         }
-        Assert.Contains(TestRoot.Pick("harbor-diamond:14", "harbor-diamond:10"), seen);
+        Assert.Contains("harbor-diamond:10", seen);
     }
 
     [Fact]

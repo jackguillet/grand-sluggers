@@ -19,7 +19,6 @@ namespace GrandSluggers.Sim.Tests;
 /// ball's does.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class HarborWallTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();

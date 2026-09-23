@@ -9,7 +9,6 @@ namespace GrandSluggers.Sim.Tests;
 /// <see cref="LivePlaySystem"/> with a scripted human glove (S-91: no scene object). Every
 /// fixture is a real contact judged by the one flight (<see cref="FlightFixtures"/>).
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class FlightScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -293,7 +292,7 @@ public sealed class FlightScenarioTests
         // The C80 copy: with drag 0.0040 the 32° fly comes down too flat to hop the 12-ft wall; at Harbor only flies from 42° up
         // do (101 mph at 44° lands 255 ft out and hops the 280 ft fence). The human's stick runs CF off the ball, and the copy's
         // pursuit stick (#718) only takes the glove after six neutral frames; without them the CPU catches this fly.
-        S59_Row(101, TestRoot.Pick(32, 44), TestRoot.Pick(0, 6));
+        S59_Row(101, 44, 6);
     }
 
     void S59_Row(double exit, double launch, int neutralFrames)

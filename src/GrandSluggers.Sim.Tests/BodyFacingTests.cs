@@ -9,7 +9,6 @@ namespace GrandSluggers.Sim.Tests;
 /// on release, and the ball in the last few feet under a fly coming over its head. The turn is degrees per second
 /// from data/feel/table.json, scaled by the frame, so the heading does not depend on the frame rate.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class BodyFacingTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -181,9 +180,9 @@ public sealed class BodyFacingTests
     /// </summary>
     public static IEnumerable<object[]> FlyRows()
     {
-        yield return TestRoot.Pick(new object[] { 250, 34, 0 }, new object[] { 175, 34, 0 });     // routine fly 55 ft in front of CF (GameplayTests' fixture); 38 ft on the copy
-        yield return TestRoot.Pick(new object[] { 335, 36, 4 }, new object[] { 235, 36, 4 });     // a fly over CF's head: the run back, then the backpedal
-        yield return TestRoot.Pick(new object[] { 270, 32, -30 }, new object[] { 190, 32, -30 }); // a fly into the LF–CF gap
+        yield return new object[] { 175, 34, 0 };     // routine fly 55 ft in front of CF (GameplayTests' fixture); 38 ft on the copy
+        yield return new object[] { 235, 36, 4 };     // a fly over CF's head: the run back, then the backpedal
+        yield return new object[] { 190, 32, -30 }; // a fly into the LF–CF gap
     }
 
     [Theory]

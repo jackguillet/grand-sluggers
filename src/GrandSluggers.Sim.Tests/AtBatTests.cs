@@ -3,7 +3,6 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public class AtBatTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -42,7 +41,7 @@ public class AtBatTests
     {
         Assert.Empty(_harbor.Hazards);
         // The C80 copy carries every fence at 0.70 (#717).
-        Assert.Equal(TestRoot.Pick(400, 280), _harbor.CenterFenceFt);
+        Assert.Equal(280, _harbor.CenterFenceFt);
     }
 
     [Fact]
@@ -137,7 +136,7 @@ public class AtBatTests
             h.Type is "freeze_volume" or "warp_pipe" or "billboard" or "ac_unit"
                 or "barrel" or "climb_wall");
         Assert.Equal("ember-keep", PresetTeams.HomeParkId(_content, "ashlord"));
-        Assert.Equal(TestRoot.Pick(408, 286), keep.CenterFenceFt);
+        Assert.Equal(286, keep.CenterFenceFt);
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
     }
@@ -149,7 +148,7 @@ public class AtBatTests
         var fast = BallFlight.CarryFeet(100, 28, 0);
         Assert.True(fast > slow);
         // The C80 copy's drag is 0.0040: the same fly carries 233 ft, inside the same band at 0.70.
-        var (lo, hi) = TestRoot.Pick((300.0, 450.0), (210.0, 315.0));
+        var (lo, hi) = (210.0, 315.0);
         Assert.InRange(BallFlight.CarryFeet(95, 28, 0), lo, hi);
     }
 

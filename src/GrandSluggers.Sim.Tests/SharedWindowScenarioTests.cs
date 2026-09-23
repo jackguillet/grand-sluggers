@@ -214,9 +214,7 @@ public sealed class SharedWindowScenarioTests
         Assert.Equal(inZone, AtBatResolver.PitchInZone(pitch, 5, null, content.Rules));
         Assert.NotEqual(inZone, AtBatResolver.PitchInZone(pitch, 5));
 
-        // The whole auto-play path, in process, from the catalog. The compact profile is a different
-        // diamond built from the process-wide tables, so the game runs on the full-size root only.
-        if (TestRoot.Compact) return;
+        // The whole auto-play path, in process, from the catalog.
         var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 1);
         match.AutoPlayGame();
         Assert.True(match.Over);

@@ -25,7 +25,6 @@ namespace GrandSluggers.Sim.Tests;
 /// the process's root, because the diamond is process-wide (#715), and take their seeds by root.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class HazardsOffTests
 {
     static readonly ContentCatalog Catalog = ContentCatalog.Load();
@@ -153,24 +152,17 @@ public sealed class HazardsOffTests
     /// outcome, so the hazards-off twin of the same game proves something. Chompers bite only at night
     /// (they are Funfair's night block since F4-d, FD-11), so Funfair's row is a night game with a chomp in it.
     /// </summary>
-    static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds => TestRoot.Pick<IReadOnlyList<(string, bool, int)>>(
+    static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds =>
         [
-            ("crystal-rink", false, 14),  // a freeze volume slows the chase (a Crystal night is its day since FD-11-R2)
+            ("crystal-rink", false, 1),   // a freeze volume slows the chase (a Crystal night is its day since FD-11-R2)
             ("ember-keep", true, 1),      // a lava pit or the breath slows the chase
-            ("funfair-park", true, 7),    // a chomper eats a fly
-            ("canopy-yard", false, 1),    // a barrel warps a grounder
-            ("rooftop-city", false, 5)    // a billboard pays the batting team
-        ],
-        [
-            ("crystal-rink", false, 1),
-            ("ember-keep", true, 1),
-            ("funfair-park", true, 16),
-            ("canopy-yard", false, 4),
-            ("rooftop-city", false, 2)
-        ]);
+            ("funfair-park", true, 16),   // a chomper eats a fly
+            ("canopy-yard", false, 4),    // a barrel warps a grounder
+            ("rooftop-city", false, 2)    // a billboard pays the batting team
+        ];
 
     /// <summary>A park, a condition and a seed at which the switch changes the whole game, by root.</summary>
-    static (string Park, bool Night, int Seed) DefaultOnGame => TestRoot.Pick(("canopy-yard", true, 1), ("canopy-yard", false, 4));
+    static (string Park, bool Night, int Seed) DefaultOnGame => ("canopy-yard", false, 4);
 
     /// <summary>
     /// <c>SF-24</c>, the event half. Over the fixed seed set, hazards on plays at least one hazard outcome

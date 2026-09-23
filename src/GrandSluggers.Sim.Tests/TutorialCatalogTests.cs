@@ -3,7 +3,6 @@ using Xunit;
 
 namespace GrandSluggers.Sim.Tests;
 
-[Trait("Rows", "compact")]
 public sealed class TutorialCatalogTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();

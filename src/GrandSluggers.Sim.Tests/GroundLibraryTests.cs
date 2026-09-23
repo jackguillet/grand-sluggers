@@ -25,7 +25,6 @@ namespace GrandSluggers.Sim.Tests;
 /// process root would fail there.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class GroundLibraryTests
 {
     /// <summary>The shipped root, named explicitly so the process's own overlay cannot stand in for it.</summary>

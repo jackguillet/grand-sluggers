@@ -10,7 +10,6 @@ namespace GrandSluggers.Sim.Tests;
 /// catches only a runner who broke on the motion. Every assertion names the out's type, bag, and
 /// runner, or the move, from the typed <see cref="PlayOutcome"/>.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class StealScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -439,7 +438,7 @@ public sealed class StealScenarioTests
             // The C80 copy (#722): a bad pair is slow, never slanted, and Vale's own spread (Field 8, sigma 1.05 ft) never misses
             // the 6 ft cover: 0 pickoffs of 400 sail there. The sail on the copy is a wild arm's, so the row's pitcher has an
             // authored Arm of 1 (sigma 3.5 ft).
-            var match = Defense(seed: seed, first: "ashlord", pitcherArm: TestRoot.Pick(0, 1));
+            var match = Defense(seed: seed, first: "ashlord", pitcherArm: 1);
             Station(match, [1]);
             Assert.True(match.StartSteal());
             var run = RunPickoff(match, 1, HumanCatcher, LivePlayCommandSource.Human,
@@ -696,7 +695,7 @@ public sealed class StealScenarioTests
             // The C80 copy (#722): a bad pair never slants and Vale's own spread never misses the cover, so no pickoff sails
             // there (0 of 400); the throw that sailed in this loop on the copy was first base's throw on to second. The row is the
             // pickoff's sail, so the copy's pitcher has an authored Arm of 1 and the sail must be the pickoff's own.
-            var match = Defense(seed: seed, first: "ashlord", pitcherArm: TestRoot.Pick(0, 1));
+            var match = Defense(seed: seed, first: "ashlord", pitcherArm: 1);
             Station(match, [1]);
             Assert.True(match.StartSteal());
             var run = RunPickoff(match, 1, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);

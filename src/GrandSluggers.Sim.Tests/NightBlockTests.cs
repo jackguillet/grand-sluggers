@@ -35,7 +35,6 @@ namespace GrandSluggers.Sim.Tests;
 /// because the diamond is process-wide (#715), and take their fixtures by root.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class NightBlockTests
 {
     static readonly ContentCatalog Process = ContentCatalog.Load();
@@ -312,19 +311,13 @@ public sealed class NightBlockTests
     /// before it and says why; F4-d changes neither. F4-b (#896) re-recorded Ember's four rows: its lava pits and
     /// breath slow the body that touches them for 3 s instead of every chaser, and the park's drop roll is gone.
     /// </summary>
-    static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before => TestRoot.Pick<IReadOnlyList<(string, int, string, string)>>(
-        [
-            ("funfair-park", 1, "Final  Ember Court 6  Spark All-Stars 2", "cd98e1ef97a1293f36bfa4a88d9977909600e27161656dce1837af8d46e32d27"),
-            ("funfair-park", 7, "Final  Ember Court 1  Spark All-Stars 3", "ef32cf355d26693644f0e671ab6bac2be54c13d51ae48f53ef1e1fd890b2f1a4"),
-            ("ember-keep", 1, "Final  Ember Court 1  Spark All-Stars 3", "6fd5f78c3ffbc60f5510b67dba36267ac9ee78924c3560c10ae8f26c00532c71"),
-            ("ember-keep", 2, "Final  Ember Court 6  Spark All-Stars 2", "a3dfdbf9ae91af301d7d8f39279e6c44d9a2cc86f78e9c1c38feede335bab36f")
-        ],
+    static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
             ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 4", "387423150ccacab917ba047dbc8665e01514454490d6548b9be5d2739907b20b"),
             ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "bbc8b7176300582b595e4e26b745c4f5d4698d569b90c0a935b144eba1fd551c"),
             ("ember-keep", 1, "Final  Ember Court 4  Spark All-Stars 6", "ba0eeeda3354659a0dca1eeb7018031c72cb7c08efa652a1910e1929672f3ebe"),
             ("ember-keep", 2, "Final  Ember Court 4  Spark All-Stars 3", "3a2b6e0a1afda339426e02267d0aa365b210dcb55e254b5f9ff968fa78781ee0")
-        ]);
+        ];
 
     /// <summary>
     /// <c>SF-25</c> parity, on the process's root: Funfair's night games are bit-identical to the games they

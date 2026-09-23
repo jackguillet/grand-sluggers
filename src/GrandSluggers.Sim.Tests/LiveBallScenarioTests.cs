@@ -10,7 +10,6 @@ namespace GrandSluggers.Sim.Tests;
 /// from one <c>Tick</c> per frame. These rows drive it with dead pads (the CPU seat) or a scripted
 /// pad, with no scene object (S-91), and replay identically for either seat (S-90).
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class LiveBallScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -63,7 +62,7 @@ public sealed class LiveBallScenarioTests
     {
         // The C80 copy: at 30° the second baseman's route meets this grounder first (the 8/9 infield, the slower legs). From 32°
         // it is the first baseman's; 36° is the same ball four more degrees toward the line.
-        var (exit, launch, spray) = TestRoot.Pick((90.0, 3.0, 30.0), (90.0, 3.0, 36.0));
+        var (exit, launch, spray) = (90.0, 3.0, 36.0);
         ClosePlayAtThird_Row(exit, launch, spray);
     }
 
@@ -156,7 +155,7 @@ public sealed class LiveBallScenarioTests
         match.LivePlay.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, seats));
         // The C80 copy (#718): the pursuit stick takes the glove only after it has been seen at neutral, so a stick held from the
         // first frame never does. Six neutral frames first, inside the lockout, so the CPU has not moved the body yet.
-        var neutral = TestRoot.Pick(0, 6);
+        var neutral = 6;
         for (var i = 0; i < neutral; i++)
             match.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Human));
         var before = (match.LivePlay.GloveX, match.LivePlay.GloveZ);

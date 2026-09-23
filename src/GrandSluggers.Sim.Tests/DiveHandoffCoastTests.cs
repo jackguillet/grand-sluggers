@@ -12,7 +12,6 @@ namespace GrandSluggers.Sim.Tests;
 /// The shipped table had the same slide with a human seat — East lunges 10 ft for free, and Select or a released stick on the next
 /// frame hands the ring off with the lunge as its velocity — so the guard also reads the dive's arm window (<c>DiveT</c>) there.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class DiveHandoffCoastTests
 {
     static readonly ContentCatalog Control = ContentCatalog.Load();
@@ -22,10 +21,8 @@ public sealed class DiveHandoffCoastTests
     static readonly string[] Defense = ["vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex"];
 
     /// <summary>Exit, launch, spray, the infielder who dives, the outfielder the ring goes to.</summary>
-    public static TheoryData<double, double, double, string, string> MissedDives => TestRoot.Pick(
-        new TheoryData<double, double, double, string, string> { { 80, 14, -18, "SS", "LF" } },
-        // The 80-ft diamond needs a softer, higher ball: the 80-mph rope is the left fielder's from the start there.
-        new TheoryData<double, double, double, string, string> { { 70, 20, -8, "SS", "LF" }, { 70, 20, -32, "SS", "LF" }, { 70, 20, 0, "2B", "CF" } });
+    public static TheoryData<double, double, double, string, string> MissedDives =>
+        new TheoryData<double, double, double, string, string> { { 70, 20, -8, "SS", "LF" }, { 70, 20, -32, "SS", "LF" }, { 70, 20, 0, "2B", "CF" } };
 
     [Theory]
     [MemberData(nameof(MissedDives))]
@@ -87,7 +84,7 @@ public sealed class DiveHandoffCoastTests
     public void EastThenSelectOnTheNextFrameLeavesTheDiverWhereHeLunged()
     {
         // The rope is the left fielder's by then on the shipped diamond; the copy's softer ball is still the shortstop's.
-        var (exit, launch, spray, diver) = TestRoot.Pick((80.0, 14.0, -18.0, "LF"), (70.0, 20.0, -8.0, "SS"));
+        var (exit, launch, spray, diver) = (70.0, 20.0, -8.0, "SS");
         const int eastAt = 60;
         var run = RunHuman(exit, launch, spray, i => i == eastAt ? new LivePadInput(EastDown: true) : i == eastAt + 1 ? new LivePadInput(Swap: true) : LivePadInput.Dead);
         Assert.Equal((eastAt, diver), (run.LungeAt, run.Diver));

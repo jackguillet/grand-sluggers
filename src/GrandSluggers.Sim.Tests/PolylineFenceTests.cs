@@ -22,7 +22,6 @@ namespace GrandSluggers.Sim.Tests;
 /// <c>Rows=compact</c> so CI plays it a second time under the overlay.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class PolylineFenceTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
