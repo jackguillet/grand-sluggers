@@ -554,6 +554,15 @@ Row choice: a runner on with two outs first; then two strikes with at most one b
 
 Charge at MAX is a *charge* tell (rings line up; the swing shows MAX, the pitch its booklet word "Nice!"). Words about the contact — PERFECT / NICE / SOUR — come only from the typed zone once the bat meets the ball; a miss shows STRIKE (#578). ✅ P1
 
+**Cancel** (PH-13, PH-13-R1). A deliberate cancel discards an uncommitted swing load and its charge. The ordinary swing commits at the release of South. Once committed it follows through: a cancel cannot take it back. A cancelled load never swings, so the pitch is taken and called. The hold that was cancelled cannot swing: its release commits nothing, and a new swing needs the button up and a fresh press, which starts from zero (no banked charge). The pitch has no cancel (PH-02-R3). One tick of `ChargeButton.Advance` applies, in order:
+
+1. **Not accepting:** at rest; nothing carries over.
+2. **Cancel:** an armed load, or a press on this tick, is discarded, **even when the release is on the same tick** (cancel beats release). If the button is still down, the state is `MustRelease`. A cancel with nothing loaded does nothing.
+3. **Must release:** the tick's press, hold and release count for nothing; the button coming up clears the state. Only a press on a later tick loads again.
+4. **Load:** press arms, hold fills, release commits (in SET the release disarms, §3).
+
+⚠️ Sim only (S-150 … S-152). The East / G input, the let-go take and the lesson are P4-c. A directional bunt press that replaces the load (PH-13-R1) is P4-b's held bunt and uses the same cancel.
+
 ### 5.2 The cursor (sweet spot) — quality
 
 The reference model (D4): the bat is a hitbox along the swing plane, split into **five zones** — sour / nice / perfect / nice / perfect — and the ball meets one of them by *where it crosses*, not by when you pressed. The cursor on screen is that hitbox drawn on the plate.
@@ -1556,6 +1565,9 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-147 | Every pool from −40 to 159 | | Fresh at `fadeFrom` 50 and up, `exhaustedMph` and `tiredBreakMul` at 0 and below; each point of pool moves mph and break by one share of the fade and never back (`FatigueFadeScenarioTests`) |
 | S-148 | One arm worked from fresh to empty on fastballs and on changeups | | The pitch reads the curve; no pitch leaves the fresh-to-empty air-time range; the aim is untouched; the arm slows before the TIRED label |
 | S-149 | `stamina.fadeFrom` 0 | | Refused by the rules validator: a fade has to start above an empty pool |
+| S-150 | A swing loaded past MAX, cancelled, held through the plate, then let go | | No tick commits; the button ends at rest; the taken pitches are a ball and a called strike (`ChargeCancelScenarioTests`) |
+| S-151 | A load cancelled at 0.5 or more, held, released, then a fresh press and release | | The held button neither arms nor fills; its release is not a swing; the fresh press starts from zero and commits a one-frame slap |
+| S-152 | Cancel with the release; cancel on the press's tick; a tap on the tick the old hold comes up; cancel with nothing loaded; cancel after a commit; not accepting | | Cancel beats the release on its tick; a press cancelled on its own tick must come up first; the tap counts for nothing; an idle cancel changes nothing; a committed swing has nothing to cancel; not accepting is at rest |
 
 ### B.2 Grounders and fielding
 
