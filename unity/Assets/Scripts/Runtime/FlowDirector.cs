@@ -126,6 +126,8 @@ namespace GrandSluggers.UnityClient
 
         void TickSelect()
         {
+            if (_captains.Versus && !Controls.Pad2.Present)
+                Controls.TryRecoverMatchSeat(LineupSeat.Pad2);
             var p1 = Controls.Pad1;
             var p2 = Controls.Pad2;
             var dt = Time.unscaledDeltaTime;

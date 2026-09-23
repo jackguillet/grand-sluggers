@@ -265,6 +265,13 @@ namespace GrandSluggers.EditorTools
             Press(GamepadButton.RightShoulder);
             Require(lineup.HomeFull, "RB did not fill P1 from roster focus.");
             shot = Capture("lineup-filled"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.South); Press(GamepadButton.North); Press(GamepadButton.North);
+            Require(Phase(play) == "Set", "One-player setup did not reach first pitch.");
+            shot = Capture("first-pitch-one"); while (shot.MoveNext()) yield return shot.Current;
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + .1f);
+            Tick(play, "TickSet", State(south: true), State()); Tick(play, "TickSet", State(), State());
+            Require(Phase(play) == "Flight", "P1 could not release the first pitch after filling the team.");
+            Invoke(play, "OpenLineup");
             // Back to stadium through the same controller path, then enable two players.
             Press(GamepadButton.East); Press(GamepadButton.East);
             Require(Phase(play) == "Field", "East did not return to stadium setup.");
@@ -279,6 +286,7 @@ namespace GrandSluggers.EditorTools
             Press(GamepadButton.South);
             Require(Phase(play) == "Select" && !board.Ready(1), "Missing P2 silently became a CPU opponent.");
             shot = Capture("captain-waiting-pad2"); while (shot.MoveNext()) yield return shot.Current;
+            Require(!Get<Match>(play, "_match").Paused, "Unbound P2 loss blocked returning to setup.");
             SetStatic(typeof(Controls), "_devices", new DeviceSeats(_pad1.deviceId, _pad2.deviceId));
             Controls.CatchPlay(); Press(GamepadButton.East);
             var start = board.Id(1);
@@ -298,6 +306,14 @@ namespace GrandSluggers.EditorTools
             Press(GamepadButton.RightShoulder); Press(GamepadButton.RightShoulder, true);
             Require(lineup.HomeFull && lineup.AwayFull, "Both controllers cannot fill their teams.");
             shot = Capture("lineup-two-filled"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.South); Press(GamepadButton.North); Press(GamepadButton.North, true);
+            Require(lineup.Step == LineupStep.MatchSettings, "Both lineup confirmations did not reach settings.");
+            Press(GamepadButton.North); Press(GamepadButton.North, true);
+            Require(Phase(play) == "Set", "Two-player setup did not reach first pitch.");
+            shot = Capture("first-pitch-two"); while (shot.MoveNext()) yield return shot.Current;
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + .1f);
+            Tick(play, "TickSet", State(), State(south: true)); Tick(play, "TickSet", State(), State());
+            Require(Phase(play) == "Flight", "P2 could not release the first pitch after filling both teams.");
             Invoke(play, "OpenControlsBook");
             foreach (var id in new[] { "exhibition", "lineup", "two-pads" })
             {
