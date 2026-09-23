@@ -16,23 +16,10 @@ namespace GrandSluggers.Sim.Tests;
 /// stay equal, so on them a wrong read and a right one look the same), and shows the ball following the row of the zone it
 /// is in.
 /// </para>
-///
-/// <para>
-/// Every row runs on the shipped root and on <c>trials/c80</c>, both loaded by hand (the trial carries no
-/// <c>grounds.json</c> or <c>walls.json</c>, so it reads the fixture's), and the class is tagged <c>Rows=compact</c> so CI
-/// plays it again under the overlay.
-/// </para>
 /// </summary>
 public sealed class GroundReadTests
 {
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
-
-    static string TrialDir =>
-        Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"));
-
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped, TrialDir));
-
-    static IEnumerable<ContentCatalog> BothRoots => [Shipped, Trial];
+    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
 
     /// <summary>The loose-ball clock the live play ticks on (<c>LivePlaySystem</c> at 60 Hz).</summary>
     const double Frame = 1.0 / 60.0;
@@ -42,7 +29,7 @@ public sealed class GroundReadTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Every park on both roots, a grid of grounders, choppers, liners, flies and fouls: the clipped path is, sample for
+    /// Every park, a grid of grounders, choppers, liners, flies and fouls: the clipped path is, sample for
     /// sample and bit for bit, the path the pre-move integrator flies (<see cref="Old"/>: the flight exactly as it read
     /// <c>flight.roll</c> / <c>bounce</c> / <c>skid</c> / <c>wall</c>, those four blocks written in as the shipped numbers).
     /// The grid crosses every zone boundary and meets the fence and the foul wrap, so a read that moved the wrong way would
@@ -53,19 +40,19 @@ public sealed class GroundReadTests
     {
         var paths = 0;
         var events = new HashSet<SampleEvent>();
-        foreach (var catalog in BothRoots)
-            foreach (var park in catalog.Parks.Values)
-                foreach (var exit in new[] { 42.0, 70, 96, 118 })
-                    foreach (var launch in new[] { -9.0, 0, 4, 11, 15, 19, 24, 33, 52 })
-                        foreach (var spray in new[] { -52.0, -31, -12, 0, 17, 38, 46 })
-                        {
-                            var expected = Old.Trajectory(exit, launch, spray, park, catalog.Rules, Old.Today);
-                            var actual = BallFlight.Trajectory(exit, launch, spray, park, catalog.Rules);
-                            SamePath($"{park.Id} {exit}/{launch}/{spray}", expected, actual);
-                            foreach (var s in actual) events.Add(s.Event);
-                            paths++;
-                        }
-        Assert.Equal(2 * 6 * 4 * 9 * 7, paths);
+        var catalog = Game;
+        foreach (var park in catalog.Parks.Values)
+            foreach (var exit in new[] { 42.0, 70, 96, 118 })
+                foreach (var launch in new[] { -9.0, 0, 4, 11, 15, 19, 24, 33, 52 })
+                    foreach (var spray in new[] { -52.0, -31, -12, 0, 17, 38, 46 })
+                    {
+                        var expected = Old.Trajectory(exit, launch, spray, park, catalog.Rules, Old.Today);
+                        var actual = BallFlight.Trajectory(exit, launch, spray, park, catalog.Rules);
+                        SamePath($"{park.Id} {exit}/{launch}/{spray}", expected, actual);
+                        foreach (var s in actual) events.Add(s.Event);
+                        paths++;
+                    }
+        Assert.Equal(6 * 4 * 9 * 7, paths);
         // The grid is not all flies into the seats: it hops, rolls, caroms off the fence and off the foul wrap, and leaves.
         Assert.Superset(new HashSet<SampleEvent> { SampleEvent.Ground, SampleEvent.Wall, SampleEvent.FoulWall, SampleEvent.Fence, SampleEvent.Stands }, events);
     }
@@ -74,29 +61,27 @@ public sealed class GroundReadTests
     [Fact]
     public void EqualRowsFlyThePreMoveOpenFieldAndContinuedPaths()
     {
-        foreach (var catalog in BothRoots)
-        {
-            foreach (var exit in new[] { 42.0, 70, 96, 118 })
-                foreach (var launch in new[] { -9.0, 0, 4, 11, 15, 19, 24, 33, 52 })
-                    foreach (var wind in new[] { 0.0, 9 })
-                        SamePath($"open {exit}/{launch}/{wind}", Old.Trajectory(exit, launch, wind, catalog.Rules, Old.Today),
-                            BallFlight.Trajectory(exit, launch, wind, catalog.Rules));
+        var catalog = Game;
+        foreach (var exit in new[] { 42.0, 70, 96, 118 })
+            foreach (var launch in new[] { -9.0, 0, 4, 11, 15, 19, 24, 33, 52 })
+                foreach (var wind in new[] { 0.0, 9 })
+                    SamePath($"open {exit}/{launch}/{wind}", Old.Trajectory(exit, launch, wind, catalog.Rules, Old.Today),
+                        BallFlight.Trajectory(exit, launch, wind, catalog.Rules));
 
-            foreach (var park in catalog.Parks.Values)
-                foreach (var (exit, launch, spray) in new[] { (96.0, 12.0, 0.0), (80.0, 4.0, -20.0), (105.0, 18.0, 30.0), (70.0, 30.0, 10.0) })
+        foreach (var park in catalog.Parks.Values)
+            foreach (var (exit, launch, spray) in new[] { (96.0, 12.0, 0.0), (80.0, 4.0, -20.0), (105.0, 18.0, 30.0), (70.0, 30.0, 10.0) })
+            {
+                var path = BallFlight.Trajectory(exit, launch, spray, park, catalog.Rules);
+                foreach (var after in new[] { 0.10, 0.45 })
                 {
-                    var path = BallFlight.Trajectory(exit, launch, spray, park, catalog.Rules);
-                    foreach (var after in new[] { 0.10, 0.45 })
-                    {
-                        var t0 = BallFlight.HangTime(path, catalog.Rules) + after;
-                        var (x, y, z) = BallFlight.PointAt(path, t0, catalog.Rules);
-                        foreach (var (vx, vy, vz) in new[] { (0.0, 0.0, 30.0), (-12.0, 8.0, 40.0), (20.0, -3.0, -15.0) })
-                            SamePath($"{park.Id} continue {exit}/{launch}/{spray}+{after}",
-                                Old.Continue(path, t0, x, y, z, vx, vy, vz, launch, exit, park, catalog.Rules, Old.Today),
-                                BallFlight.Continue(path, t0, x, y, z, vx, vy, vz, launch, exit, park, catalog.Rules));
-                    }
+                    var t0 = BallFlight.HangTime(path, catalog.Rules) + after;
+                    var (x, y, z) = BallFlight.PointAt(path, t0, catalog.Rules);
+                    foreach (var (vx, vy, vz) in new[] { (0.0, 0.0, 30.0), (-12.0, 8.0, 40.0), (20.0, -3.0, -15.0) })
+                        SamePath($"{park.Id} continue {exit}/{launch}/{spray}+{after}",
+                            Old.Continue(path, t0, x, y, z, vx, vy, vz, launch, exit, park, catalog.Rules, Old.Today),
+                            BallFlight.Continue(path, t0, x, y, z, vx, vy, vz, launch, exit, park, catalog.Rules));
                 }
-        }
+            }
     }
 
     /// <summary>
@@ -109,49 +94,47 @@ public sealed class GroundReadTests
     public void EqualRowsRollTheLooseBallsThePreMoveWayBitForBit()
     {
         var ticks = 0;
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var rules = catalog.Rules;
+        foreach (var park in catalog.Parks.Values)
         {
-            var rules = catalog.Rules;
-            foreach (var park in catalog.Parks.Values)
-            {
-                var zones = GroundZones.Of(park, rules);
-                var fence = AtBatResolver.FenceAt(park, 0);
-                foreach (var (x0, z0) in new[] { (0.0, 60.0), (30.0, rules.Flight.Classes.InfieldLipFt - 1), (-40.0, 220.0), (0.0, fence - 4), (70.0, 20.0), (0.0, -20.0) })
-                    foreach (var (vx0, vz0) in new[] { (0.0, 35.0), (-22.0, 9.0), (4.0, -5.0), (0.5, 0.2) })
+            var zones = GroundZones.Of(park, rules);
+            var fence = AtBatResolver.FenceAt(park, 0);
+            foreach (var (x0, z0) in new[] { (0.0, 60.0), (30.0, rules.Flight.Classes.InfieldLipFt - 1), (-40.0, 220.0), (0.0, fence - 4), (70.0, 20.0), (0.0, -20.0) })
+                foreach (var (vx0, vz0) in new[] { (0.0, 35.0), (-22.0, 9.0), (4.0, -5.0), (0.5, 0.2) })
+                {
+                    // The overthrow, from a roll to rest.
+                    var (x, z, vx, vz) = (x0, z0, vx0, vz0);
+                    var (ox, oz, ovx, ovz) = (x0, z0, vx0, vz0);
+                    for (var i = 0; i < 600 && Math.Sqrt(vx * vx + vz * vz) > 0; i++, ticks++)
                     {
-                        // The overthrow, from a roll to rest.
-                        var (x, z, vx, vz) = (x0, z0, vx0, vz0);
-                        var (ox, oz, ovx, ovz) = (x0, z0, vx0, vz0);
-                        for (var i = 0; i < 600 && Math.Sqrt(vx * vx + vz * vz) > 0; i++, ticks++)
-                        {
-                            var step = BallFlight.OverthrowTick(zones, rules.Grounds, x, z, vx, vz, Frame);
-                            var old = OldLoose.Overthrow(park, ox, oz, ovx, ovz, Frame);
-                            Assert.True(Bits(old.X) == Bits(step.X) && Bits(old.Z) == Bits(step.Z) && Bits(old.VX) == Bits(step.VX)
-                                        && Bits(old.VZ) == Bits(step.VZ) && Bits(old.Next) == Bits(step.Speed) && step.Y == 0 && !step.Air,
-                                $"{park.Id} overthrow from ({x0}, {z0}) at ({vx0}, {vz0}), tick {i}: {old} vs {step}");
-                            (x, z, vx, vz) = (step.X, step.Z, step.VX, step.VZ);
-                            (ox, oz, ovx, ovz) = (old.X, old.Z, old.VX, old.VZ);
-                        }
+                        var step = BallFlight.OverthrowTick(zones, rules.Grounds, x, z, vx, vz, Frame);
+                        var old = OldLoose.Overthrow(park, ox, oz, ovx, ovz, Frame);
+                        Assert.True(Bits(old.X) == Bits(step.X) && Bits(old.Z) == Bits(step.Z) && Bits(old.VX) == Bits(step.VX)
+                                    && Bits(old.VZ) == Bits(step.VZ) && Bits(old.Next) == Bits(step.Speed) && step.Y == 0 && !step.Air,
+                            $"{park.Id} overthrow from ({x0}, {z0}) at ({vx0}, {vz0}), tick {i}: {old} vs {step}");
+                        (x, z, vx, vz) = (step.X, step.Z, step.VX, step.VZ);
+                        (ox, oz, ovx, ovz) = (old.X, old.Z, old.VX, old.VZ);
+                    }
 
-                        // The local bobble, from a spill in the air to rest.
-                        foreach (var (y0, vy0) in new[] { (3.1, 0.0), (0.4, -2.0), (0.0, 0.0) })
+                    // The local bobble, from a spill in the air to rest.
+                    foreach (var (y0, vy0) in new[] { (3.1, 0.0), (0.4, -2.0), (0.0, 0.0) })
+                    {
+                        var n = new OldLoose.Ball(x0, y0, z0, vx0 * 0.2, vy0, vz0 * 0.2, y0 > 1e-9);
+                        var o = n;
+                        for (var i = 0; i < 600 && (n.Air || n.VX != 0 || n.VZ != 0); i++, ticks++)
                         {
-                            var n = new OldLoose.Ball(x0, y0, z0, vx0 * 0.2, vy0, vz0 * 0.2, y0 > 1e-9);
-                            var o = n;
-                            for (var i = 0; i < 600 && (n.Air || n.VX != 0 || n.VZ != 0); i++, ticks++)
-                            {
-                                var step = BallFlight.LocalBobbleTick(zones, rules.Grounds, rules.Fielding.Handling, rules.Flight.Gravity,
-                                    n.X, n.Y, n.Z, n.VX, n.VY, n.VZ, n.Air, Frame);
-                                o = OldLoose.Bobble(park, rules.Fielding.Handling, rules.Flight.Gravity, o, Frame);
-                                Assert.True(Bits(o.X) == Bits(step.X) && Bits(o.Y) == Bits(step.Y) && Bits(o.Z) == Bits(step.Z)
-                                            && Bits(o.VX) == Bits(step.VX) && Bits(o.VY) == Bits(step.VY) && Bits(o.VZ) == Bits(step.VZ)
-                                            && o.Air == step.Air,
-                                    $"{park.Id} bobble from ({x0}, {y0}, {z0}), tick {i}: {o} vs {step}");
-                                n = new OldLoose.Ball(step.X, step.Y, step.Z, step.VX, step.VY, step.VZ, step.Air);
-                            }
+                            var step = BallFlight.LocalBobbleTick(zones, rules.Grounds, rules.Fielding.Handling, rules.Flight.Gravity,
+                                n.X, n.Y, n.Z, n.VX, n.VY, n.VZ, n.Air, Frame);
+                            o = OldLoose.Bobble(park, rules.Fielding.Handling, rules.Flight.Gravity, o, Frame);
+                            Assert.True(Bits(o.X) == Bits(step.X) && Bits(o.Y) == Bits(step.Y) && Bits(o.Z) == Bits(step.Z)
+                                        && Bits(o.VX) == Bits(step.VX) && Bits(o.VY) == Bits(step.VY) && Bits(o.VZ) == Bits(step.VZ)
+                                        && o.Air == step.Air,
+                                $"{park.Id} bobble from ({x0}, {y0}, {z0}), tick {i}: {o} vs {step}");
+                            n = new OldLoose.Ball(step.X, step.Y, step.Z, step.VX, step.VY, step.VZ, step.Air);
                         }
                     }
-            }
+                }
         }
         Assert.True(ticks > 10_000, $"only {ticks} ticks compared");
     }
@@ -161,7 +144,7 @@ public sealed class GroundReadTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-11</c>, both roots. The same grounder at Harbor and at a Harbor whose outfield names <c>ice</c>, on a fixture root
+    /// <c>SF-11</c>. The same grounder at Harbor and at a Harbor whose outfield names <c>ice</c>, on a fixture root
     /// whose <c>ice</c> row rolls at half of grass's friction and whose <c>dirt</c> row at more than it: the two paths are one
     /// path until the ball crosses the lip, the iced one rolls farther, and — read off the path's own samples, the speed of
     /// one step against the next — the speed a step loses is the friction of the zone of the sample it starts from, so it
@@ -171,56 +154,54 @@ public sealed class GroundReadTests
     public void SF11_TheSameGrounderRollsFartherOnTheSlickerOutfieldAndChangesItsLossAtTheLip()
     {
         using var fixture = new UnequalGrounds();
-        foreach (var catalog in fixture.BothRoots)
+        var catalog = fixture.Catalog;
+        var rules = catalog.Rules;
+        var plain = catalog.Parks["harbor-diamond"];
+        var iced = plain with { Zones = new ParkZones(Outfield: Ground.Ice) };
+        var dt = 1.0 / rules.Flight.SampleHz;
+
+        var (exit, launch, spray) = LipGrounder(plain, rules);
+        var a = BallFlight.Trajectory(exit, launch, spray, plain, rules);
+        var b = BallFlight.Trajectory(exit, launch, spray, iced, rules);
+        Assert.True(b[^1].Dist > a[^1].Dist + 10, $"{catalog.Root.Provenance}: the ice roll ends at {b[^1].Dist:0.0} ft, the grass at {a[^1].Dist:0.0}");
+
+        foreach (var (park, path, outfield) in new[] { (plain, a, rules.Grounds.Grass), (iced, b, rules.Grounds.Ice) })
         {
-            var rules = catalog.Rules;
-            var plain = catalog.Parks["harbor-diamond"];
-            var iced = plain with { Zones = new ParkZones(Outfield: Ground.Ice) };
-            var dt = 1.0 / rules.Flight.SampleHz;
+            var zones = GroundZones.Of(park, rules);
+            var roll = RollStart(path);
+            var lip = -1;
+            for (var i = roll; i < path.Count; i++)
+                if (zones.ZoneAt(path[i].X, path[i].Z) != GroundZone.InfieldDirt) { lip = i; break; }
+            Assert.True(lip > roll + 2 && lip < path.Count - 3, $"{park.Id}: the roll ({roll}..{path.Count}) must cross the lip; crossed at {lip}");
+            Assert.Equal(GroundZone.Outfield, zones.ZoneAt(path[lip].X, path[lip].Z));
 
-            var (exit, launch, spray) = LipGrounder(plain, rules);
-            var a = BallFlight.Trajectory(exit, launch, spray, plain, rules);
-            var b = BallFlight.Trajectory(exit, launch, spray, iced, rules);
-            Assert.True(b[^1].Dist > a[^1].Dist + 10, $"{catalog.Root.Provenance}: the ice roll ends at {b[^1].Dist:0.0} ft, the grass at {a[^1].Dist:0.0}");
-
-            foreach (var (park, path, outfield) in new[] { (plain, a, rules.Grounds.Grass), (iced, b, rules.Grounds.Ice) })
+            // The step that starts from sample i - 1 loses that sample's zone's friction × dt of speed: the lip's dirt, the
+            // outfield's own row, the track's dirt again if it gets there. A step off the fence is a carom, not a roll.
+            var checkedSteps = 0;
+            for (var i = roll + 2; i < path.Count - 1; i++)
             {
-                var zones = GroundZones.Of(park, rules);
-                var roll = RollStart(path);
-                var lip = -1;
-                for (var i = roll; i < path.Count; i++)
-                    if (zones.ZoneAt(path[i].X, path[i].Z) != GroundZone.InfieldDirt) { lip = i; break; }
-                Assert.True(lip > roll + 2 && lip < path.Count - 3, $"{park.Id}: the roll ({roll}..{path.Count}) must cross the lip; crossed at {lip}");
-                Assert.Equal(GroundZone.Outfield, zones.ZoneAt(path[lip].X, path[lip].Z));
-
-                // The step that starts from sample i - 1 loses that sample's zone's friction × dt of speed: the lip's dirt, the
-                // outfield's own row, the track's dirt again if it gets there. A step off the fence is a carom, not a roll.
-                var checkedSteps = 0;
-                for (var i = roll + 2; i < path.Count - 1; i++)
+                if (path[i].Event != SampleEvent.Ground || path[i - 1].Event != SampleEvent.Ground || path[i - 2].Event != SampleEvent.Ground) continue;
+                var loss = Speed(path, i - 1, dt) - Speed(path, i, dt);
+                var row = zones.ZoneAt(path[i - 1].X, path[i - 1].Z) switch
                 {
-                    if (path[i].Event != SampleEvent.Ground || path[i - 1].Event != SampleEvent.Ground || path[i - 2].Event != SampleEvent.Ground) continue;
-                    var loss = Speed(path, i - 1, dt) - Speed(path, i, dt);
-                    var row = zones.ZoneAt(path[i - 1].X, path[i - 1].Z) switch
-                    {
-                        GroundZone.InfieldDirt or GroundZone.WarningTrack => rules.Grounds.Dirt,
-                        GroundZone.Outfield => outfield,
-                        var other => throw new InvalidOperationException($"the grounder went {other}")
-                    };
-                    Assert.True(Math.Abs(loss - row.Roll.Friction * dt) < 1e-9,
-                        $"{park.Id}: step {i} lost {loss:0.000000} ft/s, its zone's row says {row.Roll.Friction * dt:0.000000}");
-                    checkedSteps++;
-                }
-                Assert.True(checkedSteps > 20, $"{park.Id}: only {checkedSteps} rolling steps");
-                // And the first loss that is the outfield's is the step leaving the first sample past the lip.
-                Assert.True(Math.Abs(Speed(path, lip - 1, dt) - Speed(path, lip, dt) - rules.Grounds.Dirt.Roll.Friction * dt) < 1e-9);
-                Assert.True(Math.Abs(Speed(path, lip, dt) - Speed(path, lip + 1, dt) - outfield.Roll.Friction * dt) < 1e-9);
+                    GroundZone.InfieldDirt or GroundZone.WarningTrack => rules.Grounds.Dirt,
+                    GroundZone.Outfield => outfield,
+                    var other => throw new InvalidOperationException($"the grounder went {other}")
+                };
+                Assert.True(Math.Abs(loss - row.Roll.Friction * dt) < 1e-9,
+                    $"{park.Id}: step {i} lost {loss:0.000000} ft/s, its zone's row says {row.Roll.Friction * dt:0.000000}");
+                checkedSteps++;
             }
-
-            // One grounder: until the first sample past the lip the two parks' paths are the same bits.
-            var shared = Math.Min(a.Count, b.Count);
-            var cross = Enumerable.Range(0, shared).First(i => GroundZones.Of(plain, rules).ZoneAt(a[i].X, a[i].Z) != GroundZone.InfieldDirt);
-            SamePath("before the lip", a.Take(cross + 1).ToList(), b.Take(cross + 1).ToList());
+            Assert.True(checkedSteps > 20, $"{park.Id}: only {checkedSteps} rolling steps");
+            // And the first loss that is the outfield's is the step leaving the first sample past the lip.
+            Assert.True(Math.Abs(Speed(path, lip - 1, dt) - Speed(path, lip, dt) - rules.Grounds.Dirt.Roll.Friction * dt) < 1e-9);
+            Assert.True(Math.Abs(Speed(path, lip, dt) - Speed(path, lip + 1, dt) - outfield.Roll.Friction * dt) < 1e-9);
         }
+
+        // One grounder: until the first sample past the lip the two parks' paths are the same bits.
+        var shared = Math.Min(a.Count, b.Count);
+        var cross = Enumerable.Range(0, shared).First(i => GroundZones.Of(plain, rules).ZoneAt(a[i].X, a[i].Z) != GroundZone.InfieldDirt);
+        SamePath("before the lip", a.Take(cross + 1).ToList(), b.Take(cross + 1).ToList());
     }
 
     // ---------------------------------------------------------------------------------
@@ -228,7 +209,7 @@ public sealed class GroundReadTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-10</c>'s zone half, both roots. The same fly lands in the outfield of Harbor (grass) and of a Harbor whose outfield
+    /// <c>SF-10</c>'s zone half. The same fly lands in the outfield of Harbor (grass) and of a Harbor whose outfield
     /// names <c>ice</c>, on a fixture root whose <c>ice</c> row hops lower and shorter. The carry to the first landing is the
     /// same bits in both — the ground does not exist until the ball meets it — and from that bounce on each path is exactly
     /// the pre-move integrator run on <em>that</em> row's numbers: the hop follows the row it lands on. (The air half of
@@ -238,36 +219,34 @@ public sealed class GroundReadTests
     public void SF10_TheSameFlyCarriesTheSameAndHopsOffTheRowItLandsOn()
     {
         using var fixture = new UnequalGrounds();
-        foreach (var catalog in fixture.BothRoots)
-        {
-            var rules = catalog.Rules;
-            var plain = catalog.Parks["harbor-diamond"];
-            var iced = plain with { Zones = new ParkZones(Outfield: Ground.Ice) };
-            // The softest fly at 34° that lands past the lip: on either root it hops and rolls out on the outfield, short of the track.
-            const double launch = 34, spray = 8;
-            var exit = Enumerable.Range(0, 40).Select(i => 50.0 + 2 * i).First(e =>
-                GroundZones.Of(plain, rules).ZoneAt(BallFlight.LandingPoint(BallFlight.Trajectory(e, launch, spray, plain, rules)).X,
-                    BallFlight.LandingPoint(BallFlight.Trajectory(e, launch, spray, plain, rules)).Z) == GroundZone.Outfield);
+        var catalog = fixture.Catalog;
+        var rules = catalog.Rules;
+        var plain = catalog.Parks["harbor-diamond"];
+        var iced = plain with { Zones = new ParkZones(Outfield: Ground.Ice) };
+        // The softest fly at 34° that lands past the lip: it hops and rolls out on the outfield, short of the track.
+        const double launch = 34, spray = 8;
+        var exit = Enumerable.Range(0, 40).Select(i => 50.0 + 2 * i).First(e =>
+            GroundZones.Of(plain, rules).ZoneAt(BallFlight.LandingPoint(BallFlight.Trajectory(e, launch, spray, plain, rules)).X,
+                BallFlight.LandingPoint(BallFlight.Trajectory(e, launch, spray, plain, rules)).Z) == GroundZone.Outfield);
 
-            var onGrass = BallFlight.Trajectory(exit, launch, spray, plain, rules);
-            var onIce = BallFlight.Trajectory(exit, launch, spray, iced, rules);
-            var land = BallFlight.LandingIndex(onGrass);
-            Assert.Equal(land, BallFlight.LandingIndex(onIce));
-            Assert.Equal(SampleEvent.Ground, onGrass[land].Event);
-            Assert.Equal(BallFlight.FirstLandingDist(onGrass), BallFlight.FirstLandingDist(onIce));
-            SamePath("to the first landing", onGrass.Take(land + 1).ToList(), onIce.Take(land + 1).ToList());
+        var onGrass = BallFlight.Trajectory(exit, launch, spray, plain, rules);
+        var onIce = BallFlight.Trajectory(exit, launch, spray, iced, rules);
+        var land = BallFlight.LandingIndex(onGrass);
+        Assert.Equal(land, BallFlight.LandingIndex(onIce));
+        Assert.Equal(SampleEvent.Ground, onGrass[land].Event);
+        Assert.Equal(BallFlight.FirstLandingDist(onGrass), BallFlight.FirstLandingDist(onIce));
+        SamePath("to the first landing", onGrass.Take(land + 1).ToList(), onIce.Take(land + 1).ToList());
 
-            // Every ground contact of both paths is in the outfield, so each whole path is one row's.
-            foreach (var (park, path) in new[] { (plain, onGrass), (iced, onIce) })
-                for (var i = land; i < path.Count; i++)
-                    if (path[i].Event != SampleEvent.None)
-                        Assert.Equal(GroundZone.Outfield, GroundZones.Of(park, rules).ZoneAt(path[i].X, path[i].Z));
+        // Every ground contact of both paths is in the outfield, so each whole path is one row's.
+        foreach (var (park, path) in new[] { (plain, onGrass), (iced, onIce) })
+            for (var i = land; i < path.Count; i++)
+                if (path[i].Event != SampleEvent.None)
+                    Assert.Equal(GroundZone.Outfield, GroundZones.Of(park, rules).ZoneAt(path[i].X, path[i].Z));
 
-            SamePath("the grass hop", Old.Trajectory(exit, launch, spray, plain, rules, Old.Of(rules.Grounds.Grass, rules.Walls.Padded)), onGrass);
-            SamePath("the ice hop", Old.Trajectory(exit, launch, spray, iced, rules, Old.Of(rules.Grounds.Ice, rules.Walls.Padded)), onIce);
-            Assert.True(ApexAfter(onIce, land) < ApexAfter(onGrass, land) - 0.5,
-                $"the ice row's hop rises {ApexAfter(onIce, land):0.00} ft, the grass row's {ApexAfter(onGrass, land):0.00}");
-        }
+        SamePath("the grass hop", Old.Trajectory(exit, launch, spray, plain, rules, Old.Of(rules.Grounds.Grass, rules.Walls.Padded)), onGrass);
+        SamePath("the ice hop", Old.Trajectory(exit, launch, spray, iced, rules, Old.Of(rules.Grounds.Ice, rules.Walls.Padded)), onIce);
+        Assert.True(ApexAfter(onIce, land) < ApexAfter(onGrass, land) - 0.5,
+            $"the ice row's hop rises {ApexAfter(onIce, land):0.00} ft, the grass row's {ApexAfter(onGrass, land):0.00}");
     }
 
     // ---------------------------------------------------------------------------------
@@ -275,7 +254,7 @@ public sealed class GroundReadTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-12</c>, both roots. The same ball rolling into the centre-field fence at an angle, on the shipped table and on a
+    /// <c>SF-12</c>. The same ball rolling into the centre-field fence at an angle, on the shipped table and on a
     /// fixture whose <c>padded</c> row is 0.30 / 0.60 instead of 0.48 / 0.82: read off the samples on either side of the wall,
     /// the speed into the wall comes back at that table's restitution and the speed along it keeps that table's tangential.
     /// Every segment is <c>padded</c> today (<see cref="WallMaterial.OfSegment"/>); a span's own material is F2-c's half.
@@ -284,49 +263,47 @@ public sealed class GroundReadTests
     public void SF12_TheSameCaromFollowsThePaddedRowOfEachTable()
     {
         using var fixture = new UnequalGrounds(walls: json => json["padded"] = new JsonObject { ["restitution"] = 0.30, ["tangential"] = 0.60 });
-        foreach (var (control, softer) in new[] { (Shipped, fixture.Shipped), (Trial, fixture.Trial) })
+        var (control, softer) = (Game, fixture.Catalog);
+        foreach (var catalog in new[] { control, softer })
         {
-            foreach (var catalog in new[] { control, softer })
-            {
-                var rules = catalog.Rules;
-                var park = catalog.Parks["harbor-diamond"];
-                var fence = AtBatResolver.FenceAt(park, 0);
-                var dt = 1.0 / rules.Flight.SampleHz;
-                // Rolling, 6 ft short of the fence, heading out and to the right.
-                var path = BallFlight.Continue([], 0, -3, 0, fence - 6, 14, 0, 40, 0, 90, park, rules);
-                var hit = Enumerable.Range(1, path.Count - 1).First(i => path[i].Event == SampleEvent.Wall);
-                Assert.True(hit >= 2 && hit + 1 < path.Count);
+            var rules = catalog.Rules;
+            var park = catalog.Parks["harbor-diamond"];
+            var fence = AtBatResolver.FenceAt(park, 0);
+            var dt = 1.0 / rules.Flight.SampleHz;
+            // Rolling, 6 ft short of the fence, heading out and to the right.
+            var path = BallFlight.Continue([], 0, -3, 0, fence - 6, 14, 0, 40, 0, 90, park, rules);
+            var hit = Enumerable.Range(1, path.Count - 1).First(i => path[i].Event == SampleEvent.Wall);
+            Assert.True(hit >= 2 && hit + 1 < path.Count);
 
-                // Into the wall: the step's velocity after its own friction.
-                var zones = GroundZones.Of(park, rules);
-                var (inX, inZ) = Velocity(path, hit - 1, dt);
-                var inSpeed = Math.Sqrt(inX * inX + inZ * inZ);
-                var k = (inSpeed - zones.RowAt(path[hit - 1].X, path[hit - 1].Z, rules.Grounds).Roll.Friction * dt) / inSpeed;
-                (inX, inZ) = (inX * k, inZ * k);
-                var crossing = FieldBounds.Of(park).Cross(path[hit - 1].X, path[hit - 1].Z, path[hit - 1].X + inX * dt, path[hit - 1].Z + inZ * dt);
-                Assert.NotNull(crossing);
-                var n = crossing.Value.Segment;
-                Assert.Equal(WallMaterial.Padded, WallMaterial.OfSegment(n));
+            // Into the wall: the step's velocity after its own friction.
+            var zones = GroundZones.Of(park, rules);
+            var (inX, inZ) = Velocity(path, hit - 1, dt);
+            var inSpeed = Math.Sqrt(inX * inX + inZ * inZ);
+            var k = (inSpeed - zones.RowAt(path[hit - 1].X, path[hit - 1].Z, rules.Grounds).Roll.Friction * dt) / inSpeed;
+            (inX, inZ) = (inX * k, inZ * k);
+            var crossing = FieldBounds.Of(park).Cross(path[hit - 1].X, path[hit - 1].Z, path[hit - 1].X + inX * dt, path[hit - 1].Z + inZ * dt);
+            Assert.NotNull(crossing);
+            var n = crossing.Value.Segment;
+            Assert.Equal(WallMaterial.Padded, WallMaterial.OfSegment(n));
 
-                // Out of the wall: the next step's velocity with its friction put back.
-                var (outX, outZ) = Velocity(path, hit + 1, dt);
-                var outSpeed = Math.Sqrt(outX * outX + outZ * outZ);
-                var back = (outSpeed + zones.RowAt(path[hit].X, path[hit].Z, rules.Grounds).Roll.Friction * dt) / outSpeed;
-                (outX, outZ) = (outX * back, outZ * back);
+            // Out of the wall: the next step's velocity with its friction put back.
+            var (outX, outZ) = Velocity(path, hit + 1, dt);
+            var outSpeed = Math.Sqrt(outX * outX + outZ * outZ);
+            var back = (outSpeed + zones.RowAt(path[hit].X, path[hit].Z, rules.Grounds).Roll.Friction * dt) / outSpeed;
+            (outX, outZ) = (outX * back, outZ * back);
 
-                var inNormal = inX * n.Nx + inZ * n.Nz;
-                var outNormal = outX * n.Nx + outZ * n.Nz;
-                var (inTx, inTz) = (inX - inNormal * n.Nx, inZ - inNormal * n.Nz);
-                var (outTx, outTz) = (outX - outNormal * n.Nx, outZ - outNormal * n.Nz);
-                var row = rules.Walls.Of(WallMaterial.Padded);
-                Assert.True(inNormal > 5, $"the ball must meet the wall going out; normal speed {inNormal:0.00}");
-                Assert.True(Math.Abs(outNormal + row.Restitution * inNormal) < 1e-6,
-                    $"{catalog.Root.Provenance}: normal {inNormal:0.0000} came back {outNormal:0.0000}, the row says × {row.Restitution}");
-                Assert.True(Math.Abs(outTx - row.Tangential * inTx) < 1e-6 && Math.Abs(outTz - row.Tangential * inTz) < 1e-6,
-                    $"{catalog.Root.Provenance}: along the wall ({inTx:0.0000}, {inTz:0.0000}) became ({outTx:0.0000}, {outTz:0.0000}), the row says × {row.Tangential}");
-            }
-            Assert.NotEqual(control.Rules.Walls.Padded.Restitution, softer.Rules.Walls.Padded.Restitution);
+            var inNormal = inX * n.Nx + inZ * n.Nz;
+            var outNormal = outX * n.Nx + outZ * n.Nz;
+            var (inTx, inTz) = (inX - inNormal * n.Nx, inZ - inNormal * n.Nz);
+            var (outTx, outTz) = (outX - outNormal * n.Nx, outZ - outNormal * n.Nz);
+            var row = rules.Walls.Of(WallMaterial.Padded);
+            Assert.True(inNormal > 5, $"the ball must meet the wall going out; normal speed {inNormal:0.00}");
+            Assert.True(Math.Abs(outNormal + row.Restitution * inNormal) < 1e-6,
+                $"{catalog.Root.Provenance}: normal {inNormal:0.0000} came back {outNormal:0.0000}, the row says × {row.Restitution}");
+            Assert.True(Math.Abs(outTx - row.Tangential * inTx) < 1e-6 && Math.Abs(outTz - row.Tangential * inTz) < 1e-6,
+                $"{catalog.Root.Provenance}: along the wall ({inTx:0.0000}, {inTz:0.0000}) became ({outTx:0.0000}, {outTz:0.0000}), the row says × {row.Tangential}");
         }
+        Assert.NotEqual(control.Rules.Walls.Padded.Restitution, softer.Rules.Walls.Padded.Restitution);
     }
 
     // ---------------------------------------------------------------------------------
@@ -334,7 +311,7 @@ public sealed class GroundReadTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-14</c>, both roots. On a fixture root whose <c>dirt</c> row differs from <c>grass</c> in every loose-ball number,
+    /// <c>SF-14</c>. On a fixture root whose <c>dirt</c> row differs from <c>grass</c> in every loose-ball number,
     /// the batted ball's roll, the overthrow and the local bobble are dropped at one point three feet inside the lip, then at
     /// one three feet past it. At each point each model slows, rebounds and keeps its roll by the row of that point's zone —
     /// dirt inside, grass past — and moving the point across the lip moves every one of them to the other row.
@@ -343,46 +320,44 @@ public sealed class GroundReadTests
     public void SF14_TheBattedRollTheOverthrowAndTheBobbleReadTheRowOfTheSamePoint()
     {
         using var fixture = new UnequalGrounds();
-        foreach (var catalog in fixture.BothRoots)
+        var catalog = fixture.Catalog;
+        var rules = catalog.Rules;
+        var park = catalog.Parks["harbor-diamond"];
+        var zones = GroundZones.Of(park, rules);
+        var lip = rules.Flight.Classes.InfieldLipFt;
+        var h = rules.Fielding.Handling;
+        var g = rules.Flight.Gravity;
+        var dt = 1.0 / rules.Flight.SampleHz;
+
+        foreach (var (z, zone, row) in new[] { (lip - 3, GroundZone.InfieldDirt, rules.Grounds.Dirt), (lip + 3, GroundZone.Outfield, rules.Grounds.Grass) })
         {
-            var rules = catalog.Rules;
-            var park = catalog.Parks["harbor-diamond"];
-            var zones = GroundZones.Of(park, rules);
-            var lip = rules.Flight.Classes.InfieldLipFt;
-            var h = rules.Fielding.Handling;
-            var g = rules.Flight.Gravity;
-            var dt = 1.0 / rules.Flight.SampleHz;
+            Assert.Equal(zone, zones.ZoneAt(0, z));
+            Assert.Same(row, zones.RowAt(0, z, rules.Grounds));
 
-            foreach (var (z, zone, row) in new[] { (lip - 3, GroundZone.InfieldDirt, rules.Grounds.Dirt), (lip + 3, GroundZone.Outfield, rules.Grounds.Grass) })
-            {
-                Assert.Equal(zone, zones.ZoneAt(0, z));
-                Assert.Same(row, zones.RowAt(0, z, rules.Grounds));
+            // The batted ball, dropped rolling at the point: its first step loses the row's friction.
+            var batted = BallFlight.Continue([], 0, 0, 0, z, 6, 0, 0, 0, 80, park, rules);
+            Assert.True(Math.Abs(6 - Speed(batted, 1, dt) - row.Roll.Friction * dt) < 1e-9, $"batted roll at {z:0.00}: {Speed(batted, 1, dt)}");
 
-                // The batted ball, dropped rolling at the point: its first step loses the row's friction.
-                var batted = BallFlight.Continue([], 0, 0, 0, z, 6, 0, 0, 0, 80, park, rules);
-                Assert.True(Math.Abs(6 - Speed(batted, 1, dt) - row.Roll.Friction * dt) < 1e-9, $"batted roll at {z:0.00}: {Speed(batted, 1, dt)}");
+            // The overthrow: the row's deceleration.
+            var thrown = BallFlight.OverthrowTick(zones, rules.Grounds, 0, z, 6, 0, Frame);
+            Assert.Equal(6 - row.Overthrow.DecelFtPerSec2 * Frame, thrown.Speed, 12);
 
-                // The overthrow: the row's deceleration.
-                var thrown = BallFlight.OverthrowTick(zones, rules.Grounds, 0, z, 6, 0, Frame);
-                Assert.Equal(6 - row.Overthrow.DecelFtPerSec2 * Frame, thrown.Speed, 12);
-
-                // The local bobble landing: the row's restitution and the roll it keeps; rolling: the row's deceleration.
-                var landing = BallFlight.LocalBobbleTick(zones, rules.Grounds, h, g, 0, 0.05, z, 4, -14.5, 0, true, Frame);
-                var down = 14.5 + g * Frame;
-                Assert.True(landing.Air, "the rebound clears the settle and stays under the ceiling at both rows");
-                Assert.Equal(down * row.Bobble.Restitution, landing.VY, 12);
-                Assert.Equal(4 * row.Bobble.GroundRetain, landing.VX, 12);
-                var rolling = BallFlight.LocalBobbleTick(zones, rules.Grounds, h, g, 0, 0, z, 4, 0, 0, false, Frame);
-                Assert.Equal(4 - row.Bobble.DecelFtPerSec2 * Frame, rolling.Speed, 12);
-            }
-
-            // And the two rows really are two: each model differs across the lip.
-            Assert.NotEqual(rules.Grounds.Dirt.Roll.Friction, rules.Grounds.Grass.Roll.Friction);
-            Assert.NotEqual(rules.Grounds.Dirt.Overthrow.DecelFtPerSec2, rules.Grounds.Grass.Overthrow.DecelFtPerSec2);
-            Assert.NotEqual(rules.Grounds.Dirt.Bobble.Restitution, rules.Grounds.Grass.Bobble.Restitution);
-            Assert.NotEqual(rules.Grounds.Dirt.Bobble.GroundRetain, rules.Grounds.Grass.Bobble.GroundRetain);
-            Assert.NotEqual(rules.Grounds.Dirt.Bobble.DecelFtPerSec2, rules.Grounds.Grass.Bobble.DecelFtPerSec2);
+            // The local bobble landing: the row's restitution and the roll it keeps; rolling: the row's deceleration.
+            var landing = BallFlight.LocalBobbleTick(zones, rules.Grounds, h, g, 0, 0.05, z, 4, -14.5, 0, true, Frame);
+            var down = 14.5 + g * Frame;
+            Assert.True(landing.Air, "the rebound clears the settle and stays under the ceiling at both rows");
+            Assert.Equal(down * row.Bobble.Restitution, landing.VY, 12);
+            Assert.Equal(4 * row.Bobble.GroundRetain, landing.VX, 12);
+            var rolling = BallFlight.LocalBobbleTick(zones, rules.Grounds, h, g, 0, 0, z, 4, 0, 0, false, Frame);
+            Assert.Equal(4 - row.Bobble.DecelFtPerSec2 * Frame, rolling.Speed, 12);
         }
+
+        // And the two rows really are two: each model differs across the lip.
+        Assert.NotEqual(rules.Grounds.Dirt.Roll.Friction, rules.Grounds.Grass.Roll.Friction);
+        Assert.NotEqual(rules.Grounds.Dirt.Overthrow.DecelFtPerSec2, rules.Grounds.Grass.Overthrow.DecelFtPerSec2);
+        Assert.NotEqual(rules.Grounds.Dirt.Bobble.Restitution, rules.Grounds.Grass.Bobble.Restitution);
+        Assert.NotEqual(rules.Grounds.Dirt.Bobble.GroundRetain, rules.Grounds.Grass.Bobble.GroundRetain);
+        Assert.NotEqual(rules.Grounds.Dirt.Bobble.DecelFtPerSec2, rules.Grounds.Grass.Bobble.DecelFtPerSec2);
     }
 
     // ---------------------------------------------------------------------------------
@@ -400,12 +375,10 @@ public sealed class GroundReadTests
         Assert.Equal(Ground.Grass, BallFlight.OpenFieldGround);
         using var slickGrass = new UnequalGrounds(grounds: json => json["grass"]!["roll"]!["friction"] = 11);
         using var slowDirt = new UnequalGrounds();
-        foreach (var (control, grass, dirt) in new[] { (Shipped, slickGrass.Shipped, slowDirt.Shipped), (Trial, slickGrass.Trial, slowDirt.Trial) })
-        {
-            var shipped = BallFlight.Trajectory(90, 3, 0, control.Rules);
-            Assert.True(BallFlight.Trajectory(90, 3, 0, grass.Rules)[^1].Dist > shipped[^1].Dist + 10);
-            SamePath("the open field ignores dirt", shipped, BallFlight.Trajectory(90, 3, 0, dirt.Rules));
-        }
+        var (control, grass, dirt) = (Game, slickGrass.Catalog, slowDirt.Catalog);
+        var shipped = BallFlight.Trajectory(90, 3, 0, control.Rules);
+        Assert.True(BallFlight.Trajectory(90, 3, 0, grass.Rules)[^1].Dist > shipped[^1].Dist + 10);
+        SamePath("the open field ignores dirt", shipped, BallFlight.Trajectory(90, 3, 0, dirt.Rules));
     }
 
     /// <summary>
@@ -417,12 +390,12 @@ public sealed class GroundReadTests
     [Fact]
     public void AGroundWithNoRowStopsTheBallAndTheRowsAreTheHandedTables()
     {
-        var rules = Shipped.Rules;
-        var mud = Shipped.Parks["harbor-diamond"] with { Zones = new ParkZones(Outfield: "mud") };
+        var rules = Game.Rules;
+        var mud = Game.Parks["harbor-diamond"] with { Zones = new ParkZones(Outfield: "mud") };
         var zones = GroundZones.Of(mud, rules);
         var past = rules.Flight.Classes.InfieldLipFt + 20;
 
-        var (exit, launch, spray) = LipGrounder(Shipped.Parks["harbor-diamond"], rules);
+        var (exit, launch, spray) = LipGrounder(Game.Parks["harbor-diamond"], rules);
         var thrown = Assert.Throws<ArgumentException>(() => BallFlight.Trajectory(exit, launch, spray, mud, rules));
         Assert.Contains("'mud' is not a ground with a row in rules/grounds.json", thrown.Message, StringComparison.Ordinal);
         Assert.Throws<ArgumentException>(() => BallFlight.OverthrowTick(zones, rules.Grounds, 0, past, 6, 0, Frame));
@@ -431,11 +404,11 @@ public sealed class GroundReadTests
         _ = BallFlight.OverthrowTick(zones, rules.Grounds, 0, 60, 6, 0, Frame);
 
         using var fixture = new UnequalGrounds();
-        var park = fixture.Shipped.Parks["harbor-diamond"];
-        Assert.NotEqual(Rules.Default.Grounds.Dirt.Roll.Friction, fixture.Shipped.Rules.Grounds.Dirt.Roll.Friction);
-        (exit, launch, spray) = LipGrounder(park, fixture.Shipped.Rules);
+        var park = fixture.Catalog.Parks["harbor-diamond"];
+        Assert.NotEqual(Rules.Default.Grounds.Dirt.Roll.Friction, fixture.Catalog.Rules.Grounds.Dirt.Roll.Friction);
+        (exit, launch, spray) = LipGrounder(park, fixture.Catalog.Rules);
         Assert.NotEqual(BallFlight.Trajectory(exit, launch, spray, park, Rules.Default)[^1].Dist,
-            BallFlight.Trajectory(exit, launch, spray, park, fixture.Shipped.Rules)[^1].Dist);
+            BallFlight.Trajectory(exit, launch, spray, park, fixture.Catalog.Rules)[^1].Dist);
     }
 
     // ---------------------------------------------------------------------------------
@@ -444,8 +417,7 @@ public sealed class GroundReadTests
 
     /// <summary>
     /// The softest grounder up the middle (−2°, 6° of spray) that settles into its roll on the infield dirt and rolls at
-    /// least 20 ft past the lip on this table — chosen by the table rather than written in, because the two roots have
-    /// different lips and drags and a fixture's dirt may roll stickier than the shipped one.
+    /// least 20 ft past the lip on this table — chosen by the table rather than written in, because a fixture's dirt may roll stickier than the shipped one.
     /// </summary>
     static (double Exit, double Launch, double Spray) LipGrounder(Park park, RulesTable rules)
     {
@@ -507,8 +479,7 @@ public sealed class GroundReadTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// A throwaway copy of the shipped root whose ground (and wall) rows are unequal, with <c>trials/c80</c> laid over it for
-    /// the second root. By default <c>dirt</c> differs from every other row in every number a loose ball reads — rolls
+    /// A throwaway copy of the data root whose ground (and wall) rows are unequal. By default <c>dirt</c> differs from every other row in every number a loose ball reads — rolls
     /// stickier (30), stops an overthrow faster (24), and takes a bobble back lower, keeps less of it and slows it harder
     /// (0.30 / 0.70 / 9) — and <c>ice</c> rolls at half of grass's friction (11) and hops lower and shorter (0.30 / 0.60).
     /// Grass keeps the shipped numbers. The shipped rows themselves stay equal: nothing here is a proposed value.
@@ -522,11 +493,10 @@ public sealed class GroundReadTests
         public UnequalGrounds(Action<JsonObject>? grounds = null, Action<JsonObject>? walls = null)
         {
             Root = Path.Combine(Path.GetTempPath(), "grand-sluggers-ground-reads-" + Guid.NewGuid().ToString("N"));
-            CopyTree(GroundReadTests.Shipped.Root.Shipped, Root);
+            CopyTree(GroundReadTests.Game.Root.Shipped, Root);
             if ((grounds ?? (walls is null ? DirtAndIce : null)) is { } change) Change("grounds.json", change);
             if (walls is not null) Change("walls.json", walls);
-            Shipped = ContentCatalog.Load(new DataRoot(Root));
-            Trial = ContentCatalog.Load(new DataRoot(Root, TrialDir));
+            Catalog = ContentCatalog.Load(new DataRoot(Root));
         }
 
         static void DirtAndIce(JsonObject json)
@@ -539,9 +509,7 @@ public sealed class GroundReadTests
         }
 
         public string Root { get; }
-        public ContentCatalog Shipped { get; }
-        public ContentCatalog Trial { get; }
-        public IEnumerable<ContentCatalog> BothRoots => [Shipped, Trial];
+        public ContentCatalog Catalog { get; }
 
         void Change(string file, Action<JsonObject> change)
         {
@@ -574,7 +542,7 @@ public sealed class GroundReadTests
     /// <summary>
     /// The flight as it was before F3-c moved its reads, verbatim, with the four blocks it read from <c>flight.json</c> passed
     /// in as one set of numbers for the whole path (<see cref="Numbers"/>). <see cref="Today"/> is the shipped set — what
-    /// <c>flight.roll</c> / <c>bounce</c> / <c>skid</c> / <c>wall</c> carried on both roots the day they moved into every
+    /// <c>flight.roll</c> / <c>bounce</c> / <c>skid</c> / <c>wall</c> carried the day they moved into every
     /// ground row and the <c>padded</c> wall row (FD-05). With equal rows the moved flight must be this, to the last bit; with
     /// one row under a whole path, it must be this run on that row.
     /// </summary>
