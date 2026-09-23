@@ -4,7 +4,7 @@ namespace GrandSluggers.Sim;
 public static class TutorialPlateObjectives
 {
     public static readonly string[] PitchIds = ["called-strike", "changeup-strike", "third-slot-strike", "max-pitch-strike", "break-strike", "rubber-strike", "called-ball"];
-    public static readonly string[] SwingIds = ["slap-fair", "perfect-slap-fair", "max-swing-fair", "bunt-fair", "take-ball", "pull-fair", "push-fair", "box-perfect-fair"];
+    public static readonly string[] SwingIds = ["slap-fair", "perfect-slap-fair", "max-swing-fair", "bunt-fair", "bunt-first-fair", "take-ball", "cancel-take", "pull-fair", "push-fair", "box-perfect-fair"];
     static TutorialFeedback Fail(string code, string detail) => new(false, code, detail);
 
     public static TutorialFeedback Pitch(string objective, TutorialSetup setup, PitchCommand command, PlayEvent? play)
@@ -43,12 +43,21 @@ public static class TutorialPlateObjectives
         }
         if (objective == "max-swing-fair" && (command.Charge01 < 1 || command.Bunt || command.Star))
             return Fail("use-max-swing", "Build full charge, then release in time to make fair contact.");
-        if (objective == "bunt-fair" && (!command.Bunt || command.Star))
+        var bunting = objective is "bunt-fair" or "bunt-first-fair";
+        if (bunting && (!command.Bunt || command.Star))
             return Fail("use-bunt", "Square to bunt and hold the bat out through the pitch.");
+        // The held side is the verb this lesson names (§5.8, PH-14-R5): the first-base trigger, not the other one.
+        if (objective == "bunt-first-fair" && command.BuntSide != BuntSide.First)
+            return Fail("use-first-side", "Hold the first-base bunt trigger, not the third-base one.");
         if (!command.Swing || hit.Quality == ContactQuality.Miss)
-            return Fail("miss", "Meet the pitch with the cursor and the right timing.");
+            return bunting
+                ? Fail("bunt-miss", "The held bat missed the ball. Walk the batter so the oval meets the pitch.")
+                : Fail("miss", "Meet the pitch with the cursor and the right timing.");
         if (hit.Foul || !hit.InPlay)
-            return Fail(objective == "bunt-fair" ? "foul-bunt" : "foul", "The ball was not put in fair territory.");
+            return Fail(bunting ? "foul-bunt" : "foul", "The ball was not put in fair territory.");
+        // The side leans the ball, it does not place it (PH-14-R2): the lesson counts only a bunt that went there.
+        if (objective == "bunt-first-fair" && hit.SprayDeg <= 0)
+            return Fail("bunt-wrong-side", "The bunt went toward third. Keep the first-base side held and meet the ball square.");
         if (objective == "box-perfect-fair" && Math.Abs(command.BoxOffsetX) < setup.MinMovement01)
             return Fail("move-box", "Move the batter toward the pitch before making contact.");
         if (objective is "pull-fair" or "push-fair")
@@ -59,6 +68,23 @@ public static class TutorialPlateObjectives
         }
         if (objective is "perfect-slap-fair" or "box-perfect-fair" && hit.Quality != ContactQuality.Perfect)
             return Fail("find-sweet-spot", "Contact missed the perfect heart of the bat. Adjust the batter's position.");
-        return new(true, objective == "bunt-fair" ? "fair-bunt" : "fair-contact", "The requested contact put the ball in fair territory.");
+        return new(true, objective == "bunt-first-fair" ? "fair-bunt-first" : bunting ? "fair-bunt" : "fair-contact",
+            "The requested contact put the ball in fair territory.");
+    }
+
+    /// <summary>
+    /// T-B10 (PH-13-R1): the player loaded a swing and cancelled it with the explicit cancel, and the pitch went by
+    /// untouched. <paramref name="cancelledLoad"/> is the session's own plate evidence
+    /// (<see cref="TutorialSession.CancelledLoad"/>), never the caller's word.
+    /// </summary>
+    public static TutorialFeedback CancelTake(bool cancelledLoad, SwingCommand command, PlayEvent? play)
+    {
+        if (command.Swing || command.Bunt)
+            return Fail("cancel-swung", "The swing went. Cancel the load before you let go of the swing button.");
+        if (!cancelledLoad)
+            return Fail("load-then-cancel", "Load a swing first, then cancel it before the ball arrives.");
+        return play?.Kind == PlayKind.TakeBall
+            ? new(true, "cancelled-take", "You cancelled the loaded swing and took the ball.")
+            : Fail("chased-ball", "Let the high pitch pass without swinging or squaring to bunt.");
     }
 }

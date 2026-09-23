@@ -70,14 +70,16 @@ public readonly record struct SwingInputIntent(
     double SprayAimDeg,
     bool Bunt,
     double LaunchAim,
-    double BoxOffsetX)
+    double BoxOffsetX,
+    BuntSide BuntSide = BuntSide.None)
 {
     public static SwingInputIntent Capture(
         ChargeButtonStep button,
         double stickX,
         double stickY,
         bool bunt,
-        double boxOffsetX) =>
+        double boxOffsetX,
+        BuntSide buntSide = BuntSide.None) =>
         button.Committed
             ? new SwingInputIntent(
                 true,
@@ -86,7 +88,8 @@ public readonly record struct SwingInputIntent(
                 AtBatResolver.SprayAimDeg(stickX),
                 bunt,
                 stickY,
-                boxOffsetX)
+                boxOffsetX,
+                bunt ? buntSide : BuntSide.None)
             : default;
 
     public SwingCommand Resolve(double releaseAt, double plateAt, double effectiveCharge, bool star,
@@ -100,7 +103,8 @@ public readonly record struct SwingInputIntent(
             Bunt,
             LaunchAim,
             BoxOffsetX,
-            Human: true);
+            Human: true,
+            BuntSide: BuntSide);
 }
 
 /// <summary>

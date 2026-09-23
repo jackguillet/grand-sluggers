@@ -91,13 +91,19 @@ namespace GrandSluggers.UnityClient
         string _itemId = "";
         bool _starPitch;
         bool _starSwing;
-        bool _bunt;
-        /// <summary>The square clock (§7.3): up while the batter is squared (West held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
+        /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
+        BuntSide _buntSide;
+        /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
         float _squareSec;
         /// <summary>The bodies are off their spots on the square (crashing in, or walking back after a release).</summary>
         bool Squared => _squareSec > 0f;
-        /// <summary>The batter is squared right now: West held (a human), or the CPU batter's square read at SET.</summary>
-        bool SquaredNow => HumanBats ? _bunt : _match != null && _match.CpuSquared;
+        /// <summary>
+        /// The side the batter shows right now (§5.8, PH-14-R3): a human's held trigger, or the side the CPU batter
+        /// drew with its square at SET. Public on the batter card for both seats.
+        /// </summary>
+        BuntSide ShowingSide => HumanBats ? _buntSide : _match != null ? _match.CpuBuntSide : BuntSide.None;
+        /// <summary>The batter is squared right now: a bunt trigger held (a human), or the CPU batter's square read at SET.</summary>
+        bool SquaredNow => HumanBats ? _buntSide != BuntSide.None : _match != null && _match.CpuSquared;
         float _charge;
         float _chargePast;
         float _pitchCharge;
@@ -317,7 +323,8 @@ namespace GrandSluggers.UnityClient
             _actors.Draw(dt);
             _park?.Tick(_ball, dt);
             _park?.SetPlayClock(_match != null && _match.LivePlay.Active ? _match.LivePlay.ElapsedSeconds : 0);
-            _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);
+            // East / G that the plate took as the swing cancel is not also the Training skip (PH-13-R1).
+            _coach?.Tick(_rig != null ? _rig.Cam : Camera.main, CancelFree(Controls.Pad1));
             _stars?.Set(_match.HomeStars, _match.AwayStars);
             if (HarborKit.Instance != null && HarborKit.Instance.OwnsDiamond)
                 HarborKit.Instance.SetScore(_match.AwayScore, _match.HomeScore, _match.Inning);
@@ -400,7 +407,7 @@ namespace GrandSluggers.UnityClient
                 _mode == PlayMode.Training, TutorialOn ? HowToPlay.TutorialGoal(_coach.Tutorial.Lesson.Id) : TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
-                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, SquaredNow,
+                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, ShowingSide,
                 CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules, Hazards));
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
@@ -742,12 +749,14 @@ namespace GrandSluggers.UnityClient
             }
             if (!ItemOffered) return;
             var pad = RunPad;
-            if (pad.CyclePitch && !pad.Item)
+            // LT held for a bunt that made contact is no item modifier until it comes up and is pressed (PH-14-R6).
+            var ltFree = TriggerFree(pad, BuntSide.Third);
+            if (pad.CyclePitch && !pad.ItemWith(ltFree))
                 _itemPick = (_itemPick + 1) % ErrorItems.All.Length;
             AimItem();
             if (!TrainingOn)
                 _sub = ErrorItems.All[_itemPick].ToUpperInvariant() + "  ·  stick aim  ·  E throw";
-            if (!pad.ItemConfirm || _itemTarget == null) return;
+            if (!pad.ItemConfirmWith(ltFree) || _itemTarget == null) return;
             var id = ErrorItems.All[_itemPick];
             if (TutorialOn && _coach.Tutorial.IsItemLesson)
             {

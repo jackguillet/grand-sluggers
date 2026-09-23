@@ -137,7 +137,17 @@ namespace GrandSluggers.EditorTools
                 () => VerifyCycleAfterArmIgnored(play),
                 () => VerifyCycleResetsEachPitch(play),
                 () => VerifySelectSwapPick(play, padTwo: false),
-                () => VerifySelectSwapPick(play, padTwo: true)
+                () => VerifySelectSwapPick(play, padTwo: true),
+                // P4-c (#803): the held bunt's triggers, the East / G cancel and the leak guards, through the real
+                // Controls -> TickSet / TickFlight path (PH-13-R1, PH-14-R3 ... R6).
+                () => VerifyCancelThenTake(play, padTwo: false),
+                () => VerifyCancelThenTake(play, padTwo: true),
+                () => VerifyTriggerConvertsLoad(play, padTwo: false, first: false),
+                () => VerifyTriggerConvertsLoad(play, padTwo: true, first: true),
+                () => VerifySideChangeWhileSquared(play),
+                () => VerifyReleaseAllWithdraws(play),
+                () => VerifyBuntTriggerAfterContactIsNotTheItem(play),
+                () => VerifyEastCancelIsNotATrainingSkip(play)
             })
             {
                 cases.Add(check());
@@ -311,7 +321,7 @@ namespace GrandSluggers.EditorTools
             Tick(play, "TickSet", State(south: true), State());
             Require(Phase(play) == "Flight" && Get<float>(play, "_flight") < 0,
                 "CPU pitch did not enter its windup while the batter held South.");
-            Require(Get<ChargeButtonState>(play, "_swingButton").Armed && Get<SwingCommand>(play, "_swing") == null,
+            Require(SwingButton(play).Armed && Get<SwingCommand>(play, "_swing") == null,
                 "Batter hold did not carry from SET into the CPU pitch windup.");
             Tick(play, "TickFlight", State(), State());
             var swing = Get<SwingCommand>(play, "_swing");
@@ -329,8 +339,9 @@ namespace GrandSluggers.EditorTools
             Tick(play, "TickSet", State(), State(south: true, stickX: -0.8f));
             Require(Phase(play) == "Flight" && Get<float>(play, "_flight") < 0,
                 "Player 1 pitch did not enter its windup while Player 2 held South.");
-            Require(Get<ChargeButtonState>(play, "_swingButton").Armed && Get<SwingCommand>(play, "_swing") == null,
+            Require(SwingButton(play).Armed && Get<SwingCommand>(play, "_swing") == null,
                 "Player 2 hold did not carry from SET into the pitch windup.");
+            // West no longer squares at the plate (PH-14-R5): held through the release it changes nothing.
             var input = Tick(play, "TickFlight", State(), State(west: true, stickX: -0.8f, stickY: 0.6f));
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
@@ -338,8 +349,10 @@ namespace GrandSluggers.EditorTools
             Require(swing.TimingErrorFrames < 0, "Player 2 Flight release was not recorded as an early swing.");
             Require(Math.Abs(input.Pad2X) > StickPlay.Dead && Math.Abs(input.Pad2Y) > StickPlay.Dead,
                 "Player 2 Flight fixture did not produce live release-frame stick input.");
-            Require(input.Pad2Bunt && swing.Bunt && Math.Abs(swing.LaunchAim - input.Pad2Y) < 0.001,
-                "Player 2 Flight release lost its release-frame bunt or launch intent.");
+            Require(!input.Pad2Bunt && !swing.Bunt && swing.BuntSide == BuntSide.None,
+                "West still bunts at the plate; the bunt is the held LT / RT side.");
+            Require(Math.Abs(swing.LaunchAim - input.Pad2Y) < 0.001,
+                "Player 2 Flight release lost its release-frame launch intent.");
             Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad2X)) < 0.001,
                 "Player 2 Flight release lost its release-frame spray intent.");
             Require(Math.Abs(swing.BoxOffsetX - match.BatterOffsetX) < 0.001,
@@ -361,10 +374,10 @@ namespace GrandSluggers.EditorTools
         {
             Setup(play, Seats.Versus);
             Tick(play, "TickSet", State(), State(south: true), Keys(Key.Space));
-            Require(Get<ChargeButtonState>(play, "_swingButton").Armed,
+            Require(SwingButton(play).Armed,
                 "Pad 2 South did not arm the away batter.");
             Tick(play, "TickSet", State(), State(south: true), Keys());
-            Require(Get<ChargeButtonState>(play, "_swingButton").Armed,
+            Require(SwingButton(play).Armed,
                 "Player 1 keyboard release committed Player 2's held swing.");
             Require(Get<SwingCommand>(play, "_swing") == null,
                 "Player 1 keyboard release created Player 2's swing.");
@@ -374,21 +387,21 @@ namespace GrandSluggers.EditorTools
         static GateCase VerifyCpuSetReleaseIgnored(MatchDirector play)
         {
             var match = Setup(play, Seats.One, homeAtBat: true);
-            Tick(play, "TickSet", State(south: true, west: true, stickX: 0.6f, stickY: 0.6f), State());
+            Tick(play, "TickSet", State(south: true, stickX: 0.6f, stickY: 0.6f), State());
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
-            var input = Tick(play, "TickSet", State(west: true, stickX: 0.6f, stickY: 0.6f), State());
+            var input = Tick(play, "TickSet", State(stickX: 0.6f, stickY: 0.6f), State());
 
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Phase(play) == "Flight", "CPU pitch did not launch on the batter release frame.");
             Require(Math.Abs(input.Pad1X) > StickPlay.Dead && Math.Abs(input.Pad1Y) > StickPlay.Dead,
                 "CPU-boundary fixture did not produce live release-frame stick input.");
-            Require(input.Pad1Bunt && match.BatterOffsetX > 0,
+            Require(match.BatterOffsetX > 0,
                 "CPU-boundary fixture did not exercise the batter's live SET verbs.");
             Require(!Get<bool>(play, "_swung") && swing == null,
                 "Batter release committed on the CPU SET-to-Flight frame; SET releases are not swings.");
-            Require(!Get<ChargeButtonState>(play, "_swingButton").Armed,
+            Require(!SwingButton(play).Armed,
                 "Ignored CPU-boundary SET release remained armed after entering Flight.");
-            Tick(play, "TickFlight", State(west: true, stickX: 0.6f, stickY: 0.6f), State());
+            Tick(play, "TickFlight", State(stickX: 0.6f, stickY: 0.6f), State());
             Require(!Get<bool>(play, "_swung") && Get<SwingCommand>(play, "_swing") == null,
                 "Ignored CPU-boundary SET release committed one frame late in Flight.");
             return new GateCase
@@ -415,7 +428,7 @@ namespace GrandSluggers.EditorTools
                 "Two-seat boundary fixture did not exercise Player 2's live SET walk.");
             Require(!Get<bool>(play, "_swung") && swing == null,
                 "Player 2 release committed on the shared SET-to-Flight frame; SET releases are not swings.");
-            Require(!Get<ChargeButtonState>(play, "_swingButton").Armed,
+            Require(!SwingButton(play).Armed,
                 "Ignored Player 2 SET release remained armed after entering Flight.");
             Tick(play, "TickFlight", State(), State(stickX: -0.8f));
             Require(!Get<bool>(play, "_swung") && Get<SwingCommand>(play, "_swing") == null,
@@ -552,6 +565,174 @@ namespace GrandSluggers.EditorTools
             return new GateCase { name = "cycle-resets-each-pitch", phase = Phase(play), charge = second.Charge01 };
         }
 
+        /// <summary>
+        /// PH-13-R1: South loads (SET into the flight), East cancels the armed load and discards its charge, the cancelled
+        /// hold comes up and swings nothing, and the pitch reaches the plate as a take. On either pad; East stays spent.
+        /// </summary>
+        static GateCase VerifyCancelThenTake(MatchDirector play, bool padTwo)
+        {
+            var match = padTwo ? Setup(play, Seats.Versus) : Setup(play, Seats.One, homeAtBat: true);
+            GamepadState Bat(GamepadState state) => state;
+            (GamepadState, GamepadState) Frame(GamepadState bat) => padTwo ? (State(), bat) : (bat, State());
+            var (a, b) = Frame(State(south: true));
+            Tick(play, "TickSet", a, b);
+            Require(SwingButton(play).Armed, "South in SET did not load the batter's swing.");
+            Launch(play);
+            for (var f = 0; f < 6; f++) { (a, b) = Frame(State(south: true)); Tick(play, "TickFlight", a, b); }
+            Require(SwingButton(play).Armed && Get<float>(play, "_charge") > 0, "The load did not build in the flight.");
+            (a, b) = Frame(Bat(State(south: true, east: true)));
+            Tick(play, "TickFlight", a, b);
+            var plate = Get<PlateButtonsState>(play, "_plate");
+            Require(!plate.Swing.Armed && plate.Swing.MustRelease && plate.Swing.Fill01 == 0,
+                "East did not discard the armed load and its charge.");
+            Require(!PlateButtons.CancelIsFree(plate), "The East press the plate took is not spent.");
+            (a, b) = Frame(State());
+            Tick(play, "TickFlight", a, b);
+            Require(!Get<bool>(play, "_swung") && Get<SwingCommand>(play, "_swing") == null,
+                "Releasing the cancelled hold swung.");
+            var swing = ReachPlate(play, State(), State());
+            Require(swing != null && !swing.Swing && !swing.Bunt, "The cancelled pitch was not a take at the plate.");
+            return new GateCase { name = padTwo ? "cancel-then-take-pad2" : "cancel-then-take-pad1", phase = Phase(play),
+                batterOffset = match.BatterOffsetX };
+        }
+
+        /// <summary>
+        /// PH-13-R1 option 1: a bunt trigger during an uncommitted load discards it and squares toward that side with no
+        /// cancel press; the old hold's release swings nothing; at the plate the held bunt has no timed press.
+        /// </summary>
+        static GateCase VerifyTriggerConvertsLoad(MatchDirector play, bool padTwo, bool first)
+        {
+            var match = padTwo ? Setup(play, Seats.Versus) : Setup(play, Seats.One, homeAtBat: true);
+            (GamepadState, GamepadState) Frame(GamepadState bat) => padTwo ? (State(), bat) : (bat, State());
+            var side = first ? BuntSide.First : BuntSide.Third;
+            GamepadState Trigger(bool south) => State(south: south, lt: !first, rt: first);
+            Launch(play);
+            var (a, b) = Frame(State(south: true));
+            Tick(play, "TickFlight", a, b);
+            for (var f = 0; f < 4; f++) { (a, b) = Frame(State(south: true)); Tick(play, "TickFlight", a, b); }
+            Require(SwingButton(play).Armed, "South did not load in the flight.");
+            (a, b) = Frame(Trigger(south: true));
+            Tick(play, "TickFlight", a, b);
+            var plate = Get<PlateButtonsState>(play, "_plate");
+            Require(!plate.Swing.Armed && plate.Swing.Fill01 == 0, "The bunt trigger did not discard the load.");
+            Require(Get<BuntSide>(play, "_buntSide") == side, "The bunt trigger did not square toward its side.");
+            (a, b) = Frame(Trigger(south: false));
+            Tick(play, "TickFlight", a, b);
+            Require(!Get<bool>(play, "_swung") && Get<SwingCommand>(play, "_swing") == null,
+                "The converted hold's release swung.");
+            var swing = ReachPlate(play, a, b);
+            Require(swing != null && swing.Bunt && swing.BuntSide == side && swing.TimingErrorFrames == 0 && swing.Charge01 == 0,
+                "The squared bat at the plate was not the held bunt toward " + side + ".");
+            return new GateCase { name = "trigger-converts-load-" + (padTwo ? "pad2-" : "pad1-") + side, phase = Phase(play),
+                bunt = swing.Bunt, batterOffset = match.BatterOffsetX };
+        }
+
+        /// <summary>PH-14-R3 / R5: the side changes while squared; the latest press wins; releasing it falls back to the other.</summary>
+        static GateCase VerifySideChangeWhileSquared(MatchDirector play)
+        {
+            Setup(play, Seats.Versus);
+            Launch(play);
+            Tick(play, "TickFlight", State(), State(lt: true));
+            Require(Get<BuntSide>(play, "_buntSide") == BuntSide.Third, "LT did not square toward third.");
+            Tick(play, "TickFlight", State(), State(lt: true, rt: true));
+            Require(Get<BuntSide>(play, "_buntSide") == BuntSide.First, "RT pressed over LT did not move the bat to first.");
+            Tick(play, "TickFlight", State(), State(lt: true));
+            Require(Get<BuntSide>(play, "_buntSide") == BuntSide.Third, "Releasing RT with LT held did not fall back to third.");
+            Tick(play, "TickFlight", State(lt: true), State(lt: true));
+            Require(Get<BuntSide>(play, "_buntSide") == BuntSide.Third, "Pad 1's trigger moved Player 2's bat.");
+            var swing = ReachPlate(play, State(), State(lt: true));
+            Require(swing != null && swing.Bunt && swing.BuntSide == BuntSide.Third, "The plate did not take the side held at contact.");
+            return new GateCase { name = "side-change-while-squared", phase = Phase(play), bunt = swing.Bunt };
+        }
+
+        /// <summary>PH-14-R5: releasing every trigger before the plate withdraws the bat; the pitch is a take, nothing is latched.</summary>
+        static GateCase VerifyReleaseAllWithdraws(MatchDirector play)
+        {
+            Setup(play, Seats.One, homeAtBat: true);
+            Tick(play, "TickSet", State(rt: true), State());
+            Require(Get<BuntSide>(play, "_buntSide") == BuntSide.First && Get<float>(play, "_squareSec") > 0,
+                "RT in SET did not square toward first.");
+            Launch(play);
+            Tick(play, "TickFlight", State(rt: true), State());
+            Tick(play, "TickFlight", State(), State());
+            Require(Get<BuntSide>(play, "_buntSide") == BuntSide.None, "Releasing every trigger did not withdraw the bat.");
+            var swing = ReachPlate(play, State(), State());
+            Require(swing != null && !swing.Swing && !swing.Bunt, "A withdrawn bat was not a take at the plate.");
+            return new GateCase { name = "release-all-withdraws", phase = Phase(play) };
+        }
+
+        /// <summary>
+        /// PH-14-R6: LT held for a bunt at contact is no item modifier (and squares nothing) until it comes up and is
+        /// pressed again. RT is spent the same way.
+        /// </summary>
+        static GateCase VerifyBuntTriggerAfterContactIsNotTheItem(MatchDirector play)
+        {
+            Setup(play, Seats.One, homeAtBat: true);
+            Launch(play);
+            Tick(play, "TickFlight", State(lt: true), State());
+            var swing = ReachPlate(play, State(lt: true), State());
+            var hit = Get<AtBatResult>(play, "_pending") ?? Get<PlayEvent>(play, "_last")?.AtBat;
+            Require(swing != null && swing.Bunt && hit != null && hit.Quality != ContactQuality.Miss,
+                "The held LT bunt fixture did not make contact.");
+            var plate = Get<PlateButtonsState>(play, "_plate");
+            Require(plate.Bunt.Fixed && !BuntHold.IsFree(plate.Bunt, BuntSide.Third), "LT held at contact is not spent.");
+            // Still down, with RB pressed: the item's LT + RB is not read (the spent hold is no modifier).
+            Tick(play, "TickAtBat", State(lt: true).WithButton(GamepadButton.RightShoulder), State());
+            Require(!Call<bool>(play, "TriggerFree", Controls.Pad1, BuntSide.Third)
+                && !Controls.Pad1.ItemWith(false) && Controls.Pad1.ItemWith(true),
+                "The spent LT still reads as the item modifier.");
+            // Up: free. Pressed again: LT + RB is the item.
+            Tick(play, "TickAtBat", State(), State());
+            Require(Call<bool>(play, "TriggerFree", Controls.Pad1, BuntSide.Third), "LT released did not free the trigger.");
+            Tick(play, "TickAtBat", State(lt: true).WithButton(GamepadButton.RightShoulder), State());
+            Require(Controls.Pad1.ItemWith(Call<bool>(play, "TriggerFree", Controls.Pad1, BuntSide.Third)),
+                "A fresh LT press with RB is not the item.");
+            return new GateCase { name = "lt-after-contact-not-item", phase = Phase(play), bunt = true };
+        }
+
+        /// <summary>PH-13-R1: the East press that cancels a load is not also the Training skip (or a dive) on the same press.</summary>
+        static GateCase VerifyEastCancelIsNotATrainingSkip(MatchDirector play)
+        {
+            Setup(play, Seats.One, homeAtBat: true);
+            Tick(play, "TickSet", State(south: true), State());
+            Launch(play);
+            Tick(play, "TickFlight", State(south: true, east: true), State());
+            Require(!SwingButton(play).Armed, "East did not cancel the load.");
+            Require(!Call<bool>(play, "CancelFree", Controls.Pad1), "The cancel press is free for another verb.");
+            var coach = Get<TrainingDirector>(play, "_coach");
+            Require(coach != null, "No Training director on the Harbor scene.");
+            coach.Begin(Get<ContentCatalog>(play, "_content"), PracticeLesson.Batting);
+            try
+            {
+                Require(Controls.Skip, "The gate's East press is not this frame's skip edge.");
+                coach.TickSkip(Call<bool>(play, "CancelFree", Controls.Pad1));
+                Require(!coach.Session.Finished, "The East cancel also skipped the Training drill.");
+                coach.TickSkip(true);
+                Require(coach.Session.Finished, "The control fixture: a free East press did not skip.");
+            }
+            finally { coach.Stop(); }
+            Tick(play, "TickFlight", State(), State());
+            Require(Call<bool>(play, "CancelFree", Controls.Pad1), "East released did not free the button.");
+            return new GateCase { name = "east-cancel-not-training-skip", phase = Phase(play) };
+        }
+
+        static void Launch(MatchDirector play)
+        {
+            Invoke(play, "Launch", new PitchCommand("fastball", 0, false));
+            Set(play, "_pitchAir", true);
+            Set(play, "_flight", 0.02f);
+        }
+
+        /// <summary>Carry the pitch to the plate plane with the batter's buttons as given; the plate's command, or null.</summary>
+        static SwingCommand ReachPlate(MatchDirector play, GamepadState pad1, GamepadState pad2)
+        {
+            Set(play, "_flight", Get<float>(play, "_pitchDur") - Step * 0.5f);
+            Tick(play, "TickFlight", pad1, pad2);
+            return Get<SwingCommand>(play, "_swing");
+        }
+
+        static ChargeButtonState SwingButton(MatchDirector play) => Get<PlateButtonsState>(play, "_plate").Swing;
+
         /// <summary>#582: Select opens the swap pick, the d-pad steps it, Select confirms; the mound changes and SET stays.</summary>
         static GateCase VerifySelectSwapPick(MatchDirector play, bool padTwo)
         {
@@ -616,8 +797,8 @@ namespace GrandSluggers.EditorTools
             InputSystem.Update();
             Controls.Tick(Step);
             var input = new InputFrame(
-                Controls.Pad1.StickX, Controls.Pad1.StickY, Controls.Pad1.WestHeld,
-                Controls.Pad2.StickX, Controls.Pad2.StickY, Controls.Pad2.WestHeld);
+                Controls.Pad1.StickX, Controls.Pad1.StickY, Controls.Pad1.BuntThirdHeld || Controls.Pad1.BuntFirstHeld,
+                Controls.Pad2.StickX, Controls.Pad2.StickY, Controls.Pad2.BuntThirdHeld || Controls.Pad2.BuntFirstHeld);
             Invoke(play, method, Step);
             return input;
         }
@@ -633,11 +814,17 @@ namespace GrandSluggers.EditorTools
         }
 
         static GamepadState State(bool south = false, bool west = false, float stickX = 0, float stickY = 0,
-            bool cycle = false)
+            bool cycle = false, bool east = false, bool lt = false, bool rt = false)
         {
-            var state = new GamepadState { leftStick = new Vector2(stickX, stickY) };
+            var state = new GamepadState
+            {
+                leftStick = new Vector2(stickX, stickY),
+                leftTrigger = lt ? 1f : 0f,
+                rightTrigger = rt ? 1f : 0f
+            };
             if (south) state = state.WithButton(GamepadButton.South);
             if (cycle) state = state.WithButton(GamepadButton.RightShoulder);
+            if (east) state = state.WithButton(GamepadButton.East);
             return west ? state.WithButton(GamepadButton.West) : state;
         }
 
@@ -662,6 +849,8 @@ namespace GrandSluggers.EditorTools
             owner.GetField(name, StaticHidden)!.SetValue(null, value);
         static void Invoke(object owner, string name, params object[] args) =>
             owner.GetType().GetMethod(name, Hidden)!.Invoke(owner, args);
+        static T Call<T>(object owner, string name, params object[] args) =>
+            (T)owner.GetType().GetMethod(name, Hidden)!.Invoke(owner, args);
         static void Require(bool ok, string message)
         {
             if (!ok) throw new InvalidOperationException(message);

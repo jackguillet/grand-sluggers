@@ -134,6 +134,8 @@ public sealed class TutorialNavigationTests
     [InlineData("T-B04")]
     [InlineData("T-B07")]
     [InlineData("T-B08")]
+    [InlineData("T-B10")]
+    [InlineData("T-B11")]
     public void NewPlateLessonsExplainSetupGoalAndBothSchemes(string id)
     {
         Assert.NotEqual(id, HowToPlay.TutorialTitle(id));

@@ -133,10 +133,7 @@
       "title": "bunt and foul-bunt risk",
       "category": "batting",
       "spec": "gameplay-spec:5",
-      "sources": [
-        "control:batting/Bunt",
-        "control:batting/Aim bunt"
-      ]
+      "sources": []
     },
     {
       "id": "batting.08",
@@ -159,7 +156,19 @@
       "title": "cancel a swing load",
       "category": "batting",
       "spec": "gameplay-spec:5.1",
-      "sources": []
+      "sources": [
+        "control:batting/Cancel swing"
+      ]
+    },
+    {
+      "id": "batting.11",
+      "title": "held directional bunt",
+      "category": "batting",
+      "spec": "gameplay-spec:5.8",
+      "sources": [
+        "control:batting/Bunt to third",
+        "control:batting/Bunt to first"
+      ]
     },
     {
       "id": "fielding.01",

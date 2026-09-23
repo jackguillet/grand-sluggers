@@ -51,7 +51,26 @@
     "launchMinDeg": 3,
     "launchSpanDeg": 9,
     "spraySpanDeg": 28,
-    "popAboveCenterFt": 0.8
+    "popAboveCenterFt": 0.8,
+    // PH-14-R2: the held side (LT / J third, RT / L first) leans the bunt this many degrees of spray toward its
+    // side. 12 is the full stick's lean the bunt had before it had a side (spray.stickDeg).
+    "sideDeg": 12,
+    // PH-14-R1 trial switch: byContact false keeps today's response (the ordinary exit x exitMul, a sour bunt pops,
+    // the zone's spread + spraySpanDeg). true (trials/bunt): the exit and the spread are the bunt's own by
+    // quality, and a sour bunt pops only above the bat's center; below it the bat chops it down at the sour pace.
+    "response": {
+      "byContact": false,
+      "exitMph": {
+        "perfect": 22,
+        "nice": 28,
+        "sour": 40
+      },
+      "spreadDeg": {
+        "perfect": 10,
+        "nice": 20,
+        "sour": 44
+      }
+    }
   },
   "spray": {
     "perfectSpreadDeg": 8,
@@ -107,9 +126,8 @@
     "sacBuntChance": 0.35,
     "sacBuntBatMax": 5,
     "sacBuntTrailMax": 2,
-    "sacBuntErrorSigma": 2.2,
-    "sacBuntSpraySigma": 10,
-    "sacBuntLaunchAim": 0.35,
+    // PH-14-R2: the squared CPU holds the first-base side at this chance, else third, drawn at SET with the square.
+    "sacBuntFirstSideChance": 0.5,
     // #625: the headless CPU batter squares this long before the plate time (the square is read at SET, spec §5.9, §7.3):
     // the client's SET to the plate, feel.pitcherReadySeconds 0.55 + the release at 0.42 + the pitch's air time.
     "sacBuntSquareSec": 1.8,

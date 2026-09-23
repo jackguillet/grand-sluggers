@@ -307,16 +307,18 @@ public sealed class NightBlockTests
     /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11. F4-c made the redirects live
     /// and the chompers redirects (FD-09-R2): the log now lists each play's redirects, and both Funfair rows are re-recorded
     /// (seed 11 sends flies through the chompers). PH-16-R18 (star pitches keep the ordinary window) and PH-16-R19
-    /// (no phonyball whiff roll) change play again, so the rows are re-recorded on top of F4-c.
+    /// (no phonyball whiff roll) change play again, so the rows are re-recorded on top of F4-c. P4-b's held bunt
+    /// changed the CPU sac bunt (a side drawn with the square, no timing or aim draws), so they are re-recorded again.
     /// </summary>
     // F4-f made the statue and the train solid, and F2-d moved the outfielders to their fraction of each fence, so these
-    // rows are re-recorded from their builds.
+    // rows are re-recorded from their builds. P4-b's held CPU sac bunt on top of them changes Funfair seed 1 and Ember
+    // seed 2 again (the other two do not change); re-recorded from the merged build.
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 2", "d583f52c2a9aca27239e1b3ff295dbea73013b1ac5a16e02b3b959b5a54069e1"),
+            ("funfair-park", 1, "Final  Ember Court 7  Spark All-Stars 1", "601cf23378686bf903cf8a42d559a0e8ce6507d9742a45ee454525e25ddbc747"),
             ("funfair-park", 11, "Final  Ember Court 2  Spark All-Stars 0", "4e76680e6997abe244e2644e7d6fb30b4399d17ba57dfb45be661b0e55efde82"),
             ("ember-keep", 1, "Final  Ember Court 7  Spark All-Stars 3", "132483a48f8a7069c02705aac376f3ce79e21e2612ae47460218d1b5c063be83"),
-            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 3", "276b536429bd187f4859619dd73da8875c8bc47a46ce0f8ac72d58ccf8190600")
+            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 1", "cd6fa139f530291d9c0b9e308deb3c5f9684fdbc6342cfbdcde247d5117b90ac")
         ];
 
     /// <summary>
