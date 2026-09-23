@@ -172,4 +172,54 @@ public class CarnivalFrontTests
             }
         }
     }
+
+    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+
+    /// <summary>
+    /// The hazards switch on the title (FD-10, §14): the line under PLAY BALL ends with it, on by default and read both
+    /// ways; the field postcard's footer names its button beside night.
+    /// </summary>
+    [Fact]
+    public void FD10_TheTitleLineAndTheFieldFooterCarryTheHazardsSwitch()
+    {
+        var rules = Catalog.Rules;
+        Assert.Equal("3 INNINGS  ·  NORMAL  ·  CPU SKILL  ·  HAZARDS ON", CarnivalFront.TitleSetup(3, "normal", rules, true));
+        Assert.Equal("3 INNINGS  ·  NORMAL  ·  CPU SKILL  ·  HAZARDS OFF", CarnivalFront.TitleSetup(3, "normal", rules, false));
+        Assert.StartsWith(CarnivalFront.TitleSetup(3, "normal", rules), CarnivalFront.TitleSetup(3, "normal", rules, false));
+        Assert.Contains("N night    R hazards", CarnivalFront.FieldFooter);
+    }
+
+    /// <summary>
+    /// FD-10-R1: the postcard says what hazards off keeps only where the switch removes something tonight, read from the
+    /// switch's own rule — never at Harbor, never with hazards on; at every catalog park with a hazard, by day and at night.
+    /// </summary>
+    [Fact]
+    public void FD10R1_ThePostcardSaysWhatOffKeepsOnlyWhereTheSwitchRemovesSomething()
+    {
+        var library = Catalog.Rules.Hazards;
+        foreach (var park in Catalog.Parks.Values)
+            foreach (var night in new[] { false, true })
+            {
+                Assert.Null(CarnivalFront.HazardsOffLine(park, night, hazards: true, library));
+                var removes = PlayedPark.Of(park, night, false, library).Hazards.Count
+                    < PlayedPark.Of(park, night, true, library).Hazards.Count;
+                Assert.Equal(removes ? CarnivalFront.HazardsOffCopy : null, CarnivalFront.HazardsOffLine(park, night, false, library));
+            }
+        Assert.Null(CarnivalFront.HazardsOffLine(Catalog.MustPark("harbor-diamond"), false, false, library));
+        Assert.Equal(CarnivalFront.HazardsOffCopy, CarnivalFront.HazardsOffLine(Catalog.MustPark("crystal-rink"), false, false, library));
+        Assert.Equal(CarnivalFront.HazardsOffCopy, CarnivalFront.HazardsOffLine(Catalog.MustPark("funfair-park"), true, false, library));
+    }
+
+    /// <summary>The book pair names the switch on both schemes, and the file book names it on the title and the field.</summary>
+    [Fact]
+    public void FD10_TheBookPairNamesTheHazardsSwitchOnBothSchemes()
+    {
+        var page = HowToPlay.Pages.Single(p => p.Id == "pause-practice");
+        Assert.Contains(page.Lines, l => l.Contains("Select    hazards on / off", StringComparison.Ordinal));
+        Assert.Contains(page.KeyLines!, l => l.Contains("R    hazards on / off", StringComparison.Ordinal));
+        var book = File.ReadAllText(Path.Combine(Catalog.Root.Shipped, "..", "docs", "how-to-play.md"));
+        Assert.Contains("| Hazards on / off (title, field) | Select | R | — |", book);
+        Assert.Contains("- **Select / R** — hazards ON / OFF", book);
+        Assert.Contains("- **Select / R** — hazards on / off.", book);
+    }
 }
