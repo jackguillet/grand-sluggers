@@ -56,6 +56,26 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 36 | With five sessions on one Mac the load average reached 80–270, so a single wall time means nothing. | PR #869 | Time the old and new builds side by side. |
 | 37 | A still-capture loop fronted its editor every 10 s and took focus from Jack's game window; a bare editor started by activating Unity by name idled for 14 h. | PR #866; protocol row `gui-editor-focus-fight` | One machine-wide GUI lock (`tools/unity_gui.py`); captures take it, front by PID, and ask Jack before `--player-open-ok`. |
 
+### Found by the fourth batch (September 22-23, 2026)
+
+| # | Finding | Where | Effect |
+| --- | --- | --- | --- |
+| 38 | With hazards off, every park factor on both roots moves by at most 0.09, inside the report's 0.15 noise. Rooftop never moves: its billboards pay the batting team a star, which a CPU-vs-CPU cohort cannot see. | PR #870 | A report, not a target (FD-13). |
+| 39 | A scanned seed row (the no-hazard-event premise) belongs to one base: each promotion that reseeds the games (#871, #886) broke some. The traced seed tests cost about 12x an untraced game and CI took 18 min against 13. | PR #870 | Consider a Release probe instead of Debug traced rows. |
+| 40 | The park-factors cohort now reports four conditions (day / night x hazards on / off), 1,200 games, JSON schema 2, about twice the run time. | PR #870 | `--hazards on|off` narrows it. |
+| 41 | `BattedBall.FenceClearFt` (the rob clearance) still reads `park.FenceHeightFt`, not the top of the span the ball crosses. | PR #878 | Before any park names points with other heights, or with the robbable-span child. |
+| 42 | Some readers still use the three posts, not `FenceAt`: `ParkDiamond.GrassZ1`, the centre-field check in `TrackFollowsTheFenceArc`, `HarborKit`'s scoreboard, town and ads, `HarborPostcard`, `WorldView`. | PR #878 | They follow `FenceAt` before any park names points. |
+| 43 | The lip does not migrate with the fence (#728 scaled it on the basepath, the fence by 0.70), so a `fenceFrac` legal on the shipped root can be refused on the trial (at Harbor centre field 0.39 shipped, 0.49 trial). | PR #878 | Author fence points against the trial's lip. |
+| 44 | Two wall materials cannot be tested from a fixture: the wall library is closed and named, so a second row is content (F9-a's glass boards). F2-c proved the per-span read and the missing-row stop instead. | PR #878 | SF-12's two-row half comes with the first second material. |
+| 45 | The old half-degree slack in `HarborWall.IsOutfield` counted the first rail vertices past each pole as outfield, so the last 31-34 ft of rail before each pole (11-12 ft on the trial) was drawn at full fence height; in all, 159-190 ft of drawn rail per side stood above the flight's rail. | PR #875 | Fixed: the drawn top is read from the flight segment (protocol row `drawn-top-recomputes-the-flight`). |
+| 46 | None of the ten still shots framed a foul pole, so F2-b2's first captures differed only by character motion. | PRs #875, #884 | F7-b1 added `pole-left` / `pole-right`, posed from the park's own geometry. |
+| 47 | `boundary.backstopZFt` (-36) is read by no geometry: the drawn and the flight backstop take their radius from `foulOffsetFt`. | PR #885 | For #732 / F2-d. |
+| 48 | The side pavilions, tents and battlements at (+-118, 40) cross the kit's foul rail far up the lines, about 15% of each footprint on the field side. | PR #885 | F6-d. |
+| 49 | Every merge to `main` made every other open PR stale in the register, the spec and the seal files; three PRs rebased three or four times in one evening. | #870, #875, #885 | Merge one PR at a time right after its CI; ask the other session to hold merges touching the same files. `scratchpad/merge_register.py`-style three-way merges of the register are safe (byte-stable). |
+| 50 | A stacked PR merged after its base shows its base's merge commit as "not an ancestor", though its tree equals what CI tested. | PRs #867, #869 | Compare trees, not ancestry. |
+| 51 | A PR was merged before `portable` finished on its final head (#870); the run later passed, as did `main`'s. | PR #870 | Wait for the run on the final head. |
+| 52 | Capturing while Jack is at the keyboard pulls focus from whatever he is doing, not only from the game window. | captures under #866 | Warn him first; captures take about 20-30 s per park and light. |
+
 ## 2. Rails every child carries
 
 - **Parity first (FR-06).** A rail child changes no behavior. It proves that with seed 7, S-29 and the Harbor cohorts unchanged, and with seals that move by hash only.
@@ -143,8 +163,8 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | --- | --- | --- | --- |
 | F2-a #826 ✅ | A park-neutral boundary type. The foul wrap, flare, rail height and backstop move from `HarborWall` literals to data at today's values; `FieldBounds` and the validator stop naming Harbor; the cache key carries every input. SF-08. #732's numbers move but do not change. | FD-07, FR-05 | Nothing |
 | F2-b #845 ✅ | The drawn wall stops mirroring right field onto left; `HarborWallTests` covers both sides of all six parks. SF-05. | FD-06, D15 | §5 Q5 answered: the sim's rail (FD-06-R2); the ramp is F2-b2's |
-| F2-b2 | The drawn rail stays hip-high to the pole, as the flight's does; the ramp past `HarborWall.RampStartZ` goes and the wall steps up at the pole. `SF-05` claims the whole rail on both roots. After F6-a (it draws the loop at every park). | FD-06-R2, D15 | **A look at Harbor's poles** (at review) |
-| F2-c | The polyline fence: optional `fence.points` in FD-12 units, a height per point, a wall material per span; `FenceAt` reads it; the clip polygon keeps the vertices; the track, the poles and the drawn wall follow. The three-post circle is the default. SF-06, SF-07, SF-12. | FD-06, FD-12, FD-06-R1 | §5 Q4 answered (one distance per bearing). After F3-c, whose segment-material function it extends |
+| F2-b2 #873 ✅ | The drawn rail stays hip-high to the pole, as the flight's does; the ramp past `HarborWall.RampStartZ` goes and the wall steps up at the pole. `SF-05` claims the whole rail on both roots. After F6-a (it draws the loop at every park). | FD-06-R2, D15 | **A look at Harbor's poles** (at review) |
+| F2-c #874 ✅ | The polyline fence: optional `fence.points` in FD-12 units, a height per point, a wall material per span; `FenceAt` reads it; the clip polygon keeps the vertices; the track, the poles and the drawn wall follow. The three-post circle is the default. SF-06, SF-07, SF-12. | FD-06, FD-12, FD-06-R1 | §5 Q4 answered (one distance per bearing). After F3-c, whose segment-material function it extends |
 | F2-d | Optional per-park foul parameters and the three outfield starts; the default depth stays the #730 fraction rule. `Diamond.Positions` is process-wide today, so the starts need a match-scoped source. SF-09. | FD-07 | Nothing; values come with a park |
 
 ### F3 — Environment table (Gameplay)
@@ -165,7 +185,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | F4-b | Status volume, live: a per-body touch test in the tick, a duration, a typed event; the play-wide flag and the park's `drops.frozen` roll go. `ParkSlowRowsTests` is re-authored to the decision. SF-20, SF-22. **Behavior change**: re-report S-29 and park factors. | FD-08-R1, FD-08-R2, FR-07 | §5 Q7 answered: 3 s; 0.45 unchanged. After F4-e |
 | F4-g | The CPU route costs a volume and goes around a body; no foresight of a draw. SF-26. | FD-14 | Nothing |
 | F4-d | Night blocks: Ember's reach and Funfair's chompers move into `night` at parity; **Crystal's contact window is dropped on both roots** (FD-11-R2: night keeps the stadium lights and changes only the outside view and the hazards), so night Crystal changes: re-report park factors. A night block may name hazards and look fields only. SF-25. | FD-11, FD-11-R1, FD-11-R2 | §5 Q9 answered: Crystal's trial night block drops the contact window. After F4-h (both touch `ParkHazards`) |
-| F4-h #858 | Hazards off in the sim and the CLI: the four hazard patterns removed; wall traits and decorations kept (FD-10-R1, Jack "4. a"). SF-24. | FD-10, FD-10-R1 | Nothing |
+| F4-h #858 ✅ | Hazards off in the sim and the CLI: the four hazard patterns removed; wall traits and decorations kept (FD-10-R1, Jack "4. a"). SF-24. | FD-10, FD-10-R1 | Nothing |
 | F4-i | Presentation: the title option, the book pair, `HowToPlay`. | FD-10 | Placement on the title (at review) |
 | F4-c | Ball redirect, live: the ball leaves at the entry and re-enters at the exit; the exit is a seeded draw and a typed event. SF-21, SF-27. With the second park. | FD-08, FD-08-R1, FD-09-R2 | Exit speed and heading as a trial; the chomper joins it as a ball redirect (§5 Q8 answered) |
 | F4-f | Solid body and timed mover. SF-28. With the park that needs them. | FD-09 | Nothing (§5 Q8 answered: the chomper goes to F4-c) |
@@ -180,6 +200,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
+| F6-a2 #881 ✅ | The old backstop pieces, ledges and dugouts in the five parks' dress go; two source rows keep any dress piece out of the kit's backstop and the dugout span. Asked for by Jack. | FD-16 | **Jack passed the look** |
 | F6-a #859 ✅ | Every park draws the one diamond from the geometry owner: bags, chalk, boxes, mound, dirt, the foul rail and backstop. The `ParkView` fallback diamond retires. Harbor does not change. `StarMeter` reads the geometry owner. | FD-16, FR-13 | A look at five parks: **passed by Jack**, September 22, 2026 |
 | F6-b | Kit slots in `data/art/parks.json` with a validator; `cli art` lists each park's empty slots. Harbor fills them with no visual change. | FD-16 | Nothing |
 | F6-c | Light, sky, fog, ground and wall colors as data chosen by the park, not by an id `if` chain. Same looks. | FD-16, FR-04 | Nothing |
@@ -190,6 +211,7 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
 | F7-a #829 ✅ | `StillRequest` gains `park` and `night`; `tools/still-gate.sh` takes both. | FD-17, FR-14 | Nothing |
+| F7-b1 #882 ✅ | Two named still shots, `pole-left` and `pole-right`, posed from the park's geometry (`StillShots.Pole`; numbers in `data/feel/shots.json` `parkShots`). | FD-17 | Nothing |
 | F7-b | A park lane in `dcc-stages.json` and `dual-stills.json` and their validators; named park shots; park rows and a greybox-sitting checklist in `screenshot-gate.md`. `harbor_kit.py` constants pinned by test or read from data. | FD-17 | Nothing |
 
 ### F8 — Legibility (Presentation + Gameplay setup)
@@ -265,4 +287,10 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 | F4-e placement validator; the eight status volumes moved off the base paths (behavior change at Crystal and Ember) | #862 | #867 | `a10a02dd` | `7a1d4c16`: 2021 / 2021, 811 / 811; seed 7 identical; runs × Harbor day / night shipped Crystal 1.23 / 1.34 → 1.21 / 1.25, Ember 1.18 / 1.21 → 1.17 / 1.21; S-29 shipped 1.92 / 1.90 → 1.86 / 1.90; not tuned | none |
 | F3-c the ball and the loose-ball models read the ground zone under them | #856 | #869 | `a801d9f9` | `e418516a`: 2022 / 2022, 820 / 820; seed 7 and park factors identical on both roots; bit-identical paths and loose-ball ticks against the pre-move code; seals hash-only | none |
 | One machine-wide GUI Unity lock (found when two sessions fought over Unity) | — | #866 | `a13925a3` | tool tests 58 / 58; first live front / quit by PID on the F6-a stills | none |
+| F4-h hazards off as a match option in the sim and the CLI; park factors for both states | #858 | #870 | `3cac6e09` | `48997b42`: hazards-on seed 7 and park factors identical to main at every base; `portable` green on the final head and on `main` after the merge (it was merged before the run finished) | none |
+| F2-c the polyline fence at parity (no park names one) | #874 | #878 | `4b47ad4e` | `bf7ef154`: 2058 / 2058, 842 / 842; seed 7 and park factors byte-identical on both roots; fresh identities unmoved | none |
+| Jack's answers: night keeps the lights (FD-11-R2), 0.45 kept, hazards-off scope (FD-10-R1), the placement disc (FD-19-R2) | #814 | #879 | `0f93da5a` | docs only | none |
+| F7-b1 named still shots for both foul poles | #882 | #884 | `b64bf799` | `278a83d8`: 2079 / 2079; every park's pole in frame on both roots | none |
+| F6-a2 the old backstop pieces and dugouts go at the five parks | #881 | #885 | `b72fd0b0` | `2ed155ed`: source rows name exactly the 21 + 16 retired pieces on the old source; unity-compile OK; before / after stills of five parks | **Jack passed the look** ("merge them") |
+| F2-b2 the drawn rail stays hip-high to the foul pole | #873 | #875 | `12345a76` | `f83aead9`: 2069 / 2069, 859 / 859 before the last rebases; seed 7 identical; seals hash-only; pole stills at six parks, day and night | **Jack passed the look** ("merge them") |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
