@@ -4,16 +4,6 @@
   // GitHub sitting children stay; they are not the memory.
   "entries": [
     {
-      "id": "contact-effect-blanks-live-hud",
-      "signature": "HUD disappears after contact and returns late, especially through hit-freeze, smash or a star effect.",
-      "stage": "sitting",
-      "cause": "BroadcastHud.MutePlay tied every play overlay to spectacle, smash and freeze timers; HudView.Draw returned before drawing any match information.",
-      "fix": "BroadcastHud.Mode follows the plate/live phase with a compact runner diamond and outs during play. Effect clocks do not control HUD visibility. Only explicit capture/debug mute hides play overlays.",
-      "promoted": "BroadcastHudTests.ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay",
-      "issue": "#981",
-      "pr": ""
-    },
-    {
       "id": "brim-in-plate-lens",
       "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
       "stage": "still-gate",
@@ -552,6 +542,16 @@
       "fix": "Carry the match setting in BroadcastHud.Scorebug and use it for both team meters and unavailable feedback. Enabled matches retain empty meters, independent of captain, half or seat count.",
       "promoted": "BroadcastHudTests.StarMetersFollowTheMatchSettingEvenWithEmptyPools",
       "issue": "#968",
+      "pr": ""
+    },
+    {
+      "id": "contact-effect-blanks-live-hud",
+      "signature": "HUD disappears after contact and returns late, especially through hit-freeze, smash or a star effect.",
+      "stage": "sitting",
+      "cause": "BroadcastHud.MutePlay tied every play overlay to spectacle, smash and freeze timers; HudView.Draw returned before drawing any match information.",
+      "fix": "BroadcastHud.Mode follows the plate/live phase with a compact runner diamond and outs during play. Effect clocks do not control HUD visibility. Only explicit capture/debug mute hides play overlays.",
+      "promoted": "BroadcastHudTests.ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay",
+      "issue": "#981",
       "pr": ""
     }
   ]
