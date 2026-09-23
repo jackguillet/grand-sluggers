@@ -80,9 +80,9 @@ namespace GrandSluggers.UnityClient
 
         enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         Phase _phase = Phase.Title;
-        /// <summary>The SET swap pick while open (spec §4.7, #582); null otherwise.</summary>
-        PitcherSwapPick _swapPick;
-        float _swapArmed, _swapHold;
+        /// <summary>The SET defense arrangement window while open; null otherwise.</summary>
+        DefenseSetupPick _swapPick;
+        MenuNav.Gate _swapX, _swapY;
         int _itemPick;
         Character _itemTarget;
         bool _itemThrown;
@@ -429,6 +429,11 @@ namespace GrandSluggers.UnityClient
             if (_match.Paused)
             {
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, OffersStickReset, DataProfile.Label);
+                return;
+            }
+            if (_phase == Phase.Set && _swapPick != null)
+            {
+                TeamSheet.DrawPitcherPick(_match, _swapPick, PitchPad.Index);
                 return;
             }
             if (!mutePlay) DrawStickTells();

@@ -23,6 +23,7 @@ public static class BookChapter
             ["getting-started-modes"] = "rio",
             ["pitch-swing"] = "rio",
             ["the-box"] = "brondo",
+            ["arrange-defense"] = "vale",
             ["running"] = "konga",
             ["steal-race"] = "konga",
             ["fielding"] = "ashlord",

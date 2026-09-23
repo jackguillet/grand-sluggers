@@ -228,8 +228,8 @@
       "signature": "thin yellow line shows where the throw is going; gold LineRenderer from release to the bag; throw-trail-good / throw-trail-bad destination laser",
       "stage": "sitting",
       "cause": "SpecialFx.cs throw-trail-good / throw-trail-bad: a gold LineRenderer from release to the bag for the whole throw. Spec §15: the camera follows the ball; a predicted throw laser is not a Super Sluggers tell.",
-      "fix": "ThrowTrail.DestinationLine is false for every catalog kind=throw slot. Chemistry tints the ball trail (ThrowTrail.BallRgb / BallView.SetTrailColor after Place). Keep the VFX slots; do not draw a line through the dirt.",
-      "promoted": "ThrowTrailTests.CatalogThrowVfxNeverDrawADestinationLine",
+      "fix": "SpecialFx builds no LineRenderer or TrailRenderer and never loads throw-slot prefabs. Remove ability beams too: Laser and lick-catch previously bypassed ThrowTrail.DestinationLine and connected fielders to the ball. Chemistry tints only the moving ball trail (ThrowTrail.BallRgb / BallView.SetTrailColor after Place). Keep the catalog slots as metadata.",
+      "promoted": "ThrowTrailTests.SpecialFxNeverBuildsBallToFielderOrDestinationLines",
       "issue": "#689",
       "pr": "#699"
     },

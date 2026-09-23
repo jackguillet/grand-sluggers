@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GrandSluggers.Sim;
 using Motion = GrandSluggers.Sim.Motion;
 using UnityEngine;
@@ -270,7 +271,20 @@ namespace GrandSluggers.UnityClient
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
             var pitchFamily = PitchFamily.Fastball;
+            var wasPicking = _swapPick != null;
             if (HumanPitches && !_match.PitchSetup.Committed) TickSwapPick(dt, mound);
+            if (wasPicking || _swapPick != null)
+            {
+                // The window owns this frame, including its open/close edge. No pickoff,
+                // rubber walk, steal or banked charge can leak through a menu action.
+                TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
+                    ref _pitchButton, ref _pitchCharge, ref _pitchPast, accepting: false);
+                _pitchSelect = _pitchSelect with { Locked = false };
+                if (HumanBats) TickPlate(dt, accepting: false, commits: false);
+                _charge = _chargePast = 0;
+                _buntSide = BuntSide.None;
+                return;
+            }
             // A legal base throw is read before South can begin a pitch charge.
             if (HumanPitches && ReadSetupThrow(mound, _t >= (float)_feel.PitcherReadySeconds && _swapPick == null)) return;
             // The arm edge is read from the button as it stood *before* this tick's step (#813).
@@ -409,8 +423,8 @@ namespace GrandSluggers.UnityClient
             if (set && _match.PitchSetup.Committed) return BroadcastHud.PitchCommitted;
             return BroadcastHud.PitcherExtra(
                 _starPitch && HumanPitches,
-                set ? _swapPick?.Tell : null,
-                set && _swapPick == null && PitcherSwapPick.CanOpen(_match));
+                null,
+                set && _swapPick == null && _match.CanArrangeDefense);
         }
 
         /// <summary>
@@ -421,38 +435,50 @@ namespace GrandSluggers.UnityClient
         string ShownPitchType => _pitch != null ? _pitch.Type : PitchFamily.Fastball;
 
         /// <summary>
-        /// Select opens the swap pick, the stick or d-pad steps it, Select confirms, East closes
-        /// (spec §4.7, #582). While it is open the stick does not walk and South does not throw.
+        /// Select opens the defense window. South picks two positions; Select is the pitcher shortcut.
+        /// East cancels a pending pick or closes. All baseball input waits for the window.
         /// </summary>
         void TickSwapPick(float dt, Controls.Pad mound)
         {
             if (_swapPick == null)
             {
-                if (mound.SwapPitcher && PitcherSwapPick.CanOpen(_match))
+                if (mound.SwapPitcher && _match.CanArrangeDefense)
                 {
-                    _swapPick = new PitcherSwapPick(_match);
-                    _swapArmed = MenuNav.Arm(mound.MenuAxisX);
-                    _swapHold = 0f;
+                    _swapPick = new DefenseSetupPick(_match);
+                    TeamSheet.BeginPitcherPick();
+                    _swapX.Catch(mound.MenuAxisX); _swapY.Catch(mound.MenuAxisY);
                 }
                 return;
             }
-            if (mound.SwapPitcher)
+            var pointer = Controls.SeatUsesKeyboard(mound.Index)
+                ? TeamSheet.PitcherPointer(_swapPick) : TeamSheet.PitcherAction.None;
+            if (mound.EastDown || pointer == TeamSheet.PitcherAction.Cancel)
             {
-                if (!TutorialOn || !_coach.Tutorial.SwapPitcher(_swapPick.Current.Who.Id))
-                    _swapPick.Confirm(_match);
-                _swapPick = null;
-                // A new arm is a new repertoire, and this path does not re-enter BeginSet: the
-                // selection resets to the fastball here too (PH-02-R5).
-                _pitchSelect = PitchSelectionState.Reset;
+                if (_swapPick.PickedPosition != null) _swapPick.CancelPick();
+                else _swapPick = null;
                 return;
             }
-            if (mound.EastDown)
+            if (pointer == TeamSheet.PitcherAction.Done) { _swapPick = null; return; }
+            var dx = _swapX.Tick(mound.MenuAxisX, mound.MenuTapX, dt);
+            var dy = _swapY.Tick(mound.MenuAxisY, mound.MenuTapY, dt);
+            if (dx != 0 || dy != 0) _swapPick.Move(dx, dy);
+            if (mound.SwapPitcher || pointer == TeamSheet.PitcherAction.Confirm)
+                _swapPick.QuickPitcher(_match, WindowPitcherSwap);
+            else if (pointer == TeamSheet.PitcherAction.Pick || (mound.SouthDown && !Controls.PointerDown))
+                _swapPick.PickOrSwap(_match, WindowPitcherSwap);
+        }
+
+        bool WindowPitcherSwap(Character who)
+        {
+            bool changed;
+            if (TutorialOn && _coach.Tutorial.SwapPitcher(who.Id)) changed = _match.Pitcher.Id == who.Id;
+            else
             {
-                _swapPick = null;
-                return;
+                var candidate = _swapPick.Candidates.First(c => c.Who.Id == who.Id);
+                changed = _match.SwapDefensePositions("P", candidate.Pos);
             }
-            var step = MenuNav.Step(mound.MenuAxisX, mound.MenuTapX, dt, ref _swapArmed, ref _swapHold);
-            if (step != 0) _swapPick.Step(step);
+            if (changed) _pitchSelect = PitchSelectionState.Reset;
+            return changed;
         }
 
         /// <summary>The pitch as it stands in SET: the selected family, the rubber, the charge so far. Not committed.</summary>
