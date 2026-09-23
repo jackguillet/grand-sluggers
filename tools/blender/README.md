@@ -49,7 +49,7 @@ Look before Unity: the clay sheets are the author's own check, and `tools/dcc-st
 
 ## Harbor kit
 
-`harbor_kit.py` authors the sunken dugout, wall panel, crowd, home plate, and bag. Missing file keeps HarborKit primitives. Walk blocking → fill → export → still (Harbor skips motion). One-shotting a kit mesh is a patch.
+`harbor_kit.py` authors the sunken dugout, wall panel, crowd, home plate, and bag. Missing file keeps HarborKit primitives. The diamond comes from `data/rules/infield.json` (bags, mound) and the fence from `data/parks/harbor-diamond.json`, so a geometry change is a rebake, not a code edit (#908). The clay sheet ends with an overhead of that diamond at a fixed frame. Walk blocking → fill → export → still (Harbor skips motion). One-shotting a kit mesh is a patch.
 
 ```bash
 $B -b --python tools/blender/harbor_kit.py -- --out unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx --clay scratchpad/takes

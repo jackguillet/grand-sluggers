@@ -144,4 +144,33 @@ public class ParkDiamondTests
         Assert.Equal(4f, ParkDiamond.BagSize);
         Assert.True(ParkDiamond.BagIsABag());
     }
+
+    /// <summary>
+    /// #908: the kit bakes the diamond the sim plays. The bags come from <c>data/rules/infield.json</c>
+    /// and the wall from the park file, so the next geometry change rebakes with no code edit. A
+    /// literal bag or fence in the script is the 90-ft kit that outlived the 80-ft promotion.
+    /// </summary>
+    [Fact]
+    public void KitReadsTheDiamondAndFenceFromData()
+    {
+        var repo = Directory.GetParent(_content.Root.Shipped)?.FullName
+            ?? throw new InvalidOperationException("no repo root");
+        var py = File.ReadAllText(Path.Combine(repo, "tools", "blender", "harbor_kit.py"));
+        Assert.Contains("\"data\" / \"rules\" / \"infield.json\"", py);
+        Assert.Contains("INFIELD[\"cornerFt\"]", py);
+        Assert.Contains("INFIELD[\"secondFt\"]", py);
+        Assert.Contains("first = (CORNER, CORNER)", py);
+        Assert.Contains("second = (0.0, SECOND)", py);
+        Assert.Contains("third = (-CORNER, CORNER)", py);
+        Assert.Contains("PARK[\"leftFenceFt\"]", py);
+        Assert.Contains("PARK[\"centerFenceFt\"]", py);
+        Assert.Contains("PARK[\"rightFenceFt\"]", py);
+        Assert.Contains("PARK[\"fenceHeightFt\"]", py);
+        Assert.Contains($"PARK_ID = \"{HarborPostcard.ParkId}\"", py);
+        foreach (var literal in new[] { "63.64", "127.28", "56.57", "113.14", "= 330.0", "= 400.0" })
+            Assert.DoesNotContain(literal, py);
+        // The data the kit reads is the diamond the sim plays.
+        Assert.Equal(Diamond.First.X, Rules.Default.Infield.CornerFt);
+        Assert.Equal(Diamond.Second.Z, Rules.Default.Infield.SecondFt);
+    }
 }
