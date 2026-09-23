@@ -7,6 +7,8 @@
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
     "swapLockSec": 0.7,
+    // F4-g (FD-14): a route that goes around a status volume keeps this far off its disc. Not tuned.
+    "volumeClearFt": 2,
     // #633 (S-97): after a hand-off the body the ring left keeps its velocity for this long, then stops (the FIFA
     // "move assistance" idea, spec §8.9). The thrower at a release does not coast (§8.5).
     "handoffCoastSec": 0.2,
