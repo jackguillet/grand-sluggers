@@ -531,10 +531,11 @@ namespace GrandSluggers.UnityClient
             _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             ShowAimTell(HumanPitches ? _pitch : null);
             TickBaserunning(dt);
-            // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9).
+            // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9):
+            // the break it can see is the one drawn so far (batting.cpu.commitRead reads it, #892).
             if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
                 _swing = WithSquare(AtBatMotion.CommitCpuSwing(
-                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch))),
+                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch), _breakX)),
                     _pitchDur, _match.Rules));
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt, _match.Rules))
