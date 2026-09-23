@@ -92,7 +92,7 @@ public class PlayCameraTests
         Assert.Equal(PlayCamera.TagShot, PlayCamera.Shot(PlayCamera.Beat.Tag));
         foreach (PlayCamera.Beat beat in Enum.GetValues<PlayCamera.Beat>())
             Assert.True(shots.TryGet(PlayCamera.Shot(beat, seats: 1, pitchingSet: true), out _), beat.ToString());
-        Assert.Equal("bag", shots.Must(PlayCamera.ThrowShot).Look);
+        Assert.Equal("race", shots.Must(PlayCamera.ThrowShot).Look);
         Assert.Equal("bag", shots.Must(PlayCamera.TagShot).Look);
         Assert.Equal("body", shots.Must(PlayCamera.SmashShot).Look);
     }
@@ -130,7 +130,7 @@ public class PlayCameraTests
         Assert.Equal(PlayCamera.Beat.Tag, PlayCamera.LiveBeat(View(closePlay: true, closeBag: 4), feel));
         Assert.Equal(PlayCamera.Beat.Rundown, PlayCamera.LiveBeat(View(rundown: true), feel));
         Assert.Equal(PlayCamera.Beat.StealThrow, PlayCamera.LiveBeat(View(t: 0, hit: null, runnerPlay: true, playBag: 2) with { Hit = null }, feel));
-        Assert.Equal(2, PlayCamera.BeatBag(PlayCamera.Beat.StealThrow, View(runnerPlay: true, playBag: 2)));
+        Assert.Equal(0, PlayCamera.BeatBag(PlayCamera.Beat.StealThrow, View(runnerPlay: true, playBag: 2)));
         Assert.Equal(3, PlayCamera.BeatBag(PlayCamera.Beat.Tag, View(closePlay: true, closeBag: 3)));
         Assert.Equal(0, PlayCamera.BeatBag(PlayCamera.Beat.Fly, View(hit: fly)));
     }
@@ -145,11 +145,9 @@ public class PlayCameraTests
         var steal2 = PlayCamera.LiveFraming(shots, View(runnerPlay: true, playBag: 1) with { Hit = null }, feel)!.Value;
         var bag = Diamond.Bag(1);
         Assert.Equal(PlayCamera.ThrowShot, steal2.Shot);
-        Assert.Equal(bag.X, steal2.Look.X, 6);
-        Assert.Equal(bag.Z, steal2.Look.Z, 6);
-        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Target.Y, steal2.Look.Y, 6);
-        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Pos.Y, steal2.Pos.Y, 6);
-        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Fov, steal2.Fov);
+        var raceShot = new CameraShot(steal2.Shot, "race", steal2.Pos, steal2.Look, steal2.Fov, steal2.Blend);
+        Assert.True(PlayCamera.InFrame(PlayCamera.Project(raceShot, View().Ball)));
+        Assert.True(PlayCamera.InFrame(PlayCamera.Project(raceShot, new Vec3(bag.X, 0, bag.Z))));
 
         var home = PlayCamera.LiveFraming(shots, View(closePlay: true, closeBag: 4), feel)!.Value;
         Assert.Equal(PlayCamera.TagShot, home.Shot);
@@ -158,7 +156,7 @@ public class PlayCameraTests
 
         var steal = PlayCamera.LiveFraming(shots, View(runnerPlay: true, playBag: 2) with { Hit = null }, feel)!.Value;
         Assert.Equal(PlayCamera.ThrowShot, steal.Shot);
-        Assert.Equal(Diamond.Bag(2).Z, steal.Look.Z, 6);
+        Assert.True(PlayCamera.InFrame(PlayCamera.Project(new CameraShot(steal.Shot, "race", steal.Pos, steal.Look, steal.Fov, steal.Blend), PlayCamera.BagSubject(2))));
 
         var hop = PlayCamera.LiveFraming(shots, View(), feel)!.Value;
         Assert.Equal(PlayCamera.InPlay, hop.Shot);
@@ -231,7 +229,7 @@ public class PlayCameraTests
         // A steal's bag cam keeps the bag it opened on for the whole beat.
         var s = new PlayCamera.CameraHold();
         Assert.Equal((PlayCamera.Beat.StealThrow, 2), s.Step(PlayCamera.Beat.StealThrow, 2, 0, hold));
-        Assert.Equal((PlayCamera.Beat.StealThrow, 2), s.Step(PlayCamera.Beat.StealThrow, 3, 1.5, hold));
+        Assert.Equal((PlayCamera.Beat.StealThrow, 3), s.Step(PlayCamera.Beat.StealThrow, 3, 1.5, hold));
         // A new play (the clock starts over) takes its first target at once.
         Assert.Equal((PlayCamera.Beat.Set, 0), h.Step(PlayCamera.Beat.Set, 0, 0, hold));
         h.Reset();
@@ -280,7 +278,7 @@ public class PlayCameraTests
     }
 
     [Fact]
-    public void ACloseStealIsOneBagCamOnItsBagForTheWholePlay()
+    public void AStealUsesTheRaceShotThroughReturnsAndRundowns()
     {
         var content = ContentCatalog.Load();
         var scenario = new Scenario(content, seed: 2).Runner(1, 1);
@@ -303,7 +301,11 @@ public class PlayCameraTests
             play = live.Apply(LivePlayCommand.Tick(1.0 / 60.0, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu)).CompletedPlay;
         }
         Assert.NotNull(play);
-        Assert.Equal([(PlayCamera.Beat.StealThrow, 2)], targets);
+        Assert.All(targets, target =>
+        {
+            Assert.True(target.Item1 is PlayCamera.Beat.StealThrow or PlayCamera.Beat.Rundown);
+            Assert.Equal(0, target.Item2);
+        });
     }
 
     [Fact]

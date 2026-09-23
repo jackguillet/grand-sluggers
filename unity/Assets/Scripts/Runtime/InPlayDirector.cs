@@ -20,8 +20,12 @@ namespace GrandSluggers.UnityClient
 
     public sealed partial class MatchDirector
     {
+        int _liveBeganFrame = -1;
+
         internal void TickLive(float dt)
         {
+            // A pre-contact tick already consumed this frame before handing off to live play.
+            if (_liveBeganFrame == Time.frameCount) return;
             if (_phase == Phase.InPlay)
                 TickInPlay(dt);
             else if (_phase == Phase.StealThrow) TickStealThrow(dt);
@@ -320,7 +324,8 @@ namespace GrandSluggers.UnityClient
             var view = new PlayCamera.LiveView(
                 LiveTime, _pending, live.RunnerPlay, _closePlay, _closeBag,
                 live.InRundown, live.RunnerPlayBag, _smash,
-                new Vec3(_ball.x, _ball.y, _ball.z), new Vec3(batter.x, batter.y, batter.z));
+                new Vec3(_ball.x, _ball.y, _ball.z), new Vec3(batter.x, batter.y, batter.z),
+                live.RunnerPlay ? PlayCamera.RaceSubjects(_match) : null, (double)Screen.width / Screen.height);
             var framed = PlayCamera.LiveFraming(_content.Shots, view, _feel, _camHold);
             if (framed is { } f) _cam.Live(f);
         }
@@ -353,6 +358,7 @@ namespace GrandSluggers.UnityClient
         {
             if (pitch != null) _last = pitch;
             _phase = Phase.StealThrow;
+            _liveBeganFrame = Time.frameCount;
             _t = 0;
             _camHold.Reset();
             _pending = null;

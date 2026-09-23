@@ -26,6 +26,11 @@
     "surfaceLiftFt": 0.04,
     "opacity": 0.65
   },
+  "raceCamera": {
+    "margin": 0.10,
+    "bodyHeightFt": 12,
+    "bodyRadiusFt": 3
+  },
   "fieldTells": {
     "diveGetUpSec": 0.20,
     "braceSquash": 0.16
