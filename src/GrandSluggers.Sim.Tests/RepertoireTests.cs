@@ -20,11 +20,10 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public class RepertoireTests
 {
-    // Named explicitly rather than through the ambient root: these rows are the same under a trial
-    // overlay, and the assertion is about the shipped roster either way.
+    // Named explicitly rather than through the ambient root: the assertion is about the shipped
+    // roster, whatever overlay a process names.
     static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
     static string Repo => Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, ".."));
-    static string TrialDir => Path.GetFullPath(Path.Combine(Repo, "trials", "c80"));
 
     // ---- the library -------------------------------------------------------------------------
 
@@ -144,24 +143,6 @@ public class RepertoireTests
             Assert.Equal(accepted[id], character.Repertoire.Ordinary);
     }
 
-    /// <summary>
-    /// The c80 overlay is a field-for-field copy of the shipped role players with three field
-    /// abilities changed (#718). Without the repertoires its rows would not load at all; with the
-    /// wrong ones the trial would be comparing a different roster to the control.
-    /// </summary>
-    [Fact]
-    public void TheC80OverlayCarriesTheSameRepertoiresAsTheShippedRoster()
-    {
-        var trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped, TrialDir));
-        Assert.Contains("characters/role-players.json", trial.Root.Overrides);
-
-        Assert.Equal(
-            Shipped.Characters.Keys.OrderBy(id => id, StringComparer.Ordinal),
-            trial.Characters.Keys.OrderBy(id => id, StringComparer.Ordinal));
-        foreach (var (id, character) in Shipped.Characters)
-            Assert.Equal(character.Repertoire, trial.Characters[id].Repertoire);
-    }
-
     // ---- the validator -----------------------------------------------------------------------
 
     /// <summary>
@@ -219,10 +200,9 @@ public class RepertoireTests
     }
 
     [Fact]
-    public void TheShippedAndTrialRootsBothLoadWithEveryRepertoireAuthored()
+    public void TheShippedRootLoadsWithEveryRepertoireAuthored()
     {
         Assert.Empty(ContentDataValidator.Validate(Shipped.Root));
-        Assert.Empty(ContentDataValidator.Validate(new DataRoot(Shipped.Root.Shipped, TrialDir)));
         Assert.All(Shipped.Characters.Values, c =>
         {
             Assert.Equal(Repertoire.Slots, c.Repertoire.Ordinary.Count);
