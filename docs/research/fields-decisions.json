@@ -810,7 +810,14 @@
         "answer_quote": "C. we can add random party elements for the hazards"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F4-b",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/896",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/905",
+          "status": "open"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -999,6 +1006,12 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/847",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/851",
           "status": "merged"
+        },
+        {
+          "child": "F4-b",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/896",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/905",
+          "status": "open"
         }
       ],
       "validation_evidence": [],
@@ -2453,6 +2466,10 @@
     {
       "date": "2026-09-23",
       "event": "F4-d #895 opened as PR #902: the night block, one resolution (PlayedPark.Of), Funfair's chompers in its night block at parity, Crystal's night window dropped on both roots (FD-11-R2). Balance not measured (Jack: 'we don't need to perfectly balance right now. let's move faster')."
+    },
+    {
+      "date": "2026-09-23",
+      "event": "F4-b #896 opened as PR #905: a status volume slows the body that touches it for slowSec 3.0 s at frozenMul 0.45 (FD-08-R2; Jack's number, not yet played), a typed BodySlowed event, the play-wide flag and the park's drops.frozen roll retired (FD-08-R1). Balance not measured (Jack: 'we don't need to perfectly balance right now. let's move faster')."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
