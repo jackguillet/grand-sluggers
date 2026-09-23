@@ -51,6 +51,24 @@ public class BroadcastHudTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void StarMetersFollowTheMatchSettingEvenWithEmptyPools(bool stars)
+    {
+        var match = Match.Exhibition(_content, "rio", "rio", stars: stars);
+        foreach (var bottom in new[] { false, true })
+        {
+            if (bottom) match.SkipToHomeHalf();
+            Assert.Equal(stars, BroadcastHud.From(match).StarsEnabled);
+            // Rio's own Star Pitch spends the opening reserve without completing a plate appearance.
+            match.Play(Scenario.PitchAt(2.5, StrikeZoneGeometry.CenterY) with { Star = true }, Scenario.Take);
+            var bug = BroadcastHud.From(match);
+            Assert.Equal(0, bug.DefenseStars);
+            Assert.Equal(stars, bug.StarsEnabled);
+        }
+    }
+
+    [Theory]
     [InlineData(1280, 800)]
     [InlineData(1920, 1080)]
     public void PlayHudRectsStayInFrameWithMargin(int screenW, int screenH)
