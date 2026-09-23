@@ -307,26 +307,28 @@ public sealed class NightBlockTests
     /// <summary>
     /// Night games at Funfair and Ember before the move, by root: the park, the seed, the final line and the
     /// SHA-256 of <see cref="Log"/>. Funfair's rows include a game with a chomp in it on each root (shipped
-    /// seed 22, trial seed 16), so a mouth that moved, resized or
+    /// seed 2, trial seed 16), so a mouth that moved, resized or
     /// stopped biting fails here. A child that changes play at either park re-records these from the build
     /// before it and says why; F4-d changes neither. F4-b (#896) re-recorded Ember's four rows: its lava pits and
     /// breath slow the body that touches them for 3 s instead of every chaser, and the park's drop roll is gone.
     /// F4-g re-recorded the trial's Ember seed 2: a CPU glove now goes around a volume when that costs less than
     /// the slow (FD-14). P2-e (#891, no plate chemistry) changed play everywhere, so all eight games are re-recorded
     /// from its build; the shipped chomp moved from seed 7, which no longer has one, to seed 22, the first that does.
+    /// P3-b (only a pitch costs the arm, PH-08-R3) changed when pitchers tire, so all eight are re-recorded again;
+    /// the shipped chomp moved from seed 22, which no longer has one, to seed 2, the first that does.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before => TestRoot.Pick<IReadOnlyList<(string, int, string, string)>>(
         [
-            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 0", "f9cf89d3c1d2d3bef0158dc3989a99b4e10e9962b5bcaf671c2c7f56098d669b"),
-            ("funfair-park", 22, "Final  Ember Court 10  Spark All-Stars 3", "85415bff9cd849e699a9f61bd70644f2de8cc88972314efcecbf620b4025655e"),
-            ("ember-keep", 1, "Final  Ember Court 7  Spark All-Stars 1", "4dcde1e7905bf19e3d058c13f98083458febaf4ea6e6e9c3c88bb96e6c8ae35b"),
-            ("ember-keep", 2, "Final  Ember Court 4  Spark All-Stars 1", "6fff8c57e36a42527825b1f12c6758a0d862b51136c45aff2b3c487b2bcbd874")
+            ("funfair-park", 1, "Final  Ember Court 8  Spark All-Stars 2", "0fa5dc2e27a35329dd665f1fe1428afdf33cd9126e8d2cabc183a294035664a4"),
+            ("funfair-park", 2, "Final  Ember Court 4  Spark All-Stars 0", "e71fcffe11de90bf1ca57770c2f4edc4b4de0e36a2e5f7556312073f7dd57bc4"),
+            ("ember-keep", 1, "Final  Ember Court 3  Spark All-Stars 1", "b9eee4feeb57e075f93c9c5c55195e507003dd1d66b960cc73c5e6e8add7ed27"),
+            ("ember-keep", 2, "Final  Ember Court 3  Spark All-Stars 0", "7122398bef7a500431fef950f4497e6490a97156c4dc29b853222d204e9a0d33")
         ],
         [
-            ("funfair-park", 1, "Final  Ember Court 4  Spark All-Stars 3", "8944602aff2a7ce0891ad22fc09b3aef608b33bd676b01880c7f09d5c273ca5f"),
-            ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "14fec2cfc81773e724da5ef4fdfd0daa8b3ec7803b0bc7014aeda71046b5dae1"),
-            ("ember-keep", 1, "Final  Ember Court 11  Spark All-Stars 0", "402f20cec446fee15b8d471b888f67306eb4b4c58b3ae48226745b0c7958ed5f"),
-            ("ember-keep", 2, "Final  Ember Court 7  Spark All-Stars 5", "5e9d55665621b54a37e5f40b4fd55d406d3081c4ca6e89f3a27f4a4f2d9a88e8")
+            ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 1", "6feacdf134ce0ffcc5bed01d9bbe76b1afd0f7a0d990656ed35efc8b48d84181"),
+            ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "0907d82f3d88d899a0a5a9d147f33ed748860e2037d7df098a8142e394a1a473"),
+            ("ember-keep", 1, "Final  Ember Court 4  Spark All-Stars 0", "0a8a7fbf5212662fc6827166a7236bc447e97af8251b359c0477d4436f882abe"),
+            ("ember-keep", 2, "Final  Ember Court 7  Spark All-Stars 2", "abae84e076e25c4c08320733f23116267a7197bb1a772daa03e59ab0ffb49942")
         ]);
 
     /// <summary>

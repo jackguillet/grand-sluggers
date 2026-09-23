@@ -112,8 +112,6 @@
     "pitchCost": 4,
     "chargeCost": 3,
     "breakCost": 1,
-    "homerCost": 6,
-    "runCost": 2,
     "tiredBelow": 25,
     "tiredMph": 6,
     "tiredBreakMul": 0.6,
