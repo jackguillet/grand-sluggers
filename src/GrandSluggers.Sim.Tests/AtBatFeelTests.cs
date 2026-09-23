@@ -123,8 +123,8 @@ public class AtBatFeelTests
         Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - lead, flight), 8);
         Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - lead - 0.05, flight), 8);
         Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - lead + 0.05, flight), 8);
-        // Pressing when the ball is already on the plate is past the slap's half window.
-        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > Rules.Default.Batting.Window.SlapFrames / 2);
+        // Pressing when the ball is already on the plate is past the half window.
+        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > Rules.Default.Batting.Window.Frames / 2);
         Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight, flight, bunt: true), 8);
         foreach (var error in new[] { -8.0, 0, 5.0 })
             Assert.Equal(error, AtBatMotion.SwingErrorFrames(AtBatMotion.SwingStart(flight, error), flight), 8);
@@ -269,7 +269,7 @@ public class AtBatFeelTests
     }
 
     [Fact]
-    public void ChargeMaxIsStrongerThanOverchargeAndSlapContactsMore()
+    public void ChargeMaxIsStrongerThanOvercharge()
     {
         var feel = _content.Feel;
         Assert.True(feel.ChargeMaxHoldSeconds > 0);
@@ -285,31 +285,19 @@ public class AtBatFeelTests
         Assert.Equal("", ChargeFeel.NiceCopy(true, 1, 0.9, feel.ChargeMaxHoldSeconds));
 
         var park = _content.Parks["harbor-diamond"];
-        // "Slap contacts more" is a timing claim, and it holds on the switch's off path only: #860
-        // shipped the shared window (PH-10-R1, PH-11-R1; Jack, September 22, 2026: "trial was
-        // good."), where a charge costs the barrel instead (S-125). So the resolver here runs on the
-        // split-window table built in the test, never read from shipped data.
-        var off = SwitchOffPaths.SplitWindowRules;
-        var resolver = new AtBatResolver(_content.Chemistry, off, _content.StarSkills);
+        // A charge costs the barrel, never the timing window (PH-10-R1, PH-11-R1, S-125): the old
+        // "slap contacts more" window-edge claim went with the split window (#860, #887).
+        var resolver = new AtBatResolver(_content.Chemistry, _content.Rules, _content.StarSkills);
         var vale = _content.Must("vale");
         var rio = _content.Must("rio");
         var bat = _content.Bats["harbor-lumber"];
-        var slapHits = 0;
-        var chargeHits = 0;
         var maxCarry = 0.0;
         var lateCarry = 0.0;
-        // A frame inside the slap window and outside the charge window (spec §5.3 off path: 9 vs 7 frames).
-        var contact = rio.Stats.Bat;
-        var edge = (AtBatResolver.ContactWindowFrames(contact, true, null, park, false, off, _content.StarSkills)
-                    + AtBatResolver.ContactWindowFrames(contact, false, null, park, false, off, _content.StarSkills)) / 4;
         for (var seed = 0; seed < 36; seed++)
         {
-            if (resolver.Resolve(Input(vale, rio, bat, 0, edge), park, new Random(seed)).Quality != ContactQuality.Miss) slapHits++;
-            if (resolver.Resolve(Input(vale, rio, bat, 1, edge), park, new Random(seed)).Quality != ContactQuality.Miss) chargeHits++;
             maxCarry += resolver.Resolve(Input(vale, rio, bat, 1, 0), park, new Random(seed)).CarryFt;
             lateCarry += resolver.Resolve(Input(vale, rio, bat, late, 0), park, new Random(seed)).CarryFt;
         }
-        Assert.True(slapHits > chargeHits, $"slap contact {slapHits} vs charge {chargeHits}");
         Assert.True(maxCarry > lateCarry, $"MAX carry {maxCarry} vs overcharge {lateCarry}");
         var maxMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, false), 7);
         var overMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", late, false), 7);

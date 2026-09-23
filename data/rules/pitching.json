@@ -123,13 +123,8 @@
     "cpuSwapLead": 3
   },
   "cpu": {
-    "humanInputs": true,
     "even": {
       "location": "edge",
-      "normal": 45,
-      "charge": 20,
-      "changeup": 15,
-      "break": 20,
       "starChance": 0.05,
       "families": {
         "fastball": 40,
@@ -143,10 +138,6 @@
     },
     "ahead": {
       "location": "waste",
-      "normal": 20,
-      "charge": 15,
-      "changeup": 35,
-      "break": 30,
       "starChance": 0.15,
       "families": {
         "fastball": 20,
@@ -160,10 +151,6 @@
     },
     "behind": {
       "location": "middleIn",
-      "normal": 60,
-      "charge": 30,
-      "changeup": 5,
-      "break": 5,
       "starChance": 0,
       "families": {
         "fastball": 44,
@@ -177,10 +164,6 @@
     },
     "runnerTwoOuts": {
       "location": "middle",
-      "normal": 50,
-      "charge": 40,
-      "changeup": 0,
-      "break": 10,
       "starChance": 0,
       "families": {
         "fastball": 38,
@@ -196,15 +179,12 @@
       "edgeInsetFt": 0.2,
       "edgeAwayChance": 0.7,
       "wasteOutFt": 0.3,
-      "middleInFt": 0.35,
-      "middleYSpreadFt": 0.5
+      "middleInFt": 0.35
     },
     "scatterFtPerPitchStat": 0.10,
     "tiredScatterMul": 1.6,
     "niceChance": 0.3,
     "tapMin": 0.1,
-    "tapSpan": 0.35,
-    "rubberWalkChance": 0.35,
-    "rubberWalkMax": 0.4
+    "tapSpan": 0.35
   }
 }

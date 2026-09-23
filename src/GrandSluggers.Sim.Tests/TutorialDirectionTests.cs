@@ -94,7 +94,6 @@ public sealed class TutorialDirectionTests
         // swing ignores the stick at contact, so a lesson that taught the stick has nothing to teach.
         // T-B06 / T-B06-F, their setups, their objectives and mechanic batting.06 are gone, and no
         // control row claims the stick at contact steers an ordinary swing.
-        Assert.True(_content.Rules.Batting.GeometryOnly);
         var catalog = TutorialCatalog.Load(_content);
         Assert.Empty(catalog.Validate(_content));
         Assert.DoesNotContain(catalog.Lessons, l => l.Id is "T-B06" or "T-B06-F" || l.Objective is "grounder-fair" or "fly-fair");

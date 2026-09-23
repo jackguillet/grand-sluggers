@@ -26,9 +26,8 @@ namespace GrandSluggers.UnityClient
         PitchSelectionState _pitchSelect;
 
         /// <summary>
-        /// The CPU's delivery, decided at the top of SET under <c>pitching.cpu.humanInputs</c>
-        /// (§4.8, PH-18-R1) so the body has SET to walk to the rubber it solved for. Null on the
-        /// shipped root, where the pitch is still built on the release frame exactly as before.
+        /// The CPU's delivery, decided at the top of SET (§4.8, PH-18-R1) so the body has SET to
+        /// walk to the rubber it solved for. Null in a tutorial, whose pitch is scripted.
         /// </summary>
         PitchCommand _cpuPitch;
 
@@ -199,13 +198,10 @@ namespace GrandSluggers.UnityClient
             if (!HumanBats && _t < dt) _match.CpuArmSteal();
             // The CPU batter's square is read at SET (§5.9, §7.3) so a human pitcher sees it before the pitch.
             if (!HumanBats && _t < dt) _match.CpuSquaresBunt();
-            // Under `pitching.cpu.humanInputs` the CPU decides its delivery at the top of SET, the way
-            // a hand decides before it charges (§4.8, PH-18-R1): the rubber the model solves for is
-            // then somewhere to walk to during SET instead of a place to appear at on the release
-            // frame. Off — the shipped root — nothing is decided here and the pitch is still built at
-            // the launch, so the shipped CPU is untouched.
-            if (!HumanPitches && _t < dt && _cpuPitch == null && !TutorialOn
-                && _match.Rules.Pitching.Cpu.HumanInputs)
+            // The CPU decides its delivery at the top of SET, the way a hand decides before it
+            // charges (§4.8, PH-18-R1): the rubber the model solves for is then somewhere to walk to
+            // during SET instead of a place to appear at on the release frame.
+            if (!HumanPitches && _t < dt && _cpuPitch == null && !TutorialOn)
             {
                 _cpuPitch = _match.CpuPitchByInputs(out var cpuPlan);
                 _cpuSteer = Math.Sign(cpuPlan.SteerDir);
@@ -247,7 +243,7 @@ namespace GrandSluggers.UnityClient
             if (!HumanPitches)
                 // The CPU's body walks to the rubber its delivery solved for, at the rate a hand
                 // walks (§4.8). Presentation only: the delivery already carries that rubber, and
-                // with no plan (the shipped root) the body sits on the match's own value, as before.
+                // with no plan (a tutorial) the body sits on the match's own value.
                 _moundX = _cpuPitch != null
                     ? Mathf.MoveTowards(_moundX, (float)_match.PitcherOffsetX, dt * 1.6f)
                     : (float)_match.PitcherOffsetX;
@@ -487,7 +483,8 @@ namespace GrandSluggers.UnityClient
                     ref _swingButton, ref _charge, ref _chargePast);
                 if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
                 if (box.WestHeld) _bunt = true;
-                // Stick U/D aims launch here; it never resets the box once the windup starts (§5.4).
+                // Stick U/D never resets the box once the windup starts (§5.4); in flight it aims only a
+                // Star Swing's launch, because an ordinary swing reads no stick at contact (PH-12).
                 _match.WalkBatter(box.StickX * dt * 1.6f);
                 ShowCursor();
                 if (swingButton.Committed)
@@ -582,7 +579,7 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         float SwingContactSec(SwingCommand swing) =>
             (float)AtBatMotion.SwingContactSec(swing.TimingErrorFrames,
-                _match.SwingWindowFrames(_pitch, swing), _match.Rules);
+                _match.SwingWindowFrames(_pitch), _match.Rules);
 
         float PitchWorldX(float screenX)
         {

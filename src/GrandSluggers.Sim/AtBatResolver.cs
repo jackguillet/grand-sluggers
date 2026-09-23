@@ -27,16 +27,14 @@ public sealed class AtBatResolver
         Math.Clamp(stickX, -1, 1) * Rules.Or(rules).Batting.Spray.StickDeg;
 
     /// <summary>
-    /// Whether the stick at contact shapes this swing's ball (spec §5.3, §5.4, PH-12). With
-    /// <c>batting.geometryOnly</c> off — the shipped root — it shapes every swing, as it always has.
-    /// On — <c>trials/pitch5</c> — it shapes only a bunt (its direction, until P4-b gives the bunt a
-    /// held side, PH-14-R5) and a Star Swing (until Phase 6 reviews each one); an ordinary swing's
-    /// flight is timing, contact position, pitch height and the swing, and its two aims are read as 0.
-    /// The CPU batter asks the same question before it draws an aim (<see cref="Match.CpuSwing"/>, PH-18).
-    /// It says nothing about the box walk or the SET recenter, which read the same stick and stay (PH-09).
+    /// Whether the stick at contact shapes this swing's ball (spec §5.3, §5.4, PH-12): only a bunt
+    /// (its direction, until P4-b gives the bunt a held side, PH-14-R5) and a Star Swing (until
+    /// Phase 6 reviews each one). An ordinary swing's flight is timing, contact position, pitch
+    /// height and the swing, and its two aims are read as 0. The CPU batter asks the same question
+    /// before it draws an aim (<see cref="Match.CpuSwing"/>, PH-18). It says nothing about the box
+    /// walk or the SET recenter, which read the same stick and stay (PH-09).
     /// </summary>
-    public static bool StickShapesContact(bool bunt, bool starSwing, RulesTable? rules = null) =>
-        bunt || starSwing || !Rules.Or(rules).Batting.GeometryOnly;
+    public static bool StickShapesContact(bool bunt, bool starSwing) => bunt || starSwing;
 
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
@@ -52,10 +50,8 @@ public sealed class AtBatResolver
     public AtBatResult Resolve(AtBatInput input, Park park, Random rng, bool night = false)
     {
         var b = _rules.Batting;
-        // The stick at contact (§5.3, §5.4, PH-12): read as 0 on an ordinary swing under
-        // batting.geometryOnly. Neither aim ever drew from rng, so no draw moves either way; off, these
-        // are the input's own doubles and every expression below is the one that shipped.
-        var stickShapes = StickShapesContact(input.Bunt, input.UseStarSwing, _rules);
+        // The stick at contact (§5.3, §5.4, PH-12): read as 0 on an ordinary swing.
+        var stickShapes = StickShapesContact(input.Bunt, input.UseStarSwing);
         var launchAim = stickShapes ? input.LaunchAim : 0;
         var sprayAim = stickShapes ? input.SprayAimDeg : 0;
         // The cursor is Contact's (spec §5.2, PH-15-R7); the exit and the loft are Power's (§5.4, §5.5).
@@ -70,8 +66,7 @@ public sealed class AtBatResolver
         var buddies = _chem.BuddiesOnBase(input.Batter, input.RunnersOn);
 
         // Timing (§5.3, D13): outside the window the bat is not on the plane.
-        var window = SwingWindowFrames(input.Batter, input.Bat, input.Charge01,
-            input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, input.HumanWindowMul, _rules, _skills);
+        var window = ContactWindowFrames(input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, _rules, _skills);
         var half = window / 2;
         var err = input.TimingErrorFrames;
         var onPlane = InWindow(err, window);
@@ -178,66 +173,28 @@ public sealed class AtBatResolver
             Class: ball.Shape);
     }
 
-    /// <summary>
-    /// The window one swing is judged in (spec §5.3): the batter's contact with the bat's mod, a
-    /// charge narrows it unless the Charge Bat carries the charge, the star pitch, the park, and the
-    /// human rung. The resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>)
-    /// read this one number. Under <c>batting.window.shared</c> the hitter, the charge and the rung
-    /// drop out and every caller here gets the one window (<see cref="ContactWindowFrames"/>).
-    /// </summary>
-    public static double SwingWindowFrames(Character batter, BatItem? bat, double charge01, string? starPitch,
-        Park? park, bool night, double humanWindowMul = 1, RulesTable? rules = null, StarSkillTable? skills = null)
-    {
-        // A timing read of Contact (PH-15-R7: Contact is spatial forgiveness only). Dead under
-        // batting.window.shared — the shared window reads no hitter at all — and still shipped,
-        // because the shipped root keeps the split window until sitting 2 accepts the trial. The
-        // read stays on the off path so the two roots stay bit for bit what they are.
-        var contact = Math.Clamp(batter.Stats.Contact + (bat?.ContactMod ?? 0), 1, 10);
-        var chargeBat = bat?.ChargeAlwaysFull == true;
-        var charged = !chargeBat && ChargeFeel.IsCharge(Math.Clamp(charge01, 0, 1));
-        return ContactWindowFrames(contact, charged, starPitch, park, night, rules, skills, humanWindowMul);
-    }
-
     /// <summary>The bat is on the plane when the error is inside half the window (spec §5.3).</summary>
     public static bool InWindow(double errFrames, double windowFrames) =>
         Math.Abs(errFrames) <= windowFrames / 2;
 
     /// <summary>
-    /// The timing window in frames at 60 Hz (spec §5.3). Inside is ± half of this.
-    ///
-    /// <c>batting.window.shared</c> off — the switch's off path, the window that shipped before
-    /// #860 — is slap 9 / charge 7, ± (contact − 5) × 0.4, × the star pitch's window multiplier ×
-    /// the park's × the human rung's, floored.
-    ///
-    /// On — the shipped root since #860, accepted by Jack in the <c>trials/pitch5</c> window — the window is <c>batting.window.frames</c> for every hitter,
-    /// both swings and every human rung (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), then the same star
-    /// multiplier, the same park multiplier and the same floor, in the same order. The rung's
-    /// <paramref name="humanWindowMul"/> is not applied: one fixed challenge is PH-17, and a
-    /// difficulty that still widened the window would be the per-seat assistance it refuses. The
-    /// argument is still taken and still threaded from <c>Match</c>, because the seat that pressed
-    /// is not the formula's business to know and the switch is decided here.
+    /// The timing window one swing is judged in, in frames at 60 Hz (spec §5.3). Inside is ± half of
+    /// this. It is <c>batting.window.frames</c> for every hitter, both swings and every human rung
+    /// (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), × the star pitch's window multiplier × the park's,
+    /// floored. The resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>)
+    /// read this one number.
     /// </summary>
-    public static double ContactWindowFrames(int contact, bool charged, string? starPitch, Park? park, bool night,
-        RulesTable? rules = null, StarSkillTable? skills = null, double humanWindowMul = 1)
+    public static double ContactWindowFrames(string? starPitch, Park? park, bool night,
+        RulesTable? rules = null, StarSkillTable? skills = null)
     {
         var r = Rules.Or(rules);
         var w = r.Batting.Window;
-        if (w.Shared)
-        {
-            var one = w.Frames;
-            if (starPitch is not null)
-                one *= StarSkills.BatterWindowMul(starPitch, skills);
-            if (park is not null)
-                one *= ParkHazards.ContactWindowMul(park, night, r);
-            return Math.Max(w.FloorFrames, one);
-        }
-        var frames = (charged ? w.ChargeFrames : w.SlapFrames) + (Math.Clamp(contact, 1, 10) - 5) * w.FramesPerContact;
+        var one = w.Frames;
         if (starPitch is not null)
-            frames *= StarSkills.BatterWindowMul(starPitch, skills);
+            one *= StarSkills.BatterWindowMul(starPitch, skills);
         if (park is not null)
-            frames *= ParkHazards.ContactWindowMul(park, night, r);
-        frames *= humanWindowMul;
-        return Math.Max(w.FloorFrames, frames);
+            one *= ParkHazards.ContactWindowMul(park, night, r);
+        return Math.Max(w.FloorFrames, one);
     }
 
     /// <summary>

@@ -428,10 +428,10 @@ public sealed class PitchFamilyTrialScenarioTests
         Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, bare.Pitching.Families.Authored);
         Assert.Equal(new[] { "fastball", "changeup" }, Training.CorePitches);
 
-        // (b) The shipped root authors all five, and the CPU pitcher runs on human inputs.
+        // (b) The shipped root authors all five (the CPU pitcher runs on human inputs; #887 removed
+        //     the switch, see CpuPitcherScenarioTests S-120).
         var shipped = ShippedRules.Pitching.Families;
         Assert.Equal(PitchFamily.All, shipped.Authored);
-        Assert.True(ShippedRules.Pitching.Cpu.HumanInputs, "the shipped CPU runs on human inputs (#860)");
 
         // (c) The whole library is authored, in library order.
         var trial = Trial.Pitching.Families;

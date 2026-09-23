@@ -12,14 +12,19 @@ public class FoulTests
             false, false, timing, false, starSwing,
             _content.Bats["harbor-lumber"], 80, SprayAimDeg: sprayAim, PitchInZone: true);
 
+    /// <summary>
+    /// A press at the early edge of the window: timing pulls the ball ≈ <c>spray.timingDeg</c> toward
+    /// the pull line (§5.3), past the chalk. An ordinary swing ignores the stick since #883, so the
+    /// 60° aim that was the device here played only on the switch's off path, retired by #887.
+    /// </summary>
+    double EarlyEdge(Park park) =>
+        -(AtBatResolver.ContactWindowFrames(null, park, false, _content.Rules, _content.StarSkills) / 2 - 0.05);
+
     [Fact]
     public void SprayPastTheFoulLineIsFoulNotInPlay()
     {
         var park = _content.Parks["harbor-diamond"];
-        // A 60° aim is the device that puts the ball past the chalk: the switch's off path
-        // (geometryOnly false, built in the test) still reads it. On the shipped root an ordinary
-        // swing ignores the aim since #883 (Jack, September 22, 2026: "approve all").
-        var r = new AtBatResolver(_content.Chemistry, SwitchOffPaths.StickShapesRules).Resolve(Square(60), park, new Random(1));
+        var r = new AtBatResolver(_content.Chemistry, _content.Rules, _content.StarSkills).Resolve(Square(0, timing: EarlyEdge(park)), park, new Random(1));
         Assert.True(r.Foul);
         Assert.False(r.InPlay);
         Assert.False(r.HomeRun);
@@ -65,12 +70,10 @@ public class FoulTests
     [Fact]
     public void FoulIsAStrikeUnlessTwo()
     {
-        // The 60° aim is the device that makes each swing foul, so the match plays the switch's off
-        // path (geometryOnly false, built in the test): on the shipped root an ordinary swing ignores
-        // the aim since #883 (Jack, September 22, 2026: "approve all").
-        var match = Match.Slice(SwitchOffPaths.StickShapesContent, innings: 3, seed: 1);
+        // A press at the early edge of the window is the device that makes each swing foul (EarlyEdge).
+        var match = Match.Slice(_content, innings: 3, seed: 1);
         var paint = new PitchCommand("fastball", 0, false);
-        var pull = new SwingCommand(true, 0, 0, false, SprayAimDeg: 60);
+        var pull = new SwingCommand(true, 0, EarlyEdge(match.Park), false);
         var batter = match.Batter.Id;
 
         // A foul is a live ball (§7.11): contact enters play, and the play commits FOUL when the ball is dead.
