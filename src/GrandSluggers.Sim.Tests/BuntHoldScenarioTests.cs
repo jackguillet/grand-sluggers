@@ -372,11 +372,11 @@ public sealed class BuntHoldScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-170  A cancel press the plate took is no other verb until it comes up (PH-13-R1)
+    // S-186  A cancel press the plate took is no other verb until it comes up (PH-13-R1)
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S170_ACancelPressAtThePlateIsSpentUntilTheButtonComesUp()
+    public void S186_ACancelPressAtThePlateIsSpentUntilTheButtonComesUp()
     {
         PlateInput East(bool press, bool held) => new(false, false, false, Cancel: press, CancelHeld: held);
         var plate = default(PlateButtonsState);
