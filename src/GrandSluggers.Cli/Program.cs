@@ -100,7 +100,15 @@ switch (cmd)
             Environment.ExitCode = 2;
             break;
         }
-        try { RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args), Night(args), hazards.Value); }
+        var starsArg = Array.IndexOf(args, "--stars");
+        var stars = starsArg < 0 ? true : HazardsValue(args.ElementAtOrDefault(starsArg + 1));
+        if (stars is null)
+        {
+            Console.Error.WriteLine("match: use --stars on|off (default on).");
+            Environment.ExitCode = 2;
+            break;
+        }
+        try { RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args), Night(args), hazards.Value, stars.Value); }
         catch (KeyNotFoundException e) { Console.Error.WriteLine("match: " + e.Message); Environment.ExitCode = 2; }
         break;
     case "challenge":
@@ -137,7 +145,7 @@ switch (cmd)
               team [spark-allstars|ember-court|mixed-rivals|rio|vale|zig|brondo|konga|ashlord]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
-              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--night] [--hazards on|off] [--difficulty easy|normal|hard] [--trace [file]]
+              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--night] [--hazards on|off] [--stars on|off] [--difficulty easy|normal|hard] [--trace [file]]
               match --cohort s29|harbor-calibration|harbor-validation
               match --cohort park-factors [--table] [--hazards on|off]
               challenge [--captain rio] [--seed N]
@@ -356,18 +364,18 @@ static void DumpChem(ContentCatalog content, string id)
     }
 }
 
-static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty, string? trace, bool night, bool hazards)
+static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty, string? trace, bool night, bool hazards, bool stars)
 {
     var match = string.IsNullOrEmpty(parkId)
-        ? Match.Exhibition(content, home, away, innings: 3, seed: seed, night: night, difficulty: difficulty, hazards: hazards)
-        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, night: night, difficulty: difficulty, hazards: hazards);
+        ? Match.Exhibition(content, home, away, innings: 3, seed: seed, night: night, difficulty: difficulty, hazards: hazards, stars: stars)
+        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, night: night, difficulty: difficulty, hazards: hazards, stars: stars);
     if (trace is not null) match.Tracing = true;
     var log = Console.Out;
     if (trace == "-") Console.SetOut(Console.Error);
     try
     {
         Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {(match.Night ? "night" : "day")}  {match.Difficulty}  hazards {(match.Hazards ? "on" : "off")}");
-        Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
+        Console.WriteLine($"stars {(match.StarsEnabled ? "on" : "off")}  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
         while (!match.Over)
         {
             var half = $"{(match.Top ? "T" : "B")}{match.Inning}";
