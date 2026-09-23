@@ -315,9 +315,11 @@ public sealed class NightBlockTests
     // seed 2 again (the other two do not change); re-recorded from the merged build. The accepted Star prices and reserve
     // (tiers 1 / 2 / 3, reserve 3, base gain 0.1) change how often the CPU can pay for a special, so Funfair seed 11 and
     // both Ember rows are re-recorded again (Funfair seed 1 does not change; seed 11 still sends a fly through a chomper).
+    // The bunt's own response by contact quality (PH-14-R1) and the CPU batter's commit read (PH-18) became the only rules,
+    // which changes Funfair seed 1; the other three do not change.
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 7  Spark All-Stars 1", "601cf23378686bf903cf8a42d559a0e8ce6507d9742a45ee454525e25ddbc747"),
+            ("funfair-park", 1, "Final  Ember Court 1  Spark All-Stars 2", "a928a8f526953c9af7e498c64055b46ec030e393b392aaf755c090a6929b9ea7"),
             ("funfair-park", 11, "Final  Ember Court 6  Spark All-Stars 0", "6ffb6300f93abc12fdb204f360724bbc2f59d49632418ad09e118f6ce589db57"),
             ("ember-keep", 1, "Final  Ember Court 10  Spark All-Stars 1", "9c6a235c68e7504cab69877a85be45e19a1f354a465733a03687d18914dadb0c"),
             ("ember-keep", 2, "Final  Ember Court 9  Spark All-Stars 0", "51e83e5058368a038c726ff540f02f71f1af5327b743b7b8bdce616fa25d9e92")

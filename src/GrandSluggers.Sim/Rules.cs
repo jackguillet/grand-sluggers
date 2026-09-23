@@ -1036,15 +1036,12 @@ public sealed class LaunchRules
 
 /// <summary>
 /// Bunt (spec §5.8): the held bat meets the ball on the plane through the cursor, with no timed press; a high
-/// crossing pops. <see cref="Response"/> is the PH-14-R1 trial switch; off, the response is the ordinary exit ×
-/// <see cref="ExitMul"/>, a sour bunt pops, and the spray is the zone's spread plus <see cref="SpraySpanDeg"/>.
+/// crossing pops. The ball off the bat is the bunt's own <see cref="Response"/> by contact quality (PH-14-R1).
 /// </summary>
 public sealed class BuntRules
 {
-    [Positive] public double ExitMul { get; init; } = 0.42;
     public double LaunchMinDeg { get; init; } = 3;
     public double LaunchSpanDeg { get; init; } = 9;
-    public double SpraySpanDeg { get; init; } = 28;
     /// <summary>A crossing this far above the zone center is bunted into a pop.</summary>
     public double PopAboveCenterFt { get; init; } = 0.8;
     /// <summary>The held side's lean on the outgoing bunt, degrees of spray toward that side (PH-14-R2, <see cref="BuntHold.LeanDeg"/>).</summary>
@@ -1053,15 +1050,13 @@ public sealed class BuntRules
 }
 
 /// <summary>
-/// The bunt's own response to contact quality (spec §5.8, PH-14-R1; <c>batting.bunt.response</c>). A trial:
-/// <see cref="ByContact"/> is off on the shipped root, where a bunt keeps today's response, and on in
-/// <c>trials/bunt</c>. On, the exit is the bunt's own by quality (a square bunt is the dead one, never the ordinary
-/// swing's harder ball), the spray spread is the bunt's own by quality, and a sour bunt pops only when the ball
-/// crossed above the bat's center; below it the ball is chopped down with the sour pace.
+/// The bunt's own response to contact quality (spec §5.8, PH-14-R1; <c>batting.bunt.response</c>). The exit is the
+/// bunt's own by quality (a square bunt is the dead one, never the ordinary swing's harder ball), the spray spread
+/// is the bunt's own by quality, and a sour bunt pops only when the ball crossed above the bat's center; below it
+/// the ball is chopped down with the sour pace.
 /// </summary>
 public sealed class BuntResponseRules
 {
-    public bool ByContact { get; init; }
     /// <summary>Exit speed off the held bat by quality, mph. No Power, charge, star or pitch term.</summary>
     public ZoneExitRules ExitMph { get; init; } = new() { Perfect = 22, Nice = 28, Sour = 40 };
     /// <summary>Total spray spread by quality, degrees (± half), around the side's lean.</summary>
@@ -1161,8 +1156,8 @@ public sealed class OffenseItemRules
 }
 
 /// <summary>
-/// The CPU batter (spec §5.9): a table evaluated from one read of the crossing — the final
-/// trajectory on the shipped root, the flight as it stands at the commit with <see cref="CommitRead"/> on. Zone class by the crossing (middle third / edge / near / far), the swing by
+/// The CPU batter (spec §5.9): a table evaluated from one read of the crossing — the flight as it stands at
+/// the commit instant (<see cref="Match.CpuReadPitch"/>), never the future the pitcher has yet to steer. Zone class by the crossing (middle third / edge / near / far), the swing by
 /// count, the box by tracking (perfect, or the last pitch's crossing plus a fixed offset; worse
 /// after the pitcher moved on the rubber), timing σ by Bat and the difficulty rung.
 /// </summary>
@@ -1219,16 +1214,6 @@ public sealed class CpuBatterRules
     /// from the trajectory as it stands then (spec §3, §5.9). Its earliest error is −decideLeadSec × 60 frames.
     /// </summary>
     [Positive] public double DecideLeadSec { get; init; } = 0.12;
-    /// <summary>
-    /// What the CPU batter reads at the commit instant (spec §3, §5.9; PH-18, #892). <c>false</c>
-    /// (shipped) reads the final crossing at the plate plane, a future the batter cannot see:
-    /// whatever the command carries, including stick the pitcher will only add after the commit.
-    /// <c>true</c> (<c>trials/cpu-read</c>) predicts the crossing from the flight as it stands at
-    /// plate − <see cref="DecideLeadSec"/> − batting.window.leadSec: the family's own movement and
-    /// the stick's break applied so far, with no future steering. Zone, swing / take and the box
-    /// all follow that read, so a late steer after the commit can beat it. It adds no draw.
-    /// </summary>
-    public bool CommitRead { get; init; }
 }
 
 /// <summary>Charge vs slap by archetype (spec §5.9), derived from the Bat / Run split.</summary>

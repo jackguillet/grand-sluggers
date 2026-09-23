@@ -1403,17 +1403,16 @@ public sealed class Match
     }
 
     /// <summary>
-    /// The CPU batter (spec §5.9): a table read from one crossing, the same whoever is pitching.
-    /// Shipped (<c>batting.cpu.commitRead</c> off) that is the final crossing at the plate plane and
-    /// the caller's <paramref name="inZone"/>. With the switch on it is <see cref="CpuReadPitch"/>:
-    /// the flight as it stands at the commit instant, and the zone is judged on that read, so
-    /// <paramref name="inZone"/> is not consulted. No side effects: the box it stands in and the
-    /// swing it makes are the returned command. Steals are the runner AI's (<see cref="CpuArmSteal"/>).
+    /// The CPU batter (spec §5.9): a table read from one crossing, the same whoever is pitching. It
+    /// commits from what it can see (PH-18): <see cref="CpuReadPitch"/>, the flight as it stands at the
+    /// commit instant, and the zone, the swing / take and the box are all judged on that read; the
+    /// umpire and the bat still meet the ball that is thrown. No side effects: the box it stands in and
+    /// the swing it makes are the returned command. Steals are the runner AI's (<see cref="CpuArmSteal"/>).
     /// </summary>
     /// <param name="breakAtCommit">The stick's break as it stood at the commit instant, when the
     /// caller watched it (a client ticking the flight, a scenario steering late). Absent, the steer is
-    /// taken as held one way from release, the CPU pitcher's own (S-117). Read only with the switch on.</param>
-    public SwingCommand CpuSwing(PitchCommand pitch, bool inZone, double? breakAtCommit = null)
+    /// taken as held one way from release, the CPU pitcher's own (S-117).</param>
+    public SwingCommand CpuSwing(PitchCommand pitch, double? breakAtCommit = null)
     {
         var c = Rules.Batting.Cpu;
         var level = Rules.Cpu.Active;
@@ -1422,13 +1421,9 @@ public sealed class Match
         // swinging for it is Power's.
         var contact = Batter.Stats.Contact;
         var power = Batter.Stats.Power;
-        if (c.CommitRead)
-        {
-            // PH-18 (#892): commit from what can be seen. The read pitch replaces the final one for
-            // every decision below; the umpire and the bat still meet the ball that is thrown.
-            pitch = CpuReadPitch(pitch, breakAtCommit);
-            inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch, Rules);
-        }
+        // Commit from what can be seen: the read pitch replaces the final one for every decision below.
+        pitch = CpuReadPitch(pitch, breakAtCommit);
+        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch, Rules);
         var (cx, cy) = PitchFlight.Crossing(pitch, Pitcher.StarPitch, Rules);
         var zone = CpuZoneClass(cx, cy, inZone, c);
         var take = new SwingCommand(false, 0, 0, false);
@@ -1611,9 +1606,7 @@ public sealed class Match
         if (pickoffBag > 0 && Pickoff(pickoffBag) is { } pickoff)
             return pickoff;
         var pitch = PreparePitch(CpuPitch());
-        // The match's own table, not the process-wide one (#855): an overlay catalog's families fly here.
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Control, Pitcher.StarPitch, Rules);
-        var swing = CpuSwing(pitch, inZone);
+        var swing = CpuSwing(pitch);
         return Play(pitch, swing);
     }
 

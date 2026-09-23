@@ -125,13 +125,11 @@ public sealed class AtBatResolver
         var response = b.Bunt.Response;
         if (input.Bunt)
         {
-            // The bunt's response (§5.8, PH-14-R1). Shipped: the ordinary exit deadened, a sour bunt pops.
-            // Under the trial the exit is the bunt's own by quality, and a sour bunt pops only when the ball
+            // The bunt's own response (§5.8, PH-14-R1): the exit is the bunt's by quality, with no Power, charge,
+            // star, pitch or tired-arm term, so a square bunt is the dead one. A sour bunt pops only when the ball
             // crossed above the bat's center; below it the bat chops it down at the sour pace.
-            exit = response.ByContact ? response.ExitMph.For(quality) : exit * b.Bunt.ExitMul;
-            var sourPops = response.ByContact
-                ? quality == ContactQuality.Sour && input.CrossingY > SweetSpot.WorldCenter(input.BoxOffsetX).Y
-                : quality == ContactQuality.Sour;
+            exit = response.ExitMph.For(quality);
+            var sourPops = quality == ContactQuality.Sour && input.CrossingY > SweetSpot.WorldCenter(input.BoxOffsetX).Y;
             var pop = sourPops || height > b.Bunt.PopAboveCenterFt;
             launch = pop
                 ? b.Launch.PopMinDeg + rng.NextDouble() * b.Launch.PopSpanDeg
@@ -143,17 +141,15 @@ public sealed class AtBatResolver
             launch = StarSkills.SwingLaunchDeg(input.Batter.StarSwing, _skills) ?? launch;
 
         // Direction (§5.3): early pulls, late pushes; the stick shifts while it shapes this swing; the
-        // zone spreads. A bunt leans toward its held side instead (§5.8, PH-14-R2); under the bunt
-        // trial its spread is its own by quality (PH-14-R1).
-        var spread = input.Bunt && response.ByContact ? response.SpreadDeg.For(quality) : SpraySpread(quality, b.Spray);
+        // zone spreads. A bunt leans toward its held side instead (§5.8, PH-14-R2), and its spread is its
+        // own by quality (PH-14-R1).
+        var spread = input.Bunt ? response.SpreadDeg.For(quality) : SpraySpread(quality, b.Spray);
         var spray = (input.Bunt ? BuntHold.LeanDeg(input.BuntSide, _rules) : TimingSprayDeg(err, window, bats, _rules))
                     + sprayAim + (rng.NextDouble() - 0.5) * spread;
         if (input.UseStarPitch && input.Pitcher.StarPitch == "prismball")
             spray += (rng.NextDouble() - 0.5) * b.Star.PrismballSpraySpanDeg;
         if (!input.PitchInZone)
             spray += (rng.NextDouble() - 0.5) * b.Spray.OutOfZoneSpanDeg;
-        if (input.Bunt && !response.ByContact)
-            spray += (rng.NextDouble() - 0.5) * b.Bunt.SpraySpanDeg;
         spray = Math.Round(SourFoulPull(quality, spray, rng, b.Foul), 1);
 
         // The flight decides (spec §5.6, §6.1): the clipped path in this park says where the ball
