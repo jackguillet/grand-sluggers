@@ -162,6 +162,13 @@
       "sources": []
     },
     {
+      "id": "batting.11",
+      "title": "held directional bunt",
+      "category": "batting",
+      "spec": "gameplay-spec:5.8",
+      "sources": []
+    },
+    {
       "id": "fielding.01",
       "title": "manual pursuit/ground pickup",
       "category": "fielding",

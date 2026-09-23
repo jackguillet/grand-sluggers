@@ -81,7 +81,8 @@ public sealed class TutorialPlateTests
         var run = Start("T-B04"); run.Swing(new(true, .75, 0, false)); Assert.Equal("use-max-swing", run.Feedback!.Code);
         run.Retry(); run.Swing(new(true, 1, 50, false)); Assert.Equal("miss", run.Feedback!.Code);
         run = Start("T-B07"); run.Swing(new(true, 0, 0, false)); Assert.Equal("use-bunt", run.Feedback!.Code);
-        run.Retry(); run.Swing(new(true, 0, 50, false, Bunt: true));
+        // A held bunt has no press to time (§5.8): the poor bunt is the bat held off the ball, a strike.
+        run.Retry(); run.Swing(SwingCommand.HeldBunt(BuntSide.First, boxOffsetX: 1));
         Assert.False(run.Feedback!.Success); Assert.Equal(PlayKind.Strikeout, run.LastPlay!.Kind);
         run.Retry(); Assert.Equal(2, run.Match.Strikes); Assert.Equal(0, run.Successes);
         run = Start("T-B02"); run.Swing(new(true, 0, 0, false, BoxOffsetX: .4));

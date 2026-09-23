@@ -59,7 +59,7 @@
     // the zone's spread + spraySpanDeg). true (trials/bunt): the exit and the spread are the bunt's own by
     // quality, and a sour bunt pops only above the bat's center; below it the bat chops it down at the sour pace.
     "response": {
-      "byContact": false,
+      "byContact": true,
       "exitMph": {
         "perfect": 22,
         "nice": 28,
@@ -154,6 +154,6 @@
     "decideLeadSec": 0.12,
     // #892 (PH-18): false reads the final crossing at the plate plane; true commits from the flight as it stands at the
     // commit instant (the break so far, no future steering), so a late steer can beat it. trials/cpu-read switches it on.
-    "commitRead": true
+    "commitRead": false
   }
 }

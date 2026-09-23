@@ -10,10 +10,10 @@ namespace GrandSluggers.Sim.Tests;
 /// Jack accepted the <c>trials/pitch5</c> stick trial on September 22, 2026 ("approve all"); #883
 /// shipped it and #887 removed the switch and its off path. A swing that is neither a bunt nor a Star
 /// Swing ignores both aims (<b>S-128</b>), while timing, contact, pitch height, the charge and the
-/// out-of-zone spread still shape it (<b>S-129</b>); a bunt (<b>S-130</b>, until P4-b) and a Star
-/// Swing (<b>S-131</b>, until Phase 6) still follow the stick; and the CPU batter holds no stick for
-/// an ordinary swing and draws no aim for it, while its Star Swing and its sac bunt draw both
-/// (<b>S-132</b>).
+/// out-of-zone spread still shape it (<b>S-129</b>); a bunt reads its held side and not the stick
+/// (<b>S-130</b>, PH-14-R5); a Star Swing (<b>S-131</b>, until Phase 6) still follows the stick; and
+/// the CPU batter holds no stick for an ordinary swing and draws no aim for it, while its Star Swing
+/// draws both and its sac bunt holds a side (<b>S-132</b>).
 ///
 /// The shipped root is loaded <b>in process</b> through a <see cref="DataRoot"/> built from the
 /// repository, so nothing here depends on <c>GRAND_SLUGGERS_TRIAL</c> being set.
@@ -48,14 +48,15 @@ public sealed class StickShapingScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S128_TheStickShapesOnlyABuntOrAStarSwing()
+    public void S128_TheStickShapesOnlyAStarSwing()
     {
-        // #883: Jack accepted the stick trial on September 22, 2026 ("approve all").
+        // #883: Jack accepted the stick trial on September 22, 2026 ("approve all"). The bunt's direction
+        // is its held side (PH-14-R5), so the stick shapes neither it nor an ordinary swing.
         foreach (var bunt in new[] { false, true })
         foreach (var star in new[] { false, true })
-            Assert.Equal(bunt || star, AtBatResolver.StickShapesContact(bunt, star));
+            Assert.Equal(star && !bunt, AtBatResolver.StickShapesContact(bunt, star));
 
-        // The stick numbers stay authored: the bunt and the Star Swing still read them.
+        // The stick numbers stay authored: the Star Swing still reads them.
         Assert.True(_shipped.Rules.Batting.Spray.StickDeg > 0 && _shipped.Rules.Batting.Launch.StickDeg > 0);
     }
 
@@ -202,35 +203,38 @@ public sealed class StickShapingScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-130  Bunts still follow the stick on the shipped root (until P4-b)
+    // S-130  A bunt reads its held side, never the stick (PH-14-R5)
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S130_APadsBuntStillFollowsTheStickOnTheShippedRoot()
+    public void S130_APadsBuntIsTheSameBallWhereverTheStickIsAndLeansToItsHeldSide()
     {
         var shipped = Resolver(_shipped);
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var seed in Enumerable.Range(1, 10))
         {
-            var hits = new Dictionary<string, AtBatResult>();
-            foreach (var stick in Sticks)
+            var bySide = new Dictionary<BuntSide, AtBatResult>();
+            foreach (var side in new[] { BuntSide.Third, BuntSide.None, BuntSide.First })
             {
-                var intent = Intent(0, stick.X, stick.Y, bunt: true);
-                var onShipped = shipped.Resolve(Input(_shipped, Batter(_shipped, bats), intent, 0, 0, CenterY), Harbor(_shipped), new Random(seed));
-                Assert.NotEqual(ContactQuality.Sour, onShipped.Quality);
-                hits[stick.Name] = onShipped;
+                AtBatResult? centered = null;
+                foreach (var stick in Sticks)
+                {
+                    var intent = Intent(0, stick.X, stick.Y, bunt: true, side: side);
+                    var onShipped = shipped.Resolve(Input(_shipped, Batter(_shipped, bats), intent, 0, 0, CenterY), Harbor(_shipped), new Random(seed));
+                    Assert.NotEqual(ContactQuality.Sour, onShipped.Quality);
+                    centered ??= onShipped;
+                    Assert.Equal(centered, onShipped);
+                }
+                bySide[side] = centered!;
             }
             var where = $"{bats} seed {seed}";
-            Assert.True(hits["left"].SprayDeg < hits["center"].SprayDeg, where);
-            Assert.True(hits["center"].SprayDeg < hits["right"].SprayDeg, where);
-            // Its launch is its own band and never reads the stick's U/D.
-            Assert.Equal(hits["center"], hits["up"]);
-            Assert.Equal(hits["center"], hits["down"]);
+            Assert.True(bySide[BuntSide.Third].SprayDeg < bySide[BuntSide.None].SprayDeg, where);
+            Assert.True(bySide[BuntSide.None].SprayDeg < bySide[BuntSide.First].SprayDeg, where);
         }
     }
 
     [Fact]
-    public void S130_TheCpuSacBuntStillCarriesItsDrawnAimOnTheShippedRoot()
+    public void S130_TheCpuSacBuntHoldsASideAndCarriesNoAim()
     {
         var bunts = CpuSacBunts();
         Assert.True(bunts > 0, "some seed squares and bunts");
@@ -293,7 +297,7 @@ public sealed class StickShapingScenarioTests
     }
 
     [Fact]
-    public void S132_OnTheShippedRootACpuStarSwingAndASacBuntStillDrawTheirAims()
+    public void S132_OnTheShippedRootACpuStarSwingDrawsItsAimsAndASacBuntHoldsASide()
     {
         var stars = 0;
         var ordinary = 0;
@@ -301,12 +305,13 @@ public sealed class StickShapingScenarioTests
         {
             var onShipped = CaptainUp(_shipped, seed).CpuSwing(Middle, inZone: true);
             Assert.True(onShipped.Swing);
-            if (onShipped.Star || onShipped.Bunt)
+            if (onShipped.Bunt) continue;
+            if (onShipped.Star)
             {
-                // A Star Swing (and a sac bunt, if this captain squares) draws its aims.
+                // A Star Swing draws its aims.
                 Assert.NotEqual(0, onShipped.SprayAimDeg);
-                if (onShipped.Star) Assert.NotEqual(0, onShipped.LaunchAim);
-                if (onShipped.Star) stars++;
+                Assert.NotEqual(0, onShipped.LaunchAim);
+                stars++;
                 continue;
             }
             Assert.Equal(0, onShipped.SprayAimDeg);
@@ -321,8 +326,9 @@ public sealed class StickShapingScenarioTests
     // ---- helpers ---------------------------------------------------------------------
 
     /// <summary>
-    /// The CPU's sac bunt, seed by seed: once the square is read at SET, the bunt it lays down
-    /// carries a drawn spray aim and <c>sacBuntLaunchAim</c>. Returns how many seeds squared.
+    /// The CPU's sac bunt, seed by seed: once the square is read at SET, the bunt it lays down is the
+    /// held bunt (§5.8): the side decided with the square, no aim, no timed press. Returns how many
+    /// seeds squared.
     /// </summary>
     int CpuSacBunts()
     {
@@ -333,8 +339,11 @@ public sealed class StickShapingScenarioTests
             if (!onShipped.CpuSquaresBunt()) continue;
             var shippedBunt = onShipped.CpuSwing(Middle, inZone: true);
             Assert.True(shippedBunt.Bunt);
-            Assert.NotEqual(0, shippedBunt.SprayAimDeg);
-            Assert.Equal(_shipped.Rules.Batting.Cpu.SacBuntLaunchAim, shippedBunt.LaunchAim);
+            Assert.NotEqual(BuntSide.None, shippedBunt.BuntSide);
+            Assert.Equal(onShipped.CpuBuntSide, shippedBunt.BuntSide);
+            Assert.Equal(0, shippedBunt.SprayAimDeg);
+            Assert.Equal(0, shippedBunt.LaunchAim);
+            Assert.Equal(0, shippedBunt.TimingErrorFrames);
             bunts++;
         }
         return bunts;
@@ -436,8 +445,9 @@ public sealed class StickShapingScenarioTests
     /// A pad's committed swing with this stick held: the real capture (<see cref="SwingInputIntent.Capture"/>),
     /// so the intent carries the stick exactly as the client's does.
     /// </summary>
-    static SwingInputIntent Intent(double charge01, double stickX, double stickY, bool bunt = false) =>
-        SwingInputIntent.Capture(new ChargeButtonStep(default, true, charge01, 0), stickX, stickY, bunt, 0);
+    static SwingInputIntent Intent(double charge01, double stickX, double stickY, bool bunt = false,
+        BuntSide side = BuntSide.None) =>
+        SwingInputIntent.Capture(new ChargeButtonStep(default, true, charge01, 0), stickX, stickY, bunt, 0, side);
 
     static AtBatInput Input(ContentCatalog content, Character batter, SwingInputIntent intent, double err,
         double crossingX, double crossingY, bool inZone = true, bool star = false) =>
@@ -445,7 +455,7 @@ public sealed class StickShapingScenarioTests
             ChargePitch: false, ChangeupPitch: false, TimingErrorFrames: err,
             UseStarPitch: false, UseStarSwing: star, Bat: content.Bats["harbor-lumber"], PitcherStamina: 80,
             SprayAimDeg: intent.SprayAimDeg, PitchInZone: inZone, Bunt: intent.Bunt, LaunchAim: intent.LaunchAim,
-            Charge01: intent.Fill01, CrossingX: crossingX, CrossingY: crossingY);
+            Charge01: intent.Fill01, CrossingX: crossingX, CrossingY: crossingY, BuntSide: intent.BuntSide);
 
     /// <summary>
     /// The crossing X, from the heart of the oval toward the tip, where this hitter's swing meets the

@@ -297,14 +297,16 @@ public sealed class NightBlockTests
     /// P2-e and P3-b re-recorded them again. 3e promoted the compact profile into the shipped data, and the four
     /// games are bit-identical to the trial rows they were. P3-c took the random tired wobble out (PH-08-R1), which
     /// changes play again; seed 16 no longer chomps, so the chomp row is seed 8. The gradual fade (PH-08-R1) changed
-    /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11.
+    /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11. P4-b's held bunt
+    /// changed the CPU sac bunt (a side drawn with the square, no timing or aim draws), which re-records Funfair
+    /// seed 1 and both Ember rows; seed 11 has no square and is unchanged.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 1", "aaef2c68ce62eadd039fec18b9f631cbdb40a7c8eb5ecad5874a26ecb15a65e3"),
+            ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 2", "dd5ad6519508152fce8cf0268bd590aa0c2179ceec23ae3d00a41e0788e4b874"),
             ("funfair-park", 11, "Final  Ember Court 4  Spark All-Stars 0", "53b0a73c68e7c09a34ced21cad1d9418073ab62d8ef9049cbd351938470c6086"),
-            ("ember-keep", 1, "Final  Ember Court 1  Spark All-Stars 0", "ee50483141c1372ebcb8c08bb5f14736beb580718c36ca9393b3d28af1bc48f5"),
-            ("ember-keep", 2, "Final  Ember Court 3  Spark All-Stars 1", "a28f29a238e8a6caac068bf39dd45413082fad93a1c0b97a1ba07c0f38024918")
+            ("ember-keep", 1, "Final  Ember Court 3  Spark All-Stars 0", "100d0c85fffd2ef1eee188330856affcc65da43533ce86175189a8263a39448c"),
+            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 0", "1c70355d8538ecfb486f3e3b27173bd2688e184b266f33c64f577c20766788f1")
         ];
 
     /// <summary>
