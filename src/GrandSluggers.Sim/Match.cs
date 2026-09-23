@@ -714,7 +714,11 @@ public sealed class Match
 
     /// <summary>
     /// A drop on the catch is allowed only for star effects (§8.6, fielding.drops): a heatball, a
-    /// phony swing, a frozen glove. Plain baseball never rolls a drop. One seeded stream (S-92).
+    /// phony swing, a glove the heart swing froze (<paramref name="frozen"/> is
+    /// <see cref="FieldingPreview.Frozen"/>, which only that special sets). Plain baseball never rolls a
+    /// drop, and neither does a park: a glove a status volume slowed is decided by the glove and the
+    /// ball (F4-b, #896; FD-08-R1, SF-22), so the park's use of <c>drops.frozen</c> is retired and the
+    /// special's is the one left. One seeded stream (S-92).
     /// </summary>
     internal bool RollDrop(AtBatResult hit, bool frozen)
     {
