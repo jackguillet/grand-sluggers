@@ -161,8 +161,50 @@ namespace GrandSluggers.EditorTools
                 cases.Add(check());
                 evidence.cases = cases.ToArray();
             }
+            if (!SessionState.GetBool(Pending + ".pitchOnly", false))
+            {
+                var screens = VerifyControllerScreens(play);
+                while (screens.MoveNext()) yield return screens.Current;
+                cases.Add(new GateCase { name = "controller-title-stadium-captains-book", phase = Phase(play) });
+                evidence.cases = cases.ToArray();
+            }
             evidence.ok = true;
             Debug.Log("Grand Sluggers at-bat input OK: " + cases.Count + " real Controls/TickSet/TickFlight cases.");
+        }
+
+        static IEnumerator VerifyControllerScreens(MatchDirector play)
+        {
+            Setup(play, Seats.One);
+            Invoke(play, "OpenTitle");
+            var folder = Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("GS_AT_BAT_INPUT_EVIDENCE")
+                ?? Application.dataPath)!, "controller-screens");
+            Directory.CreateDirectory(folder);
+            IEnumerator Capture(string name)
+            {
+                yield return new WaitForEndOfFrame();
+                var shot = ScreenCapture.CaptureScreenshotAsTexture();
+                File.WriteAllBytes(Path.Combine(folder, name + ".png"), shot.EncodeToPNG());
+                UnityEngine.Object.Destroy(shot);
+            }
+            void Menu(GamepadState state)
+            {
+                InputSystem.QueueStateEvent(_pad1, state); InputSystem.Update(); Controls.Tick(Step);
+                Set(play, "_t", 1f); Invoke(play, "TickFlow");
+            }
+            var shot = Capture("title"); while (shot.MoveNext()) yield return shot.Current;
+            Menu(State().WithButton(GamepadButton.South)); Menu(State());
+            Require(Phase(play) == "Field", "Controller title confirm did not open stadium selection.");
+            shot = Capture("stadium"); while (shot.MoveNext()) yield return shot.Current;
+            for (var i = 0; i < 3; i++) { Menu(State().WithButton(GamepadButton.DpadDown)); Menu(State()); }
+            Menu(State().WithButton(GamepadButton.South)); Menu(State());
+            Require(Phase(play) == "Select", "Controller stadium navigation did not reach captains.");
+            shot = Capture("captains"); while (shot.MoveNext()) yield return shot.Current;
+            Invoke(play, "OpenControlsBook");
+            foreach (var id in new[] { "controls", "controls-2", "controls-3", "controls-4", "roles-fielding", "roles-fielding-2" })
+            {
+                Set(play, "_pausePage", HowToPlay.Pages.ToList().FindIndex(p => p.Id == id));
+                shot = Capture(id); while (shot.MoveNext()) yield return shot.Current;
+            }
         }
 
         static void Finish(Evidence evidence)
@@ -371,8 +413,8 @@ namespace GrandSluggers.EditorTools
                 "Player 1 pitch did not enter its windup while Player 2 held South.");
             Require(SwingButton(play).Armed && Get<SwingCommand>(play, "_swing") == null,
                 "Player 2 hold did not carry from SET into the pitch windup.");
-            // West no longer squares at the plate (PH-14-R5): held through the release it changes nothing.
-            var input = Tick(play, "TickFlight", State(), State(west: true, stickX: -0.8f, stickY: 0.6f));
+            // Release RT with the movement stick still live; no bunt button is held.
+            var input = Tick(play, "TickFlight", State(), State(stickX: -0.8f, stickY: 0.6f));
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
                 "Player 2 release after entering Flight was discarded.");
@@ -380,7 +422,7 @@ namespace GrandSluggers.EditorTools
             Require(Math.Abs(input.Pad2X) > StickPlay.Dead && Math.Abs(input.Pad2Y) > StickPlay.Dead,
                 "Player 2 Flight fixture did not produce live release-frame stick input.");
             Require(!input.Pad2Bunt && !swing.Bunt && swing.BuntSide == BuntSide.None,
-                "West still bunts at the plate; the bunt is the held LT / RT side.");
+                "An ordinary RT release unexpectedly became a bunt.");
             Require(Math.Abs(swing.LaunchAim - input.Pad2Y) < 0.001,
                 "Player 2 Flight release lost its release-frame launch intent.");
             Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad2X)) < 0.001,
