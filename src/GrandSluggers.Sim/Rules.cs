@@ -2270,31 +2270,44 @@ public sealed class HazardRules
         SlowSec = 3.0
     };
 
-    /// <summary>Funfair's warp cans: a grounder that enters one comes out of another.</summary>
+    /// <summary>Funfair's warp cans: a ball that enters one comes out of another, live (F4-c).</summary>
     public HazardTypeRules WarpPipe { get; init; } = new()
     {
         Pattern = HazardPattern.BallRedirect,
-        ReachPadFt = 5.6
+        ReachPadFt = 5.6,
+        MouthFt = 3.5,
+        ExitSpeedMul = 0.8,
+        ExitVyFtPerSec = 12
     };
 
-    /// <summary>Canopy's barrel cannons, the warp can's twin.</summary>
+    /// <summary>Canopy's barrel cannons, the warp can's twin, a little hotter out of the exit.</summary>
     public HazardTypeRules Barrel { get; init; } = new()
     {
         Pattern = HazardPattern.BallRedirect,
-        ReachPadFt = 5.6
+        ReachPadFt = 5.6,
+        MouthFt = 3.5,
+        ExitSpeedMul = 1.1,
+        ExitVyFtPerSec = 18
     };
 
-    /// <summary>Rooftop's star signs: a landing on one pays the batting team.</summary>
-    public HazardTypeRules Billboard { get; init; } = new() { Pattern = HazardPattern.RewardTarget };
+    /// <summary>Rooftop's star signs: a ball whose live path passes under the top inside the disc pays the batting team (F4-c).</summary>
+    public HazardTypeRules Billboard { get; init; } = new() { Pattern = HazardPattern.RewardTarget, TopFt = 29 };
 
     /// <summary>Canopy's climbable wall: a Clamber fielder's reach and rob.</summary>
     public HazardTypeRules ClimbWall { get; init; } = new() { Pattern = HazardPattern.WallTrait };
 
     /// <summary>
-    /// Funfair's mouths: a fly that lands in one is an out with no glove. They bite only at night
-    /// because Funfair authors them in its night block (FD-11, F4-d), not because of this row.
+    /// Funfair's mouths (FD-09-R2, F4-c): a ball redirect. A ball that comes into one up to <c>mouthFt</c> is spat out
+    /// of another; nobody is out by a mouth. Night-only because Funfair authors them in its night block (FD-11, F4-d).
     /// </summary>
-    public HazardTypeRules Chomper { get; init; } = new() { Pattern = HazardPattern.CatchStealer };
+    public HazardTypeRules Chomper { get; init; } = new()
+    {
+        Pattern = HazardPattern.BallRedirect,
+        MouthFt = 12,
+        MouthFloorFt = 4,
+        ExitSpeedMul = 0.6,
+        ExitVyFtPerSec = 16
+    };
 
     /// <summary>Ember's captain statue. Drawn, never played.</summary>
     public HazardTypeRules Statue { get; init; } = new() { Pattern = HazardPattern.Decoration };
@@ -2403,6 +2416,25 @@ public sealed class HazardRules
             if (row.SlowSec is { } slow && row.Pattern != HazardPattern.StatusVolume)
                 errors.Add($"{source}: {key}.slowSec is {slow}, but only a {HazardPattern.StatusVolume} slows a body; "
                            + "give the row that pattern or leave slowSec out");
+            // The live redirect (F4-c): every redirect says how high its mouth takes a ball and how the ball leaves the exit,
+            // and nothing else may. The reward target says how high its sign reaches.
+            var redirect = row.Pattern == HazardPattern.BallRedirect;
+            foreach (var (name, value) in new[] { ("mouthFt", row.MouthFt), ("exitSpeedMul", row.ExitSpeedMul), ("exitVyFtPerSec", row.ExitVyFtPerSec) })
+            {
+                if (redirect && value is null)
+                    errors.Add($"{source}: {key} is a {HazardPattern.BallRedirect} and must author {name} (F4-c)");
+                if (!redirect && value is { } v)
+                    errors.Add($"{source}: {key}.{name} is {v}, but only a {HazardPattern.BallRedirect} reads it; "
+                               + $"give the row that pattern or leave {name} out");
+            }
+            if (row.MouthFloorFt is { } floor && (!redirect || row.MouthFt is not { } mouthTop || floor >= mouthTop))
+                errors.Add($"{source}: {key}.mouthFloorFt is {floor}, but it is read only on a {HazardPattern.BallRedirect}, "
+                           + "below its mouthFt");
+            if (row.Pattern == HazardPattern.RewardTarget && row.TopFt is null)
+                errors.Add($"{source}: {key} is a {HazardPattern.RewardTarget} and must author topFt, the top of the sign (F4-c)");
+            if (row.TopFt is { } top && row.Pattern != HazardPattern.RewardTarget)
+                errors.Add($"{source}: {key}.topFt is {top}, but only a {HazardPattern.RewardTarget} reads it; "
+                           + "give the row that pattern or leave topFt out");
         }
     }
 }
@@ -2437,6 +2469,24 @@ public sealed class HazardTypeRules
     /// number (FD-08-R2), not yet played.
     /// </summary>
     [Optional, Positive] public double? SlowSec { get; init; }
+
+    /// <summary>A <c>ballRedirect</c>'s mouth (F4-c): a ball inside the disc at or below this height enters it.</summary>
+    [Optional, Positive] public double? MouthFt { get; init; }
+
+    /// <summary>
+    /// A <c>ballRedirect</c>'s mouth floor (F4-c): a ball under this height passes beneath it. Absent is the ground (a can or a
+    /// barrel takes a ball rolling in); a chomper's head stands up off the grass, so it takes a fly on its way down, not a grounder.
+    /// </summary>
+    [Optional, Positive] public double? MouthFloorFt { get; init; }
+
+    /// <summary>A <c>ballRedirect</c>'s exit (F4-c): the share of the ball's horizontal speed it leaves with, on the same heading.</summary>
+    [Optional, Positive] public double? ExitSpeedMul { get; init; }
+
+    /// <summary>A <c>ballRedirect</c>'s exit (F4-c): the vertical speed, ft/s up, the ball leaves with.</summary>
+    [Optional, Positive] public double? ExitVyFtPerSec { get; init; }
+
+    /// <summary>A <c>rewardTarget</c>'s sign (F4-c): a ball inside the disc at or below this height hits it.</summary>
+    [Optional, Positive] public double? TopFt { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------

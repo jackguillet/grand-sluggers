@@ -39,7 +39,11 @@ public enum PlayTraceMarkKind
     Contact, RunnerPlayStart, Possession, ThrowRelease, ThrowTargetReached, UncoveredWait,
     Reception, LooseBall, RunnerArrival, RunnerAward, Out, Verdict,
     /// <summary>A body touched a park's status volume (F4-b, #896): the fielder or the runner, and <see cref="PlayTraceMark.Hazard"/>.</summary>
-    BodySlowed
+    BodySlowed,
+    /// <summary>The ball went into a redirect (F4-c): <see cref="PlayTraceMark.Hazard"/> is the mouth, its <c>Exit</c> the instance it came out of.</summary>
+    BallRedirected,
+    /// <summary>The ball hit a reward target (F4-c): <see cref="PlayTraceMark.Hazard"/> is the sign.</summary>
+    RewardHit
 }
 
 /// <summary>T is the simulation execution clock. LowerT bounds sampled runner arrivals; animation release is unobserved.</summary>
@@ -52,7 +56,7 @@ public sealed record PlayTraceMark(int I, int Command, PlayTraceMarkKind Kind, d
 /// The hazard instance a mark is about (F4-b, #896): its index in the play's <see cref="Park.Hazards"/>, its type, the disc the
 /// play read (the night disc at night) and, for a status volume's touch, the play second the body's slow runs to at least.
 /// </summary>
-public sealed record PlayTraceHazard(int Index, string Type, double X, double Z, double RadiusFt, double UntilT);
+public sealed record PlayTraceHazard(int Index, string Type, double X, double Z, double RadiusFt, double UntilT, int? Exit = null);
 public sealed record PlayTraceMarkGeometry(double BallX, double BallY, double BallZ, string GlovePos,
     double GloveX, double GloveZ, bool HoldsUnthrownBall, string ReceiverPos, double? ReceiverX, double? ReceiverZ,
     double? ReceiverDistanceFt, double CoverRadiusFt, bool ReceiverInReach);
