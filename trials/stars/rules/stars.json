@@ -14,8 +14,8 @@
   },
   "tiers": {
     "low": 1,
-    "mid": 1,
-    "top": 1
+    "mid": 2,
+    "top": 3
   },
   "costs": {
     "guestCaptainSurcharge": 1
