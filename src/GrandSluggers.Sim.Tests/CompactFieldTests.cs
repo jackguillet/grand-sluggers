@@ -256,17 +256,18 @@ public sealed class CompactFieldTests
         Assert.Equal(53.50, Diamond.Dist(centre.X, centre.Z, cf.X, cf.Z), 2);
         Assert.Equal(40.90, Diamond.Dist(centre.X, centre.Z, cf.X, cf.Z) - centre.Radius, 2);
 
+        // The mouths are redirects since FD-09-R2 (F4-c): a ball at a fielder's spot is in no mouth, a fly coming down
+        // into the centre one is, by night only, and no other park has one there.
+        BallHazards Mouths(Park park) { var b = new BallHazards(); b.Begin(park, true, Game.Rules); return b; }
         foreach (var pos in new[] { "LF", "CF", "RF" })
         {
             var spot = Game.Rules.Fielders.Spot(pos);
-            Assert.False(ParkHazards.ChompFly(funfair, spot.X, spot.Z, rules: Game.Rules), pos);
+            Assert.Null(Mouths(funfair).Entered(spot.X, 6, spot.Z));
         }
-        Assert.True(ParkHazards.ChompFly(funfair, centre.X, centre.Z, rules: Game.Rules));
-        Assert.False(ParkHazards.ChompFly(funfairByDay, centre.X, centre.Z, rules: Game.Rules));
-        Assert.False(ParkHazards.ChompFly(funfair, centre.X, centre.Z, grounder: true, rules: Game.Rules));
+        Assert.NotNull(Mouths(funfair).Entered(centre.X, 6, centre.Z));
+        Assert.Null(Mouths(funfairByDay).Entered(centre.X, 6, centre.Z));
         foreach (var id in ParkIds.Where(p => p != "funfair-park"))
-            Assert.False(ParkHazards.ChompFly(
-                PlayedPark.Of(Game.Parks[id], night: true, hazards: true, Game.Rules.Hazards), centre.X, centre.Z, rules: Game.Rules), id);
+            Assert.Null(Mouths(PlayedPark.Of(Game.Parks[id], night: true, hazards: true, Game.Rules.Hazards)).Entered(centre.X, 6, centre.Z));
     }
 
     /// <summary>
@@ -277,15 +278,16 @@ public sealed class CompactFieldTests
     [Fact]
     public void ABarrelsCaptureDiscIsOnTheFenceScale()
     {
-        var rng = new Random(730);
         foreach (var (id, type, disc) in new[] { ("canopy-yard", "barrel", 9.10), ("funfair-park", "warp_pipe", 8.40) })
         {
             var park = Game.Parks[id];
             var hazard = park.Hazards.First(h => h.Type == type);
             Assert.Equal(5.6, Game.Rules.Hazards.Of(type).ReachPadFt);
             Assert.Equal(disc, hazard.Radius + Game.Rules.Hazards.Of(type).ReachPadFt, 2);
-            Assert.True(ParkHazards.WarpIfPipe(park, hazard.X + disc - 0.1, hazard.Z, rng, Game.Rules).Warped, id + ", inside the disc");
-            Assert.False(ParkHazards.WarpIfPipe(park, hazard.X + disc + 0.1, hazard.Z, rng, Game.Rules).Warped, id + ", outside the disc");
+            var mouths = new BallHazards();
+            mouths.Begin(park, false, Game.Rules);
+            Assert.NotNull(mouths.Entered(hazard.X + disc - 0.1, 0, hazard.Z));
+            Assert.Null(mouths.Entered(hazard.X + disc + 0.1, 0, hazard.Z));
         }
 
         // Ember's fire breath: 11.2 by day, 17.92 at night — the multiplier is dimensionless and the radius under it moved.

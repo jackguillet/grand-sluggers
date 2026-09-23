@@ -232,6 +232,14 @@ public static class CarnivalFront
     /// <summary>The field postcard's footer: every verb on the screen, the hazards switch beside night.</summary>
     public const string FieldFooter = "stick L/R the field    South lineup    West captains    N night    R hazards    Esc how to play";
 
+    /// <summary>What the caption calls the redirect the ball went through (F4-c). Copy, not a rule.</summary>
+    public static string RedirectName(string? type) => type switch
+    {
+        HazardType.Barrel => "barrel cannon",
+        HazardType.Chomper => "chomper",
+        _ => "warp can"
+    };
+
     /// <summary>The hazards switch as the title and the field postcard print it.</summary>
     public static string HazardsLabel(bool hazards) => hazards ? "HAZARDS ON" : "HAZARDS OFF";
 

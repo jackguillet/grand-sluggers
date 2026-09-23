@@ -95,14 +95,11 @@ public static class HazardPattern
     /// <summary>A disc that slows the chase (<c>freeze_volume</c>, <c>lava_pit</c>, <c>fire_breath</c>).</summary>
     public const string StatusVolume = "statusVolume";
 
-    /// <summary>A mouth a ball on the ground enters and leaves somewhere else (<c>warp_pipe</c>, <c>barrel</c>).</summary>
+    /// <summary>A mouth a ball enters and leaves out of another of its type (<c>warp_pipe</c>, <c>barrel</c>, <c>chomper</c>; F4-c).</summary>
     public const string BallRedirect = "ballRedirect";
 
     /// <summary>A target that pays the batting team when the ball hits it (<c>billboard</c>).</summary>
     public const string RewardTarget = "rewardTarget";
-
-    /// <summary>A mouth that takes a fly out of the air before a glove can (<c>chomper</c>).</summary>
-    public const string CatchStealer = "catchStealer";
 
     /// <summary>A property of the wall a fielder works at (<c>climb_wall</c>).</summary>
     public const string WallTrait = "wallTrait";
@@ -112,17 +109,17 @@ public static class HazardPattern
 
     /// <summary>Every pattern, in the order §14 lists them.</summary>
     public static IReadOnlyList<string> All { get; } =
-        [StatusVolume, BallRedirect, RewardTarget, CatchStealer, WallTrait, Decoration];
+        [StatusVolume, BallRedirect, RewardTarget, WallTrait, Decoration];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);
 
-    /// <summary>True for one of the six patterns the sim implements.</summary>
+    /// <summary>True for one of the five patterns the sim implements (the catch stealer retired into the redirect, FD-09-R2).</summary>
     public static bool IsKnown(string? pattern) => pattern is not null && KnownIds.Contains(pattern);
 
     /// <summary>
     /// The patterns that count as a hazard, which are the ones the match's hazards switch removes
-    /// (FD-10, §14, SF-24): a status volume, a ball redirect, a reward target and a catch stealer —
-    /// the four that act on a play. <see cref="WallTrait"/> is not one, because a climbable span is a
+    /// (FD-10, §14, SF-24): a status volume, a ball redirect and a reward target — the three that act on a
+    /// play. <see cref="WallTrait"/> is not one, because a climbable span is a
     /// property of the wall (FD-06) and the park keeps its walls with hazards off. <see cref="Decoration"/>
     /// is not one, because it does nothing in play and the kit still draws it.
     ///
@@ -133,7 +130,7 @@ public static class HazardPattern
     /// 2026).
     /// </para>
     /// </summary>
-    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget, CatchStealer];
+    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget];
 
     static readonly HashSet<string> HazardIds = new(Hazards, StringComparer.Ordinal);
 
