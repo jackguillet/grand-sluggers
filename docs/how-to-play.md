@@ -85,6 +85,8 @@ The toys are the UI. Highlighted captain **steps forward**. They stand on the di
 
 Two screens. Not a 3D huddle with a name list.
 
+**Arrange defense** has its own book page explaining the in-game two-position swap and the quick pitcher shortcut.
+
 **Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Portraits have no faction or chemistry frames. Hover over a player, or move the controller focus to them, to see their card; their chemistry partners get a soft highlight. Stars are chosen later on Match settings.
 
 - **Stick / WASD** — pick a head (center) or a slot (home row)
