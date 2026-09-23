@@ -2811,7 +2811,8 @@
         "#839",
         "#844",
         "#889",
-        "#890"
+        "#890",
+        "#903"
       ],
       "validation_evidence": [
         {
@@ -3643,7 +3644,8 @@
           "implementation_issues": [
             "#818",
             "#821",
-            "#890"
+            "#890",
+            "#903"
           ],
           "validation_evidence": [
             {
@@ -6117,7 +6119,7 @@
     {
       "date": "2026-09-22",
       "event": "P3-a (#890) made Velocity, Movement, Control and Endurance ratings of their own (PH-15-R6) and routed every Pitch reader to them, seeded equal to pitch so nothing a player can feel moved. Characters may author the four as 1-10 keys; nothing authors one. Velocity is the mph, Movement the arm's damping of non-perfect contact (its only read today), Control the steer rate and the CPU's scatter, Endurance the stamina pool. Pitch stays the displayed aggregate and the swap pick's ranking. Fatigue is left for P3-b / P3-c. Seed 7 byte-identical; seals hash-only; PlayTraceIdentity roster bytes move as in #839. Spec 2 carries the mapping table and Appendix B.1 gained S-138 ... S-140. No status change, no numeric target, no human acceptance.",
-      "pr": "#890"
+      "pr": "#903"
     }
   ]
 }
