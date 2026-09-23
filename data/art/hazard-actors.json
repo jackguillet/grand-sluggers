@@ -19,7 +19,6 @@
   "rings": {
     "statusVolume": "#1A1A22",
     "ballRedirect": "#FFCC40",
-    "rewardTarget": "#FFCC40",
-    "catchStealer": "#E83850"
+    "rewardTarget": "#FFCC40"
   }
 }
