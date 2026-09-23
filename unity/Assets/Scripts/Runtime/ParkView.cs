@@ -96,7 +96,8 @@ namespace GrandSluggers.UnityClient
             var kit = HarborKit.Instance != null
                 ? HarborKit.Instance
                 : FindFirstObjectByType<HarborKit>(FindObjectsInactive.Include);
-            if (kit == null && harbor)
+            // The Harbor kit exists for a park whose lawn slot names it (FD-16, FR-13; data/art/parks.json).
+            if (kit == null && ArtBinder.ParkKit(park.Id).Fills(ParkKitSlots.Lawn, ParkKitSlots.HarborLawn))
             {
                 var go = new GameObject("HarborKit");
                 kit = go.AddComponent<HarborKit>();
@@ -118,9 +119,9 @@ namespace GrandSluggers.UnityClient
             }
             // The dress stands beside the kit, never in it: no dress piece stands inside the kit's
             // backstop or in the dugout span along either foul line (F6-a2 #881, FieldKitSourceTests).
-            if (harbor)
+            if (placed)
             {
-                // HarborKit draws Harbor: the field kit and Harbor's own dress.
+                // The Harbor kit draws this park: the field kit and the dress its slots name.
             }
             else if (crystal)
             {
