@@ -141,7 +141,7 @@ public sealed class AirRecoilTests
         Assert.True(queued, "the press inside the buffer was remembered");
         var marks = live.TakeTrace(play).Marks ?? [];
         var release = marks.First(m => m.Kind == PlayTraceMarkKind.ThrowRelease);
-        Assert.InRange(release.T, takeAt + dur - Frame - 1e-9, takeAt + dur + 2 * Frame + 1e-9);
+        Assert.InRange(release.T, takeAt + dur + match.Rules.Fielding.Throw.ReleaseSec - Frame - 1e-9, takeAt + dur + match.Rules.Fielding.Throw.ReleaseSec + 2 * Frame + 1e-9);
     }
 
     // ---------------------------------------------------------------------------------

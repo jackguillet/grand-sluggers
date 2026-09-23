@@ -415,7 +415,7 @@ public sealed partial class Match
         return true;
     }
 
-    /// <summary>Stick back on the selected runner: before the pitch it cancels their steal; live, it brings them back (§9.3).</summary>
+    /// <summary>Stick back on the selected runner: return from the current position in every phase (§9.3).</summary>
     public bool ReturnToBag() => ReturnToBagAt(SelectedBag);
 
     public bool ReturnToBagAt(int fromBag)
@@ -439,7 +439,7 @@ public sealed partial class Match
         return true;
     }
 
-    /// <summary>All-advance: live, send every runner (§9.3, §9.5); before the pitch, arm tag-and-go. The client reads LB for it only once the ball is live: during SET and the flight LB is the held special modifier (PH-16-R17).</summary>
+    /// <summary>All-advance: live, send every runner (§9.3, §9.5); before the pitch, depart immediately. The client reads LB for it only once the ball is live: during SET and the flight LB is the held special modifier (PH-16-R17).</summary>
     public bool AdvanceAll()
     {
         if (Over || Outs >= 3) return false;
@@ -603,8 +603,7 @@ public sealed partial class Match
     /// <summary>
     /// The dead-ball runner play (§11.3, §11.4): the catcher's throw after a take or a miss, or the
     /// pickoff from the rubber. The pitch's play continues (its strikeout stays on the play: two outs
-    /// on one pitch is a DOUBLE PLAY), there is no batter body, and every runner who broke is placed
-    /// on the path with the head start the pitch's clock gave them (0 on the pickoff motion).
+    /// on one pitch is a DOUBLE PLAY), there is no batter body, and each departing runner retains the position and direction already reached.
     /// </summary>
     internal void BeginRunnerPlay(PlayEvent? pitch, bool pickoff)
     {
