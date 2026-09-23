@@ -109,7 +109,7 @@ graph TD
 | P3-a | Gameplay | Velocity, Movement, Control, Endurance seeded from `pitch`; each reader takes the right one (mph, natural break, steer rate, pool). Behaviour-identical. | PH-15-R6 | Nothing |
 | P3-b | Gameplay | Remove `homerCost` and `runCost`. S-25 rewritten. Pin PH-08-R2 (returning arm keeps fatigue). | PH-08-R3, PH-08-R2 | Nothing; re-report S-29. |
 | P3-c | Gameplay | Gradual peak-power decline replaces the step. The random tired wobble needs a ruling against "no random misses". | PH-08, PH-08-R1, PH-05-R1 | **Trial acceptance; D7 first** |
-| P3-d | Gameplay | Steering-correction fatigue behind a data switch, off on the shipped root. | PH-08-R1 (tentative) | Compare, then decide |
+| P3-d | Gameplay | ~~Steering-correction fatigue behind a data switch.~~ Covered: PH-08-R4 made less steering room part of the shipped fade (#930). | PH-08-R1, PH-08-R4 | Nothing |
 
 ### Phase 4 — bunt and swing commitment
 
@@ -174,7 +174,7 @@ One child per reviewed ability or ability group, after P5. First: remove `batter
 
 ## 4. Scenario ids
 
-Free: S-83..S-89 and S-134 upward (S-133 training families, #888; S-101 … S-106b selection, #812; S-107 … S-113 trial shapes, #818; S-114 … S-120 CPU pitcher, #823; S-121 … S-123 Contact / Power, #837; S-124 … S-127 shared window, #844; S-128 … S-132 stick switch, #855). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
+Free: S-83..S-89, S-178, S-179, S-187 … S-189, S-196 … S-199 and S-206 upward. Used since the map: S-133 training families; S-134 … S-137 the drawn oval; S-138 … S-140 pitching ratings; S-141 … S-143 CPU read; S-144, S-145 plate chemistry; S-146 returning arm; S-147 … S-149 fatigue fade; S-150 … S-152 swing cancel; S-153 … S-169 held bunt; S-170 … S-177 and S-180 … S-185 Star resource; S-186 the spent cancel; S-190 … S-195 star-pitch window; S-200 … S-205 special modifier. Earlier blocks: S-101 … S-106b selection, #812; S-107 … S-113 trial shapes, #818; S-114 … S-120 CPU pitcher, #823; S-121 … S-123 Contact / Power, #837; S-124 … S-127 shared window, #844; S-128 … S-132 stick switch, #855. Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Give each parallel child its block up front. S-29 is a gate that is re-reported, never tuned.
 
 ## 5. Questions that were Jack's — answered September 21, 2026
 
@@ -222,3 +222,44 @@ Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by e
 | Acceptance of sittings 1 and 2 written to the register (13 decisions `human-accepted`, verbatim quote, scope) | #803 | this PR | — | docs only | recorded, not claimed |
 | Promote the accepted duel trial to the shipped root (data + `Rules.cs` defaults for the parity rail; switches kept; `trials/pitch5` is now the P2-c stick trial only) | #860 | #871 | `00eed012` | `8b4470c3` (main merged in after #869; resealed hash + provenance only): 2035 / 2035, 820 / 820 c80 rows, seals clean, `unity-compile.sh` OK, `portable` green; shipped S-29 1.92 / 1.90 → 2.48 / 2.08, walks 2.86 → 0.80 | passed on the trial window; Jack may confirm the shipped build (window preview `00eed012` on `trials/pitch5`) |
 | P2-f the book, lessons and title line describe the shipped duel; T-P03 pitched by hex (vale owns no changeup); T-P10 implemented (`third-slot-strike`) | #876 | #877 | `5aaf1426` | `f8eca1a5`: 2039 / 2039, 824 / 824 c80 rows, 104 lessons on both profiles, seed 7 identical, seals unchanged, `unity-compile.sh` OK, `portable` green | Jack reads the book and plays T-P03 / T-P10 |
+| Promote the accepted stick rule (P2-c) to the shipped root; retire `trials/pitch5` | #883 | #886 | `b43ceb39` | `portable` green | accepted ("approve all") |
+| Training offers the loaded table's families (S-133) | #888 | #894 | `7f2450ad` | `portable` green | none |
+| P2-d one sim helper for the drawn oval; placement pins (S-134 … S-137) | #889 | #897 | `4d0a67a4` | `portable` green, `unity-compile.sh` only | Jack judges the drawn oval in the game; nobody has |
+| Cleanup: the three promoted switches' off paths removed | #887 | #899 | `3c431e98` | `portable` green | none |
+| P3-a Velocity, Movement, Control, Endurance seeded from Pitch (S-138 … S-140) | #890 | #903 | `d5d4f7b1` | `portable` green, seed 7 identical | none (no value authored) |
+| P2-g the CPU batter commits from the flight as it stands, behind `trials/cpu-read` (S-141 … S-143) | #892 | #906 | `a26693b2` | `portable` green, shipped draws identical | trial acceptance: play `trials/cpu-read` |
+| P2-e no plate-level chemistry; items dormant (S-144, S-145) | #891 | #910 | `76dce898` | merged with SF-25 red | nobody has looked at it in the game |
+| SF-25 night games re-recorded after P2-e | #891 | #918 | `69c842f4` | `portable` green | none |
+| P3-b only a pitch costs the arm; the returning arm keeps its fatigue (S-25, S-146) | #803 | #919 | `0af7e6a6` | `portable` green | none |
+| P3-c part 1: the random tired wobble removed (PH-08-R4, Jack: "1 and 2") | #803 | #925 | `b6bb1a1c` | 1949 / 1949, `portable` green | none |
+| P3-c part 2: gradual fade as `trials/fatigue` (S-147 … S-149) | #803 | #927 | `83adf7d2` | 1954 / 1954, `portable` green | superseded by #930 |
+| Promote the fade (`fadeFrom` 50); the step and `trials/fatigue` go. Covers P3-d | #803 | #930 | `f135c09d` | 1955 / 1955, `portable` green; 10 of 30 seeds move | accepted without a sitting ("Ship it now"); the fade's sitting is owed |
+| P4-a the swing cancel and the must-release hold, sim (S-150 … S-152) | #803 | #932 | `14efea98` | 1964 / 1964, `portable` green | none (no control yet) |
+| P6-a star pitches keep the ordinary window; the Phonyball whiff roll goes (S-190 … S-195; S-10, S-125 rewritten) | #803 | #933 | `d4592c18` | 1978 / 1978, `portable` green | per-ability replacement effects are Jack's reviews |
+| P4-b the held directional bunt, sim; response curve in `trials/bunt` (S-153 … S-169; S-19, S-130 rewritten) | #803 | #935 | `0c83dd4a` | `portable` green; merged with #945 | trial acceptance: play `trials/bunt` |
+| P5-a specials settle at release; the unaffordable fallback; tiers, top tier captain-only; `trials/stars` prices (S-170 … S-177) | #803 | #936 | `1f7039a4` | `portable` green; 0 of 30 seeds move | trial acceptance: play `trials/stars` |
+| P5-b equal starting reserve; base gain at the completed plate appearance; the caught-stealing edge (S-180 … S-185) | #803 | #940 | `2836d606` | `portable` green; no play moves | trial acceptance: play `trials/stars` |
+| P4-c triggers LT / RT / J / L, East / G cancel, leak guards, book, T-B10 / T-B11, T-B07 r2 (S-186) | #803 | #945 | `adab56f7` | `portable` green, `unity-compile.sh` OK; editor gates compiled, not run | **sitting 4**; Art #943 (bat angle, let-go) |
+| P5-c held LB / Q special modifier, the NO STARS tell, lineup copy, star lessons r3, T-G03-U (S-200 … S-205) | #803 | #949 | `6ee56231` | `portable` green, `unity-compile.sh` OK; editor gates compiled, not run | **sitting 5** |
+
+## 7. Open for Jack after the second wave
+
+Every child in §3 is merged. Nothing below is a passed gate.
+
+**Sittings**
+- Sitting 4: LT / RT / J / L bunt sides on two pads and the keyboard, the East / G cancel, the leak guards, T-B07 / T-B10 / T-B11.
+- Sitting 5: LB / Q held at release, the NO STARS tell (1.5 s red flash and a scorebug line, an agent's choice), T-G03-U.
+- The fatigue fade: shipped on "Ship it now" without a sitting.
+- P2-d's drawn oval and P2-e's missing plate chemistry have not been looked at in the game.
+
+**Trials**
+- `trials/bunt` (PH-14-R1): exit 22 / 28 / 40 mph and spread 10 / 20 / 44 degrees for perfect / nice / sour; a sour bunt pops above the bat's center.
+- `trials/stars` (PH-16-R7, R4 … R6, R16): tier prices 1 / 2 / 3, guest-captain surcharge 1, reserve 3, base gain 0.1 per plate appearance; the mid / top assignment per captain.
+- `trials/cpu-read` (PH-18): the CPU batter commits from the flight as it stands.
+
+**Questions the children raised**
+- Bunt: should the CPU corner on the called side crash harder? Is a 50 / 50 CPU sac-bunt side right? A trigger held after a take keeps the bat squared into the next pitch: intended? Trigger press point (0.5)? East always the cancel at the plate, never a Training skip? A third-base T-B11? T-B07's progress reset?
+- Stars: retune the event bonuses now that a base gain exists? The CPU's special rate follows its per-pitch chance, not its stars; review it with the prices? Should keyboard Q stop being North?
+- Phase 6: replacement effects for Charmball, Skullball, Fogball and Phonyball (PH-16-R18, R19 follow-ups); the Star Swing contact-area field (PH-16-R2) as the next child.
+- Art #943: the bat angle by bunt side and the let-go take.
+- A gradual TIRED tell (the card still switches at 25).
