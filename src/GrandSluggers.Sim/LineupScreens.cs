@@ -125,8 +125,9 @@ public sealed class LineupScreens
         }
     }
 
-    public int HomeStars => _content.Chemistry.StartingStars(HomeCaptain, Filled(_home));
-    public int AwayStars => _content.Chemistry.StartingStars(AwayCaptain, Filled(_away));
+    /// <summary>The Stars each side starts with: the one reserve for both teams, whatever the draft (§12, PH-16-R16).</summary>
+    public int HomeStars => _content.Rules.Stars.StartingReserve;
+    public int AwayStars => _content.Rules.Stars.StartingReserve;
 
     public Character? Highlighted
     {

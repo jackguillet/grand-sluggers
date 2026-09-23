@@ -1,6 +1,7 @@
 {
   "meterMax": 5,
   "gains": {
+    "plateAppearance": 0.1,
     "strikeout": 0.8,
     "homeRun": 1.0,
     "extraBaseHit": 0.8,
@@ -20,15 +21,7 @@
   "costs": {
     "guestCaptainSurcharge": 1
   },
-  "starting": {
-    "goodScore": 100,
-    "neutralScore": 50,
-    "badScore": 10,
-    "fiveAt": 70,
-    "fourAt": 55,
-    "threeAt": 35,
-    "twoAt": 15
-  },
+  "startingReserve": 3,
   "mvp": {
     "homeRun": 10,
     "winningPitcher": 5,

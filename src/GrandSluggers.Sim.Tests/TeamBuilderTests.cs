@@ -34,7 +34,7 @@ public class TeamBuilderTests
     }
 
     [Fact]
-    public void SwappingARivalOntoTheRosterLowersStartingStarsVsABuddy()
+    public void S180_SwappingARivalOntoTheRosterForABuddyLeavesTheStartingStarsAlone()
     {
         var neutrals = new[] { "boom", "hex", "nugget", "grit", "moss", "basil", "jester", "gull" };
         foreach (var id in neutrals)
@@ -51,9 +51,14 @@ public class TeamBuilderTests
         Assert.True(rival.Fill(withRival));
         Assert.True(buddy.Fill(withBuddy));
 
-        Assert.True(rival.StartingStars < buddy.StartingStars,
-            $"rival {rival.StartingStars} vs buddy {buddy.StartingStars} (avg {rival.AverageWithCaptain:0} vs {buddy.AverageWithCaptain:0})");
-        Assert.True(rival.AverageWithCaptain < buddy.AverageWithCaptain);
+        // Draft chemistry pays off in the field only (PH-16-R16): the rival and the buddy start with the same Stars,
+        // in the builder and in the match it builds.
+        Assert.Equal(_content.Rules.Stars.StartingReserve, rival.StartingStars);
+        Assert.Equal(rival.StartingStars, buddy.StartingStars);
+        var away = PresetTeams.ForCaptain(_content, "brondo", exclude: withRival.Append("rio").Append("vale"));
+        Assert.Equal(
+            Match.Exhibition(_content, rival.ToTeam(), away, seed: 1).HomeStars,
+            Match.Exhibition(_content, buddy.ToTeam(), away, seed: 1).HomeStars);
         Assert.Contains(rival.Order, c => c.Id.Equals("vale", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(buddy.Order, c => c.Id.Equals("vale", StringComparison.OrdinalIgnoreCase));
         Assert.Equal(9, rival.Order.Count);
