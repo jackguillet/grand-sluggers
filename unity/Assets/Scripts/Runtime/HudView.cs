@@ -24,9 +24,12 @@ namespace GrandSluggers.UnityClient
             bool mutePlay = false, int seats = 1,
             bool humanPitches = true, bool humanBats = false,
             bool starPitch = false, bool starSwing = false, bool pad1Home = true,
-            BuntSide bunt = BuntSide.None, string titleSetup = null)
+            BuntSide bunt = BuntSide.None, string titleSetup = null,
+            BroadcastHud.StarUnavailableTell? starNo = null, float starNoAge = 99f)
         {
             Ensure();
+            _starNo = starNo;
+            _starNoAge = starNoAge;
             if (phase == PhaseUi.Title)
             {
                 Title(challenge, portrait, training, night, hideHelp, titleSetup);
@@ -988,6 +991,10 @@ namespace GrandSluggers.UnityClient
             return new Rect((float)p.X, (float)p.Y, (float)p.W, (float)p.H);
         }
 
+        /// <summary>This frame's "special unavailable" tell (PH-16-R12) and its age; set by <see cref="Draw"/>.</summary>
+        static BroadcastHud.StarUnavailableTell? _starNo;
+        static float _starNoAge = 99f;
+
         static void Scorebug(Match match, BroadcastHud.PlayLayout lay)
         {
             var bug = BroadcastHud.From(match);
@@ -1008,8 +1015,20 @@ namespace GrandSluggers.UnityClient
                 GUI.color = prev;
                 GUI.Label(box, i.ToString(), i == bug.Inning ? _gold : _tiny);
             }
-            Row(lay.Score, 0, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match));
-            Row(lay.Score, 1, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match));
+            // The unavailable special (PH-16-R12): that team's Stars flash red and the line under the bug names it.
+            var starNo = _starNo is { } tell && BroadcastHud.StarUnavailableShows(_starNoAge) ? tell : (BroadcastHud.StarUnavailableTell?)null;
+            var red = starNo.HasValue && BroadcastHud.StarUnavailableRed(_starNoAge);
+            Row(lay.Score, 0, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match), red && starNo.Value.Row == 0);
+            Row(lay.Score, 1, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match), red && starNo.Value.Row == 1);
+            if (starNo.HasValue)
+            {
+                var line = Px(BroadcastHud.StarUnavailableLine(lay.Score));
+                GUI.DrawTexture(line, _panel);
+                var prev = GUI.color;
+                GUI.color = new Color(1f, 0.32f, 0.28f, 1f);
+                GUI.Label(new Rect(line.x + 12, line.y + 2, line.width - 24, line.height - 4), starNo.Value.Words, _gold);
+                GUI.color = prev;
+            }
 
             var c = Px(lay.Count);
             CountLine(c, 0, bug.Balls, 4, "B", _dotOn, _dotOff);
@@ -1043,7 +1062,8 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(px - pip * 0.5f, py - pip * 0.5f, pip, pip), tex);
         }
 
-        static void Row(BroadcastHud.HudRect score, int row, Team team, int runs, double stars, Texture2D stripe)
+        static void Row(BroadcastHud.HudRect score, int row, Team team, int runs, double stars, Texture2D stripe,
+            bool starsRed = false)
         {
             var stripeR = Px(BroadcastHud.StripeCol(score, row));
             var nameR = Px(BroadcastHud.NameCol(score, row));
@@ -1052,7 +1072,10 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(stripeR, stripe);
             GUI.Label(nameR, BroadcastHud.BugName(team.Captain.Name), _team);
             GUI.Label(runR, BroadcastHud.RunsLabel(runs), _score);
+            var prev = GUI.color;
+            if (starsRed) GUI.color = new Color(1f, 0.25f, 0.22f, 1f);
             Stars(starR.x, starR.y, stars);
+            GUI.color = prev;
         }
 
         static void Cards(Match match, string pitcherExtra, bool star, bool steal, string item,

@@ -41,10 +41,12 @@ namespace GrandSluggers.UnityClient
             // One pad can bat and field (Training): an East press the plate took as the swing cancel is no dive and no
             // dash until it comes up (PH-13-R1), and LT held for a bunt at contact is no item modifier (PH-14-R6).
             var eastFree = CancelFree(pad);
+            // LB held from a release that asked for a special is no cutoff until it comes up (PH-16-R10, R17).
+            var lbFree = StarFree(pad);
             return new LivePadInput(
                 radial ? pad.PursuitX : pad.StickX, radial ? pad.PursuitY : pad.StickY,
                 pad.SouthDown, pad.WestDown, pad.EastDown && eastFree, pad.EastHeld && eastFree,
-                pad.Cutoff, pad.SwapPitcher, pad.ItemWith(TriggerFree(pad, BuntSide.Third)), pad.Attack,
+                pad.CutoffWith(lbFree), pad.SwapPitcher, pad.ItemWith(TriggerFree(pad, BuntSide.Third)), pad.Attack,
                 pad.ThrowBag, pad.StickBag, pad.ArrowBag,
                 Cancel: pad.AllReturn,
                 Device: pad.Index);
@@ -54,9 +56,11 @@ namespace GrandSluggers.UnityClient
         LivePadInput RunInput()
         {
             var pad = RunPad;
+            // A star swing's LB still down after contact is not all-advance until it comes up (PH-16-R10, R17).
+            var lbFree = StarFree(pad);
             return new LivePadInput(pad.StickX, pad.StickY, pad.SouthDown, pad.WestDown,
                 KeysBag: pad.ThrowBag, StickBag: pad.StickBag,
-                AllAdvance: pad.AllAdvance, AllReturn: pad.AllReturn, Freeze: pad.FreezeRunners);
+                AllAdvance: pad.AllAdvanceWith(lbFree), AllReturn: pad.AllReturn, Freeze: pad.FreezeRunnersWith(lbFree));
         }
 
         void TickInPlay(float dt)

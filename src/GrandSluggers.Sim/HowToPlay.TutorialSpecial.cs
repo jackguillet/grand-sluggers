@@ -5,9 +5,13 @@ public static partial class HowToPlay
     static TutorialCopy? SpecialTutorial(string id)
     {
         if (id == "T-G03") return new("Earn and spend stars", "Earn stars with a strikeout, then spend them on a star pitch.",
-            "The batter has two strikes. Throw an ordinary strike to earn meter. Against the next batter, turn on the star pitch and throw it.",
-            "Tap South for the third strike. Next batter: North selects the star pitch; South throws.",
-            "Tap Space for the third strike. Next batter: Q selects the star pitch; Space throws.");
+            "The batter has two strikes. Throw an ordinary strike to earn meter. Against the next batter, throw the star pitch.",
+            "Tap South for the third strike. Next batter: hold LB as you let go of South.",
+            "Tap Space for the third strike. Next batter: hold Q as you let go of Space.");
+        if (id == "T-G03-U") return new("When the stars run out", "Ask for a star pitch you cannot pay for, and watch the ordinary pitch go.",
+            "Your pitcher has no stars. Ask for the star pitch anyway: the pitch goes out ordinary, nothing is spent, and your stars flash red.",
+            "Hold LB as you let go of South.",
+            "Hold Q as you let go of Space.");
         if (id == "T-X02") return new("Field a star grounder", "Move your glove to the opponent's star grounder and secure it yourself.",
             "The CPU uses a real star ground swing. Take control and move into the ball's path; an assisted pickup does not count.",
             "Use the left stick to take control and reach the ground ball.",
@@ -50,12 +54,12 @@ public static partial class HowToPlay
         if (skill.Length == 0) return null;
         return pitch
             ? new("Pitch: " + skill, "Throw " + skill + " and spend its star cost.",
-                "Your pitcher has " + skill + " and enough meter. Select the star pitch, then deliver it to the waiting batter.",
-                "North selects the star pitch. Tap South to throw.",
-                "Q selects the star pitch. Tap Space to throw.")
+                "Your pitcher has " + skill + " and enough meter. Hold the star button as you let go of the pitch.",
+                "Hold LB as you let go of South.",
+                "Hold Q as you let go of Space.")
             : new("Swing: " + skill, "Use " + skill + " to make fair contact and spend its star cost.",
-                "Your batter has " + skill + " and enough meter. Select the star swing and time contact with the incoming strike.",
-                "North selects the star swing. Tap and release South as the pitch arrives.",
-                "Q selects the star swing. Tap and release Space as the pitch arrives.");
+                "Your batter has " + skill + " and enough meter. Hold the star button as you let go of the swing, and time contact with the strike.",
+                "Hold LB as you let go of South, as the pitch arrives.",
+                "Hold Q as you let go of Space, as the pitch arrives.");
     }
 }

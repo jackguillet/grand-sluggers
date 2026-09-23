@@ -495,8 +495,10 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>
         /// The offense pad before the pitch (spec §9.2, §11.1): D-pad selects, stick toward the next
-        /// bag or L3 arms the steal, stick back cancels it, LB arms tag-and-go, RB / both cancel.
-        /// Once the ball is live the same pad reaches the bodies through the sim's Tick (RunInput).
+        /// bag or L3 arms the steal, stick back cancels it, RB returns, LB + RB halts. LB is not
+        /// all-advance here: during SET and the flight it is the held special modifier (PH-16-R17), and
+        /// all-advance (tag-and-go on a fly included) is a live-ball verb, read through the sim's Tick
+        /// (RunInput) once the ball is in play.
         /// </summary>
         void TickBaserunning(float dt)
         {
@@ -505,8 +507,7 @@ namespace GrandSluggers.UnityClient
             var run = RunPad;
             if (run.ThrowBag is >= 1 and <= 3)
                 _match.SelectRunner(run.ThrowBag);
-            if (run.FreezeRunners) _match.FreezeRunners();
-            else if (run.AllAdvanceDown) _match.AdvanceAll();
+            if (run.FreezeRunnersWith(StarFree(run))) _match.FreezeRunners();
             else if (run.AllReturn) _match.ReturnAll();
             var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
             var stick = InPlay.DiamondBag(run.StickX, run.StickY);
