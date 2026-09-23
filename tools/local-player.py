@@ -117,6 +117,113 @@ def close_players(players, replacement, app):
                                + '. New app: ' + str(app))
 
 
+def _stamp(path):
+    """The time_ns suffix delivery puts on release and build worktree names; newest sorts first."""
+    try:
+        return int(path.name.rsplit('-', 1)[1])
+    except (IndexError, ValueError):
+        return 0
+
+
+def releases_newest_first(state):
+    root = state / 'releases'
+    if not root.is_dir():
+        return []
+    return sorted((p for p in root.iterdir() if p.is_dir()), key=_stamp, reverse=True)
+
+
+def seed_library(project, version, state, listing=None):
+    """Clone the Unity Library of the newest good build into a fresh build worktree, so Unity imports only what changed.
+
+    A seed is a Library that built and launched a release (its revision.json names the worktree), on the same Unity
+    version, with no editor open on it. The clone is copy-on-write (APFS), so it is fast and costs no disk until written.
+    Returns the seed worktree, or None when the build imports from scratch."""
+    if (project / 'Library').exists():
+        return None
+    for release in releases_newest_first(state):
+        source = unity_gui._json(release / 'revision.json').get('source')
+        if not source:
+            continue
+        seed = Path(source) / 'unity'
+        if not (seed / 'Library').is_dir() or seed == project:
+            continue
+        try:
+            seed_version = (seed / 'ProjectSettings/ProjectVersion.txt').read_text().splitlines()[0].split(':', 1)[1].strip()
+        except (OSError, IndexError):
+            continue
+        if seed_version != version or unity_gui.editor_for(seed, listing):
+            continue
+        try:
+            subprocess.run(['cp', '-Rc', str(seed / 'Library'), str(project / 'Library')], check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        except (subprocess.CalledProcessError, OSError) as error:
+            shutil.rmtree(project / 'Library', ignore_errors=True)
+            log('Could not clone the Unity Library from ' + str(seed.parent) + ' (' + str(error) + '); importing from scratch.')
+            return None
+        return seed.parent
+    return None
+
+
+def seeded_hint(seed):
+    if not seed:
+        return ''
+    return ('. The Unity Library was seeded from ' + str(seed)
+            + '; if the log points at the import, re-run with --fresh-library.')
+
+
+def prune(main, state, keep, listing=None):
+    """Remove old releases and build worktrees; keep the newest `keep`, every open window's release, and their sources.
+
+    A build worktree with an editor open on it is never removed. Returns (releases removed, worktrees removed)."""
+    releases = releases_newest_first(state)
+    in_use = {str(Path(p['app']).parent) for p in unity_gui.players(checkout=main, listing=listing)}
+    current = unity_gui._json(state / 'current.json').get('app')
+    if current:
+        in_use.add(str(Path(current).parent))
+    kept = [r for i, r in enumerate(releases) if i < keep or str(r) in in_use]
+    removed_releases = 0
+    for release in releases:
+        if release not in kept:
+            shutil.rmtree(release, ignore_errors=True)
+            removed_releases += 1
+
+    sources = {unity_gui._json(r / 'revision.json').get('source') for r in kept}
+    root = (main.parent / 'scratchpad').resolve()
+    listed = run('git', 'worktree', 'list', '--porcelain', cwd=main).splitlines()
+    worktrees = sorted((Path(line[len('worktree '):]) for line in listed if line.startswith('worktree ')),
+                       key=_stamp, reverse=True)
+    builds = [w for w in worktrees if w.resolve().parent == root and w.name.startswith('wt-player-')]
+    removed_worktrees = 0
+    for i, worktree in enumerate(builds):
+        if i < keep or str(worktree) in sources or str(worktree.resolve()) in sources or unity_gui.editor_for(worktree / 'unity', listing):
+            continue
+        # --force: the Library, Temp and Builds folders are untracked by design.
+        done = subprocess.run(['git', 'worktree', 'remove', '--force', str(worktree)], cwd=main,
+                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        if done.returncode == 0:
+            removed_worktrees += 1
+        else:
+            log('Kept build worktree ' + str(worktree) + ': ' + done.stderr.strip())
+    return removed_releases, removed_worktrees
+
+
+def prune_only(args):
+    repo = Path(__file__).resolve().parents[1]
+    main = Path(run('git', 'rev-parse', '--path-format=absolute', '--git-common-dir', cwd=repo)).parent
+    state = unity_gui.support_dir() / 'local-player'
+    state.mkdir(parents=True, exist_ok=True)
+    # The same locks as a delivery: never prune under a build or a capture that may be using a worktree.
+    with unity_gui.hold('local-player prune', worktree=repo, command=' '.join(sys.argv), log=log), \
+            (state / 'delivery.lock').open('w') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise RuntimeError('A local player delivery is running.')
+        removed = prune(main, state, args.keep)
+    log('Removed ' + str(removed[0]) + ' releases and ' + str(removed[1]) + ' build worktrees; kept the newest '
+        + str(args.keep) + ' and any open window\'s.')
+
+
 def deliver(args):
     repo = Path(__file__).resolve().parents[1]
     common = Path(run('git', 'rev-parse', '--path-format=absolute', '--git-common-dir', cwd=repo))
@@ -162,6 +269,8 @@ def deliver(args):
         for line in processes:
             if '-projectPath ' + str(project) in line and '/Contents/MacOS/Unity ' in line:
                 raise RuntimeError('Close the Unity editor on this build worktree first: ' + str(project))
+        seed = None if args.fresh_library else seed_library(project, version, state)
+        log('Unity Library seeded from ' + str(seed) if seed else 'Unity Library: full import (no seed).')
         temp = project / 'Temp'
         temp.mkdir(exist_ok=True)
         # Keep evidence outside Temp: a normal editor exit may remove Temp.
@@ -186,15 +295,17 @@ def deliver(args):
                 if process.poll() is not None:
                     if done.exists():
                         break
-                    raise RuntimeError('Unity exited before finishing. See ' + str(build_log))
+                    raise RuntimeError('Unity exited before finishing. See ' + str(build_log) + seeded_hint(seed))
                 if time.monotonic() >= deadline:
-                    raise RuntimeError('Build timed out; existing game is unchanged. See ' + str(build_log))
+                    raise RuntimeError('Build timed out; existing game is unchanged. See ' + str(build_log) + seeded_hint(seed))
                 if time.monotonic() >= next_status:
                     log('Unity is still building; current game remains available. Log: ' + str(build_log))
                     next_status += 30
                 time.sleep(1)
             result = json.loads(done.read_text())
             build_ok = result.get('ok') is True
+            if not build_ok and seed:
+                result['error'] = str(result.get('error', 'unknown error')) + seeded_hint(seed)
             validate_build_evidence(result, revision)
             built = Path(result['exe'])
             if built != project / 'Builds/osx/GrandSluggers.app' or not (built / 'Contents/MacOS/Grand Sluggers').is_file():
@@ -213,7 +324,8 @@ def deliver(args):
             shutil.copytree(source / trial, release / trial)
         profile = trial or 'shipped'
         (release / 'revision.json').write_text(json.dumps(dict(revision=revision, kind=label, source=str(source),
-                                                               dataProfile=profile), indent=2))
+                                                               dataProfile=profile,
+                                                               librarySeed=str(seed) if seed else None), indent=2))
         (release / 'build-evidence.json').write_text(json.dumps(result, indent=2))
         # Quit only this project's old standalone players, after the new build/data exist. One may have opened
         # during the build, so look again, and still close nothing the caller did not say to replace.
@@ -243,7 +355,9 @@ def deliver(args):
                                                             buildEvidence=str(release / 'build-evidence.json'),
                                                             launchEvidence=str(launch_path)), indent=2))
         log('Running ' + label + ' ' + revision[:10] + ' on the ' + profile + ' data in its own window: ' + str(app))
-        log('Build worktree retained for diagnostics: ' + str(source))
+        removed = prune(main, state, args.keep)
+        log('Kept the newest ' + str(args.keep) + ' releases and build worktrees (plus any open window\'s); removed '
+            + str(removed[0]) + ' releases and ' + str(removed[1]) + ' build worktrees.')
 
 
 def main():
@@ -255,11 +369,19 @@ def main():
     parser.add_argument('--replace', action='store_true',
                         help='Close the delivered game window this replaces. Without it, delivery names the open '
                              "window's revision and trial and stops before building.")
+    parser.add_argument('--fresh-library', action='store_true',
+                        help='Import from scratch instead of cloning the last good build\'s Unity Library.')
+    parser.add_argument('--keep', type=int, default=3,
+                        help='Releases and build worktrees to keep after a good delivery (default: 3).')
+    parser.add_argument('--prune-only', action='store_true',
+                        help='Only remove old releases and build worktrees (same rules as after a delivery).')
     args = parser.parse_args()
+    if args.keep < 1:
+        parser.error('--keep must be at least 1.')
     if sys.platform != 'darwin':
         parser.error('Standalone local delivery currently supports macOS only.')
     try:
-        deliver(args)
+        prune_only(args) if args.prune_only else deliver(args)
     except (RuntimeError, subprocess.CalledProcessError, OSError, ValueError) as error:
         print('local-player: ' + str(error), file=sys.stderr)
         return 1
