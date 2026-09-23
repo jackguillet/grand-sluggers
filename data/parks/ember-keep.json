@@ -4,42 +4,42 @@
   "faction": "ember",
   "pickOrder": 6,
   "surface": "ash",
-  "leftFenceFt": 338,
-  "centerFenceFt": 408,
-  "rightFenceFt": 338,
+  "leftFenceFt": 237,
+  "centerFenceFt": 286,
+  "rightFenceFt": 237,
   "windMph": 1,
   "windDeg": 0,
   "fenceHeightFt": 10,
   "hazards": [
     {
       "type": "lava_pit",
-      "x": 49,
-      "z": 100,
-      "radius": 10
+      "x": 44,
+      "z": 89,
+      "radius": 7
     },
     {
       "type": "lava_pit",
-      "x": -45,
-      "z": 104,
-      "radius": 10
+      "x": -40,
+      "z": 92,
+      "radius": 7
     },
     {
       "type": "lava_pit",
-      "x": 12,
-      "z": 188,
-      "radius": 12
+      "x": 8,
+      "z": 132,
+      "radius": 8.4
     },
     {
       "type": "fire_breath",
       "x": 0,
-      "z": 250,
-      "radius": 16
+      "z": 175,
+      "radius": 11.2
     },
     {
       "type": "statue",
       "x": 0,
-      "z": 310,
-      "radius": 10
+      "z": 217,
+      "radius": 7
     }
   ],
   "notes": "Lava pits and the captain statue's fire breath slow fielders the same way Crystal freezers do. Night fire breath reaches farther. Deep fences; Ashlord still goes yard."

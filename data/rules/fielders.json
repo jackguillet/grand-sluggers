@@ -2,37 +2,38 @@
   // Where each glove stands with nobody on (§8.1, #725). Home is the origin, +z runs toward second
   // and centre, +x toward first, so the left side of the field is negative x. P stands on
   // infield.moundFt and C on HomeSet.CatcherZ; naming either here would be a second source of truth.
+  // The infield four are the full-size spots (78, 72) and (42, 118) on the basepath scale, 80/90.
   "first": {
-    "xFt": 78,
-    "zFt": 72
+    "xFt": 69.33,
+    "zFt": 64
   },
   "second": {
-    "xFt": 42,
-    "zFt": 118
+    "xFt": 37.33,
+    "zFt": 104.89
   },
   "third": {
-    "xFt": -78,
-    "zFt": 72
+    "xFt": -69.33,
+    "zFt": 64
   },
   "short": {
-    "xFt": -42,
-    "zFt": 118
+    "xFt": -37.33,
+    "zFt": 104.89
   },
-  // One outfield set for all six parks (#730, decision 3) — per-park depth is #713's. A trial does
-  // not scale these: it keeps each body's bearing and its fraction of the fence AT THAT BEARING,
-  // measured through the circular fence arc (AtBatResolver.FenceAt). LF and RF keep 0.7203 of a
-  // 379.16 ft fence at ∓23.75°; CF keeps 0.7625 of 400. The two fractions are different, so
-  // 110 x 0.70 = 77.00 is not the compact left fielder and never was.
+  // One outfield set for all six parks (#730, decision 3) — per-park depth is #713's. These are not
+  // the park fence scale: each body keeps its full-size bearing and its fraction of the fence AT
+  // THAT BEARING, measured through the circular fence arc on harbor-diamond (AtBatResolver.FenceAt).
+  // LF and RF keep 0.7203 of the fence at ∓23.75° (radius 273.13 -> 191.40); CF keeps 0.7625 of it
+  // (305 -> 213.50). The two fractions are different, so 110 x 0.70 = 77.00 is the wrong answer.
   "left": {
-    "xFt": -110,
-    "zFt": 250
+    "xFt": -77.09,
+    "zFt": 175.19
   },
   "center": {
     "xFt": 0,
-    "zFt": 305
+    "zFt": 213.5
   },
   "right": {
-    "xFt": 110,
-    "zFt": 250
+    "xFt": 77.09,
+    "zFt": 175.19
   }
 }

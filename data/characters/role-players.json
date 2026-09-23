@@ -30,7 +30,7 @@
     "repertoire": ["changeup", "slider"],
     "starPitch": "changeup",
     "starSwing": "ground",
-    "fieldAbility": "snap-throw",
+    "fieldAbility": "ball-dash",
     "bio": "Small, fast, lives for close plays."
   },
   {
@@ -98,7 +98,7 @@
     "repertoire": ["changeup", "slider"],
     "starPitch": "changeup",
     "starSwing": "ground",
-    "fieldAbility": "lick-catch",
+    "fieldAbility": "ball-dash",
     "bio": "An extra-speedy fairground rat who loves to run."
   },
   {
@@ -251,7 +251,7 @@
     "repertoire": ["changeup", "curveball"],
     "starPitch": "changeup",
     "starSwing": "ground",
-    "fieldAbility": "lick-catch",
+    "fieldAbility": "ball-dash",
     "bio": "Bunts for sport and steals because the crowd asked."
   },
   {
