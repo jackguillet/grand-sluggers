@@ -666,7 +666,7 @@ namespace GrandSluggers.UnityClient
         bool TickDeviceRecovery()
         {
             var missing = Controls.MissingMatchSeat(_matchSeats.Bound ? _matchSeats.Seats
-                : new Seats(LineupSeat.Pad1, _versusWanted && _phase == Phase.Select ? LineupSeat.Pad2 : LineupSeat.Cpu));
+                : Seats.One); // Before binding, the captain board owns P2 waiting and allows P1 to go back.
             if (missing != LineupSeat.Cpu)
             {
                 _deviceRecovery.WaitFor(missing, _match.Paused);
