@@ -754,8 +754,9 @@ public sealed class StarPitchShapeRules
 /// <summary>
 /// Per-pitcher stamina (spec §4.7): pool = poolBase + Endurance × poolPerPitch (PH-15-R6); costs per verb; a
 /// family's own extra is its row's <see cref="PitchFamilyRules.StaminaCost"/>, and a star's cost is
-/// its <c>staminaCost</c> in star-skills.json. Below tiredBelow = TIRED (−mph, −break, a crossing
-/// wobble); below 0 = exhausted (worse). The CPU swaps at TIRED with a lead.
+/// its <c>staminaCost</c> in star-skills.json. Only a pitch costs the arm: a hit, a homer or a run allowed
+/// costs nothing (PH-08-R3). Below tiredBelow = TIRED (−mph, −break, a crossing wobble); below 0 = exhausted
+/// (worse). The CPU swaps at TIRED with a lead.
 /// </summary>
 public sealed class StaminaRules
 {
@@ -764,8 +765,6 @@ public sealed class StaminaRules
     public int PitchCost { get; init; } = 4;
     public int ChargeCost { get; init; } = 3;
     public int BreakCost { get; init; } = 1;
-    public int HomerCost { get; init; } = 6;
-    public int RunCost { get; init; } = 2;
     public int TiredBelow { get; init; } = 25;
     public double TiredMph { get; init; } = 6;
     [Chance] public double TiredBreakMul { get; init; } = 0.6;
