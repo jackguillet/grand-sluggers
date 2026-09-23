@@ -28,7 +28,7 @@ public readonly record struct LineupCell(double X, double Y, double W, double H)
 
 /// <summary>
 /// Exhibition lineup is two screens: Team Setup (two bars + pool) then Offense/Defense Setup
-/// (two batting lists + two fielding diamonds). Unity draws this. Seats own a row; 1v1
+/// (two batting bars + two fielding diamonds). Unity draws this. Seats own a row; 1v1
 /// sits pad 2 on the away side without a second toolkit.
 /// </summary>
 public sealed class LineupScreens
@@ -131,7 +131,17 @@ public sealed class LineupScreens
     public int HomeStars => _content.Rules.Stars.StartingReserve;
     public int AwayStars => _content.Rules.Stars.StartingReserve;
 
-    public Character? Highlighted => CharacterAt(Focus, IndexOf(_acting));
+    public Character? Highlighted => InspectedBy(_acting);
+    public Character? InspectedBy(LineupSeat seat) => seat == LineupSeat.Cpu ? null : CharacterAt(FocusOf(seat), IndexOf(seat));
+    public bool IsReady(LineupSeat seat) => seat == LineupSeat.Cpu || Cur(seat).Ready;
+    public bool BothReady => CanPlay && IsReady(HomeSeat) && IsReady(AwaySeat) && !AnyPick;
+    public bool ToggleReady(LineupSeat seat)
+    {
+        if (!CanPlay || seat == LineupSeat.Cpu || (seat != HomeSeat && seat != AwaySeat) || HasPick(seat)) return false;
+        Cur(seat).Ready = !Cur(seat).Ready;
+        return true;
+    }
+    void ResetReady() { _pad1.Ready = false; _pad2.Ready = false; }
 
     public Character? CharacterAt(LineupFocus focus, int index)
     {
@@ -214,6 +224,7 @@ public sealed class LineupScreens
         if (Step != LineupStep.DefenseSetup || !SeatOwns(seat, Cur(seat).Focus)) return false;
         _acting = seat;
         var c = Active;
+        c.Ready = false;
         var index = IndexOf(seat);
         if (c.PickedIndex < 0 || c.PickedFocus != c.Focus)
         {
@@ -285,6 +296,7 @@ public sealed class LineupScreens
     public void Sit(LineupSeat home, LineupSeat away)
     {
         if (HomeSeat == home && AwaySeat == away) return;
+        ResetReady();
         CancelPick(LineupSeat.Pad1);
         CancelPick(LineupSeat.Pad2);
         UpdateSide(_home, HomeCaptain, HomeSeat, home);
@@ -343,7 +355,10 @@ public sealed class LineupScreens
         if (seat == LineupSeat.Cpu) return false;
         _acting = seat;
         if (Step == LineupStep.DefenseSetup)
+        {
+            if (IsReady(seat)) { Cur(seat).Ready = false; return true; }
             return CancelPick(seat) || (seat == LineupSeat.Pad1 && BackToTeam());
+        }
         return Remove(seat);
     }
 
@@ -421,6 +436,7 @@ public sealed class LineupScreens
         Home = home;
         Away = away;
         Step = LineupStep.DefenseSetup;
+        ResetReady();
         _pad1.Focus = HomeSeat == LineupSeat.Pad1 ? LineupFocus.HomeOrder : LineupFocus.AwayOrder;
         _pad1.OrderIndex = 0;
         _pad1.GloveIndex = 0;
@@ -435,6 +451,7 @@ public sealed class LineupScreens
     {
         if (Step != LineupStep.DefenseSetup) return false;
         Step = LineupStep.TeamSetup;
+        ResetReady();
         CancelPick(LineupSeat.Pad1);
         CancelPick(LineupSeat.Pad2);
         _pad1.Focus = HomeSeat == LineupSeat.Pad1 ? LineupFocus.HomeRow : LineupFocus.AwayRow;
@@ -563,7 +580,8 @@ public sealed class LineupScreens
         var diamond = away ? LineupFocus.AwayDiamond : LineupFocus.HomeDiamond;
         if (Focus == diamond)
         {
-            if (dx < 0 && LineupLayout.FieldSpot(Diamond.Order[GloveIndex]).X <= 0.30)
+            var pos = Diamond.Order[GloveIndex];
+            if ((!away && dy > 0 && pos == "CF") || (away && dy < 0 && pos == "C"))
             {
                 CancelPick(seat);
                 Focus = order;
@@ -571,13 +589,13 @@ public sealed class LineupScreens
             }
             return MoveGloveCursor(dx, dy);
         }
-        if (dx > 0)
+        if ((!away && dy < 0) || (away && dy > 0))
         {
             CancelPick(seat);
             Focus = diamond;
             return true;
         }
-        return dy != 0 && MoveOrderCursor(dy > 0 ? -1 : 1);
+        return dx != 0 && MoveOrderCursor(dx);
     }
 
     bool MovePool(int dx, int dy)
@@ -687,6 +705,7 @@ public sealed class LineupScreens
         public LineupFocus Focus;
         public LineupFocus PickedFocus;
         public int PickedIndex = -1;
+        public bool Ready;
         public int SlotIndex;
         public int PoolIndex;
         public int OrderIndex;
@@ -781,12 +800,12 @@ public static class LineupLayout
     public static LineupCell ParkLine => new(0.018, 0.862, 0.36, 0.022);
     public static LineupCell Help => new(0.018, 0.008, 0.96, 0.032);
 
-    public static LineupCell HomeSlot(int i) => Pixels(24 + i * 98, 166, 90, 80);
-    public static LineupCell AwaySlot(int i) => Pixels(24 + i * 98, 639, 90, 64);
+    public static LineupCell HomeSlot(int i) => Pixels(24 + i * 98, 165, 90, 80);
+    public static LineupCell AwaySlot(int i) => Pixels(24 + i * 98, 632, 90, 72);
     public static LineupCell HomeOrder(int i) => OrderCell(true, i);
     public static LineupCell AwayOrder(int i) => OrderCell(false, i);
-    public static LineupCell OrderCell(bool home, int i) => Pixels(home ? 24 : 472, 198 + i * 53, 142, 49);
-    public static LineupCell CardPanel => Pixels(928, 142, 328, 542);
+    public static LineupCell OrderCell(bool home, int i) => home ? HomeSlot(i) : AwaySlot(i);
+    public static LineupCell CardPanel(bool home) => Pixels(928, home ? 150 : 430, 328, 266);
     public static LineupCell ContinueButton => Pixels(1012, 716, 244, 48);
     public static LineupCell BackButton => Pixels(24, 716, 160, 48);
     public static LineupCell FillButton => Pixels(200, 716, 168, 48);
@@ -809,10 +828,10 @@ public static class LineupLayout
     // Origin top-left. Catcher behind home, pitcher inside the bags, middle infield behind second.
     public static (double X, double Y) FieldSpot(string pos) => pos switch
     {
-        "C" => (0.50, 0.93), "P" => (0.50, 0.66),
-        "1B" => (0.85, 0.61), "3B" => (0.15, 0.61),
-        "2B" => (0.70, 0.40), "SS" => (0.30, 0.40),
-        "LF" => (0.18, 0.20), "CF" => (0.50, 0.10), "RF" => (0.82, 0.20),
+        "C" => (0.50, 0.90), "P" => (0.50, 0.66),
+        "1B" => (0.88, 0.66), "3B" => (0.12, 0.66),
+        "2B" => (0.70, 0.46), "SS" => (0.30, 0.46),
+        "LF" => (0.18, 0.22), "CF" => (0.50, 0.04), "RF" => (0.82, 0.22),
         _ => (0.50, 0.66)
     };
 
@@ -820,13 +839,13 @@ public static class LineupLayout
     {
         var field = home ? HomeDiamondPanel : AwayDiamondPanel;
         var spot = FieldSpot(pos);
-        const double w = 66 / CouchW, h = 76 / CouchH;
+        const double w = 66 / CouchW, h = 66 / CouchH;
         return new(field.X + spot.X * field.W - w / 2,
             field.Y + (1 - spot.Y) * field.H - h / 2, w, h);
     }
 
-    public static LineupCell HomeDiamondPanel => Pixels(172, 206, 280, 448);
-    public static LineupCell AwayDiamondPanel => Pixels(620, 206, 280, 448);
+    public static LineupCell HomeDiamondPanel => Pixels(24, 292, 420, 300);
+    public static LineupCell AwayDiamondPanel => Pixels(480, 292, 420, 300);
 
     /// <summary>Padded name strip at the bottom of a tile so JESTER does not clip to IESTER.</summary>
     public static LineupCell NameRect(LineupCell cell)
