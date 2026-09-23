@@ -263,7 +263,7 @@ public static class RulesValidation
         Walk(table.Stars, RulesTable.PathFor(root, "stars"), "stars", errors);
         Walk(table.Cpu, RulesTable.PathFor(root, "cpu"), "cpu", errors);
         table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
-        table.Stars.Tiers.Validate(table.Stars.MeterMax, RulesTable.PathFor(root, "stars"), errors);
+        table.Stars.Validate(RulesTable.PathFor(root, "stars"), errors);
         table.Flight.Validate(RulesTable.PathFor(root, "flight"), errors);
         table.Grounds.Validate(RulesTable.PathFor(root, "grounds"), errors);
         table.Infield.Validate(RulesTable.PathFor(root, "infield"), errors);
@@ -2729,12 +2729,32 @@ public sealed class StarRules
     /// <summary>The price of each cost tier (§12, PH-16-R7): every Star Pitch and Star Swing names one in star-skills.json.</summary>
     public StarTierRules Tiers { get; init; } = new();
     public StarCostRules Costs { get; init; } = new();
-    public StartingStarRules Starting { get; init; } = new();
+    /// <summary>
+    /// The Stars each team's one pool holds at the first pitch (§12, PH-16-R6, PH-16-R16): the same for both teams,
+    /// whatever they drafted. Chemistry does not set it. It must buy the cheapest tier and fit the meter.
+    /// </summary>
+    public int StartingReserve { get; init; } = 4;
     public MvpRules Mvp { get; init; } = new();
+
+    internal void Validate(string source, List<string> errors)
+    {
+        Tiers.Validate(MeterMax, source, errors);
+        if (StartingReserve > MeterMax)
+            errors.Add($"{source}: stars.startingReserve must fit the meter (meterMax {MeterMax}); got {StartingReserve}");
+        // A usable reserve (PH-16-R6): at least the cheapest special is affordable from the first plate appearance.
+        if (StartingReserve < Tiers.Low)
+            errors.Add($"{source}: stars.startingReserve must buy the cheapest tier (low {Tiers.Low}); got {StartingReserve}");
+    }
 }
 
+/// <summary>
+/// What each team's pool earns (§12, PH-16-R5). <see cref="PlateAppearance"/> is the base: both teams, once, when a
+/// plate appearance completes. Every other row is a bonus to the side whose play it was, stacking on the base.
+/// </summary>
 public sealed class StarGainRules
 {
+    /// <summary>Both teams, once per completed plate appearance (Match.NextBatter). A half that ends mid-appearance earns none.</summary>
+    public double PlateAppearance { get; init; } = 0;
     public double Strikeout { get; init; } = 0.8;
     public double HomeRun { get; init; } = 1.0;
     public double ExtraBaseHit { get; init; } = 0.8;
@@ -2834,18 +2854,6 @@ public sealed class StarCostRules
     /// captain from the draft, or a captain swapped onto the mound (§4.7).
     /// </summary>
     public int GuestCaptainSurcharge { get; init; } = 1;
-}
-
-/// <summary>Roster chemistry with the captain → starting meter (<see cref="ChemistryTable.StartingStars(Team)"/>).</summary>
-public sealed class StartingStarRules
-{
-    public double GoodScore { get; init; } = 100;
-    public double NeutralScore { get; init; } = 50;
-    public double BadScore { get; init; } = 10;
-    public double FiveAt { get; init; } = 70;
-    public double FourAt { get; init; } = 55;
-    public double ThreeAt { get; init; } = 35;
-    public double TwoAt { get; init; } = 15;
 }
 
 // ---------------------------------------------------------------------------------------

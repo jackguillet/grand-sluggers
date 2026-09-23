@@ -16,7 +16,7 @@ Unset, this folder does nothing. Every `cli` run names the root and the overlay 
 
 | File | What it changes |
 | --- | --- |
-| `rules/stars.json` | `tiers` `low` 1 / `mid` 1 / `top` 1 → `low` 1 / `mid` 2 / `top` 3. Every other field is the shipped file, byte for byte (S-176). |
+| `rules/stars.json` | P5-a: `tiers` `low` 1 / `mid` 1 / `top` 1 → `low` 1 / `mid` 2 / `top` 3. P5-b: `startingReserve` 4 → 3, `gains.plateAppearance` 0 → 0.1. Every other field is the shipped file, byte for byte (S-176). |
 
 Whole files, never fields: an edit to `data/rules/stars.json` has to be mirrored here, or the two runs read
 different star tables.
@@ -45,6 +45,24 @@ Why these three numbers:
 - **Four captains have only mid specials** (Vale, Zig, Brondo, Fenn), and three have only top (Rio, Konga,
   Ashlord). Cheaper specials come more often; costlier ones hit harder. Whether that trade reads as fair between
   captains is the question the trial asks.
+
+## The reserve and the base gain (P5-b)
+
+The rules are decided and ship: one pool per team, the same reserve for both teams, and a base gain for both teams
+at every completed plate appearance, on top of the event bonuses. The amounts are the trial.
+
+| Field | Shipped | Trial | Why |
+| --- | --- | --- | --- |
+| `startingReserve` | 4 | 3 | Shipped 4 is what an average team started with under the old chemistry table, so the shipped game barely moves. Under the trial prices, 3 buys any captain's own top special at the opening plate appearance (PH-16-R6), and nothing more, so the first big special is a choice. A guest captain's top special (4) has to be earned. |
+| `gains.plateAppearance` | 0 | 0.1 | "Modest" (PH-16-R5): a 3-inning game has about 25 completed appearances, so each team earns about 2.5 Stars from the base. That is under one top special a game on top of the bonuses, which stay today's numbers. Shipped keeps 0 until an amount is accepted. |
+
+The event bonuses (`gains.strikeout` … `gains.robbedHomer`) are the performance bonuses PH-16-R5 asks for. The
+trial keeps them as shipped.
+
+What CPU games show (30 seeds × three pairings, three innings): the CPU uses 1.9–2.8 specials a game shipped and
+1.4–2.4 under the trial, and **both pools end the game at or near the 5-Star cap** in both. The CPU's special
+frequency is set by its per-pitch chance, not by the Stars. The tier prices will bite a human who spends freely;
+they barely move the CPU.
 
 ## What to sit
 

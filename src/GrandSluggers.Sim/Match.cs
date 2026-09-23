@@ -136,8 +136,10 @@ public sealed class Match
         LivePlay = new LivePlaySystem(this);
         AwayOrder = away.BattingOrder;
         HomeOrder = home.BattingOrder;
-        AwayStars = content.Chemistry.StartingStars(away);
-        HomeStars = content.Chemistry.StartingStars(home);
+        // One pool per team, the same usable reserve for both, set once here and never again (PH-16-R4, R6, R16):
+        // chemistry does not move it, and no half, role change or restart of a play grants it again.
+        AwayStars = _rules.Stars.StartingReserve;
+        HomeStars = _rules.Stars.StartingReserve;
         _homePitcher = home.Pitcher;
         _awayPitcher = away.Pitcher;
         _homeDefense = home.Roster.ToList();
@@ -1992,8 +1994,21 @@ public sealed class Match
         return result;
     }
 
+    /// <summary>
+    /// The plate appearance is complete: the one seam every strikeout, walk, hit-by-pitch and ball in play passes
+    /// once (§12). Both teams earn the base gain here (PH-16-R5), each into its own pool, whoever won the
+    /// appearance, on top of any bonus the play earned. A half that ends on a runner out between pitches (a caught
+    /// stealing or a pickoff for the third out) never reaches it: that appearance did not complete, and its batter
+    /// leads off his side's next half with a fresh count.
+    /// </summary>
     void NextBatter()
     {
+        var pa = Rules.Stars.Gains.PlateAppearance;
+        if (pa > 0)
+        {
+            AddStars(defense: true, pa);
+            AddStars(defense: false, pa);
+        }
         Balls = 0;
         Strikes = 0;
         _cpuStealDecided = false;

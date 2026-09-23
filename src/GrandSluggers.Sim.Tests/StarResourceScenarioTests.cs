@@ -5,7 +5,8 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The Star resource (spec §12, PH-16-R3, R7, R8, R9, R12, R13), Appendix B.1 rows S-170 … S-179.
+/// The Star resource (spec §12, PH-16-R3 … R9, R12, R13, R16), Appendix B.1 rows S-170 … S-177 (the price and the
+/// settle) and S-180 … S-185 (one pool per team, the equal starting reserve, the plate-appearance seam).
 ///
 /// <see cref="Match"/> settles every released special: affordable, the team pays the ability's tier price at the
 /// release; unaffordable, the action is the ordinary pitch or swing at the same timing, nothing is spent, and the
@@ -182,8 +183,11 @@ public sealed class StarResourceScenarioTests
         Assert.False(m.Play(Scenario.PitchAt(2.5, CenterY) with { Star = true }, Scenario.Take).Pitch.Star);
         m.GiveDefenseStars(cost);
         Assert.True(m.CanStarPitch);
-        Assert.True(m.Play(Scenario.PitchAt(2.5, CenterY) with { Star = true }, Scenario.Take).Pitch.Star);
-        Assert.Equal(0, m.DefenseStars, 9);
+        var paid = m.Play(Scenario.PitchAt(2.5, CenterY) with { Star = true }, Scenario.Take);
+        Assert.True(paid.Pitch.Star);
+        var request = Assert.Single(paid.Outcome!.Stars);
+        Assert.True(request.Afforded);
+        Assert.InRange(request.StarsBefore - cost, 0, 0.2);
     }
 
     // ---------------------------------------------------------------------------------
@@ -215,7 +219,9 @@ public sealed class StarResourceScenarioTests
                 var request = Assert.Single(ev.Outcome!.Stars);
                 Assert.True(request.Afforded);
                 Assert.Equal(cost, request.Spent);
-                Assert.Equal(before - cost, ev.Context!.Top ? m.AwayStars : m.HomeStars, 9);
+                // A third strike completes the appearance, which earns both teams the base gain on top (P5-b).
+                var paGain = ev.Kind == PlayKind.Strikeout ? content.Rules.Stars.Gains.PlateAppearance : 0;
+                Assert.Equal(before - cost + paGain, ev.Context!.Top ? m.AwayStars : m.HomeStars, 9);
                 prices.Add(cost);
             }
         }
@@ -401,12 +407,11 @@ public sealed class StarResourceScenarioTests
         var tt = Trial.Rules.Stars.Tiers;
         Assert.True(tt.Low < tt.Mid && tt.Mid < tt.Top, $"trial tiers {tt.Low} / {tt.Mid} / {tt.Top}");
         trial["tiers"] = shipped["tiers"]!.DeepClone();
-        foreach (var key in TrialOnlyStarKeys) trial[key.Section]![key.Field] = shipped[key.Section]![key.Field]!.DeepClone();
+        // P5-b's amounts ride the same file: the reserve and the base gain.
+        trial["startingReserve"] = shipped["startingReserve"]!.DeepClone();
+        trial["gains"]!["plateAppearance"] = shipped["gains"]!["plateAppearance"]!.DeepClone();
         Assert.Equal(shipped.ToJsonString(), trial.ToJsonString());
     }
-
-    /// <summary>The fields of <c>stars.json</c> the trial prices besides the tiers (none in P5-a).</summary>
-    static readonly (string Section, string Field)[] TrialOnlyStarKeys = [];
 
     // ---------------------------------------------------------------------------------
     // S-177  The CPU never asks for what it cannot pay
@@ -431,5 +436,262 @@ public sealed class StarResourceScenarioTests
             }
         }
         Assert.True(asked > 0, "the CPU used a special in three games");
+    }
+
+    // =================================================================================
+    // P5-b: one pool, one starting reserve, the plate-appearance seam (PH-16-R4, R5, R6, R16)
+    // =================================================================================
+
+    static readonly string[] Captains = ["rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn"];
+
+    // ---------------------------------------------------------------------------------
+    // S-180  The reserve is fixed and equal (the chemistry rows sit in TeamBuilderTests / ChemistryTests)
+    // ---------------------------------------------------------------------------------
+
+    [Theory]
+    [MemberData(nameof(Roots))]
+    public void S180_EveryPairingStartsBothTeamsOnTheSameReserveWhateverTheirChemistry(string root)
+    {
+        var content = Root(root);
+        var reserve = content.Rules.Stars.StartingReserve;
+        foreach (var home in Captains)
+        foreach (var away in Captains.Where(a => a != home))
+        {
+            var m = Match.Exhibition(content, home, away, innings: 3, seed: 1);
+            Assert.Equal(reserve, m.HomeStars);
+            Assert.Equal(reserve, m.AwayStars);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-181  A usable reserve: a special from the opening plate appearance
+    // ---------------------------------------------------------------------------------
+
+    [Theory]
+    [MemberData(nameof(Roots))]
+    public void S181_BothSidesCanAffordTheirSpecialsAtTheirOpeningPlateAppearance(string root)
+    {
+        var content = Root(root);
+        foreach (var home in Captains)
+        foreach (var away in Captains.Where(a => a != home))
+        {
+            // Top of the first: the home side's pitcher against the away leadoff.
+            var top = Match.Exhibition(content, home, away, innings: 3, seed: 1);
+            Assert.True(top.CanStarPitch, $"{top.Pitcher.Id} pitching the opener: {top.PitchStarCost} vs {top.DefenseStars}");
+            Assert.True(top.CanStarSwing, $"{away} leadoff {top.Batter.Id}: {top.SwingStarCost} vs {top.OffenseStars}");
+            // Bottom of the first, from the untouched reserve: the other side's pitcher and leadoff.
+            var bottom = Match.Exhibition(content, home, away, innings: 3, seed: 1);
+            bottom.SkipToHomeHalf();
+            Assert.True(bottom.CanStarPitch, $"{bottom.Pitcher.Id} pitching: {bottom.PitchStarCost} vs {bottom.DefenseStars}");
+            Assert.True(bottom.CanStarSwing, $"{home} leadoff {bottom.Batter.Id}: {bottom.SwingStarCost} vs {bottom.OffenseStars}");
+        }
+    }
+
+    [Fact]
+    public void S181_TheRulesValidatorRefusesAReserveOffTheMeterOrBelowTheCheapestTier()
+    {
+        foreach (var (reserve, low, expect) in new[]
+                 {
+                     (6, 1, "stars.startingReserve must fit the meter"),
+                     (1, 2, "stars.startingReserve must buy the cheapest tier"),
+                 })
+        {
+            using var fixture = new ContentFixture();
+            fixture.ChangeObject("rules/stars.json", json =>
+            {
+                json["startingReserve"] = reserve;
+                json["tiers"]!["low"] = low;
+                json["tiers"]!["mid"] = low;
+                json["tiers"]!["top"] = low;
+            });
+            Assert.Contains(RulesTable.Validate(new DataRoot(fixture.Root)), e => e.Contains(expect, StringComparison.Ordinal));
+        }
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-182  One pool per team, pitching and batting
+    // ---------------------------------------------------------------------------------
+
+    [Theory]
+    [MemberData(nameof(Roots))]
+    public void S182_ATeamsStarPitchAndItsStarSwingDrawOnOnePoolAndNeverTheOpponents(string root)
+    {
+        var content = Root(root);
+        var m = new Scenario(content).Match;
+        var away = m.AwayStars;
+        var pitchCost = m.PitchStarCost;
+        // Top: the home side pitches a paid special; only the home pool moves.
+        m.Play(Scenario.PitchAt(2.5, CenterY) with { Star = true }, Scenario.Take);
+        Assert.Equal(content.Rules.Stars.StartingReserve - pitchCost, m.HomeStars, 9);
+        Assert.Equal(away, m.AwayStars);
+        // Bottom: the same home side bats, and its Star Swing reads the pool its pitch already drew down.
+        var home = m.HomeStars;
+        m.SkipToHomeHalf();
+        Assert.Equal(home, m.OffenseStars);
+        var cost = m.SwingStarCost;
+        Assert.Equal(home >= cost, m.CanStarSwing);
+        var ev = m.Play(Scenario.PitchAt(0, CenterY), new SwingCommand(true, 0, 40, true));
+        // Paid from that pool when it covers the price; unavailable against that same pool when the pitch left it short.
+        var request = Assert.Single(ev.Outcome!.Stars);
+        Assert.Equal(home, request.StarsBefore);
+        Assert.Equal(home >= cost, request.Afforded);
+        Assert.Equal(home - request.Spent, m.HomeStars, 9);
+        Assert.Equal(away, m.AwayStars);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-183  The base gain: both teams, once, at the completed plate appearance
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S183_EveryCompletedPlateAppearanceEarnsBothTeamsTheBaseGainOnceAndNoPitchBeforeItDoes()
+    {
+        var g = Trial.Rules.Stars.Gains;
+        var max = Trial.Rules.Stars.MeterMax;
+        Assert.True(g.PlateAppearance > 0, "the trial names a base gain");
+        foreach (var seed in new[] { 1, 2, 3 })
+        {
+            var m = new Scenario(Trial, seed).Match;
+            // Ball, ball, ball: nothing completes, nothing is earned.
+            for (var i = 0; i < 3; i++)
+            {
+                var (h, a) = (m.HomeStars, m.AwayStars);
+                m.Play(Scenario.PitchAt(2.5, CenterY), Scenario.Take);
+                Assert.Equal((h, a), (m.HomeStars, m.AwayStars));
+            }
+            // Ball four: a walk earns no bonus, so each pool moves by exactly the base.
+            var (hw, aw) = (m.HomeStars, m.AwayStars);
+            Assert.Equal(PlayKind.Walk, m.Play(Scenario.PitchAt(2.5, CenterY), Scenario.Take).Kind);
+            Assert.Equal(Math.Min(max, hw + g.PlateAppearance), m.HomeStars, 9);
+            Assert.Equal(Math.Min(max, aw + g.PlateAppearance), m.AwayStars, 9);
+            // A strikeout: the defense stacks its bonus on the base; the offense still earns the base.
+            for (var i = 0; i < 2; i++) m.Play(Scenario.Paint, Scenario.Take);
+            var (hk, ak) = (m.HomeStars, m.AwayStars);
+            Assert.Equal(PlayKind.Strikeout, m.Play(Scenario.Paint, Scenario.Take).Kind);
+            Assert.Equal(Math.Min(max, hk + g.Strikeout + g.PlateAppearance), m.HomeStars, 9);
+            Assert.Equal(Math.Min(max, ak + g.PlateAppearance), m.AwayStars, 9);
+        }
+    }
+
+    [Fact]
+    public void S183_AHitEarnsTheOffenseItsBonusAndBothTeamsTheBaseOnce()
+    {
+        var g = Trial.Rules.Stars.Gains;
+        var max = Trial.Rules.Stars.MeterMax;
+        var seen = 0;
+        for (var seed = 1; seed <= 40 && seen < 6; seed++)
+        foreach (var err in new[] { -3.0, -1.5, 0, 1.5, 3 })
+        {
+            var m = new Scenario(Trial, seed).Match;
+            var (h, a) = (m.HomeStars, m.AwayStars);
+            var ev = m.Play(Scenario.PitchAt(0, CenterY), Scenario.SwingAt(err, charge: 1));
+            var bonus = ev.Kind switch
+            {
+                PlayKind.Single => g.Single,
+                PlayKind.Double or PlayKind.Triple => g.ExtraBaseHit,
+                PlayKind.HomeRun => g.HomeRun,
+                _ => -1
+            };
+            if (bonus < 0 || ev.Outcome!.OutsMade.Count > 0) continue;
+            seen++;
+            // The hit's bonus (and the billboard's, if it rang) to the offense; the base to both, once.
+            var offense = m.AwayStars;
+            Assert.True(Math.Abs(offense - Math.Min(max, a + bonus + g.PlateAppearance)) < 1e-9
+                        || Math.Abs(offense - Math.Min(max, a + bonus + g.Billboard + g.PlateAppearance)) < 1e-9,
+                $"{ev.Kind}: {a} → {offense}");
+            Assert.Equal(Math.Min(max, h + g.PlateAppearance), m.HomeStars, 9);
+        }
+        Assert.True(seen > 0, "a clean hit in two hundred swings");
+    }
+
+    [Fact]
+    public void S183_OnTheShippedRootThePlateAppearanceEarnsNothingOfItsOwn()
+    {
+        Assert.Equal(0, Shipped.Rules.Stars.Gains.PlateAppearance);
+        var m = new Scenario(Shipped).Match;
+        var (h, a) = (m.HomeStars, m.AwayStars);
+        for (var i = 0; i < 4; i++) m.Play(Scenario.PitchAt(2.5, CenterY), Scenario.Take);
+        Assert.Equal((h, a), (m.HomeStars, m.AwayStars));
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-184  The caught-stealing third out mid-appearance
+    // ---------------------------------------------------------------------------------
+
+    static Match StealTeams(ContentCatalog content)
+    {
+        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = content.Team("Offense", "zig", "konga", "dart", "jester", "cinder", "grit", "soot", "boom", "nugget");
+        return Match.Exhibition(content, home, away, 3, 1);
+    }
+
+    [Theory]
+    [MemberData(nameof(Roots))]
+    public void S184_AHalfThatEndsOnACaughtStealingBetweenPitchesCompletesNoPlateAppearance(string root)
+    {
+        var content = Root(root);
+        var g = content.Rules.Stars.Gains;
+        var m = StealTeams(content);
+        Assert.True(m.SetOuts(2));
+        Assert.True(m.StationRunner(1, m.AwayOrder.Single(c => c.Id == "konga")));
+        Assert.Equal("konga", m.First!.Id);
+        var batter = m.AwayBatter;
+        var (h, a) = (m.HomeStars, m.AwayStars);
+        Assert.True(m.StartSteal());
+
+        var ev = m.Play(Scenario.Paint, Scenario.Take);
+
+        Assert.Equal(PlayKind.CaughtStealing, ev.Kind);
+        Assert.Single(ev.Outcome!.OutsMade);
+        Assert.False(m.Top);
+        // The batter's appearance did not complete: he leads off his side's next half with a fresh count,
+        // and neither pool earned the base; the defense has only its live-out bonus.
+        Assert.Equal(batter, m.AwayBatter);
+        Assert.Equal((0, 0), (m.Balls, m.Strikes));
+        Assert.Equal(a, m.AwayStars);
+        Assert.Equal(Math.Min(content.Rules.Stars.MeterMax, h + g.LiveOut), m.HomeStars, 9);
+    }
+
+    [Fact]
+    public void S184_AStrikeoutWithTheCaughtStealingCompletesTheAppearanceOnceAndEarnsTheBaseOnce()
+    {
+        var g = Trial.Rules.Stars.Gains;
+        var m = StealTeams(Trial);
+        Assert.True(m.StationRunner(1, m.AwayOrder.Single(c => c.Id == "konga")));
+        for (var i = 0; i < 2; i++) m.Play(Scenario.Paint, Scenario.Take);
+        var batter = m.AwayBatter;
+        var (h, a) = (m.HomeStars, m.AwayStars);
+        Assert.True(m.StartSteal());
+
+        var ev = m.Play(Scenario.Paint, Scenario.Take);
+
+        Assert.Equal(PlayKind.CaughtStealing, ev.Kind);
+        Assert.Equal(2, ev.Outcome!.OutsMade.Count);
+        Assert.Equal((batter + 1) % m.AwayOrder.Count, m.AwayBatter);
+        Assert.Equal(a + g.PlateAppearance, m.AwayStars, 9);
+        Assert.Equal(Math.Min(Trial.Rules.Stars.MeterMax, h + g.Strikeout + g.LiveOut + g.PlateAppearance), m.HomeStars, 9);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-185  Whole games stay inside the meter
+    // ---------------------------------------------------------------------------------
+
+    [Theory]
+    [MemberData(nameof(Roots))]
+    public void S185_InWholeCpuGamesEveryPoolStaysBetweenEmptyAndTheMeter(string root)
+    {
+        var content = Root(root);
+        var max = content.Rules.Stars.MeterMax;
+        foreach (var seed in new[] { 1, 2, 3 })
+        {
+            var m = Match.Exhibition(content, "vale", "konga", innings: 3, seed: seed);
+            for (var guard = 0; !m.Over && guard < 2000; guard++)
+            {
+                m.AutoPlay();
+                Assert.InRange(m.HomeStars, 0, max);
+                Assert.InRange(m.AwayStars, 0, max);
+            }
+            Assert.True(m.Over);
+        }
     }
 }

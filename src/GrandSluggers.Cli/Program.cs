@@ -329,9 +329,11 @@ static void PrintTeam(ContentCatalog content, string id)
         _ => PresetTeams.ForCaptain(content, id)
     };
 
-    var stars = content.Chemistry.StartingStars(team);
-    var avg = content.Chemistry.AverageWithCaptain(team);
-    Console.WriteLine($"{team.Name}  captain {team.Captain.Name}  chemistry avg {avg:0}  starting stars {stars}/5");
+    // Chemistry pays off in the field; every team starts on the same Stars (PH-16-R16).
+    var buddies = team.Roster.Count(c => c.Id != team.Captain.Id && content.Chemistry.Between(team.Captain, c) == Chemistry.Good);
+    var rivals = team.Roster.Count(c => c.Id != team.Captain.Id && content.Chemistry.Between(team.Captain, c) == Chemistry.Bad);
+    Console.WriteLine($"{team.Name}  captain {team.Captain.Name}  good {buddies} bad {rivals} with the captain  "
+        + $"starting stars {content.Rules.Stars.StartingReserve}/{content.Rules.Stars.MeterMax:0} (every team)");
     Console.WriteLine($"{"",2} {"Name",-14} {"Fac",-10} {"vs C",-8} P B F R");
     foreach (var c in team.Roster)
     {
