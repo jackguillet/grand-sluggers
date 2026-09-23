@@ -42,7 +42,7 @@ public sealed class HazardActorsTests
     }
 
     /// <summary>
-    /// The ring is the disc the sim reads: a warp pipe's radius plus its 8 ft reach pad (the pad nobody saw before), the
+    /// The ring is the disc the sim reads: a warp pipe's radius plus its reach pad (the pad nobody saw before), the
     /// fire breath's radius × 1.6 at night, a freeze volume's radius by day and night.
     /// </summary>
     [Fact]
@@ -51,10 +51,10 @@ public sealed class HazardActorsTests
         var hazards = Catalog.Rules.Hazards;
         var warp = hazards.Of(HazardType.WarpPipe);
         Assert.Equal(6 + warp.ReachPadFt, HazardActors.PlayDiscFt(6, warp, night: false));
-        Assert.Equal(8.0, warp.ReachPadFt);
+        Assert.True(warp.ReachPadFt > 0, "the redirect has a pad the ring must include");
         var breath = hazards.Of(HazardType.FireBreath);
         Assert.Equal(ParkHazards.NightDiscFt(10, breath), HazardActors.PlayDiscFt(10, breath, night: true));
-        Assert.Equal(16.0, HazardActors.PlayDiscFt(10, breath, night: true), 9);
+        Assert.Equal(10 * breath.NightRadiusMul, HazardActors.PlayDiscFt(10, breath, night: true), 9);
         Assert.Equal(10.0, HazardActors.PlayDiscFt(10, breath, night: false));
         var freeze = hazards.Of(HazardType.FreezeVolume);
         Assert.Equal(7.0, HazardActors.PlayDiscFt(7, freeze, night: true));

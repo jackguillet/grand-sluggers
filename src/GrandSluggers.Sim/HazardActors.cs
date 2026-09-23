@@ -46,7 +46,7 @@ public sealed class HazardActors
     /// <summary>
     /// The disc the sim reads for an instance of radius <paramref name="radiusFt"/> (FD-16, FR-13): the radius, the type's
     /// night multiple at night (<see cref="ParkHazards.NightDiscFt"/>), plus the row's reach pad — a redirect catches a
-    /// grounder inside its radius plus 8 ft, and the ring is drawn there, not at the radius alone.
+    /// grounder inside its radius plus its row's pad, and the ring is drawn there, not at the radius alone.
     /// </summary>
     public static double PlayDiscFt(double radiusFt, HazardTypeRules row, bool night) =>
         (night ? ParkHazards.NightDiscFt(radiusFt, row) : radiusFt) + row.ReachPadFt;
