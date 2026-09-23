@@ -54,8 +54,8 @@ public sealed class StealPresentationTests
         var camera = new CameraShot(frame.Shot, "race", frame.Pos, frame.Look, frame.Fov, frame.Blend);
         foreach (var p in subjects)
         {
-            Assert.True(PlayCamera.InFrame(PlayCamera.Project(camera, p, aspect), .09));
-            Assert.True(PlayCamera.InFrame(PlayCamera.Project(camera, p with { Y = p.Y + content.Feel.RaceCamera.BodyHeightFt }, aspect), .09));
+            Assert.True(PlayCamera.InFrame(PlayCamera.Project(camera, p, aspect), content.Feel.RaceCamera.Margin - .01));
+            Assert.True(PlayCamera.InFrame(PlayCamera.Project(camera, p with { Y = p.Y + content.Feel.RaceCamera.BodyHeightFt }, aspect), content.Feel.RaceCamera.Margin - .01));
         }
     }
 
@@ -72,14 +72,14 @@ public sealed class StealPresentationTests
             Assert.Equal(0, frame.Look.X);
             Assert.True(frame.Pos.Z < frame.Look.Z);
             var pitch = Math.Atan2(frame.Pos.Y - frame.Look.Y, frame.Look.Z - frame.Pos.Z) * 180 / Math.PI;
-            Assert.InRange(pitch, 25, 31); // below the 45° fly view, above catcher eye level
+            Assert.InRange(pitch, 21, 25); // below the 45° fly view, above catcher eye level
             var camera = new CameraShot(frame.Shot, "race", frame.Pos, frame.Look, frame.Fov, frame.Blend);
             var home = PlayCamera.Project(camera, PlayCamera.BagSubject(4), 16.0 / 9);
             var center = PlayCamera.Project(camera, new Vec3(0, 0, 300), 16.0 / 9);
             Assert.NotNull(home); Assert.NotNull(center);
             Assert.Equal(home.Value.X, center.Value.X, 9);
             foreach (var p in subjects)
-                Assert.True(PlayCamera.InFrame(PlayCamera.Project(camera, p with { Y = 12 }, 16.0 / 9), .09));
+                Assert.True(PlayCamera.InFrame(PlayCamera.Project(camera, p with { Y = 12 }, 16.0 / 9), content.Feel.RaceCamera.Margin - .01));
         }
         var start = PlayCamera.RaceFraming(content.Shots, subjects, 16.0 / 9, content.Feel.RaceCamera);
         var end = PlayCamera.RaceFraming(content.Shots, subjects, 16.0 / 9, content.Feel.RaceCamera, 12);

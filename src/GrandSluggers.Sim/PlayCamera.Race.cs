@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 public sealed record RaceCameraFeel
 {
-    public double Margin { get; init; } = .10;
+    public double Margin { get; init; } = .06;
     public double BodyHeightFt { get; init; } = 12;
     public double BodyRadiusFt { get; init; } = 3;
     public double ThrowFollow { get; init; } = .12;
