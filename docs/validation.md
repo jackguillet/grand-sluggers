@@ -12,7 +12,7 @@ dotnet run --project src/GrandSluggers.Cli -- art
 python3 -m unittest discover -s tools/tests -p 'test_*.py'
 ```
 
-The .NET test assembly contains simulation and content contracts only. Tool tests cover revision-safe local delivery and the compiler source inventory.
+The .NET test assembly contains simulation and content contracts only. PRs run the breakage suite (`--filter "Kind!=Balance"`); balance and calibration tests carry `[Trait("Kind", "Balance")]` and run on demand (`full-tests.yml`, or `tools/test-fast.sh --balance`). `tools/test-fast.sh [ClassName ...]` runs the breakage suite locally, optionally narrowed to classes. Tool tests cover revision-safe local delivery and the compiler source inventory.
 
 ## Narrow Unity C# compile
 

@@ -168,6 +168,8 @@ public sealed class HazardsOffTests
     /// that has a hazard, so a park added with a hazard and no row here fails.
     /// </summary>
     [Fact]
+    [Trait("Kind", "Balance")]
+    [Trait("Cost", "Heavy")]
     public void SF24_OverAFixedSeedSetHazardsOnPlaysAHazardOutcomeAndHazardsOffPlaysNone()
     {
         var (home, away) = ParkFactorCohort.Matchups[0];
@@ -313,6 +315,8 @@ public sealed class HazardsOffTests
     /// the default game is the hazards-on one, not the hazards-off one.
     /// </summary>
     [Fact]
+    [Trait("Kind", "Balance")]
+    [Trait("Cost", "Heavy")]
     public void SF24_AMatchBuiltWithoutTheArgumentIsTheHazardsOnMatchSeedForSeed()
     {
         var (park, night, seed) = DefaultOnGame;

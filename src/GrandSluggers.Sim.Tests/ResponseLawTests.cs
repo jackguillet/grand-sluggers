@@ -17,6 +17,7 @@ public sealed class ResponseLawTests
     const double Frame = 1.0 / 60.0;
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheShippedStepIsInstantAndTheTrialRampsAndBrakes()
     {
         Assert.Equal((0.0, 0.0), (Control.Rules.Fielding.Chase.AccelSec, Control.Rules.Fielding.Chase.BrakeSec));
@@ -137,6 +138,7 @@ public sealed class ResponseLawTests
 
     /// <summary>The control's cover body is at the flat speed on its very first step: the law's code path is not taken at 0 / 0.</summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheControlsFirstStepIsAlreadyAtSpeed()
     {
         var home = Control.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
