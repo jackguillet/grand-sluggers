@@ -157,7 +157,8 @@ namespace GrandSluggers.UnityClient
                     ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), d2));
             }
             LookAtYourCaptain();
-            if (Controls.WestDown && _t > 0.15f)
+            var navigation = SetupSheet.Pointer(false, out _);
+            if ((Controls.WestDown || navigation == SetupSheet.Action.Back) && _t > 0.15f)
             {
                 OpenField();
                 return;
@@ -171,7 +172,7 @@ namespace GrandSluggers.UnityClient
                     return;
                 }
             }
-            if (Controls.SouthDown && _t > 0.15f)
+            if ((navigation == SetupSheet.Action.Next || (Controls.SouthDown && !Controls.PointerDown)) && _t > 0.15f)
             {
                 BindMatchSeats();
                 GuidedSeatsBound();

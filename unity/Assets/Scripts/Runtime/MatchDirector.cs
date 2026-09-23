@@ -670,7 +670,8 @@ namespace GrandSluggers.UnityClient
                 return _campaign.MakeMatch(_content, Innings, Seed, night: Night);
             }
             _campaign = null;
-            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night, Difficulty, Hazards);
+            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night, Difficulty, Hazards,
+                mercy: _guided != null || _settings.Mercy, stars: _guided != null || _settings.Stars);
         }
 
         /// <summary>The field card of the park as this exhibition will play it (F8-a): tonight's instances, the hazards switch applied.</summary>

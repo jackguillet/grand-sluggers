@@ -318,4 +318,35 @@ public static class CarnivalFront
             _ => null
         };
     }
+
+    // The shared Exhibition setup pages own one couch vocabulary.
+    public const string SetupStadiumStep = "01 / STADIUM";
+    public const string SetupCaptainsStep = "02 / CAPTAINS";
+    public const string SetupSettingsStep = "05 / MATCH SETTINGS";
+    public const string SetupSettingsTitle = "Set the rules. Play ball.";
+    public const string SetupRulesOwner = "Player 1 adjusts settings. Both players ready up to start.";
+    public const string SetupRulesChanged = "Changing a setting clears both ready states.";
+    public const string SetupPreviousStadium = "← Previous stadium";
+    public const string SetupNextStadium = "Next stadium →";
+    public const string SetupBackTitle = "Back to title";
+    public const string SetupBackStadium = "Back to stadium";
+    public const string SetupPickCaptains = "Pick captains →";
+    public const string SetupCpuReady = "CPU · READY";
+    public const string SetupDay = "DAY GAME";
+    public const string SetupNight = "NIGHT GAME";
+    public const string SetupEditSettings = "Edit settings";
+    public const string SetupBackPositions = "Positions / order";
+    public const string SetupWaiting = "P1 ready · waiting";
+    public static string SetupNightLabel(bool on, bool keys) => "Night mode   " + (on ? "ON" : "OFF") + (keys ? "    N" : "    R3");
+    public static string SetupHazardsLabel(bool on, bool keys) => "Hazards   " + (on ? "ON" : "OFF") + (keys ? "    R" : "    Select");
+    public static string SetupStadiumHelp(bool keys) => keys ? "A/D  Stadium    Space  Captains    F  Back" : "Stick  Stadium    South  Captains    West  Back";
+    public static string SetupPickLineup(bool keys) => keys ? "Space  Pick lineup →" : "South  Pick lineup →";
+    public static string SetupCaptainHelp(bool keys) => keys
+        ? "A/D  Your team    W/S  Opponent    Q  Home / away\nComma  1 player    Tab  2 players    F  Back"
+        : "L/R  Your team    U/D  Opponent    North  Home / away\nLB  1 player    RB  2 players    West  Back";
+    public static string SetupAwayName(string captain) => captain + " at";
+    public static string SetupPlayBall(bool keys) => keys ? "Q  Ready / play ball" : "North  Ready / play ball";
+    public static string SetupRulesHelp(bool keys) => keys ? "W/S  Select     A/D or Space  Change\nF  Back     Esc  How to play" : "Stick  Select / change     South  Change\nWest  Back     Esc  How to play";
+    public static string SetupReadySeat(LineupSeat seat, bool ready) => (seat == LineupSeat.Pad1 ? "P1" : "P2") + (ready ? " · READY" : " · NOT READY");
+    public static string SetupReadyHelp(bool keys) => keys ? "Q  Ready    F  Edit" : "North  Ready    West  Edit";
 }

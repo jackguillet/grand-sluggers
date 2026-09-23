@@ -48,23 +48,35 @@ namespace GrandSluggers.UnityClient
         {
             var old = Begin();
             var keys = Controls.SeatUsesKeyboard(0);
-            Text(40, 8, 650, 22, "01 / STADIUM", _small);
-            Button(ExhibitionSetupLayout.Night, "Night mode   " + (night ? "ON" : "OFF") + (keys ? "    N" : "    R3"), night);
-            Button(ExhibitionSetupLayout.Hazards, "Hazards   " + (hazards ? "ON" : "OFF") + (keys ? "    R" : "    Select"), hazards);
-            Button(ExhibitionSetupLayout.PreviousPark, "← Previous stadium", false);
-            Button(ExhibitionSetupLayout.NextPark, "Next stadium →", false);
-            Button(ExhibitionSetupLayout.Back, "Back to title", false);
-            Button(ExhibitionSetupLayout.Next, "Pick captains →", true);
-            Text(250, 718, 710, 48, keys ? "A/D  Stadium    Space  Captains    F  Back" : "Stick  Stadium    South  Captains    West  Back", _body);
+            Text(40, 8, 650, 22, CarnivalFront.SetupStadiumStep, _small);
+            Button(ExhibitionSetupLayout.Night, CarnivalFront.SetupNightLabel(night, keys), night);
+            Button(ExhibitionSetupLayout.Hazards, CarnivalFront.SetupHazardsLabel(hazards, keys), hazards);
+            Button(ExhibitionSetupLayout.PreviousPark, CarnivalFront.SetupPreviousStadium, false);
+            Button(ExhibitionSetupLayout.NextPark, CarnivalFront.SetupNextStadium, false);
+            Button(ExhibitionSetupLayout.Back, CarnivalFront.SetupBackTitle, false);
+            Button(ExhibitionSetupLayout.Next, CarnivalFront.SetupPickCaptains, true);
+            Text(250, 718, 710, 48, CarnivalFront.SetupStadiumHelp(keys), _body);
+            GUI.matrix = old;
+        }
+        public static void CaptainControls()
+        {
+            var old = Begin();
+            var keys = Controls.SeatUsesKeyboard(0);
+            Fill(new Rect(376, 28, 210, 35), Ink);
+            Text(390, 28, 185, 35, CarnivalFront.SetupCaptainsStep, _small);
+            Fill(new Rect(24, 704, 1232, 78), Ink);
+            Button(ExhibitionSetupLayout.Back, CarnivalFront.SetupBackStadium, false);
+            Button(ExhibitionSetupLayout.Next, CarnivalFront.SetupPickLineup(keys), true);
+            Text(242, 716, 734, 50, CarnivalFront.SetupCaptainHelp(keys), _body);
             GUI.matrix = old;
         }
         public static void Settings(ExhibitionSettings settings, LineupScreens lineup, Match match)
         {
             var old = Begin();
             Fill(new Rect(0, 0, 1280, 800), Ink);
-            Text(40, 28, 900, 24, "05 / MATCH SETTINGS", _small);
-            Text(40, 62, 1100, 48, "Set the rules. Play ball.", _title);
-            Text(40, 119, 1100, 24, "Player 1 adjusts settings. Both players ready up to start.", _body);
+            Text(40, 28, 900, 24, CarnivalFront.SetupSettingsStep, _small);
+            Text(40, 62, 1100, 48, CarnivalFront.SetupSettingsTitle, _title);
+            Text(40, 119, 1100, 24, CarnivalFront.SetupRulesOwner, _body);
             for (var i = 0; i < ExhibitionSettings.RowCount; i++)
             {
                 var r = RectOf(ExhibitionSetupLayout.SettingsRow(i));
@@ -75,26 +87,26 @@ namespace GrandSluggers.UnityClient
             }
             Fill(new Rect(830, 166, 410, 468), new Color(.075f, .115f, .14f));
             Text(850, 187, 370, 30, match.Park.Name, _label);
-            Text(850, 226, 370, 25, match.Night ? "NIGHT GAME" : "DAY GAME", _small);
-            Text(850, 270, 370, 32, lineup.AwayCaptain.Name + " at", _body);
+            Text(850, 226, 370, 25, match.Night ? CarnivalFront.SetupNight : CarnivalFront.SetupDay, _small);
+            Text(850, 270, 370, 32, CarnivalFront.SetupAwayName(lineup.AwayCaptain.Name), _body);
             Text(850, 300, 370, 32, lineup.HomeCaptain.Name, _label);
             ReadySeat(850, 380, LineupSeat.Pad1, lineup);
             if (lineup.HomeSeat == LineupSeat.Pad2 || lineup.AwaySeat == LineupSeat.Pad2)
                 ReadySeat(850, 455, LineupSeat.Pad2, lineup);
-            else Text(850, 455, 370, 32, "CPU · READY", _body);
-            Text(850, 563, 370, 48, "Changing a setting clears both ready states.", _small);
+            else Text(850, 455, 370, 32, CarnivalFront.SetupCpuReady, _body);
+            Text(850, 563, 370, 48, CarnivalFront.SetupRulesChanged, _small);
             var keys = Controls.SeatUsesKeyboard(0);
-            Button(ExhibitionSetupLayout.Back, lineup.IsReady(LineupSeat.Pad1) ? "Edit settings" : "Positions / order", false);
-            Button(ExhibitionSetupLayout.Next, lineup.IsReady(LineupSeat.Pad1) ? "P1 ready · waiting" : (keys ? "Q  Ready / play ball" : "North  Ready / play ball"), true);
-            Text(242, 716, 734, 50, keys ? "W/S  Select     A/D or Space  Change\nF  Back     Esc  How to play" : "Stick  Select / change     South  Change\nWest  Back     Esc  How to play", _body);
+            Button(ExhibitionSetupLayout.Back, lineup.IsReady(LineupSeat.Pad1) ? CarnivalFront.SetupEditSettings : CarnivalFront.SetupBackPositions, false);
+            Button(ExhibitionSetupLayout.Next, lineup.IsReady(LineupSeat.Pad1) ? CarnivalFront.SetupWaiting : CarnivalFront.SetupPlayBall(keys), true);
+            Text(242, 716, 734, 50, CarnivalFront.SetupRulesHelp(keys), _body);
             GUI.matrix = old;
         }
         static void ReadySeat(float x, float y, LineupSeat seat, LineupScreens lineup)
         {
             var ready = lineup.IsReady(seat);
-            Text(x, y, 370, 30, (seat == LineupSeat.Pad1 ? "P1" : "P2") + (ready ? " · READY" : " · NOT READY"), _label);
+            Text(x, y, 370, 30, CarnivalFront.SetupReadySeat(seat, ready), _label);
             var keys = Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1);
-            Text(x, y + 31, 370, 24, keys ? "Q  Ready    F  Edit" : "North  Ready    West  Edit", _small);
+            Text(x, y + 31, 370, 24, CarnivalFront.SetupReadyHelp(keys), _small);
         }
         static void Button(LineupCell c, string text, bool primary)
         {
