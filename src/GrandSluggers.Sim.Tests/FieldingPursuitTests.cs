@@ -133,8 +133,10 @@ public class FieldingPursuitTests
         // short), so nobody meets that roll. 78 mph between 8° and 12° is the gap liner CF runs down in every park there.
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var exit = 78;
+        // Every park still at today's numbers: on Crystal's ice (F9-a) the same gap liner runs past the centre fielder to the
+        // glass, which is the park's point (CrystalRinkTests.SF11_TheSameGrounderRunsFartherOnTheIce).
         foreach (var spray in (new[] { 10d, -10d, 8d, -8d, 12d, -12d }))
-        foreach (var park in _content.Parks.Values)
+        foreach (var park in TodaysParks.Of(_content))
         {
             var corner = spray > 0 ? "RF" : "LF";
             var match = Match.Slice(_content, parkId: park.Id, seed: 1);

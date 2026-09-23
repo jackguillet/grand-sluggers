@@ -31,7 +31,8 @@ public sealed class HandlingErrorTests
         Assert.Equal((30.0, 0.20, 6.0, 0.50, 0.25), (h.BobbleSpreadDeg, h.BobbleRetain, h.BobbleCapFtPerSec, h.BobbleReboundCapFt, h.BobbleSettleFt));
         // The bobble's restitution, the roll it keeps per impact and its rolling deceleration are the ground's since F3-c (FD-05): every
         // ground row carries the same accepted 0.35 / 0.90 / 6.
-        foreach (var id in Game.Rules.Grounds.Ids)
+        // Ice is Crystal's own row since F9-a: its bobble rolls on longer (GroundLibraryTests.F9A_TheIceRowIsCrystalsNumbersFieldForField).
+        foreach (var id in Game.Rules.Grounds.Ids.Where(id => id != Ground.Ice))
         {
             var b = Game.Rules.Grounds.Of(id).Bobble;
             Assert.Equal((0.35, 0.90, 6.0), (b.Restitution, b.GroundRetain, b.DecelFtPerSec2));
