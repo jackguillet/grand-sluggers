@@ -76,6 +76,17 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 51 | A PR was merged before `portable` finished on its final head (#870); the run later passed, as did `main`'s. | PR #870 | Wait for the run on the final head. |
 | 52 | Capturing while Jack is at the keyboard pulls focus from whatever he is doing, not only from the game window. | captures under #866 | Warn him first; captures take about 20-30 s per park and light. |
 
+### Found by the fifth batch (September 23, 2026)
+
+| # | Finding | Where | Effect |
+| --- | --- | --- | --- |
+| 53 | F4-d and F4-b changed play, and neither re-reported park factors or S-29 (Jack: "let's move faster"). The map asked F4-b for both. | PRs #902, #905 | Owed at tuning, with Q10 and Q11; not a target (FD-13). |
+| 54 | F4-b changed shipped play at Crystal and Ember and not on `trials/c80`: seed 7 Ember day 3-4 → 4-5, night 5-3 → 4-5; Crystal kept its score in a different game. The live slow and one less draw on the seeded stream both move the game. | PR #905 | Any change to a hazard's draws reseeds the rest of that game. |
+| 55 | A stored game at a hazard park is tied to the hazard code: `NightBlockTests`' Ember night rows were re-recorded on both roots, and SF-24's Crystal row moved to day seed 14 because a Crystal night is now its day and seed 10 no longer freezes. | PRs #902, #905 | Re-record the row in the PR that changes the hazard, and say so. |
+| 56 | The heart swing's `drops.frozen` roll is the last frozen-drop roll. It is a special, not a park rule. | PR #905 | Out of the fields scope (specials excluded). |
+| 57 | Two sub-agents ran wide local test filters, S-29 and park factors after being told not to, and loaded the shared Mac. | PRs #902, #905 | The orchestrator finishes a child itself: rebase, fix only the tests that broke, run only those classes, seed 7 before and after. |
+| 58 | In zsh, `${park:+--park $park}` passes one argument, so the CLI saw `--park crystal` as one word. | PR #905 | Build the argument list as an array. |
+
 ## 2. Rails every child carries
 
 What a PR owes is [agent-rails.md](agent-rails.md) §1.2 (2026-09-22). Where a rail below asks for more, §1.2 wins: no local full suite, no reseal, no `trials/c80` twin, no register or ledger edit in a feature child. Balance runs on demand.
@@ -297,4 +308,6 @@ Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by e
 | F7-b1 named still shots for both foul poles | #882 | #884 | `b64bf799` | `278a83d8`: 2079 / 2079; every park's pole in frame on both roots | none |
 | F6-a2 the old backstop pieces and dugouts go at the five parks | #881 | #885 | `b72fd0b0` | `2ed155ed`: source rows name exactly the 21 + 16 retired pieces on the old source; unity-compile OK; before / after stills of five parks | **Jack passed the look** ("merge them") |
 | F2-b2 the drawn rail stays hip-high to the foul pole | #873 | #875 | `12345a76` | `f83aead9`: 2069 / 2069, 859 / 859 before the last rebases; seed 7 identical; seals hash-only; pole stills at six parks, day and night | **Jack passed the look** ("merge them") |
+| F4-d night blocks; one played park (`PlayedPark.Of`); Crystal's night window dropped on both roots | #895 | #902 | `ce5975b0` | `10ba5486`: filtered classes 21 / 21; seed 7 identical except Crystal night, which now equals Crystal day; seals hash-only; balance not measured | none |
+| F4-b a status volume slows the body that touches it for 3 s at 0.45; `BodySlowed`; the park's `drops.frozen` roll retired | #896 | #905 | `f80e63cc` | `29894d58`: filtered classes green on the shipped root; seed 7 Harbor identical, Crystal and Ember changed on the shipped root, `trials/c80` identical; seals hash-only; balance not measured | none; a sitting judges the 3 s slow |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
