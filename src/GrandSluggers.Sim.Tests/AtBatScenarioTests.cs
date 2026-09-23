@@ -559,7 +559,7 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
-    public void S25_EveryVerbAndRunAllowedCostsTheArmFromTheTable()
+    public void S25_EveryPitchVerbCostsTheArmFromTheTable()
     {
         var s = new Scenario(_content);
         var match = s.Match;
@@ -581,6 +581,36 @@ public sealed class AtBatScenarioTests
         var before = star.Match.PitcherStamina;
         star.Match.Play(Scenario.PitchAt(2.5, CenterY) with { Star = true }, Scenario.Take);
         Assert.Equal(before - st.PitchCost - skill, star.Match.PitcherStamina);
+    }
+
+    /// <summary>
+    /// PH-08-R3: only pitching costs the arm. A homer and the runs it drives in cost nothing past the pitch
+    /// that was hit, and a run forced in by a walk costs nothing past the four balls.
+    /// </summary>
+    [Fact]
+    public void S25_AHomerOrARunAllowedCostsTheArmNothing()
+    {
+        var st = _content.Rules.Pitching.Stamina;
+        var slam = new Scenario(_content).Runner(1, 1).Runner(2, 2).Runner(3, 3);
+        var match = slam.Match;
+        var full = match.PitcherStamina;
+        slam.Contact();
+        Assert.Equal(full - st.PitchCost, match.PitcherStamina);
+        var hit = FlightFixtures.OverTheFence(match.Park, 20, 0);
+        var field = new FieldingResult(PlayKind.HomeRun, null, null, 4, 0, 420, false, false);
+        var play = match.FinishAtBat(Scenario.Paint, Scenario.Swing, hit, field);
+        Assert.Equal(PlayKind.HomeRun, play.Kind);
+        Assert.Equal(4, play.RunsScored);
+        Assert.Equal(full - st.PitchCost, match.PitcherStamina);
+
+        var walk = new Scenario(_content).Runner(1, 1).Runner(2, 2).Runner(3, 3).Match;
+        var fresh = walk.PitcherStamina;
+        var wide = Scenario.PitchAt(2.5, CenterY);
+        PlayEvent? last = null;
+        for (var i = 0; i < 4; i++) last = walk.Play(wide, Scenario.Take);
+        Assert.Equal(PlayKind.Walk, last!.Kind);
+        Assert.Equal(1, last.RunsScored);
+        Assert.Equal(fresh - 4 * st.PitchCost, walk.PitcherStamina);
     }
 
     [Fact]
@@ -609,6 +639,50 @@ public sealed class AtBatScenarioTests
             Assert.Equal(gloves[pos].Id, after[pos].Id);
         Assert.False(match.CanSwapPitcher, "once per half-inning");
         Assert.False(match.SwapPitcher());
+    }
+
+    /// <summary>
+    /// PH-08-R2: fatigue is the character's for the match. The arm that leaves the mound keeps what it spent
+    /// through the halves it sits on a glove, and takes the mound back with exactly that pool; the reliever
+    /// keeps what it spent too. Nothing rests an arm and no swap resets one.
+    /// </summary>
+    [Fact]
+    public void S146_AReturningArmKeepsItsFatigue()
+    {
+        var match = new Scenario(_content).Match;
+        var outside = Scenario.PitchAt(2.5, CenterY);
+        var strike = Scenario.PitchAt(0, CenterY);
+        Assert.True(match.Top);
+        var starter = match.Pitcher;
+        for (var i = 0; i < 3; i++) match.Play(outside, Scenario.Take);
+        var spent = match.PitcherStamina;
+        Assert.True(spent < match.StaminaPool(starter));
+
+        var reliever = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher)["SS"];
+        Assert.True(match.SwapPitcher(reliever));
+        EndHalf(match, strike);
+        Assert.False(match.Top);
+        EndHalf(match, strike);
+        Assert.True(match.Top);
+        Assert.Equal(reliever.Id, match.Pitcher.Id);
+        var relieverSpent = match.PitcherStamina;
+        Assert.True(relieverSpent < match.StaminaPool(reliever));
+        Assert.Equal(spent, match.StaminaOf(starter));
+
+        Assert.True(match.SwapPitcher(starter));
+        Assert.Equal(starter.Id, match.Pitcher.Id);
+        Assert.Equal(spent, match.PitcherStamina);
+        Assert.Equal(relieverSpent, match.StaminaOf(reliever));
+    }
+
+    /// <summary>Two outs, then three called strikes: the half ends on the arm that is on the mound.</summary>
+    static void EndHalf(Match match, PitchCommand strike)
+    {
+        var top = match.Top;
+        Assert.True(match.SetOuts(2));
+        var guard = 0;
+        while (match.Top == top && guard++ < 10) match.Play(strike, Scenario.Take);
+        Assert.NotEqual(top, match.Top);
     }
 
     // ---------------------------------------------------------------------------------
