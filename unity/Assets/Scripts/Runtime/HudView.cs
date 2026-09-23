@@ -77,7 +77,7 @@ namespace GrandSluggers.UnityClient
             if (exhibition)
             {
                 Sticker(CarnivalFront.PlayBall, 44, 88, 640, 28, _gold);
-                // Innings and the difficulty rung, next to each other (P7): the two numbers the title owns.
+                // Exhibition settings are chosen after the lineup.
                 if (!string.IsNullOrEmpty(setup))
                     GUI.Label(new Rect(44, 124, 640, 22), setup, _gold);
             }
@@ -90,7 +90,7 @@ namespace GrandSluggers.UnityClient
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                $"South pick captain    West / F tutorials    Esc how to play    Start / H mode    Tab innings    X / LB difficulty    F6 input: {Controls.Player1InputLabel}", _tiny);
+                $"South / Space pick stadium    West / F tutorials    Esc how to play    Start / H mode    F6 input: {Controls.Player1InputLabel}", _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,
@@ -184,7 +184,7 @@ namespace GrandSluggers.UnityClient
             }
             if (!CarnivalFront.HarborIsTheProduct(parkId))
                 GUI.Label(new Rect(44, y, 720, 22), "Harbor is the slice.", _tiny);
-            GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22), CarnivalFront.FieldFooter, _tiny);
+
         }
 
         static void Sticker(string text, float x, float y, float w, float h, GUIStyle style)

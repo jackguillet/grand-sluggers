@@ -73,11 +73,11 @@ namespace GrandSluggers.UnityClient
             GUI.matrix = Matrix4x4.Scale(new Vector3(Screen.width / 1280f, Screen.height / 800f, 1));
             Fill(new Rect(0, 0, 1280, 800), Ink);
             var team = lineup.Step == LineupStep.TeamSetup;
-            Label(24, 24, 860, 22, team ? "01  /  CHOOSE YOUR TEAM" : "02  /  SET YOUR LINEUP", _small);
+            Label(24, 24, 860, 22, team ? "03  /  CHOOSE YOUR TEAM" : "04  /  SET YOUR LINEUP", _small);
             Label(24, 54, 1000, 46, team ? "Build your nine" : "Batting order & field positions", _title);
             Label(24, 108, 880, 26, lineup.Help, _body);
             Label(936, 32, 320, 24, match == null ? "EXHIBITION" : match.Park.Name.ToUpperInvariant(), _small);
-            Label(936, 60, 320, 26, "BOTH TEAMS  ·  " + lineup.HomeStars + " STARTING STARS", _small);
+            Label(936, 60, 320, 26, "MATCH SETTINGS FOLLOW LINEUP", _small);
             var p1 = Inspection(lineup, LineupSeat.Pad1);
             var p2 = Inspection(lineup, LineupSeat.Pad2);
             if (team)
@@ -98,14 +98,14 @@ namespace GrandSluggers.UnityClient
             PlayerCard(lineup, true, lineup.HomeSeat == LineupSeat.Pad2 ? p2 : lineup.HomeSeat == LineupSeat.Pad1 ? p1 : lineup.HomeCaptain);
             PlayerCard(lineup, false, lineup.AwaySeat == LineupSeat.Pad2 ? p2 : lineup.AwaySeat == LineupSeat.Pad1 ? p1 : lineup.AwayCaptain);
             var keys = Controls.SeatUsesKeyboard(0);
-            Button(LineupLayout.BackButton, team ? (keys ? "F  Remove player" : "West  Remove player") : lineup.IsReady(LineupSeat.Pad1) ? (keys ? "F  Edit lineup" : "West  Edit lineup") : lineup.HasPick(LineupSeat.Pad1) ? (keys ? "F  Cancel pick" : "West  Cancel pick") : (keys ? "F  Back" : "West  Back"), false);
+            Button(LineupLayout.BackButton, team ? "Back to captains" : lineup.IsReady(LineupSeat.Pad1) ? (keys ? "F  Edit lineup" : "West  Edit lineup") : lineup.HasPick(LineupSeat.Pad1) ? (keys ? "F  Cancel pick" : "West  Cancel pick") : (keys ? "F  Back" : "West  Back"), false);
             if (team)
             {
                 Button(LineupLayout.FillButton, keys ? "Tab  Fill team" : "RB  Fill team", false);
-                Label(390, 716, 605, 46, keys ? "WASD  Move   ·   Space  Add / continue\nEsc  How to play" : "Stick  Move   ·   South  Add / continue\nEsc  How to play", _body);
+                Label(390, 716, 605, 46, keys ? "WASD  Move · Space  Add / continue\nF  Remove · G  Captains · Esc  How to play" : "Stick  Move · South  Add / continue\nWest  Remove · East  Captains · Esc  How to play", _body);
             }
             else Label(206, 720, 785, 42, keys ? "WASD  Move     Space / click  Pick & swap\nG  Order / field     Esc  How to play" : "Stick  Move     South  Pick & swap\nEast  Order / field     Esc  How to play", _body);
-            Button(LineupLayout.ContinueButton, team ? "Continue  →" : lineup.IsReady(LineupSeat.Pad1) ? "P1 Ready · waiting for P2" : (keys ? "Q  Ready  →" : "North  Ready  →"), team ? lineup.Ready : !lineup.HasPick(LineupSeat.Pad1));
+            Button(LineupLayout.ContinueButton, team ? "Continue  →" : lineup.IsReady(LineupSeat.Pad1) ? "P1 Ready · waiting for P2" : (keys ? "Q  Next: settings  →" : "North  Next: settings  →"), team ? lineup.Ready : !lineup.HasPick(LineupSeat.Pad1));
             GUI.matrix = old;
         }
 
@@ -206,7 +206,7 @@ namespace GrandSluggers.UnityClient
                 var keys = Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1);
                 Label(r.x + 16, r.y + 240, r.width - 32, 20, ready
                     ? (keys ? "Waiting for other player · F to edit" : "Waiting for other player · West to edit")
-                    : (keys ? "Q  Ready when your lineup is set" : "North  Ready when your lineup is set"), _small);
+                    : (keys ? "Q  Continue to match settings" : "North  Continue to match settings"), _small);
             }
         }
 

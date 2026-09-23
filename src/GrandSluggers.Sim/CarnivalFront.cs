@@ -6,6 +6,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class CarnivalFront
 {
+    public const string ExhibitionTitle = "EXHIBITION · BUILD YOUR MATCH";
     public const string Logo = "GRAND SLUGGERS";
     public const string PlayBall = "South / Space    play ball";
     public const string YouAreHome = "HOME";
@@ -19,7 +20,7 @@ public static class CarnivalFront
     public const string OnePlayer = "1 PLAYER";
     public const string TwoPlayers = "2 PLAYERS";
     public const string SelectHelp =
-        "LB 1 player    RB 2 players    L/R your team    U/D the other    North HOME/AWAY    South the field    West title";
+        "LB 1 player    RB 2 players    L/R your team    U/D the other    North HOME/AWAY    South lineup    West stadium";
     public const string PlugPad2 = "Plug in controller 2. Until then you play the CPU.";
 
     public static string SeatModeLabel(bool versus) => versus ? TwoPlayers : OnePlayer;
@@ -230,7 +231,7 @@ public static class CarnivalFront
         TitleSetup(innings, level, rules) + "  ·  " + HazardsLabel(hazards);
 
     /// <summary>The field postcard's footer: every verb on the screen, the hazards switch beside night.</summary>
-    public const string FieldFooter = "stick L/R the field    South lineup    West captains    N night    R hazards    Esc how to play";
+    public const string FieldFooter = "stick L/R the field    South captains    West title    N night    R hazards    Esc how to play";
 
     /// <summary>What the caption calls the redirect the ball went through (F4-c). Copy, not a rule.</summary>
     public static string RedirectName(string? type) => type switch
