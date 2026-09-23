@@ -95,7 +95,7 @@ public sealed class FielderTellsTests
     [Fact]
     public void TheDiverStaysDownThenGetsUpThroughTheResultBeat()
     {
-        var (match, live) = BeginCpu(Game, 130, 16, 6, seed: 1);
+        var (match, live) = BeginCpu(Game, 115, 16, 2, seed: 1, human: true);
         var last = FielderTells.Owed.None;
         var commits = 0;
         PlayEvent? play = null;
@@ -139,7 +139,7 @@ public sealed class FielderTellsTests
     [Fact]
     public void AMissedDiveStillLiesTheDiverDownWhoeverHoldsTheRing()
     {
-        var (match, live) = BeginCpu(Game, 130, 16, 6, seed: 1);
+        var (match, live) = BeginCpu(Game, 115, 16, 2, seed: 1, human: true);
         var owedFrames = 0;
         var nudged = false;
         PlayEvent? play = null;
@@ -270,7 +270,7 @@ public sealed class FielderTellsTests
 
     /// <summary>Harbor, the CPU on both sides of the ball; the contact judged by the flight (Nice unless the source test named Perfect).</summary>
     static (Match Match, LivePlaySystem Live) BeginCpu(ContentCatalog content, double exit, double launch, double spray, int seed,
-        ContactQuality quality = ContactQuality.Nice)
+        ContactQuality quality = ContactQuality.Nice, bool human = false)
     {
         var d = Defense;
         var home = content.Team("Defense", d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8]);
@@ -280,7 +280,7 @@ public sealed class FielderTellsTests
         Assert.False(hit.Foul);
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
-        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, human ? HumanGlove : LiveSeats.CpuOnly, 0, human ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu)).Snapshot.Active);
         return (match, live);
     }
 
@@ -298,8 +298,14 @@ public sealed class FielderTellsTests
         return (match, live);
     }
 
-    static PlayEvent? Tick(LivePlaySystem live) =>
-        live.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu)).CompletedPlay;
+    static PlayEvent? Tick(LivePlaySystem live)
+    {
+        var d = Diamond.Dist(live.GloveX, live.GloveZ, live.BallX, live.BallZ);
+        var dive = live.Seats.HumanFields && live.DiveT <= 0 && live.DiveRecoveryT <= 0 && !live.HoldsBall
+                   && live.ElapsedSeconds >= live.Preview!.HangTimeSec - .35 && d < 14;
+        return live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(EastDown: dive), LivePadInput.Dead, false,
+            live.Seats.HumanFields ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu)).CompletedPlay;
+    }
 
     static void Tick(LivePlaySystem live, int frames, Func<int, LivePadInput> pad, Action? afterEach = null)
     {

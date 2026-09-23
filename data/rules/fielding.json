@@ -14,7 +14,7 @@
     // #633 (S-97): after a hand-off the body the ring left keeps its velocity for this long, then stops (the FIFA
     // "move assistance" idea, spec §8.9). The thrower at a release does not coast (§8.5).
     "handoffCoastSec": 0.2,
-    "looseScoopFt": 3.5,
+    "looseScoopFt": 2.5,
     // #609: the S-29 lever since the outfield read went back to the reference. An outfielder on a ball hit in
     // the air runs at the one glove speed x this. S-29 seeds 1-5: 1.18 / 1.48 runs a side at 1.0 with the 0.83 s
     // read, 2.20 / 2.62 at 0.6 (P7's 2.4 s read at 1.0: 2.52 / 2.72). The fly stretch (flight.timeScale 1.1-1.65)
@@ -56,6 +56,8 @@
     // #718 (the four read clocks): pitcher 0.35, catcher 0.45, one number for the infield four, outfield 0.40 — the
     // largest single change in the profile, and the one most likely to show in 3d.
     "pitcherSec": 0.35,
+    // Full-swing contact leaves the delivery body recovering; bunts retain the quick read.
+    "pitcherRecoverySec": 1.0,
     "catcherSec": 0.45,
     "firstSec": 0.25,
     "secondSec": 0.25,
@@ -84,20 +86,19 @@
     "chaseMul": 1.0,
     "buddyTossFt": 28,
     "kickFt": 22,
-    "diveLungeFt": 10,
+    "diveLungeFt": 8,
     "itemSmashFt": 24
   },
   "catch": {
     "radiusBaseFt": 10,
     "radiusPerField": 0.6,
-    // #719: the 6-ft stand-up reach, authored independently of ratings; a character's own reachFt still wins. The stack is
-    // 6 stand-up / 10 on the dirt (the 4-ft pad) / 14 with a dive (+8). Ability bonuses add to it as they always did.
-    "standUpReachFt": 6.0,
+    // Authored reach: 4 ft standing, 5 ft on the dirt, 6 ft diving in the air. Ability bonuses remain explicit.
+    "standUpReachFt": 4.0,
     "clamberRadiusFt": 6,
     // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is
     // the catch radius, and the rim is diveReachFt (#669).
-    "windowPadFt": 4,
-    "diveReachFt": 8,
+    "windowPadFt": 1,
+    "diveReachFt": 2,
     // #719: the jump is the arc below, not eight feet of horizontal reach.
     "jumpReachFt": 0,
     "diveMaxBallY": 7.5,
@@ -128,10 +129,6 @@
     "jumpArmSec": 0.55,
     "wallJumpArmSec": 0.7,
     "diveArmSec": 0.5,
-    // #719: nobody dives for free. No assistance dive on a neutral stick, no unconditional CPU dive; the CPU commits on the live
-    // ball at the last makeable moment and can miss. Every dive, caught or missed, human or CPU, costs 0.60 s at Field 1 down to
-    // 0.465 at Field 10 before the diver moves or throws.
-    "autoDive": 0,
     "diveRecoverySec": 0.60,
     "diveRecoveryFieldCut": 0.025,
     // #719: the normal jump. A fresh eligible West press takes off at once: 2.0 ft of root rise over 0.60 s (apex at 0.30),

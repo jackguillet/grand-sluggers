@@ -519,8 +519,8 @@ public sealed partial class LivePlaySystem
         CoverBallX = Preview?.LandingX ?? Ball.LandingX;
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
         var airHang = Ball.Shape.OnTheDirt() ? (double?)null : Hang;
-        foreach (var kv in FieldingResolver.CpuReactionLockouts(R, airHang)) _readyAt[kv.Key] = kv.Value;
-        foreach (var kv in FieldingResolver.ReactionLockouts(R, 1, airHang)) _readyHuman[kv.Key] = kv.Value;
+        foreach (var kv in FieldingResolver.CpuReactionLockouts(R, airHang, Hit.Class == BattedBallClass.Bunt)) _readyAt[kv.Key] = kv.Value;
+        foreach (var kv in FieldingResolver.ReactionLockouts(R, 1, airHang, Hit.Class == BattedBallClass.Bunt)) _readyHuman[kv.Key] = kv.Value;
         InitGloves();
         // The park's status volumes, as this play reads them (F4-b): every body starts outside them, unslowed.
         _bodySlows.Begin(ParkHazards.StatusVolumes(Park, _match.Night, R));
@@ -975,9 +975,8 @@ public sealed partial class LivePlaySystem
                 }
             }
         }
-        if (pad.EastDown && CanMove(GlovePos))
+        if (pad.EastDown && CanMove(GlovePos) && LungeToward(pre, plant))
         {
-            LungeToward(pre, plant);
             DiveT = catchRules.DiveArmSec;
             PayDive(GlovePos);
         }
@@ -1015,7 +1014,6 @@ public sealed partial class LivePlaySystem
                 var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, diveWin,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var distPlant = Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z);
-                var diveDist = needsJump ? distPlant : d;
                 // The leap: the body actually in the air (#719); the old arm window at jumpAirSec 0.
                 var leaping = catchRules.JumpArc ? Airborne : JumpT > 0;
                 var jumpTry = leaping && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
@@ -1024,14 +1022,6 @@ public sealed partial class LivePlaySystem
                 // Dead stick = CPU runs the glove (§8.2): stand-up under the ring, dive at the rim (#669).
                 if (dead && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
                     TakeBattedBall();
-                // The assistance dives only where the table says the dive is free (catch.autoDive 1, the shipped rule, #719).
-                if (dead && catchRules.AutoDive > 0 && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R))
-                {
-                    LungeToward(pre, plant);
-                    DiveT = catchRules.DiveArmSec;
-                    CatchDive = true;
-                    TakeBattedBall();
-                }
                 if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, underStand, inWin, needsJump, canRob))
                 {
                     if (jumpTry) CatchJump = true;
@@ -1117,7 +1107,6 @@ public sealed partial class LivePlaySystem
     {
         var pre = Preview!;
         var hang = Hang;
-        var grounder = pre.Grounder;
         var catchRules = R.Fielding.Catch;
         if (Seats.HumanOwnsThrow && !HoldsBall)
             NoteSwitchHint(Assigned(), pre, pad);
@@ -1127,10 +1116,9 @@ public sealed partial class LivePlaySystem
         var cpuMap = Assigned();
         var cpuRadius = CatchRadius(cpuMap);
         var cpuStandUp = FieldingResolver.StandUpCatchFt(cpuRadius);
-        var cpuDiveWin = FieldingResolver.DiveCatchFt(cpuRadius, R);
         var cpuScoop = FieldingResolver.CatchWindowFt(cpuRadius, dive: false, jump: false, R);
         var cpuDist = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
-        // The CPU catch is geometric (§8.3): stand-up under the ring; at the rim they dive (#669).
+        // CPU catches use standing reach. Only a human command may initiate a dive.
         // Nothing is force-fed at hang. Dirt scoops keep windowPadFt (the double-play rows).
         if (!HoldsBall && GloveMayTake(GlovePos))
         {
@@ -1146,24 +1134,12 @@ public sealed partial class LivePlaySystem
                 var linerInAir = !needsJump && ElapsedSeconds < hang;
                 var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuStandUp,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
-                var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuDiveWin,
-                    ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
                 var buddyAt = buddyOn && !string.IsNullOrEmpty(BuddyPos) && _fielders.TryGetValue(BuddyPos, out var buddySpot)
                               && Diamond.Dist(buddySpot.X, buddySpot.Z, plant.X, plant.Z) < catchRules.BuddyPlantFt;
                 var canRob = needsJump && FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyAt, R);
                 var autoStand = FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob, linerInAir: linerInAir);
-                // The rim (#719): the CPU commits on the live (at autoDive 1 it would dive there for free)
-                // ball at the last makeable moment, pays the recovery, and takes the ball only if it actually comes.
-                var free = catchRules.AutoDive > 0;
-                if (!free && DiveT <= 0 && !underStand && CpuDiveCommits(pre, hang, cpuStandUp, cpuDiveWin, needsJump, out var at))
-                {
-                    LungeTo(at.X, at.Z);
-                    DiveT = catchRules.DiveArmSec;
-                    PayDive(GlovePos);
-                }
-                var autoDive = (free || DiveT > 0) && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R);
-                if (autoStand || autoDive)
+                if (autoStand)
                 {
                     // Drop chances belong to star effects only (§8.6): rolled once, on the one seeded stream. A glove a park's
                     // status volume slowed rolls nothing (F4-b, FD-08-R1, SF-22): the glove and the ball decide its catch.
@@ -1181,18 +1157,6 @@ public sealed partial class LivePlaySystem
                             Buddy = true;
                             _events.Add(LiveEvent.BuddyJump);
                         }
-                        if (autoDive)
-                        {
-                            if (free)
-                            {
-                                LungeToward(pre, plant);
-                                DiveT = catchRules.DiveArmSec;
-                            }
-                            CatchDive = true;
-                        }
-                        // A committed dive whose lunge carried the body under the ring is still the dive it paid for (#719).
-                        else if (!free && DiveT > 0)
-                            CatchDive = true;
                         TakeBattedBall();
                     }
                 }
@@ -2676,21 +2640,23 @@ public sealed partial class LivePlaySystem
     double CatchWindow(Dictionary<string, Character> map) =>
         FieldingResolver.CatchWindowFt(CatchRadius(map), DiveT > 0, JumpT > 0, R);
 
-    /// <summary>East / CPU rim dive: the body lunges toward the ball (liner, hopper, loose) or the plant (fly).</summary>
-    void LungeToward(FieldingPreview pre, (double X, double Z) plant)
+    /// <summary>A human East press lunges sideways toward the ball or its landing point.</summary>
+    bool LungeToward(FieldingPreview pre, (double X, double Z) plant)
     {
         var toX = pre.Grounder || pre.Line || _loose ? BallX : plant.X;
         var toZ = pre.Grounder || pre.Line || _loose ? BallZ : plant.Z;
-        LungeTo(toX, toZ);
+        return LungeTo(toX, toZ);
     }
 
-    void LungeTo(double toX, double toZ)
+    bool LungeTo(double toX, double toZ)
     {
         var lunged = FieldDash.Lunge(GloveX, GloveZ, toX, toZ, R.Fielding.Dash.DiveLungeFt);
+        if (Diamond.Dist(GloveX, GloveZ, lunged.X, lunged.Z) < 0.01) return false;
         GloveX = lunged.X;
         GloveZ = lunged.Z;
         _lungePos = GlovePos;
         _fielders[GlovePos] = (GloveX, GloveZ);
+        return true;
     }
 
     // ---------------------------------------------------------------------------------
@@ -2706,32 +2672,6 @@ public sealed partial class LivePlaySystem
         DivingPos = pos;
         _recoveryPress = null;
         _events.Add(LiveEvent.DiveCommit);
-    }
-
-    /// <summary>
-    /// The CPU's dive commitment (F693-02-cpu-dive-intent-policy), read off the live ball alone — its position and the velocity
-    /// between the last two frames, flown on under gravity with no drag and no resolved path: where it comes down to dive height
-    /// (<c>catch.diveMaxBallY</c>) is <paramref name="at"/>. It commits at the last makeable moment: the ball is still in the air,
-    /// that point lies past the stand-up ring and inside the rim, it arrives inside the arm window, and the body's legs can no
-    /// longer bring the ring under it in time. A ball that then moves — a carom, a deflection — is missed, and the recovery is
-    /// owed all the same.
-    /// </summary>
-    bool CpuDiveCommits(FieldingPreview pre, double hang, double standUp, double diveWin, bool needsJump, out (double X, double Z) at)
-    {
-        at = (BallX, BallZ);
-        if (needsJump || _ballPrev is null || ElapsedSeconds >= hang) return false;
-        var c = R.Fielding.Catch;
-        // The measured velocity is in play seconds, so gravity must use that same clock.
-        var g = R.Flight.Gravity / (R.Flight.TimeScale * R.Flight.TimeScale);
-        var (vx, vy, vz) = _ballVel;
-        var above = BallY - c.DiveMaxBallY;
-        var t = above <= 0 ? 0 : (vy + Math.Sqrt(Math.Max(0, vy * vy + 2 * g * above))) / g;
-        at = (BallX + vx * t, BallZ + vz * t);
-        var dist = Diamond.Dist(GloveX, GloveZ, at.X, at.Z);
-        if (dist < standUp || dist >= diveWin) return false;
-        if (t > c.DiveArmSec) return false;
-        var speed = FieldingResolver.ChaseSpeedFt(GloveChar(), GlovePos, pre, R);
-        return dist - standUp > speed * t;
     }
 
     /// <summary>
@@ -2858,6 +2798,7 @@ public sealed partial class LivePlaySystem
     /// <summary>A body on a peel or dazed by a rocket cannot take the ball; a POW keeps every ball on the dirt hopping (§12).</summary>
     bool GloveMayTake(string pos)
     {
+        if (pos == "P" && ElapsedSeconds + 1e-9 < ReadyAt(pos)) return false;
         if (_foil.ContainsKey(pos)) return false;
         if (Stunned(pos)) return false;   // the fumbler waits out the stun (#721); a helper may take it first
         if (_powT > 0 && BallY < R.Fielding.Catch.TouchScoopY) return false;
