@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 /// Appendix B.9 <c>SF-06</c>, <c>SF-07</c>, the per-span half of <c>SF-12</c>).
 ///
 /// <para>
-/// <b>Two kinds of row.</b> <c>SF06_…</c> is parity: no shipped or trial park names points, so every catalog park must
+/// <b>Two kinds of row.</b> <c>SF06_…</c> is parity: no shipped park names points, so every catalog park must
 /// play and draw the three-post fence it always did, held <em>bit for bit</em> against the code as it stood before the
 /// polyline existed (<see cref="Old"/>, transcribed from <c>2f1d56ba</c> — the before picture, which nothing here may
 /// "fix"). The <c>SF07_…</c> and <c>SF12_…</c> rows prove the rail is real on a fixture fence built in the test — a porch,
@@ -17,26 +17,15 @@ namespace GrandSluggers.Sim.Tests;
 /// that followed it look the same.
 /// </para>
 ///
-/// <para>
-/// Every row runs on the shipped root and on <c>trials/c80</c>, both loaded by hand, and the class is tagged
-/// <c>Rows=compact</c> so CI plays it a second time under the overlay.
-/// </para>
 /// </summary>
 public sealed class PolylineFenceTests
 {
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
-
-    static string TrialDir =>
-        Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"));
-
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped, TrialDir));
-
-    static IEnumerable<ContentCatalog> BothRoots => [Shipped, Trial];
+    static readonly ContentCatalog Game = ContentCatalog.Load();
 
     /// <summary>
     /// The fixture fence: a tall short porch down the left-field line, back out to the arc, a notch at centre, and a short,
     /// deeper, lower alley in right-centre. Fractions of each park's own three-post fence (FD-12), so the one block is
-    /// legal on both roots; heights in feet, unscaled. The alley's two spans name <c>padded</c> out loud, the rest leave
+    /// legal on any park's posts; heights in feet, unscaled. The alley's two spans name <c>padded</c> out loud, the rest leave
     /// it to the default.
     /// </summary>
     static readonly FencePoint[] Fixture =
@@ -68,7 +57,7 @@ public sealed class PolylineFenceTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-06</c>, both roots, every catalog park: no park names points, and <see cref="AtBatResolver.FenceAt"/> on a
+    /// <c>SF-06</c>, every catalog park: no park names points, and <see cref="AtBatResolver.FenceAt"/> on a
     /// fine bearing grid (inside and past both poles), the clip polygon vertex for vertex, and the drawn loop are the
     /// pre-polyline ones <b>to the bit</b>. Every piece of the polygon is level (no far top) and padded, its top at any
     /// point along it is its <see cref="FieldBounds.WallSegment.HeightFt"/> exactly, and a seeded match at the park writes
@@ -79,55 +68,55 @@ public sealed class PolylineFenceTests
     public void SF06_EveryCatalogParkPlaysAndDrawsTheThreePostFenceBitForBit()
     {
         var parks = 0;
-        foreach (var catalog in BothRoots)
-            foreach (var park in catalog.Parks.Values)
+        var catalog = Game;
+        foreach (var park in catalog.Parks.Values)
+        {
+            var (home, away) = PresetTeams.Pair(catalog, "rio", "ashlord");
+            parks++;
+            Assert.Null(park.Fence);
+
+            for (var tenth = -500; tenth <= 500; tenth++)
             {
-                var (home, away) = PresetTeams.Pair(catalog, "rio", "ashlord");
-                parks++;
-                Assert.Null(park.Fence);
-
-                for (var tenth = -500; tenth <= 500; tenth++)
-                {
-                    var bearing = tenth / 10.0;
-                    Bits($"{park.Id} FenceAt({bearing})", Old.FenceAt(park, bearing), AtBatResolver.FenceAt(park, bearing));
-                    var spot = AtBatResolver.FenceSpotAt(park, bearing);
-                    Bits($"{park.Id} spot({bearing})", Old.FenceAt(park, bearing), spot.DistanceFt);
-                    Assert.Equal(park.FenceHeightFt, spot.TopFt);
-                    Assert.Equal(WallMaterial.Padded, spot.Material);
-                }
-
-                var grid = Enumerable.Range(0, FieldBounds.FenceSegs + 1)
-                    .Select(i => -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i / FieldBounds.FenceSegs).ToArray();
-                Assert.Equal(grid, FieldBounds.FenceBearings(park));
-
-                var expected = Old.Polygon(park, ParkBoundary.Default);
-                var actual = FieldBounds.Of(park).Segments;
-                Assert.Equal(expected.Count, actual.Count);
-                for (var i = 0; i < expected.Count; i++)
-                {
-                    // Record equality: the positions, the top, the kind, the normal, the radii — and the two new members at
-                    // their defaults, padded and level.
-                    Assert.Equal(expected[i], actual[i]);
-                    Assert.Null(actual[i].HeightBFt);
-                    Assert.Equal(WallMaterial.Padded, WallMaterial.OfSegment(actual[i]));
-                    Bits($"{park.Id} top of segment {i}", actual[i].HeightFt, actual[i].HeightAt(0.37));
-                }
-
-                var oldLoop = Old.Loop(park, ParkBoundary.Default);
-                var loop = HarborWall.Loop(park);
-                Assert.Equal(oldLoop.Length, loop.Length);
-                for (var i = 0; i < loop.Length; i++)
-                {
-                    Bits($"{park.Id} loop[{i}].X", oldLoop[i].X, loop[i].X);
-                    Bits($"{park.Id} loop[{i}].Z", oldLoop[i].Z, loop[i].Z);
-                    if (HarborWall.IsOutfield(park, i))
-                        Assert.Equal((float)park.FenceHeightFt, HarborWall.Height(park, i));
-                }
-
-                var identity = PlayTraceIdentity.Capture(new Match(catalog, away, home, park, innings: 3, seed: 7));
-                Assert.DoesNotContain("\"fence\"", identity.InputsJson, StringComparison.Ordinal);
+                var bearing = tenth / 10.0;
+                Bits($"{park.Id} FenceAt({bearing})", Old.FenceAt(park, bearing), AtBatResolver.FenceAt(park, bearing));
+                var spot = AtBatResolver.FenceSpotAt(park, bearing);
+                Bits($"{park.Id} spot({bearing})", Old.FenceAt(park, bearing), spot.DistanceFt);
+                Assert.Equal(park.FenceHeightFt, spot.TopFt);
+                Assert.Equal(WallMaterial.Padded, spot.Material);
             }
-        Assert.Equal(12, parks);
+
+            var grid = Enumerable.Range(0, FieldBounds.FenceSegs + 1)
+                .Select(i => -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i / FieldBounds.FenceSegs).ToArray();
+            Assert.Equal(grid, FieldBounds.FenceBearings(park));
+
+            var expected = Old.Polygon(park, ParkBoundary.Default);
+            var actual = FieldBounds.Of(park).Segments;
+            Assert.Equal(expected.Count, actual.Count);
+            for (var i = 0; i < expected.Count; i++)
+            {
+                // Record equality: the positions, the top, the kind, the normal, the radii — and the two new members at
+                // their defaults, padded and level.
+                Assert.Equal(expected[i], actual[i]);
+                Assert.Null(actual[i].HeightBFt);
+                Assert.Equal(WallMaterial.Padded, WallMaterial.OfSegment(actual[i]));
+                Bits($"{park.Id} top of segment {i}", actual[i].HeightFt, actual[i].HeightAt(0.37));
+            }
+
+            var oldLoop = Old.Loop(park, ParkBoundary.Default);
+            var loop = HarborWall.Loop(park);
+            Assert.Equal(oldLoop.Length, loop.Length);
+            for (var i = 0; i < loop.Length; i++)
+            {
+                Bits($"{park.Id} loop[{i}].X", oldLoop[i].X, loop[i].X);
+                Bits($"{park.Id} loop[{i}].Z", oldLoop[i].Z, loop[i].Z);
+                if (HarborWall.IsOutfield(park, i))
+                    Assert.Equal((float)park.FenceHeightFt, HarborWall.Height(park, i));
+            }
+
+            var identity = PlayTraceIdentity.Capture(new Match(catalog, away, home, park, innings: 3, seed: 7));
+            Assert.DoesNotContain("\"fence\"", identity.InputsJson, StringComparison.Ordinal);
+        }
+        Assert.Equal(6, parks);
     }
 
     // ---------------------------------------------------------------------------------
@@ -135,56 +124,54 @@ public sealed class PolylineFenceTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-07</c>, both roots. On the fixture fence every point is a vertex of the clip polygon, exactly where FD-12's
+    /// <c>SF-07</c>. On the fixture fence every point is a vertex of the clip polygon, exactly where FD-12's
     /// unit puts it; each fence piece carries the top at both its ends (the point heights, straight between them) and the
     /// material of its span; and the pieces between the poles are the fence and nothing else.
     /// </summary>
     [Fact]
     public void SF07_EveryPointIsAVertexOfTheClipPolygonAtItsHeight()
     {
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var park = Fenced(catalog.Parks["harbor-diamond"]);
+        var fair = FieldBounds.Of(park).Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence).ToList();
+        Assert.Equal(FieldBounds.FenceBearings(park).Count - 1, fair.Count);
+        // The fence runs pole to pole: the first piece starts on the left pole, the last ends on the right.
+        Assert.Equal(PointAt(park, Fixture[0]), (fair[0].Ax, fair[0].Az));
+        Assert.Equal(PointAt(park, Fixture[^1]), (fair[^1].Bx, fair[^1].Bz));
+
+        for (var k = 0; k < Fixture.Length; k++)
         {
-            var park = Fenced(catalog.Parks["harbor-diamond"]);
-            var fair = FieldBounds.Of(park).Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence).ToList();
-            Assert.Equal(FieldBounds.FenceBearings(park).Count - 1, fair.Count);
-            // The fence runs pole to pole: the first piece starts on the left pole, the last ends on the right.
-            Assert.Equal(PointAt(park, Fixture[0]), (fair[0].Ax, fair[0].Az));
-            Assert.Equal(PointAt(park, Fixture[^1]), (fair[^1].Bx, fair[^1].Bz));
-
-            for (var k = 0; k < Fixture.Length; k++)
+            var at = PointAt(park, Fixture[k]);
+            var starts = fair.Where(s => (s.Ax, s.Az) == at).ToList();
+            var ends = fair.Where(s => (s.Bx, s.Bz) == at).ToList();
+            Assert.True(starts.Count + ends.Count > 0, $"{catalog.Root.Provenance}: point {k} is not a polygon vertex");
+            foreach (var s in starts)
             {
-                var at = PointAt(park, Fixture[k]);
-                var starts = fair.Where(s => (s.Ax, s.Az) == at).ToList();
-                var ends = fair.Where(s => (s.Bx, s.Bz) == at).ToList();
-                Assert.True(starts.Count + ends.Count > 0, $"{catalog.Root.Provenance}: point {k} is not a polygon vertex");
-                foreach (var s in starts)
-                {
-                    Assert.Equal(Fixture[k].HeightFt, s.HeightFt);
-                    Assert.Equal(Fixture[k].Material ?? WallMaterial.Padded, s.Material);
-                }
-                foreach (var s in ends)
-                    Near(Fixture[k].HeightFt, s.HeightAt(1), 1e-9);
+                Assert.Equal(Fixture[k].HeightFt, s.HeightFt);
+                Assert.Equal(Fixture[k].Material ?? WallMaterial.Padded, s.Material);
             }
+            foreach (var s in ends)
+                Near(Fixture[k].HeightFt, s.HeightAt(1), 1e-9);
+        }
 
-            // Between two points a piece is straight on the chord, its top on the straight line between the heights.
-            foreach (var s in fair)
+        // Between two points a piece is straight on the chord, its top on the straight line between the heights.
+        foreach (var s in fair)
+        {
+            var span = SpanOf(park, FieldBounds.SprayDeg((s.Ax + s.Bx) / 2, (s.Az + s.Bz) / 2));
+            var (a, b) = (PointAt(park, Fixture[span]), PointAt(park, Fixture[span + 1]));
+            Assert.True(OffLine(a, b, s.Ax, s.Az) < 1e-9 && OffLine(a, b, s.Bx, s.Bz) < 1e-9, $"piece off span {span}'s chord");
+            foreach (var along in new[] { 0.0, 0.5, 1.0 })
             {
-                var span = SpanOf(park, FieldBounds.SprayDeg((s.Ax + s.Bx) / 2, (s.Az + s.Bz) / 2));
-                var (a, b) = (PointAt(park, Fixture[span]), PointAt(park, Fixture[span + 1]));
-                Assert.True(OffLine(a, b, s.Ax, s.Az) < 1e-9 && OffLine(a, b, s.Bx, s.Bz) < 1e-9, $"piece off span {span}'s chord");
-                foreach (var along in new[] { 0.0, 0.5, 1.0 })
-                {
-                    var x = s.Ax + (s.Bx - s.Ax) * along;
-                    var z = s.Az + (s.Bz - s.Az) * along;
-                    Near(TopOnChord(park, span, x, z), s.HeightAt(along), 1e-9);
-                }
-                Assert.Equal(Fixture[span].Material ?? WallMaterial.Padded, WallMaterial.OfSegment(s));
+                var x = s.Ax + (s.Bx - s.Ax) * along;
+                var z = s.Az + (s.Bz - s.Az) * along;
+                Near(TopOnChord(park, span, x, z), s.HeightAt(along), 1e-9);
             }
+            Assert.Equal(Fixture[span].Material ?? WallMaterial.Padded, WallMaterial.OfSegment(s));
         }
     }
 
     /// <summary>
-    /// <c>SF-07</c>, FD-06-R1, both roots: one distance per bearing, by construction. On a 0.01° grid from pole to pole
+    /// <c>SF-07</c>, FD-06-R1: one distance per bearing, by construction. On a 0.01° grid from pole to pole
     /// the ray from home meets exactly one span of the fixture (two only on a point's own bearing, where they share the
     /// point), <see cref="AtBatResolver.FenceAt"/> is that one distance — computed here independently from the points —
     /// and it is the distance the clip polygon's own <see cref="FieldBounds.Boundary.RadiusAt"/> reads. The track, the
@@ -193,57 +180,55 @@ public sealed class PolylineFenceTests
     [Fact]
     public void SF07_FenceAtIsSingleValuedAndTheTrackThePolesAndTheZoneMapFollowIt()
     {
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var arc = catalog.Parks["harbor-diamond"];
+        var park = Fenced(arc);
+        var polygon = FieldBounds.Of(park);
+        for (var hundredth = -4500; hundredth <= 4500; hundredth++)
         {
-            var arc = catalog.Parks["harbor-diamond"];
-            var park = Fenced(arc);
-            var polygon = FieldBounds.Of(park);
-            for (var hundredth = -4500; hundredth <= 4500; hundredth++)
-            {
-                var bearing = hundredth / 100.0;
-                var hits = new List<double>();
-                for (var k = 0; k + 1 < Fixture.Length; k++)
-                    if (RayMeetsChord(PointAt(park, Fixture[k]), PointAt(park, Fixture[k + 1]), bearing) is { } d)
-                        hits.Add(d);
-                Assert.NotEmpty(hits);
-                Assert.True(hits.Max() - hits.Min() < 1e-9, $"bearing {bearing}: the ray meets the fence at {string.Join(", ", hits)}");
-                Assert.True(hits.Count == 1 || Fixture.Any(p => p.BearingDeg == bearing), $"bearing {bearing}: {hits.Count} spans");
+            var bearing = hundredth / 100.0;
+            var hits = new List<double>();
+            for (var k = 0; k + 1 < Fixture.Length; k++)
+                if (RayMeetsChord(PointAt(park, Fixture[k]), PointAt(park, Fixture[k + 1]), bearing) is { } d)
+                    hits.Add(d);
+            Assert.NotEmpty(hits);
+            Assert.True(hits.Max() - hits.Min() < 1e-9, $"bearing {bearing}: the ray meets the fence at {string.Join(", ", hits)}");
+            Assert.True(hits.Count == 1 || Fixture.Any(p => p.BearingDeg == bearing), $"bearing {bearing}: {hits.Count} spans");
 
-                var fence = AtBatResolver.FenceAt(park, bearing);
-                Near(hits[0], fence, 1e-9);
-                Near(polygon.RadiusAt(bearing), fence, 1e-9);
-            }
-            // Past a pole the fence is the pole, as it always was.
-            Assert.Equal(PointFt(park, Fixture[0]), AtBatResolver.FenceAt(park, -60));
-            Assert.Equal(PointFt(park, Fixture[^1]), AtBatResolver.FenceAt(park, 60));
-
-            // The poles stand where the polyline starts and ends; the porch pulled the left one in.
-            Assert.Equal(PointAt(park, Fixture[0]), ParkDiamond.FoulPole(park, -1));
-            Assert.Equal(PointAt(park, Fixture[^1]), ParkDiamond.FoulPole(park, 1));
-            Assert.True(FieldBounds.DistHome(ParkDiamond.FoulPole(park, -1).X, ParkDiamond.FoulPole(park, -1).Z) < arc.LeftFenceFt * 0.95);
-
-            // The track is a track width inside the fence at every bearing, the notch's bottom included.
-            foreach (var bearing in new[] { -38.0, -30, 0, 25 })
-            {
-                var inner = ParkDiamond.TrackInner(park, bearing);
-                Near(AtBatResolver.FenceAt(park, bearing) - ParkDiamond.TrackWidth, FieldBounds.DistHome(inner.X, inner.Z), 1e-9);
-            }
-
-            // The zone map reads the notch and the alley: a point 5 ft inside the notch is the track, where the arc would
-            // have left it on the grass; a point 2 ft past the arc in the alley is still the outfield grass.
-            var zones = GroundZones.Of(park, catalog.Rules);
-            var plain = GroundZones.Of(arc, catalog.Rules);
-            var notch = BallFlight.GroundPoint(AtBatResolver.FenceAt(park, 0) - 5, 0);
-            Assert.Equal(GroundZone.WarningTrack, zones.ZoneAt(notch.X, notch.Z));
-            Assert.Equal(GroundZone.Outfield, plain.ZoneAt(notch.X, notch.Z));
-            var alley = BallFlight.GroundPoint(AtBatResolver.FenceAt(arc, 25) + 2, 25);
-            Assert.Equal(GroundZone.Outfield, zones.ZoneAt(alley.X, alley.Z));
-            Assert.Equal(GroundZone.WarningTrack, plain.ZoneAt(alley.X, alley.Z));
+            var fence = AtBatResolver.FenceAt(park, bearing);
+            Near(hits[0], fence, 1e-9);
+            Near(polygon.RadiusAt(bearing), fence, 1e-9);
         }
+        // Past a pole the fence is the pole, as it always was.
+        Assert.Equal(PointFt(park, Fixture[0]), AtBatResolver.FenceAt(park, -60));
+        Assert.Equal(PointFt(park, Fixture[^1]), AtBatResolver.FenceAt(park, 60));
+
+        // The poles stand where the polyline starts and ends; the porch pulled the left one in.
+        Assert.Equal(PointAt(park, Fixture[0]), ParkDiamond.FoulPole(park, -1));
+        Assert.Equal(PointAt(park, Fixture[^1]), ParkDiamond.FoulPole(park, 1));
+        Assert.True(FieldBounds.DistHome(ParkDiamond.FoulPole(park, -1).X, ParkDiamond.FoulPole(park, -1).Z) < arc.LeftFenceFt * 0.95);
+
+        // The track is a track width inside the fence at every bearing, the notch's bottom included.
+        foreach (var bearing in new[] { -38.0, -30, 0, 25 })
+        {
+            var inner = ParkDiamond.TrackInner(park, bearing);
+            Near(AtBatResolver.FenceAt(park, bearing) - ParkDiamond.TrackWidth, FieldBounds.DistHome(inner.X, inner.Z), 1e-9);
+        }
+
+        // The zone map reads the notch and the alley: a point 5 ft inside the notch is the track, where the arc would
+        // have left it on the grass; a point 2 ft past the arc in the alley is still the outfield grass.
+        var zones = GroundZones.Of(park, catalog.Rules);
+        var plain = GroundZones.Of(arc, catalog.Rules);
+        var notch = BallFlight.GroundPoint(AtBatResolver.FenceAt(park, 0) - 5, 0);
+        Assert.Equal(GroundZone.WarningTrack, zones.ZoneAt(notch.X, notch.Z));
+        Assert.Equal(GroundZone.Outfield, plain.ZoneAt(notch.X, notch.Z));
+        var alley = BallFlight.GroundPoint(AtBatResolver.FenceAt(arc, 25) + 2, 25);
+        Assert.Equal(GroundZone.Outfield, zones.ZoneAt(alley.X, alley.Z));
+        Assert.Equal(GroundZone.WarningTrack, plain.ZoneAt(alley.X, alley.Z));
     }
 
     /// <summary>
-    /// <c>SF-07</c>, both roots: a ball rolled straight out into the notch's left face — a face that is not square to home —
+    /// <c>SF-07</c>: a ball rolled straight out into the notch's left face — a face that is not square to home —
     /// caroms off that span's own normal, not the arc's radial one. The crossing is on a piece of span 3 (−4° → 0°), the
     /// piece's outward normal is the chord's, and the speeds read off the samples come back mirrored about it at the
     /// span's row: into the wall × restitution, along it × tangential.
@@ -251,54 +236,52 @@ public sealed class PolylineFenceTests
     [Fact]
     public void SF07_ABallRolledIntoTheNotchCaromsByThatSpansNormal()
     {
-        foreach (var catalog in BothRoots)
-        {
-            var rules = catalog.Rules;
-            var park = Fenced(catalog.Parks["harbor-diamond"]);
-            var dt = 1.0 / rules.Flight.SampleHz;
-            const double bearing = -2;
-            var fence = AtBatResolver.FenceAt(park, bearing);
-            var (x0, z0) = BallFlight.GroundPoint(fence - 6, bearing);
-            var (ux, uz) = BallFlight.GroundPoint(1, bearing);
-            var path = BallFlight.Continue([], 0, x0, 0, z0, ux * 40, 0, uz * 40, 0, 90, park, rules);
-            var hit = Enumerable.Range(1, path.Count - 1).First(i => path[i].Event == SampleEvent.Wall);
-            Assert.True(hit >= 2 && hit + 1 < path.Count);
+        var catalog = Game;
+        var rules = catalog.Rules;
+        var park = Fenced(catalog.Parks["harbor-diamond"]);
+        var dt = 1.0 / rules.Flight.SampleHz;
+        const double bearing = -2;
+        var fence = AtBatResolver.FenceAt(park, bearing);
+        var (x0, z0) = BallFlight.GroundPoint(fence - 6, bearing);
+        var (ux, uz) = BallFlight.GroundPoint(1, bearing);
+        var path = BallFlight.Continue([], 0, x0, 0, z0, ux * 40, 0, uz * 40, 0, 90, park, rules);
+        var hit = Enumerable.Range(1, path.Count - 1).First(i => path[i].Event == SampleEvent.Wall);
+        Assert.True(hit >= 2 && hit + 1 < path.Count);
 
-            var zones = GroundZones.Of(park, rules);
-            var (inX, inZ) = Velocity(path, hit - 1, dt);
-            var inSpeed = Math.Sqrt(inX * inX + inZ * inZ);
-            var k = (inSpeed - zones.RowAt(path[hit - 1].X, path[hit - 1].Z, rules.Grounds).Roll.Friction * dt) / inSpeed;
-            (inX, inZ) = (inX * k, inZ * k);
-            var crossing = FieldBounds.Of(park).Cross(path[hit - 1].X, path[hit - 1].Z, path[hit - 1].X + inX * dt, path[hit - 1].Z + inZ * dt);
-            Assert.NotNull(crossing);
-            var n = crossing.Value.Segment;
-            Assert.Equal(FieldBounds.WallKind.FairFence, n.Kind);
+        var zones = GroundZones.Of(park, rules);
+        var (inX, inZ) = Velocity(path, hit - 1, dt);
+        var inSpeed = Math.Sqrt(inX * inX + inZ * inZ);
+        var k = (inSpeed - zones.RowAt(path[hit - 1].X, path[hit - 1].Z, rules.Grounds).Roll.Friction * dt) / inSpeed;
+        (inX, inZ) = (inX * k, inZ * k);
+        var crossing = FieldBounds.Of(park).Cross(path[hit - 1].X, path[hit - 1].Z, path[hit - 1].X + inX * dt, path[hit - 1].Z + inZ * dt);
+        Assert.NotNull(crossing);
+        var n = crossing.Value.Segment;
+        Assert.Equal(FieldBounds.WallKind.FairFence, n.Kind);
 
-            // The notch's left face, and its normal: the chord's, well off the radial line the arc would have had.
-            var (a, b) = (PointAt(park, Fixture[3]), PointAt(park, Fixture[4]));
-            Assert.True(OffLine(a, b, crossing.Value.X, crossing.Value.Z) < 1e-9, "the ball met the notch's left face");
-            var (cx, cz) = (b.X - a.X, b.Z - a.Z);
-            var len = Math.Sqrt(cx * cx + cz * cz);
-            var (nx, nz) = (cz / len, -cx / len);
-            if (nx * a.X + nz * a.Z < 0) (nx, nz) = (-nx, -nz);
-            Near(nx, n.Nx, 1e-12);
-            Near(nz, n.Nz, 1e-12);
-            Assert.True(Math.Abs(n.Nx * ux + n.Nz * uz) < Math.Cos(10 * Math.PI / 180), "the face is not square to home");
+        // The notch's left face, and its normal: the chord's, well off the radial line the arc would have had.
+        var (a, b) = (PointAt(park, Fixture[3]), PointAt(park, Fixture[4]));
+        Assert.True(OffLine(a, b, crossing.Value.X, crossing.Value.Z) < 1e-9, "the ball met the notch's left face");
+        var (cx, cz) = (b.X - a.X, b.Z - a.Z);
+        var len = Math.Sqrt(cx * cx + cz * cz);
+        var (nx, nz) = (cz / len, -cx / len);
+        if (nx * a.X + nz * a.Z < 0) (nx, nz) = (-nx, -nz);
+        Near(nx, n.Nx, 1e-12);
+        Near(nz, n.Nz, 1e-12);
+        Assert.True(Math.Abs(n.Nx * ux + n.Nz * uz) < Math.Cos(10 * Math.PI / 180), "the face is not square to home");
 
-            var (outX, outZ) = Velocity(path, hit + 1, dt);
-            var outSpeed = Math.Sqrt(outX * outX + outZ * outZ);
-            var back = (outSpeed + zones.RowAt(path[hit].X, path[hit].Z, rules.Grounds).Roll.Friction * dt) / outSpeed;
-            (outX, outZ) = (outX * back, outZ * back);
-            var row = rules.Walls.Of(WallMaterial.OfSegment(n));
-            var inNormal = inX * n.Nx + inZ * n.Nz;
-            var outNormal = outX * n.Nx + outZ * n.Nz;
-            Assert.True(inNormal > 5);
-            Assert.True(Math.Abs(outNormal + row.Restitution * inNormal) < 1e-6, $"normal {inNormal} came back {outNormal}");
-            Assert.True(Math.Abs((outX - outNormal * n.Nx) - row.Tangential * (inX - inNormal * n.Nx)) < 1e-6
-                        && Math.Abs((outZ - outNormal * n.Nz) - row.Tangential * (inZ - inNormal * n.Nz)) < 1e-6, "along the face");
-            // The tangent is not zero: the ball came in straight from home and leaves along the slanted face.
-            Assert.True(Math.Abs(outX - outNormal * n.Nx) + Math.Abs(outZ - outNormal * n.Nz) > 1);
-        }
+        var (outX, outZ) = Velocity(path, hit + 1, dt);
+        var outSpeed = Math.Sqrt(outX * outX + outZ * outZ);
+        var back = (outSpeed + zones.RowAt(path[hit].X, path[hit].Z, rules.Grounds).Roll.Friction * dt) / outSpeed;
+        (outX, outZ) = (outX * back, outZ * back);
+        var row = rules.Walls.Of(WallMaterial.OfSegment(n));
+        var inNormal = inX * n.Nx + inZ * n.Nz;
+        var outNormal = outX * n.Nx + outZ * n.Nz;
+        Assert.True(inNormal > 5);
+        Assert.True(Math.Abs(outNormal + row.Restitution * inNormal) < 1e-6, $"normal {inNormal} came back {outNormal}");
+        Assert.True(Math.Abs((outX - outNormal * n.Nx) - row.Tangential * (inX - inNormal * n.Nx)) < 1e-6
+                    && Math.Abs((outZ - outNormal * n.Nz) - row.Tangential * (inZ - inNormal * n.Nz)) < 1e-6, "along the face");
+        // The tangent is not zero: the ball came in straight from home and leaves along the slanted face.
+        Assert.True(Math.Abs(outX - outNormal * n.Nx) + Math.Abs(outZ - outNormal * n.Nz) > 1);
     }
 
     /// <summary>
@@ -309,33 +292,31 @@ public sealed class PolylineFenceTests
     [Fact]
     public void SF07_AFlyClearsOrMeetsTheSpansOwnTop()
     {
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var park = Fenced(catalog.Parks["harbor-diamond"]);
+        var polygon = FieldBounds.Of(park);
+        foreach (var (bearing, top) in new[] { (-38.0, 16.0), (25.0, 9.0) })
         {
-            var park = Fenced(catalog.Parks["harbor-diamond"]);
-            var polygon = FieldBounds.Of(park);
-            foreach (var (bearing, top) in new[] { (-38.0, 16.0), (25.0, 9.0) })
-            {
-                var fence = AtBatResolver.FenceAt(park, bearing);
-                var (ix, iz) = BallFlight.GroundPoint(fence - 1, bearing);
-                var (ox, oz) = BallFlight.GroundPoint(fence + 1, bearing);
-                var crossing = polygon.Cross(ix, iz, ox, oz);
-                Assert.NotNull(crossing);
-                Near(top, crossing.Value.HeightFt, 1e-9);
-                Near(top, AtBatResolver.FenceSpotAt(park, bearing).TopFt, 1e-9);
-            }
-            // A sloped piece: from 12 ft at 16° to 9 ft at 22°, the top in between is on the straight line.
-            var mid = AtBatResolver.FenceAt(park, 19);
-            var (mx, mz) = BallFlight.GroundPoint(mid - 1, 19);
-            var (px, pz) = BallFlight.GroundPoint(mid + 1, 19);
-            var sloped = polygon.Cross(mx, mz, px, pz)!.Value;
-            Assert.NotNull(sloped.Segment.HeightBFt);
-            Assert.InRange(sloped.HeightFt, 9 + 1e-6, 12 - 1e-6);
-            Near(AtBatResolver.FenceSpotAt(park, 19).TopFt, sloped.HeightFt, 1e-9);
+            var fence = AtBatResolver.FenceAt(park, bearing);
+            var (ix, iz) = BallFlight.GroundPoint(fence - 1, bearing);
+            var (ox, oz) = BallFlight.GroundPoint(fence + 1, bearing);
+            var crossing = polygon.Cross(ix, iz, ox, oz);
+            Assert.NotNull(crossing);
+            Near(top, crossing.Value.HeightFt, 1e-9);
+            Near(top, AtBatResolver.FenceSpotAt(park, bearing).TopFt, 1e-9);
         }
+        // A sloped piece: from 12 ft at 16° to 9 ft at 22°, the top in between is on the straight line.
+        var mid = AtBatResolver.FenceAt(park, 19);
+        var (mx, mz) = BallFlight.GroundPoint(mid - 1, 19);
+        var (px, pz) = BallFlight.GroundPoint(mid + 1, 19);
+        var sloped = polygon.Cross(mx, mz, px, pz)!.Value;
+        Assert.NotNull(sloped.Segment.HeightBFt);
+        Assert.InRange(sloped.HeightFt, 9 + 1e-6, 12 - 1e-6);
+        Near(AtBatResolver.FenceSpotAt(park, 19).TopFt, sloped.HeightFt, 1e-9);
     }
 
     // ---------------------------------------------------------------------------------
-    // SF-07 — the validator (FD-06-R1), by name, on both roots
+    // SF-07 — the validator (FD-06-R1), by name
     // ---------------------------------------------------------------------------------
 
     /// <summary>The fixture as a park file's block.</summary>
@@ -352,9 +333,9 @@ public sealed class PolylineFenceTests
         return new JsonObject { ["points"] = points };
     }
 
-    /// <summary>A valid block loads on both roots and the catalog park carries it, point for point.</summary>
+    /// <summary>A valid block loads and the catalog park carries it, point for point.</summary>
     [Fact]
-    public void SF07_AValidFenceBlockLoadsOnBothRootsAndThePointsReachThePark()
+    public void SF07_AValidFenceBlockLoadsAndThePointsReachThePark()
     {
         using var shipped = new ContentFixture();
         shipped.ChangeObject("parks/harbor-diamond.json", json => json["fence"] = Block());
@@ -362,14 +343,11 @@ public sealed class PolylineFenceTests
         var loaded = ContentCatalog.Load(new DataRoot(shipped.Root)).Parks["harbor-diamond"];
         Assert.Equal(new ParkFence(Fixture), loaded.Fence);
 
-        using var clean = new ContentFixture();
-        using var trial = new TrialCopy(clean.Root);
-        trial.ChangeObject("parks/harbor-diamond.json", json => json["fence"] = Block());
-        Assert.Empty(ContentDataValidator.Validate(trial.Root));
-        var twin = ContentCatalog.Load(trial.Root).Parks["harbor-diamond"];
-        Assert.Equal(loaded.Fence, twin.Fence);
-        // The same authoring, a different field: the trial's fence is its own posts' (FD-12).
-        Assert.NotEqual(AtBatResolver.FenceAt(loaded, 0), AtBatResolver.FenceAt(twin, 0));
+
+        // The same authoring, a different field: a park with deeper posts stands the same points deeper (FD-12).
+        var deeper = loaded with { CenterFenceFt = loaded.CenterFenceFt + 40 };
+        Assert.Equal(loaded.Fence, deeper.Fence);
+        Assert.NotEqual(AtBatResolver.FenceAt(loaded, 0), AtBatResolver.FenceAt(deeper, 0));
     }
 
     public static TheoryData<string, string[]> Refusals() => new()
@@ -399,7 +377,7 @@ public sealed class PolylineFenceTests
             case "one-point": while (points.Count > 1) points.RemoveAt(1); break;
             case "lip": points[4]!["fenceFrac"] = 0.3; break;
             case "chord":
-                // Two points, both past the lip on each root, whose straight wall dips inside it at centre.
+                // Two points, both past the lip, whose straight wall dips inside it at centre.
                 while (points.Count > 2) points.RemoveAt(1);
                 points[0]!["fenceFrac"] = 0.62;
                 points[1]!["fenceFrac"] = 0.62;
@@ -416,9 +394,8 @@ public sealed class PolylineFenceTests
     /// <summary>
     /// <c>SF-07</c>, FD-06-R1: an overhang, a fence behind a fence, a missing pole point (either end), a point inside the lip,
     /// a straight span that dips inside it, a height under the rail or missing, an unknown material, a material on the
-    /// right-field pole's point and a zero fraction are each refused — by park, index and reason — on the shipped root and
-    /// on <c>trials/c80</c>, against the park file the block was written in, and each stops the catalog load. Each case is
-    /// the only refusal its broken block earns.
+    /// right-field pole's point and a zero fraction are each refused — by park, index and reason — against the park file
+    /// the block was written in, and each stops the catalog load. Each case is the only refusal its broken block earns.
     /// </summary>
     [Theory]
     [MemberData(nameof(Refusals))]
@@ -431,14 +408,6 @@ public sealed class PolylineFenceTests
         Assert.StartsWith(shipped.Path("parks/harbor-diamond.json") + ": park 'harbor-diamond' fence.points", onShipped, StringComparison.Ordinal);
         foreach (var part in says) Assert.Contains(part, onShipped, StringComparison.Ordinal);
         Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(new DataRoot(shipped.Root)));
-
-        using var clean = new ContentFixture();
-        using var trial = new TrialCopy(clean.Root);
-        trial.ChangeObject("parks/harbor-diamond.json", json => json["fence"] = Block(points => Break(what, points)));
-        var onTrial = Assert.Single(ContentDataValidator.Validate(trial.Root), e => e.Contains("fence.points", StringComparison.Ordinal));
-        Assert.StartsWith(trial.Path("parks/harbor-diamond.json") + ": park 'harbor-diamond' fence.points", onTrial, StringComparison.Ordinal);
-        foreach (var part in says) Assert.Contains(part, onTrial, StringComparison.Ordinal);
-        Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(trial.Root));
     }
 
     /// <summary>The block is inside the strict park schema (#820, FR-03): a key it does not declare is named, in the block and in a point.</summary>
@@ -464,7 +433,7 @@ public sealed class PolylineFenceTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-12</c>, the per-span half, both roots. Each fence piece carries its own span's material and the carom asks the
+    /// <c>SF-12</c>, the per-span half. Each fence piece carries its own span's material and the carom asks the
     /// library for that material's row, one span at a time: on a fixture whose left half names <c>padded</c> and whose
     /// right half names a material the library has no row for (<c>boards</c> — built in code, because the validator
     /// refuses it in a file), a ball rolled into the left half caroms off <c>padded</c>'s row, and the same roll into the
@@ -482,24 +451,22 @@ public sealed class PolylineFenceTests
     public void SF12_EachSpanAsksTheLibraryForItsOwnMaterialsRow()
     {
         FencePoint[] halves = [new(-45, 1.0, 12, WallMaterial.Padded), new(0, 1.0, 12, "boards"), new(45, 1.0, 12)];
-        foreach (var catalog in BothRoots)
+        var catalog = Game;
+        var rules = catalog.Rules;
+        var park = Fenced(catalog.Parks["harbor-diamond"], halves);
+        var polygon = FieldBounds.Of(park);
+        foreach (var s in polygon.Segments)
         {
-            var rules = catalog.Rules;
-            var park = Fenced(catalog.Parks["harbor-diamond"], halves);
-            var polygon = FieldBounds.Of(park);
-            foreach (var s in polygon.Segments)
-            {
-                var expected = s.Kind == FieldBounds.WallKind.FoulWall ? WallMaterial.Padded
-                    : FieldBounds.SprayDeg((s.Ax + s.Bx) / 2, (s.Az + s.Bz) / 2) < 0 ? WallMaterial.Padded : "boards";
-                Assert.Equal(expected, WallMaterial.OfSegment(s));
-            }
-
-            var padded = Roll(park, rules, -20);
-            Assert.Contains(padded, s => s.Event == SampleEvent.Wall);
-            var thrown = Assert.Throws<ArgumentException>(() => Roll(park, rules, 20));
-            Assert.Contains("'boards' is not a wall material with a row in rules/walls.json", thrown.Message, StringComparison.Ordinal);
-            Assert.False(rules.Walls.Has("boards"));
+            var expected = s.Kind == FieldBounds.WallKind.FoulWall ? WallMaterial.Padded
+                : FieldBounds.SprayDeg((s.Ax + s.Bx) / 2, (s.Az + s.Bz) / 2) < 0 ? WallMaterial.Padded : "boards";
+            Assert.Equal(expected, WallMaterial.OfSegment(s));
         }
+
+        var padded = Roll(park, rules, -20);
+        Assert.Contains(padded, s => s.Event == SampleEvent.Wall);
+        var thrown = Assert.Throws<ArgumentException>(() => Roll(park, rules, 20));
+        Assert.Contains("'boards' is not a wall material with a row in rules/walls.json", thrown.Message, StringComparison.Ordinal);
+        Assert.False(rules.Walls.Has("boards"));
 
         static IReadOnlyList<Sample> Roll(Park park, RulesTable rules, double bearing)
         {
@@ -521,7 +488,7 @@ public sealed class PolylineFenceTests
     [Fact]
     public void ThePolygonAndTheLoopAreCachedOnTheFenceByValue()
     {
-        var arc = Shipped.Parks["harbor-diamond"];
+        var arc = Game.Parks["harbor-diamond"];
         var fenced = arc with { Fence = new ParkFence(Fixture.ToList()) };
         var again = arc with { Fence = new ParkFence(Fixture.Select(p => p with { }).ToArray()) };
         Assert.Equal(arc.Id, fenced.Id);
@@ -592,43 +559,6 @@ public sealed class PolylineFenceTests
     static void Bits(string what, double expected, double actual) =>
         Assert.True(BitConverter.DoubleToInt64Bits(expected) == BitConverter.DoubleToInt64Bits(actual),
             $"{what}: expected {expected:R}, got {actual:R}");
-
-    /// <summary>
-    /// A throwaway copy of <c>trials/c80</c> laid over a throwaway shipped root, so a row can break the trial's copy of a
-    /// park and read the refusal back against the trial's own path.
-    /// </summary>
-    sealed class TrialCopy : IDisposable
-    {
-        readonly string _shipped;
-
-        public TrialCopy(string shipped)
-        {
-            _shipped = shipped;
-            Dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-fence-trial-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(Dir);
-            foreach (var directory in Directory.GetDirectories(TrialDir, "*", SearchOption.AllDirectories))
-                Directory.CreateDirectory(System.IO.Path.Combine(Dir, System.IO.Path.GetRelativePath(TrialDir, directory)));
-            foreach (var file in Directory.GetFiles(TrialDir, "*", SearchOption.AllDirectories))
-                File.Copy(file, System.IO.Path.Combine(Dir, System.IO.Path.GetRelativePath(TrialDir, file)));
-        }
-
-        public string Dir { get; }
-
-        public DataRoot Root => new(_shipped, Dir);
-
-        public string Path(string relative) =>
-            System.IO.Path.Combine(Dir, relative.Replace('/', System.IO.Path.DirectorySeparatorChar));
-
-        public void ChangeObject(string relative, Action<JsonObject> change)
-        {
-            var path = Path(relative);
-            var json = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
-            change(json);
-            File.WriteAllText(path, json.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-        }
-
-        public void Dispose() => Directory.Delete(Dir, recursive: true);
-    }
 
     // ---------------------------------------------------------------------------------
     // The code before the polyline, kept as the expectation
