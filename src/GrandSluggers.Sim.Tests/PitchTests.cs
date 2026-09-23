@@ -130,10 +130,10 @@ public class PitchTests
             Assert.True(AtBatResolver.PitchSpeedMph(new PitchCommand(unauthored, 0, false), 5) > 0);
         }
 
-        // Training.CorePitches reads the code defaults, which author two rows; the shipped data
-        // authors the whole library since #860.
-        Assert.Equal(["fastball", "changeup"], Training.CorePitches);
-        Assert.Equal(bare.Pitching.Families.Authored, Training.CorePitches);
+        // Training offers the loaded table's authored rows (#888): the code defaults author two, the
+        // shipped data the whole library since #860.
+        Assert.Equal(["fastball", "changeup"], Training.PitchesOf(bare));
+        Assert.Equal(bare.Pitching.Families.Authored, Training.PitchesOf(bare));
         Assert.Equal(PitchFamily.All, Rules.Default.Pitching.Families.Authored);
     }
 
