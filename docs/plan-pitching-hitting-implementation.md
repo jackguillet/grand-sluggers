@@ -172,7 +172,7 @@ One child per reviewed ability or ability group, after P5. First: remove `batter
 
 ## 4. Scenario ids
 
-Free: S-83..S-89 and S-133 upward (S-101 … S-106b selection, #812; S-107 … S-113 trial shapes, #818; S-114 … S-120 CPU pitcher, #823; S-121 … S-123 Contact / Power, #837; S-124 … S-127 shared window, #844; S-128 … S-132 stick switch, #855). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
+Free: S-83..S-89 and S-134 upward (S-133 training families, #888; S-101 … S-106b selection, #812; S-107 … S-113 trial shapes, #818; S-114 … S-120 CPU pitcher, #823; S-121 … S-123 Contact / Power, #837; S-124 … S-127 shared window, #844; S-128 … S-132 stick switch, #855). Letter suffixes split a row. Every id appears in a test method name (`S07_…`) and in GS Appendix B. Rows that must change with the design: S-04 (PH-18), S-10 and S-30 (window), S-13 (stick), S-19 (held bunt), S-25 (surcharges), S-27 and S-67 (repertoire). S-29 is a gate that is re-reported, never tuned.
 
 ## 5. Questions that were Jack's — answered September 21, 2026
 

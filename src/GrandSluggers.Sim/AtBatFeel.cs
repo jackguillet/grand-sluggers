@@ -434,9 +434,9 @@ public static class SweetSpot
 
     /// <summary>
     /// The oval the client draws for one swing, which is the nice boundary the resolver judges
-    /// (spec §5.2, S-133): the center from the box walk, the half-extents from
+    /// (spec §5.2, S-134): the center from the box walk, the half-extents from
     /// <see cref="SwingBarrel"/>. A charge and Contact move the two barrel half-extents only; the
-    /// height is the zone's and never scales (PH-11-R1, PH-15-R7, S-134).
+    /// height is the zone's and never scales (PH-11-R1, PH-15-R7, S-135, S-136).
     /// </summary>
     public static CursorOval Oval(Character batter, BatItem? bat, double charge01, int buddies,
         double boxOffsetX, RulesTable? rules = null)

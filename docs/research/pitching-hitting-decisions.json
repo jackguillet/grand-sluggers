@@ -304,7 +304,8 @@
             "#807",
             "#809",
             "#810",
-            "#811"
+            "#811",
+            "#888"
           ],
           "validation_evidence": [
             {
@@ -324,6 +325,15 @@
               "summary": "Charge stays a modifier on a family rather than a family of its own: the row carries its own chargeMph and staminaCost, and the charged pitch is the same family at a different fill. Break likewise stays a stick verb and is not in the library. The fixture holds only values IEEE pins (+, -, *, /): Y, Z and mph outright, and for X the sin-free flight plus the damping decision, because Math.Sin differs by one ULP between macOS libm and glibc (#736); the test rebuilds X on the running platform and still asserts bit equality, verified green on both.",
               "numeric_trial": "not applicable (behaviour-identical refactor; today's fastball/changeup numbers moved, none authored). Curveball, slider and sinker are still unauthored and their numbers are P1-d's numeric trial.",
               "gate": "no human gate for this child; no player-facing change, and it does not move #534, #346 or D7. Status unchanged: the other three families still do not fly."
+            },
+            {
+              "kind": "implementation",
+              "issue": "#888",
+              "revision": "99528b9c",
+              "test": "GrandSluggers.Sim.Tests.TrainingScenarioTests.S133_TrainingOffersTheLoadedTablesPitchFamilies",
+              "scenarios": "S-133",
+              "summary": "Training offered RulesTable.Defaults' authored families (Training.CorePitches), whose optional curveball, slider and sinker rows are null, so practice and the GrandSluggers.Play sandbox offered fastball and changeup while the shipped data authors five. Training.PitchesOf(rules) and a session's Pitches now read the table the catalog loaded: all five in library order on the shipped root, two on a copied root whose pitching.json drops the three rows, two on the code defaults. Training is not in a match: cli match --seed 7 is byte-identical to origin/main apart from the data-root line, and S-29 does not move.",
+              "numeric_trial": "not applicable (no number authored or moved)"
             }
           ],
           "human_acceptance": null
@@ -1564,10 +1574,10 @@
           "issue": "#889",
           "pr": "#897",
           "revision": "issue-889-cursor",
-          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-133 ... S-136) and the full suite; the c80 compact rows",
+          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-134 ... S-137) and the full suite; the c80 compact rows",
           "numeric_trial": "none. No number was selected or moved; cli match --seed 7 is byte-identical to main apart from the data-root line; the #708 and #818 evidence moved by source hashes only.",
           "gate": "No human gate closed and none claimed. The drawn oval is Jack's to judge in the game; nothing was looked at in Unity and no frame was played (tools/unity-compile.sh only). status, numeric_targets and human_acceptance are untouched.",
-          "summary": "P2-d pins PH-09-R1: the box walk is HomeSet.BoxWalkStep (stick x frame x BoxWalkPerSec 1.6, the client's rate unchanged and computed in single precision as before), which takes no charge argument, and AtBatDirector's two batter walk sites call it. S-136 holds a load to MAX and past it for 45 frames beside a seat that never touches the button: equal BatterOffsetX every frame, full speed, the same committed box."
+          "summary": "P2-d pins PH-09-R1: the box walk is HomeSet.BoxWalkStep (stick x frame x BoxWalkPerSec 1.6, the client's rate unchanged and computed in single precision as before), which takes no charge argument, and AtBatDirector's two batter walk sites call it. S-137 holds a load to MAX and past it for 45 frames beside a seat that never touches the button: equal BatterOffsetX every frame, full speed, the same committed box."
         }
       ],
       "human_acceptance": null,
@@ -1876,10 +1886,10 @@
           "issue": "#889",
           "pr": "#897",
           "revision": "issue-889-cursor",
-          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-133 ... S-136) and the full suite; the c80 compact rows",
+          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-134 ... S-137) and the full suite; the c80 compact rows",
           "numeric_trial": "none. No number was selected or moved; cli match --seed 7 is byte-identical to main apart from the data-root line; the #708 and #818 evidence moved by source hashes only.",
           "gate": "No human gate closed and none claimed. The drawn oval is Jack's to judge in the game; nothing was looked at in Unity and no frame was played (tools/unity-compile.sh only). status, numeric_targets and human_acceptance are untouched.",
-          "summary": "P2-d pins PH-11-R1 on the shipped root: a charge multiplies the spatial barrel by cursor.chargeMul and nothing else - same center, same half height, the same timing window and the same on-plane edge through the resolver; the Charge Bat keeps the slap's barrel (S-134). The drawn oval is the judged oval: SweetSpot.Oval / SwingBarrel serve both the resolver and the Unity cursor (S-133)."
+          "summary": "P2-d pins PH-11-R1 on the shipped root: a charge multiplies the spatial barrel by cursor.chargeMul and nothing else - same center, same half height, the same timing window and the same on-plane edge through the resolver; the Charge Bat keeps the slap's barrel (S-135). The drawn oval is the judged oval: SweetSpot.Oval / SwingBarrel serve both the resolver and the Unity cursor (S-134)."
         }
       ],
       "human_acceptance": null,
@@ -2831,10 +2841,10 @@
           "issue": "#889",
           "pr": "#897",
           "revision": "issue-889-cursor",
-          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-133 ... S-136) and the full suite; the c80 compact rows",
+          "test": "GrandSluggers.Sim.Tests.CursorOvalScenarioTests (S-134 ... S-137) and the full suite; the c80 compact rows",
           "numeric_trial": "none. No number was selected or moved; cli match --seed 7 is byte-identical to main apart from the data-root line; the #708 and #818 evidence moved by source hashes only.",
           "gate": "No human gate closed and none claimed. The drawn oval is Jack's to judge in the game; nothing was looked at in Unity and no frame was played (tools/unity-compile.sh only). status, numeric_targets and human_acceptance are untouched.",
-          "summary": "P2-d pins PH-15-R7 on the shipped root: Contact (plus the bat's contactMod, clamped 1-10) multiplies the spatial barrel by 1 + (Contact - 5) x scalePerContact and nothing else; the window is the same number at every Contact (S-135). AtBatDirector no longer re-derives the clamp or the barrel: it draws SweetSpot.Oval, the oval the resolver judges (S-133)."
+          "summary": "P2-d pins PH-15-R7 on the shipped root: Contact (plus the bat's contactMod, clamped 1-10) multiplies the spatial barrel by 1 + (Contact - 5) x scalePerContact and nothing else; the window is the same number at every Contact (S-136). AtBatDirector no longer re-derives the clamp or the barrel: it draws SweetSpot.Oval, the oval the resolver judges (S-134)."
         }
       ],
       "human_acceptance": null,
@@ -2963,7 +2973,8 @@
             "#812",
             "#813",
             "#823",
-            "#824"
+            "#824",
+            "#888"
           ],
           "validation_evidence": [
             {
@@ -3003,6 +3014,15 @@
               "summary": "P1-g puts the CPU pitcher behind one switch, pitching.cpu.humanInputs: false on the shipped root and true in trials/pitch5 (PH-18-R1 - the CPU converts in the same trial as the new shapes, no interim flat CPU). Off, Match.CpuPitch runs the shipped endpoint model unchanged - same body, same draws, same order - and cli match --seed 7 on the shipped root is byte-identical before and after, as is the S-29 cohort. On, Match.CpuPitchByInputs builds the delivery from the inputs a hand has and nothing else: the count row's location is a horizontal intent in feet and the body walks the rubber until the family's own crossing lands on it (the crossing is affine in the rubber, so the solve is (intent - X0) / HomeSet.PitcherWalk with X0 the same delivery from the middle, clamped to the legal +/-1); AimX and AimY are always 0 and the height is the family's dropFt; the family is the row's per-family weights filtered to the slots PitchSelection.IsSelectable allows and then expressed as the 0/1/2 cycle presses it is; charge and steer are two independent modifier rolls rather than exclusive verbs, so a charged CPU pitch is still steerable; and the stick is PitchFlight.BreakReach over this delivery's own air time rather than an instant +/-1. The arm is stamped before the solve, which P1-d found was not the case - the same delivery from the wrong arm misses its intent by exactly twice the family's sweep. Scatter moved onto the rubber intent in X, because there is no vertical input to miss in; TIRED still widens it, and PreparePitch's TIRED wobble is unchanged and is not a CPU privilege. The shipped file authors the new fields inert, holding the port of today's exclusive mix written down (fastball = normal + charge + break, chargeChance = charge / total, steerChance = break / total). The fastball is the fallback the run-time filter lands on: a count row that weights only families this pitcher cannot select throws the fastball with zero presses, stated in the spec and tested, because it is the one family every pitcher throws.",
               "numeric_trial": "proposed in trials/pitch5; not accepted; the row weights, the two modifier chances and the S-29 trial figures are judged in sitting 1 with the shapes and the verb (PH-20-R1, PH-18-R1)",
               "gate": "no human gate closed and none claimed. Sitting 1 - the CPU's mix and fairness judged together with P1-d's shapes and P1-f's RB/Tab verb - is not yet possible, because the mound is not wired to a seat until P1-f. This child may merge because the shipped root is unchanged and the overlay is inert unless named: cli match --seed 7 and the S-29 cohort are byte-identical on the shipped root, the #811 golden is unedited and the #708 evidence differs only in source-hash lines. No status change; numeric_targets untouched; human_acceptance untouched. S-29 was re-reported on both roots and never tuned: shipped 1.90 home / 1.92 away (byte-identical to main), trial 1.56 home / 2.08 away - the home mean falls under the accepted 1.8 floor, because losing the vertical aim lost half the ways for the CPU to miss and its walks per game collapsed from 2.86 to 0.98, putting more balls in play. That is a finding on the trial side for sitting 1 to judge, not a shipped regression and not something this child moved a number to fix."
+            },
+            {
+              "kind": "implementation",
+              "issue": "#888",
+              "revision": "99528b9c",
+              "test": "GrandSluggers.Sim.Tests.TrainingScenarioTests.S133_TrainingOffersTheLoadedTablesPitchFamilies",
+              "scenarios": "S-133",
+              "summary": "Training offered RulesTable.Defaults' authored families (Training.CorePitches), whose optional curveball, slider and sinker rows are null, so practice and the GrandSluggers.Play sandbox offered fastball and changeup while the shipped data authors five. Training.PitchesOf(rules) and a session's Pitches now read the table the catalog loaded: all five in library order on the shipped root, two on a copied root whose pitching.json drops the three rows, two on the code defaults. Training is not in a match: cli match --seed 7 is byte-identical to origin/main apart from the data-root line, and S-29 does not move.",
+              "numeric_trial": "not applicable (no number authored or moved)"
             }
           ],
           "human_acceptance": null
@@ -6023,7 +6043,11 @@
     },
     {
       "date": "2026-09-22",
-      "event": "#889 (P2-d) gave the drawn cursor oval one sim helper (SweetSpot.Oval / SwingBarrel) that the resolver and the Unity cursor share, named the box walk step in the sim (HomeSet.BoxWalkStep), and pinned PH-09-R1, PH-11-R1 and PH-15-R7 as S-133 ... S-136. Behaviour-identical. No status change; human_acceptance untouched.",
+      "event": "#888 made Training offer the loaded table's pitch families (Training.PitchesOf, S-133) instead of the code defaults; PH-02-R1 and PH-15-R1 gain implementation evidence and keep their status. human_acceptance untouched."
+    },
+    {
+      "date": "2026-09-22",
+      "event": "#889 (P2-d) gave the drawn cursor oval one sim helper (SweetSpot.Oval / SwingBarrel) that the resolver and the Unity cursor share, named the box walk step in the sim (HomeSet.BoxWalkStep), and pinned PH-09-R1, PH-11-R1 and PH-15-R7 as S-134 ... S-137. Behaviour-identical. No status change; human_acceptance untouched.",
       "pr": "#897"
     }
   ]

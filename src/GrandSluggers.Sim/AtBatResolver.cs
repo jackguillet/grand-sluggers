@@ -75,7 +75,7 @@ public sealed class AtBatResolver
         var err = input.TimingErrorFrames;
         var onPlane = InWindow(err, window);
 
-        // Cursor (§5.2): where the crossing meets the bat — the oval the client draws (S-133).
+        // Cursor (§5.2): where the crossing meets the bat — the oval the client draws (S-134).
         var barrel = SweetSpot.SwingBarrel(input.Batter, input.Bat, input.Charge01, buddies, _rules);
         var quality = onPlane
             ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, input.CrossingY, barrel, _rules)
