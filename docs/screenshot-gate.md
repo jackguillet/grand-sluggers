@@ -39,7 +39,7 @@ Any change under `Art/Characters/`, `Art/Animation/Clips/`, `tools/blender/`, or
 1. **DCC still** — `tools/dcc-still.sh body|extras|takes [clip]|harbor`. Named files: `dcc-body.png`, `dcc-extras.png`, `dcc-{clip}.png`, `dcc-harbor-kit.png`. Catches "cap doesn't cover the hair" before import.
 2. **In-game still** — `tools/still-gate-character.sh {id}` (Harbor kit: `tools/still-gate.sh`). Named files: `char-{id}-rest.png`, `char-{id}-pose.png` (park shots from still-gate). Catches brim-in-lens, HUD-on, wrong shot.
 
-A read-only **look-critic** (`.grok/skills/look-critic/`) compares the PNGs to this table and `docs/silhouette-bible.md`. It files a child or a PR comment. It cannot mark #188 done. It cannot edit this rubric. Agents file both PNGs, spawn the critic, and **stop**. Humans pass or fail.
+A read-only **look-critic** (`.claude/skills/look-critic/`) compares the PNGs to this table and `docs/silhouette-bible.md`. It files a child or a PR comment. It cannot mark #188 done. It cannot edit this rubric. Agents file both PNGs, spawn the critic, and **stop**. Humans pass or fail.
 
 `dotnet test`, `cli art`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. There is no CI image-diff. Do not rebuild the Mac player as proof.
 
