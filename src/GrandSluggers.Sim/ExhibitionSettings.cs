@@ -35,7 +35,8 @@ public sealed class ExhibitionSettings
         0 => Stars ? "Star pitches and swings for both teams." : "Ordinary pitches and swings. Neither team earns Stars.",
         1 => "Items have no active source yet.",
         2 => "Scheduled innings before extras.",
-        3 => Innings < rules.Match.Mercy.MinScheduledInnings
+        3 => !Mercy ? "Play the scheduled innings and extras regardless of the lead."
+            : Innings < rules.Match.Mercy.MinScheduledInnings
             ? "Not applied in a " + Innings + "-inning game."
             : rules.Match.Mercy.Runs + "-run lead after the trailing side bats, from inning " + rules.Match.Mercy.FromInning + ".",
         _ => "Changes the CPU's skill, never your timing window."

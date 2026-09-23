@@ -27,7 +27,7 @@ public static class GettingStarted
         new("captains", "Captains", "how-to-start-select", "select",
             "LB 1 PLAYER. RB 2 PLAYERS. Stick L/R team. South lineup.",
             "Comma 1 PLAYER. Tab 2 PLAYERS. A/D team. Space lineup."),
-        new("lineup", "Lineup, positions, settings", "how-to-start-lineup", "lineup",
+        new("lineup", "Lineup", "how-to-start-lineup", "lineup",
             "Build nine, set positions/order, then rules. North ready.",
             "Build nine, set positions/order, then rules. Q ready."),
         new("pitch", "First pitch", "how-to-start-pitch", "plate",
