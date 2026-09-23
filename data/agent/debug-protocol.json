@@ -515,6 +515,26 @@
       "pr": ""
     },
     {
+      "id": "steal-restarts-at-catcher-possession",
+      "signature": "A runner departs or turns back during SET or pitch flight, then jumps forward or returns to the bag at contact or catcher possession; a later steal press receives distance for time before it was pressed.",
+      "stage": "sim",
+      "cause": "The old armed-steal transition reconstructed a head start from the full pitch duration and reset runner orders when beginning the live play.",
+      "fix": "Advance the same runner bodies through PitchSetupSystem, rebase their event clocks at possession, and preserve their position, direction and hold in Runner.BeginPlay. Never derive runner position from a pitch animation or an armed timestamp. A dead foul explicitly restores the origin bag.",
+      "promoted": "PitchSetupTests.CatcherPossessionPreservesAReturningRunnersPositionAndDestination",
+      "issue": "#963",
+      "pr": ""
+    },
+    {
+      "id": "race-camera-retreats-behind-home-board",
+      "signature": "steal view still starts far behind the catcher after lowering the shot; home scoreboard appears between camera and plate",
+      "stage": "sitting",
+      "cause": "Whole-race bounds overrode the authored camera position by dollying backward, so changing shot height or viewport margin could not guarantee an opening position inside the home scoreboard.",
+      "fix": "Live steals use the ordinary fielding camera from catcher possession. The pre-pitch inset keeps its authored eye and fits subjects with its lens; fitting never retreats behind the board.",
+      "promoted": "StealPresentationTests.ThePrePitchInsetKeepsTheRaceVisibleFromInsideTheHomeBoard",
+      "issue": "#965",
+      "pr": "#967"
+    },
+    {
       "id": "disabled-match-resource-still-on-hud",
       "signature": "Both star meters remain on the game HUD with Stars OFF in Match settings; requesting a disabled special can show NO STARS.",
       "stage": "sitting",

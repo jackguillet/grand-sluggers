@@ -8,12 +8,11 @@ namespace GrandSluggers.Sim;
 /// the fly pull-back (<c>diamond-line</c>), a fly or wall pulls back (<c>diamond-fly</c>), a home run
 /// is the <c>smash</c> override at the crack. The follow stays on the
 /// ball through every ordinary throw (D14); the only bag cam is the close play (<c>tag</c>, §9.6), and
-/// a steal or pickoff sits once on the play's bag (<c>throw</c>). A rundown follows the ball between the
-/// bags. Each shot's <c>blend</c> is how the rig enters it (0 is a cut), and <see cref="CameraHold"/>
+/// steals and pickoffs use the ordinary live ball-follow camera. Each shot's <c>blend</c> is how the rig enters it (0 is a cut), and <see cref="CameraHold"/>
 /// keeps a target for <c>cameraHoldSeconds</c>. The same table for 1P and 1v1; the client owns no
 /// Vector3 of its own.
 /// </summary>
-public static class PlayCamera
+public static partial class PlayCamera
 {
     public enum Beat
     {
@@ -46,8 +45,9 @@ public static class PlayCamera
     /// </summary>
     public const string InPlayLine = "diamond-line";
 
-    /// <summary>The steal / pickoff bag cam (§15, D14): once, on the pitch's catch, since the ball's whole trip is to that bag.</summary>
-    public const string ThrowShot = "throw";
+    /// <summary>Steals and pickoffs share the ordinary live-play camera.</summary>
+    public const string ThrowShot = InPlay;
+    public const string RaceInsetShot = "steal-race";
 
     /// <summary>The close-play bag cam (§9.6, §15): tighter than the throw, on the tag.</summary>
     public const string TagShot = "tag";
@@ -97,7 +97,7 @@ public static class PlayCamera
         Vec3 Batter);
 
     /// <summary>
-    /// Which beat the live ball is in (§15, D14). Priority: the runner play sits on its bag; a home run
+    /// Which beat the live ball is in (§15, D14). Priority: a home run
     /// smashes at the crack; every other hit holds the SET shot for <see cref="FeelTable.ContactCutSeconds"/>;
     /// then the close play (third or home, inside the margin — the only bag cam on a batted ball), the
     /// rundown, and finally the class read from the typed hit. An ordinary throw is not a beat: the
@@ -105,7 +105,6 @@ public static class PlayCamera
     /// </summary>
     public static Beat LiveBeat(LiveView v, FeelTable feel)
     {
-        if (v.RunnerPlay) return Beat.StealThrow;
         var hit = v.Hit;
         if (hit != null && hit.HomeRun && v.SmashLeft > 0) return Beat.Smash;
         if (hit != null && !hit.HomeRun && v.ElapsedSeconds < feel.ContactCutSeconds) return Beat.Set;
@@ -118,12 +117,12 @@ public static class PlayCamera
     public static int BeatBag(Beat beat, LiveView v) => beat switch
     {
         Beat.Tag => v.CloseBag,
-        Beat.StealThrow => v.PlayBag,
+
         _ => 0
     };
 
     /// <summary>A beat whose camera sits on a bag rather than following the ball.</summary>
-    public static bool IsBagBeat(Beat beat) => beat is Beat.Tag or Beat.StealThrow;
+    public static bool IsBagBeat(Beat beat) => beat is Beat.Tag;
 
     /// <summary>
     /// The frame for this beat, from the named shot in <paramref name="shots"/>: null while the SET shot
@@ -164,7 +163,7 @@ public static class PlayCamera
     /// <summary>
     /// Hysteresis on the live camera's target (D14, #610): a beat, and for a bag beat its bag, is kept for at
     /// least <c>cameraHoldSeconds</c> of play time before another may take the camera. A bag beat keeps the
-    /// bag it opened on until the beat itself ends, so a steal is one shot. The play clock starting over
+    /// bag it opened on until the beat itself ends. The play clock starting over
     /// (a new play) takes the first target at once.
     /// </summary>
     public sealed class CameraHold

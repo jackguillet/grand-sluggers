@@ -50,8 +50,8 @@ namespace GrandSluggers.UnityClient
 
         Camera[] Targets()
         {
-            var all = Camera.allCameras;
-            return all != null && all.Length > 0 ? all : (Cam != null ? new[] { Cam } : System.Array.Empty<Camera>());
+            // Only this rig's main view. Offscreen race cameras have their own framing.
+            return Cam != null ? new[] { Cam } : System.Array.Empty<Camera>();
         }
 
         public void Cut(Vector3 pos, Vector3 look, float fov = 48f)

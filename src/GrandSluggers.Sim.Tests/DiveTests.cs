@@ -133,7 +133,7 @@ public sealed class DiveTests
         Assert.True(queued, "the last press inside the buffer was remembered");
         var marks = live.TakeTrace(play).Marks ?? [];
         var release = marks.First(m => m.Kind == PlayTraceMarkKind.ThrowRelease);
-        Assert.InRange(release.T, commitAt + cost - Frame - 1e-9, commitAt + cost + 2 * Frame + 1e-9);
+        Assert.InRange(release.T, commitAt + cost + match.Rules.Fielding.Throw.ReleaseSec - Frame - 1e-9, commitAt + cost + match.Rules.Fielding.Throw.ReleaseSec + 2 * Frame + 1e-9);
     }
 
     // ---------------------------------------------------------------------------------

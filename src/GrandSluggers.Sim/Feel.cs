@@ -177,6 +177,7 @@ public sealed class FeelTable
     /// </summary>
     public double SwingFinishStepFt { get; private init; } = 2.5;
 
+    public RaceCameraFeel RaceCamera { get; private init; } = new();
     public BallShadowFeel BallShadow { get; private init; } = new();
 
     /// <summary>How a fielding body shows what the ball cost it (#719–#721): the dive's get-up and the impact brace.</summary>
@@ -197,6 +198,7 @@ public sealed class FeelTable
             throw new InvalidDataException("Feel table charge and smash freeze must be positive");
         dto.BallShadow.Validate();
         dto.FieldTells.Validate();
+        dto.RaceCamera.Validate();
         var assist = dto.FieldAssistStick > 0 ? dto.FieldAssistStick : 0.35;
         var ready = dto.PitcherReadySeconds > 0 ? dto.PitcherReadySeconds : 0.55;
         var after = dto.AfterOutSeconds > 0 ? dto.AfterOutSeconds : 1.35;
@@ -223,6 +225,7 @@ public sealed class FeelTable
         {
             BallShadow = dto.BallShadow,
             FieldTells = dto.FieldTells,
+            RaceCamera = dto.RaceCamera,
             BodyTurnDegPerSec = dto.BodyTurnDegPerSec > 0 ? dto.BodyTurnDegPerSec : 720,
             HeadingSmoothSec = dto.HeadingSmoothSec >= 0 ? dto.HeadingSmoothSec : 0.08,
             HeadingTeleportFtPerSec = dto.HeadingTeleportFtPerSec > 0 ? dto.HeadingTeleportFtPerSec : 90,
@@ -234,6 +237,7 @@ public sealed class FeelTable
 
     sealed class FeelDto
     {
+        public RaceCameraFeel RaceCamera { get; set; } = new();
         public BallShadowFeel BallShadow { get; set; } = new();
         public FieldTellsFeel FieldTells { get; set; } = new();
         public double PitchChargeSeconds { get; set; }
