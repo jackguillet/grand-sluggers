@@ -462,7 +462,7 @@ public static partial class HowToPlay
             "Cards: batter AB, pitcher ARM and TIRED. Select swaps.",
             "Yellow circle: landing ring (stand-up). Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
-            "A stamp names BALL, STRIKE, FOUL, WALK, BALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
+            "A stamp on the field: BALL, STRIKE, FOUL, WALK, BALK, outs, hits, steals, homers, ERROR; SET starts the next pitch.",
             "OUT / SCORE pop mid-play. Close play: bag cam.",
         ],
         [
@@ -470,7 +470,7 @@ public static partial class HowToPlay
             "Cards: batter AB, pitcher ARM and TIRED. R swaps.",
             "Yellow circle: landing ring (stand-up). Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
-            "A stamp names BALL, STRIKE, FOUL, WALK, BALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
+            "A stamp on the field: BALL, STRIKE, FOUL, WALK, BALK, outs, hits, steals, homers, ERROR; SET starts the next pitch.",
             "OUT / SCORE pop mid-play. Close play: bag cam.",
         ]),
         new("chemistry", "Chemistry", "chemistry",
