@@ -12,8 +12,21 @@ public sealed class Match
     readonly List<PlayEvent> _log = [];
 
     public ContentCatalog Content { get; }
+    /// <summary>
+    /// The park this match plays on. With <see cref="Hazards"/> on it is the catalog's park; with them
+    /// off it is that park with every hazard instance removed and every other member the same value
+    /// (<see cref="HazardPattern.HazardsOff"/>). Every reader — both seats, the CPU, the live ball, the
+    /// trace — reads this one, so no seat can play a hazard the others do not.
+    /// </summary>
     public Park Park { get; }
     public bool Night { get; }
+    /// <summary>
+    /// Park hazards on (the default) or off (FD-10, §14, SF-24). Off removes the instances whose
+    /// pattern <see cref="HazardPattern.IsHazard">counts as a hazard</see> and changes no other rule:
+    /// the park keeps its size, fence, walls, air, wind, ground zones, foul territory, depth and its
+    /// night window, and the table this match plays on is the one it plays on with hazards on.
+    /// </summary>
+    public bool Hazards { get; }
     public Team Away { get; }
     public Team Home { get; }
     public IReadOnlyList<Character> AwayOrder { get; }
@@ -92,14 +105,17 @@ public sealed class Match
             Identity: PlayTraceIdentity.Capture(this),
             Trial: PlayTraceTrial.For(Content.Root));
 
-    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null)
+    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null, bool hazards = true)
     {
         Content = content;
+        // The table resolves from the park as the catalog authored it, so the switch cannot reach a
+        // rule: a hazards-off match plays the very table its hazards-on twin plays (SF-01, FD-10).
         _rules = content.Rules.AtLevel(difficulty).AtPark(park);
         Mercy = mercy;
         Away = away;
         Home = home;
-        Park = park;
+        Hazards = hazards;
+        Park = hazards ? park : HazardPattern.HazardsOff(park, _rules.Hazards);
         Night = night;
         Innings = innings;
         Seed = seed;
@@ -163,10 +179,11 @@ public sealed class Match
         int seed = 1,
         string? parkId = null,
         bool night = false,
-        string? difficulty = null)
+        string? difficulty = null,
+        bool hazards = true)
     {
         var (home, away) = PresetTeams.Pair(content, homeCaptain, awayCaptain);
-        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(content, homeCaptain), night, difficulty);
+        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(content, homeCaptain), night, difficulty, hazards);
     }
 
     public static Match Exhibition(
@@ -177,10 +194,11 @@ public sealed class Match
         int seed = 1,
         string? parkId = null,
         bool night = false,
-        string? difficulty = null)
+        string? difficulty = null,
+        bool hazards = true)
     {
         parkId ??= PresetTeams.HomeParkId(content, home.Captain.Id);
-        return new Match(content, away, home, content.MustPark(parkId), innings, seed, night, difficulty: difficulty);
+        return new Match(content, away, home, content.MustPark(parkId), innings, seed, night, difficulty: difficulty, hazards: hazards);
     }
 
     /// <summary>

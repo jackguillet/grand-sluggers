@@ -118,4 +118,44 @@ public static class HazardPattern
 
     /// <summary>True for one of the six patterns the sim implements.</summary>
     public static bool IsKnown(string? pattern) => pattern is not null && KnownIds.Contains(pattern);
+
+    /// <summary>
+    /// The patterns that count as a hazard, which are the ones the match's hazards switch removes
+    /// (FD-10, §14, SF-24): a status volume, a ball redirect, a reward target and a catch stealer —
+    /// the four that act on a play. <see cref="WallTrait"/> is not one, because a climbable span is a
+    /// property of the wall (FD-06) and the park keeps its walls with hazards off. <see cref="Decoration"/>
+    /// is not one, because it does nothing in play and the kit still draws it.
+    ///
+    /// <para>
+    /// This is the one place the choice is written: a property of the pattern set, so a type is in or
+    /// out by the pattern its row names, never by a per-park list or a test on a type string. It is
+    /// contract work FD-10 left open, written by F4-h (#858) and confirmed by Jack (4. a, September 22,
+    /// 2026).
+    /// </para>
+    /// </summary>
+    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget, CatchStealer];
+
+    static readonly HashSet<string> HazardIds = new(Hazards, StringComparer.Ordinal);
+
+    /// <summary>True for a pattern that counts as a hazard (<see cref="Hazards"/>): the switch removes an instance of it.</summary>
+    public static bool IsHazard(string? pattern) => pattern is not null && HazardIds.Contains(pattern);
+
+    /// <summary>
+    /// The park a match plays with hazards off (FD-10, SF-24): the same park with every instance whose
+    /// type's pattern <see cref="IsHazard">is a hazard</see> removed, and nothing else. Its size, fence,
+    /// walls, air, wind, ground zones, foul territory, depth and night window are the same values, and
+    /// the <see cref="WallTrait"/> and <see cref="Decoration"/> instances stay, in their authored order.
+    ///
+    /// <para>
+    /// It reads each instance's row from <paramref name="library"/> — the same table
+    /// <see cref="ParkHazards"/> dispatches on — and does not dispatch: nothing here decides what a
+    /// hazard does. A park that has no hazard instance comes back as itself, so a hazards-off match at
+    /// Harbor plays the catalog's own park object.
+    /// </para>
+    /// </summary>
+    public static Park HazardsOff(Park park, HazardRules library)
+    {
+        var kept = park.Hazards.Where(h => !IsHazard(library.Of(h.Type).Pattern)).ToArray();
+        return kept.Length == park.Hazards.Count ? park : park with { Hazards = kept };
+    }
 }
