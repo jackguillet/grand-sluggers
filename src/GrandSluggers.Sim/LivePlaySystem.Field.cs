@@ -141,6 +141,9 @@ public sealed partial class LivePlaySystem
     readonly List<LiveStamp> _stampsThisPlay = [];
     /// <summary>The park's status volumes on the bodies that touch them (F4-b, #896): the touch, the per-body time, the slow.</summary>
     readonly BodySlows _bodySlows = new();
+
+    /// <summary>Where this park's fielders start (FD-07, F2-d): the global infield, the park's outfield (<see cref="OutfieldStarts"/>).</summary>
+    IReadOnlyDictionary<string, (double X, double Z)> Starts => OutfieldStarts.Of(Park, R);
     readonly BallHazards _ballHazards = new();
     IReadOnlyList<SolidBody> _solids = [];
     readonly List<BodyCarom> _caromsThisPlay = [];
@@ -415,7 +418,7 @@ public sealed partial class LivePlaySystem
         {
             (double X, double Z) at = kv.Key == GlovePos && Active ? (GloveX, GloveZ)
                 : _fielders.TryGetValue(kv.Key, out var p) ? p
-                : Diamond.Positions[kv.Key];
+                : Starts[kv.Key];
             list.Add(new FieldBody(kv.Key, kv.Value, at.X, at.Z));
         }
         foreach (var r in Runners)
@@ -534,7 +537,7 @@ public sealed partial class LivePlaySystem
     {
         _fielders.Clear();
         foreach (var kv in Assigned())
-            _fielders[kv.Key] = Diamond.Positions[kv.Key];
+            _fielders[kv.Key] = Starts[kv.Key];
         // The square (§7.3): the corners crashed and the middle walked to the bags while the pitch was thrown; the
         // live ball starts from those bodies — the same function the presenter drew them from (BuntDefense.Spots).
         if (BuntDefense.Squared(Swing))
@@ -1970,7 +1973,7 @@ public sealed partial class LivePlaySystem
             GloveX = at.X;
             GloveZ = at.Z;
         }
-        else if (Diamond.Positions.TryGetValue(GlovePos, out var home))
+        else if (Starts.TryGetValue(GlovePos, out var home))
         {
             GloveX = home.X;
             GloveZ = home.Z;
@@ -2205,7 +2208,7 @@ public sealed partial class LivePlaySystem
         {
             if (!map.TryGetValue(pos, out var who)) continue;
             if (FieldAbilities.IgnoresParkSlow(who)) _routeImmune.Add(pos);
-            var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Diamond.Positions[pos];
+            var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Starts[pos];
             foreach (var (v, until) in _bodySlows.Read(pos, at.Item1, at.Item2, t, FieldAbilities.IgnoresParkSlow(who)))
                 Slowed(new BodySlowed(pos, who, v.Hazard, v.Type, t, until), v, null);
         }
@@ -2652,7 +2655,7 @@ public sealed partial class LivePlaySystem
     {
         var spots = new Dictionary<string, (double X, double Z)>();
         foreach (var kv in map)
-            spots[kv.Key] = _fielders.TryGetValue(kv.Key, out var live) ? live : Diamond.Positions[kv.Key];
+            spots[kv.Key] = _fielders.TryGetValue(kv.Key, out var live) ? live : Starts[kv.Key];
         return spots;
     }
 
@@ -2896,7 +2899,7 @@ public sealed partial class LivePlaySystem
         var plant = FlyCatch.WallPlant(Preview, Park, R);
         var hover = R.Fielding.Catch;
         var u = Math.Clamp(ElapsedSeconds / Math.Max(hover.HoverMinSec, hang - hover.HoverLeadSec), 0, 1);
-        var start = Diamond.Positions[BuddyPos];
+        var start = Starts[BuddyPos];
         _fielders[BuddyPos] = (start.X + (plant.X - start.X) * u, start.Z + (plant.Z - start.Z) * u);
         if (!PlayerFielding)
             BuddyWindow = FlyCatch.JumpWindow(ElapsedSeconds, hang, Preview.Fielder, Park, R);
@@ -3001,7 +3004,7 @@ public sealed partial class LivePlaySystem
         _cutoffPos = cutPos;
         _cutoffSpot = (lineX, lineZ);
         // The ball goes to where the cutoff will stand: on the line, or where they are if already there.
-        var at = _fielders.TryGetValue(cutPos, out var spot) ? spot : Diamond.Positions[cutPos];
+        var at = _fielders.TryGetValue(cutPos, out var spot) ? spot : Starts[cutPos];
         var onTheLine = Diamond.Dist(at.X, at.Z, lineX, lineZ) < R.Fielding.Cover.RadiusFt;
         BeginThrow(thr, 0, onTheLine ? at.X : lineX, onTheLine ? at.Z : lineZ, cutPos);
     }
@@ -3995,7 +3998,7 @@ public sealed partial class LivePlaySystem
     {
         _fielders.Clear();
         foreach (var kv in Assigned())
-            _fielders[kv.Key] = Diamond.Positions[kv.Key];
+            _fielders[kv.Key] = Starts[kv.Key];
         SwapLock = 0;
         GlovePos = pickoffBag > 0 ? "P" : "C";
         var spot = pickoffBag > 0 ? Diamond.Rubber : StealThrow.CatcherSpot(R);

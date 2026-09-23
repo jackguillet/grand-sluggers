@@ -167,7 +167,7 @@ public static class FieldBounds
     /// <summary>The polygon per park and edge, built once (<see cref="EdgeKey"/>).</summary>
     static readonly System.Collections.Concurrent.ConcurrentDictionary<EdgeKey, Boundary> Cache = new();
 
-    public static Boundary Of(Park park) => Of(park, ParkBoundary.Default);
+    public static Boundary Of(Park park) => Of(park, ParkBoundary.For(park));
 
     public static Boundary Of(Park park, ParkBoundary bounds) =>
         Cache.GetOrAdd(EdgeKey.Of(park, bounds), k => Build(park, k.Bounds));
