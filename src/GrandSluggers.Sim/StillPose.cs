@@ -35,16 +35,23 @@ public static class StillPose
     public const double PitchCamZ = -4.8;
     public const double PitchLookX = 0.7;
     public const double PitchLookY = 5.1;
-    public const double PitchLookZ = 57.0;
+    /// <summary>The pitch look sits this far in front of the rubber (57 on the 60.5-ft mound).</summary>
+    public const double PitchLookShortOfRubberFt = 3.5;
+    /// <summary>The look follows the rubber the infield table names (<see cref="Diamond.Mound"/>).</summary>
+    public static double PitchLookZ => Diamond.Mound - PitchLookShortOfRubberFt;
     public const double PitchFov = 34;
 
     /// <summary>
     /// First-base 3/4 behind the rubber. Pitcher sits right of the look;
     /// rubber in the bottom; the box at home is the look, not CF or brim.
+    /// The camera stands <see cref="MoundCamBehindRubberFt"/> behind the rubber the infield table
+    /// names (<see cref="Diamond.Mound"/>), so a smaller diamond moves the shot with the mound.
     /// </summary>
     public const double MoundCamX = 5.0;
     public const double MoundCamY = 5.4;
-    public const double MoundCamZ = 72.0;
+    /// <summary>Behind the rubber: 72 on the 60.5-ft mound, the middle of the 8-16 ft over-shoulder window.</summary>
+    public const double MoundCamBehindRubberFt = 11.5;
+    public static double MoundCamZ => Diamond.Mound + MoundCamBehindRubberFt;
     public const double MoundLookX = 0.4;
     public const double MoundLookY = 1.2;
     public const double MoundLookZ = 6.0;
