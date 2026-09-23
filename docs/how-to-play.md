@@ -101,7 +101,7 @@ Two screens. Not a 3D huddle with a name list.
 - **Stick / WASD** — move through the bar or diamond without changing anything
 - **East / G** — switch between batting bar and field
 - **South / Space / click a player** — pick them; move to another slot in the same bar or diamond and confirm again to swap. Confirm the same player to cancel
-- **West / F** — cancel a pick; with no pick, back to Team Setup
+- **West / F** — withdraw ready, or cancel a pick; with neither, Player 1 goes back to Team Setup
 - **North / Q / Ready button** — ready your team when no player is picked. Every human player must be ready to start; the CPU is ready automatically. Ready again or West/F withdraws your ready state; picking a player to edit clears your ready state
 
 Both controllers edit only their own team. Mouse is Player 1; the other team can be inspected but cannot be edited. There is no automatic start while you inspect the lineup. On Team Setup, click a pool player to add them, click a team slot to focus it, and use **Fill team** or **Continue** as labeled. Continue needs both complete nines.

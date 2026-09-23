@@ -24,6 +24,8 @@ public class LineupScreensTests
         Assert.Equal(9, s.AwaySlots.Count(c => c != null));
         Assert.Equal(LineupSeat.Pad1, s.HomeSeat);
         Assert.Equal(LineupSeat.Cpu, s.AwaySeat);
+        Assert.Null(s.InspectedBy(LineupSeat.Pad2));
+        Assert.Null(s.InspectedBy(LineupSeat.Cpu));
         Assert.True(s.Pool.Count >= 8);
         Assert.DoesNotContain(s.Pool, c => c.Id.Equals("vale", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(s.Pool, c => s.AwaySlots.Any(a => a != null && a.Id == c.Id));
@@ -207,6 +209,11 @@ public class LineupScreensTests
             }
             for (var i = 0; i < cells.Length; i++)
                 for (var j = i + 1; j < cells.Length; j++) Assert.False(Overlap(cells[i], cells[j]), $"{Diamond.Order[i]} overlaps {Diamond.Order[j]}");
+            foreach (var pos in Diamond.Order.Where(p => p != "C"))
+            {
+                var spot = LineupLayout.FieldSpot(pos);
+                Assert.True(LineupLayout.InFairField(spot.X, spot.Y), pos + " must sit inside foul lines and fence");
+            }
             var catcher = LineupLayout.DiamondHead(home, "C");
             var pitcher = LineupLayout.DiamondHead(home, "P");
             Assert.True(catcher.CY < pitcher.CY);

@@ -222,7 +222,7 @@ namespace GrandSluggers.UnityClient
         static void Label(float x, float y, float w, float h, string text, GUIStyle style) => GUI.Label(new Rect(x, y, w, h), text, style);
         static void Fill(Rect r, Color color)
         {
-            var old = GUI.color; GUI.color = color; GUI.DrawTexture(r, _white); GUI.color = old;
+            var old = GUI.color; GUI.color = DisplayColor(color); GUI.DrawTexture(r, _white); GUI.color = old;
         }
         static void Border(Rect r, Color c, float n)
         {
@@ -241,10 +241,12 @@ namespace GrandSluggers.UnityClient
             _mark = Style(12, Color.white, FontStyle.Bold); _mark.alignment = TextAnchor.MiddleCenter;
             _field = FieldTexture();
         }
+        // IMGUI writes directly to the linear player target; palette values are authored in sRGB.
+        static Color DisplayColor(Color color) => QualitySettings.activeColorSpace == ColorSpace.Linear ? color.linear : color;
         static GUIStyle Style(int size, Color color, FontStyle weight)
         {
             var s = new GUIStyle(GUI.skin.label) { fontSize = size, fontStyle = weight, alignment = TextAnchor.MiddleLeft, clipping = TextClipping.Clip };
-            s.normal.textColor = color; return s;
+            s.normal.textColor = DisplayColor(color); return s;
         }
 
         // A schematic baseball field: a curved outfield, foul lines from home, dirt apron,
@@ -260,20 +262,20 @@ namespace GrandSluggers.UnityClient
             {
                 var x = (px + .5f) / w - .5f;
                 var y = (py + .5f) / h;
-                var z = y - .10f;
-                var radius = Mathf.Sqrt(x * x * 1.40f * 1.40f + z * z);
-                var fair = z >= Mathf.Abs(x) * 1.0f && radius < .83f;
+                var z = y - (1f - (float)LineupLayout.FieldHomeY);
+                var radius = Mathf.Sqrt(x * x * (float)(LineupLayout.FieldXScale * LineupLayout.FieldXScale) + z * z);
+                var fair = LineupLayout.InFairField(x + .5f, 1 - y);
                 var col = Color.clear;
                 if (fair) col = ((int)(z * 15) % 2 == 0) ? new Color(.15f, .30f, .25f) : new Color(.17f, .33f, .27f);
                 var diamond = Mathf.Abs(x) / .27f + Mathf.Abs(z - .27f) / .27f;
                 if (fair && diamond < 1.22f) col = new Color(.47f, .36f, .24f);
                 if (diamond < .76f) col = new Color(.20f, .36f, .28f);
-                if (fair && (Mathf.Abs(z - Mathf.Abs(x) * 1.0f) < .0035f || radius > .822f)) col = new Color(.73f, .79f, .65f, .85f);
+                if (fair && (Mathf.Abs(z - Mathf.Abs(x) * 1.0f) < .0035f || radius > LineupLayout.FieldRadius - .008)) col = new Color(.73f, .79f, .65f, .85f);
                 if (Mathf.Abs(diamond - 1) < .024f) col = new Color(.80f, .76f, .60f);
                 if ((x * x + (z - .23f) * (z - .23f)) < .0007f) col = new Color(.54f, .42f, .28f);
                 foreach (var bag in bags)
                     if (Mathf.Abs(x - bag.x) + Mathf.Abs(z - bag.y) < .017f) col = new Color(.95f, .93f, .80f);
-                pixels[py * w + px] = col;
+                pixels[py * w + px] = DisplayColor(col);
             }
             tex.SetPixels(pixels); tex.Apply(); return tex;
         }
