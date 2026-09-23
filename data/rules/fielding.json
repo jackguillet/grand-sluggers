@@ -1,9 +1,11 @@
 {
   "chase": {
-    "baseFtPerSec": 21,
-    "ftPerSecPerRun": 1.9,
+    // #718 (F693-02-pursuit-*): the whole speed curve x 18 / 30.5, so a Run-5 body runs 18.0 ft/s where it ran 30.5 and the
+    // spread between characters is kept (1.12 / 12.4 against the full-size 1.9 / 21). The floor scales with it.
+    "baseFtPerSec": 12.4,
+    "ftPerSecPerRun": 1.12,
     "frozenMul": 0.45,
-    "minFtPerSec": 8,
+    "minFtPerSec": 4.72,
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
     "swapLockSec": 0.7,
@@ -15,6 +17,13 @@
     // the air runs at the one glove speed x this. S-29 seeds 1-5: 1.18 / 1.48 runs a side at 1.0 with the 0.83 s
     // read, 2.20 / 2.62 at 0.6 (P7's 2.4 s read at 1.0: 2.52 / 2.72). The fly stretch (flight.timeScale 1.1-1.65)
     // and the launch mix moved it under 0.2: the 2.4 s read had been giving away liners, not flies.
+    // #719 (Jack, 2026-09-17): one pursuit profile per body, in the air as on the dirt — the hit-class multipliers retire
+    // with the reach. 0.6 (#609) and 0.45 (#636) were the S-29 levers of the full-size field and 30.5 ft/s legs.
+    // 3d (#715, PR #757, 2026-09-18) measured what that direction costs: at 1.0 the game ran under the S-29 floor in every
+    // cohort (1.28 / 1.04 mixed parks, 1.22 / 1.38 and 0.92 / 1.20 on Harbor) — 18 ft/s legs cover 72 ft under a four-second
+    // fly — and this key alone brought every cohort into the 1.8–5 band at 0.6 (2.46 / 2.36, 2.10 / 2.16, 2.02 / 2.42); 0.7
+    // landed the away side only, 0.8 neither; the read, the fly stretch and the outfield depth did not get there. Jack set
+    // the outfield's multiplier back to 0.6 on 2026-09-18. The infield's stays 1.0.
     "outfieldAirMul": 0.6,
     // #636: the other half of the lever. Once the infield -> outfield hand-off honours the infielder's route in the air
     // (D17, S-97), an infielder under a ball on the stretched clock (a fly or a pop, flight.timeScale 1.65) runs at the
@@ -24,52 +33,53 @@
     // 0.45 2.64 / 2.32 and 2.16-2.72 a side over four seed sets with infield pops still caught (0.02-0.04 pop hits a
     // game); 0.4 2.72 / 2.12 and pops start to drop. A flat multiplier on every air ball drops liners in front of the
     // infield instead (hits inside the lip 0.04 -> 0.20 a game at 0.6).
-    "infieldAirMul": 0.45,
-    // #718 (F693-02-carry-movement-response): the response law. Seconds from rest to the rated speed, and from the rated
-    // speed to rest; a reversal is the brake and then the ramp. 0 / 0 is the instant step this table always had; trials/c80
-    // carries 0.20 / 0.10.
-    "accelSec": 0,
-    "brakeSec": 0
+    "infieldAirMul": 1.0,
+    // #718 (F693-02-carry-movement-response): rest to the rated speed in 0.20 s, the rated speed to rest in 0.10 s; a reversal
+    // is the brake and then the ramp. The pursuit planner charges half the ramp to every route.
+    "accelSec": 0.20,
+    "brakeSec": 0.10
   },
-  // #718 (F693-02-pursuit-neutral-boundary, -analog-response, -arming, -calibration-policy, -calibration-samples): the human
-  // seat's pursuit stick. enterMag 0 is the stick the game shipped with — a Manhattan gate at feel.fieldAssistStick (0.35),
-  // the full stick vector as the asked velocity, no calibration, no arming. trials/c80 carries 0.20 / 0.15: the calibrated
-  // radial stick with hysteresis and the linear remap from leaveMag to 1. The calibration window is the accepted one in both.
+  // #718: the calibrated radial pursuit stick. Manual pursuit from 0.20, back to assistance at 0.15, the owner kept between;
+  // the asked speed is (magnitude - 0.15) / 0.85 of the glove speed, capped at 1; a seat arms with a valid profile and one
+  // neutral observation on defensive-role entry, device recovery or recalibration. The 0.50 s window, 0.10 centre and 0.02
+  // spread are the accepted calibration criteria.
   "stick": {
-    "enterMag": 0,
-    "leaveMag": 0,
+    "enterMag": 0.20,
+    "leaveMag": 0.15,
     "calibrationSec": 0.50,
     "centerOffsetMax": 0.10,
     "sampleSpreadMax": 0.02
   },
   "reaction": {
-    "pitcherSec": 0.42,
-    "catcherSec": 0.67,
-    "firstSec": 0.27,
+    // #718 (the four read clocks): pitcher 0.35, catcher 0.45, one number for the infield four, outfield 0.40 — the
+    // largest single change in the profile, and the one most likely to show in 3d.
+    "pitcherSec": 0.35,
+    "catcherSec": 0.45,
+    "firstSec": 0.25,
     "secondSec": 0.25,
-    "thirdSec": 0.30,
-    "shortSec": 0.28,
+    "thirdSec": 0.25,
+    "shortSec": 0.25,
     // #609: the reference's 50 frames (P7 had 2.4 to hold S-29). The human glove waits it at every rung; CPU
     // bodies wait it x cpu.reactionMul; a ball in the air caps every lockout at its hang.
-    "outfieldSec": 0.83,
+    "outfieldSec": 0.40,
     "throwBaseSec": 0.35,
     "throwPerFieldSec": 0.02,
     "throwMinSec": 0.08
   },
   "cover": {
+    // #718 (F693-02-coverage-budget): cover, cutoff and backup walk at the body's own pursuit speed (chaseSpeedWeight 1;
+    // ftPerSec is inert here) from contact with no read (startSec 0, lockoutMul 0). Retained in feet: stopFt, radiusFt, backupFt.
     "ftPerSec": 28,
-    "startSec": 0.23,
+    "startSec": 0,
     "stopFt": 1.2,
     "radiusFt": 6,
     "backupFt": 60,
-    // #718: how much of a body's reaction lockout gates its cover walk, and how much of its own pursuit speed the walk
-    // uses instead of the flat ftPerSec. 1 and 0 are the rule the game shipped with (D11); trials/c80 carries 0 and 1 —
-    // cover, cutoff and backup walk at the body's own speed from contact.
-    "lockoutMul": 1,
-    "chaseSpeedWeight": 0
+    "lockoutMul": 0,
+    "chaseSpeedWeight": 1
   },
   "dash": {
-    "chaseMul": 1.35,
+    // #718 (F693-02-ball-dash-carrier): the universal East-held sprint is retired; the only faster carry is Ball Dash's.
+    "chaseMul": 1.0,
     "buddyTossFt": 28,
     "kickFt": 22,
     "diveLungeFt": 10,
@@ -78,18 +88,16 @@
   "catch": {
     "radiusBaseFt": 10,
     "radiusPerField": 0.6,
-    // #719 (F693-02-catch-reach-envelope): the authored stand-up reach for every body without its own reachFt. 0 keeps the
-    // legacy radiusBaseFt + Field x radiusPerField above; trials/c80 carries 6.0 — roughly what the visible glove covers from
-    // a planted stance. The dirt pad (windowPadFt) and the dive (diveReachFt) add to it: 6 / 10 / 14 on the trial.
-    "standUpReachFt": 0,
+    // #719: the 6-ft stand-up reach, authored independently of ratings; a character's own reachFt still wins. The stack is
+    // 6 stand-up / 10 on the dirt (the 4-ft pad) / 14 with a dive (+8). Ability bonuses add to it as they always did.
+    "standUpReachFt": 6.0,
     "clamberRadiusFt": 6,
     // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is
     // the catch radius, and the rim is diveReachFt (#669).
     "windowPadFt": 4,
     "diveReachFt": 8,
-    // #719: the jump's horizontal allowance in the dirt window. The c80 copy carries 0 — its jump is the physical arc below,
-    // a rise and a landing, not eight feet of reach.
-    "jumpReachFt": 8,
+    // #719: the jump is the arc below, not eight feet of horizontal reach.
+    "jumpReachFt": 0,
     "diveMaxBallY": 7.5,
     "needsJumpReachFt": 22,
     "jumpRobFt": 4,
@@ -117,19 +125,18 @@
     "jumpArmSec": 0.55,
     "wallJumpArmSec": 0.7,
     "diveArmSec": 0.5,
-    // #719 (F693-02-dive-jump-scoop-reach, -dive-recovery-cost, -cpu-dive-intent): autoDive 1 is the game as shipped — the dead-stick
-    // assistance and the CPU dive at the rim on their own, for free. trials/c80 carries 0 with a 0.60 s recovery cut 2.5 % per
-    // Field point above 1: a dive is a press or the CPU's deliberate commitment on the live ball, and it costs, caught or missed.
-    "autoDive": 1,
-    "diveRecoverySec": 0,
-    "diveRecoveryFieldCut": 0,
-    // #719 (F693-02-normal-jump-*): jumpAirSec 0 is the jump the game shipped with — West arms a window and the body never
-    // leaves the ground. trials/c80 carries 0.60: a fresh eligible press is a takeoff, 2.0 ft of root rise over 0.60 s, the
-    // same for every character; a blocked press is remembered 0.10 s; airborne the stick works at a tenth of the ground rates;
-    // a jumping catch throws after it lands. The rise and the air response are the accepted anchors in both roots.
-    "jumpAirSec": 0,
+    // #719: nobody dives for free. No assistance dive on a neutral stick, no unconditional CPU dive; the CPU commits on the live
+    // ball at the last makeable moment and can miss. Every dive, caught or missed, human or CPU, costs 0.60 s at Field 1 down to
+    // 0.465 at Field 10 before the diver moves or throws.
+    "autoDive": 0,
+    "diveRecoverySec": 0.60,
+    "diveRecoveryFieldCut": 0.025,
+    // #719: the normal jump. A fresh eligible West press takes off at once: 2.0 ft of root rise over 0.60 s (apex at 0.30),
+    // the same for every character, one profile per press; a press blocked by the read or a recovery is remembered 0.10 s;
+    // airborne the stick works at a tenth of the ground rates and a neutral body coasts; a jumping catch throws after it lands.
+    "jumpAirSec": 0.60,
     "jumpRiseFt": 2.0,
-    "jumpBufferSec": 0,
+    "jumpBufferSec": 0.10,
     "jumpAirResponseMul": 0.10
   },
   "drops": {
@@ -149,43 +156,42 @@
     "superJumpCatchBonusFt": 3,
     "superJumpFlyRangeFt": 22,
     "diveGroundRangeFt": 16,
-    // #723 (F693-03-snap-throw, -laser-throw): Snap Throw's release after a clean received throw, and whether Laser is confined to a
-    // throw home with a live runner on third. 0.22 equals this table's ordinary release, so the snap release is inert here, and
-    // laserHomeOnly 0 is the universal boost the game shipped with; trials/c80 carries 0.22 against a 0.30 release, laserMul 1.25,
-    // snapThrowMul 1.0 and laserHomeOnly 1.
-    "laserMul": 1.45,
-    "snapThrowMul": 1.22,
+    // #723: Laser is x1.25 and only on a throw home with a live runner on third or the third-home segment (a cutoff feed never
+    // carries it); Snap Throw is a 0.22 s release after a clean received teammate throw at x1.0 flight against the ordinary 0.30.
+    "laserMul": 1.25,
+    "snapThrowMul": 1.0,
     "snapReleaseSec": 0.22,
-    "laserHomeOnly": 0,
-    // #718 (F693-02-ball-dash-carrier): a Ball Dash holder carries the ball at this multiple of its pursuit speed, automatically —
-    // no press, no timer. Only the cap moves; the response rates stay the body's own. No shipped body holds the ability, so this
-    // table never reads it; trials/c80 gives it to dart, pip and jester and retires the universal dash.chaseMul sprint.
+    "laserHomeOnly": 1,
+    // #718 (F693-02-ball-dash-carrier): dart, pip and jester (characters/role-players.json) carry the ball at x1.20
+    // of their pursuit speed, automatically; the rates stay the body's own, so the boosted body takes 0.24 s to its cap.
     "ballDashMul": 1.20
   },
   "throw": {
-    "releaseSec": 0.22,
-    "baseFtPerSec": 100,
+    // #722 (F693-03-release-clock, F693-03-travel-clock): 0.30 s release, 0.90 s of flight over 80 ft for the neutral arm.
+    "releaseSec": 0.30,
+    "baseFtPerSec": 88.89,
     "minFtPerSec": 32,
     "armBase": 0.85,
     "armPerField": 0.03,
-    // #722 (F693-03-long-throws): past comfortableRangeFt (+ rangePerArmFt per Arm point from 5) the flight gains
-    // longThrowLossSec x (feet over / 80)^2, divided by chemistry and ability with the rest of the flight. 0 here is
-    // the flat clock this table always had; trials/c80 carries the accepted 0.60.
+    // #722 (F693-03-long-throw-numbers): R = 160 + 5 (Arm - 5); flight += 0.60 x ((d - R) / 80)^2 past it, divided by
+    // chemistry and ability with the rest. An Arm 5 throw is 4.80 s from 280 ft and 10.20 s from 400; a relay through
+    // SS on the compact centre line arrives first beyond 221 / 237 / 258 / 272 ft for an Arm 3 / 5 / 8 / 10 thrower.
     "comfortableRangeFt": 160,
     "rangePerArmFt": 5,
-    "longThrowLossSec": 0,
+    "longThrowLossSec": 0.60,
     "lateralSigmaPerFieldDeficitFt": 0.35,
     "lobMaxSec": 1.5,
-    // #722: the forced-relay ceiling. Beyond it a throw always goes through the cutoff; inside it the CPU relays only when
-    // the relay saves more than cpu.*.relayBiasSec, which the shipped rungs set to a value no relay can save. Today's rule.
-    "onTheFlyFt": 200,
+    // #722 (decision 6 of #730): never forced. The CPU relays when the relay arrives first by the rung's relayBiasSec in
+    // rules/cpu.json, and for no other reason. On this clock a relay through SS on the centre line wins beyond 221 / 237 /
+    // 258 / 272 ft for an Arm 3 / 5 / 8 / 10 thrower.
+    "onTheFlyFt": 9999,
     "unassistedFt": 8,
     "handHeightFt": 3.2,
     "bagHeightFt": 1.2,
-    // #723 (F693-03-relay-ownership, -input-buffer): a human's cutoff throws the armed onward leg for them (1), and an early
-    // press is remembered this long (0 = no queue). Today's rule; trials/c80 carries 0 and 0.25.
-    "relayAutoContinue": 1,
-    "relayBufferSec": 0
+    // #723 (F693-03-relay-ownership): each human relay leg needs its own command; an early press is remembered for 0.25 s of
+    // active play and fires at the catch; bag selectors retarget it; a fresh RB / period cancels it.
+    "relayAutoContinue": 0,
+    "relayBufferSec": 0.25
   },
   // How fast the loose ball slows is the ground's, not the throw's: grounds.json overthrow.decelFtPerSec2, read off the row of
   // the zone the ball is in (F3-c, FD-05).
@@ -203,10 +209,9 @@
   },
   "chem": {
     "goodSpeedMul": 1.30,
-    // #722 (F693-03-negative-chemistry): a bad pair's unslanted throw flies at this x the arm; 1.0 is today's ordinary
-    // throw, and trials/c80 carries 0.90 with slantChance 0.
-    "badSpeedMul": 1.0,
-    "slantChance": 0.20,
+    // #722 (F693-03-negative-chemistry): a bad pair is slow, not random. 0.90 x the arm on every bad throw, no slant.
+    "badSpeedMul": 0.90,
+    "slantChance": 0,
     "slantSpeedMul": 0.70,
     "slantLateralMinFt": 10,
     "slantLateralMaxFt": 14
@@ -231,27 +236,51 @@
     "maxSec": 0.55,
     "minSec": 0.02
   },
-  // #720 (F693-02-ground-pickup-recoil-*, -recoil-*, -ordinary-recoil-*): the ordinary impact recoil, read off the ball's actual
-  // incoming speed the frame before the take. onsetFtPerSec 0 keeps the knockback above, the rule the game shipped with; the
-  // c80 copy carries the measured anchors. capSec, handsCutPerPoint and kickFtPerSec are the accepted anchors (0.20 s at full
-  // severity for Hands 1, five points less per Hands point above 1, a 10 ft/s kick slowing to rest over the recovery = w² ft),
-  // read only above onset 0. airOnsetFtPerSec / airFullFtPerSec are the airborne pair (a hard catch in the air by a body on its
-  // feet, F693-02-grounded-air-catch-recoil); 0 = no airborne recoil.
+  // #720 (F693-02-ground-pickup-recoil-basis, -cap, -recoil-field-shaping, -recoil-field-factors, -recoil-severity-curve,
+  // -ordinary-recoil-actions, -ordinary-recoil-displacement, -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile):
+  // a ground pickup costs the hands what the ball's actual incoming speed says, deterministic — S = clamp((v − 55) / (75 − 55)),
+  // w = S × (1 − 0.05 × (Hands − 1)), the recovery 0.20 w s, a 10 w ft/s kick along the ball's travel slowing to rest over it
+  // (w² ft), steering and the throw start waiting, possession and the contact at the bag kept. The knockback block above is
+  // not read while onsetFtPerSec is above 0. The anchors are the measured ones (#720 slice 1, 48 cli matches on this profile,
+  // 464 ground pickups): the onset 55 ft/s is the 90th percentile of every ground pickup's incoming speed — the hottest tenth
+  // recoils, the rest is routine and costs nothing — and the full 75 ft/s is just past the hottest ball seen (73.0), so the cap
+  // binds only on a true rocket. 11 % of CPU pickups recoil, none at the cap, 0.034 s among them; the old
+  // knockback stopped 41 % of grounder pickups for 0.078 s on average. The airborne pair (slice 2, F693-02-grounded-air-catch-recoil)
+  // is measured the same way on the same runs, 531 catches in the air: flies, pops and wall balls arrive at 22–42 ft/s with a
+  // 0.59 vertical share and liners at p50 77 / p90 91 / max 110, so one pair cannot serve both — the ground pair would charge
+  // 99 % of liners and cap a fifth of all catches. airOnsetFtPerSec 80 is the 90th percentile of every catch in the air (the
+  // hottest tenth, 38 % of liners, no fly), airFullFtPerSec 115 just past the hottest catch seen (110.2). A dive, a jump or a
+  // buddy leap is not a grounded catch and pays its own price instead.
   "recoil": {
-    "onsetFtPerSec": 0,
-    "fullFtPerSec": 0,
-    "airOnsetFtPerSec": 0,
-    "airFullFtPerSec": 0,
+    "onsetFtPerSec": 55,
+    "fullFtPerSec": 75,
+    "airOnsetFtPerSec": 80,
+    "airFullFtPerSec": 115,
     "capSec": 0.20,
     "handsCutPerPoint": 0.05,
     "kickFtPerSec": 10
   },
-  // #721 (F693-02-handling-error-*, -awkward-hop-difficulty-source, -ordinary-bobble-outcome, -bobble-*, -local-bobble-*): where an
-  // ordinary play goes wrong. awkwardHop 0 keeps the bobble above — a roll off the contact's energy on every grounder take, the
-  // rule the game shipped with; the c80 copy carries 1: a routine pickup never rolls, the awkward in-between hop is the one
-  // difficulty, and a failed take is a local bobble. Every other key is an accepted anchor, read only above awkwardHop 0.
+  // #721 (F693-02-handling-error-opportunities, -ordinary-handling-error-chance, -ordinary-handling-error-cap,
+  // -ordinary-handling-chance-curve, -awkward-hop-difficulty-source, -ordinary-bobble-outcome, -bobble-stun, -bobble-stun-duration,
+  // -bobble-recovery-reliability, -bobble-direction-spread, -uniform-error-direction, -local-bobble-*): a legal routine pickup
+  // never rolls. The one difficulty is the awkward in-between hop at the take — the ball rising off a real bounce, mid-way up a
+  // hop tall enough to matter: D = (1 − |φ − 0.5| / 0.35) × (apex − 0.5) / (1.5 − 0.5), φ the ball's height over its
+  // projected apex, both clamped to [0, 1]; the chance is 0.10 × D × (1 − 0.80 × H) with H the Hands (1 → 0, 10 → 1) — 10 / 6 / 2 %
+  // at full difficulty for weak / middle / strong hands. The bands were measured on this profile (#721 slice 1, 48 cli matches, 483 ground pickups): a fifth of takes are rolls, half
+  // are falling balls (the clean long hop), a quarter rising — and of those most are met near the top; 0.5 ft (six inches, the
+  // bobble ceiling) is the micro-bounce line, 1.5 ft (the knee) full difficulty, 0.35 the phase half-width. 8.5 % of
+  // CPU pickups carry any chance at all, 1.2 % on average among them: about one error a hundred CPU games. The seat's own
+  // South-press take can meet any hop.A failed take is a local bobble: the ball spills down from the
+  // contact with a fifth of its horizontal speed (six ft/s at most) inside ±30° of its travel, rebounds at 35 % under a six-inch
+  // ceiling, settles below three inches, keeps 90 % of its roll per impact and slows at 6 ft/s²; the fumbler is stunned 0.40 s
+  // while the ball and every other body stay live, and picking it up again never rolls. Or (slice 2) the ball gets past: the
+  // obstruction is how squarely the ring met the ball (1 at the body, 0 at the edge of the take's window); below 0.5 on a ball
+  // that came in at 55 ft/s or more (the recoil's hot line), the ball carries on with 0.80 → 0.50 of its horizontal and signed
+  // vertical speed inside ±15° of its travel on the shared batted-ball ground physics — the contact and the speed decide, never
+  // a second roll. The CPU takes at the edge of the ring, so its rare fumble on a hot ball is the ball getting past and on an
+  // ordinary one the knockdown; the seat's own take at the body is always the knockdown. The bobble block above is not read.
   "handling": {
-    "awkwardHop": 0,
+    "awkwardHop": 1,
     "chanceCap": 0.10,
     "handsCut": 0.80,
     "hopMinApexFt": 0.5,
@@ -271,9 +300,9 @@
     "deflectObstruction": 0.5,
     "deflectMinFtPerSec": 55
   },
-  // The hazard types' own numbers moved to rules/hazards.json with the pattern library (#847).
-  // What is left is not a park hazard's: a shell or cask star swing flags a grounder warped with no
-  // can in the park at all.
+  // #847 moved emberNightFireMul and pipeReachPadFt out of this block and under their hazard types
+  // in rules/hazards.json. What is left is not a park hazard's: a shell or cask star swing flags a
+  // grounder warped with no can in the park at all.
   "park": {
     "shellWarpChance": 0.6
   },

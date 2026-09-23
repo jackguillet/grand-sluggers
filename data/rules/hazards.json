@@ -3,9 +3,8 @@
 // ParkHazards dispatches on the pattern, never on a type string, so a type that fits a pattern is a
 // row here and nothing in the sim.
 //
-// Every number is the number that shipped (#847, FR-06): fireBreath.nightRadiusMul was
-// fielding.park.emberNightFireMul, and the two reachPadFt were fielding.park.pipeReachPadFt.
-// #730 / #732 still own both. What a status volume costs a body is fielding.chase.frozenMul and the
+// fireBreath.nightRadiusMul was fielding.park.emberNightFireMul, and the two reachPadFt were
+// fielding.park.pipeReachPadFt (#847, FR-06). #730 / #732 still own both. What a status volume costs a body is fielding.chase.frozenMul and the
 // billboard's payout is stars.gains.billboard; neither moved, because a star swing sets the same slow.
 //
 // Whether an instance exists only at night is where the park authors it (its night block, FD-11,
@@ -17,7 +16,7 @@
   // fielder or a runner - that touches the disc runs at fielding.chase.frozenMul for slowSec from the
   // touch; staying inside keeps it slowed and entering again starts the time again. Nobody else is
   // slowed, and nothing is decided from where the ball lands. slowSec 3.0 is Jack's number
-  // ("slows for 3 seconds", FD-08-R2, 2026-09-22), the same on both roots, not yet played; only a
+  // ("slows for 3 seconds", FD-08-R2, 2026-09-22), not yet played; only a
   // statusVolume carries it. Only the breath widens at night.
   "freezeVolume": {
     "pattern": "statusVolume",
@@ -39,16 +38,17 @@
   },
   // Funfair's warp cans and Canopy's barrels: a grounder landing inside radius + reachPadFt comes
   // out of another one. The pad is the larger part of the capture disc (#732), not a rounding
-  // allowance, which is why trials/c80 scales it with the radii.
+  // allowance, so it takes the fence scale with the radii: 8 x 0.70 = 5.60, and a Canopy
+  // barrel's disc is 3.50 + 5.60 = 9.10 ft, 0.70 of the full-size 13.00.
   "warpPipe": {
     "pattern": "ballRedirect",
     "nightRadiusMul": 1,
-    "reachPadFt": 8
+    "reachPadFt": 5.6
   },
   "barrel": {
     "pattern": "ballRedirect",
     "nightRadiusMul": 1,
-    "reachPadFt": 8
+    "reachPadFt": 5.6
   },
   // Rooftop's star signs: a landing on one pays the batting team stars.gains.billboard.
   "billboard": {

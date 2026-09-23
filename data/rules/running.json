@@ -57,13 +57,18 @@
     "desperateTrailRuns": 3,
     "desperateSec": 0.2,
     "commitFraction": 0.4,
-    "tagThirdMinCarryFt": 200,
-    "tagSecondMinCarryFt": 250,
-    // #732 (decision 5 of #730): the tag-up as a race, judged once at the catch — go when margin(next) clears the bag's
-    // threshold plus cpu.*.runnerMarginSec. 99 is a margin no play reaches, so this table decides by the two carry gates
-    // above, which is the rule the game shipped with; trials/c80 sets the gates to never and authors the thresholds.
-    "tagUpHomeMarginSec": 99,
-    "tagUpThirdMarginSec": 99,
+    // #732 (decision 5 of #730): a tag-up is a race, not a distance. The carry gates are never; the runner goes when the
+    // margin to the next bag - the defense's estimated arrival, arm and relay read, minus the runner's own - clears the
+    // threshold plus the rung's runnerMarginSec. Judged once, at the catch. Measured on this profile over three
+    // runners x three fields x six depths (108 races): at home every runner out was read at or below +0.11 and every
+    // safe one at or above -0.04; at third the line is -0.10 / -0.08. The thresholds put the HARD rung (-0.15) on that
+    // line - the best judge sits where the race actually turns - so normal holds 0.15 s longer and easy 0.30 s longer
+    // and reads less. For normal on the line instead, author 0.10 and -0.08. The clock keys of this file kept
+    // their full-size values: elapsed pace is the anchor, so a Run-5 bag is still 2.95 s on the 80-ft path.
+    "tagThirdMinCarryFt": 9999,
+    "tagSecondMinCarryFt": 9999,
+    "tagUpHomeMarginSec": 0.25,
+    "tagUpThirdMarginSec": 0.07,
     "stealMinRun": 4,
     "stealBaseRun6": 0.06,
     "stealBaseRun8": 0.16,
