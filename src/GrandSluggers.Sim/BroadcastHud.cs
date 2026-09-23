@@ -326,7 +326,8 @@ public static class BroadcastHud
         int DefenseStars,
         string AwayName,
         string HomeName,
-        IReadOnlyList<RunnerPip> Runners);
+        IReadOnlyList<RunnerPip> Runners,
+        bool StarsEnabled);
 
     /// <summary>
     /// One live runner on the mini diamond (spec §15, #606): who, the bag they started this play on (0 is the
@@ -397,7 +398,8 @@ public static class BroadcastHud
             (int)Math.Floor(match.DefenseStars),
             match.Away.Name,
             match.Home.Name,
-            RunnerPips(match));
+            RunnerPips(match),
+            match.StarsEnabled);
     }
 
     /// <summary>Booklet Game Rules spread. Copy a stranger can read without F2.</summary>
