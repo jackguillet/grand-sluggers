@@ -6,13 +6,16 @@ namespace GrandSluggers.Sim.Tests;
 public class HomeSetTests
 {
     [Fact]
-    public void OfficialHomeLayout()
+    public void PlateMatchesStrikeZoneWithoutMovingTheBatters()
     {
-        Assert.True(HomeSet.IsOfficialLayout());
+        Assert.True(HomeSet.FitsStrikeZoneLayout());
         Assert.True(HomeSet.PlatePointFacesTheCatcher());
         Assert.True(HomeSet.BoxesClearThePlate());
-        Assert.Equal(17.0 / 12.0, HomeSet.PlateW, 9);
-        Assert.Equal(4.0, HomeSet.BoxW);
+        Assert.Equal(StrikeZoneGeometry.HalfWidth * 2, HomeSet.PlateW, 9);
+        Assert.Equal(HomeSet.PlateW, HomeSet.PlateDepth);
+        Assert.Equal(HomeSet.PlateW, HomeSet.AuthoredPlateW * HomeSet.PlateMeshScale, 9);
+        Assert.Equal(4.0 - (HomeSet.PlateW - HomeSet.AuthoredPlateW), HomeSet.BoxW, 9);
+        Assert.Equal(17.0 / 24.0 + 0.5 + 2, HomeSet.BoxX, 9);
         Assert.Equal(6.0, HomeSet.BoxD);
         Assert.Equal(6.0 / 12.0, HomeSet.BoxGap, 9);
         Assert.Equal(HomeSet.PlateCenterZ + 4.0, HomeSet.BoxFrontZ, 9);
@@ -29,6 +32,25 @@ public class HomeSetTests
         Assert.False(FoulRayHitsBox(1.5, 1.5), "line from the point through the box");
         Assert.False(FoulRayHitsBox(3, 3));
         Assert.True(HomeSet.FoulLineStartZ > 4, "start is past the box front (~4.7 ft)");
+    }
+
+    [Fact]
+    public void EveryPlateVertexClearsBothVisibleBoxStripes()
+    {
+        var outline = HomeSet.PlateOutline();
+        Assert.Equal(5, outline.Length);
+        Assert.Equal(-StrikeZoneGeometry.HalfWidth, outline.Min(p => p.X));
+        Assert.Equal(StrikeZoneGeometry.HalfWidth, outline.Max(p => p.X));
+        var chalkInnerEdge = HomeSet.BoxInnerX - HomeSet.ChalkW * 0.5;
+        foreach (var p in outline)
+        {
+            Assert.True(Math.Abs(p.X) < chalkInnerEdge);
+            Assert.True(p.Z >= Math.Abs(p.X), "plate stays inside the foul rays");
+        }
+        Assert.Equal(4 * HomeSet.Inch, chalkInnerEdge - HomeSet.PlateW * 0.5, 9);
+        Assert.Contains(outline, p => p.X == 0 && p.Z == 0);
+        Assert.Equal(-HomeSet.BoxX, HomeSet.BatterXFor(Hand.R));
+        Assert.Equal(HomeSet.BoxX, HomeSet.BatterXFor(Hand.L));
     }
 
     static bool FoulRayHitsBox(double x, double z)
