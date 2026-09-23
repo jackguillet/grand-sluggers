@@ -233,7 +233,7 @@ public class CarnivalFrontTests
         Assert.Contains(page.Lines, l => l.Contains("Hazards    on / off", StringComparison.Ordinal));
         Assert.Contains(page.KeyLines!, l => l.Contains("R    hazards on / off", StringComparison.Ordinal));
         var book = File.ReadAllText(Path.Combine(Catalog.Root.Shipped, "..", "docs", "how-to-play.md"));
-        Assert.Contains("Pick stadium, day/night and hazards", book);
+        Assert.Contains("Pick stadium, day/night, hazards, player count", book);
         Assert.Contains("Up/down chooses a row", book);
     }
 }

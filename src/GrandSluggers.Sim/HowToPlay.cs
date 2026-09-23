@@ -400,11 +400,10 @@ public static partial class HowToPlay
         ]),
         new("exhibition", "Stadium and captains", "exhibition",
         [
-            "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield, left to right. No captain on the title.",
-            "Stadium setup: choose player count and P1 side, HOME or AWAY. HOME bats the bottom.",
-            "Captain portraits sit below two team cards. Left/right chooses; South confirms yours, then the CPU captain. East undoes or returns.",
-            "With two controllers, each player confirms their own captain. A confirmed captain is reserved. Both must confirm to build teams.",
-            "Stadium postcard: choose time and hazards. Up/down focuses; left/right changes. Confirm Choose captains.",
+            "Stadium: choose time and hazards, 1 vs CPU or 2 controllers, and P1 HOME / AWAY. Home bats the bottom.",
+            "Choose captains: Left/right browses portraits; South confirms yours, then the CPU captain.",
+            "Two controllers: each player confirms their own captain. Confirmed captains are reserved.",
+            "East undoes confirmation, then returns to stadium setup. The park does not follow the captain.",
         ],
         [
             "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield, left to right. No captain on the title.",
@@ -415,8 +414,8 @@ public static partial class HowToPlay
         ]),
         new("lineup", "Lineup", "lineup",
         [
-            "Team Setup first, then Offense / Defense Setup.",
-            "Pick a head. South adds them. RB fills your team; West removes a roster player. Both teams get the same stars when ON. Focus shows a card and softly highlights buddies.",
+            "Team Setup: South adds a player; RB fills your team. West removes a roster player.",
+            "Both teams get the same stars when ON. Focus shows a card and highlights buddies.",
             "Two diamonds between batting bars. Stick moves; LB/RB switches order / field. South picks, then swaps. East cancels.",
             "North continues to settings when both players are ready.",
         ],
@@ -441,7 +440,7 @@ public static partial class HowToPlay
         ]),
         new("two-pads", "Two controllers", "exhibition",
         [
-            "Choose 2 controllers and P1 side in stadium setup. Each controller chooses and confirms its own captain. The second controller sits the other side.",
+            "Stadium setup: choose 2 controllers and P1 HOME / AWAY. The first controller is player 1; the second controller sits the other side.",
             "Each player uses a controller.",
             "If a seated controller drops, play stops. The other controller keeps its team.",
             "Reconnect it, or press South on an unseated controller to take that seat.",

@@ -203,6 +203,11 @@ namespace GrandSluggers.EditorTools
                 Require(other.SequenceEqual((home ? lineup.AwaySlots : lineup.HomeSlots).Select(c => c?.Id)),
                     "RB changed the other seat's roster.");
                 Require(lineup.Step == LineupStep.TeamSetup, "Fill advanced the page without confirmation.");
+                lineup.FocusCell(seat, LineupFocus.Pool, 0);
+                Neutral();
+                InputSystem.QueueStateEvent(seat == LineupSeat.Pad1 ? _pad1 : _pad2, State().WithButton(GamepadButton.West));
+                InputSystem.Update(); Controls.Tick(Step); Invoke(play, "TickLineup");
+                Require(home ? lineup.HomeFull : lineup.AwayFull, "West on the pool removed an unselected roster player.");
             }
             return new GateCase { name = "lineup-rb-fill-both-seats-" + swapSeats, phase = Phase(play) };
         }

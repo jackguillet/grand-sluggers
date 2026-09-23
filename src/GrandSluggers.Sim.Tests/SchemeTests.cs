@@ -105,17 +105,13 @@ public class SchemeTests
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
             Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("Shadow tracks ball"));
         Assert.True(HowToPlay.Mentions("does not follow"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("sticker") && l.Contains("over the infield"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("left to right"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("No captain on the title"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("time and hazards"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("toys on the dirt"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("brim"));
-        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("dirt"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("portraits") && l.Contains("South"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("confirmed", StringComparison.OrdinalIgnoreCase) && l.Contains("reserved"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("HOME") && l.Contains("AWAY"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("Choose captains"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("1 vs CPU") && l.Contains("2 controllers"));
-        Assert.Contains(HowToPlay.Must("two-pads").Lines, l => l.Contains("2 PLAYERS"));
+        Assert.Contains(HowToPlay.Must("two-pads").Lines, l => l.Contains("2 controllers"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("card") && l.Contains("highlights buddies"));
         // PH-16-R16: both teams start on the one reserve; the draft does not move it.
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("same stars"));
@@ -186,7 +182,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("runs with the ball"));
         var two = HowToPlay.Must("two-pads").Lines;
         Assert.Contains(two, l => l.Contains("first controller") && l.Contains("player 1"));
-        Assert.Contains(two, l => l.Contains("Your side") && l.Contains("HOME"));
+        Assert.Contains(two, l => l.Contains("P1") && l.Contains("HOME") && l.Contains("AWAY"));
         Assert.Contains(two, l => l.Contains("second controller"));
         Assert.Contains(two, l => l.Contains("Each player uses a controller"));
         Assert.Contains(two, l => l.Contains("drops") && l.Contains("play stops"));
