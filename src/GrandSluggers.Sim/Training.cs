@@ -302,7 +302,7 @@ public sealed class Training
                 ? "South to second    South to first"
                 : "South catch   West jump   d-pad throw   East dash",
             PracticeLesson.Running => "D-pad pick   stick or L3 steal   South dash",
-            PracticeLesson.Special => "North + South star",
+            PracticeLesson.Special => "hold LB as you let go of South: star",
             PracticeLesson.Free => "any verb  ·  East skip",
             _ => ""
         };

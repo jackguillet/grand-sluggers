@@ -94,11 +94,14 @@ public static class ControlDiagram
         // RB is the mound's cycle in SET (PH-02-R5, #825). It rides the shoulder lozenge it already
         // shares with all-return rather than taking a new card: the pad spread is three couch-size
         // pages and a fourth two-action callout on any one of them does not fit at 1024×768.
-        new("lb", "LB / RB", "All advance / return", "Cutoff  ·  RB cycles the pitch in SET", "", 0.02f, 0.28f),
+        // LB is the held special modifier during the pitch for both seats (PH-16-R17); all-advance is LB once the
+        // ball is live.
+        new("lb", "LB / RB", "Hold LB as you let go: star swing · after contact all advance / return",
+            "Hold LB as you let go: star pitch · cutoff · RB cycles the pitch in SET", "", 0.02f, 0.28f),
         new("south", "South", "Hold/release pitch / swing; dash", "Catch / throw", "", 0.70f, 0.50f),
         new("east", "East", "Cancel a loaded swing", "Dive", "Back", 0.70f, 0.40f),
         new("west", "West", "", "Jump", "", 0.70f, 0.30f),
-        new("north", "North", "Star swing", "Star pitch / attack", "", 0.70f, 0.20f),
+        new("north", "North", "", "Attack", "", 0.70f, 0.20f),
         new("select", "Select", "", "", "Swap glove / pitcher", 0.70f, 0.62f),
         new("start", "Start", "", "", "Call time", 0.70f, 0.72f),
     ];
@@ -124,12 +127,12 @@ public static class ControlDiagram
         new("bags", "1 2 3 4", "", "", "Bags — 1B 2B 3B home", 0.02f, 0.22f),
         new("space", "Space / left click", "Hold/release pitch / swing; dash", "Catch / throw", "", 0.02f, 0.62f),
         new("charge", "Shift / right click", "Item modifier", "", "", 0.02f, 0.50f),
-        new("star", "Q / middle click", "Star swing", "Star pitch / attack", "", 0.72f, 0.20f),
+        new("star", "Q hold", "Hold as you let go: star swing", "Hold as you let go: star pitch · B attacks", "", 0.72f, 0.20f),
         new("bunt", "J / L", "Hold to bunt: J third, L first", "", "", 0.72f, 0.32f),
         new("cycle", "Tab", "", "Cycle pitch in SET, before you charge", "", 0.72f, 0.26f),
         new("jump", "F / G", "G cancels a loaded swing", "Jump / dive", "Back", 0.72f, 0.44f),
         new("steal", "Z", "Steal", "", "", 0.72f, 0.54f),
-        new("run", ", / .", "All advance / return", "", "", 0.72f, 0.64f),
+        new("run", ", / .", "All advance after contact / return", "", "", 0.72f, 0.64f),
         new("h", "H", "", "", "Call time", 0.72f, 0.72f),
         new("esc", "Esc", "", "", "This book", 0.72f, 0.80f),
         new("aim", "Right-drag", "", "", "Aim / run", 0.56f, 0.62f),

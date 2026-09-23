@@ -1,7 +1,7 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Exhibition draft: nine names, batting order, gloves. Starting stars are chemistry with the captain.
+/// Exhibition draft: nine names, batting order, gloves. The draft does not set starting Stars: every team starts on the one reserve (PH-16-R16).
 /// </summary>
 public sealed class TeamBuilder
 {

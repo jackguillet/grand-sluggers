@@ -104,6 +104,45 @@ public static class BroadcastHud
         return s.Trim();
     }
 
+    /// <summary>
+    /// The "special unavailable" tell (§12, PH-16-R12): a Star Pitch or Star Swing asked for at the release on a pool
+    /// short of its price went out as the ordinary action. The team's Stars on the scorebug flash red and the line
+    /// under the scorebug names it, on both seats' screen. Built only from the typed <see cref="StarRequest"/> the
+    /// match records (<see cref="PlayOutcome.Stars"/>), never from a caption.
+    /// </summary>
+    public readonly record struct StarUnavailableTell(bool Home, StarAction Action)
+    {
+        /// <summary>The scorebug row whose Stars flash: away is row 0, home row 1.</summary>
+        public int Row => Home ? 1 : 0;
+
+        /// <summary>The line under the scorebug.</summary>
+        public string Words => Action == StarAction.Pitch ? "NO STARS · STAR PITCH" : "NO STARS · STAR SWING";
+    }
+
+    /// <summary>How long the tell shows, in seconds of the unscaled clock.</summary>
+    public const double StarUnavailableSeconds = 1.5;
+
+    /// <summary>Red on / off flips per second while it shows.</summary>
+    public const double StarUnavailableFlips = 8;
+
+    /// <summary>The tell for one settled request: null when it was afforded (or nothing was asked).</summary>
+    public static StarUnavailableTell? StarUnavailable(StarRequest? request) =>
+        request is { Afforded: false } r ? new StarUnavailableTell(r.Home, r.Action) : null;
+
+    /// <summary>The tell for a play's requests (<see cref="PlayOutcome.Stars"/>): the first one not afforded.</summary>
+    public static StarUnavailableTell? StarUnavailable(IReadOnlyList<StarRequest> requests) =>
+        StarUnavailable(requests?.FirstOrDefault(r => !r.Afforded));
+
+    /// <summary>Whether the tell still shows <paramref name="ageSeconds"/> after it began.</summary>
+    public static bool StarUnavailableShows(double ageSeconds) => ageSeconds >= 0 && ageSeconds < StarUnavailableSeconds;
+
+    /// <summary>Whether the Stars are red on this frame: they start red and flip at <see cref="StarUnavailableFlips"/>.</summary>
+    public static bool StarUnavailableRed(double ageSeconds) =>
+        StarUnavailableShows(ageSeconds) && (int)Math.Floor(ageSeconds * StarUnavailableFlips) % 2 == 0;
+
+    /// <summary>The tell's line: flush under the scorebug, as wide as it (<see cref="OnScorebug"/>).</summary>
+    public static HudRect StarUnavailableLine(HudRect score) => new(score.X, score.Bottom, score.W, 0.040);
+
     /// <summary>Normalized rect. X/Y is top-left. Pixel() scales to a screen.</summary>
     public readonly record struct HudRect(double X, double Y, double W, double H)
     {
