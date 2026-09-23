@@ -85,20 +85,20 @@ namespace GrandSluggers.UnityClient
                 TeamLabel(lineup, true, 137);
                 DrawCells(lineup, LineupFocus.HomeRow, 9, p1, p2);
                 DrawCells(lineup, LineupFocus.Pool, lineup.Pool.Count, p1, p2);
-                TeamLabel(lineup, false, 602);
+                TeamLabel(lineup, false, 598);
                 DrawCells(lineup, LineupFocus.AwayRow, 9, p1, p2);
             }
             else
             {
                 TeamLabel(lineup, true, 137);
-                TeamLabel(lineup, false, 602);
+                TeamLabel(lineup, false, 598);
                 Side(lineup, true, p1, p2);
                 Side(lineup, false, p1, p2);
             }
             PlayerCard(lineup, true, lineup.HomeSeat == LineupSeat.Pad2 ? p2 : lineup.HomeSeat == LineupSeat.Pad1 ? p1 : lineup.HomeCaptain);
             PlayerCard(lineup, false, lineup.AwaySeat == LineupSeat.Pad2 ? p2 : lineup.AwaySeat == LineupSeat.Pad1 ? p1 : lineup.AwayCaptain);
             var keys = Controls.SeatUsesKeyboard(0);
-            Button(LineupLayout.BackButton, team ? (keys ? "F  Remove player" : "West  Remove player") : lineup.AnyPick ? (keys ? "F  Cancel pick" : "West  Cancel pick") : (keys ? "F  Back" : "West  Back"), false);
+            Button(LineupLayout.BackButton, team ? (keys ? "F  Remove player" : "West  Remove player") : lineup.IsReady(LineupSeat.Pad1) ? (keys ? "F  Edit lineup" : "West  Edit lineup") : lineup.HasPick(LineupSeat.Pad1) ? (keys ? "F  Cancel pick" : "West  Cancel pick") : (keys ? "F  Back" : "West  Back"), false);
             if (team)
             {
                 Button(LineupLayout.FillButton, keys ? "Tab  Fill team" : "RB  Fill team", false);
@@ -202,7 +202,12 @@ namespace GrandSluggers.UnityClient
             Label(r.x + 16, r.y + 184, r.width - 32, 24, card.StarPitch, _body);
             Label(r.x + 16, r.y + 207, r.width - 32, 23, card.StarSwing + " · " + card.FieldVerb, _small);
             if (seat != LineupSeat.Cpu && lineup.Step == LineupStep.DefenseSetup)
-                Label(r.x + 16, r.y + 240, r.width - 32, 20, ready ? "Waiting for other player · West/F to edit" : Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1) ? "Q  Ready when your lineup is set" : "North  Ready when your lineup is set", _small);
+            {
+                var keys = Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1);
+                Label(r.x + 16, r.y + 240, r.width - 32, 20, ready
+                    ? (keys ? "Waiting for other player · F to edit" : "Waiting for other player · West to edit")
+                    : (keys ? "Q  Ready when your lineup is set" : "North  Ready when your lineup is set"), _small);
+            }
         }
 
         static void Portrait(Character who, Rect r)
@@ -246,7 +251,7 @@ namespace GrandSluggers.UnityClient
         static GUIStyle Style(int size, Color color, FontStyle weight)
         {
             var s = new GUIStyle(GUI.skin.label) { fontSize = size, fontStyle = weight, alignment = TextAnchor.MiddleLeft, clipping = TextClipping.Clip };
-            s.normal.textColor = DisplayColor(color); return s;
+            s.normal.textColor = color; return s;
         }
 
         // A schematic baseball field: a curved outfield, foul lines from home, dirt apron,

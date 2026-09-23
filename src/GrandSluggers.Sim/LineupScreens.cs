@@ -805,7 +805,7 @@ public static class LineupLayout
     public static LineupCell Help => new(0.018, 0.008, 0.96, 0.032);
 
     public static LineupCell HomeSlot(int i) => Pixels(24 + i * 98, 165, 90, 80);
-    public static LineupCell AwaySlot(int i) => Pixels(24 + i * 98, 632, 90, 72);
+    public static LineupCell AwaySlot(int i) => Pixels(24 + i * 98, 624, 90, 80);
     public static LineupCell HomeOrder(int i) => OrderCell(true, i);
     public static LineupCell AwayOrder(int i) => OrderCell(false, i);
     public static LineupCell OrderCell(bool home, int i) => home ? HomeSlot(i) : AwaySlot(i);
@@ -834,14 +834,14 @@ public static class LineupLayout
     {
         "C" => (0.50, 0.90), "P" => (0.50, 0.66),
         "1B" => (0.78, 0.61), "3B" => (0.22, 0.61),
-        "2B" => (0.70, 0.36), "SS" => (0.30, 0.36),
-        "LF" => (0.13, 0.22), "CF" => (0.50, 0.04), "RF" => (0.87, 0.22),
+        "2B" => (0.68, 0.34), "SS" => (0.32, 0.34),
+        "LF" => (0.15, 0.22), "CF" => (0.50, 0.04), "RF" => (0.85, 0.22),
         _ => (0.50, 0.66)
     };
 
     public const double FieldHomeY = .90;
     public const double FieldRadius = .90;
-    public const double FieldXScale = 1.40;
+    public const double FieldXScale = 1.65;
     public static bool InFairField(double x, double y)
     {
         var dx = x - .5;
