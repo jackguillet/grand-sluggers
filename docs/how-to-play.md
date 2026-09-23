@@ -33,6 +33,7 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 | Start / call time | Menu / Start | H | H |
 | How to play | Esc | Esc | Esc |
 | Night | R3 | N | — |
+| Hazards on / off (title, field) | Select | R | — |
 
 South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F·V / Q.
 
@@ -57,6 +58,7 @@ The park is the poster: dirt and the diamond, from in front of the backstop. **G
 - **R3 / N** — night (sky gag)
 - **Tab** — 3 / 6 / 9 innings
 - **X / LB** — CPU difficulty EASY / NORMAL / HARD (the line under PLAY BALL reads both). Normal plays the rules as written; easy hesitates and mistracks more, hard reads faster and steals sharper.
+- **Select / R** — hazards ON / OFF (the same line reads it; on by default). Off, a park loses its hazards: freeze volumes and lava, pipes, billboards and chompers. It keeps its fence, walls, air and ground. Harbor has no hazards, so it plays the same either way.
 
 Captains and the field are two screens. The park does not follow the captain.
 
@@ -80,6 +82,7 @@ A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice �
 - **South / Space** — lineup
 - **West / F** — back to captains
 - **R3 / N** — night
+- **Select / R** — hazards on / off. The postcard reads HAZARDS ON or HAZARDS OFF, and the park redraws without them.
 
 ### Lineup (Team Setup, then Offense / Defense Setup)
 

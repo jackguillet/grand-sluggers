@@ -95,6 +95,11 @@ namespace GrandSluggers.UnityClient
                 Night = !Night;
                 RebuildTitlePark();
             }
+            if (_mode == PlayMode.Exhibition && Controls.HazardsToggle)
+            {
+                Hazards = !Hazards;
+                RebuildTitlePark();
+            }
             _cam.Cut("title");
             if (Controls.SouthDown)
             {
@@ -119,7 +124,9 @@ namespace GrandSluggers.UnityClient
         {
             if (_park == null || _content == null) return;
             if (!_content.Parks.TryGetValue(ParkId, out var park)) return;
-            _park.Build(park, Night, _content.Rules, _content.Feel);
+            // The park as this exhibition will play it: tonight's instances, and none with hazards off (FD-10).
+            var hazards = Hazards || _mode != PlayMode.Exhibition;
+            _park.Build(PlayedPark.Of(park, Night, hazards, _content.Rules.Hazards), Night, _content.Rules, _content.Feel);
             if (_phase == Phase.Title)
                 _cam?.Cut("title");
         }
@@ -216,6 +223,11 @@ namespace GrandSluggers.UnityClient
             if (Controls.NightToggle)
             {
                 Night = !Night;
+                RebuildTitlePark();
+            }
+            if (Controls.HazardsToggle)
+            {
+                Hazards = !Hazards;
                 RebuildTitlePark();
             }
             _cam.Play("field");
@@ -462,7 +474,7 @@ namespace GrandSluggers.UnityClient
                     var away = _lineup.Away != null
                         ? _lineup.Away.ToTeam()
                         : PresetTeams.ForCaptain(_content, AwayCaptain);
-                    _match = Match.Exhibition(_content, _lineup.Home.ToTeam(), away, Innings, Seed, ParkId, Night, Difficulty);
+                    _match = Match.Exhibition(_content, _lineup.Home.ToTeam(), away, Innings, Seed, ParkId, Night, Difficulty, Hazards);
                     RestoreGear(homeBat, homeGlove, awayBat, awayGlove);
                 }
             }

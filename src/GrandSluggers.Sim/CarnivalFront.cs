@@ -222,6 +222,35 @@ public static class CarnivalFront
     public static string TitleSetup(int innings, string level, RulesTable rules) =>
         TitleSetup(innings, level) + "  ·  CPU SKILL";
 
+    /// <summary>
+    /// The title's line with the hazards switch at its end (FD-10, §14): the match option, default on, next to the other
+    /// things the title owns.
+    /// </summary>
+    public static string TitleSetup(int innings, string level, RulesTable rules, bool hazards) =>
+        TitleSetup(innings, level, rules) + "  ·  " + HazardsLabel(hazards);
+
+    /// <summary>The field postcard's footer: every verb on the screen, the hazards switch beside night.</summary>
+    public const string FieldFooter = "stick L/R the field    South lineup    West captains    N night    R hazards    Esc how to play";
+
+    /// <summary>The hazards switch as the title and the field postcard print it.</summary>
+    public static string HazardsLabel(bool hazards) => hazards ? "HAZARDS ON" : "HAZARDS OFF";
+
+    /// <summary>
+    /// What hazards off leaves at a park (FD-10-R1): the postcard's line under the park's own gimmick. Off removes the
+    /// park's hazards and keeps its fence, walls, air and ground. Null with hazards on, and at a park that has no hazard
+    /// tonight (read from the played park, <see cref="PlayedPark.Of"/>), where the switch changes nothing.
+    /// </summary>
+    public static string? HazardsOffLine(Park park, bool night, bool hazards, HazardRules library)
+    {
+        if (hazards) return null;
+        // The switch's own rule decides what it removes: a park it changes has fewer instances off than on.
+        var on = PlayedPark.Of(park, night, hazards: true, library).Hazards.Count;
+        return PlayedPark.Of(park, night, hazards: false, library).Hazards.Count < on ? HazardsOffCopy : null;
+    }
+
+    /// <summary>The postcard's line with hazards off at a park that has one.</summary>
+    public const string HazardsOffCopy = "Hazards off. The fence, the walls, the air and the ground stay.";
+
     public static bool HarborIsTheProduct(string parkId) =>
         parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase);
 
