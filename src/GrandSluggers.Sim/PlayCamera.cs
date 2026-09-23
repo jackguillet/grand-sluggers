@@ -8,7 +8,7 @@ namespace GrandSluggers.Sim;
 /// the fly pull-back (<c>diamond-line</c>), a fly or wall pulls back (<c>diamond-fly</c>), a home run
 /// is the <c>smash</c> override at the crack. The follow stays on the
 /// ball through every ordinary throw (D14); the only bag cam is the close play (<c>tag</c>, §9.6), and
-/// a steal, pickoff or rundown frames the whole contested path (<c>steal-race</c>). Each shot's <c>blend</c> is how the rig enters it (0 is a cut), and <see cref="CameraHold"/>
+/// steals and pickoffs use the ordinary live ball-follow camera. Each shot's <c>blend</c> is how the rig enters it (0 is a cut), and <see cref="CameraHold"/>
 /// keeps a target for <c>cameraHoldSeconds</c>. The same table for 1P and 1v1; the client owns no
 /// Vector3 of its own.
 /// </summary>
@@ -45,8 +45,9 @@ public static partial class PlayCamera
     /// </summary>
     public const string InPlayLine = "diamond-line";
 
-    /// <summary>The steal / pickoff race camera (§15): both bags, runner, ball and receiver.</summary>
-    public const string ThrowShot = "steal-race";
+    /// <summary>Steals and pickoffs share the ordinary live-play camera.</summary>
+    public const string ThrowShot = InPlay;
+    public const string RaceInsetShot = "steal-race";
 
     /// <summary>The close-play bag cam (§9.6, §15): tighter than the throw, on the tag.</summary>
     public const string TagShot = "tag";
@@ -93,13 +94,10 @@ public static partial class PlayCamera
         int PlayBag,
         double SmashLeft,
         Vec3 Ball,
-        Vec3 Batter,
-        IReadOnlyList<Vec3>? RaceSubjects = null,
-        double Aspect = 16.0 / 9.0,
-        double RaceTravelZ = 0);
+        Vec3 Batter);
 
     /// <summary>
-    /// Which beat the live ball is in (§15, D14). Priority: the runner play frames its whole race; a home run
+    /// Which beat the live ball is in (§15, D14). Priority: a home run
     /// smashes at the crack; every other hit holds the SET shot for <see cref="FeelTable.ContactCutSeconds"/>;
     /// then the close play (third or home, inside the margin — the only bag cam on a batted ball), the
     /// rundown, and finally the class read from the typed hit. An ordinary throw is not a beat: the
@@ -107,7 +105,6 @@ public static partial class PlayCamera
     /// </summary>
     public static Beat LiveBeat(LiveView v, FeelTable feel)
     {
-        if (v.RunnerPlay) return v.Rundown ? Beat.Rundown : Beat.StealThrow;
         var hit = v.Hit;
         if (hit != null && hit.HomeRun && v.SmashLeft > 0) return Beat.Smash;
         if (hit != null && !hit.HomeRun && v.ElapsedSeconds < feel.ContactCutSeconds) return Beat.Set;
@@ -135,7 +132,7 @@ public static partial class PlayCamera
     public static Framing? LiveFraming(CameraShots shots, LiveView v, FeelTable feel)
     {
         var beat = LiveBeat(v, feel);
-        return Frame(shots, v, beat, BeatBag(beat, v), feel.RaceCamera);
+        return Frame(shots, v, beat, BeatBag(beat, v));
     }
 
     /// <summary>
@@ -146,14 +143,13 @@ public static partial class PlayCamera
     {
         var want = LiveBeat(v, feel);
         var (beat, bag) = hold.Step(want, BeatBag(want, v), v.ElapsedSeconds, feel.CameraHoldSeconds);
-        return Frame(shots, v, beat, bag, feel.RaceCamera);
+        return Frame(shots, v, beat, bag);
     }
 
     /// <summary>The frame for a given beat and bag: null for SET, the bag cam on the bag, the smash on the batter, else the follow.</summary>
-    public static Framing? Frame(CameraShots shots, LiveView v, Beat beat, int bag, RaceCameraFeel? raceFeel = null)
+    public static Framing? Frame(CameraShots shots, LiveView v, Beat beat, int bag)
     {
         if (beat == Beat.Set) return null;
-        if (v.RunnerPlay) return RaceFraming(shots, v.RaceSubjects ?? new[] { v.Ball, BagSubject(v.PlayBag) }, v.Aspect, raceFeel, v.RaceTravelZ);
         var shot = shots.Must(Shot(beat));
         if (IsBagBeat(beat) && bag > 0)
         {
@@ -167,7 +163,7 @@ public static partial class PlayCamera
     /// <summary>
     /// Hysteresis on the live camera's target (D14, #610): a beat, and for a bag beat its bag, is kept for at
     /// least <c>cameraHoldSeconds</c> of play time before another may take the camera. A bag beat keeps the
-    /// bag it opened on until the beat itself ends. Runner races fit their subjects continuously. The play clock starting over
+    /// bag it opened on until the beat itself ends. The play clock starting over
     /// (a new play) takes the first target at once.
     /// </summary>
     public sealed class CameraHold
