@@ -17,12 +17,15 @@ jobs:
         with:
           dotnet-version: 10.0.x
       # The PR check answers one question: does this change break the game? It builds everything and runs the
-      # fast unit tests. The tutorial and scenario classes, the C80 re-run, the tool tests and the evidence seals
-      # are slow; they run from the Actions tab on demand (full-tests.yml).
+      # breakage suite: every test not tagged [Trait("Kind", "Balance")]. Balance and calibration (rate bands,
+      # seed sweeps, cohorts, pinned tuned numbers), the C80 re-run, the tool tests and the evidence seals run
+      # on demand from the Actions tab (full-tests.yml). xunit.runner.json caps local runs at half the cores;
+      # MaxParallelThreads=0 gives CI the default, one thread per core.
       - run: dotnet build src/GrandSluggers.Cli/GrandSluggers.Cli.csproj -c Release
       - run: >-
           dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj -c Release
-          --filter "FullyQualifiedName!~Tutorial&FullyQualifiedName!~Scenario"
+          --filter "Kind!=Balance"
+          -- xUnit.MaxParallelThreads=0
 
   unity-project:
     if: vars.UNITY_VALIDATION_ENABLED == 'true'

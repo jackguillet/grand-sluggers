@@ -18,6 +18,7 @@ public sealed class DiveTests
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheShippedDiveIsFreeAndAutomaticAndTheTrialsIsNeither()
     {
         var s = Control.Rules.Fielding.Catch;
