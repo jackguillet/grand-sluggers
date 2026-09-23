@@ -1676,7 +1676,6 @@ public sealed class Match
                 break;
             case PlayKind.HomeRun:
                 // Dead at the crossing (§7.10): everyone circles; the trot is presentation.
-                ChargeArm(Pitcher, Rules.Pitching.Stamina.HomerCost);
                 (runs, scorers) = ScoreEveryone();
                 batterToBag = 4;
                 CreditBatter(mvp.HomeRun, runs, ledBefore);
@@ -2128,8 +2127,6 @@ public sealed class Match
         // The arm that will be the winning pitcher (§12): the offense's own, whenever the offense takes the lead.
         if (ledBefore <= 0 && OffenseLead > 0)
             _leadPitcherId = (Top ? _awayPitcher : _homePitcher).Id;
-        // Each run allowed costs the arm on the mound (spec §4.7).
-        ChargeArm(Pitcher, Rules.Pitching.Stamina.RunCost);
     }
 
     /// <summary>The offense's lead in runs (negative when trailing).</summary>
