@@ -197,6 +197,15 @@ public sealed class Runner
     public void BeginPlay(bool forced, bool tagAndGo)
     {
         Forced = forced;
+        // A departure is already a moving body. Contact/catcher possession must not reset its
+        // feet, direction or hold and then manufacture a second head start from pitch duration.
+        if (Broke)
+        {
+            TagAndGo = tagAndGo;
+            ArrivedThisTick = false;
+            InRundown = false;
+            return;
+        }
         Phase = RunnerPhase.OnBag;
         DestBag = IsBatter ? 1 : Bag;
         Velocity = 0;
@@ -337,6 +346,11 @@ public sealed class Runner
     // ---- the tick (called by RunnerSystem only) ----
 
     internal void SetVelocity(double v) => Velocity = v;
+    internal void RebaseClock(double seconds)
+    {
+        if (!double.IsNaN(ScoredAt)) ScoredAt -= seconds;
+        if (!double.IsNaN(LastTouchAt)) LastTouchAt -= seconds;
+    }
     /// <summary>The batter-runner touched first stopping there: run through it (§9.4).</summary>
     internal void BeginOverrun(double startFt)
     {
