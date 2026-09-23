@@ -387,7 +387,8 @@ namespace GrandSluggers.UnityClient
                 TeamSheet.UseController(seat);
                 _lineup.RandomFill(seat);
             }
-            if (pad.WestDown && _lineup.Step == LineupStep.TeamSetup)
+            if (pad.WestDown && _lineup.Step == LineupStep.TeamSetup
+                && _lineup.FocusOf(seat) != LineupFocus.Pool)
             {
                 TeamSheet.UseController(seat);
                 _lineup.Remove(seat);
