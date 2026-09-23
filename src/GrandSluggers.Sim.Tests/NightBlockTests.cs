@@ -291,14 +291,15 @@ public sealed class NightBlockTests
     /// breath slow the body that touches them for 3 s instead of every chaser, and the park's drop roll is gone.
     /// F4-g re-recorded the trial's Ember seed 2: a CPU glove now goes around a volume when that costs less than
     /// the slow (FD-14). The other seven games do not change.
-    /// 3e re-recorded all four on the promoted game (the compact profile is the shipped data, with F4-g's routing).
+    /// P2-e and P3-b re-recorded them again. 3e promoted the compact profile into the shipped data, and the four
+    /// games are bit-identical to the trial rows they were.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 4  Spark All-Stars 3", "8944602aff2a7ce0891ad22fc09b3aef608b33bd676b01880c7f09d5c273ca5f"),
-            ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "14fec2cfc81773e724da5ef4fdfd0daa8b3ec7803b0bc7014aeda71046b5dae1"),
-            ("ember-keep", 1, "Final  Ember Court 11  Spark All-Stars 0", "402f20cec446fee15b8d471b888f67306eb4b4c58b3ae48226745b0c7958ed5f"),
-            ("ember-keep", 2, "Final  Ember Court 7  Spark All-Stars 5", "5e9d55665621b54a37e5f40b4fd55d406d3081c4ca6e89f3a27f4a4f2d9a88e8")
+            ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 1", "6feacdf134ce0ffcc5bed01d9bbe76b1afd0f7a0d990656ed35efc8b48d84181"),
+            ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "0907d82f3d88d899a0a5a9d147f33ed748860e2037d7df098a8142e394a1a473"),
+            ("ember-keep", 1, "Final  Ember Court 4  Spark All-Stars 0", "0a8a7fbf5212662fc6827166a7236bc447e97af8251b359c0477d4436f882abe"),
+            ("ember-keep", 2, "Final  Ember Court 7  Spark All-Stars 2", "abae84e076e25c4c08320733f23116267a7197bb1a772daa03e59ab0ffb49942")
         ];
 
     /// <summary>
