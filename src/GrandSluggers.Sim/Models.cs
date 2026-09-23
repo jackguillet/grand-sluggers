@@ -30,8 +30,10 @@ public enum ContactQuality
 /// A character's ratings. <see cref="Field"/> is the displayed defensive number; <see cref="Arm"/> and
 /// <see cref="Hands"/> are the explicit traits behind it (F693-02-defensive-trait-mapping). <see cref="Bat"/>
 /// is the displayed batting number; <see cref="Contact"/> and <see cref="Power"/> are the explicit traits
-/// behind it (PH-15-R5). All four are <b>seeded from the aggregate</b> until a character authors its own,
-/// so a roster that names none behaves exactly as it did before the split.
+/// behind it (PH-15-R5). <see cref="Pitch"/> is the displayed pitching number; <see cref="Velocity"/>,
+/// <see cref="Movement"/>, <see cref="Control"/> and <see cref="Endurance"/> are the explicit traits behind
+/// it (PH-15-R6). All eight are <b>seeded from the aggregate</b> until a character authors its own, so a
+/// roster that names none behaves exactly as it did before the split.
 /// </summary>
 public sealed record Stats(int Pitch, int Bat, int Field, int Run)
 {
@@ -39,6 +41,10 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
     readonly int _hands;
     readonly int _contact;
     readonly int _power;
+    readonly int _velocity;
+    readonly int _movement;
+    readonly int _control;
+    readonly int _endurance;
 
     /// <summary>Throwing: speed and accuracy. Unauthored (0) tracks <see cref="Field"/>.</summary>
     public int Arm
@@ -76,6 +82,43 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
         init => _power = value;
     }
 
+    /// <summary>Velocity: pitch speed (spec §4.1, PH-15-R6) — <c>speed.mphPerPitchStat</c>. Unauthored (0) tracks <see cref="Pitch"/>.</summary>
+    public int Velocity
+    {
+        get => _velocity > 0 ? _velocity : Pitch;
+        init => _velocity = value;
+    }
+
+    /// <summary>
+    /// Movement: natural break (PH-15-R6). No family's authored break reads a rating today (§4.3), so
+    /// its one read is the arm's say over non-perfect contact (<c>batting.pitchFactor</c>, §5.5): the
+    /// ball that is hard to square. Unauthored (0) tracks <see cref="Pitch"/>.
+    /// </summary>
+    public int Movement
+    {
+        get => _movement > 0 ? _movement : Pitch;
+        init => _movement = value;
+    }
+
+    /// <summary>
+    /// Control: the player's steering correction (PH-15-R6) — how fast a held stick brings the break to
+    /// full (<c>flight.breakRatePerPitchStat</c>, <see cref="PitchFlight.BreakStep"/> /
+    /// <see cref="PitchFlight.BreakReach"/>) and the CPU arm's scatter on its rubber intent (§4.8).
+    /// Unauthored (0) tracks <see cref="Pitch"/>.
+    /// </summary>
+    public int Control
+    {
+        get => _control > 0 ? _control : Pitch;
+        init => _control = value;
+    }
+
+    /// <summary>Endurance: resistance to fatigue (PH-15-R6) — the stamina pool (§4.7). Unauthored (0) tracks <see cref="Pitch"/>.</summary>
+    public int Endurance
+    {
+        get => _endurance > 0 ? _endurance : Pitch;
+        init => _endurance = value;
+    }
+
     /// <summary>
     /// True when this rating was authored rather than seeded from <see cref="Field"/>.
     ///
@@ -96,6 +139,18 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
     /// <inheritdoc cref="ArmAuthored"/>
     [JsonIgnore] public bool PowerAuthored => _power > 0;
 
+    /// <inheritdoc cref="ArmAuthored"/>
+    [JsonIgnore] public bool VelocityAuthored => _velocity > 0;
+
+    /// <inheritdoc cref="ArmAuthored"/>
+    [JsonIgnore] public bool MovementAuthored => _movement > 0;
+
+    /// <inheritdoc cref="ArmAuthored"/>
+    [JsonIgnore] public bool ControlAuthored => _control > 0;
+
+    /// <inheritdoc cref="ArmAuthored"/>
+    [JsonIgnore] public bool EnduranceAuthored => _endurance > 0;
+
     // An unauthored trait stays unauthored through a clamp, so it keeps tracking the clamped aggregate.
     public Stats Clamp() => new(
         Math.Clamp(Pitch, 1, 10),
@@ -106,7 +161,11 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
         Arm = _arm > 0 ? Math.Clamp(_arm, 1, 10) : 0,
         Hands = _hands > 0 ? Math.Clamp(_hands, 1, 10) : 0,
         Contact = _contact > 0 ? Math.Clamp(_contact, 1, 10) : 0,
-        Power = _power > 0 ? Math.Clamp(_power, 1, 10) : 0
+        Power = _power > 0 ? Math.Clamp(_power, 1, 10) : 0,
+        Velocity = _velocity > 0 ? Math.Clamp(_velocity, 1, 10) : 0,
+        Movement = _movement > 0 ? Math.Clamp(_movement, 1, 10) : 0,
+        Control = _control > 0 ? Math.Clamp(_control, 1, 10) : 0,
+        Endurance = _endurance > 0 ? Math.Clamp(_endurance, 1, 10) : 0
     };
 }
 

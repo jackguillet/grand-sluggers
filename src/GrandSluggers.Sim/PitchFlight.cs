@@ -176,7 +176,8 @@ public static class PitchFlight
 
     /// <summary>
     /// Advance the stick's break one frame (spec §4.1): direction only, magnitude ignored; how
-    /// fast the bend reaches full is the Pitch stat (pitching.flight.breakRate*). Clamped to ±1.
+    /// fast the bend reaches full is the arm's <b>Control</b> (<see cref="Stats.Control"/>, PH-15-R6; the
+    /// rules keep the historical name pitching.flight.breakRate*PerPitchStat). Clamped to ±1.
     /// </summary>
     public static double BreakStep(double breakX, double stickDir, double dt, int pitchStat, RulesTable? rules = null)
     {
@@ -205,7 +206,7 @@ public static class PitchFlight
     /// This exists because two callers must agree on one number. A hand holding the stick
     /// accumulates it a frame at a time; the CPU pitcher has no frames to hold, so it takes the same total in one
     /// step (<see cref="Match.CpuPitchByInputs"/>) rather than an instant ±1 no arm could reach.
-    /// A short flight, a low Pitch stat, or both, and the hold simply does not get there.
+    /// A short flight, a low Control, or both, and the hold simply does not get there.
     /// </para>
     ///
     /// <para>
@@ -213,7 +214,7 @@ public static class PitchFlight
     /// pitch, and nothing that flew before this function existed flies differently because of it.
     /// </para>
     /// </summary>
-    /// <param name="pitchStat">The arm's Pitch stat, clamped to 1..10 as <see cref="BreakStep"/> clamps it.</param>
+    /// <param name="pitchStat">The arm's Control (<see cref="Stats.Control"/>), clamped to 1..10 as <see cref="BreakStep"/> clamps it.</param>
     /// <param name="airSec">Seconds of flight the stick is held for (<see cref="AirSeconds"/>).</param>
     public static double BreakReach(int pitchStat, double airSec, RulesTable? rules = null) =>
         Math.Min(1, BreakRatePerSec(pitchStat, Rules.Or(rules).Pitching.Flight) * Math.Max(0, airSec));
