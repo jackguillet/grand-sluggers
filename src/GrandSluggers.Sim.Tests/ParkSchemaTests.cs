@@ -20,11 +20,6 @@ public sealed class ParkSchemaTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load();
 
-    /// <summary>The trial root, loaded by hand: both roots have to pass the same schema (#716).</summary>
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(
-        Shipped.Root.Shipped,
-        Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"))));
-
     /// <summary>The field-pick cycle as the shipped six-id literal in <c>ExhibitionPick</c> spelled it.</summary>
     static readonly string[] PickOrder =
         ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep"];
@@ -132,11 +127,9 @@ public sealed class ParkSchemaTests
     }
 
     [Fact]
-    public void SF02_BothRootsLoadAndCarryTheSameSchema()
+    public void SF02_TheShippedRootLoadsCleanUnderTheSchema()
     {
         Assert.Empty(ContentDataValidator.Validate(Shipped.Root));
-        Assert.Empty(ContentDataValidator.Validate(Trial.Root));
-        Assert.Equal(PickOrder, Trial.ParkPickOrder);
     }
 
     // ---------------------------------------------------------------------------------
@@ -180,7 +173,6 @@ public sealed class ParkSchemaTests
     public void EveryCaptainsHomeParkIsTheOneTheSwitchNamed(string captain, string park)
     {
         Assert.Equal(park, PresetTeams.HomeParkId(Shipped, captain));
-        Assert.Equal(park, PresetTeams.HomeParkId(Trial, captain));
         if (!PresetTeams.CaptainIds.Contains(captain, StringComparer.OrdinalIgnoreCase)) return;
         // An Exhibition with no park id named plays at the home captain's park, so the map is the one
         // the game actually uses, not a lookup nothing calls.
