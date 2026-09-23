@@ -6,7 +6,7 @@ The bar is not a one-shot playable demo. The bar is the stack in [AGENTS.md](../
 
 Companion docs: [playbook.md](playbook.md) (how a phase runs), [roadmap.md](roadmap.md) (sequence), [gameplay-spec.md](gameplay-spec.md) (baseball), [art-rails.md](art-rails.md) (slots), [character-motion.md](character-motion.md) (takes), [screenshot-gate.md](screenshot-gate.md) (stills). Feel numbers stay in `data/feel/`. Rule numbers stay in `data/rules/`. Art slots stay in `data/art/`. Agent memory that must survive a session lives in `data/agent/`.
 
-Status tags used throughout, first checked against `f419603` (2026-09-13). A ✅ names the PR that closed it. Appendix A keeps the gaps as the work.
+Status tags used throughout, first checked against `f419603` (2026-09-13). Older ✅ tags name the PR that closed them; new ones do not (§1.2). Appendix A keeps the gaps as the work.
 
 | Tag | Meaning |
 | --- | --- |
@@ -28,7 +28,7 @@ Parent epic: **#647**. Children: **#648–#654**. Product epics these rails serv
 4. **Playtest → detect failure → repair → remember.** Generating code is cheap. Keeping the game playable across files, state, and the next play type is the work. A sitting that only becomes a Slack sentence is lost.
 5. **Generation cannot pass itself.** A builder does not grade its own still. A critic files diffs. Jack passes look and play. Agents do not pass #346, #209 sittings, or #188.
 6. **Sim owns baseball. Unity is eyes, not the engine.** `cli match` and the scenario harness are the agent playtest loop. Unity CLI / MCP, if wired, inspect hierarchy, console, and still capture. They do not decide outs.
-7. **One worktree per child. Never `git add -A`.** Stacked PRs against `main`. After merge: `dotnet test`, `cli art`, `unity-compile.sh`, then `python3 tools/local-player.py` when Jack needs the window.
+7. **One worktree per child. Never `git add -A`.** Stacked PRs against `main`. CI runs the breakage suite on every PR; never run the full suite locally (§1.2). After merge: `python3 tools/local-player.py` when Jack needs the window.
 
 ### 0.1 Decisions (steal / reject)
 
@@ -63,7 +63,7 @@ A session declares its kind in the prompt and on the issue. File owners and the 
 
 ✅ **R1 #648 / #655.** Standing order in [AGENTS.md](../AGENTS.md) and `.grok/rules/agent-rails.md`. A mixed-session change is a review fail.
 
-End each session with a playable artifact of its kind before the next prompt: gameplay → `dotnet test` + `cli match` in the spec band; presentation → named shot / book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the Mac player as proof of look.
+End each session with a playable artifact of its kind before the next prompt: gameplay → `tools/test-fast.sh <Classes you touched>` + `cli match`; presentation → named shot / book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the Mac player as proof of look.
 
 ---
 
@@ -72,6 +72,30 @@ End each session with a playable artifact of its kind before the next prompt: ga
 Requirement added September 19, 2026; the runtime catalog, runner, coverage validator and three-success progression are implemented. [tutorials.md](tutorials.md) owns the lesson contract and migration backlog. Every new or changed player-facing mechanic updates its tutorial mapping in the same PR: stable ids, setup and CPU policy, required human command, typed success/failure, retry, profile support, regression evidence and implementation state. Existing broad Practice lessons do not establish complete coverage.
 
 Gameplay children own reusable sim setup, controlled CPU commands, objective evaluators and coverage validation. Presentation children own discovery, coaching, feedback, input-scheme copy and the paired `HowToPlay.cs` / `docs/how-to-play.md` updates. The lesson uses the real game; scripts manufacture an opportunity, never a credited player action or verdict. Planned/blocked coverage must name its owning issue. The catalog gate compares lessons to an independent mechanic inventory, so a feature omitted from both a lesson list and its tests is detectable. Human learning and transfer to Exhibition remain Jack's gate.
+
+## 1.2 What a PR owes
+
+Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on demand. When an older section, plan or issue asks a PR for more than this, this section wins.
+
+**Tests.** Never run the full test suite locally. It freezes the shared Mac. Run `tools/test-fast.sh <Class> [<Class> ...]` for the classes you touched; it runs `Kind!=Balance`, narrowed to those classes. CI runs the breakage suite on every PR. A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are named in the PR body.
+
+**Balance runs on demand.** Balance and calibration means: `[Trait("Kind","Balance")]` tests, S-29 and the cohort bands, park-factor reports, flight probes, the evidence seals and C80 parity. Run them when the PR's purpose is tuning or balance, or when Jack asks: Actions → **Full tests** (the `balance_only` input runs only the balance set). A feature PR that moves a feel or rule number does not owe a cohort report. It names the number and the move in the PR body. The balance check runs later.
+
+**Evidence seals (FR-16).** A feature PR does not reseal, even when it edits a sealed file. Reseal only in a PR that publishes a research or evidence packet, or in a tuning PR. A stale seal in the Full tests run is not a feature PR's failure.
+
+**Trials (`trials/c80` and the others).** A feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more. What happens to C80 is open (§1.3).
+
+**Spec.** A PR that changes behavior updates the affected rule in [gameplay-spec.md](gameplay-spec.md) in the same PR. The rule says what the game does: numbers, units, scenario ids. It does not say who built it. Do not add PR numbers, "✅ Fx (#nnn, PR #nnn)" provenance, or register rows that name PRs. A status tag stays a bare tag (✅ / ⚠️ / ❌). The commit history records who did what. Existing provenance text stays; do not mass-delete it.
+
+**Registers and ledgers.** A feature PR does not edit `docs/research/*.json` (`implementation_issues`, `validation_evidence`, `history`) or the ledger in a `docs/plan-*-implementation.md`. One batched docs PR updates them at a phase checkpoint or when Jack asks. A decision Jack makes (the answer to an open question) is behavior intent. It is still recorded, in that batched PR. Until then, quote it in the PR body.
+
+**Debug protocol.** Add a row to `data/agent/debug-protocol.json` only for a novel failure signature (§2). A repeat of a known signature, or a row whose only news is a PR number, is not a row.
+
+**Reading.** Start from "Start here" in [AGENTS.md](../AGENTS.md). Read the gameplay-spec sections your change touches. Look up the other docs when the work needs them. Research reports (`docs/research-*.md`, `docs/research/`) and handoffs are reference, not required reading.
+
+## 1.3 Open decision: C80
+
+Open, and Jack's. `trials/c80` is the compact-field copy (#715–#723). Keeping it in parity costs every PR that touches a park or a rules table. Options: **freeze** it (a read-only record; parity is not kept), **promote** it (its numbers become the shipped defaults, then the copy retires), or **retire** it (delete the trial). Until Jack decides, parity is on demand (§1.2). Agents do not decide this.
 
 ## 2. Debug protocol (remember)
 
@@ -92,7 +116,7 @@ Gameplay children own reusable sim setup, controlled CPU commands, objective eva
 
 Seed from existing sitting children and `exact-work` / screenshot-gate fail rows. Recurring signatures **promote** to a test (`BagIsInsideTheFoulLine` shape): the protocol is the memory, the test is the gate.
 
-Agents **load** the protocol at session start for the kind they are in. They **append** a new signature when they repair a novel failure, in the same PR as the fix. They do not keep this only in the PR body.
+Agents **load** the protocol at session start for the kind they are in. They **append** a new signature when they repair a novel failure, in the same PR as the fix. They do not keep this only in the PR body. A repeat of a known signature is not a new row, and neither is a row whose only news is a PR number.
 
 A sitting note is still **one GitHub issue per finding** under the epic that owns the lie (#342 / #209 / #188). The protocol does not replace issues. Issues that repeat become `promoted` rows.
 
@@ -100,7 +124,7 @@ A sitting note is still **one GitHub issue per finding** under the epic that own
 
 ### 2.1 Scale and pace decisions (#693)
 
-Before a session changes gameplay distances or clocks, read [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693), [the reference research](research-game-feel-693.md), and [the decision register](plan-game-feel-693.md). Compare reference versions explicitly; carry source status, units, uncertainty, and the accepting decision with every target. A proposed or unresolved number cannot become an active default or a verified debug-protocol fix.
+Before a session changes gameplay distances or clocks, read [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693). [The reference research](research-game-feel-693.md) and [the decision register](plan-game-feel-693.md) are reference: look up the rows the change touches. Compare reference versions explicitly; carry source status, units, uncertainty, and the accepting decision with every target. A proposed or unresolved number cannot become an active default or a verified debug-protocol fix.
 
 Measure full races, not only outcomes: contact, pursuit/possession, command/release, receiver/coverage, runner/tag. Keep field/body proportions separate from camera projection. Use the existing trace/scenario/catalog paths; the versioned #702 extensions and evidence validation are specified in [race-traces.md](race-traces.md); their draft/merge state remains in the #693 plan. Preserve both fixed-input and fixed-tactical fixtures so an inverse carry solver cannot conceal a changed flight.
 
@@ -185,7 +209,7 @@ Save after each stage (the script edit + the still). The next prompt names the s
 After a sitting or a failed still:
 
 1. File the child issue under the epic that owns the lie.
-2. Append a protocol row (R2) in the same PR as the fix, or in the sitting-child PR.
+2. If the signature is novel, append a protocol row (R2) in the same PR as the fix, or in the sitting-child PR.
 3. If the signature has fired twice, promote it to a validator or a scenario. Do not wait for a third.
 4. If the lesson is procedural (how to look, how to bake), add it to `.grok/skills/character-art/` or this document, not only the PR body.
 

@@ -16,6 +16,7 @@ public class CpuBatterTests
     static PitchCommand Meatball => Scenario.PitchAt(0, StrikeZoneGeometry.CenterY);
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void NoForcedMissClampAgainstAHumanMeatball()
     {
         const int n = 200;

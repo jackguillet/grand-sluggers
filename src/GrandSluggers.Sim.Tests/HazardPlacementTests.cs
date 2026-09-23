@@ -49,6 +49,13 @@ public sealed class HazardPlacementTests
     /// <summary>
     /// SF-23 on the data as it stands: every hazard in every park, on both roots, clears every lane, pad, the mound and the
     /// plate area by its own radius, and the validator has nothing to say about either root.
+    ///
+    /// <para>
+    /// Re-read through the one resolution since F4-d (#895, FD-11, map finding 31): the list is the park a night match
+    /// plays — the day block, then the night block, so Funfair's three mouths are still measured and the count is still
+    /// 26 — and each instance is also measured at its night disc (<see cref="ParkHazards.NightDiscFt"/>). The one row with
+    /// a night number, Ember's breath, clears by 85 ft shipped and 32 ft on the trial at 1.6 × its radius.
+    /// </para>
     /// </summary>
     [Fact]
     public void SF23_EveryHazardClearsTheLanesPadsMoundAndPlate()
@@ -59,20 +66,28 @@ public sealed class HazardPlacementTests
             var measured = 0;
             foreach (var id in content.ParkPickOrder)
             {
-                var park = content.Parks[id];
+                var park = PlayedPark.Of(content.Parks[id], night: true, hazards: true, content.Rules.Hazards);
                 for (var i = 0; i < park.Hazards.Count; i++)
                 {
                     var h = park.Hazards[i];
-                    var crossings = HazardPlacement.Crossings(h.X, h.Z, h.Radius, content.Rules.Infield);
-                    Assert.True(crossings.Count == 0,
-                        $"{name} {id} hazard[{i}] {h.Type} at ({h.X}, {h.Z}) r {h.Radius} crosses "
-                        + string.Join(", ", crossings.Select(c => $"{c.What} by {Ft(c.ByFt)} ft")));
-                    Assert.True(HazardPlacement.ClearanceFt(h.X, h.Z, h.Radius, content.Rules.Infield) >= 0);
+                    foreach (var disc in new[] { h.Radius, ParkHazards.NightDiscFt(h.Radius, content.Rules.Hazards.Of(h.Type)) })
+                    {
+                        var crossings = HazardPlacement.Crossings(h.X, h.Z, disc, content.Rules.Infield);
+                        Assert.True(crossings.Count == 0,
+                            $"{name} {id} hazard[{i}] {h.Type} at ({h.X}, {h.Z}) r {disc} crosses "
+                            + string.Join(", ", crossings.Select(c => $"{c.What} by {Ft(c.ByFt)} ft")));
+                        Assert.True(HazardPlacement.ClearanceFt(h.X, h.Z, disc, content.Rules.Infield) >= 0);
+                    }
                     measured++;
                 }
             }
             // Every hazard of all six parks was measured, not just the ones this child moved.
             Assert.Equal(26, measured);
+
+            // Finding 31, measured: the breath at its night disc.
+            var breath = content.Parks["ember-keep"].Hazards.Single(h => h.Type == HazardType.FireBreath);
+            var night = ParkHazards.NightDiscFt(breath.Radius, content.Rules.Hazards.Of(HazardType.FireBreath));
+            Assert.Equal(name == "shipped" ? 85 : 32, Math.Round(HazardPlacement.ClearanceFt(breath.X, breath.Z, night, content.Rules.Infield)));
         }
     }
 

@@ -40,7 +40,7 @@ public sealed class SharedWindowScenarioTests
 
     Park Harbor => _shipped.Parks[ExhibitionPick.DefaultPark];
 
-    /// <summary>The one park that authors a night window multiplier (§14, <c>nightContactWindowMul</c>).</summary>
+    /// <summary>The park that authored the night window multiplier until FD-11-R2 dropped it (F4-d, #895).</summary>
     Park CrystalRink => _shipped.Parks["crystal-rink"];
 
     /// <summary>Every star pitch id, plus "no star": the multiplier is a table read, never a literal.</summary>
@@ -65,13 +65,14 @@ public sealed class SharedWindowScenarioTests
     }
 
     [Fact]
-    public void S125_TheStarAndTheParkStillMultiplyTheOneWindowAndTheFloorStillHolds()
+    public void S125_TheStarStillMultipliesTheOneWindowAndTheFloorStillHolds()
     {
+        // Re-authored to FD-11-R2 (F4-d, #895): the park's night multiplier is gone on both roots, so
+        // the star is the one multiplier left and night at the rink is the day window.
         var trial = ShippedRules;
         var w = trial.Batting.Window;
         var charm = StarSkills.BatterWindowMul("charmball", Skills);
-        var rink = CrystalRink.NightContactWindowMul;
-        Assert.True(charm < 1 && rink < 1, "both multipliers narrow");
+        Assert.True(charm < 1, "the star narrows");
 
         // The multiplier is a table read: three star pitches narrow the window and the rest do not.
         Assert.Equal(1.0, StarSkills.BatterWindowMul("heatball", Skills));
@@ -79,24 +80,20 @@ public sealed class SharedWindowScenarioTests
         foreach (var star in new[] { "charmball", "skullball", "fogball" })
             Assert.True(StarSkills.BatterWindowMul(star, Skills) < 1, star);
 
-        // Same order as the formula: frames × star × park, then the floor.
+        // Same order as the formula: frames × star, then the floor. No park term, day or night.
         Assert.Equal(Math.Max(w.FloorFrames, w.Frames * charm),
             AtBatResolver.ContactWindowFrames("charmball", Harbor, false, trial, Skills));
-        Assert.Equal(Math.Max(w.FloorFrames, w.Frames * rink),
-            AtBatResolver.ContactWindowFrames(null, CrystalRink, true, trial, Skills));
-        Assert.Equal(Math.Max(w.FloorFrames, w.Frames * charm * rink),
+        Assert.Equal(AtBatResolver.ContactWindowFrames("charmball", Harbor, false, trial, Skills),
             AtBatResolver.ContactWindowFrames("charmball", CrystalRink, true, trial, Skills));
-
-        // A day game at the rink is the day multiplier, which is 1: night is a park rule, not a park id.
         Assert.Equal(AtBatResolver.ContactWindowFrames(null, Harbor, false, trial, Skills),
-            AtBatResolver.ContactWindowFrames(null, CrystalRink, false, trial, Skills));
+            AtBatResolver.ContactWindowFrames(null, CrystalRink, true, trial, Skills));
 
         // Reported, not asserted as a target: on 9 frames the floor never bites, even at the worst
-        // pair of multipliers in the catalog. The floor is still the last step, which the fixture
+        // star multiplier in the catalog. The floor is still the last step, which the fixture
         // table below shows by putting the window on it.
         var worst = Stars.Where(s => s is not null).Min(s => StarSkills.BatterWindowMul(s, Skills));
-        Assert.True(w.Frames * worst * rink > w.FloorFrames,
-            $"the window never reaches the floor: {w.Frames} x {worst} x {rink} vs {w.FloorFrames}");
+        Assert.True(w.Frames * worst > w.FloorFrames,
+            $"the window never reaches the floor: {w.Frames} x {worst} vs {w.FloorFrames}");
 
         var onTheFloor = new RulesTable
         {

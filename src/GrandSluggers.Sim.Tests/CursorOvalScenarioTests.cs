@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 ///
 /// <b>S-134</b>: the oval the client draws (<see cref="SweetSpot.Oval"/>) is the oval the resolver
 /// judges, across Contact 1–10, quick and charged, both hands, every bat and good-chemistry runners
-/// on base (which change nothing since #891, S-138) —
+/// on base (which change nothing since #891, S-144) —
 /// asserted through <see cref="AtBatResolver.Resolve"/>, not through the helper alone.
 /// <b>S-135</b>: a charge narrows the spatial barrel by <c>cursor.chargeMul</c> and nothing else; it
 /// does not touch the timing window (PH-11-R1). <b>S-136</b>: Contact scales the spatial barrel by

@@ -98,7 +98,8 @@ public sealed class AtBatResolver
         // on base add nothing: there is no plate-level chemistry (PH-16-R14, #891).
         var zoneMul = Lerp(b.Quality.Slap.For(quality), b.Quality.Charge.For(quality), effective);
         var starSwingMul = input.UseStarSwing ? StarSkills.SwingExitMul(input.Batter.StarSwing, _skills) : 1.0;
-        var pitchMul = PitchFactor(input.ChargePitch, quality, charged, input.Pitcher.Stats.Pitch, b.PitchFactor);
+        // The arm's say over non-perfect contact is Movement's: the ball that is hard to square (§5.5, PH-15-R6).
+        var pitchMul = PitchFactor(input.ChargePitch, quality, charged, input.Pitcher.Stats.Movement, b.PitchFactor);
 
         var exit = b.Exit.BaseMph + power * b.Exit.MphPerPower;
         exit *= zoneMul * starSwingMul * pitchMul;
@@ -178,9 +179,18 @@ public sealed class AtBatResolver
     /// <summary>
     /// The timing window one swing is judged in, in frames at 60 Hz (spec §5.3). Inside is ± half of
     /// this. It is <c>batting.window.frames</c> for every hitter, both swings and every human rung
-    /// (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), × the star pitch's window multiplier × the park's,
-    /// floored. The resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>)
-    /// read this one number.
+    /// (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), × the star pitch's window multiplier, floored. The
+    /// resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>) read this one
+    /// number.
+    ///
+    /// <para>
+    /// <b>No park term, day or night (FD-11-R2, F4-d).</b> Night keeps the stadium lights, so it
+    /// changes no rule of the at-bat: Crystal's night multiplier (× 0.85, <c>nightContactWindowMul</c>)
+    /// is gone on both roots and night at Crystal plays the day window. Removing it left every other
+    /// window bit-identical — it was × 1.0 by day and at every other park. <paramref name="park"/> and
+    /// <paramref name="night"/> are no longer read; they stay in the signature so this child does not
+    /// rewrite every caller the pitching track shares.
+    /// </para>
     /// </summary>
     public static double ContactWindowFrames(string? starPitch, Park? park, bool night,
         RulesTable? rules = null, StarSkillTable? skills = null)
@@ -190,8 +200,6 @@ public sealed class AtBatResolver
         var one = w.Frames;
         if (starPitch is not null)
             one *= StarSkills.BatterWindowMul(starPitch, skills);
-        if (park is not null)
-            one *= ParkHazards.ContactWindowMul(park, night, r);
         return Math.Max(w.FloorFrames, one);
     }
 
@@ -209,7 +217,8 @@ public sealed class AtBatResolver
 
     /// <summary>
     /// The pitch's say (spec §5.5): a charged pitch met sour ×0.6, met by a perfect charge ×1.1;
-    /// a high-Pitch arm dampens non-perfect contact per stat point above 5.
+    /// a high-<b>Movement</b> arm (<see cref="Stats.Movement"/>, PH-15-R6) dampens non-perfect contact per
+    /// point above 5.
     /// </summary>
     public static double PitchFactor(bool chargedPitch, ContactQuality quality, bool chargedSwing, int pitchStat, PitchFactorRules f)
     {
@@ -378,7 +387,8 @@ public sealed class AtBatResolver
     /// </summary>
     public static bool PitchInZone(PitchCommand pitch, int pitchStat, string? starPitchId = null, RulesTable? rules = null)
     {
-        // Skill/charge affect the delivery, never an invisible resizing of the zone.
+        // Skill/charge affect the delivery, never an invisible resizing of the zone. Callers pass the
+        // arm's Control; no rating reads here.
         _ = pitchStat;
         return StrikeZoneGeometry.Contains(pitch, starPitchId, rules);
     }
@@ -405,7 +415,7 @@ public sealed class AtBatResolver
         inZone && runnerOnFirst && outs < 2 && roll < Rules.Or(rules).Batting.Cpu.SacBuntChance;
 
     /// <summary>
-    /// Speed by family, Pitch stat and charge: the family's row carries its own base mph and its own
+    /// Speed by family, the arm's <b>Velocity</b> (<see cref="Stats.Velocity"/>, PH-15-R6) and charge: the family's row carries its own base mph and its own
     /// charge mph (pitching.families), and pitching.speed carries the one coefficient they share. A
     /// Nice! release adds pitching.release.niceMul (spec §4.1); a star pitch multiplies by its
     /// skill's speedMul (star-skills.json). <paramref name="mphPenalty"/> is the tired / exhausted
@@ -425,5 +435,5 @@ public sealed class AtBatResolver
 
     public static double PitchSpeedMph(PitchCommand pitch, Character pitcher, RulesTable? rules = null,
         StarSkillTable? skills = null, double mphPenalty = 0) =>
-        PitchSpeedMph(pitch, pitcher.Stats.Pitch, rules, pitcher.StarPitch, skills, mphPenalty);
+        PitchSpeedMph(pitch, pitcher.Stats.Velocity, rules, pitcher.StarPitch, skills, mphPenalty);
 }

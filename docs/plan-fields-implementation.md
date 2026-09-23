@@ -76,21 +76,34 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 51 | A PR was merged before `portable` finished on its final head (#870); the run later passed, as did `main`'s. | PR #870 | Wait for the run on the final head. |
 | 52 | Capturing while Jack is at the keyboard pulls focus from whatever he is doing, not only from the game window. | captures under #866 | Warn him first; captures take about 20-30 s per park and light. |
 
+### Found by the fifth batch (September 23, 2026)
+
+| # | Finding | Where | Effect |
+| --- | --- | --- | --- |
+| 53 | F4-d and F4-b changed play, and neither re-reported park factors or S-29 (Jack: "let's move faster"). The map asked F4-b for both. | PRs #902, #905 | Owed at tuning, with Q10 and Q11; not a target (FD-13). |
+| 54 | F4-b changed shipped play at Crystal and Ember and not on `trials/c80`: seed 7 Ember day 3-4 → 4-5, night 5-3 → 4-5; Crystal kept its score in a different game. The live slow and one less draw on the seeded stream both move the game. | PR #905 | Any change to a hazard's draws reseeds the rest of that game. |
+| 55 | A stored game at a hazard park is tied to the hazard code: `NightBlockTests`' Ember night rows were re-recorded on both roots, and SF-24's Crystal row moved to day seed 14 because a Crystal night is now its day and seed 10 no longer freezes. | PRs #902, #905 | Re-record the row in the PR that changes the hazard, and say so. |
+| 56 | The heart swing's `drops.frozen` roll is the last frozen-drop roll. It is a special, not a park rule. | PR #905 | Out of the fields scope (specials excluded). |
+| 57 | Two sub-agents ran wide local test filters, S-29 and park factors after being told not to, and loaded the shared Mac. | PRs #902, #905 | The orchestrator finishes a child itself: rebase, fix only the tests that broke, run only those classes, seed 7 before and after. |
+| 58 | In zsh, `${park:+--park $park}` passes one argument, so the CLI saw `--park crystal` as one word. | PR #905 | Build the argument list as an array. |
+
 ## 2. Rails every child carries
 
-- **Parity first (FR-06).** A rail child changes no behavior. It proves that with seed 7, S-29 and the Harbor cohorts unchanged, and with seals that move by hash only.
-- **Evidence seals (FR-16).** CI hashes `Models.cs`, `Rules.cs`, `FieldBounds.cs`, `HarborWall.cs`, `BallFlight.cs`, `BattedBall.cs`, `AtBatResolver.cs`, `Fielding.cs`, `FlyCatch.cs`, `ParkDiamond.cs`, `Match.cs`, `LivePlaySystem.Field.cs`, `ContentValidation.cs`, `data/parks/harbor-diamond.json`, `flight.json`, `fielding.json`, `running.json`. Order: `dotnet run --project tools/game-feel-flight-probes -- --write`, then `python3 tools/compact-field-report.py`, then both `--check`.
+What a PR owes is [agent-rails.md](agent-rails.md) §1.2 (2026-09-22). Where a rail below asks for more, §1.2 wins: no local full suite, no reseal, no `trials/c80` twin, no register or ledger edit in a feature child. Balance runs on demand.
+
+- **Parity first (FR-06).** A rail child changes no behavior. It shows `cli match --seed 7` unchanged and the CI breakage suite green. S-29, the Harbor cohorts and the seals run on demand (Actions → Full tests), not in the child.
+- **Evidence seals (FR-16).** The seals hash `Models.cs`, `Rules.cs`, `FieldBounds.cs`, `HarborWall.cs`, `BallFlight.cs`, `BattedBall.cs`, `AtBatResolver.cs`, `Fielding.cs`, `FlyCatch.cs`, `ParkDiamond.cs`, `Match.cs`, `LivePlaySystem.Field.cs`, `ContentValidation.cs`, `data/parks/harbor-diamond.json`, `flight.json`, `fielding.json`, `running.json`. A feature child does not reseal. A tuning PR or an evidence packet reseals, in this order: `dotnet run --project tools/game-feel-flight-probes -- --write`, then `python3 tools/compact-field-report.py`, then both `--check`.
 - **Trace identity.** `PlayTraceIdentity` serialises the whole `Park` record. A new `Park` member, or a change to a rules table's shape, moves every fresh identity SHA. Say so in the PR and do not hide the member from the identity. The SHAs stored in `docs/research/game-feel-3d-race-*.json` and `game-feel-702-baseline.json` are a pinned record of the #715 / #702 runs at their builds: do not regenerate them in a child (finding 22; a full re-export is the packet owner's, #853).
 - **`Park` is built positionally** in `tools/game-feel-flight-probes/Program.cs:44`. A new member has a default and goes last.
-- **c80 parity.** A shipped park edit has its `trials/c80` twin in the same PR. `CompactGeometryTests` key equality stays green.
+- **c80 parity.** On demand. A shipped park edit does not owe its `trials/c80` twin; parity is restored when the trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more. Freeze, promote or retire C80 is open for Jack ([agent-rails.md](agent-rails.md) §1.3).
 - **#730 / #732 numbers are banned** until those issues close: hazard radii, `pipeReachPadFt`, `emberNightFireMul`, `HarborWall.FoulOffset`, `flareStart`, `infieldLipFt`, the fielder starts. A fields child may move one into data at its current value. It may not change one.
 - **Rules tables use named properties.** A `Dictionary` or a `List` bypasses the reflective validator and the JSON = code parity test. Ground, wall-material and hazard-type rows are named properties.
-- **One seeded stream.** A child that changes the count or order of `_rng` draws reseeds every `AutoPlay` game. It re-reports S-29, never tunes.
-- **Shared files with the pitching and hitting children (#803).** `Models.cs`, `Rules.cs`, `Match.cs`, `ContentValidation.cs` and the seals. One child at a time merges across both tracks; the later one rebases and regenerates.
+- **One seeded stream.** A child that changes the count or order of `_rng` draws reseeds every `AutoPlay` game. It says so in the PR body and never tunes; S-29 is re-reported on demand.
+- **Shared files with the pitching and hitting children (#803).** `Models.cs`, `Rules.cs`, `Match.cs`, `ContentValidation.cs` and the seals. One child at a time merges across both tracks; the later one rebases.
 - **Second client.** `src/GrandSluggers.Play` draws parks too (`WorldView.cs`, `Palette.cs`) and must keep building.
 - **`unity/` is not in the solution.** Only `tools/unity-compile.sh` sees a Unity call site.
 - **A stored double pins the platform.** Goldens store libm-free bits (#811). A child is done when `portable` CI is green on its final head.
-- **Register.** Each child appends its issue and PR to `implementation_issues`, adds `validation_evidence`, appends `history`, and never writes `human_acceptance`. A number needs `trial-accepted` from Jack first.
+- **Register.** A child does not edit the register. One batched docs PR, at a phase checkpoint or when Jack asks, records Jack's answers and refinements and updates `implementation_issues`, `validation_evidence` and `history`. Nobody but Jack writes `human_acceptance`. A number needs `trial-accepted` from Jack first.
 - **Session kinds.** Sim and data = Gameplay. Unity, HUD, the book pair, lesson copy = Presentation. Blender and stills = Art. Separate PRs.
 - **No park art** before that park's greybox sitting (FD-01, FD-17).
 
@@ -268,6 +281,8 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 
 ## 6. Ledger
 
+Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by each child ([agent-rails.md](agent-rails.md) §1.2).
+
 | Child | Issue | PR | Merged | Tested revision | Human gate |
 | --- | --- | --- | --- | --- | --- |
 | Foundation: research, maps, register, all 19 directions | #814 | #815 | `4dc31699` | `df08c631`: `portable` CI green; docs and one research tool; `cli art` OK; seed 7 unchanged | none |
@@ -293,4 +308,6 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 | F7-b1 named still shots for both foul poles | #882 | #884 | `b64bf799` | `278a83d8`: 2079 / 2079; every park's pole in frame on both roots | none |
 | F6-a2 the old backstop pieces and dugouts go at the five parks | #881 | #885 | `b72fd0b0` | `2ed155ed`: source rows name exactly the 21 + 16 retired pieces on the old source; unity-compile OK; before / after stills of five parks | **Jack passed the look** ("merge them") |
 | F2-b2 the drawn rail stays hip-high to the foul pole | #873 | #875 | `12345a76` | `f83aead9`: 2069 / 2069, 859 / 859 before the last rebases; seed 7 identical; seals hash-only; pole stills at six parks, day and night | **Jack passed the look** ("merge them") |
+| F4-d night blocks; one played park (`PlayedPark.Of`); Crystal's night window dropped on both roots | #895 | #902 | `ce5975b0` | `10ba5486`: filtered classes 21 / 21; seed 7 identical except Crystal night, which now equals Crystal day; seals hash-only; balance not measured | none |
+| F4-b a status volume slows the body that touches it for 3 s at 0.45; `BodySlowed`; the park's `drops.frozen` roll retired | #896 | #905 | `f80e63cc` | `29894d58`: filtered classes green on the shipped root; seed 7 Harbor identical, Crystal and Ember changed on the shipped root, `trials/c80` identical; seals hash-only; balance not measured | none; a sitting judges the 3 s slow |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
