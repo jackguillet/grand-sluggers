@@ -63,6 +63,7 @@ public sealed class HazardLibraryTests
             Assert.Equal(code.Pattern, json.Pattern);
             Assert.Equal(code.NightRadiusMul, json.NightRadiusMul);
             Assert.Equal(code.ReachPadFt, json.ReachPadFt);
+            Assert.Equal(code.SlowSec, json.SlowSec);
         }
         // nightOnly left the rows with F4-d (FD-11): whether an instance exists only at night is where
         // the park authors it, its night block, so no row carries it and no row can drift from it.
@@ -128,12 +129,14 @@ public sealed class HazardLibraryTests
             Assert.Equal(1.0, rules.Stars.Gains.Billboard);
             Assert.Equal(0.6, rules.Fielding.Park.ShellWarpChance);
 
-            // Only a status volume widens at night, and only a redirect has a pad.
+            // Only a status volume widens at night, only a redirect has a pad, and only a status volume slows a body for a
+            // time (F4-b, FD-08-R2: 3.0 s on both roots).
             foreach (var type in HazardType.All)
             {
                 var row = hazards.Of(type);
                 Assert.True(row.NightRadiusMul == 1 || row.Pattern == HazardPattern.StatusVolume, type);
                 Assert.True(row.ReachPadFt == 0 || row.Pattern == HazardPattern.BallRedirect, type);
+                Assert.Equal(row.Pattern == HazardPattern.StatusVolume ? (double?)3.0 : null, row.SlowSec);
             }
         }
     }

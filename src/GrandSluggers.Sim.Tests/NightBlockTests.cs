@@ -309,20 +309,21 @@ public sealed class NightBlockTests
     /// SHA-256 of <see cref="Log"/>. Funfair's rows include a game with a chomp in it on each root (shipped
     /// seed 7, trial seed 16, the seeds <see cref="HazardsOffTests"/> found), so a mouth that moved, resized or
     /// stopped biting fails here. A child that changes play at either park re-records these from the build
-    /// before it and says why; F4-d changes neither.
+    /// before it and says why; F4-d changes neither. F4-b (#896) re-recorded Ember's four rows: its lava pits and
+    /// breath slow the body that touches them for 3 s instead of every chaser, and the park's drop roll is gone.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before => TestRoot.Pick<IReadOnlyList<(string, int, string, string)>>(
         [
             ("funfair-park", 1, "Final  Ember Court 6  Spark All-Stars 2", "cd98e1ef97a1293f36bfa4a88d9977909600e27161656dce1837af8d46e32d27"),
             ("funfair-park", 7, "Final  Ember Court 1  Spark All-Stars 3", "ef32cf355d26693644f0e671ab6bac2be54c13d51ae48f53ef1e1fd890b2f1a4"),
-            ("ember-keep", 1, "Final  Ember Court 1  Spark All-Stars 3", "1bb4ae2b057139f5d871db2cdcd31896c7d7a67031aeedcc1991e1ffa10d2247"),
-            ("ember-keep", 2, "Final  Ember Court 6  Spark All-Stars 2", "61ffb6d2d9c5abd84342a29debca28d774b2ed1df1b07710eafe6d4e85f93993")
+            ("ember-keep", 1, "Final  Ember Court 1  Spark All-Stars 3", "6fd5f78c3ffbc60f5510b67dba36267ac9ee78924c3560c10ae8f26c00532c71"),
+            ("ember-keep", 2, "Final  Ember Court 6  Spark All-Stars 2", "a3dfdbf9ae91af301d7d8f39279e6c44d9a2cc86f78e9c1c38feede335bab36f")
         ],
         [
             ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 4", "387423150ccacab917ba047dbc8665e01514454490d6548b9be5d2739907b20b"),
             ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "bbc8b7176300582b595e4e26b745c4f5d4698d569b90c0a935b144eba1fd551c"),
-            ("ember-keep", 1, "Final  Ember Court 0  Spark All-Stars 2", "5042c319509ee8506b34176a04cab470491fa57ff31e78f0efd6894e3c1e5fad"),
-            ("ember-keep", 2, "Final  Ember Court 5  Spark All-Stars 4", "0cccb80d999ed2fc01850712f797d85915dcdd4488f6d2697a30afb58e3f1989")
+            ("ember-keep", 1, "Final  Ember Court 4  Spark All-Stars 6", "ba0eeeda3354659a0dca1eeb7018031c72cb7c08efa652a1910e1929672f3ebe"),
+            ("ember-keep", 2, "Final  Ember Court 4  Spark All-Stars 3", "3a2b6e0a1afda339426e02267d0aa365b210dcb55e254b5f9ff968fa78781ee0")
         ]);
 
     /// <summary>
