@@ -39,7 +39,8 @@ namespace GrandSluggers.UnityClient
             }
             if (phase == PhaseUi.Field)
             {
-                Field(match != null ? match.Park.Id : "", parkName, night, match == null || match.Hazards, null);
+                Field(match != null ? match.Park.Id : "", parkName, night, match == null || match.Hazards, null,
+                    match != null ? CarnivalFront.FieldCard(match.Park, match.Rules) : null);
                 return;
             }
             if (phase == PhaseUi.Lineup || phase == PhaseUi.TeamSetup || phase == PhaseUi.DefenseSetup)
@@ -159,14 +160,20 @@ namespace GrandSluggers.UnityClient
             GUI.color = prev;
         }
 
-        public static void Field(string parkId, string parkName, bool night, bool hazards, string hazardsLine)
+        public static void Field(string parkId, string parkName, bool night, bool hazards, string hazardsLine,
+            System.Collections.Generic.IReadOnlyList<string> card = null)
         {
             Ensure();
             Sticker(parkName, 40, 28, 720, 48, _title);
             Sticker(CarnivalFront.SkyGag(night), 40, 78, 200, 28, night ? _gold : _h1);
             Sticker(CarnivalFront.HazardsLabel(hazards), 250, 78, 240, 28, hazards ? _h1 : _gold);
-            GUI.Label(new Rect(44, 112, 720, 26), CarnivalFront.Gimmick(parkId, night), _gold);
-            var y = 140f;
+            // The field card (F8-a): what this park changes, from its own data, one line each.
+            var y = 112f;
+            foreach (var line in card ?? System.Array.Empty<string>())
+            {
+                GUI.Label(new Rect(44, y, 900, 24), line, y < 113f ? _gold : _tiny);
+                y += 26;
+            }
             if (!string.IsNullOrEmpty(hazardsLine))
             {
                 GUI.Label(new Rect(44, y, 720, 22), hazardsLine, _tiny);
