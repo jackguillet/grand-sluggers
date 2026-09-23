@@ -77,9 +77,9 @@ namespace GrandSluggers.UnityClient
             if (exhibition)
             {
                 Sticker(CarnivalFront.PlayBall, 44, 88, 640, 28, _gold);
-                // Innings and the difficulty rung, next to each other (P7): the two numbers the title owns.
+                // Exhibition settings are chosen after the lineup.
                 if (!string.IsNullOrEmpty(setup))
-                    GUI.Label(new Rect(44, 124, 640, 22), setup, _gold);
+                    GUI.Label(new Rect(44, 120, 640, 32), setup, _gold);
             }
             else
                 Sticker(training ? HowToPlay.TutorialMenuTitle : "CHALLENGE", 44, 88, 420, 32, _h1);
@@ -90,7 +90,7 @@ namespace GrandSluggers.UnityClient
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                $"South pick captain    West / F tutorials    Esc how to play    Start / H mode    Tab innings    X / LB difficulty    F6 input: {Controls.Player1InputLabel}", _tiny);
+                $"South / Space pick stadium    West / F tutorials    Esc how to play    Start / H mode    F6 input: {Controls.Player1InputLabel}", _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,
@@ -107,8 +107,7 @@ namespace GrandSluggers.UnityClient
                 vs += themWho.Name;
             Sticker(CarnivalFront.SeatMark(pad1Home) + "  " + vs, 36, 268, 480, 24, _gold);
             GUI.Label(new Rect(36, 300, 520, 22), CarnivalFront.SeatModeHint(versus, pad2, pad1Home), _tiny);
-            GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
-                CarnivalFront.SelectHelp, _tiny);
+            SetupSheet.CaptainControls();
         }
 
         static void DrawSeatModeTabs(bool versus)
@@ -167,6 +166,11 @@ namespace GrandSluggers.UnityClient
             System.Collections.Generic.IReadOnlyList<string> card = null)
         {
             Ensure();
+            var oldColor = GUI.color;
+            var cardColor = new Color(.045f, .075f, .095f, .94f);
+            GUI.color = QualitySettings.activeColorSpace == ColorSpace.Linear ? cardColor.linear : cardColor;
+            GUI.DrawTexture(new Rect(24, 0, 832, 158 + 26 * (card?.Count ?? 0) + (string.IsNullOrEmpty(hazardsLine) ? 0 : 26)), _white);
+            GUI.color = oldColor;
             Sticker(parkName, 40, 28, 720, 48, _title);
             Sticker(CarnivalFront.SkyGag(night), 40, 78, 200, 28, night ? _gold : _h1);
             Sticker(CarnivalFront.HazardsLabel(hazards), 250, 78, 240, 28, hazards ? _h1 : _gold);
@@ -184,7 +188,7 @@ namespace GrandSluggers.UnityClient
             }
             if (!CarnivalFront.HarborIsTheProduct(parkId))
                 GUI.Label(new Rect(44, y, 720, 22), "Harbor is the slice.", _tiny);
-            GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22), CarnivalFront.FieldFooter, _tiny);
+
         }
 
         static void Sticker(string text, float x, float y, float w, float h, GUIStyle style)

@@ -19,8 +19,8 @@ public static partial class HowToPlay
     };
     public static string TutorialGuidedSetup(string id) => id switch
     {
-        "T-G01" => "Use the ordinary Exhibition team and defense screens. A real roster drop, order change, and glove change must all stick. Each attempt starts fresh.",
-        "T-G05" => "Two distinct physical gamepads are required. Keyboard and mouse can only take Player 1. Confirm the seats through the ordinary Select screen.",
+        "T-G01" => "Choose a stadium and captains, then use the ordinary Exhibition team and defense screens. A real roster drop, order change, and glove change must all stick. Each attempt starts fresh.",
+        "T-G05" => "Choose a stadium first. Two distinct physical gamepads are required. Keyboard and mouse can only take Player 1. Confirm the seats through the ordinary Select screen.",
         "T-G06" => "Use the ordinary Call time menu in an Exhibition play. Restart begins the same tutorial setup again.",
         "T-G06-R" => "Connect a gamepad and set F6 input to Controller or Auto before starting. The prepared Harbor play begins at SET. Disconnect the active pad; the game pauses. Reconnect it or take that same seat with an unseated pad. Keyboard and mouse can recover Player 1.",
         "T-G06-C" => "Connect a gamepad and set F6 input to Controller or Auto before starting. The prepared Harbor play begins at SET. In Call time choose Reset stick and release the stick until the new centre is adopted.",
