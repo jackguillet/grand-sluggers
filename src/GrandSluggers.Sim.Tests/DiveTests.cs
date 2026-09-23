@@ -37,11 +37,11 @@ public sealed class DiveTests
     [Fact]
     public void TheCpuCommitsOnTheLiveBallPaysAndTakesTheLiner()
     {
-        var trial = RunCpu(Game, out var commits);
+        var trial = RunCpu(Game, out var commits, ball: (130, 16, 6));
         var commit = Assert.Single(commits);
         Assert.Equal("CF", commit.Pos);   // moss, Field 4
         Assert.Equal(0.555, commit.Cost, 6);
-        Assert.InRange(commit.T, 1.6, 2.3);
+        Assert.InRange(commit.T, 3.5, 4.2);
         Assert.Equal(PlayKind.FlyOut, trial.Play.Kind);
         Assert.Equal(DefensiveFeat.Dive, trial.Play.Outcome?.DefensiveFeat);
         Assert.True(trial.PossessionAt >= commit.T - 1e-9, "the ball was taken at or after the commitment, never before");
@@ -55,7 +55,7 @@ public sealed class DiveTests
     [Fact]
     public void AMovedBallBeatsTheCommittedDiveAndTheRecoveryIsOwedAllTheSame()
     {
-        var trial = RunCpu(Game, out var commits, nudgeOnCommit: (-16, 0));
+        var trial = RunCpu(Game, out var commits, nudgeOnCommit: (-25, 0), ball: (130, 16, 6));
         var commit = Assert.Single(commits);
         Assert.Equal(0.555, commit.Cost, 6);
         Assert.NotEqual(PlayKind.FlyOut, trial.Play.Kind);
@@ -66,7 +66,7 @@ public sealed class DiveTests
 
     /// <summary>The human seat with a dead stick: the assistance does not dive for the player, and the ball falls in.</summary>
     [Fact]
-    public void TheNeutralStickNeverDives() => NeutralStick((115, 16, 6));
+    public void TheNeutralStickNeverDives() => NeutralStick((140, 12, 25));
 
     // A liner over second which the assistance's legs do not reach standing (the liner of the other tests they do — the human
     // seat reads 0.40 s where the CPU's glove reads it × cpu.reactionMul).

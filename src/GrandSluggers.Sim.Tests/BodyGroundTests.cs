@@ -330,7 +330,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
         foreach (var (park, slid) in new[] { (Plain(catalog), false), (Iced(catalog), true) })
         {
             var match = Defense(catalog, park, leadoff: "dart");
-            var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
+            var hit = FlightFixtures.Hit(match.Park, 85, -12, -18, rules: match.Rules);
             var preview = match.PreviewHit(hit);
             var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
             var live = match.LivePlay;
@@ -476,7 +476,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     static (PlayEvent Play, List<(double X, double Z)> Track) RoutineGrounder(ContentCatalog catalog, Park park, bool everyBody = false)
     {
         var match = Defense(catalog, park, leadoff: "cinder");
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18, rules: match.Rules);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
         var live = match.LivePlay;
@@ -500,7 +500,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
         {
             var t = i * 0.05;
             var d = 60 * t - 5 * t * t;
-            path.Add(new Sample(t, d, 0, -0.375 * d, 60 + 0.875 * d));
+            path.Add(new Sample(t, d, 0, -0.375 * d, 60 + 0.875 * d, Event: i == 1 ? SampleEvent.Ground : SampleEvent.None));
         }
         var who = Game.Must("ashlord");
         var preview = FlightFixtures.Preview(who, "SS", BattedBallClass.Grounder, 0, path[^1].X, path[^1].Z);
@@ -572,6 +572,9 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
         /// <summary>The fixture rows: ice carries all five, ash only the cut-back (so the cut is proved to be its own time).</summary>
         static void IceRow(JsonObject grounds)
         {
+            // Isolate body response: both parks must send the same ball past the bodies.
+            foreach (var key in new[] { "roll", "bounce", "skid", "overthrow", "bobble" })
+                grounds["ice"]![key] = grounds["grass"]![key]!.DeepClone();
             grounds["ice"]!["body"] = new JsonObject
             {
                 ["startMul"] = BodyGroundTests.Slick.Start,

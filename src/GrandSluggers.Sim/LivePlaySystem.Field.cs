@@ -1009,7 +1009,7 @@ public sealed partial class LivePlaySystem
             else
             {
                 var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-                var linerInAir = ElapsedSeconds < hang;
+                var linerInAir = !needsJump && ElapsedSeconds < hang;
                 var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, standUp,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, diveWin,
@@ -1045,7 +1045,7 @@ public sealed partial class LivePlaySystem
                     }
                     TakeBattedBall();
                 }
-                if (!needsJump && underDive && FlyCatch.PlayerDiveCatch(DiveT > 0, diveDist, standUp, diveWin, BallY, R))
+                if (!needsJump && underDive && DiveT > 0 && BallY < catchRules.DiveMaxBallY)
                 {
                     CatchDive = true;
                     TakeBattedBall();
@@ -1143,7 +1143,7 @@ public sealed partial class LivePlaySystem
                 var needsJump = FlyCatch.NeedsJump(pre);
                 var who = PlayFielder();
                 var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-                var linerInAir = ElapsedSeconds < hang;
+                var linerInAir = !needsJump && ElapsedSeconds < hang;
                 var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuStandUp,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuDiveWin,
@@ -2721,7 +2721,8 @@ public sealed partial class LivePlaySystem
         at = (BallX, BallZ);
         if (needsJump || _ballPrev is null || ElapsedSeconds >= hang) return false;
         var c = R.Fielding.Catch;
-        var g = R.Flight.Gravity;
+        // The measured velocity is in play seconds, so gravity must use that same clock.
+        var g = R.Flight.Gravity / (R.Flight.TimeScale * R.Flight.TimeScale);
         var (vx, vy, vz) = _ballVel;
         var above = BallY - c.DiveMaxBallY;
         var t = above <= 0 ? 0 : (vy + Math.Sqrt(Math.Max(0, vy * vy + 2 * g * above))) / g;
@@ -3592,7 +3593,7 @@ public sealed partial class LivePlaySystem
             }
             return;
         }
-        if (!Preview.Grounder)
+        if (!landed || !Preview.Grounder)
         {
             // A landed liner or fly picked up off the grass: no bobble roll, and none here. The take still
             // costs what its speed says (F693-02-ground-pickup-recoil-basis); a table with the recoil off charges nothing.

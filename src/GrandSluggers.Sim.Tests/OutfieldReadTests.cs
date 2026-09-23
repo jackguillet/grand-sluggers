@@ -73,7 +73,7 @@ public sealed class OutfieldReadTests
         var preview = match.PreviewHit(hit);
         var hang = preview.HangTimeSec;
         _out.WriteLine($"liner {hit.ExitVeloMph:0.0} mph at {hit.LaunchDeg:0}° / {hit.SprayDeg:0}°: hang {hang:0.00} s, landing ({preview.LandingX:0}, {preview.LandingZ:0}), picked {preview.Position}");
-        Assert.InRange(hang, 1.0, 1.5);
+        Assert.InRange(hang, 1.0 * match.Rules.Flight.TimeScale, 1.5 * match.Rules.Flight.TimeScale);
         var movedAt = FirstMove(match, hit, preview, "LF", LiveSeats.CpuOnly);
         _out.WriteLine($"LF moves at {movedAt:0.00} s");
         Assert.True(movedAt < hang, $"LF first moves at {movedAt:0.00} s; the liner lands at {hang:0.00} s");

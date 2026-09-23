@@ -183,9 +183,9 @@ public static class FlyCatch
     {
         // A catch requires the untouched ball to meet the glove in three dimensions.
         // The projected landing and the hit's label cannot award possession.
-        if (hitT >= hangSec) return false;
         if (needsJump)
             return Under(gloveX, gloveZ, ballX, ballZ, plantX, plantZ, windowFt, true, rules);
+        if (hitT >= hangSec) return false;
         var c = Rules.Or(rules).Fielding.Catch;
         return ballY >= 0 && ballY <= c.StandingHeightFt + Math.Max(0, gloveRiseFt)
             && Diamond.Dist(gloveX, gloveZ, ballX, ballZ) < windowFt;

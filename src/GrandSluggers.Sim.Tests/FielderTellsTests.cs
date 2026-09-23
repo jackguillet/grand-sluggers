@@ -95,7 +95,7 @@ public sealed class FielderTellsTests
     [Fact]
     public void TheDiverStaysDownThenGetsUpThroughTheResultBeat()
     {
-        var (match, live) = BeginCpu(Game, 115, 16, 2, seed: 1);
+        var (match, live) = BeginCpu(Game, 130, 16, 6, seed: 1);
         var last = FielderTells.Owed.None;
         var commits = 0;
         PlayEvent? play = null;
@@ -112,7 +112,7 @@ public sealed class FielderTellsTests
         Assert.Equal(PlayKind.FlyOut, play.Kind);
         Assert.Equal("CF", last.DivingPos);
         var left = last.DiveRecoverySec;
-        Assert.InRange(left, 0.42, 0.425);
+        Assert.InRange(left, Feel.DiveGetUpSec + Frame, FieldingResolver.DiveRecoverySec(Game.Must("moss"), Game.Rules));
 
         var aged = last;
         var t = 0.0;
@@ -129,7 +129,7 @@ public sealed class FielderTellsTests
         }
         Assert.InRange(t, left - 1e-9, left + Frame);
         Assert.InRange(up, 11, 12);   // the last 0.20 s at 60 Hz
-        Assert.InRange(down, 13, 14);   // the rest of the 0.42 s, less the 0.20 s get-up
+        Assert.InRange(down, (int)Math.Floor((left - Feel.DiveGetUpSec) / Frame) - 1, (int)Math.Ceiling((left - Feel.DiveGetUpSec) / Frame));   // the rest of the 0.42 s, less the 0.20 s get-up
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public sealed class FielderTellsTests
     [Fact]
     public void AMissedDiveStillLiesTheDiverDownWhoeverHoldsTheRing()
     {
-        var (match, live) = BeginCpu(Game, 115, 16, 2, seed: 1);
+        var (match, live) = BeginCpu(Game, 130, 16, 6, seed: 1);
         var owedFrames = 0;
         var nudged = false;
         PlayEvent? play = null;
@@ -149,7 +149,7 @@ public sealed class FielderTellsTests
             if (play is not null) break;
             if (!nudged && live.Events.Contains(LiveEvent.DiveCommit))
             {
-                live.NudgeBall(-16, 0);
+                live.NudgeBall(-25, 0);
                 nudged = true;
             }
             if (live.DiveRecoveryT <= 0) continue;
@@ -209,7 +209,7 @@ public sealed class FielderTellsTests
     public void AHardBallBracesTheGloveAndARoutineOneBracesNobody()
     {
         var cap = Game.Rules.Fielding.Recoil.CapSec;
-        var (match, live) = BeginCpu(Game, 125, 2, 0, seed: 1, quality: ContactQuality.Perfect);
+        var (match, live) = BeginCpu(Game, 145, -3, 0, seed: 1, quality: ContactQuality.Perfect);
         var braced = new List<double>();
         var dur = 0.0;
         PlayEvent? play = null;

@@ -1123,7 +1123,7 @@
     },
     {
       "id": "T-D04",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "outs.04"
       ],
@@ -1174,7 +1174,7 @@
     },
     {
       "id": "T-D06",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "outs.06"
       ],
@@ -2550,7 +2550,7 @@
     },
     {
       "id": "T-F09-B",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.09"
       ],
@@ -2712,7 +2712,7 @@
     },
     {
       "id": "T-H01",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fields.ice"
       ],
@@ -2787,7 +2787,7 @@
     },
     {
       "id": "T-H04",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fields.solid-body"
       ],
@@ -5416,9 +5416,9 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 280,
+          "carryFt": 250,
           "exitMph": 0,
-          "launchDeg": 30,
+          "launchDeg": 34,
           "sprayDeg": 2
         }
       }
@@ -5968,7 +5968,7 @@
         "shipped": {
           "carryFt": 0,
           "exitMph": 90,
-          "launchDeg": 3,
+          "launchDeg": -6,
           "sprayDeg": 38
         }
       },
@@ -6205,13 +6205,13 @@
     {
       "id": "T-F09-B",
       "policy": "grounder",
-      "seed": 146,
+      "seed": 35,
       "timeoutSec": 30,
       "home": [
         "vale",
         "pewter",
         "lace",
-        "dart",
+        "frost",
         "basil",
         "grit",
         "vine",
@@ -6233,9 +6233,9 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 55,
-          "launchDeg": 10,
-          "sprayDeg": 25
+          "exitMph": 78,
+          "launchDeg": 21.5,
+          "sprayDeg": -18
         }
       },
       "seat": "assisted-defense"
@@ -6402,9 +6402,9 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 150,
-          "exitMph": 0,
-          "launchDeg": 4,
+          "carryFt": 0,
+          "exitMph": 110,
+          "launchDeg": -20,
           "sprayDeg": -14
         }
       },
@@ -6518,7 +6518,7 @@
         "shipped": {
           "carryFt": 0,
           "exitMph": 95,
-          "launchDeg": 11,
+          "launchDeg": 14,
           "sprayDeg": 9.2
         }
       },
