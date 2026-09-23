@@ -6,7 +6,7 @@ Grand Sluggers keeps portable rules/content checks separate from Unity-specific 
 
 - **Locally:** `tools/test-fast.sh <Class> [<Class> ...]` for the classes you touched. It runs `Kind!=Balance`, narrowed to those classes. Never run the full test suite locally; it freezes the shared Mac.
 - **Every PR (CI):** the breakage suite. A PR is done when it compiles, this suite is green on its final head, and the human gates that apply are noted.
-- **On demand (Actions → Full tests):** every test class, the C80 re-run, the tool tests and the evidence seals. The `balance_only` input runs only the `[Trait("Kind","Balance")]` set. Run it in a tuning or balance PR, when publishing an evidence packet, or when Jack asks. A feature PR does not owe it. Contract: [agent-rails.md](agent-rails.md) §1.2.
+- **On demand (Actions → Full tests):** every test class, the tool tests and the evidence seals. The `balance_only` input runs only the `[Trait("Kind","Balance")]` set. Run it in a tuning or balance PR, when publishing an evidence packet, or when Jack asks. A feature PR does not owe it. Contract: [agent-rails.md](agent-rails.md) §1.2.
 
 ## Portable checks
 

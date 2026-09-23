@@ -39,7 +39,7 @@ The lesson supplies a situation, the CPU supplies an opportunity, and the player
 
 ## First six lessons
 
-These acceptance contracts are exercised by `TutorialSessionTests` on shipped and C80 roots. They are headless lessons; the legacy Practice screen does not yet expose them. “Slap hit” names the game's existing uncharged swing (the brief's “slap shot”). Existing S-ids are reusable regression anchors; add lesson-specific tests for setup, ownership, failure and retry.
+These acceptance contracts are exercised by `TutorialSessionTests` on the shipped root. They are headless lessons; the legacy Practice screen does not yet expose them. “Slap hit” names the game's existing uncharged swing (the brief's “slap shot”). Existing S-ids are reusable regression anchors; add lesson-specific tests for setup, ownership, failure and retry.
 
 1. **T-P01 — Throw a strike.** Human pitches; CPU takes. Reset to a fresh count, a consistent batter and neutral pitcher stamina. Pass on the player's delivery producing a called strike through the normal plate crossing. An out-of-zone delivery fails even if another CPU policy would chase it. Anchors: spec §4.4, S-01/S-02.
 2. **T-P03 — Throw a changeup by the cycle.** Human pitches; CPU takes. The binding it shows is the pre-charge cycle (RB / Tab): every SET starts on Fastball, so **one press** selects the changeup and the charge locks it (#825, PH-02-R3/R4/R5). The setup names **hex** (fastball, changeup, curveball) as the pitcher: the home captain vale throws curveball / slider and owns no changeup, so the lesson was unwinnable by the cycle until #876 named its pitcher. Pass only when a player-commanded changeup crosses the intended in-zone target through the real flight. A fastball strike cannot pass. Teach the timing contrast against an ordinary pitch without inventing a second speed curve. Anchors: §4.1–4.4 and the existing changeup flight tests.
@@ -67,7 +67,7 @@ The versioned catalog lives in `data/tutorials/`: `mechanics.json` is the indepe
 - Stable mechanic and lesson ids, title/category and lesson revision.
 - Spec/control/ability references and regression scenario/test references.
 - State: planned, blocked (reason + issue), implemented (automated evidence), or human-verified (build/profile + recorded sitting). Keep mechanical feasibility and human learning acceptance separate.
-- Profile support (`shipped`, `c80`, or later explicit ids), prerequisites and required roster capabilities; no assumption that C80 is already the default.
+- Profile support (`shipped`, or a later trial's explicit id), prerequisites and required roster capabilities. Since 3e (2026-09-22) the C80 profile is the shipped game; lessons that were C80-only are shipped lessons, and the full-size-only fumble lesson T-F09-S is retired with the rule it taught.
 - Setup and CPU policy references, teaching role, required commands, objective evaluator, failure/retry conditions and deterministic seed/variation set.
 - Scheme-aware instruction/feedback keys sourced from the same control/copy owners as Exhibition, plus progress version and tracking issue.
 
@@ -83,7 +83,7 @@ Unit/scenario tests must include successful input, no input, wrong input, CPU-on
 4. **Gameplay + separate presentation children — expand coverage.** Fill running, throws/relays, remaining outs, team concepts and enabled abilities in the existing catalog. A new mechanic brings its lesson as part of its definition of done; unresolved specials wait for their rule contracts.
 5. **Human learning gate.** In the Mac standalone, Jack selects an unfamiliar lesson, completes and retries it with keyboard/mouse and a pad, then performs the same action in Exhibition without external instructions. Check two-pad ownership where supported, small/large captains and both hands. Record build, data profile and remaining findings. Agents do not pass this gate.
 
-Continue the ordinary-loop C80 sitting and Harbor Exhibition gates while building this foundation. Tutorials can expose bad rules or unreadable plays; file those under their owning epics. Artwork follows a stable, learnable game.
+Continue the ordinary-loop sitting on the promoted C80 game and the Harbor Exhibition gates while building this foundation. Tutorials can expose bad rules or unreadable plays; file those under their owning epics. Artwork follows a stable, learnable game.
 
 ## Running and verifying the core (#772)
 
@@ -91,14 +91,13 @@ Continue the ordinary-loop C80 sitting and Harbor Exhibition gates while buildin
 
 `TutorialSession` accepts ordinary pitch, swing and field-pad commands. It recreates the seeded match on retry, keeps progress by lesson revision/profile, rejects CPU credit, and reports typed feedback. `Recording()` captures literal inputs plus the effective gameplay-input hash. `cli tutorials --replay recording.json` replays that recording and rejects a changed lesson revision/profile/input identity. Replays are diagnostic evidence, not proof a person learned the mechanic.
 
-Regression commands (run profiles in separate processes because the diamond is process-wide):
+Regression command (a trial profile, when one exists, runs in its own process because the diamond is process-wide):
 
 ```bash
 dotnet test src/GrandSluggers.Sim.Tests --filter FullyQualifiedName~Tutorial
-GRAND_SLUGGERS_TRIAL=trials/c80 dotnet test src/GrandSluggers.Sim.Tests --filter FullyQualifiedName~Tutorial
 ```
 
-The authored grounder reuses S-40's 118-foot/4-degree/-18-degree opportunity. The shipped dive is a 250-foot, 12-degree, -18-degree ball; C80 uses a 120-mph, 16-degree, straight-ahead liner. These are lesson inputs, resolved through production flight and rules. They are not replacement trajectories or easier catch windows. Positive dive tests steer and commit; a dead-stick assisted dive fails.
+The authored grounder reuses S-40's 118-foot/4-degree/-18-degree opportunity. The dive is a 120-mph, 16-degree, straight-ahead liner. These are lesson inputs, resolved through production flight and rules. They are not replacement trajectories or easier catch windows. Positive dive tests steer and commit; a dead-stick assisted dive fails.
 
 ## Standalone teaching flow (#774)
 
@@ -162,12 +161,12 @@ Agent checks verify rendering and navigation separately from the pending physica
 
 ## Fielding fundamentals (#790)
 
-Seven headless exercises use the existing Harbor live-play rules and the same three-success `TutorialProgress` ledger. Each retry rebuilds the seeded match, clears command receipts, and replays literal pad input. Shipped and C80 run separate rule profiles. `implemented` here is automated evidence; pad and keyboard coaching, physical standalone sitting, and Exhibition transfer remain human gates.
+Seven headless exercises use the existing Harbor live-play rules and the same three-success `TutorialProgress` ledger. Each retry rebuilds the seeded match, clears command receipts, and replays literal pad input. One rule profile, the shipped one. `implemented` here is automated evidence; pad and keyboard coaching, physical standalone sitting, and Exhibition transfer remain human gates.
 
 - **T-F02 takeover:** the 118-ft, 4°, −18° routine grounder starts on an assisted glove. The player steers that glove and secures the ball on the dirt. Immediate manual takeover is valid. The receipt needs actual manual glove movement and possession by that glove; if assisted pursuit moves the glove after the player's last steering step, the pickup is `assisted-pickup`. A manually positioned glove can wait still for the ball. T-F01 uses the same corrected ownership check and advances to revision 3 so earlier mastery is refreshed.
 - **T-F03 / T-F03-2 / T-F03-3 / T-F03-H named throws:** the same grounder supplies secure possession. The player arms first/second/third/home with D-pad or number key, then presses South. `ThrowPop` from a human release (or a human-buffered release) records the bag. Success waits for a live receiver holding the ball at the named bag; the first-base batter force may complete on that same reception frame, so its real `ThrowOutAtFirst` is the receipt. Choosing another bag is `wrong-bag`; a release that never arrives is `throw-not-received`; arming without South earns nothing. Second, third and home teach throwing to a named target without promising an out when no runner is there.
 - **T-F04 ordinary aerial catch:** an 88-mph, 32° center fly. The controlled glove needs a human South press on the actual airborne take and a completed geometric catch out with no dive or jump feat. A CPU stand-up catch or South after the bounce fails as `no-aerial-out`.
-- **T-F06 jump catch:** a 245-ft, 34° center fly with Basil in center. The player presses West on the selected glove; a neutral pursuit stick on the press is valid. Shipped rules arm a jump ahead of contact, while C80 executes its physical arc. The human press must actually arm/take off, and the completed play must record that fielder's `Jump` catch out. An early leap that misses, an assisted catch without West, or South alone fails as `no-jumping-out`.
+- **T-F06 jump catch:** a 245-ft, 34° center fly with Basil in center. The player presses West on the selected glove; a neutral pursuit stick on the press is valid. The jump is its physical arc. The human press must actually arm/take off, and the completed play must record that fielder's `Jump` catch out. An early leap that misses, an assisted catch without West, or South alone fails as `no-jumping-out`.
 
 The test runner drives ordinary `LivePadInput` and checks three earned attempts, wrong/dead/CPU input, receiver timing across later nonhuman ticks, demonstrations, retries, and exact deterministic replay on both profiles. These fixtures author opportunities, not catches, throws, outs, or changed rule windows.
 
@@ -189,7 +188,7 @@ At that preview checkpoint the full regression suite passed 1,678 tests, catalog
 
 The catalog now separates the real subskills: named-bag throws; relay, queue, retarget and cancel; wall and ordinary bobble recovery; uncovered-bag reception; force home, double-off, rundown, both sides of a close play and a caught-fly triple play; individual/all-runner orders, dash, slide, rounding, early fly return, tag-up, steals and catcher defense; counts, foul/fair and half changes; guided lineup, seat and menu work; every named star pitch/swing, item, and supported fielding reach ability. Each runnable entry uses the shared three-success progression, repeatable CPU setup, typed outcomes, and human-command evidence.
 
-Tutorials do not change the accepted rules to manufacture a win. The triple play requires a real catch and both return throws; rounding requires the runner's actual turn and dash; C80 bobble recovery requires a real ordinary handling error followed by a human scoop. Assisted pursuit after an isolated steering frame cannot earn manual recovery credit. A multi-pitch count or foul/fair sequence is one success, and failures preserve earlier successes.
+Tutorials do not change the accepted rules to manufacture a win. The triple play requires a real catch and both return throws; rounding requires the runner's actual turn and dash; Bobble recovery requires a real ordinary handling error followed by a human scoop. Assisted pursuit after an isolated steering frame cannot earn manual recovery credit. A multi-pitch count or foul/fair sequence is one success, and failures preserve earlier successes.
 
 Outstanding coverage is explicit in the catalog. Spin Check is not connected to live runner decisions, so its extra-base commitment and geometry contract must be resolved before a lesson can teach it (#799). Park hazards remain blocked: Harbor has none and extra parks are outside current product scope (#37). T-D07 teaches a third force out at home with no run. T-D07-T now stages a real runner crossing home before a third force at second cancels it; T-D07-C contrasts it with a real earlier crossing that counts before a later nonforce third tag.
 
