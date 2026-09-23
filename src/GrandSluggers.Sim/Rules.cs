@@ -758,6 +758,14 @@ public sealed class StarPitchShapeRules
 /// its <c>staminaCost</c> in star-skills.json. Only a pitch costs the arm: a hit, a homer or a run allowed
 /// costs nothing (PH-08-R3). Below tiredBelow = TIRED (−mph, less steering room); below 0 = exhausted
 /// (slower). Fatigue is never a random miss (PH-08-R1). The CPU swaps at TIRED with a lead.
+///
+/// <para>
+/// <see cref="FadeFrom"/> is the P3-c switch (PH-08, PH-08-R1). At 0 fatigue is the step above. Above 0 it is
+/// gradual: the fade runs from 0 at a pool of <c>fadeFrom</c> to 1 at an empty pool, the arm loses
+/// fade × <see cref="ExhaustedMph"/> and its break is scaled from 1 down to <see cref="TiredBreakMul"/>.
+/// Every value lies inside the step's own range, so pitch pace stays inside D7. TIRED stays the label and
+/// the CPU's swap trigger either way.
+/// </para>
 /// </summary>
 public sealed class StaminaRules
 {
@@ -771,6 +779,23 @@ public sealed class StaminaRules
     [Chance] public double TiredBreakMul { get; init; } = 0.6;
     public double ExhaustedMph { get; init; } = 10;
     public int CpuSwapLead { get; init; } = 3;
+    public int FadeFrom { get; init; }
+
+    /// <summary>How far into the fade a pool is: 0 at <see cref="FadeFrom"/> or more, 1 at an empty pool or below.</summary>
+    public double Fade(int stamina) => FadeFrom > 0 ? Math.Clamp((FadeFrom - stamina) / (double)FadeFrom, 0, 1) : 0;
+
+    /// <summary>The mph a pool of <paramref name="stamina"/> costs the pitch (spec §4.7).</summary>
+    public double MphLost(int stamina) =>
+        FadeFrom > 0 ? Fade(stamina) * ExhaustedMph
+        : stamina < 0 ? ExhaustedMph
+        : stamina < TiredBelow ? TiredMph
+        : 0;
+
+    /// <summary>The scale on the stick's break a pool of <paramref name="stamina"/> leaves: the steering room (spec §4.7).</summary>
+    public double BreakMul(int stamina) =>
+        FadeFrom > 0 ? 1 - Fade(stamina) * (1 - TiredBreakMul)
+        : stamina < TiredBelow ? TiredBreakMul
+        : 1;
 }
 
 /// <summary>

@@ -117,7 +117,7 @@
     "tiredBreakMul": 0.6,
     "exhaustedMph": 10,
     "cpuSwapLead": 3,
-    "fadeFrom": 0
+    "fadeFrom": 50
   },
   "cpu": {
     "even": {
