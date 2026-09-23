@@ -1,3 +1,5 @@
+using System.Text.Json.Nodes;
+
 namespace GrandSluggers.Sim;
 
 public readonly record struct RigBoneMap(string Id, IReadOnlyList<string> Bones, IReadOnlyList<string> Events, string Slot);
@@ -20,7 +22,8 @@ public readonly record struct NamedSlot(string Id, string Slot, string Kind, boo
 /// each <see cref="ParkKitSlots.All"/> slot named by a builder from <see cref="ParkKitSlots.Builders"/>, or empty (null),
 /// which draws the greybox.
 /// </summary>
-public readonly record struct ParkKitSlot(string Id, string Slot, bool Placed, IReadOnlyDictionary<string, string?>? Slots = null)
+public readonly record struct ParkKitSlot(
+    string Id, string Slot, bool Placed, IReadOnlyDictionary<string, string?>? Slots = null, ParkPalette? Palette = null)
 {
     /// <summary>The builder that fills <paramref name="slot"/>, or null when the slot is empty.</summary>
     public string? Filler(string slot) => Slots != null && Slots.TryGetValue(slot, out var f) ? f : null;
@@ -49,7 +52,13 @@ public readonly record struct ParkKitSlot(string Id, string Slot, bool Placed, I
 /// <para>
 /// Harbor fills the slots its kit draws today (<c>HarborKit</c>): the striped lawn, the dugouts, the padded wall with ads,
 /// the scoreboard, the bowl of stands, the town and the night fireworks. The Harbor pieces stand on the Harbor lawn: a park
-/// that names one must name the lawn. Light and sky are F6-c's, the hazard actors and the other backdrops F6-d's.
+/// that names one must name the lawn. The hazard actors and the other backdrops are F6-d's.
+/// </para>
+///
+/// <para>
+/// <b>Light and sky are data</b> (F6-c): their fillers are not code builders but rows of <c>data/art/looks.json</c>
+/// (<see cref="ParkLooks"/>), and every park names one of each. Each row also carries a <c>palette</c> — the colors its
+/// greybox draws in.
 /// </para>
 /// </summary>
 public static class ParkKitSlots
@@ -88,7 +97,7 @@ public static class ParkKitSlots
             [Stands] = [HarborStands],
             [Backdrop] = [HarborTown],
             [Night] = [HarborFireworks],
-            [Light] = [],
+            [Light] = [], // rows of data/art/looks.json, checked against the catalog's looks
             [Sky] = [],
             [HazardActors] = [],
         };
@@ -97,8 +106,11 @@ public static class ParkKitSlots
     static readonly HashSet<string> HarborPieces =
         [HarborDugouts, HarborWall, HarborScoreboard, HarborStands, HarborTown, HarborFireworks];
 
-    /// <summary>What is wrong with one park's slots: a missing or unknown slot, an unknown builder, a Harbor piece off the Harbor lawn.</summary>
-    public static IReadOnlyList<string> Validate(ParkKitSlot kit)
+    /// <summary>
+    /// What is wrong with one park's slots: a missing or unknown slot, an unknown builder, a Harbor piece off the Harbor lawn,
+    /// and with <paramref name="looks"/>, a light or sky that is not a row of it, or none, and a missing palette.
+    /// </summary>
+    public static IReadOnlyList<string> Validate(ParkKitSlot kit, ParkLooks? looks = null)
     {
         var errors = new List<string>();
         if (kit.Slots is null)
@@ -116,12 +128,23 @@ public static class ParkKitSlots
                 errors.Add("park kit " + kit.Id + " must name slot " + slot + " (null leaves it empty)");
                 continue;
             }
+            if (slot is Light or Sky)
+            {
+                // Rows of looks.json, not code builders: checked when the table is at hand.
+                if (looks is null) continue;
+                var rows = slot == Light ? looks.Lights.Keys : looks.Skies.Keys;
+                if (builder is null) errors.Add("park kit " + kit.Id + " must name a " + slot + " from looks.json");
+                else if (!rows.Contains(builder)) errors.Add("park kit " + kit.Id + " slot " + slot + " names " + builder + ", which is not a " + slot + " in looks.json");
+                continue;
+            }
             if (builder is null) continue;
             if (!Builders[slot].Contains(builder))
                 errors.Add("park kit " + kit.Id + " slot " + slot + " names " + builder + ", which is not a " + slot + " builder");
             if (HarborPieces.Contains(builder) && !kit.Fills(Lawn, HarborLawn))
                 errors.Add("park kit " + kit.Id + " slot " + slot + " names " + builder + ", a Harbor piece, but its lawn is not " + HarborLawn);
         }
+        if (looks is not null && kit.Palette is null)
+            errors.Add("park kit " + kit.Id + " names no palette");
         return errors;
     }
 }
@@ -140,8 +163,10 @@ public sealed class ArtCatalog
         IReadOnlyList<NamedSlot> audio,
         IReadOnlyList<NamedSlot> materials,
         IReadOnlyList<ParkKitSlot> parks,
-        IReadOnlyList<string> folders)
+        IReadOnlyList<string> folders,
+        ParkLooks looks)
     {
+        Looks = looks;
         Rig = rig;
         Clips = clips;
         Skins = skins;
@@ -161,6 +186,8 @@ public sealed class ArtCatalog
     public IReadOnlyList<NamedSlot> Audio { get; }
     public IReadOnlyList<NamedSlot> Materials { get; }
     public IReadOnlyList<ParkKitSlot> Parks { get; }
+    /// <summary>The named skies and lights a park's kit names (F6-c, <c>data/art/looks.json</c>).</summary>
+    public ParkLooks Looks { get; }
     public IReadOnlyList<string> Folders { get; }
 
     public SkinSlot SkinOf(Character who)
@@ -349,7 +376,7 @@ public sealed class ArtCatalog
                 errors.Add("park kit missing " + park);
         }
         foreach (var kitRow in Parks)
-            errors.AddRange(ParkKitSlots.Validate(kitRow));
+            errors.AddRange(ParkKitSlots.Validate(kitRow, Looks));
 
         foreach (var need in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "throw", "crowd-bed", "crowd-swell" })
         {
@@ -429,12 +456,17 @@ public sealed class ArtCatalog
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Bus ?? e.Kind ?? "", e.Authored)).ToList();
         var mats = (Read<MatsFile>(Art("materials.json"), json).Slots ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Shader ?? "")).ToList();
+        var nodeOptions = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
+        // The palettes are read strictly from the same file (F6-c): a kit row's palette block, by the row's index.
+        var parksNode = JsonNode.Parse(File.ReadAllText(Art("parks.json")), documentOptions: nodeOptions)?["kits"] as JsonArray;
         var parks = (Read<ParksFile>(Art("parks.json"), json).Kits ?? [])
-            .Select(p => new ParkKitSlot(p.Id, p.Slot, p.Placed,
-                p.Slots is null ? null : new Dictionary<string, string?>(p.Slots, StringComparer.Ordinal))).ToList();
+            .Select((p, i) => new ParkKitSlot(p.Id, p.Slot, p.Placed,
+                p.Slots is null ? null : new Dictionary<string, string?>(p.Slots, StringComparer.Ordinal),
+                parksNode?[i]?["palette"] is { } palette ? ParkLooks.ParsePalette(palette, "parks.json " + p.Id + ".palette") : null)).ToList();
+        var looks = ParkLooks.Parse(JsonNode.Parse(File.ReadAllText(Art("looks.json")), documentOptions: nodeOptions), "looks.json");
         var folders = Read<FoldersFile>(Art("folders.json"), json).Folders ?? [];
 
-        return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders);
+        return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders, looks);
     }
 
     static T Read<T>(string path, JsonSerializerOptions json)
@@ -504,6 +536,8 @@ public sealed class ArtCatalog
         public string Slot { get; set; } = "";
         public bool Placed { get; set; }
         public Dictionary<string, string?>? Slots { get; set; }
+        /// <summary>Read strictly by <see cref="ParkLooks.ParsePalette"/>; here only so the row's key is known.</summary>
+        public System.Text.Json.JsonElement? Palette { get; set; }
     }
 
     sealed class FoldersFile { public List<string>? Folders { get; set; } }
