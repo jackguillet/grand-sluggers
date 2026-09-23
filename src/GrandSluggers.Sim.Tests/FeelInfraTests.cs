@@ -106,11 +106,9 @@ public class FeelInfraTests
         Assert.False(PlayCamera.InFrame(plateCatcher, 0.02), $"catcher in batting look {plateCatcher}");
     }
 
-    // An open gap, not a rule change: the mound shot is authored at z 72 (data/feel/shots.json, StillPose.MoundCamZ), 11.5 ft
-    // behind the 90-ft rubber. The rubber is at 53.78 ft on the 80-ft diamond, so the over-the-shoulder window is 61.78 to
-    // 69.78 ft and the camera stands 2.2 ft outside it. Moving a camera is a presentation decision, not this gameplay change;
-    // the presentation child that re-lays the Harbor kit on the 80-ft diamond owns it and removes this Skip.
-    [Fact(Skip = "Presentation gap: the mound shot still stands behind the 90-ft rubber (z 72 vs a 61.78-69.78 window); owned by the 80-ft Harbor kit / camera child")]
+    // The mound shot stands StillPose.MoundCamBehindRubberFt behind the rubber the infield table names; the
+    // data/feel/shots.json row must be that point, so the next diamond moves the row with the mound (#909).
+    [Fact]
     public void MoundShotIsOverThePitchersShoulder()
     {
         var mound = _content.Shots.Must("mound");
@@ -297,6 +295,9 @@ public class FeelInfraTests
         Assert.InRange(pitch.Fov, 28, 40);
         Assert.Equal(StillPose.PitchCamX, pitch.Pos.X, 1);
         Assert.Equal(StillPose.PitchCamZ, pitch.Pos.Z, 1);
+        // The pitch look sits just in front of the rubber the infield table names (#909).
+        Assert.Equal(StillPose.PitchLookZ, pitch.Target.Z, 1);
+        Assert.True(pitch.Target.Z < Diamond.Mound, $"pitch look past the rubber z={pitch.Target.Z}");
     }
 
     [Fact]
