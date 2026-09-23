@@ -5227,7 +5227,8 @@
       "numeric_targets": null,
       "implementation_issues": [
         "#844",
-        "#860"
+        "#860",
+        "#892"
       ],
       "validation_evidence": [
         {
@@ -5347,7 +5348,8 @@
         "#825",
         "#835",
         "#855",
-        "#883"
+        "#883",
+        "#892"
       ],
       "validation_evidence": [
         {
@@ -5395,6 +5397,17 @@
           "report": "docs/research/promote-stick.md",
           "summary": "The CPU-batter half of PH-12, now shipped: 1933 of 1961 non-bunt CPU swings in the shipped S-29 cohort carry 0 / 0 aims (the rest are Star Swings). Every shipped game reseeds from its first ordinary CPU swing. S-29 on the shipped root 2.48 away / 2.08 home -> 2.18 / 2.26 (F693-06 band 1.8-5 green); c80 2.58 / 2.26 -> 3.06 / 2.94. Every per-game outcome of the shipped cohort equals the trials/pitch5 cohort on bbd982fe, and cli match --seed 7 is byte-identical to the old trial log. Ordinary-contact fouls 17.4 % -> 11.1 % (shipped), liners 42.6 % -> 53.8 %, grounders 22.5 % -> 15.2 %. No measured sealed value moved; hashes only.",
           "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window (\"approve all\"); whether the shipped build plays like it is his to confirm after redelivery. Nothing was looked at in Unity. T-B06 / T-B06-F can no longer be passed by their taught input on the shipped root; the lessons and the book are the Presentation child's."
+        },
+        {
+          "kind": "trial-implementation",
+          "issue": "#892",
+          "revision": "issue-892-cpu-read (base 3c431e98)",
+          "test": "GrandSluggers.Sim.Tests.CpuReadScenarioTests",
+          "scenarios": "S-141, S-142, S-143, and trial halves of S-04 and S-28",
+          "report": "docs/gameplay-spec.md \u00a73, \u00a75.9 (audit); trials/cpu-read/README.md",
+          "summary": "The batting half of PH-18 (P2-g). Audit: batting.cpu.decideLeadSec named when the CPU batter commits but not what it read; Match.CpuSwing classified PitchFlight.Crossing (u = 1) of whatever command it was handed. The client with a human pitching already handed it the stick so far; the headless sim (AutoPlay, cli match) and a CPU pitcher handed it the whole steer, a destination the batter cannot see. New switch batting.cpu.commitRead (false shipped, true in trials/cpu-read, one overridden file): on, CpuSwing reads Match.CpuReadPitch, the delivery with the stick's break frozen at the commit (a watched break when the caller passes one - AtBatDirector passes its drawn _breakX - else the stick held from release, min(|BreakX|, BreakReach(Pitch, commit))), and judges the zone on that read. The switch adds no draw: shipped commands and draw order are unchanged (S-139) and cli match --seed 7 is byte-identical to main apart from the data-root line. Under the trial a steer after the commit is decided from the pre-commit read, command for command (S-138).",
+          "numeric_trial": "none. No number was selected or moved. Seed 7 under trials/cpu-read is identical to the shipped log: on today's pitching.flight numbers most CPU steers reach the whole reach by the commit, so the trial is felt from the mound. The CPU's timing skill source, (11 - Contact) x errorFramesPerBatStat, already keys to Contact and was left alone (P2-b re-reads it).",
+          "gate": "Jack sits trials/cpu-read: does a late steer fool the CPU batter fairly?"
         }
       ],
       "human_acceptance": null,
@@ -6120,6 +6133,11 @@
       "date": "2026-09-22",
       "event": "P3-a (#890) made Velocity, Movement, Control and Endurance ratings of their own (PH-15-R6) and routed every Pitch reader to them, seeded equal to pitch so nothing a player can feel moved. Characters may author the four as 1-10 keys; nothing authors one. Velocity is the mph, Movement the arm's damping of non-perfect contact (its only read today), Control the steer rate and the CPU's scatter, Endurance the stamina pool. Pitch stays the displayed aggregate and the swap pick's ranking. Fatigue is left for P3-b / P3-c. Seed 7 byte-identical; seals hash-only; PlayTraceIdentity roster bytes move as in #839. Spec 2 carries the mapping table and Appendix B.1 gained S-138 ... S-140. No status change, no numeric target, no human acceptance.",
       "pr": "#903"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "#892 (P2-g) added batting.cpu.commitRead and trials/cpu-read: the CPU batter commits from the flight as it stands, so a late steer can beat it (PH-18 batting half, PH-17). Shipped draws identical; statuses unchanged; human_acceptance untouched.",
+      "pr": "#906"
     }
   ]
 }

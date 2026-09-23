@@ -289,13 +289,16 @@ public sealed class NightBlockTests
     /// stopped biting fails here. A child that changes play at either park re-records these from the build
     /// before it and says why; F4-d changes neither. F4-b (#896) re-recorded Ember's four rows: its lava pits and
     /// breath slow the body that touches them for 3 s instead of every chaser, and the park's drop roll is gone.
+    /// F4-g re-recorded the trial's Ember seed 2: a CPU glove now goes around a volume when that costs less than
+    /// the slow (FD-14). The other seven games do not change.
+    /// 3e re-recorded all four on the promoted game (the compact profile is the shipped data, with F4-g's routing).
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 4", "387423150ccacab917ba047dbc8665e01514454490d6548b9be5d2739907b20b"),
-            ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "bbc8b7176300582b595e4e26b745c4f5d4698d569b90c0a935b144eba1fd551c"),
-            ("ember-keep", 1, "Final  Ember Court 4  Spark All-Stars 6", "ba0eeeda3354659a0dca1eeb7018031c72cb7c08efa652a1910e1929672f3ebe"),
-            ("ember-keep", 2, "Final  Ember Court 4  Spark All-Stars 3", "3a2b6e0a1afda339426e02267d0aa365b210dcb55e254b5f9ff968fa78781ee0")
+            ("funfair-park", 1, "Final  Ember Court 4  Spark All-Stars 3", "8944602aff2a7ce0891ad22fc09b3aef608b33bd676b01880c7f09d5c273ca5f"),
+            ("funfair-park", 16, "Final  Ember Court 2  Spark All-Stars 0", "14fec2cfc81773e724da5ef4fdfd0daa8b3ec7803b0bc7014aeda71046b5dae1"),
+            ("ember-keep", 1, "Final  Ember Court 11  Spark All-Stars 0", "402f20cec446fee15b8d471b888f67306eb4b4c58b3ae48226745b0c7958ed5f"),
+            ("ember-keep", 2, "Final  Ember Court 7  Spark All-Stars 5", "5e9d55665621b54a37e5f40b4fd55d406d3081c4ca6e89f3a27f4a4f2d9a88e8")
         ];
 
     /// <summary>

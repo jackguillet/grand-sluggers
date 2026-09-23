@@ -372,15 +372,14 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// The gold oval follows the batter and shows this swing's barrel (contact, charge, buddies):
+        /// The gold oval follows the batter and shows this swing's barrel (contact, charge):
         /// the sim's own oval (<see cref="SweetSpot.Oval"/>), the one the resolver judges (S-134).
         /// </summary>
         void ShowCursor()
         {
             if (_match == null) return;
-            var buddies = _match.Chemistry.BuddiesOnBase(_match.Batter, _match.RunnersOn());
             _zone.Show(SweetSpot.Oval(_match.Batter, _match.OffenseBat, EffectiveCharge(_charge, _chargePast),
-                buddies, _match.BatterOffsetX, _match.Rules));
+                _match.BatterOffsetX, _match.Rules));
         }
 
         static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,
@@ -531,10 +530,11 @@ namespace GrandSluggers.UnityClient
             _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             ShowAimTell(HumanPitches ? _pitch : null);
             TickBaserunning(dt);
-            // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9).
+            // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9):
+            // the break it can see is the one drawn so far (batting.cpu.commitRead reads it, #892).
             if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
                 _swing = WithSquare(AtBatMotion.CommitCpuSwing(
-                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Control, _match.Pitcher.StarPitch))),
+                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Control, _match.Pitcher.StarPitch), _breakX)),
                     _pitchDur, _match.Rules));
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt, _match.Rules))

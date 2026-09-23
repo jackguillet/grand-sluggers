@@ -55,17 +55,11 @@ public class ChemistryTests
     }
 
     [Fact]
-    public void OnDeckBuddyOffersItem()
+    public void AnOnDeckBuddyNoLongerOffersAnItem()
     {
-        Assert.True(_content.Chemistry.ChemistryItemOffered(_content.Must("rio"), _content.Must("nico")));
+        // PH-16-R15 (#891): the on-deck item offer is removed; Rio and Nico are still good chemistry.
+        Assert.Equal(Chemistry.Good, _content.Chemistry.Between(_content.Must("rio"), _content.Must("nico")));
+        Assert.False(_content.Chemistry.ChemistryItemOffered(_content.Must("rio"), _content.Must("nico")));
         Assert.False(_content.Chemistry.ChemistryItemOffered(_content.Must("rio"), _content.Must("ashlord")));
-    }
-
-    [Fact]
-    public void ThreeBuddiesOnBaseBuffPower()
-    {
-        var rio = _content.Must("rio");
-        var runners = new[] { _content.Must("nico"), _content.Must("pip"), _content.Must("vale") };
-        Assert.Equal(1.50, _content.Chemistry.ChargePowerMul(rio, runners));
     }
 }

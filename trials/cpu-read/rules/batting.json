@@ -136,6 +136,6 @@
     "decideLeadSec": 0.12,
     // #892 (PH-18): false reads the final crossing at the plate plane; true commits from the flight as it stands at the
     // commit instant (the break so far, no future steering), so a late steer can beat it. trials/cpu-read switches it on.
-    "commitRead": false
+    "commitRead": true
   }
 }

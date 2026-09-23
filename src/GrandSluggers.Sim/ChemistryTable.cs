@@ -123,26 +123,14 @@ public sealed class ChemistryTable
         return Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
     }
 
-    /// <summary>Good-chemistry runners on base for this batter (spec §5.2, §5.5).</summary>
-    public int BuddiesOnBase(Character batter, IEnumerable<Character> runnersOn) =>
-        runnersOn.Count(r => Between(batter, r) == Chemistry.Good);
-
-    /// <summary>Buddies on base multiply a charged swing's exit velocity (batting.buddiesOnBase). The resolver gates the charge.</summary>
-    public double ChargePowerMul(Character batter, IEnumerable<Character> runnersOn)
-    {
-        var b = _rules.Batting.BuddiesOnBase;
-        var buddies = BuddiesOnBase(batter, runnersOn);
-        return buddies switch
-        {
-            >= 3 => b.ThreeMul,
-            2 => b.TwoMul,
-            1 => b.OneMul,
-            _ => 1.0
-        };
-    }
-
-    public bool ChemistryItemOffered(Character batter, Character? onDeck) =>
-        onDeck is not null && Between(batter, onDeck) == Chemistry.Good;
+    /// <summary>
+    /// The on-deck item offer (spec §12). Jack removed it (PH-16-R15, #891): no pair offers an item,
+    /// so this is always false. The items themselves stay dormant, not deleted — <see cref="ErrorItems"/>,
+    /// <c>batting.items</c>, <see cref="Match.ApplyOffenseItem"/> / <see cref="Match.ThrowItem"/>, the
+    /// tutorial item objective and the clients' item controls — and wake only when a new item source
+    /// sets <see cref="AtBatResult.ChemistryItemOffered"/>. The signature is kept so those readers compile.
+    /// </summary>
+    public bool ChemistryItemOffered(Character batter, Character? onDeck) => false;
 
     static string Key(string a, string b)
     {

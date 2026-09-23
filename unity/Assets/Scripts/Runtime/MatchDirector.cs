@@ -28,6 +28,8 @@ namespace GrandSluggers.UnityClient
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
         public bool Night;
+        /// <summary>The hazards switch (FD-10): on by default; the title and the field toggle it for an exhibition.</summary>
+        public bool Hazards = true;
         [System.NonSerialized] public bool Pad1Home = true;
         bool _versusWanted;
         readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
@@ -335,7 +337,7 @@ namespace GrandSluggers.UnityClient
                 HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
                     _versusWanted, Controls.Pad2.Present);
             else if (_phase == Phase.Field)
-                HudView.Field(ParkId, ParkDisplayName(ParkId), Night);
+                HudView.Field(ParkId, ParkDisplayName(ParkId), Night, Hazards, FieldHazardsLine());
             else if (_phase == Phase.Lineup && _lineup != null)
                 TeamSheet.Draw(_match, _lineup);
             if (_match.Paused && _phase is Phase.Select or Phase.Field or Phase.Lineup)
@@ -398,7 +400,7 @@ namespace GrandSluggers.UnityClient
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, SquaredNow,
-                CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules));
+                CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules, Hazards));
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
                     (float)PlayStamp.SafeScale, (float)PlayStamp.SafePopSeconds,
@@ -652,8 +654,13 @@ namespace GrandSluggers.UnityClient
                 return _campaign.MakeMatch(_content, Innings, Seed, night: Night);
             }
             _campaign = null;
-            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night, Difficulty);
+            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night, Difficulty, Hazards);
         }
+
+        string FieldHazardsLine() =>
+            _content != null && _content.Parks.TryGetValue(ParkId, out var park)
+                ? CarnivalFront.HazardsOffLine(park, Night, Hazards, _content.Rules.Hazards)
+                : null;
 
         string ParkDisplayName(string parkId) =>
             _content != null && _content.Parks.TryGetValue(parkId, out var park) ? park.Name : parkId;
