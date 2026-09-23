@@ -86,6 +86,7 @@ public sealed partial class Match
     public LivePlaySystem LivePlay { get; }
     /// <summary>The live runners and pitcher commitment before contact or the catch.</summary>
     public PitchSetupSystem PitchSetup { get; }
+    public RunnerOrders ControllerRunners { get; } = new();
     /// <summary>The seed this match was constructed with. Tracing and <c>cli match --seed</c> both read it.</summary>
     public int Seed { get; }
     bool _tracing;
