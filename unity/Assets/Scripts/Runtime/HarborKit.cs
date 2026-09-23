@@ -138,11 +138,14 @@ namespace GrandSluggers.UnityClient
         /// <summary>The one field kit, built under this component's placed anchors.</summary>
         FieldKit Field => _field ??= new FieldKit(transform);
 
+        /// <summary>The middle of the square, halfway to second, from the sim's infield table (<see cref="Diamond.Second"/>).</summary>
+        static float DiamondCentreZ => (float)(Diamond.Second.Z * 0.5);
+
         public void EnsureAnchors()
         {
             // Harbor's own scene slabs, hidden at dress (the 100-ft dirt that ate the infield grass).
-            DirtPad = Anchor("DirtPad", new Vector3(0f, 0.04f, 64f), new Vector3(92f, 0.18f, 92f), Quaternion.identity);
-            DirtDiamond = Anchor("DirtDiamond", new Vector3(0f, 0.12f, 63.64f), new Vector3(100f, 0.24f, 100f), Quaternion.Euler(0f, 45f, 0f));
+            DirtPad = Anchor("DirtPad", new Vector3(0f, 0.04f, DiamondCentreZ), new Vector3(92f, 0.18f, 92f), Quaternion.identity);
+            DirtDiamond = Anchor("DirtDiamond", new Vector3(0f, 0.12f, DiamondCentreZ), new Vector3(100f, 0.24f, 100f), Quaternion.Euler(0f, 45f, 0f));
             // The kit's anchors: the scene's placed objects where it has them, found by the kit's names.
             // The kit places each one from the geometry owner when it draws.
             HomeDirt = Field.Anchor(FieldKit.HomeDirtName);
@@ -206,7 +209,7 @@ namespace GrandSluggers.UnityClient
             // Kill the 100-ft dirt slab that ate the infield grass.
             Place(DirtPad, new Vector3(0f, 0.04f, 2f), new Vector3(0.2f, 0.02f, 0.2f), Quaternion.identity);
             if (DirtPad != null) DirtPad.gameObject.SetActive(false);
-            Place(DirtDiamond, new Vector3(0f, 0.05f, 63.64f), new Vector3(0.2f, 0.02f, 0.2f), Quaternion.Euler(0f, 45f, 0f));
+            Place(DirtDiamond, new Vector3(0f, 0.05f, DiamondCentreZ), new Vector3(0.2f, 0.02f, 0.2f), Quaternion.Euler(0f, 45f, 0f));
             if (DirtDiamond != null) DirtDiamond.gameObject.SetActive(false);
 
             Field.HomePad(packed);
