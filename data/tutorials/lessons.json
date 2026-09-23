@@ -1705,15 +1705,15 @@
     },
     {
       "id": "T-X01",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "special.01"
       ],
       "title": "Throw banana item",
       "category": "special",
-      "status": "implemented",
-      "issue": 770,
-      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
+      "status": "blocked",
+      "issue": 891,
+      "reason": "Items are dormant: Jack removed the on-deck item offer (PH-16-R15, #891), so no at-bat offers an item and this lesson cannot be earned. The setup and objective are kept for when a new item source ships.",
       "profiles": [
         "shipped",
         "c80"
@@ -1725,9 +1725,7 @@
       "controls": [
         "control:running/Throw item"
       ],
-      "tests": [
-        "TutorialSpecialTests"
-      ]
+      "tests": []
     },
     {
       "id": "T-X02",
@@ -2439,15 +2437,15 @@
     },
     {
       "id": "T-I-banana",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "item.banana"
       ],
       "title": "Throw banana item",
       "category": "special",
-      "status": "implemented",
-      "issue": 770,
-      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
+      "status": "blocked",
+      "issue": 891,
+      "reason": "Items are dormant: Jack removed the on-deck item offer (PH-16-R15, #891), so no at-bat offers an item and this lesson cannot be earned. The setup and objective are kept for when a new item source ships.",
       "profiles": [
         "shipped",
         "c80"
@@ -2459,21 +2457,19 @@
       "controls": [
         "control:running/Throw item"
       ],
-      "tests": [
-        "TutorialSpecialTests"
-      ]
+      "tests": []
     },
     {
       "id": "T-I-rocket",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "item.rocket"
       ],
       "title": "Throw rocket item",
       "category": "special",
-      "status": "implemented",
-      "issue": 770,
-      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
+      "status": "blocked",
+      "issue": 891,
+      "reason": "Items are dormant: Jack removed the on-deck item offer (PH-16-R15, #891), so no at-bat offers an item and this lesson cannot be earned. The setup and objective are kept for when a new item source ships.",
       "profiles": [
         "shipped",
         "c80"
@@ -2485,21 +2481,19 @@
       "controls": [
         "control:running/Throw item"
       ],
-      "tests": [
-        "TutorialSpecialTests"
-      ]
+      "tests": []
     },
     {
       "id": "T-I-pow",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "item.pow"
       ],
       "title": "Throw pow item",
       "category": "special",
-      "status": "implemented",
-      "issue": 770,
-      "reason": "Headless authored chemistry item exercise; standalone learning gate pending",
+      "status": "blocked",
+      "issue": 891,
+      "reason": "Items are dormant: Jack removed the on-deck item offer (PH-16-R15, #891), so no at-bat offers an item and this lesson cannot be earned. The setup and objective are kept for when a new item source ships.",
       "profiles": [
         "shipped",
         "c80"
@@ -2511,9 +2505,7 @@
       "controls": [
         "control:running/Throw item"
       ],
-      "tests": [
-        "TutorialSpecialTests"
-      ]
+      "tests": []
     },
     {
       "id": "T-F08-R",

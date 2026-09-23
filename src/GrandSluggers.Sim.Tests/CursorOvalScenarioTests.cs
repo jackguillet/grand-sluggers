@@ -8,7 +8,8 @@ namespace GrandSluggers.Sim.Tests;
 /// The drawn cursor oval and the placement pins (#889, P2-d), Appendix B.1 rows S-134 … S-137.
 ///
 /// <b>S-134</b>: the oval the client draws (<see cref="SweetSpot.Oval"/>) is the oval the resolver
-/// judges, across Contact 1–10, quick and charged, both hands, every bat and buddies on base —
+/// judges, across Contact 1–10, quick and charged, both hands, every bat and good-chemistry runners
+/// on base (which change nothing since #891, S-144) —
 /// asserted through <see cref="AtBatResolver.Resolve"/>, not through the helper alone.
 /// <b>S-135</b>: a charge narrows the spatial barrel by <c>cursor.chargeMul</c> and nothing else; it
 /// does not touch the timing window (PH-11-R1). <b>S-136</b>: Contact scales the spatial barrel by
@@ -50,15 +51,13 @@ public sealed class CursorOvalScenarioTests
         {
             var hitter = Hitter(contact, bats);
             var buddies = Buddies(hitter);
-            Assert.True(_content.Chemistry.BuddiesOnBase(hitter, buddies) > 0,
-                "the fixture needs a runner on base who widens the slap");
+            Assert.NotEmpty(buddies);
             foreach (var runners in new[] { new List<Character>(), buddies })
             foreach (var bat in Bats)
             foreach (var charge in Charges)
             foreach (var box in new[] { 0.0, -0.6 })
             {
-                var count = _content.Chemistry.BuddiesOnBase(hitter, runners);
-                var oval = SweetSpot.Oval(hitter, bat, charge, count, box, R);
+                var oval = SweetSpot.Oval(hitter, bat, charge, box, R);
                 Assert.Equal(SweetSpot.WorldCenter(box), (oval.CenterX, oval.CenterY));
                 Assert.Equal(bats, oval.Bats);
 
@@ -95,7 +94,7 @@ public sealed class CursorOvalScenarioTests
         foreach (var bats in Hands)
         foreach (var charge in Charges)
         {
-            var oval = SweetSpot.Oval(Hitter(contact, bats), null, charge, 0, 0, R);
+            var oval = SweetSpot.Oval(Hitter(contact, bats), null, charge, 0, R);
             var before = SweetSpot.Outline(bats, oval.BarrelScale, 40, R);
             Assert.Equal(before, SweetSpot.Outline(oval, 40));
         }
@@ -114,9 +113,9 @@ public sealed class CursorOvalScenarioTests
         foreach (var bat in Bats)
         {
             var hitter = Hitter(contact, bats);
-            var quick = SweetSpot.Oval(hitter, bat, 0, 0, 0.2, R);
-            var charged = SweetSpot.Oval(hitter, bat, 1, 0, 0.2, R);
-            var justUnder = SweetSpot.Oval(hitter, bat, ChargeFeel.ChargeAt - 0.01, 0, 0.2, R);
+            var quick = SweetSpot.Oval(hitter, bat, 0, 0.2, R);
+            var charged = SweetSpot.Oval(hitter, bat, 1, 0.2, R);
+            var justUnder = SweetSpot.Oval(hitter, bat, ChargeFeel.ChargeAt - 0.01, 0.2, R);
             var slap = SweetSpot.ContactScale(Math.Clamp(contact + (bat?.ContactMod ?? 0), 1, 10), R);
 
             // Under the charge line a load is still a slap's barrel.
@@ -182,7 +181,7 @@ public sealed class CursorOvalScenarioTests
             foreach (var contact in Enumerable.Range(1, 10))
             {
                 var hitter = Hitter(contact, bats);
-                var oval = SweetSpot.Oval(hitter, null, charge, 0, -0.3, R);
+                var oval = SweetSpot.Oval(hitter, null, charge, -0.3, R);
                 var scale = Math.Max(0.5, 1 + (contact - 5) * c.ScalePerContact) * (charge >= ChargeFeel.ChargeAt ? c.ChargeMul : 1);
                 Assert.Equal(scale, oval.BarrelScale);
                 Assert.Equal(c.NiceTipFt * scale, oval.TipHalfFt);
@@ -200,8 +199,8 @@ public sealed class CursorOvalScenarioTests
         foreach (var bat in _content.Bats.Values.Where(b => b.ContactMod != 0 && !b.ChargeAlwaysFull))
         foreach (var contact in Enumerable.Range(1, 10))
             Assert.Equal(
-                SweetSpot.Oval(Hitter(Math.Clamp(contact + bat.ContactMod, 1, 10), Hand.R), null, 0, 0, 0, R),
-                SweetSpot.Oval(Hitter(contact, Hand.R), bat, 0, 0, 0, R));
+                SweetSpot.Oval(Hitter(Math.Clamp(contact + bat.ContactMod, 1, 10), Hand.R), null, 0, 0, R),
+                SweetSpot.Oval(Hitter(contact, Hand.R), bat, 0, 0, R));
     }
 
     // ---------------------------------------------------------------------------------
@@ -268,7 +267,7 @@ public sealed class CursorOvalScenarioTests
         return who with { Bats = bats, Stats = new Stats(who.Stats.Pitch, 5, who.Stats.Field, 5) { Contact = contact } };
     }
 
-    /// <summary>Up to three runners with good chemistry with the hitter, so a slap widens.</summary>
+    /// <summary>Up to three runners with good chemistry with the hitter (a slap widened for them before #891).</summary>
     List<Character> Buddies(Character hitter) =>
         _content.Characters.Values
             .Where(r => r.Id != hitter.Id && _content.Chemistry.Between(hitter, r) == Chemistry.Good)

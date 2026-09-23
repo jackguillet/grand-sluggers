@@ -391,45 +391,32 @@ public static class SweetSpot
     public static double ContactScale(int contact, RulesTable? rules = null) =>
         Math.Max(0.5, 1 + (Math.Clamp(contact, 1, 10) - 5) * Rules.Or(rules).Batting.Cursor.ScalePerContact);
 
-    /// <summary>Good-chemistry runners widen a slap's zones (batting.buddiesOnBase.widen*).</summary>
-    public static double BuddyWiden(int buddies, RulesTable? rules = null)
-    {
-        var b = Rules.Or(rules).Batting.BuddiesOnBase;
-        return buddies switch
-        {
-            >= 3 => b.WidenThree,
-            2 => b.WidenTwo,
-            1 => b.WidenOne,
-            _ => 1.0
-        };
-    }
-
     /// <summary>
-    /// The barrel scale for one swing: contact × (charge narrows | buddies widen a slap).
-    /// The Charge Bat is a MAX charge with the narrowing off (spec §5.5).
+    /// The barrel scale for one swing: contact × (a charge narrows). The Charge Bat is a MAX charge
+    /// with the narrowing off (spec §5.5). Runners on base never widen it: there is no plate-level
+    /// chemistry (PH-16-R14, #891).
     /// </summary>
-    public static double BarrelScale(int contact, bool charged, bool chargeBat, int buddies, RulesTable? rules = null)
+    public static double BarrelScale(int contact, bool charged, bool chargeBat, RulesTable? rules = null)
     {
         var c = Rules.Or(rules).Batting.Cursor;
         var scale = ContactScale(contact, rules);
         if (charged) return chargeBat ? scale : scale * c.ChargeMul;
-        return scale * BuddyWiden(buddies, rules);
+        return scale;
     }
 
     /// <summary>
     /// The barrel scale of one swing from what the plate knows (spec §5.2): the hitter's Contact
     /// plus the bat's <c>contactMod</c>, clamped 1–10 (PH-15-R7); the charge as it stands, where the
-    /// Charge Bat is a MAX charge (§5.5); the good-chemistry runners on base. The resolver judges
+    /// Charge Bat is a MAX charge (§5.5). The resolver judges
     /// with this and <see cref="Oval"/> draws with it, so the two cannot drift (P2-d, #889).
     /// </summary>
     /// <param name="charge01">The effective charge (after overcharge decay), 0–1.</param>
-    public static double SwingBarrel(Character batter, BatItem? bat, double charge01, int buddies,
-        RulesTable? rules = null)
+    public static double SwingBarrel(Character batter, BatItem? bat, double charge01, RulesTable? rules = null)
     {
         var contact = Math.Clamp(batter.Stats.Contact + (bat?.ContactMod ?? 0), 1, 10);
         var chargeBat = bat?.ChargeAlwaysFull == true;
         var charged = ChargeFeel.IsCharge(chargeBat ? 1.0 : Math.Clamp(charge01, 0, 1));
-        return BarrelScale(contact, charged, chargeBat, buddies, rules);
+        return BarrelScale(contact, charged, chargeBat, rules);
     }
 
     /// <summary>
@@ -438,10 +425,10 @@ public static class SweetSpot
     /// <see cref="SwingBarrel"/>. A charge and Contact move the two barrel half-extents only; the
     /// height is the zone's and never scales (PH-11-R1, PH-15-R7, S-135, S-136).
     /// </summary>
-    public static CursorOval Oval(Character batter, BatItem? bat, double charge01, int buddies,
-        double boxOffsetX, RulesTable? rules = null)
+    public static CursorOval Oval(Character batter, BatItem? bat, double charge01, double boxOffsetX,
+        RulesTable? rules = null)
     {
-        var scale = SwingBarrel(batter, bat, charge01, buddies, rules);
+        var scale = SwingBarrel(batter, bat, charge01, rules);
         var bats = batter.Bats;
         var (x, y) = WorldCenter(boxOffsetX);
         var tip = TipSign(bats);

@@ -372,15 +372,14 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// The gold oval follows the batter and shows this swing's barrel (contact, charge, buddies):
+        /// The gold oval follows the batter and shows this swing's barrel (contact, charge):
         /// the sim's own oval (<see cref="SweetSpot.Oval"/>), the one the resolver judges (S-134).
         /// </summary>
         void ShowCursor()
         {
             if (_match == null) return;
-            var buddies = _match.Chemistry.BuddiesOnBase(_match.Batter, _match.RunnersOn());
             _zone.Show(SweetSpot.Oval(_match.Batter, _match.OffenseBat, EffectiveCharge(_charge, _chargePast),
-                buddies, _match.BatterOffsetX, _match.Rules));
+                _match.BatterOffsetX, _match.Rules));
         }
 
         static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,

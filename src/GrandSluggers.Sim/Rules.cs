@@ -916,7 +916,6 @@ public sealed class BattingRules
     public CursorRules Cursor { get; init; } = new();
     public HbpRules Hbp { get; init; } = new();
     public StarSwingRules Star { get; init; } = new();
-    public BuddiesOnBaseRules BuddiesOnBase { get; init; } = new();
     public PitchFactorRules PitchFactor { get; init; } = new();
     public OffenseItemRules Items { get; init; } = new();
     public CpuBatterRules Cpu { get; init; } = new();
@@ -1064,8 +1063,8 @@ public sealed class FoulRules
 /// batter's box walk puts it, tall as the zone. Along the barrel the nice half-axis is
 /// <see cref="NiceTipFt"/> toward the tip and <see cref="NiceHandleFt"/> toward the hands; the
 /// perfect heart is <see cref="PerfectFraction"/> of that; the sour rim reaches
-/// <see cref="RimFraction"/> beyond it. Bat (contact) scales the barrel; a charge narrows it;
-/// buddies on base widen a slap (<see cref="BuddiesOnBaseRules"/>).
+/// <see cref="RimFraction"/> beyond it. Bat (contact) scales the barrel; a charge narrows it.
+/// Runners on base never change it: there is no plate-level chemistry (PH-16-R14, #891).
 /// </summary>
 public sealed class CursorRules
 {
@@ -1088,17 +1087,6 @@ public sealed class StarSwingRules
 {
     [Chance] public double PhonyballWhiff { get; init; } = 0.4;
     public double PrismballSpraySpanDeg { get; init; } = 22;
-}
-
-/// <summary>Good-chemistry runners on base (spec §5.2, §5.5): power on a charged swing, width on a slap.</summary>
-public sealed class BuddiesOnBaseRules
-{
-    [Positive] public double OneMul { get; init; } = 1.10;
-    [Positive] public double TwoMul { get; init; } = 1.25;
-    [Positive] public double ThreeMul { get; init; } = 1.50;
-    [Positive] public double WidenOne { get; init; } = 1.05;
-    [Positive] public double WidenTwo { get; init; } = 1.10;
-    [Positive] public double WidenThree { get; init; } = 1.20;
 }
 
 /// <summary>
