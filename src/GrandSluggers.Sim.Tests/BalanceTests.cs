@@ -236,17 +236,23 @@ public sealed class BalanceTests
     }
 
     // ---------------------------------------------------------------------------------
-    // The park's window is park data (§14)
+    // No park window, day or night (§14; FD-11-R2)
     // ---------------------------------------------------------------------------------
 
+    /// <summary>
+    /// Re-authored to FD-11-R2 (F4-d, #895). This row held P7's move of Crystal's night window out of a
+    /// park-id branch into a park field (<c>nightContactWindowMul</c>, 0.85). Jack dropped the window on
+    /// both roots — night keeps the stadium lights and changes no rule of the at-bat — so the field is gone
+    /// from <see cref="Park"/> as well as the id branch, and night at the rink is the day window.
+    /// </summary>
     [Fact]
-    public void TheNightWindowIsAParkField()
+    public void NoParkCarriesANightWindow()
     {
-        Assert.Equal(0.85, _content.Parks["crystal-rink"].NightContactWindowMul);
-        Assert.Equal(1.0, _content.Parks["harbor-diamond"].NightContactWindowMul);
+        Assert.Null(typeof(Park).GetProperty("NightContactWindowMul"));
         Assert.Null(typeof(ParkHazardRules).GetProperty("CrystalNightWindowMul"));
+        Assert.Null(typeof(ParkHazards).GetMethod("ContactWindowMul"));
         var day = AtBatResolver.ContactWindowFrames(null, _content.Parks["crystal-rink"], false);
         var night = AtBatResolver.ContactWindowFrames(null, _content.Parks["crystal-rink"], true);
-        Assert.True(night < day, $"night {night} day {day}");
+        Assert.Equal(day, night);
     }
 }

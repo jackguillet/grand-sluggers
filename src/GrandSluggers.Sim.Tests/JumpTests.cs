@@ -18,6 +18,7 @@ public sealed class JumpTests
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheShippedJumpIsAnArmWindowAndTheTrialsIsAnArc()
     {
         var s = Control.Rules.Fielding.Catch;
@@ -32,6 +33,7 @@ public sealed class JumpTests
     [Theory]
     [InlineData("basil")]
     [InlineData("zig")]
+    [Trait("Kind", "Balance")]
     public void TheArcIsTwoFeetOverPointSixSecondsForEveryBody(string centre)
     {
         var (match, hit, preview) = Fixture(Trial, centre);
@@ -194,6 +196,7 @@ public sealed class JumpTests
     /// full speed carries 7.56 ft forward against 10.8 of pure drift — a tenth of the ground rates, the cap untouched.
     /// </summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void AirborneTheStickWorksAtATenthOfTheGroundRates()
     {
         // From rest: the centre fielder is planted through his read, and West on the first eligible frame with a full stick east.

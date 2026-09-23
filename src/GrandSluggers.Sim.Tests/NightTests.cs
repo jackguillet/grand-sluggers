@@ -3,6 +3,14 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
+/// <summary>
+/// What night does (§0.3, §14; FD-11 B, FD-11-R2, F4-d #895). Night keeps the stadium lights, so it
+/// changes only the view outside the stadium and the hazards: Crystal's contact window is dropped on both
+/// roots and night at the rink is the day's at-bat; Funfair's chompers are its night block, played through
+/// the one resolution (<see cref="PlayedPark.Of"/>); Ember's breath still reaches farther at night, because
+/// that is its hazard type's own night number. Re-authored to FD-11-R2 from the three night rules that
+/// hung off <c>Match.Night</c> in three shapes; the night block's own rows are <see cref="NightBlockTests"/>.
+/// </summary>
 [Trait("Rows", "compact")]
 public class NightTests
 {
@@ -43,56 +51,76 @@ public class NightTests
         Assert.Equal(day.Log.Select(e => e.Kind).ToList(), night.Log.Select(e => e.Kind).ToList());
     }
 
+    /// <summary>
+    /// Re-authored to FD-11-R2 (Jack, September 22, 2026: "for night time, we will still have stadium
+    /// lights"; F4-d, #895). This row held Crystal's night window: × 0.85 on the at-bat, so a timing error
+    /// between the two windows' edges was a hit by day and a miss at night. The window is dropped on both
+    /// roots, so the same swing at the same error is the same contact by day and at night, and the rink's
+    /// window is Harbor's. The fixture keeps the old edge: an error the × 0.85 night window would have missed.
+    /// </summary>
     [Fact]
-    public void CrystalNightShrinksTheContactWindow()
+    public void CrystalNightPlaysTheDayWindow()
     {
         var park = _content.Parks["crystal-rink"];
-        Assert.Equal(1.0, ParkHazards.ContactWindowMul(park, false));
-        Assert.Equal(park.NightContactWindowMul, ParkHazards.ContactWindowMul(park, true));
-        Assert.Equal(0.85, park.NightContactWindowMul);
-        Assert.Equal(1.0, ParkHazards.ContactWindowMul(_content.Parks["harbor-diamond"], true));
-
         var rio = _content.Must("rio");
         var dayWindow = AtBatResolver.ContactWindowFrames(null, park, false);
         var nightWindow = AtBatResolver.ContactWindowFrames(null, park, true);
-        Assert.True(nightWindow < dayWindow);
+        Assert.Equal(dayWindow, nightWindow);
+        Assert.Equal(AtBatResolver.ContactWindowFrames(null, _content.Parks["harbor-diamond"], true), nightWindow);
+
+        // Between the day window's edge and the edge the dropped × 0.85 would have drawn.
+        var removedNightWindow = dayWindow * 0.85;
         var input = new AtBatInput(
             _content.Must("ashlord"), rio, _content.Must("nico"), [],
-            false, false, (dayWindow + nightWindow) / 4, false, false,
+            false, false, (dayWindow + removedNightWindow) / 4, false, false,
             _content.Bats["harbor-lumber"], 80, PitchInZone: true);
         var resolver = new AtBatResolver(_content.Chemistry);
         var day = resolver.Resolve(input, park, new Random(1));
         var night = resolver.Resolve(input, park, new Random(1), night: true);
         Assert.NotEqual(ContactQuality.Miss, day.Quality);
-        Assert.Equal(ContactQuality.Miss, night.Quality);
-        Assert.True(day.InPlay);
-        Assert.False(night.InPlay);
+        Assert.Equal(day, night);
+        Assert.True(night.InPlay);
     }
 
+    /// <summary>
+    /// Funfair's mouths eat outfield flies at night. They are park data since #847 and Funfair's night
+    /// block since F4-d (FD-11): the park a night match plays holds them after the day's instances, the
+    /// park a day match plays does not, and <see cref="ParkHazards.ChompFly"/> no longer takes the clock.
+    /// The C80 copy carries them at the field's scale: the centre one is at (0, 228) r 18 shipped and
+    /// (0, 160) r 12.60 on the trial.
+    /// </summary>
     [Fact]
     public void FunfairNightChompersEatOutfieldFlies()
     {
-        var park = _content.Parks["funfair-park"];
-        // The mouths are park data since #847, so the C80 copy carries them at the field's scale:
-        // the centre one is at (0, 228) r 18 shipped and (0, 160) r 12.60 on the trial.
+        var catalog = _content.Parks["funfair-park"];
+        var byDay = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "funfair-park").Park;
+        var atNight = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "funfair-park", night: true).Park;
         var mouthZ = TestRoot.Pick(228.0, 160.0);
-        Assert.Equal(mouthZ, park.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C").Z);
-        Assert.False(ParkHazards.ChompFly(park, false, 0, mouthZ));
-        Assert.True(ParkHazards.ChompFly(park, true, 0, mouthZ));
-        Assert.False(ParkHazards.ChompFly(park, true, 0, 0));
-        Assert.False(ParkHazards.ChompFly(park, true, 0, mouthZ, grounder: true));
-        Assert.False(ParkHazards.ChompFly(_content.Parks["harbor-diamond"], true, 0, mouthZ));
+        Assert.DoesNotContain(catalog.Hazards, h => h.Type == HazardType.Chomper);
+        Assert.DoesNotContain(byDay.Hazards, h => h.Type == HazardType.Chomper);
+        Assert.Equal(mouthZ, atNight.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C").Z);
+        Assert.False(ParkHazards.ChompFly(byDay, 0, mouthZ));
+        Assert.True(ParkHazards.ChompFly(atNight, 0, mouthZ));
+        Assert.False(ParkHazards.ChompFly(atNight, 0, 0));
+        Assert.False(ParkHazards.ChompFly(atNight, 0, mouthZ, grounder: true));
+        Assert.False(ParkHazards.ChompFly(
+            Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "harbor-diamond", night: true).Park, 0, mouthZ));
 
-        var hit = FlightFixtures.Landing(park, mouthZ, 22, 0);
+        var hit = FlightFixtures.Landing(catalog, mouthZ, 22, 0);
         var spark = PresetTeams.SparkAllStars(_content);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var day = fielding.Resolve(hit, park, spark.Roster, spark.Captain, new Random(1));
-        var night = fielding.Resolve(hit, park, spark.Roster, spark.Captain, new Random(1), night: true);
+        var day = fielding.Resolve(hit, byDay, spark.Roster, spark.Captain, new Random(1));
+        var night = fielding.Resolve(hit, atNight, spark.Roster, spark.Captain, new Random(1), night: true);
         Assert.False(day.Chomped);
         Assert.True(night.Chomped);
         Assert.Equal(PlayKind.FlyOut, night.Kind);
     }
 
+    /// <summary>
+    /// Ember's breath reaches farther at night: its hazard type's own night number
+    /// (<c>fireBreath.nightRadiusMul</c> 1.6), which FD-11-R2 keeps — night changes the hazards. Unchanged by
+    /// F4-d: the breath is a day instance, so it stands by day and at night, and only its disc widens.
+    /// </summary>
     [Fact]
     public void EmberNightFireBreathReachesFarther()
     {

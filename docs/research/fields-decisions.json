@@ -810,7 +810,14 @@
         "answer_quote": "C. we can add random party elements for the hazards"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F4-b",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/896",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/905",
+          "status": "open"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -999,6 +1006,12 @@
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/847",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/851",
           "status": "merged"
+        },
+        {
+          "child": "F4-b",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/896",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/905",
+          "status": "open"
         }
       ],
       "validation_evidence": [],
@@ -1298,7 +1311,14 @@
         "answer_quote": "b"
       },
       "numeric_targets": null,
-      "implementation_issues": [],
+      "implementation_issues": [
+        {
+          "child": "F4-d",
+          "issue": "https://github.com/jackguillet/grand-sluggers/issues/895",
+          "pr": "https://github.com/jackguillet/grand-sluggers/pull/902",
+          "status": "open"
+        }
+      ],
       "validation_evidence": [],
       "human_acceptance": null,
       "history": [
@@ -2442,6 +2462,14 @@
     {
       "date": "2026-09-23",
       "event": "Merged: F4-h #870 (3cac6e09; merged by Jack), F2-c #878 (4b47ad4e), Jack's answers #879 (0f93da5a), F7-b1 #884 (b64bf799), F6-a2 #885 (b72fd0b0) and F2-b2 #875 (12345a76). Jack passed the looks of F6-a2 (first with the dugouts to go too: 'looks like we also need to get rid of those old dugouts. looks great otherwise.') and F2-b2 on before / after sheets captured under the GUI lock after the pitching session agreed the time ('merge them.'). Findings 38-52 recorded in the implementation map."
+    },
+    {
+      "date": "2026-09-23",
+      "event": "F4-d #895 opened as PR #902: the night block, one resolution (PlayedPark.Of), Funfair's chompers in its night block at parity, Crystal's night window dropped on both roots (FD-11-R2). Balance not measured (Jack: 'we don't need to perfectly balance right now. let's move faster')."
+    },
+    {
+      "date": "2026-09-23",
+      "event": "F4-b #896 opened as PR #905: a status volume slows the body that touches it for slowSec 3.0 s at frozenMul 0.45 (FD-08-R2; Jack's number, not yet played), a typed BodySlowed event, the play-wide flag and the park's drops.frozen roll retired (FD-08-R1). Balance not measured (Jack: 'we don't need to perfectly balance right now. let's move faster')."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",

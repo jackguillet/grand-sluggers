@@ -290,6 +290,7 @@ public sealed class CpuPitcherScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S118_ChargeAndSteerCoOccurAtTheRateTheRowsSay()
     {
         var trial = Trial;
@@ -331,6 +332,7 @@ public sealed class CpuPitcherScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S119_AtZeroTwoTheTrialCpuStillWastesOutsideTheZoneByRubberAlone()
     {
         var trial = Trial;

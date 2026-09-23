@@ -32,8 +32,8 @@
   },
   "sourceSha256": {
     "src/GrandSluggers.Sim/PitchFlight.cs": "8c2ff4e7a6ec408db0bef08e952eff72c1f68e346fba9113dbe36da638896825",
-    "src/GrandSluggers.Sim/Rules.cs": "8fb708203da4e8528cca5b3d2a0b6b788f0a0f0673096bc19dbcc0b76f471c72",
-    "src/GrandSluggers.Sim/Models.cs": "3e7b24c63a93236e5a897f7080d77047c5382c2e448e8cbcee54ddcaf3a885a8",
+    "src/GrandSluggers.Sim/Rules.cs": "1f4ac5d374880042c047a9f7bb8d9d835c34184409b7ea53797abc873322806e",
+    "src/GrandSluggers.Sim/Models.cs": "f31b30f11b4ac7b295630a6352a471f6edb0fdd2c15860da98d91058c335f17f",
     "src/GrandSluggers.Sim/AtBatFeel.cs": "a4a9bbe4b841ab8ad832cf9a6a234605c8dece83c9e880335b1986a45706b25a",
     "data/rules/pitching.json": "c2fc59446c2d568bcf0008e9e23a755866a3a6f3647f44e799d3fe8b27353270",
     "data/rules/batting.json": "99dbcb65e496924e893c394cd9998d59809249834e350ef3e114c3ea780c33ac",

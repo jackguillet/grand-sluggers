@@ -105,7 +105,7 @@ public sealed record PlayTraceTick(
             live.Throwing ? live.ThrowBag : null, live.LooseBall, live.Lobbing,
             live.Throwing ? live.ThrowT : null, live.Throwing ? live.ThrowDur : null),
         new PlayTraceGlove(live.GlovePos, live.GloveX, live.GloveZ, live.TraceHoldsBall),
-        live.Runners.Select(PlayTraceRunner.Of).ToArray(),
+        live.Runners.Select(r => PlayTraceRunner.Of(r, live.IsSlowed(r))).ToArray(),
         DiamondBags,
         PlayTracePlay.Capture(live, completed), live.TraceFielders(), live.TraceCoverage(), live.Paused);
 }
@@ -133,12 +133,17 @@ public sealed record PlayTraceRunner(
     RunnerPhase Phase,
     bool Broke,
     bool Forced,
-    bool Armed, bool Live = true, double? LastTouchAt = null, double Velocity = 0, bool Held = false)
+    bool Armed, bool Live = true, double? LastTouchAt = null, double Velocity = 0, bool Held = false,
+    /// <summary>True on a frame a park's status volume slowed this runner (F4-b, #896); absent otherwise.</summary>
+    bool? Slowed = null)
 {
-    public static PlayTraceRunner Of(Runner r)
+    public static PlayTraceRunner Of(Runner r) => Of(r, slowed: false);
+
+    public static PlayTraceRunner Of(Runner r, bool slowed)
     {
         var (x, z) = r.Position;
-        return new(r.Who.Id, r.FromBag, r.Bag, r.DestBag, x, z, r.Feet, r.Phase, r.Broke, r.Forced, r.StealArmed, r.Live, double.IsNaN(r.LastTouchAt) ? null : r.LastTouchAt, r.Velocity, r.Held);
+        return new(r.Who.Id, r.FromBag, r.Bag, r.DestBag, x, z, r.Feet, r.Phase, r.Broke, r.Forced, r.StealArmed, r.Live, double.IsNaN(r.LastTouchAt) ? null : r.LastTouchAt, r.Velocity, r.Held,
+            slowed ? true : null);
     }
 }
 
@@ -225,12 +230,12 @@ public sealed class PlayTraceRecorder
 
     public void Mark(PlayTraceMarkKind kind, double t, string? fielder = null, int? bag = null,
         PlayTraceRunner? runner = null, OutType? outType = null, double? predictedRunnerAt = null,
-        PlayTraceThrow? flight = null, InPlay.ThrowVerdict? verdict = null)
+        PlayTraceThrow? flight = null, InPlay.ThrowVerdict? verdict = null, PlayTraceHazard? hazard = null)
     {
         if (kind == PlayTraceMarkKind.ThrowRelease) _leg++;
         _marks.Add(new(_marks.Count, _commands.Count - 1, kind, t,
             kind is PlayTraceMarkKind.RunnerArrival ? _commandStart : t,
-            _leg == 0 ? null : _leg, fielder, bag, runner, outType, predictedRunnerAt, flight, verdict, Source?.TraceMarkGeometry()));
+            _leg == 0 ? null : _leg, fielder, bag, runner, outType, predictedRunnerAt, flight, verdict, Source?.TraceMarkGeometry(), hazard));
     }
 
     public int Count => _ticks.Count;

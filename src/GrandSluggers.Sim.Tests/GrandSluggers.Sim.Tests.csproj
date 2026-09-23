@@ -12,6 +12,10 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Local runs use half the machine; CI overrides it with the RunSettings xUnit.MaxParallelThreads=0 (every core). -->
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\GrandSluggers.Sim\GrandSluggers.Sim.csproj" />
   </ItemGroup>
 </Project>

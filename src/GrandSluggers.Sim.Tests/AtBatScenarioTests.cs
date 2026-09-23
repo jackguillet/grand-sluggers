@@ -59,6 +59,7 @@ public sealed class AtBatScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S04_CpuBatterReadsTheSteeredCrossingAndTakesAPitchSteeredOut()
     {
         // A human pitcher on the edge steers full break out of the zone during flight. The CPU
@@ -158,6 +159,7 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S08_FourFramesEarlyInsideTheNineFrameWindowIsStillPerfectAndPulled()
     {
         var resolver = new AtBatResolver(_content.Chemistry);
@@ -178,6 +180,7 @@ public sealed class AtBatScenarioTests
     [Theory]
     [InlineData(0.25, -1)]
     [InlineData(0.11, 1)]
+    [Trait("Kind", "Balance")]
     public void S08_PressesAtTheWindowsEdgesPullEarlyAndPushLate(double beforePlate, int side)
     {
         // plate − 0.25 is 4.2 frames early and plate − 0.11 is 4.2 frames late: inside the
@@ -199,6 +202,7 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S09_FiveFramesLateIsOutsideTheNineFrameWindowAndAMiss()
     {
         var resolver = new AtBatResolver(_content.Chemistry);
@@ -612,6 +616,7 @@ public sealed class AtBatScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S27_CpuPitcherAheadZeroTwoWastesAtLeastThirtyPercentOutsideTheZone()
     {
         var s = new Scenario(_content, seed: 27);
@@ -638,6 +643,7 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S28_CpuBatterMeetsAHumanMeatballPerfectlySometimesWithNoForcedMissClamp()
     {
         var perfect = 0;
@@ -677,6 +683,7 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
     public void S28_CpuBatterMistracksMoreAfterTheRubberMoved()
     {
         // Two matches, same seeds: one where the pitcher stayed, one where the rubber moved since
@@ -706,6 +713,8 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
+    [Trait("Kind", "Balance")]
+    [Trait("Cost", "Heavy")]
     public void S29_FiftySeedCpuGamesLandInTheBand()
     {
         // 50 three-inning CPU-vs-CPU games across the captain pairs, each pair played both ways
