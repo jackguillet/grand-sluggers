@@ -364,7 +364,7 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>
         /// Chalk from past the batter's box (<see cref="HomeSet.FoulLineStartAlong"/>) to just past each
-        /// side's own pole, the fair edge on the 90-ft line (<see cref="ParkDiamond.FoulLineCenter"/>).
+        /// side's own pole, the fair edge on the foul line itself, x = ±z (<see cref="ParkDiamond.FoulLineCenter"/>).
         /// </summary>
         public void FoulLines(Park park)
         {

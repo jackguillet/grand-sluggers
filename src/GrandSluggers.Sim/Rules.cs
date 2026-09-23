@@ -548,7 +548,7 @@ public sealed class PitchFlightRules
     [Positive] public double ReleaseHandY { get; init; } = 6.2;
     public double ReleaseTowardPlate { get; init; } = 2.6;
     [Positive] public double ArcadeScale { get; init; } = 2.05;
-    [Positive] public double AirMinSec { get; init; } = 0.78;
+    [Positive] public double AirMinSec { get; init; } = 0.69;
     [Positive] public double AirMaxSec { get; init; } = 1.28;
     [Positive] public double MinMph { get; init; } = 40;
     /// <summary>Feet the crossing moves at full break: half the zone width (spec §4.2).</summary>
@@ -756,8 +756,8 @@ public sealed class StarPitchShapeRules
 /// Per-pitcher stamina (spec §4.7): pool = poolBase + Endurance × poolPerPitch (PH-15-R6); costs per verb; a
 /// family's own extra is its row's <see cref="PitchFamilyRules.StaminaCost"/>, and a star's cost is
 /// its <c>staminaCost</c> in star-skills.json. Only a pitch costs the arm: a hit, a homer or a run allowed
-/// costs nothing (PH-08-R3). Below tiredBelow = TIRED (−mph, −break, a crossing wobble); below 0 = exhausted
-/// (worse). The CPU swaps at TIRED with a lead.
+/// costs nothing (PH-08-R3). Below tiredBelow = TIRED (−mph, less steering room); below 0 = exhausted
+/// (slower). Fatigue is never a random miss (PH-08-R1). The CPU swaps at TIRED with a lead.
 /// </summary>
 public sealed class StaminaRules
 {
@@ -769,9 +769,7 @@ public sealed class StaminaRules
     public int TiredBelow { get; init; } = 25;
     public double TiredMph { get; init; } = 6;
     [Chance] public double TiredBreakMul { get; init; } = 0.6;
-    public double TiredWobbleFt { get; init; } = 0.25;
     public double ExhaustedMph { get; init; } = 10;
-    public double ExhaustedWobbleFt { get; init; } = 0.45;
     public int CpuSwapLead { get; init; } = 3;
 }
 

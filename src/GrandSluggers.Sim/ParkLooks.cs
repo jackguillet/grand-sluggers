@@ -138,7 +138,7 @@ public sealed class ParkLooks
         return new LookSurface(Color(o["color"], at + ".color"), Num(o["smooth"], at + ".smooth"), texture, tile);
     }
 
-    static LookColor Color(JsonNode? node, string at)
+    internal static LookColor Color(JsonNode? node, string at)
     {
         if (node is JsonValue v && v.TryGetValue<string>(out var s))
         {
