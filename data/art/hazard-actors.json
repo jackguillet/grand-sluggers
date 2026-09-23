@@ -1,0 +1,25 @@
+// How a hazard is drawn (FD-16, F6-d; HazardActors). "toys": the toy each hazard type stands as, drawn when a park's
+// hazardActors slot names toy-actors (an empty slot draws the pattern greybox). "rings": the color of the flat ring each
+// instance of an acting pattern draws at the disc the sim reads (radius, x the night multiple at night, + the reach pad).
+{
+  "toys": {
+    "freezeVolume": "freeze-statue",
+    "lavaPit": "lava-pit",
+    "fireBreath": "fire-statue",
+    "warpPipe": "warp-can",
+    "barrel": "barrel-cannon",
+    "billboard": "star-billboard",
+    "climbWall": "vine-climb",
+    "chomper": "chomper-mouth",
+    "statue": "keep-statue",
+    "train": "midway-train",
+    "acUnit": "ac-unit",
+    "tree": "jungle-tree"
+  },
+  "rings": {
+    "statusVolume": "#9FD8FF",
+    "ballRedirect": "#FFCC40",
+    "rewardTarget": "#FFCC40",
+    "catchStealer": "#E83850"
+  }
+}
