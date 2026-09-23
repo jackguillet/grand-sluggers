@@ -273,11 +273,19 @@ public sealed class NightBlockTests
                 + $"{match.Difficulty}  hazards {(match.Hazards ? "on" : "off")}"
         };
         var guard = 0;
+        IReadOnlyList<BallRedirected> told = [];
         while (!match.Over && guard++ < 2000)
         {
             var half = $"{(match.Top ? "T" : "B")}{match.Inning}";
             var ev = match.AutoPlay();
             lines.Add($"{half,-3} {match.AwayScore}-{match.HomeScore}  {ev.Kind,-11}  {ev.Caption}");
+            // The redirects the live ball went through (F4-c): a typed fact, so a mouth that moved or stopped taking the ball fails.
+            // The list lives until the next live play, so a pitch with no ball in play would show the last one again.
+            var now = match.LivePlay.RedirectsThisPlay.ToList();
+            if (!now.SequenceEqual(told))
+                foreach (var r in now)
+                    lines.Add($"    redirect {r.Type} {r.Hazard} -> {r.Exit} at {r.T:0.000}");
+            told = now;
         }
         Assert.True(match.Over);
         lines.Add($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
@@ -297,14 +305,15 @@ public sealed class NightBlockTests
     /// P2-e and P3-b re-recorded them again. 3e promoted the compact profile into the shipped data, and the four
     /// games are bit-identical to the trial rows they were. P3-c took the random tired wobble out (PH-08-R1), which
     /// changes play again; seed 16 no longer chomps, so the chomp row is seed 8. The gradual fade (PH-08-R1) changed
-    /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11.
-    /// PH-16-R18 changed Funfair seed 1 and Ember seed 2 again: Ashlord's skullball no longer narrows the
-    /// window, so the swings against it land differently; seed 11 still chomps.
+    /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11. F4-c made the redirects live
+    /// and the chompers redirects (FD-09-R2): the log now lists each play's redirects, and both Funfair rows are re-recorded
+    /// (seed 11 sends flies through the chompers). PH-16-R18 (star pitches keep the ordinary window) and PH-16-R19
+    /// (no phonyball whiff roll) change play again, so the rows are re-recorded on top of F4-c.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 10  Spark All-Stars 3", "dde9237509d0b72e01007173450e467d46911a37cbbcbaf9f8224aca37666c78"),
-            ("funfair-park", 11, "Final  Ember Court 4  Spark All-Stars 0", "53b0a73c68e7c09a34ced21cad1d9418073ab62d8ef9049cbd351938470c6086"),
+            ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 2", "18b3ad8ce7bc8be0d2c27d2b9698c51afee74403865afaec018437d995a70052"),
+            ("funfair-park", 11, "Final  Ember Court 7  Spark All-Stars 3", "085af265210807aa2a965005ef30e22ea1112022ced8d58b3cb73ee96dab67f9"),
             ("ember-keep", 1, "Final  Ember Court 1  Spark All-Stars 0", "ee50483141c1372ebcb8c08bb5f14736beb580718c36ca9393b3d28af1bc48f5"),
             ("ember-keep", 2, "Final  Ember Court 0  Spark All-Stars 3", "e0d3eb96234904d04230ac070c72bff764c0a07148df2030ecffee051840fd65")
         ];
@@ -323,9 +332,9 @@ public sealed class NightBlockTests
             var log = Log(Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: seed, parkId: park, night: true));
             Assert.Equal(final, log[(log.LastIndexOf('\n') + 1)..]);
             Assert.True(sha == Sha(log), $"{park} night seed {seed} is not the game it was:\n{log}");
-            chomped |= log.Contains("A chomper ate it!", StringComparison.Ordinal);
+            chomped |= log.Contains("redirect chomper", StringComparison.Ordinal);
         }
-        Assert.True(chomped, "the premise: one pinned Funfair night has a chomp in it");
+        Assert.True(chomped, "the premise: one pinned Funfair night has a ball through a chomper in it");
     }
 
     /// <summary>
