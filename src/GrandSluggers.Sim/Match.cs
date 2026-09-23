@@ -31,8 +31,8 @@ public sealed partial class Match
     /// on with hazards on.
     /// </summary>
     public bool Hazards { get; }
-    public Team Away { get; }
-    public Team Home { get; }
+    public Team Away { get; private set; }
+    public Team Home { get; private set; }
     public IReadOnlyList<Character> AwayOrder { get; }
     public IReadOnlyList<Character> HomeOrder { get; }
     public int Innings { get; }
