@@ -15,7 +15,116 @@ public readonly record struct ExtraSlot(string Id, string Bone, IReadOnlyList<st
 
 public readonly record struct NamedSlot(string Id, string Slot, string Kind, bool Authored = false);
 
-public readonly record struct ParkKitSlot(string Id, string Slot, bool Placed);
+/// <summary>
+/// One park's kit (FD-16, FR-13; <c>data/art/parks.json</c>): its art folder, whether art is placed, and its kit slots —
+/// each <see cref="ParkKitSlots.All"/> slot named by a builder from <see cref="ParkKitSlots.Builders"/>, or empty (null),
+/// which draws the greybox.
+/// </summary>
+public readonly record struct ParkKitSlot(string Id, string Slot, bool Placed, IReadOnlyDictionary<string, string?>? Slots = null)
+{
+    /// <summary>The builder that fills <paramref name="slot"/>, or null when the slot is empty.</summary>
+    public string? Filler(string slot) => Slots != null && Slots.TryGetValue(slot, out var f) ? f : null;
+
+    /// <summary>The slot is filled by exactly this builder.</summary>
+    public bool Fills(string slot, string builder) => string.Equals(Filler(slot), builder, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The slots nobody fills yet, in <see cref="ParkKitSlots.All"/> order: they draw the greybox.</summary>
+    public IReadOnlyList<string> Empty
+    {
+        get
+        {
+            var empty = new List<string>();
+            foreach (var slot in ParkKitSlots.All)
+                if (Filler(slot) is null) empty.Add(slot);
+            return empty;
+        }
+    }
+}
+
+/// <summary>
+/// The kit slots a park fills (FD-16 B, FR-13): a closed set, and for each slot the named builders presentation owns. A
+/// park names a builder per slot or leaves it empty (JSON <c>null</c>), and an empty slot draws the greybox. A new builder
+/// is a row here and its code; a park never picks a look by its id (FR-04).
+///
+/// <para>
+/// Harbor fills the slots its kit draws today (<c>HarborKit</c>): the striped lawn, the dugouts, the padded wall with ads,
+/// the scoreboard, the bowl of stands, the town and the night fireworks. The Harbor pieces stand on the Harbor lawn: a park
+/// that names one must name the lawn. Light and sky are F6-c's, the hazard actors and the other backdrops F6-d's.
+/// </para>
+/// </summary>
+public static class ParkKitSlots
+{
+    public const string Lawn = "lawn";
+    public const string Dugouts = "dugouts";
+    public const string Wall = "wall";
+    public const string Scoreboard = "scoreboard";
+    public const string Stands = "stands";
+    public const string Backdrop = "backdrop";
+    public const string Night = "night";
+    public const string Light = "light";
+    public const string Sky = "sky";
+    public const string HazardActors = "hazardActors";
+
+    public const string HarborLawn = "harbor-lawn";
+    public const string HarborDugouts = "harbor-dugouts";
+    public const string HarborWall = "harbor-ads";
+    public const string HarborScoreboard = "harbor-scoreboard";
+    public const string HarborStands = "harbor-bowl";
+    public const string HarborTown = "harbor-town";
+    public const string HarborFireworks = "harbor-fireworks";
+
+    /// <summary>Every slot, in the order <c>cli art</c> prints them.</summary>
+    public static IReadOnlyList<string> All { get; } =
+        [Lawn, Dugouts, Wall, Scoreboard, Stands, Backdrop, Night, Light, Sky, HazardActors];
+
+    /// <summary>The builders each slot may name. An empty list is a slot only the greybox fills so far.</summary>
+    public static IReadOnlyDictionary<string, IReadOnlyList<string>> Builders { get; } =
+        new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal)
+        {
+            [Lawn] = [HarborLawn],
+            [Dugouts] = [HarborDugouts],
+            [Wall] = [HarborWall],
+            [Scoreboard] = [HarborScoreboard],
+            [Stands] = [HarborStands],
+            [Backdrop] = [HarborTown],
+            [Night] = [HarborFireworks],
+            [Light] = [],
+            [Sky] = [],
+            [HazardActors] = [],
+        };
+
+    /// <summary>The builders that are pieces of the Harbor kit, which stand on its lawn.</summary>
+    static readonly HashSet<string> HarborPieces =
+        [HarborDugouts, HarborWall, HarborScoreboard, HarborStands, HarborTown, HarborFireworks];
+
+    /// <summary>What is wrong with one park's slots: a missing or unknown slot, an unknown builder, a Harbor piece off the Harbor lawn.</summary>
+    public static IReadOnlyList<string> Validate(ParkKitSlot kit)
+    {
+        var errors = new List<string>();
+        if (kit.Slots is null)
+        {
+            errors.Add("park kit " + kit.Id + " names no slots");
+            return errors;
+        }
+        foreach (var key in kit.Slots.Keys)
+            if (!Builders.ContainsKey(key))
+                errors.Add("park kit " + kit.Id + " slot " + key + " is not a kit slot");
+        foreach (var slot in All)
+        {
+            if (!kit.Slots.TryGetValue(slot, out var builder))
+            {
+                errors.Add("park kit " + kit.Id + " must name slot " + slot + " (null leaves it empty)");
+                continue;
+            }
+            if (builder is null) continue;
+            if (!Builders[slot].Contains(builder))
+                errors.Add("park kit " + kit.Id + " slot " + slot + " names " + builder + ", which is not a " + slot + " builder");
+            if (HarborPieces.Contains(builder) && !kit.Fills(Lawn, HarborLawn))
+                errors.Add("park kit " + kit.Id + " slot " + slot + " names " + builder + ", a Harbor piece, but its lawn is not " + HarborLawn);
+        }
+        return errors;
+    }
+}
 
 public sealed class ArtCatalog
 {
@@ -239,6 +348,8 @@ public sealed class ArtCatalog
             if (!TryPark(park, out _))
                 errors.Add("park kit missing " + park);
         }
+        foreach (var kitRow in Parks)
+            errors.AddRange(ParkKitSlots.Validate(kitRow));
 
         foreach (var need in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "throw", "crowd-bed", "crowd-swell" })
         {
@@ -319,7 +430,8 @@ public sealed class ArtCatalog
         var mats = (Read<MatsFile>(Art("materials.json"), json).Slots ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Shader ?? "")).ToList();
         var parks = (Read<ParksFile>(Art("parks.json"), json).Kits ?? [])
-            .Select(p => new ParkKitSlot(p.Id, p.Slot, p.Placed)).ToList();
+            .Select(p => new ParkKitSlot(p.Id, p.Slot, p.Placed,
+                p.Slots is null ? null : new Dictionary<string, string?>(p.Slots, StringComparer.Ordinal))).ToList();
         var folders = Read<FoldersFile>(Art("folders.json"), json).Folders ?? [];
 
         return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders);
@@ -391,6 +503,7 @@ public sealed class ArtCatalog
         public string Id { get; set; } = "";
         public string Slot { get; set; } = "";
         public bool Placed { get; set; }
+        public Dictionary<string, string?>? Slots { get; set; }
     }
 
     sealed class FoldersFile { public List<string>? Folders { get; set; } }

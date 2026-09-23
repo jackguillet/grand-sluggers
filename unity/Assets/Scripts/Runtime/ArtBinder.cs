@@ -29,6 +29,13 @@ namespace GrandSluggers.UnityClient
 
         public static void Bind(ArtCatalog art) => _art = art;
 
+        /// <summary>
+        /// The park's kit row and its slots (FD-16, FR-13; <c>data/art/parks.json</c>). A park with no row, or no catalog
+        /// bound, fills no slot: it draws the greybox.
+        /// </summary>
+        public static ParkKitSlot ParkKit(string parkId) =>
+            _art != null && !string.IsNullOrWhiteSpace(parkId) && _art.TryPark(parkId, out var kit) ? kit : default;
+
         static GameObject _extrasKit;
         static bool _extrasMiss;
         static GameObject _harborKit;
