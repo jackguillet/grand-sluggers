@@ -5,10 +5,9 @@ using Xunit.Abstractions;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The outfield read (spec §8.2, sitting 2026-09-12, #609): the reaction lockout is the reference's 50 frames
-/// (0.83 s), never longer than the ball's hang; the human glove waits the reference at every rung and difficulty
-/// scales only the CPU's; the infield and catcher numbers the §10.4 double-play rows were tuned on do not move.
-/// S-29 is held by the outfielder's chase on a ball in the air (<c>fielding.chase.outfieldAirMul</c>), not by
+/// The outfield read (spec §8.2, sitting 2026-09-12, #609; the four read clocks, #718): the outfield lockout is
+/// 0.40 s, never longer than the ball's hang; the human glove waits it at every rung and difficulty scales only the
+/// CPU's. S-29 is held by the outfielder's chase on a ball in the air (<c>fielding.chase.outfieldAirMul</c>), not by
 /// freezing the read.
 /// </summary>
 public sealed class OutfieldReadTests
@@ -20,18 +19,18 @@ public sealed class OutfieldReadTests
     public OutfieldReadTests(ITestOutputHelper output) => _out = output;
 
     [Fact]
-    public void TheOutfieldReadIsTheReferenceAndTheInfieldDidNotMove()
+    public void TheOutfieldReadIsOneNumberAndTheInfieldAnother()
     {
         var re = _content.Rules.Fielding.Reaction;
-        Assert.Equal(0.42, re.PitcherSec, 6);
-        Assert.Equal(0.67, re.CatcherSec, 6);
-        Assert.Equal(0.27, re.FirstSec, 6);
+        Assert.Equal(0.35, re.PitcherSec, 6);
+        Assert.Equal(0.45, re.CatcherSec, 6);
+        Assert.Equal(0.25, re.FirstSec, 6);
         Assert.Equal(0.25, re.SecondSec, 6);
-        Assert.Equal(0.30, re.ThirdSec, 6);
-        Assert.Equal(0.28, re.ShortSec, 6);
-        Assert.Equal(0.83, re.OutfieldSec, 6);
+        Assert.Equal(0.25, re.ThirdSec, 6);
+        Assert.Equal(0.25, re.ShortSec, 6);
+        Assert.Equal(0.40, re.OutfieldSec, 6);
         foreach (var of in new[] { "LF", "CF", "RF" })
-            Assert.Equal(0.83, re.LockoutSec(of), 6);
+            Assert.Equal(0.40, re.LockoutSec(of), 6);
     }
 
     [Fact]
