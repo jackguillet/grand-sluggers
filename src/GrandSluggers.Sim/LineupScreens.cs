@@ -807,12 +807,12 @@ public static class LineupLayout
     public static LineupCell ParkLine => new(0.018, 0.862, 0.36, 0.022);
     public static LineupCell Help => new(0.018, 0.008, 0.96, 0.032);
 
-    public static LineupCell HomeSlot(int i) => Pixels(24 + i * 98, 165, 90, 80);
-    public static LineupCell AwaySlot(int i) => Pixels(24 + i * 98, 624, 90, 80);
+    public static LineupCell HomeSlot(int i) => Pixels(24 + i * 98, 165, 90, 94);
+    public static LineupCell AwaySlot(int i) => Pixels(24 + i * 98, 610, 90, 94);
     public static LineupCell HomeOrder(int i) => OrderCell(true, i);
     public static LineupCell AwayOrder(int i) => OrderCell(false, i);
-    public static LineupCell OrderCell(bool home, int i) => home ? HomeSlot(i) : AwaySlot(i);
-    public static LineupCell CardPanel(bool home) => Pixels(928, home ? 150 : 430, 328, 266);
+    public static LineupCell OrderCell(bool home, int i) => Pixels(24 + i * 98, home ? 165 : 624, 90, 80);
+    public static LineupCell CardPanel(bool home) => Pixels(928, home ? 126 : 422, 328, 282);
     public static LineupCell ContinueButton => Pixels(1012, 716, 244, 48);
     public static LineupCell BackButton => Pixels(24, 716, 160, 48);
     public static LineupCell FillButton => Pixels(200, 716, 168, 48);
@@ -825,7 +825,7 @@ public static class LineupLayout
         var rows = Math.Max(3, (n + cols - 1) / cols);
         var col = index % cols;
         var row = index / cols;
-        const double left = 0.01875, width = 0.69, top = 0.66, height = 0.40;
+        const double left = 0.01875, width = 0.69, top = 0.655, height = 0.3725;
         var w = width / cols;
         var h = height / rows;
         return new LineupCell(left + col * w + w * 0.04, top - (row + 1) * h + h * 0.08, w * 0.90, h * 0.84);
