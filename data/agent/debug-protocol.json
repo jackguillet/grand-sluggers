@@ -4,16 +4,6 @@
   // GitHub sitting children stay; they are not the memory.
   "entries": [
     {
-      "id": "disabled-match-resource-still-on-hud",
-      "signature": "Both star meters remain on the game HUD with Stars OFF in Match settings; requesting a disabled special can show NO STARS.",
-      "stage": "sitting",
-      "cause": "HudView.Scorebug drew the meters and unavailable-special tell without reading Match.StarsEnabled. An empty pool alone cannot distinguish a disabled resource from an enabled but depleted one.",
-      "fix": "Carry the match setting in BroadcastHud.Scorebug and use it for both team meters and unavailable feedback. Enabled matches retain empty meters, independent of captain, half or seat count.",
-      "promoted": "BroadcastHudTests.StarMetersFollowTheMatchSettingEvenWithEmptyPools",
-      "issue": "#968",
-      "pr": ""
-    },
-    {
       "id": "brim-in-plate-lens",
       "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
       "stage": "still-gate",
@@ -522,6 +512,16 @@
       "fix": "Use explicit source/destination selection per seat. Navigation and hover only inspect. One shared LineupLayout reserves non-overlapping batting lists, diamonds and a card area and supplies pointer targets; completed swaps alone credit the guided tutorial.",
       "promoted": "LineupScreensTests.InspectingAndNavigatingNeverEditsTheTeam",
       "issue": "#955",
+      "pr": ""
+    },
+    {
+      "id": "disabled-match-resource-still-on-hud",
+      "signature": "Both star meters remain on the game HUD with Stars OFF in Match settings; requesting a disabled special can show NO STARS.",
+      "stage": "sitting",
+      "cause": "HudView.Scorebug drew the meters and unavailable-special tell without reading Match.StarsEnabled. An empty pool alone cannot distinguish a disabled resource from an enabled but depleted one.",
+      "fix": "Carry the match setting in BroadcastHud.Scorebug and use it for both team meters and unavailable feedback. Enabled matches retain empty meters, independent of captain, half or seat count.",
+      "promoted": "BroadcastHudTests.StarMetersFollowTheMatchSettingEvenWithEmptyPools",
+      "issue": "#968",
       "pr": ""
     }
   ]
