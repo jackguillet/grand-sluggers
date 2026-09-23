@@ -115,7 +115,7 @@ public sealed class ContactFlightTests
     public void RisingHopDifficultyUsesThePhysicalVelocityBehindTheSharedClock()
     {
         var match = Match.Slice(game);
-        var hit = FlightFixtures.Hit(match.Park, 120, -14, 0, rules: match.Rules);
+        var hit = FlightFixtures.Hit(match.Park, 110, 10, 0, rules: match.Rules);
         var live = match.LivePlay;
         live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, match.PreviewHit(hit), null, LiveSeats.CpuOnly));
         const double dt = 1.0 / 60;
@@ -129,7 +129,7 @@ public sealed class ContactFlightTests
             Assert.True(live.HopDifficulty > 0, "the rising in-between hop stays an awkward pickup");
             return;
         }
-        Assert.Fail("The pitcher did not reach the rising hop.");
+        Assert.Fail("The center fielder did not reach the rising hop.");
     }
 
     [Fact]

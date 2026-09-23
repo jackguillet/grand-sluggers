@@ -20,7 +20,7 @@ public sealed class DiveTests
     public void TheDiveIsNeitherFreeNorAutomatic()
     {
         var t = Game.Rules.Fielding.Catch;
-        Assert.Equal((0.0, 0.60, 0.025), (t.AutoDive, t.DiveRecoverySec, t.DiveRecoveryFieldCut));
+        Assert.Equal((0.60, 0.025), (t.DiveRecoverySec, t.DiveRecoveryFieldCut));
 
         // 0.60 at Field 1, 2.5 % of it less per point: 0.54 at 5, 0.465 at 10.
         double Cost(ContentCatalog c, int field) => FieldingResolver.DiveRecoverySec(c.Must("ashlord") with { Stats = c.Must("ashlord").Stats with { Field = field } }, c.Rules);
@@ -30,38 +30,16 @@ public sealed class DiveTests
         Assert.Equal(0.555, FieldingResolver.DiveRecoverySec(Game.Must("moss"), Game.Rules), 9);   // Field 4, the centre fielder below
     }
 
-    /// <summary>
-    /// A liner just right of second. The centre fielder commits on the live ball a frame before it comes down to dive height,
-    /// pays 0.555 s, and takes it — a dive, not a stand-up, though the lunge carried him under the ring.
-    /// </summary>
-    [Fact]
-    public void TheCpuCommitsOnTheLiveBallPaysAndTakesTheLiner()
+    [Theory]
+    [InlineData(130, 16, 6)]
+    [InlineData(160, 4, -18)]
+    [InlineData(140, 6, 18)]
+    public void CpuPursuesWithoutEverCommittingADive(double exit, double launch, double spray)
     {
-        var trial = RunCpu(Game, out var commits, ball: (130, 16, 6));
-        var commit = Assert.Single(commits);
-        Assert.Equal("CF", commit.Pos);   // moss, Field 4
-        Assert.Equal(0.555, commit.Cost, 6);
-        Assert.InRange(commit.T, 3.5, 4.2);
-        Assert.Equal(PlayKind.FlyOut, trial.Play.Kind);
-        Assert.Equal(DefensiveFeat.Dive, trial.Play.Outcome?.DefensiveFeat);
-        Assert.True(trial.PossessionAt >= commit.T - 1e-9, "the ball was taken at or after the commitment, never before");
-    }
-
-    /// <summary>
-    /// The same liner, moved 16 ft further into the gap the frame after the centre fielder committed: the dive misses, the ball
-    /// lands and stays live, the diver stands where he lunged for the whole recovery, and the recovery is the same 0.555 s the
-    /// catch would have cost.
-    /// </summary>
-    [Fact]
-    public void AMovedBallBeatsTheCommittedDiveAndTheRecoveryIsOwedAllTheSame()
-    {
-        var trial = RunCpu(Game, out var commits, nudgeOnCommit: (-25, 0), ball: (130, 16, 6));
-        var commit = Assert.Single(commits);
-        Assert.Equal(0.555, commit.Cost, 6);
-        Assert.NotEqual(PlayKind.FlyOut, trial.Play.Kind);
-        Assert.NotEqual(DefensiveFeat.Dive, trial.Play.Outcome?.DefensiveFeat);
-        Assert.True(trial.PossessionAt < 0 || trial.PossessionAt > commit.T + 0.555, $"nobody had the ball inside the recovery (possession at {trial.PossessionAt:0.00})");
-        Assert.True(trial.DiverHeld, "the diver did not move while he recovered");
+        var run = RunCpu(Game, out var commits, ball: (exit, launch, spray));
+        Assert.Empty(commits);
+        Assert.Equal(0, run.MaxRecovery);
+        Assert.NotEqual(DefensiveFeat.Dive, run.Play.Outcome?.DefensiveFeat);
     }
 
     /// <summary>The human seat with a dead stick: the assistance does not dive for the player, and the ball falls in.</summary>
@@ -152,7 +130,6 @@ public sealed class DiveTests
         var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
         var hit = FlightFixtures.Hit(match.Park, ball?.Exit ?? 115, ball?.Launch ?? 16, ball?.Spray ?? 2, rules: match.Rules);
         var preview = match.PreviewHit(hit);
-        Assert.False(preview.Grounder);   // the preview names an infielder first and hands to centre
         return (match, hit, preview);
     }
 

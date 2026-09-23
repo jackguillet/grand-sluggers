@@ -292,7 +292,7 @@ public static partial class HowToPlay
             "The throw is yours. Bag + South; stick runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
             "After release, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Dead stick auto-runs; stick steers. Stand on ball to scoop. Select swaps; next glove pulses. Pickup stays live.",
-            "West jumps in window; the circle turns red. East dives. North attack. A homer sits on wall.",
+            "West jumps in window; the circle turns red. East dives sideways. North attack. A homer sits on wall.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ],
         [
@@ -300,7 +300,7 @@ public static partial class HowToPlay
             "The throw is yours. Bag + Space; WASD runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
             "After release, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Don't move: they auto-run; WASD steers. Stand on ball to scoop. R swaps; next glove pulses. Pickup stays live.",
-            "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
+            "F jumps in window; the circle turns red. G dives sideways. B attack. A homer sits on wall.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
         new("tutorial-baseball", "Counts, fouls and halves", "training",

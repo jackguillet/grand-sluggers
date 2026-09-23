@@ -736,7 +736,7 @@
     },
     {
       "id": "T-F05",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.05"
       ],
@@ -3077,9 +3077,9 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 120,
+          "exitMph": 115,
           "launchDeg": 16,
-          "sprayDeg": 0
+          "sprayDeg": 2
         }
       }
     },

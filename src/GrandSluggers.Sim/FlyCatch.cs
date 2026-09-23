@@ -135,29 +135,10 @@ public static class FlyCatch
     /// <summary>
     /// Dead-stick / CPU: under a routine fly in the window is a stand-up catch. Not a rob unless
     /// <paramref name="canRob"/>. A liner on the glove before the bounce is a catch even
-    /// outside the hang window (§7.6): the intercept is the window. The rim is
-    /// <see cref="AutoDive"/>, not this.
+    /// outside the hang window (§7.6): the intercept is the window. Only a human press can use dive reach.
     /// </summary>
     public static bool AutoCatch(bool under, bool inWindow, bool needsJump, bool canRob = false, bool linerInAir = false) =>
         under && (!needsJump || canRob) && (inWindow || linerInAir);
-
-    /// <summary>
-    /// Dead-stick / CPU at the rim (#669): inside dive reach, past the stand-up ring, ball
-    /// low enough. Not a rob. The body dives; it does not stand-up catch from off the plant.
-    /// </summary>
-    public static bool AutoDive(
-        bool underDive,
-        bool underStandUp,
-        bool inWindow,
-        bool needsJump,
-        double ballY,
-        bool linerInAir = false,
-        RulesTable? rules = null) =>
-        !underStandUp
-        && underDive
-        && !needsJump
-        && (inWindow || linerInAir)
-        && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
 
     /// <summary>
     /// Ordinary catches require the live ball to meet the glove's horizontal reach and
