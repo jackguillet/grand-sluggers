@@ -9,7 +9,7 @@ namespace GrandSluggers.UnityClient
     public static partial class TeamSheet
     {
         public enum Action { None, Player, Continue, Back, Fill }
-        static GUIStyle _title, _heading, _body, _small, _name, _mark, _badge, _cardName;
+        static GUIStyle _title, _heading, _body, _small, _name, _mark, _badge, _cardName, _fieldName;
         static Texture2D _white, _field;
         static bool _hover, _pointerMode;
         static LineupFocus _hoverFocus;
@@ -101,10 +101,10 @@ namespace GrandSluggers.UnityClient
             var panel = RectOf(home ? LineupLayout.HomeDiamondPanel : LineupLayout.AwayDiamondPanel);
             var seat = home ? lineup.HomeSeat : lineup.AwaySeat;
             var accent = FrontBoardStyle.Seat(seat);
-            Fill(new Rect(panel.x, 250, panel.width, 26), FrontBoardStyle.Panel);
+            Fill(new Rect(panel.x, 246, panel.width, 22), FrontBoardStyle.Panel);
             var onField = lineup.FocusOf(seat) == (home ? LineupFocus.HomeDiamond : LineupFocus.AwayDiamond);
-            Label(panel.x + 8, 250, panel.width - 16, 26, CarnivalFront.LineupFieldCaption(seat, onField, lineup.IsReady(seat)), _small);
-            Fill(new Rect(panel.x, 276, panel.width, 3), accent);
+            Label(panel.x + 8, 246, panel.width - 16, 22, CarnivalFront.LineupFieldCaption(seat, onField, lineup.IsReady(seat)), _small);
+            Fill(new Rect(panel.x, 268, panel.width, 2), accent);
             GUI.DrawTexture(panel, _field);
             DrawCells(lineup, home ? LineupFocus.HomeOrder : LineupFocus.AwayOrder, 9, p1, p2);
             DrawCells(lineup, home ? LineupFocus.HomeDiamond : LineupFocus.AwayDiamond, 9, p1, p2);
@@ -143,10 +143,10 @@ namespace GrandSluggers.UnityClient
                 if (two) Border(new Rect(r.x + (one ? 4 : 0), r.y + (one ? 4 : 0), r.width - (one ? 8 : 0), r.height - (one ? 8 : 0)), FrontBoardStyle.Blue, 3);
                 var mark = picked ? "PICKED" : order ? (i + 1).ToString("00") : field ? Diamond.Order[i]
                     : focus == LineupFocus.Pool ? LineupLayout.TeamMark(who) : (i + 1).ToString("00") + (who?.Captain == true ? " · C" : "");
-                Label(r.x, r.y - 3, r.width, 18, mark, _mark);
+                Label(r.x, r.y + 1, r.width, 16, mark, _mark);
                 Portrait(who, new Rect(r.x + 6, r.y + 15, r.width - 12, r.height - 37));
                 if (who == null) Label(r.x, r.y + 14, r.width, r.height - 35, "+", _mark);
-                Label(r.x + 2, r.yMax - 22, r.width - 4, 22, who?.Name ?? "OPEN", _mark);
+                Label(r.x + 2, r.yMax - 22, r.width - 4, 22, who?.Name ?? "OPEN", field ? _fieldName : _mark);
                 if (one || two)
                 {
                     var badge = new Rect(r.xMax - 25, r.y + 14, 25, two && one ? 28 : 15);
@@ -244,6 +244,8 @@ namespace GrandSluggers.UnityClient
             _small = Style(13, Muted, FontStyle.Bold);
             _name = Style(13, Color.white, FontStyle.Bold); _name.wordWrap = true;
             _mark = Style(12, Color.white, FontStyle.Bold); _mark.alignment = TextAnchor.MiddleCenter;
+            _mark.wordWrap = false;
+            _fieldName = new GUIStyle(_mark) { fontSize = 10 };
             _field = FieldTexture();
         }
         // IMGUI writes directly to the linear player target; palette values are authored in sRGB.
