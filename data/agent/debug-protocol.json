@@ -19,7 +19,7 @@
       "stage": "still-gate",
       "cause": "HomeSet.cs:35 BoxGap; :98 BoxesClearThePlate — an invented or Minkowski gap instead of OBR Diagram 2's 6 inches.",
       "fix": "BoxGap is 6 inches; BoxesClearThePlate encodes that gap. Cartoon fat is allowed; wrong topology is not.",
-      "promoted": "HomeSetTests.OfficialHomeLayout",
+      "promoted": "HomeSetTests.PlateMatchesStrikeZoneBetweenFullSizeBoxes",
       "issue": "#470",
       "pr": "#471"
     },
