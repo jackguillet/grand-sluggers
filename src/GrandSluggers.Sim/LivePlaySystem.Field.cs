@@ -108,7 +108,12 @@ public enum LiveEvent
     /// <summary>The glove took off on a normal jump (#719): the airborne clock started this frame.</summary>
     JumpTakeoff,
     /// <summary>A hard ball's take cost the hands (#720): the ordinary impact recoil began this frame — the brace and the skid.</summary>
-    ImpactRecoil
+    ImpactRecoil,
+    /// <summary>
+    /// A body touched a park's status volume this frame and runs slowed (FR-07, FD-08-R2; F4-b): who, which instance and until
+    /// when are <see cref="LivePlaySystem.Slows"/>, one <see cref="BodySlowed"/> per touch.
+    /// </summary>
+    BodySlowed
 }
 
 /// <summary>
@@ -128,6 +133,10 @@ public sealed partial class LivePlaySystem
     readonly List<LiveEvent> _events = [];
     readonly List<LiveStamp> _stamps = [];
     readonly List<LiveStamp> _stampsThisPlay = [];
+    /// <summary>The park's status volumes on the bodies that touch them (F4-b, #896): the touch, the per-body time, the slow.</summary>
+    readonly BodySlows _bodySlows = new();
+    readonly List<BodySlowed> _slows = [];
+    readonly List<BodySlowed> _slowsThisPlay = [];
     readonly HashSet<Runner> _scoreTold = [];
     bool _gloved;
     bool _recoilArmed;
@@ -358,6 +367,21 @@ public sealed partial class LivePlaySystem
     /// <summary>Every live tell this play, in order. Cleared on the next Begin, not at Time.</summary>
     public IReadOnlyList<LiveStamp> StampsThisPlay => _stampsThisPlay;
 
+    /// <summary>The status-volume touches of the most recent command (F4-b, #896): one <see cref="BodySlowed"/> per body per volume it entered.</summary>
+    public IReadOnlyList<BodySlowed> Slows => _slows;
+
+    /// <summary>Every status-volume touch this play, in order. Cleared on the next Begin, not at Time.</summary>
+    public IReadOnlyList<BodySlowed> SlowsThisPlay => _slowsThisPlay;
+
+    /// <summary>The volumes this play's bodies are tested against (F4-b): the park's status volumes, the night disc at night; none with hazards off.</summary>
+    public IReadOnlyList<StatusVolume> StatusVolumes => _bodySlows.Volumes;
+
+    /// <summary>The fielder at <paramref name="pos"/> runs slowed by a status volume this frame (F4-b): inside one, or inside its time.</summary>
+    public bool IsSlowed(string pos) => _bodySlows.Slowed(pos);
+
+    /// <summary>This runner runs slowed by a status volume this frame (F4-b).</summary>
+    public bool IsSlowed(Runner runner) => _bodySlows.Slowed(runner);
+
     /// <summary>The glove owns the ball (a catch or a buddy jump).</summary>
     public bool HoldsBall => Caught || Buddy;
 
@@ -446,6 +470,8 @@ public sealed partial class LivePlaySystem
         _events.Clear();
         _stamps.Clear();
         _stampsThisPlay.Clear();
+        _slows.Clear();
+        _slowsThisPlay.Clear();
         _scoreTold.Clear();
         Pitch = command.Pitch;
         Swing = command.Swing;
@@ -468,6 +494,8 @@ public sealed partial class LivePlaySystem
         foreach (var kv in FieldingResolver.CpuReactionLockouts(R, airHang)) _readyAt[kv.Key] = kv.Value;
         foreach (var kv in FieldingResolver.ReactionLockouts(R, 1, airHang)) _readyHuman[kv.Key] = kv.Value;
         InitGloves();
+        // The park's status volumes, as this play reads them (F4-b): every body starts outside them, unslowed.
+        _bodySlows.Begin(ParkHazards.StatusVolumes(Park, _match.Night, R));
         var kind = LiveKind();
         var result = Begin(command with { PlayKind = kind });
         if (!Active) return result;
@@ -607,6 +635,7 @@ public sealed partial class LivePlaySystem
         _cpuThrowAt = -1;
         _cpuDecided = false;
         _foil.Clear();
+        _bodySlows.Begin([]);
         _peel = null;
         _peelT = 0;
         _powT = 0;
@@ -638,6 +667,7 @@ public sealed partial class LivePlaySystem
     {
         _events.Clear();
         _stamps.Clear();
+        _slows.Clear();
         TutorialAssistedPursuitGloveId = "";
         var dt = command.DeltaSeconds;
         // Ownership of a press is decided here, once, from the seats: the offense pad never
@@ -649,6 +679,9 @@ public sealed partial class LivePlaySystem
         if (!Active || Paused) return new LivePlayCommandResult(Snapshot);
         if (!RunnerPlay && (Path is null || Path.Count == 0))
             return new LivePlayCommandResult(Snapshot, FlightDone: true);
+
+        // The park's status volumes (F4-b, FR-07): every body where the last frame left it, before anybody moves this one.
+        ReadStatusVolumes();
 
         // The glove's own velocity over the last frame: what the body keeps for chase.handoffCoastSec when the ring leaves it (§8.9).
         _gloveVel = _gloveLast.Pos == GlovePos && _lastDt > 0
@@ -865,7 +898,7 @@ public sealed partial class LivePlaySystem
         if (steering && map.TryGetValue(GlovePos, out var glove) && _stick.Manual && CanMove(GlovePos))
         {
             var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, pre, R, pad.EastHeld));
-            var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt);
+            var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt, specialSlowed: pre.Frozen);
             GloveX = feet.X;
             GloveZ = feet.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1104,7 +1137,9 @@ public sealed partial class LivePlaySystem
                 var autoDive = (free || DiveT > 0) && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R);
                 if (autoStand || autoDive)
                 {
-                    // Drop chances belong to star effects only (§8.6): rolled once, on the one seeded stream.
+                    // Drop chances belong to star effects only (§8.6): rolled once, on the one seeded stream. A glove a park's
+                    // status volume slowed rolls nothing (F4-b, FD-08-R1, SF-22): the glove and the ball decide its catch.
+                    // pre.Frozen is the heart swing's alone, the special's use of drops.frozen, left exactly as it was.
                     if (!_dropRolled)
                     {
                         _dropRolled = true;
@@ -1252,8 +1287,9 @@ public sealed partial class LivePlaySystem
     {
         if (Throwing || !_stick.Manual || !CanMove(GlovePos)) return;
         if (!map.TryGetValue(GlovePos, out var glove)) return;
-        var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, _loose ? null : Preview, R, pad.EastHeld));
-        var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt);
+        var asked = _loose ? null : Preview;
+        var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, asked, R, pad.EastHeld));
+        var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt, specialSlowed: asked?.Frozen == true);
         GloveX = feet.X;
         GloveZ = feet.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -2135,6 +2171,56 @@ public sealed partial class LivePlaySystem
         HoldsBall && !Throwing ? FieldingResolver.CarrySpeedFt(who, asked, R) : asked;
 
     // ---------------------------------------------------------------------------------
+    // The status volume, live (F4-b, #896; FR-07, FD-08-R1, FD-08-R2)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Once a frame, before anybody moves (FR-07): every fielder and every live runner, where the last frame left them, against
+    /// the park's status volumes (<see cref="BodySlows"/>). A body that entered one runs slowed from this frame: a
+    /// <see cref="LiveEvent.BodySlowed"/> cue, one <see cref="BodySlowed"/> on <see cref="Slows"/> and <see cref="SlowsThisPlay"/>
+    /// per volume entered, and a <see cref="PlayTraceMarkKind.BodySlowed"/> mark in the trace. A Burrow body touches nothing.
+    /// No draw, and nothing read from where the ball lands.
+    /// </summary>
+    void ReadStatusVolumes()
+    {
+        if (_bodySlows.Volumes.Count == 0) return;
+        var t = ElapsedSeconds;
+        var map = Assigned();
+        foreach (var pos in Diamond.Order)
+        {
+            if (!map.TryGetValue(pos, out var who)) continue;
+            var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Diamond.Positions[pos];
+            foreach (var (v, until) in _bodySlows.Read(pos, at.Item1, at.Item2, t, FieldAbilities.IgnoresParkSlow(who)))
+                Slowed(new BodySlowed(pos, who, v.Hazard, v.Type, t, until), v, null);
+        }
+        foreach (var r in Runners)
+        {
+            if (!r.Live) continue;
+            var (x, z) = r.Position;
+            foreach (var (v, until) in _bodySlows.Read(r, x, z, t, FieldAbilities.IgnoresParkSlow(r.Who)))
+                Slowed(new BodySlowed(FieldBody.Runner, r.Who, v.Hazard, v.Type, t, until), v, r);
+        }
+    }
+
+    void Slowed(BodySlowed touch, StatusVolume volume, Runner? runner)
+    {
+        _slows.Add(touch);
+        _slowsThisPlay.Add(touch);
+        if (!_events.Contains(LiveEvent.BodySlowed)) _events.Add(LiveEvent.BodySlowed);
+        _trace?.Mark(PlayTraceMarkKind.BodySlowed, touch.T, touch.IsRunner ? null : touch.Pos,
+            runner: runner is null ? null : PlayTraceRunner.Of(runner, slowed: true),
+            hazard: new PlayTraceHazard(volume.Hazard, volume.Type, volume.X, volume.Z, volume.RadiusFt, touch.UntilT));
+    }
+
+    /// <summary>
+    /// What a step of the body at <paramref name="pos"/> is multiplied by this frame (F4-b): <c>fielding.chase.frozenMul</c> while a
+    /// status volume slows it, else exactly 1, so an unslowed step is the double it always was. A speed that already carries the
+    /// heart swing's slow (<paramref name="specialSlowed"/>; a special, outside this phase) is not slowed again: the special and
+    /// the volume are the one slow, never two stacked — stacking stays with the specials (the 3e boundary).
+    /// </summary>
+    double VolumeMul(string pos, bool specialSlowed) => BodySlows.Mul(!specialSlowed && _bodySlows.Slowed(pos), R);
+
+    // ---------------------------------------------------------------------------------
     // The pursuit stick (#718, F693-02-pursuit-neutral-boundary, -analog-response, -arming)
     // ---------------------------------------------------------------------------------
 
@@ -2229,6 +2315,9 @@ public sealed partial class LivePlaySystem
     /// </summary>
     (double X, double Z) StepTo(string pos, (double X, double Z) at, (double X, double Z) goal, double speed, double stopFt, double dt, bool flat)
     {
+        // A status volume slows the body that touched it (F4-b): every step it takes. The flat step is the cover, cutoff and
+        // backup walk, whose speed never carries the heart swing's slow; every other step is a chase over the preview.
+        speed *= VolumeMul(pos, specialSlowed: !flat && Preview?.Frozen == true);
         if (!ResponseLaw)
             return flat ? StepFlat(at, goal, speed, stopFt, dt) : FieldingResolver.StepToward(at.X, at.Z, goal.X, goal.Z, speed, dt, Park, R);
         var dx = goal.X - at.X;
@@ -2241,9 +2330,13 @@ public sealed partial class LivePlaySystem
         return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
     }
 
-    /// <summary>The stick's step (§8.1): today's proportional step on the shipped table; under the response law the same want, answered through the body's velocity.</summary>
-    (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt)
+    /// <summary>
+    /// The stick's step (§8.1): today's proportional step on the shipped table; under the response law the same want, answered through the body's velocity.
+    /// <paramref name="specialSlowed"/> says the asked speed already carries the heart swing's slow (<see cref="VolumeMul"/>).
+    /// </summary>
+    (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt, bool specialSlowed)
     {
+        speed *= VolumeMul(pos, specialSlowed);
         if (!ResponseLaw) return FieldBounds.Clamp(Park, at.X + stickX * speed * dt, at.Z + stickY * speed * dt);
         var v = Respond(pos, at, (stickX * speed, stickY * speed), speed, dt);
         return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
@@ -3724,6 +3817,8 @@ public sealed partial class LivePlaySystem
         _events.Clear();
         _stamps.Clear();
         _stampsThisPlay.Clear();
+        _slows.Clear();
+        _slowsThisPlay.Clear();
         _scoreTold.Clear();
         RunnerPlay = true;
         PickoffBag = pickoffBag;
@@ -3739,6 +3834,7 @@ public sealed partial class LivePlaySystem
             return new LivePlayCommandResult(Snapshot);
         }
         InitRunnerGloves(pickoffBag);
+        _bodySlows.Begin(ParkHazards.StatusVolumes(Park, _match.Night, R));
         CatchGlove();
         HasBall = true;
         BallX = GloveX;

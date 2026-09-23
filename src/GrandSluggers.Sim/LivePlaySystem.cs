@@ -489,7 +489,8 @@ public sealed partial class LivePlaySystem
             _match.Outs,
             bag => Forces.At(bag),
             TagThreatAt,
-            GroundZones.Of(_match.Park, _match.Rules));
+            GroundZones.Of(_match.Park, _match.Rules),
+            RunnerSlowMul);
         // Decide, then move (a scripted step is one long frame); a bag touched this frame is read at once.
         Decide(dash01);
         RunnerSystem.Tick(Runners, dt, ctx, _match.Rules);
@@ -501,6 +502,9 @@ public sealed partial class LivePlaySystem
             }
         Decide(dash01);
     }
+
+    /// <summary>A runner's step multiplier this frame (F4-b): the status volume's slow while one slows him, else exactly 1.</summary>
+    double RunnerSlowMul(Runner runner) => BodySlows.Mul(_bodySlows.Slowed(runner), _match.Rules);
 
     void Decide(double dash01)
     {
