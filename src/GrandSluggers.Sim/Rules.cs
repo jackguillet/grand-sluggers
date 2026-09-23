@@ -1137,8 +1137,8 @@ public sealed class OffenseItemRules
 }
 
 /// <summary>
-/// The CPU batter (spec §5.9): a table evaluated when the ball reaches the plate plane, from the
-/// final trajectory. Zone class by the crossing (middle third / edge / near / far), the swing by
+/// The CPU batter (spec §5.9): a table evaluated from one read of the crossing — the final
+/// trajectory on the shipped root, the flight as it stands at the commit with <see cref="CommitRead"/> on. Zone class by the crossing (middle third / edge / near / far), the swing by
 /// count, the box by tracking (perfect, or the last pitch's crossing plus a fixed offset; worse
 /// after the pitcher moved on the rubber), timing σ by Bat and the difficulty rung.
 /// </summary>
@@ -1193,6 +1193,16 @@ public sealed class CpuBatterRules
     /// from the trajectory as it stands then (spec §3, §5.9). Its earliest error is −decideLeadSec × 60 frames.
     /// </summary>
     [Positive] public double DecideLeadSec { get; init; } = 0.12;
+    /// <summary>
+    /// What the CPU batter reads at the commit instant (spec §3, §5.9; PH-18, #892). <c>false</c>
+    /// (shipped) reads the final crossing at the plate plane, a future the batter cannot see:
+    /// whatever the command carries, including stick the pitcher will only add after the commit.
+    /// <c>true</c> (<c>trials/cpu-read</c>) predicts the crossing from the flight as it stands at
+    /// plate − <see cref="DecideLeadSec"/> − batting.window.leadSec: the family's own movement and
+    /// the stick's break applied so far, with no future steering. Zone, swing / take and the box
+    /// all follow that read, so a late steer after the commit can beat it. It adds no draw.
+    /// </summary>
+    public bool CommitRead { get; init; }
 }
 
 /// <summary>Charge vs slap by archetype (spec §5.9), derived from the Bat / Run split.</summary>
