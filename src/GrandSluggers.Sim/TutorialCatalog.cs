@@ -160,6 +160,7 @@ public sealed class TutorialCatalog
                     or "runner-send-halt-return" or "human-dash-run" or "all-runner-return" or "human-slide"
                     or "human-choice-second" or "human-ball-dash" or "human-uncovered-receiver" or "human-force-home" or "human-ability-reach" or "human-close-offense" or "human-close-defense" or "human-third-force-zero-run" or "human-bobble-recovery" or "human-fumble-recovery" or "human-third-force-cancels-run" or "human-third-tag-counts-run")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
+                || (setup.Policy is "grounder" or "liner" or "airborne" && l.Objective is "human-bobble-recovery" or "human-fumble-recovery")
                 // The field's lessons (F8-c): a hazard lesson plays at the park it names.
                 || (setup.Policy == "airborne" && l.Objective == "hazard-dodge-catch" && setup.Park.Length > 0)
                 || (setup.Policy == "grounder" && l.Objective == "hazard-redirect-take" && setup.Park.Length > 0)
@@ -280,7 +281,7 @@ public sealed class TutorialCatalog
                 var b = pair.Value;
                 Require(pair.Key is "shipped" && b is not null && double.IsFinite(b.CarryFt) && double.IsFinite(b.ExitMph)
                     && double.IsFinite(b.LaunchDeg) && double.IsFinite(b.SprayDeg) && b.CarryFt >= 0 && b.ExitMph >= 0
-                    && ((b.CarryFt > 0) != (b.ExitMph > 0)) && b.LaunchDeg is > 0 and < 90 && Math.Abs(b.SprayDeg) < 45, s.Id + " has invalid ball fixture");
+                    && ((b.CarryFt > 0) != (b.ExitMph > 0)) && b.LaunchDeg is > -90 and < 90 && (b.LaunchDeg > 0 || b.ExitMph > 0) && Math.Abs(b.SprayDeg) < 45, s.Id + " has invalid ball fixture");
             }
         }
         return errors;

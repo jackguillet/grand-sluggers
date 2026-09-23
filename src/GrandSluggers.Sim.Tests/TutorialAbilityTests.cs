@@ -18,7 +18,6 @@ public sealed class TutorialAbilityTests
 
     static void Drive(TutorialSession run, string profile, LivePlayCommandSource source, bool move)
     {
-
         for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
         {
             var live = run.Match.LivePlay;

@@ -112,8 +112,9 @@ public sealed class AtBatResolver
         var loft = b.Launch.LoftBaseDeg + (power - 5) * b.Launch.LoftPerPower
                    + (charged ? b.Charge.LoftDeg : 0) + height * b.Launch.PerFtOfHeight;
         var launch = loft - launchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
-        if (quality == ContactQuality.Sour)
+        if (quality == ContactQuality.Sour && input.UseStarSwing && !input.Bunt)
         {
+            // Only an authored special retains this override. Ordinary contact keeps its signed launch.
             // Sour is forced to a band: early tops it, late pops it; a sour slap on a changeup
             // or a charged pitch is a pop-up (§5.2, the pitcher-vs-batter game).
             var pop = err > 0 || (!charged && (input.ChangeupPitch || input.ChargePitch));

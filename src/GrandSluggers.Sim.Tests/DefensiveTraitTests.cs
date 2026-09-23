@@ -87,11 +87,11 @@ public class DefensiveTraitTests
     {
         var rules = Rules.Default;
         var catchRules = rules.Fielding.Catch;
-        Assert.Equal(6.0, catchRules.StandUpReachFt);
+        Assert.Equal(4.0, catchRules.StandUpReachFt);
 
         // Unauthored: the table's stand-up reach, the same for every Field.
         foreach (var field in new[] { 1, 5, 10 })
-            Assert.Equal(6.0, FieldingResolver.CatchRadiusFt(Character(field: field), null, rules), 6);
+            Assert.Equal(4.0, FieldingResolver.CatchRadiusFt(Character(field: field), null, rules), 6);
 
         // A table with no stand-up reach falls back to the legacy formula, which Field sizes.
         var legacyRules = new RulesTable { Fielding = new FieldingRules { Catch = new CatchRules { StandUpReachFt = 0 } } };

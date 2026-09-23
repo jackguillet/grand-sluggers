@@ -132,7 +132,7 @@ public class TrainingTests
         Assert.True(run.SetupTurnTwo(match));
         Assert.NotNull(match.First);
         // A hard grounder right at the shortstop: the CPU glove turns two by geometry (§8.8).
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 125, -3, -18);
         var field = match.ResolveFielding(hit, match.PreviewHit(hit));
         var play = match.FinishAtBat(
             new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 0, false), hit, field);

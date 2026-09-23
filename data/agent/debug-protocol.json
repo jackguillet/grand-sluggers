@@ -543,6 +543,36 @@
       "promoted": "BroadcastHudTests.StarMetersFollowTheMatchSettingEvenWithEmptyPools",
       "issue": "#968",
       "pr": ""
+    },
+    {
+      "id": "hit-label-selects-ball-physics",
+      "signature": "Ground balls cannot bounce early; near-identical contact changes speed at the liner cutoff; overhead liners are caught through their height.",
+      "stage": "sim",
+      "cause": "Launch was clamped to +3 degrees, ordinary sour contact selected a separate launch band, FlightRules selected a class clock, and catches used class/landing XZ without an upper reach bound.",
+      "fix": "Use signed continuous ordinary contact, one flight clock, incoming-impact surface response and live 3D catch reach. First surface contact decides catch versus pickup; descriptions do not.",
+      "promoted": "ContactFlightTests.LowLinerMeetsTheGloveAndHigherLinerClearsIt",
+      "issue": "#973",
+      "pr": ""
+    },
+    {
+      "id": "pitcher-read-does-not-block-possession",
+      "signature": "The pitcher catches or dives for a liner through the delivery recovery; movement lockout does not prevent possession.",
+      "stage": "sitting",
+      "cause": "LivePlaySystem.GloveMayTake did not read pitcher readiness; CPU dive commitment added a large radial lunge and catch envelope.",
+      "fix": "One pitcher recovery readiness drives planning, movement and possession, with ordinary bunt response. Only human East initiates a lateral dive; catch and pickup use the reduced shared reach.",
+      "promoted": "FieldingReachTests.PitcherRecoveryBlocksBothMovementAndTheLinerAlreadyOnTheirBody",
+      "issue": "#979",
+      "pr": ""
+    },
+    {
+      "id": "contact-effect-blanks-live-hud",
+      "signature": "HUD disappears after contact and returns late, especially through hit-freeze, smash or a star effect.",
+      "stage": "sitting",
+      "cause": "BroadcastHud.MutePlay tied every play overlay to spectacle, smash and freeze timers; HudView.Draw returned before drawing any match information.",
+      "fix": "BroadcastHud.Mode follows the plate/live phase with a compact runner diamond and outs during play. Effect clocks do not control HUD visibility. Only explicit capture/debug mute hides play overlays.",
+      "promoted": "BroadcastHudTests.ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay",
+      "issue": "#981",
+      "pr": ""
     }
   ]
 }

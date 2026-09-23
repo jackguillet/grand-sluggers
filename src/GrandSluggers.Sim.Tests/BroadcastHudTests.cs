@@ -7,16 +7,38 @@ public class BroadcastHudTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
 
-    [Fact]
-    public void PlayHudMutesDuringSpectacleSmashAndFreeze()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay(int seats)
     {
-        Assert.False(BroadcastHud.MutePlay(false, 0, 0));
-        Assert.True(BroadcastHud.MutePlay(true, 0, 0));
-        Assert.True(BroadcastHud.MutePlay(false, 0.55, 0));
-        Assert.True(BroadcastHud.MutePlay(false, 0, 0.12));
-        Assert.False(BroadcastHud.MutePlay(false, 0, 0));
-        foreach (var c in _content.Characters.Values.Where(c => c.Captain))
-            Assert.True(BroadcastHud.MutePlay(StarSkills.SpectacleSeconds(c.StarPitch) > 0, 0, 0));
+        // SET -> pitch -> contact/freeze -> flight -> possession/throw -> dead ball -> next SET.
+        // Repeated frames and lingering VFX cannot add a blank frame or a reappearance timer.
+        var phases = new[] { false, false, true, true, true, false, false };
+        var expected = new[] { BroadcastHud.PlayMode.Plate, BroadcastHud.PlayMode.Plate,
+            BroadcastHud.PlayMode.InPlay, BroadcastHud.PlayMode.InPlay, BroadcastHud.PlayMode.InPlay,
+            BroadcastHud.PlayMode.Plate, BroadcastHud.PlayMode.Plate };
+        Assert.Equal(expected, phases.Select(live => BroadcastHud.Mode(live)));
+        Assert.Equal(BroadcastHud.Layout(1), BroadcastHud.Layout(seats));
+        foreach (var live in phases)
+        {
+            Assert.Equal(BroadcastHud.PlayMode.Hidden, BroadcastHud.Mode(live, forceMute: true));
+            Assert.NotEqual(BroadcastHud.PlayMode.Hidden, BroadcastHud.Mode(live));
+        }
+    }
+
+    [Theory]
+    [InlineData(1024, 768)]
+    [InlineData(1280, 800)]
+    [InlineData(1920, 1080)]
+    public void LiveDiamondAndOutsRemainReadableTogetherClearOfCoaching(int width, int height)
+    {
+        Assert.True(BroadcastHud.InFrame(BroadcastHud.LivePanel, width, height));
+        Assert.True(BroadcastHud.Contains(BroadcastHud.LivePanel, BroadcastHud.LiveDiamond));
+        Assert.True(BroadcastHud.Contains(BroadcastHud.LivePanel, BroadcastHud.LiveOuts));
+        Assert.True(BroadcastHud.LiveDiamond.Bottom <= BroadcastHud.LiveOuts.Y);
+        Assert.True(BroadcastHud.TutorialCoach.Right < BroadcastHud.LivePanel.X);
+        Assert.Equal(BroadcastHud.Standard.Score.Right, BroadcastHud.LivePanel.Right, 8);
     }
 
     [Fact]
@@ -44,7 +66,7 @@ public class BroadcastHudTests
         Assert.Equal(match.Home.Name, bug.HomeName);
         Assert.InRange(bug.OffenseStars, 0, 5);
         Assert.InRange(bug.DefenseStars, 0, 5);
-        Assert.False(BroadcastHud.MutePlay(false, 0, 0));
+        Assert.Equal(BroadcastHud.PlayMode.Plate, BroadcastHud.Mode(false));
         Assert.Throws<ArgumentNullException>(() => BroadcastHud.From(null!));
         Assert.Equal(match.Innings, bug.Innings);
         Assert.Equal(3, bug.Innings);
@@ -201,7 +223,7 @@ public class BroadcastHudTests
         Assert.DoesNotContain(set.Runners, p => p.Batter);
 
         // S-40's hopper to short: the runner from first and the batter-runner both run.
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         var field = match.ResolveFielding(hit, preview);
         var live = match.LivePlay;

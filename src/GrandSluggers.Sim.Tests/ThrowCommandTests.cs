@@ -53,7 +53,15 @@ public sealed class ThrowCommandTests
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
         live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0));
-        var catchAt = preview.HangTimeSec - match.Rules.Fielding.Catch.WindowBeforeSec;
+        // Measure actual glove possession, which follows the physical ball's reach envelope.
+        var (baseline, _) = Defence(Game, centre: "moss", second: "marlow", shortstop: "frost");
+        Assert.True(baseline.StationRunner(3, Game.Must("konga")));
+        baseline.LivePlay.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit,
+            baseline.PreviewHit(hit), null, HumanGlove, 0));
+        while (baseline.LivePlay.Active && !baseline.LivePlay.Caught && baseline.LivePlay.ElapsedSeconds < 20)
+            baseline.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false));
+        Assert.True(baseline.LivePlay.Caught);
+        var catchAt = baseline.LivePlay.ElapsedSeconds;
         var sent = false; var cancelled = false; var queued = false; var threw = false;
         for (var i = 0; i < 1000 && live.Active; i++)
         {
@@ -106,7 +114,7 @@ public sealed class ThrowCommandTests
         var konga = content.Must("konga");
         Assert.True(match.StationRunner(3, konga));
         Assert.True(match.SetOuts(1));
-        var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
+        var hit = FlightFixtures.Landing(match.Park, 270, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
         var throws = RunCpu(match, hit, preview);
@@ -171,7 +179,7 @@ public sealed class ThrowCommandTests
         var konga = content.Must("konga");
         Assert.True(match.StationRunner(3, konga));
         Assert.True(match.SetOuts(1));
-        var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
+        var hit = FlightFixtures.Landing(match.Park, 270, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
 
