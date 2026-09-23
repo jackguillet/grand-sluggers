@@ -273,11 +273,19 @@ public sealed class NightBlockTests
                 + $"{match.Difficulty}  hazards {(match.Hazards ? "on" : "off")}"
         };
         var guard = 0;
+        IReadOnlyList<BallRedirected> told = [];
         while (!match.Over && guard++ < 2000)
         {
             var half = $"{(match.Top ? "T" : "B")}{match.Inning}";
             var ev = match.AutoPlay();
             lines.Add($"{half,-3} {match.AwayScore}-{match.HomeScore}  {ev.Kind,-11}  {ev.Caption}");
+            // The redirects the live ball went through (F4-c): a typed fact, so a mouth that moved or stopped taking the ball fails.
+            // The list lives until the next live play, so a pitch with no ball in play would show the last one again.
+            var now = match.LivePlay.RedirectsThisPlay.ToList();
+            if (!now.SequenceEqual(told))
+                foreach (var r in now)
+                    lines.Add($"    redirect {r.Type} {r.Hazard} -> {r.Exit} at {r.T:0.000}");
+            told = now;
         }
         Assert.True(match.Over);
         lines.Add($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
@@ -297,16 +305,18 @@ public sealed class NightBlockTests
     /// P2-e and P3-b re-recorded them again. 3e promoted the compact profile into the shipped data, and the four
     /// games are bit-identical to the trial rows they were. P3-c took the random tired wobble out (PH-08-R1), which
     /// changes play again; seed 16 no longer chomps, so the chomp row is seed 8. The gradual fade (PH-08-R1) changed
-    /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11. P4-b's held bunt
-    /// changed the CPU sac bunt (a side drawn with the square, no timing or aim draws), which re-records Funfair
-    /// seed 1 and both Ember rows; seed 11 has no square and is unchanged.
+    /// Funfair seed 8 and Ember seed 2; seed 8 no longer chomps, so the chomp row is seed 11. F4-c made the redirects live
+    /// and the chompers redirects (FD-09-R2): the log now lists each play's redirects, and both Funfair rows are re-recorded
+    /// (seed 11 sends flies through the chompers). PH-16-R18 (star pitches keep the ordinary window) and PH-16-R19
+    /// (no phonyball whiff roll) change play again, so the rows are re-recorded on top of F4-c. P4-b's held bunt
+    /// changed the CPU sac bunt (a side drawn with the square, no timing or aim draws), so they are re-recorded again.
     /// </summary>
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
-            ("funfair-park", 1, "Final  Ember Court 3  Spark All-Stars 2", "dd5ad6519508152fce8cf0268bd590aa0c2179ceec23ae3d00a41e0788e4b874"),
-            ("funfair-park", 11, "Final  Ember Court 4  Spark All-Stars 0", "53b0a73c68e7c09a34ced21cad1d9418073ab62d8ef9049cbd351938470c6086"),
+            ("funfair-park", 1, "Final  Ember Court 4  Spark All-Stars 1", "1a3dc8366ca9ab742696ccecf8345e18b2b58ba1c93cda9ab51ce02dcff8ec5c"),
+            ("funfair-park", 11, "Final  Ember Court 13  Spark All-Stars 2", "a1275ad64de30a164bee0dfa883b901c50f4d997f36054f7a177eb034220cb95"),
             ("ember-keep", 1, "Final  Ember Court 3  Spark All-Stars 0", "100d0c85fffd2ef1eee188330856affcc65da43533ce86175189a8263a39448c"),
-            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 0", "1c70355d8538ecfb486f3e3b27173bd2688e184b266f33c64f577c20766788f1")
+            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 1", "c1049914e5542825e46cbe3225143bd212126317a8be1775cc7e5e59070fb6bb")
         ];
 
     /// <summary>
@@ -323,9 +333,9 @@ public sealed class NightBlockTests
             var log = Log(Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: seed, parkId: park, night: true));
             Assert.Equal(final, log[(log.LastIndexOf('\n') + 1)..]);
             Assert.True(sha == Sha(log), $"{park} night seed {seed} is not the game it was:\n{log}");
-            chomped |= log.Contains("A chomper ate it!", StringComparison.Ordinal);
+            chomped |= log.Contains("redirect chomper", StringComparison.Ordinal);
         }
-        Assert.True(chomped, "the premise: one pinned Funfair night has a chomp in it");
+        Assert.True(chomped, "the premise: one pinned Funfair night has a ball through a chomper in it");
     }
 
     /// <summary>

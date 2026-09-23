@@ -36,25 +36,36 @@
     "reachPadFt": 0,
     "slowSec": 3.0
   },
-  // Funfair's warp cans and Canopy's barrels: a grounder landing inside radius + reachPadFt comes
-  // out of another one. The pad is the larger part of the capture disc (#732), not a rounding
+  // Funfair's warp cans and Canopy's barrels (F4-c, FR-07, FD-08-R1): live. A ball that enters the disc
+  // (radius + reachPadFt) at or below mouthFt comes out of another instance of the same type, drawn from
+  // the match's seeded stream - the draw decides the exit, never a result - with exitSpeedMul of its
+  // horizontal speed on the same heading and exitVyFtPerSec up. mouthFt, exitSpeedMul and
+  // exitVyFtPerSec are proposed, not tuned (a trial for Jack's sitting). The pad is the larger part of the capture disc (#732), not a rounding
   // allowance, so it takes the fence scale with the radii: 8 x 0.70 = 5.60, and a Canopy
   // barrel's disc is 3.50 + 5.60 = 9.10 ft, 0.70 of the full-size 13.00.
   "warpPipe": {
     "pattern": "ballRedirect",
     "nightRadiusMul": 1,
-    "reachPadFt": 5.6
+    "reachPadFt": 5.6,
+    "mouthFt": 3.5,
+    "exitSpeedMul": 0.8,
+    "exitVyFtPerSec": 12
   },
   "barrel": {
     "pattern": "ballRedirect",
     "nightRadiusMul": 1,
-    "reachPadFt": 5.6
+    "reachPadFt": 5.6,
+    "mouthFt": 3.5,
+    "exitSpeedMul": 1.1,
+    "exitVyFtPerSec": 18
   },
-  // Rooftop's star signs: a landing on one pays the batting team stars.gains.billboard.
+  // Rooftop's star signs (F4-c): live. A ball whose live path passes inside the disc at or below topFt
+  // (the sign's top) pays the batting team stars.gains.billboard, once a play, on a hit or a fly out.
   "billboard": {
     "pattern": "rewardTarget",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "topFt": 29
   },
   // Canopy's climbable wall: a Clamber fielder's longer reach and taller rob. A park-wide flag
   // today; FD-06 makes it a property of a wall span.
@@ -63,13 +74,17 @@
     "nightRadiusMul": 1,
     "reachPadFt": 0
   },
-  // Funfair's mouths: a fly that lands in one is an out with no glove. Park data since #847 (three
-  // C# literals behind a park-id test before it); night-only since F4-d because Funfair authors them
-  // in its night block, which is also why this row no longer says so.
+  // Funfair's mouths (F4-c, FD-09-R2): a ball redirect, no longer a catch stealer. A ball that comes
+  // into a mouth (between mouthFloorFt and mouthFt, so a fly on its way down, not a grounder) is spat out
+  // of another one, live; nobody is out by a mouth. Night-only because Funfair authors them in its night block (F4-d).
   "chomper": {
-    "pattern": "catchStealer",
+    "pattern": "ballRedirect",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "mouthFt": 12,
+    "mouthFloorFt": 4,
+    "exitSpeedMul": 0.6,
+    "exitVyFtPerSec": 16
   },
   // Drawn, never played (map §5 Q6, Jack, 2026-09-22). An honest row that says the type changes no
   // play, so a park may list one for the kit. Each gets a real pattern when its park comes up:

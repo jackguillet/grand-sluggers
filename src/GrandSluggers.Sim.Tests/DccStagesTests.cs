@@ -153,7 +153,7 @@ public sealed class DccStagesTests
     [Fact]
     public void SkillAndHarborNameTheStages()
     {
-        var skill = File.ReadAllText(Path.Combine(Repo, ".grok/skills/character-art/SKILL.md"));
+        var skill = File.ReadAllText(Path.Combine(Repo, ".claude/skills/character-art/SKILL.md"));
         var kit = File.ReadAllText(Path.Combine(Repo, "tools/blender/harbor_kit.py"));
         var readme = File.ReadAllText(Path.Combine(Repo, "tools/blender/README.md"));
         var rails = File.ReadAllText(Path.Combine(Repo, "docs/agent-rails.md"));

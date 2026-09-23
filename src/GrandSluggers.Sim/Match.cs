@@ -713,6 +713,9 @@ public sealed class Match
     /// <summary>One seeded directional result per failed contact (F693-02-uniform-error-direction): uniform in ±<paramref name="spreadDeg"/>.</summary>
     internal double RollSpreadDeg(double spreadDeg) => (_rng.NextDouble() * 2 - 1) * spreadDeg;
 
+    /// <summary>A hazard's draw from the match's seeded stream (F4-c, FD-08-R1): which of <paramref name="count"/> it picks. It decides what the hazard does, never a result.</summary>
+    internal int DrawIndex(int count) => _rng.Next(count);
+
     /// <summary>
     /// A drop on the catch is allowed only for star effects (§8.6, fielding.drops): a heatball, a
     /// phony swing, a glove the heart swing froze (<paramref name="frozen"/> is
@@ -1738,7 +1741,7 @@ public sealed class Match
                         AddStars(defense: false, Rules.Stars.Gains.Single);
                         caption = moment is not null
                             ? moment.NarratesBatterAtFirst ? LivePlay.Caption : $"{LivePlay.Caption} {Batter.Name} in at first."
-                            : field.Warped ? $"{Batter.Name} - it hopped a {ParkHazards.WarpName(Park)}!"
+                            : field.Warped ? $"{Batter.Name} - it went through a {CarnivalFront.RedirectName(field.RedirectType)}!"
                             : field.Heatball ? $"{Batter.Name} - it drops! Heatball."
                             : $"{Batter.Name} singles.";
                         liveNarrated = true;
@@ -1765,8 +1768,6 @@ public sealed class Match
                                 ? $"{field.Fielder?.Name} CLAMBERS the wall!"
                             : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.SuperJump
                                 ? $"{field.Fielder?.Name} SUPER JUMP!"
-                            : field.Chomped
-                                ? "A chomper ate it!"
                             : kind == PlayKind.FlyOut
                                 ? $"{field.Fielder?.Name} puts it away."
                                 : $"{field.Fielder?.Name} to first.";
@@ -1785,7 +1786,8 @@ public sealed class Match
                 break;
         }
 
-        if (ParkHazards.HitStarSign(Park, field.LandingX, field.LandingZ) &&
+        // A reward target the live ball hit (F4-c): read off the play, never off where the ball landed.
+        if (LivePlay.RewardThisPlay is not null &&
             kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun or PlayKind.FlyOut)
         {
             AddStars(defense: false, Rules.Stars.Gains.Billboard);

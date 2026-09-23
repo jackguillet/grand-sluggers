@@ -113,7 +113,11 @@ public enum LiveEvent
     /// A body touched a park's status volume this frame and runs slowed (FR-07, FD-08-R2; F4-b): who, which instance and until
     /// when are <see cref="LivePlaySystem.Slows"/>, one <see cref="BodySlowed"/> per touch.
     /// </summary>
-    BodySlowed
+    BodySlowed,
+    /// <summary>The ball went into a redirect and came out of another this frame (F4-c): <see cref="LivePlaySystem.RedirectsThisPlay"/>.</summary>
+    BallRedirected,
+    /// <summary>The ball hit a reward target this frame (F4-c): <see cref="LivePlaySystem.RewardThisPlay"/>.</summary>
+    RewardHit
 }
 
 /// <summary>
@@ -135,6 +139,9 @@ public sealed partial class LivePlaySystem
     readonly List<LiveStamp> _stampsThisPlay = [];
     /// <summary>The park's status volumes on the bodies that touch them (F4-b, #896): the touch, the per-body time, the slow.</summary>
     readonly BodySlows _bodySlows = new();
+    readonly BallHazards _ballHazards = new();
+    readonly List<BallRedirected> _redirectsThisPlay = [];
+    RewardHit? _reward;
     /// <summary>The fielding positions whose body a volume never slows (Burrow), read with the touches each frame: their route goes straight (F4-g).</summary>
     readonly HashSet<string> _routeImmune = new(StringComparer.OrdinalIgnoreCase);
     readonly List<BodySlowed> _slows = [];
@@ -143,7 +150,6 @@ public sealed partial class LivePlaySystem
     bool _gloved;
     bool _recoilArmed;
     bool _wallCued;
-    bool _chomped;
     FairFoulCall _call;
     double _closePlayT;
     double _closeOffAt = -1;
@@ -474,6 +480,8 @@ public sealed partial class LivePlaySystem
         _stampsThisPlay.Clear();
         _slows.Clear();
         _slowsThisPlay.Clear();
+        _redirectsThisPlay.Clear();
+        _reward = null;
         _scoreTold.Clear();
         Pitch = command.Pitch;
         Swing = command.Swing;
@@ -498,6 +506,8 @@ public sealed partial class LivePlaySystem
         InitGloves();
         // The park's status volumes, as this play reads them (F4-b): every body starts outside them, unslowed.
         _bodySlows.Begin(ParkHazards.StatusVolumes(Park, _match.Night, R));
+        // The ball's redirects and reward targets (F4-c): read live off the ball, never off where it lands.
+        _ballHazards.Begin(Park, _match.Night, R);
         var kind = LiveKind();
         var result = Begin(command with { PlayKind = kind });
         if (!Active) return result;
@@ -604,7 +614,6 @@ public sealed partial class LivePlaySystem
         _gloved = false;
         _recoilArmed = false;
         _wallCued = false;
-        _chomped = false;
         _bobbled = false;
         _sailed = false;
         _dropRolled = false;
@@ -638,6 +647,7 @@ public sealed partial class LivePlaySystem
         _cpuDecided = false;
         _foil.Clear();
         _bodySlows.Begin([]);
+        _ballHazards.Clear();
         _peel = null;
         _peelT = 0;
         _powT = 0;
@@ -720,6 +730,7 @@ public sealed partial class LivePlaySystem
         {
             var p = BallFlight.PointAt(Path, ElapsedSeconds, R);
             (BallX, BallY, BallZ) = p;
+            ReadBallHazards(dt);
         }
 
         if (DiveT > 0) DiveT -= dt;
@@ -823,15 +834,6 @@ public sealed partial class LivePlaySystem
         if (Hit is not null && Ball is { GroundRule: true, LeavesT: { } leftAt } && !HoldsBall && !Throwing && !_loose
             && ElapsedSeconds >= leftAt + R.Flight.DeadBall.RestHoldSec && !command.EffectInFlight)
             return Commit();
-        // A chomper (§14): the fly into the mouth is an out at the landing, nobody's glove.
-        if (Preview is { Chomped: true } && !_chomped && !HoldsBall && ElapsedSeconds >= Hang)
-        {
-            _chomped = true;
-            _call = FairFoulCall.Caught;
-            RecordCatchOut(PlayFielder());
-            return IsTime() ? Commit() : new LivePlayCommandResult(Snapshot);
-        }
-        if (_chomped) return IsTime() ? Commit() : new LivePlayCommandResult(Snapshot);
 
         if (RunnerPlay)
         {
@@ -2233,6 +2235,52 @@ public sealed partial class LivePlaySystem
             ? goal
             : VolumeRoute.Waypoint(at, goal, _bodySlows.Volumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
 
+    /// <summary>The redirects the ball went through this play, in order (F4-c).</summary>
+    public IReadOnlyList<BallRedirected> RedirectsThisPlay => _redirectsThisPlay;
+
+    /// <summary>The reward target the live ball hit this play, or null (F4-c).</summary>
+    public RewardHit? RewardThisPlay => _reward;
+
+    /// <summary>
+    /// Once a frame while the ball follows its path (F4-c; FR-07, FD-08-R1): a reward target the ball is under pays once a play,
+    /// and a redirect's mouth the ball is in sends it out of another instance of its type, drawn from the match's seeded stream.
+    /// The ball leaves the exit with the row's share of its horizontal speed on the same heading and the row's lift, the path is
+    /// continued from there on the shared flight and ground physics and the ball is re-read — the way a continuing deflection is
+    /// — and every chaser re-plans from the new path the next frame. The fair / foul call and every glove still decide the play.
+    /// </summary>
+    void ReadBallHazards(double dt)
+    {
+        if (Path is null || Hit is null || Ball is null || Preview is null || dt <= 0) return;
+        var t = ElapsedSeconds;
+        if (_reward is null && _ballHazards.Reward(BallX, BallY, BallZ) is { } sign)
+        {
+            _reward = new RewardHit(sign.Hazard, sign.Type, t);
+            if (!_events.Contains(LiveEvent.RewardHit)) _events.Add(LiveEvent.RewardHit);
+            var h = Park.Hazards[sign.Hazard];
+            _trace?.Mark(PlayTraceMarkKind.RewardHit, t, hazard: new PlayTraceHazard(sign.Hazard, sign.Type, h.X, h.Z, h.Radius, t));
+        }
+        if (_ballHazards.Entered(BallX, BallY, BallZ) is not { } mouth) return;
+        var exits = _ballHazards.ExitsFor(mouth);
+        var exit = exits[_match.DrawIndex(exits.Count)];
+        var before = BallFlight.PointAt(Path, Math.Max(0, t - dt), R);
+        var (vx, vz) = ((BallX - before.X) / dt, (BallZ - before.Z) / dt);
+        var (x, y, z, ox, oy, oz) = BallHazards.Launch(exit, vx, vz);
+        var entry = (X: BallX, Z: BallZ);
+        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
+        Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
+        (BallX, BallY, BallZ) = (x, y, z);
+        _ballPrev = null;
+        Preview = Preview with { LandingX = Ball.LandingX, LandingZ = Ball.LandingZ };
+        CoverBallX = Ball.LandingX;
+        _ballHazards.Exited(exit);
+        var fact = new BallRedirected(mouth.Hazard, mouth.Type, exit.Hazard, t, entry.X, entry.Z, x, z);
+        _redirectsThisPlay.Add(fact);
+        if (!_events.Contains(LiveEvent.BallRedirected)) _events.Add(LiveEvent.BallRedirected);
+        _trace?.Mark(PlayTraceMarkKind.BallRedirected, t,
+            hazard: new PlayTraceHazard(mouth.Hazard, mouth.Type, mouth.X, mouth.Z, mouth.DiscFt, t, exit.Hazard));
+        Sub = $"Into the {CarnivalFront.RedirectName(mouth.Type)}!";
+    }
+
     double VolumeMul(string pos, bool specialSlowed) => BodySlows.Mul(!specialSlowed && _bodySlows.Slowed(pos), R);
 
     // ---------------------------------------------------------------------------------
@@ -3378,9 +3426,10 @@ public sealed partial class LivePlaySystem
             ? FieldingResolver.PlayerCatchFeat(pre, Park, Buddy, CatchJump, CatchDive)
             : DefensiveFeat.None;
         return new FieldingResult(kind, from, ArmedCut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace,
-            ArmedThrow, pre.Buddy, Warped: Field?.Warped ?? pre.Warped, Item: Field?.Item, Chomped: pre.Chomped,
+            ArmedThrow, pre.Buddy, Warped: (Field?.Warped ?? pre.Warped) || _redirectsThisPlay.Count > 0, Item: Field?.Item,
             Bobble: _bobbled, KnockbackSec: knock, Feat: feat, GroundRule: pre.Ball is { GroundRule: true },
-            Caught: _gloved, ThrowSailed: _sailed, ItemHit: Field?.ItemHit ?? false, ItemTarget: Field?.ItemTarget);
+            Caught: _gloved, ThrowSailed: _sailed, ItemHit: Field?.ItemHit ?? false, ItemTarget: Field?.ItemTarget,
+            RedirectType: _redirectsThisPlay.Count > 0 ? _redirectsThisPlay[^1].Type : null);
     }
 
     // ---------------------------------------------------------------------------------
@@ -3680,7 +3729,6 @@ public sealed partial class LivePlaySystem
         if (_call == FairFoulCall.Foul) return PlayKind.Foul;
         if (_call == FairFoulCall.Caught) return PlayKind.FlyOut;
         if (Preview is null) return Field?.Kind ?? PlayKind;
-        if (Preview.Chomped) return PlayKind.FlyOut;
         return FlyCatch.PlayerKind(false, Preview, inAir: true, foul: FoulNow);
     }
 
