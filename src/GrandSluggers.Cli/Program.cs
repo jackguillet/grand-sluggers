@@ -55,19 +55,31 @@ switch (cmd)
         var cohortAt = Array.IndexOf(args, "--cohort");
         if (cohortAt >= 0)
         {
-            // --table is the park-factors report read by a person instead of filed as JSON; every
-            // other argument is refused, because a cohort fixes its own seeds, parks and matchups.
-            var table = args.Length == 4 && args[3] == "--table" && args.ElementAtOrDefault(2) == ParkFactorCohort.Name;
+            // --table is the park-factors report read by a person instead of filed as JSON, and
+            // --hazards on|off narrows it to one of its two hazard states; every other argument is
+            // refused, because a cohort fixes its own seeds, parks and matchups.
             var names = RaceCohort.Names.Append(ParkFactorCohort.Name).ToArray();
-            if (cohortAt != 1 || (args.Length != 3 && !table) || !names.Contains(args[2]))
+            var cohort = args.ElementAtOrDefault(2) ?? "";
+            var extra = args.Skip(3).ToList();
+            var table = extra.Remove("--table");
+            bool? cohortHazards = null;
+            var hazardsAt = extra.IndexOf("--hazards");
+            if (hazardsAt >= 0)
             {
-                Console.Error.WriteLine($"Use match --cohort {string.Join("|", names)} without overrides; each cohort fixes its seeds, parks and matchups. Add --table to read {ParkFactorCohort.Name} as a table instead of JSON.");
+                cohortHazards = HazardsValue(extra.ElementAtOrDefault(hazardsAt + 1));
+                extra.RemoveRange(hazardsAt, Math.Min(2, extra.Count - hazardsAt));
+            }
+            var narrows = table || hazardsAt >= 0;
+            if (cohortAt != 1 || !names.Contains(cohort) || extra.Count > 0
+                || (narrows && cohort != ParkFactorCohort.Name) || (hazardsAt >= 0 && cohortHazards is null))
+            {
+                Console.Error.WriteLine($"Use match --cohort {string.Join("|", names)} without overrides; each cohort fixes its seeds, parks and matchups. Add --table to read {ParkFactorCohort.Name} as a table instead of JSON, and --hazards on|off to report one hazard state instead of both.");
                 Environment.ExitCode = 2;
                 break;
             }
-            if (args[2] == ParkFactorCohort.Name)
+            if (cohort == ParkFactorCohort.Name)
             {
-                var report = ParkFactorCohort.Run(content);
+                var report = ParkFactorCohort.Run(content, hazards: cohortHazards);
                 // The table always reaches a person: on stdout when asked for, beside the provenance
                 // line on stderr otherwise, so the filed JSON stays byte-comparable between runs.
                 if (table) Console.Write(report.Table());
@@ -78,8 +90,17 @@ switch (cmd)
             break;
         }
         // A park or a captain the catalog does not have is a stop, not a silent fall back to Harbor
-        // (#820): a run that prints a Final under the wrong park is worse than no run at all.
-        try { RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args), Night(args)); }
+        // (#820): a run that prints a Final under the wrong park is worse than no run at all. A
+        // hazards value that is neither on nor off is the same stop, not a quiet default.
+        var hazardsArg = Array.IndexOf(args, "--hazards");
+        var hazards = hazardsArg < 0 ? true : HazardsValue(args.ElementAtOrDefault(hazardsArg + 1));
+        if (hazards is null)
+        {
+            Console.Error.WriteLine("match: use --hazards on|off (default on).");
+            Environment.ExitCode = 2;
+            break;
+        }
+        try { RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args), Night(args), hazards.Value); }
         catch (KeyNotFoundException e) { Console.Error.WriteLine("match: " + e.Message); Environment.ExitCode = 2; }
         break;
     case "challenge":
@@ -116,9 +137,9 @@ switch (cmd)
               team [spark-allstars|ember-court|mixed-rivals|rio|vale|zig|brondo|konga|ashlord]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
-              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--night] [--difficulty easy|normal|hard] [--trace [file]]
+              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--night] [--hazards on|off] [--difficulty easy|normal|hard] [--trace [file]]
               match --cohort s29|harbor-calibration|harbor-validation
-              match --cohort park-factors [--table]
+              match --cohort park-factors [--table] [--hazards on|off]
               challenge [--captain rio] [--seed N]
               art
               protocol
@@ -141,6 +162,18 @@ static int Seed(string[] args)
 /// Funfair's chompers — could not be measured headless before this flag existed.
 /// </summary>
 static bool Night(string[] args) => args.Contains("--night");
+
+/// <summary>
+/// Park hazards on or off (FD-10, §14): <c>--hazards off</c> plays the park with its hazard instances
+/// removed and nothing else changed. On is the default. Null for anything that is neither, so the
+/// caller stops rather than guessing which game was meant.
+/// </summary>
+static bool? HazardsValue(string? value) => value switch
+{
+    "on" => true,
+    "off" => false,
+    _ => null
+};
 
 static string ParkId(string[] args)
 {
@@ -315,17 +348,17 @@ static void DumpChem(ContentCatalog content, string id)
     }
 }
 
-static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty, string? trace, bool night)
+static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty, string? trace, bool night, bool hazards)
 {
     var match = string.IsNullOrEmpty(parkId)
-        ? Match.Exhibition(content, home, away, innings: 3, seed: seed, night: night, difficulty: difficulty)
-        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, night: night, difficulty: difficulty);
+        ? Match.Exhibition(content, home, away, innings: 3, seed: seed, night: night, difficulty: difficulty, hazards: hazards)
+        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, night: night, difficulty: difficulty, hazards: hazards);
     if (trace is not null) match.Tracing = true;
     var log = Console.Out;
     if (trace == "-") Console.SetOut(Console.Error);
     try
     {
-        Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {(match.Night ? "night" : "day")}  {match.Difficulty}");
+        Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {(match.Night ? "night" : "day")}  {match.Difficulty}  hazards {(match.Hazards ? "on" : "off")}");
         Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
         while (!match.Over)
         {
