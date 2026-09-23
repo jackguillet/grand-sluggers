@@ -51,6 +51,15 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
 
     static Park Plain(ContentCatalog catalog) => catalog.Parks["harbor-diamond"];
 
+    /// <summary>
+    /// Every zone on a shipped row still at 1.0 (ash; ice is Crystal's own since F9-a): the park the <c>AtOne</c> rows walk,
+    /// so a row at 1.0 still plays the pre-change bits wherever it is laid.
+    /// </summary>
+    static Park AtOneGround(ContentCatalog catalog) => Plain(catalog) with
+    {
+        Zones = new ParkZones(InfieldDirt: Ground.Ash, Outfield: Ground.Ash, WarningTrack: Ground.Ash, FoulApron: Ground.Ash)
+    };
+
     static Park Iced(ContentCatalog catalog) => Plain(catalog) with
     {
         Zones = new ParkZones(InfieldDirt: Ground.Ice, Outfield: Ground.Ice, WarningTrack: Ground.Ice, FoulApron: Ground.Ice)
@@ -64,7 +73,8 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     [Fact]
     public void EveryGroundRowCarriesTheBodyBlockAtOne()
     {
-        foreach (var id in Game.Rules.Grounds.Ids)
+        // Ice is Crystal's own row since F9-a (GroundLibraryTests.F9A_TheIceRowIsCrystalsNumbersFieldForField).
+        foreach (var id in Game.Rules.Grounds.Ids.Where(id => id != Ground.Ice))
         {
             var body = Game.Rules.Grounds.Of(id).Body;
             Assert.Equal((1.0, 1.0, 1.0, 1.0, 1.0), (body.StartMul, body.BrakeMul, body.CutMul, body.SlideMul, body.OverrunMul));
@@ -360,7 +370,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
             Hash(StickRun(Game, Plain(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
         // A zone map that names every zone a 1.0 row is the same path: the read is there, the product is exact.
         Assert.Equal("048730fc3eb307df268818a40fa5102d45907d447632957fcdee82518c4c3fad",
-            Hash(StickRun(Game, Iced(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
+            Hash(StickRun(Game, AtOneGround(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
     }
 
     /// <summary>The planner's route on a synthetic roller: the pre-F3-d values, on the law-off copy and on the data (law on).</summary>
@@ -371,7 +381,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
             PlanRoute(_roots.LawOff.Rules, Plain(_roots.LawOff)));
         var ramped = new FieldingPursuit.Route(-26.081249999999997, 120.85624999999999, 1.3, 16.172964033379905, 18, 1.05, true, false, 0.1);
         Assert.Equal(ramped, PlanRoute(Game.Rules, Plain(Game)));
-        Assert.Equal(ramped, PlanRoute(Game.Rules, Iced(Game)));
+        Assert.Equal(ramped, PlanRoute(Game.Rules, AtOneGround(Game)));
     }
 
     /// <summary>
@@ -385,7 +395,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
         var catalog = Game;
         Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, null)));
         Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Plain(catalog), catalog.Rules))));
-        Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Iced(catalog), catalog.Rules))));
+        Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(AtOneGround(catalog), catalog.Rules))));
     }
 
     // ---------------------------------------------------------------------------------

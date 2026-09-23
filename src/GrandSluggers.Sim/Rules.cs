@@ -1361,8 +1361,19 @@ public sealed class GroundLibrary
     /// <summary>The infield and the warning track of every park, whatever its <c>surface</c> says (<see cref="GroundZones"/>).</summary>
     public GroundRules Dirt { get; init; } = new();
 
-    /// <summary>Crystal Rink's surface. Its numbers are grass's until F9-a measures a trial.</summary>
-    public GroundRules Ice { get; init; } = new();
+    /// <summary>
+    /// Crystal Rink's surface (F9-a): the ball runs and skids farther and a body is slower to start, stop and turn, never
+    /// faster and never off its heading (FD-04 B). Proposed numbers, not tuned; Jack judges them in play (FD-13-R2).
+    /// </summary>
+    public GroundRules Ice { get; init; } = new()
+    {
+        Roll = new() { Friction = 12, RestSpeed = 0.8 },
+        Bounce = new() { Restitution = 0.40, Horizontal = 0.92, MinVy = 3.6 },
+        Skid = new() { LaunchMinDeg = 14, LaunchMaxDeg = 28, MinVy = 2.2, Restitution = 0.22, Horizontal = 0.97 },
+        Overthrow = new() { DecelFtPerSec2 = 10 },
+        Bobble = new() { Restitution = 0.35, GroundRetain = 0.90, DecelFtPerSec2 = 3.5 },
+        Body = new() { StartMul = 1.3, BrakeMul = 1.6, CutMul = 1.4, SlideMul = 1.35, OverrunMul = 1.5 },
+    };
 
     /// <summary>Ember Keep's surface. Its numbers are grass's until F9-a measures a trial.</summary>
     public GroundRules Ash { get; init; } = new();
@@ -1573,9 +1584,13 @@ public sealed class WallMaterialLibrary
     /// <summary>The padded outfield wall every park has today, at what <c>flight.wall</c> carried.</summary>
     public WallRules Padded { get; init; } = new();
 
+    /// <summary>Crystal Rink's glass boards (F9-a): a livelier carom than the pad. Proposed, not tuned.</summary>
+    public WallRules Glass { get; init; } = new() { Restitution = 0.62, Tangential = 0.90 };
+
     WallRules? Named(string id) => id switch
     {
         WallMaterial.Padded => Padded,
+        WallMaterial.Glass => Glass,
         _ => null
     };
 

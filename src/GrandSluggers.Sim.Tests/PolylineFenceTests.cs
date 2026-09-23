@@ -69,7 +69,9 @@ public sealed class PolylineFenceTests
     {
         var parks = 0;
         var catalog = Game;
-        foreach (var park in catalog.Parks.Values)
+        // Every park that names no points (F9-a: Crystal names its glass boards and is held by F9A_CrystalsFence…).
+        Assert.Equal(["crystal-rink"], catalog.Parks.Values.Where(p => p.Fence is not null).Select(p => p.Id));
+        foreach (var park in catalog.Parks.Values.Where(p => p.Fence is null))
         {
             var (home, away) = PresetTeams.Pair(catalog, "rio", "ashlord");
             parks++;
@@ -116,7 +118,7 @@ public sealed class PolylineFenceTests
             var identity = PlayTraceIdentity.Capture(new Match(catalog, away, home, park, innings: 3, seed: 7));
             Assert.DoesNotContain("\"fence\"", identity.InputsJson, StringComparison.Ordinal);
         }
-        Assert.Equal(6, parks);
+        Assert.Equal(5, parks); // six parks, less Crystal, which names its glass boards (F9-a)
     }
 
     // ---------------------------------------------------------------------------------
@@ -361,7 +363,7 @@ public sealed class PolylineFenceTests
         { "chord", ["fence.points[0] to [1] runs", "ft from home at its nearest", "infield lip"] },
         { "height", ["fence.points[5] heightFt must stand over the 4.2 ft foul rail (D15); got 4"] },
         { "no-height", ["fence.points[6] heightFt must be a finite number of feet; got none"] },
-        { "material", ["fence.points[6] material must be a wall material with a row in", "walls.json", "the library is [padded]; got 'brick'"] },
+        { "material", ["fence.points[6] material must be a wall material with a row in", "walls.json", "the library is [padded, glass]; got 'brick'"] },
         { "last-material", ["fence.points[10] material names the span from a point to the next one", "got 'padded'"] },
         { "frac", ["fence.points[1] fenceFrac must be greater than 0", "got 0"] },
     };
