@@ -44,7 +44,7 @@ public sealed class ParkEnvironmentTests
     /// <summary>A park that exists only here. Harbor's posts, so the only thing that can move a flight is the air.</summary>
     static Park Air(ParkEnvironment? environment, double windMph = 0, double windDeg = 0) =>
         new("fixture-air", "Fixture Air", "harbor", "grass", 330, 400, 330, windMph,
-            Array.Empty<Hazard>(), windDeg, 12, 1.0, environment);
+            Array.Empty<Hazard>(), windDeg, 12, environment);
 
     // ---------------------------------------------------------------------------------
     // SF-01 — Harbor is the default

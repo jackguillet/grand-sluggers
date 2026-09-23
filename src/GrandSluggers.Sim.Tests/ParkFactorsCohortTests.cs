@@ -120,15 +120,24 @@ public class ParkFactorsNightTests
 
     /// <summary>
     /// The night half of the cohort, and <c>cli match --night</c>, reach the match the same way:
-    /// <c>Match.Exhibition(..., night: true)</c>. <see cref="NightTests"/> pins why Crystal differs
+    /// <c>Match.Exhibition(..., night: true)</c>. <see cref="NightTests"/> pins why Funfair differs
     /// and Harbor does not; this row pins that a whole night game is played, not a day game with a
     /// flag set.
+    ///
+    /// <para>
+    /// Re-authored to FD-11-R2 (F4-d, #895): this row used Crystal, whose night differed from its day
+    /// only by the contact window. Night keeps the stadium lights and the window is dropped on both
+    /// roots, so a Crystal night is now its day, game for game; what night changes is the hazards, so the
+    /// row that shows a night game is played is Funfair's, whose chompers are its night block (seed 7 has
+    /// a chomp in it, <see cref="HazardsOffTests"/>).
+    /// </para>
     /// </summary>
     [Fact]
     public void NightReachesTheMatchTheCohortPlays()
     {
         var (home, away) = ParkFactorCohort.Matchups[0];
-        Assert.NotEqual(Game("crystal-rink", night: false), Game("crystal-rink", night: true));
+        Assert.NotEqual(Game("funfair-park", night: false), Game("funfair-park", night: true));
+        Assert.Equal(Game("crystal-rink", night: false), Game("crystal-rink", night: true));
         Assert.Equal(Game(ParkFactorCohort.ControlPark, false), Game(ParkFactorCohort.ControlPark, true));
 
         string Game(string parkId, bool night)

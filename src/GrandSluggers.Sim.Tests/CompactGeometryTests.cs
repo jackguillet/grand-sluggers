@@ -45,6 +45,15 @@ public sealed class CompactGeometryTests
     static readonly string[] ParkIds =
         ["canopy-yard", "crystal-rink", "ember-keep", "funfair-park", "harbor-diamond", "rooftop-city"];
 
+    /// <summary>
+    /// Every hazard instance a park authors, day block then night block, in file order: the park as a
+    /// night match plays it with hazards on (<see cref="PlayedPark.Of"/>, FD-11, F4-d). Funfair's three
+    /// chompers moved into its night block, so a row that walks a park's hazards reads them here and the
+    /// migration and zone rows below cover the same 26 instances they always did.
+    /// </summary>
+    static IReadOnlyList<Hazard> Authored(ContentCatalog content, string id) =>
+        PlayedPark.Of(content.Parks[id], night: true, hazards: true, content.Rules.Hazards).Hazards;
+
     // ---------------------------------------------------------------------------------
     // What the overlay carries
     // ---------------------------------------------------------------------------------
@@ -241,11 +250,12 @@ public sealed class CompactGeometryTests
 
     /// <summary>
     /// Wall heights do not scale, because bodies did not shrink. An 8-ft wall stays 8 ft and Crystal
-    /// Rink and Funfair Park simply stay the friendlier parks they already are. Wind and the night
-    /// window are not this slice's either.
+    /// Rink and Funfair Park simply stay the friendlier parks they already are. Wind is not this slice's
+    /// either. The night window this row also held is gone on both roots (FD-11-R2, F4-d); a park's night
+    /// is its night block, whose instances migrate with the rest (<see cref="HazardsMigrateByTheZoneTheySitInAndTheirRadiiTakeTheFenceScale"/>).
     /// </summary>
     [Fact]
-    public void WallsWindAndTheNightWindowAreTheShippedOnes()
+    public void WallsAndWindAreTheShippedOnes()
     {
         foreach (var id in ParkIds)
         {
@@ -254,7 +264,8 @@ public sealed class CompactGeometryTests
             Assert.Equal(shipped.FenceHeightFt, trial.FenceHeightFt);
             Assert.Equal(shipped.WindMph, trial.WindMph);
             Assert.Equal(shipped.WindDeg, trial.WindDeg);
-            Assert.Equal(shipped.NightContactWindowMul, trial.NightContactWindowMul);
+            Assert.Equal(shipped.Night is null, trial.Night is null);
+            Assert.Equal(shipped.Night?.Hazards.Count, trial.Night?.Hazards.Count);
             Assert.Equal(shipped.Surface, trial.Surface);
             Assert.Equal(shipped.Faction, trial.Faction);
         }
@@ -284,8 +295,9 @@ public sealed class CompactGeometryTests
     {
         foreach (var id in ParkIds)
         {
-            var shipped = Control.Parks[id].Hazards;
-            var trial = Trial.Parks[id].Hazards;
+            // Day and night blocks alike (FD-11, F4-d): the night block's instances migrate by the same rule.
+            var shipped = Authored(Control, id);
+            var trial = Authored(Trial, id);
             Assert.Equal(shipped.Count, trial.Count);
             for (var i = 0; i < shipped.Count; i++)
             {
@@ -1206,8 +1218,8 @@ public sealed class CompactGeometryTests
 
         foreach (var id in ParkIds)
         {
-            var shipped = Control.Parks[id].Hazards;
-            var trial = Trial.Parks[id].Hazards;
+            var shipped = Authored(Control, id);
+            var trial = Authored(Trial, id);
             for (var i = 0; i < shipped.Count; i++)
             {
                 var was = Diamond.Dist(0, 0, shipped[i].X, shipped[i].Z) >= lip;
@@ -1233,8 +1245,8 @@ public sealed class CompactGeometryTests
         var stillInside = new List<string>();
         foreach (var id in ParkIds)
         {
-            var shipped = Control.Parks[id].Hazards;
-            var trial = Trial.Parks[id].Hazards;
+            var shipped = Authored(Control, id);
+            var trial = Authored(Trial, id);
             for (var i = 0; i < shipped.Count; i++)
             {
                 if (Diamond.Dist(0, 0, shipped[i].X, shipped[i].Z) < lip) continue;
@@ -1344,13 +1356,21 @@ public sealed class CompactGeometryTests
     /// in play, so a Funfair night on <c>trials/c80</c> now differs from its day. Nothing on the
     /// shipped root moved: the same three discs at the same three places.
     /// </para>
+    ///
+    /// <para>
+    /// <b>Read through the night block since F4-d (FD-11).</b> The mouths are Funfair's night-block
+    /// instances, so the park a night match plays holds them and the park a day match plays does not;
+    /// the row reads both through <see cref="PlayedPark.Of"/>, the one resolution every reader uses.
+    /// </para>
     /// </summary>
     [Fact]
     public void TheMigratedCentreFielderIsClearOfTheFunfairChompers()
     {
-        var funfair = Trial.Parks["funfair-park"];
+        var funfair = PlayedPark.Of(Trial.Parks["funfair-park"], night: true, hazards: true, Trial.Rules.Hazards);
+        var funfairByDay = PlayedPark.Of(Trial.Parks["funfair-park"], night: false, hazards: true, Trial.Rules.Hazards);
+        var shippedFunfair = PlayedPark.Of(Control.Parks["funfair-park"], night: true, hazards: true, Control.Rules.Hazards);
         var centre = funfair.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C");
-        var shippedCentre = Control.Parks["funfair-park"].Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C");
+        var shippedCentre = shippedFunfair.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C");
         var was = Control.Rules.Fielders.Spot("CF");
         var now = Trial.Rules.Fielders.Spot("CF");
 
@@ -1368,21 +1388,22 @@ public sealed class CompactGeometryTests
         foreach (var pos in new[] { "LF", "CF", "RF" })
         {
             var spot = Trial.Rules.Fielders.Spot(pos);
-            Assert.False(ParkHazards.ChompFly(funfair, night: true, spot.X, spot.Z, rules: Trial.Rules), "trial " + pos);
+            Assert.False(ParkHazards.ChompFly(funfair, spot.X, spot.Z, rules: Trial.Rules), "trial " + pos);
             var shippedSpot = Control.Rules.Fielders.Spot(pos);
             Assert.False(
-                ParkHazards.ChompFly(Control.Parks["funfair-park"], night: true, shippedSpot.X, shippedSpot.Z, rules: Control.Rules),
+                ParkHazards.ChompFly(shippedFunfair, shippedSpot.X, shippedSpot.Z, rules: Control.Rules),
                 "shipped " + pos);
         }
 
         // Only at night, and only a fly: a grounder or a liner is never chomped.
-        Assert.True(ParkHazards.ChompFly(funfair, night: true, centre.X, centre.Z, rules: Trial.Rules));
-        Assert.False(ParkHazards.ChompFly(funfair, night: false, centre.X, centre.Z, rules: Trial.Rules));
-        Assert.False(ParkHazards.ChompFly(funfair, night: true, centre.X, centre.Z, grounder: true, rules: Trial.Rules));
+        Assert.True(ParkHazards.ChompFly(funfair, centre.X, centre.Z, rules: Trial.Rules));
+        Assert.False(ParkHazards.ChompFly(funfairByDay, centre.X, centre.Z, rules: Trial.Rules));
+        Assert.False(ParkHazards.ChompFly(funfair, centre.X, centre.Z, grounder: true, rules: Trial.Rules));
 
         // And no other park has chompers at all, whatever a body stands on.
         foreach (var id in ParkIds.Where(p => p != "funfair-park"))
-            Assert.False(ParkHazards.ChompFly(Trial.Parks[id], night: true, centre.X, centre.Z, rules: Trial.Rules), id);
+            Assert.False(ParkHazards.ChompFly(
+                PlayedPark.Of(Trial.Parks[id], night: true, hazards: true, Trial.Rules.Hazards), centre.X, centre.Z, rules: Trial.Rules), id);
     }
 
     /// <summary>
