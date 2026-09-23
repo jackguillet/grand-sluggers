@@ -70,7 +70,7 @@ public static class RoleTables
             new("Move pitcher", "Left stick L/R. Down resets."),
             new("Normal pitch", "Tap RT"),
             new("Charge pitch", "Hold RT; release at MAX"),
-            new("Cycle pitch", "West before charge"),
+            new("Cycle pitch", "West before charge; starts Fastball; charge locks"),
             new("Star pitch", "Hold LT at RT release"),
             new("Break", "Left stick after release"),
             new("Pickoff", "Hold right stick + RT. After charge: BALK."),

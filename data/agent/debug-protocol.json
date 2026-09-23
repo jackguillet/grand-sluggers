@@ -4,6 +4,15 @@
   // GitHub sitting children stay; they are not the memory.
   "entries": [
     {
+      "id": "star-runner-input-collision",
+      "signature": "Steal and Star hit compete on LB; moving the batter also sends a selected runner",
+      "stage": "sitting",
+      "cause": "Role and phase-dependent hardware meanings shared the Star bumper and the batter movement stick with runner orders.",
+      "fix": "ControllerLayout keeps LT Star, RT baseball and LB/RB runner orders independent across SET, flight and contact. Right-stick selection is separate from left-stick movement; automatic catches never create a throw request.",
+      "promoted": "ControllerInputTests.StarAndRunnerOrdersAreIndependentDuringASwing; RunnerOrdersTests; AtBatInputGate.VerifyControllerRouting",
+      "issue": "#983"
+    },
+    {
       "id": "brim-in-plate-lens",
       "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
       "stage": "still-gate",

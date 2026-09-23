@@ -56,8 +56,7 @@ namespace GrandSluggers.UnityClient
         float _moundX;
 
         /// <summary>
-        /// Each seat's held special modifier (spec §12, PH-16-R10, R11, R17), by pad index: LB on the pad, Q on player
-        /// 1's keys. The state is the leak guard; the step that moves it is the sim's (<see cref="StarModifier"/>).
+        /// Each seat's held special modifier (spec §12, PH-16-R10, R11, R17), by pad index: LT on either controller. The state is the leak guard; the step that moves it is the sim's (<see cref="StarModifier"/>).
         /// </summary>
         readonly StarModifierState[] _starMods = new StarModifierState[2];
 
@@ -79,7 +78,7 @@ namespace GrandSluggers.UnityClient
             _starMods[1] = StarModifier.Tick(_starMods[1], Controls.Pad2.StarHeld);
         }
 
-        /// <summary>Whether <paramref name="pad"/>'s LB may mean all-advance, the cutoff or half the halt on this tick.</summary>
+        /// <summary>Whether this seat may make a fresh Star request. Runner orders are independent.</summary>
         bool StarFree(Controls.Pad pad) =>
             pad.Index < 0 || pad.Index >= _starMods.Length || StarModifier.IsFree(_starMods[pad.Index]);
 

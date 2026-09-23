@@ -14,6 +14,7 @@ namespace GrandSluggers.UnityClient
         public string Difficulty = "normal";
         public PracticeLesson PracticePick = PracticeLesson.Pitching;
         int _pauseItem;
+        Controls.Pad _pausePad = Controls.Pad1;
         bool _pauseHowTo;
         bool _pauseFromHowTo;
         int _pausePage;
@@ -290,6 +291,7 @@ namespace GrandSluggers.UnityClient
                 Controls.CallTime, _t);
             if (openedHowTo || openedPause)
             {
+                _pausePad = Controls.Pad2.Start || Controls.Pad2.Esc ? Controls.Pad2 : Controls.Pad1;
                 _match.SetPaused(true);
                 if (openedPause && GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.CallTimeOpened);
                 _pauseItem = openedHowTo ? 2 : 0;
@@ -297,8 +299,8 @@ namespace GrandSluggers.UnityClient
                 _pauseFromHowTo = openedHowTo;
                 _pausePage = 0;
                 _pauseStick = 0;
-                _menuX.Catch(Controls.MenuX);
-                _pauseY.Catch(Controls.MenuY);
+                _menuX.Catch(_pausePad.MenuAxisX);
+                _pauseY.Catch(_pausePad.MenuAxisY);
                 _wheelSpin = true;
                 _t = 0;
                 if (openedHowTo) BookScheme.Open();
@@ -422,7 +424,7 @@ namespace GrandSluggers.UnityClient
                 inPlay: _phase is Phase.InPlay or Phase.StealThrow);
             if (_phase == Phase.Title && !_match.Paused) SetupSheet.TitleMenu(_titleFocus);
             if (!_match.Paused && _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow)
-                SetupSheet.LiveOrders(HumanBats ? _match.ControllerRunners.Label(_match) : null,
+                SetupSheet.LiveOrders(HumanBats ? RunnerOrderLabel() : null,
                     HumanOwnsThrow && _phase is Phase.InPlay or Phase.StealThrow ? FieldPad.ThrowBag : -1);
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
@@ -485,6 +487,16 @@ namespace GrandSluggers.UnityClient
             HudView.GuidedHint(_guided);
         }
 
+        string RunnerOrderLabel()
+        {
+            var orders = _match.ControllerRunners;
+            var label = orders.Label(_match);
+            var runner = orders.Selected(_match);
+            if (runner == null) return label;
+            var bag = runner.DestBag == 4 ? "HOME" : runner.DestBag + "B";
+            return label + (runner.Held ? " · HALTED" : " → " + bag);
+        }
+
         void TickPause()
         {
             var dt = Time.unscaledDeltaTime;
@@ -501,7 +513,7 @@ namespace GrandSluggers.UnityClient
                 var page = HowToPlay.Pages[(_pausePage % n + n) % n];
                 var shoulder = Controls.Pad1.PageNext || Controls.Pad2.PageNext ? 1 : Controls.Pad1.PagePrevious || Controls.Pad2.PagePrevious ? -1 : 0;
                 if (shoulder != 0) _pausePage = (_pausePage + shoulder + n) % n;
-                var axis = _menuX.Tick(Controls.MenuX, Controls.MenuTapX, dt);
+                var axis = _menuX.Tick(_pausePad.MenuAxisX, _pausePad.MenuTapX, dt);
                 if (axis != 0)
                     _pausePage = (_pausePage + (axis > 0 ? 1 : n - 1)) % n;
                 var wheel = MenuNav.WheelStep(Controls.ScrollY, ref _wheelSpin);
@@ -519,9 +531,9 @@ namespace GrandSluggers.UnityClient
                             _pausePage = (_pausePage + (nav < 0 ? n - 1 : 1)) % n;
                     }
                 }
-                else if (Controls.SouthDown)
+                else if (_pausePad.SouthDown)
                     _pausePage = (_pausePage + 1) % n;
-                if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
+                if (PauseMenu.Dismiss(_pausePad.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
                 {
                     Controls.CatchPlay();
                     _pauseHowTo = false;
@@ -538,23 +550,23 @@ namespace GrandSluggers.UnityClient
             var stick = OffersStickReset;
             var hit = -1;
             if (hit >= 0) _pauseItem = hit;
-            if (Controls.MenuDown)
+            if (_pausePad.MenuDown)
             {
                 _pauseItem = PauseMenu.Wrap(_pauseItem, 1, stick);
                 _pauseStick = 0.22f;
             }
-            else if (Controls.MenuUp)
+            else if (_pausePad.MenuUp)
             {
                 _pauseItem = PauseMenu.Wrap(_pauseItem, -1, stick);
                 _pauseStick = 0.22f;
             }
             else
             {
-                var dy = _pauseY.Tick(Controls.MenuY, Controls.MenuTapY, dt);
+                var dy = _pauseY.Tick(_pausePad.MenuAxisY, _pausePad.MenuTapY, dt);
                 if (dy != 0)
                     _pauseItem = PauseMenu.Wrap(_pauseItem, dy > 0 ? -1 : 1, stick);
             }
-            if (Controls.SouthDown)
+            if (_pausePad.SouthDown)
             {
                 switch (PauseMenu.At(_pauseItem, stick))
                 {
@@ -569,7 +581,7 @@ namespace GrandSluggers.UnityClient
                         _pauseHowTo = true;
                         if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.BookOpened);
                         _pausePage = 0;
-                        _menuX.Catch(Controls.MenuX);
+                        _menuX.Catch(_pausePad.MenuAxisX);
                         _wheelSpin = true;
                         BookScheme.Open();
                         break;
@@ -589,7 +601,7 @@ namespace GrandSluggers.UnityClient
                 Controls.CatchPlay();
                 return;
             }
-            if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
+            if (PauseMenu.Dismiss(_pausePad.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
             { _match.SetPaused(false); Controls.CatchPlay(); }
         }
 

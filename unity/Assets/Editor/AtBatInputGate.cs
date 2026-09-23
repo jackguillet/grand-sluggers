@@ -123,6 +123,7 @@ namespace GrandSluggers.EditorTools
             if (!SessionState.GetBool(Pending + ".pitchOnly", false))
             foreach (var check in new Func<GateCase>[]
             {
+                () => VerifyControllerRouting(play),
                 () => VerifyNormalTap(play),
                 () => VerifyHeldRelease(play),
                 () => VerifyCpuFlightRelease(play),
@@ -154,7 +155,7 @@ namespace GrandSluggers.EditorTools
                 () => VerifyStarAfterReleaseChangesNothing(play),
                 () => VerifyStarSwingOnPadTwo(play),
                 () => VerifyUnaffordableStarIsOrdinaryWithTell(play),
-                () => VerifyLbInTheFlightIsNotAllAdvance(play),
+                () => VerifyStarInTheFlightIsNotAllAdvance(play),
             })
             {
                 cases.Add(check());
@@ -291,6 +292,28 @@ namespace GrandSluggers.EditorTools
                 UnityEngine.Object.DestroyImmediate(go);
             }
             return path;
+        }
+
+        static GateCase VerifyControllerRouting(MatchDirector play)
+        {
+            var match = Setup(play, Seats.One, homeAtBat: true);
+            var runner = match.Offense.Roster.Last(c => c.Id != match.Batter.Id);
+            Require(match.StationRunner(1, runner), "Could not station controller-routing runner.");
+            var send = State(south: true, lb: true).WithButton(GamepadButton.LeftShoulder);
+            Tick(play, "TickSet", send, State());
+            Require(Controls.Pad1.StarHeld && Controls.Pad1.AllAdvance && Controls.Pad1.BallHeld,
+                "LT, LB and RT must be independent on the same frame.");
+            Require(match.Runners.Any(r => r.Who.Id == runner.Id && r.Broke), "Physical LB did not send the runner in SET.");
+            Setup(play, Seats.One);
+            Tick(play, "TickSet", State().WithButton(GamepadButton.North), State());
+            var jump = Call<LivePadInput>(play, "FieldInput");
+            Require(jump.WestDown && !jump.Attack && !jump.SouthDown, "North must route only to jump on defense.");
+            Neutral();
+            InputSystem.QueueStateEvent(_pad1, State().WithButton(GamepadButton.South));
+            InputSystem.Update(); Controls.Tick(Step);
+            var close = Call<LivePadInput>(play, "FieldInput");
+            Require(close.CloseResponse == true && !close.SouthDown, "South close response must not throw or catch.");
+            return new GateCase { name = "controller-star-steal-jump-routing", phase = Phase(play) };
         }
 
         static GateCase VerifyNormalTap(MatchDirector play)
@@ -842,7 +865,7 @@ namespace GrandSluggers.EditorTools
         }
 
         /// <summary>PH-16-R17: during the pitch LB is the modifier, not all-advance: a runner is not armed to tag and go.</summary>
-        static GateCase VerifyLbInTheFlightIsNotAllAdvance(MatchDirector play)
+        static GateCase VerifyStarInTheFlightIsNotAllAdvance(MatchDirector play)
         {
             var match = Setup(play, Seats.One, homeAtBat: true);
             Require(match.StationRunner(1, match.Offense.Roster.Last(c => c.Id != match.Batter.Id)), "Could not station the runner on first.");
@@ -851,7 +874,7 @@ namespace GrandSluggers.EditorTools
             for (var f = 0; f < 3; f++) Tick(play, "TickFlight", State(lb: true), State());
             Require(match.Runners.Where(r => r.Live && !r.IsBatter).All(r => !r.TagAndGo),
                 "LB during the pitch armed all-advance.");
-            return new GateCase { name = "lb-in-flight-not-all-advance", phase = Phase(play) };
+            return new GateCase { name = "lt-in-flight-not-all-advance", phase = Phase(play) };
         }
 
         /// <summary>

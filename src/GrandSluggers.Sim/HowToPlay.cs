@@ -402,7 +402,7 @@ public static partial class HowToPlay
         [
             "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield, left to right. No captain on the title.",
             "Pick captain: focus Your side, then choose HOME or AWAY. HOME bats the bottom.",
-            "Captains are the toys on the dirt. Stick L/R your team. U/D the other. Camera looks at the toy, not the brim, not the dirt.",
+            "Captains are the toys on the dirt. Focus a captain row, then left/right chooses. Camera looks at the toy, not the brim, not the dirt.",
             "Focus Players to choose 1 vs CPU or 2 controllers.",
             "Choose stadium, time and hazards. Up/down focuses; left/right changes. Confirm Choose captains.",
         ],
@@ -442,7 +442,7 @@ public static partial class HowToPlay
         new("two-pads", "Two controllers", "exhibition",
         [
             "Pick 2 PLAYERS on captains. The first controller is player 1. Choose Your side: HOME or AWAY. The second controller sits the other side.",
-            "Keyboard and mouse are player 1 only.",
+            "Each player uses a controller; seats keep their devices through setup and play.",
             "If a seated controller drops, play stops. The other controller keeps its team.",
             "Reconnect it, or press South on an unseated controller to take that seat.",
             "CPU never bats or pitches while both controllers are seated.",
