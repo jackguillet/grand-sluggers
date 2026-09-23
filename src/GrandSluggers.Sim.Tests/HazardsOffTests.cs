@@ -155,7 +155,7 @@ public sealed class HazardsOffTests
     /// </summary>
     static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds => TestRoot.Pick<IReadOnlyList<(string, bool, int)>>(
         [
-            ("crystal-rink", true, 10),   // a freeze volume slows the chase
+            ("crystal-rink", false, 14),  // a freeze volume slows the chase (a Crystal night is its day since FD-11-R2)
             ("ember-keep", true, 1),      // a lava pit or the breath slows the chase
             ("funfair-park", true, 7),    // a chomper eats a fly
             ("canopy-yard", false, 1),    // a barrel warps a grounder

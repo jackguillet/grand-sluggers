@@ -127,18 +127,21 @@ public class ParkFactorsNightTests
     /// <para>
     /// Re-authored to FD-11-R2 (F4-d, #895): this row used Crystal, whose night differed from its day
     /// only by the contact window. Night keeps the stadium lights and the window is dropped on both
-    /// roots, so a Crystal night is now its day, game for game; what night changes is the hazards, so the
-    /// row that shows a night game is played is Funfair's, whose chompers are its night block (seed 7 has
-    /// a chomp in it, <see cref="HazardsOffTests"/>).
+    /// roots, so a Crystal night is now its day, game for game. What night changes is the hazards, so the
+    /// row shows that the night match plays Funfair's night block (its chompers) and the day match does
+    /// not; a seed-7 cohort game need not meet a chomper, so the row reads the played park, not a score.
     /// </para>
     /// </summary>
     [Fact]
     public void NightReachesTheMatchTheCohortPlays()
     {
         var (home, away) = ParkFactorCohort.Matchups[0];
-        Assert.NotEqual(Game("funfair-park", night: false), Game("funfair-park", night: true));
+        Assert.True(Played("funfair-park", night: true).Hazards.Count > Played("funfair-park", night: false).Hazards.Count);
         Assert.Equal(Game("crystal-rink", night: false), Game("crystal-rink", night: true));
         Assert.Equal(Game(ParkFactorCohort.ControlPark, false), Game(ParkFactorCohort.ControlPark, true));
+
+        Park Played(string parkId, bool night) =>
+            Match.Exhibition(_content, home, away, innings: ParkFactorCohort.Innings, seed: 7, parkId: parkId, night: night).Park;
 
         string Game(string parkId, bool night)
         {
