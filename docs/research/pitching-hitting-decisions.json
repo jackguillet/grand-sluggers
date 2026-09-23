@@ -1766,7 +1766,8 @@
           },
           "implementation_issues": [
             "#844",
-            "#860"
+            "#860",
+            "#887"
           ],
           "validation_evidence": [
             {
@@ -1793,6 +1794,18 @@
               "report": "docs/research/promote-duel-trial.md",
               "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
               "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
+            },
+            {
+              "kind": "cleanup",
+              "issue": "#887",
+              "pr": "#887 cleanup PR",
+              "revision": "issue-887-cleanup",
+              "removed": "batting.window.shared and the split window: window.slapFrames, window.chargeFrames, window.framesPerContact, cpu.json humanWindowMul (both roots), AtBatResolver.SwingWindowFrames and the contact / charge / rung arguments of ContactWindowFrames, AtBatInput.HumanWindowMul",
+              "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+              "scenarios": "S-10 and S-30 off-path halves deleted; S-124 retired; S-125 and S-126 rewritten; S-127 reshaped to a catalog built in the test",
+              "report": "docs/gameplay-spec.md (sections 4.8, 5.3, 5.4, 5.8, 5.9, 16, Appendix B.1)",
+              "summary": "#887 removed the switch's off path from code, data (data/rules and trials/c80), validators and tests (SwitchOffPaths deleted). cli match --seed 7 is byte-identical to origin/main apart from the data-root line, and the S-29 cohort is identical game for game on the shipped root and on c80. The #708 and pitch-family seals changed source hashes only.",
+              "gate": "No human gate. Behaviour-identical: nothing was looked at in Unity or played."
             }
           ],
           "human_acceptance": {
@@ -2007,7 +2020,8 @@
       "numeric_targets": null,
       "implementation_issues": [
         "#855",
-        "#883"
+        "#883",
+        "#887"
       ],
       "validation_evidence": [
         {
@@ -2034,6 +2048,18 @@
           "report": "docs/research/promote-stick.md",
           "summary": "data/rules/batting.json geometryOnly true and the Rules.cs default true (JSON = code parity). S-29 on the shipped root 2.48 away / 2.08 home -> 2.18 / 2.26 (F693-06 band 1.8-5 green); c80 2.58 / 2.26 -> 3.06 / 2.94. Every per-game outcome of the shipped cohort equals the trials/pitch5 cohort on bbd982fe, and cli match --seed 7 is byte-identical to the old trial log. Ordinary-contact fouls 17.4 % -> 11.1 % (shipped), liners 42.6 % -> 53.8 %, grounders 22.5 % -> 15.2 %. No measured sealed value moved; hashes only.",
           "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window (\"approve all\"); whether the shipped build plays like it is his to confirm after redelivery. Nothing was looked at in Unity. T-B06 / T-B06-F can no longer be passed by their taught input on the shipped root; the lessons and the book are the Presentation child's."
+        },
+        {
+          "kind": "cleanup",
+          "issue": "#887",
+          "pr": "#887 cleanup PR",
+          "revision": "issue-887-cleanup",
+          "removed": "batting.geometryOnly and the stick terms on an ordinary swing; bunts and Star Swings keep spray.stickDeg and launch.stickDeg, and the CPU Star Swing still draws both aims",
+          "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+          "scenarios": "S-13 off-path half deleted; S-128 off-path grid, S-129 two-root identity and S-132 off-path command deleted; S-130 / S-131 keep their shipped halves",
+          "report": "docs/gameplay-spec.md (sections 4.8, 5.3, 5.4, 5.8, 5.9, 16, Appendix B.1)",
+          "summary": "#887 removed the switch's off path from code, data (data/rules and trials/c80), validators and tests (SwitchOffPaths deleted). cli match --seed 7 is byte-identical to origin/main apart from the data-root line, and the S-29 cohort is identical game for game on the shipped root and on c80. The #708 and pitch-family seals changed source hashes only.",
+          "gate": "No human gate. Behaviour-identical: nothing was looked at in Unity or played."
         }
       ],
       "human_acceptance": {
@@ -5360,7 +5386,8 @@
           "implementation_issues": [
             "#823",
             "#824",
-            "#860"
+            "#860",
+            "#887"
           ],
           "validation_evidence": [
             {
@@ -5385,6 +5412,18 @@
               "report": "docs/research/promote-duel-trial.md",
               "summary": "The accepted trials/pitch5 values are the shipped data (data/rules/pitching.json is byte-identical to the old trial copy; batting.window.shared true). S-29 on the shipped root 1.92 away / 1.90 home -> 2.32 / 2.02 (F693-06 band 1.8-5 green), equal to the trial pair published before P2-c; c80 2.36 / 2.46 -> 2.48 / 2.30. Walks per game 2.86 -> 0.76: height is the family, so the CPU cannot miss high or low. No measured sealed value moved; hashes only.",
               "gate": "No new human gate. Jack's acceptance is his sentence on the trials/pitch5 window; whether the shipped window plays like it is his to confirm after redelivery. Nothing was looked at in Unity."
+            },
+            {
+              "kind": "cleanup",
+              "issue": "#887",
+              "pr": "#887 cleanup PR",
+              "revision": "issue-887-cleanup",
+              "removed": "pitching.cpu.humanInputs and Match.CpuPitchByAim with the keys only it read: rubberWalkChance, rubberWalkMax, locations.middleYSpreadFt, and each count row's normal / charge / changeup / break",
+              "test": "GrandSluggers.Sim.Tests (full suite) and the c80 compact rows",
+              "scenarios": "S-114 retired; S-120 now refuses a table that authors a removed key",
+              "report": "docs/gameplay-spec.md (sections 4.8, 5.3, 5.4, 5.8, 5.9, 16, Appendix B.1)",
+              "summary": "#887 removed the switch's off path from code, data (data/rules and trials/c80), validators and tests (SwitchOffPaths deleted). cli match --seed 7 is byte-identical to origin/main apart from the data-root line, and the S-29 cohort is identical game for game on the shipped root and on c80. The #708 and pitch-family seals changed source hashes only.",
+              "gate": "No human gate. Behaviour-identical: nothing was looked at in Unity or played."
             }
           ],
           "human_acceptance": {
@@ -5984,6 +6023,11 @@
       "date": "2026-09-22",
       "event": "#883 (PR #886) promoted the accepted stick rule to the shipped root: batting.geometryOnly true in data/rules/batting.json and as the Rules.cs default, and deleted trials/pitch5. PH-12 human-accepted -> implemented; PH-18 gets a shipped-promotion row and keeps its status. human_acceptance untouched.",
       "pr": "#886"
+    },
+    {
+      "date": "2026-09-22",
+      "event": "#887 removed the three trial switches' off paths now that each is on in shipped data: batting.window.shared (PH-10-R1), pitching.cpu.humanInputs (PH-18-R1) and batting.geometryOnly (PH-12), with the keys only those paths read, their validators and the SwitchOffPaths test rows. Behaviour-identical: seed 7 and S-29 on both roots unchanged; seals hash-only. Statuses unchanged; human_acceptance untouched.",
+      "pr": "#887 cleanup PR"
     }
   ]
 }
