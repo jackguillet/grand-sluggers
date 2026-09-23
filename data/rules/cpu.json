@@ -6,7 +6,6 @@
   // thrower's arm, of the fielder's relay and of the pair chemistry the CPU forecasts; 0 is the neutral flat read the
   // shipped runner always had. trials/c80 switches them on.
   "easy": {
-    "humanWindowMul": 1.3,
     "timingSigmaMul": 1.3,
     "reactionMul": 1.4,
     "mistrackMul": 1.3,
@@ -20,7 +19,6 @@
     "readsChemistry": 0
   },
   "normal": {
-    "humanWindowMul": 1.0,
     "timingSigmaMul": 1.0,
     "reactionMul": 1.0,
     "mistrackMul": 1.0,
@@ -34,7 +32,6 @@
     "readsChemistry": 0
   },
   "hard": {
-    "humanWindowMul": 0.9,
     "timingSigmaMul": 0.8,
     "reactionMul": 0.8,
     "mistrackMul": 0.8,
