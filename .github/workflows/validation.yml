@@ -18,7 +18,7 @@ jobs:
           dotnet-version: 10.0.x
       # The PR check answers one question: does this change break the game? It builds everything and runs the
       # breakage suite: every test not tagged [Trait("Kind", "Balance")]. Balance and calibration (rate bands,
-      # seed sweeps, cohorts, pinned tuned numbers), the C80 re-run, the tool tests and the evidence seals run
+      # seed sweeps, cohorts, pinned tuned numbers), the tool tests and the evidence seals run
       # on demand from the Actions tab (full-tests.yml). xunit.runner.json caps local runs at half the cores;
       # MaxParallelThreads=0 gives CI the default, one thread per core.
       - run: dotnet build src/GrandSluggers.Cli/GrandSluggers.Cli.csproj -c Release

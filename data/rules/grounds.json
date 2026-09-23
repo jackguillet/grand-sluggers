@@ -13,7 +13,7 @@
   // (the ramp time: the cut-back), slideMul x running.bags.slideFt and overrunMul x
   // running.bags.overrunFt (read at the bag's zone). The stick, the heading and the top speed are
   // never scaled: the body always goes where it is pointed. Start, brake and cut-back act only
-  // where the response law is on (accelSec / brakeSec above 0: trials/c80 today). Every row is 1.0.
+  // where the response law is on (accelSec / brakeSec above 0, as shipped). Every row is 1.0.
   "grass": {
     "roll": {
       "friction": 22,

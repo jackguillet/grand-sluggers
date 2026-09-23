@@ -288,13 +288,11 @@ public static partial class HowToPlay
         ]),
         new("tutorial-recovery", "Recovery and reach", "training",
         [
-            "Standard fumble: steer through the scoop after the error, then D-pad Right + South throws to first. Assistance cannot finish the pickup for you.",
-            "C80 bobble: wait for the helper's error, then steer with the stick through the loose-ball scoop.",
+            "Bobble: wait for the helper's error, then steer with the stick through the loose-ball scoop. Assistance cannot finish the pickup for you.",
             "Ability reach: move to the landing ring's edge, then South catches beyond ordinary reach. Burrow scoops at its reach edge.",
         ],
         [
-            "Standard fumble: steer through the scoop after the error, then 1 and Space throws to first. Assistance cannot finish the pickup for you.",
-            "C80 bobble: wait for the helper's error, then steer with WASD through the loose-ball scoop.",
+            "Bobble: wait for the helper's error, then steer with WASD through the loose-ball scoop. Assistance cannot finish the pickup for you.",
             "Ability reach: move to the landing ring's edge, then Space catches beyond ordinary reach. Burrow scoops at its reach edge.",
         ]),
         new("tutorial-field-plays", "Fielding scenario lessons", "training",
@@ -356,16 +354,16 @@ public static partial class HowToPlay
         ]),
         new("relay-control", "Relay and queued throws", "fielding",
         [
-            "Arm the destination with the D-pad. LB feeds the cutoff. Standard play sends the receiver's next leg automatically.",
-            "In the C80 trial, the receiver waits for you: South sends the next leg. A press just before the catch can wait for the receiver.",
+            "Arm the destination with the D-pad. LB feeds the cutoff. The receiver waits for you: South sends the next leg.",
+            "A press just before the catch waits for the receiver, then sends it.",
             "Change the D-pad target to retarget a waiting throw. Changing the target does not extend the press's short lifetime.",
-            "In the C80 trial, tap RB to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
+            "Tap RB to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
         ],
         [
-            "Arm the destination with 1/2/3/4. X feeds the cutoff. Standard play sends the receiver's next leg automatically.",
-            "In the C80 trial, the receiver waits for you: Space sends the next leg. A press just before the catch can wait for the receiver.",
+            "Arm the destination with 1/2/3/4. X feeds the cutoff. The receiver waits for you: Space sends the next leg.",
+            "A press just before the catch waits for the receiver, then sends it.",
             "Change the 1/2/3/4 target to retarget a waiting throw. Changing the target does not extend the press's short lifetime.",
-            "In the C80 trial, tap period to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
+            "Tap period to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
         [
@@ -450,7 +448,7 @@ public static partial class HowToPlay
         new("chemistry", "Chemistry", "chemistry",
         [
             "Hearts are buddies. Scribbles are rivals.",
-            "Buddies throw faster. Rivals miss. Buddy jump. Buddy toss.",
+            "Buddies throw faster, rivals slower. Buddy jump. Buddy toss.",
             "A buddy on deck can gift a banana after you hit.",
             "Friends on your team start with more stars.",
         ]),

@@ -19,14 +19,13 @@ namespace GrandSluggers.Sim.Tests;
 /// ball's does.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class HarborWallTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     /// <summary>
     /// The catalog's own pick cycle (#820), not a literal, so a park added to <c>data/parks/</c> is
-    /// covered the day it lands. <c>ParkSchemaTests</c> pins the same order on both roots.
+    /// covered the day it lands. <c>ParkSchemaTests</c> pins the same order.
     /// </summary>
     public static TheoryData<string> Parks()
     {
@@ -69,9 +68,8 @@ public sealed class HarborWallTests
     /// Re-authored by F2-b2 (#873). It used to exempt every vertex past a literal 95 ft out
     /// (<c>RampStartZ</c>) and ask instead that the rail ramp up to the fence there over at least six
     /// vertices (<c>TaperIsARamp</c>), while the ball's rail stayed hip-high to the pole. That literal
-    /// was also this row's <c>Copy=gap</c> on <c>trials/c80</c> (#715): on the copy's shorter lines the
-    /// two 8-ft parks drew four ramp vertices, not six. With the ramp gone there is no literal and no
-    /// gap, so the row runs on both roots.
+    /// broke on shorter foul lines: the two 8-ft parks drew four ramp vertices, not six. With the ramp
+    /// gone there is no literal and no gap.
     /// </para>
     /// </summary>
     [Theory]
@@ -119,7 +117,7 @@ public sealed class HarborWallTests
     /// <summary>
     /// <c>SF-05</c> (D15 as amended by D21, FD-06; #845; the whole rail since F2-b2, #873, FD-06-R2).
     /// The wall the player sees is the wall the ball meets, on every span of every park in the pick
-    /// cycle, on both roots:
+    /// cycle:
     ///
     /// <list type="bullet">
     /// <item>every drawn vertex lies on <see cref="FieldBounds.Of(Park)"/>'s polygon;</item>
@@ -310,8 +308,8 @@ public sealed class HarborWallTests
     }
 
     /// <summary>
-    /// <c>SF-05</c> on a polyline fence (F2-c #874; FD-06 C, D15 as amended by D21), both roots. No catalog park names
-    /// points, so this is a fixture on each root's Harbor: a tall porch down the left line, an alley, a low corner. The drawn
+    /// <c>SF-05</c> on a polyline fence (F2-c #874; FD-06 C, D15 as amended by D21). No catalog park names
+    /// points, so this is a fixture on Harbor: a tall porch down the left line, an alley, a low corner. The drawn
     /// loop walks the bearings the clip polygon is built on, so every fence point is a drawn vertex exactly where the
     /// polygon has it, every drawn vertex lies on the flight wall, and every outfield vertex is drawn at the flight's top
     /// at that vertex — the point's own height at a point, the straight line between two heights along a sloped span.
@@ -325,58 +323,53 @@ public sealed class HarborWallTests
             new(-45, 0.9, 14), new(-20, 0.9, 14), new(-12, 1.05, 10), new(0, 1.0, 12),
             new(10, 0.95, 12), new(27.5, 1.0, 8), new(45, 1.0, 12)
         ];
-        var shipped = ContentCatalog.Load(new DataRoot(_content.Root.Shipped));
-        var trial = ContentCatalog.Load(new DataRoot(_content.Root.Shipped,
-            Path.GetFullPath(Path.Combine(_content.Root.Shipped, "..", "trials", "c80"))));
-        foreach (var catalog in new[] { shipped, trial })
+        var catalog = _content;
+        var harbor = catalog.Parks[HarborPostcard.ParkId];
+        var park = harbor with { Id = "sf05-polyline", Fence = new ParkFence(points) };
+        var loop = HarborWall.Loop(park);
+        var bounds = FieldBounds.Of(park);
+        var offGrid = points.Count(p => !FieldBounds.FenceBearings(harbor).Contains(p.BearingDeg));
+        Assert.Equal(4, offGrid);
+        Assert.Equal(HarborWall.WrapSegs + offGrid, loop.Length);
+
+        foreach (var p in points)
         {
-            var harbor = catalog.Parks[HarborPostcard.ParkId];
-            var park = harbor with { Id = "sf05-polyline", Fence = new ParkFence(points) };
-            var loop = HarborWall.Loop(park);
-            var bounds = FieldBounds.Of(park);
-            var offGrid = points.Count(p => !FieldBounds.FenceBearings(harbor).Contains(p.BearingDeg));
-            Assert.Equal(4, offGrid);
-            Assert.Equal(HarborWall.WrapSegs + offGrid, loop.Length);
+            var at = BallFlight.GroundPoint(p.FenceFrac * AtBatResolver.FenceAt(harbor, p.BearingDeg), p.BearingDeg);
+            var i = Array.IndexOf(loop, at);
+            Assert.True(i >= 0, $"{catalog.Root.Provenance}: the point at {p.BearingDeg} degrees is not a drawn vertex");
+            Assert.Equal(p.HeightFt, HarborWall.Height(park, i), 4);
+        }
 
-            foreach (var p in points)
-            {
-                var at = BallFlight.GroundPoint(p.FenceFrac * AtBatResolver.FenceAt(harbor, p.BearingDeg), p.BearingDeg);
-                var i = Array.IndexOf(loop, at);
-                Assert.True(i >= 0, $"{catalog.Root.Provenance}: the point at {p.BearingDeg} degrees is not a drawn vertex");
-                Assert.Equal(p.HeightFt, HarborWall.Height(park, i), 4);
-            }
+        var sloped = 0;
+        for (var i = 0; i < loop.Length; i++)
+        {
+            var (dist, piece, along) = NearestPiece(bounds, loop[i].X, loop[i].Z);
+            Assert.True(dist <= OnTheWallFt, $"drawn vertex {i} is {dist:0.###} ft off the flight wall");
+            if (piece.Kind != FieldBounds.WallKind.FairFence) continue;
+            Assert.True(HarborWall.IsOutfield(park, i), $"vertex {i} is on a fair span but is not drawn as outfield");
+            Assert.Equal(piece.HeightAt(along), HarborWall.Height(park, i), 4);
+            if (piece.HeightBFt is not null) sloped++;
+        }
+        Assert.True(sloped > 4, $"{sloped} drawn vertices on a sloped span");
+        Assert.True(HarborWall.OutfieldIsTheFence(park));
 
-            var sloped = 0;
-            for (var i = 0; i < loop.Length; i++)
-            {
-                var (dist, piece, along) = NearestPiece(bounds, loop[i].X, loop[i].Z);
-                Assert.True(dist <= OnTheWallFt, $"drawn vertex {i} is {dist:0.###} ft off the flight wall");
-                if (piece.Kind != FieldBounds.WallKind.FairFence) continue;
-                Assert.True(HarborWall.IsOutfield(park, i), $"vertex {i} is on a fair span but is not drawn as outfield");
-                Assert.Equal(piece.HeightAt(along), HarborWall.Height(park, i), 4);
-                if (piece.HeightBFt is not null) sloped++;
-            }
-            Assert.True(sloped > 4, $"{sloped} drawn vertices on a sloped span");
-            Assert.True(HarborWall.OutfieldIsTheFence(park));
+        // F2-b2 (FD-06-R2) on the same fixture: every drawn span is its flight segment's top at both its ends, so a
+        // sloped span is drawn sloped between its two point heights and every other span level; the rail stays hip-high
+        // to each pole and steps up to that pole's own point height (14 ft on the left, 12 ft on the right).
+        var (fair, rail) = AssertDrawnIsFlight(park.Id, park, bounds, loop);
+        Assert.Equal(FieldBounds.FenceBearings(park).Count, fair);
+        Assert.Equal(loop.Length - fair, rail);
+        var slopedSpans = Enumerable.Range(0, loop.Length).Count(i => HarborWall.SpanTops(park, i).Start != HarborWall.SpanTops(park, i).End);
+        Assert.Equal(bounds.Segments.Count(sg => sg.HeightBFt is not null), slopedSpans);
+        foreach (var sign in new[] { -1, 1 })
+            AssertTheStepIsAtThePole(park.Id, park, sign);
+        Assert.True(HarborWall.StepsOnlyAtThePoles(park));
 
-            // F2-b2 (FD-06-R2) on the same fixture: every drawn span is its flight segment's top at both its ends, so a
-            // sloped span is drawn sloped between its two point heights and every other span level; the rail stays hip-high
-            // to each pole and steps up to that pole's own point height (14 ft on the left, 12 ft on the right).
-            var (fair, rail) = AssertDrawnIsFlight(park.Id, park, bounds, loop);
-            Assert.Equal(FieldBounds.FenceBearings(park).Count, fair);
-            Assert.Equal(loop.Length - fair, rail);
-            var slopedSpans = Enumerable.Range(0, loop.Length).Count(i => HarborWall.SpanTops(park, i).Start != HarborWall.SpanTops(park, i).End);
-            Assert.Equal(bounds.Segments.Count(sg => sg.HeightBFt is not null), slopedSpans);
-            foreach (var sign in new[] { -1, 1 })
-                AssertTheStepIsAtThePole(park.Id, park, sign);
-            Assert.True(HarborWall.StepsOnlyAtThePoles(park));
-
-            // The poles stand where the polyline starts and ends; the drawn rail meets the fence there.
-            foreach (var (sign, p) in new[] { (-1, points[0]), (1, points[^1]) })
-            {
-                var pole = loop.MinBy(v => Math.Abs(FieldBounds.SprayDeg(v.X, v.Z) - sign * AtBatResolver.FoulLineDeg));
-                Assert.Equal(p.FenceFrac * AtBatResolver.FenceAt(harbor, p.BearingDeg), FieldBounds.DistHome(pole.X, pole.Z), 9);
-            }
+        // The poles stand where the polyline starts and ends; the drawn rail meets the fence there.
+        foreach (var (sign, p) in new[] { (-1, points[0]), (1, points[^1]) })
+        {
+            var pole = loop.MinBy(v => Math.Abs(FieldBounds.SprayDeg(v.X, v.Z) - sign * AtBatResolver.FoulLineDeg));
+            Assert.Equal(p.FenceFrac * AtBatResolver.FenceAt(harbor, p.BearingDeg), FieldBounds.DistHome(pole.X, pole.Z), 9);
         }
     }
 
@@ -404,8 +397,7 @@ public sealed class HarborWallTests
     /// for every catalog park, as run-lengths of float values around the loop from center field: each
     /// vertex's <see cref="HarborWall.Height"/>, and each span's <see cref="HarborWall.SpanTops"/> at both
     /// ends. The fence from center field to the right pole (vertices 0–24), the rail to the left pole
-    /// (25–83), the fence back to center field (84–107); every span level. The same on both roots: the
-    /// trial scales the posts, not the heights. Rebasing onto F2-c's per-end tops must not move a stroke of
+    /// (25–83), the fence back to center field (84–107); every span level. Rebasing onto F2-c's per-end tops must not move a stroke of
     /// what Jack was shown; the drawn positions are pinned to the bit by
     /// <c>PolylineFenceTests.SF06_EveryCatalogParkPlaysAndDrawsTheThreePostFenceBitForBit</c>.
     /// </summary>

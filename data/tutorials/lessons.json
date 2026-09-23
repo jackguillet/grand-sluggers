@@ -13,8 +13,7 @@
       "issue": 772,
       "reason": "Headless lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -39,8 +38,7 @@
       "issue": 786,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -68,8 +66,7 @@
       "issue": 825,
       "reason": "Headless lesson; the RB / Tab cycle is the verb it teaches (#825). The setup names hex (fastball, changeup, curveball) as the pitcher, because the home captain vale throws curveball / slider and owns no changeup (#876). Standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -94,8 +91,7 @@
       "issue": 876,
       "reason": "Headless lesson. Since #860 every pitcher throws three authored families, so two presses of the RB / Tab cycle select the third slot. The objective is the slot, not a family, so it holds for any repertoire. Standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -122,8 +118,7 @@
       "issue": 782,
       "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -150,8 +145,7 @@
       "issue": 782,
       "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -178,8 +172,7 @@
       "issue": 782,
       "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -206,8 +199,7 @@
       "issue": 794,
       "reason": "Headless SET action lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -232,8 +224,7 @@
       "issue": 794,
       "reason": "Headless SET action lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -258,8 +249,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -284,8 +274,7 @@
       "issue": 772,
       "reason": "Headless lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -310,8 +299,7 @@
       "issue": 782,
       "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -338,8 +326,7 @@
       "issue": 786,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -366,8 +353,7 @@
       "issue": 786,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -394,8 +380,7 @@
       "issue": 782,
       "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -422,8 +407,7 @@
       "issue": 786,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -451,8 +435,7 @@
       "issue": 782,
       "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -479,8 +462,7 @@
       "issue": 782,
       "reason": "Headless plate exercise; human learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -507,8 +489,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -533,8 +514,7 @@
       "issue": 772,
       "reason": "Headless lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -559,8 +539,7 @@
       "issue": 790,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -586,8 +565,7 @@
       "issue": 790,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -612,8 +590,7 @@
       "issue": 790,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -638,8 +615,7 @@
       "issue": 790,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -664,8 +640,7 @@
       "issue": 790,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -690,8 +665,7 @@
       "issue": 790,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -716,8 +690,7 @@
       "issue": 772,
       "reason": "Headless lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -742,8 +715,7 @@
       "issue": 790,
       "reason": "Headless exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -768,8 +740,7 @@
       "issue": 797,
       "reason": "Headless live relay exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -793,9 +764,9 @@
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
-      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
+      "reason": "Relay buffer command; standalone learning gate pending",
       "profiles": [
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -819,10 +790,9 @@
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
-      "reason": "Headless live wall-carom recovery; ordinary bobble and fumble recovery are taught in T-F09-B and T-F09-S; standalone learning gate pending",
+      "reason": "Headless live wall-carom recovery; ordinary bobble recovery is taught in T-F09-B; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -847,8 +817,7 @@
       "issue": 797,
       "reason": "Headless uncovered-bag throw and receiver coverage exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -873,8 +842,7 @@
       "issue": 797,
       "reason": "Headless live-play exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -899,8 +867,7 @@
       "issue": 797,
       "reason": "Headless live-play exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -923,9 +890,9 @@
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
-      "reason": "C80-only Ball Dash carrier; no shipped roster holder; standalone learning gate pending",
+      "reason": "Ball Dash carrier (dart, pip, jester); standalone learning gate pending",
       "profiles": [
-        "c80"
+        "shipped"
       ],
       "requires": [
         "ball-dash"
@@ -952,8 +919,7 @@
       "issue": 797,
       "reason": "Headless live relay exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [
         "snap-throw"
@@ -981,8 +947,7 @@
       "issue": 797,
       "reason": "Headless Laser throw exercise; profile-specific range rule and standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [
         "laser"
@@ -1009,8 +974,7 @@
       "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [
         "grow"
@@ -1038,8 +1002,7 @@
       "issue": 794,
       "reason": "Headless home-force lesson; the complementary tag is taught in D05",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1064,8 +1027,7 @@
       "issue": 772,
       "reason": "Headless lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1090,8 +1052,7 @@
       "issue": 794,
       "reason": "Headless geometric choice lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1116,8 +1077,7 @@
       "issue": 794,
       "reason": "Headless caught-fly return-throw lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1142,8 +1102,7 @@
       "issue": 794,
       "reason": "Headless live pickoff rundown/tag lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1169,8 +1128,7 @@
       "issue": 794,
       "reason": "Headless runner-side close-play lesson; defender-side practice pending separate drill",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1195,8 +1153,7 @@
       "issue": 794,
       "reason": "Headless third-force-out and zero-run lesson; crossed-run consequences are taught in T-D07-T and T-D07-C",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1221,8 +1178,7 @@
       "issue": 794,
       "reason": "Headless crossed-run third-force lesson; complementary counted-run tag is T-D07-C",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -1249,8 +1205,7 @@
       "issue": 794,
       "reason": "Headless three-out caught-fly lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1275,8 +1230,7 @@
       "issue": 794,
       "reason": "Headless live runner lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1303,8 +1257,7 @@
       "issue": 794,
       "reason": "Headless live runner lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1330,8 +1283,7 @@
       "issue": 794,
       "reason": "Headless live runner lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1356,8 +1308,7 @@
       "issue": 794,
       "reason": "Headless human send plus corner-dash lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -1386,8 +1337,7 @@
       "issue": 794,
       "reason": "Headless live runner lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1412,8 +1362,7 @@
       "issue": 794,
       "reason": "Headless live caught-fly tag-up lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1438,8 +1387,7 @@
       "issue": 794,
       "reason": "Headless real runner-play lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1464,8 +1412,7 @@
       "issue": 794,
       "reason": "Headless delayed double-steal lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1490,8 +1437,7 @@
       "issue": 794,
       "reason": "Headless real runner-play lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1516,8 +1462,7 @@
       "issue": 796,
       "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1540,8 +1485,7 @@
       "issue": 797,
       "reason": "Headless live good-chemistry throw exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1567,8 +1511,7 @@
       "issue": 770,
       "reason": "Headless authored resource exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1594,8 +1537,7 @@
       "issue": 800,
       "reason": "Headless live Match count sequence; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1620,8 +1562,7 @@
       "issue": 796,
       "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1644,8 +1585,7 @@
       "issue": 796,
       "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1668,7 +1608,7 @@
       "issue": 796,
       "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
       "profiles": [
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1691,8 +1631,7 @@
       "issue": 796,
       "reason": "Guided existing-screen interactions; standalone physical-controller learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1715,8 +1654,7 @@
       "issue": 891,
       "reason": "Items are dormant: Jack removed the on-deck item offer (PH-16-R15, #891), so no at-bat offers an item and this lesson cannot be earned. The setup and objective are kept for when a new item source ships.",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1739,8 +1677,7 @@
       "issue": 770,
       "reason": "Headless opponent special-hit counterplay; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1765,8 +1702,7 @@
       "issue": 37,
       "reason": "Harbor has no park hazard; extra parks are outside Exhibition product scope (#37). Add distinct park-effect exercises only when an extra park enters product scope.",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1787,8 +1723,7 @@
       "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [
         "burrow"
@@ -1816,8 +1751,7 @@
       "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [
         "grow"
@@ -1845,8 +1779,7 @@
       "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [
         "lick-catch"
@@ -1874,8 +1807,7 @@
       "issue": 799,
       "reason": "Spin Check extra-base result helper is not wired to live runner decisions; accepted commitment and geometry contract needs definition",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [
         "spin-check"
@@ -1898,8 +1830,7 @@
       "issue": 799,
       "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [
         "withdraw"
@@ -1927,8 +1858,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1953,8 +1883,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -1979,8 +1908,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2005,8 +1933,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2031,8 +1958,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2057,8 +1983,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2083,8 +2008,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2109,8 +2033,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2135,8 +2058,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2161,8 +2083,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2187,8 +2108,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2213,8 +2133,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2239,8 +2158,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2265,8 +2183,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2291,8 +2208,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2317,8 +2233,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2343,8 +2258,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2369,8 +2283,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2395,8 +2308,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2421,8 +2333,7 @@
       "issue": 770,
       "reason": "Headless authored star exercise; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2447,8 +2358,7 @@
       "issue": 891,
       "reason": "Items are dormant: Jack removed the on-deck item offer (PH-16-R15, #891), so no at-bat offers an item and this lesson cannot be earned. The setup and objective are kept for when a new item source ships.",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2471,8 +2381,7 @@
       "issue": 891,
       "reason": "Items are dormant: Jack removed the on-deck item offer (PH-16-R15, #891), so no at-bat offers an item and this lesson cannot be earned. The setup and objective are kept for when a new item source ships.",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2495,8 +2404,7 @@
       "issue": 891,
       "reason": "Items are dormant: Jack removed the on-deck item offer (PH-16-R15, #891), so no at-bat offers an item and this lesson cannot be earned. The setup and objective are kept for when a new item source ships.",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2517,9 +2425,9 @@
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
-      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
+      "reason": "Relay buffer command; standalone learning gate pending",
       "profiles": [
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2543,9 +2451,9 @@
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
-      "reason": "C80-only relay buffer command; shipped has no buffer; standalone learning gate pending",
+      "reason": "Relay buffer command; standalone learning gate pending",
       "profiles": [
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2569,9 +2477,9 @@
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
-      "reason": "C80-only headless local ordinary bobble and human-controlled loose-ball recovery; shipped fumble recovery is T-F09-S; standalone learning gate pending",
+      "reason": "Headless local ordinary bobble and human-controlled loose-ball recovery; standalone learning gate pending",
       "profiles": [
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [],
@@ -2596,8 +2504,7 @@
       "issue": 794,
       "reason": "Headless defender-side close-play lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -2624,8 +2531,7 @@
       "issue": 800,
       "reason": "Headless live Match count and inning sequence; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -2652,8 +2558,7 @@
       "issue": 800,
       "reason": "Headless live Match count and inning sequence; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -2669,32 +2574,6 @@
       ]
     },
     {
-      "id": "T-F09-S",
-      "revision": 2,
-      "mechanics": [
-        "fielding.09"
-      ],
-      "title": "recover after a shipped fumble",
-      "category": "fielding",
-      "status": "implemented",
-      "issue": 797,
-      "reason": "Shipped headless handling fumble scatters a loose ball; human takes the glove and recovers it after the CPU error, then throws to first; standalone learning gate pending",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [],
-      "prerequisites": [],
-      "setup": "T-F09-S",
-      "objective": "human-fumble-recovery",
-      "controls": [
-        "control:fielding/Take the glove",
-        "control:fielding/Throw"
-      ],
-      "tests": [
-        "TutorialAdvancedFieldTests"
-      ]
-    },
-    {
       "id": "T-R10",
       "revision": 1,
       "mechanics": [
@@ -2706,8 +2585,7 @@
       "issue": 794,
       "reason": "Separate early-return half of fly-ball running; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -2736,8 +2614,7 @@
       "issue": 794,
       "reason": "Headless crossed-run nonforce third-tag lesson; standalone learning gate pending",
       "profiles": [
-        "shipped",
-        "c80"
+        "shipped"
       ],
       "requires": [],
       "prerequisites": [
@@ -2910,12 +2787,6 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": -18
-        },
-        "c80": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
         }
       }
     },
@@ -2949,12 +2820,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 250,
-          "exitMph": 0,
-          "launchDeg": 12,
-          "sprayDeg": -18
-        },
-        "c80": {
           "carryFt": 0,
           "exitMph": 120,
           "launchDeg": 16,
@@ -2994,12 +2859,6 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
-        },
-        "c80": {
           "carryFt": 118,
           "exitMph": 0,
           "launchDeg": 4,
@@ -3389,12 +3248,6 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": -18
-        },
-        "c80": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
         }
       }
     },
@@ -3428,12 +3281,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
-        },
-        "c80": {
           "carryFt": 118,
           "exitMph": 0,
           "launchDeg": 4,
@@ -3475,12 +3322,6 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": -18
-        },
-        "c80": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
         }
       }
     },
@@ -3514,12 +3355,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
-        },
-        "c80": {
           "carryFt": 118,
           "exitMph": 0,
           "launchDeg": 4,
@@ -3561,12 +3396,6 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": -18
-        },
-        "c80": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
         }
       }
     },
@@ -3604,12 +3433,6 @@
           "exitMph": 88,
           "launchDeg": 32,
           "sprayDeg": 0
-        },
-        "c80": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 32,
-          "sprayDeg": 0
         }
       }
     },
@@ -3643,12 +3466,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 245,
-          "exitMph": 0,
-          "launchDeg": 34,
-          "sprayDeg": 0
-        },
-        "c80": {
           "carryFt": 245,
           "exitMph": 0,
           "launchDeg": 34,
@@ -3692,12 +3509,6 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": -18
-        },
-        "c80": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
         }
       },
       "seat": "offense"
@@ -3732,12 +3543,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 140,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": 32
-        },
-        "c80": {
           "carryFt": 140,
           "exitMph": 0,
           "launchDeg": 4,
@@ -3783,12 +3588,6 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": -18
-        },
-        "c80": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
         }
       },
       "seat": "offense"
@@ -3823,12 +3622,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
-        },
-        "c80": {
           "carryFt": 118,
           "exitMph": 0,
           "launchDeg": 4,
@@ -3869,12 +3662,6 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
-        },
-        "c80": {
           "carryFt": 118,
           "exitMph": 0,
           "launchDeg": 4,
@@ -3975,12 +3762,6 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 110,
-          "launchDeg": 35,
-          "sprayDeg": 0
-        },
-        "c80": {
-          "carryFt": 0,
           "exitMph": 120,
           "launchDeg": 25,
           "sprayDeg": 0
@@ -4017,12 +3798,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 420,
-          "exitMph": 0,
-          "launchDeg": 30,
-          "sprayDeg": 0
-        },
-        "c80": {
           "carryFt": 0,
           "exitMph": 120,
           "launchDeg": 30,
@@ -4060,12 +3835,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
-        },
-        "c80": {
           "carryFt": 118,
           "exitMph": 0,
           "launchDeg": 4,
@@ -4109,12 +3878,6 @@
           "exitMph": 0,
           "launchDeg": 34,
           "sprayDeg": 0
-        },
-        "c80": {
-          "carryFt": 245,
-          "exitMph": 0,
-          "launchDeg": 34,
-          "sprayDeg": 0
         }
       }
     },
@@ -4154,12 +3917,6 @@
           "exitMph": 0,
           "launchDeg": 34,
           "sprayDeg": 0
-        },
-        "c80": {
-          "carryFt": 245,
-          "exitMph": 0,
-          "launchDeg": 34,
-          "sprayDeg": 0
         }
       }
     },
@@ -4195,12 +3952,6 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 245,
-          "exitMph": 0,
-          "launchDeg": 34,
-          "sprayDeg": 0
-        },
-        "c80": {
           "carryFt": 245,
           "exitMph": 0,
           "launchDeg": 34,
@@ -4344,7 +4095,7 @@
         3
       ],
       "balls": {
-        "c80": {
+        "shipped": {
           "carryFt": 245,
           "exitMph": 0,
           "launchDeg": 34,
@@ -4383,7 +4134,7 @@
         3
       ],
       "balls": {
-        "c80": {
+        "shipped": {
           "carryFt": 245,
           "exitMph": 0,
           "launchDeg": 34,
@@ -4422,7 +4173,7 @@
         3
       ],
       "balls": {
-        "c80": {
+        "shipped": {
           "carryFt": 245,
           "exitMph": 0,
           "launchDeg": 34,
@@ -5234,12 +4985,6 @@
           "exitMph": 0,
           "launchDeg": 34,
           "sprayDeg": 0
-        },
-        "c80": {
-          "carryFt": 245,
-          "exitMph": 0,
-          "launchDeg": 34,
-          "sprayDeg": 0
         }
       }
     },
@@ -5275,12 +5020,6 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 222,
-          "exitMph": 0,
-          "launchDeg": 34,
-          "sprayDeg": -30
-        },
-        "c80": {
           "carryFt": 250,
           "exitMph": 0,
           "launchDeg": 34,
@@ -5321,12 +5060,6 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 280,
-          "exitMph": 0,
-          "launchDeg": 30,
-          "sprayDeg": 2
-        },
-        "c80": {
           "carryFt": 280,
           "exitMph": 0,
           "launchDeg": 30,
@@ -5534,12 +5267,6 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 110,
-          "launchDeg": 35,
-          "sprayDeg": 0
-        },
-        "c80": {
-          "carryFt": 0,
           "exitMph": 120,
           "launchDeg": 25,
           "sprayDeg": 0
@@ -5576,12 +5303,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 4,
-          "sprayDeg": 35
-        },
-        "c80": {
           "carryFt": 0,
           "exitMph": 88,
           "launchDeg": 4,
@@ -5623,12 +5344,6 @@
       ],
       "balls": {
         "shipped": {
-          "carryFt": 38,
-          "exitMph": 0,
-          "launchDeg": 3,
-          "sprayDeg": -6
-        },
-        "c80": {
           "carryFt": 38,
           "exitMph": 0,
           "launchDeg": 3,
@@ -5702,12 +5417,6 @@
           "exitMph": 88,
           "launchDeg": 32,
           "sprayDeg": 0
-        },
-        "c80": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 32,
-          "sprayDeg": 0
         }
       },
       "skill": "grow"
@@ -5742,12 +5451,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 32,
-          "sprayDeg": 0
-        },
-        "c80": {
           "carryFt": 0,
           "exitMph": 88,
           "launchDeg": 32,
@@ -5790,12 +5493,6 @@
           "exitMph": 88,
           "launchDeg": 32,
           "sprayDeg": 0
-        },
-        "c80": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 32,
-          "sprayDeg": 0
         }
       },
       "skill": "lick-catch"
@@ -5830,12 +5527,6 @@
       "runners": [],
       "balls": {
         "shipped": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 32,
-          "sprayDeg": 0
-        },
-        "c80": {
           "carryFt": 0,
           "exitMph": 88,
           "launchDeg": 32,
@@ -5878,12 +5569,6 @@
           "exitMph": 0,
           "launchDeg": 4,
           "sprayDeg": -18
-        },
-        "c80": {
-          "carryFt": 118,
-          "exitMph": 0,
-          "launchDeg": 4,
-          "sprayDeg": -18
         }
       },
       "skill": "burrow"
@@ -5920,20 +5605,11 @@
       ],
       "runnerIdsByProfile": {
         "shipped": [
-          "grit"
-        ],
-        "c80": [
           "konga"
         ]
       },
       "balls": {
         "shipped": {
-          "carryFt": 0,
-          "exitMph": 90,
-          "launchDeg": 3,
-          "sprayDeg": 38
-        },
-        "c80": {
           "carryFt": 0,
           "exitMph": 90,
           "launchDeg": 3,
@@ -5974,20 +5650,11 @@
       ],
       "runnerIdsByProfile": {
         "shipped": [
-          "grit"
-        ],
-        "c80": [
           "konga"
         ]
       },
       "balls": {
         "shipped": {
-          "carryFt": 0,
-          "exitMph": 90,
-          "launchDeg": 3,
-          "sprayDeg": 38
-        },
-        "c80": {
           "carryFt": 0,
           "exitMph": 90,
           "launchDeg": 3,
@@ -6030,12 +5697,6 @@
       "outs": 2,
       "balls": {
         "shipped": {
-          "carryFt": 38,
-          "exitMph": 0,
-          "launchDeg": 3,
-          "sprayDeg": -6
-        },
-        "c80": {
           "carryFt": 38,
           "exitMph": 0,
           "launchDeg": 3,
@@ -6174,20 +5835,10 @@
         "shipped": [
           "konga",
           "jester"
-        ],
-        "c80": [
-          "konga",
-          "jester"
         ]
       },
       "balls": {
         "shipped": {
-          "carryFt": 240,
-          "exitMph": 0,
-          "launchDeg": 30,
-          "sprayDeg": 2
-        },
-        "c80": {
           "carryFt": 240,
           "exitMph": 0,
           "launchDeg": 30,
@@ -6224,7 +5875,7 @@
       ],
       "runners": [],
       "balls": {
-        "c80": {
+        "shipped": {
           "carryFt": 0,
           "exitMph": 55,
           "launchDeg": 10,
@@ -6267,53 +5918,9 @@
           "exitMph": 100,
           "launchDeg": 35,
           "sprayDeg": -15
-        },
-        "c80": {
-          "carryFt": 0,
-          "exitMph": 100,
-          "launchDeg": 35,
-          "sprayDeg": -15
         }
       },
       "seat": "offense"
-    },
-    {
-      "id": "T-F09-S",
-      "policy": "grounder",
-      "seed": 14,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "boom",
-        "vine",
-        "moss",
-        "hex"
-      ],
-      "away": [
-        "konga",
-        "cinder",
-        "soot",
-        "nugget",
-        "nico",
-        "gull",
-        "marlow",
-        "ashlord",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {
-        "shipped": {
-          "carryFt": 0,
-          "exitMph": 90,
-          "launchDeg": 4,
-          "sprayDeg": -19
-        }
-      },
-      "seat": "assisted-defense"
     },
     {
       "id": "T-D07-T",
@@ -6350,21 +5957,11 @@
         "shipped": [
           "konga",
           "dart"
-        ],
-        "c80": [
-          "konga",
-          "dart"
         ]
       },
       "outs": 2,
       "balls": {
         "shipped": {
-          "carryFt": 38,
-          "exitMph": 0,
-          "launchDeg": 3,
-          "sprayDeg": -6
-        },
-        "c80": {
           "carryFt": 38,
           "exitMph": 0,
           "launchDeg": 3,
@@ -6407,21 +6004,11 @@
         "shipped": [
           "konga",
           "dart"
-        ],
-        "c80": [
-          "konga",
-          "dart"
         ]
       },
       "outs": 2,
       "balls": {
         "shipped": {
-          "carryFt": 38,
-          "exitMph": 0,
-          "launchDeg": 3,
-          "sprayDeg": -6
-        },
-        "c80": {
           "carryFt": 38,
           "exitMph": 0,
           "launchDeg": 3,

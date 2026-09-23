@@ -8,22 +8,20 @@ namespace GrandSluggers.Sim.Tests;
 /// -direction, -speed-retention, -vertical-retention, -ground-response, -uniform-error-direction): a failed take does not always drop at
 /// the feet. The contact and the ball's speed decide, never a second roll: a glancing touch on a hot ball sends it on with 50–80 % of
 /// its speed inside ±15° of its travel, a batted ball still on the shared ground physics; the same 0.40-s stun, the same reliable
-/// recovery, whoever reaches it. The shipped table has no failed take of either kind but the fumble it always had.
+/// recovery, whoever reaches it.
 /// </summary>
 public sealed class DeflectionTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly string TrialDir = Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80"));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Control.Root.Shipped, TrialDir));
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
 
     [Fact]
     [Trait("Kind", "Balance")]
     public void TheBranchIsTheContactsAndTheSpeedsNeverASecondRoll()
     {
-        foreach (var h in new[] { Control.Rules.Fielding.Handling, Trial.Rules.Fielding.Handling })
-            Assert.Equal((15.0, 0.80, 0.50, 0.5, 55.0), (h.DeflectSpreadDeg, h.DeflectRetainMax, h.DeflectRetainMin, h.DeflectObstruction, h.DeflectMinFtPerSec));
-        var r = Trial.Rules;
+        var h = Game.Rules.Fielding.Handling;
+        Assert.Equal((15.0, 0.80, 0.50, 0.5, 55.0), (h.DeflectSpreadDeg, h.DeflectRetainMax, h.DeflectRetainMin, h.DeflectObstruction, h.DeflectMinFtPerSec));
+        var r = Game.Rules;
         // Obstruction: 1 with the ball at the body, 0 at the edge of the take's window.
         Assert.Equal(1, FieldingResolver.Obstruction(0, 10));
         Assert.Equal(0.5, FieldingResolver.Obstruction(5, 10), 9);
@@ -43,16 +41,15 @@ public sealed class DeflectionTests
     }
 
     /// <summary>
-    /// Seed 35 on the 120-mph liner at 16° into left-centre: vine's ring meets the ball at its edge at 59 ft/s, past the hot line, so the
-    /// ball gets past — 80 % of its speed inside ±15° of its travel, rising still (the signed vertical kept) where a local bobble only
-    /// falls, 25 ft away before vine, stunned 0.40 s, runs it down and takes it back without a roll. The same seed twice is the same
-    /// branch and the same play. (Slice 2 recorded this on the 120-mph / 12° liner — 17.7 ft, taken back at the stun's end; with the
-    /// outfield's air multiplier at 0.6 that ball is met on the way down, and this is the hot ball met mid-hop.)
+    /// Seed 35 on the 96-mph liner at 12° into left: vine's ring meets the ball at its edge at 58 ft/s, past the hot line, so the ball
+    /// gets past — 80 % of its speed inside ±15° of its travel, rising still (the signed vertical kept) where a local bobble only falls,
+    /// 17.7 ft away before vine, stunned 0.40 s, runs it down and takes it back without a roll at the stun's end. The same seed twice is
+    /// the same branch and the same play.
     /// </summary>
     [Fact]
     public void TheHotLinersFailedTakeGetsPastAndIsRecoveredWithoutASecondRoll()
     {
-        var run = Drive(Trial, 120, 16, -18, ContactQuality.Perfect, seed: 35);
+        var run = Drive(Game, 96, 12, -21, ContactQuality.Perfect, seed: 35);
         Assert.Equal(1, run.Bobbles);
         Assert.True(run.Deflected, "a glancing touch on a hot ball gets past");
         Assert.InRange(run.Obstruction, 0, 0.1);
@@ -67,22 +64,22 @@ public sealed class DeflectionTests
         Assert.Equal(1, run.Rolls);
         Assert.False(run.Play.Outcome?.Error ?? true);
 
-        var again = Drive(Trial, 120, 16, -18, ContactQuality.Perfect, seed: 35);
+        var again = Drive(Game, 96, 12, -21, ContactQuality.Perfect, seed: 35);
         Assert.Equal((run.Deflected, run.Obstruction, run.DirOffsetDeg), (again.Deflected, again.Obstruction, again.DirOffsetDeg));
         Assert.Equal(run.Marks, again.Marks);
     }
 
     /// <summary>
-    /// On a copy where every rising take fails: a 120-mph liner into left-centre at 59 ft/s gets past, a 90-mph grounder into the hole
-    /// at 45 ft/s drops at the shortstop's feet — the same edge-of-ring contact, the speed the only difference.
+    /// On a copy where every rising take fails: a 96-mph liner into left at 58 ft/s gets past, a 90-mph grounder into the hole at 47 ft/s
+    /// drops at the shortstop's feet — the same edge-of-ring contact, the speed the only difference.
     /// </summary>
     [Fact]
     public void TheSpeedDecidesBetweenGettingPastAndTheKnockdown()
     {
-        using var certain = new PatchedTrial(text => text
+        using var certain = new PatchedGame(text => text
             .Replace("\"chanceCap\": 0.10", "\"chanceCap\": 1.0").Replace("\"handsCut\": 0.80", "\"handsCut\": 0")
             .Replace("\"hopMinApexFt\": 0.5", "\"hopMinApexFt\": 0").Replace("\"hopFullApexFt\": 1.5", "\"hopFullApexFt\": 0").Replace("\"hopPhaseHalfWidth\": 0.35", "\"hopPhaseHalfWidth\": 100"));
-        var hot = Drive(certain.Content, 120, 16, -18, ContactQuality.Perfect, seed: 1);
+        var hot = Drive(certain.Content, 96, 12, -21, ContactQuality.Perfect, seed: 1);
         Assert.Equal("LF", hot.Pos);
         Assert.Equal(1, hot.Bobbles);
         Assert.True(hot.Deflected);
@@ -106,28 +103,28 @@ public sealed class DeflectionTests
     [Fact]
     public void TheContinuedPathIsTheSharedPhysicsFromTheContact()
     {
-        var park = Trial.Parks["harbor-diamond"];
-        var hit = FlightFixtures.Hit(park, 100, 4, 0, ContactQuality.Perfect, rules: Trial.Rules);
-        var ball = BattedBall.Of(hit, park, Trial.Rules);
+        var park = Game.Parks["harbor-diamond"];
+        var hit = FlightFixtures.Hit(park, 100, 4, 0, ContactQuality.Perfect, rules: Game.Rules);
+        var ball = BattedBall.Of(hit, park, Game.Rules);
         var path = ball.Samples;
-        var t0 = BallFlight.HangTime(path, Trial.Rules) + 0.30;
-        var (x, y, z) = BallFlight.PointAt(path, t0, Trial.Rules);
-        var next = BallFlight.PointAt(path, t0 + 1.0 / 120, Trial.Rules);
+        var t0 = BallFlight.HangTime(path, Game.Rules) + 0.30;
+        var (x, y, z) = BallFlight.PointAt(path, t0, Game.Rules);
+        var next = BallFlight.PointAt(path, t0 + 1.0 / 120, Game.Rules);
         var vx = (next.X - x) * 120; var vz = (next.Z - z) * 120;
         var speed = Math.Sqrt(vx * vx + vz * vz);
         Assert.True(speed > 20, $"the ball still had {speed:0.0} ft/s at {t0:0.00}");
         // Reverse it at half speed off the contact: the prefix is byte for byte the original, the continuation starts there.
-        var cont = BallFlight.Continue(path, t0, x, y, z, -vx * 0.5, 0, -vz * 0.5, hit.LaunchDeg, hit.ExitVeloMph, park, Trial.Rules);
+        var cont = BallFlight.Continue(path, t0, x, y, z, -vx * 0.5, 0, -vz * 0.5, hit.LaunchDeg, hit.ExitVeloMph, park, Game.Rules);
         var prefix = path.Where(s => s.T < t0 - 1e-9).ToList();
         Assert.Equal(prefix, cont.Take(prefix.Count).ToList());
         Assert.Equal(t0, cont[prefix.Count].T, 9);
         Assert.Equal((x, z), (cont[prefix.Count].X, cont[prefix.Count].Z));
-        var after = BallFlight.PointAt(cont, t0 + 0.25, Trial.Rules);
+        var after = BallFlight.PointAt(cont, t0 + 0.25, Game.Rules);
         Assert.True(Diamond.Dist(after.X, after.Z, x, z) > 3, "the ball went back the way it came");
         Assert.True((after.X - x) * vx + (after.Z - z) * vz < 0, "against its old travel");
         Assert.True(BallFlight.RestTime(cont) > t0 + 0.5 && BallFlight.RestTime(cont) < t0 + 6, $"rest at {BallFlight.RestTime(cont):0.00}");
-        Assert.Equal(BallFlight.HangTime(path, Trial.Rules), BallFlight.HangTime(cont, Trial.Rules), 9);   // the landing mark is the original's
-        var reread = BattedBall.Reread(cont, hit.ExitVeloMph, hit.LaunchDeg, false, park, Trial.Rules);
+        Assert.Equal(BallFlight.HangTime(path, Game.Rules), BallFlight.HangTime(cont, Game.Rules), 9);   // the landing mark is the original's
+        var reread = BattedBall.Reread(cont, hit.ExitVeloMph, hit.LaunchDeg, false, park, Game.Rules);
         Assert.False(reread.Foul);
         Assert.Equal(ball.Shape, reread.Shape);
     }
@@ -196,26 +193,18 @@ public sealed class DeflectionTests
         return new Run(play, pos, takeAt, chance, bobbles, rolls, deflected, obstruction, speed, hIn, contactY, maxY, outSpeed, dir, travel, stunFrames, recoverAt, recoverPos, marks);
     }
 
-    /// <summary>The c80 copy with its fielding table changed, laid over the shipped root.</summary>
-    sealed class PatchedTrial : IDisposable
+    /// <summary>The game with its fielding table changed: an overlay carrying the one patched file over the shipped root.</summary>
+    sealed class PatchedGame : IDisposable
     {
         readonly string _dir;
 
-        public PatchedTrial(Func<string, string> fielding)
+        public PatchedGame(Func<string, string> fielding)
         {
             _dir = Path.Combine(Path.GetTempPath(), "grand-sluggers-deflect-" + Guid.NewGuid().ToString("N"));
-            foreach (var file in Directory.GetFiles(Control.Root.Shipped, "*", SearchOption.AllDirectories))
-            {
-                var relative = Path.GetRelativePath(Control.Root.Shipped, file);
-                var source = Path.Combine(TrialDir, relative);
-                if (!File.Exists(source)) continue;
-                var to = Path.Combine(_dir, relative);
-                Directory.CreateDirectory(Path.GetDirectoryName(to)!);
-                var text = File.ReadAllText(source);
-                if (relative.Replace('\\', '/') == "rules/fielding.json") text = fielding(text);
-                File.WriteAllText(to, text);
-            }
-            Content = ContentCatalog.Load(new DataRoot(Control.Root.Shipped, _dir));
+            var to = Path.Combine(_dir, "rules", "fielding.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+            File.WriteAllText(to, fielding(File.ReadAllText(Path.Combine(Game.Root.Shipped, "rules", "fielding.json"))));
+            Content = ContentCatalog.Load(new DataRoot(Game.Root.Shipped, _dir));
         }
 
         public ContentCatalog Content { get; }

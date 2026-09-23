@@ -1,6 +1,6 @@
 {
   "gravity": 32.174,
-  "drag": 0.0019,
+  "drag": 0.0040,
   "timeScale": 1.65,
   "linerTimeScale": 1.0,
   "dirtTimeScale": 1.65,
@@ -20,7 +20,7 @@
     "chopperMinExitMph": 70,
     "linerMaxLaunchDeg": 22,
     "linerMinExitMph": 74,
-    "infieldLipFt": 155
+    "infieldLipFt": 137.78
   },
   "deadBall": {
     "minSec": 2.4,

@@ -309,8 +309,8 @@ public sealed class FieldingResolver
     /// <summary>
     /// Base catch radius for a glove (fielding.catch.radius*, abilities, clamber parks). The stand-up reach is
     /// the character's authored <see cref="Character.ReachFt"/> when it has one; otherwise the table's authored
-    /// <c>standUpReachFt</c> when it carries one (6.0 in the c80 copy, #719); otherwise the legacy
-    /// <c>radiusBaseFt + radiusPerField x Field</c>, which is what every unauthored roster on the shipped table still gets
+    /// <c>standUpReachFt</c> when it carries one (6.0 as shipped, #719); otherwise the legacy
+    /// <c>radiusBaseFt + radiusPerField x Field</c>
     /// (F693-02-catch-reach-envelope, F693-02-character-catch-range).
     /// </summary>
     public static double CatchRadiusFt(Character fielder, Park? park, RulesTable? rules = null)

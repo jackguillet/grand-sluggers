@@ -92,10 +92,7 @@ public sealed class PitchFamilyGoldenTests
     [Fact]
     public void TheShippedFastballAndChangeupFlyTheStoredBitsExactly()
     {
-        // The golden pins world feet, and Z rides on Diamond.Mound, which is process-wide: the
-        // compact copy is a different diamond and would be a different (equally correct) fixture.
-        if (TestRoot.Compact) return;
-
+        // The golden pins world feet, and Z rides on Diamond.Mound, which is process-wide.
         var stored = Stored();
         var drift = new List<string>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -126,8 +123,6 @@ public sealed class PitchFamilyGoldenTests
     [Fact]
     public void XIsStoredExactlyWhereverNoSineTouchesItAndComposedWhereverOneDoes()
     {
-        if (TestRoot.Compact) return;
-
         var rules = Shipped;
         var stored = 0;
         var composed = 0;
@@ -175,7 +170,6 @@ public sealed class PitchFamilyGoldenTests
     public void RegenerateOnlyWhenTheEnvironmentAsksForIt()
     {
         if (Environment.GetEnvironmentVariable(WriteVariable) != "1") return;
-        if (TestRoot.Compact) throw new InvalidOperationException("regenerate on the shipped diamond, not the compact copy");
 
         var rules = Shipped;
         var document = new JsonObject

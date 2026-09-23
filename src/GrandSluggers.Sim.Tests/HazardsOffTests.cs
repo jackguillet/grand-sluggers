@@ -19,19 +19,10 @@ namespace GrandSluggers.Sim.Tests;
 /// pins that choice, which Jack confirmed (4. a, September 22, 2026).
 /// </para>
 ///
-/// <para>
-/// Tagged <c>Rows=compact</c>: every row holds on the shipped root and on <c>trials/c80</c>. The rows
-/// that build a match but play no ball load the overlay by hand as well; the rows that play games run on
-/// the process's root, because the diamond is process-wide (#715), and take their seeds by root.
-/// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class HazardsOffTests
 {
     static readonly ContentCatalog Catalog = ContentCatalog.Load();
-    static readonly DataRoot TrialRoot =
-        new(Catalog.Root.Shipped, Path.GetFullPath(Path.Combine(Catalog.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(TrialRoot);
     const double Frame = 1.0 / 60.0;
 
     static bool ActsInPlay(ContentCatalog content, Hazard h) =>
@@ -64,7 +55,7 @@ public sealed class HazardsOffTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <c>SF-24</c>, both roots, every park in the pick order. With hazards off the match's park has no
+    /// <c>SF-24</c>, every park in the pick order. With hazards off the match's park has no
     /// instance of a hazard pattern, keeps every <c>wallTrait</c> and <c>decoration</c> instance in its
     /// authored order, and is the catalog's park in every other member (record equality once the list
     /// is put back). With hazards on it is the catalog's park itself. The table is the same reference
@@ -78,47 +69,45 @@ public sealed class HazardsOffTests
     /// </para>
     /// </summary>
     [Fact]
-    public void SF24_AHazardsOffMatchHasNoHazardInstanceAndEveryOtherParkMemberUnchangedOnBothRoots()
+    public void SF24_AHazardsOffMatchHasNoHazardInstanceAndEveryOtherParkMemberUnchanged()
     {
-        foreach (var content in new[] { Catalog, Trial })
+        var content = Catalog;
+        var removed = 0;
+        var kept = 0;
+        foreach (var id in content.ParkPickOrder)
         {
-            var removed = 0;
-            var kept = 0;
-            foreach (var id in content.ParkPickOrder)
-            {
-                var park = content.Parks[id];
-                var on = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id);
-                var off = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id, hazards: false);
-                Assert.True(on.Hazards);
-                Assert.False(off.Hazards);
-                if (park.Night is null) Assert.Same(park, on.Park);
-                else Assert.Equal(park with { Night = null }, on.Park);
+            var park = content.Parks[id];
+            var on = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id);
+            var off = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id, hazards: false);
+            Assert.True(on.Hazards);
+            Assert.False(off.Hazards);
+            if (park.Night is null) Assert.Same(park, on.Park);
+            else Assert.Equal(park with { Night = null }, on.Park);
 
-                var patterns = content.Rules.Hazards;
-                Assert.DoesNotContain(off.Park.Hazards, h => HazardPattern.IsHazard(patterns.Of(h.Type).Pattern));
-                // Written against the two kept patterns by name, not through IsHazard, so this row is a
-                // second statement of the choice rather than the same statement read back.
-                var scenery = park.Hazards
-                    .Where(h => patterns.Of(h.Type).Pattern is HazardPattern.WallTrait or HazardPattern.Decoration)
-                    .ToArray();
-                Assert.Equal(scenery, off.Park.Hazards);
-                Assert.All(off.Park.Hazards, h => Assert.Contains(park.Hazards, p => ReferenceEquals(p, h)));
+            var patterns = content.Rules.Hazards;
+            Assert.DoesNotContain(off.Park.Hazards, h => HazardPattern.IsHazard(patterns.Of(h.Type).Pattern));
+            // Written against the two kept patterns by name, not through IsHazard, so this row is a
+            // second statement of the choice rather than the same statement read back.
+            var scenery = park.Hazards
+                .Where(h => patterns.Of(h.Type).Pattern is HazardPattern.WallTrait or HazardPattern.Decoration)
+                .ToArray();
+            Assert.Equal(scenery, off.Park.Hazards);
+            Assert.All(off.Park.Hazards, h => Assert.Contains(park.Hazards, p => ReferenceEquals(p, h)));
 
-                Assert.Equal(park with { Night = null }, off.Park with { Hazards = park.Hazards });
-                Assert.Equal(park.Id, off.Park.Id);
-                Assert.Same(on.Rules, off.Rules);
-                Assert.Equal(on.Night, off.Night);
+            Assert.Equal(park with { Night = null }, off.Park with { Hazards = park.Hazards });
+            Assert.Equal(park.Id, off.Park.Id);
+            Assert.Same(on.Rules, off.Rules);
+            Assert.Equal(on.Night, off.Night);
 
-                removed += park.Hazards.Count - off.Park.Hazards.Count;
-                kept += off.Park.Hazards.Count;
-                // A park with nothing to remove and no night block to resolve plays the catalog's own
-                // object: nothing about it moved.
-                if (off.Park.Hazards.Count == park.Hazards.Count && park.Night is null) Assert.Same(park, off.Park);
-            }
-            // Not vacuous: the switch removes instances on this root, and the scenery it keeps is there to keep.
-            Assert.True(removed > 0, content.Root.Provenance);
-            Assert.True(kept > 0, content.Root.Provenance);
+            removed += park.Hazards.Count - off.Park.Hazards.Count;
+            kept += off.Park.Hazards.Count;
+            // A park with nothing to remove and no night block to resolve plays the catalog's own
+            // object: nothing about it moved.
+            if (off.Park.Hazards.Count == park.Hazards.Count && park.Night is null) Assert.Same(park, off.Park);
         }
+        // Not vacuous: the switch removes instances, and the scenery it keeps is there to keep.
+        Assert.True(removed > 0, content.Root.Provenance);
+        Assert.True(kept > 0, content.Root.Provenance);
     }
 
     /// <summary>
@@ -146,31 +135,24 @@ public sealed class HazardsOffTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// The seed set, found by a scan at every park with a hazard, day and night, on each root, with the
+    /// The seed set, found by a scan at every park with a hazard, day and night, with the
     /// first matchup and the same detector as <see cref="HazardOutcomes"/> (#858). Seeds 1–12 first; where
-    /// they held no outcome the scan ran on (a chomp to 16 on the copy). Rescanned after F4-e (#862) moved
+    /// they held no outcome the scan ran on (a chomp to 16). Rescanned after F4-e (#862) moved
     /// Crystal's and Ember's volumes, and again after each promotion that reseeded every game (#871, #886). Each row is a game in which hazards on plays at least one hazard
     /// outcome, so the hazards-off twin of the same game proves something. Chompers bite only at night
     /// (they are Funfair's night block since F4-d, FD-11), so Funfair's row is a night game with a chomp in it.
     /// </summary>
-    static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds => TestRoot.Pick<IReadOnlyList<(string, bool, int)>>(
+    static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds =>
         [
-            ("crystal-rink", false, 14),  // a freeze volume slows the chase (a Crystal night is its day since FD-11-R2)
+            ("crystal-rink", false, 1),   // a freeze volume slows the chase (a Crystal night is its day since FD-11-R2)
             ("ember-keep", true, 1),      // a lava pit or the breath slows the chase
-            ("funfair-park", true, 7),    // a chomper eats a fly
-            ("canopy-yard", false, 1),    // a barrel warps a grounder
-            ("rooftop-city", false, 5)    // a billboard pays the batting team
-        ],
-        [
-            ("crystal-rink", false, 1),
-            ("ember-keep", true, 1),
-            ("funfair-park", true, 16),
-            ("canopy-yard", false, 4),
-            ("rooftop-city", false, 2)
-        ]);
+            ("funfair-park", true, 16),   // a chomper eats a fly
+            ("canopy-yard", false, 4),    // a barrel warps a grounder
+            ("rooftop-city", false, 2)    // a billboard pays the batting team
+        ];
 
-    /// <summary>A park, a condition and a seed at which the switch changes the whole game, by root.</summary>
-    static (string Park, bool Night, int Seed) DefaultOnGame => TestRoot.Pick(("canopy-yard", true, 1), ("canopy-yard", false, 4));
+    /// <summary>A park, a condition and a seed at which the switch changes the whole game.</summary>
+    static (string Park, bool Night, int Seed) DefaultOnGame => ("canopy-yard", false, 4);
 
     /// <summary>
     /// <c>SF-24</c>, the event half. Over the fixed seed set, hazards on plays at least one hazard outcome

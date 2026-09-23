@@ -79,11 +79,11 @@ Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on deman
 
 **Tests.** Never run the full test suite locally. It freezes the shared Mac. Run `tools/test-fast.sh <Class> [<Class> ...]` for the classes you touched; it runs `Kind!=Balance`, narrowed to those classes. CI runs the breakage suite on every PR. A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are named in the PR body.
 
-**Balance runs only when Jack asks for a balance pass.** Balance and calibration means: the full test suite (Actions → **Full tests**, on GitHub as well as locally), `[Trait("Kind","Balance")]` tests, S-29 and the cohort bands, park-factor reports, flight probes, the evidence seals and C80 parity. Do not start any of them until Jack says he wants to balance the game (rule added 2026-09-22: constant balancing costs too much time). A PR that moves a feel or rule number, a tuning PR included, does not owe a cohort report or a Full tests run. It names the number and the move in the PR body and stops at the breakage suite. When Jack starts a balance pass, run Full tests (the `balance_only` input runs only the balance set).
+**Balance runs only when Jack asks for a balance pass.** Balance and calibration means: the full test suite (Actions → **Full tests**, on GitHub as well as locally), `[Trait("Kind","Balance")]` tests, S-29 and the cohort bands, park-factor reports, flight probes and the evidence seals. Do not start any of them until Jack says he wants to balance the game (rule added 2026-09-22: constant balancing costs too much time). A PR that moves a feel or rule number, a tuning PR included, does not owe a cohort report or a Full tests run. It names the number and the move in the PR body and stops at the breakage suite. When Jack starts a balance pass, run Full tests (the `balance_only` input runs only the balance set).
 
 **Evidence seals (FR-16).** A feature PR does not reseal, even when it edits a sealed file. Reseal only during a balance pass Jack asked for. A stale seal in the Full tests run is not a feature PR's failure.
 
-**Trials (`trials/c80` and the others).** A feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more. What happens to C80 is open (§1.3).
+**Trials (`trials/*`).** A feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more. There is no trial in the tree today (§1.3).
 
 **Spec.** A PR that changes behavior updates the affected rule in [gameplay-spec.md](gameplay-spec.md) in the same PR. The rule says what the game does: numbers, units, scenario ids. It does not say who built it. Do not add PR numbers, "✅ Fx (#nnn, PR #nnn)" provenance, or register rows that name PRs. A status tag stays a bare tag (✅ / ⚠️ / ❌). The commit history records who did what. Existing provenance text stays; do not mass-delete it.
 
@@ -93,9 +93,9 @@ Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on deman
 
 **Reading.** Start from "Start here" in [AGENTS.md](../AGENTS.md). Read the gameplay-spec sections your change touches. Look up the other docs when the work needs them. Research reports (`docs/research-*.md`, `docs/research/`) and handoffs are reference, not required reading.
 
-## 1.3 Open decision: C80
+## 1.3 Decided: C80 promoted
 
-Open, and Jack's. `trials/c80` is the compact-field copy (#715–#723). Keeping it in parity costs every PR that touches a park or a rules table. Options: **freeze** it (a read-only record; parity is not kept), **promote** it (its numbers become the shipped defaults, then the copy retires), or **retire** it (delete the trial). Until Jack decides, parity is on demand (§1.2). Agents do not decide this.
+Jack decided on September 22, 2026: **promote** it. The compact-field copy's ordinary loop (#715–#723) is the shipped game, its numbers are the defaults in `data/`, and `trials/c80` is deleted. The specials and special statuses stay out of that contract, and the throw-before-cover rule is unchanged. Jack's sitting on the promoted game is still owed.
 
 ## 2. Debug protocol (remember)
 

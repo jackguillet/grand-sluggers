@@ -14,7 +14,6 @@ namespace GrandSluggers.Sim.Tests;
 ///
 /// Both roots: the class carries the compact trait, so the second CI run replays it on c80.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class PlateChemistryScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();

@@ -8,20 +8,22 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// F3-d (#857; FD-04 B, FD-05, FR-02 / FR-06 / FR-16; spec §8, §9, §16, <c>SF-13</c>): the ground acts on a body in a small
 /// way. Every ground row carries a <c>body</c> block — <c>startMul</c>, <c>brakeMul</c>, <c>cutMul</c> through the §8
-/// response law, <c>slideMul</c> and <c>overrunMul</c> on the runner — each scaling a time or a length, all 1.0 on both roots.
+/// response law, <c>slideMul</c> and <c>overrunMul</c> on the runner — each scaling a time or a length, all 1.0 in the data.
 ///
 /// <para>
-/// <b>The fixture rows here are not shipped numbers.</b> <see cref="Roots"/> copies the shipped root and turns the response
-/// law on at the trial's rates (<c>accelSec</c> 0.2 / <c>brakeSec</c> 0.1), and gives the <c>ice</c> row fixture
-/// multipliers; the parks are Harbor as authored ("plain": dirt and grass, both 1.0) and Harbor with every zone named ice
-/// ("iced"). The same body, the same stick, the same ball on the two parks is the <c>SF-13</c> comparison. The fixture's
-/// geometry is the shipped diamond, the one <see cref="Diamond"/> reads in this process, so nothing here plays a trial row on
-/// the control's field. The class is not <c>Rows=compact</c>: it builds its own roots.
+/// <b>The fixture rows here are not shipped numbers.</b> The data root runs the response law (<c>accelSec</c> 0.2 /
+/// <c>brakeSec</c> 0.1) with every row at 1.0. <see cref="Roots"/> copies it and gives the <c>ice</c> row fixture
+/// multipliers, and builds the law-off twins (<c>accelSec</c> 0 / <c>brakeSec</c> 0, everything else the data's); the parks
+/// are Harbor as authored ("plain": dirt and grass, both 1.0) and Harbor with every zone named ice ("iced"). The same body,
+/// the same stick, the same ball on the two parks is the <c>SF-13</c> comparison. Every root plays on the one diamond
+/// <see cref="Diamond"/> reads in this process.
 /// </para>
 ///
 /// <para>
 /// <b>Parity was written first.</b> The three <c>AtOne…</c> rows were committed against the code before the block existed,
-/// with the values that code produced; the change had to keep them. Each value is reached by <c>+ − × ÷</c> and <c>sqrt</c>
+/// with the values that code produced; the change had to keep them. The values were re-recorded when the compact profile
+/// became the data (the diamond and the chase moved under them); the relations — a 1.0 zone map is the unzoned path, the
+/// law-off body ignores the rows — are the ones F3-d proved. Each value is reached by <c>+ − × ÷</c> and <c>sqrt</c>
 /// alone — the stick glove's want is the raw stick, the route runs on a synthetic roller, the runner on the running table —
 /// so the golden pins no libm (protocol <c>stored-double-pins-the-platform</c>).
 /// </para>
@@ -33,16 +35,16 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
 
     public BodyGroundTests(Roots roots) => _roots = roots;
 
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
-
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped,
-        Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80"))));
+    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
 
     /// <summary>The fixture ice row. Distinct values, so a reader that took the wrong multiplier fails by name.</summary>
     static readonly (double Start, double Brake, double Cut, double Slide, double Overrun) Slick = (1.5, 2.0, 2.5, 1.5, 2.0);
 
-    /// <summary>The stick glove's script: +X from rest (through the reaction lockout), a 90° cut to −Z, then a reversal to +Z.</summary>
-    static readonly (int Frames, double X, double Y)[] Script = [(100, 1, 0), (60, 0, -1), (45, 0, 1)];
+    /// <summary>
+    /// The stick glove's script: one neutral frame, which arms the seat's radial stick (a seat steers only after it has seen
+    /// the stick at rest once), then +X from rest (through the reaction lockout), a 90° cut to −Z, then a reversal to +Z.
+    /// </summary>
+    static readonly (int Frames, double X, double Y)[] Script = [(1, 0, 0), (99, 1, 0), (60, 0, -1), (45, 0, 1)];
 
     const int CutFrom = 100;
     const int ReverseFrom = 160;
@@ -58,17 +60,16 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     // The table
     // ---------------------------------------------------------------------------------
 
-    /// <summary>Every row names the block, every multiplier is 1.0, on both roots (<c>trials/c80</c> reads the shipped library).</summary>
+    /// <summary>Every row names the block, every multiplier is 1.0, and the law those rows scale is on in the data.</summary>
     [Fact]
     public void EveryGroundRowCarriesTheBodyBlockAtOne()
     {
-        foreach (var catalog in new[] { Shipped, Trial })
-            foreach (var id in catalog.Rules.Grounds.Ids)
-            {
-                var body = catalog.Rules.Grounds.Of(id).Body;
-                Assert.Equal((1.0, 1.0, 1.0, 1.0, 1.0), (body.StartMul, body.BrakeMul, body.CutMul, body.SlideMul, body.OverrunMul));
-            }
-        Assert.False(File.Exists(Path.Combine(Shipped.Root.Shipped, "..", "trials", "c80", RulesTable.Directory, "grounds.json")));
+        foreach (var id in Game.Rules.Grounds.Ids)
+        {
+            var body = Game.Rules.Grounds.Of(id).Body;
+            Assert.Equal((1.0, 1.0, 1.0, 1.0, 1.0), (body.StartMul, body.BrakeMul, body.CutMul, body.SlideMul, body.OverrunMul));
+        }
+        Assert.Equal((0.2, 0.1), (Game.Rules.Fielding.Chase.AccelSec, Game.Rules.Fielding.Chase.BrakeSec));
     }
 
     /// <summary>The multipliers are range-checked like every rule: 0 or less is refused by name, against the file.</summary>
@@ -96,8 +97,9 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     }
 
     /// <summary>
-    /// The response law's switch reads the table, never a product: the ice row on the law-off root carries every fixture
-    /// multiplier and the chase still has no ramp and no brake, so there is no law for them to scale.
+    /// The response law's switch reads the table, never a product: the ice row on the law-off copy (the data's chase with
+    /// <c>accelSec</c> and <c>brakeSec</c> at 0) carries every fixture multiplier and the chase still has no ramp and no
+    /// brake, so there is no law for them to scale. The law-on copy is the data's chase.
     /// </summary>
     [Fact]
     public void TheLawsSwitchIsTheTableNotAProduct()
@@ -111,6 +113,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
             (on.Grounds.Of(Ground.Ice).Body.StartMul, on.Grounds.Of(Ground.Ice).Body.BrakeMul, on.Grounds.Of(Ground.Ice).Body.CutMul,
              on.Grounds.Of(Ground.Ice).Body.SlideMul, on.Grounds.Of(Ground.Ice).Body.OverrunMul));
         Assert.Equal(1.0, on.Grounds.Of(Ground.Dirt).Body.StartMul);
+        Assert.Equal((Game.Rules.Fielding.Chase.AccelSec, Game.Rules.Fielding.Chase.BrakeSec), (on.Fielding.Chase.AccelSec, on.Fielding.Chase.BrakeSec));
     }
 
     // ---------------------------------------------------------------------------------
@@ -230,7 +233,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     }
 
     /// <summary>
-    /// <c>SF-13</c>: with the law off (the shipped chase, 0 / 0) the ice row's multipliers have nothing to scale. The stick
+    /// <c>SF-13</c>: with the law off (the data's chase at 0 / 0) the ice row's multipliers have nothing to scale. The stick
     /// glove and every body in S-31's play step bit for bit the same on the plain and the iced park.
     /// </summary>
     [Fact]
@@ -345,47 +348,44 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// The stick glove's path, frame by frame, on the shipped root (law off) and on the law-on fixture with every row at 1.0.
-    /// The expected hashes were taken from the code before F3-d.
+    /// The stick glove's path, frame by frame, on the law-off copy and on the data (law on) with every row at 1.0. The
+    /// relation is F3-d's: a zone map that names every zone a 1.0 row is the unzoned path.
     /// </summary>
     [Fact]
     public void AtOneTheStickGlovesStepIsThePreChangeBits()
     {
-        Assert.Equal("176a9d3491fbc74419efabe9e6418aaae3bfa7cd885b5f2dc1375ceb27eaf8fb",
-            Hash(StickRun(Shipped, Plain(Shipped), Script).SelectMany(p => new[] { p.X, p.Z })));
-        Assert.Equal("09668725c6b0a072150fa406dc7ee4de10ac721eae029dadd8a798c4603d0713",
-            Hash(StickRun(_roots.LawOn, Plain(_roots.LawOn), Script).SelectMany(p => new[] { p.X, p.Z })));
+        Assert.Equal("deb843bf48281d57dacf2abc40fb0d87529e8663c7d1ca993c39423c8d109c0a",
+            Hash(StickRun(_roots.LawOff, Plain(_roots.LawOff), Script).SelectMany(p => new[] { p.X, p.Z })));
+        Assert.Equal("048730fc3eb307df268818a40fa5102d45907d447632957fcdee82518c4c3fad",
+            Hash(StickRun(Game, Plain(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
         // A zone map that names every zone a 1.0 row is the same path: the read is there, the product is exact.
-        Assert.Equal("09668725c6b0a072150fa406dc7ee4de10ac721eae029dadd8a798c4603d0713",
-            Hash(StickRun(_roots.LawOn, Iced(_roots.LawOn), Script).SelectMany(p => new[] { p.X, p.Z })));
+        Assert.Equal("048730fc3eb307df268818a40fa5102d45907d447632957fcdee82518c4c3fad",
+            Hash(StickRun(Game, Iced(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
     }
 
-    /// <summary>The planner's route on a synthetic roller: the pre-F3-d values, on the shipped root, the law-on fixture and the trial.</summary>
+    /// <summary>The planner's route on a synthetic roller: the pre-F3-d values, on the law-off copy and on the data (law on).</summary>
     [Fact]
     public void AtOneThePlannersRouteIsThePreChangeRoute()
     {
         Assert.Equal(new FieldingPursuit.Route(-25.1953125, 118.7890625, 1.25, 16.823202477577286, 18, 1, true, false, 0),
-            PlanRoute(Shipped.Rules, Plain(Shipped)));
+            PlanRoute(_roots.LawOff.Rules, Plain(_roots.LawOff)));
         var ramped = new FieldingPursuit.Route(-26.081249999999997, 120.85624999999999, 1.3, 16.172964033379905, 18, 1.05, true, false, 0.1);
-        Assert.Equal(ramped, PlanRoute(_roots.LawOn.Rules, Plain(_roots.LawOn)));
-        Assert.Equal(ramped, PlanRoute(_roots.LawOn.Rules, Iced(_roots.LawOn)));
-        Assert.Equal(ramped, PlanRoute(Trial.Rules, Plain(Trial)));
+        Assert.Equal(ramped, PlanRoute(Game.Rules, Plain(Game)));
+        Assert.Equal(ramped, PlanRoute(Game.Rules, Iced(Game)));
     }
 
     /// <summary>
-    /// The runner through first and into second under a tag threat: the pre-F3-d path, with no park named and with Harbor's
-    /// zones (every bag on a 1.0 row), on the shipped root and the trial.
+    /// The runner through first and into second under a tag threat on the 80-ft diamond: one path, with no park named, with
+    /// Harbor's zones and with every zone iced at 1.0 (every bag on a 1.0 row).
     /// </summary>
     [Fact]
     public void AtOneTheRunnersPathIsThePreChangePath()
     {
-        const string expected = "a4085fb291cabed947d5711852099c27c3a7e5a8073577a274f22e927ff24203";
-        foreach (var catalog in new[] { Shipped, Trial })
-        {
-            Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, null)));
-            Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Plain(catalog), catalog.Rules))));
-            Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Iced(catalog), catalog.Rules))));
-        }
+        const string expected = "f8fe94f919d63c22eba1332523b2f52b6b907b46f155741d78b08beb4d21692f";
+        var catalog = Game;
+        Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, null)));
+        Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Plain(catalog), catalog.Rules))));
+        Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Iced(catalog), catalog.Rules))));
     }
 
     // ---------------------------------------------------------------------------------
@@ -492,7 +492,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
             var d = 60 * t - 5 * t * t;
             path.Add(new Sample(t, d, 0, -0.375 * d, 60 + 0.875 * d));
         }
-        var who = Shipped.Must("ashlord");
+        var who = Game.Must("ashlord");
         var preview = FlightFixtures.Preview(who, "SS", BattedBallClass.Grounder, 0, path[^1].X, path[^1].Z);
         return FieldingPursuit.Plan(preview, park, path, 0.25, -42, 118, 18, rules, readySec: 0.25);
     }
@@ -500,7 +500,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     static List<double> RunnerPath(RulesTable rules, GroundZones? zones)
     {
         var values = new List<double>();
-        var batter = Runner.BatterRunner(Shipped.Must("rio"), HomeSet.BatterX, HomeSet.BatterZ);
+        var batter = Runner.BatterRunner(Game.Must("rio"), HomeSet.BatterX, HomeSet.BatterZ);
         var t = 0.0;
         for (var i = 0; i < 400; i++)
         {
@@ -509,7 +509,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
             values.Add(batter.OverrunFt);
             values.Add((double)batter.Phase);
         }
-        var runner = new Runner(Shipped.Must("vale"), 1);
+        var runner = new Runner(Game.Must("vale"), 1);
         runner.BeginPlay(forced: false, tagAndGo: false);
         runner.Send(2);
         t = 0;
@@ -530,8 +530,9 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
         Convert.ToHexString(SHA256.HashData(values.SelectMany(v => BitConverter.GetBytes(BitConverter.DoubleToInt64Bits(v))).ToArray())).ToLowerInvariant();
 
     /// <summary>
-    /// Throwaway copies of the shipped root, deleted with the class: the law on at the trial's rates with every row at 1.0; the
-    /// same with the fixture ice row; the shipped chase with the fixture ice row. Nothing under <c>data/</c> is written.
+    /// Throwaway copies of the data root, deleted with the class: the law off (<c>accelSec</c> / <c>brakeSec</c> 0) with every
+    /// row at 1.0; the data's chase (law on) with the fixture ice row; the law off with the fixture ice row. Nothing under
+    /// <c>data/</c> is written.
     /// </summary>
     public sealed class Roots : IDisposable
     {
@@ -539,22 +540,23 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
 
         public Roots()
         {
-            LawOn = ContentCatalog.Load(new DataRoot(Copy(_ => { }, LawOnChase)));
-            Slick = ContentCatalog.Load(new DataRoot(Copy(IceRow, LawOnChase)));
-            SlickLawOff = ContentCatalog.Load(new DataRoot(Copy(IceRow, _ => { })));
+            LawOff = ContentCatalog.Load(new DataRoot(Copy(_ => { }, LawOffChase)));
+            Slick = ContentCatalog.Load(new DataRoot(Copy(IceRow, _ => { })));
+            SlickLawOff = ContentCatalog.Load(new DataRoot(Copy(IceRow, LawOffChase)));
         }
 
-        public ContentCatalog LawOn { get; }
+        public ContentCatalog LawOff { get; }
         public ContentCatalog Slick { get; }
         public ContentCatalog SlickLawOff { get; }
 
-        /// <summary>A fresh copy of the shipped root with one change to <c>grounds.json</c>, for a refusal row.</summary>
+        /// <summary>A fresh copy of the data root with one change to <c>grounds.json</c>, for a refusal row.</summary>
         public string Fresh(Action<JsonObject> grounds) => Copy(grounds, _ => { });
 
-        static void LawOnChase(JsonObject fielding)
+        /// <summary>The response law off: no ramp and no brake, every other chase number the data's.</summary>
+        static void LawOffChase(JsonObject fielding)
         {
-            fielding["chase"]!["accelSec"] = 0.2;
-            fielding["chase"]!["brakeSec"] = 0.1;
+            fielding["chase"]!["accelSec"] = 0;
+            fielding["chase"]!["brakeSec"] = 0;
         }
 
         /// <summary>The fixture rows: ice carries all five, ash only the cut-back (so the cut is proved to be its own time).</summary>

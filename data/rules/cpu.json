@@ -1,10 +1,9 @@
 {
   "level": "normal",
-  // #722: the CPU's read of a throw, by rung. relayBiasSec is how much a relay must save before a fielder throws through
-  // the cutoff inside fielding.throw.onTheFlyFt; 99 is a value no relay can save, so the ceiling alone decides, which is
-  // the rule the game shipped with. runnerReadsArm / runnerReadsRelay / readsChemistry (0-1) are how much of the
-  // thrower's arm, of the fielder's relay and of the pair chemistry the CPU forecasts; 0 is the neutral flat read the
-  // shipped runner always had. trials/c80 switches them on.
+  // #722 (decision 6 of #730): the CPU decides relay or direct by total time, and the runner reads the same plan. The
+  // ceiling in rules/fielding.json is set to never, so relayBiasSec is the whole rule: hard relays whenever it saves
+  // anything, normal when it saves more than a tenth, easy only when it saves more than three tenths. Easy reads half
+  // the thrower's arm and no relay; normal and hard read the arm, the relay and the pair chemistry in full.
   "easy": {
     "timingSigmaMul": 1.3,
     "reactionMul": 1.4,
@@ -13,8 +12,8 @@
     "perfectStealChance": 0,
     "pickoffChance": 0.03,
     "runnerMarginSec": 0.15,
-    "relayBiasSec": 99,
-    "runnerReadsArm": 0,
+    "relayBiasSec": 0.3,
+    "runnerReadsArm": 0.5,
     "runnerReadsRelay": 0,
     "readsChemistry": 0
   },
@@ -26,10 +25,10 @@
     "perfectStealChance": 0.2,
     "pickoffChance": 0.06,
     "runnerMarginSec": 0,
-    "relayBiasSec": 99,
-    "runnerReadsArm": 0,
-    "runnerReadsRelay": 0,
-    "readsChemistry": 0
+    "relayBiasSec": 0.1,
+    "runnerReadsArm": 1,
+    "runnerReadsRelay": 1,
+    "readsChemistry": 1
   },
   "hard": {
     "timingSigmaMul": 0.8,
@@ -39,9 +38,9 @@
     "perfectStealChance": 0.4,
     "pickoffChance": 0.1,
     "runnerMarginSec": -0.15,
-    "relayBiasSec": 99,
-    "runnerReadsArm": 0,
-    "runnerReadsRelay": 0,
-    "readsChemistry": 0
+    "relayBiasSec": 0,
+    "runnerReadsArm": 1,
+    "runnerReadsRelay": 1,
+    "readsChemistry": 1
   }
 }

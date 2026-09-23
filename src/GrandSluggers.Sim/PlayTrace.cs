@@ -70,7 +70,7 @@ public sealed record PlayTraceLog(
 /// The trial overlay a trace was produced under (#716). Absent from a control trace, so a control
 /// run's bytes are what they always were, and present on a trial's, so a saved trace carries its
 /// own provenance instead of relying on whoever ran it having kept the stderr line. The overlay is
-/// named the way a run names it — <c>trials/c80</c> — so a trial authored in the repository
+/// named the way a run names it — <c>trials/example</c> — so a trial authored in the repository
 /// attributes the same way on any machine.
 /// </summary>
 public sealed record PlayTraceTrial(string Overlay, IReadOnlyList<string> Files)

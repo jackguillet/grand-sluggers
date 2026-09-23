@@ -6,34 +6,31 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// 3c-4 slice 1 (#720: F693-02-clean-ground-pickup-readiness, -ground-pickup-recoil-basis, -ground-pickup-recoil-cap,
 /// -recoil-field-shaping, -recoil-field-factors, -recoil-severity-curve, -ordinary-recoil-actions, -ordinary-recoil-displacement,
-/// -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile): what the ball costs the hands that take it off the ground. On
-/// the <c>c80</c> copy the cost is a pure function of the ball's actual incoming speed and the body's Hands — the same ball to the
-/// same hands costs the same every time, a routine arrival costs nothing, the cap and the one-foot skid both bind — and the world
-/// goes on while the body recovers. The shipped table keeps the energy knockback the game shipped with.
+/// -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile): what the ball costs the hands that take it off the ground. The
+/// cost is a pure function of the ball's actual incoming speed and the body's Hands — the same ball to the same hands costs the same
+/// every time, a routine arrival costs nothing, the cap and the one-foot skid both bind — and the world goes on while the body
+/// recovers. With the recoil off (onsetFtPerSec 0) the energy knockback rules instead.
 /// </summary>
 public sealed class RecoilTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly string TrialDir = Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80"));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Control.Root.Shipped, TrialDir));
+    static readonly ContentCatalog Game = ContentCatalog.Load();
+    /// <summary>The game's tables with the impact recoil off: the energy knockback's rule.</summary>
+    static readonly RulesTable RecoilOff = new() { Fielding = new FieldingRules { Recoil = new RecoilRules { OnsetFtPerSec = 0, FullFtPerSec = 0 } } };
+    static string WithoutRecoil(string fielding) => fielding.Replace("\"onsetFtPerSec\": 55", "\"onsetFtPerSec\": 0").Replace("\"fullFtPerSec\": 75", "\"fullFtPerSec\": 0");
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
     [Trait("Kind", "Balance")]
-    public void TheShippedTableKeepsTheKnockbackAndTheTrialReadsTheBallsSpeed()
+    public void TheRecoilReadsTheBallsSpeedAndTheKnockbackWaitsBehindIt()
     {
-        var s = Control.Rules.Fielding.Recoil;
-        Assert.Equal((0.0, 0.0, 0.20, 0.05, 10.0), (s.OnsetFtPerSec, s.FullFtPerSec, s.CapSec, s.HandsCutPerPoint, s.KickFtPerSec));
-        Assert.False(s.Active);
-        var t = Trial.Rules.Fielding.Recoil;
+        var t = Game.Rules.Fielding.Recoil;
         Assert.Equal((55.0, 75.0, 0.20, 0.05, 10.0), (t.OnsetFtPerSec, t.FullFtPerSec, t.CapSec, t.HandsCutPerPoint, t.KickFtPerSec));
         Assert.True(t.Active);
-        // The knockback block is the same in both roots: the shipped rule, not read while the recoil is on.
-        var sk = Control.Rules.Fielding.Knockback;
-        var tk = Trial.Rules.Fielding.Knockback;
-        Assert.Equal((sk.MinEnergy, sk.SecPerFieldDeficit, sk.EnergySpan, sk.MaxSec, sk.MinSec), (tk.MinEnergy, tk.SecPerFieldDeficit, tk.EnergySpan, tk.MaxSec, tk.MinSec));
-        Assert.Equal((72.0, 0.55), (sk.MinEnergy, sk.MaxSec));
+        Assert.False(RecoilOff.Fielding.Recoil.Active);
+        // The knockback block, not read while the recoil is on.
+        var k = Game.Rules.Fielding.Knockback;
+        Assert.Equal((72.0, 0.045, 90.0, 0.55, 0.02), (k.MinEnergy, k.SecPerFieldDeficit, k.EnergySpan, k.MaxSec, k.MinSec));
     }
 
     /// <summary>The curve (F693-02-recoil-severity-curve), the hands (F693-02-recoil-field-factors), the shaping (bounded severity first) and both caps, as numbers.</summary>
@@ -41,8 +38,8 @@ public sealed class RecoilTests
     [Trait("Kind", "Balance")]
     public void TheCostIsAPureFunctionOfIncomingSpeedAndHands()
     {
-        var r = Trial.Rules;
-        Character Hands(int h) => Trial.Must("vale") with { Stats = Trial.Must("vale").Stats with { Hands = h } };
+        var r = Game.Rules;
+        Character Hands(int h) => Game.Must("vale") with { Stats = Game.Must("vale").Stats with { Hands = h } };
 
         // S: zero through the onset, linear to the full speed, one past it.
         Assert.Equal(0, FieldingResolver.RecoilSeverity(40, r));
@@ -75,27 +72,27 @@ public sealed class RecoilTests
             Assert.True(FieldingResolver.RecoilSec(Hands(3), v, r) <= FieldingResolver.RecoilSec(Hands(3), v + 5, r) + 1e-12);
             Assert.True(FieldingResolver.RecoilSec(Hands(7), v, r) <= FieldingResolver.RecoilSec(Hands(3), v, r) + 1e-12);
         }
-        // Nothing on the shipped table, at any speed, for any hands.
-        Assert.Equal(0, FieldingResolver.RecoilSec(Control.Must("vale"), 300, Control.Rules));
-        Assert.Equal(0, FieldingResolver.RecoilSeverity(300, Control.Rules));
+        // Nothing with the recoil off, at any speed, for any hands.
+        Assert.Equal(0, FieldingResolver.RecoilSec(Game.Must("vale"), 300, RecoilOff));
+        Assert.Equal(0, FieldingResolver.RecoilSeverity(300, RecoilOff));
     }
 
     /// <summary>
-    /// A 70-mph Nice grounder back to the mound arrives at 48 ft/s, under the onset: the trial's pitcher pays nothing — no clock,
-    /// no event, no skid — and the play's marks are the same, to the frame, as under a copy with the recoil off (where the shipped
-    /// knockback charges this ball nothing either). The clean path is untouched.
+    /// A 70-mph Nice grounder back to the mound arrives at 48 ft/s, under the onset: the pitcher pays nothing — no clock, no event,
+    /// no skid — and the play's marks are the same, to the frame, as under a copy with the recoil off (where the knockback charges
+    /// this ball nothing either). The clean path is untouched.
     /// </summary>
     [Fact]
     public void ARoutinePickupAddsZeroFrames()
     {
-        var on = RunCpu(Trial, 70, 8, 0, ContactQuality.Nice);
+        var on = RunCpu(Game, 70, 8, 0, ContactQuality.Nice);
         Assert.Equal(0, on.RecoilFrames);
         Assert.Equal(0, on.Events);
         Assert.Equal(0, on.Dur);
         Assert.InRange(on.Speed, 40, 54.9);
-        Assert.Equal(0, InPlay.KnockbackSec(InPlay.Energy(on.Hit, Trial.Rules), Trial.Must("vale"), Trial.Rules));
+        Assert.Equal(0, InPlay.KnockbackSec(InPlay.Energy(on.Hit, Game.Rules), Game.Must("vale"), Game.Rules));
 
-        using var legacy = new PatchedTrial(text => text.Replace("\"onsetFtPerSec\": 55", "\"onsetFtPerSec\": 0").Replace("\"fullFtPerSec\": 75", "\"fullFtPerSec\": 0"));
+        using var legacy = new PatchedGame(WithoutRecoil);
         var off = RunCpu(legacy.Content, 70, 8, 0, ContactQuality.Nice);
         Assert.False(legacy.Content.Rules.Fielding.Recoil.Active);
         Assert.Equal(off.Marks, on.Marks);
@@ -106,7 +103,7 @@ public sealed class RecoilTests
     [Fact]
     public void ARoutineCatchAddsZeroFrames()
     {
-        var (match, hit, preview) = Fixture(Trial, FlightFixtures.ExitForCarry(245, 34, Trial.Rules), 34, 0, ContactQuality.Nice);
+        var (match, hit, preview) = Fixture(Game, FlightFixtures.ExitForCarry(245, 34, Game.Rules), 34, 0, ContactQuality.Nice);
         Assert.False(preview.Grounder);
         var run = Drive(match, hit, preview);
         Assert.Equal(PlayKind.FlyOut, run.Play.Kind);
@@ -118,18 +115,18 @@ public sealed class RecoilTests
     /// <summary>
     /// A 125-mph Perfect comebacker at 2° reaches the mound in half a second at 91 ft/s — past the full speed. vale (Hands 8) pays
     /// 0.20 × 0.65 = 0.13 s and skids 0.65² = 0.42 ft along the ball's travel; the same ball twice costs the same to the frame and
-    /// the foot; the shipped table stops him by the contact's energy instead, the way it always did.
+    /// the foot; with the recoil off the knockback stops him by the contact's energy instead.
     /// </summary>
     [Fact]
     public void TheComebackerCostsThePitcherWhatItsSpeedSaysAndTheSameTwice()
     {
-        var a = RunCpu(Trial, 125, 2, 0, ContactQuality.Perfect);
-        var b = RunCpu(Trial, 125, 2, 0, ContactQuality.Perfect);
+        var a = RunCpu(Game, 125, 2, 0, ContactQuality.Perfect);
+        var b = RunCpu(Game, 125, 2, 0, ContactQuality.Perfect);
         Assert.Equal("P", a.Pos);
         Assert.True(a.Speed >= 75, $"the comebacker arrived at {a.Speed:0.0} ft/s");
         Assert.Equal(0.13, a.Dur, 9);
         Assert.Equal(1, a.Events);
-        Assert.Equal(FieldingResolver.RecoilSec(Trial.Must("vale"), a.Speed, Trial.Rules), a.Dur, 9);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("vale"), a.Speed, Game.Rules), a.Dur, 9);
         Assert.InRange(a.RecoilFrames, 7, 9);   // 0.13 s at 60 Hz
         Assert.InRange(a.Skid, 0.4225 - 1e-6, 0.4225 + 1e-6);   // w² exactly: the body was standing when the ball came
         Assert.Equal(PlayKind.GroundOut, a.Play.Kind);
@@ -140,15 +137,16 @@ public sealed class RecoilTests
         Assert.Equal(a.TakeAt, b.TakeAt);
         Assert.Equal(a.Marks, b.Marks);
 
-        var shipped = RunCpu(Control, 125, 2, 0, ContactQuality.Perfect);
-        Assert.Equal("P", shipped.Pos);
-        Assert.False(shipped.Impact, "the shipped table has no impact recoil");
-        Assert.Equal(0, shipped.Dur);
-        Assert.Equal(0, shipped.Events);
-        var knock = InPlay.KnockbackSec(InPlay.Energy(shipped.Hit, Control.Rules), Control.Must("vale"), Control.Rules);
-        Assert.True(knock > Control.Rules.Fielding.Knockback.MinSec);
-        Assert.Equal(knock, shipped.RecoilAtTake, 6);   // the knockback clock, set at the take and counted down from the next tick
-        Assert.True(shipped.Speed >= 75, "the ball's speed is sampled on both tables");
+        using var legacy = new PatchedGame(WithoutRecoil);
+        var off = RunCpu(legacy.Content, 125, 2, 0, ContactQuality.Perfect);
+        Assert.Equal("P", off.Pos);
+        Assert.False(off.Impact, "with the recoil off there is no impact recoil");
+        Assert.Equal(0, off.Dur);
+        Assert.Equal(0, off.Events);
+        var knock = InPlay.KnockbackSec(InPlay.Energy(off.Hit, legacy.Content.Rules), legacy.Content.Must("vale"), legacy.Content.Rules);
+        Assert.True(knock > legacy.Content.Rules.Fielding.Knockback.MinSec);
+        Assert.Equal(knock, off.RecoilAtTake, 6);   // the knockback clock, set at the take and counted down from the next tick
+        Assert.True(off.Speed >= 75, "the ball's speed is sampled either way");
     }
 
     /// <summary>The same rocket to authored hands: Hands 1 pays the whole 0.20 s and skids the whole foot; Hands 10 pays 0.11 s and 0.30 ft — the caps bind and the hands still tell there (F693-02-recoil-field-shaping).</summary>
@@ -158,7 +156,7 @@ public sealed class RecoilTests
     [Trait("Kind", "Balance")]
     public void BothCapsBindOnARocketAndTheHandsStillTellAtTheCap(int hands, double sec, double skidFt)
     {
-        var run = RunCpu(Trial, 125, 2, 0, ContactQuality.Perfect, pitcherHands: hands);
+        var run = RunCpu(Game, 125, 2, 0, ContactQuality.Perfect, pitcherHands: hands);
         Assert.True(run.Speed >= 75);
         Assert.Equal(sec, run.Dur, 9);
         Assert.InRange(run.Skid, skidFt - 1e-6, skidFt + 1e-6);
@@ -166,26 +164,25 @@ public sealed class RecoilTests
     }
 
     /// <summary>
-    /// A 130-mph liner at 10° into right lands at 1.79 s and skids to hex (Hands 4) at 63 ft/s: a ground pickup, so the trial charges
-    /// it what its speed says even though no bobble is ever rolled on a liner; the shipped table, which charged grounders alone,
-    /// charges nothing. (#720 recorded this on a 125-mph / 22° ball with the outfield's air multiplier at 1.0; at 0.6 the right
-    /// fielder is elsewhere when that one lands, and this ball is the same play.)
+    /// A 105-mph liner at 10° into right lands at 1.55 s and skids to hex (Hands 4) at 62 ft/s: a ground pickup, so it is charged
+    /// what its speed says; the knockback, which charged grounders alone, charges nothing with the recoil off.
     /// </summary>
     [Fact]
-    public void ALandedLinerPickedUpOffTheGrassCostsOnTheTrialAndNothingShipped()
+    public void ALandedLinerPickedUpOffTheGrassCostsWhatItsSpeedSays()
     {
-        var trial = RunCpu(Trial, 130, 10, 25, ContactQuality.Perfect);
-        Assert.Equal("RF", trial.Pos);
-        Assert.True(trial.TakeAt > trial.Hang, "the liner landed before the take");
-        Assert.InRange(trial.Speed, 55.01, 75);
-        Assert.Equal(1, trial.Events);
-        Assert.Equal(FieldingResolver.RecoilSec(Trial.Must("hex"), trial.Speed, Trial.Rules), trial.Dur, 9);
-        Assert.True(trial.Dur > 0.05);
+        var on = RunCpu(Game, 105, 10, 19, ContactQuality.Perfect);
+        Assert.Equal("RF", on.Pos);
+        Assert.True(on.TakeAt > on.Hang, "the liner landed before the take");
+        Assert.InRange(on.Speed, 55.01, 75);
+        Assert.Equal(1, on.Events);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("hex"), on.Speed, Game.Rules), on.Dur, 9);
+        Assert.True(on.Dur > 0.05);
 
-        var shipped = RunCpu(Control, 130, 10, 25, ContactQuality.Perfect);
-        Assert.Equal(0, shipped.RecoilFrames);
-        Assert.Equal(0, shipped.Dur);
-        Assert.Equal(0, shipped.Events);
+        using var legacy = new PatchedGame(WithoutRecoil);
+        var off = RunCpu(legacy.Content, 105, 10, 19, ContactQuality.Perfect);
+        Assert.Equal(0, off.RecoilFrames);
+        Assert.Equal(0, off.Dur);
+        Assert.Equal(0, off.Events);
     }
 
     /// <summary>
@@ -197,8 +194,8 @@ public sealed class RecoilTests
     [Fact]
     public void TheHumanSeatIsHeldAndTheThrowWaitsForTheRecovery()
     {
-        var (match, hit, preview) = Fixture(Trial, 125, 2, 0, ContactQuality.Perfect);
-        Assert.True(match.StationRunner(1, Trial.Must("gull")));
+        var (match, hit, preview) = Fixture(Game, 125, 2, 0, ContactQuality.Perfect);
+        Assert.True(match.StationRunner(1, Game.Must("gull")));
         var live = match.LivePlay;
         live.Recording = true;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
@@ -297,26 +294,18 @@ public sealed class RecoilTests
         return new Run(play, hit, pos, takeAt, preview.HangTimeSec, speed, dur, recoilAtTake, impact, frames, events, skid, marks);
     }
 
-    /// <summary>The c80 copy with one of its files changed, laid over the shipped root — the split run, in a test.</summary>
-    sealed class PatchedTrial : IDisposable
+    /// <summary>The game with its fielding table changed: an overlay carrying the one patched file over the shipped root.</summary>
+    sealed class PatchedGame : IDisposable
     {
         readonly string _dir;
 
-        public PatchedTrial(Func<string, string> fielding)
+        public PatchedGame(Func<string, string> fielding)
         {
             _dir = Path.Combine(Path.GetTempPath(), "grand-sluggers-recoil-" + Guid.NewGuid().ToString("N"));
-            foreach (var file in Directory.GetFiles(Control.Root.Shipped, "*", SearchOption.AllDirectories))
-            {
-                var relative = Path.GetRelativePath(Control.Root.Shipped, file);
-                var source = Path.Combine(TrialDir, relative);
-                if (!File.Exists(source)) continue;
-                var to = Path.Combine(_dir, relative);
-                Directory.CreateDirectory(Path.GetDirectoryName(to)!);
-                var text = File.ReadAllText(source);
-                if (relative.Replace('\\', '/') == "rules/fielding.json") text = fielding(text);
-                File.WriteAllText(to, text);
-            }
-            Content = ContentCatalog.Load(new DataRoot(Control.Root.Shipped, _dir));
+            var to = Path.Combine(_dir, "rules", "fielding.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+            File.WriteAllText(to, fielding(File.ReadAllText(Path.Combine(Game.Root.Shipped, "rules", "fielding.json"))));
+            Content = ContentCatalog.Load(new DataRoot(Game.Root.Shipped, _dir));
         }
 
         public ContentCatalog Content { get; }

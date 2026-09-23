@@ -68,7 +68,7 @@ public sealed class GuidedTutorialTests
     [Fact]
     public void RejectsWrongProfileAndObjective()
     {
-        Assert.Throws<ArgumentException>(() => new GuidedTutorialSession(Lesson("T-G05"), "c80", new TutorialProgress()));
+        Assert.Throws<ArgumentException>(() => new GuidedTutorialSession(Lesson("T-G05"), "some-trial", new TutorialProgress()));
         Assert.Throws<ArgumentException>(() => new GuidedTutorialSession(Lesson("T-G05") with { Objective = "guided-pause" },
             "shipped", new TutorialProgress()));
     }

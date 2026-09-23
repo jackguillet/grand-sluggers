@@ -41,7 +41,7 @@ public sealed class RulesTests
         var defaults = RulesTable.Defaults;
         var differences = new List<string>();
         Compare(loaded, defaults, "rules", differences);
-        Assert.Empty(differences);
+        Assert.True(differences.Count == 0, string.Join("\n", differences));
     }
 
     [Fact]

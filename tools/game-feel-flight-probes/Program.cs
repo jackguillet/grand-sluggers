@@ -18,10 +18,13 @@ var compact = candidates["profiles"]!.AsArray().Single(p => p!["id"]!.GetValue<s
 var fences = compact["fencesFt"]!.AsArray().Select(v => v!.GetValue<int>()).ToArray();
 var rules = RulesTable.Load(Path.Combine(root, "data"));
 var trialDrag = candidates["flightBudgetResearch"]!["acceptedDirection"]!["dragTrialTo"]!.GetValue<double>();
+// The control is the research's own full-size drag, not the shipped table's: the game shipped the trial's 0.0040, and
+// this evidence compares the two numbers the decision was made between.
+var controlDrag = candidates["flightBudgetResearch"]!["acceptedDirection"]!["dragFrom"]!.GetValue<double>();
 var rows = new List<object>();
 var regression = new Dictionary<string, (double Carry, double Time100, string? FenceOutcome)>();
 
-foreach (var (label, drag) in new[] { ("control-drag", rules.Flight.Drag), ("trial-drag", trialDrag) })
+foreach (var (label, drag) in new[] { ("control-drag", controlDrag), ("trial-drag", trialDrag) })
 {
     var node = JsonSerializer.SerializeToNode(rules, options)!;
     node["flight"]!["drag"] = drag;

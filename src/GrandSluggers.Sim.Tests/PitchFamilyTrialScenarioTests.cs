@@ -63,10 +63,7 @@ public sealed class PitchFamilyTrialScenarioTests
     [Fact]
     public void S107_EveryFamilyIsSlowerThanTheFastballFasterThanTheChangeupAndNeverClamps()
     {
-        // Air time rides on Diamond.Mound, which is process-wide: the compact copy is a different
-        // diamond and a different (equally correct) set of seconds.
-        if (TestRoot.Compact) return;
-
+        // Air time rides on Diamond.Mound, which is process-wide.
         var rules = Trial;
         var flight = rules.Pitching.Flight;
 
@@ -303,8 +300,6 @@ public sealed class PitchFamilyTrialScenarioTests
     [Fact]
     public void S111_TheWorstLegalSweepIsStillCoverableFromTheMiddleOfTheBox()
     {
-        if (TestRoot.Compact) return;
-
         foreach (var family in Proposed)
             foreach (var throws in new[] { Hand.L, Hand.R })
                 foreach (var bats in new[] { Hand.L, Hand.R })

@@ -10,7 +10,6 @@ namespace GrandSluggers.Sim.Tests;
 /// does not, a throw lands inside its cover's reach or it does not, and the runner bodies race
 /// the one throw clock.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class FieldingScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -126,9 +125,8 @@ public sealed class FieldingScenarioTests
             var (play, _, thrown) = RunCpu(match, hit, preview, out _, live => { if (live.Events.Contains(LiveEvent.ThrowSailed)) sailed = true; });
             Assert.NotNull(thrown);
             Assert.Equal(Chemistry.Bad, thrown!.Relation);
-            if (TestRoot.Compact)
             {
-                Assert.False(thrown.Slanted, "the copy's bad pair never slants");
+                Assert.False(thrown.Slanted, "a bad pair never slants");
                 // The throw's multiplier is the pair's part times the thrower's own (ability and Arm): the pair's part is 0.90.
                 var own = FieldAbilities.ThrowMul(preview.Fielder, match.Rules) * InPlay.ArmMul(preview.Fielder, match.Rules);
                 Assert.Equal(0.90, thrown.SpeedMul / own, 9);
@@ -150,8 +148,7 @@ public sealed class FieldingScenarioTests
                 if (play.Outcome.OutsMade.Count > 0) outs++;
             }
         }
-        if (TestRoot.Compact) Assert.Equal(0, errors);
-        else Assert.InRange(errors, 8, 40);
+        Assert.Equal(0, errors);
         Assert.True(outs > 0, "an ordinary bad-chemistry throw still retires the batter");
         // Whether the batter takes second on the overthrow is the runner's margin against the pickup
         // (§9.9), not a rule: a ball that skips a dozen feet past a first baseman standing there is a

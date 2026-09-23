@@ -26,7 +26,7 @@ public static class ChemBook
         "chem-bad",
         "Bad chemistry",
         "how-to-chem-bad",
-        "Scribbles. Throws sail. Rivals miss.",
+        "Scribbles. Rivals throw slow.",
         Chemistry.Bad);
 
     public static readonly IReadOnlyList<Pair> ChemistryPairs = [Good, Bad];

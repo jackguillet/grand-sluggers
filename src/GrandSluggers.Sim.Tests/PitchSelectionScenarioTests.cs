@@ -18,7 +18,6 @@ namespace GrandSluggers.Sim.Tests;
 /// Nothing in the running game reads the step yet (P1-f wires the mound), so no row here asserts a
 /// pitch, a speed or a count.
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class PitchSelectionScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();

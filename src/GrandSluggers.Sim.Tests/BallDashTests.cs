@@ -6,62 +6,46 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// 3c-2 slice 3 (#718, F693-02-ball-dash-carrier, F693-02-ordinary-carry-speed): Ball Dash is a field ability, and its
 /// holders carry the ball at 1.20× their pursuit speed with no press, no timer and no change to their response rates.
-/// The <c>c80</c> roster gives it to dart, pip and jester and retires the universal East-held sprint; the shipped roster
-/// has no holder and keeps the sprint, so a shipped run reads none of this.
+/// The roster gives it to dart, pip and jester, and there is no universal East-held sprint.
 /// </summary>
 public sealed class BallDashTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
-    static readonly DataRoot Root = new(Control.Root.Shipped, Path.GetFullPath(Path.Combine(Control.Root.Shipped, "..", "trials", "c80")));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(Root);
+    static readonly ContentCatalog Game = ContentCatalog.Load();
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
     static readonly string[] Carriers = ["dart", "jester", "pip"];
 
     [Fact]
-    public void TheTrialRosterGivesBallDashToThreeFastRolePlayersAndTheShippedRosterToNobody()
+    public void TheRosterGivesBallDashToThreeFastRolePlayers()
     {
-        Assert.Contains("characters/role-players.json", Root.Overrides);
-        Assert.Empty(Control.Characters.Values.Where(FieldAbilities.HasBallDash));
-        Assert.Equal(Carriers, Trial.Characters.Values.Where(FieldAbilities.HasBallDash).Select(c => c.Id).OrderBy(id => id, StringComparer.Ordinal));
+        Assert.Equal(Carriers, Game.Characters.Values.Where(FieldAbilities.HasBallDash).Select(c => c.Id).OrderBy(id => id, StringComparer.Ordinal));
 
-        // The three fastest role players; what they held is on record. Everyone else is the shipped body, field for field.
-        Assert.Equal(("lick-catch", 9), (Control.Must("dart").FieldAbility, Control.Must("dart").Stats.Run));
-        Assert.Equal(("snap-throw", 8), (Control.Must("pip").FieldAbility, Control.Must("pip").Stats.Run));
-        Assert.Equal(("lick-catch", 8), (Control.Must("jester").FieldAbility, Control.Must("jester").Stats.Run));
-        Assert.Equal(Control.Characters.Keys.OrderBy(k => k, StringComparer.Ordinal), Trial.Characters.Keys.OrderBy(k => k, StringComparer.Ordinal));
-        foreach (var (id, shipped) in Control.Characters)
-        {
-            var trial = Trial.Characters[id];
-            if (Carriers.Contains(id)) Assert.Equal(shipped with { FieldAbility = "ball-dash" }, trial);
-            else Assert.Equal(shipped, trial);
-        }
+        // The three fastest role players.
+        Assert.Equal(("ball-dash", 9), (Game.Must("dart").FieldAbility, Game.Must("dart").Stats.Run));
+        Assert.Equal(("ball-dash", 8), (Game.Must("pip").FieldAbility, Game.Must("pip").Stats.Run));
+        Assert.Equal(("ball-dash", 8), (Game.Must("jester").FieldAbility, Game.Must("jester").Stats.Run));
         Assert.Equal("Ball Dash", CharacterCard.Title("ball-dash"));
     }
 
     [Fact]
     [Trait("Kind", "Balance")]
-    public void TheAbilityIsWorthOneTwentyInBothRootsAndOnlyTheTrialRetiresTheSprint()
+    public void TheAbilityIsWorthOneTwentyAndThereIsNoSprint()
     {
-        Assert.Equal((1.35, 1.20), (Control.Rules.Fielding.Dash.ChaseMul, Control.Rules.Fielding.Abilities.BallDashMul));
-        Assert.Equal((1.0, 1.20), (Trial.Rules.Fielding.Dash.ChaseMul, Trial.Rules.Fielding.Abilities.BallDashMul));
+        Assert.Equal((1.0, 1.20), (Game.Rules.Fielding.Dash.ChaseMul, Game.Rules.Fielding.Abilities.BallDashMul));
 
-        var dart = Trial.Must("dart");
-        var zig = Trial.Must("zig");   // Run 9 like dart, no Ball Dash
-        Assert.Equal(1.20, FieldAbilities.CarryMul(dart, Trial.Rules));
-        Assert.Equal(1.0, FieldAbilities.CarryMul(zig, Trial.Rules));
-        Assert.Equal(1.0, FieldAbilities.CarryMul(Control.Must("dart"), Control.Rules));
+        var dart = Game.Must("dart");
+        var zig = Game.Must("zig");   // Run 9 like dart, no Ball Dash
+        Assert.Equal(1.20, FieldAbilities.CarryMul(dart, Game.Rules));
+        Assert.Equal(1.0, FieldAbilities.CarryMul(zig, Game.Rules));
 
         // The carry speed: the boost for a holder, the very same double for everyone else.
-        var v = FieldingResolver.ChaseSpeedFt(zig, false, Trial.Rules);
+        var v = FieldingResolver.ChaseSpeedFt(zig, false, Game.Rules);
         Assert.Equal(22.48, v, 9);
-        Assert.Equal(v * 1.20, FieldingResolver.CarrySpeedFt(dart, v, Trial.Rules), 12);
-        Assert.Equal(v, FieldingResolver.CarrySpeedFt(zig, v, Trial.Rules));
+        Assert.Equal(v * 1.20, FieldingResolver.CarrySpeedFt(dart, v, Game.Rules), 12);
+        Assert.Equal(v, FieldingResolver.CarrySpeedFt(zig, v, Game.Rules));
 
-        // East held is no sprint on the trial; on the control it is the ×1.35 the game shipped with.
-        Assert.Equal(v, FieldingResolver.ChaseSpeedFt(zig, false, Trial.Rules, dash: true));
-        var shipped = FieldingResolver.ChaseSpeedFt(Control.Must("zig"), false, Control.Rules);
-        Assert.Equal(shipped * 1.35, FieldingResolver.ChaseSpeedFt(Control.Must("zig"), false, Control.Rules, dash: true), 9);
+        // East held is no sprint.
+        Assert.Equal(v, FieldingResolver.ChaseSpeedFt(zig, false, Game.Rules, dash: true));
     }
 
     /// <summary>
@@ -73,9 +57,9 @@ public sealed class BallDashTests
     [Theory]
     [InlineData("dart", 1.20)]
     [InlineData("zig", 1.0)]
-    public void ACarrierBuildsAtItsOwnRateAndRunsTheBallAtTheCapUnderTheTrial(string shortstop, double cap)
+    public void ACarrierBuildsAtItsOwnRateAndRunsTheBallAtTheCap(string shortstop, double cap)
     {
-        var (live, rated) = HumanShortstopHoldsTheBall(Trial, shortstop);
+        var (live, rated) = HumanShortstopHoldsTheBall(Game, shortstop);
         var track = Push(live, frames: 24);
         double Speed(int k) => Diamond.Dist(track[k].X, track[k].Z, track[k + 1].X, track[k + 1].Z) / Frame;
 
@@ -84,16 +68,6 @@ public sealed class BallDashTests
         Assert.InRange(Speed(11), rated * 0.90, rated * 1.10);                 // twelve frames in: the rated speed, boost or not
         Assert.InRange(Speed(20), rated * cap * 0.97, rated * cap * 1.03);     // settled: the cap is the ability's
         Assert.InRange(Speed(23), rated * cap * 0.97, rated * cap * 1.03);
-    }
-
-    /// <summary>On the shipped table dart carries the ball at the one chase speed on the very first step — no ability of the feet, no ramp.</summary>
-    [Fact]
-    public void TheShippedCarrierIsNoFasterThanItsLegs()
-    {
-        var (live, rated) = HumanShortstopHoldsTheBall(Control, "dart");
-        var track = Push(live, frames: 3);
-        Assert.Equal(38.1, rated, 9);
-        Assert.InRange(Diamond.Dist(track[0].X, track[0].Z, track[1].X, track[1].Z) / Frame, rated * 0.99, rated * 1.01);
     }
 
     /// <summary>
@@ -106,15 +80,15 @@ public sealed class BallDashTests
     [Theory]
     [InlineData("dart", 1.20)]
     [InlineData("zig", 1.0)]
-    public void TheCpuFirstBasemanCarriesAGrounderToTheBagAtTheCapUnderTheTrial(string first, double cap)
+    public void TheCpuFirstBasemanCarriesAGrounderToTheBagAtTheCap(string first, double cap)
     {
-        var home = Trial.Team("Defense", "vale", "pewter", first, "frost", "basil", "lace", "vine", "moss", "hex");
-        var away = Trial.Team("Offense", "rio", "boom", "cinder", "grit", "soot", "nugget", "nico", "gull", "marlow");
-        var match = Match.Exhibition(Trial, home, away, 3, 1, parkId: "harbor-diamond");
+        var home = Game.Team("Defense", "vale", "pewter", first, "frost", "basil", "lace", "vine", "moss", "hex");
+        var away = Game.Team("Offense", "rio", "boom", "cinder", "grit", "soot", "nugget", "nico", "gull", "marlow");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
         var hit = FlightFixtures.Landing(match.Park, 90, 4, 34, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("1B", preview.Position);
-        var rated = FieldingResolver.ChaseSpeedFt(Trial.Must(first), false, match.Rules);
+        var rated = FieldingResolver.ChaseSpeedFt(Game.Must(first), false, match.Rules);
         Assert.Equal(22.48, rated, 9);
 
         var live = match.LivePlay;
@@ -170,7 +144,7 @@ public sealed class BallDashTests
             held = live.HoldsBall && live.GlovePos == "SS" && !live.Throwing;
         }
         Assert.True(held, $"{shortstop} never took the grounder");
-        // Stand until at rest (the brake is 0.10 s on the trial, nothing on the control).
+        // Stand until at rest (the brake is 0.10 s).
         for (var i = 0; i < 12; i++)
             live.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Human));
         Assert.True(live.HoldsBall && live.Active);

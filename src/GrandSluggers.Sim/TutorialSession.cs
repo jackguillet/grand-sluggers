@@ -301,7 +301,7 @@ public sealed partial class TutorialSession
             return;
         }
         // West belongs to the defense seat even with a neutral pursuit stick. Shipped rules arm the jump;
-        // C80 raises JumpTakeoff. A same-tick completed catch may reset both live flags, so use its typed feat.
+        // The jump arc raises JumpTakeoff. A same-tick completed catch may reset both live flags, so use its typed feat.
         var acceptedJump = live.JumpT > 0 || live.Events.Contains(LiveEvent.JumpTakeoff)
             || result.CompletedPlay?.Fielder?.Id == who && result.CompletedPlay?.Outcome?.DefensiveFeat is
                 DefensiveFeat.Jump or DefensiveFeat.BuddyJump or DefensiveFeat.SuperJump or DefensiveFeat.Clamber;
@@ -327,7 +327,7 @@ public sealed partial class TutorialSession
         if (live.Events.Contains(LiveEvent.ThrowQueueCleared)) _queuedHumanThrowBag = 0;
         if (owned && live.Events.Contains(LiveEvent.ThrowQueued))
             _queuedHumanThrowBag = live.QueuedThrowBag is >= 1 and <= 4
-                ? live.QueuedThrowBag : live.CommitBagFor(pad); // C80 recovery buffer has no onward-throw queue.
+                ? live.QueuedThrowBag : live.CommitBagFor(pad); // The recovery buffer has no onward-throw queue.
         if (live.Events.Contains(LiveEvent.ThrowPop))
         {
             if ((owned && !IsOffenseLesson && (pad.SouthDown || pad.Cutoff))

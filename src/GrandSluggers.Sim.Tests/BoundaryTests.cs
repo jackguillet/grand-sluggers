@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 /// The park-neutral boundary (#826, F2-a; spec §6.1, §16, Appendix B.9 <c>SF-08</c>). The foul rail, its
 /// flare, the rail top, the backstop and the dugout pad left <see cref="HarborWall"/>'s literals for
 /// <c>data/rules/boundary.json</c> at exactly the values that shipped, so the polygon the flight clips
-/// against is the same polygon it was — vertex for vertex, on both data roots.
+/// against is the same polygon it was — vertex for vertex.
 ///
 /// <para>
 /// <see cref="SF08_TheBoundaryFromTheTableIsTodaysPolygon"/> is the parity gate, and it is deliberately
@@ -17,10 +17,9 @@ namespace GrandSluggers.Sim.Tests;
 /// <c>FieldBounds.Build</c> of <c>776c80a2</c> with the four numbers written out as the literals they
 /// were (<c>36f</c>, <c>95</c>, <c>4.2f</c>, and the 0.7071067811865476 the rail projects on). It was
 /// run green against that code before the extraction, so it is today's polygon and not a copy of the
-/// new one. A transcription also reads the same on both roots, where a golden would need two copies.
+/// new one.
 /// </para>
 /// </summary>
-[Trait("Rows", "compact")]
 public sealed class BoundaryTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -49,9 +48,7 @@ public sealed class BoundaryTests
     /// <summary>
     /// The table is the source of truth and it carries what shipped. The five numbers are pinned
     /// here as well as in the JSON because F2-a's whole claim is that it moved them without
-    /// choosing them: #730 / #732 own the offset and the flare until they close. Holds on both
-    /// roots — <c>trials/c80</c> carries no copy of <c>boundary.json</c>, so the compact profile
-    /// plays the shipped edge until #732 says otherwise.
+    /// choosing them: #730 / #732 own the offset and the flare until they close.
     /// </summary>
     [Fact]
     public void TheTableCarriesTheNumbersThatShipped()
