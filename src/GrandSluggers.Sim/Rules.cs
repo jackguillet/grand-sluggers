@@ -1033,7 +1033,11 @@ public sealed class LaunchRules
     public double MaxDeg { get; init; } = 52;
 }
 
-/// <summary>Bunt (spec §5.8): judged on the bat plane through the cursor; a high crossing or a sour bunt pops.</summary>
+/// <summary>
+/// Bunt (spec §5.8): the held bat meets the ball on the plane through the cursor, with no timed press; a high
+/// crossing pops. <see cref="Response"/> is the PH-14-R1 trial switch; off, the response is the ordinary exit ×
+/// <see cref="ExitMul"/>, a sour bunt pops, and the spray is the zone's spread plus <see cref="SpraySpanDeg"/>.
+/// </summary>
 public sealed class BuntRules
 {
     [Positive] public double ExitMul { get; init; } = 0.42;
@@ -1042,11 +1046,30 @@ public sealed class BuntRules
     public double SpraySpanDeg { get; init; } = 28;
     /// <summary>A crossing this far above the zone center is bunted into a pop.</summary>
     public double PopAboveCenterFt { get; init; } = 0.8;
+    /// <summary>The held side's lean on the outgoing bunt, degrees of spray toward that side (PH-14-R2, <see cref="BuntHold.LeanDeg"/>).</summary>
+    public double SideDeg { get; init; } = 12;
+    public BuntResponseRules Response { get; init; } = new();
+}
+
+/// <summary>
+/// The bunt's own response to contact quality (spec §5.8, PH-14-R1; <c>batting.bunt.response</c>). A trial:
+/// <see cref="ByContact"/> is off on the shipped root, where a bunt keeps today's response, and on in
+/// <c>trials/bunt</c>. On, the exit is the bunt's own by quality (a square bunt is the dead one, never the ordinary
+/// swing's harder ball), the spray spread is the bunt's own by quality, and a sour bunt pops only when the ball
+/// crossed above the bat's center; below it the ball is chopped down with the sour pace.
+/// </summary>
+public sealed class BuntResponseRules
+{
+    public bool ByContact { get; init; }
+    /// <summary>Exit speed off the held bat by quality, mph. No Power, charge, star or pitch term.</summary>
+    public ZoneExitRules ExitMph { get; init; } = new() { Perfect = 22, Nice = 28, Sour = 40 };
+    /// <summary>Total spray spread by quality, degrees (± half), around the side's lean.</summary>
+    public ZoneExitRules SpreadDeg { get; init; } = new() { Perfect = 10, Nice = 20, Sour = 44 };
 }
 
 /// <summary>
 /// Direction (spec §5.3): early pulls, late pushes, linear across the window to ±timingDeg;
-/// on a bunt or a Star Swing, stick L/R shifts the range by ±stickDeg; the zone adds its spread.
+/// on a Star Swing, stick L/R shifts the range by ±stickDeg; a bunt leans toward its held side; the zone adds its spread.
 /// </summary>
 public sealed class SprayRules
 {
@@ -1054,7 +1077,7 @@ public sealed class SprayRules
     public double NiceSpreadDeg { get; init; } = 18;
     public double SourSpreadDeg { get; init; } = 52;
     /// <summary>
-    /// Stick L/R at contact. Only a bunt (until P4-b) and a Star Swing (until Phase 6) read it; an
+    /// Stick L/R at contact. Only a Star Swing (until Phase 6) reads it; a bunt reads its held side and an
     /// ordinary swing's direction is timing's (PH-12).
     /// </summary>
     public double StickDeg { get; init; } = 12;
@@ -1161,9 +1184,11 @@ public sealed class CpuBatterRules
     [Chance] public double SacBuntChance { get; init; } = 0.35;
     public int SacBuntBatMax { get; init; } = 5;
     public int SacBuntTrailMax { get; init; } = 2;
-    public double SacBuntErrorSigma { get; init; } = 2.2;
-    public double SacBuntSpraySigma { get; init; } = 10;
-    public double SacBuntLaunchAim { get; init; } = 0.35;
+    /// <summary>
+    /// The side the squared CPU holds (§5.9, PH-14-R2): first-base side at this chance, else third, drawn once at SET
+    /// with the square. Even, so the side is a tell to read and not a habit to cheat.
+    /// </summary>
+    [Chance] public double SacBuntFirstSideChance { get; init; } = 0.5;
     /// <summary>The headless CPU batter has been squared this long at the plate time (§7.3); the client's clock replaces it when there is one.</summary>
     [Positive] public double SacBuntSquareSec { get; init; } = 1.8;
     /// <summary>A captain with a star, a runner on or two strikes.</summary>

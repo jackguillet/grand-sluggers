@@ -544,7 +544,8 @@ public sealed record AtBatInput(
     double Charge01 = 0,
     double BoxOffsetX = 0,
     double CrossingX = 0,
-    double CrossingY = PitchFlight.PlateY);
+    double CrossingY = PitchFlight.PlateY,
+    BuntSide BuntSide = BuntSide.None);
 
 public sealed record AtBatResult(
     ContactQuality Quality,
@@ -616,7 +617,20 @@ public sealed record SwingCommand(
     /// the middle covers for this long (<see cref="BuntDefense.Spots"/>). It is independent of <see cref="Bunt"/>: a
     /// square pulled back into a swing still left the corners in, and a late press with no square is a bunt nobody read.
     /// </summary>
-    double SquareSec = 0);
+    double SquareSec = 0,
+    /// <summary>
+    /// The held bunt's side at contact (§5.8, PH-14-R2): a typed fact the defense reads and the ball leans toward
+    /// (<see cref="BuntHold.LeanDeg"/>). <see cref="BuntSide.None"/> on every swing that is not a bunt.
+    /// </summary>
+    BuntSide BuntSide = BuntSide.None)
+{
+    /// <summary>
+    /// The held bunt at the plate (§5.8, PH-14-R4): the bat is already on the plane, so there is no timed press
+    /// (the timing error is 0) and no charge; the side is the held one. Both seats and the CPU sac bunt build it here.
+    /// </summary>
+    public static SwingCommand HeldBunt(BuntSide side, double boxOffsetX, double squareSec = 0, bool human = true) =>
+        new(true, 0, 0, false, Bunt: true, BoxOffsetX: boxOffsetX, Human: human, SquareSec: squareSec, BuntSide: side);
+}
 
 public enum PlayKind
 {

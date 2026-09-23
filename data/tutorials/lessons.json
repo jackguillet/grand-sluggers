@@ -526,6 +526,29 @@
       "tests": []
     },
     {
+      "id": "T-B11",
+      "revision": 1,
+      "mechanics": [
+        "batting.11"
+      ],
+      "title": "bunt to a side",
+      "category": "batting",
+      "status": "planned",
+      "issue": 803,
+      "reason": "The held side exists in the sim (P4-b, S-153 ... S-166); no control reaches it until P4-c binds LT / J and RT / L. Planned: a CPU strike with a runner on first; hold the named side through the pitch and put the bunt down fair on that side of the mound; a swing, a withdrawn bat, the other side or a foul fails",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-B07"
+      ],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
+    },
+    {
       "id": "T-F01",
       "revision": 3,
       "mechanics": [

@@ -503,12 +503,13 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
-    public void S19_BuntOnAHighPitchIsABuntPop()
+    public void S19_AHeldBuntOnAHighPitchIsABuntPopAndTheHeldBatHasNoPressToTime()
     {
         var resolver = new AtBatResolver(_content.Chemistry);
         var park = _content.Parks["harbor-diamond"];
         var b = _content.Rules.Batting;
-        var high = Input(bat: 5, err: 0, crossingY: CenterY + b.Bunt.PopAboveCenterFt + 0.1) with { Bunt = true };
+        var high = Input(bat: 5, err: 0, crossingY: CenterY + b.Bunt.PopAboveCenterFt + 0.1)
+            with { Bunt = true, BuntSide = BuntSide.First };
         var low = high with { CrossingY = CenterY };
         for (var seed = 0; seed < 10; seed++)
         {
@@ -518,6 +519,12 @@ public sealed class AtBatScenarioTests
             Assert.True(pop.LaunchDeg >= b.Launch.PopMinDeg, $"bunt pop {pop.LaunchDeg}");
             Assert.True(roll.LaunchDeg <= b.Bunt.LaunchMinDeg + b.Bunt.LaunchSpanDeg, $"bunt roll {roll.LaunchDeg}");
             Assert.False(pop.HomeRun);
+            // The held bat is already on the plane (§5.8, PH-14-R4): no error a caller writes moves either ball.
+            foreach (var err in new[] { -30.0, 30 })
+            {
+                Assert.Equal(pop, resolver.Resolve(high with { TimingErrorFrames = err }, park, new Random(seed)));
+                Assert.Equal(roll, resolver.Resolve(low with { TimingErrorFrames = err }, park, new Random(seed)));
+            }
         }
         // Off the bat is still off the bat: a bunt needs the cursor (spec §5.8).
         var off = high with { CrossingX = SweetSpot.TipSign(high.Batter.Bats) * 2.6 };
