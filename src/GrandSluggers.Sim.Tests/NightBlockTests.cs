@@ -141,7 +141,7 @@ public sealed class NightBlockTests
         }
 
         var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: "funfair-park", night: true, hazards: false);
-        Assert.Equal([HazardType.Train], match.Park.Hazards.Select(h => h.Type));
+        Assert.Empty(match.Park.Hazards); // the train is a mover since F4-f, so the switch removes it too
         Assert.Null(match.Park.Night);
     }
 
@@ -242,7 +242,6 @@ public sealed class NightBlockTests
         Assert.Contains("type must be one of", Refusal("park 'funfair-park' night.hazards[3] "), StringComparison.Ordinal);
         Assert.Contains("radius must be greater than 0", Refusal("park 'funfair-park' night.hazards[4] "), StringComparison.Ordinal);
         Assert.Contains("type 'climb_wall' is a wallTrait, which the hazards switch keeps", Refusal("park 'funfair-park' night.hazards[5] "), StringComparison.Ordinal);
-        Assert.Contains("type 'tree' is a decoration, which the hazards switch keeps", Refusal("park 'funfair-park' night.hazards[6] "), StringComparison.Ordinal);
         Assert.Contains("crosses first base's pad by", Refusal("park 'funfair-park' night.hazards[7] "), StringComparison.Ordinal);
         var nightBreath = Refusal("park 'funfair-park' night.hazards[8] ");
         Assert.Contains("radius 4 (6.4 at night, hazards.fireBreath.nightRadiusMul 1.6) crosses the first-second lane by 1.40 ft",
@@ -310,6 +309,7 @@ public sealed class NightBlockTests
     /// (seed 11 sends flies through the chompers). PH-16-R18 (star pitches keep the ordinary window) and PH-16-R19
     /// (no phonyball whiff roll) change play again, so the rows are re-recorded on top of F4-c.
     /// </summary>
+    // F4-f made the statue and the train solid, so these rows are re-recorded from its build.
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
             ("funfair-park", 1, "Final  Ember Court 5  Spark All-Stars 2", "18b3ad8ce7bc8be0d2c27d2b9698c51afee74403865afaec018437d995a70052"),
@@ -332,9 +332,9 @@ public sealed class NightBlockTests
             var log = Log(Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: seed, parkId: park, night: true));
             Assert.Equal(final, log[(log.LastIndexOf('\n') + 1)..]);
             Assert.True(sha == Sha(log), $"{park} night seed {seed} is not the game it was:\n{log}");
-            chomped |= log.Contains("redirect chomper", StringComparison.Ordinal);
+            chomped |= log.Contains("    redirect ", StringComparison.Ordinal);
         }
-        Assert.True(chomped, "the premise: one pinned Funfair night has a ball through a chomper in it");
+        Assert.True(chomped, "the premise: one pinned Funfair night has a redirect in it (the chompers' own are BallRedirectTests')");
     }
 
     /// <summary>
