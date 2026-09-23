@@ -1,7 +1,8 @@
 # Controller-only control review
 
-Presentation design proposal, September 23, 2026. Audited against `355f3bf2`.
-This is a proposed replacement layout, not the shipped controls or an accepted
+Presentation design review, September 23, 2026. Audited against `355f3bf2`.
+Jack accepted the overall layout with corrections that catching needs no
+button and North on defense activates Jump / Buddy Jump. This is the revised design, not shipped controls or an implemented
 gameplay-spec revision. No game code, active bindings or running player changed.
 Reported control collision: [#983](https://github.com/jackguillet/grand-sluggers/issues/983), under #209.
 
@@ -36,16 +37,20 @@ from time held, never trigger depth. No timing, speed, reach or Star-price tunin
    `RunPad.StickX/Y`, and `AtBatDirector.TickSet` reads that same offensive seat
    to move the batter. With runners aboard, one movement can issue two intents.
    Star aim also uses that stick.
-3. Bunt occupies both triggers. LT later becomes an item modifier, requiring
+3. Ordinary human-controlled aerial catches currently require South, while
+   ground pickups and assisted catches can happen without it. Remove the extra
+   catch press: positioning is the player's ordinary catching action. RT must
+   never make the glove take a ball it would otherwise miss.
+4. Bunt occupies both triggers. LT later becomes an item modifier, requiring
    another held-input suppression rule. Items currently have no source in
    Exhibition, yet appear in the control reference.
-4. D-pad base selection competes with left-stick movement for the left thumb.
+5. D-pad base selection competes with left-stick movement for the left thumb.
    Fielding can also interpret the movement stick as a throw destination.
-5. All-return mixes reversal and tap-to-halt; halt uses LB+RB, while LB may be
+6. All-return mixes reversal and tap-to-halt; halt uses LB+RB, while LB may be
    consumed by Star. Selection, direction and stopping need explicit semantics.
-6. Menu Back alternates between West and East. East also changes lineup panels.
+7. Menu Back alternates between West and East. East also changes lineup panels.
    The book advertises Esc, input-scheme switching and a keyboard fallback.
-7. Select serves live glove switching and the between-pitch defense editor.
+8. Select serves live glove switching and the between-pitch defense editor.
    Give frequent fielding actions a bumper; put management in Call time.
 
 Evidence: `unity/Assets/Scripts/Runtime/{Controls,ActorDirector,AtBatDirector,
@@ -117,21 +122,31 @@ Nintendo layout from Xbox letters alone.
 - Right-stick flick: select throw target — right 1B, up 2B, left 3B, down home.
   The selected bag remains visible after the stick recenters. Selection alone
   never throws. Retarget an uncommitted/buffered throw with another flick.
-- RT press: catch in the existing window; with possession, throw to the selected
-  bag. No target means no throw, with a visible choose-base prompt. Ground
-  pickups still happen by touching the ball. Pitch/swing release semantics do
-  not turn a throw into a new charge mechanic.
-- A catch press must not also throw on the possession frame. A separate RT press
-  can queue a throw through the existing buffer; RT held through a jump, catch,
-  bounce or receiver handoff never produces another action.
+- Catch automatically when the ball meets the glove's eligible catch volume.
+  Ordinary flies and liners need positioning, not a button. Ground and loose-ball
+  pickups remain contact-driven. Preserve reach, height, recovery, bobble and
+  special-effect restrictions; poor positioning still misses. Removing a press
+  adds no pursuit assistance, snap-to-ball, reach or guaranteed catch.
+- North jump and East dive remain deliberate ways to reach a ball outside an
+  ordinary catch. Their actual bodies and timing decide whether they get it;
+  no additional catch press is needed. High wall balls still require the leap.
+- RT press: throw to the selected bag, or deliberately queue that throw through
+  the existing buffer before possession. No target means no throw, with a visible
+  choose-base prompt. Pitch/swing release semantics do not turn a throw into a
+  new charge mechanic. A throw can release only after legal possession and the
+  existing recovery/transfer requirements.
+- Catching alone never throws. A queued RT request may throw after the catch;
+  RT held through a jump, catch, bounce or receiver handoff never produces an
+  additional request. RT has no catch or manual scoop effect.
 - RB: cutoff/relay using the selected destination. With no selected destination,
   preserve the existing cutoff-and-hold play. A relay press never becomes a
   second throw at receiver handoff.
 - LB: switch to the indicated fielder, using the existing eligibility/lock rules.
-- West: jump / eligible buddy or wall action. East: dive when no throw is pending;
+- North: jump / eligible Buddy Jump or wall action, through the same jump input.
+  East: dive when no throw is pending;
   otherwise cancel a queued/cancellable throw. Cancel wins and consumes the press.
   Once released, the throw cannot be recalled.
-- North: attack when an actual eligible target exists. Dormant item mechanics
+- West: attack when an actual eligible target exists. Dormant item mechanics
   do not get permanent prompts or repurpose a Star or runner button.
 - South: the existing close-play response when its prompt appears; it is not
   also a catch or throw. Tagging still requires the ball and body to meet.
@@ -174,9 +189,12 @@ in MatchDirector. Menus and gameplay read different named actions, not a global
 South boolean. Put supported bindings and prompt glyphs behind one catalog;
 validate simultaneous contexts as well as individual role pages.
 
-- One press has one owner. Cancel beats swing release; catch beats a same-frame
-  throw; a close-play prompt consumes its response. Bunt controls held through
-  contact cannot become slide/jump/attack. A tutorial retry, half change, pause,
+- One press has one owner. Cancel beats swing release; automatic possession
+  permits only an explicitly requested throw; a close-play prompt consumes its
+  response. Bunt controls held through
+  contact cannot become slide/jump/attack: in particular, held North from a
+  first-base bunt cannot activate Jump / Buddy Jump if the seat changes to defense.
+  A tutorial retry, half change, pause,
   book close or reconnect requires release/neutral before gameplay rearms.
 - Runner orders already issued persist across pitch/contact; a held button
   acquiring a new meaning does not. Target selections have explicit lifetimes:
@@ -209,10 +227,19 @@ profile. Bump affected instruction/progress revisions deliberately; do not
 claim old keyboard or old-binding completion proves the new scheme. Blocked
 items and unavailable mechanics remain blocked.
 
+T-F04 and other ordinary aerial-catch objectives must credit human positioning
+plus a real geometric catch, not a catch-button receipt. No-input or CPU-assisted
+positioning cannot earn a manual-fielding lesson. Jump/dive lessons still require
+the human jump/dive action and the real catch. Update catch/throw coaching and
+regressions along with the Gameplay change; a UI-only removal would leave the
+current manual catch requirement hidden.
+
 New combined input regressions must check: charge+runner selection+steal+Star
 release; hold either bunt through contact; move batter with all base occupancy
 patterns; running reversals/tag-up/force ignored-halt; carry ball while targeting
-all four bases; jump-catch→throw; catch→relay; queue→retarget→cancel; pickoff before
+all four bases; automatic fly/liner catch without RT; missed/too-high ball with
+RT held; jump/dive catch without a second press; catch with no requested throw;
+queued throw after possession; jump-catch→throw; catch→relay; queue→retarget→cancel; pickoff before
 and after commitment; tutorial retry; pause/book; P1/P2 disconnect in each phase.
 Repeat with both seat assignments and different captain sizes/hands.
 
@@ -224,8 +251,10 @@ and drift. A diagram, source test or build cannot pass this gate.
 ## Delivery boundaries and remaining design risks
 
 The input layout, menu consistency and device/copy cleanup belong to
-Presentation. The proposed single/all-runner selector and explicit order
-semantics may require a separate Gameplay child for command/runner support;
+Presentation. Removing the manual catch requirement belongs to a separate
+Gameplay child, including geometry, command buffering and tutorial evidence.
+The proposed single/all-runner selector and explicit order
+semantics may also require Gameplay command/runner support;
 keep geometry, AI and outcomes in Sim. Do that work serially before wiring the
 presentation. The reported collision is tracked in #983 under #209; the book
 migration belongs under #342. Do not silently patch a sitting finding.
