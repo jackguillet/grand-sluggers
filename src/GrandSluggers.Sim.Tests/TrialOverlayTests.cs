@@ -30,7 +30,7 @@ public sealed class TrialOverlayTests
     public void AFileTheOverlayDoesNotCarryResolvesToTheShippedOne()
     {
         using var trial = new Trial();
-        trial.Override("rules/infield.json", json => json["baselineFt"] = 80);
+        trial.Override("rules/infield.json", json => json["baselineFt"] = 90);
 
         var root = trial.Root;
 
@@ -59,23 +59,22 @@ public sealed class TrialOverlayTests
     /// trial's infield and the shipped everything-else, table for table.
     ///
     /// <para>
-    /// The bags stay where they ship (#862). Moved to 80 ft under the shipped parks, they put Canopy's
-    /// shallow barrel on the first-second lane, and the placement rule refuses that on any root
-    /// (FD-19, SF-23): a trial that moves the bags carries the hazards that stand near them, as
-    /// <c>trials/c80</c> does. <c>HazardPlacementTests</c> holds that refusal.
+    /// The bags stay where they ship (#862). Moved under the shipped parks, they can put a hazard on
+    /// a lane, and the placement rule refuses that on any root (FD-19, SF-23): a trial that moves the
+    /// bags carries the hazards that stand near them. <c>HazardPlacementTests</c> holds that refusal.
     /// </para>
     /// </summary>
     [Fact]
     public void TheCatalogTakesTheTrialsTableAndTheShippedRest()
     {
         using var trial = new Trial();
-        trial.Override("rules/infield.json", json => json["baselineFt"] = 80);
+        trial.Override("rules/infield.json", json => json["baselineFt"] = 90);
 
         var control = Control;
         var candidate = ContentCatalog.Load(trial.Root);
 
-        Assert.Equal(80, candidate.Rules.Infield.BaselineFt);
-        Assert.Equal(90, control.Rules.Infield.BaselineFt);
+        Assert.Equal(90, candidate.Rules.Infield.BaselineFt);
+        Assert.Equal(80, control.Rules.Infield.BaselineFt);
 
         Assert.Equal(control.Rules.Flight.Drag, candidate.Rules.Flight.Drag);
         Assert.Equal(control.Rules.Running.Bags.TagReachFt, candidate.Rules.Running.Bags.TagReachFt);
@@ -198,45 +197,48 @@ public sealed class TrialOverlayTests
     public void ACheckedInTrialDoesNotTouchARunThatDidNotAskForIt()
     {
         using var trial = new Trial();
-        trial.Override("rules/infield.json", json => json["baselineFt"] = 80);
+        trial.Override("rules/infield.json", json => json["baselineFt"] = 90);
 
         // An overlay has to be named to be read. Nothing looks beside the data root for one, so a
         // trial can sit in the tree without being a second set of defaults.
         Assert.Null(new DataRoot(Shipped).Overlay);
         Assert.Equal(Control.Rules.Infield.BaselineFt, ContentCatalog.Load(new DataRoot(Shipped)).Rules.Infield.BaselineFt);
-        Assert.Equal(80, ContentCatalog.Load(trial.Root).Rules.Infield.BaselineFt);
+        Assert.Equal(90, ContentCatalog.Load(trial.Root).Rules.Infield.BaselineFt);
     }
 
     /// <summary>
-    /// The trial this series is authored into, checked as it stands. Every slice from #717 on adds
-    /// files here, and this is the test that refuses one that overrides nothing in <c>data/</c>.
+    /// Every trial checked in under <c>trials/</c>, as it stands. A folder there is inert until a run
+    /// names it, so nothing else would notice one that overrides nothing in <c>data/</c>, carries a
+    /// stray file, or no longer validates against the shipped root it rides on. Constructing each
+    /// root is most of the assertion: a stray file, a mis-cased name or a half-written table throws.
+    /// With no trial checked in this holds vacuously; the mechanism itself is held by the synthetic
+    /// overlays in the rest of this class.
     /// </summary>
     [Fact]
-    public void TheCheckedInTrialOnlyEverOverridesShippedFiles()
+    public void EveryCheckedInTrialOnlyOverridesShippedFiles()
     {
-        var overlay = Path.GetFullPath(Path.Combine(Shipped, "..", "trials", "c80"));
-        Assert.True(Directory.Exists(overlay), overlay + " is the overlay every 3c slice is authored into");
+        var trials = Path.GetFullPath(Path.Combine(Shipped, "..", "trials"));
+        if (!Directory.Exists(trials)) return;
+        foreach (var overlay in Directory.GetDirectories(trials))
+        {
+            var root = new DataRoot(Shipped, overlay);
 
-        // Constructing it is most of the assertion: a stray file, a mis-cased name or a half-written
-        // table throws here. Today that proves the README is exempt and nothing else is carried;
-        // from #717 it is the check that each file authored in really overrides a shipped one.
-        var root = new DataRoot(Shipped, overlay);
-
-        Assert.True(File.Exists(Path.Combine(overlay, DataRoot.ReadmeFile)), "a trial explains itself");
-        Assert.DoesNotContain(DataRoot.ReadmeFile, root.Overrides);
-        foreach (var file in root.Overrides)
-            Assert.True(File.Exists(Path.Combine(Shipped, file)), file);
-        Assert.Empty(ContentDataValidator.Validate(root));
-        Assert.Empty(RulesTable.Validate(root));
+            Assert.True(File.Exists(Path.Combine(overlay, DataRoot.ReadmeFile)), overlay + ": a trial explains itself");
+            Assert.DoesNotContain(DataRoot.ReadmeFile, root.Overrides);
+            foreach (var file in root.Overrides)
+                Assert.True(File.Exists(Path.Combine(Shipped, file)), file);
+            Assert.Empty(ContentDataValidator.Validate(root));
+            Assert.Empty(RulesTable.Validate(root));
+        }
     }
 
     /// <summary>A relative name is resolved beside the data root, so it means the same from any working directory.</summary>
     [Fact]
     public void ARelativeNameIsResolvedBesideTheDataRoot()
     {
-        var expected = Path.GetFullPath(Path.Combine(Shipped, "..", "trials", "c80"));
-        Assert.Equal(expected, DataRoot.NamedOverlay("trials/c80", Shipped));
-        Assert.Equal(expected, DataRoot.NamedOverlay(expected, Shipped));
+        using var tree = new TrialBesideData("synthetic");
+        Assert.Equal(tree.Overlay, DataRoot.NamedOverlay("trials/synthetic", tree.Data));
+        Assert.Equal(tree.Overlay, DataRoot.NamedOverlay(tree.Overlay, tree.Data));
     }
 
     [Theory]
@@ -253,7 +255,7 @@ public sealed class TrialOverlayTests
     public void AnOverlayThatIsNotThereIsRefusedRatherThanIgnored()
     {
         var thrown = Assert.Throws<DirectoryNotFoundException>(
-            () => DataRoot.NamedOverlay("trials/c80-that-was-never-authored", Shipped));
+            () => DataRoot.NamedOverlay("trials/never-authored", Shipped));
         Assert.Contains(DataRoot.OverlayVariable, thrown.Message, StringComparison.Ordinal);
     }
 
@@ -424,12 +426,12 @@ public sealed class TrialOverlayTests
         using var trial = new Trial();
         trial.Override("rules/infield.json", json =>
         {
-            json["baselineFt"] = 80;
-            json["innerHalfFt"] = 44.44;
-            json["backArcFt"] = 81.78;
+            json["baselineFt"] = 90;
+            json["innerHalfFt"] = 50;
+            json["backArcFt"] = 92;
         });
 
-        Assert.Equal(80, ContentCatalog.Load(trial.Root).Rules.Infield.BaselineFt);
+        Assert.Equal(90, ContentCatalog.Load(trial.Root).Rules.Infield.BaselineFt);
     }
 
     /// <summary>
@@ -488,8 +490,8 @@ public sealed class TrialOverlayTests
     [Fact]
     public void ATrialInTheRepositoryIsNamedByItsPathBesideTheData()
     {
-        var overlay = Path.GetFullPath(Path.Combine(Shipped, "..", "trials", "c80"));
-        Assert.Equal("trials/c80", new DataRoot(Shipped, overlay).OverlayName);
+        using var tree = new TrialBesideData("synthetic");
+        Assert.Equal("trials/synthetic", new DataRoot(tree.Data, tree.Overlay).OverlayName);
 
         using var elsewhere = new Trial();
         Assert.Equal(elsewhere.Overlay, elsewhere.Root.OverlayName);
@@ -565,6 +567,31 @@ public sealed class TrialOverlayTests
         }
 
         public void Dispose() => Directory.Delete(Overlay, recursive: true);
+    }
+
+    /// <summary>
+    /// A bare tree laid out the way the repository is — a <c>data</c> folder and, beside it,
+    /// <c>trials/&lt;name&gt;</c> — so a test can name an overlay relative to the data root without
+    /// writing into the repository. Both folders are empty: naming an overlay reads nothing.
+    /// </summary>
+    sealed class TrialBesideData : IDisposable
+    {
+        readonly string _stem;
+
+        public TrialBesideData(string name)
+        {
+            _stem = Path.Combine(Path.GetTempPath(), "grand-sluggers-tree-" + Guid.NewGuid().ToString("N"));
+            Data = Path.Combine(_stem, "data");
+            Overlay = Path.Combine(_stem, "trials", name);
+            Directory.CreateDirectory(Data);
+            Directory.CreateDirectory(Overlay);
+        }
+
+        public string Data { get; }
+
+        public string Overlay { get; }
+
+        public void Dispose() => Directory.Delete(_stem, recursive: true);
     }
 
     /// <summary>
