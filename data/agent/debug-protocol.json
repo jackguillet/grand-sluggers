@@ -4,6 +4,16 @@
   // GitHub sitting children stay; they are not the memory.
   "entries": [
     {
+      "id": "race-camera-retreats-behind-home-board",
+      "signature": "steal view still starts far behind the catcher after lowering the shot; home scoreboard appears between camera and plate",
+      "stage": "sitting",
+      "cause": "Whole-race bounds overrode the authored camera position by dollying backward, so changing shot height or viewport margin could not guarantee an opening position inside the home scoreboard.",
+      "fix": "Keep the steal-race eye at its authored catcher-side position and fit the subjects with the lens. Throw tracking translates eye and target together; it never retreats behind the board.",
+      "promoted": "StealPresentationTests.EveryThrowKeepsHomeAndCenterVerticalFromTheLowerCatcherSide",
+      "issue": "#965",
+      "pr": "#967"
+    },
+    {
       "id": "brim-in-plate-lens",
       "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
       "stage": "still-gate",
