@@ -209,10 +209,12 @@ public sealed class CpuPitcherScenarioTests
     // S-117  Trial: the bend is what a held stick reaches, never an instant ±1
     // ---------------------------------------------------------------------------------
 
-    // Open finding for Jack (3e): on the 53.78-ft mound every pitch from about 96 mph up reaches the plate on the 0.78-s
-    // pitching.flight.airMinSec floor, so the slowest arm's hardest pitch sits on the floor and cannot bend the whole stick.
-    // pitching.json was not part of the compact profile; whether the floor moves with the mound is Jack's call (S-107 too).
-    [Fact(Skip = "3e finding for Jack: on the 80-ft diamond the fastest pitches reach the 0.78-s air-time floor (S-107 / S-117)")]
+    // Open finding for Jack: the air-time floor now scales with the 53.78-ft mound (0.69 s), and no real pitch leans on
+    // it. What still fails is the last "measured" line: a Pitch-1 arm (legal content, none on today's roster; the
+    // slowest roster arm is Pitch 3) throws its charged Nice fastball at 99.6 mph, which flies 0.754 s on the shorter
+    // mound, and at breakRatePerSec 2.4 that arm bends only 0.94 of the stick in that time. The mound shortened the
+    // flight, not the floor. Closing it is a feel number (breakRatePerSec >= ~2.55) or a change to the claim: Jack's call.
+    [Fact(Skip = "Finding for Jack: on the 53.78-ft mound a Pitch-1 arm's hardest pitch flies 0.754 s and bends 0.94 of the stick (S-117)")]
     public void S117_TheTrialCpuNeverBendsFurtherThanAHeldStickReaches()
     {
         var trial = Trial;
