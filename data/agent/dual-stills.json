@@ -43,7 +43,7 @@
     }
   ],
   "critic": {
-    "skill": ".grok/skills/look-critic/SKILL.md",
+    "skill": ".claude/skills/look-critic/SKILL.md",
     "rubric": ["docs/screenshot-gate.md", "docs/silhouette-bible.md"],
     "mayPassLook": false,
     "mayClose188": false,

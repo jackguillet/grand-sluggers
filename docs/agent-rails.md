@@ -32,7 +32,7 @@ Parent epic: **#647**. Children: **#648–#654**. Product epics these rails serv
 
 ### 0.1 Decisions (steal / reject)
 
-Surveyed 2026-09-13 from X (Paper Route / @builtbysketch via @zekeatchan, OpenGame, VibeGame, Unity official agent plugin, The Long Silence, ThePrimeagen JSON replay, Nex loft / Blender MCP stages) and mapped onto rails this repo already has. Agents do not relitigate these.
+Agents do not relitigate these. Sources (Paper Route / @builtbysketch via @zekeatchan, OpenGame, VibeGame, Unity official agent plugin, The Long Silence, ThePrimeagen JSON replay, Nex loft / Blender MCP stages).
 
 | # | Question | Decision | Why |
 | --- | --- | --- | --- |
@@ -57,11 +57,11 @@ A session declares its kind in the prompt and on the issue. File owners and the 
 
 | Kind | Owns | Banned |
 | --- | --- | --- |
-| **Gameplay** | `data/rules/`, `src/GrandSluggers.Sim/`, scenario ids, `cli match` | `tools/blender/`, `data/art/extras.json` (except a clip marker the sim already reads), still PNGs, Unity presentation directors, cameras |
+| **Gameplay** | `data/rules/`, `trials/`, `src/GrandSluggers.Sim/`, scenario ids, `cli match` | `tools/blender/`, `data/art/extras.json` (except a clip marker the sim already reads), still PNGs, Unity presentation directors, cameras |
 | **Presentation** | `data/feel/` cameras and timing, HUD, `HowToPlay.cs`, `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
 | **Art** | one catalog slot in `data/art/`, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
 
-✅ **R1 #648 / #655.** Standing order in [AGENTS.md](../AGENTS.md) and `.grok/rules/agent-rails.md`. A mixed-session change is a review fail.
+✅ **R1 #648 / #655.** Standing order in [AGENTS.md](../AGENTS.md). A mixed-session change is a review fail.
 
 End each session with a playable artifact of its kind before the next prompt: gameplay → `tools/test-fast.sh <Classes you touched>` + `cli match`; presentation → named shot / book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the Mac player as proof of look.
 
@@ -83,7 +83,7 @@ Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on deman
 
 **Evidence seals (FR-16).** A feature PR does not reseal, even when it edits a sealed file. Reseal only during a balance pass Jack asked for. A stale seal in the Full tests run is not a feature PR's failure.
 
-**Trials (`trials/*`).** A feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more. There is no trial in the tree today (§1.3).
+**Trials (`trials/*`).** A feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more.
 
 **Spec.** A PR that changes behavior updates the affected rule in [gameplay-spec.md](gameplay-spec.md) in the same PR. The rule says what the game does: numbers, units, scenario ids. It does not say who built it. Do not add PR numbers, "✅ Fx (#nnn, PR #nnn)" provenance, or register rows that name PRs. A status tag stays a bare tag (✅ / ⚠️ / ❌). The commit history records who did what. Existing provenance text stays; do not mass-delete it.
 
@@ -142,8 +142,6 @@ A play is still decided by geometry (ball, runner, glove, bag). The dump is how 
 - [Race trace version 2](race-traces.md) adds effective-input identity, submitted commands, ordered possession/throw/receiver/runner marks, all fielders, and coverage. `RaceEvidence` validates source-and-budget records through `ContentDataValidator`. #702 is instrumentation, not calibration.
 - S-29 and existing scenarios stay green. This epic does not retune `data/rules/`.
 
-This is VibeGame's "frame-synchronous control" without replacing Unity, and ThePrimeagen's JSON-replay loop without a second engine.
-
 ---
 
 ## 4. Dual stills (see the toy)
@@ -157,7 +155,7 @@ For any change under `Art/Characters/`, `Art/Animation/Clips/`, `tools/blender/`
 1. **DCC still** from `tools/dcc-still.sh` (`--clay` / `--sheets` / Harbor `--clay`). Named files: `scratchpad/stills/dcc-body.png`, `dcc-extras.png`, `dcc-{clip}.png`, `dcc-harbor-kit.png`. Catches "cap doesn't cover the hair" before import.
 2. **In-game still** from `still-gate-character.sh` / `still-gate.sh`. Named files: `char-{id}-rest.png`, `char-{id}-pose.png` (park shots from still-gate). Catches brim-in-lens, HUD-on, wrong shot. A still can name a park and a night — `StillRequest.park` / `night`, `tools/still-gate.sh --park <id> [--night]` (✅ #829) — and the default park in daylight keeps today's names, so any other park and any night name themselves in the file (`plate-crystal-rink-night.png`).
 3. Both PNGs in `scratchpad/stills/` and linked in the PR.
-4. A **read-only critic** (`.grok/skills/look-critic/`, separate session or subagent) compares them to the screenshot-gate table and [silhouette-bible.md](silhouette-bible.md). Output: specific diffs. It **files** a child or a PR comment. It cannot mark #188 done. It cannot edit its own rubric.
+4. A **read-only critic** (`.claude/skills/look-critic/`, separate session or subagent) compares them to the screenshot-gate table and [silhouette-bible.md](silhouette-bible.md). Output: specific diffs. It **files** a child or a PR comment. It cannot mark #188 done. It cannot edit its own rubric.
 5. The builder **stops**. Jack passes look.
 
 Math-only, `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. There is no CI image-diff.
@@ -198,7 +196,7 @@ One GUI Unity user on this Mac at a time. Take the lock in `tools/unity_gui.py` 
 | 4 export | FBX into the catalog slot | FBX into the catalog slot | catalog FBX |
 | 5 still | in-game park still | DCC still + in-game character still (R4) | dual stills |
 
-Save after each stage (the script edit + the still). The next prompt names the stage it continues. One-shotting a captain extra or a kit mesh is a patch, banned in `.grok/skills/character-art/` and the Harbor kit header. Existing bake flags (`--clay`, `--sheets`, `--out`) still run. This rail does not retarget the rig or add a take.
+Save after each stage (the script edit + the still). The next prompt names the stage it continues. One-shotting a captain extra or a kit mesh is a patch, banned in `.claude/skills/character-art/` and the Harbor kit header. Existing bake flags (`--clay`, `--sheets`, `--out`) still run. This rail does not retarget the rig or add a take.
 
 ---
 
@@ -211,15 +209,15 @@ After a sitting or a failed still:
 1. File the child issue under the epic that owns the lie.
 2. If the signature is novel, append a protocol row (R2) in the same PR as the fix, or in the sitting-child PR.
 3. If the signature has fired twice, promote it to a validator or a scenario. Do not wait for a third.
-4. If the lesson is procedural (how to look, how to bake), add it to `.grok/skills/character-art/` or this document, not only the PR body.
+4. If the lesson is procedural (how to look, how to bake), add it to `.claude/skills/character-art/` or this document, not only the PR body.
 
-The Long Silence dumped a `blender-hardsurface` skill. We already have `character-art`. Grow it from failed stills.
+Grow `character-art` from failed stills. Do not add a second art skill.
 
 ---
 
 ## 8. Already shipped (do not rebuild)
 
-These are the rails Twitter is rediscovering. Keep them. Do not replace them with a prompt-to-game stack.
+Keep these rails. Do not replace them with a prompt-to-game stack.
 
 | Rail | Where |
 | --- | --- |
@@ -235,10 +233,10 @@ These are the rails Twitter is rediscovering. Keep them. Do not replace them wit
 | Dual stills | `data/agent/dual-stills.json`, `tools/dcc-still.sh`, look-critic |
 | Stage-save DCC | `data/agent/dcc-stages.json`, `cli stages`, character-art + Harbor kit stages |
 | Human gates stay human | #346, #209 sittings, #188 |
-| Blender MCP for Harbor kit | `tools/blender/harbor_kit.py`, `.grok/config.toml` |
+| Scripted Harbor kit | `tools/blender/harbor_kit.py`, [tools/blender/README.md](../tools/blender/README.md) |
 | Local standalone window | [local-player.md](local-player.md) |
 | Debug protocol | `data/agent/debug-protocol.json`, `cli protocol` |
-| Distill | [playbook.md](playbook.md) §5, `.grok/skills/character-art/` from #623, promote-on-second |
+| Distill | [playbook.md](playbook.md) §5, `.claude/skills/character-art/` from #623, promote-on-second |
 
 ---
 
@@ -248,12 +246,12 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 
 | Id | Gap | Today | Child |
 | --- | --- | --- | --- |
-| G1 | Session kind is not a fail condition | Standing order in AGENTS.md + `.grok/rules/agent-rails.md` (#648 / #655) | R1 ✅ |
+| G1 | Session kind is not a fail condition | Standing order in AGENTS.md (#648 / #655) | R1 ✅ |
 | G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 is file + append + promote-on-second | R2 ✅, R7 ✅ |
 | G3 | No loadable `(signature, cause, fix)` catalog | `data/agent/debug-protocol.json` + `DebugProtocol.Validate` / `cli protocol` | R2 ✅ |
 | G4 | Agents cannot grep a play's geometry | `cli match --trace`, `PlayTrace` per tick | R3 ✅ |
 | G5 | DCC still is not a PR falsifier | `tools/dcc-still.sh` → `scratchpad/stills/dcc-*.png` | R4 ✅ |
-| G6 | No critic that files look diffs | `.grok/skills/look-critic/` files; cannot mark #188 | R4 ✅ |
+| G6 | No critic that files look diffs | `.claude/skills/look-critic/` files; cannot mark #188 | R4 ✅ |
 | G7 | No Unity observation path | `unity-compile.sh`; personal Editor cannot `-batchmode` | R5 (later) |
 | G8 | DCC stages are not named checkpoints | `data/agent/dcc-stages.json`; skill + Harbor kit name blocking → fill → motion → export → still | R6 ✅ |
 | G9 | Failed stills do not grow the skill | `character-art` grew from `swing-*-max-load` (#623 / `bat-through-head`) | R7 ✅ |
@@ -266,7 +264,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 
 | Child | Owns | Exit | Serves | Order |
 | --- | --- | --- | --- | --- |
-| **R1. Session split** #648 | §1, G1 | AGENTS.md + `.grok/rules/agent-rails.md` name the three kinds and the banned paths. A mixed-session change is a review fail. | all | With the spec PR |
+| **R1. Session split** #648 | §1, G1 | AGENTS.md names the three kinds and the banned paths. A mixed-session change is a review fail. | all | With the spec PR |
 | **R2. Debug protocol** #649 | §2, G2, G3 | ✅ #656. `data/agent/debug-protocol.json` + validator + five seeded rows. Agents load it. A new repair appends a row. | #209, #188 | After R1 |
 | **R3. Play traces** #650 | §3, G4 | ✅ #657. Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
 | **R4. Dual stills** #651 | §4, G5, G6 | ✅ #659. `data/agent/dual-stills.json` + `tools/dcc-still.sh` + look-critic. DCC still + in-game still required in the PR. Critic files, does not pass. | #188 | After R1; ∥ R6 |
