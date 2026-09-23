@@ -1885,6 +1885,11 @@ public sealed class ChaseRules
     public double AccelSec { get; init; } = 0;
     /// <summary>Seconds from the rated speed to rest, a constant deceleration; a reversal is this brake and then the ramp. 0 is the instant stop; the c80 copy carries 0.10.</summary>
     public double BrakeSec { get; init; } = 0;
+    /// <summary>
+    /// The route keeps this far off a status volume's disc when it goes around one (§14, FD-14, F4-g): a bent path on the rim
+    /// is not clipped by the body's own ramp. Not a tuned number; a park with no volume never reads it.
+    /// </summary>
+    public double VolumeClearFt { get; init; } = 2;
 }
 
 public sealed class CatchRules
