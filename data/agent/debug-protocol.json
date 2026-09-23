@@ -493,6 +493,16 @@
       "promoted": "FieldKitSourceTests.NoDressPieceStandsInsideTheKitsBackstop",
       "issue": "#881",
       "pr": "#885"
+    },
+    {
+      "id": "drawn-top-recomputes-the-flight",
+      "signature": "A drawn wall row is green vertex for vertex against the flight polygon (SF-05), yet near a pole the drawn top is not the flight's: fence height stands over rail the ball goes through, or a step in height is drawn as a steep ramp over the one span that crosses it.",
+      "stage": "sim",
+      "cause": "The drawing chose its heights by its own rule instead of reading the flight's. HarborWall.Height called a vertex outfield if it lay within half a degree of the foul line, which also took in the first one or two rail vertices past each pole where the rail flares into the line, so the last 31-34 ft of rail (11-12 ft on trials/c80) was drawn at full fence height before a smoothstep ramp from 95 ft out; and FieldKit.Wall drew each span from its two end vertices' heights, so a vertex shared by a fence span and a rail span turned the step at it into a ramp over the rail span (#873).",
+      "fix": "Read a drawn top from the flight segment the drawn span lies on (HarborWall.FlightSpan / SpanTops, from FieldBounds.Of(park), at each end of the span), take a vertex's top as the tallest segment that meets there, and draw each span from its own tops rather than from its end vertices. Classify a vertex as fence by the flight segment's kind, not by an angle with slack. Check the tops span by span, not only the positions vertex by vertex.",
+      "promoted": "HarborWallTests.SF05_TheDrawnWallIsTheFlightWallOnEverySpan",
+      "issue": "#873",
+      "pr": "#875"
     }
   ]
 }

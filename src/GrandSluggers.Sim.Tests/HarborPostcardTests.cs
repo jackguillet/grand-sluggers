@@ -25,7 +25,9 @@ public class HarborPostcardTests
         Assert.False(HarborWall.HasNet, "chain-link net is gone; the padded wall wraps home");
         Assert.True(HarborWall.WrapsTheDiamond(harbor));
         Assert.True(HarborWall.OutfieldIsTheFence(harbor));
-        Assert.True(HarborWall.TaperIsARamp(harbor), "taper is a ramp, not stairs");
+        // Re-authored by F2-b2 (#873, FD-06-R2): it read "taper is a ramp, not stairs". The drawn
+        // rail now stays hip-high to each pole, as the ball's does, and steps up to the fence there.
+        Assert.True(HarborWall.StepsOnlyAtThePoles(harbor), "the rail steps up to the fence at each pole, not before it");
         Assert.False(HarborStands.HasRoofs, "white roof slabs are not the postcard");
         Assert.True(HarborStands.CrowdIsPeople(),
             $"crowd {HarborStands.PersonFt}ft must be people, not 12-ft giants");
