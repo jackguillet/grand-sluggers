@@ -761,55 +761,34 @@ public sealed class StaminaRules
 
 /// <summary>
 /// The CPU pitcher (spec §4.8): a decision table, evaluated once per SET from the count, the
-/// outs, the runners, and its stamina. Each row names a location and a pitch mix; scatter is
-/// σ = (11 − Pitch) × scatterFtPerPitchStat around the target, never a dead-center default.
+/// outs, the runners, and its stamina. Each row names a horizontal location and a family mix, and
+/// <see cref="Match.CpuPitch"/> builds the pitch from the inputs a human has and nothing else
+/// (PH-18-R1): the rubber for location, presses for the family, charge and steer as modifiers, a
+/// bend no bigger than a held stick reaches. Scatter is σ = (11 − Pitch) × scatterFtPerPitchStat on
+/// the rubber intent, never a dead-center default.
 /// </summary>
 public sealed class CpuPitcherRules
 {
-    /// <summary>
-    /// <b>The switch (PH-18-R1, #823).</b> <c>true</c> — the shipped root since #860 — is
-    /// <see cref="Match.CpuPitchByInputs"/>: the pitch is built from the inputs a human has and
-    /// nothing else (rubber for location, presses for family, charge and steer as modifiers, a bend
-    /// no bigger than a held stick reaches), and its height is whatever the family gives (PH-03).
-    /// <c>false</c> is the switch's off path, the CPU that shipped before #860: it solves an endpoint
-    /// with a height (<c>AimX</c> / <c>AimY</c>) and treats charge, changeup and break as four
-    /// exclusive verbs.
-    ///
-    /// <para>
-    /// A bool, not a never-sentinel, because this is a code path and not a number: the #722
-    /// convention picks a per-rung sentinel when a rule has a value that could shadow "never", and a
-    /// bool has no such value. Off is byte-identical to the CPU that shipped before #860 — same
-    /// draws, same order, same stream (S-114).
-    /// </para>
-    ///
-    /// <para>
-    /// Jack judged the on side in the <c>trials/pitch5</c> window (sitting 1, with P1-d's shapes and
-    /// P1-f's verb) and accepted it on September 22, 2026: "trial was good." #860 moved it to the
-    /// shipped root. The off path stays reachable by data until a cleanup child removes it.
-    /// </para>
-    /// </summary>
-    public bool HumanInputs { get; init; } = true;
     /// <summary>0-0, 1-0, 1-1 and every count no other row claims.</summary>
-    public CpuPitchRow Even { get; init; } = new() { Location = "edge", Normal = 45, Charge = 20, Changeup = 15, Break = 20, StarChance = 0.05,
+    public CpuPitchRow Even { get; init; } = new() { Location = "edge", StarChance = 0.05,
         Families = new CpuFamilyWeights { Fastball = 40, Changeup = 15, Curveball = 12, Slider = 18, Sinker = 15 },
         ChargeChance = 0.20, SteerChance = 0.30 };
     /// <summary>Ahead 0-2, 1-2: waste, then edge.</summary>
-    public CpuPitchRow Ahead { get; init; } = new() { Location = "waste", Normal = 20, Charge = 15, Changeup = 35, Break = 30, StarChance = 0.15,
+    public CpuPitchRow Ahead { get; init; } = new() { Location = "waste", StarChance = 0.15,
         Families = new CpuFamilyWeights { Fastball = 20, Changeup = 24, Curveball = 26, Slider = 20, Sinker = 10 },
         ChargeChance = 0.15, SteerChance = 0.45 };
     /// <summary>Behind 2-0, 3-0, 3-1: middle-in, safe.</summary>
-    public CpuPitchRow Behind { get; init; } = new() { Location = "middleIn", Normal = 60, Charge = 30, Changeup = 5, Break = 5, StarChance = 0,
+    public CpuPitchRow Behind { get; init; } = new() { Location = "middleIn", StarChance = 0,
         Families = new CpuFamilyWeights { Fastball = 44, Changeup = 6, Curveball = 6, Slider = 14, Sinker = 30 },
         ChargeChance = 0.30, SteerChance = 0.15 };
     /// <summary>A runner on with two outs: middle, fast; never a pitch-out.</summary>
-    public CpuPitchRow RunnerTwoOuts { get; init; } = new() { Location = "middle", Normal = 50, Charge = 40, Changeup = 0, Break = 10, StarChance = 0,
+    public CpuPitchRow RunnerTwoOuts { get; init; } = new() { Location = "middle", StarChance = 0,
         Families = new CpuFamilyWeights { Fastball = 38, Changeup = 10, Curveball = 10, Slider = 20, Sinker = 22 },
         ChargeChance = 0.40, SteerChance = 0.25 };
     public CpuPitchLocations Locations { get; init; } = new();
     /// <summary>
-    /// Scatter in feet per Pitch-stat point below 11 (spec §4.8). Off the switch it is aim scatter in
-    /// both axes around the endpoint; on it, it is noise on the CPU's own rubber intent in X, because
-    /// under the human-input model there is no vertical input to miss in.
+    /// Scatter in feet per Pitch-stat point below 11 (spec §4.8): noise on the CPU's own rubber
+    /// intent in X, because a hand has no vertical input to miss in.
     /// </summary>
     public double ScatterFtPerPitchStat { get; init; } = 0.10;
     [Positive] public double TiredScatterMul { get; init; } = 1.6;
@@ -817,14 +796,6 @@ public sealed class CpuPitcherRules
     [Chance] public double NiceChance { get; init; } = 0.3;
     [Chance] public double TapMin { get; init; } = 0.1;
     [Chance] public double TapSpan { get; init; } = 0.35;
-    /// <summary>
-    /// The CPU walks the rubber before this share of pitches (a real verb: the batter may mistrack,
-    /// §5.9). <b>Shipped-path only</b>: with <see cref="HumanInputs"/> on, the rubber <i>is</i> the
-    /// location, so it is solved on every pitch and there is no separate walk to roll for.
-    /// </summary>
-    [Chance] public double RubberWalkChance { get; init; } = 0.35;
-    /// <inheritdoc cref="RubberWalkChance"/>
-    [Chance] public double RubberWalkMax { get; init; } = 0.4;
 
     internal void Validate(string source, List<string> errors)
     {
@@ -832,8 +803,6 @@ public sealed class CpuPitcherRules
         {
             if (row.Location is not ("edge" or "waste" or "middleIn" or "middle"))
                 errors.Add($"{source}: pitching.cpu.{name}.location must be one of [edge, waste, middleIn, middle]; got '{row.Location}'");
-            if (row.Normal + row.Charge + row.Changeup + row.Break <= 0)
-                errors.Add($"{source}: pitching.cpu.{name} pitch mix must have a positive total");
             // A row that weights nothing has no family to throw. The run-time filter can still empty
             // a row for one pitcher (the row weights only families this arm does not own, or the
             // table does not author) and that falls back to the fastball every pitcher throws
@@ -841,46 +810,28 @@ public sealed class CpuPitcherRules
             // broken table, and it is caught here rather than read as "always the fastball".
             if (row.Families.Total() <= 0)
                 errors.Add($"{source}: pitching.cpu.{name}.families must weight at least one family: a row with no "
-                    + "family to throw is not a pitch (spec §4.8, pitching.cpu.humanInputs)");
+                    + "family to throw is not a pitch (spec §4.8, PH-18-R1)");
         }
     }
 }
 
 /// <summary>
-/// One row of the CPU pitcher's table: where, and how it throws there.
-///
-/// <para>
-/// Two mixes live here, one per side of <see cref="CpuPitcherRules.HumanInputs"/>.
-/// <see cref="Normal"/> / <see cref="Charge"/> / <see cref="Changeup"/> / <see cref="Break"/> are
-/// the shipped model's four <b>exclusive verbs</b>. <see cref="Families"/> plus
-/// <see cref="ChargeChance"/> and <see cref="SteerChance"/> are the human-input model: a family from
-/// the library, then charge and steer as <b>independent modifiers</b> on it, the way a hand has them
-/// (PH-02-R1). The shipped file authors both, and the second is the port of the first written down —
-/// fastball takes every verb that was not the changeup, and the charge and break shares become the
-/// two chances — so the switch has a stated starting point rather than a new invention.
-/// </para>
+/// One row of the CPU pitcher's table: where, and how it throws there. <see cref="Families"/> plus
+/// <see cref="ChargeChance"/> and <see cref="SteerChance"/> are a family from the library, then
+/// charge and steer as <b>independent modifiers</b> on it, the way a hand has them (PH-02-R1).
 /// </summary>
 public sealed class CpuPitchRow
 {
     public string Location { get; init; } = "edge";
-    /// <summary>Shipped model: a tap with no stick. Inert while <see cref="CpuPitcherRules.HumanInputs"/> is on.</summary>
-    public double Normal { get; init; } = 45;
-    /// <inheritdoc cref="Normal"/>
-    public double Charge { get; init; } = 20;
-    /// <inheritdoc cref="Normal"/>
-    public double Changeup { get; init; } = 15;
-    /// <inheritdoc cref="Normal"/>
-    public double Break { get; init; } = 20;
     [Chance] public double StarChance { get; init; } = 0.05;
     /// <summary>
-    /// Human-input model: the weight of each family in this count, filtered at run time to the slots
-    /// this pitcher can actually select (<c>PitchSelection.IsSelectable</c>) and renormalised. Inert
-    /// while <see cref="CpuPitcherRules.HumanInputs"/> is off.
+    /// The weight of each family in this count, filtered at run time to the slots this pitcher can
+    /// actually select (<c>PitchSelection.IsSelectable</c>) and renormalised.
     /// </summary>
     public CpuFamilyWeights Families { get; init; } = new();
-    /// <summary>Human-input model: this share of pitches is charged to MAX, independent of the family.</summary>
+    /// <summary>This share of pitches is charged to MAX, independent of the family.</summary>
     [Chance] public double ChargeChance { get; init; } = 0.20;
-    /// <summary>Human-input model: this share holds the stick one way from release, independent of the family and the charge.</summary>
+    /// <summary>This share holds the stick one way from release, independent of the family and the charge.</summary>
     [Chance] public double SteerChance { get; init; } = 0.20;
 }
 
@@ -916,7 +867,10 @@ public sealed class CpuFamilyWeights
     public double Total() => Fastball + Changeup + Curveball + Slider + Sinker;
 }
 
-/// <summary>Where the named locations sit, in feet from the zone's edges and center.</summary>
+/// <summary>
+/// Where the named locations sit, in feet from the zone's edges and center. Horizontal only: a hand
+/// has no vertical input, so a pitch's height is its family's (PH-03).
+/// </summary>
 public sealed class CpuPitchLocations
 {
     /// <summary>An edge target sits this far inside the frame.</summary>
@@ -927,12 +881,6 @@ public sealed class CpuPitchLocations
     public double WasteOutFt { get; init; } = 0.3;
     /// <summary>Middle-in sits this far toward the batter from center.</summary>
     public double MiddleInFt { get; init; } = 0.35;
-    /// <summary>
-    /// A middle target varies its height by ± this. <b>Shipped-path only</b>: with
-    /// <see cref="CpuPitcherRules.HumanInputs"/> on there is no vertical input at all, so height is
-    /// the family's and nothing spreads it (PH-03).
-    /// </summary>
-    public double MiddleYSpreadFt { get; init; } = 0.5;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -941,20 +889,6 @@ public sealed class CpuPitchLocations
 
 public sealed class BattingRules
 {
-    /// <summary>
-    /// Whether the stick at contact shapes an <b>ordinary</b> swing (PH-12 option C, spec §5.3, §5.4).
-    /// <c>true</c> on the shipped root since #883: a swing that is neither a bunt nor a Star Swing
-    /// ignores both aims, so timing, contact position, pitch height and the swing decide the flight,
-    /// and the CPU batter does not draw the two aims it no longer needs (PH-18). Bunts keep the stick
-    /// until P4-b; Star Swings keep it until Phase 6. <c>false</c> is the switch's off path — stick
-    /// L/R adds <see cref="SprayRules.StickDeg"/> to the direction and stick U/D takes
-    /// <see cref="LaunchRules.StickDeg"/> off the launch, bit for bit what played before #883. The box
-    /// walk and the SET recenter read the same stick and are untouched either way (PH-09).
-    ///
-    /// Jack accepted it in the <c>trials/pitch5</c> window on September 22, 2026 ("approve all").
-    /// </summary>
-    public bool GeometryOnly { get; init; } = true;
-
     public ContactWindowRules Window { get; init; } = new();
     public SwingChargeRules Charge { get; init; } = new();
     public QualityRules Quality { get; init; } = new();
@@ -974,47 +908,27 @@ public sealed class BattingRules
     internal void Validate(string source, List<string> errors)
     {
         RulesValidation.Order(source, "batting.launch.minDeg", Launch.MinDeg, Launch.MaxDeg, errors);
-        RulesValidation.Order(source, "batting.window.floorFrames", Window.FloorFrames, Window.ChargeFrames, errors);
-        RulesValidation.Order(source, "batting.window.chargeFrames", Window.ChargeFrames, Window.SlapFrames, errors);
-        // The shared window is floored by the same number as the split one, so a table that authors
-        // a window under its own floor is refused whether the switch is on or off (PH-10-R1).
+        // A table that authors the window under its own floor is refused (PH-10-R1).
         RulesValidation.Order(source, "batting.window.floorFrames", Window.FloorFrames, Window.Frames, errors);
         RulesValidation.Order(source, "batting.cursor.perfectFraction", Cursor.PerfectFraction, 1, errors);
     }
 }
 
 /// <summary>
-/// The timing window (spec §5.3, D4, D13): slap 9 frames, charge 7, ± (contact − 5) × framesPerContact,
-/// × skill, park and the human rung's multipliers, floored. It is centered on the ball's plate time
-/// minus <see cref="LeadSec"/>. Inside the window timing decides direction only; the outermost
-/// (1 − squareFraction) of each half demotes the cursor zone by one tier, never two.
-///
-/// <see cref="Shared"/> picks which of two windows the formula is: off is the split one described
-/// above, on is <see cref="Frames"/> for everyone (PH-10-R1).
+/// The timing window (spec §5.3, D4, D13): one window for every hitter, both swings and every human
+/// rung (PH-10-R1, PH-11-R1, PH-15-R7, PH-17), × the star pitch's and the park's multipliers,
+/// floored. It is centered on the ball's plate time minus <see cref="LeadSec"/>. Inside the window
+/// timing decides direction only; the outermost (1 − squareFraction) of each half demotes the cursor
+/// zone by one tier, never two.
 /// </summary>
 public sealed class ContactWindowRules
 {
     /// <summary>
-    /// One window for every hitter, every swing and every human rung (PH-10-R1, PH-11-R1, PH-15-R7,
-    /// PH-17). <c>true</c> on the shipped root since #860: <see cref="Frames"/> is the window, and
-    /// <see cref="SlapFrames"/>, <see cref="ChargeFrames"/>, <see cref="FramesPerContact"/> and the
-    /// rung's <c>humanWindowMul</c> do not enter it. <c>false</c> is the switch's off path — the split
-    /// window above, bit for bit what played before #860. The Star Pitch multiplier, the park's night
-    /// multiplier and <see cref="FloorFrames"/> apply either way, in the same order.
-    ///
-    /// Jack accepted it in the <c>trials/pitch5</c> window on September 22, 2026 ("trial was good.").
-    /// </summary>
-    public bool Shared { get; init; } = true;
-
-    /// <summary>
-    /// The one shared window in frames at 60 Hz, total width (PH-10-R1: 9, the value Jack played and
-    /// accepted). Read only when <see cref="Shared"/> is on.
+    /// The one window in frames at 60 Hz, total width (PH-10-R1: 9, the value Jack played and
+    /// accepted in September 2026).
     /// </summary>
     [Positive] public double Frames { get; init; } = 9.0;
 
-    [Positive] public double SlapFrames { get; init; } = 9.0;
-    [Positive] public double ChargeFrames { get; init; } = 7.0;
-    public double FramesPerContact { get; init; } = 0.4;
     [Positive] public double FloorFrames { get; init; } = 5.0;
     [Chance] public double SquareFraction { get; init; } = 0.9;
     /// <summary>
@@ -1068,7 +982,7 @@ public sealed class ExitRules
 
 /// <summary>
 /// Launch (spec §5.4): base by power and charge, plus the pitch height (a low crossing launches
-/// lower), plus the stick (up = over the top = grounder). Sour contact is forced to the topper
+/// lower), plus the stick on a Star Swing only (up = over the top = grounder). Sour contact is forced to the topper
 /// band (early) or the pop band (late, or a slap on a changeup / charged pitch).
 /// </summary>
 public sealed class LaunchRules
@@ -1078,8 +992,8 @@ public sealed class LaunchRules
     /// <summary>Degrees of launch per foot the crossing sits above the zone center.</summary>
     public double PerFtOfHeight { get; init; } = 6;
     /// <summary>
-    /// Stick U/D at contact. An ordinary swing reads it only while <see cref="BattingRules.GeometryOnly"/>
-    /// is off; a Star Swing reads it either way (Phase 6). A bunt's launch is its own band and never read it.
+    /// Stick U/D at contact. Only a Star Swing reads it (until Phase 6); an ordinary swing's launch is
+    /// geometry (PH-12), and a bunt's launch is its own band.
     /// </summary>
     public double StickDeg { get; init; } = 12;
     public double NoiseDeg { get; init; } = 14;
@@ -1104,7 +1018,7 @@ public sealed class BuntRules
 
 /// <summary>
 /// Direction (spec §5.3): early pulls, late pushes, linear across the window to ±timingDeg;
-/// stick L/R shifts the range by ±stickDeg; the zone adds its spread.
+/// on a bunt or a Star Swing, stick L/R shifts the range by ±stickDeg; the zone adds its spread.
 /// </summary>
 public sealed class SprayRules
 {
@@ -1112,8 +1026,8 @@ public sealed class SprayRules
     public double NiceSpreadDeg { get; init; } = 18;
     public double SourSpreadDeg { get; init; } = 52;
     /// <summary>
-    /// Stick L/R at contact. An ordinary swing reads it only while <see cref="BattingRules.GeometryOnly"/>
-    /// is off; a bunt (until P4-b) and a Star Swing (until Phase 6) read it either way.
+    /// Stick L/R at contact. Only a bunt (until P4-b) and a Star Swing (until Phase 6) read it; an
+    /// ordinary swing's direction is timing's (PH-12).
     /// </summary>
     public double StickDeg { get; init; } = 12;
     public double TimingDeg { get; init; } = 55;
@@ -1253,7 +1167,9 @@ public sealed class CpuBatterRules
     [Chance] public double MistrackMovedChance { get; init; } = 0.7;
     /// <summary>… and this often when they did not (both × the rung's mistrackMul).</summary>
     [Chance] public double MistrackChance { get; init; } = 0.3;
+    /// <summary>The CPU's two stick aims, drawn on a Star Swing only: an ordinary swing reads no stick (§5.9, PH-12).</summary>
     public double SpraySigmaDeg { get; init; } = 12;
+    /// <inheritdoc cref="SpraySigmaDeg"/>
     public double LaunchAimSigma { get; init; } = 0.45;
     public CpuArchetypeRules Archetype { get; init; } = new();
     /// <summary>
@@ -2728,12 +2644,12 @@ public sealed class CpuRules
     public string Level { get; init; } = "normal";
     public CpuLevelRules Easy { get; init; } = new()
     {
-        HumanWindowMul = 1.3, TimingSigmaMul = 1.3, ReactionMul = 1.4, MistrackMul = 1.3, MakeableMarginSec = 0.30, PerfectStealChance = 0, PickoffChance = 0.03, RunnerMarginSec = 0.15
+        TimingSigmaMul = 1.3, ReactionMul = 1.4, MistrackMul = 1.3, MakeableMarginSec = 0.30, PerfectStealChance = 0, PickoffChance = 0.03, RunnerMarginSec = 0.15
     };
     public CpuLevelRules Normal { get; init; } = new();
     public CpuLevelRules Hard { get; init; } = new()
     {
-        HumanWindowMul = 0.9, TimingSigmaMul = 0.8, ReactionMul = 0.8, MistrackMul = 0.8, MakeableMarginSec = 0.05, PerfectStealChance = 0.4, PickoffChance = 0.10, RunnerMarginSec = -0.15
+        TimingSigmaMul = 0.8, ReactionMul = 0.8, MistrackMul = 0.8, MakeableMarginSec = 0.05, PerfectStealChance = 0.4, PickoffChance = 0.10, RunnerMarginSec = -0.15
     };
 
     public CpuLevelRules Active => Level.ToLowerInvariant() switch
@@ -2770,11 +2686,6 @@ public sealed class CpuRules
 
 public sealed class CpuLevelRules
 {
-    /// <summary>
-    /// Multiplies a human batter's timing window before the floor (spec §5.3, #612): the ladder
-    /// is also a swing-timing ladder for the player. The CPU batter's window is never scaled.
-    /// </summary>
-    [Positive] public double HumanWindowMul { get; init; } = 1.0;
     /// <summary>Multiplies the CPU batter's timing-error σ (§5.9).</summary>
     [Positive] public double TimingSigmaMul { get; init; } = 1.0;
     /// <summary>Multiplies CPU reaction and release delays (§8.8, §9.6, §11.3).</summary>

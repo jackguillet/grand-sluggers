@@ -21,7 +21,7 @@ public class SwingPresentationTests
         var press = AtBatMotion.SquarePressAt(plateAt, rules: rules) - 4.0 / 60;
         var err = AtBatMotion.SwingErrorFrames(press, plateAt, rules: rules);
         Assert.Equal(-4, err, 8);
-        var window = rules.Batting.Window.SlapFrames;
+        var window = rules.Batting.Window.Frames;
         Assert.True(AtBatResolver.InWindow(err, window));
 
         var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
@@ -70,7 +70,7 @@ public class SwingPresentationTests
     public void PressOutsideTheWindowPlaysTheTakeAtItsOwnLengthAndMisses(double err)
     {
         var rules = Rules.Default;
-        var window = rules.Batting.Window.SlapFrames;
+        var window = rules.Batting.Window.Frames;
         Assert.False(AtBatResolver.InWindow(err, window));
         var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
         Assert.Equal(Motion.SwingContact, contactSec, 8);
@@ -91,11 +91,12 @@ public class SwingPresentationTests
         var rules = Rules.Default;
         Assert.Equal(0.18, rules.Batting.Window.LeadSec, 8);
         var platePress = rules.Batting.Window.LeadSec * 60;
-        // EASY ×1.3 at contact 10 is 14.3 frames (half 7.15). A press on the plate is 10.8
-        // frames late — outside every shipped slap window. Release has to lead the ball (#670).
+        // EASY ×1.3 at contact 10 was 14.3 frames (half 7.15), the widest window the split rule ever
+        // gave (retired by #887). A press on the plate is 10.8 frames late — outside it and outside
+        // the one shipped window. Release has to lead the ball (#670).
         const double easyContactTen = 14.3;
         Assert.False(AtBatResolver.InWindow(platePress, easyContactTen));
-        Assert.False(AtBatResolver.InWindow(platePress, rules.Batting.Window.SlapFrames));
+        Assert.False(AtBatResolver.InWindow(platePress, rules.Batting.Window.Frames));
         // A window wide enough to hold a press after the plate still clamps Contact to the
         // press (never before it).
         const double window = 24;
@@ -105,8 +106,8 @@ public class SwingPresentationTests
         Assert.Equal(0, contactSec, 8);
         Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(0, 0, contactSec), 8);
         Assert.Equal(SwingPresentation.CommittedLoadAt(0), AtBatMotion.SwingClipTime(-0.01, 0, contactSec), 8);
-        Assert.True(rules.Batting.Window.LeadSec * 60 > rules.Batting.Window.SlapFrames / 2,
-            "batting.window.leadSec must cover half the slap window so contact meets the ball");
+        Assert.True(rules.Batting.Window.LeadSec * 60 > rules.Batting.Window.Frames / 2,
+            "batting.window.leadSec must cover half the window so contact meets the ball");
     }
 
     [Fact]

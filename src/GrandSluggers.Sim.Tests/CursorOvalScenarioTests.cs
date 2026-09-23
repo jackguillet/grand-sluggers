@@ -142,24 +142,18 @@ public sealed class CursorOvalScenarioTests
     [Fact]
     public void S135_AChargeDoesNotTouchTheTimingWindow()
     {
+        // The window formula takes no hitter, bat or charge at all (#887: AtBatResolver.ContactWindowFrames),
+        // so what is left to hold is the resolver's judgement against it.
         var resolver = new AtBatResolver(_content.Chemistry, R, _content.StarSkills);
         var pitcher = _content.Must("vale");
-        var rink = _content.Parks["crystal-rink"];
+        var window = AtBatResolver.ContactWindowFrames(null, Harbor, false, R, _content.StarSkills);
         foreach (var contact in Enumerable.Range(1, 10))
         foreach (var bat in Bats)
         {
             var hitter = Hitter(contact, Hand.R);
-            foreach (var (park, night) in new[] { (Harbor, false), (rink, true) })
-            {
-                var quick = AtBatResolver.SwingWindowFrames(hitter, bat, 0, null, park, night, 1, R, _content.StarSkills);
-                foreach (var charge in Charges)
-                    Assert.Equal(quick,
-                        AtBatResolver.SwingWindowFrames(hitter, bat, charge, null, park, night, 1, R, _content.StarSkills));
-            }
 
             // Through the resolver: the same timing error is on the plane or off it for a quick and a
             // charged swing alike, at the rim of the window and just past it.
-            var window = AtBatResolver.SwingWindowFrames(hitter, bat, 0, null, Harbor, false, 1, R, _content.StarSkills);
             var (cx, cy) = SweetSpot.WorldCenter(0);
             foreach (var err in new[] { window / 2, -window / 2, window / 2 + 0.01, -window / 2 - 0.01 })
             {
@@ -185,7 +179,6 @@ public sealed class CursorOvalScenarioTests
         foreach (var charge in new[] { 0.0, 1.0 })
         {
             CursorOval? last = null;
-            var window = AtBatResolver.SwingWindowFrames(Hitter(5, bats), null, charge, null, Harbor, false, 1, R, _content.StarSkills);
             foreach (var contact in Enumerable.Range(1, 10))
             {
                 var hitter = Hitter(contact, bats);
@@ -199,10 +192,7 @@ public sealed class CursorOvalScenarioTests
                 if (last is { } prev)
                     Assert.True(oval.TipHalfFt > prev.TipHalfFt, $"Contact {contact} carries a wider barrel");
                 last = oval;
-
-                // No per-hitter timing: the window is the same number at every Contact.
-                Assert.Equal(window,
-                    AtBatResolver.SwingWindowFrames(hitter, null, charge, null, Harbor, false, 1, R, _content.StarSkills));
+                // No per-hitter timing: ContactWindowFrames takes no hitter since #887.
             }
         }
 

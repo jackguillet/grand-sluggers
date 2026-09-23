@@ -994,12 +994,8 @@ public sealed class Match
     /// The window this swing is judged in, from the batter at the plate now (spec §5.3, D13): the
     /// resolver's number, read at the press so the take can warp its Contact mark onto the ball.
     /// </summary>
-    public double SwingWindowFrames(PitchCommand pitch, SwingCommand swing) =>
-        AtBatResolver.SwingWindowFrames(Batter, OffenseBat, swing.Charge01,
-            pitch.Star ? Pitcher.StarPitch : null, Park, Night, HumanWindowMul(swing), Rules, Content.StarSkills);
-
-    /// <summary>The rung widens a pad's window only (cpu.json <c>humanWindowMul</c>); the CPU batter's is the table's.</summary>
-    double HumanWindowMul(SwingCommand swing) => swing.Human ? Rules.Cpu.Active.HumanWindowMul : 1;
+    public double SwingWindowFrames(PitchCommand pitch) =>
+        AtBatResolver.ContactWindowFrames(pitch.Star ? Pitcher.StarPitch : null, Park, Night, Rules, Content.StarSkills);
 
     public bool BeginAtBat(PitchCommand pitch, SwingCommand swing, out AtBatResult hit, out PlayEvent? finished)
     {
@@ -1042,7 +1038,7 @@ public sealed class Match
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             PitcherStamina,
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
-            swing.Charge01, box, crossing.X, crossing.Y, HumanWindowMul(swing));
+            swing.Charge01, box, crossing.X, crossing.Y);
 
         hit = _atBat.Resolve(input, Park, _rng, Night);
         if (hit.Quality == ContactQuality.Miss)
@@ -1163,59 +1159,14 @@ public sealed class Match
 
     /// <summary>
     /// The CPU pitcher (spec §4.8): one row of the table per SET from the count, the outs and the
-    /// runners. <b>Which model builds the pitch from that row is one switch</b>,
-    /// <c>pitching.cpu.humanInputs</c> (PH-18-R1, #823).
-    ///
-    /// <para>
-    /// <b>Off — the switch's off path, the CPU that shipped before #860.</b> The endpoint model: a location target in world feet (never
-    /// dead center), a verb from the row's four-way mix, scatter σ = (11 − Pitch) ×
-    /// <c>scatterFtPerPitchStat</c> around the target, TIRED noise on top, and
-    /// <see cref="PitchFlight.AimForCrossing"/> compensating the rubber and the break into an aim a
-    /// human has no input for. Walking the rubber is a real verb here too: the batter may mistrack
-    /// it (§5.9). <see cref="CpuPitchByAim"/>.
-    /// </para>
-    ///
-    /// <para>
-    /// <b>On — the shipped root since #860.</b> <see cref="CpuPitchByInputs"/>: the pitch is built
-    /// from the inputs a hand has and nothing else. Jack accepted it in the <c>trials/pitch5</c>
-    /// window on September 22, 2026; the off path is byte-identical to the CPU before the switch
-    /// existed (S-114).
-    /// </para>
+    /// runners, built from the inputs a hand has and nothing else (<see cref="CpuPitchByInputs"/>,
+    /// PH-18-R1, #823).
     /// </summary>
-    public PitchCommand CpuPitch() =>
-        Rules.Pitching.Cpu.HumanInputs ? CpuPitchByInputs(out _) : CpuPitchByAim();
-
-    /// <inheritdoc cref="CpuPitch"/>
-    PitchCommand CpuPitchByAim()
-    {
-        var c = Rules.Pitching.Cpu;
-        var row = CpuPitchRow();
-        if (_rng.NextDouble() < c.RubberWalkChance)
-            PitcherOffsetX = (_rng.NextDouble() * 2 - 1) * c.RubberWalkMax;
-
-        var (tx, ty) = CpuPitchTarget(row.Location, c.Locations);
-        var scatter = (11 - Pitcher.Stats.Pitch) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
-        tx += Gauss() * scatter;
-        ty += Gauss() * scatter;
-
-        var verb = CpuPitchVerb(row);
-        var charged = verb == "charge";
-        var changeup = verb == "changeup";
-        var breakX = verb == "break" ? (_rng.NextDouble() < 0.5 ? -1.0 : 1.0) : 0;
-        var charge = charged ? 1.0 : c.TapMin + _rng.NextDouble() * c.TapSpan;
-        var star = CanStarPitch && Pitcher.Captain && _rng.NextDouble() < row.StarChance;
-        var delivery = new PitchCommand(changeup ? PitchFamily.Changeup : PitchFamily.Fastball, charge, star,
-            BreakX: breakX, RubberX: PitcherOffsetX,
-            Nice: charged && _rng.NextDouble() < c.NiceChance);
-        // The row names a crossing; the rubber and the break are compensated into the aim.
-        return PitchFlight.AimForCrossing(delivery, tx / PitchFlight.PlateScaleX,
-            (ty - PitchFlight.PlateY) / PitchFlight.PlateScaleY, Pitcher.StarPitch, Rules);
-    }
+    public PitchCommand CpuPitch() => CpuPitchByInputs(out _);
 
     /// <summary>
     /// The CPU pitcher built from the inputs a human has and nothing else (spec §4.8, §3; PH-18,
-    /// PH-18-R1, PH-02-R3/R4/R5, PH-03, PH-04). Behind <c>pitching.cpu.humanInputs</c>; on in
-    /// the shipped data since #860.
+    /// PH-18-R1, PH-02-R3/R4/R5, PH-03, PH-04).
     ///
     /// <para>Five rules, in the order this method applies them:</para>
     /// <list type="number">
@@ -1228,8 +1179,7 @@ public sealed class Match
     /// same delivery from the middle gives the offset and
     /// <c>r = (intent − X₀) / <see cref="HomeSet.PitcherWalk"/></c>. <c>AimX</c> and <c>AimY</c> stay
     /// 0. The arm is stamped before the solve, so a left-hander's sweep is compensated the right way
-    /// (P1-d's finding: <see cref="CpuPitchByAim"/> solves before <see cref="PreparePitch"/> stamps
-    /// it, which was harmless only because every shipped family sweeps 0).</item>
+    /// (P1-d's finding).</item>
     /// <item><b>Family is presses.</b> The row's per-family weights are filtered to the slots this
     /// pitcher can actually select — in the repertoire <i>and</i> authored
     /// (<see cref="PitchSelection.IsSelectable"/>) — renormalised, and rolled once. The choice is
@@ -1243,12 +1193,6 @@ public sealed class Match
     /// X only, and TIRED still widens it. The TIRED aim wobble in <see cref="PreparePitch"/> is
     /// unchanged and is not a CPU privilege — a human's delivery takes the same one.</item>
     /// </list>
-    ///
-    /// <para>
-    /// <c>rubberWalkChance</c>, <c>rubberWalkMax</c> and <c>locations.middleYSpreadFt</c> are not
-    /// read here: the rubber is the location on every pitch, and there is no vertical spread to
-    /// apply. They stay in the table for the shipped path.
-    /// </para>
     /// </summary>
     /// <param name="plan">What the pitch was built from, for a scenario to read: the press count, the
     /// family those presses land on, the charge, the steer direction and the reach it was scaled by,
@@ -1267,7 +1211,7 @@ public sealed class Match
         var presses = CpuPitchPresses(row);
         var family = CpuFamilyAfter(presses);
 
-        // (3) Charge, then Nice! on a charged pitch — the same two rolls the shipped path spends.
+        // (3) Charge, then Nice! on a charged pitch.
         var charged = _rng.NextDouble() < row.ChargeChance;
         var charge = charged ? 1.0 : c.TapMin + _rng.NextDouble() * c.TapSpan;
         var nice = charged && _rng.NextDouble() < c.NiceChance;
@@ -1297,7 +1241,7 @@ public sealed class Match
 
     /// <summary>
     /// The named location as a <b>horizontal</b> intent in world feet at the plate plane (§4.8): the
-    /// same sides and the same feet the shipped target uses, with every vertical term dropped.
+    /// sides by batter hand, and no vertical term, because a hand has no vertical input (PH-03).
     /// </summary>
     double CpuPitchIntentX(string location, CpuPitchLocations loc)
     {
@@ -1370,40 +1314,6 @@ public sealed class Match
         return c.Even;
     }
 
-    /// <summary>The named location in world feet at the plate plane; the away side is by batter hand.</summary>
-    (double X, double Y) CpuPitchTarget(string location, CpuPitchLocations loc)
-    {
-        var away = SweetSpot.TipSign(Batter.Bats);
-        var halfW = StrikeZoneGeometry.HalfWidth;
-        var halfH = StrikeZoneGeometry.Height / 2;
-        var cy = StrikeZoneGeometry.CenterY;
-        switch (location)
-        {
-            case "waste":
-                return (away * (halfW + loc.WasteOutFt), cy + (_rng.NextDouble() < 0.5 ? -1 : 1) * halfH / 2);
-            case "middleIn":
-                return (-away * loc.MiddleInFt, cy);
-            case "middle":
-                return (0, cy + (_rng.NextDouble() * 2 - 1) * loc.MiddleYSpreadFt);
-            default:
-                var side = _rng.NextDouble() < loc.EdgeAwayChance ? away : -away;
-                var vertical = _rng.NextDouble() < 0.5 ? -1 : 1;
-                return (side * (halfW - loc.EdgeInsetFt), cy + vertical * (halfH - loc.EdgeInsetFt));
-        }
-    }
-
-    string CpuPitchVerb(CpuPitchRow row)
-    {
-        var total = row.Normal + row.Charge + row.Changeup + row.Break;
-        var roll = _rng.NextDouble() * total;
-        if (roll < row.Normal) return "normal";
-        roll -= row.Normal;
-        if (roll < row.Charge) return "charge";
-        roll -= row.Charge;
-        if (roll < row.Changeup) return "changeup";
-        return "break";
-    }
-
     /// <summary>
     /// The CPU batter (spec §5.9): a table read at the plate plane from the final crossing, the
     /// same whoever is pitching. No side effects: the box it stands in and the swing it makes are
@@ -1463,11 +1373,10 @@ public sealed class Match
             err += offSpeed ? fooled : -fooled;
         }
         var box = tracked ? Math.Clamp(cx / HomeSet.BatterWalk, -1, 1) : CpuTrackedBox(cx, c, level);
-        // The stick at contact (§5.9, PH-12, PH-18). Where it no longer shapes an ordinary swing
-        // (batting.geometryOnly) no human's stick does, so the CPU holds none: 0 / 0 and neither
-        // Gaussian is drawn. A Star Swing still steers and draws as it always has; the sac bunt above
-        // is untouched. Off — the shipped root — this is the command and the draw order that shipped.
-        if (!AtBatResolver.StickShapesContact(bunt: false, star, Rules))
+        // The stick at contact (§5.9, PH-12, PH-18). No human's stick shapes an ordinary swing, so
+        // the CPU holds none: 0 / 0 and neither Gaussian is drawn. A Star Swing still steers and
+        // draws both aims; the sac bunt above is untouched.
+        if (!AtBatResolver.StickShapesContact(bunt: false, star))
             return new SwingCommand(true, charge, err, star, BoxOffsetX: box);
         return new SwingCommand(true, charge, err, star, Gauss() * c.SpraySigmaDeg,
             LaunchAim: Gauss() * c.LaunchAimSigma, BoxOffsetX: box);
@@ -2268,7 +2177,7 @@ public sealed class Match
 }
 
 /// <summary>
-/// What a CPU pitch under <c>pitching.cpu.humanInputs</c> was built from (spec §4.8, #823), so a
+/// What a CPU pitch was built from (spec §4.8, #823), so a
 /// scenario can read the inputs rather than infer them from the flight: the presses, the family
 /// those presses land on, the charge, the stick and the rubber.
 ///
