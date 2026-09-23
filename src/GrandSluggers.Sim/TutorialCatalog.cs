@@ -160,6 +160,7 @@ public sealed class TutorialCatalog
                     or "runner-send-halt-return" or "human-dash-run" or "all-runner-return" or "human-slide"
                     or "human-choice-second" or "human-ball-dash" or "human-uncovered-receiver" or "human-force-home" or "human-ability-reach" or "human-close-offense" or "human-close-defense" or "human-third-force-zero-run" or "human-bobble-recovery" or "human-fumble-recovery" or "human-third-force-cancels-run" or "human-third-tag-counts-run")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
+                || (setup.Policy is "grounder" or "liner" or "airborne" && l.Objective is "human-bobble-recovery" or "human-fumble-recovery")
                 // The field's lessons (F8-c): a hazard lesson plays at the park it names.
                 || (setup.Policy == "airborne" && l.Objective == "hazard-dodge-catch" && setup.Park.Length > 0)
                 || (setup.Policy == "grounder" && l.Objective == "hazard-redirect-take" && setup.Park.Length > 0)

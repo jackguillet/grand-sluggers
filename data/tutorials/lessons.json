@@ -6204,8 +6204,8 @@
     },
     {
       "id": "T-F09-B",
-      "policy": "grounder",
-      "seed": 146,
+      "policy": "liner",
+      "seed": 14,
       "timeoutSec": 30,
       "home": [
         "vale",
@@ -6233,8 +6233,8 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 150,
-          "launchDeg": -12,
+          "exitMph": 110,
+          "launchDeg": 10,
           "sprayDeg": 0
         }
       },

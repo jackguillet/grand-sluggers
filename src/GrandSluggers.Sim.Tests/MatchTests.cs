@@ -371,7 +371,7 @@ public class MatchTests
         var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out _, out _));
-        var hit = FlightFixtures.Landing(match.Park, 45, 8, -12);
+        var hit = FlightFixtures.Hit(match.Park, 45, -12, -12);
         var laser = new ThrowResult(Chemistry.Good, 1.55, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
         match.FinishAtBat(paint, swing, hit, field);

@@ -214,7 +214,7 @@ public sealed class BalanceTests
     (PlayEvent Play, int Ticks, bool ItemLanded) LiveGrounder(string? item, string? target, int seed = 1)
     {
         var match = Match.Slice(_content, innings: 3, seed: seed);
-        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
         var field = match.ResolveFielding(hit, preview);
         var live = match.LivePlay;

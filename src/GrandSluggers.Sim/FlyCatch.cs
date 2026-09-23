@@ -160,10 +160,9 @@ public static class FlyCatch
         && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
 
     /// <summary>
-    /// Where the glove has to be to hold this ball. A fly is the landing ring (§8.3). A liner is
-    /// the live ball above <c>catch.inAirMinY</c> before the bounce (§7.6) — a straight-at-you
-    /// rope is a South catch — or the plant in the hang window so a body that ran the landing
-    /// route still takes it. Standing at the bounce after the ball has touched the dirt is a scoop.
+    /// Ordinary catches require the live ball to meet the glove's horizontal reach and
+    /// standing height plus its actual jump rise before the first surface contact.
+    /// Wall robs use the wall plant and their separate timed leap window.
     /// </summary>
     public static bool InPosition(
         FieldingPreview pre,

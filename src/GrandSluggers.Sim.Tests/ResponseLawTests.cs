@@ -91,25 +91,30 @@ public sealed class ResponseLawTests
     [InlineData(0.021)]
     public void TheBodyTheRingLeavesCoastsThenBrakesWithNoFasterFrameAndNoStandingFrame(double dt)
     {
-        var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
-        var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
-        var hit = FlightFixtures.Hit(match.Park, 110, 10, -8);
+        // A uniform faster fixture clock recreates the one-frame handoff race; production keeps 1.65.
+        using var fixture = new ContentFixture();
+        var flightFile = fixture.Path("rules/flight.json");
+        File.WriteAllText(flightFile, File.ReadAllText(flightFile).Replace("\"timeScale\": 1.65", "\"timeScale\": 1.0"));
+        var content = ContentCatalog.Load(new DataRoot(fixture.Root));
+        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = content.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var hit = FlightFixtures.Hit(match.Park, 90, 10, -8, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var chase = match.Rules.Fielding.Chase;
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
-        Assert.Equal("2B", live.GlovePos);
-        var track = new List<(string Glove, (double X, double Z) At)> { (live.GlovePos, live.Fielders["2B"]) };
+        Assert.Equal("SS", live.GlovePos);
+        var track = new List<(string Glove, (double X, double Z) At)> { (live.GlovePos, live.Fielders["SS"]) };
         for (var i = 0; i < 200 && live.Active; i++)
         {
             live.Apply(LivePlayCommand.Tick(dt, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu));
-            if (live.Active) track.Add((live.GlovePos, live.Fielders["2B"]));
+            if (live.Active) track.Add((live.GlovePos, live.Fielders["SS"]));
         }
         double Speed(int frame) => Diamond.Dist(track[frame - 1].At.X, track[frame - 1].At.Z, track[frame].At.X, track[frame].At.Z) / dt;
 
-        var h = track.FindIndex(f => f.Glove != "2B");
-        Assert.True(h > 2 && track[h].Glove == "CF", "the ring left 2B for CF");
+        var h = track.FindIndex(f => f.Glove != "SS");
+        Assert.True(h > 2 && track[h].Glove == "CF", "the ring left SS for CF");
         var v = Speed(h - 1);
         Assert.True(v > 10, $"SS was running when the ring left ({v:0.0} ft/s)");
         Assert.Equal(0, Speed(h), 6);   // the hand-off frame: nobody steps the body the ring left (§8.9, as shipped)

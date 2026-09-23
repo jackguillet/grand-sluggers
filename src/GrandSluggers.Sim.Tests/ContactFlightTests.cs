@@ -95,6 +95,23 @@ public sealed class ContactFlightTests
     }
 
     [Fact]
+    public void ContinuingAFlightDoesNotApplyTheSharedSlowdownTwice()
+    {
+        var path = BallFlight.Trajectory(95, 30, 0, Park, game.Rules);
+        const double dt = 1.0 / 60;
+        const double t = 1;
+        var before = BallFlight.PointAt(path, t - dt);
+        var now = BallFlight.PointAt(path, t);
+        var vx = (now.X - before.X) / dt;
+        var vy = (now.Y - before.Y) / dt;
+        var vz = (now.Z - before.Z) / dt;
+        var continued = BallFlight.Continue(path, t, now.X, now.Y, now.Z, vx, vy, vz, 30, 95, Park, game.Rules);
+        var after = BallFlight.PointAt(continued, t + dt);
+        Assert.InRange((after.Z - now.Z) / dt / vz, .98, 1.01);
+        Assert.InRange((after.Y - now.Y) / dt / vy, .98, 1.01);
+    }
+
+    [Fact]
     public void RisingHopDifficultyUsesThePhysicalVelocityBehindTheSharedClock()
     {
         var match = Match.Slice(game);
