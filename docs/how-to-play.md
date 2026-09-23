@@ -298,7 +298,7 @@ See a run count before a tag contrasts that force: two outs, runners on second a
 
 ### Steals, pitcher commitment and catcher readiness
 
-Select a runner with D-pad / 1–3; L3 / Z or pointing toward the next bag starts them immediately, even before the pitch. Point back or use RB / period to return from their current position. Point forward again to reverse. There is no perfect-arm bonus. A small race view shows the departure while the batting camera stays readable; catcher possession flips to a lower view from behind the catcher, looking upfield. Home and centerfield stay vertically aligned. The camera moves gently upfield with the throw; both bags stay visible through returns and rundowns. A pitcher throw uses the same race view.
+Select a runner with D-pad / 1–3; L3 / Z or pointing toward the next bag starts them immediately, even before the pitch. Point back or use RB / period to return from their current position. Point forward again to reverse. There is no perfect-arm bonus. A small race view shows the departure while the batting camera stays readable; catcher possession flips to a closer, lower view from behind the catcher, looking upfield. Home and centerfield stay vertically aligned. The camera moves gently upfield with the throw; both bags stay visible through returns and rundowns. A pitcher throw uses the same race view.
 
 Before charging, hold any base direction / 1–4 and press South / Space to throw from the mound, including to home or an empty bag. Holding the pitch button starts the visible windup and commits the pitcher. Choosing a base while holding tries to step off: **BALK**, every runner one base, count unchanged. Holding indefinitely is legal; release to deliver and let the catcher challenge the runner.
 
