@@ -12,7 +12,8 @@ namespace GrandSluggers.Sim.Tests;
 /// good."); #860 shipped it and #887 removed the split window it replaced. The window is
 /// <c>window.frames</c> for every hitter, both swings and every rung, with the star multiplier, the
 /// park multiplier and the floor still applying in the same order (<b>S-125</b>). <b>S-126</b> holds
-/// the retired overlay, the removed switch keys and the validator's floor.
+/// the retired overlay, the removed switch keys and the validator's floor. <b>S-127</b> holds a
+/// catalog that is not the process's to its own table on the auto-play path.
 ///
 /// Every root is loaded <b>in process</b>, through a <see cref="DataRoot"/> this class builds from
 /// the repository, so nothing here depends on <c>GRAND_SLUGGERS_TRIAL</c> being set and CI is untouched.
@@ -182,6 +183,46 @@ public sealed class SharedWindowScenarioTests
         var errors = RulesTable.Validate(new DataRoot(fixture.Root));
         Assert.Contains(errors, e => e.Contains("batting.window.floorFrames must not exceed its upper bound; got 5 > 4", StringComparison.Ordinal)
                                      && e.Contains(fixture.Path("batting.json"), StringComparison.Ordinal));
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-127  A catalog that is not the process's reads its own table on the auto-play path
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// #844 found <see cref="Match.AutoPlay"/>'s in-zone read — <see cref="AtBatResolver.PitchInZone"/> →
+    /// <see cref="StrikeZoneGeometry.Contains(PitchCommand, string?, RulesTable?)"/> →
+    /// <see cref="PitchFlight.Point(PitchCommand, double, string?, System.ValueTuple{double, double, double}?, RulesTable?)"/>
+    /// — resolving the pitch family against the <em>process-wide</em> table rather than the match's, and
+    /// #855 threaded the match's table through every hop (debug protocol
+    /// <c>trial-cohort-reads-the-process-wide-table</c>). Until #887 this row held it with the S-29
+    /// cohort on the stick switch's off path; with the switches gone, it builds a catalog whose curveball
+    /// drops far further than the process's, so the two tables disagree about the same pitch, and asks
+    /// each hop which table it read. Then it plays a whole game from that catalog in process.
+    /// </summary>
+    [Fact]
+    public void S127_ACatalogNotTheProcesssReadsItsOwnTableOnTheAutoPlayPath()
+    {
+        using var fixture = new RulesFixture();
+        fixture.Change("pitching.json", json => json["families"]!["curveball"]!["dropFt"] = 3.0);
+        var content = ContentCatalog.Load(new DataRoot(fixture.Root));
+        Assert.NotEqual(Rules.Default.Pitching.Families.Of(PitchFamily.Curveball).DropFt,
+            content.Rules.Pitching.Families.Of(PitchFamily.Curveball).DropFt);
+
+        // A curveball aimed at the middle: the catalog's drop takes it under the zone, the process's does not.
+        var pitch = new PitchCommand(PitchFamily.Curveball, 0, false);
+        var crossing = PitchFlight.Point(pitch, 1, rules: content.Rules);
+        var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
+        Assert.Equal(inZone, StrikeZoneGeometry.Contains(pitch, null, content.Rules));
+        Assert.Equal(inZone, AtBatResolver.PitchInZone(pitch, 5, null, content.Rules));
+        Assert.NotEqual(inZone, AtBatResolver.PitchInZone(pitch, 5));
+
+        // The whole auto-play path, in process, from the catalog. The compact profile is a different
+        // diamond built from the process-wide tables, so the game runs on the full-size root only.
+        if (TestRoot.Compact) return;
+        var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 1);
+        match.AutoPlayGame();
+        Assert.True(match.Over);
     }
 
     // ---- helpers ---------------------------------------------------------------------
