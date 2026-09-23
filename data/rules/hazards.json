@@ -86,27 +86,38 @@
     "exitSpeedMul": 0.6,
     "exitVyFtPerSec": 16
   },
-  // Drawn, never played (map §5 Q6, Jack, 2026-09-22). An honest row that says the type changes no
-  // play, so a park may list one for the kit. Each gets a real pattern when its park comes up:
-  // the solid body is F4-g's, the timed mover F4-f's.
+  // Solid bodies and the timed mover (F4-f): the ball below heightFt caroms off the body, keeping
+  // restitution of its speed into it; a fielder cannot stand in one and the route goes around it. The
+  // train runs travelFt to either side of its spot along the fence, once out and back per periodSec of
+  // the play clock. Proposed numbers, not tuned.
   "statue": {
-    "pattern": "decoration",
+    "pattern": "solidBody",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "heightFt": 9,
+    "restitution": 0.45
   },
   "train": {
-    "pattern": "decoration",
+    "pattern": "timedMover",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "heightFt": 10,
+    "restitution": 0.45,
+    "periodSec": 10,
+    "travelFt": 50
   },
   "acUnit": {
-    "pattern": "decoration",
+    "pattern": "solidBody",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "heightFt": 5,
+    "restitution": 0.55
   },
   "tree": {
-    "pattern": "decoration",
+    "pattern": "solidBody",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "heightFt": 20,
+    "restitution": 0.35
   }
 }
