@@ -149,7 +149,7 @@ public sealed class BalanceTests
         var strike = new PitchCommand("fastball", 0, false);
         var whiff = new SwingCommand(true, 0, 40, false);
         for (var i = 0; i < 3; i++) match.Play(strike, whiff);
-        Assert.Equal(Math.Min(_content.Rules.Stars.MeterMax, before + g.Strikeout), match.DefenseStars, 6);
+        Assert.Equal(Math.Min(_content.Rules.Stars.MeterMax, before + g.Strikeout + g.PlateAppearance), match.DefenseStars, 6);
         var tier = _content.StarSkills.Pitch(match.Pitcher.StarPitch)!.Tier;
         Assert.Equal(_content.Rules.Stars.Tiers.Of(tier), match.PitchStarCost);
     }
