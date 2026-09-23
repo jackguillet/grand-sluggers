@@ -36,10 +36,11 @@ public static class HomeSet
     ];
 
     /// <summary>
-    /// OBR Diagram 2 / NCAA: 4′ × 6′, 6″ from the plate. Front is 4′ in front of
-    /// a line through the plate center; rear is 2′ behind that line.
+    /// Six feet deep, narrowed symmetrically from the authored four-foot box as
+    /// the plate widens. Preserve the batter centers and six-inch plate gap.
+    /// Front is four feet ahead of the plate center; rear is two feet behind it.
     /// </summary>
-    public const double BoxW = 4.0;
+    public const double BoxW = 4.0 - (PlateW - AuthoredPlateW);
     public const double BoxD = 6.0;
     public const double BoxGap = 6 * Inch;
     public const double BoxFrontFromCenter = 4.0;
@@ -128,7 +129,7 @@ public static class HomeSet
 
     public static bool FitsStrikeZoneLayout() =>
         Math.Abs(PlateW - StrikeZoneGeometry.HalfWidth * 2) < 1e-9
-        && Math.Abs(BoxW - 4) < 1e-9
+        && Math.Abs(BoxW - (4 - (PlateW - AuthoredPlateW))) < 1e-9
         && Math.Abs(BoxD - 6) < 1e-9
         && Math.Abs(BoxGap - 6 * Inch) < 1e-9
         && Math.Abs(BoxFrontZ - (PlateCenterZ + 4)) < 1e-9

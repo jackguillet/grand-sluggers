@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 public class HomeSetTests
 {
     [Fact]
-    public void PlateMatchesStrikeZoneBetweenFullSizeBoxes()
+    public void PlateMatchesStrikeZoneWithoutMovingTheBatters()
     {
         Assert.True(HomeSet.FitsStrikeZoneLayout());
         Assert.True(HomeSet.PlatePointFacesTheCatcher());
@@ -14,7 +14,8 @@ public class HomeSetTests
         Assert.Equal(StrikeZoneGeometry.HalfWidth * 2, HomeSet.PlateW, 9);
         Assert.Equal(HomeSet.PlateW, HomeSet.PlateDepth);
         Assert.Equal(HomeSet.PlateW, HomeSet.AuthoredPlateW * HomeSet.PlateMeshScale, 9);
-        Assert.Equal(4.0, HomeSet.BoxW);
+        Assert.Equal(4.0 - (HomeSet.PlateW - HomeSet.AuthoredPlateW), HomeSet.BoxW, 9);
+        Assert.Equal(17.0 / 24.0 + 0.5 + 2, HomeSet.BoxX, 9);
         Assert.Equal(6.0, HomeSet.BoxD);
         Assert.Equal(6.0 / 12.0, HomeSet.BoxGap, 9);
         Assert.Equal(HomeSet.PlateCenterZ + 4.0, HomeSet.BoxFrontZ, 9);

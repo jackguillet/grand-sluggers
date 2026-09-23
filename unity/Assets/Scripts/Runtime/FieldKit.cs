@@ -211,8 +211,9 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// OBR Diagram 2 chalk: 4′×6′ batter’s boxes 6″ off the plate, catcher’s
-        /// box 8′×43″ on the rear line. Lines, not filled pads. Interior is dirt.
+        /// HomeSet chalk: six-foot-deep batter's boxes clear the zone-width plate
+        /// by six inches without moving the batter centers; catcher's box is
+        /// 8′×43″ on the rear line. Lines, not filled pads. Interior is dirt.
         /// </summary>
         public void Boxes()
         {
