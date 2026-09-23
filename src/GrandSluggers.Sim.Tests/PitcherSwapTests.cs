@@ -31,6 +31,32 @@ public class PitcherSwapTests
     }
 
     [Fact]
+    public void InspectingEveryCandidateLeavesGlovesAndStaminaUntouchedUntilConfirmation()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var pick = new PitcherSwapPick(match);
+        var pitcher = match.Pitcher;
+        var gloves = FieldingResolver.Assign(match.DefenseRoster, pitcher);
+        var stamina = pick.Candidates.ToDictionary(c => c.Who.Id, c => match.StaminaOf(c.Who));
+        for (var i = 0; i < pick.Candidates.Count; i++)
+        {
+            pick.Inspect(i);
+            Assert.Equal(pick.Candidates[i], pick.Current);
+            Assert.Equal(pitcher.Id, match.Pitcher.Id);
+            Assert.Equal(gloves, FieldingResolver.Assign(match.DefenseRoster, match.Pitcher));
+            Assert.Equal(stamina[pick.Current.Who.Id], match.StaminaOf(pick.Current.Who));
+            Assert.True(match.CanSwapPitcher);
+        }
+        var last = pick.Index;
+        pick.Inspect(-1);
+        pick.Inspect(pick.Candidates.Count);
+        Assert.Equal(last, pick.Index);
+        // Closing/reopening the presentation does not consume the once-per-half swap.
+        Assert.True(new PitcherSwapPick(match).Confirm(match));
+        Assert.False(match.CanSwapPitcher);
+    }
+
+    [Fact]
     public void ConfirmPutsThePickOnTheMoundAndTheOldPitcherOnTheVacatedGlove()
     {
         var match = Match.Slice(_content, seed: 1);

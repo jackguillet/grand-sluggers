@@ -45,6 +45,12 @@ public sealed class PitcherSwapPick
         return Current;
     }
 
+    /// <summary>Pointer inspection changes only the highlighted candidate, never the lineup.</summary>
+    public void Inspect(int index)
+    {
+        if (index >= 0 && index < Candidates.Count) Index = index;
+    }
+
     /// <summary>Put the pick on the mound. False when the half already used its swap.</summary>
     public bool Confirm(Match match) => Candidates.Count > 0 && match.SwapPitcher(Current.Who);
 

@@ -431,6 +431,11 @@ namespace GrandSluggers.UnityClient
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, OffersStickReset, DataProfile.Label);
                 return;
             }
+            if (_phase == Phase.Set && _swapPick != null)
+            {
+                TeamSheet.DrawPitcherPick(_match, _swapPick, PitchPad.Index);
+                return;
+            }
             if (!mutePlay) DrawStickTells();
             if (_closePlay)
                 HudView.ClosePlay(_closeBag, _closeIcon);
