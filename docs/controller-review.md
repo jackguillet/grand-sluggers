@@ -71,7 +71,9 @@ Nintendo layout from Xbox letters alone.
 - East: cancel the current pick, withdraw Ready, or Back, in that order. Never
   remove a roster member or change panels as a side effect of Back.
 - West: the screen's labeled secondary action (remove a selected roster member,
-  fill team, or retry a finished lesson). Only one action at the current focus.
+  or retry a finished lesson). Only one action at the current focus.
+- RB on Team Setup: fill your team from any focus. West only removes a focused roster player.
+- Stadium setup owns player count and P1 home/away. Captain selection has two team cards and a portrait row: left/right browses, South confirms, East undoes or returns. One controller chooses its captain then the CPU captain; two controllers confirm independently.
 - North: Ready/unready where that action is present.
 - LB/RB: previous/next page or panel. Order/field panel switching uses these,
   freeing East to consistently cancel. Visible tabs and focus show the context.
