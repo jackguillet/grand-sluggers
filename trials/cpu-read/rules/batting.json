@@ -82,14 +82,6 @@
     "phonyballWhiff": 0.4,
     "prismballSpraySpanDeg": 22
   },
-  "buddiesOnBase": {
-    "oneMul": 1.1,
-    "twoMul": 1.25,
-    "threeMul": 1.5,
-    "widenOne": 1.05,
-    "widenTwo": 1.1,
-    "widenThree": 1.2
-  },
   "pitchFactor": {
     "chargedVsSour": 0.6,
     "chargedVsPerfectCharge": 1.1,

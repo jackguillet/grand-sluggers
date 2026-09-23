@@ -112,46 +112,21 @@ public sealed class TutorialSpecialTests
     }
 
     [Theory, MemberData(nameof(ItemCases))]
-    public void ItemNeedsHumanOfferedContactThrowAndRealEffectThreeTimes(string profile, string id)
+    public void ItemLessonsAreBlockedWhileItemsAreDormant(string profile, string id)
     {
+        // PH-16-R15 (#891): the on-deck item offer is removed, so no at-bat offers an item and an item
+        // lesson cannot be earned. It is blocked on #891, not deleted: its setup and the item-effect
+        // objective stay for a future item source, and a session refuses to start it.
         var (content, catalog) = Load(profile);
-        var run = new TutorialSession(content, catalog, id); run.Begin();
-        var named = catalog.Setups.Single(s => s.Id == id).Skill;
-        for (var n = 1; n <= 3; n++)
-        {
-            Assert.True(run.Swing(new(true, 0, 0, false)));
-            Assert.True(run.LastHit!.ChemistryItemOffered);
-            Assert.True(run.Match.LivePlay.Active);
-            var target = run.Match.LivePlay.Preview!.Fielder!.Id;
-            Assert.True(run.Item(named, target));
-            for (var t = 0; t < 600 && run.Phase == TutorialPhase.Attempt; t++) run.Tick(.05);
-            Assert.True(run.Feedback!.Success, id + "/" + profile + ": " + run.Feedback.Detail);
-            Assert.Equal(n, run.Successes);
-            Assert.Equal(run.Feedback, TutorialSession.Replay(content, catalog, run.Recording()).Feedback);
-            run.Retry();
-        }
-        Assert.True(run.Passed);
-    }
-
-    [Theory, MemberData(nameof(ItemCases))]
-    public void WrongItemCpuThrowAndDemoDoNotCredit(string profile, string id)
-    {
-        var (content, catalog) = Load(profile);
-        var named = catalog.Setups.Single(s => s.Id == id).Skill;
-        var run = new TutorialSession(content, catalog, id); run.Begin();
-        Assert.False(run.Item(named, run.Match.DefenseRoster[0].Id));
-        Assert.True(run.Swing(new(true, 0, 0, false)));
-        var target = run.Match.LivePlay.Preview!.Fielder!.Id;
-        Assert.False(run.Item(named, target, LivePlayCommandSource.Cpu));
-        Assert.True(run.Item(named == "banana" ? "rocket" : "banana", target));
-        Assert.Equal("wrong-item", run.Feedback!.Code);
-        Assert.Equal(0, run.Successes);
-        run = new TutorialSession(content, catalog, id); run.Begin(demonstration: true);
-        Assert.True(run.Swing(new(true, 0, 0, false), LivePlayCommandSource.Cpu));
-        Assert.True(run.Item(named, run.Match.LivePlay.Preview!.Fielder!.Id, LivePlayCommandSource.Cpu));
-        for (var t = 0; t < 600 && run.Phase == TutorialPhase.Attempt; t++) run.Tick(.05, source: LivePlayCommandSource.Cpu);
-        Assert.Equal("demonstration", run.Feedback!.Code);
-        Assert.Equal(0, run.Successes);
+        var lesson = catalog.Lesson(id);
+        Assert.Equal("blocked", lesson.Status);
+        Assert.Equal(891, lesson.Issue);
+        Assert.Equal("item-effect", lesson.Objective);
+        Assert.Contains(catalog.Setups, s => s.Id == lesson.Setup);
+        var setup = catalog.Setups.Single(s => s.Id == lesson.Setup);
+        Assert.False(content.Chemistry.ChemistryItemOffered(content.Characters[setup.BatterId], content.Characters[setup.OnDeckId]));
+        foreach (var mechanic in lesson.Mechanics) Assert.Equal(891, catalog.Migration[mechanic]);
+        Assert.Throws<InvalidOperationException>(() => new TutorialSession(content, catalog, id));
     }
 
     static void ChaseSpecialGround(TutorialSession run, LivePlayCommandSource source, bool move)
