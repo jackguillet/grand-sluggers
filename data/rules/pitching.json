@@ -115,9 +115,7 @@
     "tiredBelow": 25,
     "tiredMph": 6,
     "tiredBreakMul": 0.6,
-    "tiredWobbleFt": 0.25,
     "exhaustedMph": 10,
-    "exhaustedWobbleFt": 0.45,
     "cpuSwapLead": 3
   },
   "cpu": {

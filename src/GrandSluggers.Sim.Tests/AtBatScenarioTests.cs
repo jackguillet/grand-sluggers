@@ -529,7 +529,7 @@ public sealed class AtBatScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S25_TiredPitcherLosesSixMphWobblesAndShowsTheTell()
+    public void S25_TiredPitcherLosesSixMphAndSteeringRoomButNeverMissesAtRandom()
     {
         var s = new Scenario(_content);
         var match = s.Match;
@@ -550,9 +550,12 @@ public sealed class AtBatScenarioTests
         Assert.True(BroadcastHud.PoorArm(match.PitcherStamina, match.Rules), "the card reads TIRED");
         Assert.Contains("TIRED", BroadcastHud.ArmLine(match.PitcherStamina, match.Rules));
 
-        // The wobble is sampled once per pitch and the break is damped.
-        var ready = match.PreparePitch(Scenario.Paint with { BreakX = 1 });
-        Assert.True(ready.AimX != 0 || ready.AimY != 0, "a tired crossing wobbles");
+        // No random miss (PH-08-R1): the aim is untouched, pitch after pitch, and only the break is damped.
+        var aimed = Scenario.PitchAt(0.3, CenterY) with { BreakX = 1 };
+        var ready = match.PreparePitch(aimed);
+        Assert.Equal((aimed.AimX, aimed.AimY), (ready.AimX, ready.AimY));
+        for (var i = 0; i < 20; i++)
+            Assert.Equal(PitchFlight.Crossing(ready), PitchFlight.Crossing(match.PreparePitch(aimed)));
         Assert.Equal(st.TiredBreakMul, ready.BreakMul);
         var damped = PitchFlight.Crossing(ready).X - PitchFlight.Crossing(ready with { BreakX = 0 }).X;
         Assert.Equal(_content.Rules.Pitching.Flight.BreakMaxFt * st.TiredBreakMul, damped, 6);
