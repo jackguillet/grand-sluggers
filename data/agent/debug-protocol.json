@@ -582,6 +582,14 @@
       "fix": "ControllerLayout keeps LT Star, RT baseball and LB/RB runner orders independent across SET, flight and contact. Right-stick selection is separate from left-stick movement; automatic catches never create a throw request.",
       "promoted": "ControllerInputTests.StarAndRunnerOrdersAreIndependentDuringASwing",
       "issue": "#983"
+    },
+    {
+      "id": "macos-synthetic-controller-stall",
+      "signature": "Unity stops at Initializing Unity extensions; sample waits in AppleSyntheticGameController and IOServiceOpen; older editor waits in InputShutdown",
+      "stage": "unity-console",
+      "cause": "Observed macOS synthetic controller connection stall shared by an older editor and a new editor, before the new editor ran game code. Underlying OS cause is unproven.",
+      "fix": "Follow docs/editor-startup.md: identify PIDs and stacks, disconnect only the implicated controller, preserve pairing and unsaved work, and obtain explicit approval before force-quitting stuck editors. Clearing the approved stale sessions restored startup and 35 real input checks. Do not disable OS protections.",
+      "issue": "#983"
     }
   ]
 }

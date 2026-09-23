@@ -62,3 +62,11 @@ done
 gui quit --owner $$ $unity
 wait $unity
 ```
+
+## Unity: macOS synthetic controller stalls startup or shutdown
+
+A September 23 controller session found a Bluetooth Pro Controller plus an `AppleGCSyntheticDevice` named `GamePad-1`. A new editor stopped after `Initializing Unity extensions:`. A process sample placed its main thread in `InitializePlatformInput` → `IOHIDDeviceCreate` → `AppleSyntheticGameController` → `IOServiceOpen`. The older editor's HID thread also waited in the synthetic controller library; normal quit reached `InputShutdown` and waited for that thread. This was before game code in the new editor, not a C# compile failure.
+
+Inspect the exact editor PIDs with `tools/unity_gui.py status` and a process sample before attributing a stall to input. Disconnect only the implicated pad through Bluetooth settings; preserve its pairing and other Bluetooth devices. In this case the virtual device persisted after disconnect. After Jack explicitly approved force-quitting both identified stuck editors, the virtual device disappeared, a fresh editor started, and all 35 real input/motion/menu checks completed. Normal startup and shutdown were restored. This is observed recovery, not proof of the OS driver's underlying cause or a guarantee against recurrence.
+
+Do not force-quit another editor without approval, disable System Integrity Protection, reset Bluetooth globally, or change game controls to hide this startup failure. A blocked service restart is not a reason to weaken OS protections. Preserve any unsaved-work prompt and use PID-specific actions under the GUI Unity lock.
