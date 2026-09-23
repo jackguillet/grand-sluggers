@@ -52,8 +52,8 @@ public sealed class FielderTellsTests
     /// batter's miss, which carries the bat.
     /// </summary>
     [Theory]
-    [InlineData(96, 12, -21, "LF", true)]
-    [InlineData(90, 4, -25, "SS", false)]
+    [InlineData(150, -12, 0, "P", true)]
+    [InlineData(75, 6, 30, "2B", false)]
     public void TheFumblerShowsTheStunAndNoOtherBodyDoes(double exit, double launch, double spray, string fumbler, bool deflects)
     {
         using var certain = new PatchedGame(text => text

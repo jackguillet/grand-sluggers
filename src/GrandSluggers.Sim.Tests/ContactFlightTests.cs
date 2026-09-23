@@ -95,6 +95,27 @@ public sealed class ContactFlightTests
     }
 
     [Fact]
+    public void RisingHopDifficultyUsesThePhysicalVelocityBehindTheSharedClock()
+    {
+        var match = Match.Slice(game);
+        var hit = FlightFixtures.Hit(match.Park, 120, -14, 0, rules: match.Rules);
+        var live = match.LivePlay;
+        live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, match.PreviewHit(hit), null, LiveSeats.CpuOnly));
+        const double dt = 1.0 / 60;
+        for (var i = 0; i < 600 && live.Active; i++)
+        {
+            var beforeY = live.BallY;
+            live.Apply(LivePlayCommand.Tick(dt));
+            if (live.IncomingFtPerSec <= 0) continue;
+            var physicalVy = (live.BallY - beforeY) / dt * match.Rules.Flight.TimeScale;
+            Assert.Equal(FieldingResolver.HopDifficulty(live.BallY, physicalVy, match.Rules), live.HopDifficulty, 8);
+            Assert.True(live.HopDifficulty > 0, "the rising in-between hop stays an awkward pickup");
+            return;
+        }
+        Assert.Fail("The pitcher did not reach the rising hop.");
+    }
+
+    [Fact]
     public void OrdinaryContactMovesContinuouslyFromDownwardToLoftedAcrossTheBat()
     {
         var resolver = new AtBatResolver(game.Chemistry, game.Rules, game.StarSkills);

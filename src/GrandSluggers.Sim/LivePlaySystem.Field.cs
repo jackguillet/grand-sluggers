@@ -3571,7 +3571,7 @@ public sealed partial class LivePlaySystem
         // On the ground = a grounder, or any ball past its landing: what the impact recoil (#720) charges for a pickup.
         var landed = ElapsedSeconds >= Hang;
         // The take's difficulty (F693-02-awkward-hop-difficulty-source, #721): the hop the ball is in, read off its height and rise. Sampled on both tables.
-        HopDifficulty = landed && !wasLoose ? FieldingResolver.HopDifficulty(BallY, _ballVel.Y, R) : 0;
+        HopDifficulty = landed && !wasLoose ? FieldingResolver.HopDifficulty(BallY, _ballVel.Y * R.Flight.TimeScale, R) : 0;
         if (!wasLoose) ArmRecoil(landed);
     }
 
