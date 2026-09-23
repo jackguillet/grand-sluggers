@@ -660,10 +660,10 @@ namespace GrandSluggers.UnityClient
             ShowAimTell(HumanPitches ? _pitch : null);
             TickBaserunning(dt);
             // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9):
-            // the break it can see is the one drawn so far (batting.cpu.commitRead reads it, #892).
+            // the break it can see is the one drawn so far, never the steer still to come (PH-18).
             if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
                 _swing = WithSquare(AtBatMotion.CommitCpuSwing(
-                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Control, _match.Pitcher.StarPitch), _breakX)),
+                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, _breakX)),
                     _pitchDur, _match.Rules));
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt, _match.Rules))
@@ -677,7 +677,7 @@ namespace GrandSluggers.UnityClient
             _swing ??= WithSquare(HumanBats
                 ? PlateButtons.HeldBuntAtPlate(_plateStep, _match.BatterOffsetX, _squareSec)
                   ?? new SwingCommand(false, _charge, 12, false)
-                : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Control, _match.Pitcher.StarPitch))));
+                : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch)));
             Resolve();
         }
 

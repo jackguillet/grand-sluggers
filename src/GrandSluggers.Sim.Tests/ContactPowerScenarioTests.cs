@@ -214,11 +214,11 @@ public class ContactPowerScenarioTests
         for (var seed = 1; seed <= 200; seed++)
         {
             // The same seed gives the same draw, so the only thing that can move the answer is the trait.
-            if (MatchWith(Hitter(contact: 9, power: 2), seed).CpuSwing(near, inZone: false).Swing) sureChases++;
-            if (MatchWith(Hitter(contact: 2, power: 9), seed).CpuSwing(near, inZone: false).Swing) sluggerChases++;
+            if (MatchWith(Hitter(contact: 9, power: 2), seed).CpuSwing(near).Swing) sureChases++;
+            if (MatchWith(Hitter(contact: 2, power: 9), seed).CpuSwing(near).Swing) sluggerChases++;
 
-            var sure = MatchWith(Hitter(contact: 9, power: 2), seed).CpuSwing(middle, inZone: true);
-            var slugger = MatchWith(Hitter(contact: 2, power: 9), seed).CpuSwing(middle, inZone: true);
+            var sure = MatchWith(Hitter(contact: 9, power: 2), seed).CpuSwing(middle);
+            var slugger = MatchWith(Hitter(contact: 2, power: 9), seed).CpuSwing(middle);
             Assert.True(sure.Swing && slugger.Swing, "the table swings at a middle-middle strike");
             if (Math.Abs(sure.TimingErrorFrames) < 1e-12) continue;
             sigmaRows++;
@@ -257,7 +257,7 @@ public class ContactPowerScenarioTests
         {
             var match = MatchWith(who, seed);
             Assert.True(match.StationRunner(2, match.Away.Roster[3]), "station second");
-            return match.CpuSwing(pitch, inZone: true).Charge01 == 1.0;
+            return match.CpuSwing(pitch).Charge01 == 1.0;
         }
     }
 

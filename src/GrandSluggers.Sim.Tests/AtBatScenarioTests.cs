@@ -55,15 +55,16 @@ public sealed class AtBatScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-04  The CPU batter decides from the final crossing
+    // S-04  The CPU batter decides from the flight as it stands at its commit
     // ---------------------------------------------------------------------------------
 
     [Fact]
     [Trait("Kind", "Balance")]
     public void S04_CpuBatterReadsTheSteeredCrossingAndTakesAPitchSteeredOut()
     {
-        // A human pitcher on the edge steers full break out of the zone during flight. The CPU
-        // decides from the pitch as it stands at the plate plane, so it takes at (100 − chase)%.
+        // A human pitcher on the edge steers full break out of the zone, held one way from release. By the
+        // CPU's commit the break has already reached it (S-141 has the steer that starts after), so the
+        // CPU reads the pitch out of the zone and takes at (100 − chase)%.
         var takes = 0;
         const int n = 300;
         double chase = 0;
@@ -77,7 +78,7 @@ public sealed class AtBatScenarioTests
             Assert.True(StrikeZoneGeometry.Contains(edge), "the launched pitch is a strike");
             var steered = edge with { BreakX = 1 };
             Assert.False(StrikeZoneGeometry.Contains(steered), "full break carries it out");
-            var swing = match.CpuSwing(steered, AtBatResolver.PitchInZone(steered, match.Pitcher.Stats.Pitch, match.Pitcher.StarPitch));
+            var swing = match.CpuSwing(steered);
             if (!swing.Swing) takes++;
         }
         Assert.InRange(takes / (double)n, 1 - chase - 0.08, 1 - chase + 0.08);
@@ -740,7 +741,7 @@ public sealed class AtBatScenarioTests
             var match = Match.Exhibition(_content, "rio", "ashlord", seed: seed);
             Assert.True(match.Top, "the human pitches the top");
             var meat = Scenario.PitchAt(0, CenterY);
-            var swing = match.CpuSwing(meat, true);
+            var swing = match.CpuSwing(meat);
             if (!swing.Swing) continue;
             swings++;
             if (Math.Abs(swing.TimingErrorFrames) < 3.2) square++;
@@ -761,7 +762,7 @@ public sealed class AtBatScenarioTests
         var rubber = match.PitcherOffsetX;
         var stream = s.Stream();
         for (var i = 0; i < 50; i++)
-            match.CpuSwing(Scenario.PitchAt(0.3, CenterY), true);
+            match.CpuSwing(Scenario.PitchAt(0.3, CenterY));
         Assert.Equal(stealBefore, match.StealOn);
         Assert.Equal(box, match.BatterOffsetX);
         Assert.Equal(rubber, match.PitcherOffsetX);
@@ -791,7 +792,7 @@ public sealed class AtBatScenarioTests
         if (moveRubber) match.WalkPitcher(0.5);
         Assert.Equal(moveRubber, match.RubberMovedSinceLastPitch);
         var pitch = Scenario.PitchAt(0.6, CenterY);
-        var swing = match.CpuSwing(pitch, true);
+        var swing = match.CpuSwing(pitch);
         if (!swing.Swing) return 0;
         // A failed re-read leaves the box at the last crossing (1.2 ft away); a fixed offset alone is under 0.5 ft.
         var (cx, _) = PitchFlight.Crossing(pitch);
