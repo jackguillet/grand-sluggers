@@ -377,6 +377,8 @@ Area: Hazards. Depends on: FD-08. Evidence: MPT, MTA, MSC, MSBL, SSB.
 
 **Refinement FD-11-R1 — Jack, September 22, 2026: drop Crystal's night contact window.** Reply "6. drop" (map §5 Q9). When F4-d writes the night blocks, Crystal's trial night block carries no contact-window change. Read with FD-13-R1 and the author's framing ("dropping it for the first trial"), the shipped Crystal keeps its 0.85 until a single default exists; this reading is flagged to Jack. No replacement night event is selected.
 
+**Refinement FD-11-R3 — Jack, September 23, 2026: Crystal's night look is left as it is for now.** Reply "b. this is fine for now." The rule is unchanged (night keeps the lights and changes no play); the blackout look is revisited later.
+
 **Decision — Jack, September 21, 2026: B.** Reply "b" selects a declared night block per park: it overrides named fields of the day park or adds hazard instances; the rest is the day park. It is validated like the day block, and no code picks a number by a park id or by the word night. Harbor's night stays a look only. The three night rules that exist today move into night blocks **at parity**: Crystal's contact window (0.85), Ember's breath reach (1.6) and Funfair's chompers. **Moving them does not endorse them**: the contact-window rule acts on the at-bat and has no reference source; it is reviewed when night blocks are written. Night hazard instances are hazards, so the FD-10 switch removes them; a night field override stays. The CLI gains a night flag so a night rule can be measured. No night value is selected. Full provenance is in the canonical JSON.
 
 Area: Hazards. Depends on: FD-08. Evidence: MW-MSS, MW-PIG, MPT, THT-TWI.
@@ -412,6 +414,8 @@ Area: Rails. Depends on: FD-01. Evidence: code maps only.
 **Refinement FD-13-R2 — Jack, September 22, 2026: probe table, then play, then accept.** Reply "5. approve" (map §5 Q3). Ground, air and wall numbers are judged as the pitch shapes were: a headless probe table first (the same ball in two states), then Jack plays them in the trial window, then accepts. Agents never accept a number.
 
 **Refinement FD-13-R1 — Jack, September 22, 2026: a park's first numbers live in `trials/c80` only.** Reply "4. approve" (map §5 Q2). The body effect needs the response law, which is on only there; park numbers are trial anchors; the sitting runs in a `local-player --trial` window. The shipped park stays as it is until a single default exists.
+
+**Refinement FD-13-R3 — Jack, September 23, 2026: a park's numbers ship in the shipped data.** Reply "b. this is fine for now." C80's promotion (#915) removed `trials/c80`, and FD-13-R1's trial-only home with it. Crystal's numbers (F9-a) are in `data/`, as a proposal Jack judges in play; Harbor stays the calibrated park. The author's recommendation was a new trial of its own.
 
 **Decision — Jack, September 21, 2026: A.** Reply "A". Harbor is the only calibrated park. Every other park is measured against Harbor on predeclared seeds, on both roots, and reported; it is not tuned until C80 is promoted or another single default exists. Park numbers land as trial anchors. A factor outside the FD-02 direction, or a movement of S-29, is a finding in the PR, not a tuning target for it; no expectation is edited to make a park pass. Left open for the tuning step: whether S-29 keeps pooling six parks or becomes Harbor-only plus a per-park factor check. Full provenance is in the canonical JSON.
 

@@ -4,6 +4,17 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814). Desig
 
 This file orders the work. It does not reopen a decision and it selects no number. The register stays the record of what Jack accepted. A child issue is filed only when its contract is ready (plan rule 6); the rows below are a map, not thirty filed tasks.
 
+## 0. Where the workstream stands (paused September 23, 2026)
+
+**Done.** Every rail through F4 and F6 that the plan named for the first park, and Crystal's numbers (F9-a): the park schema and one resolution (`PlayedPark.Of`); the boundary, the polyline fence and the rail to the pole; the ground and wall libraries, the zone map and the body multipliers; the hazard pattern library, the live status volume, night blocks, the placement validator, hazards off and its title option, the CPU route around a volume; the one field kit, kit slots, looks as data and hazards drawn at the sim's disc; still shots for both poles. Crystal ships its ice, glass boards and cold air.
+
+**Next, in order.**
+1. **F9-b**: Crystal plays as a greybox in the standalone, then **Jack's greybox sitting**, which judges F9-a's numbers (Q10: what counts as noticeable) and FD-04 C (full traction).
+2. **F9-c**: Crystal's art, only after the sitting; Jack passes the look.
+3. Waiting on a need: F4-c (ball redirect; the chomper joins it) with the second park, F4-f (solid bodies, timed movers), F2-d (foul territory, outfield depth), F7-b (park lane in the still pipeline, sitting checklist), F8-a/b/c (field card, tells and stamps, one lesson per hazard pattern and ground; the ice ground now needs its lesson).
+
+**Open for Jack.** Q10 and Q11 (until tuning); Crystal's night look (the blackout against FD-11-R2, left for now by FD-11-R3). Park factors and S-29 have not been re-reported since F4-d (finding 53).
+
 ## 1. What the audit found that sets the order
 
 | # | Finding | Where | Effect on the order |
@@ -100,6 +111,16 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 | 65 | A pale status-volume ring vanished on white ice and on dark lava; a dark ring reads on both (Jack took the recommendation). | PR #920 | Ring colors are one data value per pattern. |
 | 66 | C80's promotion (#915) landed mid-PR and moved the warp pad from 8 to 5.6 ft. | PR #920 | Presentation tests read numbers from the rows, never a shipped literal. F9-a's "trial only" (FD-13-R1) needs re-reading now that C80 is the shipped game. |
 | 67 | Another session's post-merge delivery took the GUI lock between "capture" and its start. | stills for PR #920 | Wait on `unity_gui.py status` until free, then capture; 20 park-and-light captures take about 8 min. |
+
+### Found by the seventh batch (September 23, 2026)
+
+| # | Finding | Where | Effect |
+| --- | --- | --- | --- |
+| 68 | With `trials/c80` gone, FD-13-R1's trial-only home for park numbers went too; Jack chose the shipped data (FD-13-R3). | PR #929 | Park numbers ship as proposals Jack judges in play; there is no trial window for them. |
+| 69 | Every parity row that replayed "every park" pinned today's numbers at Crystal. They now replay the parks still at today's numbers (`TodaysParks`: no air, no fence, grass-equal rows), and Crystal is held by `CrystalRinkTests`. | PR #929 | The next park that names a difference drops out of the parity rows by its data, not by an id. |
+| 70 | `OutsScenarioTests`' defense is Vale's, whose home park is Crystal, so those outs rows had been running on Crystal by accident. | PR #929 | They keep Crystal's field without F9-a's ice, glass and air. A scenario should name its park. |
+| 71 | A park with its own air gets a fresh `AtPark` table per match, so "the same table" holds by value there, not by reference. | PR #929 | Tests compare the air and share the libraries. |
+| 72 | F9-a changed seed 7 only at Crystal (2–3 → 0–1 by day). Balance was not measured. | PR #929 | Due at tuning, with finding 53. |
 
 ## 2. Rails every child carries
 
@@ -253,8 +274,8 @@ Four children have no dependency and touch different files: **F1-a**, **F5-a**, 
 
 | Child | Scope | Decisions | Needs from Jack |
 | --- | --- | --- | --- |
-| F9-a | Crystal declares its intent, then names its differences as a scoped numeric trial: an ice outfield row, a glass-board wall material, its air, its body multipliers, its volumes off the lanes, its night block. | FD-18, FD-02, FD-13, FD-13-R1, FD-13-R2 | §5 Q2 and Q3 answered (`trials/c80` only; probe, play, accept); **trial acceptance** |
-| F9-b | Crystal plays as a greybox in the standalone (`local-player --trial`). | FD-17 | **The greybox sitting**, which also judges FD-04 C |
+| F9-a ✅ | Crystal declares its intent, then names its differences (in the shipped data, FD-13-R3; first written as a scoped numeric trial): an ice outfield row, a glass-board wall material, its air, its body multipliers, its volumes off the lanes, its night block. | FD-18, FD-02, FD-13, FD-13-R1, FD-13-R2 | §5 Q2 and Q3 answered (`trials/c80` only; probe, play, accept); **trial acceptance** |
+| F9-b | Crystal plays as a greybox in the standalone (the shipped window since FD-13-R3; no trial). | FD-17 | **The greybox sitting**, which also judges FD-04 C |
 | F9-c | Art stages for Crystal. | FD-17, #37 | The look gate |
 
 ## 4. Scenario ids
@@ -330,4 +351,6 @@ Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by e
 | F6-c light, sky and greybox colors as data (`looks.json`, `palette`); `Look.Rig*` retired | — | #916 | `6637a670` | `5da85fa8`: `ParkLooksTests`, `ParkKitSlotsTests`; `cli art` OK; unity-compile OK; no seal moved; same looks by construction, not looked at | none |
 | `NightBlockTests` re-recorded after P2-e changed play (main was red) | — | #918 | `69c842f4` | `7a9b68c2`: `NightBlockTests` on both roots | none |
 | F6-d hazards drawn at the sim's disc by type row; the five parks' dress picked by slot | — | #920 | `27720ab7` | `49864107`: `HazardActorsTests`, `ParkKitSlotsTests`, `ParkLooksTests`, `FieldKitSourceTests`; unity-compile OK; before / after sheets of five parks day and night | **Jack passed the look** ("looks good. go with your reommendation. merge it.") |
+| Ledger: F4-g, F4-i, F6-b, F6-c, F6-d; findings 59-67 | #814 | #926 | `2d9c52ab` | docs only | none |
+| F9-a Crystal's ice row, glass wall and fence, `dragMul` 1.06, in the shipped data (FD-13-R3) | — | #929 | `fc2b7380` | `933ce2b3`: `CrystalRinkTests` (probe table) and the re-authored parity classes; seed 7 changed only at Crystal; seals hash-only; balance not measured | none to merge; **Jack plays it at the F9-b sitting** |
 | F3-a2 the resolved park table reaches the resolvers (found by F3-a) | #838 | #840 | `b7a13dc4` | `cbb65e01`: 1906 / 1906, 769 / 769, seal hash-only (`Match.cs`); seed 7 identical at all three rungs; **not a pure no-op off NORMAL**: the fielding preview now waits the match's rung, as live play already did (easy 2 / 12 seeds moved, hard 1 / 12, normal 0 / 12) | none |
