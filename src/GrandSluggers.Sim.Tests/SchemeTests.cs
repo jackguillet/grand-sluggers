@@ -239,7 +239,9 @@ public class SchemeTests
         Assert.DoesNotContain(running, l => l.Contains("steal the lead runner"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("landing") && l.Contains("fly"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("hangs"));
-        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("West") && l.Contains("window"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("West") && l.Contains("jumps"));
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+            Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("dives sideways") && l.Contains("never automatic"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("wall"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("gun to first") || l.Contains("throw is yours") || l.Contains("guess a force"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("catch") && l.Contains("throw"));

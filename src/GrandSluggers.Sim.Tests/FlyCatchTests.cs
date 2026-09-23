@@ -114,12 +114,12 @@ public class FlyCatchTests
         var c = Rules.Default.Fielding.Catch;
         Assert.Equal(10, c.RadiusBaseFt);
         Assert.Equal(0.6, c.RadiusPerField);
-        Assert.Equal(4, c.WindowPadFt);
-        Assert.Equal(8, c.DiveReachFt);
+        Assert.Equal(1, c.WindowPadFt);
+        Assert.Equal(2, c.DiveReachFt);
         Assert.Equal(7.5, c.DiveMaxBallY);
         // The C80 copy (#719): every unauthored body stands up at the table's one reach, catch.standUpReachFt 6.0, not at
         // radiusBaseFt + Field x radiusPerField. The ring, the rim and the dive past it are the same rule on both tables.
-        Assert.Equal(6.0, c.StandUpReachFt);
+        Assert.Equal(4.0, c.StandUpReachFt);
         var rio = _content.Must("rio");
         var ashlord = _content.Must("ashlord");
         var park = Harbor;
@@ -136,8 +136,6 @@ public class FlyCatchTests
 
         var plant = 0.0;
         Assert.True(FlyCatch.AutoCatch(under: plant < standUp, inWindow: true, needsJump: false));
-        Assert.False(FlyCatch.AutoDive(underDive: plant < diveWin, underStandUp: plant < standUp, inWindow: true,
-            needsJump: false, ballY: 2));
         Assert.Equal(DefensiveFeat.None, FieldingResolver.PlayerCatchFeat(
             FlightFixtures.Preview(rio, "CF", BattedBallClass.Fly, 2.8, 0, 240), park, false, false, dived: false));
 
@@ -145,10 +143,6 @@ public class FlyCatchTests
         Assert.True(rim >= standUp && rim < diveWin);
         Assert.False(FlyCatch.AutoCatch(under: rim < standUp, inWindow: true, needsJump: false),
             "past the ring is not a stand-up");
-        Assert.True(FlyCatch.AutoDive(underDive: rim < diveWin, underStandUp: rim < standUp, inWindow: true,
-            needsJump: false, ballY: 2));
-        Assert.False(FlyCatch.AutoDive(underDive: rim < diveWin, underStandUp: rim < standUp, inWindow: true,
-            needsJump: false, ballY: c.DiveMaxBallY), "dive is only below diveMaxBallY");
         Assert.True(FlyCatch.PlayerDiveCatch(true, rim, standUp, diveWin, ballY: 2));
         Assert.False(FlyCatch.PlayerDiveCatch(true, rim, standUp, diveWin, ballY: 8));
         var fly = FlightFixtures.Preview(rio, "CF", BattedBallClass.Fly, 2.8, 0, 240);
@@ -157,8 +151,6 @@ public class FlyCatchTests
 
         var past = diveWin + 0.1;
         Assert.False(FlyCatch.AutoCatch(under: past < standUp, inWindow: true, needsJump: false));
-        Assert.False(FlyCatch.AutoDive(underDive: past < diveWin, underStandUp: past < standUp, inWindow: true,
-            needsJump: false, ballY: 2), "past the rim is a drop");
         Assert.False(FlyCatch.NeedsDive(past, standUp, diveWin, ballY: 2));
         Assert.Equal(fly.CatchRadius, LandingMark.RadiusFt(fly));
     }
@@ -182,8 +174,6 @@ public class FlyCatchTests
         Assert.True(FlyCatch.Under(plant.X, plant.Z, ballX: 0, ballZ: plant.Z - 40, plant.X, plant.Z, 22, needsJump: false),
             "standing in the landing ring is under — live XZ still short is not a drop");
         Assert.True(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: false));
-        Assert.False(FlyCatch.AutoDive(underDive: true, underStandUp: true, inWindow: true, needsJump: false, ballY: 2),
-            "under the ring is stand-up, not a dive");
         Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true), "dead-stick does not rob");
         Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true, canRob: false), "the CPU leap needs the rob height");
         Assert.True(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true, canRob: true), "the CPU leap at the wall is geometric (§8.3)");

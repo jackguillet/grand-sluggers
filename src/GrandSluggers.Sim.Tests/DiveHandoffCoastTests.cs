@@ -31,7 +31,7 @@ public sealed class DiveHandoffCoastTests
         var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
-        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
 
         (double X, double Z)? lunged = null;
         var handedAt = -1; var commitAt = -1; var owed = 0.0; var farthest = 0.0; var fastest = 0.0;
@@ -39,7 +39,8 @@ public sealed class DiveHandoffCoastTests
         for (var i = 0; i < 60 * 12; i++)
         {
             // The completing frame resets the live field: nothing is read off it.
-            if (live.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu)).CompletedPlay is not null) break;
+            var pad = lunged is null && live.GlovePos == diver && live.ElapsedSeconds >= .4 ? new LivePadInput(EastDown: true) : LivePadInput.Dead;
+            if (live.Apply(LivePlayCommand.Tick(Frame, pad, LivePadInput.Dead, false, LivePlayCommandSource.Human)).CompletedPlay is not null) break;
             var at = live.Fielders[diver];
             if (lunged is null && live.Events.Contains(LiveEvent.DiveCommit))
             {

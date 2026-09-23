@@ -195,8 +195,8 @@ public sealed class SeatOwnershipTests
     /// defense this half (the two preset defenses align differently, so the shape differs).
     /// </summary>
     static AtBatResult HopperToShort(Scenario scenario, Match match) => match.Top
-        ? Shape(scenario.Contact(), match, exit: 100, launch: -6, spray: -18)
-        : Shape(scenario.Contact(), match, exit: 100, launch: -6, spray: -18);
+        ? Shape(scenario.Contact(), match, exit: 125, launch: -3, spray: -18)
+        : Shape(scenario.Contact(), match, exit: 125, launch: -3, spray: -18);
 
     static AtBatResult Shape(AtBatResult hit, Match match, double exit, double launch, double spray)
     {

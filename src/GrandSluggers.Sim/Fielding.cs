@@ -62,7 +62,7 @@ public sealed class FieldingResolver
             samples,
             at,
             rules: _rules,
-            readyAt: CpuReactionLockouts(_rules, grounder ? null : hang));
+            readyAt: CpuReactionLockouts(_rules, grounder ? null : hang, hit.Class == BattedBallClass.Bunt));
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
         // A park's redirects act on the live ball (F4-c, FR-07): the preview plans the path as hit and nothing is foreseen.
@@ -299,7 +299,7 @@ public sealed class FieldingResolver
     /// <summary>
     /// Base catch radius for a glove (fielding.catch.radius*, abilities, clamber parks). The stand-up reach is
     /// the character's authored <see cref="Character.ReachFt"/> when it has one; otherwise the table's authored
-    /// <c>standUpReachFt</c> when it carries one (6.0 as shipped, #719); otherwise the legacy
+    /// <c>standUpReachFt</c> when it carries one (4.0 as shipped); otherwise the legacy
     /// <c>radiusBaseFt + radiusPerField x Field</c>
     /// (F693-02-catch-reach-envelope, F693-02-character-catch-range).
     /// </summary>
@@ -447,7 +447,7 @@ public sealed class FieldingResolver
     /// lockout at its hang, so no body is still frozen when the ball it waits on comes down. A ball on the dirt
     /// passes no cap: the infield numbers are the ones the §10.4 double-play rows were tuned on.
     /// </summary>
-    public static Dictionary<string, double> ReactionLockouts(RulesTable? rules = null, double mul = 1, double? airHangSec = null)
+    public static Dictionary<string, double> ReactionLockouts(RulesTable? rules = null, double mul = 1, double? airHangSec = null, bool bunt = false)
     {
         var re = Rules.Or(rules).Fielding.Reaction;
         var map = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
@@ -455,14 +455,15 @@ public sealed class FieldingResolver
         {
             var sec = re.LockoutSec(pos) * mul;
             if (airHangSec is double hang) sec = Math.Min(sec, Math.Max(0, hang));
+            if (pos == "P" && !bunt) sec = Math.Max(sec, re.PitcherRecoverySec);
             map[pos] = sec;
         }
         return map;
     }
 
     /// <summary>The lockouts a CPU-driven body waits: × the rung's <c>cpu.reactionMul</c> (§8.2, §16). The human glove waits <see cref="ReactionLockouts"/> at ×1.</summary>
-    public static Dictionary<string, double> CpuReactionLockouts(RulesTable? rules = null, double? airHangSec = null) =>
-        ReactionLockouts(rules, Rules.Or(rules).Cpu.Active.ReactionMul, airHangSec);
+    public static Dictionary<string, double> CpuReactionLockouts(RulesTable? rules = null, double? airHangSec = null, bool bunt = false) =>
+        ReactionLockouts(rules, Rules.Or(rules).Cpu.Active.ReactionMul, airHangSec, bunt);
 
     public static (double X, double Z) StepToward(
         double x, double z, double tx, double tz, double speed, double dt, Park? park = null, RulesTable? rules = null)
@@ -470,10 +471,10 @@ public sealed class FieldingResolver
         var dx = tx - x;
         var dz = tz - z;
         var dist = Math.Sqrt(dx * dx + dz * dz);
-        if (dist <= Rules.Or(rules).Fielding.Chase.StepStopFt) return park == null ? (x, z) : FieldBounds.Clamp(park, x, z);
+        if (dist <= Rules.Or(rules).Fielding.Chase.StepStopFt) return park == null ? (x, z) : FieldBounds.ClampFielder(park, x, z, rules);
         var step = Math.Min(dist, speed * dt);
         var next = (X: x + dx / dist * step, Z: z + dz / dist * step);
-        return park == null ? next : FieldBounds.Clamp(park, next.X, next.Z);
+        return park == null ? next : FieldBounds.ClampFielder(park, next.X, next.Z, rules);
     }
 
     /// <summary>Timed wall leap. Two good-chem outfielders under a would-be homer, not a flag on any fly.</summary>

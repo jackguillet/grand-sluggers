@@ -118,17 +118,17 @@ public sealed class RecoilTests
     /// the foot; with the recoil off the knockback stops him by the contact's energy instead.
     /// </summary>
     [Fact]
-    public void TheComebackerCostsThePitcherWhatItsSpeedSaysAndTheSameTwice()
+    public void TheHardGrounderCostsTheShortstopWhatItsSpeedSaysAndTheSameTwice()
     {
-        var a = RunCpu(Game, 145, -3, 0, ContactQuality.Perfect);
-        var b = RunCpu(Game, 145, -3, 0, ContactQuality.Perfect);
-        Assert.Equal("P", a.Pos);
+        var a = RunCpu(Game, 150, -3, -18, ContactQuality.Perfect);
+        var b = RunCpu(Game, 150, -3, -18, ContactQuality.Perfect);
+        Assert.Equal("SS", a.Pos);
         Assert.True(a.Speed >= 75, $"the comebacker arrived at {a.Speed:0.0} ft/s");
-        Assert.Equal(0.13, a.Dur, 9);
+        Assert.Equal(0.15, a.Dur, 9);
         Assert.Equal(1, a.Events);
-        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("vale"), a.Speed, Game.Rules), a.Dur, 9);
-        Assert.InRange(a.RecoilFrames, 7, 9);   // 0.13 s at 60 Hz
-        Assert.InRange(a.Skid, 0.4225 - 1e-6, 0.4225 + 1e-6);   // w² exactly: the body was standing when the ball came
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("grit"), a.Speed, Game.Rules), a.Dur, 9);
+        Assert.InRange(a.RecoilFrames, 8, 10);   // 0.15 s at 60 Hz
+        Assert.InRange(a.Skid, 0.4, FieldingResolver.RecoilSkidFt(a.Dur / Game.Rules.Fielding.Recoil.CapSec, Game.Rules) + .1); // the moving glove brakes while the recoil skids it
         Assert.Equal(PlayKind.GroundOut, a.Play.Kind);
 
         Assert.Equal(a.Speed, b.Speed);
@@ -138,12 +138,12 @@ public sealed class RecoilTests
         Assert.Equal(a.Marks, b.Marks);
 
         using var legacy = new PatchedGame(WithoutRecoil);
-        var off = RunCpu(legacy.Content, 145, -3, 0, ContactQuality.Perfect);
-        Assert.Equal("P", off.Pos);
+        var off = RunCpu(legacy.Content, 150, -3, -18, ContactQuality.Perfect);
+        Assert.Equal("SS", off.Pos);
         Assert.False(off.Impact, "with the recoil off there is no impact recoil");
         Assert.Equal(0, off.Dur);
         Assert.Equal(0, off.Events);
-        var knock = InPlay.KnockbackSec(InPlay.Energy(off.Hit, legacy.Content.Rules), legacy.Content.Must("vale"), legacy.Content.Rules);
+        var knock = InPlay.KnockbackSec(InPlay.Energy(off.Hit, legacy.Content.Rules), legacy.Content.Must("grit"), legacy.Content.Rules);
         Assert.True(knock > legacy.Content.Rules.Fielding.Knockback.MinSec);
         Assert.Equal(knock, off.RecoilAtTake, 6);   // the knockback clock, set at the take and counted down from the next tick
         Assert.True(off.Speed >= 75, "the ball's speed is sampled either way");
@@ -156,7 +156,7 @@ public sealed class RecoilTests
     [Trait("Kind", "Balance")]
     public void BothCapsBindOnARocketAndTheHandsStillTellAtTheCap(int hands, double sec, double skidFt)
     {
-        var run = RunCpu(Game, 145, -3, 0, ContactQuality.Perfect, pitcherHands: hands);
+        var run = RunCpu(Game, 150, -3, -18, ContactQuality.Perfect, pitcherHands: hands);
         Assert.True(run.Speed >= 75);
         Assert.Equal(sec, run.Dur, 9);
         Assert.InRange(run.Skid, skidFt - 1e-6, skidFt + 1e-6);
@@ -196,7 +196,7 @@ public sealed class RecoilTests
     [Fact]
     public void TheHumanSeatIsHeldAndTheThrowWaitsForTheRecovery()
     {
-        var (match, hit, preview) = Fixture(Game, 145, -3, 0, ContactQuality.Perfect);
+        var (match, hit, preview) = Fixture(Game, 150, -3, -18, ContactQuality.Perfect);
         Assert.True(match.StationRunner(1, Game.Must("gull")));
         var live = match.LivePlay;
         live.Recording = true;
@@ -221,7 +221,7 @@ public sealed class RecoilTests
         }
         Assert.NotNull(play);
         Assert.True(takeAt > 0, "the pitcher never took the ball");
-        Assert.Equal(0.13, dur, 9);
+        Assert.Equal(0.15, dur, 9);
         Assert.True(frames >= 6, $"the recovery held for {frames} frames");
         Assert.True(maxMove < 1.0, $"the stick moved the body {maxMove:0.00} ft inside the recovery");
         Assert.True(queued, "the press inside the buffer was remembered");
