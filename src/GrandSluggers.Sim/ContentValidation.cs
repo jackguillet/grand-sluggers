@@ -381,6 +381,11 @@ public static class ContentDataValidator
         // Contact and power are optional the same way: absent means seeded from bat (PH-15-R5).
         if (c.Contact != 0) Range(row.Source, $"character '{c.Id}' contact", c.Contact, 1, 10, errors);
         if (c.Power != 0) Range(row.Source, $"character '{c.Id}' power", c.Power, 1, 10, errors);
+        // The four pitching ratings are optional the same way: absent means seeded from pitch (PH-15-R6).
+        if (c.Velocity != 0) Range(row.Source, $"character '{c.Id}' velocity", c.Velocity, 1, 10, errors);
+        if (c.Movement != 0) Range(row.Source, $"character '{c.Id}' movement", c.Movement, 1, 10, errors);
+        if (c.Control != 0) Range(row.Source, $"character '{c.Id}' control", c.Control, 1, 10, errors);
+        if (c.Endurance != 0) Range(row.Source, $"character '{c.Id}' endurance", c.Endurance, 1, 10, errors);
         if (c.ReachFt is { } reach && reach <= 0)
             errors.Add($"{row.Source}: character '{c.Id}' reachFt must be positive when present");
         Known(row.Source, $"character '{c.Id}' bats", c.Bats, Hands, errors);
@@ -968,6 +973,18 @@ internal sealed class CharacterDto
     /// <summary>Explicit power rating. Absent seeds from <see cref="Bat"/> (PH-15-R5).</summary>
     public int Power { get; set; }
 
+    /// <summary>Explicit velocity rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
+    public int Velocity { get; set; }
+
+    /// <summary>Explicit movement rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
+    public int Movement { get; set; }
+
+    /// <summary>Explicit control rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
+    public int Control { get; set; }
+
+    /// <summary>Explicit endurance rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
+    public int Endurance { get; set; }
+
     /// <summary>Authored stand-up catch reach in feet. Absent keeps the legacy radius formula.</summary>
     public double? ReachFt { get; set; }
 
@@ -989,7 +1006,8 @@ internal sealed class CharacterDto
 
     public Character ToCharacter() => new(
         Id, Name, Faction, Captain,
-        new Stats(Pitch, Bat, Field, Run) { Arm = Arm, Hands = Hands, Contact = Contact, Power = Power },
+        new Stats(Pitch, Bat, Field, Run) { Arm = Arm, Hands = Hands, Contact = Contact, Power = Power,
+            Velocity = Velocity, Movement = Movement, Control = Control, Endurance = Endurance },
         ParseHand(Bats), ParseHand(Throws),
         StarPitch, StarSwing, FieldAbility, Bio, ReachFt)
     {

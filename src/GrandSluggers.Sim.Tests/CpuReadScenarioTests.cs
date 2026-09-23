@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// The CPU batter commits from the flight as it stands (#892, PH-18, spec §3 and §5.9), Appendix B.1
-/// rows S-138 … S-140, plus S-04 and S-28 under the switch.
+/// rows S-141 … S-143, plus S-04 and S-28 under the switch.
 ///
 /// <c>batting.cpu.commitRead</c> is off on the shipped root, where the CPU reads the final crossing at
 /// the plate plane, and on in <c>trials/cpu-read</c>, where it reads <see cref="Match.CpuReadPitch"/>:
@@ -34,7 +34,7 @@ public sealed class CpuReadScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-138  A steer after the commit beats the read
+    // S-141  A steer after the commit beats the read
     // ---------------------------------------------------------------------------------
 
     [Fact]
@@ -111,7 +111,7 @@ public sealed class CpuReadScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-139  Shipped: identical to today
+    // S-142  Shipped: identical to today
     // ---------------------------------------------------------------------------------
 
     [Fact]
@@ -137,7 +137,7 @@ public sealed class CpuReadScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-140  The switch and the overlay
+    // S-143  The switch and the overlay
     // ---------------------------------------------------------------------------------
 
     [Fact]
@@ -165,7 +165,7 @@ public sealed class CpuReadScenarioTests
     public void S04_UnderTheTrialTheCpuTakesAPitchSteeredOutBeforeTheCommitAndNotOneSteeredAfter()
     {
         // Steered out before the commit (the watched stick already at full): S-04's take at (100 − chase)%.
-        // Steered out after it (the stick still centered): the edge strike S-138 reads, offered far more often.
+        // Steered out after it (the stick still centered): the edge strike S-141 reads, offered far more often.
         var takesBefore = 0;
         var takesAfter = 0;
         const int n = 300;
