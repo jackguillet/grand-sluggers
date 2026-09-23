@@ -179,20 +179,35 @@ namespace GrandSluggers.UnityClient
             Wipe(plate);
             Wipe(point);
             Place(plate, home, Vector3.one, Quaternion.identity);
-            if (DropMesh("home-plate", plate, "Mesh", home, Quaternion.identity, Vector3.one, paint: true) != null)
+            if (point != null) point.gameObject.SetActive(false);
+            var scale = (float)HomeSet.PlateMeshScale;
+            if (DropMesh("home-plate", plate, "Mesh", home, Quaternion.identity,
+                new Vector3(scale, 1f, scale), paint: true) != null) return;
+            PrimitivePlate(plate);
+        }
+
+        // Missing art keeps the same pentagon, not two overlapping squares
+        // whose corners extend outside the plate width and into the box gap.
+        void PrimitivePlate(Transform plate)
+        {
+            var outline = HomeSet.PlateOutline();
+            var n = outline.Length;
+            var vertices = new Vector3[n * 2];
+            for (var i = 0; i < n; i++)
             {
-                if (point != null) point.gameObject.SetActive(false);
-                return;
+                vertices[i] = new Vector3((float)outline[i].X, 0f, (float)outline[i].Z);
+                vertices[i + n] = vertices[i] + Vector3.up * PlateSlabFt;
             }
-            if (point != null) point.gameObject.SetActive(true);
-            Place(plate,
-                new Vector3(0f, (float)HomeSet.PlateY, (float)((HomeSet.PlateShoulderZ + HomeSet.PlateFrontZ) * 0.5)),
-                new Vector3((float)HomeSet.PlateW, PlateSlabFt, (float)(HomeSet.PlateFrontZ - HomeSet.PlateShoulderZ)), Quaternion.identity);
-            Place(point,
-                new Vector3(0f, (float)HomeSet.PlateY, (float)(HomeSet.PlateShoulderZ * 0.5)),
-                new Vector3((float)HomeSet.PlateW, PlateSlabFt, (float)HomeSet.PlateW), Quaternion.Euler(0f, ParkDiamond.FoulYaw(1), 0f));
-            Mesh(plate, PrimitiveType.Cube, Chalk);
-            Mesh(point, PrimitiveType.Cube, Chalk);
+            var triangles = new int[(n - 2) * 6 + n * 6];
+            var t = 0;
+            for (var i = 1; i < n - 1; i++)
+            {
+                triangles[t++] = n; triangles[t++] = n + i; triangles[t++] = n + i + 1;
+                triangles[t++] = 0; triangles[t++] = i + 1; triangles[t++] = i;
+            }
+            for (var i = 0; i < n; i++)
+                t = Quad(triangles, t, i, (i + 1) % n, (i + 1) % n + n, i + n);
+            Look.Solid("PrimitivePlate", plate, vertices, triangles, Chalk);
         }
 
         /// <summary>

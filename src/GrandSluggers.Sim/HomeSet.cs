@@ -13,18 +13,27 @@ public static class HomeSet
     public const double Inch = 1.0 / 12.0;
 
     /// <summary>
-    /// OBR 2.02 pentagon. Point at origin (catcher, −Z). 17″ front toward the mound.
-    /// 8½″ sides then 12″ sides on the foul lines.
+    /// OBR-shaped pentagon widened to the displayed arcade strike zone. Point at
+    /// origin (catcher, −Z); depth follows width so the rear edges stay on the foul rays.
     /// </summary>
-    public const double PlateW = 17 * Inch;
-    public const double PlateDepth = 17 * Inch;
+    public const double AuthoredPlateW = 17 * Inch;
+    public const double PlateW = StrikeZoneGeometry.HalfWidth * 2;
+    public const double PlateDepth = PlateW;
+    public const double PlateMeshScale = PlateW / AuthoredPlateW;
     public const double PlateY = 0.44;
-    public const double PlateCenterZ = 8.5 * Inch;
+    public const double PlateCenterZ = PlateDepth * 0.5;
     public const double PlateZ = PlateCenterZ;
     public const double PlatePointZ = 0;
-    public const double PlateFrontZ = 17 * Inch;
-    public const double PlateShoulderZ = 8.5 * Inch;
+    public const double PlateFrontZ = PlateDepth;
+    public const double PlateShoulderZ = PlateDepth * 0.5;
     public const double PlatePointW = 0.02;
+
+    /// <summary>Clockwise in X/Z; the authored mesh and missing-art fallback share this footprint.</summary>
+    public static (double X, double Z)[] PlateOutline() =>
+    [
+        (-PlateW * 0.5, PlateFrontZ), (PlateW * 0.5, PlateFrontZ),
+        (PlateW * 0.5, PlateShoulderZ), (0, PlatePointZ), (-PlateW * 0.5, PlateShoulderZ)
+    ];
 
     /// <summary>
     /// OBR Diagram 2 / NCAA: 4′ × 6′, 6″ from the plate. Front is 4′ in front of
@@ -117,8 +126,8 @@ public static class HomeSet
     public static bool PlatePointFacesTheCatcher() =>
         PlatePointZ <= 0.05 && PlateFrontZ > PlateW * 0.5;
 
-    public static bool IsOfficialLayout() =>
-        Math.Abs(PlateW - 17 * Inch) < 1e-9
+    public static bool FitsStrikeZoneLayout() =>
+        Math.Abs(PlateW - StrikeZoneGeometry.HalfWidth * 2) < 1e-9
         && Math.Abs(BoxW - 4) < 1e-9
         && Math.Abs(BoxD - 6) < 1e-9
         && Math.Abs(BoxGap - 6 * Inch) < 1e-9

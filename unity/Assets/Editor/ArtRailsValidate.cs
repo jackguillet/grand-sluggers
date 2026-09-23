@@ -94,9 +94,10 @@ namespace GrandSluggers.EditorTools
                 var chalk = kit.Fill(HarborKitPaint.Fill.Chalk);
                 kit.HomePad(chalk);
                 kit.Plate();
+                kit.Boxes();
                 var plate = kit.Anchor(FieldKit.HomePlateName);
                 var dirt = kit.Anchor(FieldKit.HomeDirtName).GetComponentInChildren<Renderer>().bounds;
-                if (kit.Anchor(FieldKit.HomePointName).gameObject.activeSelf)
+                if (plate.Find("PrimitivePlate") != null)
                     errors.Add("home-plate import missing: validation reached the primitive fallback");
                 var whiteTopArea = 0f;
                 var bounds = new Bounds();
@@ -134,6 +135,12 @@ namespace GrandSluggers.EditorTools
                 Check(errors, "plate right edge", bounds.max.x, (float)(Diamond.Home.X + HomeSet.PlateW * 0.5));
                 Check(errors, "plate catcher point", bounds.min.z, (float)(Diamond.Home.Z + HomeSet.PlatePointZ));
                 Check(errors, "plate pitcher edge", bounds.max.z, (float)(Diamond.Home.Z + HomeSet.PlateFrontZ));
+                Check(errors, "plate width matches strike zone", bounds.size.x, (float)(StrikeZoneGeometry.HalfWidth * 2));
+                foreach (var box in new[] { FieldKit.BoxLName, FieldKit.BoxRName })
+                    foreach (var line in kit.Anchor(box).GetComponentsInChildren<Renderer>())
+                        if (line.bounds.min.x <= bounds.max.x && line.bounds.max.x >= bounds.min.x
+                            && line.bounds.min.z <= bounds.max.z && line.bounds.max.z >= bounds.min.z)
+                            errors.Add("home-plate overlaps " + box + "/" + line.name);
             }
             finally
             {
