@@ -11,23 +11,31 @@
 // Whether an instance exists only at night is where the park authors it (its night block, FD-11,
 // F4-d), not a column here: the rows carried nightOnly until then. nightRadiusMul stays, because it
 // is a hazard type's own night number, which FD-11-R2 keeps.
+// The one number added since is slowSec (F4-b, #896), below.
 {
-  // Crystal's freezers, Ember's lava and Ember's breath: a landing in the disc slows every chaser
-  // for the whole play (fielding.chase.frozenMul). Only the breath widens at night.
+  // Crystal's freezers, Ember's lava and Ember's breath (FR-07, FD-08-R2; F4-b, #896): a body - a
+  // fielder or a runner - that touches the disc runs at fielding.chase.frozenMul for slowSec from the
+  // touch; staying inside keeps it slowed and entering again starts the time again. Nobody else is
+  // slowed, and nothing is decided from where the ball lands. slowSec 3.0 is Jack's number
+  // ("slows for 3 seconds", FD-08-R2, 2026-09-22), the same on both roots, not yet played; only a
+  // statusVolume carries it. Only the breath widens at night.
   "freezeVolume": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "slowSec": 3.0
   },
   "lavaPit": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "slowSec": 3.0
   },
   "fireBreath": {
     "pattern": "statusVolume",
     "nightRadiusMul": 1.6,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "slowSec": 3.0
   },
   // Funfair's warp cans and Canopy's barrels: a grounder landing inside radius + reachPadFt comes
   // out of another one. The pad is the larger part of the capture disc (#732), not a rounding

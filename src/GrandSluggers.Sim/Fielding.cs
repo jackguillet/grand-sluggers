@@ -77,8 +77,10 @@ public sealed class FieldingResolver
         }
         var buddyPlant = FlyCatch.ChaseTarget(seed with { Fielder = fielder, Position = pos }, park, _rules);
         var buddy = Buddy(assigned, fielder, pos, buddyPlant.X, buddyPlant.Z);
-        var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z, night, _rules) && !FieldAbilities.IgnoresParkSlow(fielder))
-                     || hit.StarSwingUsed == "heart-swing";
+        // The heart swing's slow (a special, §13; outside D21 and the 3e boundary): every chaser for the play, exactly as it
+        // shipped. A park's status volume is not read here any more (F4-b, #896, FR-07): it slows the body that touches it,
+        // live (BodySlows), and nothing is decided from where the ball lands.
+        var freeze = hit.StarSwingUsed == "heart-swing";
         if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < _rules.Fielding.Park.ShellWarpChance)
             warped = true;
         var radius = CatchRadiusFt(fielder, park, _rules);
@@ -398,7 +400,11 @@ public sealed class FieldingResolver
     public static bool HandoffToOutfield(string currentPos, string playPos) =>
         !IsOutfield(currentPos) && IsOutfield(playPos);
 
-    /// <summary>The one glove speed (§8.1, fielding.chase): human stick and CPU chase share it; dash (East held) multiplies it.</summary>
+    /// <summary>
+    /// The one glove speed (§8.1, fielding.chase): human stick and CPU chase share it; dash (East held) multiplies it.
+    /// <paramref name="frozen"/> is the heart swing's play-wide slow (<see cref="FieldingPreview.Frozen"/>, a special). A
+    /// status volume's slow is not an input here: it is the touching body's, applied to its steps (<see cref="BodySlows"/>).
+    /// </summary>
     public static double ChaseSpeedFt(Character fielder, bool frozen, RulesTable? rules = null, bool dash = false)
     {
         var c = Rules.Or(rules).Fielding.Chase;
@@ -614,6 +620,15 @@ public sealed record FieldingResult(
 /// <summary>
 /// What the defense is looking at from the crack: the glove on it, the landing mark, and the
 /// ball's class (§6.2) — the one table the pools, the ring, the catch window, and the cameras read.
+///
+/// <para>
+/// <see cref="Frozen"/> is the heart swing's slow (a special, §13): every chaser runs at
+/// <c>fielding.chase.frozenMul</c> for the play, and the CPU's catch rolls <c>fielding.drops.frozen</c>,
+/// exactly as shipped, because the specials are outside this phase. It is no longer set by a park
+/// (F4-b, #896; FD-08-R1, FR-07): the preview says nothing about a status volume, and a volume slows
+/// only the body that touches it, live (<see cref="BodySlows"/>). The preview and the CPU plan at full
+/// speed; they do not foresee a slow.
+/// </para>
 /// </summary>
 public sealed record FieldingPreview(
     Character Fielder,
@@ -643,10 +658,11 @@ public sealed record FieldingPreview(
 }
 
 /// <summary>
-/// What a park's hazards do to a play (§14). Every test here runs once, in
-/// <see cref="FieldingResolver.Preview"/>, against the ball's landing mark; nothing is ticked and no
-/// body's position is ever tested against a hazard. That is the shape D21 changes (F4-b … F4-g), and
-/// #847 did not change it: it moved the <em>dispatch</em>.
+/// What a park's hazards do to a play (§14). The ball redirect, the reward target and the catch
+/// stealer still run once, in <see cref="FieldingResolver.Preview"/>, against the ball's landing mark
+/// (F4-c, F4-f and F4-g change them). The status volume does not (F4-b, #896): the live ball tests
+/// every body against <see cref="StatusVolumes"/> each frame and slows the one that touches a disc
+/// (<see cref="BodySlows"/>). #847 moved the <em>dispatch</em>; F4-b made the first pattern live.
 ///
 /// <para>
 /// <b>Patterns, not type strings (FD-09, FR-08).</b> Each method asks the hazard library
@@ -679,26 +695,44 @@ public static class ParkHazards
     /// The disc an instance of radius <paramref name="radiusFt"/> plays at night: the type row's own
     /// <c>nightRadiusMul</c> times it (FD-11-R2 keeps a hazard type's own night numbers). 1 for every
     /// row but Ember's breath, and a multiply by 1 is exact. The status volume and the park validator's
-    /// placement rule (FD-19, map finding 31) both read it, so the disc a body is refused on is the disc
-    /// the ball is slowed in.
+    /// placement rule (FD-19, map finding 31) both read it, so the disc a runner's lane is kept off is the disc
+    /// a body is slowed in.
     /// </summary>
     public static double NightDiscFt(double radiusFt, HazardTypeRules row) => radiusFt * row.NightRadiusMul;
 
     /// <summary>
-    /// A <see cref="HazardPattern.StatusVolume"/> the ball landed in: the whole play's chase runs at
-    /// <c>fielding.chase.frozenMul</c>. At night the disc is <see cref="NightDiscFt"/>.
+    /// A point inside one of the park's <see cref="HazardPattern.StatusVolume"/> discs: a body standing
+    /// there is touching the volume (F4-b, #896). The disc is <see cref="StatusVolumes"/>'s, <see cref="NightDiscFt"/> at night. Nothing tests a landing mark against it any more.
     /// </summary>
     public static bool InSlow(Park park, double x, double z, bool night = false, RulesTable? rules = null)
     {
+        foreach (var v in StatusVolumes(park, night, rules))
+            if (v.Contains(x, z)) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// The park's <see cref="HazardPattern.StatusVolume"/> instances as a play on it reads them (FR-07,
+    /// FD-08-R2; F4-b, #896), in park order: each instance's index in <see cref="Park.Hazards"/>, its
+    /// centre, its radius × the row's <c>nightRadiusMul</c> at night, and the row's <c>slowSec</c>. Empty
+    /// at a park with none, and at a hazards-off match's park, which has no instance to list.
+    /// </summary>
+    public static IReadOnlyList<StatusVolume> StatusVolumes(Park park, bool night = false, RulesTable? rules = null)
+    {
         var hazards = Rules.Or(rules).Hazards;
-        foreach (var h in park.Hazards)
+        List<StatusVolume>? list = null;
+        for (var i = 0; i < park.Hazards.Count; i++)
         {
+            var h = park.Hazards[i];
             var row = hazards.Of(h.Type);
             if (row.Pattern != HazardPattern.StatusVolume) continue;
             var r = night ? NightDiscFt(h.Radius, row) : h.Radius;
-            if (Diamond.Dist(h.X, h.Z, x, z) <= r) return true;
+            // A status volume always authors its time (HazardRules.Validate); a table that loaded cannot reach the throw.
+            var slow = row.SlowSec ?? throw new InvalidOperationException(
+                $"hazards.{HazardType.Key(h.Type)} is a {HazardPattern.StatusVolume} with no slowSec (FD-08-R2)");
+            (list ??= []).Add(new StatusVolume(i, h.Type, h.X, h.Z, r, slow));
         }
-        return false;
+        return list is null ? [] : list;
     }
 
     /// <summary>

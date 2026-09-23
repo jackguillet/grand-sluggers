@@ -382,7 +382,12 @@ public sealed record RunnerTickContext(
     /// The park's ground map on the match's table (FD-05): the slide and the overrun read the row of the bag's zone (F3-d).
     /// Null only for a tick that names no park — a runner ticked on no field slides and overruns the running table's own lengths.
     /// </summary>
-    GroundZones? Zones = null);
+    GroundZones? Zones = null,
+    /// <summary>
+    /// What this frame's step of a runner is multiplied by (F4-b, #896, FR-07): <c>fielding.chase.frozenMul</c> while a park's
+    /// status volume slows that body, else exactly 1 (<see cref="BodySlows"/>). Null for a tick that reads no volume.
+    /// </summary>
+    Func<Runner, double>? SpeedMul = null);
 
 /// <summary>
 /// Moves every body one frame (spec §9.1, §9.4, §9.5): one speed formula, the batter's start
@@ -493,7 +498,9 @@ public static class RunnerSystem
             if (runner.IsBatter && runner.Bag == 0 && runner.DestBag < 1) runner.SetDest(1);
 
             var held = runner.Held && !forcedNow;
+            // His own speed, × the status volume's slow while one slows him (F4-b): along his path, the one way this body moves.
             var speed = SpeedFtPerSec(runner.Who, ctx.Dash01, r);
+            if (ctx.SpeedMul is { } slow) speed *= slow(runner);
             var waiting = runner.IsBatter && runner.Bag == 0 && ctx.Elapsed < speedRules.BatterStartSec;
 
             // Through first (§9.4): out to overrunFt, then straight back; sent on, they turn back at once and are live.
