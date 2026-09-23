@@ -2758,7 +2758,7 @@ public sealed class StarRules
     /// The Stars each team's one pool holds at the first pitch (§12, PH-16-R6, PH-16-R16): the same for both teams,
     /// whatever they drafted. Chemistry does not set it. It must buy the cheapest tier and fit the meter.
     /// </summary>
-    public int StartingReserve { get; init; } = 4;
+    public int StartingReserve { get; init; } = 3;
     public MvpRules Mvp { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
@@ -2779,7 +2779,7 @@ public sealed class StarRules
 public sealed class StarGainRules
 {
     /// <summary>Both teams, once per completed plate appearance (Match.NextBatter). A half that ends mid-appearance earns none.</summary>
-    public double PlateAppearance { get; init; } = 0;
+    public double PlateAppearance { get; init; } = 0.1;
     public double Strikeout { get; init; } = 0.8;
     public double HomeRun { get; init; } = 1.0;
     public double ExtraBaseHit { get; init; } = 0.8;
@@ -2830,8 +2830,7 @@ public sealed class MvpRules
 /// <summary>
 /// The Star cost tiers (§12, PH-16-R7, PH-16-R8): a small, fixed set of named prices. Each ability in
 /// <c>data/abilities/star-skills.json</c> names its tier; <see cref="Top"/> is the highest, and only a captain may
-/// carry a top-tier ability (the content validator refuses anything else). A trial prices the tiers and may leave
-/// one unassigned; the count in use and the prices are numbers Jack accepts.
+/// carry a top-tier ability (the content validator refuses anything else).
 /// </summary>
 public sealed class StarTierRules
 {
@@ -2845,8 +2844,8 @@ public sealed class StarTierRules
     public static bool IsTier(string? id) => id is not null && Ids.Contains(id, StringComparer.Ordinal);
 
     public int Low { get; init; } = 1;
-    public int Mid { get; init; } = 1;
-    public int Top { get; init; } = 1;
+    public int Mid { get; init; } = 2;
+    public int Top { get; init; } = 3;
 
     /// <summary>The price of <paramref name="tier"/>. An unknown tier never loads (the content validator), so the fallback is only for a character with no ability.</summary>
     public int Of(string? tier) => tier switch

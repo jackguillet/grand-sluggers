@@ -10,20 +10,12 @@ namespace GrandSluggers.Sim.Tests;
 ///
 /// <see cref="Match"/> settles every released special: affordable, the team pays the ability's tier price at the
 /// release; unaffordable, the action is the ordinary pitch or swing at the same timing, nothing is spent, and the
-/// play carries a typed <see cref="StarRequest"/> saying so. The shipped tiers all cost today's price (1); the
-/// proposed prices are the <c>trials/stars</c> overlay, loaded here in process, so nothing depends on
-/// <c>GRAND_SLUGGERS_TRIAL</c>. No row stores a tuned number: prices are read from the table under test.
+/// play carries a typed <see cref="StarRequest"/> saying so. Every row reads prices, the reserve and the gains from
+/// the shipped table; only S-176 names the accepted numbers.
 /// </summary>
 public sealed class StarResourceScenarioTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
-    static readonly string TrialDir = Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, "..", "trials", "stars"));
-    static readonly ContentCatalog Trial = ContentCatalog.Load(new DataRoot(Shipped.Root.Shipped, TrialDir));
-
-    public static TheoryData<string> Roots => new() { "shipped", "trial" };
-
-    static ContentCatalog Root(string name) => name == "trial" ? Trial : Shipped;
-
     static double CenterY => StrikeZoneGeometry.CenterY;
 
     /// <summary>Spend the defense down with paid Star Pitches thrown as takes well outside, until it cannot pay.</summary>
@@ -57,11 +49,10 @@ public sealed class StarResourceScenarioTests
     // S-170  An unaffordable Star Pitch is the ordinary pitch of the selected family
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S170_AnUnaffordableStarPitchIsTheOrdinaryPitchOfItsFamilyAtTheSameTimingAndCostsNothing(string root)
+    [Fact]
+    public void S170_AnUnaffordableStarPitchIsTheOrdinaryPitchOfItsFamilyAtTheSameTimingAndCostsNothing()
     {
-        var content = Root(root);
+        var content = Shipped;
         foreach (var seed in new[] { 1, 2, 3 })
         {
             var families = new Scenario(content, seed).Match.Pitcher.Repertoire.Ordinary;
@@ -102,11 +93,10 @@ public sealed class StarResourceScenarioTests
     // S-171  An unaffordable Star Swing is the ordinary swing
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S171_AnUnaffordableStarSwingIsTheOrdinarySwingAtTheSameTimingAndCostsNothing(string root)
+    [Fact]
+    public void S171_AnUnaffordableStarSwingIsTheOrdinarySwingAtTheSameTimingAndCostsNothing()
     {
-        var content = Root(root);
+        var content = Shipped;
         foreach (var seed in new[] { 1, 2, 3, 4 })
         foreach (var err in new[] { -2.0, 0, 2, 40 })
         foreach (var charge in new[] { 0.0, 1 })
@@ -146,11 +136,10 @@ public sealed class StarResourceScenarioTests
     // S-172  An affordable special pays its tier price at the release
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S172_AnAffordableStarPitchPaysItsTierPriceAtTheReleaseAndFliesAsTheSpecial(string root)
+    [Fact]
+    public void S172_AnAffordableStarPitchPaysItsTierPriceAtTheReleaseAndFliesAsTheSpecial()
     {
-        var content = Root(root);
+        var content = Shipped;
         var m = new Scenario(content).Match;
         m.GiveDefenseStars(content.Rules.Stars.MeterMax);
         var tier = content.StarSkills.Pitch(m.Pitcher.StarPitch)!.Tier;
@@ -171,10 +160,10 @@ public sealed class StarResourceScenarioTests
     [Fact]
     public void S172_ExactlyThePriceIsEnoughAndOneShortIsNot()
     {
-        // A trial captain whose top-tier price is above 1, so "one short" is still a positive balance.
-        var m = new Scenario(Trial).Match;
+        // A captain whose tier price is above 1, so "one short" is still a positive balance.
+        var m = new Scenario(Shipped).Match;
         var cost = m.PitchStarCost;
-        Assert.True(cost > 1, $"trial pitcher {m.Pitcher.Id} costs {cost}");
+        Assert.True(cost > 1, $"pitcher {m.Pitcher.Id} costs {cost}");
         DrainDefense(m);
         var shy = m.DefenseStars;
         Assert.True(shy < cost);
@@ -194,11 +183,10 @@ public sealed class StarResourceScenarioTests
     // S-173  A missed Star Swing pays the ability's full price
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S173_AMissedStarSwingPaysTheFullPriceOfTheAbilityItAttempted(string root)
+    [Fact]
+    public void S173_AMissedStarSwingPaysTheFullPriceOfTheAbilityItAttempted()
     {
-        var content = Root(root);
+        var content = Shipped;
         var m = new Scenario(content).Match;
         var prices = new HashSet<int>();
         // Nine hitters whiff their way through the order: every one pays his own ability's price, no discount.
@@ -225,14 +213,13 @@ public sealed class StarResourceScenarioTests
                 prices.Add(cost);
             }
         }
-        if (root == "trial") Assert.True(prices.Count > 1, "the trial prices the order's specials differently");
+        Assert.True(prices.Count > 1, "the tiers price the order's specials differently");
     }
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S173_AGuestCaptainPaysHisTierPlusTheSurchargeOnAWhiffToo(string root)
+    [Fact]
+    public void S173_AGuestCaptainPaysHisTierPlusTheSurchargeOnAWhiffToo()
     {
-        var content = Root(root);
+        var content = Shipped;
         var m = new Scenario(content).Match;
         m.SkipToHomeHalf();
         // Vale bats for Rio's team: a captain who does not captain the side he swings for.
@@ -303,12 +290,12 @@ public sealed class StarResourceScenarioTests
     }
 
     [Fact]
-    public void S174_OnBothRootsEveryCharacterHasOneStarPitchAndOneStarSwingAndOnlyCaptainsHoldTheTopTier()
+    public void S174_EveryCharacterHasOneStarPitchAndOneStarSwingAndOnlyCaptainsHoldTheTopTier()
     {
-        foreach (var content in new[] { Shipped, Trial })
+        foreach (var content in new[] { Shipped })
         {
             Assert.Empty(ContentDataValidator.Validate(content.Root));
-            // Every star lesson funds its special at this root's price, guest captains included.
+            // Every star lesson funds its special at its price, guest captains included.
             TutorialCatalog.Load(content);
             foreach (var c in content.Characters.Values)
             {
@@ -388,40 +375,40 @@ public sealed class StarResourceScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-176  The overlay
+    // S-176  The accepted prices
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S176_TheShippedTiersAreTodaysFlatPriceAndTheTrialIsTheShippedFileWithOnlyTheTiersPriced()
+    public void S176_TheTiersRiseOneStarAtATimeAndTheReserveBuysACaptainsOwnTopSpecialButNotAGuests()
     {
-        var t = Shipped.Rules.Stars.Tiers;
-        Assert.Equal((1, 1, 1), (t.Low, t.Mid, t.Top));
-        Assert.Equal(1, Shipped.Rules.Stars.Costs.GuestCaptainSurcharge);
-
-        var files = Directory.GetFiles(TrialDir, "*.json", SearchOption.AllDirectories)
-            .Select(f => Path.GetRelativePath(TrialDir, f).Replace('\\', '/')).ToArray();
-        Assert.Contains("rules/stars.json", files);
-
-        var shipped = JsonNode.Parse(File.ReadAllText(Path.Combine(Shipped.Root.Shipped, "rules", "stars.json")))!;
-        var trial = JsonNode.Parse(File.ReadAllText(Path.Combine(TrialDir, "rules", "stars.json")))!;
-        var tt = Trial.Rules.Stars.Tiers;
-        Assert.True(tt.Low < tt.Mid && tt.Mid < tt.Top, $"trial tiers {tt.Low} / {tt.Mid} / {tt.Top}");
-        trial["tiers"] = shipped["tiers"]!.DeepClone();
-        // P5-b's amounts ride the same file: the reserve and the base gain.
-        trial["startingReserve"] = shipped["startingReserve"]!.DeepClone();
-        trial["gains"]!["plateAppearance"] = shipped["gains"]!["plateAppearance"]!.DeepClone();
-        Assert.Equal(shipped.ToJsonString(), trial.ToJsonString());
+        var stars = Shipped.Rules.Stars;
+        var t = stars.Tiers;
+        // Accepted by Jack: low 1 / mid 2 / top 3, surcharge 1, reserve 3, base gain 0.1 per completed appearance.
+        Assert.Equal((1, 2, 3), (t.Low, t.Mid, t.Top));
+        Assert.Equal(1, stars.Costs.GuestCaptainSurcharge);
+        Assert.Equal(3, stars.StartingReserve);
+        Assert.Equal(0.1, stars.Gains.PlateAppearance, 9);
+        // The relations the numbers were chosen for: a rising ladder; the reserve buys a captain's own top special
+        // and no more, so a guest captain's top special has to be earned; a full meter still buys that one.
+        Assert.True(t.Low < t.Mid && t.Mid < t.Top);
+        Assert.Equal(t.Top, stars.StartingReserve);
+        Assert.True(stars.StartingReserve < t.Top + stars.Costs.GuestCaptainSurcharge);
+        Assert.True(t.Top + stars.Costs.GuestCaptainSurcharge <= stars.MeterMax);
+        // The code defaults are the same table (a load fallback, not a second one).
+        var d = new StarRules();
+        Assert.Equal((t.Low, t.Mid, t.Top), (d.Tiers.Low, d.Tiers.Mid, d.Tiers.Top));
+        Assert.Equal(stars.StartingReserve, d.StartingReserve);
+        Assert.Equal(stars.Gains.PlateAppearance, d.Gains.PlateAppearance, 9);
     }
 
     // ---------------------------------------------------------------------------------
     // S-177  The CPU never asks for what it cannot pay
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S177_InWholeCpuGamesEverySpecialIsPaidAtItsPriceAndNoneIsUnavailable(string root)
+    [Fact]
+    public void S177_InWholeCpuGamesEverySpecialIsPaidAtItsPriceAndNoneIsUnavailable()
     {
-        var content = Root(root);
+        var content = Shipped;
         var asked = 0;
         foreach (var seed in new[] { 1, 2, 3 })
         {
@@ -448,11 +435,10 @@ public sealed class StarResourceScenarioTests
     // S-180  The reserve is fixed and equal (the chemistry rows sit in TeamBuilderTests / ChemistryTests)
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S180_EveryPairingStartsBothTeamsOnTheSameReserveWhateverTheirChemistry(string root)
+    [Fact]
+    public void S180_EveryPairingStartsBothTeamsOnTheSameReserveWhateverTheirChemistry()
     {
-        var content = Root(root);
+        var content = Shipped;
         var reserve = content.Rules.Stars.StartingReserve;
         foreach (var home in Captains)
         foreach (var away in Captains.Where(a => a != home))
@@ -467,11 +453,10 @@ public sealed class StarResourceScenarioTests
     // S-181  A usable reserve: a special from the opening plate appearance
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S181_BothSidesCanAffordTheirSpecialsAtTheirOpeningPlateAppearance(string root)
+    [Fact]
+    public void S181_BothSidesCanAffordTheirSpecialsAtTheirOpeningPlateAppearance()
     {
-        var content = Root(root);
+        var content = Shipped;
         foreach (var home in Captains)
         foreach (var away in Captains.Where(a => a != home))
         {
@@ -512,11 +497,10 @@ public sealed class StarResourceScenarioTests
     // S-182  One pool per team, pitching and batting
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S182_ATeamsStarPitchAndItsStarSwingDrawOnOnePoolAndNeverTheOpponents(string root)
+    [Fact]
+    public void S182_ATeamsStarPitchAndItsStarSwingDrawOnOnePoolAndNeverTheOpponents()
     {
-        var content = Root(root);
+        var content = Shipped;
         var m = new Scenario(content).Match;
         var away = m.AwayStars;
         var pitchCost = m.PitchStarCost;
@@ -546,12 +530,12 @@ public sealed class StarResourceScenarioTests
     [Fact]
     public void S183_EveryCompletedPlateAppearanceEarnsBothTeamsTheBaseGainOnceAndNoPitchBeforeItDoes()
     {
-        var g = Trial.Rules.Stars.Gains;
-        var max = Trial.Rules.Stars.MeterMax;
-        Assert.True(g.PlateAppearance > 0, "the trial names a base gain");
+        var g = Shipped.Rules.Stars.Gains;
+        var max = Shipped.Rules.Stars.MeterMax;
+        Assert.True(g.PlateAppearance > 0, "the table names a base gain");
         foreach (var seed in new[] { 1, 2, 3 })
         {
-            var m = new Scenario(Trial, seed).Match;
+            var m = new Scenario(Shipped, seed).Match;
             // Ball, ball, ball: nothing completes, nothing is earned.
             for (var i = 0; i < 3; i++)
             {
@@ -576,13 +560,13 @@ public sealed class StarResourceScenarioTests
     [Fact]
     public void S183_AHitEarnsTheOffenseItsBonusAndBothTeamsTheBaseOnce()
     {
-        var g = Trial.Rules.Stars.Gains;
-        var max = Trial.Rules.Stars.MeterMax;
+        var g = Shipped.Rules.Stars.Gains;
+        var max = Shipped.Rules.Stars.MeterMax;
         var seen = 0;
         for (var seed = 1; seed <= 40 && seen < 6; seed++)
         foreach (var err in new[] { -3.0, -1.5, 0, 1.5, 3 })
         {
-            var m = new Scenario(Trial, seed).Match;
+            var m = new Scenario(Shipped, seed).Match;
             var (h, a) = (m.HomeStars, m.AwayStars);
             var ev = m.Play(Scenario.PitchAt(0, CenterY), Scenario.SwingAt(err, charge: 1));
             var bonus = ev.Kind switch
@@ -605,10 +589,13 @@ public sealed class StarResourceScenarioTests
     }
 
     [Fact]
-    public void S183_OnTheShippedRootThePlateAppearanceEarnsNothingOfItsOwn()
+    public void S183_ATableWithNoBaseGainEarnsNothingAtACompletedAppearance()
     {
-        Assert.Equal(0, Shipped.Rules.Stars.Gains.PlateAppearance);
-        var m = new Scenario(Shipped).Match;
+        using var fixture = new ContentFixture();
+        fixture.ChangeObject("rules/stars.json", json => json["gains"]!["plateAppearance"] = 0);
+        var content = ContentCatalog.Load(new DataRoot(fixture.Root));
+        Assert.Equal(0, content.Rules.Stars.Gains.PlateAppearance);
+        var m = new Scenario(content).Match;
         var (h, a) = (m.HomeStars, m.AwayStars);
         for (var i = 0; i < 4; i++) m.Play(Scenario.PitchAt(2.5, CenterY), Scenario.Take);
         Assert.Equal((h, a), (m.HomeStars, m.AwayStars));
@@ -625,11 +612,10 @@ public sealed class StarResourceScenarioTests
         return Match.Exhibition(content, home, away, 3, 1);
     }
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S184_AHalfThatEndsOnACaughtStealingBetweenPitchesCompletesNoPlateAppearance(string root)
+    [Fact]
+    public void S184_AHalfThatEndsOnACaughtStealingBetweenPitchesCompletesNoPlateAppearance()
     {
-        var content = Root(root);
+        var content = Shipped;
         var g = content.Rules.Stars.Gains;
         var m = StealTeams(content);
         Assert.True(m.SetOuts(2));
@@ -655,8 +641,8 @@ public sealed class StarResourceScenarioTests
     [Fact]
     public void S184_AStrikeoutWithTheCaughtStealingCompletesTheAppearanceOnceAndEarnsTheBaseOnce()
     {
-        var g = Trial.Rules.Stars.Gains;
-        var m = StealTeams(Trial);
+        var g = Shipped.Rules.Stars.Gains;
+        var m = StealTeams(Shipped);
         Assert.True(m.StationRunner(1, m.AwayOrder.Single(c => c.Id == "konga")));
         for (var i = 0; i < 2; i++) m.Play(Scenario.Paint, Scenario.Take);
         var batter = m.AwayBatter;
@@ -669,18 +655,17 @@ public sealed class StarResourceScenarioTests
         Assert.Equal(2, ev.Outcome!.OutsMade.Count);
         Assert.Equal((batter + 1) % m.AwayOrder.Count, m.AwayBatter);
         Assert.Equal(a + g.PlateAppearance, m.AwayStars, 9);
-        Assert.Equal(Math.Min(Trial.Rules.Stars.MeterMax, h + g.Strikeout + g.LiveOut + g.PlateAppearance), m.HomeStars, 9);
+        Assert.Equal(Math.Min(Shipped.Rules.Stars.MeterMax, h + g.Strikeout + g.LiveOut + g.PlateAppearance), m.HomeStars, 9);
     }
 
     // ---------------------------------------------------------------------------------
     // S-185  Whole games stay inside the meter
     // ---------------------------------------------------------------------------------
 
-    [Theory]
-    [MemberData(nameof(Roots))]
-    public void S185_InWholeCpuGamesEveryPoolStaysBetweenEmptyAndTheMeter(string root)
+    [Fact]
+    public void S185_InWholeCpuGamesEveryPoolStaysBetweenEmptyAndTheMeter()
     {
-        var content = Root(root);
+        var content = Shipped;
         var max = content.Rules.Stars.MeterMax;
         foreach (var seed in new[] { 1, 2, 3 })
         {

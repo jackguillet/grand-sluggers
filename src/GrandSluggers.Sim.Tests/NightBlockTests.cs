@@ -312,13 +312,15 @@ public sealed class NightBlockTests
     /// </summary>
     // F4-f made the statue and the train solid, and F2-d moved the outfielders to their fraction of each fence, so these
     // rows are re-recorded from their builds. P4-b's held CPU sac bunt on top of them changes Funfair seed 1 and Ember
-    // seed 2 again (the other two do not change); re-recorded from the merged build.
+    // seed 2 again (the other two do not change); re-recorded from the merged build. The accepted Star prices and reserve
+    // (tiers 1 / 2 / 3, reserve 3, base gain 0.1) change how often the CPU can pay for a special, so Funfair seed 11 and
+    // both Ember rows are re-recorded again (Funfair seed 1 does not change; seed 11 still sends a fly through a chomper).
     static IReadOnlyList<(string Park, int Seed, string Final, string Sha)> Before =>
         [
             ("funfair-park", 1, "Final  Ember Court 7  Spark All-Stars 1", "601cf23378686bf903cf8a42d559a0e8ce6507d9742a45ee454525e25ddbc747"),
-            ("funfair-park", 11, "Final  Ember Court 2  Spark All-Stars 0", "4e76680e6997abe244e2644e7d6fb30b4399d17ba57dfb45be661b0e55efde82"),
-            ("ember-keep", 1, "Final  Ember Court 7  Spark All-Stars 3", "132483a48f8a7069c02705aac376f3ce79e21e2612ae47460218d1b5c063be83"),
-            ("ember-keep", 2, "Final  Ember Court 2  Spark All-Stars 1", "cd6fa139f530291d9c0b9e308deb3c5f9684fdbc6342cfbdcde247d5117b90ac")
+            ("funfair-park", 11, "Final  Ember Court 6  Spark All-Stars 0", "6ffb6300f93abc12fdb204f360724bbc2f59d49632418ad09e118f6ce589db57"),
+            ("ember-keep", 1, "Final  Ember Court 10  Spark All-Stars 1", "9c6a235c68e7504cab69877a85be45e19a1f354a465733a03687d18914dadb0c"),
+            ("ember-keep", 2, "Final  Ember Court 9  Spark All-Stars 0", "51e83e5058368a038c726ff540f02f71f1af5327b743b7b8bdce616fa25d9e92")
         ];
 
     /// <summary>
