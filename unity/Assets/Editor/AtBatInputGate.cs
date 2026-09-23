@@ -248,7 +248,8 @@ namespace GrandSluggers.EditorTools
             shot = Capture("stadium"); while (shot.MoveNext()) yield return shot.Current;
             for (var i = 0; i < 5; i++) Press(GamepadButton.DpadDown);
             Press(GamepadButton.South);
-            Require(Phase(play) == "Select", "Stadium navigation did not reach captains.");
+            Require(Phase(play) == "Select", "Stadium navigation did not reach captains: focus=" + Get<int>(play, "_fieldFocus")
+                + ", padEnabled=" + _pad1.enabled + ", pad=" + Controls.SeatDeviceId(0) + ", expected=" + _pad1.deviceId);
             var board = Get<CaptainSelection>(play, "_captains");
             var seen = new HashSet<string>();
             for (var i = 0; i < PresetTeams.CaptainIds.Length; i++)
@@ -266,7 +267,16 @@ namespace GrandSluggers.EditorTools
             Press(GamepadButton.South); Press(GamepadButton.South);
             Require(Phase(play) == "Lineup", "Two sequential confirmations did not open lineup.");
             var lineup = Get<LineupScreens>(play, "_lineup");
+            lineup.FocusCell(LineupSeat.Pad1, LineupFocus.HomeRow, 8);
+            for (var i = 0; i < 8; i++) Press(GamepadButton.West);
+            Require(!lineup.HomeFull, "Removing roster players did not expose open team slots.");
             shot = Capture("team-one-empty"); while (shot.MoveNext()) yield return shot.Current;
+            for (var i = 0; i < lineup.Pool.Count; i++)
+            {
+                if (!lineup.Pool[i].Captain) continue;
+                lineup.FocusCell(LineupSeat.Pad1, LineupFocus.Pool, i);
+                shot = Capture("team-card-" + lineup.Pool[i].Id); while (shot.MoveNext()) yield return shot.Current;
+            }
             lineup.FocusCell(LineupSeat.Pad1, LineupFocus.HomeRow, 0);
             Press(GamepadButton.RightShoulder);
             Require(lineup.HomeFull, "RB did not fill P1 from roster focus.");
@@ -318,6 +328,9 @@ namespace GrandSluggers.EditorTools
             Require(Phase(play) == "Lineup", "Both captains confirmed but lineup did not open.");
             lineup = Get<LineupScreens>(play, "_lineup");
             Require(lineup.HomeSeat == LineupSeat.Pad2 && lineup.AwaySeat == LineupSeat.Pad1, "Captain confirmation lost P1 away.");
+            lineup.FocusCell(LineupSeat.Pad1, LineupFocus.AwayRow, 8);
+            lineup.FocusCell(LineupSeat.Pad2, LineupFocus.HomeRow, 8);
+            for (var i = 0; i < 8; i++) { Press(GamepadButton.West); Press(GamepadButton.West, true); }
             shot = Capture("team-two-empty"); while (shot.MoveNext()) yield return shot.Current;
             Press(GamepadButton.RightShoulder); Press(GamepadButton.RightShoulder, true);
             Require(lineup.HomeFull && lineup.AwayFull, "Both controllers cannot fill their teams.");
