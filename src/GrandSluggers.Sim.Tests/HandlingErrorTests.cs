@@ -112,6 +112,7 @@ public sealed class HandlingErrorTests
     /// meets mid-hop.)
     /// </summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheAwkwardHopCarriesTheCurvesChanceAndTheCapBinds()
     {
         var run = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 1);
@@ -144,6 +145,7 @@ public sealed class HandlingErrorTests
     /// air multiplier at 0.6 neither liner is met mid-hop, and the local bobble's real-table case is this one.)
     /// </summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void TheFailedTakeIsOneRollOneBobbleOneStunAndAReliableRecovery()
     {
         var run = Drive(Trial, 100, 20, -25, ContactQuality.Perfect, seed: 35);

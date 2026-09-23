@@ -10,7 +10,6 @@
   "windMph": 2,
   "windDeg": 180,
   "fenceHeightFt": 8,
-  "nightContactWindowMul": 0.85,
   "hazards": [
     {
       "type": "freeze_volume",
@@ -31,5 +30,5 @@
       "radius": 7
     }
   ],
-  "notes": "Players do not skate. Freezers stun on touch. Night blackout shrinks the contact window; follow-spot on the ball is presentation."
+  "notes": "Players do not skate. Freezers stun on touch. Night keeps the stadium lights and changes no rule of the at-bat (FD-11-R2); the follow-spot on the ball is presentation."
 }

@@ -13,18 +13,22 @@ public sealed class Match
 
     public ContentCatalog Content { get; }
     /// <summary>
-    /// The park this match plays on. With <see cref="Hazards"/> on it is the catalog's park; with them
-    /// off it is that park with every hazard instance removed and every other member the same value
-    /// (<see cref="HazardPattern.HazardsOff"/>). Every reader — both seats, the CPU, the live ball, the
-    /// trace — reads this one, so no seat can play a hazard the others do not.
+    /// The park this match plays on, resolved once from the catalog's park (<see cref="PlayedPark.Of"/>,
+    /// FD-11, FD-10-R1): the day's hazard instances, then the night block's when the match is at
+    /// <see cref="Night"/>, then — with <see cref="Hazards"/> off — every hazard instance removed and
+    /// every other member the same value (<see cref="HazardPattern.HazardsOff"/>). A park with no night
+    /// block, played with hazards on, is the catalog's own object. Every reader — both seats, the CPU,
+    /// the live ball, the trace, the presentation — reads this one, so no seat can play a hazard the
+    /// others do not, and nothing reads a night block but the resolution.
     /// </summary>
     public Park Park { get; }
     public bool Night { get; }
     /// <summary>
     /// Park hazards on (the default) or off (FD-10, §14, SF-24). Off removes the instances whose
-    /// pattern <see cref="HazardPattern.IsHazard">counts as a hazard</see> and changes no other rule:
-    /// the park keeps its size, fence, walls, air, wind, ground zones, foul territory, depth and its
-    /// night window, and the table this match plays on is the one it plays on with hazards on.
+    /// pattern <see cref="HazardPattern.IsHazard">counts as a hazard</see>, the night block's with the
+    /// day's (FD-10-R1), and changes no other rule: the park keeps its size, fence, walls, air, wind,
+    /// ground zones, foul territory and depth, and the table this match plays on is the one it plays
+    /// on with hazards on.
     /// </summary>
     public bool Hazards { get; }
     public Team Away { get; }
@@ -108,15 +112,18 @@ public sealed class Match
     public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null, bool hazards = true)
     {
         Content = content;
-        // The table resolves from the park as the catalog authored it, so the switch cannot reach a
-        // rule: a hazards-off match plays the very table its hazards-on twin plays (SF-01, FD-10).
+        // The table resolves from the park as the catalog authored it, so neither the switch nor the
+        // night block can reach a rule: a hazards-off or a night match plays the very table its
+        // hazards-on day twin plays (SF-01, FD-10, FD-11-R2).
         _rules = content.Rules.AtLevel(difficulty).AtPark(park);
         Mercy = mercy;
         Away = away;
         Home = home;
         Hazards = hazards;
-        Park = hazards ? park : HazardPattern.HazardsOff(park, _rules.Hazards);
         Night = night;
+        // The one resolution (FD-11, F4-d): the night block's instances join the day's at night, then
+        // the switch removes every hazard when hazards are off. No other line reads a night block.
+        Park = PlayedPark.Of(park, night, hazards, _rules.Hazards);
         Innings = innings;
         Seed = seed;
         _rng = new Random(seed);
