@@ -815,7 +815,7 @@
           "child": "F4-b",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/896",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/905",
-          "status": "open"
+          "status": "merged"
         }
       ],
       "validation_evidence": [],
@@ -1011,7 +1011,7 @@
           "child": "F4-b",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/896",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/905",
-          "status": "open"
+          "status": "merged"
         }
       ],
       "validation_evidence": [],
@@ -1316,7 +1316,7 @@
           "child": "F4-d",
           "issue": "https://github.com/jackguillet/grand-sluggers/issues/895",
           "pr": "https://github.com/jackguillet/grand-sluggers/pull/902",
-          "status": "open"
+          "status": "merged"
         }
       ],
       "validation_evidence": [],
@@ -2470,6 +2470,10 @@
     {
       "date": "2026-09-23",
       "event": "F4-b #896 opened as PR #905: a status volume slows the body that touches it for slowSec 3.0 s at frozenMul 0.45 (FD-08-R2; Jack's number, not yet played), a typed BodySlowed event, the play-wide flag and the park's drops.frozen roll retired (FD-08-R1). Balance not measured (Jack: 'we don't need to perfectly balance right now. let's move faster')."
+    },
+    {
+      "date": "2026-09-23",
+      "event": "Merged: F4-d #902 (ce5975b0) and F4-b #905 (f80e63cc), each on a green portable run on its final head. Jack approved the merges. The 3 s slow is still unplayed: it is Jack's number and a sitting judges it. No decision's human_acceptance is written; no human gate passed. Findings 53-58 recorded in the implementation map."
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
