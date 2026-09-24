@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public sealed class DualStills
 {
-    public const string Directory = "agent";
+    public const string Directory = AgentData.Directory;
     public const string FileName = "dual-stills.json";
     public const string DropFolder = "scratchpad/stills";
     public const string CriticSkill = ".claude/skills/look-critic/SKILL.md";

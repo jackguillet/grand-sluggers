@@ -44,7 +44,6 @@ public static class ContentDataValidator
     static ContentData Read(DataRoot root)
     {
         var data = new ContentData();
-        data.ReadErrors.AddRange(RaceEvidence.Validate(root));
 
         foreach (var file in Files(root, "characters", data.ReadErrors))
         {

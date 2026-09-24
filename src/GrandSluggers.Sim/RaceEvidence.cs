@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>Research catalog validation; never a source of gameplay defaults. Unknown values stay null.</summary>
 public static class RaceEvidence
 {
-    public const string Directory = "agent";
+    public const string Directory = AgentData.Directory;
     public const string FileName = "race-evidence.json";
 
     /// <summary>Resolved through the data root like every other agent catalog, so a trial overlay can carry it (#716).</summary>

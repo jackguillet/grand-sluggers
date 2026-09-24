@@ -39,8 +39,9 @@ namespace GrandSluggers.Cli
             try
             {
                 content = ContentCatalog.Load();
+                Rules.RequireDefaultRoot(content.Root);
             }
-            catch (Exception ex) when (ex is IOException or InvalidDataException)
+            catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException)
             {
                 // A data root or trial overlay this run named and cannot have. The message names the offending
                 // path, so report it as a failure rather than a crash — and non-zero, so nothing reads on.

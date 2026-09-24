@@ -11,7 +11,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public sealed class DebugProtocol
 {
-    public const string Directory = "agent";
+    public const string Directory = AgentData.Directory;
     public const string FileName = "debug-protocol.json";
 
     public static readonly IReadOnlyList<string> Stages =

@@ -207,6 +207,7 @@ namespace GrandSluggers.UnityClient
             var data = DataProfile.ShippedRoot;
             // The shipped root, or a trial named in GRAND_SLUGGERS_TRIAL laid over it (#715): the window plays what cli match plays.
             _content = ContentCatalog.Load(DataProfile.Root);
+            Rules.RequireDefaultRoot(_content.Root);
             Debug.Log("GS data " + DataProfile.Root.Provenance);
             ArtBinder.Bind(_content.Art);
             _coach = gameObject.AddComponent<TrainingDirector>();

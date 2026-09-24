@@ -157,13 +157,33 @@ public static class Rules
 
     public static RulesTable Default => _default ??= LoadDefault();
 
+    /// <summary>The root <see cref="Default"/> was read from; null until something reads it.</summary>
+    public static DataRoot? DefaultRoot { get; private set; }
+
     static RulesTable LoadDefault()
     {
         var root = ContentCatalog.TryFindDataRoot()
             ?? throw new DirectoryNotFoundException(
                 "No data root for the rules tables: none above " + AppContext.BaseDirectory
                 + " and " + ContentCatalog.DataRootVariable + " is unset");
-        return ForProcess(root);
+        var table = ForProcess(root);
+        DefaultRoot = root;
+        return table;
+    }
+
+    /// <summary>
+    /// Stop a process whose catalog and process-wide table read different roots. <see cref="Diamond"/> and the
+    /// helpers without a catalog read <see cref="Default"/>; a game that loads its catalog from one root while
+    /// <see cref="Default"/> finds another would put the bags where neither table says. Call it at startup,
+    /// after the catalog loads.
+    /// </summary>
+    public static void RequireDefaultRoot(DataRoot root)
+    {
+        _ = Default;
+        if (DefaultRoot!.SameAs(root)) return;
+        throw new InvalidOperationException(
+            "The process rules table reads " + DefaultRoot.Provenance + " but the game loads " + root.Provenance
+            + "; point " + ContentCatalog.DataRootVariable + " at one root.");
     }
 
     /// <summary>
