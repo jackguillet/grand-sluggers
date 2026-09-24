@@ -17,7 +17,7 @@ public sealed class CpuBatter
     internal CpuBatter(Match match) => _match = match;
 
     RulesTable Rules => _match.Rules;
-    Random Rng => _match.Rng;
+    SimRandom Rng => _match.Streams.BatAi;
     Character Pitcher => _match.Pitcher;
     Character Batter => _match.Batter;
     int Balls => _match.Balls;
@@ -111,7 +111,7 @@ public sealed class CpuBatter
 
         var tracked = Rng.NextDouble() < c.TrackPerfectChance;
         // Timing sigma: how far off the ball the bat arrives is Contact's (⚠️ P2-b re-reads this one).
-        var err = _match.Gauss() * (11 - contact) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
+        var err = Rng.Gauss() * (11 - contact) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
         var offSpeed = Rules.Pitching.Families.Of(pitch.Type).OffSpeed;
         if (!tracked && (offSpeed || ChargeFeel.IsCharge(pitch.Charge01)))
         {
@@ -125,8 +125,8 @@ public sealed class CpuBatter
         // draws both aims; the sac bunt above holds a side instead (§5.8).
         if (!AtBatResolver.StickShapesContact(bunt: false, star))
             return new SwingCommand(true, charge, err, star, BoxOffsetX: box);
-        return new SwingCommand(true, charge, err, star, _match.Gauss() * c.SpraySigmaDeg,
-            LaunchAim: _match.Gauss() * c.LaunchAimSigma, BoxOffsetX: box);
+        return new SwingCommand(true, charge, err, star, Rng.Gauss() * c.SpraySigmaDeg,
+            LaunchAim: Rng.Gauss() * c.LaunchAimSigma, BoxOffsetX: box);
     }
 
     /// <summary>

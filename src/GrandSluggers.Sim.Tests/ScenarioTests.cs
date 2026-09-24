@@ -101,14 +101,16 @@ public sealed class ScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-92  No PlayEvent is produced by a System.Random outside the sim's seeded _rng
+    // S-92  No PlayEvent is produced by a generator outside the match's named streams
     // ---------------------------------------------------------------------------------
 
     [Fact]
     public void S92_TheOnlyRandomInTheSimIsTheMatchSeed()
     {
+        // The sim constructs no System.Random and no stray SimRandom: every draw is on a MatchStreams stream,
+        // which SimRandom.Stream splits from the match seed by name.
         var simDir = Path.Combine(RepoRoot(), "src", "GrandSluggers.Sim");
-        var random = new Regex(@"new\s+(System\.)?Random\s*\(|Random\.Shared");
+        var random = new Regex(@"new\s+(System\.)?Random\s*\(|Random\.Shared|new\s+SimRandom\s*\(|SimRandom\.Stream\s*\(");
         var offenders = new List<string>();
         foreach (var file in Directory.GetFiles(simDir, "*.cs", SearchOption.AllDirectories))
         {
@@ -120,9 +122,9 @@ public sealed class ScenarioTests
                 if (random.IsMatch(lines[i]))
                     offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
         }
-        var allowed = Assert.Single(offenders);
-        Assert.StartsWith("Match.cs:", allowed);
-        Assert.Contains("_rng = new Random(seed)", allowed);
+        // SimRandom.Stream builds each stream; MatchStreams names the five. Nothing else makes a generator.
+        Assert.All(offenders, o => Assert.True(o.StartsWith("SimRandom.cs:", StringComparison.Ordinal), o));
+        Assert.Equal(5, offenders.Count(o => o.Contains("SimRandom.Stream(seed, \"", StringComparison.Ordinal)));
     }
 
     [Fact]

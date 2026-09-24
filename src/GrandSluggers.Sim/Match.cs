@@ -7,10 +7,10 @@ public sealed partial class Match
     readonly AtBatResolver _atBat;
     readonly FieldingResolver _fielding;
     /// <summary>The only random stream that may decide a play. Seeded per match; every roll is a sim call.</summary>
-    readonly Random _rng;
+    readonly MatchStreams _streams;
 
-    /// <summary>The match's one seeded stream, for the subsystems that draw on it in the match's order.</summary>
-    internal Random Rng => _rng;
+    /// <summary>The match's named random streams, split from its seed (<see cref="MatchStreams"/>).</summary>
+    internal MatchStreams Streams => _streams;
     readonly List<PlayEvent> _log = [];
 
     public ContentCatalog Content { get; }
@@ -141,7 +141,7 @@ public sealed partial class Match
         Park = PlayedPark.Of(park, night, hazards, _rules.Hazards);
         Innings = innings;
         Seed = seed;
-        _rng = new Random(seed);
+        _streams = new MatchStreams(seed);
         // Both resolvers play on the match's resolved table (§0.3, FD-03, FR-01), never the catalog's
         // global one: the at-bat's own flight and the fielding preview are the first ball of a play, so a
         // park that names its air has to reach them the same way it reaches the live ball's continuation.
@@ -736,13 +736,13 @@ public sealed partial class Match
     internal void PrepareLivePlay() => CurrentPlay();
 
     /// <summary>One authoritative handling outcome per qualifying take (#721, F693-02-ordinary-handling-error-chance): a draw only when there is a chance.</summary>
-    internal bool RollHandling(double chance) => chance > 0 && _rng.NextDouble() < chance;
+    internal bool RollHandling(double chance) => chance > 0 && _streams.Handling.NextDouble() < chance;
 
     /// <summary>One seeded directional result per failed contact (F693-02-uniform-error-direction): uniform in ±<paramref name="spreadDeg"/>.</summary>
-    internal double RollSpreadDeg(double spreadDeg) => (_rng.NextDouble() * 2 - 1) * spreadDeg;
+    internal double RollSpreadDeg(double spreadDeg) => (_streams.Handling.NextDouble() * 2 - 1) * spreadDeg;
 
     /// <summary>A hazard's draw from the match's seeded stream (F4-c, FD-08-R1): which of <paramref name="count"/> it picks. It decides what the hazard does, never a result.</summary>
-    internal int DrawIndex(int count) => _rng.Next(count);
+    internal int DrawIndex(int count) => _streams.Hazard.Next(count);
 
     /// <summary>
     /// A drop on the catch is allowed only for star effects (§8.6, fielding.drops): a heatball, a
@@ -756,15 +756,15 @@ public sealed partial class Match
     {
         var d = Rules.Fielding.Drops;
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
-        if (heat && _rng.NextDouble() < d.Heatball) return true;
-        if (hit.StarSwingUsed == "phony-swing" && _rng.NextDouble() < d.PhonySwing) return true;
-        if (frozen && _rng.NextDouble() < d.Frozen) return true;
+        if (heat && _streams.Handling.NextDouble() < d.Heatball) return true;
+        if (hit.StarSwingUsed == "phony-swing" && _streams.Handling.NextDouble() < d.PhonySwing) return true;
+        if (frozen && _streams.Handling.NextDouble() < d.Frozen) return true;
         return false;
     }
 
     /// <summary>The CPU catcher's release on a steal, from the one seeded stream (S-92).</summary>
     internal double RollCatcherRelease(Character catcher) =>
-        StealThrow.CpuReleaseSec(catcher, _rng, Rules);
+        StealThrow.CpuReleaseSec(catcher, _streams.PitchAi, Rules);
 
     /// <summary>The Star Pitch on the mound's price now (§12, PH-16-R7): its tier, plus the guest-captain surcharge.</summary>
     public int PitchStarCost => StarSkills.PitchCost(Pitcher, Defense.Captain, Rules, Content.StarSkills);
@@ -844,7 +844,7 @@ public sealed partial class Match
     /// who is on the mound <b>right now</b> and this match's own rules table — never
     /// <see cref="Rules.Default"/>, so a trial overlay's families are the ones that cycle.
     ///
-    /// A read: the selection is the caller's state, nothing here is stored, no <c>_rng</c> draw
+    /// A read: the selection is the caller's state, nothing here is stored, no stream draw
     /// moves, and no pitch is built. The mound wiring that will call it every SET frame is P1-f.
     /// </summary>
     public PitchSelectionStep SelectPitch(
@@ -1122,7 +1122,7 @@ public sealed partial class Match
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
             swing.Charge01, box, crossing.X, crossing.Y, swing.BuntSide);
 
-        hit = _atBat.Resolve(input, Park, _rng, Night);
+        hit = _atBat.Resolve(input, Park, _streams.Contact, Night);
         if (hit.Quality == ContactQuality.Miss)
         {
             finished = FinishStrike(pitch, swing, hit, swinging: true);
@@ -1156,7 +1156,7 @@ public sealed partial class Match
     /// at contact is the crashing corner when it gets there first.
     /// </summary>
     public FieldingPreview PreviewHit(AtBatResult hit, SwingCommand? swing = null) =>
-        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng, Night, Defense.Gloves, SquareSpots(swing));
+        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _streams.Handling, Night, Defense.Gloves, SquareSpots(swing));
 
     /// <summary>The defense as the batter's square left it (§7.3), or null with no square.</summary>
     public Dictionary<string, (double X, double Z)>? SquareSpots(SwingCommand? swing) =>
@@ -1165,7 +1165,7 @@ public sealed partial class Match
             : null;
 
     public FieldingResult ResolveFielding(AtBatResult hit, FieldingPreview? preview = null) =>
-        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview, Night, Defense.Gloves);
+        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _streams.Handling, DefenseGlove, preview, Night, Defense.Gloves);
 
     /// <summary>
     /// Pitcher swap (spec §4.7): any fielder takes the mound (the best Pitch stat when nobody is
@@ -1205,7 +1205,7 @@ public sealed partial class Match
     }
 
     public ThrowResult ThrowBetween(Character from, Character to) =>
-        FieldAbilities.ApplyThrow(from, Content.Chemistry.FieldingThrow(from, to, _rng), Rules);
+        FieldAbilities.ApplyThrow(from, Content.Chemistry.FieldingThrow(from, to, _streams.Handling), Rules);
 
     public FieldingResult ApplyOffenseItem(AtBatResult hit, FieldingResult field, string? playerItem, Character? target = null)
     {
@@ -1884,10 +1884,4 @@ public sealed partial class Match
     AtBatResult EmptyHit(bool inZone) => new(
         ContactQuality.Miss, false, inZone, 0, 0, 0, false, false, null, null, 0, false, inZone);
 
-    internal double Gauss()
-    {
-        var u1 = 1.0 - _rng.NextDouble();
-        var u2 = _rng.NextDouble();
-        return Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
-    }
 }

@@ -11,7 +11,7 @@ public sealed class CpuPitcher
     internal CpuPitcher(Match match) => _match = match;
 
     RulesTable Rules => _match.Rules;
-    Random Rng => _match.Rng;
+    SimRandom Rng => _match.Streams.PitchAi;
     Character Pitcher => _match.Pitcher;
     Character Batter => _match.Batter;
     int Balls => _match.Balls;
@@ -77,7 +77,7 @@ public sealed class CpuPitcher
         var intentX = IntentX(row.Location, c.Locations);
         // The CPU arm's miss on its own intent is Control's (§4.8, PH-15-R6).
         var scatter = (11 - Pitcher.Stats.Control) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
-        intentX += _match.Gauss() * scatter;
+        intentX += Rng.Gauss() * scatter;
 
         // (2) The family, as presses from the fastball every SET resets to (PH-02-R5).
         var presses = Presses(row);
