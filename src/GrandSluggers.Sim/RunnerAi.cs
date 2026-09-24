@@ -271,9 +271,14 @@ public static class RunnerAi
     {
         if (run <= cpu.StealMinRun) return 0;
         static double Lerp(double a, double b, double t) => a + (b - a) * Math.Clamp(t, 0, 1);
-        if (run <= 6) return Lerp(0, cpu.StealBaseRun6, (run - cpu.StealMinRun) / Math.Max(1.0, 6 - cpu.StealMinRun));
-        if (run <= 8) return Lerp(cpu.StealBaseRun6, cpu.StealBaseRun8, (run - 6) / 2.0);
-        return Lerp(cpu.StealBaseRun8, cpu.StealBaseRun10, (run - 8) / 2.0);
+        double fromRun = cpu.StealMinRun, fromChance = 0;
+        foreach (var anchor in cpu.StealAnchors)
+        {
+            if (run <= anchor.Run) return Lerp(fromChance, anchor.Chance, (run - fromRun) / Math.Max(1.0, anchor.Run - fromRun));
+            fromRun = anchor.Run;
+            fromChance = anchor.Chance;
+        }
+        return fromChance;
     }
 
     /// <summary>The tag-up threshold for a runner on <paramref name="bag"/> (§9.5, #732): home from third, third from second; nowhere else.</summary>

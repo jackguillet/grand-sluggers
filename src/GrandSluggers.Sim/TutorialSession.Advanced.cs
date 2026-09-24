@@ -270,7 +270,7 @@ public sealed partial class TutorialSession
             var thrower = flight is null ? null : live.FielderAt(flight.FromPos);
             var receiver = flight is null ? null : live.FielderAt(flight.ReceiverPos);
             var eligibleBag = flight?.Bag == 4;
-            var success = _laserHumanThrow && flight is not null && thrower?.FieldAbility == "laser"
+            var success = _laserHumanThrow && flight is not null && thrower?.FieldAbility == FieldAbilityId.Laser
                 && receiver is not null && eligibleBag;
             if (success)
             {
@@ -319,7 +319,7 @@ public sealed partial class TutorialSession
                 var at = Diamond.Bag(4);
                 var distance = Diamond.Dist(flight.FromX, flight.FromZ, at.X, at.Z);
                 var abilities = Match.Rules.Fielding.Abilities;
-                success = snap?.FieldAbility == "snap-throw" && receiver is not null;
+                success = snap?.FieldAbility == FieldAbilityId.SnapThrow && receiver is not null;
                 if (success && abilities.SnapThrowMul > 1)
                 {
                     var pair = _content.Chemistry.Between(snap!, receiver!) switch

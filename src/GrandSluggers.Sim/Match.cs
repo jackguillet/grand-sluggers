@@ -344,7 +344,7 @@ public sealed partial class Match
     /// <summary>World-X box offset held from bat-ball contact into the live run.</summary>
     public double BatterContactOffsetX { get; private set; }
     /// <summary>The pitcher walked the rubber since the last pitch this offense saw.</summary>
-    public bool RubberMovedSinceLastPitch => Math.Abs(PitcherOffsetX - _lastPitchRubberX) > 0.05;
+    public bool RubberMovedSinceLastPitch => Math.Abs(PitcherOffsetX - _lastPitchRubberX) > Rules.Batting.Cpu.RubberMovedMin;
 
     public bool PitcherTired => PitcherStamina < Rules.Pitching.Stamina.TiredBelow;
     public bool Paused { get; private set; }

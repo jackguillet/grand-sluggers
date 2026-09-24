@@ -49,7 +49,7 @@ public static class InPlay
         var fps = t.BaseFtPerSec * (thr?.SpeedMul ?? 1);
         var flight = distFt / Math.Max(t.MinFtPerSec, fps);
         var arm = thr?.Arm ?? NeutralArm;
-        var over = Math.Max(0, distFt - (t.ComfortableRangeFt + t.RangePerArmFt * (arm - NeutralArm))) / 80.0;
+        var over = Math.Max(0, distFt - (t.ComfortableRangeFt + t.RangePerArmFt * (arm - NeutralArm))) / t.LongThrowScaleFt;
         // The pair-and-ability factor alone: the arm is already in the speed, and the loss is divided by the rest.
         var pair = (thr?.SpeedMul ?? 1) / ArmMul(arm, rules);
         return (thr?.ReleaseSec ?? t.ReleaseSec) + flight + t.LongThrowLossSec * over * over / pair;
@@ -127,20 +127,21 @@ public static class InPlay
     /// </summary>
     public static (string Pos, double X, double Z)? CutoffFor(
         double fromX, double fromZ, double toX, double toZ,
-        IReadOnlyDictionary<string, (double X, double Z)> spots, string glovePos, string coverPos)
+        IReadOnlyDictionary<string, (double X, double Z)> spots, string glovePos, string coverPos, RulesTable rules)
     {
+        var t0 = rules.Fielding.Throw;
         var dx = toX - fromX;
         var dz = toZ - fromZ;
         var len2 = dx * dx + dz * dz;
         if (len2 < 1e-6) return null;
         (string Pos, double X, double Z)? best = null;
         var bestD = double.MaxValue;
-        foreach (var pos in new[] { "SS", "2B", "1B", "3B" })
+        foreach (var pos in t0.CutoffPositions)
         {
             if (pos == glovePos || pos == coverPos) continue;
             if (!spots.TryGetValue(pos, out var at)) continue;
             var t = ((at.X - fromX) * dx + (at.Z - fromZ) * dz) / len2;
-            if (t is < 0.15 or > 0.85) continue;
+            if (t < t0.CutoffLaneMin || t > t0.CutoffLaneMax) continue;
             var lx = fromX + dx * t;
             var lz = fromZ + dz * t;
             var d = Diamond.Dist(at.X, at.Z, lx, lz);

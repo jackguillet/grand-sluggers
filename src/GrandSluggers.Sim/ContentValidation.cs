@@ -11,11 +11,7 @@ namespace GrandSluggers.Sim;
 public static class ContentDataValidator
 {
     static readonly HashSet<string> Hands = new(StringComparer.OrdinalIgnoreCase) { "L", "R" };
-    static readonly HashSet<string> FieldAbilityIds = new(StringComparer.Ordinal)
-    {
-        "ball-dash", "burrow", "clamber", "dive", "grow", "laser", "lick-catch",
-        "snap-throw", "spin-check", "super-jump", "withdraw"
-    };
+    static readonly HashSet<string> FieldAbilityIds = new(FieldAbilityId.All, StringComparer.Ordinal);
     public static IReadOnlyCollection<string> TutorialFieldAbilities => FieldAbilityIds;
 
     /// <summary>

@@ -102,7 +102,7 @@ public sealed class RelayDecisionTests
         var level = rules.Cpu.Active;
         var home = Diamond.Bag(4);
         var catcher = match.Defense.Roster.First(c => c.Id == "pewter");
-        var cut = InPlay.CutoffFor(first.FromX, first.FromZ, home.X, home.Z, first.Spots, "CF", "C");
+        var cut = InPlay.CutoffFor(first.FromX, first.FromZ, home.X, home.Z, first.Spots, "CF", "C", Rules.Default);
         Assert.True(cut is not null, $"{centre} {difficulty}: no cutoff between ({first.FromX:0},{first.FromZ:0}) and home; spots {string.Join(" ", first.Spots.Select(kv => $"{kv.Key}({kv.Value.X:0},{kv.Value.Z:0})"))}");
         var cutter = cutters[cut!.Value.Pos];
         var direct = InPlay.ThrowSec(Diamond.Dist(first.FromX, first.FromZ, home.X, home.Z), Forecast(content, cf, catcher, level, rules), rules);

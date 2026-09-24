@@ -731,9 +731,10 @@ public sealed class StealScenarioTests
     {
         var cpu = _content.Rules.Running.Cpu;
         Assert.Equal(0, RunnerAi.StealBase(4, cpu));
-        Assert.Equal(cpu.StealBaseRun6, RunnerAi.StealBase(6, cpu), 6);
-        Assert.Equal(cpu.StealBaseRun8, RunnerAi.StealBase(8, cpu), 6);
-        Assert.Equal(cpu.StealBaseRun10, RunnerAi.StealBase(10, cpu), 6);
+        // Each anchor is the chance at its own Run, and the table holds past the last.
+        foreach (var anchor in cpu.StealAnchors)
+            Assert.Equal(anchor.Chance, RunnerAi.StealBase(anchor.Run, cpu), 6);
+        Assert.Equal(cpu.StealAnchors[^1].Chance, RunnerAi.StealBase(cpu.StealAnchors[^1].Run + 3, cpu), 6);
         Assert.True(RunnerAi.StealBase(7, cpu) > RunnerAi.StealBase(6, cpu));
 
         var match = Defense(leadoff: "zig");

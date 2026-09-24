@@ -137,6 +137,8 @@
     "mistrackSpanFt": 0.3,
     "mistrackMovedChance": 0.7,
     "mistrackChance": 0.3,
+    "mistrackChanceMax": 0.95,
+    "rubberMovedMin": 0.05,
     "spraySigmaDeg": 12,
     "launchAimSigma": 0.45,
     "archetype": {

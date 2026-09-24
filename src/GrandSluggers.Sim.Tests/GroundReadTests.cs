@@ -552,7 +552,7 @@ public sealed class GroundReadTests
     /// </summary>
     static class Old
     {
-        const double MphToFtPerSec = 1.4667;
+        const double MphToFtPerSec = BallFlight.MphToFtPerSec;
 
         public sealed record Numbers(
             double RollFriction, double RollRestSpeed,
