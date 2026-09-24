@@ -7,10 +7,10 @@ namespace GrandSluggers.UnityClient
     public static class CaptainSheet
     {
         static GUIStyle _title, _name, _body, _small, _tile, _badge, _tileBadge;
-        static readonly Color Ink = new Color(.035f, .065f, .095f);
-        static readonly Color Panel = new Color(.075f, .12f, .16f);
-        static readonly Color One = new Color(1f, .73f, .24f);
-        static readonly Color Two = new Color(.31f, .79f, .95f);
+        static readonly Color Ink = FrontBoardStyle.Ink;
+        static readonly Color Panel = FrontBoardStyle.Panel;
+        static readonly Color One = FrontBoardStyle.Gold;
+        static readonly Color Two = FrontBoardStyle.Blue;
         public static void Draw(CaptainSelection selection, ContentCatalog content, bool pad2)
         {
             if (selection == null || content == null) return;
