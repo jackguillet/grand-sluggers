@@ -491,7 +491,7 @@ namespace GrandSluggers.UnityClient
 
         void PlaceSelectRoster()
         {
-            var ids = PresetTeams.CaptainIds;
+            var ids = _content.CaptainIds;
             var pick = _phase == Phase.Select;
             if (!CarnivalFront.TitlePlacesBody(pick))
             {
@@ -505,13 +505,13 @@ namespace GrandSluggers.UnityClient
                     new Vector3((float)titleShot.Pos.X, (float)titleShot.Pos.Y, (float)titleShot.Pos.Z));
                 return;
             }
-            for (var i = 0; i < ids.Length; i++)
+            for (var i = 0; i < ids.Count; i++)
             {
                 var who = _content.Must(ids[i]);
                 var hero = Hero(who);
                 var yours = ids[i] == CurrentPick().Yours;
                 var theirs = ids[i] == CurrentPick().Theirs;
-                var spot = CarnivalFront.CaptainSpot(i, ids.Length, pick, yours);
+                var spot = CarnivalFront.CaptainSpot(i, ids.Count, pick, yours);
                 hero.SetPose(CarnivalFront.SelectPose(yours, theirs));
                 hero.SetHighlight(yours);
                 hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.

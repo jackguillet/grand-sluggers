@@ -73,6 +73,10 @@ public static class ContentDataValidator
         ReadRows(root, "bats", data.Bats, data.ReadErrors);
         ReadRows(root, "gloves", data.Gloves, data.ReadErrors);
 
+        var teamsPath = root.Resolve("teams", "teams.json");
+        data.Teams = DataJson.Read<TeamsFile>(teamsPath, data.ReadErrors) ?? new();
+        data.TeamsSource = teamsPath;
+
         var chemistryPath = root.Resolve("chemistry", "overrides.json");
         data.Chemistry = DataJson.Read<ChemistryOverrides>(chemistryPath, data.ReadErrors) ?? new();
         data.ChemistrySource = chemistryPath;
@@ -90,6 +94,7 @@ public static class ContentDataValidator
         data.GroundsSource = RulesTable.PathFor(root, "grounds");
         // The same for the wall-material library a fence span names (FD-06, SF-03).
         data.WallsSource = RulesTable.PathFor(root, "walls");
+        data.MatchSource = RulesTable.PathFor(root, "match");
         return data;
     }
 
@@ -139,6 +144,7 @@ public static class ContentDataValidator
 
         foreach (var row in data.Characters)
             ValidateCharacter(row, pitches, swings, errors);
+        ValidateCaptains(data, errors);
         // The top cost tier is the captains' (§12, PH-16-R8): a role player carrying a top-tier special is refused.
         foreach (var row in data.Characters.Where(r => !r.Value.Captain))
         {
@@ -271,6 +277,74 @@ public static class ContentDataValidator
         {
             var sources = group.Select(x => x.Source).OrderBy(x => x, StringComparer.Ordinal);
             errors.Add($"park {field} '{group.Key}' is claimed by more than one park: {string.Join("; ", sources)}");
+        }
+    }
+
+    /// <summary>
+    /// A captain carries its identity in data (#1032) — its team's name, a signature bat the catalog has, a body with every
+    /// proportion above zero — and a role player carries none of it: its body is its faction's captain's. So every role
+    /// player's faction must have exactly one captain; a faction with none used to fall back to rio's body in silence.
+    /// teams.json names every captain once in select order, and each preset nine names characters the catalog has.
+    /// The two sides' gloves (match.json) name gloves the catalog has.
+    /// </summary>
+    static void ValidateCaptains(ContentData data, List<string> errors)
+    {
+        var bats = data.Bats.Select(r => r.Value.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var ids = data.Characters.Select(r => r.Value.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var captainOf = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var row in data.Characters)
+        {
+            var c = row.Value;
+            if (c.Captain)
+            {
+                if (string.IsNullOrWhiteSpace(c.TeamName)) errors.Add($"{row.Source}: captain '{c.Id}' teamName is required");
+                if (string.IsNullOrWhiteSpace(c.SignatureBat)) errors.Add($"{row.Source}: captain '{c.Id}' signatureBat is required");
+                else if (!bats.Contains(c.SignatureBat)) errors.Add($"{row.Source}: captain '{c.Id}' signatureBat '{c.SignatureBat}' is not a bat in data/bats");
+                if (c.Proportions is not { } p) errors.Add($"{row.Source}: captain '{c.Id}' proportions are required");
+                else if (!(p.Height > 0 && p.Width > 0 && p.Head > 0 && p.Arms > 0 && p.Torso > 0))
+                    errors.Add($"{row.Source}: captain '{c.Id}' proportions must all be greater than 0");
+                if (!string.IsNullOrWhiteSpace(c.Faction) && !captainOf.TryAdd(c.Faction, c.Id))
+                    errors.Add($"{row.Source}: faction '{c.Faction}' has two captains, '{captainOf[c.Faction]}' and '{c.Id}'");
+            }
+            else if (c.TeamName is not null || c.SignatureBat is not null || c.Proportions is not null)
+                errors.Add($"{row.Source}: role player '{c.Id}' names teamName, signatureBat or proportions; those are a captain's (its body is its faction's captain's)");
+        }
+        foreach (var row in data.Characters.Where(r => !r.Value.Captain && !string.IsNullOrWhiteSpace(r.Value.Faction)))
+            if (!captainOf.ContainsKey(row.Value.Faction))
+                errors.Add($"{row.Source}: role player '{row.Value.Id}' faction '{row.Value.Faction}' has no captain to take its body from");
+
+        var t = data.Teams;
+        var source = data.TeamsSource;
+        var listed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var id in t.Captains ?? [])
+        {
+            if (string.IsNullOrWhiteSpace(id)) { errors.Add($"{source}: captains has an empty id"); continue; }
+            if (!listed.Add(id)) errors.Add($"{source}: captains names '{id}' twice");
+            else if (!data.Characters.Any(r => r.Value.Captain && r.Value.Id.Equals(id, StringComparison.OrdinalIgnoreCase)))
+                errors.Add($"{source}: captains names '{id}', which is not a captain in data/characters");
+        }
+        foreach (var cap in data.Characters.Where(r => r.Value.Captain))
+            if (!listed.Contains(cap.Value.Id)) errors.Add($"{source}: captains leaves out '{cap.Value.Id}'");
+        var presets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < (t.Presets?.Count ?? 0); i++)
+        {
+            var preset = t.Presets![i];
+            if (preset is null) { errors.Add($"{source}: presets[{i}] must be an object; got null"); continue; }
+            if (string.IsNullOrWhiteSpace(preset.Id) || !presets.Add(preset.Id)) errors.Add($"{source}: presets[{i}] needs a unique id");
+            if (string.IsNullOrWhiteSpace(preset.Name)) errors.Add($"{source}: preset '{preset.Id}' name is required");
+            var roster = preset.Roster ?? [];
+            if (roster.Count != 9 || roster.Distinct(StringComparer.OrdinalIgnoreCase).Count() != 9)
+                errors.Add($"{source}: preset '{preset.Id}' roster must name nine different characters");
+            foreach (var id in roster)
+                if (id is null || !ids.Contains(id)) errors.Add($"{source}: preset '{preset.Id}' roster names '{id}', which is not a character");
+        }
+
+        if (data.Rules is { } rules)
+        {
+            var gloves = data.Gloves.Select(r => r.Value.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var (side, glove) in new[] { ("homeGlove", rules.Match.HomeGlove), ("awayGlove", rules.Match.AwayGlove) })
+                if (!gloves.Contains(glove))
+                    errors.Add($"{data.MatchSource}: match.{side} '{glove}' is not a glove in data/gloves");
         }
     }
 
@@ -887,6 +961,10 @@ internal sealed class ContentData
     public string GroundsSource { get; set; } = "";
     /// <summary>Where this root's wall-material library was read from — named by a fence span's <c>SF-03</c> refusal.</summary>
     public string WallsSource { get; set; } = "";
+    public TeamsFile Teams { get; set; } = new();
+    public string TeamsSource { get; set; } = "";
+    /// <summary>Where match.json was read from — named by a glove the catalog does not have.</summary>
+    public string MatchSource { get; set; } = "";
     public List<string> ReadErrors { get; } = [];
 }
 
@@ -945,6 +1023,10 @@ internal sealed class CharacterDto
     public string StarSwing { get; set; } = "";
     public string FieldAbility { get; set; } = "";
     public string Bio { get; set; } = "";
+    /// <summary>A captain's identity (#1032): its team's name, its signature bat, its body on the shared rig. A role player names none.</summary>
+    public string? TeamName { get; set; }
+    public string? SignatureBat { get; set; }
+    public ProportionsDto? Proportions { get; set; }
 
     public Character ToCharacter() => new(
         Id, Name, Faction, Captain,
@@ -953,7 +1035,11 @@ internal sealed class CharacterDto
         ParseHand(Bats), ParseHand(Throws),
         StarPitch, StarSwing, FieldAbility, Bio, ReachFt)
     {
-        Repertoire = ParseRepertoire()
+        Repertoire = ParseRepertoire(),
+        TeamName = TeamName,
+        SignatureBat = SignatureBat,
+        BodyType = Captain ? Id.ToLowerInvariant() : "",
+        Proportions = Proportions?.ToSpec() ?? default
     };
 
     /// <summary>
@@ -970,6 +1056,30 @@ internal sealed class CharacterDto
                 + "the content validator reports this before a catalog is built");
 
     static Hand ParseHand(string value) => value.Equals("L", StringComparison.OrdinalIgnoreCase) ? Hand.L : Hand.R;
+}
+
+internal sealed class ProportionsDto
+{
+    public float Height { get; set; }
+    public float Width { get; set; }
+    public float Head { get; set; }
+    public float Arms { get; set; }
+    public float Torso { get; set; }
+    public Silhouette.Spec ToSpec() => new(Height, Width, Head, Arms, Torso);
+}
+
+/// <summary><c>data/teams/teams.json</c> (#1032): the captains in select order and the authored nines.</summary>
+internal sealed class TeamsFile
+{
+    public List<string?>? Captains { get; set; }
+    public List<PresetDto?>? Presets { get; set; }
+}
+
+internal sealed class PresetDto
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public List<string?>? Roster { get; set; }
 }
 
 internal sealed class ParkDto

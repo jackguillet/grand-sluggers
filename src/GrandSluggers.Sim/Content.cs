@@ -30,6 +30,34 @@ public sealed class ContentCatalog
     /// <summary>Where this catalog was read from: the data root, and the trial overlay laid over it.</summary>
     public DataRoot Root { get; }
 
+    /// <summary>The captains in select order (<c>data/teams/teams.json</c>): the captain sheet, the pick and Challenge walk it.</summary>
+    public IReadOnlyList<string> CaptainIds { get; private init; } = [];
+
+    IReadOnlyDictionary<string, (string Name, IReadOnlyList<string> Roster)> _presets { get; init; } =
+        new Dictionary<string, (string, IReadOnlyList<string>)>();
+
+    /// <summary>An authored nine from <c>data/teams/teams.json</c>, by id; its first name is its captain.</summary>
+    public Team PresetTeam(string id) =>
+        _presets.TryGetValue(id, out var p)
+            ? Team(p.Name, p.Roster[0], p.Roster.Skip(1).ToArray())
+            : throw new KeyNotFoundException($"No preset team '{id}'; the presets are {string.Join(", ", _presets.Keys)}");
+
+    /// <summary>The captain after (or before, <paramref name="step"/> −1) this one in select order, wrapping.</summary>
+    public string StepCaptain(string captainId, int step)
+    {
+        var i = IndexOfCaptain(captainId);
+        var n = CaptainIds.Count;
+        return CaptainIds[((i + step) % n + n) % n];
+    }
+
+    /// <summary>A captain's place in select order; an id that is not a captain is the first.</summary>
+    public int IndexOfCaptain(string captainId)
+    {
+        for (var i = 0; i < CaptainIds.Count; i++)
+            if (CaptainIds[i].Equals(captainId, StringComparison.OrdinalIgnoreCase)) return i;
+        return 0;
+    }
+
     ContentCatalog(
         DataRoot root,
         Dictionary<string, Character> characters,
@@ -70,6 +98,19 @@ public sealed class ContentCatalog
         var characters = new Dictionary<string, Character>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in data.Characters)
             characters.Add(row.Value.Id, row.Value.ToCharacter());
+        // A role player wears its faction's captain's body (docs/silhouette-bible.md): resolved once, here, from the data.
+        // The validator has already refused a role player whose faction has no captain.
+        var captainOf = characters.Values.Where(c => c.Captain)
+            .ToDictionary(c => c.Faction, c => c, StringComparer.OrdinalIgnoreCase);
+        foreach (var c in characters.Values.Where(c => !c.Captain).ToList())
+        {
+            var cap = captainOf[c.Faction];
+            characters[c.Id] = c with { BodyType = cap.BodyType, Proportions = cap.Proportions };
+        }
+        var captainIds = data.Teams.Captains!.Select(id => characters[id!].Id).ToList();
+        var presets = (data.Teams.Presets ?? []).ToDictionary(
+            p => p!.Id, p => (p!.Name, Roster: (IReadOnlyList<string>)p.Roster!.Select(id => characters[id!].Id).ToList()),
+            StringComparer.OrdinalIgnoreCase);
 
         var parks = new Dictionary<string, Park>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in data.Parks)
@@ -111,7 +152,11 @@ public sealed class ContentCatalog
         foreach (var (id, dto) in data.StarSkills.Swings ?? [])
             if (dto is not null) starSwings[id] = dto.ToSwing();
         var starSkills = new StarSkillTable(starPitches, starSwings);
-        return new ContentCatalog(root, characters, parks, parkPickOrder, bats, gloves, chemistry, shots, feel, rules, starSkills, art);
+        return new ContentCatalog(root, characters, parks, parkPickOrder, bats, gloves, chemistry, shots, feel, rules, starSkills, art)
+        {
+            CaptainIds = captainIds,
+            _presets = presets
+        };
     }
 
     public Character Must(string id) =>

@@ -22,7 +22,7 @@ Gameplay: pitcher 3/4, batter over-shoulder, fly follow. Those cameras must stil
 
 ## Six body types
 
-Root scale in `Silhouette.Proportions` (Height × Width × Head × Arms × Torso). Role players copy the faction captain. Identity on the field is palette + these numbers (#687). Extra bits (crown, snout, horns) stay catalog slots, not on skins.
+Root scale is each captain's `proportions` in `data/characters` (Height × Width × Head × Arms × Torso), read through `Silhouette.Proportions`. Role players copy the faction captain. Identity on the field is palette + these numbers (#687). Extra bits (crown, snout, horns) stay catalog slots, not on skins.
 
 | Type | Who | Height | Width | Head | Arms | Torso | Read |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -36,9 +36,9 @@ Root scale in `Silhouette.Proportions` (Height × Width × Head × Arms × Torso
 
 SMS research ladder (outlines only, not IP): Baby < Mario ≈ Wario < Peach < DK < Bowser. Head/Height ≥ 1.0 so the face still reads.
 
-Head/Height ≥ 1.0 on every type so the face reads at catcher-eye. Cuts stay different. Numbers live in `Silhouette.cs`.
+Head/Height ≥ 1.0 on every type so the face reads at catcher-eye. Cuts stay different. Numbers live in each captain's `proportions` in `data/characters`.
 
-Numbers live in `src/GrandSluggers.Sim/Silhouette.cs`. Role players do not get a new anatomy. Unique captains are deferred: `docs/character-package.md`.
+Numbers live in each captain's `proportions` in `data/characters`; the select order and preset teams live in `data/teams/teams.json`. Role players do not get a new anatomy. Unique captains are deferred: `docs/character-package.md`.
 
 ## Role players
 

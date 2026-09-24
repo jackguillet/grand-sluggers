@@ -34,31 +34,25 @@ public sealed class Challenge
     public string NextOpponentId(ContentCatalog content)
     {
         var me = content.Must(CaptainId);
-        for (var i = PresetTeams.CaptainIds.Length - 1; i >= 0; i--)
+        for (var i = content.CaptainIds.Count - 1; i >= 0; i--)
         {
-            var id = PresetTeams.CaptainIds[i];
+            var id = content.CaptainIds[i];
             if (id.Equals(CaptainId, StringComparison.OrdinalIgnoreCase) || Beaten.Contains(id))
                 continue;
             if (content.Chemistry.Between(me.Id, id) == Chemistry.Bad)
                 return id;
         }
-        foreach (var id in PresetTeams.CaptainIds)
+        foreach (var id in content.CaptainIds)
         {
             if (id.Equals(CaptainId, StringComparison.OrdinalIgnoreCase) || Beaten.Contains(id))
                 continue;
             return id;
         }
-        return PresetTeams.NextCaptain(CaptainId);
+        return PresetTeams.NextCaptain(content, CaptainId);
     }
 
-    public bool AllBeaten
-    {
-        get
-        {
-            var others = PresetTeams.CaptainIds.Count(id => !id.Equals(CaptainId, StringComparison.OrdinalIgnoreCase));
-            return Beaten.Count >= others;
-        }
-    }
+    public bool AllBeaten(ContentCatalog content) =>
+        Beaten.Count >= content.CaptainIds.Count(id => !id.Equals(CaptainId, StringComparison.OrdinalIgnoreCase));
 
     public Match MakeMatch(ContentCatalog content, int innings = Match.DefaultInnings, int seed = 1, string? parkId = null, bool night = false)
     {

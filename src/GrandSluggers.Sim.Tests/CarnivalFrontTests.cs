@@ -160,7 +160,7 @@ public class CarnivalFrontTests
         Assert.False(CarnivalFront.SelectStaysOnDirt(Motion.Verb.Cheer), "cheer bob goes through the dirt");
         Assert.False(CarnivalFront.SelectStaysOnDirt(Motion.Verb.StealLead), "steal lead is a crouch");
 
-        foreach (var id in Silhouette.Captains)
+        foreach (var id in Shipped.CaptainIds)
         {
             var who = content.Must(id);
             var skin = content.Art.SkinOf(who);

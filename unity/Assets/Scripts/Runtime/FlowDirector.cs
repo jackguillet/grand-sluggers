@@ -113,7 +113,7 @@ namespace GrandSluggers.UnityClient
             ReleaseMatchSeats();
             _match = NewMatch();
             _phase = Phase.Select;
-            _captains = new CaptainSelection(CurrentPick(), _versusWanted);
+            _captains = new CaptainSelection(_content, CurrentPick(), _versusWanted);
             _t = 0;
             _selectX.Catch(Controls.Pad1.MenuAxisX);
             _selectY.Catch(Controls.Pad1.MenuAxisY);
@@ -261,7 +261,7 @@ namespace GrandSluggers.UnityClient
         void ConfirmGameOver()
         {
             Seed++;
-            if (_campaign != null && !_campaign.AllBeaten)
+            if (_campaign != null && !_campaign.AllBeaten(_content))
             {
                 _match = _campaign.MakeMatch(_content, Innings, Seed);
                 _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);

@@ -1,51 +1,29 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Locked body types. Role players reuse the faction captain. See docs/silhouette-bible.md.
+/// Locked body types. Role players reuse the faction captain. See docs/silhouette-bible.md. The body rows are data:
+/// each captain's <c>proportions</c> in <c>data/characters</c> (#1032).
 /// Scale factors are Unity root multipliers used by HeroActor.Build.
 /// </summary>
 public static class Silhouette
 {
     public readonly record struct Spec(float Height, float Width, float Head, float Arms, float Torso);
 
-    public static readonly string[] Captains = ["rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn"];
-
     /// <summary>SMS toys sit bigger than an honest diamond. Applied on the shared chain root.</summary>
     public const float ToyScale = 1.18f;
     public const float GloveScale = 1.42f;
     public const float BatScale = 1.28f;
 
-    public static string BodyType(Character who)
-    {
-        if (who.Captain) return who.Id.ToLowerInvariant();
-        return who.Faction.ToLowerInvariant() switch
-        {
-            "royal" => "vale",
-            "carnival" => "zig",
-            "goldrush" => "brondo",
-            "canopy" => "konga",
-            "ember" => "ashlord",
-            "fen" => "fenn",
-            _ => "rio"
-        };
-    }
+    /// <summary>The captain whose body this character wears: data (<see cref="Character.BodyType"/>), resolved at load.</summary>
+    public static string BodyType(Character who) => who.BodyType;
 
     /// <summary>Lineup face. Role players reuse the faction captain — no unique JPGs.</summary>
-    public static string PortraitId(Character who) => BodyType(who);
+    public static string PortraitId(Character who) => who.BodyType;
 
-    public static Spec Proportions(Character who) => Proportions(BodyType(who));
+    public static Spec Proportions(Character who) => who.Proportions;
 
-    public static Spec Proportions(string bodyType) => bodyType.ToLowerInvariant() switch
-    {
-        // Height ladder vs SMS research stills (Baby < Mario ≈ Wario < Peach < DK < Bowser).
-        "vale" => new(1.24f, 0.70f, 1.24f, 0.88f, 0.74f),
-        "zig" => new(0.56f, 1.18f, 1.62f, 0.82f, 0.68f),
-        "brondo" => new(0.96f, 1.58f, 1.16f, 1.28f, 1.48f),
-        "konga" => new(1.30f, 1.36f, 1.34f, 1.72f, 1.20f),
-        "ashlord" => new(1.44f, 1.28f, 1.48f, 1.18f, 1.38f),
-        "fenn" => new(0.78f, 1.48f, 1.70f, 0.96f, 1.12f),
-        _ => new(0.90f, 1.00f, 1.38f, 1.02f, 0.94f)
-    };
+    /// <summary>A body type's proportions: the captain of that id's authored row (<c>data/characters</c>).</summary>
+    public static Spec Proportions(ContentCatalog content, string bodyType) => content.Must(bodyType).Proportions;
 
     /// <summary>
     /// Shared-rig axes keep stature on Y while X/Z blend girth with height.

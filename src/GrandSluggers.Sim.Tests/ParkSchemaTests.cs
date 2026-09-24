@@ -173,7 +173,7 @@ public sealed class ParkSchemaTests
     public void EveryCaptainsHomeParkIsTheOneTheSwitchNamed(string captain, string park)
     {
         Assert.Equal(park, PresetTeams.HomeParkId(Shipped, captain));
-        if (!PresetTeams.CaptainIds.Contains(captain, StringComparer.OrdinalIgnoreCase)) return;
+        if (!Shipped.CaptainIds.Contains(captain, StringComparer.OrdinalIgnoreCase)) return;
         // An Exhibition with no park id named plays at the home captain's park, so the map is the one
         // the game actually uses, not a lookup nothing calls.
         Assert.Equal(park, Match.Exhibition(Shipped, captain, captain == "rio" ? "ashlord" : "rio",

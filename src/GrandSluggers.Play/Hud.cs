@@ -111,11 +111,11 @@ public static class Hud
         {
             if (campaign.LastWin && campaign.LastRecruit is { } who)
                 Raylib.DrawText($"{who.Name} joins {match.Home.Name}!", 80, 380, 28, Palette.Gold);
-            else if (campaign.LastWin && campaign.AllBeaten)
+            else if (campaign.LastWin && campaign.AllBeaten(match.Content))
                 Raylib.DrawText("Island tour done. Every captain beaten.", 80, 380, 24, Palette.Gold);
             else if (!campaign.LastWin)
                 Raylib.DrawText("No recruit. Win it to add their role player.", 80, 380, 22, Palette.HudPaper);
-            var next = campaign.AllBeaten ? "SPACE  title" : campaign.LastWin ? "SPACE  next rival" : "SPACE  rematch";
+            var next = campaign.AllBeaten(match.Content) ? "SPACE  title" : campaign.LastWin ? "SPACE  next rival" : "SPACE  rematch";
             Raylib.DrawText(next, 80, 430, 22, Palette.HudPaper);
         }
         else

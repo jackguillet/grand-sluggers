@@ -1,5 +1,8 @@
 {
   "extraInningsCap": 3,
+  // The glove each side fields with (an item id in data/gloves): the home nine's and the visitors'.
+  "homeGlove": "web-back",
+  "awayGlove": "lucky-mitt",
   "mercy": {
     "runs": 10,
     "fromInning": 3,

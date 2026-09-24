@@ -3,6 +3,10 @@
   "name": "Rio Sparks",
   "faction": "spark",
   "captain": true,
+  "teamName": "Spark All-Stars",
+  "signatureBat": "harbor-lumber",
+  // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
+  "proportions": { "height": 0.9, "width": 1.0, "head": 1.38, "arms": 1.02, "torso": 0.94 },
   "pitch": 6,
   "bat": 7,
   "field": 6,

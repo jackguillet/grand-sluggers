@@ -176,10 +176,10 @@ public sealed class Game : IDisposable
         if (!_challengeMode)
         {
             var pick = new ExhibitionPick(_homeCaptain, _awayCaptain, _parkId);
-            if (p1.NavLeft) pick = ExhibitionPick.CycleHome(pick, -1);
-            if (p1.NavRight) pick = ExhibitionPick.CycleHome(pick, 1);
-            if (p1.NavUp) pick = ExhibitionPick.CycleAway(pick, -1);
-            if (p1.NavDown) pick = ExhibitionPick.CycleAway(pick, 1);
+            if (p1.NavLeft) pick = ExhibitionPick.CycleHome(_content, pick, -1);
+            if (p1.NavRight) pick = ExhibitionPick.CycleHome(_content, pick, 1);
+            if (p1.NavUp) pick = ExhibitionPick.CycleAway(_content, pick, -1);
+            if (p1.NavDown) pick = ExhibitionPick.CycleAway(_content, pick, 1);
             if (p1.TogglePark) pick = ExhibitionPick.CyclePark(_content, pick, 1);
             _homeCaptain = pick.Home;
             _awayCaptain = pick.Away;
@@ -188,9 +188,9 @@ public sealed class Game : IDisposable
         else
         {
             if (p1.NavLeft)
-                _homeCaptain = PresetTeams.PrevCaptain(_homeCaptain);
+                _homeCaptain = PresetTeams.PrevCaptain(_content, _homeCaptain);
             if (p1.NavRight)
-                _homeCaptain = PresetTeams.NextCaptain(_homeCaptain);
+                _homeCaptain = PresetTeams.NextCaptain(_content, _homeCaptain);
             _awayCaptain = (_campaign is not null && _campaign.CaptainId.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase)
                 ? _campaign
                 : Challenge.Start(_content, _homeCaptain)).NextOpponentId(_content);
@@ -207,7 +207,7 @@ public sealed class Game : IDisposable
     {
         if (_campaign is not null)
         {
-            if (_campaign.AllBeaten)
+            if (_campaign.AllBeaten(_content))
             {
                 _phase = Phase.Title;
                 _phaseT = 0;

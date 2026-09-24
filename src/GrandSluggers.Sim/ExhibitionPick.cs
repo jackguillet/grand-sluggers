@@ -20,28 +20,28 @@ public readonly record struct ExhibitionPick(string Home, string Away, string Pa
     public string Yours => Pad1Home ? Home : Away;
     public string Theirs => Pad1Home ? Away : Home;
 
-    public static ExhibitionPick CycleHome(ExhibitionPick pick, int dir)
+    public static ExhibitionPick CycleHome(ContentCatalog content, ExhibitionPick pick, int dir)
     {
-        var home = dir >= 0 ? PresetTeams.NextCaptain(pick.Home) : PresetTeams.PrevCaptain(pick.Home);
+        var home = dir >= 0 ? PresetTeams.NextCaptain(content, pick.Home) : PresetTeams.PrevCaptain(content, pick.Home);
         var away = home.Equals(pick.Away, StringComparison.OrdinalIgnoreCase)
-            ? PresetTeams.NextCaptain(home)
+            ? PresetTeams.NextCaptain(content, home)
             : pick.Away;
         return pick with { Home = home, Away = away };
     }
 
-    public static ExhibitionPick CycleAway(ExhibitionPick pick, int dir)
+    public static ExhibitionPick CycleAway(ContentCatalog content, ExhibitionPick pick, int dir)
     {
-        var away = dir >= 0 ? PresetTeams.NextCaptain(pick.Away) : PresetTeams.PrevCaptain(pick.Away);
+        var away = dir >= 0 ? PresetTeams.NextCaptain(content, pick.Away) : PresetTeams.PrevCaptain(content, pick.Away);
         if (away.Equals(pick.Home, StringComparison.OrdinalIgnoreCase))
-            away = dir >= 0 ? PresetTeams.NextCaptain(away) : PresetTeams.PrevCaptain(away);
+            away = dir >= 0 ? PresetTeams.NextCaptain(content, away) : PresetTeams.PrevCaptain(content, away);
         return pick with { Away = away };
     }
 
-    public static ExhibitionPick CycleYours(ExhibitionPick pick, int dir) =>
-        pick.Pad1Home ? CycleHome(pick, dir) : CycleAway(pick, dir);
+    public static ExhibitionPick CycleYours(ContentCatalog content, ExhibitionPick pick, int dir) =>
+        pick.Pad1Home ? CycleHome(content, pick, dir) : CycleAway(content, pick, dir);
 
-    public static ExhibitionPick CycleTheirs(ExhibitionPick pick, int dir) =>
-        pick.Pad1Home ? CycleAway(pick, dir) : CycleHome(pick, dir);
+    public static ExhibitionPick CycleTheirs(ContentCatalog content, ExhibitionPick pick, int dir) =>
+        pick.Pad1Home ? CycleAway(content, pick, dir) : CycleHome(content, pick, dir);
 
     public static ExhibitionPick ToggleSeat(ExhibitionPick pick) =>
         pick with { Pad1Home = !pick.Pad1Home };

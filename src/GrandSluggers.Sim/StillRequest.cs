@@ -93,11 +93,11 @@ public sealed class StillRequest
     /// shared-rig captains; Generic packages opt in explicitly because their
     /// anatomy cannot use shared-rig hand and plate thresholds.
     /// </summary>
-    public IReadOnlyList<string> ResolvedSwingCaptains()
+    public IReadOnlyList<string> ResolvedSwingCaptains(ContentCatalog content)
     {
-        var src = SwingCaptains is { Length: > 0 }
+        IEnumerable<string?> src = SwingCaptains is { Length: > 0 }
             ? SwingCaptains
-            : SwingPresentation.SharedCaptains;
+            : content.CaptainIds;
         var resolved = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var raw in src)
@@ -105,7 +105,7 @@ public sealed class StillRequest
             var id = (raw ?? "").Trim().ToLowerInvariant();
             if (id.Length == 0)
                 throw new InvalidDataException("swing matrix captain id is empty");
-            if (!PresetTeams.CaptainIds.Contains(id, StringComparer.OrdinalIgnoreCase))
+            if (!content.CaptainIds.Contains(id, StringComparer.OrdinalIgnoreCase))
                 throw new InvalidDataException("swing matrix captain not playable: " + id);
             if (!seen.Add(id))
                 throw new InvalidDataException("swing matrix captain is duplicated: " + id);
@@ -180,8 +180,11 @@ public sealed class StillRequest
         var req = JsonSerializer.Deserialize<StillRequest>(json, DataJson.Options)
             ?? throw new InvalidDataException("still request is empty");
         _ = req.ResolvedShots();
-        _ = req.ResolvedSwingCaptains();
-        if (content != null) _ = req.ResolvedPark(content);
+        if (content != null)
+        {
+            _ = req.ResolvedSwingCaptains(content);
+            _ = req.ResolvedPark(content);
+        }
         return req;
     }
 

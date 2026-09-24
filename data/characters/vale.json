@@ -3,6 +3,10 @@
   "name": "Queen Vale",
   "faction": "royal",
   "captain": true,
+  "teamName": "Royal Rink",
+  "signatureBat": "pageant-wand",
+  // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
+  "proportions": { "height": 1.24, "width": 0.7, "head": 1.24, "arms": 0.88, "torso": 0.74 },
   "pitch": 9,
   "bat": 4,
   "field": 8,

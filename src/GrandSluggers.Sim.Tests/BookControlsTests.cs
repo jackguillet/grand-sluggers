@@ -65,7 +65,7 @@ public class BookControlsTests
     [Fact]
     public void ChapterMascotsAreRosterCaptains()
     {
-        Assert.True(BookChapter.EveryPageHasARosterCaptain());
+        Assert.True(BookChapter.EveryPageHasARosterCaptain(Shipped.Content));
         Assert.Equal("rio", BookChapter.Captain("contents"));
         Assert.Equal("konga", BookChapter.Captain("running"));
         Assert.Equal("ashlord", BookChapter.Captain("fielding"));

@@ -152,8 +152,9 @@ public sealed partial class Match
         _awayDefense = away.Roster.ToList();
         HomeBat = GearMesh.SignatureBat(content, home.Captain.Id);
         AwayBat = GearMesh.SignatureBat(content, away.Captain.Id);
-        HomeGlove = content.Gloves.GetValueOrDefault("web-back") ?? content.Gloves.Values.First();
-        AwayGlove = content.Gloves.GetValueOrDefault("lucky-mitt") ?? content.Gloves.Values.First();
+        // The sides' gloves are the match rules' (match.json), checked against data/gloves by the content validator.
+        HomeGlove = content.Gloves[_rules.Match.HomeGlove];
+        AwayGlove = content.Gloves[_rules.Match.AwayGlove];
     }
 
     public BatItem HomeBat { get; private set; } = null!;

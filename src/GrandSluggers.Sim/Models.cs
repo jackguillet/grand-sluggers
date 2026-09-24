@@ -272,6 +272,21 @@ public sealed record Character(
     /// <c>ContentDataValidator</c> requires it.
     /// </summary>
     public Repertoire Repertoire { get; init; } = GrandSluggers.Sim.Repertoire.Default;
+
+    /// <summary>
+    /// The captain whose body this character wears (docs/silhouette-bible.md): a captain its own, a role player its faction's
+    /// captain. Resolved from the data when the catalog loads; a character built by hand has none.
+    /// </summary>
+    public string BodyType { get; init; } = "";
+
+    /// <summary>The body's proportions on the shared rig: a captain's authored row, a role player's captain's.</summary>
+    public Silhouette.Spec Proportions { get; init; }
+
+    /// <summary>A captain's team name (<c>teamName</c>); null for a role player.</summary>
+    public string? TeamName { get; init; }
+
+    /// <summary>A captain's signature bat (<c>signatureBat</c>, a <c>data/bats</c> id); null for a role player.</summary>
+    public string? SignatureBat { get; init; }
 }
 
 /// <summary>A park's foul territory where it differs from <c>boundary.json</c> (F2-d): each member null keeps the table's.</summary>

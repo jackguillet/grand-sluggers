@@ -82,15 +82,15 @@ public static class StillPose
     /// <summary>Same radius as <see cref="SwingPresentation.HeadRadius"/>.</summary>
     public const double CharUnscaledHeadRadius = SwingPresentation.HeadRadius;
 
-    public static double CharChestY(string bodyType)
+    public static double CharChestY(ContentCatalog content, string bodyType)
     {
-        var spec = Silhouette.Proportions(bodyType);
+        var spec = Silhouette.Proportions(content, bodyType);
         return CharUnscaledChestY * Silhouette.SharedRootScale(spec).Y;
     }
 
-    public static double CharHeadTopY(string bodyType)
+    public static double CharHeadTopY(ContentCatalog content, string bodyType)
     {
-        var spec = Silhouette.Proportions(bodyType);
+        var spec = Silhouette.Proportions(content, bodyType);
         return (CharUnscaledHeadCenterY + CharUnscaledHeadRadius) * Silhouette.SharedRootScale(spec).Y;
     }
 
@@ -99,14 +99,14 @@ public static class StillPose
     /// the camera pulls back by extra height above the Rio-sized template so a
     /// taller cut (Ashlord, Konga) keeps its head in the frustum.
     /// </summary>
-    public static CameraShot CharFraming(string bodyType)
+    public static CameraShot CharFraming(ContentCatalog content, string bodyType)
     {
-        var chestY = CharChestY(bodyType);
-        var height = CharHeadTopY(bodyType);
+        var chestY = CharChestY(content, bodyType);
+        var height = CharHeadTopY(content, bodyType);
         var dx = CharCamX - CharX;
         var dz = CharCamZ - CharZ;
         var template = Math.Sqrt(dx * dx + dz * dz);
-        var dist = template + Math.Max(0, height - CharHeadTopY("rio"));
+        var dist = template + Math.Max(0, height - CharHeadTopY(content, content.CaptainIds[0]));
         CameraShot AtDistance(double distance)
         {
             var u = distance / template;
@@ -145,10 +145,10 @@ public static class StillPose
     public static bool CharCameraIsThreeQuarter(double camX, double camZ, double charZ) =>
         Math.Abs(camX) >= 6 && camZ < charZ && charZ - camZ >= 8;
 
-    public static bool CharHeadTopInFrame(string bodyType, double margin = 0.04)
+    public static bool CharHeadTopInFrame(ContentCatalog content, string bodyType, double margin = 0.04)
     {
-        var shot = CharFraming(bodyType);
-        var top = new Vec3(CharX, CharHeadTopY(bodyType), CharZ);
+        var shot = CharFraming(content, bodyType);
+        var top = new Vec3(CharX, CharHeadTopY(content, bodyType), CharZ);
         return PlayCamera.InFrame(PlayCamera.Project(shot, top), margin);
     }
 
