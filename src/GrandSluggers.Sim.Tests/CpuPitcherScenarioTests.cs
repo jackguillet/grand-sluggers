@@ -17,7 +17,7 @@ namespace GrandSluggers.Sim.Tests;
 /// pitcher does not own, bends further than a held stick reaches — and not when a weight moves.
 ///
 /// The shipped root is loaded <b>in process</b> through a <see cref="DataRoot"/> built from the
-/// repository, the way <see cref="PitchFamilyTrialScenarioTests"/> does it, so nothing depends on
+/// repository, the way <see cref="PitchFamilyScenarioTests"/> does it, so nothing depends on
 /// <c>GRAND_SLUGGERS_TRIAL</c> and CI is untouched.
 ///
 /// No expected double crosses a Gaussian: <see cref="Match"/>'s <c>Gauss()</c> is
@@ -31,32 +31,26 @@ public sealed class CpuPitcherScenarioTests
 
     string ShippedRoot => _shipped.Root.Shipped;
 
-    /// <summary>
-    /// The shipped root, which since #860 is the accepted trial (the <c>trials/pitch5</c> overlay
-    /// that once carried it was retired by #883).
-    /// </summary>
-    ContentCatalog Trial => _shipped;
 
     static double CenterY => StrikeZoneGeometry.CenterY;
 
     // ---------------------------------------------------------------------------------
-    // S-115  Trial: no aim, a reachable crossing, and the arm stamped before the solve
+    // S-115  no aim, a reachable crossing, and the arm stamped before the solve
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S115_TrialCpuNeverAimsAndWalksTheRubberOntoItsIntentWithBothArms()
+    public void S115_TheCpuNeverAimsAndWalksTheRubberOntoItsIntentWithBothArms()
     {
-        var trial = Trial;
-        var rules = trial.Rules;
+        var rules = _shipped.Rules;
         var hands = new Dictionary<Hand, int>();
         var clamped = 0;
         var stars = 0;
         var total = 0;
 
-        foreach (var who in Roster(trial))
+        foreach (var who in Roster(_shipped))
         foreach (var seed in new[] { 3, 11 })
         {
-            var match = MatchPitchedBy(trial, who, seed);
+            var match = MatchPitchedBy(_shipped, who, seed);
             Assert.Equal(who.Id, match.Pitcher.Id);
             for (var i = 0; i < 25; i++)
             {
@@ -112,7 +106,7 @@ public sealed class CpuPitcherScenarioTests
     [Fact]
     public void S115_AWrongArmWouldMissTheIntentByTwiceTheFamilysSweep()
     {
-        var rules = Trial.Rules;
+        var rules = _shipped.Rules;
         foreach (var family in new[] { PitchFamily.Slider, PitchFamily.Curveball, PitchFamily.Sinker })
         {
             var row = rules.Pitching.Families.Of(family);
@@ -133,21 +127,20 @@ public sealed class CpuPitcherScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-116  Trial: the family is always one this pitcher can press to
+    // S-116  the family is always one this pitcher can press to
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S116_TheTrialCpuOnlyEverThrowsAFamilyItsPresssesReach()
+    public void S116_TheCpuOnlyEverThrowsAFamilyItsPresssesReach()
     {
-        var trial = Trial;
-        var authored = trial.Rules.Pitching.Families.Authored;
+        var authored = _shipped.Rules.Pitching.Families.Authored;
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var pitchers = 0;
 
-        foreach (var who in Roster(trial))
+        foreach (var who in Roster(_shipped))
         {
             pitchers++;
-            var match = MatchPitchedBy(trial, who, seed: 5);
+            var match = MatchPitchedBy(_shipped, who, seed: 5);
             for (var i = 0; i < 60; i++)
             {
                 var pitch = match.CpuPitchByInputs(out var plan);
@@ -156,7 +149,7 @@ public sealed class CpuPitcherScenarioTests
 
                 // In the repertoire, and authored: the two halves of IsSelectable.
                 Assert.True(who.Repertoire.Has(pitch.Type), $"{who.Id} does not throw {pitch.Type}");
-                Assert.True(trial.Rules.Pitching.Families.IsAuthored(pitch.Type), $"{pitch.Type} is unauthored");
+                Assert.True(_shipped.Rules.Pitching.Families.IsAuthored(pitch.Type), $"{pitch.Type} is unauthored");
 
                 // The choice is the presses it is: replay them the way a player does and land on it.
                 Assert.InRange(plan.Presses, 0, Repertoire.Slots - 1);
@@ -206,20 +199,19 @@ public sealed class CpuPitcherScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-117  Trial: the bend is what a held stick reaches, never an instant ±1
+    // S-117  the bend is what a held stick reaches, never an instant ±1
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S117_TheTrialCpuNeverBendsFurtherThanAHeldStickReaches()
+    public void S117_TheCpuNeverBendsFurtherThanAHeldStickReaches()
     {
-        var trial = Trial;
-        var rules = trial.Rules;
+        var rules = _shipped.Rules;
         var steered = 0;
         var saturated = 0;
 
-        foreach (var who in Roster(trial))
+        foreach (var who in Roster(_shipped))
         {
-            var match = MatchPitchedBy(trial, who, seed: 13);
+            var match = MatchPitchedBy(_shipped, who, seed: 13);
             for (var i = 0; i < 40; i++)
             {
                 var pitch = match.CpuPitchByInputs(out var plan);
@@ -257,7 +249,7 @@ public sealed class CpuPitcherScenarioTests
         // number that would have to close for the bound to start showing on the field. The claim is about the
         // arms the game fields: a Pitch-1 arm is legal content but on no roster, and on the 53.78-ft mound its
         // hardest pitch (0.754 s) would bend 0.94 of the stick. A roster that adds one reopens this row.
-        var slowest = Roster(trial).Min(c => c.Stats.Pitch);
+        var slowest = Roster(_shipped).Min(c => c.Stats.Pitch);
         var hardest = new PitchCommand(PitchFamily.Fastball, 1, false, Nice: true);
         var shortestReal = PitchFlight.AirSeconds(AtBatResolver.PitchSpeedMph(hardest, slowest, rules), rules);
         Assert.True(shortestReal > flight.AirMinSec, "no real pitch leans on the air-time floor (S-107)");
@@ -277,7 +269,7 @@ public sealed class CpuPitcherScenarioTests
     [Fact]
     public void S117_HoldingTheStickAFrameAtATimeArrivesAtTheSameReach()
     {
-        var rules = Trial.Rules;
+        var rules = _shipped.Rules;
         const double dt = 1.0 / 60;
         foreach (var stat in new[] { 1, 3, 5, 8, 10 })
         foreach (var airSec in new[] { 0.78, 0.95, 1.28 })
@@ -290,20 +282,19 @@ public sealed class CpuPitcherScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-118  Trial: charge and steer are independent modifiers, not exclusive verbs
+    // S-118  charge and steer are independent modifiers, not exclusive verbs
     // ---------------------------------------------------------------------------------
 
     [Fact]
     [Trait("Kind", "Balance")]
     public void S118_ChargeAndSteerCoOccurAtTheRateTheRowsSay()
     {
-        var trial = Trial;
-        var cpu = trial.Rules.Pitching.Cpu;
+        var cpu = _shipped.Rules.Pitching.Cpu;
 
         foreach (var (name, row, match) in new[]
         {
-            ("even", cpu.Even, EvenCount(trial, seed: 21)),
-            ("ahead", cpu.Ahead, AheadCount(trial, seed: 22)),
+            ("even", cpu.Even, EvenCount(_shipped, seed: 21)),
+            ("ahead", cpu.Ahead, AheadCount(_shipped, seed: 22)),
         })
         {
             Assert.Same(row, match.CpuPitchRow());
@@ -332,16 +323,15 @@ public sealed class CpuPitcherScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-119  Trial twin of S-27: the waste survives the loss of vertical aim
+    // S-119  Twin of S-27: the waste survives the loss of vertical aim
     // ---------------------------------------------------------------------------------
 
     [Fact]
     [Trait("Kind", "Balance")]
-    public void S119_AtZeroTwoTheTrialCpuStillWastesOutsideTheZoneByRubberAlone()
+    public void S119_AtZeroTwoTheCpuStillWastesOutsideTheZoneByRubberAlone()
     {
-        var trial = Trial;
-        var match = AheadCount(trial, seed: 27);
-        Assert.Same(trial.Rules.Pitching.Cpu.Ahead, match.CpuPitchRow());
+        var match = AheadCount(_shipped, seed: 27);
+        Assert.Same(_shipped.Rules.Pitching.Cpu.Ahead, match.CpuPitchRow());
 
         var outside = 0;
         var byX = 0;
@@ -349,7 +339,7 @@ public sealed class CpuPitcherScenarioTests
         for (var i = 0; i < 100; i++)
         {
             var pitch = match.CpuPitchByInputs(out _);
-            var (x, y) = PitchFlight.Crossing(pitch, trial.Rules, match.Pitcher.StarPitch);
+            var (x, y) = PitchFlight.Crossing(pitch, _shipped.Rules, match.Pitcher.StarPitch);
             if (StrikeZoneGeometry.Contains(x, y)) continue;
             outside++;
             if (Math.Abs(x) > StrikeZoneGeometry.HalfWidth) byX++;
@@ -361,12 +351,12 @@ public sealed class CpuPitcherScenarioTests
         Assert.True(byX >= 30, $"{byX} of 100 outside by X (rubber); {byY} by Y (the family's own drop)");
 
         // And the even row still never sits down the middle, the second half of S-27's claim.
-        var even = EvenCount(trial, seed: 28);
-        Assert.Same(trial.Rules.Pitching.Cpu.Even, even.CpuPitchRow());
+        var even = EvenCount(_shipped, seed: 28);
+        Assert.Same(_shipped.Rules.Pitching.Cpu.Even, even.CpuPitchRow());
         var center = 0;
         for (var i = 0; i < 100; i++)
         {
-            var (x, y) = PitchFlight.Crossing(even.CpuPitchByInputs(out _), trial.Rules, even.Pitcher.StarPitch);
+            var (x, y) = PitchFlight.Crossing(even.CpuPitchByInputs(out _), _shipped.Rules, even.Pitcher.StarPitch);
             if (Math.Abs(x) < 0.25 && Math.Abs(y - CenterY) < 0.25) center++;
         }
         Assert.True(center < 10, $"{center} of 100 down the middle");

@@ -83,7 +83,7 @@ Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on deman
 
 **Evidence seals (FR-16).** A feature PR does not reseal, even when it edits a sealed file. Reseal only during a balance pass Jack asked for. A stale seal in the Full tests run is not a feature PR's failure.
 
-**Trials (`trials/*`).** A feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more.
+**Trials (`trials/*`).** No trial is open today; the overlay machinery is kept dormant (spec §16). While a trial is open, a feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more.
 
 **Spec.** A PR that changes behavior updates the affected rule in [gameplay-spec.md](gameplay-spec.md) in the same PR. The rule says what the game does: numbers, units, scenario ids. It does not say who built it. Do not add PR numbers, "✅ Fx (#nnn, PR #nnn)" provenance, or register rows that name PRs. A status tag stays a bare tag (✅ / ⚠️ / ❌). The commit history records who did what. Existing provenance text stays; do not mass-delete it.
 

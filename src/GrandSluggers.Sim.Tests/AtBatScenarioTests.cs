@@ -238,12 +238,12 @@ public sealed class AtBatScenarioTests
     public void S10_OnTheShippedRootTheWindowIsOneNumberForEverySwingAndEveryHitter()
     {
         var park = _content.Parks["harbor-diamond"];
-        var trial = _content.Rules;
-        var frames = trial.Batting.Window.Frames;
-        Assert.Equal(frames, AtBatResolver.ContactWindowFrames(null, park, false, trial, _content.StarSkills));
+        var rules = _content.Rules;
+        var frames = rules.Batting.Window.Frames;
+        Assert.Equal(frames, AtBatResolver.ContactWindowFrames(null, park, false, rules, _content.StarSkills));
 
         // A Bat 1 and a Bat 10 hitter, quick and charged, miss at the same timing error.
-        var resolver = new AtBatResolver(_content.Chemistry, trial, _content.StarSkills);
+        var resolver = new AtBatResolver(_content.Chemistry, rules, _content.StarSkills);
         foreach (var bat in new[] { 1, 5, 10 })
         foreach (var charge in new[] { 0.0, 1.0 })
         {
@@ -252,7 +252,7 @@ public sealed class AtBatScenarioTests
         }
 
         // The charmball is judged in the same window (PH-16-R18).
-        Assert.Equal(frames, AtBatResolver.ContactWindowFrames("charmball", park, false, trial, _content.StarSkills));
+        Assert.Equal(frames, AtBatResolver.ContactWindowFrames("charmball", park, false, rules, _content.StarSkills));
     }
 
     // ---------------------------------------------------------------------------------
@@ -865,15 +865,15 @@ public sealed class AtBatScenarioTests
     [Fact]
     public void S30_OnTheShippedRootTheChargeBatKeepsItsZonesAndSharesEveryonesWindow()
     {
-        var trial = _content.Rules;
+        var rules = _content.Rules;
         var park = _content.Parks["harbor-diamond"];
-        var resolver = new AtBatResolver(_content.Chemistry, trial, _content.StarSkills);
+        var resolver = new AtBatResolver(_content.Chemistry, rules, _content.StarSkills);
         var manual = Input(bat: 5, err: 0, charge: 1);
         var chargeBat = Input(bat: 5, err: 0, charge: 0, batId: "charge-bat");
         var quick = Input(bat: 5, err: 0);
         Assert.True(_content.Bats["charge-bat"].ChargeAlwaysFull);
 
-        var frames = AtBatResolver.ContactWindowFrames(null, park, false, trial, _content.StarSkills);
+        var frames = AtBatResolver.ContactWindowFrames(null, park, false, rules, _content.StarSkills);
 
         // The spatial clause still holds: the ball toward the tip is Nice on a manual charge and
         // Perfect with the bat, exactly as on the shipped root.

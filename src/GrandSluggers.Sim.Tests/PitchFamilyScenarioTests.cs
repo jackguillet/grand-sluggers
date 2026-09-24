@@ -23,17 +23,12 @@ namespace GrandSluggers.Sim.Tests;
 /// from the repository, so nothing depends on <c>GRAND_SLUGGERS_TRIAL</c> being set and CI is untouched.
 /// </summary>
 [Trait("Kind", "Balance")]
-public sealed class PitchFamilyTrialScenarioTests
+public sealed class PitchFamilyScenarioTests
 {
     readonly ContentCatalog _shippedContent = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
 
     string Shipped => _shippedContent.Root.Shipped;
 
-    /// <summary>
-    /// The table the three families were proposed in: since #860 the shipped table (the
-    /// <c>trials/pitch5</c> overlay that once carried them was retired by #883).
-    /// </summary>
-    RulesTable Trial => ShippedRules;
     RulesTable ShippedRules => _shippedContent.Rules;
 
     static readonly string[] Proposed = [PitchFamily.Curveball, PitchFamily.Slider, PitchFamily.Sinker];
@@ -64,7 +59,7 @@ public sealed class PitchFamilyTrialScenarioTests
     public void S107_EveryFamilyIsSlowerThanTheFastballFasterThanTheChangeupAndNeverClamps()
     {
         // Air time rides on Diamond.Mound, which is process-wide.
-        var rules = Trial;
+        var rules = ShippedRules;
         var flight = rules.Pitching.Flight;
 
         foreach (var stat in new[] { 1, 5, 10 })
@@ -115,7 +110,7 @@ public sealed class PitchFamilyTrialScenarioTests
     [Fact]
     public void S108_EveryFamilyCrossesInsideTheZoneForBothArmsAndTheCursorCanCoverIt()
     {
-        var rules = Trial;
+        var rules = ShippedRules;
 
         foreach (var family in PitchFamily.All)
             foreach (var throws in new[] { Hand.L, Hand.R })
@@ -147,7 +142,7 @@ public sealed class PitchFamilyTrialScenarioTests
     [Fact]
     public void S109_TheArcTheRideAndTheFlatOneAreThreeDifferentHeightPaths()
     {
-        var rules = Trial;
+        var rules = ShippedRules;
 
         // The cross-field rule every authored row must satisfy: the drop finishes in flight.
         Assert.Empty(RulesTable.Validate(new DataRoot(Shipped)));
@@ -220,7 +215,7 @@ public sealed class PitchFamilyTrialScenarioTests
     [Fact]
     public void S110_SweepOrdersTheThreeAndMirrorsExactlyWithTheArmForAllTwentyFivePitchers()
     {
-        var rules = Trial;
+        var rules = ShippedRules;
         var families = rules.Pitching.Families;
 
         var slider = families.Of(PitchFamily.Slider).SweepFt;
@@ -305,7 +300,7 @@ public sealed class PitchFamilyTrialScenarioTests
                 foreach (var bats in new[] { Hand.L, Hand.R })
                     foreach (var charged in new[] { false, true })
                     {
-                        var margin = CoverMargin(family, throws, bats, charged, Trial);
+                        var margin = CoverMargin(family, throws, bats, charged, ShippedRules);
                         Assert.True(margin > 0,
                             $"{family}: a {bats} batter cannot cover a {throws} arm's worst legal "
                             + $"{(charged ? "charged" : "uncharged")} one — margin {margin:F3} ft");
@@ -363,7 +358,7 @@ public sealed class PitchFamilyTrialScenarioTests
     [Fact]
     public void S112_TheChargeDampsTheStickAndLeavesTheSweepAlone()
     {
-        var rules = Trial;
+        var rules = ShippedRules;
         var flight = rules.Pitching.Flight;
 
         foreach (var family in Proposed)
@@ -401,7 +396,7 @@ public sealed class PitchFamilyTrialScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S113_TheShippedRootStopsByNameAndTheTrialAddsNothingElse()
+    public void S113_TheShippedRootAuthorsEveryFamilyAndABareTableStopsByName()
     {
         // #860: Jack played the trials/pitch5 window and accepted it on September 22, 2026 ("trial
         // was good."), so the three rows moved into the shipped pitching.json. This row now holds
@@ -424,17 +419,13 @@ public sealed class PitchFamilyTrialScenarioTests
         Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, bare.Pitching.Families.Authored);
         Assert.Equal(new[] { "fastball", "changeup" }, Training.PitchesOf(bare));
 
-        // (b) The shipped root authors all five (the CPU pitcher runs on human inputs; #887 removed
-        //     the switch, see CpuPitcherScenarioTests S-120).
+        // (b) The shipped root authors the whole library, in library order (the CPU pitcher runs on
+        //     human inputs; #887 removed the switch, see CpuPitcherScenarioTests S-120).
         var shipped = ShippedRules.Pitching.Families;
         Assert.Equal(PitchFamily.All, shipped.Authored);
+        foreach (var family in Proposed) Assert.True(shipped.IsAuthored(family));
 
-        // (c) The whole library is authored, in library order.
-        var trial = Trial.Pitching.Families;
-        Assert.Equal(PitchFamily.All, trial.Authored);
-        foreach (var family in Proposed) Assert.True(trial.IsAuthored(family));
-
-        // (d) … so the SET selection cycles all three slots for all 25 shipped repertoires, off the
+        // (c) … so the SET selection cycles all three slots for all 25 shipped repertoires, off the
         //     shipped table's own authored list — nothing in the step knows a number (#812).
         var roster = _shippedContent.Characters.Values.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
         Assert.Equal(25, roster.Count);
@@ -449,14 +440,14 @@ public sealed class PitchFamilyTrialScenarioTests
                 for (var i = 0; i < presses; i++)
                 {
                     var step = ChargeButton.Advance(button, false, false, false, 1.0 / 60, 0.55);
-                    state = PitchSelection.Advance(state, true, true, button, step, rep, trial).Next;
+                    state = PitchSelection.Advance(state, true, true, button, step, rep, shipped).Next;
                     button = step.Next;
                 }
                 Assert.Equal(presses % Repertoire.Slots, state.Slot);
-                Assert.Equal(expected[presses], PitchSelection.FamilyAt(state, rep, trial));
+                Assert.Equal(expected[presses], PitchSelection.FamilyAt(state, rep, shipped));
 
                 // Every slot the cycle can land on is a family this table can fly.
-                Assert.True(trial.IsAuthored(PitchSelection.FamilyAt(state, rep, trial)));
+                Assert.True(shipped.IsAuthored(PitchSelection.FamilyAt(state, rep, shipped)));
             }
         }
     }

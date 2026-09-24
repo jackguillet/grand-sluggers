@@ -389,7 +389,7 @@
       "stage": "sim",
       "cause": "The statistic was a proxy, and the flattest row wins any proxy about staying near the fastball by never doing anything. The slider's whole role is a small drop, so the last u at which the height gap stays under a tolerance is largest for it, not for the sinker whose role is to ride and then dip (#818, S-109).",
       "fix": "State a role as two numbers that cannot both be won by inaction - how far it strays before the window (the ride) and how much further it goes after it (the dip) - and before trusting a single-threshold proxy, ask which row would win it by doing nothing. Change the measure, not the proposed number: the number is the thing under judgment.",
-      "promoted": "PitchFamilyTrialScenarioTests.S109_TheArcTheRideAndTheFlatOneAreThreeDifferentHeightPaths",
+      "promoted": "PitchFamilyScenarioTests.S109_TheArcTheRideAndTheFlatOneAreThreeDifferentHeightPaths",
       "issue": "#818",
       "pr": "#821"
     },
@@ -399,7 +399,7 @@
       "stage": "sim",
       "cause": "PitchFlight.Point applies the Star Pitch's own shape (heat/prism/charm/phony wobble in X, caskball's rise in Y) after the family, the sweep and the stick, so a Star crossing is not the family's crossing. Any test that samples CpuPitch, AutoPlay or a captain's delivery will eventually draw one: Match.CpuPitch rolls Star on a captain with a star available (#823, S-115).",
       "fix": "Say which pitches the claim is about. A statement about the family's own geometry exempts pitch.Star and asserts that a Star was in fact drawn, so the exemption is not silently covering an empty set; a statement about the rubber solve does not need the exemption, because the wobble is in the rubber-0 probe too and cancels. Do not widen the tolerance to swallow a star.",
-      "promoted": "CpuPitcherScenarioTests.S115_TrialCpuNeverAimsAndWalksTheRubberOntoItsIntentWithBothArms",
+      "promoted": "CpuPitcherScenarioTests.S115_TheCpuNeverAimsAndWalksTheRubberOntoItsIntentWithBothArms",
       "issue": "#823",
       "pr": ""
     },
