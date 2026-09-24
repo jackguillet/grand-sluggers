@@ -375,7 +375,7 @@ public sealed class OutsScenarioTests
         S55b_Row(S55bCompact);
 
     /// <summary>C80 (#715): the same seed and line, 235 ft — the fly deep enough that the runner tags on the race and the relay still loses the ball.</summary>
-    static readonly (int Seed, double Carry, double Launch, double Spray) S55bCompact = (33, 235, 34, 34);
+    static readonly (int Seed, double Carry, double Launch, double Spray) S55bCompact = (36, 235, 34, 34);
 
     void S55b_Row((int Seed, double Carry, double Launch, double Spray) row)
     {

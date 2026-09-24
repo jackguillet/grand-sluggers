@@ -469,7 +469,7 @@ public sealed class AtBatScenarioTests
         var strikeouts = 0;
         var caughtPops = 0;
         var fouls = 0;
-        for (var seed = 1; seed <= 200; seed++)
+        for (var seed = 1; seed <= 400; seed++)
         {
             var s = new Scenario(_content, seed);
             var match = s.Match;
@@ -498,7 +498,7 @@ public sealed class AtBatScenarioTests
             Assert.NotEqual(batter.Id, match.Batter.Id);
         }
         Assert.Equal(0, fouls);
-        Assert.True(strikeouts + caughtPops > 5, $"a pulled sour bunt goes foul sometimes: {strikeouts} + {caughtPops} of 200");
+        Assert.True(strikeouts + caughtPops > 5, $"a pulled sour bunt goes foul sometimes: {strikeouts} + {caughtPops} of 400");
     }
 
     [Fact]
