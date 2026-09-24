@@ -144,7 +144,7 @@ namespace GrandSluggers.UnityClient
                         var speed = FieldingResolver.ChaseSpeedFt(who, _glovePos, _preview, _match.Rules);
                         var route = FieldingPursuit.Plan(
                             _preview, _match.Park, _path,
-                            LiveTime, fromX, fromZ, speed);
+                            LiveTime, fromX, fromZ, speed, cutOff: !FieldingResolver.IsOutfield(_glovePos));
                         if (CartoonJuice.ChaseIsARun(
                                 _caught || _buddy,
                                 Diamond.Dist(fromX, fromZ, route.X, route.Z)))
