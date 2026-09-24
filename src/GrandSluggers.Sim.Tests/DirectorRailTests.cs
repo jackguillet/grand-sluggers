@@ -13,11 +13,11 @@ public sealed class DirectorRailTests
     static readonly string[] StillPartial =
     [
         "ActorDirector.cs", "AtBatDirector.cs", "FlowDirector.cs", "GuidedTutorialDirector.cs", "InPlayDirector.cs",
-        "MatchDirector.cs", "PursuitSeatDirector.cs", "StillCapture.cs", "TutorialDirector.cs",
+        "MatchDirector.cs", "PursuitSeatDirector.cs", "StillStaging.cs", "TutorialDirector.cs",
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
-    const int MatchDirectorCeiling = 917;
+    const int MatchDirectorCeiling = 916;
 
     static string Scripts => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "Assets", "Scripts"));
 
@@ -48,5 +48,21 @@ public sealed class DirectorRailTests
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", "StealDirector.cs"));
         Assert.Contains("public sealed class StealDirector", text, StringComparison.Ordinal);
         Assert.DoesNotContain("partial class MatchDirector", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheStillCaptureIsEditorOnly()
+    {
+        // #1043: a shipped player neither carries the capture nor polls for a request; the editor creates it on demand.
+        var runtime = Directory.GetFiles(Path.Combine(Scripts, "Runtime"), "*.cs", SearchOption.AllDirectories)
+            .Select(f => (Name: Path.GetFileName(f), Text: File.ReadAllText(f)))
+            .ToList();
+        Assert.DoesNotContain(runtime, f => f.Text.Contains("StillRequest.TryLoad", StringComparison.Ordinal));
+        // Code that reaches the capture (a call, a component): the staging file may name it in prose.
+        Assert.DoesNotContain(runtime, f => f.Text.Contains("StillCapture.", StringComparison.Ordinal)
+            || f.Text.Contains("<StillCapture>", StringComparison.Ordinal));
+        var editor = File.ReadAllText(Path.GetFullPath(Path.Combine(Scripts, "..", "Editor", "StillCapture.cs")));
+        Assert.Contains("[InitializeOnLoad]", editor, StringComparison.Ordinal);
+        Assert.Contains("File.Exists(StillRequest.RequestPath(temp))", editor, StringComparison.Ordinal);
     }
 }
