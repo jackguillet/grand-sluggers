@@ -49,7 +49,7 @@ public class PitchRatingsScenarioTests
         var root = ContentCatalog.Load().Root.Shipped;
         foreach (var file in Directory.GetFiles(Path.Combine(root, "characters"), "*.json"))
         {
-            var node = JsonNode.Parse(File.ReadAllText(file))!;
+            var node = JsonNode.Parse(File.ReadAllText(file), documentOptions: DataJson.Document)!;
             foreach (var row in node is JsonArray rows ? rows : [node])
                 foreach (var key in Keys)
                     Assert.False(row!.AsObject().ContainsKey(key), $"{file} authors {key}");
