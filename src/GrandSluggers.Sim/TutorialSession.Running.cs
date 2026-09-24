@@ -39,6 +39,19 @@ public sealed partial class TutorialSession
         return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held, runner.ForceSlide);
     }
 
+    // Translate only observation receipts; production already applied the semantic order once.
+    LivePadInput RunnerEvidence(LivePadInput pad)
+    {
+        if (pad.Orders is not { } order) return pad;
+        var r = Match.ControllerRunners.Selected(Match);
+        return pad with
+        {
+            KeysBag = r is null ? 0 : r.IsBatter ? Math.Max(1, r.Bag) : r.FromBag,
+            StickBag = r is null ? 0 : order.Advance || order.Halt ? r.NextBag : order.Return ? r.Bag : 0,
+            AllAdvance = order.Advance, AllReturn = order.Return, Freeze = order.Halt
+        };
+    }
+
     void ObserveRunning(LivePadInput pad, bool owned, RunnerBefore? before, LivePlayCommandResult result)
     {
         if (Lesson.Objective == "human-early-fly-return")
