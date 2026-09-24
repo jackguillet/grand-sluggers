@@ -20,7 +20,7 @@ namespace GrandSluggers.UnityClient
             bool challenge, string pitcherExtra, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait,
             bool training = false, string drillProgress = null, bool night = false,
-            bool hideHelp = false, string highlight = null, bool replaying = false,
+            string highlight = null, bool replaying = false,
             bool mutePlay = false, int seats = 1,
             bool humanPitches = true, bool humanBats = false,
             bool starPitch = false, bool starSwing = false, bool pad1Home = true,
@@ -32,7 +32,7 @@ namespace GrandSluggers.UnityClient
             _starNoAge = starNoAge;
             if (phase == PhaseUi.Title)
             {
-                Title(challenge, portrait, training, night, hideHelp, titleSetup);
+                Title(challenge, portrait, training, night, titleSetup);
                 return;
             }
             if (phase == PhaseUi.Select)
@@ -70,7 +70,7 @@ namespace GrandSluggers.UnityClient
                 humanPitches, humanBats, starPitch, starSwing, bunt, mode);
         }
 
-        static void Title(bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp, string setup = null)
+        static void Title(bool challenge, Texture2D portrait, bool training, bool night, string setup = null)
         {
             var w = Screen.width;
             Sticker(CarnivalFront.SkyGag(night), w - 168, 36, 140, 32, night ? _gold : _h1);
@@ -89,9 +89,8 @@ namespace GrandSluggers.UnityClient
             else if (challenge)
                 GUI.Label(new Rect(44, 124, 640, 22), "South / Space  ·  next match", _gold);
             _ = portrait;
-            if (hideHelp) return;
-            GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                "South confirm    East back    View how to play    Start options", _tiny);
+            // Navigation, not onboarding: the title always names its verbs, after a match or a lesson too.
+            GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22), CarnivalFront.TitleFooter, _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,
