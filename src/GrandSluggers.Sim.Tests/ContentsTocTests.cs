@@ -28,7 +28,6 @@ public class ContentsTocTests
         Assert.Contains(HowToPlay.Must("contents").Lines,
             l => l.Contains("instruction booklet") || l.Contains("Call time"));
         Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("list") || l.Contains("book"));
-        Assert.Equal("contents", ContentsToc.Picture);
         const float w = 1280, h = 800;
         var still = ContentsToc.Still(w, h);
         var card = ContentsToc.Card(w, h);

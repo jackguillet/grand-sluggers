@@ -15,14 +15,12 @@ public static class HudCallouts
     public sealed record Spread(
         string Id,
         string Title,
-        string Picture,
         string Shot,
         IReadOnlyList<Mark> Marks);
 
     public static readonly Spread Set = new(
         "hud-set",
         "SET",
-        "how-to-hud-set",
         "plate",
         [
             new("score", "Score / inning", BroadcastHud.Standard.Score),
@@ -35,7 +33,6 @@ public static class HudCallouts
     public static readonly Spread InPlay = new(
         "hud-inplay",
         "In-play",
-        "how-to-hud-play",
         "diamond-grounder",
         [
             new("you", "YOU · glove → the receiver", BroadcastHud.YouTell),

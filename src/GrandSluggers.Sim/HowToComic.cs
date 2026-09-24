@@ -7,7 +7,7 @@ namespace GrandSluggers.Sim;
 public static class HowToComic
 {
     public const float CopyBandMul = 6.3f;
-    public sealed record Panel(string Picture, string Shot, string Label);
+    public sealed record Panel(string Shot, string Label);
 
     public sealed record Motion(string Charge, string Commit);
 
@@ -22,16 +22,16 @@ public static class HowToComic
     public static readonly Strip Pitch = new(
         "how-to-pitch",
         "How to pitch",
-        new("how-to-pitch-1", "mound", "Charge at MAX"),
-        new("how-to-pitch-2", "pitch", "The ball leaves the hand"),
+        new("mound", "Charge at MAX"),
+        new("pitch", "The ball leaves the hand"),
         new("Hold RT", "Release RT"),
         "Tap RT for a normal pitch. Hold, then release at MAX for power.");
 
     public static readonly Strip Swing = new(
         "how-to-swing",
         "How to swing",
-        new("how-to-swing-1", "plate", "Charge at MAX"),
-        new("how-to-swing-2", "smash", "Swing through the ball"),
+        new("plate", "Charge at MAX"),
+        new("smash", "Swing through the ball"),
         new("Hold RT", "Release RT"),
         "Swing when the ball is on the plate: tap RT, or hold to MAX.");
 

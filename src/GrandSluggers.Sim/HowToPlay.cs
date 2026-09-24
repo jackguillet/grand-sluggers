@@ -111,7 +111,6 @@ public static partial class HowToPlay
     public sealed record Page(
         string Id,
         string Title,
-        string Picture,
         IReadOnlyList<string> Lines);
 
     /// <summary>The book footer: how a pad turns the page.</summary>
@@ -137,50 +136,50 @@ public static partial class HowToPlay
 
     public static readonly IReadOnlyList<Page> Pages =
     [
-        new("contents", "Contents", "contents",
+        new("contents", "Contents",
         [
             "Call time has How to play. View opens this book from title too.",
         ]),
-        new("controls", "Controls", "controls",
+        new("controls", "Controls",
         [
             "Green is offense. Red is defense.",
             "RT pitches, swings and throws. Catch automatically by position.",
             "Left stick moves. Right stick selects.",
             "Start calls time. East back.",
         ]),
-        new("controls-2", "Controls · Field", "controls",
+        new("controls-2", "Controls · Field",
         ["Hardware controls continue. Green is offense; red is defense."]),
-        new("controls-3", "Controls · Game", "controls",
+        new("controls-3", "Controls · Game",
         ["Hardware controls continue. Green is offense; red is defense."]),
-        new("controls-4", "Controls · Menus", "controls", ["View opens this book. Start opens options."]),
-        new("roles", "In-game controls", "roles",
+        new("controls-4", "Controls · Menus", ["View opens this book. Start opens options."]),
+        new("roles", "In-game controls",
         [
             "Four tables: batting, pitching, fielding, running.",
             "Verb on the left. What you press on the right.",
             "Same verbs as the hardware page.",
         ]),
-        new("roles-batting-2", "Controls · Batting II", "roles",
+        new("roles-batting-2", "Controls · Batting II",
         ["Batting verbs and what you press, continued."]),
-        new("roles-pitching", "Controls · Pitching", "roles",
+        new("roles-pitching", "Controls · Pitching",
         ["Pitching verbs and what you press."]),
-        new("roles-pitching-2", "Controls · Pitching II", "roles",
+        new("roles-pitching-2", "Controls · Pitching II",
         ["Pitching verbs and what you press, continued."]),
-        new("roles-fielding", "Controls · Fielding", "roles",
+        new("roles-fielding", "Controls · Fielding",
         ["Fielding verbs and what you press."]),
-        new("roles-fielding-2", "Controls · Fielding II", "roles",
+        new("roles-fielding-2", "Controls · Fielding II",
         ["Fielding verbs and what you press, continued."]),
-        new("roles-running", "Controls · Running", "roles",
+        new("roles-running", "Controls · Running",
         ["Running verbs and what you press."]),
-        new("roles-running-2", "Controls · Running II", "roles",
+        new("roles-running-2", "Controls · Running II",
         ["Running verbs and what you press, continued."]),
-        new("pitch-swing", "Pitch and swing", "pitch-swing",
+        new("pitch-swing", "Pitch and swing",
         [
             "Swing when the ball is on the plate (gold streak). Tap RT: normal. Hold/release at MAX: charge.",
             "One controller: pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays behind the plate.",
             "Cycle pitch: West before charge. Bunt: hold West / North. East cancels a swing load. Star: hold LT at RT release.",
         ]),
-        new("the-box", "The box and the rubber", "the-box",
+        new("the-box", "The box and the rubber",
         [
             "Stick L/R walk the rubber (pitch) or the box (hit).",
             "A sitting stick does not walk. Flick from rest.",
@@ -189,7 +188,7 @@ public static partial class HowToPlay
             "Take outside the white frame: ball. Swing and miss outside: strike.",
             "Right stick base + RT: pickoff before charge; on the bag is safe. Start → Arrange defense moves any fielder.",
         ]),
-        new("arrange-defense", "Arrange defense", "exhibition",
+        new("arrange-defense", "Arrange defense",
         [
             "Start → Arrange defense before charging. Inspect stats, ARM, pitches and chemistry.",
             "Stick moves. South picks a player, then a second position to swap the pair.",
@@ -197,7 +196,7 @@ public static partial class HowToPlay
             "East cancels a pick or closes. Done keeps completed swaps and returns to play.",
             "Good / Poor / Neutral compares teammates with your focus. Stamina and batting order stay.",
         ]),
-        new("running", "Running", "running",
+        new("running", "Running",
         [
             "Hit it and you run. Runners stand on the bag until contact, a steal, or a send: there is no lead. Live runners settle on a bag for a second, one to a bag: the lead keeps it unless forced. An out with nobody left ends it. 3 outs too.",
             "The small runner label shows your selection. LB sends the selection; RB returns it immediately. D-pad Up halts. D-pad Down selects ALL. These commands also work before contact. LT owns Stars.",
@@ -205,7 +204,7 @@ public static partial class HowToPlay
             "The tag decides: CAUGHT STEALING or STOLEN BASE. Before the catch, an inset shows the race. At the catch, the normal live-play camera follows the ball through the throw. Pickoffs and rundowns use that same view.",
             "Fly: everyone goes back to the bag until the catch or the drop; LB before the catch is tag and go. Close play and tag are the pictures below. First South wins. A bang-bang SAFE pops small. Have the ball and touch a runner off a bag to tag.",
         ]),
-        new("steal-race", "Steals and commitment", "running",
+        new("steal-race", "Steals and commitment",
         [
             "LB sends your runner NOW. RB returns immediately. Off the bag is vulnerable.",
             "Before charge: Right stick base + RT throws there. Any of the four bases, even empty ones.",
@@ -213,7 +212,7 @@ public static partial class HowToPlay
             "You can hold the pitch indefinitely. Let go to deliver it; the catcher can challenge the runner.",
             "In flight, Right stick chooses the catcher target. Press RT just before the catch to buffer a throw; East cancels. Transfer comes before release.",
         ]),
-        new("fielding", "Fielding", "fielding",
+        new("fielding", "Fielding",
         [
             "A fly hangs; outfielder to landing. Shadow tracks ball. HR: wall.",
             "The throw is yours. Bag + RT; stick runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
@@ -222,78 +221,78 @@ public static partial class HowToPlay
             "North jumps; circle turns red. East dives sideways; never automatic. West attacks.",
             "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
-        new("tutorial-baseball", "Counts, fouls and halves", "training",
+        new("tutorial-baseball", "Counts, fouls and halves",
         [
             "Build 1–1: walk left to the rubber's edge, release the stick, and tap RT for a ball. Next SET, stick down resets; RT throws the strike.",
             "Foul then fair: stay centered in SET and tap RT well early to pull it foul. Next pitch, time RT for fair contact.",
             "Finish the half: two outs, two strikes. A centered called strike changes sides and resets the outs.",
             "Each complete sequence earns one success. Three successes pass; failed attempts keep earlier successes.",
         ]),
-        new("tutorial-recovery", "Recovery and reach", "training",
+        new("tutorial-recovery", "Recovery and reach",
         [
             "Bobble: wait for the helper's error, then steer with the stick through the loose-ball scoop. Assistance cannot finish the pickup for you.",
             "Ability reach: move to the landing ring's edge, catch automatically beyond ordinary reach. Burrow scoops at its reach edge.",
         ]),
-        new("tutorial-field-plays", "Fielding scenario lessons", "training",
+        new("tutorial-field-plays", "Fielding scenario lessons",
         [
             "Force home: bases loaded, collect, then Right stick Down + RT. With two outs, this force ends the half with no run.",
             "Rundown: Right stick Right + RT checks first. Once trapped, Right stick Up + RT throws ahead for the tag.",
             "Close third: send and dash on offense; throw to third on defense. Press South fresh when the close-play icon appears.",
         ]),
-        new("tutorial-scoring", "Third outs and runs", "training",
+        new("tutorial-scoring", "Third outs and runs",
         [
             "Two outs: collect, then throw as the lead runner nears home. The crossing must happen before the out.",
             "Force lesson: Right stick Up + RT forces second. A third force out cancels the earlier run.",
             "Tag lesson: Right stick Left + RT throws to third. Press South at the close-play icon. A nonforce third tag keeps the earlier run.",
         ]),
-        new("tutorial-live-plays", "Live-ball lessons", "training",
+        new("tutorial-live-plays", "Live-ball lessons",
         [
             "Return on a fly: send off third, then hold RB before the catch. Stay safely on third instead of tagging up.",
             "Round first: choose first, send toward second, then dash during the turn. An early dash on the straight does not count.",
             "Tag up: wait on third for the catch, then hold LB to send home. Double off: catch, then Right stick Up + RT returns to second.",
             "Triple play: catch the fly, then return to second and first before both early runners retouch.",
         ]),
-        new("tutorial-items", "Items and star grounders", "training",
+        new("tutorial-items", "Items and star grounders",
         [
             "Item lessons only: after contact, D-pad left/right chooses; left stick aims; North throws.",
             "Each item lesson needs its named effect on the defender. Field a star grounder needs your controlled movement and pickup.",
         ]),
-        new("tutorial-sequences", "Steals and star lessons", "training",
+        new("tutorial-sequences", "Steals and star lessons",
         [
             "Steal: Right stick Right selects first; LB starts the runner now. Reach second safely.",
             "Delayed home steal: send first, then Right stick Left and stick down send third home as the catcher throw passes the mound.",
             "Star lessons: hold LT as you let go of RT. Star swings need fair contact.",
             "Earn and spend: ordinary third strike, then star pitch against the next batter. Three complete sequences pass.",
         ]),
-        new("relay-control", "Relay and queued throws", "fielding",
+        new("relay-control", "Relay and queued throws",
         [
             "Arm the destination with the Right stick. RB feeds the cutoff. The receiver waits for you: RT sends the next leg.",
             "A press just before the catch waits for the receiver, then sends it.",
             "Change the Right stick target to retarget a waiting throw. Changing the target does not extend the press's short lifetime.",
             "Tap East to cancel the waiting throw. A cancelled or expired press cannot release the ball.",
         ]),
-        new("exhibition", "Stadium and captains", "exhibition",
+        new("exhibition", "Stadium and captains",
         [
             "Stadium postcard, with a crowd and padded wall: choose time and hazards, 1 vs CPU or 2 controllers, and P1 HOME / AWAY. Home bats the bottom.",
             "Choose captains: Left/right browses portraits; South confirms yours, then the CPU captain.",
             "Two controllers: each player confirms their own captain. Confirmed captains are reserved.",
             "East undoes confirmation, then returns to stadium setup. The park does not follow the captain.",
         ]),
-        new("lineup", "Lineup", "lineup",
+        new("lineup", "Lineup",
         [
             "Team Setup: South adds a player; RB fills your team. West removes a roster player.",
             "Both teams get the same stars when ON. Gold marks P1; blue marks P2/CPU. Focus shows a card and highlights buddies.",
             "Two diamonds between batting bars. Stick moves; LB/RB switches order / field. South marks PICKED, then swaps. East cancels.",
             "North continues to settings when both players are ready.",
         ]),
-        new("match-settings", "Match settings", "exhibition",
+        new("match-settings", "Match settings",
         [
             "After positions/order, Player 1 sets Stars, innings (3/6/9), mercy and CPU skill. Items are unavailable.",
             "Stick up/down selects a row; left/right or South changes it. Changing a rule clears both ready states.",
             "North readies your seat. Both human players must be ready to play; CPU is always ready. East withdraws readiness or returns to positions.",
             "Mercy never ends a 3-inning game. Stars OFF disables Star pitches, swings and Star gains for both teams.",
         ]),
-        new("two-pads", "Two controllers", "exhibition",
+        new("two-pads", "Two controllers",
         [
             "Stadium setup: choose 2 controllers and P1 HOME / AWAY. The first controller is player 1; the second controller sits the other side.",
             "Each player uses a controller.",
@@ -302,17 +301,17 @@ public static partial class HowToPlay
             "CPU never bats or pitches while both controllers are seated.",
             "Two controllers: camera stays on the plate, behind home. The fielding controller takes the glove.",
         ]),
-        new("getting-started", "Getting started", "getting-started",
+        new("getting-started", "Getting started",
         [
             "The pictures are the path. Exhibition is the game; Training is practice.",
             "South play ball. View this book. 2 PLAYERS seats controller 2; a seat drop pauses. Home bats bottom. Harbor.",
         ]),
-        new("getting-started-modes", "Getting started · Modes", "getting-started",
+        new("getting-started-modes", "Getting started · Modes",
         [
             "Exhibition is the game; Training is practice.",
             "2 PLAYERS seats controller 2. A seat drop pauses. Home bats bottom. Harbor.",
         ]),
-        new("screen", "The game screen", "exhibition",
+        new("screen", "The game screen",
         [
             "Scorebug: inning, runs, stars; B / S / O.",
             "Cards: batter AB, pitcher ARM and TIRED. Start → Arrange defense swaps.",
@@ -321,21 +320,21 @@ public static partial class HowToPlay
             "A stamp on the field: BALL, STRIKE, FOUL, WALK, BALK, outs, hits, steals, homers, ERROR; SET starts the next pitch.",
             "OUT / SCORE pop mid-play. Close play: bag cam.",
         ]),
-        new("screen-live", "After contact", "exhibition",
+        new("screen-live", "After contact",
         [
             "Live: runners and outs replace the score panel and player cards.",
             "Effects never hide runners or outs. Follow the runner pips while you play.",
             "YOU names your glove. Throw and item prompts stay with their actions.",
             "When play ends, the plate HUD returns immediately, ready for the next pitch.",
         ]),
-        new("chemistry", "Chemistry", "chemistry",
+        new("chemistry", "Chemistry",
         [
             "Hearts are buddies. Scribbles are rivals.",
             "Buddies throw faster, rivals slower. Buddy jump: both under the ball.",
             "A buddy on deck can gift a banana after you hit.",
             "Both teams start with the same stars.",
         ]),
-        new("stars", "Star skills", "stars",
+        new("stars", "Star skills",
         [
             "Up to 5 stars; both teams start even. A star costs 1 or more.",
             "Hold LT as you let go of RT    fire.",
@@ -343,23 +342,23 @@ public static partial class HowToPlay
             "A special breaks a baseball rule for about two seconds, then baseball resumes.",
             "Not a free home run. The ball or the field changes.",
         ]),
-        new("abilities", "Who you are", "abilities",
+        new("abilities", "Who you are",
         [
             "Each toy has one field verb. Super Jump / Grow / Lick Catch add range.",
             "The card shows P / B / F / R, the star pitch, the star swing, and the field verb.",
             "TIRED pitcher? Start → Arrange defense.",
         ]),
-        new("abilities-types", "Who you are · Skills", "abilities",
+        new("abilities-types", "Who you are · Skills",
         [
             "The four ability types and what each one changes.",
         ]),
-        new("items", "Error items", "items",
+        new("items", "Error items",
         [
             "A buddy on deck can give you a banana, rocket, or POW after contact.",
             "Aim with the stick. Throw with North.",
             "Banana    peel. Rocket    daze. POW    hop. West smashes a flying item.",
         ]),
-        new("pause-practice", "Pause and Practice", "pause-practice",
+        new("pause-practice", "Pause and Practice",
         [
             "Start    call time. View    this book from title and a pitch.",
             "South ok. East resume.",
@@ -409,20 +408,6 @@ public static partial class HowToPlay
         var w = screenW * (1f - 2f * BookMargin);
         var h = screenH * (1f - 2f * BookMargin);
         return (x, y, w, h);
-    }
-
-    /// <summary>Splash stills ate the type. Diagram pages draw their own boards.</summary>
-    public static bool ShowsSplash(string id)
-    {
-        _ = id;
-        return false;
-    }
-
-    public static (float X, float Y, float W, float H) PictureRect(float screenW, float screenH)
-    {
-        var p = BookPanel(screenW, screenH);
-        var top = 108f;
-        return (p.X + 16f, p.Y + top, p.W - 32f, 0f);
     }
 
     public static (float X, float Y, float W, float H) TextRect(float screenW, float screenH)

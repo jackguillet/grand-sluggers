@@ -9,7 +9,6 @@ public static class GettingStarted
     public sealed record Step(
         string Id,
         string Title,
-        string Picture,
         string Shot,
         string Caption);
 
@@ -17,15 +16,15 @@ public static class GettingStarted
 
     public static readonly IReadOnlyList<Step> Path =
     [
-        new("title", "Title", "how-to-start-title", "title",
+        new("title", "Title", "title",
             "South play ball."),
-        new("field", "Stadium", "how-to-start-field", "field",
+        new("field", "Stadium", "field",
             "Choose stadium, time and hazards. South confirms."),
-        new("captains", "Captains", "how-to-start-select", "select",
+        new("captains", "Captains", "select",
             "Choose players, teams and side. South confirms."),
-        new("lineup", "Lineup", "how-to-start-lineup", "lineup",
+        new("lineup", "Lineup", "lineup",
             "Build nine, set positions/order, then rules. North ready."),
-        new("pitch", "First pitch", "how-to-start-pitch", "plate",
+        new("pitch", "First pitch", "plate",
             "Home bats the bottom."),
     ];
 
