@@ -124,8 +124,6 @@ public class FlyCatchTests
     public void CatchAtThePlantIsStandUpARimCatchIsADive()
     {
         var c = Rules.Default.Fielding.Catch;
-        Assert.Equal(10, c.RadiusBaseFt);
-        Assert.Equal(0.6, c.RadiusPerField);
         Assert.Equal(1, c.WindowPadFt);
         Assert.Equal(2, c.DiveReachFt);
         Assert.Equal(7.5, c.DiveMaxBallY);
@@ -350,7 +348,7 @@ public class FlyCatchTests
         var plant = LandingMark.At(fly, Rules.Default, Harbor);
         Assert.Equal((fly.LandingX, fly.LandingZ), plant);
         Assert.Equal(fly.CatchRadius, LandingMark.RadiusFt(fly));
-        Assert.True(LandingMark.RadiusFt(fly) >= Rules.Default.Fielding.Catch.RadiusBaseFt);
+        Assert.True(LandingMark.RadiusFt(fly) >= Rules.Default.Fielding.Catch.StandUpReachFt);
         Assert.True(LandingMark.WorldY > LandingMark.DirtY);
         Assert.True(LandingMark.ThickFt > 0.4, "tube must read from the fly 3/4, not a pancake");
         Assert.False(LandingMark.Hot(0.2, fly.HangTimeSec, Rules.Default, rio, Harbor));

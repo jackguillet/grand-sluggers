@@ -39,9 +39,8 @@ namespace GrandSluggers.UnityClient
         LivePadInput FieldInput()
         {
             var pad = FieldPad;
-            // The calibrated radial stick (#718) reads the device coordinate before any dead zone; the shipped Manhattan gate
-            // keeps the stick it always read. One coordinate per table, handed to the sim once.
-            var radial = _match != null && _match.Rules.Fielding.Stick.Radial;
+            // The calibrated radial stick (#718) reads the device coordinate before any dead zone, handed to the sim once.
+            var radial = _match != null;
             var eastFree = CancelFree(pad);
             var cancel = eastFree && pad.EastDown && (_phase == Phase.Flight || _match.LivePlay.CanCancelThrow);
             if (cancel) pad.ClearThrowTarget();

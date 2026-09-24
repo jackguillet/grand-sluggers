@@ -256,8 +256,7 @@ public sealed record Character(
     string FieldAbility,
     string Bio,
     /// <summary>
-    /// Authored stand-up catch reach in feet (F693-02-catch-reach-envelope). Null keeps the legacy
-    /// <c>radiusBaseFt + radiusPerField x Field</c>, so an unauthored roster reaches exactly as far as it did.
+    /// Authored stand-up catch reach in feet (F693-02-catch-reach-envelope). Null takes the table's <c>standUpReachFt</c>.
     /// </summary>
     double? ReachFt = null)
 {

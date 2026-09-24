@@ -82,8 +82,8 @@ public sealed class ThrowCommandTests
     public void TheTablesCarryTheCommands()
     {
         var t = Game.Rules.Fielding;
-        Assert.Equal((1.25, 1.0, 0.22, 1.0), (t.Abilities.LaserMul, t.Abilities.SnapThrowMul, t.Abilities.SnapReleaseSec, t.Abilities.LaserHomeOnly));
-        Assert.Equal((0.0, 0.25), (t.Throw.RelayAutoContinue, t.Throw.RelayBufferSec));
+        Assert.Equal((1.25, 1.0, 0.22), (t.Abilities.LaserMul, t.Abilities.SnapThrowMul, t.Abilities.SnapReleaseSec));
+        Assert.Equal(0.25, t.Throw.RelayBufferSec);
         Assert.Equal(0.30, t.Throw.ReleaseSec);
         Assert.Contains(Scheme.Product, v => v.Id == "cancel-throw");
     }

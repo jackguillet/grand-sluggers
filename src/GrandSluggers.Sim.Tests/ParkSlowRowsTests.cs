@@ -106,11 +106,8 @@ public sealed class ParkSlowRowsTests
         Assert.NotNull(play);
         Assert.Equal("SS", took);
         Assert.True(slowedAtTake, "the fixture: the glove that takes the ball stands in the pit");
-        // What the take costs is the table's own function of the ball and the hands, and the slow is not in it: the copy reads
-        // the ball's incoming speed (#720), the shipped table the hit's energy.
-        var expected = rules.Fielding.Recoil.Active
-            ? FieldingResolver.RecoilSec(map[took], incoming, rules)
-            : InPlay.KnockbackSec(InPlay.Energy(hit, rules), map[took], rules);
+        // What the take costs is the table's own function of the ball's incoming speed and the hands (#720), and the slow is not in it.
+        var expected = FieldingResolver.RecoilSec(map[took], incoming, rules);
         Assert.Equal(expected, owed, 6);
     }
 

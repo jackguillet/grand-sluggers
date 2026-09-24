@@ -19,12 +19,8 @@ public sealed class AirRecoilTests
     [Trait("Kind", "Balance")]
     public void TheAirbornePairIsItsOwn()
     {
-        var airOff = Rules.Default with { Fielding = Rules.Default.Fielding with { Recoil = Rules.Default.Fielding.Recoil with { AirOnsetFtPerSec = 0, AirFullFtPerSec = 0 } } };
-        Assert.False(airOff.Fielding.Recoil.AirActive);
-        Assert.True(airOff.Fielding.Recoil.Active, "the ground pair is its own switch");
         var t = Game.Rules.Fielding.Recoil;
         Assert.Equal((80.0, 115.0), (t.AirOnsetFtPerSec, t.AirFullFtPerSec));
-        Assert.True(t.AirActive);
         Assert.Equal((55.0, 75.0), (t.OnsetFtPerSec, t.FullFtPerSec));   // the ground pair does not move
 
         var r = Game.Rules;
@@ -44,7 +40,6 @@ public sealed class AirRecoilTests
         Assert.Equal(0.11, FieldingResolver.RecoilSec(Hands(10), 115, r, airborne: true), 9);
         Assert.Equal(0.10, FieldingResolver.RecoilSec(Hands(1), 97.5, r, airborne: true), 9);
         Assert.Equal(0.055, FieldingResolver.RecoilSec(Hands(10), 97.5, r, airborne: true), 9);
-        Assert.Equal(0, FieldingResolver.RecoilSec(Game.Must("vale"), 300, airOff, airborne: true));
     }
 
     /// <summary>An 80-mph Perfect liner at 10° into the hole reaches grit (SS, Hands 6) on his feet at 101 ft/s in 0.33 s: 0.20 × 0.594 × 0.75 = 0.089 s, the catch an out at the take, the same ball twice the same.</summary>

@@ -368,7 +368,7 @@ public sealed class ControlScenarioTests
         var start = Diamond.Positions["SS"];
         var intercept = LinerIntercept(preview, start, match.Rules);
         var plant = FlyCatch.ChaseTarget(preview, match.Rules, match.Park);
-        Assert.True(Diamond.Dist(intercept.X, intercept.Z, plant.X, plant.Z) > match.Rules.Fielding.Catch.RadiusBaseFt,
+        Assert.True(Diamond.Dist(intercept.X, intercept.Z, plant.X, plant.Z) > FieldingResolver.CatchWindowFt(preview.CatchRadius, false, false, match.Rules),
             "the fixture: the intercept is short of the bounce, so a plant-only catch would miss it");
 
         var onTheBall = false;

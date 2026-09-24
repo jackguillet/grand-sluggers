@@ -8,33 +8,6 @@ public class InPlayTests
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     [Fact]
-    public void EnergyScalesWithExitAndQuality()
-    {
-        var soft = Hit(ContactQuality.Sour, 60);
-        var hard = Hit(ContactQuality.Perfect, 100);
-        Assert.True(InPlay.Energy(hard, rules: Rules.Default) > InPlay.Energy(soft, rules: Rules.Default),
-            $"hard {InPlay.Energy(hard, rules: Rules.Default)} vs soft {InPlay.Energy(soft, rules: Rules.Default)}");
-    }
-
-    [Fact]
-    public void HighEnergyBobblesMoreThanADyingRoller()
-    {
-        var rio = _content.Must("rio");
-        var hard = Hit(ContactQuality.Perfect, 110);
-        var dying = Hit(ContactQuality.Sour, 40);
-        var hardN = 0;
-        var dyingN = 0;
-        const int n = 80;
-        for (var i = 0; i < n; i++)
-        {
-            if (InPlay.Bobbles(InPlay.Energy(hard, rules: Rules.Default), rio, new Random(i), rules: Rules.Default)) hardN++;
-            if (InPlay.Bobbles(InPlay.Energy(dying, rules: Rules.Default), rio, new Random(i), rules: Rules.Default)) dyingN++;
-        }
-        Assert.True(hardN > dyingN, $"hard bobbles {hardN} vs dying {dyingN}");
-        Assert.Equal(0, dyingN);
-    }
-
-    [Fact]
     public void OneSpeedFormulaForEveryRunnerAndTheBatterStartsLate()
     {
         // Spec §9.1: bagSec = 3.55 − Run × 0.12 clamped, one formula for every segment; the batter
@@ -268,14 +241,6 @@ public class InPlayTests
         // fumble, and the play goes on — nothing converts the play by the roll.
         var hit = FlightFixtures.Hit(_content.Parks["harbor-diamond"], 110, 6, -19, ContactQuality.Perfect);
         Assert.True(hit.Class.OnTheDirt());
-        var energy = InPlay.Energy(hit, rules: Rules.Default);
-        var weakHands = _content.Must("konga");
-        var rolls = 0;
-        for (var i = 0; i < 80; i++)
-            if (InPlay.Bobbles(energy, weakHands, new Random(i), rules: Rules.Default)) rolls++;
-        Assert.True(rolls > 0, "a rocket at the shins must eat someone in 80 tries");
-        Assert.True(InPlay.KnockbackSec(energy, weakHands, rules: Rules.Default) > 0, "a 110 mph perfect hopper must shove the fielder");
-
         var bobbled = 0;
         var outs = 0;
         for (var seed = 1; seed <= 12; seed++)
@@ -306,20 +271,6 @@ public class InPlayTests
             if (play!.Outcome!.OutsMade.Count > 0) outs++;
         }
         Assert.True(bobbled + outs > 0, "the rocket is fielded one way or the other");
-    }
-
-    [Fact]
-    public void DyingRollerDoesNotBobbleOrKnockBack()
-    {
-        var hit = new AtBatResult(ContactQuality.Sour, true, false, 40, 6, 30, false, false, null, null, SprayDeg: 0);
-        var energy = InPlay.Energy(hit, rules: Rules.Default);
-        foreach (var who in new[] { "konga", "rio", "frost" })
-        {
-            var c = _content.Must(who);
-            for (var i = 0; i < 40; i++)
-                Assert.False(InPlay.Bobbles(energy, c, new Random(i), rules: Rules.Default));
-            Assert.Equal(0, InPlay.KnockbackSec(energy, c, rules: Rules.Default));
-        }
     }
 
     [Fact]

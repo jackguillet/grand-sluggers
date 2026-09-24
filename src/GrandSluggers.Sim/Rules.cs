@@ -983,9 +983,6 @@ public sealed record QualityRules
 {
     public ZoneExitRules Slap { get; init; } = new();
     public ZoneExitRules Charge { get; init; } = new();
-    [Positive] public double PerfectEnergyMul { get; init; }
-    [Positive] public double NiceEnergyMul { get; init; }
-    [Positive] public double SourEnergyMul { get; init; }
 }
 
 public sealed record ZoneExitRules
@@ -1721,7 +1718,6 @@ public sealed record FieldingRules
     public CatcherRules Catcher { get; init; } = new();
     public ThrowChemistryRules Chem { get; init; } = new();
     public BobbleRules Bobble { get; init; } = new();
-    public KnockbackRules Knockback { get; init; } = new();
     public RecoilRules Recoil { get; init; } = new();
     public HandlingRules Handling { get; init; } = new();
     public ParkHazardRules Park { get; init; } = new();
@@ -1737,22 +1733,20 @@ public sealed record FieldingRules
         RulesValidation.Order(source, "fielding.stick.leaveMag", Stick.LeaveMag, Stick.EnterMag, errors);
         RulesValidation.Order(source, "fielding.stick.leaveMag", Stick.LeaveMag, 0.99, errors);
         RulesValidation.Order(source, "fielding.recoil.onsetFtPerSec", Recoil.OnsetFtPerSec, Recoil.FullFtPerSec, errors);
-        if (Recoil.Active && Recoil.FullFtPerSec <= Recoil.OnsetFtPerSec)
-            errors.Add($"{source}: fielding.recoil.fullFtPerSec must exceed onsetFtPerSec while the recoil is on; got {Recoil.FullFtPerSec} <= {Recoil.OnsetFtPerSec}");
+        if (Recoil.FullFtPerSec <= Recoil.OnsetFtPerSec)
+            errors.Add($"{source}: fielding.recoil.fullFtPerSec must exceed onsetFtPerSec; got {Recoil.FullFtPerSec} <= {Recoil.OnsetFtPerSec}");
         RulesValidation.Order(source, "fielding.recoil.airOnsetFtPerSec", Recoil.AirOnsetFtPerSec, Recoil.AirFullFtPerSec, errors);
         RulesValidation.Order(source, "fielding.handling.hopMinApexFt", Handling.HopMinApexFt, Handling.HopFullApexFt, errors);
         RulesValidation.Order(source, "fielding.handling.bobbleSettleFt", Handling.BobbleSettleFt, Handling.BobbleReboundCapFt, errors);
         RulesValidation.Order(source, "fielding.handling.deflectRetainMin", Handling.DeflectRetainMin, Handling.DeflectRetainMax, errors);
-        if (Recoil.AirActive && Recoil.AirFullFtPerSec <= Recoil.AirOnsetFtPerSec)
-            errors.Add($"{source}: fielding.recoil.airFullFtPerSec must exceed airOnsetFtPerSec while the airborne recoil is on; got {Recoil.AirFullFtPerSec} <= {Recoil.AirOnsetFtPerSec}");
+        if (Recoil.AirFullFtPerSec <= Recoil.AirOnsetFtPerSec)
+            errors.Add($"{source}: fielding.recoil.airFullFtPerSec must exceed airOnsetFtPerSec; got {Recoil.AirFullFtPerSec} <= {Recoil.AirOnsetFtPerSec}");
     }
 }
 
 /// <summary>
 /// The human seat's pursuit stick (#718: F693-02-pursuit-analog-response, -neutral-boundary, -calibration-policy,
-/// -arming, -calibration-samples). At <c>enterMag</c> 0 the stick is the one the game shipped with — a Manhattan gate
-/// at <c>feel.fieldAssistStick</c>, the full stick vector as the asked velocity, no calibration, no arming. Above 0 it
-/// is the calibrated radial stick: manual pursuit from <c>enterMag</c>, back to assistance at <c>leaveMag</c>, the owner
+/// -arming, -calibration-samples): the calibrated radial stick. Manual pursuit from <c>enterMag</c>, back to assistance at <c>leaveMag</c>, the owner
 /// kept between the two, and the asked speed the linear remap of the magnitude from <c>leaveMag</c> to 1 (half the
 /// usable range asks half the speed). A seat arms with a valid profile plus one neutral observation (≤ <c>leaveMag</c>)
 /// on defensive-role entry, device recovery or recalibration, and stays armed through the half. The calibration window
@@ -1761,13 +1755,11 @@ public sealed record FieldingRules
 /// </summary>
 public sealed record FieldStickRules
 {
-    [Chance] public double EnterMag { get; init; }
+    [Positive] public double EnterMag { get; init; }
     [Chance] public double LeaveMag { get; init; }
     [Positive] public double CalibrationSec { get; init; }
     [Chance] public double CenterOffsetMax { get; init; }
     [Chance] public double SampleSpreadMax { get; init; }
-    /// <summary>The calibrated radial stick is on above <c>enterMag</c> 0; at 0 every read is the shipped Manhattan gate.</summary>
-    public bool Radial => EnterMag > 0;
 }
 
 /// <summary>
@@ -1822,8 +1814,6 @@ public sealed record CoverRules
     [Positive] public double RadiusFt { get; init; }
     /// <summary>The backup body stands this far behind a throw's target, on its line.</summary>
     [Positive] public double BackupFt { get; init; }
-    /// <summary>How much of the body's reaction lockout (§8.2) gates its cover walk: 0 is the rule (#718), 1 the old gate.</summary>
-    [Chance] public double LockoutMul { get; init; }
     /// <summary>How much of the body's own pursuit speed (<c>fielding.chase</c>) a cover, cutoff or backup walk uses in place of <see cref="FtPerSec"/>: 0 is the flat speed exactly, 1 the body's speed (#718).</summary>
     [Chance] public double ChaseSpeedWeight { get; init; }
 }
@@ -1896,11 +1886,11 @@ public sealed record ChaseRules
     [Positive] public double InfieldAirMul { get; init; }
     /// <summary>
     /// The response law (#718, F693-02-carry-movement-response): seconds from rest to the body's rated speed, a linear ramp.
-    /// 0.20 s; 0 is the old instant step. The pursuit planner charges half of it to a route.
+    /// 0.20 s. The pursuit planner charges half of it to a route.
     /// </summary>
-    public double AccelSec { get; init; }
-    /// <summary>Seconds from the rated speed to rest, a constant deceleration; a reversal is this brake and then the ramp. 0.10 s; 0 is the old instant stop.</summary>
-    public double BrakeSec { get; init; }
+    [Positive] public double AccelSec { get; init; }
+    /// <summary>Seconds from the rated speed to rest, a constant deceleration; a reversal is this brake and then the ramp. 0.10 s.</summary>
+    [Positive] public double BrakeSec { get; init; }
     /// <summary>
     /// The route keeps this far off a status volume's disc when it goes around one (§14, FD-14, F4-g): a bent path on the rim
     /// is not clipped by the body's own ramp. Not a tuned number; a park with no volume never reads it.
@@ -1910,15 +1900,12 @@ public sealed record ChaseRules
 
 public sealed record CatchRules
 {
-    [Positive] public double RadiusBaseFt { get; init; }
-    public double RadiusPerField { get; init; }
     /// <summary>
     /// The authored stand-up reach every body without its own <see cref="Character.ReachFt"/> gets (F693-02-catch-reach-envelope,
-    /// #719): roughly what the visible glove covers from a planted stance, independent of ratings. 0 keeps the legacy
-    /// <c>radiusBaseFt + Field × radiusPerField</c>; the game plays 4.0. A character's authored
-    /// <c>reachFt</c> wins over both, and the ability bonuses add to whichever applies.
+    /// #719): roughly what the visible glove covers from a planted stance, independent of ratings; the game plays 4.0. A
+    /// character's authored <c>reachFt</c> wins over it, and the ability bonuses add to whichever applies.
     /// </summary>
-    public double StandUpReachFt { get; init; }
+    [Positive] public double StandUpReachFt { get; init; }
     public double ClamberRadiusFt { get; init; }
     public double WindowPadFt { get; init; }
     public double DiveReachFt { get; init; }
@@ -1960,9 +1947,6 @@ public sealed record CatchRules
     public double BuddyLeapBallY { get; init; }
     public double HoverLeadSec { get; init; }
     public double HoverMinSec { get; init; }
-    /// <summary>West arms the leap for this long (§8.4); longer when the play is at the wall.</summary>
-    public double JumpArmSec { get; init; }
-    public double WallJumpArmSec { get; init; }
     /// <summary>East arms the dive reach for this long.</summary>
     public double DiveArmSec { get; init; }
     /// <summary>
@@ -1974,20 +1958,16 @@ public sealed record CatchRules
     /// <summary>The cost shortens by this fraction of itself per Field point above 1 (2.5 %: 0.60 at Field 1 to 0.465 at 10).</summary>
     [Chance] public double DiveRecoveryFieldCut { get; init; }
     /// <summary>
-    /// The normal jump's airtime (#719, F693-02-normal-jump-*): 0 is the old jump — West arms a window of
-    /// <c>jumpArmSec</c> and the body never leaves the ground; above 0 a fresh eligible West press is a takeoff with no added
-    /// startup, the body is airborne this long with a root rise of <c>jumpRiseFt</c> (<c>h = 4 H u (1 − u)</c>), the same for
+    /// The normal jump's airtime (#719, F693-02-normal-jump-*): a fresh eligible West press is a takeoff with no added startup, the body is airborne this long with a root rise of <c>jumpRiseFt</c> (<c>h = 4 H u (1 − u)</c>), the same for
     /// every character, one profile per press, and a jumping catch throws only after it has landed. 0.60 s.
     /// </summary>
-    public double JumpAirSec { get; init; }
-    /// <summary>The root rise at the apex of the normal jump, in feet: 2.0 in both roots, read only above <c>jumpAirSec</c> 0.</summary>
+    [Positive] public double JumpAirSec { get; init; }
+    /// <summary>The root rise at the apex of the normal jump, in feet: 2.0.</summary>
     [Positive] public double JumpRiseFt { get; init; }
     /// <summary>A fresh grounded West press blocked by the read or a recovery is remembered this long, inclusive, and takes off at the first eligible instant (F693-02-normal-jump-input-buffer). 0.10 s; 0 is no buffer.</summary>
     public double JumpBufferSec { get; init; }
     /// <summary>Airborne, the body answers the stick at this fraction of its ground rates (F693-02-normal-jump-air-response-trial): 0.10 in both roots, read only above <c>jumpAirSec</c> 0.</summary>
     [Chance] public double JumpAirResponseMul { get; init; }
-    /// <summary>The physical normal jump is on above <c>jumpAirSec</c> 0; at 0 the jump is the old arm window.</summary>
-    public bool JumpArc => JumpAirSec > 0;
 }
 
 /// <summary>Field dash, buddy toss, kick, and the dive lunge (§8.1, §8.4, §8.7).</summary>
@@ -2031,8 +2011,6 @@ public sealed record FieldAbilityRules
     /// with the flight boost at 1.0. A pickup, a bobble, a sail or a hand-off clears the eligibility.
     /// </summary>
     [Positive] public double SnapReleaseSec { get; init; }
-    /// <summary>How far Laser is confined to a throw home with a live runner on third or the third–home segment (F693-03-laser-throw, #723): 1 is the rule — a cutoff feed never carries it; 0 is the old universal boost.</summary>
-    [Chance] public double LaserHomeOnly { get; init; }
     /// <summary>
     /// Ball Dash's carry (F693-02-ball-dash-carrier, #718): a holder with the ball securely in the glove moves at this multiple
     /// of its ordinary pursuit speed, automatically — no press, no timer, no cooldown — and the CPU's carry forecast reads the
@@ -2078,8 +2056,6 @@ public sealed record ThrowRules
     [Positive] public double UnassistedFt { get; init; }
     public double HandHeightFt { get; init; }
     public double BagHeightFt { get; init; }
-    /// <summary>A human's cutoff throws the armed onward leg for them (§8.7): 0 is F693-03-relay-ownership (#723), where each relay leg needs its own command; 1 is the old automatic leg.</summary>
-    [Chance] public double RelayAutoContinue { get; init; }
     /// <summary>An early onward-throw press is remembered this long of active play and fires when the receiver has the ball (F693-03-input-buffer, #723). 0.25 s; 0 is no queue.</summary>
     public double RelayBufferSec { get; init; }
 }
@@ -2116,38 +2092,15 @@ public sealed record ThrowChemistryRules
 
 public sealed record BobbleRules
 {
-    public double MinEnergy { get; init; }
     public double HandsPerGloveReduction { get; init; }
-    [Positive] public double EnergySpan { get; init; }
-    public double ChancePerHands { get; init; }
-    [Chance] public double MaxChance { get; init; }
     public double FumbleSec { get; init; }
-    public double ScatterFt { get; init; }
-    public double ScatterFtPerSec { get; init; }
-    public double ScatterDropFtPerSec { get; init; }
-    public double ScatterBallY { get; init; }
-    public double RecoilFtPerSec { get; init; }
-}
-
-/// <summary>
-/// The old recoil: a stop read off the contact's energy and the Hands deficit, the whole tick held for it. Read only
-/// while <see cref="RecoilRules.OnsetFtPerSec"/> is 0; above it the ordinary impact recoil (<see cref="RecoilRules"/>) replaces it.
-/// </summary>
-public sealed record KnockbackRules
-{
-    public double MinEnergy { get; init; }
-    public double SecPerFieldDeficit { get; init; }
-    [Positive] public double EnergySpan { get; init; }
-    public double MaxSec { get; init; }
-    public double MinSec { get; init; }
 }
 
 /// <summary>
 /// What the ball costs the hands that take it (#720: F693-02-ground-pickup-recoil-basis, -ground-pickup-recoil-cap,
 /// -recoil-field-shaping, -recoil-field-factors, -recoil-severity-curve, -ordinary-recoil-actions, -ordinary-recoil-displacement,
-/// -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile). At <c>onsetFtPerSec</c> 0 the recoil is the old one
-/// (<see cref="KnockbackRules"/>). Above 0 it is read off the ball's actual incoming speed the frame before the
-/// take, deterministic: severity <c>S = clamp((v − onset) / (full − onset), 0, 1)</c>, the weight <c>w = S × (1 −
+/// -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile). It is read off the ball's actual incoming speed the frame
+/// before the take, deterministic: severity <c>S = clamp((v − onset) / (full − onset), 0, 1)</c>, the weight <c>w = S × (1 −
 /// handsCutPerPoint × (Hands − 1))</c>, the recovery <c>capSec × w</c>, an impact kick of <c>kickFtPerSec × w</c> along the
 /// ball's horizontal travel slowing linearly to rest over the recovery (<c>w²</c> feet at the accepted 10 ft/s and 0.20 s).
 /// A routine arrival at or below the onset costs nothing. The body's steering and throw start wait; possession and the contact
@@ -2155,30 +2108,25 @@ public sealed record KnockbackRules
 /// </summary>
 public sealed record RecoilRules
 {
-    public double OnsetFtPerSec { get; init; }
+    [Positive] public double OnsetFtPerSec { get; init; }
     public double FullFtPerSec { get; init; }
     /// <summary>
     /// The airborne pair (F693-02-grounded-air-catch-recoil, #720 slice 2): a hard batted ball caught in the air by a body on its
-    /// feet — not diving, not jumping, not a buddy leap — costs the same response off these anchors. 0 = no airborne recoil; the
+    /// feet — not diving, not jumping, not a buddy leap — costs the same response off these anchors. The
     /// game plays the measured 80 / 115, a distinct pair because the ground pair would charge every liner.
     /// </summary>
-    public double AirOnsetFtPerSec { get; init; }
+    [Positive] public double AirOnsetFtPerSec { get; init; }
     public double AirFullFtPerSec { get; init; }
     [Positive] public double CapSec { get; init; }
     [Chance] public double HandsCutPerPoint { get; init; }
     public double KickFtPerSec { get; init; }
-    /// <summary>The speed-read recoil is on; the old knockback is not read.</summary>
-    public bool Active => OnsetFtPerSec > 0;
-    /// <summary>A hard catch in the air by a grounded body recoils.</summary>
-    public bool AirActive => AirOnsetFtPerSec > 0;
 }
 
 /// <summary>
 /// Where an ordinary play is allowed to go wrong (#721: F693-02-handling-error-opportunities, -ordinary-handling-error-chance,
 /// -ordinary-handling-error-cap, -ordinary-handling-chance-curve, -awkward-hop-difficulty-source, -ordinary-bobble-outcome,
 /// -bobble-stun, -bobble-stun-duration, -bobble-recovery-reliability, -bobble-direction-spread, -uniform-error-direction,
-/// -local-bobble-*). At <c>awkwardHop</c> 0 the bobble is the old one (<see cref="BobbleRules"/>: a roll off
-/// the contact's energy on every grounder take, a whole-tick fumble). Above 0 a legal routine pickup never rolls: the one
+/// -local-bobble-*). A legal routine pickup never rolls: the one
 /// difficulty is the awkward in-between hop at the take — the ball rising off a real bounce, mid-way up a hop tall enough to
 /// matter — and its chance is <c>chanceCap × D × (1 − handsCut × H)</c> with D the normalized difficulty and H the normalized
 /// Hands. A failed take is a local bobble: the ball spills down from the contact with a fifth of its horizontal speed (six ft/s
@@ -2194,7 +2142,6 @@ public sealed record RecoilRules
 /// </summary>
 public sealed record HandlingRules
 {
-    [Chance] public double AwkwardHop { get; init; }
     [Chance] public double ChanceCap { get; init; }
     [Chance] public double HandsCut { get; init; }
     /// <summary>A hop whose apex is below this is a micro-bounce and never awkward; the difficulty grows to full at <see cref="HopFullApexFt"/>.</summary>
@@ -2215,8 +2162,6 @@ public sealed record HandlingRules
     [Chance] public double DeflectObstruction { get; init; }
     /// <summary>A glancing touch sends the ball on only when it came in at least this fast — the hot ball of the recoil's onset; a slower one drops at the feet.</summary>
     public double DeflectMinFtPerSec { get; init; }
-    /// <summary>The routine pickup never rolls; the awkward hop is the one difficulty.</summary>
-    public bool Active => AwkwardHop > 0;
 }
 
 public sealed record ParkHazardRules

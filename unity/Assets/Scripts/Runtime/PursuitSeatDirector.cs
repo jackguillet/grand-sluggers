@@ -22,8 +22,8 @@ namespace GrandSluggers.UnityClient
 
         FieldStickRules StickRules => _match.Rules.Fielding.Stick;
 
-        /// <summary>The calibrated radial stick is this match's (the c80 copy); the shipped table's Manhattan gate needs none of this.</summary>
-        bool RadialStick => _match != null && StickRules.Radial;
+        /// <summary>The calibrated radial stick is live whenever a match is.</summary>
+        bool RadialStick => _match != null;
 
         /// <summary>Call time offers Reset stick: the radial stick with a seated controller connected.</summary>
         bool OffersStickReset => RadialStick && _matchSeats.Bound && PursuitReadiness.Offered(StickRules, PursuitDevices());

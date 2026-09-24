@@ -410,7 +410,7 @@ public static class ContentDataValidator
         Range(row.Source, $"character '{c.Id}' bat", c.Bat, 1, 10, errors);
         Range(row.Source, $"character '{c.Id}' field", c.Field, 1, 10, errors);
         Range(row.Source, $"character '{c.Id}' run", c.Run, 1, 10, errors);
-        // Arm, hands and reach are optional: absent means seeded from field / the legacy radius.
+        // Arm, hands and reach are optional: absent means seeded from field / the table's stand-up reach.
         if (c.Arm != 0) Range(row.Source, $"character '{c.Id}' arm", c.Arm, 1, 10, errors);
         if (c.Hands != 0) Range(row.Source, $"character '{c.Id}' hands", c.Hands, 1, 10, errors);
         // Contact and power are optional the same way: absent means seeded from bat (PH-15-R5).
@@ -1049,7 +1049,7 @@ internal sealed class CharacterDto
     /// <summary>Explicit endurance rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
     public int Endurance { get; set; }
 
-    /// <summary>Authored stand-up catch reach in feet. Absent keeps the legacy radius formula.</summary>
+    /// <summary>Authored stand-up catch reach in feet. Absent takes the table's <c>standUpReachFt</c>.</summary>
     public double? ReachFt { get; set; }
 
     public string Bats { get; set; } = "";

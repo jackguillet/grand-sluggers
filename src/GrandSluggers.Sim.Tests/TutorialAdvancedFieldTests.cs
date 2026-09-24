@@ -71,7 +71,6 @@ public sealed class TutorialAdvancedFieldTests
                     relayStage = 2;
                 }
                 else if (!skipOnward && relayStage == 2 && live.Throwing && live.ThrowBag == 0
-                    && run.Match.Rules.Fielding.Throw.RelayAutoContinue == 0
                     && live.ThrowDur - live.ThrowT <= .15)
                 {
                     pad = new(SouthDown: true);

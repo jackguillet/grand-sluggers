@@ -918,15 +918,9 @@ public sealed partial class LivePlaySystem
         NoteSwitchHint(map, pre, pad);
         if (SelectTakes(pad, buddyOn)) TakeSelect(map, pad);
 
-        // West: a takeoff (the old arm window at jumpAirSec 0), read before the frame's step so the airborne
-        // steering begins at the press (#719, F693-02-normal-jump-startup-trial).
-        if (!catchRules.JumpArc)
-        {
-            if (pad.WestDown)
-                JumpT = needsJump || buddyOn ? catchRules.WallJumpArmSec : catchRules.JumpArmSec;
-        }
-        else
-            TickJumpPress(pad, dt);
+        // West: a takeoff, read before the frame's step so the airborne steering begins at the press (#719,
+        // F693-02-normal-jump-startup-trial).
+        TickJumpPress(pad, dt);
 
         var steering = (chasing || HoldsBall) && !Throwing;
         var dead = !_stick.Manual;
@@ -1022,8 +1016,8 @@ public sealed partial class LivePlaySystem
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, diveWin,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
-                // The leap: the body actually in the air (#719); the old arm window at jumpAirSec 0.
-                var leaping = catchRules.JumpArc ? Airborne : JumpT > 0;
+                // The leap: the body actually in the air (#719).
+                var leaping = Airborne;
                 var jumpTry = leaping && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
                 var buddyRob = BuddyReady();
                 BuddyWindow = buddyRob;
@@ -1097,7 +1091,7 @@ public sealed partial class LivePlaySystem
         if (Seats.PlayerMustField) return;
         if (PlayerFielding || HoldsBall || Throwing) return;
         if (Hit is null || Preview is null) return;
-        // The take is manual pursuit's entry (#718): the shipped Manhattan gate at feel.fieldAssistStick, the calibrated radial enterMag on the trial; Select takes regardless.
+        // The take is manual pursuit's entry (#718): the calibrated radial stick past enterMag; Select takes regardless.
         if (!(pad.Swap || _stick.Manual))
             return;
         PlayerFielding = true;
@@ -1949,18 +1943,15 @@ public sealed partial class LivePlaySystem
         var step = Math.Min(dt, _coastT);
         _fielders[_coastPos] = FieldBounds.ClampFielder(Park, at.X + _coastVel.X * step, at.Z + _coastVel.Z * step, R);
         _coastT -= dt;
-        if (ResponseLaw)
+        // The body's velocity is the coast's, so when the coast ends it brakes rather than stopping dead (#718).
+        _vel[_coastPos] = _coastVel;
+        _stepped.Add(_coastPos);
+        if (_coastT <= 1e-9)
         {
-            // The body's velocity is the coast's, so when the coast ends it brakes rather than stopping dead (#718).
-            _vel[_coastPos] = _coastVel;
-            _stepped.Add(_coastPos);
-            if (_coastT <= 1e-9)
-            {
-                // The coast's last step: what it left of the frame is the brake's, and so is every frame after that no walk takes.
-                _coastT = 0;
-                _coastBrakePos = _coastPos;
-                _coastBrakeLeft = dt - step;
-            }
+            // The coast's last step: what it left of the frame is the brake's, and so is every frame after that no walk takes.
+            _coastT = 0;
+            _coastBrakePos = _coastPos;
+            _coastBrakeLeft = dt - step;
         }
     }
 
@@ -2065,7 +2056,7 @@ public sealed partial class LivePlaySystem
             if (string.IsNullOrEmpty(pos) || pos == onBall || pos == _cutoffPos || pos == _backupPos || Coasting(pos)) continue;
             // A body already walking on the square keeps walking through the crack (§7.3); the rest wait the cover start.
             var onSquare = squared && BuntDefense.CoverBag(pos, R.Fielding.Bunt) == kv.Key;
-            if (!RunnerPlay && !onSquare && ElapsedSeconds < Math.Max(cover.StartSec, cover.LockoutMul * ReadyAt(pos))) continue;
+            if (!RunnerPlay && !onSquare && ElapsedSeconds < cover.StartSec) continue;
             // A charge body converges on the bunt instead of covering an idle bag (ChargeBunt).
             if (!HoldsBall && !Throwing && !_loose && BuntChargeBody(pos, map)) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
@@ -2116,9 +2107,6 @@ public sealed partial class LivePlaySystem
     // ---------------------------------------------------------------------------------
     // The response law (#718, F693-02-carry-movement-response)
     // ---------------------------------------------------------------------------------
-
-    /// <summary>The response law is on when the table gives a ramp or a brake time; at 0 / 0 every step is the instant step the game shipped with.</summary>
-    bool ResponseLaw => R.Fielding.Chase.AccelSec > 0 || R.Fielding.Chase.BrakeSec > 0;
 
     /// <summary>
     /// The rated speed the response rates are measured against: the body's own pursuit top speed (§8.1), never the speed it
@@ -2313,19 +2301,16 @@ public sealed partial class LivePlaySystem
     public bool PursuitManual => _stick.Manual;
 
     /// <summary>The calibrated radial stick is on and the fielding seat has not armed: the body is the assistance's until the stick is seen neutral once, and the client should say so.</summary>
-    public bool PursuitUnready => R.Fielding.Stick.Radial && Seats.HumanFields && !FieldStick(_stickDevice).Armed;
+    public bool PursuitUnready => Seats.HumanFields && !FieldStick(_stickDevice).Armed;
 
     /// <summary>
-    /// One read a frame of the defense pad's stick. At <c>fielding.stick.enterMag</c> 0 it is the stick the game shipped
-    /// with: manual past the Manhattan gate at <c>feel.fieldAssistStick</c>, the raw stick vector as the asked velocity —
-    /// the same doubles every site read before. Above 0 it is the device's calibrated radial stick with its hysteresis,
-    /// its arming and the linear remap.
+    /// One read a frame of the defense pad's stick: the device's calibrated radial stick with its hysteresis, its arming and
+    /// the linear remap.
     /// </summary>
     StickRead ReadPursuitStick(LivePadInput pad)
     {
         _stickDevice = pad.Device;
         var s = R.Fielding.Stick;
-        if (!s.Radial) return new StickRead(pad.StickMag >= Feel.FieldAssistStick, pad.StickX, pad.StickY);
         return FieldStick(pad.Device).Read(pad.StickX, pad.StickY, s);
     }
 
@@ -2349,10 +2334,10 @@ public sealed partial class LivePlaySystem
         var top = RatedSpeed(pos, asked);
         // Airborne on a normal jump the body answers at a fraction of its ground rates (#719, F693-02-normal-jump-air-response-trial).
         var rate = Airborne && pos == GlovePos ? R.Fielding.Catch.JumpAirResponseMul : 1.0;
-        var accel = c.AccelSec > 0 ? top / (c.AccelSec * ground.StartMul) * rate : double.PositiveInfinity;
-        var brake = c.BrakeSec > 0 ? top / (c.BrakeSec * ground.BrakeMul) * rate : double.PositiveInfinity;
+        var accel = top / (c.AccelSec * ground.StartMul) * rate;
+        var brake = top / (c.BrakeSec * ground.BrakeMul) * rate;
         // The cut-back: the component across the heading is corrected at the ramp rate, over the ground's own time for it.
-        var cut = c.AccelSec > 0 ? top / (c.AccelSec * ground.CutMul) * rate : double.PositiveInfinity;
+        var cut = top / (c.AccelSec * ground.CutMul) * rate;
         var v = _vel.TryGetValue(pos, out var cur) ? cur : (X: 0.0, Z: 0.0);
         var dvx = want.X - v.X;
         var dvz = want.Z - v.Z;
@@ -2397,8 +2382,6 @@ public sealed partial class LivePlaySystem
         // backup walk, whose speed never carries the heart swing's slow; every other step is a chase over the preview.
         goal = RouteAround(pos, at, goal, speed);
         speed *= VolumeMul(pos, specialSlowed: !flat && Preview?.Frozen == true);
-        if (!ResponseLaw)
-            return flat ? StepFlat(at, goal, speed, stopFt, dt) : FieldingResolver.StepToward(at.X, at.Z, goal.X, goal.Z, speed, dt, R, Park);
         var dx = goal.X - at.X;
         var dz = goal.Z - at.Z;
         var dist = Math.Sqrt(dx * dx + dz * dz);
@@ -2416,7 +2399,6 @@ public sealed partial class LivePlaySystem
     (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt, bool specialSlowed)
     {
         speed *= VolumeMul(pos, specialSlowed);
-        if (!ResponseLaw) return FieldBounds.ClampFielder(Park, at.X + stickX * speed * dt, at.Z + stickY * speed * dt, R);
         var v = Respond(pos, at, (stickX * speed, stickY * speed), speed, dt);
         return FieldBounds.ClampFielder(Park, at.X + v.X * dt, at.Z + v.Z * dt, R);
     }
@@ -2428,11 +2410,6 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void TickIdleBrakes(double dt)
     {
-        if (!ResponseLaw)
-        {
-            _stepped.Clear();
-            return;
-        }
         var idle = _vel.Keys.Where(pos => !_stepped.Contains(pos) && !Coasting(pos)).ToList();
         _stepped.Clear();
         foreach (var pos in idle)
@@ -2540,7 +2517,7 @@ public sealed partial class LivePlaySystem
     {
         var mul = FieldAbilities.ThrowMul(who, R);
         var a = R.Fielding.Abilities;
-        if (a.LaserHomeOnly > 0 && HasAbility(who, "laser") && !LaserEligible(bag)) mul /= a.LaserMul;
+        if (HasAbility(who, "laser") && !LaserEligible(bag)) mul /= a.LaserMul;
         return mul;
     }
 
@@ -2554,21 +2531,11 @@ public sealed partial class LivePlaySystem
     ThrowResult WithCommand(ThrowResult thr, Character from, int bag)
     {
         var a = R.Fielding.Abilities;
-        if (a.LaserHomeOnly > 0 && HasAbility(from, "laser") && !LaserEligible(bag))
+        if (HasAbility(from, "laser") && !LaserEligible(bag))
             thr = thr with { SpeedMul = thr.SpeedMul / a.LaserMul };
         var release = SnapRelease(from, _receivedClean);
         if (release is { } sec) thr = thr with { ReleaseSec = sec };
         return thr;
-    }
-
-    (double X, double Z) StepFlat((double X, double Z) at, (double X, double Z) goal, double speed, double stopFt, double dt)
-    {
-        var dx = goal.X - at.X;
-        var dz = goal.Z - at.Z;
-        var dist = Math.Sqrt(dx * dx + dz * dz);
-        if (dist < stopFt) return at;
-        var step = Math.Min(dist, speed * dt);
-        return FieldBounds.ClampFielder(Park, at.X + dx / dist * step, at.Z + dz / dist * step, R);
     }
 
     void ClampField()
@@ -3089,14 +3056,6 @@ public sealed partial class LivePlaySystem
         _receivedClean = true;
         if (PlayerFielding || Seats.HumanOwnsThrow)
         {
-            if (_relayBag is >= 1 and <= 4 && R.Fielding.Throw.RelayAutoContinue > 0)
-            {
-                // The armed onward leg is thrown for the player: the rule the game shipped with.
-                var bag = _relayBag;
-                _relayBag = 0;
-                BeginThrowToBag(bag);
-                return true;
-            }
             // The relay is player-owned (F693-03-relay-ownership, #723): the cutoff holds until commanded. A press remembered
             // inside fielding.throw.relayBufferSec fires now; otherwise the armed bag stays armed for the next press.
             if (_queuePending)
@@ -3476,7 +3435,7 @@ public sealed partial class LivePlaySystem
         var kind = LiveKind();
         var from = _firstGlove ?? GloveChar();
         var knock = pre.Grounder && hit is not null
-            ? (R.Fielding.Recoil.Active ? RecoilDur : InPlay.KnockbackSec(InPlay.Energy(hit, R), from, R))
+            ? RecoilDur
             : 0;
         // The catch feat is typed on the outcome (§8.4, §15): the stamp reads it, never the client's mirror.
         var feat = kind is PlayKind.FlyOut or PlayKind.GroundOut && _gloved
@@ -3574,32 +3533,27 @@ public sealed partial class LivePlaySystem
     {
         if (_recoilArmed || Preview is null || Buddy) return;
         // #721: a legal routine pickup never rolls; an awkward in-between hop rolls once, and a failed take is a local bobble.
-        // A clean take then pays the impact recoil (#720) as any other. The energy roll below is the old rule (awkwardHop 0).
-        if (landed && R.Fielding.Handling.Active && Hit is not null)
+        // A clean take then pays the impact recoil (#720) as any other.
+        if (landed && Hit is not null)
         {
             _recoilArmed = true;
             var taker = GloveChar();
             if (TryFumble(taker)) return;
-            if (R.Fielding.Recoil.Active) ArmImpact(taker);
-            else if (Preview.Grounder)
-            {
-                var k = InPlay.KnockbackSec(InPlay.Energy(Hit, R), taker, R);
-                if (k > R.Fielding.Knockback.MinSec) RecoilT = k;
-            }
+            ArmImpact(taker);
             return;
         }
         if (!landed || !Preview.Grounder)
         {
             // A landed liner or fly picked up off the grass: no bobble roll, and none here. The take still
-            // costs what its speed says (F693-02-ground-pickup-recoil-basis); a table with the recoil off charges nothing.
-            if (landed && R.Fielding.Recoil.Active && Hit is not null)
+            // costs what its speed says (F693-02-ground-pickup-recoil-basis).
+            if (landed && Hit is not null)
             {
                 _recoilArmed = true;
                 ArmImpact(GloveChar());
             }
             // A hard ball caught in the air by a body on its feet (F693-02-grounded-air-catch-recoil, #720 slice 2): the same
             // response off the airborne anchors. A dive, a jump, a buddy leap or a body still in the air is not this take.
-            else if (!landed && R.Fielding.Recoil.AirActive && Hit is not null && Grounded)
+            else if (!landed && Hit is not null && Grounded)
             {
                 _recoilArmed = true;
                 ArmImpact(GloveChar(), airborne: true);
@@ -3607,36 +3561,6 @@ public sealed partial class LivePlaySystem
             return;
         }
         _recoilArmed = true;
-        if (Hit is null) return;
-        var who = GloveChar();
-        var energy = InPlay.Energy(Hit, R);
-        // The one seeded stream (S-92). The client used to re-roll this with an ad-hoc Random.
-        var bobble = _match.RollBobble(energy, who);
-        var knock = InPlay.KnockbackSec(energy, who, R);
-        PlayerBobble = bobble;
-        var rules = R.Fielding.Bobble;
-        if (bobble)
-        {
-            // The fumble (§8.6): the ball scatters loose; the glove is out of it for the fumble, then chases.
-            _bobbled = true;
-            _receivedClean = false;
-            Bobbling = true;
-            Caught = false;
-            RecoilT = rules.FumbleSec;
-            var ax = BallX - GloveX;
-            var az = BallZ - GloveZ;
-            if (ax * ax + az * az < 0.4) { ax = 0; az = 1; }
-            var len = Math.Sqrt(ax * ax + az * az);
-            SetLoose(GloveX + ax / len * rules.ScatterFt, GloveZ + az / len * rules.ScatterFt,
-                ax / len * rules.ScatterFtPerSec, az / len * rules.ScatterFtPerSec);
-            BallY = rules.ScatterBallY;
-            _events.Add(LiveEvent.Bobble);
-            Sub = $"{who.Name} bobbles it!";
-        }
-        else if (R.Fielding.Recoil.Active)
-            ArmImpact(who);   // the ordinary impact recoil (#720): read off the ball's speed, never the contact's energy
-        else if (knock > R.Fielding.Knockback.MinSec)
-            RecoilT = knock;
     }
 
     // ---------------------------------------------------------------------------------

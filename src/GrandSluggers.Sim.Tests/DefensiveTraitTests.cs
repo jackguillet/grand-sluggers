@@ -62,7 +62,7 @@ public class DefensiveTraitTests
         Assert.True(InPlay.ArmMul(strong, rules: Rules.Default) > InPlay.ArmMul(weak, rules: Rules.Default), "a better arm throws harder");
 
         // Hands and reach are untouched by the arm rating.
-        Assert.Equal(InPlay.KnockbackSec(200, weak, rules: Rules.Default), InPlay.KnockbackSec(200, strong, rules: Rules.Default), 6);
+        Assert.Equal(FieldingResolver.RecoilSec(weak, 100, Rules.Default), FieldingResolver.RecoilSec(strong, 100, Rules.Default), 6);
         Assert.Equal(
             FieldingResolver.CatchRadiusFt(weak, null, rules: Rules.Default),
             FieldingResolver.CatchRadiusFt(strong, null, rules: Rules.Default), 6);
@@ -73,7 +73,7 @@ public class DefensiveTraitTests
     {
         var clumsy = Character(hands: 1);
         var sure = Character(hands: 10);
-        Assert.True(InPlay.KnockbackSec(200, sure, rules: Rules.Default) < InPlay.KnockbackSec(200, clumsy, rules: Rules.Default),
+        Assert.True(FieldingResolver.RecoilSec(sure, 100, Rules.Default) < FieldingResolver.RecoilSec(clumsy, 100, Rules.Default),
             "better hands recover sooner");
 
         Assert.Equal(InPlay.ArmMul(clumsy, rules: Rules.Default), InPlay.ArmMul(sure, rules: Rules.Default), 6);
@@ -93,20 +93,11 @@ public class DefensiveTraitTests
         foreach (var field in new[] { 1, 5, 10 })
             Assert.Equal(4.0, FieldingResolver.CatchRadiusFt(Character(field: field), null, rules), 6);
 
-        // A table with no stand-up reach falls back to the legacy formula, which Field sizes.
-        var legacyRules = Rules.Default with { Fielding = Rules.Default.Fielding with { Catch = Rules.Default.Fielding.Catch with { StandUpReachFt = 0 } } };
-        foreach (var field in new[] { 1, 5, 10 })
-        {
-            var legacy = legacyRules.Fielding.Catch.RadiusBaseFt + field * legacyRules.Fielding.Catch.RadiusPerField;
-            Assert.Equal(legacy, FieldingResolver.CatchRadiusFt(Character(field: field), null, legacyRules), 6);
-        }
-
-        // Authored: the number wins over either table, and changing Field cannot resize it.
+        // Authored: the number wins over the table, and changing Field cannot resize it.
         var small = Character(field: 1, reachFt: 4);
         var big = Character(field: 10, reachFt: 4);
         Assert.Equal(4, FieldingResolver.CatchRadiusFt(small, null, rules), 6);
         Assert.Equal(4, FieldingResolver.CatchRadiusFt(big, null, rules), 6);
-        Assert.Equal(4, FieldingResolver.CatchRadiusFt(big, null, legacyRules), 6);
     }
 
     [Fact]

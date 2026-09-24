@@ -103,9 +103,9 @@ public sealed class SeatOwnershipTests
             Assert.Equal(PlayKind.Single, play.Kind);
             Assert.Equal(1, play.Outcome!.BatterToBag);
         }
-        // The CPU glove throws once its reaction settles (§8.8): within the reaction and the knockback, not on a press.
+        // The CPU glove throws once its reaction settles (§8.8): within the reaction and the recoil's longest recovery, not on a press.
         var ss = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher, match.Defense.Gloves)["SS"];
-        Assert.InRange(threwAt - caughtAt, 0, InPlay.ThrowReactionSec(ss, match.Rules) + match.Rules.Fielding.Knockback.MaxSec + Frame * 2);
+        Assert.InRange(threwAt - caughtAt, 0, InPlay.ThrowReactionSec(ss, match.Rules) + match.Rules.Fielding.Recoil.CapSec + Frame * 2);
     }
 
     [Theory]
