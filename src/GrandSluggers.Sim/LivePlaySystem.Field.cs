@@ -24,7 +24,10 @@ public sealed record LivePadInput(
     /// <summary>RB / period on the defense pad (#723, F693-03-throw-cancel): cancels a queued onward throw. Read as a fresh press, never a held shoulder.</summary>
     bool Cancel = false,
     /// <summary>Which bound device this pad is (#718): the pursuit stick's calibration and arming are per device. 0 for a single seat.</summary>
-    int Device = 0)
+    int Device = 0,
+    RunnerOrderInput? Orders = null,
+    bool ExplicitTarget = false,
+    bool? CloseResponse = null)
 {
     public static LivePadInput Dead { get; } = new();
 
@@ -347,6 +350,8 @@ public sealed partial class LivePlaySystem
     (double X, double Y, double Z) _ballVel;
     // A throw press during the dive's recovery, remembered for the last throw.relayBufferSec of it (#719, F693-02-ordinary-recoil-actions).
     LivePadInput? _recoveryPress;
+    LivePadInput? _approachPress;
+    double _approachAge;
     /// <summary>The glove is in the air on a normal jump (#719, F693-02-normal-jump-*): never on the shipped table.</summary>
     public bool Airborne { get; private set; }
     /// <summary>Seconds since takeoff while <see cref="Airborne"/>.</summary>
@@ -491,6 +496,7 @@ public sealed partial class LivePlaySystem
         if (command.Hit is null || command.Pitch is null || command.Swing is null)
             return new LivePlayCommandResult(Snapshot);
         ResetField();
+        TutorialAbilityReachUsed = ""; // receipt survives a same-tick completed catch
         _events.Clear();
         _stamps.Clear();
         _stampsThisPlay.Clear();
@@ -623,6 +629,8 @@ public sealed partial class LivePlaySystem
         _ballPrev = null;
         _ballVel = (0, 0, 0);
         _recoveryPress = null;
+        _approachPress = null;
+        _approachAge = 0;
         Airborne = false;
         JumpAirT = 0;
         JumpHeightFt = 0;
@@ -675,7 +683,6 @@ public sealed partial class LivePlaySystem
         _peelT = 0;
         _powT = 0;
         ItemLanded = false;
-        TutorialAbilityReachUsed = "";
         _itemLandAt = -1;
         AwaitingRelay = false;
         InClosePlay = false;
@@ -997,8 +1004,6 @@ public sealed partial class LivePlaySystem
                     : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, d, dirtStand, R))
                     TakeBattedBall();
                 var pickupInPlay = _loose || FlyCatch.PickupInPlay(pre, Park, BallX, BallZ, ElapsedSeconds, hang, R);
-                if (pickupInPlay && pad.SouthDown && d < dirtStand && BallY <= catchRules.TouchScoopY)
-                    TakeBattedBall();
                 if (pickupInPlay && FlyCatch.PlayerDiveCatch(DiveT > 0, d, dirtStand, dirtDive, BallY, R))
                 {
                     CatchDive = true;
@@ -1022,7 +1027,7 @@ public sealed partial class LivePlaySystem
                 // Dead stick runs the glove and may take a standing catch, never a dive.
                 if (dead && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
                     TakeBattedBall();
-                if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, underStand, inWin, needsJump, canRob))
+                if (FlyCatch.PlayerCaught(jumpTry, false, underStand, inWin, needsJump, canRob, linerInAir))
                 {
                     if (jumpTry) CatchJump = true;
                     if (buddyOn && inWin && distPlant < catchRules.BuddyPlantFt)
@@ -2456,7 +2461,8 @@ public sealed partial class LivePlaySystem
     // ---------------------------------------------------------------------------------
 
     /// <summary>Whether a queued onward throw waits for the receiver's catch (#723): the HUD's queue tell.</summary>
-    public bool ThrowQueued => _queuePending;
+    public bool ThrowQueued => _queuePending || _approachPress is not null || _recoveryPress is not null;
+    public bool CanCancelThrow => ThrowQueued || AwaitingRelay;
 
     /// <summary>The bag a queued onward throw would go to — the armed bag, home by default — or 0 when nothing is queued.</summary>
     public int QueuedThrowBag => _queuePending ? (_relayBag is >= 1 and <= 4 ? _relayBag : 4) : 0;
@@ -2472,6 +2478,24 @@ public sealed partial class LivePlaySystem
         var cancel = field.Cancel && !_cancelWasDown;
         _cancelWasDown = field.Cancel;
         var t = R.Fielding.Throw;
+        if (_approachPress is not null)
+        {
+            _approachAge += dt;
+            if (cancel || _approachAge > t.RelayBufferSec)
+            {
+                _approachPress = null;
+                _events.Add(LiveEvent.ThrowQueueCleared);
+            }
+            else if (field.KeysBag > 0) _approachPress = _approachPress with { KeysBag = field.KeysBag };
+        }
+        if (cancel) _recoveryPress = null;
+        if (field.ExplicitTarget && !HoldsBall && !Throwing && !RunnerPlay
+            && field.SouthDown && field.KeysBag > 0 && !cancel && t.RelayBufferSec > 0)
+        {
+            _approachPress = field;
+            _approachAge = 0;
+            _events.Add(LiveEvent.ThrowQueued);
+        }
         if (t.RelayBufferSec <= 0 || !Seats.HumanOwnsThrow)
         {
             _queuePending = false;
@@ -2681,7 +2705,18 @@ public sealed partial class LivePlaySystem
     /// </summary>
     LivePadInput? ThrowPress(LivePadInput pad)
     {
-        var pressed = pad.SouthDown || pad.Cutoff;
+        if (pad.Cancel)
+        {
+            _recoveryPress = null;
+            return null;
+        }
+        if (_approachPress is { } approach)
+        {
+            _approachPress = null;
+            pad = approach with { KeysBag = pad.KeysBag > 0 ? pad.KeysBag : approach.KeysBag };
+            if (pad.KeysBag > 0) ThrowBag = pad.KeysBag;
+        }
+        var pressed = (pad.SouthDown && (!pad.ExplicitTarget || pad.KeysBag > 0 || ThrowBag > 0)) || pad.Cutoff;
         // Nothing releases while the body recovers from a dive, or while it is still in the air after a jumping catch
         // (F693-02-jump-catch-throw-readiness): the landing comes first, and a press inside the buffer waits for it.
         var recovering = DiveRecoveryT > 0 && DivingPos == GlovePos;
@@ -2858,6 +2893,7 @@ public sealed partial class LivePlaySystem
 
     LivePlayCommandResult? BeginPlayerThrowOrCommit(Dictionary<string, Character> map, LivePadInput pad)
     {
+        if (pad.ExplicitTarget && !pad.Cutoff && pad.KeysBag <= 0 && ThrowBag <= 0) return null;
         var hopperCaught = Preview is not null && Preview.Grounder && HoldsBall;
         var def = DefaultBag();
         if (!HoldsBall)
@@ -3797,7 +3833,7 @@ public sealed partial class LivePlaySystem
         {
             if (defenseHuman)
             {
-                if (field.SouthDown) _closeDefAt = _closePlayT;
+                if (field.CloseResponse ?? field.SouthDown) _closeDefAt = _closePlayT;
             }
             else
             {

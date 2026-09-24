@@ -24,11 +24,11 @@ public class HowToComicTests
         var keyPitch = HowToComic.Caption(HowToComic.Pitch, InputScheme.Keys);
         var padSwing = HowToComic.Caption(HowToComic.Swing, InputScheme.Pad);
         var keySwing = HowToComic.Caption(HowToComic.Swing, InputScheme.Keys);
-        Assert.Contains("South", padPitch);
+        Assert.Contains("RT", padPitch);
         Assert.DoesNotContain("Space", padPitch);
         Assert.Contains("Space", keyPitch);
         Assert.DoesNotContain("South", keyPitch);
-        Assert.Contains("South", padSwing);
+        Assert.Contains("RT", padSwing);
         Assert.Contains("Space", keySwing);
         Assert.Contains("MAX", padPitch);
         Assert.Contains("MAX", keySwing);
@@ -37,8 +37,8 @@ public class HowToComicTests
         Assert.False(HowToPlay.MixesHardware(padSwing));
         Assert.False(HowToPlay.MixesHardware(keySwing));
 
-        Assert.Equal("Hold South", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Charge);
-        Assert.Equal("Release South", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Commit);
+        Assert.Equal("Hold RT", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Charge);
+        Assert.Equal("Release RT", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Commit);
         Assert.Contains("Hold Space", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Charge);
         Assert.Equal("Release", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Commit);
 

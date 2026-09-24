@@ -7,6 +7,18 @@ public class FlyCatchTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OrdinaryCatchesDependOnPositionAndWindowNeverThrowButton(bool throwPressed)
+    {
+        Assert.True(FlyCatch.PlayerCaught(false, throwPressed, true, true, false));
+        Assert.False(FlyCatch.PlayerCaught(false, throwPressed, false, true, false));
+        Assert.False(FlyCatch.PlayerCaught(false, throwPressed, true, false, false));
+        Assert.False(FlyCatch.PlayerCaught(false, throwPressed, true, true, true));
+        Assert.True(FlyCatch.PlayerCaught(false, throwPressed, true, false, false, linerInAir: true));
+    }
+
     [Fact]
     public void NearWallHomerCannotBeScoopedThroughTheFence()
     {
@@ -80,8 +92,8 @@ public class FlyCatchTests
         Assert.Equal(PlayKind.InPlay, FlyCatch.PlayerKind(false, pre));
         Assert.Equal(PlayKind.InPlay, FlyCatch.PlayerKind(true, pre, inAir: false));
         _ = pop;
-        Assert.True(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false),
-            "South still scoops a routine fly you are under");
+        Assert.False(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false),
+            "a throw press cannot take an ineligible fly");
         Assert.True(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: true, needsJump: false),
             "the leap stays armed after the press");
         Assert.True(FlyCatch.PlayerDiveCatch(true, distFt: 16, standUpFt: 10, diveWindowFt: 20, ballY: 2));
@@ -225,8 +237,8 @@ public class FlyCatchTests
         Assert.False(FlyCatch.Under(4, 90, 5, 92, plantX, plantZ, window, needsJump: false),
             "the plant is the bounce; the intercept is not there");
         Assert.Equal(PlayKind.FlyOut, FlyCatch.PlayerKind(true, liner, inAir: true));
-        Assert.True(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false),
-            "a straight-at-you liner is a South catch");
+        Assert.True(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false, linerInAir: true),
+            "a straight-at-you liner is a positional catch");
         // Already bounced: a scoop, never a silent catch.
         Assert.False(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 6,
             plantX, plantZ, window, hitT: liner.HangTimeSec + 0.05, hangSec: liner.HangTimeSec, needsJump: false));

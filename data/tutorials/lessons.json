@@ -3,7 +3,7 @@
   "lessons": [
     {
       "id": "T-P01",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "pitching.01"
       ],
@@ -28,7 +28,7 @@
     },
     {
       "id": "T-P02",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.02"
       ],
@@ -56,7 +56,7 @@
     },
     {
       "id": "T-P03",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "pitching.03"
       ],
@@ -81,7 +81,7 @@
     },
     {
       "id": "T-P10",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.10"
       ],
@@ -108,7 +108,7 @@
     },
     {
       "id": "T-P04",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.04"
       ],
@@ -135,7 +135,7 @@
     },
     {
       "id": "T-P05",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.05"
       ],
@@ -162,7 +162,7 @@
     },
     {
       "id": "T-P06",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "pitching.06"
       ],
@@ -189,7 +189,7 @@
     },
     {
       "id": "T-P07",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "pitching.07"
       ],
@@ -214,7 +214,7 @@
     },
     {
       "id": "T-P08",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "pitching.08",
         "pitching.11"
@@ -240,7 +240,7 @@
     },
     {
       "id": "T-P09",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "pitching.09"
       ],
@@ -265,7 +265,7 @@
     },
     {
       "id": "T-B01",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "batting.01"
       ],
@@ -290,7 +290,7 @@
     },
     {
       "id": "T-B02",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.02"
       ],
@@ -317,7 +317,7 @@
     },
     {
       "id": "T-B03",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.03"
       ],
@@ -344,7 +344,7 @@
     },
     {
       "id": "T-B03-L",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.03"
       ],
@@ -371,7 +371,7 @@
     },
     {
       "id": "T-B04",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.04"
       ],
@@ -398,7 +398,7 @@
     },
     {
       "id": "T-B05",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.05"
       ],
@@ -426,7 +426,7 @@
     },
     {
       "id": "T-B07",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "batting.07"
       ],
@@ -454,7 +454,7 @@
     },
     {
       "id": "T-B08",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.08"
       ],
@@ -481,7 +481,7 @@
     },
     {
       "id": "T-B09",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "batting.09"
       ],
@@ -506,7 +506,7 @@
     },
     {
       "id": "T-B10",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.10"
       ],
@@ -533,7 +533,7 @@
     },
     {
       "id": "T-B11",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "batting.11"
       ],
@@ -711,7 +711,7 @@
     },
     {
       "id": "T-F04",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "fielding.04"
       ],
@@ -761,7 +761,7 @@
     },
     {
       "id": "T-F06",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.06"
       ],
@@ -786,7 +786,7 @@
     },
     {
       "id": "T-F07",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.07"
       ],
@@ -812,7 +812,7 @@
     },
     {
       "id": "T-F08",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.08"
       ],
@@ -838,7 +838,7 @@
     },
     {
       "id": "T-F09",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.09"
       ],
@@ -863,7 +863,7 @@
     },
     {
       "id": "T-F10",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.10"
       ],
@@ -913,7 +913,7 @@
     },
     {
       "id": "T-F12",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.12"
       ],
@@ -965,7 +965,7 @@
     },
     {
       "id": "T-F14",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.14"
       ],
@@ -993,7 +993,7 @@
     },
     {
       "id": "T-F15",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.15"
       ],
@@ -1020,7 +1020,7 @@
     },
     {
       "id": "T-F16",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.16"
       ],
@@ -1148,7 +1148,7 @@
     },
     {
       "id": "T-D05",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "outs.05"
       ],
@@ -1174,7 +1174,7 @@
     },
     {
       "id": "T-D06",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "outs.06"
       ],
@@ -1251,7 +1251,7 @@
     },
     {
       "id": "T-D08",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "outs.08"
       ],
@@ -1329,7 +1329,7 @@
     },
     {
       "id": "T-R03",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "running.03"
       ],
@@ -1354,7 +1354,7 @@
     },
     {
       "id": "T-R09",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "running.09"
       ],
@@ -1408,7 +1408,7 @@
     },
     {
       "id": "T-R05",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "running.05"
       ],
@@ -1433,7 +1433,7 @@
     },
     {
       "id": "T-R06",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "running.06"
       ],
@@ -1458,7 +1458,7 @@
     },
     {
       "id": "T-R07",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "running.07"
       ],
@@ -1483,7 +1483,7 @@
     },
     {
       "id": "T-R08",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "running.08"
       ],
@@ -1508,7 +1508,7 @@
     },
     {
       "id": "T-G01",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "game.01"
       ],
@@ -1531,7 +1531,7 @@
     },
     {
       "id": "T-G02",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "game.02"
       ],
@@ -1557,7 +1557,7 @@
     },
     {
       "id": "T-G03",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "game.03"
       ],
@@ -1583,7 +1583,7 @@
     },
     {
       "id": "T-G03-U",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.03"
       ],
@@ -1608,11 +1608,11 @@
     },
     {
       "id": "T-G04",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "game.04"
       ],
-      "title": "Read the 1\u20131 count",
+      "title": "Read the 1–1 count",
       "category": "game",
       "status": "implemented",
       "issue": 800,
@@ -1633,7 +1633,7 @@
     },
     {
       "id": "T-G05",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "game.05"
       ],
@@ -1656,7 +1656,7 @@
     },
     {
       "id": "T-G06",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "game.06"
       ],
@@ -1679,7 +1679,7 @@
     },
     {
       "id": "T-G06-C",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.06"
       ],
@@ -1702,7 +1702,7 @@
     },
     {
       "id": "T-G06-R",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.06"
       ],
@@ -1725,7 +1725,7 @@
     },
     {
       "id": "T-X01",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "special.01"
       ],
@@ -1748,7 +1748,7 @@
     },
     {
       "id": "T-X02",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "special.02"
       ],
@@ -1773,7 +1773,7 @@
     },
     {
       "id": "T-X03",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "special.03"
       ],
@@ -1822,7 +1822,7 @@
     },
     {
       "id": "T-A-grow",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "ability.grow"
       ],
@@ -1850,7 +1850,7 @@
     },
     {
       "id": "T-A-lick-catch",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "ability.lick-catch"
       ],
@@ -1878,7 +1878,7 @@
     },
     {
       "id": "T-A-spin-check",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "ability.spin-check"
       ],
@@ -1901,7 +1901,7 @@
     },
     {
       "id": "T-A-withdraw",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "ability.withdraw"
       ],
@@ -1929,7 +1929,7 @@
     },
     {
       "id": "T-SP-heatball",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.heatball"
       ],
@@ -1954,7 +1954,7 @@
     },
     {
       "id": "T-SP-charmball",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.charmball"
       ],
@@ -1979,7 +1979,7 @@
     },
     {
       "id": "T-SP-prismball",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.prismball"
       ],
@@ -2004,7 +2004,7 @@
     },
     {
       "id": "T-SP-phonyball",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.phonyball"
       ],
@@ -2029,7 +2029,7 @@
     },
     {
       "id": "T-SP-caskball",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.caskball"
       ],
@@ -2054,7 +2054,7 @@
     },
     {
       "id": "T-SP-skullball",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.skullball"
       ],
@@ -2079,7 +2079,7 @@
     },
     {
       "id": "T-SP-fogball",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.fogball"
       ],
@@ -2104,7 +2104,7 @@
     },
     {
       "id": "T-SP-fastball",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.fastball"
       ],
@@ -2129,7 +2129,7 @@
     },
     {
       "id": "T-SP-changeup",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.changeup"
       ],
@@ -2154,7 +2154,7 @@
     },
     {
       "id": "T-SP-breaker",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-pitch.breaker"
       ],
@@ -2179,7 +2179,7 @@
     },
     {
       "id": "T-SS-heat-swing",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.heat-swing"
       ],
@@ -2204,7 +2204,7 @@
     },
     {
       "id": "T-SS-heart-swing",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.heart-swing"
       ],
@@ -2229,7 +2229,7 @@
     },
     {
       "id": "T-SS-shell-swing",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.shell-swing"
       ],
@@ -2254,7 +2254,7 @@
     },
     {
       "id": "T-SS-phony-swing",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.phony-swing"
       ],
@@ -2279,7 +2279,7 @@
     },
     {
       "id": "T-SS-cask-swing",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.cask-swing"
       ],
@@ -2304,7 +2304,7 @@
     },
     {
       "id": "T-SS-furnace",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.furnace"
       ],
@@ -2329,7 +2329,7 @@
     },
     {
       "id": "T-SS-staff-swing",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.staff-swing"
       ],
@@ -2354,7 +2354,7 @@
     },
     {
       "id": "T-SS-ground",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.ground"
       ],
@@ -2379,7 +2379,7 @@
     },
     {
       "id": "T-SS-fly",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.fly"
       ],
@@ -2404,7 +2404,7 @@
     },
     {
       "id": "T-SS-line",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "star-swing.line"
       ],
@@ -2429,7 +2429,7 @@
     },
     {
       "id": "T-I-banana",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "item.banana"
       ],
@@ -2452,7 +2452,7 @@
     },
     {
       "id": "T-I-rocket",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "item.rocket"
       ],
@@ -2475,7 +2475,7 @@
     },
     {
       "id": "T-I-pow",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "item.pow"
       ],
@@ -2498,7 +2498,7 @@
     },
     {
       "id": "T-F08-R",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.08"
       ],
@@ -2524,7 +2524,7 @@
     },
     {
       "id": "T-F08-C",
-      "revision": 2,
+      "revision": 3,
       "mechanics": [
         "fielding.08"
       ],
@@ -2550,7 +2550,7 @@
     },
     {
       "id": "T-F09-B",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "fielding.09"
       ],
@@ -2575,7 +2575,7 @@
     },
     {
       "id": "T-D09",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "outs.06"
       ],
@@ -2602,7 +2602,7 @@
     },
     {
       "id": "T-G04-F",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.04"
       ],
@@ -2629,7 +2629,7 @@
     },
     {
       "id": "T-G04-H",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "game.04"
       ],
@@ -2656,7 +2656,7 @@
     },
     {
       "id": "T-R10",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "running.05"
       ],
@@ -2737,7 +2737,7 @@
     },
     {
       "id": "T-H02",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fields.status-volume"
       ],
@@ -2762,7 +2762,7 @@
     },
     {
       "id": "T-H03",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fields.redirect"
       ],
@@ -2812,7 +2812,7 @@
     },
     {
       "id": "T-H05",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fields.mover"
       ],
@@ -2837,7 +2837,7 @@
     },
     {
       "id": "T-H06",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fields.reward"
       ],
@@ -2862,7 +2862,7 @@
     },
     {
       "id": "T-H07",
-      "revision": 1,
+      "revision": 2,
       "mechanics": [
         "fields.wall-trait"
       ],

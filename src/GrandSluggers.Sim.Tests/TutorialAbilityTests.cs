@@ -18,7 +18,6 @@ public sealed class TutorialAbilityTests
 
     static void Drive(TutorialSession run, string profile, LivePlayCommandSource source, bool move)
     {
-        const double offset = 9;
         for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
         {
             var live = run.Match.LivePlay;
@@ -27,14 +26,19 @@ public sealed class TutorialAbilityTests
             {
                 var target = live.Preview!.Grounder
                     ? (live.BallX, live.BallZ) : FlyCatch.ChaseTarget(live.Preview, run.Match.Park, run.Match.Rules);
-                if (!live.Preview.Grounder) target.Item1 += offset;
+                var who = live.Preview.Fielder;
+                var bonus = FieldAbilities.CatchBonus(who, run.Match.Rules)
+                    + (live.Preview.Grounder ? FieldAbilities.GroundRangeBonus(who, run.Match.Rules)
+                        : FieldAbilities.FlyRangeBonus(who, run.Match.Rules));
+                var ordinary = FieldingResolver.CatchRadiusFt(who, run.Match.Park, run.Match.Rules)
+                    - FieldAbilities.CatchBonus(who, run.Match.Rules);
+                target.Item1 += ordinary + bonus * .5;
                 var dx = target.Item1 - live.GloveX;
                 var dz = target.Item2 - live.GloveZ;
                 var dist = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
-                var south = live.Preview.Grounder || live.ElapsedSeconds >= live.Preview.HangTimeSec - .6;
                 pad = dist > 1
-                    ? new(StickX: dx / dist, StickY: dz / dist, SouthDown: south)
-                    : new(StickX: -dz / dist, StickY: dx / dist, SouthDown: south);
+                    ? new(StickX: dx / dist, StickY: dz / dist, SouthDown: false)
+                    : new(StickX: -dz / dist, StickY: dx / dist, SouthDown: false);
             }
             run.Tick(1.0 / 60, pad, source);
         }
@@ -48,7 +52,7 @@ public sealed class TutorialAbilityTests
         for (var n = 1; n <= 3; n++)
         {
             Drive(run, profile, LivePlayCommandSource.Human, move: true);
-            Assert.True(run.Feedback!.Success, id + "/" + profile + ": " + run.Feedback.Detail);
+            Assert.True(run.Feedback!.Success, id + "/" + profile + ": " + run.Feedback.Detail + $" catcher={run.LastPlay?.Fielder?.Id} ability={run.Match.LivePlay.TutorialAbilityReachUsed} feat={run.LastPlay?.Outcome?.DefensiveFeat}");
             Assert.Equal(catalog.Setups.Single(s => s.Id == id).Skill, run.Match.LivePlay.TutorialAbilityReachUsed);
             Assert.Equal(n, run.Successes); Assert.Equal(n == 3, run.Passed);
             Assert.Equal(run.Feedback, TutorialSession.Replay(content, catalog, run.Recording()).Feedback);

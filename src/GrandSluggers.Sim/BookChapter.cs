@@ -11,6 +11,7 @@ public static class BookChapter
             ["contents"] = "rio",
             ["controls"] = "vale",
             ["controls-2"] = "vale",
+            ["controls-4"] = "vale",
             ["controls-3"] = "vale",
             ["roles"] = "zig",
             ["roles-batting-2"] = "zig",

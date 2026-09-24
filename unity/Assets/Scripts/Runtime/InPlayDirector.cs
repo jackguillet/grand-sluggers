@@ -42,29 +42,24 @@ namespace GrandSluggers.UnityClient
             // The calibrated radial stick (#718) reads the device coordinate before any dead zone; the shipped Manhattan gate
             // keeps the stick it always read. One coordinate per table, handed to the sim once.
             var radial = _match != null && _match.Rules.Fielding.Stick.Radial;
-            // One pad can bat and field (Training): an East press the plate took as the swing cancel is no dive and no
-            // dash until it comes up (PH-13-R1), and LT held for a bunt at contact is no item modifier (PH-14-R6).
             var eastFree = CancelFree(pad);
-            // LB held from a release that asked for a special is no cutoff until it comes up (PH-16-R10, R17).
-            var lbFree = StarFree(pad);
+            var cancel = eastFree && pad.EastDown && (_phase == Phase.Flight || _match.LivePlay.CanCancelThrow);
+            if (cancel) pad.ClearThrowTarget();
             return new LivePadInput(
                 radial ? pad.PursuitX : pad.StickX, radial ? pad.PursuitY : pad.StickY,
-                pad.SouthDown, pad.WestDown, pad.EastDown && eastFree, pad.EastHeld && eastFree,
-                pad.CutoffWith(lbFree), pad.SwapPitcher, pad.ItemWith(TriggerFree(pad, BuntSide.Third)), pad.Attack,
-                pad.ThrowBag, pad.StickBag, pad.ArrowBag,
-                Cancel: pad.AllReturn,
-                Device: pad.Index);
+                SouthDown: pad.BallDown && pad.ThrowBag > 0, WestDown: pad.JumpDown && TriggerFree(pad, BuntSide.First),
+                EastDown: pad.EastDown && eastFree && !cancel, EastHeld: pad.EastHeld && eastFree && !cancel,
+                Cutoff: pad.Cutoff, Swap: pad.SwapPitcher,
+                Attack: pad.Attack && TriggerFree(pad, BuntSide.Third), KeysBag: pad.ThrowBag,
+                Cancel: cancel, Device: pad.Index, ExplicitTarget: true, CloseResponse: pad.SouthDown);
         }
 
-        /// <summary>The offense pad as the sim's runner verbs see it (spec §9.3): the bodies are moved in the sim, never here.</summary>
+        /// <summary>Selection is a right-stick flick; the movement stick never issues a runner order.</summary>
         LivePadInput RunInput()
         {
             var pad = RunPad;
-            // A star swing's LB still down after contact is not all-advance until it comes up (PH-16-R10, R17).
-            var lbFree = StarFree(pad);
-            return new LivePadInput(pad.StickX, pad.StickY, pad.SouthDown, pad.WestDown,
-                KeysBag: pad.ThrowBag, StickBag: pad.StickBag,
-                AllAdvance: pad.AllAdvanceWith(lbFree), AllReturn: pad.AllReturn, Freeze: pad.FreezeRunnersWith(lbFree));
+            return new LivePadInput(SouthDown: pad.SouthDown,
+                WestDown: pad.WestDown && TriggerFree(pad, BuntSide.Third), Orders: pad.RunnerOrders);
         }
 
         void TickInPlay(float dt)
@@ -108,6 +103,7 @@ namespace GrandSluggers.UnityClient
         void SyncFromLive()
         {
             var live = _match.LivePlay;
+            if (live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag > 0 || live.Events.Contains(LiveEvent.ThrowQueueCleared)) FieldPad.ClearThrowTarget();
             _ball = new Vector3((float)live.BallX, (float)live.BallY, (float)live.BallZ);
             _gloveAt.Clear();
             foreach (var kv in live.Fielders) _gloveAt[kv.Key] = kv.Value;

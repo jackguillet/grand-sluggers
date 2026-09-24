@@ -296,13 +296,13 @@ public sealed class Training
         ? "South  title"
         : Lesson switch
         {
-            PracticeLesson.Pitching => "South hold/release   RB cycle pitch   stick break",
-            PracticeLesson.Batting => "stick walk   South hold/release at MAX",
+            PracticeLesson.Pitching => "RT hold/release   West cycle pitch   stick break",
+            PracticeLesson.Batting => "stick walk   RT hold/release at MAX",
             PracticeLesson.Fielding => LessonPart >= 2
-                ? "South to second    South to first"
-                : "South catch   West jump   d-pad throw   East dash",
-            PracticeLesson.Running => "D-pad pick   stick or L3 steal   South dash",
-            PracticeLesson.Special => "hold LB as you let go of South: star",
+                ? "Right stick + RT to second, then first"
+                : "Move to catch   North jump   Right stick + RT throw   East dive",
+            PracticeLesson.Running => "Right stick pick   LB steal   RB return   South dash",
+            PracticeLesson.Special => "hold LT as you let go of RT: star",
             PracticeLesson.Free => "any verb  ·  East skip",
             _ => ""
         };
