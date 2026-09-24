@@ -233,6 +233,12 @@ public static partial class CarnivalFront
     /// <summary>The field postcard's footer: every verb on the screen, the hazards switch beside night.</summary>
     public const string FieldFooter = "Up/down choose • Left/right change • South confirm • East title • View controls";
 
+    /// <summary>
+    /// The title's footer: navigation, not onboarding, so it stays after a match, a lesson or an early exit.
+    /// Exhibition leads to stadium, captains, lineup and then innings and CPU skill.
+    /// </summary>
+    public const string TitleFooter = "Up/down choose • South confirm • View how to play • Start options";
+
     /// <summary>What the caption calls the redirect the ball went through (F4-c). Copy, not a rule.</summary>
     public static string RedirectName(string? type) => type switch
     {
