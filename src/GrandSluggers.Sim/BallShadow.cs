@@ -1,13 +1,13 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>Ground cue for the ball's current position, independent of the landing ring and camera.</summary>
-public sealed class BallShadowFeel
+public sealed record BallShadowFeel
 {
-    public double NearDiameterFt { get; set; } = 5;
-    public double FarDiameterFt { get; set; } = 3;
-    public double HeightRangeFt { get; set; } = 60;
-    public double SurfaceLiftFt { get; set; } = 0.04;
-    public double Opacity { get; set; } = 0.65;
+    [Positive] public double NearDiameterFt { get; init; }
+    [Positive] public double FarDiameterFt { get; init; }
+    [Positive] public double HeightRangeFt { get; init; }
+    [Positive] public double SurfaceLiftFt { get; init; }
+    [Positive, Chance] public double Opacity { get; init; }
 
     public void Validate()
     {

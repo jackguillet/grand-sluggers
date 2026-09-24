@@ -101,171 +101,103 @@ public sealed class CameraShots
     }
 }
 
-public sealed class FeelTable
+/// <summary>
+/// The presentation numbers (<c>data/feel/table.json</c>): charge, freeze, camera and body timing. Read like the rules
+/// tables: the JSON is the only source, and the loader refuses a missing field, an unknown field or a value outside its
+/// declared range. There is no code default to fall back to.
+/// </summary>
+public sealed record FeelTable
 {
-    FeelTable(
-        double pitchChargeSeconds,
-        double swingChargeSeconds,
-        double smashFreeze,
-        double solidFreeze,
-        double smashHold,
-        double cameraBlend,
-        double fieldAssistStick,
-        double pitcherReadySeconds,
-        double afterOutSeconds,
-        double afterCountSeconds,
-        double chargeMaxHoldSeconds,
-        double chargeOverchargeDecay,
-        double contactCutSeconds,
-        double cameraHoldSeconds)
-    {
-        PitchChargeSeconds = pitchChargeSeconds;
-        SwingChargeSeconds = swingChargeSeconds;
-        SmashFreeze = smashFreeze;
-        SolidFreeze = solidFreeze;
-        SmashHold = smashHold;
-        CameraBlend = cameraBlend;
-        FieldAssistStick = fieldAssistStick;
-        PitcherReadySeconds = pitcherReadySeconds;
-        AfterOutSeconds = afterOutSeconds;
-        AfterCountSeconds = afterCountSeconds;
-        ChargeMaxHoldSeconds = chargeMaxHoldSeconds;
-        ChargeOverchargeDecay = chargeOverchargeDecay;
-        ContactCutSeconds = contactCutSeconds;
-        CameraHoldSeconds = cameraHoldSeconds;
-    }
-
-    public double PitchChargeSeconds { get; }
-    public double SwingChargeSeconds { get; }
-    public double SmashFreeze { get; }
-    public double SolidFreeze { get; }
-    public double SmashHold { get; }
-    public double CameraBlend { get; }
+    [Positive] public double PitchChargeSeconds { get; init; }
+    [Positive] public double SwingChargeSeconds { get; init; }
+    [Positive] public double SmashFreeze { get; init; }
+    public double SolidFreeze { get; init; }
+    public double SmashHold { get; init; }
+    public double CameraBlend { get; init; }
     /// <summary>Stick magnitude that takes the glove from the CPU (the one threshold; FieldAssist reads it).</summary>
-    public double FieldAssistStick { get; }
-    public double PitcherReadySeconds { get; }
-    public double AfterOutSeconds { get; }
-    public double AfterCountSeconds { get; }
-    public double ChargeMaxHoldSeconds { get; }
-    public double ChargeOverchargeDecay { get; }
+    [Positive, Chance] public double FieldAssistStick { get; init; }
+    [Positive] public double PitcherReadySeconds { get; init; }
+    [Positive] public double AfterOutSeconds { get; init; }
+    [Positive] public double AfterCountSeconds { get; init; }
+    [Positive] public double ChargeMaxHoldSeconds { get; init; }
+    [Positive] public double ChargeOverchargeDecay { get; init; }
     /// <summary>
     /// Play seconds after the crack before the camera leaves the SET shot for the diamond (spec §8.2,
     /// §15; the reference cut at 0.42). A home run overrides it with the smash beat at the crack.
     /// </summary>
-    public double ContactCutSeconds { get; }
+    [Positive] public double ContactCutSeconds { get; init; }
     /// <summary>
     /// Play seconds the live camera keeps a target before another may take it (D14, #610): a relay or a
     /// rundown flicker inside the hold does not re-aim (<see cref="PlayCamera.CameraHold"/>).
     /// </summary>
-    public double CameraHoldSeconds { get; }
+    public double CameraHoldSeconds { get; init; }
     /// <summary>
     /// How fast a body turns toward its heading, degrees per second of frame time (spec §8.2, #611).
     /// dt-scaled, so a 30 fps and a 60 fps body face the same way at the same moment.
     /// </summary>
-    public double BodyTurnDegPerSec { get; private init; } = 720;
+    [Positive] public double BodyTurnDegPerSec { get; init; }
     /// <summary>Time constant of the measured ground velocity a running body faces (seconds).</summary>
-    public double HeadingSmoothSec { get; private init; } = 0.08;
+    public double HeadingSmoothSec { get; init; }
     /// <summary>A body that moves faster than this between two frames was placed, not run: its velocity resets.</summary>
-    public double HeadingTeleportFtPerSec { get; private init; } = 90;
+    [Positive] public double HeadingTeleportFtPerSec { get; init; }
     /// <summary>The backpedal (§8.2): inside this distance of a fly's plant, a glove moving away from the ball faces the ball.</summary>
-    public double BackpedalFt { get; private init; } = 12;
+    public double BackpedalFt { get; init; }
     /// <summary>A ball closer than this (horizontally) is overhead or in the glove: the body keeps its heading.</summary>
-    public double FaceBallMinFt { get; private init; } = 3;
+    public double FaceBallMinFt { get; init; }
     /// <summary>
     /// The held swing finish (#583, #613) lets go on contact once the batter-runner is this far out
     /// of the box: the finish holds through the contact freeze and the first step of the run.
     /// </summary>
-    public double SwingFinishStepFt { get; private init; } = 2.5;
+    [Positive] public double SwingFinishStepFt { get; init; }
     /// <summary>
     /// Two runners on one bag (§9.1): the one the bag does not protect is drawn this far off it, toward the bag he came
     /// from (or, forced off it, toward the next), so the two bodies never merge (<see cref="Runner.DrawPosition"/>).
     /// </summary>
-    public double RunnerShareStepFt { get; private init; } = 6;
+    [Positive] public double RunnerShareStepFt { get; init; }
 
-    public RaceCameraFeel RaceCamera { get; private init; } = new();
-    public BallShadowFeel BallShadow { get; private init; } = new();
+    public RaceCameraFeel RaceCamera { get; init; } = new();
+    public BallShadowFeel BallShadow { get; init; } = new();
 
     /// <summary>How a fielding body shows what the ball cost it (#719–#721): the dive's get-up and the impact brace.</summary>
-    public FieldTellsFeel FieldTells { get; private init; } = new();
+    public FieldTellsFeel FieldTells { get; init; } = new();
 
     public static FeelTable Load(DataRoot dataRoot)
     {
         var path = dataRoot.Resolve("feel", "table.json");
-        var json = new JsonSerializerOptions
+        var errors = new List<string>();
+        FeelTable? table = null;
+        try
         {
-            PropertyNameCaseInsensitive = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            AllowTrailingCommas = true
-        };
-        var dto = JsonSerializer.Deserialize<FeelDto>(File.ReadAllText(path), json)
-            ?? throw new InvalidDataException($"Bad feel table {path}");
-        if (dto.PitchChargeSeconds <= 0 || dto.SmashFreeze <= 0)
-            throw new InvalidDataException("Feel table charge and smash freeze must be positive");
-        dto.BallShadow.Validate();
-        dto.FieldTells.Validate();
-        dto.RaceCamera.Validate();
-        var assist = dto.FieldAssistStick > 0 ? dto.FieldAssistStick : 0.35;
-        var ready = dto.PitcherReadySeconds > 0 ? dto.PitcherReadySeconds : 0.55;
-        var after = dto.AfterOutSeconds > 0 ? dto.AfterOutSeconds : 1.35;
-        var count = dto.AfterCountSeconds > 0 ? dto.AfterCountSeconds : 0.7;
-        var maxHold = dto.ChargeMaxHoldSeconds > 0 ? dto.ChargeMaxHoldSeconds : 0.5;
-        var over = dto.ChargeOverchargeDecay > 0 ? dto.ChargeOverchargeDecay : 0.8;
-        var cut = dto.ContactCutSeconds > 0 ? dto.ContactCutSeconds : 0.42;
-        var hold = dto.CameraHoldSeconds >= 0 ? dto.CameraHoldSeconds : 0.25;
-        return new FeelTable(
-            dto.PitchChargeSeconds,
-            dto.SwingChargeSeconds,
-            dto.SmashFreeze,
-            dto.SolidFreeze,
-            dto.SmashHold,
-            dto.CameraBlend,
-            assist,
-            ready,
-            after,
-            count,
-            maxHold,
-            over,
-            cut,
-            hold)
+            var text = File.ReadAllText(path);
+            using (var doc = JsonDocument.Parse(text, new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }))
+            {
+                RulesValidation.UnknownFields(doc.RootElement, typeof(FeelTable), "feel", path, errors);
+                RulesValidation.MissingFields(doc.RootElement, typeof(FeelTable), "feel", path, errors);
+            }
+            table = JsonSerializer.Deserialize<FeelTable>(text, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            });
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
-            BallShadow = dto.BallShadow,
-            FieldTells = dto.FieldTells,
-            RaceCamera = dto.RaceCamera,
-            BodyTurnDegPerSec = dto.BodyTurnDegPerSec > 0 ? dto.BodyTurnDegPerSec : 720,
-            HeadingSmoothSec = dto.HeadingSmoothSec >= 0 ? dto.HeadingSmoothSec : 0.08,
-            HeadingTeleportFtPerSec = dto.HeadingTeleportFtPerSec > 0 ? dto.HeadingTeleportFtPerSec : 90,
-            BackpedalFt = dto.BackpedalFt >= 0 ? dto.BackpedalFt : 12,
-            FaceBallMinFt = dto.FaceBallMinFt >= 0 ? dto.FaceBallMinFt : 3,
-            SwingFinishStepFt = dto.SwingFinishStepFt > 0 ? dto.SwingFinishStepFt : 2.5,
-            RunnerShareStepFt = dto.RunnerShareStepFt > 0 ? dto.RunnerShareStepFt : 6
-        };
-    }
-
-    sealed class FeelDto
-    {
-        public RaceCameraFeel RaceCamera { get; set; } = new();
-        public BallShadowFeel BallShadow { get; set; } = new();
-        public FieldTellsFeel FieldTells { get; set; } = new();
-        public double PitchChargeSeconds { get; set; }
-        public double SwingChargeSeconds { get; set; }
-        public double SmashFreeze { get; set; }
-        public double SolidFreeze { get; set; }
-        public double SmashHold { get; set; }
-        public double CameraBlend { get; set; } = 6;
-        public double FieldAssistStick { get; set; } = 0.35;
-        public double PitcherReadySeconds { get; set; } = 0.55;
-        public double AfterOutSeconds { get; set; } = 1.35;
-        public double AfterCountSeconds { get; set; } = 0.7;
-        public double ChargeMaxHoldSeconds { get; set; } = 0.5;
-        public double ChargeOverchargeDecay { get; set; } = 0.8;
-        public double ContactCutSeconds { get; set; } = 0.42;
-        public double CameraHoldSeconds { get; set; } = 0.25;
-        public double BodyTurnDegPerSec { get; set; } = 720;
-        public double HeadingSmoothSec { get; set; } = 0.08;
-        public double HeadingTeleportFtPerSec { get; set; } = 90;
-        public double BackpedalFt { get; set; } = 12;
-        public double FaceBallMinFt { get; set; } = 3;
-        public double SwingFinishStepFt { get; set; } = 2.5;
-        public double RunnerShareStepFt { get; set; } = 6;
+            errors.Add($"{path}: cannot read the feel table: {ex.Message}");
+        }
+        if (table is null && errors.Count == 0) errors.Add($"{path}: the feel table is empty");
+        if (errors.Count == 0)
+        {
+            RulesValidation.Ranges(table!, path, "feel", errors);
+            foreach (var check in new Action[] { table!.BallShadow.Validate, table.FieldTells.Validate, table.RaceCamera.Validate })
+            {
+                try { check(); }
+                catch (InvalidDataException ex) { errors.Add($"{path}: {ex.Message}"); }
+            }
+        }
+        if (errors.Count > 0)
+            throw new InvalidDataException("Invalid feel table:" + Environment.NewLine
+                + string.Join(Environment.NewLine, errors.Select(e => "  - " + e)));
+        return table!;
     }
 }

@@ -2,9 +2,9 @@ namespace GrandSluggers.Sim;
 
 public sealed record RaceCameraFeel
 {
-    public double Margin { get; init; } = .06;
-    public double BodyHeightFt { get; init; } = 12;
-    public double BodyRadiusFt { get; init; } = 3;
+    [Positive] public double Margin { get; init; }
+    [Positive] public double BodyHeightFt { get; init; }
+    [Positive] public double BodyRadiusFt { get; init; }
 
     public void Validate()
     {
@@ -50,9 +50,8 @@ public static partial class PlayCamera
     }
 
     /// <summary>Keep the authored catcher-side eye position; fit the race with the lens instead of retreating behind the backstop.</summary>
-    public static Framing RaceFraming(CameraShots shots, IReadOnlyList<Vec3> subjects, double aspect, RaceCameraFeel? feel = null)
+    public static Framing RaceFraming(CameraShots shots, IReadOnlyList<Vec3> subjects, double aspect, RaceCameraFeel feel)
     {
-        feel ??= new RaceCameraFeel();
         var shot = shots.Must(RaceInsetShot);
         if (subjects.Count == 0) return new Framing(shot.Id, shot.Pos, shot.Target, shot.Fov, shot.Blend);
         var points = new List<Vec3>();

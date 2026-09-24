@@ -4,13 +4,13 @@ namespace GrandSluggers.Sim;
 /// How a fielding body shows what the ball cost it (<c>feel.fieldTells</c>, the Unity pass of #719–#721). The sim decides every
 /// debt; these two numbers only say how long the get-up reads and how hard the brace squashes.
 /// </summary>
-public sealed class FieldTellsFeel
+public sealed record FieldTellsFeel
 {
     /// <summary>The last seconds of a dive's recovery draw the get-up (the crouch take); the rest of it holds the laid-out dive.</summary>
-    public double DiveGetUpSec { get; set; } = 0.20;
+    public double DiveGetUpSec { get; init; }
 
     /// <summary>The impact recoil's brace (#720): the body wrapper's squash at a full-severity take, eased out over the recovery.</summary>
-    public double BraceSquash { get; set; } = 0.16;
+    public double BraceSquash { get; init; }
 
     public void Validate()
     {
