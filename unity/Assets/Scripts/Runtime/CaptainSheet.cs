@@ -89,7 +89,14 @@ namespace GrandSluggers.UnityClient
             Fill(new Rect(r.x, r.y, r.width, n), c); Fill(new Rect(r.x, r.yMax - n, r.width, n), c);
             Fill(new Rect(r.x, r.y, n, r.height), c); Fill(new Rect(r.xMax - n, r.y, n, r.height), c);
         }
-        static void Text(Rect r, string value, GUIStyle style) => GUI.Label(r, value, style);
+        static void Text(Rect r, string value, GUIStyle style) => GUI.Label(Fit(r, value, style), value, style);
+        // A row is at least as tall as its rendered text, grown about its own center, so no captain,
+        // hand or seat copy is clipped by the nominal row height.
+        static Rect Fit(Rect r, string value, GUIStyle style)
+        {
+            var h = Mathf.Ceil(style.CalcHeight(new GUIContent(value), r.width));
+            return h <= r.height ? r : new Rect(r.x, r.center.y - h * .5f, r.width, h);
+        }
         static void Ensure()
         {
             if (_title != null) return;

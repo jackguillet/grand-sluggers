@@ -612,7 +612,6 @@ namespace GrandSluggers.UnityClient
             ShowAimTell(HumanPitches ? pitch : null);
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
-            _hideHelp = true;
             if (pitch.Star)
             {
                 _audio?.CaptainVo(_match.Pitcher.Id);
