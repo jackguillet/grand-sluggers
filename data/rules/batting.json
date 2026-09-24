@@ -43,8 +43,12 @@
     "topperSpanDeg": 9,
     "popMinDeg": 44,
     "popSpanDeg": 8,
+    // §5.4 under the ball: per foot the crossing sits above the barrel's nice top (the upper sour rim), on top
+    // of perFtOfHeight. Near the rim's top the launch passes 90° and the ball goes back over the catcher.
+    "underBallDegPerFt": 200,
     "minDeg": -45,
-    "maxDeg": 52
+    // Past 90° is up and back (a foul pop behind the plate); the rim's top reaches about 125°.
+    "maxDeg": 130
   },
   "bunt": {
     "launchMinDeg": 3,

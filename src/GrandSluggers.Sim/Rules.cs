@@ -937,6 +937,7 @@ public sealed class BattingRules
     internal void Validate(string source, List<string> errors)
     {
         RulesValidation.Order(source, "batting.launch.minDeg", Launch.MinDeg, Launch.MaxDeg, errors);
+        RulesValidation.Order(source, "batting.launch.maxDeg", Launch.MaxDeg, 180, errors);
         // A table that authors the window under its own floor is refused (PH-10-R1).
         RulesValidation.Order(source, "batting.window.floorFrames", Window.FloorFrames, Window.Frames, errors);
         RulesValidation.Order(source, "batting.cursor.perfectFraction", Cursor.PerfectFraction, 1, errors);
@@ -1030,8 +1031,16 @@ public sealed class LaunchRules
     public double TopperSpanDeg { get; init; } = 9;
     public double PopMinDeg { get; init; } = 44;
     public double PopSpanDeg { get; init; } = 8;
+    /// <summary>
+    /// Under the ball (spec §5.4): degrees of launch per foot the crossing sits above the barrel's nice top
+    /// (<see cref="SweetSpot.HalfHeightFt"/> over the cursor center), on top of <see cref="PerFtOfHeight"/>.
+    /// Only the upper sour rim is there; enough of it lifts the launch past 90°, and the ball goes back over
+    /// the catcher (<see cref="AtBatResolver.PastVertical"/>).
+    /// </summary>
+    public double UnderBallDegPerFt { get; init; } = 200;
     [Signed] public double MinDeg { get; init; } = -45;
-    public double MaxDeg { get; init; } = 52;
+    /// <summary>Past 90° the ball leaves up and back over the plate (§5.4); under 180°, so it never leaves down.</summary>
+    public double MaxDeg { get; init; } = 130;
 }
 
 /// <summary>
@@ -1940,6 +1949,12 @@ public sealed class CatchRules
     public double TouchScoopY { get; init; } = 3.2;
     /// <summary>Highest ball center a planted glove can take; a live jump adds its actual root rise.</summary>
     [Positive] public double StandingHeightFt { get; init; } = 6.0;
+    /// <summary>
+    /// Off the bat (§7.11): no glove takes a batted ball until it has been this far (3-D) from where it left the bat,
+    /// or has come down to the ground. A ball straight off the bat into the catcher's mitt is a foul tip, not a catch;
+    /// a pop behind the plate is caught coming down.
+    /// </summary>
+    [Positive] public double OffTheBatFt { get; init; } = 10;
     /// <summary>
     /// Still in the air for a catch (§7.6): a route that meets the ball above this before the first
     /// bounce is a catch; at or below it the hop is a scoop. Chase targeting uses the same floor.
