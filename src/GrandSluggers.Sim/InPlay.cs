@@ -338,7 +338,7 @@ public static class InPlay
         ThrowVerdict verdict, int bag, bool @out, bool force, bool turnedTwo, bool batterSafe, bool playOver,
         int nextDefaultBag, string? fielderName, string? batterName) =>
         new(bag, @out, force, turnedTwo, batterSafe, playOver, nextDefaultBag,
-            BroadcastHud.Verdict(verdict, bag, fielderName, batterName), verdict);
+            PlayNarrator.Verdict(verdict, bag, fielderName, batterName), verdict);
 
     /// <summary>
     /// Pure baseball for one throw to a bag. Match applies it; the director decides when.

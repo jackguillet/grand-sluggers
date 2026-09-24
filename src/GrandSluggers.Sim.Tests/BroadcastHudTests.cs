@@ -1,5 +1,6 @@
 using Xunit;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 
 namespace GrandSluggers.Sim.Tests;
 
@@ -179,12 +180,12 @@ public class BroadcastHudTests
     [Fact]
     public void HeadlineTakeStrikeIsStrikeNotTakeStrikeGlued()
     {
-        Assert.Equal("STRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
-        Assert.Equal("BALL", BroadcastHud.Headline(PlayKind.TakeBall));
-        Assert.Equal("OUT", BroadcastHud.Headline(PlayKind.GroundOut));
-        Assert.Equal("STRIKE OUT", BroadcastHud.Headline(PlayKind.Strikeout));
-        Assert.Equal("HIT BY PITCH", BroadcastHud.Headline(PlayKind.HitByPitch));
-        Assert.DoesNotContain("TAKESTRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
+        Assert.Equal("STRIKE", PlayNarrator.Headline(PlayKind.TakeStrike));
+        Assert.Equal("BALL", PlayNarrator.Headline(PlayKind.TakeBall));
+        Assert.Equal("OUT", PlayNarrator.Headline(PlayKind.GroundOut));
+        Assert.Equal("STRIKE OUT", PlayNarrator.Headline(PlayKind.Strikeout));
+        Assert.Equal("HIT BY PITCH", PlayNarrator.Headline(PlayKind.HitByPitch));
+        Assert.DoesNotContain("TAKESTRIKE", PlayNarrator.Headline(PlayKind.TakeStrike));
         Assert.Equal("STEAL", BroadcastHud.BatterExtra(false, true, true, false, ""));
         Assert.Contains("L3 STEAL", BroadcastHud.BatterExtra(false, false, true, false, ""));
         Assert.Contains("BUNT", BroadcastHud.BatterExtra(false, false, false, true, ""));

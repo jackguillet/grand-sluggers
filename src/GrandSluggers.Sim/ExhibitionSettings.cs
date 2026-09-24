@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>Shared Exhibition choices. Player 1 edits the rules; each human readies their own seat.</summary>
 public sealed class ExhibitionSettings

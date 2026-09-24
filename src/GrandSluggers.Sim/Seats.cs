@@ -1,5 +1,8 @@
 namespace GrandSluggers.Sim;
 
+/// <summary>Who owns a roster row. Pad 1 is home. Pad 2 sits away when a second pad is plugged in.</summary>
+public enum LineupSeat { Pad1, Pad2, Cpu }
+
 /// <summary>
 /// Who sits home and away. The game is gamepad only: gamepad 0 is player 1 and
 /// gamepad 1 is player 2. Once play starts, DeviceSeats

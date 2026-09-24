@@ -703,7 +703,7 @@ public sealed partial class Match
         var ev = pitch with
         {
             Kind = kind,
-            Caption = BroadcastHud.Narrate(call),
+            Caption = PlayNarrator.Narrate(call),
             Call = call,
             RunsScored = pitch.RunsScored + runs,
             Scorers = pitch.Scorers.Concat(scorers).ToList(),
@@ -1562,7 +1562,7 @@ public sealed partial class Match
         pitch = Settled(pitch);
         swing = Settled(swing);
         var ev = new PlayEvent(
-            kind, hit, pitch, swing, origin.Batter, origin.Pitcher, fielder, throwRes, runs, scorers, BroadcastHud.Narrate(call),
+            kind, hit, pitch, swing, origin.Batter, origin.Pitcher, fielder, throwRes, runs, scorers, PlayNarrator.Narrate(call),
             heat, furnace, hang, lx, lz, next.Outs, next.AwayScore, next.HomeScore,
             _outsOnCurrentPlay, origin.Context, next, WithPlayFacts(outcome), call);
         _log.Add(ev);

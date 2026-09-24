@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Tooling;
 
 /// <summary>
 /// Stage-save DCC as a catalog (docs/agent-rails.md §6, #653). JSON names the

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -721,7 +722,7 @@ namespace GrandSluggers.UnityClient
             else if (_last != null && PlayStamp.Shows(_last.Kind))
                 _banner = "";
             else
-                _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
+                _banner = _last != null ? PlayNarrator.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
             _sub = _last != null ? _last.Caption : (_coach != null && _coach.Session != null ? _coach.Session.Verb : "");
         }
 

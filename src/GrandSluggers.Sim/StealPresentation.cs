@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>Presentation input edges and authored take clocks; baseball remains in PitchSetupSystem.</summary>
 public static class StealPresentation

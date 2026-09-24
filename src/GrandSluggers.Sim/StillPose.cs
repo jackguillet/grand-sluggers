@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Tooling;
 
 /// <summary>
 /// Staged still-gate poses. Scoop lives on the dirt in the first-base hole,

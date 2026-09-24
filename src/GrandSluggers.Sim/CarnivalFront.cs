@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>
 /// Exhibition front of house: the park is the poster, captains are toys, the field is a postcard.
@@ -239,13 +239,6 @@ public static partial class CarnivalFront
     /// </summary>
     public const string TitleFooter = "Up/down choose • South confirm • View how to play • Start options";
 
-    /// <summary>What the caption calls the redirect the ball went through (F4-c). Copy, not a rule.</summary>
-    public static string RedirectName(string? type) => type switch
-    {
-        HazardType.Barrel => "barrel cannon",
-        HazardType.Chomper => "chomper",
-        _ => "warp can"
-    };
 
     /// <summary>The hazards switch as the title and the field postcard print it.</summary>
     public static string HazardsLabel(bool hazards) => hazards ? "HAZARDS ON" : "HAZARDS OFF";

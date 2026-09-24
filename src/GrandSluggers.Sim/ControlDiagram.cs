@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>
 /// How to play Controls page: a drawn pad.
@@ -95,4 +95,16 @@ public static class ControlDiagram
         new("select", "View / Select", "", "", "How to play", 0, 0),
         new("start", "Start / Menu", "", "", "Call time / options", 0, 0),
     ];
+
+    /// <summary>One role table row's card on the control board.</summary>
+    public static (float X, float Y, float W, float H) RowCard(
+        int index, int count, float screenW, float screenH)
+    {
+        var board = ControlDiagram.Board(screenW, screenH);
+        const float head = 52f;
+        const float gap = 6f;
+        var rows = Math.Max(1, count);
+        var h = (board.H - head - gap * (rows - 1)) / rows;
+        return (board.X, board.Y + head + index * (h + gap), board.W, h);
+    }
 }

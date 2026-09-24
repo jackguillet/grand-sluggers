@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Tooling;
 
 /// <summary>
 /// Sitting and still-gate memory as a catalog (docs/agent-rails.md §2, #649).

@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Tooling;
 
 /// <summary>
 /// What a player build carries beside the app (<c>data/package.json</c>): the runtime folders, and within

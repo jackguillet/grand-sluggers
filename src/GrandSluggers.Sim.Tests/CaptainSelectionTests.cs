@@ -1,3 +1,4 @@
+using GrandSluggers.Sim.Front;
 using Xunit;
 
 namespace GrandSluggers.Sim.Tests;

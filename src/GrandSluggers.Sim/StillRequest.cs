@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Tooling;
 
 /// <summary>
 /// File-drop protocol for Exhibition stills. Unity Play consumes

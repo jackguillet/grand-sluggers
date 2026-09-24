@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>
 /// Couch menus: flick once, then rest. Hold a hard throw (stick / d-pad) to

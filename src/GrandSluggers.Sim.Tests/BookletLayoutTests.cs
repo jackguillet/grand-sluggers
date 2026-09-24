@@ -1,5 +1,6 @@
 using System.Globalization;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 using Xunit;
 
 namespace GrandSluggers.Sim.Tests;
@@ -121,7 +122,7 @@ public class BookletLayoutTests
                 var block = RoleTables.OnPage(pageId);
                 for (var i = 0; i < block.Rows.Count; i++)
                 {
-                    var cell = RoleTables.RowCard(i, block.Rows.Count, w, h);
+                    var cell = ControlDiagram.RowCard(i, block.Rows.Count, w, h);
                     var line = block.Rows[i].Verb.ToUpperInvariant() + "  ·  " + block.Rows[i].Press;
                     Assert.True(ApproxBodyHeight(line, cell.W - 24, HowToPlay.BookLineMinPt) <= cell.H - 12,
                         $"{w}×{h} {pageId} {block.Rows[i].Verb}");

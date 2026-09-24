@@ -207,7 +207,7 @@ public sealed record LivePlayCommandResult(
 public sealed record LiveMoment(InPlay.ThrowVerdict Verdict, int Bag, Character? Fielder, Character? Runner)
 {
     public string Narrate(string batterName, string defaultFielderName) =>
-        BroadcastHud.Verdict(Verdict, Bag, Fielder?.Name ?? defaultFielderName, batterName, Runner?.Name);
+        PlayNarrator.Verdict(Verdict, Bag, Fielder?.Name ?? defaultFielderName, batterName, Runner?.Name);
 }
 
 /// <summary>

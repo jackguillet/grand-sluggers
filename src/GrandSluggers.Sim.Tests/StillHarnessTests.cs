@@ -1,5 +1,6 @@
 using Xunit;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Tooling;
 
 namespace GrandSluggers.Sim.Tests;
 

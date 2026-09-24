@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>
 /// Couch card: four numbers and the verbs you fire. HUD draws this; tests lock copy.

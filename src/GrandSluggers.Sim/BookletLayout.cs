@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>
 /// Shared geometry for booklet text. Source strings are paragraphs, not rendered lines:

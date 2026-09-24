@@ -1,5 +1,6 @@
 using Xunit;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 
 namespace GrandSluggers.Sim.Tests;
 
@@ -571,7 +572,7 @@ public class MatchTests
         var barrels = new BallHazards();
         barrels.Begin(park, false, _content.Rules);
         Assert.NotNull(barrels.Entered(22, 0, 58));
-        Assert.Equal("barrel cannon", CarnivalFront.RedirectName(HazardType.Barrel));
+        Assert.Equal("barrel cannon", PlayNarrator.RedirectName(HazardType.Barrel));
         Assert.True(ParkHazards.CanClamber(park, _content.Must("konga"), rules: Rules.Default));
         Assert.False(ParkHazards.CanClamber(park, _content.Must("rio"), rules: Rules.Default));
     }

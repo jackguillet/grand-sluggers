@@ -1,4 +1,5 @@
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Tooling;
 
 namespace GrandSluggers.Cli;
 
