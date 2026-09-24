@@ -168,6 +168,22 @@ public static class FlyCatch
     /// standing height plus its actual jump rise before the first surface contact.
     /// Wall robs use the wall plant and their separate timed leap window.
     /// </summary>
+    /// <summary>
+    /// Off the bat (§7.11): the batted ball is this far (3-D) from where it left the bat
+    /// (<c>fielding.catch.offTheBatFt</c>), or down on the ground. Before that no glove takes it — a ball straight
+    /// from the bat into the catcher's mitt is a foul tip, not a catch — so a pop behind the plate is caught coming down.
+    /// </summary>
+    public static bool OffTheBat(IReadOnlyList<Sample> path, double ballX, double ballY, double ballZ, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Fielding.Catch;
+        if (ballY <= c.InAirMinY || path.Count == 0) return true;
+        var o = path[0];
+        var dx = ballX - o.X;
+        var dy = ballY - o.Height;
+        var dz = ballZ - o.Z;
+        return dx * dx + dy * dy + dz * dz >= c.OffTheBatFt * c.OffTheBatFt;
+    }
+
     public static bool InPosition(
         FieldingPreview pre,
         double gloveX,
