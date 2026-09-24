@@ -1953,7 +1953,8 @@ public sealed class CatchRules
     public double SuperJumpWindowSec { get; init; } = 0.16;
     public double GrowWindowSec { get; init; } = 0.08;
     public double ClamberWindowSec { get; init; } = 0.12;
-    public double BuddyPlantFt { get; init; } = 26;
+    /// <summary>Each partner must be this close to both the wall plant and the live ball in XZ.</summary>
+    public double BuddyPlantFt { get; init; } = 4;
     public double BuddyJumpHoldSec { get; init; } = 0.18;
     public double HeldBallY { get; init; } = 2.2;
     public double BuddyHeldBallY { get; init; } = 6.4;

@@ -913,7 +913,7 @@
     },
     {
       "id": "T-F12",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "fielding.12"
       ],
@@ -933,7 +933,8 @@
         "control:fielding/Jump"
       ],
       "tests": [
-        "TutorialAdvancedFieldTests"
+        "TutorialAdvancedFieldTests",
+        "BuddyJumpTests"
       ]
     },
     {
@@ -4123,8 +4124,8 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 120,
-          "launchDeg": 30,
+          "exitMph": 150.1,
+          "launchDeg": 60,
           "sprayDeg": 0
         }
       }
