@@ -378,6 +378,10 @@ public sealed record MatchRules
 {
     /// <summary>A tie after the last scheduled inning plays on, at most this many extra innings; a tie at the cap is a tie (D8).</summary>
     public int ExtraInningsCap { get; init; }
+    /// <summary>The glove the home nine fields with: a <c>data/gloves</c> id the content validator checks.</summary>
+    public string HomeGlove { get; init; } = "";
+    /// <summary>The visitors' glove.</summary>
+    public string AwayGlove { get; init; } = "";
     public MercyRules Mercy { get; init; } = new();
 }
 

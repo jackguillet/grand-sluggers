@@ -78,14 +78,14 @@ public class StillHarnessTests
         Assert.Equal(Motion.SwingContact, StillPose.CharPoseT);
         Assert.Equal(StillPose.CharUnscaledHeadCenterY, SwingPresentation.HeadCenterAtRest.Y, 2);
         Assert.Equal(StillPose.CharUnscaledHeadRadius, SwingPresentation.HeadRadius, 2);
-        foreach (var id in Silhouette.Captains)
+        foreach (var id in Shipped.CaptainIds)
         {
-            var shot = StillPose.CharFraming(id);
-            Assert.True(StillPose.CharCameraLooksAtChest(shot.Target.Y, StillPose.CharChestY(id)),
+            var shot = StillPose.CharFraming(Shipped.Content, id);
+            Assert.True(StillPose.CharCameraLooksAtChest(shot.Target.Y, StillPose.CharChestY(Shipped.Content, id)),
                 id + " look is not the chest from Silhouette.Proportions");
             Assert.True(StillPose.CharCameraIsNotBrim(shot.Target.Y, shot.Pos.Y),
                 id + " look is the brim");
-            Assert.True(shot.Target.Y < StillPose.CharHeadTopY(id) - 0.5,
+            Assert.True(shot.Target.Y < StillPose.CharHeadTopY(Shipped.Content, id) - 0.5,
                 id + " look sits on the head, not the chest");
             Assert.True(StillPose.CharCameraIsThreeQuarter(shot.Pos.X, shot.Pos.Z, StillPose.CharZ),
                 id + " 3/4 on the face — dead-on behind the shell is illegible");
@@ -95,14 +95,14 @@ public class StillHarnessTests
     [Fact]
     public void CharacterTurntableKeepsEveryCaptainsHeadInFrame()
     {
-        Assert.True(StillPose.CharHeadTopY("ashlord") > StillPose.CharHeadTopY("konga"));
-        Assert.True(StillPose.CharHeadTopY("konga") > StillPose.CharHeadTopY("vale"));
-        Assert.True(StillPose.CharHeadTopY("vale") > StillPose.CharHeadTopY("rio"));
-        Assert.True(StillPose.CharHeadTopY("rio") > StillPose.CharHeadTopY("fenn"));
-        Assert.True(StillPose.CharHeadTopY("fenn") > StillPose.CharHeadTopY("zig"));
+        Assert.True(StillPose.CharHeadTopY(Shipped.Content, "ashlord") > StillPose.CharHeadTopY(Shipped.Content, "konga"));
+        Assert.True(StillPose.CharHeadTopY(Shipped.Content, "konga") > StillPose.CharHeadTopY(Shipped.Content, "vale"));
+        Assert.True(StillPose.CharHeadTopY(Shipped.Content, "vale") > StillPose.CharHeadTopY(Shipped.Content, "rio"));
+        Assert.True(StillPose.CharHeadTopY(Shipped.Content, "rio") > StillPose.CharHeadTopY(Shipped.Content, "fenn"));
+        Assert.True(StillPose.CharHeadTopY(Shipped.Content, "fenn") > StillPose.CharHeadTopY(Shipped.Content, "zig"));
 
-        var rio = StillPose.CharFraming("rio");
-        var ashlord = StillPose.CharFraming("ashlord");
+        var rio = StillPose.CharFraming(Shipped.Content, "rio");
+        var ashlord = StillPose.CharFraming(Shipped.Content, "ashlord");
         var rioPull = Dist(rio.Pos, new Vec3(StillPose.CharX, rio.Target.Y, StillPose.CharZ));
         var ashPull = Dist(ashlord.Pos, new Vec3(StillPose.CharX, ashlord.Target.Y, StillPose.CharZ));
         Assert.True(ashPull > rioPull + 2,
@@ -117,19 +117,19 @@ public class StillHarnessTests
             0);
         var croppedHead = PlayCamera.Project(
             cropped,
-            new Vec3(StillPose.CharX, StillPose.CharHeadTopY("ashlord"), StillPose.CharZ));
+            new Vec3(StillPose.CharX, StillPose.CharHeadTopY(Shipped.Content, "ashlord"), StillPose.CharZ));
         Assert.False(PlayCamera.InFrame(croppedHead),
             "the old Rio-sized Y must fail Ashlord — otherwise the test is not a falsifier");
 
-        foreach (var id in Silhouette.Captains)
+        foreach (var id in Shipped.CaptainIds)
         {
-            var shot = StillPose.CharFraming(id);
+            var shot = StillPose.CharFraming(Shipped.Content, id);
             var feet = PlayCamera.Project(shot, new Vec3(StillPose.CharX, 0.05, StillPose.CharZ));
-            var chest = PlayCamera.Project(shot, new Vec3(StillPose.CharX, StillPose.CharChestY(id), StillPose.CharZ));
-            var head = PlayCamera.Project(shot, new Vec3(StillPose.CharX, StillPose.CharHeadTopY(id), StillPose.CharZ));
+            var chest = PlayCamera.Project(shot, new Vec3(StillPose.CharX, StillPose.CharChestY(Shipped.Content, id), StillPose.CharZ));
+            var head = PlayCamera.Project(shot, new Vec3(StillPose.CharX, StillPose.CharHeadTopY(Shipped.Content, id), StillPose.CharZ));
             Assert.True(PlayCamera.InFrame(feet), $"{id} feet off turntable {feet}");
             Assert.True(PlayCamera.InFrame(chest), $"{id} chest off turntable {chest}");
-            Assert.True(StillPose.CharHeadTopInFrame(id), $"{id} head top off turntable {head}");
+            Assert.True(StillPose.CharHeadTopInFrame(Shipped.Content, id), $"{id} head top off turntable {head}");
             Assert.True(head!.Value.Y - feet!.Value.Y > 0.28,
                 $"{id} toy too small in the turntable h={head.Value.Y - feet.Value.Y:0.000}");
         }

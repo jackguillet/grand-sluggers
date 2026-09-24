@@ -15,9 +15,6 @@ public enum SwingTake { Slap, Charge }
 /// </summary>
 public static class SwingPresentation
 {
-    /// <summary>Every captain swings on the one shared rig.</summary>
-    public static readonly string[] SharedCaptains = Silhouette.Captains;
-
     public const double LoadAt = 0.00;
     public const double LaunchAt = 0.15;
     /// <summary>The charge take's ready key: a held load at no charge. MAX holds the windup at <see cref="LoadAt"/>.</summary>
@@ -102,9 +99,9 @@ public static class SwingPresentation
     /// The key is already handed; <paramref name="hand"/> only places the body.
     /// </summary>
     public static double BarrelBesideHeadDeg(
-        Key key, Hand hand, CameraShot shot, string bodyType = "rio")
+        Key key, Hand hand, CameraShot shot, Silhouette.Spec body)
     {
-        var scale = Silhouette.SharedRootScale(Silhouette.Proportions(bodyType));
+        var scale = Silhouette.SharedRootScale(body);
         Vec3 World(Vec3 local) => new(
             HomeSet.BatterBodyX(hand) + local.X * scale.X,
             local.Y * scale.Y,
@@ -248,11 +245,11 @@ public static class SwingPresentation
         return hand == Hand.L ? Mirror(right) : right;
     }
 
-    public static Vec3 BarrelWorld(string bodyType, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
+    public static Vec3 BarrelWorld(Silhouette.Spec body, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
     {
         var key = At(poseT, hand, take);
         var scale = Mul(
-            Silhouette.SharedRootScale(Silhouette.Proportions(bodyType)),
+            Silhouette.SharedRootScale(body),
             RootSquash(poseT));
         var local = Add(key.Grip, Mul(key.BarrelDirection, BarrelReach));
         return new Vec3(
@@ -262,11 +259,11 @@ public static class SwingPresentation
     }
 
     public static (Vec3 Start, Vec3 End, double Radius) BarrelSegmentWorld(
-        string bodyType, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
+        Silhouette.Spec body, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
     {
         var key = At(poseT, hand, take);
         var scale = Mul(
-            Silhouette.SharedRootScale(Silhouette.Proportions(bodyType)),
+            Silhouette.SharedRootScale(body),
             RootSquash(poseT));
         var startReach = (BarrelStartFromModelCenter + ModelCenterFromGrip) * Silhouette.BatScale;
         var start = Add(key.Grip, Mul(key.BarrelDirection, startReach));
@@ -280,9 +277,9 @@ public static class SwingPresentation
     }
 
     public static bool BarrelCrossesPlate(
-        string bodyType, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
+        Silhouette.Spec body, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
     {
-        var barrel = BarrelSegmentWorld(bodyType, hand, poseT, take, worldOffsetX);
+        var barrel = BarrelSegmentWorld(body, hand, poseT, take, worldOffsetX);
         var min = new Vec3(
             -HomeSet.PlateW / 2 - barrel.Radius,
             PlateBandY - 1.2 - barrel.Radius,

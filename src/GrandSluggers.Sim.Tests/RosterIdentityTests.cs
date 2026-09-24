@@ -10,11 +10,11 @@ public class RosterIdentityTests
     [Fact]
     public void CaptainsHaveDistinctSilhouettes()
     {
-        var specs = Silhouette.Captains.Select(Silhouette.Proportions).ToList();
-        Assert.Equal(Silhouette.Captains.Length, specs.Select(s => (s.Height, s.Width, s.Head, s.Arms, s.Torso)).Distinct().Count());
-        Assert.Equal(Silhouette.Captains.Length, specs.Select(s => s.Height).Distinct().Count());
-        Assert.Equal(Silhouette.Captains.Length, specs.Select(s => s.Width).Distinct().Count());
-        Assert.Equal(Silhouette.Captains.Length, specs.Select(s => s.Head).Distinct().Count());
+        var specs = Shipped.CaptainIds.Select(id => Silhouette.Proportions(Shipped.Content, id)).ToList();
+        Assert.Equal(Shipped.CaptainIds.Count, specs.Select(s => (s.Height, s.Width, s.Head, s.Arms, s.Torso)).Distinct().Count());
+        Assert.Equal(Shipped.CaptainIds.Count, specs.Select(s => s.Height).Distinct().Count());
+        Assert.Equal(Shipped.CaptainIds.Count, specs.Select(s => s.Width).Distinct().Count());
+        Assert.Equal(Shipped.CaptainIds.Count, specs.Select(s => s.Head).Distinct().Count());
         Assert.True(Silhouette.ToyScale > 1f);
         Assert.True(Silhouette.GloveScale > 1f);
         Assert.True(Silhouette.BatScale > 1f);
@@ -41,10 +41,10 @@ public class RosterIdentityTests
     [Fact]
     public void SignatureLoadoutBatIdsAndVisualsAreUnique()
     {
-        var ids = Silhouette.Captains.Select(GearMesh.SignatureBatId).ToList();
-        Assert.Equal(Silhouette.Captains.Length, ids.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        var ids = Shipped.CaptainIds.Select(id => _content.Must(id).SignatureBat!).ToList();
+        Assert.Equal(Shipped.CaptainIds.Count, ids.Distinct(StringComparer.OrdinalIgnoreCase).Count());
         var visuals = ids.Select(id => GearMesh.BatVisual(_content.Bats[id])).ToList();
-        Assert.Equal(Silhouette.Captains.Length, visuals.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(Shipped.CaptainIds.Count, visuals.Distinct(StringComparer.OrdinalIgnoreCase).Count());
         Assert.Equal("bat-staff", GearMesh.BatVisual(_content.Bats["fen-cane"]));
         Assert.Equal("bat-spark", GearMesh.BatVisual(_content.Bats["harbor-lumber"]));
         Assert.Equal("bat-wand", GearMesh.BatVisual(_content.Bats["pageant-wand"]));

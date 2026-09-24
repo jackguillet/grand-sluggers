@@ -357,7 +357,7 @@ public sealed class ArtCatalog
                 errors.Add("clip " + clip.Id + " missing slot");
         }
 
-        foreach (var id in Silhouette.Captains)
+        foreach (var id in content.CaptainIds)
         {
             if (!Skins.TryGetValue(id, out var skin))
             {
@@ -416,7 +416,7 @@ public sealed class ArtCatalog
         {
             if (!TryAudio(need, out _)) errors.Add("audio missing " + need);
         }
-        foreach (var cap in Silhouette.Captains)
+        foreach (var cap in content.CaptainIds)
         {
             if (!TryAudio("vo-" + cap, out _)) errors.Add("audio missing vo-" + cap);
         }

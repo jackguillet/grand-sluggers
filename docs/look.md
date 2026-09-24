@@ -31,7 +31,7 @@ Six faction cuts plus Elder Fenn. Shared bone names; unique captains are deferre
 | **Ashlord** | Villain slug | Tallest — ember palette |
 | **Elder Fenn** | Turtle elder | Short, wide, big head — fen palette |
 
-Do not unique-sculpt a role player. Unique captains are packages (same bone names, own mesh) and stay deferred. Numbers live in `Silhouette.cs`. Spec: `docs/character-package.md`. Do not bring caps back as geometry (#557).
+Do not unique-sculpt a role player. Unique captains are packages (same bone names, own mesh) and stay deferred. Numbers live in each captain's `proportions` in `data/characters`. Spec: `docs/character-package.md`. Do not bring caps back as geometry (#557).
 
 ## Cameras look at toys
 

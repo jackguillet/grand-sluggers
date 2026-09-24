@@ -10,7 +10,7 @@ public sealed class CaptainSelectionTests
     public void OneControllerConfirmsOwnThenOpponentAndPreservesSides(bool home)
     {
         var pick = ExhibitionPick.Default with { Pad1Home = home };
-        var board = new CaptainSelection(pick, false);
+        var board = new CaptainSelection(Shipped.Content, pick, false);
         Assert.Equal(pick.Yours, board.Id(0));
         Assert.True(board.Confirm(0));
         Assert.Equal(1, board.ActiveOne);
@@ -29,7 +29,7 @@ public sealed class CaptainSelectionTests
     [InlineData(1)]
     public void EitherSeatCanReserveACaptainWithoutMovingOrOverwritingTheOther(int first)
     {
-        var board = new CaptainSelection(ExhibitionPick.Default, true);
+        var board = new CaptainSelection(Shipped.Content, ExhibitionPick.Default, true);
         var other = 1 - first;
         while (board.Id(other) != board.Id(first)) board.Move(other, 1);
         var chosen = board.Id(first);
@@ -49,7 +49,7 @@ public sealed class CaptainSelectionTests
     [Fact]
     public void BothCursorsReachEveryCaptainAndWrapWithoutChangingTheOther()
     {
-        var board = new CaptainSelection(ExhibitionPick.Default, true);
+        var board = new CaptainSelection(Shipped.Content, ExhibitionPick.Default, true);
         foreach (var panel in new[] { 0, 1 })
         {
             var start = board.Id(panel);
@@ -60,7 +60,7 @@ public sealed class CaptainSelectionTests
                 seen.Add(board.Id(panel)); board.Move(panel, 1);
                 Assert.Equal(untouched, board.Id(1 - panel));
             }
-            Assert.Equal(PresetTeams.CaptainIds.Length, seen.Count);
+            Assert.Equal(Shipped.CaptainIds.Count, seen.Count);
             Assert.Equal(start, board.Id(panel));
             board.Move(panel, -1); board.Move(panel, 1);
             Assert.Equal(start, board.Id(panel));
@@ -71,8 +71,8 @@ public sealed class CaptainSelectionTests
     public void TeamPanelsAndEveryPortraitHaveSeparateSpaceAboveTheFooter()
     {
         var boxes = new List<CaptainPanelRect> { CarnivalFront.CaptainPanel(0), CarnivalFront.CaptainPanel(1) };
-        boxes.AddRange(Enumerable.Range(0, PresetTeams.CaptainIds.Length)
-            .Select(i => CarnivalFront.CaptainTile(i, PresetTeams.CaptainIds.Length)));
+        boxes.AddRange(Enumerable.Range(0, Shipped.CaptainIds.Count)
+            .Select(i => CarnivalFront.CaptainTile(i, Shipped.CaptainIds.Count)));
         for (var i = 0; i < boxes.Count; i++)
         {
             var a = boxes[i];

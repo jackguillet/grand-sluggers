@@ -96,7 +96,7 @@ namespace GrandSluggers.UnityClient
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,
             bool versus = false, bool pad2 = false)
         {
-            CaptainSheet.Draw(new CaptainSelection(new ExhibitionPick(homeId, awayId, ExhibitionPick.DefaultPark, pad1Home), versus), content, pad2);
+            CaptainSheet.Draw(new CaptainSelection(content, new ExhibitionPick(homeId, awayId, ExhibitionPick.DefaultPark, pad1Home), versus), content, pad2);
         }
 
         public static void Card(CharacterCard card, float x, float y)

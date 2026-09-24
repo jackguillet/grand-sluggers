@@ -30,6 +30,8 @@ namespace GrandSluggers.EditorTools
         static Gamepad _pad1;
         /// <summary>The director's own rules table, set when the gate starts: the pads tick against it.</summary>
         static RulesTable _rules;
+        /// <summary>The director's catalog, set with <see cref="_rules"/>.</summary>
+        static ContentCatalog _content;
         static Gamepad _pad2;
 
         static AtBatInputGate() { EditorApplication.update += Update; }
@@ -69,7 +71,8 @@ namespace GrandSluggers.EditorTools
             if (!EditorApplication.isPlaying) return;
             var play = UnityEngine.Object.FindAnyObjectByType<MatchDirector>();
             if (play == null || Get<Match>(play, "_match") == null) return;
-            _rules = Get<ContentCatalog>(play, "_content").Rules;
+            _content = Get<ContentCatalog>(play, "_content");
+            _rules = _content.Rules;
 
             SessionState.SetBool(Pending, false);
             var evidence = new Evidence
@@ -251,13 +254,13 @@ namespace GrandSluggers.EditorTools
                 + ", padEnabled=" + _pad1.enabled + ", pad=" + Controls.SeatDeviceId(0) + ", expected=" + _pad1.deviceId);
             var board = Get<CaptainSelection>(play, "_captains");
             var seen = new HashSet<string>();
-            for (var i = 0; i < PresetTeams.CaptainIds.Length; i++)
+            for (var i = 0; i < _content.CaptainIds.Count; i++)
             {
                 seen.Add(board.Id(0));
                 shot = Capture("captain-" + board.Id(0)); while (shot.MoveNext()) yield return shot.Current;
                 Press(GamepadButton.DpadRight);
             }
-            Require(seen.Count == PresetTeams.CaptainIds.Length, "A captain is unreachable through the controller.");
+            Require(seen.Count == _content.CaptainIds.Count, "A captain is unreachable through the controller.");
             Press(GamepadButton.South);
             Require(Phase(play) == "Select" && board.Ready(0) && !board.Ready(1), "P1 skipped choosing the CPU captain.");
             shot = Capture("captain-cpu"); while (shot.MoveNext()) yield return shot.Current;

@@ -157,9 +157,9 @@ public class SwingPresentationTests
         // The gate holds a batter at any charge, so it samples the take between
         // the authored keys. Zig's shared-root squash (Height 0.56) shortens the
         // rendered rise hardest; a body that fails here fails the still gate.
-        foreach (var body in SwingPresentation.SharedCaptains)
+        foreach (var body in Shipped.CaptainIds)
         {
-            var scale = Silhouette.SharedRootScale(Silhouette.Proportions(body));
+            var scale = Silhouette.SharedRootScale(Silhouette.Proportions(Shipped.Content, body));
             for (var step = 0; step <= 40; step++)
             {
                 var charge = step / 40.0;
@@ -343,20 +343,20 @@ public class SwingPresentationTests
         var plate = ContentCatalog.Load().Shots.Must("plate");
         Assert.Equal(HomeSet.CamX, plate.Pos.X, 6);
         Assert.Equal(HomeSet.CamZ, plate.Pos.Z, 6);
-        foreach (var body in SwingPresentation.SharedCaptains)
+        foreach (var body in Shipped.CaptainIds)
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
             // Ready only: the sitting was SET at no charge. MAX already stands
             // beside on Rio (#623); Zig's squat scale still hides that windup.
             var ready = SwingPresentation.At(
                 SwingPresentation.HeldLoadAt(0), hand, SwingTake.Charge);
-            var beside = SwingPresentation.BarrelBesideHeadDeg(ready, hand, plate, body);
+            var beside = SwingPresentation.BarrelBesideHeadDeg(ready, hand, plate, Silhouette.Proportions(Shipped.Content, body));
             Assert.True(
                 beside >= SwingPresentation.PlateLoadedBesideDeg,
                 $"{body} {hand} ready: barrel hides in the plate head disk ({beside:0.00} deg)");
             var slap = SwingPresentation.At(SwingPresentation.LoadAt, hand, SwingTake.Slap);
             Assert.True(
-                SwingPresentation.BarrelBesideHeadDeg(slap, hand, plate, body)
+                SwingPresentation.BarrelBesideHeadDeg(slap, hand, plate, Silhouette.Proportions(Shipped.Content, body))
                     >= SwingPresentation.PlateLoadedBesideDeg,
                 $"{body} {hand} slap ready hides in the plate head disk");
         }
@@ -369,7 +369,7 @@ public class SwingPresentationTests
         // #560 remains a projection falsifier after the rig revision: place the
         // barrel along the camera-to-head ray so the current head hides it.
         // The historical revision-1 key is no longer hidden by the smaller head.
-        var scale = Silhouette.SharedRootScale(Silhouette.Proportions("rio"));
+        var scale = Silhouette.SharedRootScale(Silhouette.Proportions(Shipped.Content, "rio"));
         var head = SwingPresentation.HeadCenterAtRest with
         {
             Y = SwingPresentation.HeadCenterAtRest.Y - 0.2
@@ -382,12 +382,12 @@ public class SwingPresentationTests
                 (HomeSet.BatterZ + head.Z * scale.Z - plate.Pos.Z) / scale.Z),
             -0.2);
         Assert.True(
-            SwingPresentation.BarrelBesideHeadDeg(hidden, Hand.R, plate) < 0,
+            SwingPresentation.BarrelBesideHeadDeg(hidden, Hand.R, plate, Silhouette.Proportions(Shipped.Content, "rio")) < 0,
             "a barrel behind the current head must fail the beside-head gate");
         Assert.True(
             SwingPresentation.BarrelBesideHeadDeg(
                 SwingPresentation.At(SwingPresentation.LoadAt, Hand.R, SwingTake.Slap),
-                Hand.R, plate) >= SwingPresentation.PlateLoadedBesideDeg);
+                Hand.R, plate, Silhouette.Proportions(Shipped.Content, "rio")) >= SwingPresentation.PlateLoadedBesideDeg);
     }
 
     [Fact]
@@ -461,11 +461,11 @@ public class SwingPresentationTests
     public void ContactBarrelCutsThePlateForEverySharedCaptainAndHand()
     {
         foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
-        foreach (var body in SwingPresentation.SharedCaptains)
+        foreach (var body in Shipped.CaptainIds)
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
             Assert.True(SwingPresentation.BarrelCrossesPlate(
-                body, hand, Motion.SwingContact, take), $"{take} {body} {hand} missed the plate");
+                Silhouette.Proportions(Shipped.Content, body), hand, Motion.SwingContact, take), $"{take} {body} {hand} missed the plate");
         }
     }
 

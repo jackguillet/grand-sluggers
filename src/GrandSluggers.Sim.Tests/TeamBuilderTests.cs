@@ -10,7 +10,7 @@ public class TeamBuilderTests
     [Fact]
     public void DraftFillsNineAndKeepsTheCaptain()
     {
-        foreach (var id in PresetTeams.CaptainIds)
+        foreach (var id in Shipped.CaptainIds)
         {
             var b = TeamBuilder.Draft(_content, id);
             Assert.Equal(9, b.Order.Count);

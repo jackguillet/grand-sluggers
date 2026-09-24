@@ -9,17 +9,6 @@ public static class GearMesh
 {
     public const string CommonHittingBatVisual = "bat-wood";
 
-    public static string SignatureBatId(string captainId) => captainId.ToLowerInvariant() switch
-    {
-        "vale" => "pageant-wand",
-        "zig" => "prism-stick",
-        "brondo" => "gold-brick",
-        "konga" => "barrel-bat",
-        "ashlord" => "furnace-club",
-        "fenn" => "fen-cane",
-        _ => "harbor-lumber"
-    };
-
     public static string BatVisual(BatItem? bat) =>
         !string.IsNullOrEmpty(bat?.Visual) ? bat.Visual : CommonHittingBatVisual;
 
@@ -32,11 +21,14 @@ public static class GearMesh
     public static string GloveVisual(GloveItem? glove) =>
         !string.IsNullOrEmpty(glove?.Visual) ? glove.Visual : "glove-brown";
 
+    /// <summary>
+    /// A captain's signature bat: its <c>signatureBat</c> (data/characters), which the validator checks names a bat the
+    /// catalog has. A team led by a role player carries the first captain's in select order.
+    /// </summary>
     public static BatItem SignatureBat(ContentCatalog content, string captainId)
     {
-        var id = SignatureBatId(captainId);
-        if (content.Bats.TryGetValue(id, out var bat)) return bat;
-        if (content.Bats.TryGetValue("harbor-lumber", out bat)) return bat;
-        return content.Bats.Values.First();
+        var who = content.Must(captainId);
+        var id = who.SignatureBat ?? content.Must(content.CaptainIds[0]).SignatureBat!;
+        return content.Bats[id];
     }
 }

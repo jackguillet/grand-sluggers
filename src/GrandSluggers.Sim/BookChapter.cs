@@ -54,13 +54,13 @@ public static class BookChapter
     public static string Captain(string pageId) =>
         Captains.TryGetValue(pageId, out var id) ? id : "rio";
 
-    public static bool EveryPageHasARosterCaptain()
+    public static bool EveryPageHasARosterCaptain(ContentCatalog content)
     {
         foreach (var page in HowToPlay.Pages)
         {
             var id = Captain(page.Id);
             if (!Captains.ContainsKey(page.Id)) return false;
-            if (!Silhouette.Captains.Any(c => c.Equals(id, StringComparison.OrdinalIgnoreCase)))
+            if (!content.CaptainIds.Any(c => c.Equals(id, StringComparison.OrdinalIgnoreCase)))
                 return false;
         }
         return true;

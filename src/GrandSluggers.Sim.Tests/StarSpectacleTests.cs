@@ -11,9 +11,9 @@ public class StarSpectacleTests
     public void CaptainsHaveUniquePitchAndSwing()
     {
         var caps = _content.Characters.Values.Where(c => c.Captain).ToList();
-        Assert.Equal(Silhouette.Captains.Length, caps.Count);
-        Assert.Equal(Silhouette.Captains.Length, caps.Select(c => c.StarPitch).Distinct().Count());
-        Assert.Equal(Silhouette.Captains.Length, caps.Select(c => c.StarSwing).Distinct().Count());
+        Assert.Equal(Shipped.CaptainIds.Count, caps.Count);
+        Assert.Equal(Shipped.CaptainIds.Count, caps.Select(c => c.StarPitch).Distinct().Count());
+        Assert.Equal(Shipped.CaptainIds.Count, caps.Select(c => c.StarSwing).Distinct().Count());
         Assert.Contains(caps, c => c.Id == "rio" && c.StarPitch == "heatball" && c.StarSwing == "heat-swing");
         Assert.Contains(caps, c => c.Id == "vale" && c.StarPitch == "charmball" && c.StarSwing == "heart-swing");
         Assert.Contains(caps, c => c.Id == "zig" && c.StarPitch == "prismball" && c.StarSwing == "shell-swing");

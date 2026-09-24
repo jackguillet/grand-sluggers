@@ -159,7 +159,7 @@ public class HowToPlayTests
             Assert.Equal(id, HowToPlay.Must(id).Id);
             Assert.True(BookChapter.Captains.ContainsKey(id), id);
         }
-        Assert.True(BookChapter.EveryPageHasARosterCaptain());
+        Assert.True(BookChapter.EveryPageHasARosterCaptain(Shipped.Content));
         foreach (var block in RoleTables.Pad)
         foreach (var row in block.Rows)
             Assert.False(HowToPlay.NamesKeyboard(row.Press), block.Id + " " + row.Verb);

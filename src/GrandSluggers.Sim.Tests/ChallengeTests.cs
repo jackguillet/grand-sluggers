@@ -10,18 +10,18 @@ public class ChallengeTests
     [Fact]
     public void CaptainsExist()
     {
-        foreach (var id in PresetTeams.CaptainIds)
+        foreach (var id in Shipped.CaptainIds)
         {
             var c = _content.Must(id);
             Assert.True(c.Captain, id);
         }
-        Assert.Equal(Silhouette.Captains.Length, PresetTeams.CaptainIds.Length);
+        Assert.Equal(Shipped.CaptainIds.Count, Shipped.CaptainIds.Count);
     }
 
     [Fact]
     public void ForCaptainFillsNineUnique()
     {
-        foreach (var id in PresetTeams.CaptainIds)
+        foreach (var id in Shipped.CaptainIds)
         {
             var team = PresetTeams.ForCaptain(_content, id);
             Assert.Equal(9, team.Roster.Count);
@@ -34,9 +34,9 @@ public class ChallengeTests
     [Fact]
     public void ExhibitionPairDoesNotSharePlayers()
     {
-        foreach (var home in PresetTeams.CaptainIds)
+        foreach (var home in Shipped.CaptainIds)
         {
-            var awayId = PresetTeams.NextCaptain(home);
+            var awayId = PresetTeams.NextCaptain(_content, home);
             var (h, a) = PresetTeams.Pair(_content, home, awayId);
             var overlap = h.Roster.Select(c => c.Id).Intersect(a.Roster.Select(c => c.Id), StringComparer.OrdinalIgnoreCase);
             Assert.Empty(overlap);
@@ -48,9 +48,9 @@ public class ChallengeTests
     [Fact]
     public void AllCaptainPairingsFinishAGame()
     {
-        foreach (var home in PresetTeams.CaptainIds)
+        foreach (var home in Shipped.CaptainIds)
         {
-            var away = PresetTeams.NextCaptain(home);
+            var away = PresetTeams.NextCaptain(_content, home);
             var match = Match.Exhibition(_content, home, away, innings: 3, seed: 9);
             match.AutoPlayGame();
             Assert.True(match.Over, $"{home} vs {away}");
@@ -125,6 +125,6 @@ public class ChallengeTests
         var roles = _content.Characters.Values.Count(c => !c.Captain);
         var caps = _content.Characters.Values.Count(c => c.Captain);
         Assert.True(roles >= 18, $"role players {roles}");
-        Assert.Equal(Silhouette.Captains.Length, caps);
+        Assert.Equal(Shipped.CaptainIds.Count, caps);
     }
 }

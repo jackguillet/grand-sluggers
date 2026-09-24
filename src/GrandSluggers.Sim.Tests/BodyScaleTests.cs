@@ -15,7 +15,7 @@ public class BodyScaleTests
     public void AGloveWithTheBallIsRestScaleForEveryCaptain()
     {
         Assert.True(BodyScale.Grow > BodyScale.Rest);
-        foreach (var id in Silhouette.Captains)
+        foreach (var id in Shipped.CaptainIds)
         {
             var who = _content.Must(id);
             Assert.Equal(BodyScale.Rest, BodyScale.Live(
@@ -42,7 +42,7 @@ public class BodyScaleTests
             Assert.Equal(BodyScale.Rest, BodyScale.Live(
                 ability, playGlove: true, holdBall: true, highlighted: true, hint: true));
         }
-        foreach (var id in Silhouette.Captains)
+        foreach (var id in Shipped.CaptainIds)
         {
             var who = _content.Must(id);
             var chasing = BodyScale.Live(who.FieldAbility, playGlove: true, holdBall: false, highlighted: true);

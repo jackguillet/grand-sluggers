@@ -2,37 +2,16 @@ namespace GrandSluggers.Sim;
 
 public static class PresetTeams
 {
-    public static readonly string[] CaptainIds = ["rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn"];
+    /// <summary>The authored nines (<c>data/teams/teams.json</c>).</summary>
+    public static Team SparkAllStars(ContentCatalog content) => content.PresetTeam("spark-all-stars");
 
-    public static Team SparkAllStars(ContentCatalog content) => content.Team(
-        "Spark All-Stars",
-        "rio", "nico", "pip", "marlow", "vale", "lace", "zig", "dart", "vine");
+    public static Team EmberCourt(ContentCatalog content) => content.PresetTeam("ember-court");
 
-    public static Team EmberCourt(ContentCatalog content) => content.Team(
-        "Ember Court",
-        "ashlord", "cinder", "soot", "brondo", "boom", "konga", "frost", "grit", "hex");
+    public static Team MixedRivals(ContentCatalog content) => content.PresetTeam("mixed-rivals");
 
-    public static Team MixedRivals(ContentCatalog content) => content.Team(
-        "Mixed Rivals",
-        "rio", "ashlord", "brondo", "cinder", "vale", "boom", "konga", "soot", "frost");
+    public static string NextCaptain(ContentCatalog content, string captainId) => content.StepCaptain(captainId, 1);
 
-    public static string NextCaptain(string captainId)
-    {
-        var i = IndexOfCaptain(captainId);
-        return CaptainIds[(i + 1) % CaptainIds.Length];
-    }
-
-    public static string PrevCaptain(string captainId)
-    {
-        var i = IndexOfCaptain(captainId);
-        return CaptainIds[(i - 1 + CaptainIds.Length) % CaptainIds.Length];
-    }
-
-    public static int IndexOfCaptain(string captainId)
-    {
-        var i = Array.FindIndex(CaptainIds, id => id.Equals(captainId, StringComparison.OrdinalIgnoreCase));
-        return i < 0 ? 0 : i;
-    }
+    public static string PrevCaptain(ContentCatalog content, string captainId) => content.StepCaptain(captainId, -1);
 
     /// <summary>
     /// A captain's home park: the park whose faction is his, else the default park (D21, FD-01). Data,
@@ -43,17 +22,8 @@ public static class PresetTeams
     public static string HomeParkId(ContentCatalog content, string captainId) =>
         content.HomeParkIdOfFaction(content.Characters.TryGetValue(captainId, out var c) ? c.Faction : "");
 
-    public static string TeamName(Character captain) => captain.Id.ToLowerInvariant() switch
-    {
-        "rio" => "Spark All-Stars",
-        "vale" => "Royal Rink",
-        "zig" => "Carnival Crew",
-        "brondo" => "Goldrush",
-        "konga" => "Canopy Clan",
-        "ashlord" => "Ember Court",
-        "fenn" => "Stillwater",
-        _ => captain.Name
-    };
+    /// <summary>A captain's team name (<c>teamName</c> in its character file); a role player at the head of a team goes by its own name.</summary>
+    public static string TeamName(Character captain) => captain.TeamName ?? captain.Name;
 
     public static (Team Home, Team Away) Pair(
         ContentCatalog content,
@@ -62,7 +32,7 @@ public static class PresetTeams
         IEnumerable<string>? homePrefer = null)
     {
         if (homeCaptain.Equals(awayCaptain, StringComparison.OrdinalIgnoreCase))
-            awayCaptain = NextCaptain(homeCaptain);
+            awayCaptain = NextCaptain(content, homeCaptain);
         var home = ForCaptain(content, homeCaptain, prefer: homePrefer);
         var away = ForCaptain(content, awayCaptain, exclude: home.Roster.Select(c => c.Id));
         return (home, away);

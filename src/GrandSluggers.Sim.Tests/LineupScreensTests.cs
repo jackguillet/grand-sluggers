@@ -334,7 +334,7 @@ public class LineupScreensTests
         foreach (var c in _content.Characters.Values)
         {
             var id = Silhouette.PortraitId(c);
-            Assert.Contains(id, Silhouette.Captains);
+            Assert.Contains(id, Shipped.CaptainIds);
             if (c.Captain)
                 Assert.Equal(c.Id, id, ignoreCase: true);
         }

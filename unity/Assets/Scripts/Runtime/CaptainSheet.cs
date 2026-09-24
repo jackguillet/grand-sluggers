@@ -25,7 +25,7 @@ namespace GrandSluggers.UnityClient
             Text(new Rect(24, 510, 1232, 30), CarnivalFront.CaptainPrompt(selection, pad2), _body);
             for (var i = 0; i < selection.Count; i++)
             {
-                var id = PresetTeams.CaptainIds[i];
+                var id = content.CaptainIds[i];
                 var who = content.Must(id);
                 var r = RectOf(CarnivalFront.CaptainTile(i, selection.Count));
                 Fill(r, Panel);

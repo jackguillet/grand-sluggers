@@ -49,7 +49,7 @@ public class ContactPowerScenarioTests
         var root = ContentCatalog.Load().Root.Shipped;
         foreach (var file in Directory.GetFiles(Path.Combine(root, "characters"), "*.json"))
         {
-            var node = JsonNode.Parse(File.ReadAllText(file))!;
+            var node = JsonNode.Parse(File.ReadAllText(file), documentOptions: DataJson.Document)!;
             foreach (var row in node is JsonArray rows ? rows : [node])
             {
                 var o = row!.AsObject();

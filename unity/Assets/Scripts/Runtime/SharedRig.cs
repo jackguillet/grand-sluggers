@@ -37,7 +37,7 @@ namespace GrandSluggers.UnityClient
 
         public static Chain Spawn(Transform parent, Character who, SkinSlot skin)
         {
-            var spec = Silhouette.Proportions(Silhouette.BodyType(who));
+            var spec = Silhouette.Proportions(who);
             var scale = Silhouette.SharedRootScale(spec);
             var body = new GameObject("body").transform;
             body.SetParent(parent, false);

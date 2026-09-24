@@ -78,7 +78,7 @@ namespace GrandSluggers.UnityClient
             {
                 park = _req.ResolvedPark(_play.GateContent);
                 shots = _req.ResolvedShots();
-                swingCaptains = _req.ResolvedSwingCaptains();
+                swingCaptains = _req.ResolvedSwingCaptains(_play.GateContent);
             }
             catch (Exception ex)
             {
@@ -278,7 +278,7 @@ namespace GrandSluggers.UnityClient
 
             if (StillRequest.IsSwingMatrixShot(shot))
             {
-                GateStageSwingCaptain(req.ResolvedSwingCaptains()[0]);
+                GateStageSwingCaptain(req.ResolvedSwingCaptains(_content)[0]);
                 return;
             }
 
@@ -437,8 +437,8 @@ namespace GrandSluggers.UnityClient
             HeroActor hero, string beat, string captain, string power, out string gateError)
         {
             gateError = "";
-            var sharedRigMetrics = Array.Exists(
-                SwingPresentation.SharedCaptains,
+            var sharedRigMetrics = System.Linq.Enumerable.Any(
+                _content.CaptainIds,
                 id => id.Equals(captain, StringComparison.OrdinalIgnoreCase));
             if (hero == null)
             {
@@ -816,12 +816,12 @@ namespace GrandSluggers.UnityClient
             {
                 if (shot == "select")
                 {
-                    var ids = PresetTeams.CaptainIds;
+                    var ids = _content.CaptainIds;
                     var i = 0;
-                    for (; i < ids.Length; i++)
+                    for (; i < ids.Count; i++)
                         if (ids[i] == HomeCaptain) break;
-                    if (i >= ids.Length) i = 0;
-                    var look = CarnivalFront.SelectLook(i, ids.Length);
+                    if (i >= ids.Count) i = 0;
+                    var look = CarnivalFront.SelectLook(i, ids.Count);
                     _cam.CutLook("select", new Vector3(look.X, look.Y, look.Z));
                 }
                 else
@@ -959,7 +959,7 @@ namespace GrandSluggers.UnityClient
             hero.gameObject.SetActive(true);
             hero.SetHeld(false, false);
             hero.SetChargeRing(0);
-            var shot = StillPose.CharFraming(HomeCaptain);
+            var shot = StillPose.CharFraming(_content, HomeCaptain);
             hero.PlaceStill(
                 new Vector3((float)StillPose.CharX, 0f, (float)StillPose.CharZ),
                 new Vector3((float)shot.Pos.X, (float)shot.Pos.Y, (float)shot.Pos.Z));

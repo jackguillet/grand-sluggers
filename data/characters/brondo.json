@@ -3,6 +3,10 @@
   "name": "Brondo",
   "faction": "goldrush",
   "captain": true,
+  "teamName": "Goldrush",
+  "signatureBat": "gold-brick",
+  // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
+  "proportions": { "height": 0.96, "width": 1.58, "head": 1.16, "arms": 1.28, "torso": 1.48 },
   "pitch": 5,
   "bat": 8,
   "field": 3,

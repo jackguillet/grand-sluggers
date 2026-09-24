@@ -113,7 +113,7 @@ public class ArtCatalogTests
     [Fact]
     public void CaptainsAreSkinsOnSharedBodyTypes()
     {
-        foreach (var id in Silhouette.Captains)
+        foreach (var id in Shipped.CaptainIds)
         {
             var who = _content.Must(id);
             var skin = _content.Art.SkinOf(who);
@@ -170,27 +170,27 @@ public class ArtCatalogTests
     [Fact]
     public void BodyTypesAreToyProportionsThatStillCutDifferently()
     {
-        foreach (var id in Silhouette.Captains)
+        foreach (var id in Shipped.CaptainIds)
         {
-            var spec = Silhouette.Proportions(id);
+            var spec = Silhouette.Proportions(Shipped.Content, id);
             Assert.True(Silhouette.HeadToHeight(spec) >= 1.0f,
                 id + " head/height " + Silhouette.HeadToHeight(spec) + " — face must read at plate");
         }
-        var rio = Silhouette.Proportions("rio");
-        var vale = Silhouette.Proportions("vale");
-        var zig = Silhouette.Proportions("zig");
-        var brondo = Silhouette.Proportions("brondo");
+        var rio = Silhouette.Proportions(Shipped.Content, "rio");
+        var vale = Silhouette.Proportions(Shipped.Content, "vale");
+        var zig = Silhouette.Proportions(Shipped.Content, "zig");
+        var brondo = Silhouette.Proportions(Shipped.Content, "brondo");
         Assert.True(vale.Height > rio.Height, "vale stays tall");
         Assert.True(vale.Width < rio.Width, "vale stays slim");
         Assert.True(zig.Head / zig.Height > rio.Head / rio.Height, "zig stays huge-head");
         Assert.True(brondo.Width > rio.Width && brondo.Torso > rio.Torso, "brondo stays brick");
-        var konga = Silhouette.Proportions("konga");
-        var ashlord = Silhouette.Proportions("ashlord");
+        var konga = Silhouette.Proportions(Shipped.Content, "konga");
+        var ashlord = Silhouette.Proportions(Shipped.Content, "ashlord");
         Assert.True(zig.Height < rio.Height, "zig is the baby");
         Assert.True(ashlord.Height > konga.Height && ashlord.Height > vale.Height, "ashlord is the slug");
         Assert.True(konga.Arms > ashlord.Arms && konga.Arms > rio.Arms, "konga has the ape arms");
         Assert.True(Math.Abs(brondo.Height - rio.Height) < 0.12f, "brondo is rio-height, not a giant");
-        var fenn = Silhouette.Proportions("fenn");
+        var fenn = Silhouette.Proportions(Shipped.Content, "fenn");
         Assert.True(fenn.Height < rio.Height && fenn.Height > zig.Height, "fenn is a short turtle, not the baby");
         Assert.True(fenn.Width > rio.Width && fenn.Head > rio.Head, "fenn is short and wide, not rio-shaped");
     }

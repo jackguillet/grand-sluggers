@@ -94,7 +94,7 @@ public class StillRequestTests
     {
         var req = StillRequest.Parse("""{"shots":["swing-matrix"]}""");
         Assert.Equal(new[] { "swing-matrix" }, req.ResolvedShots());
-        Assert.Equal(SwingPresentation.SharedCaptains, req.ResolvedSwingCaptains());
+        Assert.Equal(Shipped.CaptainIds, req.ResolvedSwingCaptains(Shipped.Content));
         Assert.DoesNotContain("swing-matrix", StillRequest.DefaultShots);
         Assert.True(StillRequest.IsSwingMatrixShot("swing-matrix"));
         Assert.Equal("/tmp/gs/swing-ashlord-max-contact.png",
@@ -108,15 +108,15 @@ public class StillRequestTests
             {"shots":["swing-matrix"],"swingCaptains":["FENN","rio"]}
             """);
 
-        Assert.Equal(new[] { "fenn", "rio" }, req.ResolvedSwingCaptains());
-        Assert.Contains("fenn", SwingPresentation.SharedCaptains);
+        Assert.Equal(new[] { "fenn", "rio" }, req.ResolvedSwingCaptains(Shipped.Content));
+        Assert.Contains("fenn", Shipped.CaptainIds);
         var unknown = Assert.Throws<InvalidDataException>(() => StillRequest.Parse("""
             {"shots":["swing-matrix"],"swingCaptains":["not-a-player"]}
-            """));
+            """, Shipped.Content));
         Assert.Contains("not playable", unknown.Message);
         var duplicate = Assert.Throws<InvalidDataException>(() => StillRequest.Parse("""
             {"shots":["swing-matrix"],"swingCaptains":["fenn","FENN"]}
-            """));
+            """, Shipped.Content));
         Assert.Contains("duplicated", duplicate.Message);
     }
 
