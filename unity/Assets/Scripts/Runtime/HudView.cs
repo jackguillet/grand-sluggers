@@ -893,7 +893,7 @@ namespace GrandSluggers.UnityClient
 
         static void Final(Match match, string highlight)
         {
-            var mvp = match.Mvp();
+            var mvp = match.Scorebook.Mvp();
             GUI.DrawTexture(new Rect(48, 48, 640, 320), _panel);
             GUI.Label(new Rect(68, 62, 400, 28), "FINAL", _gold);
             GUI.Label(new Rect(68, 100, 600, 40), match.Away.Name + "  " + match.AwayScore, _h1);

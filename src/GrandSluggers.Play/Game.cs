@@ -119,8 +119,8 @@ public sealed class Game : IDisposable
         Raylib.CloseWindow();
         if (_demo)
         {
-            Console.WriteLine(_match.BoxLine());
-            var mvp = _match.Mvp();
+            Console.WriteLine(_match.Scorebook.BoxLine());
+            var mvp = _match.Scorebook.Mvp();
             Console.WriteLine($"MVP {mvp.Who.Name} ({mvp.Points}) - {mvp.Why}");
         }
     }
@@ -279,7 +279,7 @@ public sealed class Game : IDisposable
         }
 
         if (_phaseT > (_demo ? 0.12f : 0.55f))
-            LaunchPitch(_match.CpuPitch());
+            LaunchPitch(_match.CpuPitcher.Pitch());
     }
 
     PitchCommand PlayerPitch(FrameInput input)
@@ -343,7 +343,7 @@ public sealed class Game : IDisposable
         if (_playerSwung && _swing is not null) return _swing;
         if (HumanBats)
             return new SwingCommand(false, _charge, 12, false);
-        return _match.CpuSwing(_pitch!);
+        return _match.CpuBatter.Swing(_pitch!);
     }
 
     void ResolvePitch()

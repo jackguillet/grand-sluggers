@@ -752,8 +752,8 @@ public sealed class StealScenarioTests
         // Once per at-bat, as a runner verb (§11.6): the second read of the same SET arms nothing new.
         var once = Defense(leadoff: "zig");
         Assert.True(once.StationRunner(1, _content.Must("zig")));
-        var armed = once.CpuArmSteal();
-        Assert.False(once.CpuArmSteal());
+        var armed = once.CpuBatter.ArmSteal();
+        Assert.False(once.CpuBatter.ArmSteal());
         _ = armed;
     }
 
@@ -770,7 +770,7 @@ public sealed class StealScenarioTests
                 var match = Defense(seed: seed);
                 Station(match, [1]);
                 if (armed) Assert.True(match.StartSteal(windupSec));
-                if (match.CpuPickoffBag() > 0) n++;
+                if (match.CpuPitcher.PickoffBag() > 0) n++;
             }
             return n;
         }

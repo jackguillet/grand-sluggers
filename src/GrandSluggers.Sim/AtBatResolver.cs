@@ -31,7 +31,7 @@ public sealed class AtBatResolver
     /// Star Swing (until Phase 6 reviews each one). An ordinary swing's flight is timing, contact
     /// position, pitch height and the swing; a bunt's direction is its held side
     /// (<see cref="BuntHold.LeanDeg"/>, PH-14-R5). Their two aims are read as 0. The CPU batter asks
-    /// the same question before it draws an aim (<see cref="Match.CpuSwing"/>, PH-18). It says nothing
+    /// the same question before it draws an aim (<see cref="CpuBatter.Swing"/>, PH-18). It says nothing
     /// about the box walk or the SET recenter, which read the same stick and stay (PH-09).
     /// </summary>
     public static bool StickShapesContact(bool bunt, bool starSwing) => starSwing && !bunt;

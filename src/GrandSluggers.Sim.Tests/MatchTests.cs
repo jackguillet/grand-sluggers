@@ -15,7 +15,7 @@ public class MatchTests
         Assert.True(match.Over);
         Assert.True(match.Log.Count > 10);
         Assert.InRange(match.Inning, 3, 3 + _content.Rules.Match.ExtraInningsCap);
-        var mvp = match.Mvp();
+        var mvp = match.Scorebook.Mvp();
         Assert.False(string.IsNullOrWhiteSpace(mvp.Who.Name));
     }
 

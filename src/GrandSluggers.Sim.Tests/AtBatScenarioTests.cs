@@ -78,7 +78,7 @@ public sealed class AtBatScenarioTests
             Assert.True(StrikeZoneGeometry.Contains(edge, rules: Rules.Default), "the launched pitch is a strike");
             var steered = edge with { BreakX = 1 };
             Assert.False(StrikeZoneGeometry.Contains(steered, rules: Rules.Default), "full break carries it out");
-            var swing = match.CpuSwing(steered);
+            var swing = match.CpuBatter.Swing(steered);
             if (!swing.Swing) takes++;
         }
         Assert.InRange(takes / (double)n, 1 - chase - 0.08, 1 - chase + 0.08);
@@ -709,19 +709,19 @@ public sealed class AtBatScenarioTests
         match.Play(Scenario.PitchAt(0, CenterY), Scenario.Take);
         match.Play(Scenario.PitchAt(0, CenterY), Scenario.Take);
         Assert.Equal((0, 2), (match.Balls, match.Strikes));
-        Assert.Same(_content.Rules.Pitching.Cpu.Ahead, match.CpuPitchRow());
+        Assert.Same(_content.Rules.Pitching.Cpu.Ahead, match.CpuPitcher.Row());
         var outside = 0;
         for (var i = 0; i < 100; i++)
-            if (!StrikeZoneGeometry.Contains(match.CpuPitch(), Rules.Default, match.Pitcher.StarPitch)) outside++;
+            if (!StrikeZoneGeometry.Contains(match.CpuPitcher.Pitch(), Rules.Default, match.Pitcher.StarPitch)) outside++;
         Assert.True(outside >= 30, $"{outside} of 100 outside");
 
         // No dead-center default: an even count never aims at the middle.
         var even = new Scenario(_content, seed: 28).Match;
-        Assert.Same(_content.Rules.Pitching.Cpu.Even, even.CpuPitchRow());
+        Assert.Same(_content.Rules.Pitching.Cpu.Even, even.CpuPitcher.Row());
         var center = 0;
         for (var i = 0; i < 100; i++)
         {
-            var (x, y) = PitchFlight.Crossing(even.CpuPitch(), even.Rules, even.Pitcher.StarPitch);
+            var (x, y) = PitchFlight.Crossing(even.CpuPitcher.Pitch(), even.Rules, even.Pitcher.StarPitch);
             if (Math.Abs(x) < 0.25 && Math.Abs(y - CenterY) < 0.25) center++;
         }
         Assert.True(center < 10, $"{center} of 100 down the middle");
@@ -739,7 +739,7 @@ public sealed class AtBatScenarioTests
             var match = Match.Exhibition(_content, "rio", "ashlord", seed: seed);
             Assert.True(match.Top, "the human pitches the top");
             var meat = Scenario.PitchAt(0, CenterY);
-            var swing = match.CpuSwing(meat);
+            var swing = match.CpuBatter.Swing(meat);
             if (!swing.Swing) continue;
             swings++;
             if (Math.Abs(swing.TimingErrorFrames) < 3.2) square++;
@@ -760,7 +760,7 @@ public sealed class AtBatScenarioTests
         var rubber = match.PitcherOffsetX;
         var stream = s.Stream();
         for (var i = 0; i < 50; i++)
-            match.CpuSwing(Scenario.PitchAt(0.3, CenterY));
+            match.CpuBatter.Swing(Scenario.PitchAt(0.3, CenterY));
         Assert.Equal(stealBefore, match.StealOn);
         Assert.Equal(box, match.BatterOffsetX);
         Assert.Equal(rubber, match.PitcherOffsetX);
@@ -790,7 +790,7 @@ public sealed class AtBatScenarioTests
         if (moveRubber) match.WalkPitcher(0.5);
         Assert.Equal(moveRubber, match.RubberMovedSinceLastPitch);
         var pitch = Scenario.PitchAt(0.6, CenterY);
-        var swing = match.CpuSwing(pitch);
+        var swing = match.CpuBatter.Swing(pitch);
         if (!swing.Swing) return 0;
         // A failed re-read leaves the box at the last crossing (1.2 ft away); a fixed offset alone is under 0.5 ft.
         var (cx, _) = PitchFlight.Crossing(pitch, rules: Rules.Default);

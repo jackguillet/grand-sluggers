@@ -110,7 +110,7 @@ public sealed class BalanceTests
         var field = match.ResolveFielding(homer, match.PreviewHit(homer));
         var ev = match.FinishAtBat(Paint, Swing, homer, field);
         Assert.Equal(PlayKind.HomeRun, ev.Kind);
-        var mvp = match.Mvp();
+        var mvp = match.Scorebook.Mvp();
         Assert.Equal(batter.Id, mvp.Who.Id);
         // The homer, its RBI, and the go-ahead RBI on top: the solo shot from a tie put the offense ahead.
         Assert.Equal(m.HomeRun + m.Rbi + m.GoAheadRbi, mvp.Points);
@@ -127,14 +127,14 @@ public sealed class BalanceTests
         var batter = match.Batter;
         for (var i = 0; i < 4; i++) match.Play(wild, take);
         Assert.Equal(batter.Id, match.First?.Id);
-        Assert.Equal(m.Walk, match.Mvp().Points);
-        Assert.Equal(batter.Id, match.Mvp().Who.Id);
+        Assert.Equal(m.Walk, match.Scorebook.Mvp().Points);
+        Assert.Equal(batter.Id, match.Scorebook.Mvp().Who.Id);
 
         var strike = new PitchCommand("fastball", 0, false);
         var whiff = new SwingCommand(true, 0, 40, false);
         for (var i = 0; i < 3; i++) match.Play(strike, whiff);
         Assert.Equal(1, match.Outs);
-        var mvp = match.Mvp();
+        var mvp = match.Scorebook.Mvp();
         Assert.Equal(pitcher.Id, mvp.Who.Id);
         Assert.Equal(m.Strikeout, mvp.Points);
     }

@@ -120,7 +120,7 @@ public class PitchRatingsScenarioTests
         Assert.Equal(arm.Stats, match.Pitcher.Stats);
         var mph = match.PitchSpeedMph(fastball);
         var pool = match.PitcherStaminaMax;
-        match.CpuPitchByInputs(out var plan);
+        match.CpuPitcher.PitchByInputs(out var plan);
 
         // One frame of a hand's held stick, from the client's own call shape (AtBatDirector passes the
         // pitcher's Control).
