@@ -10,9 +10,9 @@ public class CarnivalFrontTests
     {
         Assert.Equal("GRAND SLUGGERS", CarnivalFront.Logo);
         Assert.Contains("EXHIBITION", CarnivalFront.PlayBall, StringComparison.OrdinalIgnoreCase);
-        Assert.True(CarnivalFront.HarborIsTheProduct("harbor-diamond"));
-        Assert.False(CarnivalFront.HarborIsTheProduct("crystal-rink"));
-        Assert.Contains("real diamond", CarnivalFront.FieldCard(Shipped.Content.MustPark("harbor-diamond"), Shipped.Content.Rules)[0], StringComparison.OrdinalIgnoreCase);
+        Assert.True(CarnivalFront.HarborIsTheProduct(ParkId.Harbor));
+        Assert.False(CarnivalFront.HarborIsTheProduct(ParkId.Crystal));
+        Assert.Contains("real diamond", CarnivalFront.FieldCard(Shipped.Content.MustPark(ParkId.Harbor), Shipped.Content.Rules)[0], StringComparison.OrdinalIgnoreCase);
         Assert.Equal("DAY", CarnivalFront.SkyGag(false));
         Assert.Equal("NIGHT", CarnivalFront.SkyGag(true));
         Assert.Equal("HOME", CarnivalFront.SeatMark(true));
@@ -46,15 +46,15 @@ public class CarnivalFrontTests
         var c = Shipped.Content;
         IReadOnlyList<string> Card(string id, bool night = false, bool hazards = true) =>
             CarnivalFront.FieldCard(PlayedPark.Of(c.MustPark(id), night, hazards, c.Rules.Hazards), c.Rules);
-        var crystal = Card("crystal-rink");
+        var crystal = Card(ParkId.Crystal);
         Assert.Contains(crystal, l => l.StartsWith("Ice outfield", StringComparison.Ordinal));
         Assert.Contains(crystal, l => l.StartsWith("Glass boards", StringComparison.Ordinal));
         Assert.Contains(crystal, l => l.StartsWith("Heavy air", StringComparison.Ordinal));
         Assert.Contains(crystal, l => l.StartsWith("Freezers", StringComparison.Ordinal) && l.Contains("3 s", StringComparison.Ordinal));
-        Assert.Contains(Card("funfair-park"), l => l.StartsWith("Warp cans", StringComparison.Ordinal));
-        Assert.DoesNotContain(Card("funfair-park"), l => l.StartsWith("Chompers", StringComparison.Ordinal));
-        Assert.Contains(Card("funfair-park", night: true), l => l.StartsWith("Chompers", StringComparison.Ordinal));
-        var off = Card("crystal-rink", hazards: false);
+        Assert.Contains(Card(ParkId.Funfair), l => l.StartsWith("Warp cans", StringComparison.Ordinal));
+        Assert.DoesNotContain(Card(ParkId.Funfair), l => l.StartsWith("Chompers", StringComparison.Ordinal));
+        Assert.Contains(Card(ParkId.Funfair, night: true), l => l.StartsWith("Chompers", StringComparison.Ordinal));
+        var off = Card(ParkId.Crystal, hazards: false);
         Assert.Contains(off, l => l.StartsWith("Ice outfield", StringComparison.Ordinal));
         Assert.DoesNotContain(off, l => l.StartsWith("Freezers", StringComparison.Ordinal));
         foreach (var type in HazardType.All) Assert.NotNull(CarnivalFront.HazardLine(type, c.Rules));
@@ -220,9 +220,9 @@ public class CarnivalFrontTests
                     < PlayedPark.Of(park, night, true, library).Hazards.Count;
                 Assert.Equal(removes ? CarnivalFront.HazardsOffCopy : null, CarnivalFront.HazardsOffLine(park, night, false, library));
             }
-        Assert.Null(CarnivalFront.HazardsOffLine(Catalog.MustPark("harbor-diamond"), false, false, library));
-        Assert.Equal(CarnivalFront.HazardsOffCopy, CarnivalFront.HazardsOffLine(Catalog.MustPark("crystal-rink"), false, false, library));
-        Assert.Equal(CarnivalFront.HazardsOffCopy, CarnivalFront.HazardsOffLine(Catalog.MustPark("funfair-park"), true, false, library));
+        Assert.Null(CarnivalFront.HazardsOffLine(Catalog.MustPark(ParkId.Harbor), false, false, library));
+        Assert.Equal(CarnivalFront.HazardsOffCopy, CarnivalFront.HazardsOffLine(Catalog.MustPark(ParkId.Crystal), false, false, library));
+        Assert.Equal(CarnivalFront.HazardsOffCopy, CarnivalFront.HazardsOffLine(Catalog.MustPark(ParkId.Funfair), true, false, library));
     }
 
     /// <summary>The book names the switch, and the file book names it on the stadium page.</summary>

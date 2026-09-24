@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class ContactFlightTests
 {
     readonly ContentCatalog game = Shipped.Content;
-    Park Park => game.Parks["harbor-diamond"];
+    Park Park => game.Parks[ParkId.Harbor];
 
     [Fact]
     public void EveryLaunchSharesTheSameClockAcrossFormerClassBoundaries()

@@ -17,7 +17,7 @@ public sealed class OutfieldStartsTests
     [Fact]
     public void SF09_HarborKeepsTheGlobalStartsAndNoParkMovesTheInfield()
     {
-        var harbor = OutfieldStarts.Of(Catalog.MustPark("harbor-diamond"), Catalog.Rules);
+        var harbor = OutfieldStarts.Of(Catalog.MustPark(ParkId.Harbor), Catalog.Rules);
         foreach (var (pos, at) in Diamond.Positions) Assert.Equal(at, harbor[pos]);
         foreach (var park in Catalog.Parks.Values)
             foreach (var pos in Diamond.Positions.Keys.Except(Outfield))
@@ -49,17 +49,17 @@ public sealed class OutfieldStartsTests
     [Fact]
     public void SF09_ANamedStartIsUsedAsWritten()
     {
-        var park = Catalog.MustPark("rooftop-city") with { OutfieldStarts = new ParkOutfield(CF: new StartSpot(10, 200)) };
+        var park = Catalog.MustPark(ParkId.Rooftop) with { OutfieldStarts = new ParkOutfield(CF: new StartSpot(10, 200)) };
         var starts = OutfieldStarts.Of(park, Catalog.Rules);
         Assert.Equal((10.0, 200.0), starts["CF"]);
-        Assert.Equal(OutfieldStarts.Of(Catalog.MustPark("rooftop-city"), Catalog.Rules)["LF"], starts["LF"]);
+        Assert.Equal(OutfieldStarts.Of(Catalog.MustPark(ParkId.Rooftop), Catalog.Rules)["LF"], starts["LF"]);
     }
 
     /// <summary>A park that names foul values plays them over the table; one that names none plays the table's.</summary>
     [Fact]
     public void AParksFoulValuesSitOverTheTable()
     {
-        var harbor = Catalog.MustPark("harbor-diamond");
+        var harbor = Catalog.MustPark(ParkId.Harbor);
         Assert.Equal(ParkBoundary.Default, ParkBoundary.For(harbor));
         var wide = harbor with { Foul = new ParkFoul(OffsetFt: 30) };
         var b = ParkBoundary.For(wide);

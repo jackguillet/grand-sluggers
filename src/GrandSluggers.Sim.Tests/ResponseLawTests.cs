@@ -46,7 +46,7 @@ public sealed class ResponseLawTests
     {
         var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
         var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Hit(match.Park, 85, -12, -18, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
@@ -98,7 +98,7 @@ public sealed class ResponseLawTests
         var content = ContentCatalog.Load(new DataRoot(fixture.Root));
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
         var away = content.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Hit(match.Park, 90, 10, -8, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var chase = match.Rules.Fielding.Chase;
@@ -145,7 +145,7 @@ public sealed class ResponseLawTests
         Assert.Equal((0.0, 0.0), (instant.Rules.Fielding.Chase.AccelSec, instant.Rules.Fielding.Chase.BrakeSec));
         var home = instant.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
         var away = instant.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(instant, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(instant, home, away, 3, 1, parkId: ParkId.Harbor);
         var rated = FieldingResolver.CoverSpeedFt(instant.Must("lace"), match.Rules);
         var hit = FlightFixtures.Hit(match.Park, 85, -12, -18, rules: match.Rules);
         var preview = match.PreviewHit(hit);

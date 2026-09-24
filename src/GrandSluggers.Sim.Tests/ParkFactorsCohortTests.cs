@@ -137,8 +137,8 @@ public class ParkFactorsNightTests
     public void NightReachesTheMatchTheCohortPlays()
     {
         var (home, away) = ParkFactorCohort.Matchups[0];
-        Assert.True(Played("funfair-park", night: true).Hazards.Count > Played("funfair-park", night: false).Hazards.Count);
-        Assert.Equal(Game("crystal-rink", night: false), Game("crystal-rink", night: true));
+        Assert.True(Played(ParkId.Funfair, night: true).Hazards.Count > Played(ParkId.Funfair, night: false).Hazards.Count);
+        Assert.Equal(Game(ParkId.Crystal, night: false), Game(ParkId.Crystal, night: true));
         Assert.Equal(Game(ParkFactorCohort.ControlPark, false), Game(ParkFactorCohort.ControlPark, true));
 
         Park Played(string parkId, bool night) =>

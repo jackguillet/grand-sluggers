@@ -157,7 +157,7 @@ public sealed class RelayDecisionTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "jester", "grit", "marlow", "basil", centre, "gull");
         var away = content.Team("Offense", "zig", "dart", "cinder", "nugget", "hex", "boom", "konga", "ashlord", "frost");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond", difficulty: difficulty);
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkId.Harbor, difficulty: difficulty);
         var cf = content.Must(centre);
         Assert.Equal(centre, cf.Id);
         Assert.Equal(1.0, FieldAbilities.ThrowMul(cf, match.Rules), 9);

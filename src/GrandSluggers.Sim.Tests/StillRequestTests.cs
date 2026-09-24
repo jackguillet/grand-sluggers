@@ -137,7 +137,7 @@ public class StillRequestTests
 
         var req = StillRequest.Parse("""{"shots":["Pole-Left","pole-right"],"park":"funfair-park","night":true}""", _content);
         Assert.Equal(new[] { "pole-left", "pole-right" }, req.ResolvedShots());
-        Assert.Equal("funfair-park", req.ResolvedPark(_content));
+        Assert.Equal(ParkId.Funfair, req.ResolvedPark(_content));
         Assert.Equal("/tmp/gs/pole-left-funfair-park-night.png",
             StillRequest.PngPath("/tmp/gs", "pole-left", req.ResolvedHome(), req.ResolvedPark(_content), req.Night));
         Assert.Equal("/tmp/gs/pole-right.png",
@@ -172,9 +172,9 @@ public class StillRequestTests
     public void ParkResolvesLikeHomeAndAnUnknownParkIsRefusedByName()
     {
         var req = StillRequest.Parse("""{"shots":["plate"],"park":"  Crystal-Rink  ","night":true}""", _content);
-        Assert.Equal("crystal-rink", req.ResolvedPark(_content));
+        Assert.Equal(ParkId.Crystal, req.ResolvedPark(_content));
         Assert.True(req.Night);
-        Assert.Contains("crystal-rink", _content.ParkPickOrder);
+        Assert.Contains(ParkId.Crystal, _content.ParkPickOrder);
         foreach (var id in _content.ParkPickOrder)
             Assert.Equal(id, StillRequest.Parse($$"""{"park":"{{id.ToUpperInvariant()}}"}""", _content).ResolvedPark(_content));
 
@@ -210,7 +210,7 @@ public class StillRequestTests
         var written = JsonSerializer.Serialize(req);
         var back = StillRequest.Parse(written, _content);
 
-        Assert.Equal("ember-keep", back.ResolvedPark(_content));
+        Assert.Equal(ParkId.Ember, back.ResolvedPark(_content));
         Assert.True(back.Night);
         Assert.Equal(req.ResolvedShots(), back.ResolvedShots());
         Assert.Equal("vale", back.ResolvedHome());
@@ -233,13 +233,13 @@ public class StillRequestTests
             StillRequest.PngPath("/tmp/gs", "char-rest", "fenn", ExhibitionPick.DefaultPark));
 
         Assert.Equal("/tmp/gs/plate-crystal-rink.png",
-            StillRequest.PngPath("/tmp/gs", "plate", "rio", "crystal-rink"));
+            StillRequest.PngPath("/tmp/gs", "plate", "rio", ParkId.Crystal));
         Assert.Equal("/tmp/gs/plate-crystal-rink-night.png",
             StillRequest.PngPath("/tmp/gs", "plate", "rio", "  CRYSTAL-RINK ", night: true));
         Assert.Equal("/tmp/gs/diamond-grounder-ember-keep.png",
-            StillRequest.PngPath("/tmp/gs", "diamond-grounder", "rio", "ember-keep"));
+            StillRequest.PngPath("/tmp/gs", "diamond-grounder", "rio", ParkId.Ember));
         Assert.Equal("/tmp/gs/char-fenn-pose-ember-keep.png",
-            StillRequest.PngPath("/tmp/gs", "char-pose", "fenn", "ember-keep"));
+            StillRequest.PngPath("/tmp/gs", "char-pose", "fenn", ParkId.Ember));
         // Night at the default park is a picture today's names cannot tell apart,
         // so it names itself too. No name that exists today moves.
         Assert.Equal("/tmp/gs/plate-night.png",
@@ -279,7 +279,7 @@ public class StillRequestTests
         // What the flags compose, read back through the parser.
         var flagged = StillRequest.Parse(
             today[..^1] + ",\"park\":\"crystal-rink\",\"night\":true}", _content);
-        Assert.Equal("crystal-rink", flagged.ResolvedPark(_content));
+        Assert.Equal(ParkId.Crystal, flagged.ResolvedPark(_content));
         Assert.True(flagged.Night);
         Assert.Equal(req.ResolvedShots(), flagged.ResolvedShots());
     }

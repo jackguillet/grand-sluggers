@@ -18,7 +18,7 @@ public sealed class RaceTraceTests
         Assert.Equal(expected, trace.Completed!.Kind);
         Assert.Equal(2, trace.SchemaVersion);
         Assert.Equal(batter, trace.Context!.Batter.Id);
-        Assert.Equal("crystal-rink", trace.Context.Park.Id);
+        Assert.Equal(ParkId.Crystal, trace.Context.Park.Id);
         Assert.Equal(64, trace.Context.Identity.Sha256.Length);
         var possession = trace.Marks!.First(m => m.Kind == PlayTraceMarkKind.Possession);
         Assert.True(possession.T > 0);
@@ -88,7 +88,7 @@ public sealed class RaceTraceTests
     [Fact]
     public void FlightReadAndPursuitOverlapWithoutInventingControllerLatency()
     {
-        var match = Defense("cinder", "harbor-diamond");
+        var match = Defense("cinder", ParkId.Harbor);
         var hit = FlightFixtures.Hit(match.Park, 100, 30, -18);
         var trace = Run(match, hit);
         var first = trace.Ticks[0].Fielders!.First(f => f.Selected);
@@ -104,13 +104,13 @@ public sealed class RaceTraceTests
     [Fact]
     public void FixedInputsAndTacticalFixturesRemainDistinct()
     {
-        var match = Defense("cinder", "harbor-diamond");
+        var match = Defense("cinder", ParkId.Harbor);
         var fixedHit = FlightFixtures.Hit(match.Park, 84, 8, -12);
         var tactical = FlightFixtures.Hit(match.Park, 85, -12, -18);
         Assert.Equal(84, fixedHit.ExitVeloMph);
         Assert.NotEqual(fixedHit.ExitVeloMph, tactical.ExitVeloMph);
         Write("harbor-fixed-grounder", Run(match, fixedHit));
-        Write("harbor-tactical-grounder", Run(Defense("cinder", "harbor-diamond"), tactical));
+        Write("harbor-tactical-grounder", Run(Defense("cinder", ParkId.Harbor), tactical));
     }
 
     [Fact]

@@ -14,7 +14,7 @@ public sealed class BallRedirectTests
 {
     static readonly ContentCatalog Catalog = Shipped.Content;
     const double Frame = 1.0 / 60.0;
-    static Park Harbor => Catalog.MustPark("harbor-diamond");
+    static Park Harbor => Catalog.MustPark(ParkId.Harbor);
 
     /// <summary>A grounder up the middle-left (−10°): where its path is on the ground at <paramref name="t"/> seconds.</summary>
     static (AtBatResult Hit, double X, double Z) GrounderAt(double t)

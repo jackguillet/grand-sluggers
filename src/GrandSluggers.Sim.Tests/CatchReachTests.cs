@@ -52,7 +52,7 @@ public sealed class CatchReachTests
     {
         var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
         var away = Game.Team("Offense", "rio", "boom", "cinder", "grit", "soot", "nugget", "nico", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
@@ -68,7 +68,7 @@ public sealed class CatchReachTests
         // S-29 floor in every cohort with the outfield's multiplier at 1.0, and Jack set it back to 0.6 on 2026-09-18; the
         // infield's stays 1.0.
         Assert.Equal((0.6, 1.0), (Game.Rules.Fielding.Chase.OutfieldAirMul, Game.Rules.Fielding.Chase.InfieldAirMul));
-        var match = Match.Exhibition(Game, "rio", "ashlord", 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(Game, "rio", "ashlord", 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);

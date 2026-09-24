@@ -70,7 +70,7 @@ public sealed class PolylineFenceTests
         var parks = 0;
         var catalog = Game;
         // Every park that names no points (F9-a: Crystal names its glass boards and is held by F9A_CrystalsFence…).
-        Assert.Equal(["crystal-rink"], catalog.Parks.Values.Where(p => p.Fence is not null).Select(p => p.Id));
+        Assert.Equal([ParkId.Crystal], catalog.Parks.Values.Where(p => p.Fence is not null).Select(p => p.Id));
         foreach (var park in catalog.Parks.Values.Where(p => p.Fence is null))
         {
             var (home, away) = PresetTeams.Pair(catalog, "rio", "ashlord");
@@ -134,7 +134,7 @@ public sealed class PolylineFenceTests
     public void SF07_EveryPointIsAVertexOfTheClipPolygonAtItsHeight()
     {
         var catalog = Game;
-        var park = Fenced(catalog.Parks["harbor-diamond"]);
+        var park = Fenced(catalog.Parks[ParkId.Harbor]);
         var fair = FieldBounds.Of(park).Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence).ToList();
         Assert.Equal(FieldBounds.FenceBearings(park).Count - 1, fair.Count);
         // The fence runs pole to pole: the first piece starts on the left pole, the last ends on the right.
@@ -183,7 +183,7 @@ public sealed class PolylineFenceTests
     public void SF07_FenceAtIsSingleValuedAndTheTrackThePolesAndTheZoneMapFollowIt()
     {
         var catalog = Game;
-        var arc = catalog.Parks["harbor-diamond"];
+        var arc = catalog.Parks[ParkId.Harbor];
         var park = Fenced(arc);
         var polygon = FieldBounds.Of(park);
         for (var hundredth = -4500; hundredth <= 4500; hundredth++)
@@ -240,7 +240,7 @@ public sealed class PolylineFenceTests
     {
         var catalog = Game;
         var rules = catalog.Rules;
-        var park = Fenced(catalog.Parks["harbor-diamond"]);
+        var park = Fenced(catalog.Parks[ParkId.Harbor]);
         var dt = 1.0 / rules.Flight.SampleHz;
         const double bearing = -2;
         var fence = AtBatResolver.FenceAt(park, bearing);
@@ -295,7 +295,7 @@ public sealed class PolylineFenceTests
     public void SF07_AFlyClearsOrMeetsTheSpansOwnTop()
     {
         var catalog = Game;
-        var park = Fenced(catalog.Parks["harbor-diamond"]);
+        var park = Fenced(catalog.Parks[ParkId.Harbor]);
         var polygon = FieldBounds.Of(park);
         foreach (var (bearing, top) in new[] { (-38.0, 16.0), (25.0, 9.0) })
         {
@@ -342,7 +342,7 @@ public sealed class PolylineFenceTests
         using var shipped = new ContentFixture();
         shipped.ChangeObject("parks/harbor-diamond.json", json => json["fence"] = Block());
         Assert.Empty(ContentDataValidator.Validate(new DataRoot(shipped.Root)));
-        var loaded = ContentCatalog.Load(new DataRoot(shipped.Root)).Parks["harbor-diamond"];
+        var loaded = ContentCatalog.Load(new DataRoot(shipped.Root)).Parks[ParkId.Harbor];
         Assert.Equal(new ParkFence(Fixture), loaded.Fence);
 
 
@@ -455,7 +455,7 @@ public sealed class PolylineFenceTests
         FencePoint[] halves = [new(-45, 1.0, 12, WallMaterial.Padded), new(0, 1.0, 12, "boards"), new(45, 1.0, 12)];
         var catalog = Game;
         var rules = catalog.Rules;
-        var park = Fenced(catalog.Parks["harbor-diamond"], halves);
+        var park = Fenced(catalog.Parks[ParkId.Harbor], halves);
         var polygon = FieldBounds.Of(park);
         foreach (var s in polygon.Segments)
         {
@@ -490,7 +490,7 @@ public sealed class PolylineFenceTests
     [Fact]
     public void ThePolygonAndTheLoopAreCachedOnTheFenceByValue()
     {
-        var arc = Game.Parks["harbor-diamond"];
+        var arc = Game.Parks[ParkId.Harbor];
         var fenced = arc with { Fence = new ParkFence(Fixture.ToList()) };
         var again = arc with { Fence = new ParkFence(Fixture.Select(p => p with { }).ToArray()) };
         Assert.Equal(arc.Id, fenced.Id);

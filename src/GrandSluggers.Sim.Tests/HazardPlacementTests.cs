@@ -74,7 +74,7 @@ public sealed class HazardPlacementTests
         Assert.Equal(26, measured);
 
         // Finding 31, measured: the breath at its night disc.
-        var breath = Game.Parks["ember-keep"].Hazards.Single(h => h.Type == HazardType.FireBreath);
+        var breath = Game.Parks[ParkId.Ember].Hazards.Single(h => h.Type == HazardType.FireBreath);
         var night = ParkHazards.NightDiscFt(breath.Radius, Game.Rules.Hazards.Of(HazardType.FireBreath));
         Assert.Equal(32, Math.Round(HazardPlacement.ClearanceFt(breath.X, breath.Z, night, Game.Rules.Infield)));
     }
@@ -110,7 +110,7 @@ public sealed class HazardPlacementTests
             (0, m, "the mound", r + ParkDiamond.MoundR),
             (0, 0, "the plate area", r + ParkDiamond.HomePackedR)
         ];
-        fixture.Park("crystal-rink", json =>
+        fixture.Park(ParkId.Crystal, json =>
         {
             var hazards = new JsonArray();
             foreach (var (x, z, _, _) in cases)
@@ -119,7 +119,7 @@ public sealed class HazardPlacementTests
         });
 
         var errors = ContentDataValidator.Validate(fixture.Root());
-        var file = fixture.ParkFile("crystal-rink");
+        var file = fixture.ParkFile(ParkId.Crystal);
         var placement = errors.Where(e => e.Contains("SF-23", StringComparison.Ordinal)).ToList();
         Assert.Equal(cases.Length, placement.Count);
         string Refusal(int i) => Assert.Single(placement, e => e.Contains($"hazard[{i}] ", StringComparison.Ordinal));
@@ -219,7 +219,7 @@ public sealed class HazardPlacementTests
         Assert.Equal(reach - 1, withPad[0].ByFt, 9);
 
         using var fixture = new PlacementFixture();
-        fixture.Park("funfair-park", json =>
+        fixture.Park(ParkId.Funfair, json =>
         {
             var hazards = json["hazards"]!.AsArray();
             hazards[0]!["x"] = x;
@@ -227,7 +227,7 @@ public sealed class HazardPlacementTests
             hazards[0]!["radius"] = r;
             hazards.Add(new JsonObject { ["type"] = "freeze_volume", ["x"] = x, ["z"] = z, ["radius"] = r + reach });
         });
-        var funfair = content.Parks["funfair-park"].Hazards.Count;
+        var funfair = content.Parks[ParkId.Funfair].Hazards.Count;
         var placement = ContentDataValidator.Validate(fixture.Root())
             .Where(e => e.Contains("SF-23", StringComparison.Ordinal)).ToList();
         var refusal = Assert.Single(placement);
@@ -237,7 +237,7 @@ public sealed class HazardPlacementTests
 
         // The finding for Jack, not acted on: one ball redirect in the data is legal by its radius and would cross the
         // first-second lane if the pad were counted.
-        (string Park, int Index, string What, double By)[] padFindings = [("canopy-yard", 2, "the first-second lane", 1.98)];
+        (string Park, int Index, string What, double By)[] padFindings = [(ParkId.Canopy, 2, "the first-second lane", 1.98)];
         foreach (var (park, index, what, by) in padFindings)
         {
             var h = content.Parks[park].Hazards[index];
@@ -261,11 +261,11 @@ public sealed class HazardPlacementTests
     {
         (string Park, int Index, string Type, double X, double Z, double Radius)[] after =
         [
-            ("crystal-rink", 0, "freeze_volume", 47, 83, 5.6),
-            ("crystal-rink", 1, "freeze_volume", -44, 86, 5.6),
-            ("crystal-rink", 2, "freeze_volume", 7, 131, 7),
-            ("ember-keep", 0, "lava_pit", 44, 89, 7),
-            ("ember-keep", 1, "lava_pit", -40, 92, 7)
+            (ParkId.Crystal, 0, "freeze_volume", 47, 83, 5.6),
+            (ParkId.Crystal, 1, "freeze_volume", -44, 86, 5.6),
+            (ParkId.Crystal, 2, "freeze_volume", 7, 131, 7),
+            (ParkId.Ember, 0, "lava_pit", 44, 89, 7),
+            (ParkId.Ember, 1, "lava_pit", -40, 92, 7)
         ];
         foreach (var (parkId, index, type, x, z, radius) in after)
         {
@@ -275,10 +275,10 @@ public sealed class HazardPlacementTests
         }
 
         // Nothing else at either park: Crystal has no other hazard, and Ember's deep pit, breath and statue follow.
-        Assert.Equal(3, Game.Parks["crystal-rink"].Hazards.Count);
+        Assert.Equal(3, Game.Parks[ParkId.Crystal].Hazards.Count);
         Assert.Equal(
             [("lava_pit", 8.0, 132.0, 8.4), ("fire_breath", 0.0, 175.0, 11.2), ("statue", 0.0, 217.0, 7.0)],
-            Game.Parks["ember-keep"].Hazards.Skip(2).Select(h => (h.Type, h.X, h.Z, h.Radius)));
+            Game.Parks[ParkId.Ember].Hazards.Skip(2).Select(h => (h.Type, h.X, h.Z, h.Radius)));
     }
 
     /// <summary>A copy of the data root that a test may break.</summary>

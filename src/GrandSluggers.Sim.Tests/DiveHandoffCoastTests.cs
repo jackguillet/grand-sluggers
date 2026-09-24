@@ -27,7 +27,7 @@ public sealed class DiveHandoffCoastTests
     {
         var home = Game.Team("Defense", Defense[0], Defense[1..]);
         var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
@@ -100,7 +100,7 @@ public sealed class DiveHandoffCoastTests
         var content = Game;
         var home = Game.Team("Defense", Defense[0], Defense[1..]);
         var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, rules: match.Rules);
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, match.PreviewHit(hit), null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);

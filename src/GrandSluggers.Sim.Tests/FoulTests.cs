@@ -23,7 +23,7 @@ public class FoulTests
     [Fact]
     public void SprayPastTheFoulLineIsFoulNotInPlay()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var r = new AtBatResolver(_content.Chemistry, _content.Rules, _content.StarSkills).Resolve(Square(0, timing: EarlyEdge(park)), park, new Random(1));
         Assert.True(r.Foul);
         Assert.False(r.InPlay);
@@ -37,7 +37,7 @@ public class FoulTests
     [Fact]
     public void SquareContactUpTheMiddleIsFair()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         for (var seed = 0; seed < 40; seed++)
         {
             var r = new AtBatResolver(_content.Chemistry, rules: Rules.Default).Resolve(Square(0), park, new Random(seed));
@@ -50,7 +50,7 @@ public class FoulTests
     [Fact]
     public void PastThePoleIsFoulNotAHomer()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var input = new AtBatInput(
             _content.Must("vale"), _content.Must("ashlord"), _content.Must("cinder"), [],
             false, false, 0, false, true,
@@ -120,7 +120,7 @@ public class FoulTests
     public void SourPullFliesIntoFoulTerritory()
     {
         // A sour swing (the handle side of the bat) pulled to the pull line by an early press.
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var fouls = 0;
         var bats = _content.Must("rio").Bats;
         var pullSide = -SweetSpot.TipSign(bats);

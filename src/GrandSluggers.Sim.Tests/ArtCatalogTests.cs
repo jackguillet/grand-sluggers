@@ -221,7 +221,7 @@ public class ArtCatalogTests
     {
         foreach (var id in _content.Parks.Keys)
             Assert.True(_content.Art.TryPark(id, out _), "park kit " + id);
-        Assert.True(_content.Art.TryPark("harbor-diamond", out var harbor));
+        Assert.True(_content.Art.TryPark(ParkId.Harbor, out var harbor));
         Assert.True(harbor.Placed);
         Assert.StartsWith("Assets/Art/Parks/", harbor.Slot, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(1, _content.Art.Parks.Count(p => p.Placed));

@@ -133,6 +133,10 @@ public static class ContentDataValidator
         DuplicateIds("park", data.Parks.Select(r => (r.Value.Id, r.Source)), errors);
         DuplicateIds("bat", data.Bats.Select(r => (r.Value.Id, r.Source)), errors);
         DuplicateIds("glove", data.Gloves.Select(r => (r.Value.Id, r.Source)), errors);
+        IdIsFileName("character", data.Characters.Select(r => (r.Value.Id, r.Source)), errors);
+        IdIsFileName("park", data.Parks.Select(r => (r.Value.Id, r.Source)), errors);
+        IdIsFileName("bat", data.Bats.Select(r => (r.Value.Id, r.Source)), errors);
+        IdIsFileName("glove", data.Gloves.Select(r => (r.Value.Id, r.Source)), errors);
 
         var pitches = SkillIds("pitch", data.StarSkills.Pitches, data.StarSkillsSource, errors);
         var swings = SkillIds("swing", data.StarSkills.Swings, data.StarSkillsSource, errors);
@@ -247,6 +251,22 @@ public static class ContentDataValidator
         if (string.IsNullOrEmpty(skill) || rows is null || !rows.TryGetValue(skill, out var dto) || dto is null) return;
         if (dto.Tier == StarTierRules.TopId)
             errors.Add($"{row.Source}: character '{row.Value.Id}' {field} '{skill}' is a top-tier special, and the top tier is for captains only");
+    }
+
+    /// <summary>
+    /// A one-row file is named for its id (<c>data/parks/harbor-diamond.json</c> holds <c>harbor-diamond</c>), so the
+    /// file a person opens is the row the game plays. A list file (<c>role-players.json</c>, sources <c>file[i]</c>) names
+    /// its rows itself.
+    /// </summary>
+    static void IdIsFileName(string kind, IEnumerable<(string Id, string Source)> rows, List<string> errors)
+    {
+        foreach (var (id, source) in rows)
+        {
+            if (source.EndsWith(']') || string.IsNullOrWhiteSpace(id)) continue;
+            var name = Path.GetFileNameWithoutExtension(source);
+            if (!string.Equals(id, name, StringComparison.Ordinal))
+                errors.Add($"{source}: {kind} id '{id}' must match its file name '{name}'");
+        }
     }
 
     static void DuplicateIds(string kind, IEnumerable<(string Id, string Source)> candidates, List<string> errors)

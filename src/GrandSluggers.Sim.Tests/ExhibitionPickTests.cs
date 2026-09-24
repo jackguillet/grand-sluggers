@@ -10,42 +10,42 @@ public class ExhibitionPickTests
     [Fact]
     public void CyclingTheCaptainDoesNotMoveTheField()
     {
-        var start = new ExhibitionPick("rio", "ashlord", "harbor-diamond");
+        var start = new ExhibitionPick("rio", "ashlord", ParkId.Harbor);
         var next = ExhibitionPick.CycleHome(Shipped.Content, start, 1);
         Assert.Equal("vale", next.Home);
         Assert.Equal("ashlord", next.Away);
-        Assert.Equal("harbor-diamond", next.Park);
-        Assert.Equal("crystal-rink", PresetTeams.HomeParkId(_content, "vale"));
+        Assert.Equal(ParkId.Harbor, next.Park);
+        Assert.Equal(ParkId.Crystal, PresetTeams.HomeParkId(_content, "vale"));
         Assert.NotEqual(PresetTeams.HomeParkId(_content, next.Home), next.Park);
 
         var prev = ExhibitionPick.CycleHome(Shipped.Content, start, -1);
         Assert.Equal("fenn", prev.Home);
         Assert.NotEqual("fenn", prev.Away);
-        Assert.Equal("harbor-diamond", prev.Park);
+        Assert.Equal(ParkId.Harbor, prev.Park);
     }
 
     [Fact]
     public void CyclingTheFieldDoesNotMoveTheCaptains()
     {
-        var start = new ExhibitionPick("rio", "ashlord", "harbor-diamond");
+        var start = new ExhibitionPick("rio", "ashlord", ParkId.Harbor);
         var next = ExhibitionPick.CyclePark(_content, start, 1);
         Assert.Equal("rio", next.Home);
         Assert.Equal("ashlord", next.Away);
-        Assert.Equal("crystal-rink", next.Park);
+        Assert.Equal(ParkId.Crystal, next.Park);
 
         var wrap = ExhibitionPick.CyclePark(_content, start, -1);
-        Assert.Equal("ember-keep", wrap.Park);
+        Assert.Equal(ParkId.Ember, wrap.Park);
         Assert.Equal("rio", wrap.Home);
     }
 
     [Fact]
     public void AwaySkipWhenItWouldMatchHome()
     {
-        var pick = new ExhibitionPick("rio", "vale", "harbor-diamond");
+        var pick = new ExhibitionPick("rio", "vale", ParkId.Harbor);
         var next = ExhibitionPick.CycleAway(Shipped.Content, pick, -1);
         Assert.Equal("rio", next.Home);
         Assert.NotEqual("rio", next.Away);
-        Assert.Equal("harbor-diamond", next.Park);
+        Assert.Equal(ParkId.Harbor, next.Park);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class ExhibitionPickTests
         Assert.Equal("ashlord", away.Away);
         Assert.Equal("ashlord", away.Yours);
         Assert.Equal("rio", away.Theirs);
-        Assert.Equal("harbor-diamond", away.Park);
+        Assert.Equal(ParkId.Harbor, away.Park);
         Assert.True(ExhibitionPick.ToggleSeat(away).Pad1Home);
     }
 

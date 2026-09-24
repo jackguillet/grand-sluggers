@@ -147,7 +147,7 @@ public class FieldingSceneTests
     public void PreviewOffersBuddyJumpOnASparkCenterHomer()
     {
         var spark = PresetTeams.SparkAllStars(_content);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var rio = _content.Must("rio");
         var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var homer = FlightFixtures.OverTheFence(park, 5, 0, 60);
@@ -167,7 +167,7 @@ public class FieldingSceneTests
     {
         var spark = PresetTeams.SparkAllStars(_content);
         var mixed = PresetTeams.MixedRivals(_content);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var rng = new Random(1);
 
@@ -381,9 +381,9 @@ public class FieldingSceneTests
     [Fact]
     public void FieldBoundsUseEachParkFenceNotAHarborConstant()
     {
-        var harbor = _content.Parks["harbor-diamond"];
-        var canopy = _content.Parks["canopy-yard"];
-        var ember = _content.Parks["ember-keep"];
+        var harbor = _content.Parks[ParkId.Harbor];
+        var canopy = _content.Parks[ParkId.Canopy];
+        var ember = _content.Parks[ParkId.Ember];
         // The C80 copy carries every fence at 0.70 (#717): 280 / 265 / 286.
         Assert.Equal(280, harbor.CenterFenceFt);
         Assert.Equal(265, canopy.CenterFenceFt);
@@ -423,7 +423,7 @@ public class FieldingSceneTests
     /// <summary>A real fly that lands <paramref name="carry"/> out in the open; Harbor's fence then says whether it is gone.</summary>
     AtBatResult Fly(double carry, double launch, double spray, bool hr = false)
     {
-        var hit = FlightFixtures.Landing(_content.Parks["harbor-diamond"], carry, launch, spray);
+        var hit = FlightFixtures.Landing(_content.Parks[ParkId.Harbor], carry, launch, spray);
         Assert.Equal(hr, hit.HomeRun);
         return hit;
     }

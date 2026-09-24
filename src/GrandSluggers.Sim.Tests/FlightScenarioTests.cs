@@ -14,7 +14,7 @@ public sealed class FlightScenarioTests
     readonly ContentCatalog _content = Shipped.Content;
     const double Frame = 1.0 / 60.0;
 
-    Park Harbor => _content.Parks["harbor-diamond"];
+    Park Harbor => _content.Parks[ParkId.Harbor];
 
     // ---------------------------------------------------------------------------------
     // S-20 / S-21  The chalk is geometry: 44° over the fence is a homer, 46° is foul (§5.6)
