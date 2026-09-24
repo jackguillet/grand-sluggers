@@ -9,10 +9,10 @@ public static class BodyScale
 {
     public const double Rest = 1;
     public const double Grow = 1.45;
-    public const string GrowAbility = "grow";
+    public const string GrowAbility = FieldAbilityId.Grow;
 
     public static bool IsGrow(string? fieldAbility) =>
-        string.Equals(fieldAbility, GrowAbility, StringComparison.OrdinalIgnoreCase);
+        string.Equals(fieldAbility, GrowAbility, StringComparison.Ordinal);
 
     /// <summary>
     /// Grow puffs the play glove while it is going for the ball. Holding it

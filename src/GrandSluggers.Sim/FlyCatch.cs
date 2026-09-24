@@ -28,7 +28,7 @@ public static class FlyCatch
         var reach = c.JumpRobFt;
         if (buddy) reach = Math.Max(reach, c.BuddyJumpRobFt);
         if (fielder is null) return reach;
-        if (fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
+        if (fielder.FieldAbility == FieldAbilityId.SuperJump)
             reach = Math.Max(reach, c.SuperJumpRobFt);
         if (park != null && ParkHazards.CanClamber(park, fielder, rules))
             reach = Math.Max(reach, c.ClamberRobFt);
@@ -68,10 +68,10 @@ public static class FlyCatch
         if (fielder is null) return 0;
         var c = rules.Fielding.Catch;
         var extra = 0.0;
-        if (fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
+        if (fielder.FieldAbility == FieldAbilityId.SuperJump)
             extra += c.SuperJumpWindowSec;
-        if (fielder.FieldAbility.Equals("grow", StringComparison.OrdinalIgnoreCase)
-            || fielder.FieldAbility.Equals("lick-catch", StringComparison.OrdinalIgnoreCase))
+        if (fielder.FieldAbility == FieldAbilityId.Grow
+            || fielder.FieldAbility == FieldAbilityId.LickCatch)
             extra += c.GrowWindowSec;
         if (park != null && ParkHazards.CanClamber(park, fielder, rules))
             extra += c.ClamberWindowSec;

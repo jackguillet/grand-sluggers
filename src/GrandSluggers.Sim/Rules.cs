@@ -1228,6 +1228,10 @@ public sealed record CpuBatterRules
     [Chance] public double MistrackMovedChance { get; init; }
     /// <summary>… and this often when they did not (both × the rung's mistrackMul).</summary>
     [Chance] public double MistrackChance { get; init; }
+    /// <summary>The re-read fails at most this often, whatever the rung multiplies: a batter always has a chance to track.</summary>
+    [Chance] public double MistrackChanceMax { get; init; }
+    /// <summary>The pitcher "moved on the rubber" when the rubber changed by more than this fraction of its walk since the last pitch.</summary>
+    [Chance] public double RubberMovedMin { get; init; }
     /// <summary>The CPU's two stick aims, drawn on a Star Swing only: an ordinary swing reads no stick (§5.9, PH-12).</summary>
     public double SpraySigmaDeg { get; init; }
     /// <inheritdoc cref="SpraySigmaDeg"/>
@@ -1749,6 +1753,11 @@ public sealed record FieldingRules
         RulesValidation.Order(source, "fielding.catcher.cpuReleaseMinSec", Catcher.CpuReleaseMinSec, Catcher.CpuReleaseMaxSec, errors);
         RulesValidation.Order(source, "fielding.chem.slantLateralMinFt", Chem.SlantLateralMinFt, Chem.SlantLateralMaxFt, errors);
         RulesValidation.Order(source, "fielding.throw.minFtPerSec", Throw.MinFtPerSec, Throw.BaseFtPerSec, errors);
+        RulesValidation.Order(source, "fielding.throw.cutoffLaneMin", Throw.CutoffLaneMin, Throw.CutoffLaneMax, errors);
+        if (Throw.CutoffPositions.Count == 0)
+            errors.Add($"{source}: fielding.throw.cutoffPositions must name at least one position");
+        foreach (var pos in Throw.CutoffPositions.Where(p => !Diamond.Order.Contains(p)))
+            errors.Add($"{source}: fielding.throw.cutoffPositions names '{pos}', not a fielding position");
         RulesValidation.Order(source, "fielding.stick.leaveMag", Stick.LeaveMag, Stick.EnterMag, errors);
         RulesValidation.Order(source, "fielding.stick.leaveMag", Stick.LeaveMag, 0.99, errors);
         RulesValidation.Order(source, "fielding.recoil.onsetFtPerSec", Recoil.OnsetFtPerSec, Recoil.FullFtPerSec, errors);
@@ -2041,7 +2050,7 @@ public sealed record FieldAbilityRules
 
 /// <summary>
 /// The one throw model (§8.5, F693-03-long-throw-numbers):
-/// <c>throwSec = releaseSec + [dist / (baseFtPerSec × arm) + longThrowLossSec × (max(0, dist − range) / 80)²] / (chem × ability)</c>
+/// <c>throwSec = releaseSec + [dist / (baseFtPerSec × arm) + longThrowLossSec × (max(0, dist − range) / longThrowScaleFt)²] / (chem × ability)</c>
 /// with <c>arm = armBase + Arm × armPerField</c> and <c>range = comfortableRangeFt + rangePerArmFt × (Arm − 5)</c>.
 /// It flies the ball and judges the bag, for every arm on the field, the catcher's gun included, and it
 /// is the arithmetic both CPU estimates read. With <c>longThrowLossSec</c> 0 it is the old flat clock,
@@ -2059,8 +2068,15 @@ public sealed record ThrowRules
     [Positive] public double ComfortableRangeFt { get; init; }
     /// <summary>The range shifts this much per Arm point either side of the neutral arm (<see cref="InPlay.NeutralArm"/>).</summary>
     public double RangePerArmFt { get; init; }
-    /// <summary>Seconds added to the flight per (feet past the range / 80)², before chemistry and ability divide it. 0 is the flat clock; the accepted trial value is 0.60.</summary>
+    /// <summary>Seconds added to the flight per (feet past the range / <see cref="LongThrowScaleFt"/>)², before chemistry and ability divide it. 0 is the flat clock; the accepted trial value is 0.60.</summary>
     public double LongThrowLossSec { get; init; }
+    /// <summary>The distance the long-throw loss is measured in: the loss is <see cref="LongThrowLossSec"/> per this many feet past the range, squared.</summary>
+    [Positive] public double LongThrowScaleFt { get; init; }
+    /// <summary>Who may take the relay on the line (§8.7): the infielders, in the order a tie goes.</summary>
+    public IReadOnlyList<string> CutoffPositions { get; init; } = [];
+    /// <summary>A cutoff stands on the throw's line between these fractions of it: never on top of the thrower or the target.</summary>
+    [Chance] public double CutoffLaneMin { get; init; }
+    [Chance] public double CutoffLaneMax { get; init; }
     public double LateralSigmaPerFieldDeficitFt { get; init; }
     /// <summary>A throw to an uncovered bag hangs as a lob this long for the cover; then it drops at the bag, live.</summary>
     [Positive] public double LobMaxSec { get; init; }
@@ -2477,8 +2493,19 @@ public sealed record RunningRules
         RulesValidation.Order(source, "running.bagSec.minSec", BagSec.MinSec, BagSec.MaxSec, errors);
         RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.OccupyRadiusFt, errors);
         RulesValidation.Order(source, "running.bags.slideReachCutFt", Bags.SlideReachCutFt, Bags.TagReachFt, errors);
-        RulesValidation.Order(source, "running.cpu.stealBaseRun6", Cpu.StealBaseRun6, Cpu.StealBaseRun8, errors);
-        RulesValidation.Order(source, "running.cpu.stealBaseRun8", Cpu.StealBaseRun8, Cpu.StealBaseRun10, errors);
+        if (Cpu.StealAnchors.Count == 0)
+            errors.Add($"{source}: running.cpu.stealAnchors must name at least one anchor");
+        var anchorRun = Cpu.StealMinRun;
+        var anchorChance = 0.0;
+        foreach (var a in Cpu.StealAnchors)
+        {
+            if (a.Run <= anchorRun)
+                errors.Add($"{source}: running.cpu.stealAnchors must rise in run above stealMinRun; got {a.Run} after {anchorRun}");
+            if (a.Chance < anchorChance || a.Chance > 1)
+                errors.Add($"{source}: running.cpu.stealAnchors chances must rise within 0..1; got {a.Chance} after {anchorChance}");
+            anchorRun = a.Run;
+            anchorChance = a.Chance;
+        }
         // A slide narrows the tag window but never closes it: the safe radius stays inside the slid reach (§10.3).
         RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.TagReachFt - Bags.SlideReachCutFt, errors);
     }
@@ -2621,9 +2648,8 @@ public sealed record CpuRunnerRules
     [Signed] public double TagUpThirdMarginSec { get; init; }
     /// <summary>The CPU steal table (§11.6): base chance by Run, 0 at or below <see cref="StealMinRun"/>, linear between the anchors.</summary>
     public int StealMinRun { get; init; }
-    [Chance] public double StealBaseRun6 { get; init; }
-    [Chance] public double StealBaseRun8 { get; init; }
-    [Chance] public double StealBaseRun10 { get; init; }
+    /// <summary>The steal table's anchors, by rising Run; past the last the chance holds.</summary>
+    public IReadOnlyList<StealAnchor> StealAnchors { get; init; } = [];
     /// <summary>× with two outs.</summary>
     [Positive] public double StealTwoOutsMul { get; init; }
     /// <summary>× with the captain slugger at the plate.</summary>
@@ -2846,3 +2872,6 @@ public sealed record CpuLevelRules
     /// <summary>How much of the pair chemistry the CPU forecasts, fielder and runner alike (F693-03-good-chemistry): 0 ignores it, 1 is the deterministic pair factor, never a sampled roll.</summary>
     [Chance] public double ReadsChemistry { get; init; }
 }
+
+/// <summary>One point of the CPU steal table (§11.6): at this Run, this base chance.</summary>
+public sealed record StealAnchor(int Run, double Chance);

@@ -22,7 +22,8 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class BallFlight
 {
-    const double MphToFtPerSec = 1.4667;
+    /// <summary>Miles per hour to feet per second: the one conversion every flight and pitch uses (5280 / 3600, as the game has always rounded it).</summary>
+    public const double MphToFtPerSec = 1.4667;
 
     /// <summary>Arcade hang (flight.timeScale). Distances stay; the clock is slower than the ballistic.</summary>
     public static double TimeScale(RulesTable rules) => rules.Flight.TimeScale;

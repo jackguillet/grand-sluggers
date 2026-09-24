@@ -85,21 +85,21 @@ public class FieldAssistTests
         foreach (var kv in Diamond.Positions) spots[kv.Key] = kv.Value;
         // LF throwing home: SS is on the line; 2B is not (§8.7). RF throwing home: 1B or 2B.
         var lf = Diamond.Positions["LF"];
-        var cut = InPlay.CutoffFor(lf.X, lf.Z, 0, 0, spots, "LF", "C");
+        var cut = InPlay.CutoffFor(lf.X, lf.Z, 0, 0, spots, "LF", "C", Rules.Default);
         Assert.NotNull(cut);
         Assert.Equal("SS", cut!.Value.Pos);
         var rf = Diamond.Positions["RF"];
-        var cutR = InPlay.CutoffFor(rf.X, rf.Z, 0, 0, spots, "RF", "C");
+        var cutR = InPlay.CutoffFor(rf.X, rf.Z, 0, 0, spots, "RF", "C", Rules.Default);
         Assert.NotNull(cutR);
         Assert.True(cutR!.Value.Pos is "1B" or "2B", cutR.Value.Pos);
         // The cover of the bag and the glove are never the cutoff.
         var cf = Diamond.Positions["CF"];
-        var toThird = InPlay.CutoffFor(cf.X, cf.Z, Diamond.Third.X, Diamond.Third.Z, spots, "CF", "3B");
+        var toThird = InPlay.CutoffFor(cf.X, cf.Z, Diamond.Third.X, Diamond.Third.Z, spots, "CF", "3B", Rules.Default);
         Assert.NotNull(toThird);
         Assert.NotEqual("3B", toThird!.Value.Pos);
         // Nobody stands between the mound and the plate.
         var ss = Diamond.Positions["SS"];
-        Assert.Null(InPlay.CutoffFor(Diamond.Rubber.X, Diamond.Rubber.Z, 0, 0, spots, "P", "C"));
+        Assert.Null(InPlay.CutoffFor(Diamond.Rubber.X, Diamond.Rubber.Z, 0, 0, spots, "P", "C", Rules.Default));
         // The backup spot is 60 ft past the target on the throw line; the pitcher backs up first and home.
         var behind = InPlay.BackupSpot(lf.X, lf.Z, 0, 0, 60);
         Assert.InRange(Diamond.Dist(0, 0, behind.X, behind.Z), 59.9, 60.1);

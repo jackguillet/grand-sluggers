@@ -177,6 +177,11 @@
     "comfortableRangeFt": 160,
     "rangePerArmFt": 5,
     "longThrowLossSec": 0.60,
+    "longThrowScaleFt": 80,
+    // §8.7: the infielders who may take a relay on the line, and the middle of the line they may take it on.
+    "cutoffPositions": ["SS", "2B", "1B", "3B"],
+    "cutoffLaneMin": 0.15,
+    "cutoffLaneMax": 0.85,
     "lateralSigmaPerFieldDeficitFt": 0.35,
     "lobMaxSec": 1.5,
     // #722 (decision 6 of #730): never forced. The CPU relays when the relay arrives first by the rung's relayBiasSec in

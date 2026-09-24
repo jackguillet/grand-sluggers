@@ -1605,7 +1605,7 @@ public sealed partial class LivePlaySystem
         var holding = throwerPos == GlovePos && _receivedClean;
         var direct = InPlay.ThrowSec(dist, Forecast(thrower, cover, level.ReadsChemistry, bag, holding), R);
         var forced = dist > R.Fielding.Throw.OnTheFlyFt;
-        var cut = InPlay.CutoffFor(fromX, fromZ, to.X, to.Z, _fielders, throwerPos, coverPos);
+        var cut = InPlay.CutoffFor(fromX, fromZ, to.X, to.Z, _fielders, throwerPos, coverPos, R);
         if (cut is null || !map.TryGetValue(cut.Value.Pos, out var cutter))
             return new ThrowPlan(direct, direct, null, forced, false);
         var (_, cx, cz) = cut.Value;
@@ -2482,21 +2482,21 @@ public sealed partial class LivePlaySystem
     {
         var mul = FieldAbilities.ThrowMul(who, R);
         var a = R.Fielding.Abilities;
-        if (HasAbility(who, "laser") && !LaserEligible(bag)) mul /= a.LaserMul;
+        if (HasAbility(who, FieldAbilityId.Laser) && !LaserEligible(bag)) mul /= a.LaserMul;
         return mul;
     }
 
-    static bool HasAbility(Character who, string id) => who.FieldAbility.Equals(id, StringComparison.OrdinalIgnoreCase);
+    static bool HasAbility(Character who, string id) => who.FieldAbility == id;
 
     /// <summary>Snap Throw's release for <paramref name="who"/> when they hold a clean received throw (F693-03-snap-throw); null is the ordinary release.</summary>
     double? SnapRelease(Character who, bool receivedClean) =>
-        receivedClean && HasAbility(who, "snap-throw") ? R.Fielding.Abilities.SnapReleaseSec : null;
+        receivedClean && HasAbility(who, FieldAbilityId.SnapThrow) ? R.Fielding.Abilities.SnapReleaseSec : null;
 
     /// <summary>A built throw with the command's rules on it (#723): the Laser boost confined, the Snap release when it applies.</summary>
     ThrowResult WithCommand(ThrowResult thr, Character from, int bag)
     {
         var a = R.Fielding.Abilities;
-        if (HasAbility(from, "laser") && !LaserEligible(bag))
+        if (HasAbility(from, FieldAbilityId.Laser) && !LaserEligible(bag))
             thr = thr with { SpeedMul = thr.SpeedMul / a.LaserMul };
         var release = SnapRelease(from, _receivedClean);
         if (release is { } sec) thr = thr with { ReleaseSec = sec };
@@ -2809,7 +2809,7 @@ public sealed partial class LivePlaySystem
         {
             var toward = ThrowBag is >= 1 and <= 4 ? ThrowBag : RunnerPlay && def > 0 ? def : 4;
             var to = Diamond.Bag(toward);
-            var cut = InPlay.CutoffFor(GloveX, GloveZ, to.X, to.Z, _fielders, GlovePos, CoverOf(toward));
+            var cut = InPlay.CutoffFor(GloveX, GloveZ, to.X, to.Z, _fielders, GlovePos, CoverOf(toward), R);
             if (cut is not null)
             {
                 _relayBag = ThrowBag is >= 1 and <= 4 ? ThrowBag : 0;

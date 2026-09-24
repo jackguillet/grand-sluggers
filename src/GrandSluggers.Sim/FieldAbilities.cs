@@ -1,5 +1,27 @@
 namespace GrandSluggers.Sim;
 
+/// <summary>
+/// The closed field-ability registry (spec §8.9): every id a character's <c>fieldAbility</c> may name. The content load
+/// refuses any other, and every rule compares against these, exactly.
+/// </summary>
+public static class FieldAbilityId
+{
+    public const string BallDash = "ball-dash";
+    public const string Burrow = "burrow";
+    public const string Clamber = "clamber";
+    public const string Dive = "dive";
+    public const string Grow = "grow";
+    public const string Laser = "laser";
+    public const string LickCatch = "lick-catch";
+    public const string SnapThrow = "snap-throw";
+    public const string SpinCheck = "spin-check";
+    public const string SuperJump = "super-jump";
+    public const string Withdraw = "withdraw";
+
+    public static readonly IReadOnlyList<string> All =
+        [BallDash, Burrow, Clamber, Dive, Grow, Laser, LickCatch, SnapThrow, SpinCheck, SuperJump, Withdraw];
+}
+
 /// <summary>One defensive verb per character — the Sluggers "who you are on defense."</summary>
 public static class FieldAbilities
 {
@@ -8,8 +30,8 @@ public static class FieldAbilities
         var a = rules.Fielding.Abilities;
         return c.FieldAbility switch
         {
-            "lick-catch" or "grow" or "withdraw" => a.BigCatchBonusFt,
-            "super-jump" => a.SuperJumpCatchBonusFt,
+            FieldAbilityId.LickCatch or FieldAbilityId.Grow or FieldAbilityId.Withdraw => a.BigCatchBonusFt,
+            FieldAbilityId.SuperJump => a.SuperJumpCatchBonusFt,
             _ => 0
         };
     }
@@ -17,16 +39,16 @@ public static class FieldAbilities
     /// <summary>Lick Catch / Grow reach further on the tag (§10.3): fielding.abilities.tagReachBonusFt.</summary>
     public static double TagReachBonus(Character? c, RulesTable rules) => c?.FieldAbility switch
     {
-        "lick-catch" or "grow" => rules.Fielding.Abilities.TagReachBonusFt,
+        FieldAbilityId.LickCatch or FieldAbilityId.Grow => rules.Fielding.Abilities.TagReachBonusFt,
         _ => 0
     };
 
     public static double FlyRangeBonus(Character c, RulesTable rules) =>
-        c.FieldAbility == "super-jump" ? rules.Fielding.Abilities.SuperJumpFlyRangeFt : 0;
+        c.FieldAbility == FieldAbilityId.SuperJump ? rules.Fielding.Abilities.SuperJumpFlyRangeFt : 0;
 
     public static double GroundRangeBonus(Character c, RulesTable rules) => c.FieldAbility switch
     {
-        "dive" or "burrow" => rules.Fielding.Abilities.DiveGroundRangeFt,
+        FieldAbilityId.Dive or FieldAbilityId.Burrow => rules.Fielding.Abilities.DiveGroundRangeFt,
         _ => 0
     };
 
@@ -35,27 +57,27 @@ public static class FieldAbilities
         var a = rules.Fielding.Abilities;
         return c.FieldAbility switch
         {
-            "laser" => a.LaserMul,
-            "snap-throw" => a.SnapThrowMul,
+            FieldAbilityId.Laser => a.LaserMul,
+            FieldAbilityId.SnapThrow => a.SnapThrowMul,
             _ => 1.0
         };
     }
 
     /// <summary>Ball Dash (F693-02-ball-dash-carrier, #718): the one ability that is about the body's own feet with the ball in its glove.</summary>
     public static bool HasBallDash(Character c) =>
-        c.FieldAbility.Equals("ball-dash", StringComparison.OrdinalIgnoreCase);
+        c.FieldAbility == FieldAbilityId.BallDash;
 
     /// <summary>What a body carries the ball at, as a multiple of its pursuit speed: <c>fielding.abilities.ballDashMul</c> for a Ball Dash holder, 1 for everyone else.</summary>
     public static double CarryMul(Character c, RulesTable rules) =>
         HasBallDash(c) ? rules.Fielding.Abilities.BallDashMul : 1.0;
 
     public static bool IgnoresParkSlow(Character c) =>
-        c.FieldAbility.Equals("burrow", StringComparison.OrdinalIgnoreCase);
+        c.FieldAbility == FieldAbilityId.Burrow;
 
     /// <summary>Super Jump robs a ball clearing the fence by at most fielding.catch.superJumpRobFt (§8.4).</summary>
     public static bool AirRob(Park park, Character fielder, AtBatResult hit, RulesTable rules)
     {
-        if (!fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
+        if (fielder.FieldAbility != FieldAbilityId.SuperJump)
             return false;
         var ball = BattedBall.Of(hit, park, rules);
         return ball.HomeRun && ball.FenceClearFt <= rules.Fielding.Catch.SuperJumpRobFt;
@@ -63,7 +85,7 @@ public static class FieldAbilities
 
     public static PlayKind SpinCheck(Character fielder, PlayKind kind)
     {
-        if (!fielder.FieldAbility.Equals("spin-check", StringComparison.OrdinalIgnoreCase))
+        if (fielder.FieldAbility != FieldAbilityId.SpinCheck)
             return kind;
         return kind switch
         {

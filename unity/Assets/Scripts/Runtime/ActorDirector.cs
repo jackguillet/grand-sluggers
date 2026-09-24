@@ -124,7 +124,7 @@ namespace GrandSluggers.UnityClient
                     if (_throwing) pose = Motion.Verb.Catch;
                     // The shipped knockback lays the body down; the ordinary impact recoil (#720) is a brace on the take's own pose.
                     else if (_recoilT > 0 && !_owed.Bracing) pose = Motion.Verb.Dive;
-                    else if (_jumpT > 0) pose = who.FieldAbility == "clamber" ? Motion.Verb.Clamber : Motion.Verb.Jump;
+                    else if (_jumpT > 0) pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else if ((_caught || _buddy) && !_throwing && CarryingOnTheStick(kv.Key))
                         pose = Motion.Verb.Run;
                     else if (_caught && _preview != null && _preview.Grounder) pose = Motion.Verb.Scoop;
@@ -162,7 +162,7 @@ namespace GrandSluggers.UnityClient
                 else if (_phase == Phase.InPlay && _preview != null && who.Id == _preview.Fielder.Id)
                 {
                     if (_buddy && _jumpT > 0)
-                        pose = who.FieldAbility == "clamber" ? Motion.Verb.Clamber : Motion.Verb.Jump;
+                        pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else
                         pose = FieldPose(who, _preview, _caught || _buddy);
                 }
@@ -414,10 +414,10 @@ namespace GrandSluggers.UnityClient
         {
             if (caught) return pre.Grounder ? Motion.Verb.Scoop : Motion.Verb.Catch;
             var a = who.FieldAbility;
-            if (a == "dive" && pre.Grounder) return Motion.Verb.Dive;
-            if (a == "burrow" && pre.Grounder) return Motion.Verb.Dive;
-            if (a == "super-jump" && pre.HomeRunLikely) return Motion.Verb.Jump;
-            if (a == "clamber" && pre.HomeRunLikely) return Motion.Verb.Clamber;
+            if (a == FieldAbilityId.Dive && pre.Grounder) return Motion.Verb.Dive;
+            if (a == FieldAbilityId.Burrow && pre.Grounder) return Motion.Verb.Dive;
+            if (a == FieldAbilityId.SuperJump && pre.HomeRunLikely) return Motion.Verb.Jump;
+            if (a == FieldAbilityId.Clamber && pre.HomeRunLikely) return Motion.Verb.Clamber;
             return Motion.Verb.Field;
         }
 

@@ -121,7 +121,7 @@ public sealed class FieldingResolver
             return DefensiveFeat.None;
         if (ParkHazards.CanClamber(park, shown.Fielder, rules))
             return DefensiveFeat.Clamber;
-        if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
+        if (shown.Fielder.FieldAbility == FieldAbilityId.SuperJump)
             return DefensiveFeat.SuperJump;
         return DefensiveFeat.None;
     }
@@ -139,7 +139,7 @@ public sealed class FieldingResolver
         {
             if (ParkHazards.CanClamber(park, shown.Fielder, rules))
                 return DefensiveFeat.Clamber;
-            if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
+            if (shown.Fielder.FieldAbility == FieldAbilityId.SuperJump)
                 return DefensiveFeat.SuperJump;
         }
         if (jumped) return DefensiveFeat.Jump;
@@ -736,7 +736,7 @@ public static class ParkHazards
     /// </summary>
     public static bool CanClamber(Park park, Character fielder, RulesTable rules)
     {
-        if (!fielder.FieldAbility.Equals("clamber", StringComparison.OrdinalIgnoreCase)) return false;
+        if (fielder.FieldAbility != FieldAbilityId.Clamber) return false;
         var hazards = rules.Hazards;
         return park.Hazards.Any(h => hazards.Of(h.Type).Pattern == HazardPattern.WallTrait);
     }

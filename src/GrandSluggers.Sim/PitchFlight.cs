@@ -39,7 +39,7 @@ public static class PitchFlight
     public static double AirSeconds(double mph, RulesTable rules)
     {
         var f = rules.Pitching.Flight;
-        var real = Diamond.Mound / (Math.Max(f.MinMph, mph) * 1.4667);
+        var real = Diamond.Mound / (Math.Max(f.MinMph, mph) * BallFlight.MphToFtPerSec);
         return Math.Clamp(real * f.ArcadeScale, f.AirMinSec, f.AirMaxSec);
     }
 

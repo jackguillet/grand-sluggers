@@ -172,7 +172,7 @@ public sealed class CpuBatter
     double TrackedBox(double crossingX, CpuBatterRules c, CpuLevelRules level)
     {
         var last = Top ? _awayLastCrossingX : _homeLastCrossingX;
-        var chance = Math.Min(0.95, (RubberMovedSinceLastPitch ? c.MistrackMovedChance : c.MistrackChance) * level.MistrackMul);
+        var chance = Math.Min(c.MistrackChanceMax, (RubberMovedSinceLastPitch ? c.MistrackMovedChance : c.MistrackChance) * level.MistrackMul);
         var guess = Rng.NextDouble() < chance ? (last ?? 0) : crossingX;
         var offset = (c.MistrackMinFt + Rng.NextDouble() * c.MistrackSpanFt) * (Rng.NextDouble() < 0.5 ? -1 : 1);
         return Math.Clamp((guess + offset) / HomeSet.BatterWalk, -1, 1);

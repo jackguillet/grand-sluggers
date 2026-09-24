@@ -69,9 +69,11 @@
     "tagUpHomeMarginSec": 0.25,
     "tagUpThirdMarginSec": 0.07,
     "stealMinRun": 4,
-    "stealBaseRun6": 0.06,
-    "stealBaseRun8": 0.16,
-    "stealBaseRun10": 0.25,
+    "stealAnchors": [
+      { "run": 6, "chance": 0.06 },
+      { "run": 8, "chance": 0.16 },
+      { "run": 10, "chance": 0.25 }
+    ],
     "stealTwoOutsMul": 1.5,
     "stealCaptainUpMul": 0.5,
     "stealTrailingRuns": 5,
