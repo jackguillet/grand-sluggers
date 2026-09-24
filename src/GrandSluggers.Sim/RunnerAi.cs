@@ -105,15 +105,39 @@ public static class RunnerAi
         {
             var runner = ordered[i];
             var blocked = i > 0 && ordered[i - 1].Live && ordered[i - 1].Bag == runner.NextBag && !ordered[i - 1].Advancing;
+            // Standing on a bag another runner is entitled to (§9.1, OBR 5.06(a)(2)): give it back when the bag behind is free.
+            if (GiveBack(runners, runner, forceAt, ctx.Fly)) continue;
             DecideOne(runner, ctx, forceAt, cpu, slack, blocked, r);
         }
+    }
+
+    /// <summary>
+    /// The CPU runner on a bag he is not entitled to (§9.1, §9.9): the preceding runner holds it, so he goes back to the bag
+    /// behind when nobody else stands on it or is bound for it, and otherwise waits on the bag (the fielder's tag, or the lead
+    /// runner moving on, decides). The forced runner leaving a bag is the tick's already. True when this read owned the runner.
+    /// </summary>
+    static bool GiveBack(IReadOnlyList<Runner> runners, Runner runner, Func<int, bool> forceAt, FlyState fly)
+    {
+        if (!RunnerSystem.Unentitled(runners, runner, forceAt, fly)) return false;
+        if (RunnerSystem.ForcedOff(runner, forceAt, fly)) return true;
+        var back = runner.Bag - 1;
+        if (runner.Bag <= Math.Max(runner.FromBag, 1)) return true;
+        // Free: nobody stands on the bag behind, is bound for it, or runs through it toward this one.
+        var free = !runners.Any(o => o != runner && o.Live && (o.IsOn(back) || o.DestBag == back || o.Bag < back && o.DestBag > back));
+        if (free)
+        {
+            runner.MarkUnentitled(true);
+            runner.Return();
+        }
+        else runner.Send(runner.Bag); // wait on the bag: no send beyond a body that holds it
+        return true;
     }
 
     static void DecideOne(Runner runner, RunnerAiContext ctx, Func<int, bool> forceAt, CpuRunnerRules cpu, double slack, bool blocked, RulesTable r)
     {
         var ball = ctx.Ball;
         var next = runner.NextBag;
-        var forcedNow = runner.Forced && !runner.IsBatter && forceAt(next) && ctx.Fly is (FlyState.None or FlyState.Dropped);
+        var forcedNow = RunnerSystem.ForcedOff(runner, forceAt, ctx.Fly) && ctx.Fly is (FlyState.None or FlyState.Dropped);
 
         switch (ctx.Fly)
         {
