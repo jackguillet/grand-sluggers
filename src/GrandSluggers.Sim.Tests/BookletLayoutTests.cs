@@ -1,3 +1,4 @@
+using System.Globalization;
 using GrandSluggers.Sim;
 using Xunit;
 
@@ -253,7 +254,7 @@ public class BookletLayoutTests
         var contents = HowToPlay.Must("contents");
         foreach (var (w, h) in SupportedWindows)
         {
-            var widest = ContentsToc.Chapters.Max(c => ApproxWidth(c.Number.ToString(), 44f));
+            var widest = ContentsToc.Chapters.Max(c => ApproxWidth(c.Number.ToString(CultureInfo.InvariantCulture), 44f));
             foreach (var index in Enumerable.Range(0, ContentsToc.Chapters.Count))
             {
                 var row = ContentsToc.Row(index, w, h);

@@ -1,3 +1,4 @@
+using System.Globalization;
 using GrandSluggers.Sim;
 using Xunit;
 
@@ -401,7 +402,7 @@ public sealed class RunnerScenarioTests
         Run(match, hit, preview, null, HumanOffense, live =>
         {
             foreach (var r in match.Runners)
-                positions.Append($"{r.Who.Id}:{r.Bag}:{r.Feet:0.00};");
+                positions.Append(CultureInfo.InvariantCulture, $"{r.Who.Id}:{r.Bag}:{r.Feet:0.00};");
         }, pad: frame => frame is > 10 and < 40 ? new LivePadInput(AllAdvance: true) : LivePadInput.Dead, seat: seat);
         return (scenario.Stream(), positions.ToString());
     }

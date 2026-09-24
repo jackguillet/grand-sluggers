@@ -29,7 +29,7 @@ namespace GrandSluggers.EditorTools
         {
             var pending = SessionState.GetString(Pending, "");
             if (pending == "") return;
-            var play = UnityEngine.Object.FindFirstObjectByType<MatchDirector>();
+            var play = UnityEngine.Object.FindAnyObjectByType<MatchDirector>();
             if (!EditorApplication.isPlaying || play == null || Get<Match>(play, "_match") == null)
             {
                 if (DateTime.UtcNow - DateTime.Parse(pending).ToUniversalTime() < TimeSpan.FromSeconds(180)) return;

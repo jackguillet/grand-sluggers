@@ -1,3 +1,4 @@
+using System.Globalization;
 using Xunit;
 using GrandSluggers.Sim;
 
@@ -302,7 +303,7 @@ public class LineupScreensTests
             var mark = LineupLayout.TeamMark(s.HomeSlots[i]);
             if (mark == "C") caps++;
             else Assert.Equal("", mark);
-            Assert.Equal((i + 1).ToString(), LineupLayout.OrderMark(i));
+            Assert.Equal((i + 1).ToString(CultureInfo.InvariantCulture), LineupLayout.OrderMark(i));
         }
         Assert.Equal(1, caps);
         Assert.Equal("C", LineupLayout.TeamMark(s.HomeCaptain));

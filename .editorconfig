@@ -1,0 +1,22 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+
+# The build runs the default .NET analyzer set with warnings as errors (Directory.Build.props).
+# Raised above the default: the sim is deterministic, so text must not depend on the machine's culture.
+dotnet_diagnostic.CA1305.severity = warning
+dotnet_diagnostic.CA1310.severity = warning
+# RS0030: a symbol in the project's BannedSymbols.txt.
+dotnet_diagnostic.RS0030.severity = warning
+
+[*.{json,yml,yaml,csproj,props,targets,asmdef}]
+indent_style = space
+indent_size = 2

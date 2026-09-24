@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 
 namespace GrandSluggers.Sim;
@@ -276,7 +277,7 @@ public static class RulesValidation
             }
             if (leaf)
             {
-                var d = Convert.ToDouble(value);
+                var d = Convert.ToDouble(value, CultureInfo.InvariantCulture);
                 if (double.IsNaN(d) || double.IsInfinity(d))
                     errors.Add($"{source}: {name} must be finite; got {d}");
                 else if (p.GetCustomAttribute<ChanceAttribute>() is not null && (d < 0 || d > 1))

@@ -78,7 +78,7 @@ namespace GrandSluggers.UnityClient
 
             var kit = HarborKit.Instance != null
                 ? HarborKit.Instance
-                : FindFirstObjectByType<HarborKit>(FindObjectsInactive.Include);
+                : FindAnyObjectByType<HarborKit>(FindObjectsInactive.Include);
             // The Harbor kit exists for a park whose lawn slot names it (FD-16, FR-13; data/art/parks.json).
             if (kit == null && ArtBinder.ParkKit(park.Id).Fills(ParkKitSlots.Lawn, ParkKitSlots.HarborLawn))
             {

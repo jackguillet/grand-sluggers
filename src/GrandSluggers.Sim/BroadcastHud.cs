@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace GrandSluggers.Sim;
 
 /// <summary>
@@ -314,7 +316,7 @@ public static class BroadcastHud
         return (sp >= 0 ? captainName[(sp + 1)..] : captainName).ToUpperInvariant();
     }
 
-    public static string RunsLabel(int runs) => runs.ToString();
+    public static string RunsLabel(int runs) => runs.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>Couch scorebug. Every field is readable without F2.</summary>
     public sealed record Scorebug(

@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text;
+using static System.FormattableString;
 
 namespace GrandSluggers.Sim;
 
@@ -266,25 +268,25 @@ public sealed record ParkFactorReport(int SchemaVersion, string Cohort, string R
     {
         var text = new StringBuilder();
         text.AppendLine(Root);
-        text.AppendLine($"{Cohort}  seeds {string.Join(",", Seeds)}  {Matchups.Count} matchups  {Innings} innings  {Seats}"
-            + $"  {GamesPerParkPerCondition} games per park per condition  {Games} games  control {ControlPark}");
+        text.AppendLine(Invariant($"{Cohort}  seeds {string.Join(",", Seeds)}  {Matchups.Count} matchups  {Innings} innings  {Seats}")
+            + Invariant($"  {GamesPerParkPerCondition} games per park per condition  {Games} games  control {ControlPark}"));
         foreach (var condition in Conditions)
         {
             text.AppendLine();
             text.AppendLine(condition.ToUpperInvariant());
-            text.AppendLine($"{"park",-16} {"games",5} {"runs/g",7} {"xHarbor",8} {"HR/g",6} {"xHarbor",8} "
-                + $"{"1B/g",6} {"2B/g",6} {"3B/g",6} {"GRD/g",6} {"FO/g",6} {"GO/g",6} {"K/g",6} {"BB/g",6}");
+            text.AppendLine(Invariant($"{"park",-16} {"games",5} {"runs/g",7} {"xHarbor",8} {"HR/g",6} {"xHarbor",8} ")
+                + Invariant($"{"1B/g",6} {"2B/g",6} {"3B/g",6} {"GRD/g",6} {"FO/g",6} {"GO/g",6} {"K/g",6} {"BB/g",6}"));
             foreach (var r in Rows.Where(r => r.Condition == condition))
-                text.AppendLine($"{r.Park,-16} {r.Games,5} {r.RunsPerGame,7:0.00} {Show(r.RunFactor),8} "
-                    + $"{r.HomeRunsPerGame,6:0.00} {Show(r.HomeRunFactor),8} {r.SinglesPerGame,6:0.00} "
-                    + $"{r.DoublesPerGame,6:0.00} {r.TriplesPerGame,6:0.00} {r.GroundRuleDoublesPerGame,6:0.00} "
-                    + $"{r.FlyOutsPerGame,6:0.00} {r.GroundOutsPerGame,6:0.00} {r.StrikeoutsPerGame,6:0.00} "
-                    + $"{r.WalksPerGame,6:0.00}");
+                text.AppendLine(Invariant($"{r.Park,-16} {r.Games,5} {r.RunsPerGame,7:0.00} {Show(r.RunFactor),8} ")
+                    + Invariant($"{r.HomeRunsPerGame,6:0.00} {Show(r.HomeRunFactor),8} {r.SinglesPerGame,6:0.00} ")
+                    + Invariant($"{r.DoublesPerGame,6:0.00} {r.TriplesPerGame,6:0.00} {r.GroundRuleDoublesPerGame,6:0.00} ")
+                    + Invariant($"{r.FlyOutsPerGame,6:0.00} {r.GroundOutsPerGame,6:0.00} {r.StrikeoutsPerGame,6:0.00} ")
+                    + Invariant($"{r.WalksPerGame,6:0.00}"));
         }
         text.AppendLine();
         text.AppendLine("A report, not a gate (FD-13). Nothing here was tuned.");
         return text.ToString();
 
-        static string Show(double? factor) => factor is { } f ? f.ToString("0.00") : "-";
+        static string Show(double? factor) => factor is { } f ? f.ToString("0.00", CultureInfo.InvariantCulture) : "-";
     }
 }

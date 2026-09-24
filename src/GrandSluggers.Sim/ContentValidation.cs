@@ -289,7 +289,7 @@ public static class ContentDataValidator
         foreach (var row in data.Parks)
             ValidatePark(row, hazards, grounds, data.GroundsSource, infield, fence, errors);
         UniquePerPark("pickOrder", data.Parks.Where(r => r.Value.PickOrder is not null)
-            .Select(r => (r.Value.PickOrder!.Value.ToString(), r.Source)), errors);
+            .Select(r => (r.Value.PickOrder!.Value.ToString(CultureInfo.InvariantCulture), r.Source)), errors);
         UniquePerPark("faction", data.Parks
             .Where(r => !string.IsNullOrWhiteSpace(r.Value.Faction))
             .Select(r => (r.Value.Faction, r.Source)), errors);
@@ -343,14 +343,14 @@ public static class ContentDataValidator
             if (kind == "pitch")
             {
                 if (value.SpeedMul is null || value.SpeedMul <= 0)
-                    errors.Add($"{source}: star pitch '{key}' speedMul must be greater than 0; got {value.SpeedMul?.ToString() ?? "null"}");
+                    errors.Add($"{source}: star pitch '{key}' speedMul must be greater than 0; got {value.SpeedMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
                 if (value.StaminaCost is null || value.StaminaCost < 0)
-                    errors.Add($"{source}: star pitch '{key}' staminaCost must be at least 0; got {value.StaminaCost?.ToString() ?? "null"}");
+                    errors.Add($"{source}: star pitch '{key}' staminaCost must be at least 0; got {value.StaminaCost?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
             }
             else
             {
                 if (value.ExitVeloMul is null || value.ExitVeloMul <= 0)
-                    errors.Add($"{source}: star swing '{key}' exitVeloMul must be greater than 0; got {value.ExitVeloMul?.ToString() ?? "null"}");
+                    errors.Add($"{source}: star swing '{key}' exitVeloMul must be greater than 0; got {value.ExitVeloMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
                 if (value.LaunchDeg is not null && (value.LaunchDeg < 0 || value.LaunchDeg > 60))
                     errors.Add($"{source}: star swing '{key}' launchDeg must be between 0 and 60; got {value.LaunchDeg}");
             }

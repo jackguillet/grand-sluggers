@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace GrandSluggers.Sim;
 
 public enum LineupStep { TeamSetup, DefenseSetup, MatchSettings }
@@ -911,7 +913,7 @@ public static class LineupLayout
         (c.X * screenW, (1.0 - c.Y - c.H) * screenH, c.W * screenW, c.H * screenH);
 
     public static string TeamMark(Character? who) => who != null && who.Captain ? "C" : "";
-    public static string OrderMark(int i) => (Math.Clamp(i, 0, Size - 1) + 1).ToString();
+    public static string OrderMark(int i) => (Math.Clamp(i, 0, Size - 1) + 1).ToString(CultureInfo.InvariantCulture);
     public static string GloveMark(string pos) => string.IsNullOrEmpty(pos) ? "" : pos;
 
 }
