@@ -1341,8 +1341,8 @@ public sealed partial class LivePlaySystem
             r.MarkRundown(false);
             if (!r.Live || !HoldsBall || Throwing || _loose) continue;
             if (r.IsBatter && r.Bag == 0) continue;
-            if (r.OnBag || r.IsOn(r.Bag) || r.OverrunProtected) continue;
-            if (r.Forced && r.DestBag > r.Bag && Forces.At(r.NextBag)) continue;
+            if (r.OverrunProtected || (r.OnBag || r.IsOn(r.Bag)) && !UnentitledNow(r)) continue;
+            if (RunnerSystem.ForcedOff(r, Forces.At, Fly) && r.DestBag > r.Bag) continue;
             var (x, z) = r.Position;
             if (Diamond.Dist(GloveX, GloveZ, x, z) > range) continue;
             // A glove standing on the bag a body is still closing on waits there: that is the tag at the bag (§10.3),
@@ -1365,7 +1365,10 @@ public sealed partial class LivePlaySystem
         RundownRunner = caught;
     }
 
-    /// <summary>The nearest live body off every bag that no force or waiting glove accounts for; the rundown read without the range.</summary>
+    /// <summary>
+    /// The nearest live body off every bag — or on a bag another runner is entitled to (§9.1) — that no force or waiting glove
+    /// accounts for; the rundown read without the range.
+    /// </summary>
     Runner? StrayRunner()
     {
         Runner? best = null;
@@ -1373,8 +1376,8 @@ public sealed partial class LivePlaySystem
         foreach (var r in Runners)
         {
             if (!r.Live || (r.IsBatter && r.Bag == 0)) continue;
-            if (r.OnBag || r.IsOn(r.Bag) || r.OverrunProtected) continue;
-            if (r.Forced && r.DestBag > r.Bag && Forces.At(r.NextBag)) continue;
+            if (r.OverrunProtected || (r.OnBag || r.IsOn(r.Bag)) && !UnentitledNow(r)) continue;
+            if (RunnerSystem.ForcedOff(r, Forces.At, Fly) && r.DestBag > r.Bag) continue;
             var heading = r.DestBag > r.Bag ? r.NextBag : r.Bag;
             var closing = r.Moving && !r.Held && (r.DestBag > r.Bag ? r.Velocity > 0 : r.Velocity < 0);
             if (closing && InPlay.OnThisBag(heading, GloveX, GloveZ, R.Running.Bags.OccupyRadiusFt)) continue;
@@ -3384,7 +3387,8 @@ public sealed partial class LivePlaySystem
         var at = Diamond.Bag(bag);
         var (x, z) = target.Position;
         var bags = R.Running.Bags;
-        if (Diamond.Dist(x, z, at.X, at.Z) <= bags.TagSafeRadiusFt) return (true, true);
+        // On the bag is safe only when the bag is theirs (§9.1): a body arriving on a bag another runner holds is tagged there.
+        if (Diamond.Dist(x, z, at.X, at.Z) <= bags.TagSafeRadiusFt && ProtectsOn(target, bag)) return (true, true);
         var reach = InPlay.TagReachFt(GloveChar(), target.Sliding, R);
         if (Diamond.Dist(x, z, at.X, at.Z) < reach) return (true, false);
         return (false, false);
@@ -3414,7 +3418,7 @@ public sealed partial class LivePlaySystem
     {
         var runner = bag == 4
             ? Runners.FirstOrDefault(r => r.Scored && !double.IsNaN(r.ScoredAt))
-            : Runners.FirstOrDefault(r => r.Live && r.IsOn(bag));
+            : EntitledOn(bag);
         if (runner is null || double.IsNaN(runner.LastTouchAt)) return;
         if (InPlay.CloseSafe(ElapsedSeconds, runner.LastTouchAt, R) && bag != 4)
             RaiseStamp(PlayStamp.SafeTell(bag));
@@ -3801,6 +3805,8 @@ public sealed partial class LivePlaySystem
         var heading = RunnerSystem.HeadingTo(Runners, bag);
         if (heading is null || heading.IsOn(bag) || !ClosePlay.Offered(bag, Forces, true))
             return false;
+        // A bag another runner holds is no race (§9.1): arriving there is not safe, so there is no close play to mash.
+        if (!ProtectsOn(heading, bag)) return false;
         var runnerAt = RunnerSystem.ArrivalSec(heading, bag, ElapsedSeconds, Dash01, R);
         if (!ClosePlay.WithinMargin(runnerAt, R)) return false;
         // The body in the play waits for the verdict (the mash is the slide): safe puts them on the bag, out retires them.

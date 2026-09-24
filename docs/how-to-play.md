@@ -34,7 +34,7 @@ Right-stick flick selects the runner from first/right, second/up, third/left, or
 
 LB advances or steals immediately; RB returns immediately; D-pad Up halts. These meanings stay the same during SET, pitch flight and live play. Holding advance can continue at subsequent bags. Changing selection while holding an order requires a fresh bumper press. Both bumpers together halt and require release before resuming.
 
-South mash dashes during live play. A fresh South answers a close-play prompt. West slides in the existing near-bag window. Forces and automatic slides retain their rules. On an airborne fly, ALL advance preserves tag-and-go; selecting one runner allows a deliberate early departure and return.
+One runner to a bag: when two reach one, the lead runner keeps it unless he is forced on, and the other must go back (RB) or be tagged. The play waits until they are one to a bag. South mash dashes during live play. A fresh South answers a close-play prompt. West slides in the existing near-bag window. Forces and automatic slides retain their rules. On an airborne fly, ALL advance preserves tag-and-go; selecting one runner allows a deliberate early departure and return.
 
 ## Tutorials and practice
 

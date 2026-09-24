@@ -79,9 +79,17 @@ public sealed class Runner
     public bool OverrunOut { get; private set; }
     /// <summary>Caught between bags with a glove holding the ball in range (§9.7). Set by the live ball each frame.</summary>
     public bool InRundown { get; private set; }
+    /// <summary>
+    /// Standing on a bag another runner is entitled to (§9.1, OBR 5.06(a)(2)): the bag does not protect this body. The runner
+    /// tick's read of <see cref="RunnerSystem.Unentitled"/> at the end of each frame; every tag reads the query itself.
+    /// </summary>
+    public bool Unentitled { get; private set; }
 
     /// <summary>The live ball's read of the rundown this frame (§9.7).</summary>
     public void MarkRundown(bool on) => InRundown = on;
+
+    /// <summary>The runner tick's read of the share rule this frame (§9.1).</summary>
+    internal void MarkUnentitled(bool on) => Unentitled = on;
 
     public Runner(Character who, int bag)
     {
@@ -147,6 +155,23 @@ public sealed class Runner
         }
     }
 
+    /// <summary>
+    /// Where the client draws this body (§9.1): <see cref="Position"/>, except a body standing on a bag it is not entitled to
+    /// (<see cref="Unentitled"/>) stands <paramref name="shareStepFt"/> off it — toward the bag behind when it came from
+    /// behind, toward the bag ahead when it is the forced runner leaving — so two bodies on one bag never merge. The sim
+    /// position stays the basepath position; this is presentation only (data/feel runnerShareStepFt).
+    /// </summary>
+    public (double X, double Z) DrawPosition(double shareStepFt)
+    {
+        var at = Position;
+        if (!Unentitled || Feet > 0 || Bag is < 1 or > 3 || shareStepFt <= 0) return at;
+        var toward = Bag > FromBag ? Diamond.Bag(Bag - 1) : Diamond.Bag(Bag + 1);
+        var len = Diamond.Dist(at.X, at.Z, toward.X, toward.Z);
+        if (len <= 1e-9) return at;
+        var step = Math.Min(shareStepFt, len);
+        return (at.X + (toward.X - at.X) / len * step, at.Z + (toward.Z - at.Z) / len * step);
+    }
+
     /// <summary>Feet still to run to reach <paramref name="bag"/> along the path; 0 when already there or past it.</summary>
     public double FeetTo(int bag)
     {
@@ -191,6 +216,7 @@ public sealed class Runner
         OverrunFt = 0;
         OverrunOut = false;
         InRundown = false;
+        Unentitled = false;
     }
 
     /// <summary>Contact or catcher possession: snapshot forces and preserve already departing bodies.</summary>
@@ -223,6 +249,14 @@ public sealed class Runner
         InRundown = false;
     }
 
+    /// <summary>
+    /// The bag a return goes to: the start bag when a retouch is owed (§10.5); the bag behind when this body stands on a bag
+    /// another runner is entitled to and came to it from behind (§9.1, OBR 5.06(a)(2)); else the last bag touched.
+    /// </summary>
+    public int ReturnBag => LeftEarly ? FromBag
+        : Unentitled && Feet <= 0 && !Overrunning && Bag > Math.Max(FromBag, 1) ? Bag - 1
+        : Bag;
+
     /// <summary>Head for <paramref name="bag"/> (never back past the last touched bag; home at most).</summary>
     public void Send(int bag, bool human = false)
     {
@@ -238,7 +272,7 @@ public sealed class Runner
     public void Return(bool human = false)
     {
         if (!Live) return;
-        DestBag = LeftEarly ? FromBag : Bag;
+        DestBag = ReturnBag;
         Held = false;
         if (human) HumanSent = false;
         TagAndGo = false;
@@ -496,13 +530,14 @@ public static class RunnerSystem
         foreach (var runner in ordered)
         {
             runner.ArrivedThisTick = false;
-            var forcedNow = runner.Forced && !runner.IsBatter && ctx.Fly is (FlyState.None or FlyState.Dropped) && ctx.ForceAt(runner.NextBag);
+            var forcedNow = ForcedOff(runner, ctx.ForceAt, ctx.Fly) && ctx.Fly is (FlyState.None or FlyState.Dropped);
 
             // The fly hold (§9.5): in the air, everyone but the batter comes back to the bag and waits,
             // unless the offense sent them by hand. The batter holds at first once there.
             if (ctx.Fly == FlyState.InAir && !runner.HumanSent)
             {
-                if (!runner.IsBatter) runner.SetDest(runner.Bag);
+                // A body giving a bag back (§9.1) keeps going to the bag behind; everyone else holds the last bag touched.
+                if (!runner.IsBatter) runner.SetDest(Math.Min(runner.DestBag, runner.Bag));
                 else if (runner.Bag >= 1) runner.SetDest(Math.Min(runner.DestBag, runner.Bag));
             }
             // Forced on a grounder: they have no choice (§9.3).
@@ -567,10 +602,11 @@ public static class RunnerSystem
             {
                 var before = runner.Progress;
                 var feet = runner.Feet + speed * dt;
-                // No passing: stop behind the runner ahead.
+                // No passing (§9.1): between bags, stop noPassFt behind the runner ahead. A runner ahead standing on a bag
+                // can be run up to — two bodies may reach one bag (OBR 5.06(a)(2)); the share rule says whose it is.
                 if (ahead is not null && ahead.Live)
                 {
-                    var limit = ahead.Progress - speedRules.NoPassFt;
+                    var limit = StandsOnABag(ahead) ? ahead.Progress : ahead.Progress - speedRules.NoPassFt;
                     var scale = Diamond.Baseline / runner.SegmentFt;
                     var maxProgress = Math.Max(before, limit);
                     var maxFeet = (maxProgress - runner.Bag * Diamond.Baseline) / scale;
@@ -653,5 +689,73 @@ public static class RunnerSystem
             runner.TickOnBag(dt);
             ahead = runner;
         }
+        MarkShares(runners, ctx.ForceAt, ctx.Fly);
+    }
+
+    /// <summary>A body standing still on first, second or third for the no-pass rule: feet 0, not out past first.</summary>
+    static bool StandsOnABag(Runner r) => r.Bag is >= 1 and <= 3 && r.Feet <= 0 && !r.Overrunning;
+
+    /// <summary>
+    /// The force on this runner now (§9.3): forced at contact, still on the bag they started the play on, the force at the
+    /// next bag still standing, and the batted ball not caught. A runner who has reached the bag they were forced to is no
+    /// longer forced — the force is one bag, never the rest of the chain.
+    /// </summary>
+    public static bool ForcedOff(Runner runner, Func<int, bool> forceAt, FlyState fly) =>
+        runner.Live && runner.Forced && !runner.IsBatter && runner.Bag == runner.FromBag
+        && fly != FlyState.Caught && forceAt(runner.FromBag + 1);
+
+    /// <summary>Standing on <paramref name="bag"/> (first, second or third) for the share rule (§9.1): <see cref="Runner.IsOn"/>.</summary>
+    static bool StandsOn(Runner r, int bag) => bag is >= 1 and <= 3 && r.IsOn(bag);
+
+    /// <summary>
+    /// The share rule (§9.1, OBR 5.06(a)(2)): of the bodies on one bag, the preceding runner (the one who started the play
+    /// furthest along) is entitled to it — unless that runner is forced off it (<see cref="ForcedOff"/>), when the
+    /// following runner is. <paramref name="bodies"/> are the runners standing there.
+    /// </summary>
+    static Runner? EntitledAmong(IEnumerable<Runner> bodies, Func<int, bool> forceAt, FlyState fly)
+    {
+        Runner? entitled = null;
+        foreach (var r in bodies.OrderByDescending(r => r.FromBag))
+        {
+            entitled = r;
+            if (!ForcedOff(r, forceAt, fly)) break;
+        }
+        return entitled;
+    }
+
+    /// <summary>The runner <paramref name="bag"/> (1–3) protects (§9.1, OBR 5.06(a)(2)); null when nobody stands on it.</summary>
+    public static Runner? EntitledOn(IEnumerable<Runner> runners, int bag, Func<int, bool> forceAt, FlyState fly) =>
+        EntitledAmong(runners.Where(r => StandsOn(r, bag)), forceAt, fly);
+
+    /// <summary>
+    /// Does <paramref name="bag"/> protect <paramref name="runner"/> from a tag (§9.1, §10.3)? Home always does (a body there
+    /// has scored). First, second and third do unless another runner standing on the bag is entitled to it over this one.
+    /// Every tag-safety read goes through here.
+    /// </summary>
+    public static bool Protects(IEnumerable<Runner> runners, Runner runner, int bag, Func<int, bool> forceAt, FlyState fly)
+    {
+        if (bag is < 1 or > 3) return true;
+        var bodies = runners.Where(o => o != runner && StandsOn(o, bag)).Append(runner);
+        return EntitledAmong(bodies, forceAt, fly) == runner;
+    }
+
+    /// <summary>Standing on a bag another runner is entitled to (§9.1): not tag-safe there, and not settled for Time (§10.6).</summary>
+    public static bool Unentitled(IEnumerable<Runner> runners, Runner runner, Func<int, bool> forceAt, FlyState fly) =>
+        StandsOn(runner, runner.Bag) && !Protects(runners, runner, runner.Bag, forceAt, fly);
+
+    /// <summary>Two live bodies stand on one bag (§9.1): the play is not over until one of them leaves it or is out (§10.6).</summary>
+    public static bool Shared(IEnumerable<Runner> runners)
+    {
+        var list = runners as IReadOnlyCollection<Runner> ?? runners.ToList();
+        for (var bag = 1; bag <= 3; bag++)
+            if (list.Count(r => StandsOn(r, bag)) > 1) return true;
+        return false;
+    }
+
+    /// <summary>Flag every body the share rule leaves unprotected this frame (<see cref="Runner.Unentitled"/>).</summary>
+    public static void MarkShares(IReadOnlyList<Runner> runners, Func<int, bool> forceAt, FlyState fly)
+    {
+        foreach (var r in runners)
+            r.MarkUnentitled(r.Live && Unentitled(runners, r, forceAt, fly));
     }
 }
