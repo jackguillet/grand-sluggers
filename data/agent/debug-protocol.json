@@ -298,8 +298,8 @@
       "signature": "Click Lessons starts attempt; click Next retries; click another lesson opens selected row",
       "stage": "sitting",
       "cause": "Controls.SouthDown aliases MouseLeftDown. Tutorial modal Update dispatched primary confirm before IMGUI button mouse-up.",
-      "fix": "TutorialDirector excludes PointerDown from modal primary confirm. Uses Controls.PointerDown/GuiMouse and shared HowToPlay hit rectangles, like Call time. Draw-only IMGUI labels do not depend on legacy mouse-up events. Pad/keyboard confirm and in-play mouse baseball stay unchanged.",
-      "promoted": "Retired: pointer input was removed (gamepad only).",
+      "fix": "TutorialDirector excludes PointerDown from modal primary confirm. Uses Controls.PointerDown/GuiMouse and shared HowToPlay hit rectangles, like Call time. Draw-only IMGUI labels do not depend on legacy mouse-up events. Pad/keyboard confirm and in-play mouse baseball stay unchanged. Retired: pointer input was removed (gamepad only).",
+      "promoted": "",
       "issue": "#776",
       "pr": ""
     },
