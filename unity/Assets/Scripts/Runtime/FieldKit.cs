@@ -181,7 +181,9 @@ namespace GrandSluggers.UnityClient
             Place(plate, home, Vector3.one, Quaternion.identity);
             if (point != null) point.gameObject.SetActive(false);
             var scale = (float)HomeSet.PlateMeshScale;
-            if (DropMesh("home-plate", plate, "Mesh", home, Quaternion.identity,
+            // FBX exports Blender +Y toward Unity -Z. Rotate about the authored
+            // rear point so the wide edge faces the mound (+Z), as HomeSet does.
+            if (DropMesh("home-plate", plate, "Mesh", home, Quaternion.Euler(0f, 180f, 0f),
                 new Vector3(scale, 1f, scale), paint: true) != null) return;
             PrimitivePlate(plate);
         }
