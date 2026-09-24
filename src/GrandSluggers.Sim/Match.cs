@@ -717,10 +717,6 @@ public sealed partial class Match
 
     internal void PrepareLivePlay() => CurrentPlay();
 
-    /// <summary>Bobble on a live scoop, from the one seeded stream (S-92).</summary>
-    internal bool RollBobble(double energy, Character who) =>
-        InPlay.Bobbles(energy, who, _rng, Rules, DefenseGlove);
-
     /// <summary>One authoritative handling outcome per qualifying take (#721, F693-02-ordinary-handling-error-chance): a draw only when there is a chance.</summary>
     internal bool RollHandling(double chance) => chance > 0 && _rng.NextDouble() < chance;
 

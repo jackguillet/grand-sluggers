@@ -75,7 +75,7 @@ public sealed partial class TutorialSession
         if (Lesson.Objective is "human-bobble-recovery" or "human-fumble-recovery")
         {
             if (live.Events.Contains(LiveEvent.Bobble) && live.LooseBall && !live.Deflected
-                && (Match.Rules.Fielding.Handling.Active ? live.HandlingChance > 0 : live.Bobbling))
+                && live.HandlingChance > 0)
             {
                 _bobbleSeen = true;
             }
@@ -269,7 +269,7 @@ public sealed partial class TutorialSession
             var flight = release?.Flight;
             var thrower = flight is null ? null : live.TutorialFielderAt(flight.FromPos);
             var receiver = flight is null ? null : live.TutorialFielderAt(flight.ReceiverPos);
-            var eligibleBag = Match.Rules.Fielding.Abilities.LaserHomeOnly == 0 || flight?.Bag == 4;
+            var eligibleBag = flight?.Bag == 4;
             var success = _laserHumanThrow && flight is not null && thrower?.FieldAbility == "laser"
                 && receiver is not null && eligibleBag;
             if (success)
@@ -309,7 +309,7 @@ public sealed partial class TutorialSession
                 && m.Fielder == cutter && m.T >= feed!.T);
             var onward = handoff ? marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease
                 && m.Flight is { Bag: 4 } && m.Flight.FromPos == cutter && m.T >= feed!.T) : null;
-            var playerOwned = _relayHumanFeed && (Match.Rules.Fielding.Throw.RelayAutoContinue > 0 || _relayHumanOnward);
+            var playerOwned = _relayHumanFeed && _relayHumanOnward;
             var success = playerOwned && handoff && onward?.Flight is not null;
             if (Lesson.Objective == "human-snap-relay" && success)
             {

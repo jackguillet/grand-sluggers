@@ -136,10 +136,6 @@ public sealed class TutorialCatalog
                 Require((l.Id, l.Objective) is ("T-G01", "guided-lineup") or ("T-G05", "guided-seats")
                     or ("T-G06", "guided-pause") or ("T-G06-R", "guided-recovery") or ("T-G06-C", "guided-calibration") or ("T-G07", "guided-settings"),
                     l.Id + " has unknown guided objective");
-                if (l.Objective == "guided-calibration")
-                {
-                    if (l.Profiles.Contains(Profile)) Require(content.Rules.Fielding.Stick.Radial, l.Id + " profile does not offer Reset stick");
-                }
                 Require(l.Setup == "", l.Id + " guided lesson must use existing screens");
                 continue;
             }

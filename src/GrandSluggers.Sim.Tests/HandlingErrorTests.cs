@@ -14,8 +14,6 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class HandlingErrorTests
 {
     static readonly ContentCatalog Game = ContentCatalog.Load();
-    /// <summary>The game's handling table with the awkward-hop switch off.</summary>
-    static readonly RulesTable HopOff = Rules.Default with { Fielding = Rules.Default.Fielding with { Handling = Rules.Default.Fielding.Handling with { AwkwardHop = 0 } } };
     const double Frame = 1.0 / 60.0;
     const double G = 32.174;
 
@@ -23,9 +21,6 @@ public sealed class HandlingErrorTests
     public void TheGameRollsOnlyOnTheAwkwardHop()
     {
         var h = Game.Rules.Fielding.Handling;
-        Assert.Equal(1, h.AwkwardHop);
-        Assert.True(h.Active);
-        Assert.False(HopOff.Fielding.Handling.Active);
         // The accepted anchors.
         Assert.Equal((0.10, 0.80, 0.5, 1.5, 0.35, 0.40), (h.ChanceCap, h.HandsCut, h.HopMinApexFt, h.HopFullApexFt, h.HopPhaseHalfWidth, h.StunSec));
         Assert.Equal((30.0, 0.20, 6.0, 0.50, 0.25), (h.BobbleSpreadDeg, h.BobbleRetain, h.BobbleCapFtPerSec, h.BobbleReboundCapFt, h.BobbleSettleFt));
@@ -55,7 +50,6 @@ public sealed class HandlingErrorTests
         Assert.Equal(0.5, FieldingResolver.HopDifficulty(0.325 * 2, Rise(2, 0.325), r), 6);   // φ 0.325: half way down the band
         Assert.Equal(0, FieldingResolver.HopDifficulty(0.15 * 2, Rise(2, 0.15), r), 6);       // the clean short hop
         Assert.Equal(0, FieldingResolver.HopDifficulty(0.85 * 2, Rise(2, 0.85), r), 6);       // the clean long hop
-        Assert.Equal(0, FieldingResolver.HopDifficulty(0.75, Rise(1.5, 0.5), HopOff));   // nothing with the switch off
         // H: Hands 1 → 0, 10 → 1, and the glove's help counts.
         Character Hands(int h) => Game.Must("vale") with { Stats = Game.Must("vale").Stats with { Hands = h } };
         Assert.Equal(0, FieldingResolver.HandlingQuality(Hands(1), r, null));
@@ -70,7 +64,6 @@ public sealed class HandlingErrorTests
         Assert.Equal(0.01, FieldingResolver.HandlingErrorChance(0.5, 1, r), 9);
         Assert.Equal(0, FieldingResolver.HandlingErrorChance(0, 0, r));
         Assert.Equal(0.10, FieldingResolver.HandlingErrorChance(5, -1, r), 9);   // the ceiling binds whatever the inputs
-        Assert.Equal(0, FieldingResolver.HandlingErrorChance(1, 0, HopOff));
     }
 
     /// <summary>

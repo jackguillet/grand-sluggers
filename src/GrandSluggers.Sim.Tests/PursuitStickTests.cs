@@ -20,7 +20,7 @@ public sealed class PursuitStickTests
     public void TheStickIsTheCalibratedRadialOne()
     {
         var t = Radial;
-        Assert.Equal((0.20, 0.15, true), (t.EnterMag, t.LeaveMag, t.Radial));
+        Assert.Equal((0.20, 0.15), (t.EnterMag, t.LeaveMag));
         Assert.Equal((0.50, 0.10, 0.02), (t.CalibrationSec, t.CenterOffsetMax, t.SampleSpreadMax));
     }
 

@@ -14,23 +14,15 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class RecoilTests
 {
     static readonly ContentCatalog Game = ContentCatalog.Load();
-    /// <summary>The game's tables with the impact recoil off: the energy knockback's rule.</summary>
-    static readonly RulesTable RecoilOff = Rules.Default with { Fielding = Rules.Default.Fielding with { Recoil = Rules.Default.Fielding.Recoil with { OnsetFtPerSec = 0, FullFtPerSec = 0 } } };
-    static string WithoutRecoil(string fielding) => fielding.Replace("\"onsetFtPerSec\": 55", "\"onsetFtPerSec\": 0").Replace("\"fullFtPerSec\": 75", "\"fullFtPerSec\": 0");
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
     [Trait("Kind", "Balance")]
-    public void TheRecoilReadsTheBallsSpeedAndTheKnockbackWaitsBehindIt()
+    public void TheRecoilReadsTheBallsSpeed()
     {
         var t = Game.Rules.Fielding.Recoil;
         Assert.Equal((55.0, 75.0, 0.20, 0.05, 10.0), (t.OnsetFtPerSec, t.FullFtPerSec, t.CapSec, t.HandsCutPerPoint, t.KickFtPerSec));
-        Assert.True(t.Active);
-        Assert.False(RecoilOff.Fielding.Recoil.Active);
-        // The knockback block, not read while the recoil is on.
-        var k = Game.Rules.Fielding.Knockback;
-        Assert.Equal((72.0, 0.045, 90.0, 0.55, 0.02), (k.MinEnergy, k.SecPerFieldDeficit, k.EnergySpan, k.MaxSec, k.MinSec));
     }
 
     /// <summary>The curve (F693-02-recoil-severity-curve), the hands (F693-02-recoil-field-factors), the shaping (bounded severity first) and both caps, as numbers.</summary>
@@ -72,15 +64,11 @@ public sealed class RecoilTests
             Assert.True(FieldingResolver.RecoilSec(Hands(3), v, r) <= FieldingResolver.RecoilSec(Hands(3), v + 5, r) + 1e-12);
             Assert.True(FieldingResolver.RecoilSec(Hands(7), v, r) <= FieldingResolver.RecoilSec(Hands(3), v, r) + 1e-12);
         }
-        // Nothing with the recoil off, at any speed, for any hands.
-        Assert.Equal(0, FieldingResolver.RecoilSec(Game.Must("vale"), 300, RecoilOff));
-        Assert.Equal(0, FieldingResolver.RecoilSeverity(300, RecoilOff));
     }
 
     /// <summary>
     /// A 70-mph Nice grounder back to the mound arrives at 48 ft/s, under the onset: the pitcher pays nothing — no clock, no event,
-    /// no skid — and the play's marks are the same, to the frame, as under a copy with the recoil off (where the knockback charges
-    /// this ball nothing either). The clean path is untouched.
+    /// no skid. The clean path is untouched.
     /// </summary>
     [Fact]
     public void ARoutinePickupAddsZeroFrames()
@@ -90,13 +78,6 @@ public sealed class RecoilTests
         Assert.Equal(0, on.Events);
         Assert.Equal(0, on.Dur);
         Assert.InRange(on.Speed, 1, Game.Rules.Fielding.Recoil.OnsetFtPerSec);
-        Assert.Equal(0, InPlay.KnockbackSec(InPlay.Energy(on.Hit, Game.Rules), Game.Must("vale"), Game.Rules));
-
-        using var legacy = new PatchedGame(WithoutRecoil);
-        var off = RunCpu(legacy.Content, 70, -8, 0, ContactQuality.Nice);
-        Assert.False(legacy.Content.Rules.Fielding.Recoil.Active);
-        Assert.Equal(off.Marks, on.Marks);
-        Assert.Equal(off.Play.Kind, on.Play.Kind);
     }
 
     /// <summary>A routine fly stays a routine fly: the slice charges no airborne catch at all.</summary>
@@ -115,7 +96,7 @@ public sealed class RecoilTests
     /// <summary>
     /// A 125-mph Perfect comebacker at 2° reaches the mound in half a second at 91 ft/s — past the full speed. vale (Hands 8) pays
     /// 0.20 × 0.65 = 0.13 s and skids 0.65² = 0.42 ft along the ball's travel; the same ball twice costs the same to the frame and
-    /// the foot; with the recoil off the knockback stops him by the contact's energy instead.
+    /// the foot.
     /// </summary>
     [Fact]
     public void TheHardGrounderCostsTheShortstopWhatItsSpeedSaysAndTheSameTwice()
@@ -136,17 +117,6 @@ public sealed class RecoilTests
         Assert.Equal(a.Skid, b.Skid);
         Assert.Equal(a.TakeAt, b.TakeAt);
         Assert.Equal(a.Marks, b.Marks);
-
-        using var legacy = new PatchedGame(WithoutRecoil);
-        var off = RunCpu(legacy.Content, 150, -3, -18, ContactQuality.Perfect);
-        Assert.Equal("SS", off.Pos);
-        Assert.False(off.Impact, "with the recoil off there is no impact recoil");
-        Assert.Equal(0, off.Dur);
-        Assert.Equal(0, off.Events);
-        var knock = InPlay.KnockbackSec(InPlay.Energy(off.Hit, legacy.Content.Rules), legacy.Content.Must("grit"), legacy.Content.Rules);
-        Assert.True(knock > legacy.Content.Rules.Fielding.Knockback.MinSec);
-        Assert.Equal(knock, off.RecoilAtTake, 6);   // the knockback clock, set at the take and counted down from the next tick
-        Assert.True(off.Speed >= 75, "the ball's speed is sampled either way");
     }
 
     /// <summary>The same rocket to authored hands: Hands 1 pays the whole 0.20 s and skids the whole foot; Hands 10 pays 0.11 s and 0.30 ft — the caps bind and the hands still tell there (F693-02-recoil-field-shaping).</summary>
@@ -165,7 +135,7 @@ public sealed class RecoilTests
 
     /// <summary>
     /// A 105-mph liner at 10° into right lands at 1.55 s and skids to hex (Hands 4) at 62 ft/s: a ground pickup, so it is charged
-    /// what its speed says; the knockback, which charged grounders alone, charges nothing with the recoil off.
+    /// what its speed says.
     /// </summary>
     [Fact]
     public void ALandedLinerPickedUpOffTheGrassCostsWhatItsSpeedSays()
@@ -179,12 +149,6 @@ public sealed class RecoilTests
         Assert.Equal(1, on.Events);
         Assert.Equal(FieldingResolver.RecoilSec(Game.Must("moss"), on.Speed, active.Content.Rules), on.Dur, 9);
         Assert.True(on.Dur > 0.05);
-
-        using var legacy = new PatchedGame(WithoutRecoil);
-        var off = RunCpu(legacy.Content, 110, 10, -8, ContactQuality.Perfect);
-        Assert.Equal(0, off.RecoilFrames);
-        Assert.Equal(0, off.Dur);
-        Assert.Equal(0, off.Events);
     }
 
     /// <summary>

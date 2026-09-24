@@ -202,8 +202,7 @@ public sealed class FielderTellsTests
 
     /// <summary>
     /// The comebacker costs vale 0.13 s (weight 0.65): the frame it lands the pitcher squashes 0.16 × 0.65 and eases back to full
-    /// shape as the recovery runs out; no other body braces. The routine grounder braces nobody on any frame, and with the recoil off
-    /// the knockback on the same comebacker is not a brace.
+    /// shape as the recovery runs out; no other body braces. The routine grounder braces nobody on any frame.
     /// </summary>
     [Fact]
     public void AHardBallBracesTheGloveAndARoutineOneBracesNobody()
@@ -233,13 +232,8 @@ public sealed class FielderTellsTests
         Assert.Equal(1 - 0.16 * 0.75, braced[0], 9);   // the take: the full squash at this ball's weight
         Assert.True(braced.Zip(braced.Skip(1)).All(p => p.Second > p.First), "the brace eases out, never deepens");
 
-        // The routine grounder, and the knockback on the same comebacker with the recoil off: nobody braces on any frame.
-        using var recoilOff = new PatchedGame(text => text.Replace("\"onsetFtPerSec\": 55", "\"onsetFtPerSec\": 0").Replace("\"fullFtPerSec\": 75", "\"fullFtPerSec\": 0"));
-        Assert.False(recoilOff.Content.Rules.Fielding.Recoil.Active);
-        foreach (var (content, exit2, launch2, quality) in new[]
-                 {
-                     (Game, 70.0, 8.0, ContactQuality.Nice), (recoilOff.Content, 70.0, 8.0, ContactQuality.Nice), (recoilOff.Content, 125.0, 2.0, ContactQuality.Perfect)
-                 })
+        // The routine grounder: nobody braces on any frame.
+        foreach (var (content, exit2, launch2, quality) in new[] { (Game, 70.0, 8.0, ContactQuality.Nice) })
         {
             var (m, l) = BeginCpu(content, exit2, launch2, 0, seed: 1, quality: quality);
             PlayEvent? done = null;

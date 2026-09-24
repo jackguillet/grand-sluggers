@@ -70,7 +70,7 @@ public sealed class PursuitContractTests
     [Trait("Kind", "Balance")]
     public void TheCoverSpeedIsTheBodysOwn()
     {
-        Assert.Equal((0.0, 0.0, 1.0), (Game.Rules.Fielding.Cover.StartSec, Game.Rules.Fielding.Cover.LockoutMul, Game.Rules.Fielding.Cover.ChaseSpeedWeight));
+        Assert.Equal((0.0, 1.0), (Game.Rules.Fielding.Cover.StartSec, Game.Rules.Fielding.Cover.ChaseSpeedWeight));
         foreach (var who in Game.Characters.Values)
             Assert.Equal(FieldingResolver.ChaseSpeedFt(who, false, Game.Rules), FieldingResolver.CoverSpeedFt(who, Game.Rules), 9);
     }
@@ -106,8 +106,7 @@ public sealed class PursuitContractTests
         }
         Assert.True(firstMove >= 0, "1B never moved");
         var cover = match.Rules.Fielding.Cover;
-        var read = match.Rules.Fielding.Reaction.LockoutSec("1B") * match.Rules.Cpu.Active.ReactionMul;
-        var expectedWait = Math.Max(cover.StartSec, cover.LockoutMul * read);
+        var expectedWait = cover.StartSec;
         var movedAt = track[firstMove].T;
         Assert.InRange(movedAt, expectedWait - 1e-9, expectedWait + 2 * Frame);
         Assert.InRange(movedAt, Frame - 1e-9, 2 * Frame + 1e-9);
