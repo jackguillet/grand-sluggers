@@ -124,9 +124,14 @@ namespace GrandSluggers.EditorTools
                             var b = filter.transform.TransformPoint(vertices[indices[i + 1]]);
                             var c = filter.transform.TransformPoint(vertices[indices[i + 2]]);
                             var normal = Vector3.Cross(b - a, c - a);
-                            if (normal.normalized.y < 0.9f) continue;
+                            // The bevel is intentionally embedded; measure the flat playing face.
+                            if (normal.normalized.y < 0.999f) continue;
                             if (Mathf.Min(a.y, Mathf.Min(b.y, c.y)) <= dirt.max.y)
                                 errors.Add("home-plate white face is buried in home dirt");
+                            var expectedTop = dirt.max.y + FieldKit.PlateFaceClearanceFt;
+                            if (Mathf.Max(Mathf.Abs(a.y - expectedTop),
+                                Mathf.Max(Mathf.Abs(b.y - expectedTop), Mathf.Abs(c.y - expectedTop))) > 0.001f)
+                                errors.Add("home-plate white playing face is not nearly flush with the dirt");
                             whiteTopArea += normal.y * 0.5f;
                         }
                     }
@@ -134,7 +139,10 @@ namespace GrandSluggers.EditorTools
                 errors.AddRange(ValidatePlateFootprint(footprint));
                 if (whiteTopArea < (float)(HomeSet.PlateW * HomeSet.PlateDepth * 0.5))
                     errors.Add("home-plate has no readable upward white pentagon");
-                Check(errors, "plate underside on dirt", bounds.min.y, dirt.max.y);
+                if (bounds.min.y >= dirt.max.y)
+                    errors.Add("home-plate slab must be embedded in the home dirt");
+                if (bounds.max.y > dirt.max.y + 1f / 16f)
+                    errors.Add("home-plate rim stands more than 3/4 inch above the dirt");
                 Check(errors, "plate left edge", bounds.min.x, (float)(Diamond.Home.X - HomeSet.PlateW * 0.5));
                 Check(errors, "plate right edge", bounds.max.x, (float)(Diamond.Home.X + HomeSet.PlateW * 0.5));
                 Check(errors, "plate catcher point", bounds.min.z, (float)(Diamond.Home.Z + HomeSet.PlatePointZ));

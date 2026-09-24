@@ -101,6 +101,10 @@ namespace GrandSluggers.UnityClient
         const float HomePadBackFt = 1.2f;
         /// <summary>The home pad is an oval: this times its radius deep (it is twice its radius wide).</summary>
         const float HomePadDepthMul = 2.2f;
+        /// <summary>White playing face clears the dirt by only 1/8 inch to avoid z-fighting.</summary>
+        public const float PlateFaceClearanceFt = 1f / 96f;
+        /// <summary>White face height in the authored FBX; the slab is embedded, not perched on dirt.</summary>
+        const float AuthoredPlateFaceY = 0.22f;
         /// <summary>The primitive plate and bag slabs (when the kit FBX is missing).</summary>
         const float PlateSlabFt = 0.12f;
         const float BagSlabFt = 0.28f;
@@ -173,8 +177,8 @@ namespace GrandSluggers.UnityClient
         {
             var plate = Anchor(HomePlateName);
             var point = Anchor(HomePointName);
-            // The authored mesh's underside is at its origin. Seat it on the
-            // same dirt top as the fallback, not below the packed home pad.
+            // Embed the slab so its playing face, rather than its underside,
+            // sits just above the dirt. The bag slabs retain their own height.
             var home = new Vector3((float)Diamond.Home.X, ParkDiamond.PathTop, (float)Diamond.Home.Z);
             Wipe(plate);
             Wipe(point);
@@ -184,7 +188,12 @@ namespace GrandSluggers.UnityClient
             // FBX exports Blender +Y toward Unity -Z. Rotate about the authored
             // rear point so the wide edge faces the mound (+Z), as HomeSet does.
             if (DropMesh("home-plate", plate, "Mesh", home, Quaternion.Euler(0f, 180f, 0f),
-                new Vector3(scale, 1f, scale), paint: true) != null) return;
+                new Vector3(scale, 1f, scale), paint: true) is Transform mesh)
+            {
+                mesh.position += Vector3.up * (PlateFaceClearanceFt - AuthoredPlateFaceY);
+                return;
+            }
+            plate.position += Vector3.up * (PlateFaceClearanceFt - PlateSlabFt);
             PrimitivePlate(plate);
         }
 
