@@ -57,36 +57,53 @@ def read_jsonc(path: Path) -> dict:
     return json.loads(re.sub(r",(\s*[}\]])", r"\1", "".join(out)))
 
 
-# The diamond the sim plays (data/rules/infield.json) and the park's fence
-# (data/parks/harbor-diamond.json). The next geometry change rebakes with no code edit.
+def sim_consts(cls: str) -> dict:
+    """The Sim's own numeric `const` table for one class (src/GrandSluggers.Sim/<cls>.cs).
+
+    The dress the decision keeps in feet (path width, bag pads, home pad, the dugout) lives as
+    `const` in Sim, not in data. The kit reads that table rather than copying it, so the kit and
+    the game cannot drift. A name that stops being a numeric const raises here, not in the still.
+    """
+    text = (REPO / "src" / "GrandSluggers.Sim" / (cls + ".cs")).read_text()
+    pat = r"\bconst\s+(?:float|double|int)\s+(\w+)\s*=\s*(-?\d+(?:\.\d+)?)[fd]?\s*;"
+    return {m.group(1): float(m.group(2)) for m in re.finditer(pat, text)}
+
+
+# The diamond the sim plays (data/rules/infield.json), the edge it ends at
+# (data/rules/boundary.json) and the park's fence (data/parks/harbor-diamond.json).
+# The next geometry change rebakes with no code edit.
 INFIELD = read_jsonc(REPO / "data" / "rules" / "infield.json")
+BOUNDARY = read_jsonc(REPO / "data" / "rules" / "boundary.json")
 PARK = read_jsonc(REPO / "data" / "parks" / (PARK_ID + ".json"))
 CORNER = float(INFIELD["cornerFt"])
 SECOND = float(INFIELD["secondFt"])
 MOUND_FT = float(INFIELD["moundFt"])
+INNER_HALF = float(INFIELD["innerHalfFt"])
+BACK_ARC = float(INFIELD["backArcFt"])
+DIAMOND = sim_consts("ParkDiamond")
+DUGOUT = sim_consts("HarborDugout")
 
-# Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
-HALF_ALONG = 21.3
-HALF_DEEP = 3.5
-PIT = 3.2
-STAIR_COUNT = 4
-STAIR_DEPTH = 0.70
-FIELD_STAIR_RUN = 1.2
+HALF_ALONG = DUGOUT["HalfAlong"]
+HALF_DEEP = DUGOUT["HalfDeep"]
+PIT = DUGOUT["PitDepth"]
+STAIR_COUNT = int(DUGOUT["StairCount"])
+STAIR_DEPTH = DUGOUT["StairDepth"]
+FIELD_STAIR_RUN = DUGOUT["FieldStairRun"]
 # Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
 BAG_SIZE = 4.0
 # The park's fence (D15: the drawn wall is the fence the flight clips against).
 LEFT_FENCE = float(PARK["leftFenceFt"])
 CENTER_FENCE = float(PARK["centerFenceFt"])
 RIGHT_FENCE = float(PARK["rightFenceFt"])
-# Keep in sync with HarborWall / HarborPostcard / HarborDugout.
+# The wall ring: HOME_RADIUS and WRAP_SEGS are the kit's own (HarborKitScriptTests); the dugout is read above.
 FOUL_DEG = 45.0
 HOME_RADIUS = 34.0
 WRAP_SEGS = 120
 WALL_H = float(PARK["fenceHeightFt"])
 WALL_THICK = 3.4
-DUGOUT_X = 70.0
-DUGOUT_Z = 40.0
-DUGOUT_PAD = 14.0
+DUGOUT_X = DUGOUT["X"]
+DUGOUT_Z = DUGOUT["Z"]
+DUGOUT_PAD = float(BOUNDARY["dugoutPadFt"])
 DUGOUT_CLEAR_X = DUGOUT_X + HALF_DEEP + DUGOUT_PAD
 DUGOUT_CLEAR_Z = DUGOUT_Z + HALF_ALONG + 10.0
 DUGOUT_R = math.hypot(DUGOUT_CLEAR_X, DUGOUT_CLEAR_Z)
@@ -95,11 +112,12 @@ DUGOUT_SPRAY = math.degrees(math.atan2(DUGOUT_CLEAR_X, DUGOUT_CLEAR_Z))
 PLATE_HALF_W = 17.0 / 12.0 / 2.0
 PLATE_FRONT = 17.0 / 12.0
 PLATE_SHOULDER = 8.5 / 12.0
-PATH_WIDTH = 8.0
-PATH_CORNER = 14.0
+PATH_WIDTH = DIAMOND["PathWidth"]
+BAG_PAD_R = DIAMOND["BagPadR"]
 PATH_Y = 0.26
 PATH_THICK = 0.24
-HOME_PACKED_R = 16.0
+HOME_PACKED_R = DIAMOND["HomePackedR"]
+SKIN_SEGS = int(DIAMOND["SkinLoopSegs"])
 KIT_CLAY = ("home-plate", "bag", "mound", "fan-stand")
 MOUND_R = 9.2
 MOUND_H = 0.98
@@ -572,46 +590,93 @@ def build_warning_track(dirt):
     return origin_world(track)
 
 
-def build_infield_dirt(dirt):
-    """Rounded diamond ring at home origin. Inner grass shows through.
+def _ray_circle_far(ox, oz, dx, dz, cx, cz, r):
+    fx, fz = ox - cx, oz - cz
+    b = fx * dx + fz * dz
+    c = fx * fx + fz * fz - r * r
+    disc = b * b - c
+    if disc < 0:
+        return 0.0
+    s = math.sqrt(disc)
+    t = max(-b - s, -b + s)
+    return t if t > 0.01 else 0.0
 
-    Height matches ParkDiamond.PathY / PathThick so the ring sits on the lawn,
-    not in it (a 0.16-ft slab at z=0.11 z-fights the grass and vanishes).
-    """
-    home = (0.0, 0.0)
+
+def _angular_dist(a, b):
+    d = a - b
+    while d > math.pi:
+        d -= 2 * math.pi
+    while d < -math.pi:
+        d += 2 * math.pi
+    return abs(d)
+
+
+def _inner_on_ray(x, z):
+    """ParkDiamond.InnerOnRay: the grass diamond's edge on the ray from its center."""
+    center = SECOND * 0.5
+    dx, dz = x, z - center
+    l1 = abs(dx) + abs(dz)
+    if l1 < 1e-6:
+        return 0.0, center
+    s = INNER_HALF / l1
+    return dx * s, center + dz * s
+
+
+def _outer_at(ang):
+    """ParkDiamond.OuterAt: thin home legs, bag pads, and the mound-centered back arc."""
+    center = SECOND * 0.5
+    ux, uz = math.cos(ang), math.sin(ang)
+    ix, iz = _inner_on_ray(ux, center + uz)
+    r_path = math.hypot(ix, iz - center) + PATH_WIDTH
+    r_home = _ray_circle_far(0, center, ux, uz, 0, 0, HOME_PACKED_R)
+    r_back = _ray_circle_far(0, center, ux, uz, 0, MOUND_FT, BACK_ARC)
     first = (CORNER, CORNER)
     second = (0.0, SECOND)
     third = (-CORNER, CORNER)
-    inset = PATH_CORNER
-    pieces = []
+    r_bag = max(_ray_circle_far(0, center, ux, uz, bx, bz, BAG_PAD_R) for bx, bz in (first, second, third))
+    r_front = max(r_path, r_home, r_bag)
+    u = (_angular_dist(ang, -math.pi / 2) - math.pi / 4) / (math.pi / 4)
+    blend = _smoothstep(u)
+    r = max(r_front + (max(r_back, r_front) - r_front) * blend, r_bag)
+    return ux * r, center + uz * r
 
-    def segment(name, a, b):
-        ax, ay = a
-        bx, by = b
-        dx, dy = bx - ax, by - ay
-        span = math.hypot(dx, dy)
-        ux, uy = dx / span, dy / span
-        sx, sy = ax + ux * inset, ay + uy * inset
-        ex, ey = bx - ux * inset, by - uy * inset
-        mx, my = (sx + ex) * 0.5, (sy + ey) * 0.5
-        length = math.hypot(ex - sx, ey - sy)
-        ang = math.atan2(uy, ux)
-        return prim("cube", name, (mx, my, PATH_Y), (length, PATH_WIDTH, PATH_THICK), dirt, rot=(0, 0, ang))
 
-    pieces.append(segment("DirtH1", home, first))
-    pieces.append(segment("Dirt12", first, second))
-    pieces.append(segment("Dirt23", second, third))
-    pieces.append(segment("Dirt3H", third, home))
-    for name, pos, radius in (
-        ("Dirt1", first, PATH_CORNER),
-        ("Dirt2", second, PATH_CORNER),
-        ("Dirt3", third, PATH_CORNER),
-        ("DirtH", home, HOME_PACKED_R),
-    ):
-        d = radius * 2.0
-        pieces.append(prim("cylinder", name, (pos[0], pos[1], PATH_Y), (d, d, PATH_THICK), dirt))
-    ring = join_in_place("infield-dirt", pieces)
-    return origin_world(ring)
+def infield_outline():
+    """(inner, outer) loops of the dirt ring: the outline ParkDiamond.OuterVerts draws in Unity."""
+    outer = [_outer_at(i * 2 * math.pi / SKIN_SEGS) for i in range(SKIN_SEGS)]
+    inner = [_inner_on_ray(x, z) for x, z in outer]
+    return inner, outer
+
+
+def build_infield_dirt(dirt):
+    """The dirt ring the sim draws, around the grass diamond. Inner grass shows through.
+
+    Outline is ParkDiamond's: home legs PathWidth wide, a BagPadR pad at each bag, the home pad,
+    and the 1B–2B–3B back arc (infield.json backArcFt) from the rubber. Height matches
+    ParkDiamond.PathY / PathThick so the ring sits on the lawn, not in it.
+    """
+    inner, outer = infield_outline()
+    n = len(outer)
+    top, bot = PATH_Y + PATH_THICK * 0.5, PATH_Y - PATH_THICK * 0.5
+    mesh = bpy.data.meshes.new("infield-dirt")
+    ob = bpy.data.objects.new("infield-dirt", mesh)
+    bpy.context.collection.objects.link(ob)
+    bm = bmesh.new()
+    it = [bm.verts.new((x, y, top)) for x, y in inner]
+    ot = [bm.verts.new((x, y, top)) for x, y in outer]
+    ib = [bm.verts.new((x, y, bot)) for x, y in inner]
+    ob_ = [bm.verts.new((x, y, bot)) for x, y in outer]
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((it[i], ot[i], ot[j], it[j]))
+        bm.faces.new((ib[j], ob_[j], ob_[i], ib[i]))
+        bm.faces.new((ot[i], ob_[i], ob_[j], ot[j]))
+        bm.faces.new((it[j], ib[j], ib[i], it[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    ob.data.materials.append(dirt)
+    return origin_world(ob)
 
 
 def build_fan(name, sit, jersey, flesh, cap):
@@ -636,7 +701,8 @@ def build_fan(name, sit, jersey, flesh, cap):
 def build():
     nuke()
     print("diamond", "baselineFt", INFIELD["baselineFt"], "cornerFt", CORNER, "secondFt", SECOND,
-          "moundFt", MOUND_FT, "fence", LEFT_FENCE, CENTER_FENCE, RIGHT_FENCE, "wallH", WALL_H)
+          "moundFt", MOUND_FT, "backArcFt", BACK_ARC, "pathWidth", PATH_WIDTH, "bagPad", BAG_PAD_R,
+          "homePad", HOME_PACKED_R, "dugout", DUGOUT_X, DUGOUT_Z, "fence", LEFT_FENCE, CENTER_FENCE, RIGHT_FENCE, "wallH", WALL_H)
     wood = mat("wood", (0.42, 0.26, 0.12))
     roof = mat("roof", (0.14, 0.32, 0.20))
     gold = mat("gold", (1.0, 0.80, 0.25))
@@ -691,11 +757,12 @@ def diamond_tile(clay, path: Path, width: int, height: int):
             o.hide_render = o.name not in shown
     cam_data = bpy.data.cameras.new("diamond-cam")
     cam_data.type = "ORTHO"
-    # Fixed frame: a 90-ft diamond would overrun it, so the still itself reads the size change.
-    cam_data.ortho_scale = 200.0
+    # Fixed frame: the 80-ft dirt (home pad to back arc, ±backArcFt wide) fits inside it; a
+    # 90-ft diamond would overrun it, so the still itself reads the size change.
+    cam_data.ortho_scale = 230.0
     cam = bpy.data.objects.new("diamond-cam", cam_data)
     scene.collection.objects.link(cam)
-    cam.location = (0.0, 55.0, 300.0)
+    cam.location = (0.0, 59.0, 300.0)
     cam.rotation_euler = (0.0, 0.0, 0.0)
     previous = scene.camera
     scene.camera = cam
