@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 public class BagDiagramsTests
 {
     [Fact]
-    public void RunningDiagramsUseTheSharedBagMapAndSchemeOnlyPresses()
+    public void RunningDiagramsUseTheSharedBagMapAndPadPresses()
     {
         Assert.Equal(3, BagDiagrams.Running.Count);
         Assert.Equal(BagDiagrams.Kind.BagMap, BagDiagrams.Running[0].Kind);
@@ -22,23 +22,16 @@ public class BagDiagramsTests
         Assert.Equal("DOWN", BagDiagrams.Direction(4));
         Assert.Equal("HOME", BagDiagrams.BagName(4));
 
-        Assert.Equal("RIGHT STICK", BagDiagrams.Press(BagDiagrams.BagMap, InputScheme.Pad));
-        Assert.Contains("1", BagDiagrams.Press(BagDiagrams.BagMap, InputScheme.Keys));
-        Assert.DoesNotContain("South", BagDiagrams.Press(BagDiagrams.BagMap, InputScheme.Keys));
-        Assert.Equal("LB", BagDiagrams.Press(BagDiagrams.Advance, InputScheme.Pad));
-        Assert.Equal(",", BagDiagrams.Press(BagDiagrams.Advance, InputScheme.Keys));
-        Assert.Equal("RB", BagDiagrams.Press(BagDiagrams.Return, InputScheme.Pad));
-        Assert.Equal(".", BagDiagrams.Press(BagDiagrams.Return, InputScheme.Keys));
+        Assert.Equal("RIGHT STICK", BagDiagrams.BagMap.Press);
+        Assert.Equal("LB", BagDiagrams.Advance.Press);
+        Assert.Equal("RB", BagDiagrams.Return.Press);
 
         Assert.Equal([new BagDiagrams.Route(1, 2), new(2, 3), new(3, 4)], BagDiagrams.Advance.Routes);
         Assert.Equal([new BagDiagrams.Route(1, 4), new(2, 1), new(3, 2)], BagDiagrams.Return.Routes);
 
         foreach (var diagram in BagDiagrams.Running)
         {
-            Assert.False(HowToPlay.MixesHardware(diagram.PadPress), diagram.Title);
-            Assert.False(HowToPlay.MixesHardware(diagram.KeysPress), diagram.Title);
-            Assert.False(HowToPlay.MixesHardware(BagDiagrams.Press(diagram, InputScheme.Pad)));
-            Assert.False(HowToPlay.MixesHardware(BagDiagrams.Press(diagram, InputScheme.Keys)));
+            Assert.False(HowToPlay.NamesKeyboard(diagram.Press), diagram.Title);
         }
         Assert.Equal("running", HowToPlay.Must("running").Id);
     }

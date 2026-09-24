@@ -11,48 +11,33 @@ public static class GettingStarted
         string Title,
         string Picture,
         string Shot,
-        string PadCaption,
-        string KeysCaption);
+        string Caption);
 
-    public sealed record Mode(string Id, string Title, string PadLine, string KeysLine);
+    public sealed record Mode(string Id, string Title, string Line);
 
     public static readonly IReadOnlyList<Step> Path =
     [
         new("title", "Title", "how-to-start-title", "title",
-            "South play ball.",
-            "Space / left click play ball."),
+            "South play ball."),
         new("field", "Stadium", "how-to-start-field", "field",
-            "Choose stadium, time and hazards. South confirms.",
-            "A/D chooses stadium. N night. Space captains."),
+            "Choose stadium, time and hazards. South confirms."),
         new("captains", "Captains", "how-to-start-select", "select",
-            "Choose players, teams and side. South confirms.",
-            "Comma 1 PLAYER. Tab 2 PLAYERS. A/D team. Space lineup."),
+            "Choose players, teams and side. South confirms."),
         new("lineup", "Lineup", "how-to-start-lineup", "lineup",
-            "Build nine, set positions/order, then rules. North ready.",
-            "Build nine, set positions/order, then rules. Q ready."),
+            "Build nine, set positions/order, then rules. North ready."),
         new("pitch", "First pitch", "how-to-start-pitch", "plate",
-            "Home bats the bottom.",
             "Home bats the bottom."),
     ];
 
     public static readonly IReadOnlyList<Mode> Modes =
     [
         new("exhibition", "Exhibition",
-            "Stadium, captains, lineup, positions/order, settings, play.",
             "Stadium, captains, lineup, positions/order, settings, play."),
         new("training", "Training",
-            "Title → Tutorials. Harbor drills.",
-            "Title F. Harbor drills."),
+            "Title → Tutorials. Harbor drills."),
         new("two-pads", "Two controllers",
-            "2 PLAYERS: Controller 2 takes the other side. Seat drop pauses; reconnect.",
-            "Keyboard + mouse is player 1 only. A second controller is player 2."),
+            "2 PLAYERS: Controller 2 takes the other side. Seat drop pauses; reconnect."),
     ];
-
-    public static string Caption(Step step, InputScheme scheme) =>
-        scheme == InputScheme.Keys ? step.KeysCaption : step.PadCaption;
-
-    public static string Line(Mode mode, InputScheme scheme) =>
-        scheme == InputScheme.Keys ? mode.KeysLine : mode.PadLine;
 
     public static (float X, float Y, float W, float H) PathRow(float screenW, float screenH)
     {

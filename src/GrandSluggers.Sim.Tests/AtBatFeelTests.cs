@@ -332,9 +332,7 @@ public class AtBatFeelTests
     public void BookletSaysOutsideTakesAndMissesAreDifferent()
     {
         var pad = HowToPlay.Must("the-box").Lines;
-        var keys = HowToPlay.Must("the-box").KeyLines!;
         Assert.Contains(pad, line => line.Contains("outside") && line.Contains("ball") && line.Contains("strike"));
-        Assert.Contains(keys, line => line.Contains("outside") && line.Contains("ball") && line.Contains("strike"));
     }
 
     [Fact]

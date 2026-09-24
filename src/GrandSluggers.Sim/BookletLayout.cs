@@ -142,7 +142,7 @@ public static class BookletLayout
         return (title, page);
     }
 
-    /// <summary>Measured pills between the booklet label and tabs, wrapping onto row two.</summary>
+    /// <summary>Measured pills after the booklet label, wrapping onto row two.</summary>
     public static IReadOnlyList<Box> Badges(
         float screenW,
         float screenH,
@@ -150,10 +150,9 @@ public static class BookletLayout
         IReadOnlyList<float> measuredLabelWidths)
     {
         var book = HowToPlay.BookPanel(screenW, screenH);
-        var tabs = BookScheme.ToggleBar(screenW, screenH);
         var firstX = book.X + 88f + howToWidth + 16f;
         var wrapX = book.X + 88f;
-        var right = tabs.X - 12f;
+        var right = book.X + book.W - 16f;
         var x = firstX;
         var y = book.Y + 10f;
         var boxes = new List<Box>(measuredLabelWidths.Count);

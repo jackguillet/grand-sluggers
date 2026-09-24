@@ -1,11 +1,13 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// How to play Controls page: a drawn pad or a drawn keyboard+mouse.
-/// Orange lozenges, green offense, red defense. Same verbs. Never mix schemes.
+/// How to play Controls page: a drawn pad.
+/// Orange lozenges, green offense, red defense.
 /// </summary>
 public static class ControlDiagram
 {
+    public const string OffenseLabel = "Offense";
+    public const string DefenseLabel = "Defense";
     public static readonly IReadOnlyList<string> PageIds = ["controls", "controls-2", "controls-3", "controls-4"];
     public sealed record Part(string Id, float U, float V, float W, float H);
 
@@ -26,15 +28,9 @@ public static class ControlDiagram
         return (book.X + 16f, book.Y + top, book.W - 32f, book.H - top - foot - 8f);
     }
 
-    public static IReadOnlyList<Part> Parts(InputScheme scheme) =>
-        PadParts;
-
-    public static IReadOnlyList<Callout> Callouts(InputScheme scheme) =>
-        PadCallouts;
-
-    public static IReadOnlyList<Callout> PageCallouts(InputScheme scheme, string pageId)
+    public static IReadOnlyList<Callout> PageCallouts(string pageId)
     {
-        var all = Callouts(scheme);
+        var all = PadCallouts;
         var page = Math.Max(0, PageIds.ToList().FindIndex(id => id.Equals(pageId, StringComparison.OrdinalIgnoreCase)));
         var start = all.Count * page / PageIds.Count;
         var end = all.Count * (page + 1) / PageIds.Count;
@@ -43,10 +39,10 @@ public static class ControlDiagram
 
     /// <summary>Two-column list. No tiny schematic.</summary>
     public static (float X, float Y, float W, float H) CalloutCell(
-        int index, InputScheme scheme, float screenW, float screenH)
+        int index, float screenW, float screenH)
     {
         var b = Board(screenW, screenH);
-        var n = Callouts(scheme).Count;
+        var n = PadCallouts.Count;
         var rows = Math.Max(1, (n + 1) / 2);
         var col = index < rows ? 0 : 1;
         var row = index < rows ? index : index - rows;
@@ -99,48 +95,4 @@ public static class ControlDiagram
         new("select", "View / Select", "", "", "How to play", 0, 0),
         new("start", "Start / Menu", "", "", "Call time / options", 0, 0),
     ];
-
-    public static readonly IReadOnlyList<Part> KeysParts =
-    [
-        new("wasd-w", 0.36f, 0.34f, 0.06f, 0.07f),
-        new("wasd-a", 0.30f, 0.42f, 0.06f, 0.07f),
-        new("wasd-s", 0.36f, 0.42f, 0.06f, 0.07f),
-        new("wasd-d", 0.42f, 0.42f, 0.06f, 0.07f),
-        new("n1", 0.28f, 0.24f, 0.05f, 0.07f),
-        new("n2", 0.34f, 0.24f, 0.05f, 0.07f),
-        new("n3", 0.40f, 0.24f, 0.05f, 0.07f),
-        new("n4", 0.46f, 0.24f, 0.05f, 0.07f),
-        new("shift", 0.28f, 0.52f, 0.10f, 0.07f),
-        new("space", 0.32f, 0.62f, 0.22f, 0.08f),
-        new("mouse", 0.58f, 0.36f, 0.10f, 0.22f),
-    ];
-
-    public static readonly IReadOnlyList<Callout> KeysCallouts =
-    [
-        new("wasd", "WASD", "", "", "Move / run", 0.02f, 0.38f),
-        new("bags", "1 2 3 4", "", "", "Bags — 1B 2B 3B home", 0.02f, 0.22f),
-        new("space", "Space / left click", "Hold/release pitch / swing; dash", "Catch / throw", "", 0.02f, 0.62f),
-        new("charge", "Shift / right click", "Item modifier", "", "", 0.02f, 0.50f),
-        new("star", "Q hold", "Hold as you let go: star swing", "Hold as you let go: star pitch · B attacks", "", 0.72f, 0.20f),
-        new("bunt", "J / L", "Hold to bunt: J third, L first", "", "", 0.72f, 0.32f),
-        new("cycle", "Tab", "", "Cycle pitch in SET, before you charge", "", 0.72f, 0.26f),
-        new("jump", "F / G", "G cancels a loaded swing", "Jump / dive", "Back", 0.72f, 0.44f),
-        new("steal", "Z", "Steal", "", "", 0.72f, 0.54f),
-        new("run", ", / .", "All advance after contact / return", "", "", 0.72f, 0.64f),
-        new("h", "H", "", "", "Call time", 0.72f, 0.72f),
-        new("esc", "Esc", "", "", "This book", 0.72f, 0.80f),
-        new("aim", "Right-drag", "", "", "Aim / run", 0.56f, 0.62f),
-    ];
-
-    public static bool MixesSchemes(Callout c)
-    {
-        var text = $"{c.Hardware} {c.Offense} {c.Defense} {c.Always}";
-        var pad = text.Contains("South", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("D-pad", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("LT", StringComparison.Ordinal);
-        var keys = text.Contains("Space", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("WASD", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("left click", StringComparison.OrdinalIgnoreCase);
-        return pad && keys;
-    }
 }

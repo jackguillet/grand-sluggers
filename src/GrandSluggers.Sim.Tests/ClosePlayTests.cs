@@ -68,34 +68,4 @@ public class ClosePlayTests
         Assert.Equal(feet, match.RunnerAt(1)!.Feet);
         Assert.True(match.RunnerAt(1)!.Held);
     }
-
-    [Fact]
-    public void ParkedMouseIsDeadStickUntilRightButtonAim()
-    {
-        var parked = MouseStick.Tick(0.8f, -0.5f, dx: 40, dy: -20, analogHeld: false, dt: 0.016f);
-        Assert.Equal(0, parked.X);
-        Assert.Equal(0, parked.Y);
-        var hold = MouseStick.Tick(0, 0, dx: 40, dy: 0, analogHeld: true, dt: 0.016f);
-        Assert.True(hold.X > 0.4f);
-        Assert.InRange(hold.Y, -0.05f, 0.05f);
-        var chargeParked = MouseStick.Tick(1, 0, dx: 0, dy: 0, analogHeld: true, dt: 0.05f);
-        Assert.Equal(0, chargeParked.X);
-        var noise = MouseStick.Tick(0, 0, dx: 2, dy: 1, analogHeld: true, dt: 0.016f);
-        Assert.Equal(0, noise.X);
-        Assert.Equal(0, noise.Y);
-    }
-
-    [Fact]
-    public void HowToPlayBookLeftHalfIsBack()
-    {
-        var nav = HowToPlay.HitNav(200, 360, 1280, 720, 8);
-        var panel = HowToPlay.BookPanel(1280, 720, 8);
-        Assert.True(panel.W > 700);
-        var left = HowToPlay.HitNav(panel.X + 20, panel.Y + 80, 1280, 720, 8);
-        var right = HowToPlay.HitNav(panel.X + panel.W - 20, panel.Y + 80, 1280, 720, 8);
-        Assert.Equal(-1, left);
-        Assert.Equal(1, right);
-        Assert.Equal(0, HowToPlay.HitNav(4, 4, 1280, 720, 8));
-        _ = nav;
-    }
 }

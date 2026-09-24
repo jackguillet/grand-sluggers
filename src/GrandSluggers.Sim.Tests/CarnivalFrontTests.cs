@@ -225,13 +225,12 @@ public class CarnivalFrontTests
         Assert.Equal(CarnivalFront.HazardsOffCopy, CarnivalFront.HazardsOffLine(Catalog.MustPark("funfair-park"), true, false, library));
     }
 
-    /// <summary>The book pair names the switch on both schemes, and the file book names it on the stadium page.</summary>
+    /// <summary>The book names the switch, and the file book names it on the stadium page.</summary>
     [Fact]
-    public void FD10_TheBookPairNamesTheHazardsSwitchOnBothSchemes()
+    public void FD10_TheBookNamesTheHazardsSwitch()
     {
         var page = HowToPlay.Pages.Single(p => p.Id == "pause-practice");
         Assert.Contains(page.Lines, l => l.Contains("Hazards    on / off", StringComparison.Ordinal));
-        Assert.Contains(page.KeyLines!, l => l.Contains("R    hazards on / off", StringComparison.Ordinal));
         var book = File.ReadAllText(Path.Combine(Catalog.Root.Shipped, "..", "docs", "how-to-play.md"));
         Assert.Contains("Pick stadium, day/night, hazards, player count", book);
         Assert.Contains("Up/down chooses a row", book);

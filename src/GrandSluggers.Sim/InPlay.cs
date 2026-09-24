@@ -492,7 +492,7 @@ public static class InPlay
 
     /// <summary>
     /// Keys (1–4 / d-pad) always arm. Stick / arrows only when <paramref name="stickOk"/>.
-    /// Chasing WASD must not arm a throw.
+    /// Chasing with the stick must not arm a throw.
     /// </summary>
     public static int ArmedBag(int keysBag, int stickBag, bool stickOk)
     {

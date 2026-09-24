@@ -13,23 +13,34 @@ public class HowToPlayTests
     [InlineData("Center the stick, then tap South.", false)]
     [InlineData("Tap South or Enter.", true)]
     [InlineData("Tap South/Space.", true)]
-    [InlineData("Press Enter to continue.", false)]
-    public void HardwareCopyChecksWholeKeyNames(string copy, bool mixed) =>
-        Assert.Equal(mixed, HowToPlay.MixesHardware(copy));
+    [InlineData("Hold the left click.", true)]
+    [InlineData("Spacebar", false)]
+    public void KeyboardCopyChecksWholeKeyNames(string copy, bool names) =>
+        Assert.Equal(names, HowToPlay.NamesKeyboard(copy));
 
     static IEnumerable<string> EveryLine =>
-        HowToPlay.Pages.SelectMany(p => p.Lines.Concat(p.KeyLines ?? []).Append(p.Title))
-            .Concat(RoleTables.Pad.Concat(RoleTables.Keys).SelectMany(b => b.Rows).SelectMany(r => new[] { r.Verb, r.Press }))
-            .Concat(BagDiagrams.Callouts.SelectMany(c => new[] { c.Title, c.PadPress, c.KeysPress, c.Line }))
-            .Concat(BagDiagrams.Running.SelectMany(d => new[] { d.Title, d.PadPress, d.KeysPress }))
-            .Concat(HudCallouts.OnScreenPage.SelectMany(s => s.Marks).Select(m => m.Label));
+        HowToPlay.Pages.SelectMany(p => p.Lines.Append(p.Title))
+            .Concat(RoleTables.Pad.SelectMany(b => b.Rows).SelectMany(r => new[] { r.Verb, r.Press }))
+            .Concat(BagDiagrams.Callouts.SelectMany(c => new[] { c.Title, c.Press, c.Line }))
+            .Concat(BagDiagrams.Running.SelectMany(d => new[] { d.Title, d.Press }))
+            .Concat(HudCallouts.OnScreenPage.SelectMany(s => s.Marks).Select(m => m.Label))
+            .Concat(ControlDiagram.PadCallouts.SelectMany(c => new[] { c.Hardware, c.Offense, c.Defense, c.Always }))
+            .Concat(GettingStarted.Path.Select(p => p.Caption))
+            .Concat(GettingStarted.Modes.Select(m => m.Line))
+            .Concat(HowToComic.OnPitchSwingPage.SelectMany(c => new[] { c.Caption, c.Motion.Charge, c.Motion.Commit }));
 
-    [Theory]
-    [InlineData(InputScheme.Pad)]
-    [InlineData(InputScheme.Keys)]
-    public void ScreenPageExplainsTheLiveHandoffAndImmediateReturn(InputScheme scheme)
+    [Fact]
+    public void TheBookIsGamepadOnly()
     {
-        var lines = HowToPlay.Must("screen-live").Shown(scheme);
+        // The game is gamepad only (pad 1, pad 2): no spread names a keyboard key or a mouse button.
+        foreach (var line in EveryLine)
+            Assert.False(HowToPlay.NamesKeyboard(line), line);
+    }
+
+    [Fact]
+    public void ScreenPageExplainsTheLiveHandoffAndImmediateReturn()
+    {
+        var lines = HowToPlay.Must("screen-live").Lines;
         Assert.Contains(lines, line => line.Contains("Live: runners and outs"));
         Assert.Contains(lines, line => line.Contains("Effects never hide runners or outs"));
         Assert.Contains(lines, line => line.Contains("plate HUD returns immediately"));
@@ -44,21 +55,20 @@ public class HowToPlayTests
         // the ban is superseded here and the presence of the new row is asserted below.
         foreach (var retired in new[] { "take a lead", "lead off", "lead-off", "Lead01", "lead pip", "walking lead", "cycle fastball", "random pickoff" })
             Assert.DoesNotContain(EveryLine, l => l.Contains(retired, StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(RoleTables.Pad.Concat(RoleTables.Keys).SelectMany(b => b.Rows),
+        Assert.DoesNotContain(RoleTables.Pad.SelectMany(b => b.Rows),
             r => r.Verb.Contains("Lead", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("there is no lead"));
-        // PH-02-R5: the verb that replaced the West changeup is on the pitching spread, in both
-        // schemes, and the retired modifier is gone from every spread.
+        // PH-02-R5: the verb that replaced the West changeup is on the pitching spread, and the
+        // retired modifier is gone from every spread.
         Assert.Contains(EveryLine, l => l.Contains("Cycle pitch"));
-        Assert.DoesNotContain(RoleTables.Pad.Concat(RoleTables.Keys).SelectMany(b => b.Rows),
+        Assert.DoesNotContain(RoleTables.Pad.SelectMany(b => b.Rows),
             r => r.Verb.Equals("Changeup", StringComparison.OrdinalIgnoreCase));
     }
 
-    [Theory]
-    [InlineData(InputScheme.Pad)]
-        public void RunningSpreadHasPerRunnerVerbsAndImmediateStealWithHome(InputScheme scheme)
+    [Fact]
+    public void RunningSpreadHasPerRunnerVerbsAndImmediateStealWithHome()
     {
-        var running = RoleTables.Of(scheme).First(b => b.Id == "running");
+        var running = RoleTables.Pad.First(b => b.Id == "running");
         Row(running, "Select runner");
         Row(running, "Send");
         var halt = Row(running, "Halt");
@@ -75,7 +85,7 @@ public class HowToPlayTests
         Row(running, "Dash");
         Assert.DoesNotContain(running.Rows, r => r.Verb == "Tag");
         // The running page itself: the steal of home, the perfect steal, the per-runner send and return, tag-and-go.
-        var page = HowToPlay.Must("running").Shown(scheme);
+        var page = HowToPlay.Must("running").Lines;
         Assert.Contains(page, l => l.Contains("D-pad Down"));
         Assert.Contains(page, l => l.Contains("before contact"));
         Assert.DoesNotContain(page, l => l.Contains("perfect steal"));
@@ -84,11 +94,10 @@ public class HowToPlayTests
         Assert.Contains(page, l => l.Contains("CAUGHT STEALING") && l.Contains("STOLEN BASE"));
     }
 
-    [Theory]
-    [InlineData(InputScheme.Pad)]
-        public void FieldingSpreadHasThrowCutoffRelayTagAndRundown(InputScheme scheme)
+    [Fact]
+    public void FieldingSpreadHasThrowCutoffRelayTagAndRundown()
     {
-        var fielding = RoleTables.Of(scheme).First(b => b.Id == "fielding");
+        var fielding = RoleTables.Pad.First(b => b.Id == "fielding");
         var throwRow = Row(fielding, "Throw");
         Assert.Contains("Right stick", throwRow.Press);
         var cutoff = Row(fielding, "Cutoff / relay");
@@ -100,15 +109,14 @@ public class HowToPlayTests
         Assert.Contains("throw ahead", rundown.Press);
         Row(fielding, "Jump");
         Row(fielding, "Dive");
-        Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("close play") && l.Contains("bag"));
-        Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("liner") && l.Contains("fly"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("close play") && l.Contains("bag"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("liner") && l.Contains("fly"));
     }
 
-    [Theory]
-    [InlineData(InputScheme.Pad)]
-        public void PitchingSpreadHasTheCycleBreakTheVisibleSwapAndThePickoffRule(InputScheme scheme)
+    [Fact]
+    public void PitchingSpreadHasTheCycleBreakTheVisibleSwapAndThePickoffRule()
     {
-        var pitching = RoleTables.Of(scheme).First(b => b.Id == "pitching");
+        var pitching = RoleTables.Pad.First(b => b.Id == "pitching");
         // PH-02-R5 (#825): the pre-charge family cycle replaces the West changeup row.
         var cycle = Row(pitching, "Cycle pitch");
         Assert.Contains("West", cycle.Press);
@@ -119,7 +127,7 @@ public class HowToPlayTests
         var pickoff = Row(pitching, "Pickoff");
         Assert.Contains("right stick + RT", pickoff.Press);
         Assert.Contains("BALK", pickoff.Press);
-        Assert.Contains(HowToPlay.Must("the-box").Shown(scheme), l => l.Contains("pickoff") && l.Contains("on the bag is safe"));
+        Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("pickoff") && l.Contains("on the bag is safe"));
     }
 
     [Fact]
@@ -128,8 +136,7 @@ public class HowToPlayTests
         Assert.Contains("3rd or home only", BagDiagrams.ClosePlay.Line);
         Assert.Contains("bang-bang", BagDiagrams.ClosePlay.Line);
         Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("Close play") && l.Contains("pictures below"));
-        Assert.Contains("FIRST SOUTH", BagDiagrams.ClosePlay.PadPress);
-        Assert.Contains("SPACE", BagDiagrams.ClosePlay.KeysPress);
+        Assert.Contains("FIRST SOUTH", BagDiagrams.ClosePlay.Press);
         Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("SAFE pops small"));
     }
 
@@ -153,10 +160,9 @@ public class HowToPlayTests
             Assert.True(BookChapter.Captains.ContainsKey(id), id);
         }
         Assert.True(BookChapter.EveryPageHasARosterCaptain());
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-        foreach (var block in RoleTables.Of(scheme))
+        foreach (var block in RoleTables.Pad)
         foreach (var row in block.Rows)
-            Assert.False(HowToPlay.MixesHardware(row.Press), block.Id + " " + row.Verb);
+            Assert.False(HowToPlay.NamesKeyboard(row.Press), block.Id + " " + row.Verb);
     }
 
     static RoleTables.Row Row(RoleTables.Block block, string verb)
