@@ -148,8 +148,8 @@ def seed_library(project, version, state, listing=None):
         if not (seed / 'Library').is_dir() or seed == project:
             continue
         try:
-            seed_version = (seed / 'ProjectSettings/ProjectVersion.txt').read_text().splitlines()[0].split(':', 1)[1].strip()
-        except (OSError, IndexError):
+            seed_version = unity_gui.project_version(seed)
+        except (OSError, ValueError):
             continue
         if seed_version != version or unity_gui.editor_for(seed, listing):
             continue
@@ -259,10 +259,8 @@ def deliver(args):
         subprocess.run(['git', 'worktree', 'add', '--detach', str(source), revision], cwd=main, check=True)
         trial = trial_overlay(source, args.trial)
 
-        version = (source / 'unity/ProjectSettings/ProjectVersion.txt').read_text().splitlines()[0].split(':', 1)[1].strip()
-        editor = Path('/Applications/Unity/Hub/Editor') / version / 'Unity.app/Contents/MacOS/Unity'
-        if not editor.exists():
-            raise RuntimeError('Install the project Unity version first: ' + version)
+        version = unity_gui.project_version(source / 'unity')
+        editor = unity_gui.editor_binary(version)
         project = source / 'unity'
         # Never take over an editor someone already has open on this worktree.
         processes = run('ps', '-ax', '-o', 'pid=,command=').splitlines()

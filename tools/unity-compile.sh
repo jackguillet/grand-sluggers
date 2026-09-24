@@ -4,16 +4,21 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-unity="${UNITY_EDITOR:-/Applications/Unity/Hub/Editor/6000.5.9f1}"
+die() { echo "unity-compile: $*" >&2; exit 1; }
+
+# The editor is the one the project pins (unity/ProjectSettings/ProjectVersion.txt), so an upgrade moves this
+# gate with it. UNITY_EDITOR names an editor folder outright; UNITY_HUB_EDITORS moves the Hub folder
+# (tools/unity_gui.py reads the same two).
+version_file="$root/unity/ProjectSettings/ProjectVersion.txt"
+version="$(sed -n 's/^m_EditorVersion:[[:space:]]*//p' "$version_file" 2>/dev/null | head -n 1)"
+hub="${UNITY_HUB_EDITORS:-/Applications/Unity/Hub/Editor}"
+unity="${UNITY_EDITOR:-$hub/$version}"
 engine="$unity/Unity.app/Contents/Resources/Scripting/Managed/UnityEngine"
 ns="$unity/Unity.app/Contents/Resources/Scripting/NetStandard/ref/2.1.0/netstandard.dll"
 bcl="$unity/Unity.app/Contents/Resources/Scripting/BCLExtensions/TargetingPacks/netstandard2.1/ref"
 dotnet="$unity/Unity.app/Contents/Resources/Scripting/DotNetSdk/dotnet"
-csc="$unity/Unity.app/Contents/Resources/Scripting/DotNetSdk/sdk/8.0.318/Roslyn/bincore/csc.dll"
 out="$root/unity/Temp/unity-compile"
 package_assemblies="${UNITY_PACKAGE_ASSEMBLIES:-$root/unity/Library/ScriptAssemblies}"
-
-die() { echo "unity-compile: $*" >&2; exit 1; }
 
 collect_cs() {
   local source_root="$1"
@@ -40,8 +45,16 @@ if [[ "${1:-}" == "--list-sources" ]]; then
   exit 0
 fi
 
-[[ -x "$dotnet" ]] || die "Unity editor not found at $unity"
-[[ -f "$csc" ]] || die "csc.dll missing under $unity"
+[[ -n "$version" ]] || die "$version_file does not pin m_EditorVersion"
+if [[ ! -d "$unity/Unity.app" ]]; then
+  installed=("$hub"/*/Unity.app(N:h:t))
+  die "Unity $version (ProjectVersion.txt) is not installed at $unity; installed: ${${(j:, :)installed}:-none}. Install it with Unity Hub, or set UNITY_EDITOR or UNITY_HUB_EDITORS."
+fi
+[[ -x "$dotnet" ]] || die "Unity $version has no bundled dotnet at $dotnet"
+# The editor bundles one .NET SDK; its version moves with the editor, so take the newest one it ships.
+compilers=("$unity"/Unity.app/Contents/Resources/Scripting/DotNetSdk/sdk/*/Roslyn/bincore/csc.dll(Nn))
+(( ${#compilers[@]} > 0 )) || die "Unity $version bundles no C# compiler under $unity/Unity.app/Contents/Resources/Scripting/DotNetSdk/sdk"
+csc="${compilers[-1]}"
 [[ -f "$ns" ]] || die "netstandard ref missing under $unity"
 [[ -d "$engine" ]] || die "UnityEngine modules missing under $unity"
 [[ -d "$package_assemblies" ]] || die "package assemblies missing at $package_assemblies; import this checkout or set UNITY_PACKAGE_ASSEMBLIES to a configured runner cache"

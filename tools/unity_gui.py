@@ -24,6 +24,37 @@ EDITOR = re.compile(r'/Unity\.app/Contents/MacOS/Unity(?=\s|$)')
 PROJECT = re.compile(r'(?:^|\s)-projectpath\s+(.+?)(?=\s+-[A-Za-z]|\s*$)', re.IGNORECASE)
 BATCH = re.compile(r'(?:^|\s)-batchmode(?=\s|$)', re.IGNORECASE)
 PLAYER = '/GrandSluggers.app/Contents/MacOS/Grand Sluggers'
+# Where Unity Hub installs editors, one folder per version. UNITY_HUB_EDITORS moves it (tools/unity-compile.sh too).
+HUB_EDITORS = '/Applications/Unity/Hub/Editor'
+
+
+def project_version(project):
+    """The editor version a Unity project pins: m_EditorVersion in ProjectSettings/ProjectVersion.txt."""
+    path = Path(project) / 'ProjectSettings' / 'ProjectVersion.txt'
+    for line in path.read_text().splitlines():
+        if line.startswith('m_EditorVersion:'):
+            version = line.split(':', 1)[1].strip()
+            if version:
+                return version
+    raise ValueError(str(path) + ' does not pin m_EditorVersion')
+
+
+def installed_editors():
+    """The versions installed under the Hub editor folder, sorted."""
+    hub = Path(os.environ.get('UNITY_HUB_EDITORS', HUB_EDITORS))
+    return sorted(p.name for p in hub.iterdir() if (p / 'Unity.app').is_dir()) if hub.is_dir() else []
+
+
+def editor_binary(version):
+    """The Unity executable for one version. A missing editor is an error that names the version, where it was
+    looked for and what is installed, so an upgrade never runs a build in the old editor."""
+    hub = Path(os.environ.get('UNITY_HUB_EDITORS', HUB_EDITORS))
+    binary = hub / version / 'Unity.app' / 'Contents' / 'MacOS' / 'Unity'
+    if not binary.exists():
+        raise RuntimeError('Unity ' + version + ' (unity/ProjectSettings/ProjectVersion.txt) is not installed at '
+                           + str(binary.parents[2]) + '; installed: ' + (', '.join(installed_editors()) or 'none')
+                           + '. Install it with Unity Hub, or set UNITY_HUB_EDITORS to the folder that holds it.')
+    return binary
 
 
 class LockHeld(RuntimeError):
