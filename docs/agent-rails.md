@@ -278,4 +278,4 @@ Prompt-to-game engines, Meshy / unique meshes / a second skeleton, new captains,
 
 ### What a sitting should check (parent)
 
-Nothing here is a sitting Jack must play. The product sittings stay #534, the narrated half, and #346. This epic is done when the next gameplay agent loads the protocol and a trace, and the next art agent files two stills and stops — without being told in Slack.
+Nothing here is a sitting Jack must play. The product sittings stay the narrated half and #346 (which also calls the D7 pitch pace). This epic is done when the next gameplay agent loads the protocol and a trace, and the next art agent files two stills and stops — without being told in Slack.
