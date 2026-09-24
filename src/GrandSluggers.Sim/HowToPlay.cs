@@ -500,7 +500,7 @@ public static partial class HowToPlay
         new("chemistry", "Chemistry", "chemistry",
         [
             "Hearts are buddies. Scribbles are rivals.",
-            "Buddies throw faster, rivals slower. Buddy jump. Buddy toss.",
+            "Buddies throw faster, rivals slower. Buddy jump needs both outfielders under the ball. Buddy toss.",
             "A buddy on deck can gift a banana after you hit.",
             "Both teams start with the same stars.",
         ]),

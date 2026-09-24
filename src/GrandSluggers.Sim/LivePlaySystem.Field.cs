@@ -795,7 +795,7 @@ public sealed partial class LivePlaySystem
             LandItem();
         }
 
-        TickBuddyPartner();
+        TickBuddyPartner(dt);
         TickCoverBags(dt);
         TickCutoffAndBackup(dt);
         ChargeOutfield(dt);
@@ -908,7 +908,7 @@ public sealed partial class LivePlaySystem
         var needsJump = FlyCatch.NeedsJump(pre);
         var plant = FlyCatch.ChaseTarget(pre, Park, R);
         var who = map.TryGetValue(GlovePos, out var gloveNow) ? gloveNow : pre.Fielder;
-        BuddyWindow = buddyOn && FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
+        BuddyWindow = BuddyReady();
         var catchRules = R.Fielding.Catch;
 
         NoteSwitchHint(map, pre, pad);
@@ -1018,11 +1018,11 @@ public sealed partial class LivePlaySystem
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, diveWin,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
-                var distPlant = Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z);
                 // The leap: the body actually in the air (#719); the old arm window at jumpAirSec 0.
                 var leaping = catchRules.JumpArc ? Airborne : JumpT > 0;
                 var jumpTry = leaping && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
-                var buddyRob = buddyOn && distPlant < catchRules.BuddyPlantFt;
+                var buddyRob = BuddyReady();
+                BuddyWindow = buddyRob;
                 var canRob = !needsJump || FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyRob, R);
                 // Dead stick runs the glove and may take a standing catch, never a dive.
                 if (dead && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
@@ -1030,12 +1030,9 @@ public sealed partial class LivePlaySystem
                 if (FlyCatch.PlayerCaught(jumpTry, false, underStand, inWin, needsJump, canRob, linerInAir))
                 {
                     if (jumpTry) CatchJump = true;
-                    if (buddyOn && inWin && distPlant < catchRules.BuddyPlantFt)
+                    if (buddyRob && jumpTry)
                     {
                         Buddy = true;
-                        GloveX = plant.X;
-                        GloveZ = plant.Z;
-                        _fielders[GlovePos] = (GloveX, GloveZ);
                         _events.Add(LiveEvent.BuddyJump);
                     }
                     TakeBattedBall();
@@ -1139,9 +1136,8 @@ public sealed partial class LivePlaySystem
                 var linerInAir = !needsJump && ElapsedSeconds < hang;
                 var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuStandUp,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
-                var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
-                var buddyAt = buddyOn && !string.IsNullOrEmpty(BuddyPos) && _fielders.TryGetValue(BuddyPos, out var buddySpot)
-                              && Diamond.Dist(buddySpot.X, buddySpot.Z, plant.X, plant.Z) < catchRules.BuddyPlantFt;
+                var buddyAt = BuddyReady();
+                BuddyWindow = buddyAt;
                 var canRob = needsJump && FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyAt, R);
                 var autoStand = FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob, linerInAir: linerInAir);
                 if (autoStand)
@@ -1998,7 +1994,7 @@ public sealed partial class LivePlaySystem
         var map = Assigned();
         var of = FieldingPursuit.Choose(
             map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, _fielders, ElapsedSeconds, R, _readyAt);
-        if (of.Position == GlovePos || Coasting(of.Position)) return;
+        if (of.Position == GlovePos || of.Position == BuddyPos || Coasting(of.Position)) return;
         if (!CanMove(of.Position)) return;
         if (!_fielders.TryGetValue(of.Position, out var at)) return;
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, of.Position, Preview, R);
@@ -2840,24 +2836,32 @@ public sealed partial class LivePlaySystem
         return true;
     }
 
-    void TickBuddyPartner()
+    // The offer plans a pair; only the live bodies and ball can activate their leap.
+    bool BuddyReady()
     {
-        if (Preview is null || Path is null || !FieldingResolver.BuddyJumpOffered(Preview))
-        {
-            BuddyWindow = false;
-            return;
-        }
+        if (Preview is not { } pre || !FieldingResolver.BuddyJumpOffered(pre)
+            || HoldsBall || _loose || ElapsedSeconds >= Hang || GlovePos != pre.Position
+            || BuddyPos == GlovePos || !FieldingResolver.IsOutfield(BuddyPos)
+            || !CanMove(GlovePos) || !CanMove(BuddyPos)
+            || !GloveMayTake(GlovePos) || !GloveMayTake(BuddyPos)
+            || !_fielders.TryGetValue(BuddyPos, out var partner)) return false;
+        return FlyCatch.BuddyInPosition(pre, Park, GloveX, GloveZ, partner.X, partner.Z,
+            BallX, BallY, BallZ, ElapsedSeconds, Hang, R);
+    }
+
+    void TickBuddyPartner(double dt)
+    {
+        BuddyWindow = false;
+        if (Preview is null || Path is null || HoldsBall || _loose || ElapsedSeconds >= Hang
+            || !FieldingResolver.BuddyJumpOffered(Preview)) return;
         var map = Assigned();
         BuddyPos = PosOf(map, Preview.Buddy!);
-        if (string.IsNullOrEmpty(BuddyPos)) return;
-        var hang = Hang;
-        var plant = FlyCatch.WallPlant(Preview, Park, R);
-        var hover = R.Fielding.Catch;
-        var u = Math.Clamp(ElapsedSeconds / Math.Max(hover.HoverMinSec, hang - hover.HoverLeadSec), 0, 1);
-        var start = Starts[BuddyPos];
-        _fielders[BuddyPos] = (start.X + (plant.X - start.X) * u, start.Z + (plant.Z - start.Z) * u);
-        if (!PlayerFielding)
-            BuddyWindow = FlyCatch.JumpWindow(ElapsedSeconds, hang, Preview.Fielder, Park, R);
+        if (BuddyPos == GlovePos || !map.TryGetValue(BuddyPos, out var partner)
+            || !_fielders.TryGetValue(BuddyPos, out var at) || !CanMove(BuddyPos)) return;
+        var plant = FlyCatch.ChaseTarget(Preview, Park, R);
+        var speed = FieldingResolver.ChaseSpeedFt(partner, BuddyPos, Preview, R);
+        _fielders[BuddyPos] = StepTo(BuddyPos, at, plant, speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
+        BuddyWindow = BuddyReady();
     }
 
     void ReadThrowBag(LivePadInput pad, bool stickOk)

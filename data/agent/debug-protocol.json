@@ -620,6 +620,16 @@
       "promoted": "",
       "issue": "#989",
       "pr": ""
+    },
+    {
+      "id": "buddy-jump-without-two-arrivals",
+      "signature": "Buddy jump triggers while the partner cannot run to the wall in time or the ball is not overhead; partner slides at an impossible speed and the glove snaps to the plant.",
+      "stage": "sim",
+      "cause": "TickBuddyPartner interpolated from the starting position to the wall by hang time; human buddy reach checked only the selected glove against a 26-ft plant radius.",
+      "fix": "Plan reachable routes for both good-chem outfielders, step the partner through ordinary pursuit, and require both live bodies within 4 ft of the plant and live ball XZ inside the window. No snap grants arrival.",
+      "promoted": "BuddyJumpTests.LiveBuddyRunsAtNormalSpeedAndCatchesOnlyWithBothBodiesUnderBall",
+      "issue": "#997",
+      "pr": ""
     }
   ]
 }

@@ -151,7 +151,7 @@ public class FieldingSceneTests
         var park = _content.Parks["harbor-diamond"];
         var rio = _content.Must("rio");
         var fielding = new FieldingResolver(_content.Chemistry);
-        var homer = FlightFixtures.OverTheFence(park, 10, 0);
+        var homer = FlightFixtures.OverTheFence(park, 5, 0, 60);
         var pre = fielding.Preview(homer, park, spark.Roster, rio, new Random(1));
         Assert.Equal("CF", pre.Position);
         Assert.Equal("dart", pre.Fielder.Id);
