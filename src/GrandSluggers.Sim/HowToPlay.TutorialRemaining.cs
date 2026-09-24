@@ -93,7 +93,7 @@ public static partial class HowToPlay
             "After the rebound, collect the ball. Right stick Left selects third; RT throws.",
             "After the rebound, collect the ball. 3 selects third; Space throws."),
         "T-F12" => new("Buddy jump at the wall", "Jump with a partner to rob a home run at the wall.",
-            "The ball is heading over the wall and a partner is nearby. Time your jump for the wall play; a standing catch does not count.",
+            "Both outfielders must reach the wall spot together. Jump with the ball directly overhead; a late partner cannot boost you.",
             "Let the gloves reach the wall play. Press North in the jump window.",
             "Let the gloves reach the wall play. Press F in the jump window."),
         "T-F13" => new("Run with Ball Dash", "Carry the ball with a fielder who has Ball Dash.",
