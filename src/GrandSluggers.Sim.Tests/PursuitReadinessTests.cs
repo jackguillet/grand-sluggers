@@ -47,7 +47,7 @@ public sealed class PursuitReadinessTests
     [Fact]
     public void AStickWithoutTheRadialSwitchNeedsNoneOfThis()
     {
-        var rules = new FieldStickRules { EnterMag = 0 };
+        var rules = Rules.Default.Fielding.Stick with { EnterMag = 0 };
         Assert.False(rules.Radial);
         var live = NewLive(Game);
         var r = new PursuitReadiness();

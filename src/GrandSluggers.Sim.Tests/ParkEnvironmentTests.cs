@@ -238,7 +238,7 @@ public sealed class ParkEnvironmentTests
     /// <summary>
     /// A park copies <em>one</em> section. Every other section of the resolved table is the global one by
     /// reference, walked by reflection so a section added tomorrow and forgotten in <see cref="RulesTable.AtPark"/>
-    /// fails here rather than silently reverting to its code defaults in every park that names air. (It has
+    /// fails here rather than silently playing an empty table in every park that names air. (It has
     /// already happened once: `boundary` arrived with F2-a while this branch was open.)
     /// </summary>
     [Fact]

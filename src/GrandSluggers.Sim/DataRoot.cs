@@ -294,7 +294,7 @@ public sealed class DataRoot
         if (partial.Count > 0)
             throw new InvalidDataException(
                 $"trial overlay {overlay} carries part of {string.Join("; ", partial)} — "
-                + "a trial writes whole files, so a field it does not name would quietly fall back to the code default");
+                + "a trial writes whole files, and a rules table must name every field");
     }
 
     static JsonNode? Parse(string path)

@@ -101,8 +101,8 @@ public class PitcherSwapTests
             new Repertoire(PitchFamily.Changeup, PitchFamily.Curveball), content.Rules.Pitching.Families));
         Assert.Equal("FB  ·  SL  ·  CU", BroadcastHud.PitcherPitches(
             new Repertoire(PitchFamily.Slider, PitchFamily.Curveball), content.Rules.Pitching.Families));
-        // The off path: a table that authors only the two code-default rows skips the rest.
-        var bare = RulesTable.Defaults.Pitching.Families;
+        // The off path: a table that authors only the two required rows skips the rest.
+        var bare = RuleCopies.TwoFamilies().Pitching.Families;
         Assert.Equal("FB  ·  CH", BroadcastHud.PitcherPitches(
             new Repertoire(PitchFamily.Changeup, PitchFamily.Curveball), bare));
         Assert.Equal("FB", BroadcastHud.PitcherPitches(

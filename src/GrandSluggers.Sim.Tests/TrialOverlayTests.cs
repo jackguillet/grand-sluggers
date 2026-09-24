@@ -435,7 +435,7 @@ public sealed class TrialOverlayTests
     }
 
     /// <summary>
-    /// A run that named a root or an overlay gets no quiet fallback to the code defaults.
+    /// A root that cannot be read stops the run, named or not: there is no code table to play instead.
     /// <see cref="Diamond"/> reads this table, so the alternative is a process measuring a trial
     /// while its geometry is the control's.
     /// </summary>
@@ -450,9 +450,8 @@ public sealed class TrialOverlayTests
         Assert.Contains("infield.baselineFt", thrown.Message, StringComparison.Ordinal);
         Assert.Contains(trial.Overlay, thrown.Message, StringComparison.Ordinal);
 
-        // Unnamed, the fallback stands: a stray root above a binary must not stop an ordinary run.
-        Assert.Equal(RulesTable.Defaults.Infield.BaselineFt,
-            Rules.ForProcess(new DataRoot(Shipped, trial.Overlay)).Infield.BaselineFt);
+        // Unnamed, it stops too: there is no code table to play instead.
+        Assert.Throws<InvalidDataException>(() => Rules.ForProcess(new DataRoot(Shipped, trial.Overlay)));
     }
 
     /// <summary>A root nobody named is not a run that asked for anything.</summary>

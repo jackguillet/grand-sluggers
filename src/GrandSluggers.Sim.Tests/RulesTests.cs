@@ -7,9 +7,9 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// data/rules is the one place for the numbers of play (spec §16). The JSON is the source
-/// of truth, the code initializers are only a load fallback, and the validator refuses a
-/// misspelled or out-of-range field so <c>cli art</c> catches it.
+/// data/rules is the one place for the numbers of play (spec §16). The JSON is the only
+/// source: the tables carry no code defaults, and the loader refuses a missing, misspelled or
+/// out-of-range field so <c>cli art</c> catches it.
 /// </summary>
 public sealed class RulesTests
 {
@@ -32,38 +32,11 @@ public sealed class RulesTests
         Assert.Empty(ContentDataValidator.Validate(_content.Root));
     }
 
-    [Fact]
-    public void ShippedJsonEqualsTheCodeFallbackFieldForField()
-    {
-        // The code defaults are a load fallback, not a second table: a number changed in one
-        // place and not the other is exactly the drift this epic removes.
-        var loaded = RulesTable.Load(_content.Root);
-        var defaults = RulesTable.Defaults;
-        var differences = new List<string>();
-        Compare(loaded, defaults, "rules", differences);
-        Assert.True(differences.Count == 0, string.Join("\n", differences));
-    }
-
-    [Fact]
-    public void ShippedJsonNamesEveryRuleTheCodeDeclares()
-    {
-        // A rule that exists only as a C# initializer is a literal hiding from the table.
-        var dir = Path.Combine(_content.Root.Shipped, RulesTable.Directory);
-        var missing = new List<string>();
-        foreach (var name in RulesTable.Files)
-        {
-            var json = JsonNode.Parse(File.ReadAllText(Path.Combine(dir, name + ".json")), null, JsonComments)!.AsObject();
-            var section = typeof(RulesTable).GetProperty(Capital(name))!.PropertyType;
-            MissingFields(json, section, name, missing);
-        }
-        Assert.Empty(missing);
-    }
-
     /// <summary>
     /// The other direction, which nothing checked until #725 added a file. A table the code does not
     /// name in <see cref="RulesTable.Files"/> is never loaded and never validated — it sits in
-    /// <c>data/rules</c> looking authoritative while the C# initializers answer every question. No
-    /// test would have failed; the file would simply have had no effect.
+    /// <c>data/rules</c> looking authoritative while nothing reads it. No test would have failed; the
+    /// file would simply have had no effect.
     /// </summary>
     [Fact]
     public void EveryJsonInTheRulesFolderIsATableTheCodeNames()
@@ -99,15 +72,60 @@ public sealed class RulesTests
     }
 
     [Fact]
-    public void MissingFieldFallsBackToTheCodeDefault()
+    public void AMissingFieldIsAnErrorNotACodeDefault()
     {
         using var fixture = new RulesFixture();
         fixture.Change("running.json", json => json["bags"]!.AsObject().Remove("tagReachFt"));
 
-        var errors = new List<string>();
-        var table = RulesTable.Load(fixture.Root, errors);
-        Assert.Empty(errors);
-        Assert.Equal(RulesTable.Defaults.Running.Bags.TagReachFt, table.Running.Bags.TagReachFt);
+        var errors = RulesTable.Validate(fixture.Root);
+        Assert.True(errors.Count == 1, string.Join("\n", errors));
+        var error = errors[0];
+        Assert.Contains("running.bags.tagReachFt is missing", error, StringComparison.Ordinal);
+        Assert.Contains(fixture.Path("running.json"), error, StringComparison.Ordinal);
+        Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
+        Assert.Throws<InvalidDataException>(() => Rules.ForProcess(new DataRoot(fixture.Root)));
+    }
+
+    /// <summary>
+    /// The rail under the one above: no rule table holds a number of its own. A table built with
+    /// <c>new</c> is all zeros and empties, so the only way a number reaches play is the JSON; a C#
+    /// initializer added tomorrow is a second default and fails here, by field.
+    /// </summary>
+    [Fact]
+    public void TheTablesCarryNoCodeDefaults()
+    {
+        var defaults = new List<string>();
+        NoDefaults(typeof(RulesTable), "rules", defaults, new HashSet<Type>());
+        Assert.True(defaults.Count == 0, string.Join("\n", defaults));
+    }
+
+    static void NoDefaults(Type type, string path, List<string> defaults, HashSet<Type> seen)
+    {
+        if (!seen.Add(type)) return;
+        var blank = Activator.CreateInstance(type)!;
+        foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (p.GetIndexParameters().Length > 0 || p.GetSetMethod(true) is null) continue;
+            var name = path + "." + p.Name;
+            var value = p.GetValue(blank);
+            switch (value)
+            {
+                case double d when d != 0: defaults.Add($"{name} = {d}"); break;
+                case int i when i != 0: defaults.Add($"{name} = {i}"); break;
+                case bool b when b: defaults.Add($"{name} = true"); break;
+                case string str when str.Length > 0: defaults.Add($"{name} = \"{str}\""); break;
+                case Array a when a.Length > 0: defaults.Add($"{name} has {a.Length} entries"); break;
+            }
+            var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+            if (t.IsClass && t != typeof(string) && t.Namespace == typeof(RulesTable).Namespace
+                && !typeof(System.Collections.IEnumerable).IsAssignableFrom(t))
+            {
+                if (value is not null && value.GetType() != t) continue;
+                if (value is null && p.GetCustomAttribute<OptionalAttribute>() is null)
+                    defaults.Add($"{name} is null in a blank table");
+                NoDefaults(t, name, defaults, seen);
+            }
+        }
     }
 
     /// <summary>
@@ -156,19 +174,6 @@ public sealed class RulesTests
             "pitching.families.changeup must finish its drop in flight", StringComparison.Ordinal));
     }
 
-    [Fact]
-    public void AFlippedFlagIsDriftTheParityComparisonCatches()
-    {
-        // The family rows are the first authored bools in data/rules; before #810 nothing compared
-        // a flag, so a JSON `offSpeed: false` beside a code `true` would have been invisible.
-        using var fixture = new RulesFixture();
-        fixture.Change("pitching.json", json => json["families"]!["changeup"]!["offSpeed"] = false);
-
-        var differences = new List<string>();
-        Compare(RulesTable.Load(new DataRoot(fixture.Root)), RulesTable.Defaults, "rules", differences);
-        Assert.Contains(differences, d => d.Contains("Pitching.Families.Changeup.OffSpeed: json False vs code True", StringComparison.Ordinal));
-    }
-
     [Theory]
     [InlineData("fielding.json", "chem", "slantChance", 1.4, "fielding.chem.slantChance must be between 0 and 1")]
     [InlineData("fielding.json", "throw", "baseFtPerSec", 0, "fielding.throw.baseFtPerSec must be greater than 0")]
@@ -201,7 +206,7 @@ public sealed class RulesTests
 
         var errors = RulesTable.Validate(fixture.Root);
         Assert.Contains(errors, e => e.Contains("cpu.level must be one of [easy, hard, normal]", StringComparison.Ordinal));
-        Assert.Equal(RulesTable.Defaults.Cpu.Normal.TimingSigmaMul, RulesTable.Defaults.Cpu.Active.TimingSigmaMul);
+        Assert.Equal(Rules.Default.Cpu.Normal.TimingSigmaMul, Rules.Default.Cpu.Active.TimingSigmaMul);
     }
 
     [Fact]
@@ -218,59 +223,10 @@ public sealed class RulesTests
         // Not a tune: proof the helpers read the table they are handed rather than a literal.
         var batter = _content.Must("rio");
         var shipped = RunnerSystem.BagSec(batter, _content.Rules);
-        var slower = new RulesTable
-        {
-            Running = new RunningRules { BagSec = new BagSecRules { BaseSec = 9, MaxSec = 9 } }
-        };
+        var rules = _content.Rules;
+        var slower = rules with { Running = rules.Running with { BagSec = rules.Running.BagSec with { BaseSec = 9, MaxSec = 9 } } };
         Assert.True(RunnerSystem.BagSec(batter, slower) > shipped);
     }
-
-    static void Compare(object a, object b, string path, List<string> differences)
-    {
-        foreach (var p in a.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
-        {
-            if (p.GetIndexParameters().Length > 0) continue;
-            var va = p.GetValue(a);
-            var vb = p.GetValue(b);
-            var name = path + "." + p.Name;
-            // bool joined the leaves with the family library (#810: breakDamped, offSpeed). A flag
-            // the JSON and the code disagree on is the same drift as a number, and nothing compared
-            // it before there was one.
-            // double? joined them with a status volume's slowSec (F4-b): a number a row may leave out is still a number
-            // the JSON and the code must agree on, absent included.
-            if (p.PropertyType == typeof(double) || p.PropertyType == typeof(int) || p.PropertyType == typeof(double?)
-                || p.PropertyType == typeof(string) || p.PropertyType == typeof(bool))
-            {
-                if (!Equals(va, vb)) differences.Add($"{name}: json {va} vs code {vb}");
-                continue;
-            }
-            if (va is null || vb is null) continue;
-            if (p.PropertyType.IsClass && p.PropertyType.Namespace == typeof(RulesTable).Namespace)
-                Compare(va, vb, name, differences);
-        }
-    }
-
-    static void MissingFields(JsonObject json, Type type, string path, List<string> missing)
-    {
-        foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-        {
-            if (p.GetIndexParameters().Length > 0 || p.GetGetMethod() is null || p.GetSetMethod(true) is null) continue;
-            var key = char.ToLowerInvariant(p.Name[0]) + p.Name.Substring(1);
-            if (!json.TryGetPropertyValue(key, out var node) || node is null)
-            {
-                // An [Optional] row is authored by the data or by nobody (#818): the shipped
-                // pitching.json has no curveball key and the code default is null, and those two
-                // agree. A trial that carries the key is checked like any other object, below.
-                if (p.GetCustomAttribute<OptionalAttribute>() is not null) continue;
-                missing.Add(path + "." + key);
-                continue;
-            }
-            if (p.PropertyType.IsClass && p.PropertyType != typeof(string) && p.PropertyType.Namespace == typeof(RulesTable).Namespace)
-                MissingFields(node.AsObject(), p.PropertyType, path + "." + key, missing);
-        }
-    }
-
-    static string Capital(string name) => char.ToUpperInvariant(name[0]) + name.Substring(1);
 
     sealed class RulesFixture : IDisposable
     {

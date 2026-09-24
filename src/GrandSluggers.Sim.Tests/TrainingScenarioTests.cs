@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// Spec Appendix B.1 row S-133 (#888): Training offers the families of the table it was started
-/// from, in library order, and not the code defaults. The shipped root is loaded in process through
+/// from, in library order. The shipped root is loaded in process through
 /// a <see cref="DataRoot"/> with no overlay, so a trial in the environment cannot change the row;
 /// the two-family table is a copy of the shipped root, built here, whose <c>pitching.json</c> drops
 /// the three optional rows (a trial overlay may not carry part of a file).
@@ -51,7 +51,7 @@ public sealed class TrainingScenarioTests
             Directory.Delete(copy, recursive: true);
         }
 
-        // (c) The code defaults are a table like any other: they author two, so they offer two.
-        Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, Training.PitchesOf(RulesTable.Defaults));
+        // (c) A table that authors two offers two.
+        Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, Training.PitchesOf(RuleCopies.TwoFamilies()));
     }
 }

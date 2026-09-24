@@ -394,11 +394,6 @@ public sealed class StarResourceScenarioTests
         Assert.Equal(t.Top, stars.StartingReserve);
         Assert.True(stars.StartingReserve < t.Top + stars.Costs.GuestCaptainSurcharge);
         Assert.True(t.Top + stars.Costs.GuestCaptainSurcharge <= stars.MeterMax);
-        // The code defaults are the same table (a load fallback, not a second one).
-        var d = new StarRules();
-        Assert.Equal((t.Low, t.Mid, t.Top), (d.Tiers.Low, d.Tiers.Mid, d.Tiers.Top));
-        Assert.Equal(stars.StartingReserve, d.StartingReserve);
-        Assert.Equal(stars.Gains.PlateAppearance, d.Gains.PlateAppearance, 9);
     }
 
     // ---------------------------------------------------------------------------------

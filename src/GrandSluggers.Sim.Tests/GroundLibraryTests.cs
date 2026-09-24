@@ -138,31 +138,14 @@ public sealed class GroundLibraryTests
     // The tables — JSON is the source of truth, code is the fallback
     // ---------------------------------------------------------------------------------
 
-    /// <summary>
-    /// Both files exist, are named by <see cref="RulesTable.Files"/> (a table the code does not name is
-    /// never loaded and never validated), and equal the code fallback field for field.
-    /// </summary>
     [Fact]
-    public void BothTablesAreLoadedAndEqualTheCodeFallback()
+    public void BothTablesAreLoaded()
     {
         Assert.Contains("grounds", RulesTable.Files);
         Assert.Contains("walls", RulesTable.Files);
         foreach (var name in new[] { "grounds", "walls" })
             Assert.True(File.Exists(Path.Combine(Game.Root.Shipped, RulesTable.Directory, name + ".json")), name);
-
-        var loaded = RulesTable.Load(Game.Root);
-        var defaults = RulesTable.Defaults;
-        foreach (var id in defaults.Grounds.Ids)
-        {
-            SameNumbers($"grounds.{id}.roll", defaults.Grounds.Of(id).Roll, loaded.Grounds.Of(id).Roll);
-            SameNumbers($"grounds.{id}.bounce", defaults.Grounds.Of(id).Bounce, loaded.Grounds.Of(id).Bounce);
-            SameNumbers($"grounds.{id}.skid", defaults.Grounds.Of(id).Skid, loaded.Grounds.Of(id).Skid);
-            SameNumbers($"grounds.{id}.overthrow", defaults.Grounds.Of(id).Overthrow, loaded.Grounds.Of(id).Overthrow);
-            SameNumbers($"grounds.{id}.bobble", defaults.Grounds.Of(id).Bobble, loaded.Grounds.Of(id).Bobble);
-            SameNumbers($"grounds.{id}.body", defaults.Grounds.Of(id).Body, loaded.Grounds.Of(id).Body);
-        }
-        foreach (var id in defaults.Walls.Ids)
-            SameNumbers($"walls.{id}", defaults.Walls.Of(id), loaded.Walls.Of(id));
+        Assert.Empty(RulesTable.Validate(Game.Root));
     }
 
     /// <summary>
@@ -250,9 +233,9 @@ public sealed class GroundLibraryTests
 
     /// <summary>
     /// The two sections survive both derivations. <see cref="RulesTable.AtLevel"/> and
-    /// <see cref="RulesTable.AtPark"/> copy section by section by hand, and a section left out of a copy
-    /// silently reverts to its code defaults with every test still green (implementation map finding
-    /// 14). A park chooses which row its zones name; it never owns what a row says.
+    /// <see cref="RulesTable.AtPark"/> are <c>with</c> copies, and a section a copy lost would be an
+    /// empty table (implementation map finding 14). A park chooses which row its zones name; it never
+    /// owns what a row says.
     /// </summary>
     [Fact]
     public void BothDerivedTablesShareTheLibrariesByReference()
@@ -661,7 +644,7 @@ public sealed class GroundLibraryTests
                 $"{what}.{p.Name}: {p.GetValue(expected)} vs {p.GetValue(actual)}");
     }
 
-    /// <summary>Every field the type declares is a key in the file (§16: no rule hides in a C# initializer).</summary>
+    /// <summary>Every field the type declares is a key in the file (§16: the JSON is the only source of a rule).</summary>
     static void MissingKeys(JsonObject json, Type type, string path)
     {
         foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))

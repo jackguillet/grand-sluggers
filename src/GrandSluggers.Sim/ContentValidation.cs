@@ -90,7 +90,7 @@ public static class ContentDataValidator
         data.StarSkills = ReadJson<StarSkillsDto>(skillsPath, json, data.ReadErrors, strict: true) ?? new();
         data.StarSkillsSource = skillsPath;
 
-        // Rule numbers (spec §16). Missing fields fall back to code; unknown fields and bad ranges are errors.
+        // Rule numbers (spec §16). Missing fields, unknown fields and bad ranges are errors; there is no code fallback.
         data.Rules = RulesTable.Load(root, data.ReadErrors);
         // Resolved through the overlay like every other path, so a trial that carries its own ground
         // rows is the file a bad `surface` is reported against (FD-05, SF-03).
@@ -270,21 +270,21 @@ public static class ContentDataValidator
         // The hazard type set is the library's table, not a list this file keeps (FD-09, FR-02), and
         // so is the ground set a park's surface and zones are checked against (FD-05, SF-03). Both are
         // the tables this root loaded, so a trial that authors either file is checked against its own
-        // rows; a rules table that failed to load has already reported itself, and the code rows stand
-        // in so a park's own mistakes are still named in the same pass.
-        var hazards = data.Rules?.Hazards ?? RulesTable.Defaults.Hazards;
-        var grounds = data.Rules?.Grounds ?? RulesTable.Defaults.Grounds;
+        // rows. A rules table that failed to load has already reported itself.
+        var rules = data.Rules ?? throw new InvalidOperationException("content data read no rules table");
+        var hazards = rules.Hazards;
+        var grounds = rules.Grounds;
         // Where a hazard may stand is measured on this root's own diamond (SF-23): the bags and the
         // rubber are the infield table this root loaded, so a trial's 80-ft diamond is the one its
         // parks are checked against, never the process-wide one.
-        var infield = data.Rules?.Infield ?? RulesTable.Defaults.Infield;
+        var infield = rules.Infield;
         // A polyline fence (FD-06, F2-c) is checked against this root's own lip, rail and wall
         // library, so a block that is legal on the shipped field and not on a trial's is refused on
         // the trial, by name, rather than played.
         var fence = new FenceLimits(
-            (data.Rules?.Flight ?? RulesTable.Defaults.Flight).Classes.InfieldLipFt,
-            (data.Rules?.Boundary ?? RulesTable.Defaults.Boundary).RailHeightFt,
-            data.Rules?.Walls ?? RulesTable.Defaults.Walls,
+            rules.Flight.Classes.InfieldLipFt,
+            rules.Boundary.RailHeightFt,
+            rules.Walls,
             data.WallsSource);
         foreach (var row in data.Parks)
             ValidatePark(row, hazards, grounds, data.GroundsSource, infield, fence, errors);

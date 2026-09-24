@@ -407,11 +407,11 @@ public sealed class PitchFamilyTrialScenarioTests
         // was good."), so the three rows moved into the shipped pitching.json. This row now holds
         // the promotion instead of the trial: the shipped root is the accepted trial (#883 retired
         // the overlay folder), and the stop by name is the off path — a table with no row, built
-        // here (the code defaults, whose three optional rows are null).
+        // here (the shipped table with its three optional rows cleared).
 
         // (a) The off path: three library ids, no rows, a loud stop that names the family and says
         //     where its numbers live. Nothing flies as a fastball.
-        var bare = RulesTable.Defaults;
+        var bare = RuleCopies.TwoFamilies();
         foreach (var family in Proposed)
         {
             Assert.False(bare.Pitching.Families.IsAuthored(family));

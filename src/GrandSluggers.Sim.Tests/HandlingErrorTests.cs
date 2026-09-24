@@ -15,7 +15,7 @@ public sealed class HandlingErrorTests
 {
     static readonly ContentCatalog Game = ContentCatalog.Load();
     /// <summary>The game's handling table with the awkward-hop switch off.</summary>
-    static readonly RulesTable HopOff = new() { Fielding = new FieldingRules { Handling = new HandlingRules { AwkwardHop = 0 } } };
+    static readonly RulesTable HopOff = Rules.Default with { Fielding = Rules.Default.Fielding with { Handling = Rules.Default.Fielding.Handling with { AwkwardHop = 0 } } };
     const double Frame = 1.0 / 60.0;
     const double G = 32.174;
 
