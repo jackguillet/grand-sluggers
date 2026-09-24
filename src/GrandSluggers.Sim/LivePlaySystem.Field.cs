@@ -164,9 +164,7 @@ public sealed partial class LivePlaySystem
     readonly GloveRecoil _recoil = new();
     bool _wallCued;
     FairFoulCall _call;
-    double _closePlayT;
-    double _closeOffAt = -1;
-    double _closeDefAt = -1;
+    readonly CloseContest _close = new();
 
     // The facts of this play the result carries (§8.6, §8.5).
     bool _bobbled;
@@ -357,9 +355,12 @@ public sealed partial class LivePlaySystem
     string _jumpPos = "";
     bool _westHeld;
     public bool CatchJump { get; private set; }
-    public bool InClosePlay { get; private set; }
-    public int CloseBag { get; private set; }
-    public bool CloseIcon { get; private set; }
+    /// <summary>A close play's mash contest is running (<see cref="CloseContest.Active"/>).</summary>
+    public bool InClosePlay => _close.Active;
+    /// <summary>The bag of the play's close play (<see cref="CloseContest.Bag"/>).</summary>
+    public int CloseBag => _close.Bag;
+    /// <summary>The close play's icon is up (<see cref="CloseContest.Icon"/>).</summary>
+    public bool CloseIcon => _close.Icon;
     /// <summary>A runner is caught between bags with a glove holding the ball in range (§9.7).</summary>
     public bool InRundown => RundownRunner is not null;
     /// <summary>The body in the rundown this frame, or null.</summary>
@@ -669,15 +670,10 @@ public sealed partial class LivePlaySystem
         _ballHazards.Clear();
         _solids = [];
         AwaitingRelay = false;
-        InClosePlay = false;
-        CloseIcon = false;
-        CloseBag = 0;
+        _close.Reset();
         RundownRunner = null;
         _cpuWalkBag = 0;
         _rundownCued = false;
-        _closeRunner = null;
-        _closePlayT = 0;
-        _closeOffAt = _closeDefAt = -1;
         Dash01 = 0;
         StealPitch = null;
         Sub = "";
@@ -3612,8 +3608,6 @@ public sealed partial class LivePlaySystem
     // Close play (spec §9.6, D5): the mash only when the ball is at third or home ahead of the body by no more than the margin
     // ---------------------------------------------------------------------------------
 
-    Runner? _closeRunner;
-
     /// <summary>
     /// The throw just landed in the cover's glove on <paramref name="bag"/>. A tag bag, an unforced
     /// body bound there and short of it, and its arrival inside running.close.marginSec from now: the
@@ -3629,67 +3623,26 @@ public sealed partial class LivePlaySystem
         var runnerAt = RunnerSystem.ArrivalSec(heading, bag, ElapsedSeconds, R, Dash01);
         if (!ClosePlay.WithinMargin(runnerAt, R)) return false;
         // The body in the play waits for the verdict (the mash is the slide): safe puts them on the bag, out retires them.
-        _closeRunner = heading;
-        heading.Halt();
-        InClosePlay = true;
-        _closePlayT = 0;
-        CloseIcon = false;
-        CloseBag = bag;
-        _closeOffAt = _closeDefAt = -1;
+        _close.Begin(heading, bag);
         return true;
     }
 
     LivePlayCommandResult TickClosePlay(double dt, LivePadInput field, LivePadInput run)
     {
-        _closePlayT += dt;
-        if (!CloseIcon)
+        if (!_close.Clock(dt, R))
         {
-            if (_closePlayT < ClosePlay.IconDelaySec(R)) return new LivePlayCommandResult(Snapshot);
-            CloseIcon = true;
-            _closePlayT = 0;
-            _events.Add(LiveEvent.CloseIcon);
+            if (_close.Icon) _events.Add(LiveEvent.CloseIcon);
             return new LivePlayCommandResult(Snapshot);
         }
 
-        var runner = _closeRunner?.Who;
+        var runner = _close.Runner?.Who;
         var fielder = PlayFielder();
         var offenseHuman = Seats.Versus ? Seats.HumanBats : Seats.HumanBats && !Seats.PlayerMustField && !PlayerFielding;
         var defenseHuman = PlayerFielding || Seats.HumanPitches || Seats.PlayerMustField;
-
-        if (_closeOffAt < 0)
-        {
-            if (offenseHuman)
-            {
-                if (run.SouthDown) _closeOffAt = _closePlayT;
-            }
-            else
-            {
-                var cpu = ClosePlay.CpuReactionSec(runner?.Stats.Run ?? 5, R);
-                if (_closePlayT >= cpu) _closeOffAt = cpu;
-            }
-        }
-        if (_closeDefAt < 0)
-        {
-            if (defenseHuman)
-            {
-                if (field.CloseResponse ?? field.SouthDown) _closeDefAt = _closePlayT;
-            }
-            else
-            {
-                var cpu = ClosePlay.CpuReactionSec(fielder.Stats.Field, R);
-                if (_closePlayT >= cpu) _closeDefAt = cpu;
-            }
-        }
-
-        // First press after the icon wins (§9.6): once one side has pressed and the clock is past that
-        // press, a seat that has not pressed yet can only be later. Nobody pressing yet keeps waiting.
-        var off = _closeOffAt >= 0 ? _closeOffAt : double.PositiveInfinity;
-        var def = _closeDefAt >= 0 ? _closeDefAt : double.PositiveInfinity;
-        var decided = !double.IsPositiveInfinity(off) && !double.IsPositiveInfinity(def)
-                      || Math.Min(off, def) < _closePlayT;
-        if (!decided) return new LivePlayCommandResult(Snapshot);
-        var safe = ClosePlay.OffenseSafe(off, def);
-        if (_closeRunner is { Live: true } body)
+        if (_close.Decide(offenseHuman, run.SouthDown, runner?.Stats.Run ?? 5,
+                defenseHuman, field.CloseResponse ?? field.SouthDown, fielder.Stats.Field, R) is not { } safe)
+            return new LivePlayCommandResult(Snapshot);
+        if (_close.Runner is { Live: true } body)
         {
             // The verdict is written once (§9.6): the body is on the bag, or the out is recorded; the caption follows the record.
             if (safe)
@@ -3707,9 +3660,7 @@ public sealed partial class LivePlaySystem
         StampNewScores();
         if (safe && CloseBag != 4) RaiseStamp(PlayStamp.SafeTell(CloseBag));
         _match.CreditClosePlay(safe ? runner : fielder);
-        _closeRunner = null;
-        InClosePlay = false;
-        CloseIcon = false;
+        _close.End();
         _cpuThrowAt = -1;
         _cpuDecided = false;
         // The play goes on from the bag: the other bodies settle and Time ends it (§10.6).
