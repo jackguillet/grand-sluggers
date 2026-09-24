@@ -30,7 +30,8 @@ namespace GrandSluggers.UnityClient
 
         void DrawActors(float dt)
         {
-            UpdateStealInset();
+            Steal.UpdateInset(_match != null && !_match.Paused && !TutorialModal && !_turntable
+                && (_phase is Phase.Set or Phase.Flight), _match, _content, _feel);
             if (_turntable) return;
             _used.Clear();
             if (_phase is Phase.Title or Phase.Select)
@@ -323,7 +324,7 @@ namespace GrandSluggers.UnityClient
             var heat = _last != null && _last.Heatball;
             if ((_caught || _buddy) && !_throwing && _phase is Phase.InPlay or Phase.StealThrow)
                 HoldBallInGlove();
-            if (_throwing && _phase is Phase.InPlay or Phase.StealThrow) HoldPreparingThrow();
+            if (_throwing && _phase is Phase.InPlay or Phase.StealThrow) StealDirector.HoldPreparingThrow(_match, _throwFromPos, _heroes, _park);
             var inFlight = _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow;
             var inPlay = _phase is Phase.InPlay or Phase.StealThrow;
             if (_replaying || inFlight || _phase is Phase.Set || _spec.Active)
