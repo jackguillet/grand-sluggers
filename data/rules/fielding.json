@@ -120,7 +120,7 @@
     "superJumpWindowSec": 0.16,
     "growWindowSec": 0.08,
     "clamberWindowSec": 0.12,
-    "buddyPlantFt": 26,
+    "buddyPlantFt": 4,
     "buddyJumpHoldSec": 0.18,
     "heldBallY": 2.2,
     "buddyHeldBallY": 6.4,

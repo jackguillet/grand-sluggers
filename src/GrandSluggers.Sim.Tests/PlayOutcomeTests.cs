@@ -10,12 +10,12 @@ public class PlayOutcomeTests
     [Fact]
     public void LiveBuddyJumpRobCarriesTypedFeatIntoEvent()
     {
-        // CF nico with LF gull (same faction): two good-chem outfielders under a homer by ten feet;
+        // CF dart with LF zig (same faction): two good-chem outfielders under a high fly homer by five feet;
         // the CPU bodies plant at the wall and the buddy jump's rob height (18) takes it (§8.3, §8.4).
-        var match = RobMatch("harbor-diamond", "gull", "nico", "dart");
-        var hit = FlightFixtures.OverTheFence(match.Park, 10, 0);
+        var match = RobMatch("harbor-diamond", "zig", "dart", "nico");
+        var hit = FlightFixtures.OverTheFence(match.Park, 5, 0, 60);
         var preview = match.PreviewHit(hit);
-        Assert.Equal("nico", preview.Fielder.Id);
+        Assert.Equal("dart", preview.Fielder.Id);
         Assert.NotNull(preview.Buddy);
         Assert.True(FieldingResolver.BuddyJumpOffered(preview));
         var field = match.ResolveFielding(hit, preview);
