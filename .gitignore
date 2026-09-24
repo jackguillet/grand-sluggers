@@ -57,3 +57,6 @@ src/**/*.csproj.meta
 
 # Python delivery tooling
 __pycache__/
+
+# Generated output: stills, takes, validation dumps. Evidence goes on the PR.
+scratchpad/
