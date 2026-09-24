@@ -23,10 +23,7 @@
       "perfect": 1.25,
       "nice": 1.12,
       "sour": 0.95
-    },
-    "perfectEnergyMul": 1.25,
-    "niceEnergyMul": 1.0,
-    "sourEnergyMul": 0.55
+    }
   },
   "exit": {
     "baseMph": 61,

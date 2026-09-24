@@ -21,36 +21,6 @@ public static class InPlay
     /// <summary>The play ends by the ball, not by a glove: a home run, or a foul nobody caught (§7.10, §7.11).</summary>
     public static bool HasDeadBallResult(PlayKind kind) => kind is PlayKind.HomeRun or PlayKind.Foul;
 
-    public static double Energy(AtBatResult hit, RulesTable rules)
-    {
-        var quality = rules.Batting.Quality;
-        var q = hit.Quality switch
-        {
-            ContactQuality.Perfect => quality.PerfectEnergyMul,
-            ContactQuality.Nice => quality.NiceEnergyMul,
-            ContactQuality.Sour => quality.SourEnergyMul,
-            _ => 0
-        };
-        return hit.ExitVeloMph * q;
-    }
-
-    public static double KnockbackSec(double energy, Character? fielder, RulesTable rules)
-    {
-        var k = rules.Fielding.Knockback;
-        if (energy < k.MinEnergy || fielder is null) return 0;
-        var w = (11 - fielder.Stats.Hands) * k.SecPerFieldDeficit;
-        return Math.Clamp((energy - k.MinEnergy) / k.EnergySpan * w, 0, k.MaxSec);
-    }
-
-    public static bool Bobbles(double energy, Character fielder, Random rng, RulesTable rules, GloveItem? glove = null)
-    {
-        var b = rules.Fielding.Bobble;
-        if (energy < b.MinEnergy) return false;
-        var hands = fielder.Stats.Field + (glove?.ErrorReduction ?? 0) * b.HandsPerGloveReduction;
-        var chance = Math.Clamp((energy - b.MinEnergy) / b.EnergySpan * (11 - hands) * b.ChancePerHands, 0, b.MaxChance);
-        return rng.NextDouble() < chance;
-    }
-
     /// <summary>Bang-bang: the throw arrived and the runner got there first by a step (running.close.marginSec).</summary>
     /// <param name="arrivedAt">Live play time when the throw (or mash) lands.</param>
     /// <param name="runnerAt">Live play time the runner touched the bag.</param>

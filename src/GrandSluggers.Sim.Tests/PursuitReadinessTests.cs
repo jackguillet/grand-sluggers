@@ -40,26 +40,6 @@ public sealed class PursuitReadinessTests
         return clock;
     }
 
-    [Fact]
-    public void TheGameStickIsRadial() => Assert.True(Radial.Radial);
-
-    /// <summary>With the radial stick off (enterMag 0) nothing is sampled, told or offered.</summary>
-    [Fact]
-    public void AStickWithoutTheRadialSwitchNeedsNoneOfThis()
-    {
-        var rules = Rules.Default.Fielding.Stick with { EnterMag = 0 };
-        Assert.False(rules.Radial);
-        var live = NewLive(Game);
-        var r = new PursuitReadiness();
-        Run(r, live, rules, 0, 1.0, true, Pad(7, 0.3, 0));
-        var stick = live.FieldStick(0);
-        Assert.True(stick.Calibration.Valid);   // the identity profile a fresh stick starts on, untouched
-        Assert.Equal(0, stick.Calibration.Adopted);
-        Assert.Equal(PursuitReadiness.Tell.None, r.TellFor(0, live, rules));
-        Assert.False(PursuitReadiness.Offered(rules, [Pad(7)]));
-        Assert.False(r.Request(live, rules, [Pad(7)]));
-    }
-
     /// <summary>A controller seated for the match has no profile until a resting half second is sampled outside play; the seat is told to let go meanwhile, and the window's progress fills.</summary>
     [Fact]
     public void ASeatedControllerCalibratesOnARestingStickOutsidePlay()

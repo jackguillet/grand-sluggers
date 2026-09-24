@@ -15,8 +15,6 @@ namespace GrandSluggers.Sim;
 /// <item>Nothing is sampled while the ball is live. A window that live play, a lost device or a stall interrupts starts over:
 /// its samples must span the whole <c>calibrationSec</c> on the input clock, never be stitched across a gap.</item>
 /// </list>
-///
-/// On the shipped table (<see cref="FieldStickRules.Radial"/> false) the stick reads no calibration, and this does nothing.
 /// </summary>
 public sealed class PursuitReadiness
 {
@@ -67,7 +65,6 @@ public sealed class PursuitReadiness
     /// </summary>
     public void Tick(LivePlaySystem live, FieldStickRules rules, bool outsidePlay, double clockSec, IReadOnlyList<SeatDevice> devices)
     {
-        if (!rules.Radial) return;
         if (!ReferenceEquals(live, _live))
         {
             // A new match is a new set of sticks: every seat binds afresh.
@@ -136,7 +133,6 @@ public sealed class PursuitReadiness
     /// <summary>Call time offers the entry on the calibrated stick when a seated controller is connected.</summary>
     public static bool Offered(FieldStickRules rules, IReadOnlyList<SeatDevice> devices)
     {
-        if (!rules.Radial) return false;
         for (var i = 0; i < Math.Min(SeatCount, devices.Count); i++)
             if (devices[i].Analog && devices[i].Present) return true;
         return false;
@@ -171,7 +167,7 @@ public sealed class PursuitReadiness
     /// <summary>What seat <paramref name="seat"/> is told this frame on <paramref name="live"/>'s sticks.</summary>
     public Tell TellFor(int seat, LivePlaySystem live, FieldStickRules rules)
     {
-        if (!rules.Radial || seat < 0 || seat >= SeatCount || !ReferenceEquals(live, _live)) return Tell.None;
+        if (seat < 0 || seat >= SeatCount || !ReferenceEquals(live, _live)) return Tell.None;
         var s = _seats[seat];
         if (!s.Seen) return Tell.None;
         if (s.Requested) return Tell.LetGo;

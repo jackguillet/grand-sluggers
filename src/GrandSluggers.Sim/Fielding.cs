@@ -203,8 +203,8 @@ public sealed class FieldingResolver
 
     /// <summary>
     /// The speed severity of a take (F693-02-recoil-severity-curve, #720): 0 at or below the shared onset, 1 at or above the full
-    /// speed, linear between. 0 whenever the rule is off (<c>recoil.onsetFtPerSec</c> 0, the shipped table). A catch in the air
-    /// (<paramref name="airborne"/>) reads the airborne pair (F693-02-grounded-air-catch-recoil), off at <c>airOnsetFtPerSec</c> 0.
+    /// speed, linear between. A catch in the air (<paramref name="airborne"/>) reads the airborne pair
+    /// (F693-02-grounded-air-catch-recoil).
     /// </summary>
     public static double RecoilSeverity(double incomingFtPerSec, RulesTable rules, bool airborne = false)
     {
@@ -240,7 +240,7 @@ public sealed class FieldingResolver
     {
         var r = rules;
         var h = r.Fielding.Handling;
-        if (!h.Active || ballVy <= 0 || ballY <= 1e-9) return 0;
+        if (ballVy <= 0 || ballY <= 1e-9) return 0;
         var apex = ballY + ballVy * ballVy / (2 * r.Flight.Gravity);
         if (apex < h.HopMinApexFt) return 0;
         var phi = ballY / apex;
@@ -282,7 +282,7 @@ public sealed class FieldingResolver
     public static double HandlingErrorChance(double difficulty, double quality, RulesTable rules)
     {
         var h = rules.Fielding.Handling;
-        if (!h.Active || difficulty <= 0) return 0;
+        if (difficulty <= 0) return 0;
         return Math.Clamp(h.ChanceCap * Math.Clamp(difficulty, 0, 1) * (1 - h.HandsCut * Math.Clamp(quality, 0, 1)), 0, h.ChanceCap);
     }
 
@@ -298,10 +298,8 @@ public sealed class FieldingResolver
         StandUpCatchFt(catchRadius) + rules.Fielding.Catch.DiveReachFt;
 
     /// <summary>
-    /// Base catch radius for a glove (fielding.catch.radius*, abilities, clamber parks). The stand-up reach is
-    /// the character's authored <see cref="Character.ReachFt"/> when it has one; otherwise the table's authored
-    /// <c>standUpReachFt</c> when it carries one (4.0 as shipped); otherwise the legacy
-    /// <c>radiusBaseFt + radiusPerField x Field</c>
+    /// Base catch radius for a glove (abilities, clamber parks). The stand-up reach is the character's authored
+    /// <see cref="Character.ReachFt"/> when it has one, else the table's <c>standUpReachFt</c> (4.0)
     /// (F693-02-catch-reach-envelope, F693-02-character-catch-range).
     /// </summary>
     public static double CatchRadiusFt(Character fielder, Park? park, RulesTable rules)
@@ -309,7 +307,7 @@ public sealed class FieldingResolver
         var r = rules;
         var c = r.Fielding.Catch;
         var standUp = fielder.ReachFt
-                      ?? (c.StandUpReachFt > 0 ? c.StandUpReachFt : c.RadiusBaseFt + fielder.Stats.Field * c.RadiusPerField);
+                      ?? c.StandUpReachFt;
         var radius = standUp + FieldAbilities.CatchBonus(fielder, r);
         if (park != null && ParkHazards.CanClamber(park, fielder, r))
             radius += r.Fielding.Catch.ClamberRadiusFt;

@@ -79,7 +79,6 @@
     "stopFt": 1.2,
     "radiusFt": 6,
     "backupFt": 60,
-    "lockoutMul": 0,
     "chaseSpeedWeight": 1
   },
   "dash": {
@@ -91,8 +90,6 @@
     "itemSmashFt": 24
   },
   "catch": {
-    "radiusBaseFt": 10,
-    "radiusPerField": 0.6,
     // Authored reach: 4 ft standing, 5 ft on the dirt, 6 ft diving in the air. Ability bonuses remain explicit.
     "standUpReachFt": 4.0,
     "clamberRadiusFt": 6,
@@ -130,8 +127,6 @@
     "buddyLeapBallY": 2.2,
     "hoverLeadSec": 0.4,
     "hoverMinSec": 0.25,
-    "jumpArmSec": 0.55,
-    "wallJumpArmSec": 0.7,
     "diveArmSec": 0.5,
     "diveRecoverySec": 0.60,
     "diveRecoveryFieldCut": 0.025,
@@ -165,7 +160,6 @@
     "laserMul": 1.25,
     "snapThrowMul": 1.0,
     "snapReleaseSec": 0.22,
-    "laserHomeOnly": 1,
     // #718 (F693-02-ball-dash-carrier): dart, pip and jester (characters/role-players.json) carry the ball at x1.20
     // of their pursuit speed, automatically; the rates stay the body's own, so the boosted body takes 0.24 s to its cap.
     "ballDashMul": 1.20
@@ -194,7 +188,6 @@
     "bagHeightFt": 1.2,
     // #723 (F693-03-relay-ownership): each human relay leg needs its own command; an early press is remembered for 0.25 s of
     // active play and fires at the catch; bag selectors retarget it; a fresh RB / period cancels it.
-    "relayAutoContinue": 0,
     "relayBufferSec": 0.25
   },
   // How fast the loose ball slows is the ground's, not the throw's: grounds.json overthrow.decelFtPerSec2, read off the row of
@@ -221,24 +214,8 @@
     "slantLateralMaxFt": 14
   },
   "bobble": {
-    "minEnergy": 78,
     "handsPerGloveReduction": 3,
-    "energySpan": 110,
-    "chancePerHands": 0.08,
-    "maxChance": 0.5,
-    "fumbleSec": 0.58,
-    "scatterFt": 6.5,
-    "scatterFtPerSec": 12,
-    "scatterDropFtPerSec": 16,
-    "scatterBallY": 3.1,
-    "recoilFtPerSec": 14
-  },
-  "knockback": {
-    "minEnergy": 72,
-    "secPerFieldDeficit": 0.045,
-    "energySpan": 90,
-    "maxSec": 0.55,
-    "minSec": 0.02
+    "fumbleSec": 0.58
   },
   // #720 (F693-02-ground-pickup-recoil-basis, -cap, -recoil-field-shaping, -recoil-field-factors, -recoil-severity-curve,
   // -ordinary-recoil-actions, -ordinary-recoil-displacement, -ordinary-recoil-distance-cap, -ordinary-recoil-motion-profile):
@@ -284,7 +261,6 @@
   // a second roll. The CPU takes at the edge of the ring, so its rare fumble on a hot ball is the ball getting past and on an
   // ordinary one the knockdown; the seat's own take at the body is always the knockdown. The bobble block above is not read.
   "handling": {
-    "awkwardHop": 1,
     "chanceCap": 0.10,
     "handsCut": 0.80,
     "hopMinApexFt": 0.5,
