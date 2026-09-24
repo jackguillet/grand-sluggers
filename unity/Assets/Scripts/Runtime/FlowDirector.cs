@@ -245,12 +245,6 @@ namespace GrandSluggers.UnityClient
 
         void EndTraining()
         {
-            if (_coach != null && _coach.Session != null && _coach.Session.Finished)
-            {
-                PlayerPrefs.SetInt(TrainedKey, 1);
-                PlayerPrefs.Save();
-                _hideHelp = true;
-            }
             _coach?.Stop();
             ReleaseMatchSeats();
             _mode = PlayMode.Training;
