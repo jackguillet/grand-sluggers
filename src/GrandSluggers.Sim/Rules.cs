@@ -81,12 +81,7 @@ public sealed record RulesTable
     /// <summary>Load every table, collecting errors instead of throwing. A missing field is an error: there is no code fallback.</summary>
     public static RulesTable Load(DataRoot dataRoot, List<string> errors)
     {
-        var json = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            AllowTrailingCommas = true
-        };
+        var json = DataJson.Options;
         var table = new RulesTable
         {
             Match = Read<MatchRules>(dataRoot, "match", json, errors),
@@ -134,11 +129,7 @@ public sealed record RulesTable
         try
         {
             var text = File.ReadAllText(path);
-            using (var doc = JsonDocument.Parse(text, new JsonDocumentOptions
-                   {
-                       CommentHandling = JsonCommentHandling.Skip,
-                       AllowTrailingCommas = true
-                   }))
+            using (var doc = JsonDocument.Parse(text, DataJson.Document))
             {
                 RulesValidation.UnknownFields(doc.RootElement, typeof(T), name, path, errors);
                 RulesValidation.MissingFields(doc.RootElement, typeof(T), name, path, errors);

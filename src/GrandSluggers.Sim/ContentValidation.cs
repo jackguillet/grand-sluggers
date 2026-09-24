@@ -27,13 +27,13 @@ public static class ContentDataValidator
 
     public static IReadOnlyList<string> Validate(DataRoot dataRoot)
     {
-        var data = Read(dataRoot, JsonOptions());
+        var data = Read(dataRoot);
         return Errors(data);
     }
 
-    internal static ContentData Load(DataRoot dataRoot, JsonSerializerOptions json)
+    internal static ContentData Load(DataRoot dataRoot)
     {
-        var data = Read(dataRoot, json);
+        var data = Read(dataRoot);
         var errors = Errors(data);
         if (errors.Count > 0)
             throw new InvalidDataException("Invalid gameplay content:" + Environment.NewLine
@@ -41,14 +41,7 @@ public static class ContentDataValidator
         return data;
     }
 
-    static JsonSerializerOptions JsonOptions() => new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
-    static ContentData Read(DataRoot root, JsonSerializerOptions json)
+    static ContentData Read(DataRoot root)
     {
         var data = new ContentData();
         data.ReadErrors.AddRange(RaceEvidence.Validate(root));
@@ -57,7 +50,7 @@ public static class ContentDataValidator
         {
             if (Path.GetFileName(file).Equals("role-players.json", StringComparison.OrdinalIgnoreCase))
             {
-                var rows = ReadJson<List<CharacterDto?>>(file, json, data.ReadErrors);
+                var rows = DataJson.Read<List<CharacterDto?>>(file, data.ReadErrors);
                 if (rows is null) continue;
                 for (var i = 0; i < rows.Count; i++)
                 {
@@ -69,25 +62,25 @@ public static class ContentDataValidator
             }
             else
             {
-                var row = ReadJson<CharacterDto>(file, json, data.ReadErrors);
+                var row = DataJson.Read<CharacterDto>(file, data.ReadErrors);
                 if (row is not null) data.Characters.Add(new(row, file));
             }
         }
 
-        // Parks are read strictly (spec §16, FR-03): a key a park file does not declare is a stop,
-        // the way it is for a rule table. Every other catalog stays permissive until its own child.
-        ReadRows(root, "parks", data.Parks, json, data.ReadErrors, strict: true);
-        ReadRows(root, "bats", data.Bats, json, data.ReadErrors);
-        ReadRows(root, "gloves", data.Gloves, json, data.ReadErrors);
+        // Every catalog is read strictly (spec §16, FR-03): a key a file does not declare is a stop, named with
+        // its file and key, the way it is for a rule table (DataJson.Read).
+        ReadRows(root, "parks", data.Parks, data.ReadErrors);
+        ReadRows(root, "bats", data.Bats, data.ReadErrors);
+        ReadRows(root, "gloves", data.Gloves, data.ReadErrors);
 
         var chemistryPath = root.Resolve("chemistry", "overrides.json");
-        data.Chemistry = ReadJson<ChemistryOverrides>(chemistryPath, json, data.ReadErrors) ?? new();
+        data.Chemistry = DataJson.Read<ChemistryOverrides>(chemistryPath, data.ReadErrors) ?? new();
         data.ChemistrySource = chemistryPath;
 
         var skillsPath = root.Resolve("abilities", "star-skills.json");
         // Read strictly (spec §13): a key no skill declares is a stop, so a retired key such as
         // batterWindowMul (PH-16-R1) cannot sit in the file looking like it still bends a pitch.
-        data.StarSkills = ReadJson<StarSkillsDto>(skillsPath, json, data.ReadErrors, strict: true) ?? new();
+        data.StarSkills = DataJson.Read<StarSkillsDto>(skillsPath, data.ReadErrors) ?? new();
         data.StarSkillsSource = skillsPath;
 
         // Rule numbers (spec §16). Missing fields, unknown fields and bad ranges are errors; there is no code fallback.
@@ -104,13 +97,11 @@ public static class ContentDataValidator
         DataRoot root,
         string directory,
         List<Sourced<T>> destination,
-        JsonSerializerOptions json,
-        List<string> errors,
-        bool strict = false) where T : class
+        List<string> errors) where T : class
     {
         foreach (var file in Files(root, directory, errors))
         {
-            var row = ReadJson<T>(file, json, errors, strict);
+            var row = DataJson.Read<T>(file, errors);
             if (row is not null) destination.Add(new(row, file));
         }
     }
@@ -130,119 +121,6 @@ public static class ContentDataValidator
         }
         return root.Files(directory, "*.json");
     }
-
-    static T? ReadJson<T>(string path, JsonSerializerOptions json, List<string> errors, bool strict = false) where T : class
-    {
-        try
-        {
-            var text = File.ReadAllText(path);
-            if (strict) UnknownKeys(text, typeof(T), path, errors);
-            var value = JsonSerializer.Deserialize<T>(text, json);
-            if (value is null) errors.Add($"{path}: JSON document is empty");
-            return value;
-        }
-        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
-        {
-            errors.Add($"{path}: cannot read gameplay data: {ex.Message}");
-            return null;
-        }
-    }
-
-    static readonly JsonDocumentOptions StrictJson = new()
-    {
-        CommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
-    /// <summary>
-    /// The strict read (spec §16, FR-03, #820): a key the row type does not declare stops the load and
-    /// names the file and the key, the way <see cref="RulesValidation.UnknownFields"/> does for a rule
-    /// table. Before this, <c>System.Text.Json</c> dropped an unknown park key in silence, so a
-    /// misspelled <c>centerFenceFt</c> played Harbor's fence and no test failed.
-    ///
-    /// Rows nested in a list (a park's hazards) are walked against their own row type; a malformed
-    /// document is left to <see cref="JsonSerializer"/>, which reports it with the parser's message.
-    /// </summary>
-    static void UnknownKeys(string text, Type type, string source, List<string> errors)
-    {
-        JsonDocument doc;
-        try { doc = JsonDocument.Parse(text, StrictJson); }
-        catch (JsonException) { return; }
-        using (doc)
-            UnknownKeys(doc.RootElement, type, "", source, errors);
-    }
-
-    static void UnknownKeys(JsonElement element, Type type, string path, string source, List<string> errors)
-    {
-        if (element.ValueKind != JsonValueKind.Object)
-        {
-            errors.Add($"{source}: {(path.Length == 0 ? "the row" : path.TrimEnd('.'))} must be an object; got {element.ValueKind}");
-            return;
-        }
-        var declared = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.GetIndexParameters().Length == 0)
-            .ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
-        foreach (var field in element.EnumerateObject())
-        {
-            if (!declared.TryGetValue(field.Name, out var p))
-            {
-                var names = declared.Values.Select(x => Camel(x.Name)).OrderBy(x => x, StringComparer.Ordinal);
-                var why = type.GetCustomAttribute<OnlyKeysAttribute>()?.Why;
-                errors.Add($"{source}: {path}{field.Name} is not a key this file declares; "
-                    + $"the keys of {Camel(TypeLabel(type))} are [{string.Join(", ", names)}]"
-                    + (why is null ? "" : "; " + why));
-                continue;
-            }
-            if (RowType(p.PropertyType) is { } row && field.Value.ValueKind == JsonValueKind.Array)
-            {
-                var i = 0;
-                foreach (var entry in field.Value.EnumerateArray())
-                {
-                    if (entry.ValueKind != JsonValueKind.Null)
-                        UnknownKeys(entry, row, $"{path}{Camel(p.Name)}[{i}].", source, errors);
-                    i++;
-                }
-            }
-            else if (DictionaryRowType(p.PropertyType) is { } keyed && field.Value.ValueKind == JsonValueKind.Object)
-            {
-                foreach (var entry in field.Value.EnumerateObject())
-                {
-                    if (entry.Value.ValueKind != JsonValueKind.Null)
-                        UnknownKeys(entry.Value, keyed, $"{path}{Camel(p.Name)}.{entry.Name}.", source, errors);
-                }
-            }
-            else if (Nested(p.PropertyType))
-                UnknownKeys(field.Value, p.PropertyType, $"{path}{Camel(p.Name)}.", source, errors);
-        }
-    }
-
-    /// <summary>The row type behind a <c>List&lt;T?&gt;</c> of authored rows, else null.</summary>
-    static Type? RowType(Type type)
-    {
-        if (!type.IsGenericType) return null;
-        var arg = type.GetGenericArguments()[0];
-        arg = Nullable.GetUnderlyingType(arg) ?? arg;
-        return Nested(arg) ? arg : null;
-    }
-
-    /// <summary>The row type behind a <c>Dictionary&lt;string, T?&gt;</c> of authored rows keyed by id, else null.</summary>
-    static Type? DictionaryRowType(Type type)
-    {
-        if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(Dictionary<,>)) return null;
-        var args = type.GetGenericArguments();
-        if (args[0] != typeof(string)) return null;
-        var arg = Nullable.GetUnderlyingType(args[1]) ?? args[1];
-        return Nested(arg) ? arg : null;
-    }
-
-    static bool Nested(Type type) =>
-        type.IsClass && type != typeof(string) && type.Namespace == typeof(ContentDataValidator).Namespace;
-
-    static string TypeLabel(Type type) =>
-        type.Name.EndsWith("Dto", StringComparison.Ordinal) ? type.Name[..^3] : type.Name;
-
-    static string Camel(string name) =>
-        name.Length == 0 ? name : char.ToLowerInvariant(name[0]) + name[1..];
 
     static IReadOnlyList<string> Errors(ContentData data)
     {
@@ -1199,7 +1077,7 @@ internal sealed class ParkNightDto
 
 /// <summary>
 /// Why a block of a strictly read file declares only the keys it does. The strict read
-/// (<c>ContentDataValidator.UnknownKeys</c>) appends it to the refusal of any other key, so the author
+/// (<c>DataJson.UnknownKeys</c>) appends it to the refusal of any other key, so the author
 /// reads the rule and not only the key list.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]

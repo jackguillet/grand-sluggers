@@ -1,10 +1,9 @@
 {
+  // Konga's default. A cask with a handle.
   "id": "barrel-bat",
   "name": "Barrel Bat",
-  "slot": "bat",
   "contactMod": 0,
   "powerMod": 1,
   "chargeAlwaysFull": false,
-  "visual": "bat-barrel",
-  "notes": "Konga's default. A cask with a handle."
+  "visual": "bat-barrel"
 }

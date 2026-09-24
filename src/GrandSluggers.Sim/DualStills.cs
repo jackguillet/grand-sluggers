@@ -53,12 +53,6 @@ public sealed class DualStills
         "skill", "rubric", "mayPassLook", "mayClose188", "mayEditRubric"
     };
 
-    static readonly JsonDocumentOptions Document = new()
-    {
-        CommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
     public string Drop { get; }
     public IReadOnlyList<string> Triggers { get; }
     public IReadOnlyList<DualStillsKind> Kinds { get; }
@@ -105,7 +99,7 @@ public sealed class DualStills
         JsonNode? node;
         try
         {
-            node = JsonNode.Parse(File.ReadAllText(path), documentOptions: Document);
+            node = JsonNode.Parse(File.ReadAllText(path), documentOptions: DataJson.Document);
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {

@@ -65,14 +65,7 @@ public sealed class ContentCatalog
     public static ContentCatalog Load(DataRoot? dataRoot = null)
     {
         var root = dataRoot ?? FindDataRoot();
-        var json = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            AllowTrailingCommas = true
-        };
-
-        var data = ContentDataValidator.Load(root, json);
+        var data = ContentDataValidator.Load(root);
 
         var characters = new Dictionary<string, Character>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in data.Characters)
