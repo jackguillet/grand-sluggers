@@ -1049,7 +1049,7 @@ Evaluated at contact, at every fielder touch, and at every throw release (events
 | --- | --- | --- |
 | Forced on a grounder | always | |
 | Unforced on a grounder to the infield | margin(next) > 0.4 and the ball is not in front of them | A runner on 2nd does not run at a grounder to SS/3B in front of them |
-| Runner on 3rd, grounder, < 2 outs | infield back (fielder ≥ 110 ft from home) or margin(home) > 0.3 | "Contact play" with 2 outs: always go |
+| Runner on 3rd, grounder, < 2 outs | infield back (1B, 2B, SS or 3B meets the ball at or behind his own depth from home; the pitcher and the catcher never) or margin(home) > 0.3 | "Contact play" with 2 outs: always go |
 | Hit through / to the outfield | margin(next) > 0.5 − Run × 0.03 | Aggression by Run; two outs: +0.3 (go more) |
 | Batter-runner rounding first | margin(2B) > 0.6 − Run × 0.03 | Reads the pickup: ball behind the outfielder = go |
 | Fly ball | hold; tag-up rules §9.5 | ✅ #732: the tag-up is `margin(next) > tagUp*MarginSec + runnerMarginSec`, read once at the catch |

@@ -1801,7 +1801,7 @@ public sealed partial class LivePlaySystem
         // A bunt (§7.3): the runner from third holds at contact unless the offense sent them. The clock the runner reads
         // (#722) is the defense's own plan from whoever holds the ball next: the receiver of a throw in the air, else the glove.
         var nextHolder = Throwing ? (ThrowBag is >= 1 and <= 4 ? CoverPos : _cutoffPos) : GlovePos;
-        ball = ball with { Bunt = Ball is { Shape: BattedBallClass.Bunt }, ThrowClock = RunnerClock(nextHolder) };
+        ball = ball with { Bunt = Ball is { Shape: BattedBallClass.Bunt }, ThrowClock = RunnerClock(nextHolder), Fielder = nextHolder };
         var trailing = _match.Inning >= _match.Innings
             ? (_match.Top ? _match.HomeScore - _match.AwayScore : _match.AwayScore - _match.HomeScore)
             : int.MinValue;
