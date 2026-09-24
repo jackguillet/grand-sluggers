@@ -7,7 +7,7 @@ namespace GrandSluggers.Sim;
 /// Title, select, lineup, and final still draw.
 /// Play HUD anchors are normalized 0–1, Y down (IMGUI). 1P and 2P share one layout (#325).
 /// </summary>
-public static class BroadcastHud
+public static partial class BroadcastHud
 {
     public enum PlayMode { Plate, InPlay, Hidden }
 

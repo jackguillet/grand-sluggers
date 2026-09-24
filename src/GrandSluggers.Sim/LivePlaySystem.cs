@@ -206,10 +206,8 @@ public sealed record LivePlayCommandResult(
 /// </summary>
 public sealed record LiveMoment(InPlay.ThrowVerdict Verdict, int Bag, Character? Fielder, Character? Runner)
 {
-    public bool NarratesBatterAtFirst => InPlay.NarratesBatterAtFirst(Verdict);
-
     public string Narrate(string batterName, string defaultFielderName) =>
-        InPlay.Narrate(Verdict, Bag, Fielder?.Name ?? defaultFielderName, batterName, Runner?.Name);
+        BroadcastHud.Verdict(Verdict, Bag, Fielder?.Name ?? defaultFielderName, batterName, Runner?.Name);
 }
 
 /// <summary>

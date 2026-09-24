@@ -334,44 +334,11 @@ public static class InPlay
         _ => OutType.ThrowOutAtFirst
     };
 
-    /// <summary>Whether the narration of this verdict already places the batter at first.</summary>
-    public static bool NarratesBatterAtFirst(ThrowVerdict verdict) => verdict == ThrowVerdict.BatterSafeAfterForce;
-
-    /// <summary>The caption for a verdict. Produced from the typed facts, last; nothing reads it back.</summary>
-    public static string Narrate(ThrowVerdict verdict, int bag, string? fielderName, string? batterName, string? runnerName = null)
-    {
-        fielderName ??= "";
-        batterName ??= "";
-        var where = bag == 3 ? " at third" : bag == 4 ? " at home" : "";
-        return verdict switch
-        {
-            ThrowVerdict.BatterSafeAfterForce => $"Force at second. {batterName} in at first.",
-            ThrowVerdict.BeatForce or ThrowVerdict.Beat => $"{batterName} beats the throw.",
-            ThrowVerdict.TurnedTwo => $"{fielderName} turns two.",
-            ThrowVerdict.OutAtFirst => $"{fielderName} to first.",
-            ThrowVerdict.ForceOut => $"{fielderName} forces the runner{where}.",
-            ThrowVerdict.TagOut => $"{fielderName} tags the runner{where}.",
-            ThrowVerdict.TagRunner => $"{fielderName} tags {runnerName ?? "the runner"}.",
-            ThrowVerdict.DoubledOff => $"{fielderName} doubles {runnerName ?? "the runner"} off{(bag == 1 ? " first" : bag == 2 ? " second" : where)}.",
-            ThrowVerdict.Wasted => $"{fielderName} throws to {BagName(bag)} with nobody to play on.",
-            _ => ""
-        };
-    }
-
-    public static string BagName(int bag) => bag switch
-    {
-        1 => "first",
-        2 => "second",
-        3 => "third",
-        4 => "home",
-        _ => "the cutoff"
-    };
-
     static GroundThrowStep Step(
         ThrowVerdict verdict, int bag, bool @out, bool force, bool turnedTwo, bool batterSafe, bool playOver,
         int nextDefaultBag, string? fielderName, string? batterName) =>
         new(bag, @out, force, turnedTwo, batterSafe, playOver, nextDefaultBag,
-            Narrate(verdict, bag, fielderName, batterName), verdict);
+            BroadcastHud.Verdict(verdict, bag, fielderName, batterName), verdict);
 
     /// <summary>
     /// Pure baseball for one throw to a bag. Match applies it; the director decides when.

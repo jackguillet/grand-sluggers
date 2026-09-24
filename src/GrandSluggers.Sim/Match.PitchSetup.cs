@@ -26,7 +26,7 @@ public sealed partial class Match
         EndIfWalkOff();
         return FinishEvent(Emit(PlayKind.Balk, new PitchCommand(PitchFamily.Fastball, 0, false),
             new SwingCommand(false, 0, 0, false), EmptyHit(true),
-            "Balk: threw to a base after committing to pitch. Runners advance one base.", scorers.Count, scorers));
+            PlayCall.Of(new CallPart(CallBeat.Balk)), scorers.Count, scorers));
     }
 
     /// <summary>A runner completed a steal while the pitcher still held the ball. No plate appearance completes.</summary>
@@ -55,7 +55,7 @@ public sealed partial class Match
         PruneRunners();
         EndIfWalkOff();
         return FinishEvent(Emit(PlayKind.StolenBase, new PitchCommand(PitchFamily.Fastball, 0, false),
-            new SwingCommand(false, 0, 0, false), EmptyHit(true), "Stolen base.", scorers.Count, scorers,
+            new SwingCommand(false, 0, 0, false), EmptyHit(true), PlayCall.Of(new CallPart(CallBeat.StolenBase)), scorers.Count, scorers,
             outcome: new PlayOutcome(RunnerResult: RunnerPlayResult.StolenBase)));
     }
 }
