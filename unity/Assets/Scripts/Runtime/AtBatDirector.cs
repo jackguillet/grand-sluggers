@@ -465,10 +465,21 @@ namespace GrandSluggers.UnityClient
             var dx = _swapX.Tick(mound.MenuAxisX, mound.MenuTapX, dt);
             var dy = _swapY.Tick(mound.MenuAxisY, mound.MenuTapY, dt);
             if (dx != 0 || dy != 0) _swapPick.Move(dx, dy);
+            // The Arrange defense lesson owns every trade, the mound included, so a pitcher change is its typed failure.
+            System.Func<Character, bool> pitcherSwap = TutorialOn && _coach.Tutorial.IsDefenseSwapLesson ? null : WindowPitcherSwap;
             if (mound.WestDown || pointer == TeamSheet.PitcherAction.Confirm)
-                _swapPick.QuickPitcher(_match, WindowPitcherSwap);
+                _swapPick.QuickPitcher(_match, pitcherSwap, WindowPositionSwap);
             else if (pointer == TeamSheet.PitcherAction.Pick || (mound.SouthDown && !Controls.PointerDown))
-                _swapPick.PickOrSwap(_match, WindowPitcherSwap);
+                _swapPick.PickOrSwap(_match, pitcherSwap, WindowPositionSwap);
+        }
+
+        bool WindowPositionSwap(string from, string to)
+        {
+            bool changed;
+            if (TutorialOn && _coach.Tutorial.IsDefenseSwapLesson) _coach.Tutorial.SwapPositions(from, to, out changed);
+            else changed = _match.SwapDefensePositions(from, to);
+            if (changed && (from == "P" || to == "P")) _pitchSelect = PitchSelectionState.Reset;
+            return changed;
         }
 
         bool WindowPitcherSwap(Character who)
