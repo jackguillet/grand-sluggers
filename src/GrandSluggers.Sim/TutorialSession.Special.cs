@@ -24,8 +24,8 @@ public sealed partial class TutorialSession
     {
         if (live.HoldsBall && LastHit?.StarSwingUsed == _setup.Skill && live.Preview?.Grounder == true)
         {
-            var manual = _manualGloves.Contains(live.TutorialFirstGloveId)
-                && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
+            var manual = _manualGloves.Contains(live.FirstGloveId)
+                && !_assistedSinceManual.Contains(live.FirstGloveId);
             Finish(manual, manual ? "special-ground-fielded" : "assisted-special-field",
                 manual ? "You moved your glove to the star grounder and secured it."
                     : "The helper took the special grounder. Move the glove to the ball yourself.");
@@ -65,7 +65,7 @@ public sealed partial class TutorialSession
         if (_humanItemId.Length == 0 || _humanItemId != _setup.Skill || !live.ItemLanded) return;
         var field = live.Field;
         if (field is not { ItemHit: true } || field.Item != _setup.Skill
-            || field.ItemTarget?.Id != _humanItemTarget || !live.TutorialItemEffectActive(_setup.Skill, _humanItemTarget)) return;
+            || field.ItemTarget?.Id != _humanItemTarget || !live.ItemEffectActive(_setup.Skill, _humanItemTarget)) return;
         Finish(true, "item-effect-" + _setup.Skill,
             "Your " + _setup.Skill + " landed and its field effect became active.");
     }

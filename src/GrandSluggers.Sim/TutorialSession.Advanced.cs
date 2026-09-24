@@ -91,7 +91,7 @@ public sealed partial class TutorialSession
                     + (live.GloveZ - _bobbleLastZ) * (_bobbleLastBallZ - _bobbleLastZ) > 1e-5)
             {
                 _bobbleHumanChase = true;
-                _bobbleChaserId = live.TutorialGloveId;
+                _bobbleChaserId = live.GloveId;
             }
             if (_bobbleSeen)
             {
@@ -100,7 +100,7 @@ public sealed partial class TutorialSession
                 _bobbleTracked = true;
             }
             if (_bobbleSeen && _bobbleHumanChase && manual && recoveredNow
-                && live.TutorialGloveId == _bobbleChaserId
+                && live.GloveId == _bobbleChaserId
                 && !_assistedSinceManual.Contains(_bobbleChaserId))
             {
                 var marks = live.TakeTrace().Marks ?? [];
@@ -163,7 +163,7 @@ public sealed partial class TutorialSession
                     + (live.GloveZ - _looseLastZ) * (_looseLastBallZ - _looseLastZ) > 1e-5)
             {
                 _looseHumanChase = true;
-                _looseChaserId = live.TutorialGloveId;
+                _looseChaserId = live.GloveId;
             }
             if (_looseSeen)
             {
@@ -172,7 +172,7 @@ public sealed partial class TutorialSession
                 _looseTracked = true;
             }
             if (_looseSeen && _looseHumanChase && live.HoldsBall
-                && live.Events.Contains(LiveEvent.Glove) && live.TutorialGloveId == _looseChaserId
+                && live.Events.Contains(LiveEvent.Glove) && live.GloveId == _looseChaserId
                 && input.Source == LivePlayCommandSource.Human && !Demonstration
                 && input.Field is { StickX: var takeX, StickY: var takeY } && takeX * takeX + takeY * takeY >= .25
                 && live.PursuitManual && !_assistedSinceManual.Contains(_looseChaserId))
@@ -195,8 +195,8 @@ public sealed partial class TutorialSession
             var feed = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease
                 && m.Flight is { FromPos: "CF", Bag: 0 });
             var flight = feed?.Flight;
-            var from = flight is null ? null : live.TutorialFielderAt(flight.FromPos);
-            var to = flight is null ? null : live.TutorialFielderAt(flight.ReceiverPos);
+            var from = flight is null ? null : live.FielderAt(flight.FromPos);
+            var to = flight is null ? null : live.FielderAt(flight.ReceiverPos);
             var success = _relayHumanFeed && flight is not null && from is not null && to is not null
                 && _content.Chemistry.Between(from, to) == Chemistry.Good
                 && Math.Abs(flight.SpeedMul - InPlay.ArmMul(from, Match.Rules)
@@ -267,8 +267,8 @@ public sealed partial class TutorialSession
             var release = marks.FirstOrDefault(m => m.Kind == PlayTraceMarkKind.ThrowRelease
                 && m.Flight is { FromPos: "CF" });
             var flight = release?.Flight;
-            var thrower = flight is null ? null : live.TutorialFielderAt(flight.FromPos);
-            var receiver = flight is null ? null : live.TutorialFielderAt(flight.ReceiverPos);
+            var thrower = flight is null ? null : live.FielderAt(flight.FromPos);
+            var receiver = flight is null ? null : live.FielderAt(flight.ReceiverPos);
             var eligibleBag = flight?.Bag == 4;
             var success = _laserHumanThrow && flight is not null && thrower?.FieldAbility == "laser"
                 && receiver is not null && eligibleBag;
@@ -314,8 +314,8 @@ public sealed partial class TutorialSession
             if (Lesson.Objective == "human-snap-relay" && success)
             {
                 var flight = onward!.Flight!;
-                var snap = live.TutorialFielderAt(flight.FromPos);
-                var receiver = live.TutorialFielderAt(flight.ReceiverPos);
+                var snap = live.FielderAt(flight.FromPos);
+                var receiver = live.FielderAt(flight.ReceiverPos);
                 var at = Diamond.Bag(4);
                 var distance = Diamond.Dist(flight.FromX, flight.FromZ, at.X, at.Z);
                 var abilities = Match.Rules.Fielding.Abilities;
@@ -376,16 +376,16 @@ public sealed partial class TutorialSession
             _dashLastTime = Elapsed;
             _dashLastX = live.GloveX;
             _dashLastZ = live.GloveZ;
-            _dashLastHolder = live.TutorialGloveId;
+            _dashLastHolder = live.GloveId;
             _dashLastHeld = live.HoldsBall && !live.Throwing;
             var input = _inputs[^1];
             var pad = input.Field;
             if (live.HoldsBall && !live.Throwing && input.Source == LivePlayCommandSource.Human && !Demonstration
                 && pad is { StickX: var sx, StickY: var sz } && sx * sx + sz * sz >= .95 * .95
-                && previousHeld && previousHolder == live.TutorialGloveId
+                && previousHeld && previousHolder == live.GloveId
                 && previousTime > 0 && Elapsed > previousTime)
             {
-                var carrier = _content.Must(live.TutorialGloveId);
+                var carrier = _content.Must(live.GloveId);
                 var ordinary = FieldingResolver.ChaseSpeedFt(carrier, live.GlovePos, live.Preview, Match.Rules);
                 var actual = Diamond.Dist(previousX, previousZ, live.GloveX, live.GloveZ) / (Elapsed - previousTime);
                 if (FieldAbilities.HasBallDash(carrier) && actual >= ordinary * 1.15)
@@ -410,9 +410,4 @@ public sealed partial class TutorialSession
             succeeded ? "Your jump took a ball that would have cleared the wall for an out."
                 : "Take the outfield glove and press West in the wall window. The ball must be caught for an out.");
     }
-}
-
-public sealed partial class LivePlaySystem
-{
-    internal Character? TutorialFielderAt(string position) => Assigned().GetValueOrDefault(position);
 }
