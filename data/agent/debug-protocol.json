@@ -670,6 +670,26 @@
       "promoted": "FlightScenarioTests.S24c_ContactUnderTheBall_PopsUpBehindThePlate_CatcherTakesItForAFlyOut",
       "issue": "#684",
       "pr": ""
+    },
+    {
+      "id": "runner-stranded-short-of-an-occupied-bag",
+      "signature": "A runner sent to a bag another runner stands on stops about 27 ft short of it in the baseline and looks stuck; the play cannot end until a glove runs him down.",
+      "stage": "sim",
+      "cause": "RunnerSystem.Tick applied the no-pass gap (running.bagSec.noPassFt) to the runner ahead's progress even when that runner stood on the next bag, and the spec had no rule for two runners on one bag.",
+      "fix": "The gap applies between bags only; a body standing on a bag can be run up to. RunnerSystem.EntitledOn / Protects / Unentitled decide who the bag protects (OBR 5.06(a)(2): the lead unless forced off it). Every tag reads Protects, Time waits while two share a bag, the CPU runner gives the bag back when the bag behind is free, and a CPU glove runs at the other body.",
+      "promoted": "RunnersShareABagTests.ATrailRunnerSentToAnOccupiedBagRunsAllTheWayToIt",
+      "issue": "#688",
+      "pr": ""
+    },
+    {
+      "id": "force-runs-down-the-chain",
+      "signature": "Bases loaded, a grounder: the runner from first reaches second and is sent on to third (and home) with no order from anyone.",
+      "stage": "sim",
+      "cause": "The runner tick and RunnerAi read a runner as forced whenever Runner.Forced and the force at his next bag stood, so once he reached the bag he was forced to, the next runner's force carried him on.",
+      "fix": "RunnerSystem.ForcedOff: forced only while still on the start bag, toward FromBag + 1, and not after a catch. The tick, RunnerAi, the rundown read and the stray-body read all use it.",
+      "promoted": "RunnersShareABagTests.AForcedRunnerIsForcedOneBagNotTheRestOfTheChain",
+      "issue": "#688",
+      "pr": ""
     }
   ]
 }

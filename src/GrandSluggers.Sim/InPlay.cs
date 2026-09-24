@@ -522,8 +522,9 @@ public static class InPlay
     /// <summary>
     /// Time (spec §10.6): three outs; or the ball held unthrown by a fielder on the infield (inside
     /// the dirt / grass lip, flight.classes.infieldLipFt) while every live runner has stood on a bag
-    /// for running.bags.timeOnBagSec. A runner still moving keeps the play alive; an out or a run
-    /// is not a live runner. Picking up the ball is not Time.
+    /// for running.bags.timeOnBagSec, each on a bag of their own. A runner still moving keeps the play
+    /// alive; so do two runners on one bag (§9.1: one is not entitled to it and must leave it or be put
+    /// out). An out or a run is not a live runner. Picking up the ball is not Time.
     /// </summary>
     public static bool Time(
         bool hasBall,
@@ -536,12 +537,13 @@ public static class InPlay
         if (outs >= 3) return true;
         if (!hasBall || throwing || !heldInInfield) return false;
         var onBagSec = Rules.Or(rules).Running.Bags.TimeOnBagSec;
-        foreach (var r in runners)
+        var list = runners as IReadOnlyCollection<Runner> ?? runners.ToList();
+        foreach (var r in list)
         {
             if (!r.Live) continue;
             if (!r.OnBag || r.OnBagSec + 1e-9 < onBagSec) return false;
         }
-        return true;
+        return !RunnerSystem.Shared(list);
     }
 
     /// <summary>The ball is held on the infield: inside the dirt / grass lip (flight.classes.infieldLipFt), where 2B and SS stand.</summary>
@@ -589,11 +591,13 @@ public static class InPlay
     /// reach and off every bag is the tag, even when the body ends the frame on the bag. Returns
     /// the fraction of the frame at which it landed, or −1 when the body never came into reach
     /// off a bag. Tie goes to the runner: a body that is on the bag at the same point is safe.
+    /// <paramref name="protects"/> says whether a bag (1–4) protects this body (§9.1: another runner entitled to it
+    /// does not); null means every bag does.
     /// </summary>
     public static double TagWithinFrame(
         (double X, double Z) glovePrev, (double X, double Z) gloveNow,
         (double X, double Z) runnerPrev, (double X, double Z) runnerNow,
-        double reachFt, bool homeIsABag, RulesTable? rules = null, int steps = 12)
+        double reachFt, bool homeIsABag, RulesTable? rules = null, int steps = 12, Func<int, bool>? protects = null)
     {
         var safe = Rules.Or(rules).Running.Bags.TagSafeRadiusFt;
         for (var i = 1; i <= steps; i++)
@@ -603,11 +607,26 @@ public static class InPlay
             var gz = glovePrev.Z + (gloveNow.Z - glovePrev.Z) * u;
             var rx = runnerPrev.X + (runnerNow.X - runnerPrev.X) * u;
             var rz = runnerPrev.Z + (runnerNow.Z - runnerPrev.Z) * u;
-            var onBag = homeIsABag ? OccupyingBag(rx, rz, safe) : OccupyingNonHomeBag(rx, rz, safe);
-            if (onBag) return -1;
+            var bag = BagUnder(rx, rz, safe, homeIsABag);
+            if (bag != 0 && (protects?.Invoke(bag) ?? true)) return -1;
             if (Diamond.Dist(gx, gz, rx, rz) < reachFt) return u;
         }
         return -1;
+    }
+
+    /// <summary>
+    /// The bag (1–3, home 4) whose <paramref name="radius"/> the point is inside, or 0. The plate is skipped when
+    /// <paramref name="homeIsABag"/> is false (the batter leaving the box, §10.3).
+    /// </summary>
+    public static int BagUnder(double x, double z, double radius, bool homeIsABag = true)
+    {
+        for (var bag = 1; bag <= 3; bag++)
+        {
+            var p = Diamond.Bag(bag);
+            if (Diamond.Dist(x, z, p.X, p.Z) <= radius) return bag;
+        }
+        if (homeIsABag && Diamond.Dist(x, z, Diamond.Home.X, Diamond.Home.Z) <= radius) return 4;
+        return 0;
     }
 
     /// <summary>Inside a bag's safe radius of first, second, or third; the plate is not a bag for the batter leaving the box (§10.3).</summary>

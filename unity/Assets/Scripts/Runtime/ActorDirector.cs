@@ -278,9 +278,9 @@ namespace GrandSluggers.UnityClient
                 if (racing)
                 {
                     if (TrainingOn) _coach.OnRun(_match);
-                    // The batter-runner is a body in the sim (spec §9.1): drawn where it stands.
+                    // The batter-runner is a body in the sim (spec §9.1): drawn where it stands, off a bag it shares and does not hold.
                     var body = _match.BatterRunner;
-                    var (hx, hz) = body != null ? body.Position : (HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
+                    var (hx, hz) = body != null ? body.DrawPosition(_feel.RunnerShareStepFt) : (HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
                     var next = body != null ? Diamond.Bag(Math.Min(body.NextBag, 3)) : Diamond.First;
                     var look = presentingSwing
                         ? (X: 0.0, Z: 1.0)
@@ -451,8 +451,9 @@ namespace GrandSluggers.UnityClient
             var bagNum = state.FromBag;
             var bag = Diamond.Bag(bagNum);
             var live = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow;
-            // Every phase draws the same body; animation never reconstructs steal distance.
-            var spot = state != null && live ? state.Position : bag;
+            // Every phase draws the same body; animation never reconstructs steal distance. A body on a bag another runner
+            // holds (§9.1) stands data/feel runnerShareStepFt off it so the two never merge.
+            var spot = state != null && live ? state.DrawPosition(_feel.RunnerShareStepFt) : bag;
             var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
             var pose = Motion.Verb.Idle;
