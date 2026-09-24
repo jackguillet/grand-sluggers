@@ -47,7 +47,6 @@
   "cpu": {
     "reactionSec": 0.35,
     "groundGoMarginSec": 0.4,
-    "infieldBackFt": 110,
     "thirdHomeMarginSec": 0.3,
     "outfieldGoSec": 0.5,
     "outfieldGoPerRunSec": 0.03,

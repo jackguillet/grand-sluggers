@@ -319,6 +319,9 @@ public sealed class FieldingResolver
 
     public static bool IsOutfield(string pos) => pos is "LF" or "CF" or "RF";
 
+    /// <summary>The four infielders who play at a depth (1B, 2B, SS, 3B); the pitcher and the catcher do not.</summary>
+    public static bool IsInfieldDepth(string pos) => pos is "1B" or "2B" or "SS" or "3B";
+
     /// <summary>
     /// Dirt / grass lip ~95 ft past the rubber (flight.classes.infieldLipFt), same split baseball
     /// games use: infielders own the hop on the dirt; outfielders own the grass.

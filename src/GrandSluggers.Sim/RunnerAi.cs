@@ -26,7 +26,9 @@ public sealed record BallSituation(
     /// arm, the relay and the chemistry as far as the rung reads them. Null reads the neutral flat throw, which is what
     /// the shipped rungs read too.
     /// </summary>
-    Func<double, double, int, double>? ThrowClock = null);
+    Func<double, double, int, double>? ThrowClock = null,
+    /// <summary>The position of the glove on the ball (holding it, or the one that will meet it); null when unknown.</summary>
+    string? Fielder = null);
 
 /// <summary>Everything the CPU runner reads at a decision event (§9.9).</summary>
 public sealed record RunnerAiContext(
@@ -73,6 +75,16 @@ public static class RunnerAi
     /// <summary>Seconds of slack a runner has to reach <paramref name="bag"/> ahead of the throw (positive is safe).</summary>
     public static double Margin(Runner runner, int bag, RunnerAiContext ctx, RulesTable? rules = null) =>
         ThrowArrivalSec(ctx.Ball, bag, ctx.Elapsed, rules) - RunnerSystem.ArrivalSec(runner, bag, ctx.Elapsed, ctx.Dash01, rules);
+
+    /// <summary>
+    /// The infield is back (§9.9): one of the four depth infielders meets the ball at or behind his own standard depth from
+    /// home (<see cref="Diamond.Positions"/>). The depth comes from the diamond, so the read holds on any basepath. The
+    /// pitcher and the catcher never field at a depth.
+    /// </summary>
+    static bool InfieldBack(BallSituation ball) =>
+        ball.Fielder is { } pos && FieldingResolver.IsInfieldDepth(pos)
+        && Diamond.Dist(ball.GloveX, ball.GloveZ, Diamond.Home.X, Diamond.Home.Z)
+            >= Diamond.Dist(Diamond.Positions[pos].X, Diamond.Positions[pos].Z, Diamond.Home.X, Diamond.Home.Z);
 
     /// <summary>
     /// A grounder "in front" of a runner on second: to the left side, where the fielder looks at
@@ -180,8 +192,7 @@ public static class RunnerAi
                 // A bunt is not the squeeze (§7.3): the runner from third holds until a glove has it; the send is the human's stick.
                 if (ball.Bunt && !ball.Held && !ball.Throwing) return;
                 // The infield-back read is the contact read (where the fielder will field it); once the ball is in a glove the margin decides.
-                var infieldBack = !ball.Held && !ball.Throwing
-                                  && Diamond.Dist(ball.GloveX, ball.GloveZ, Diamond.Home.X, Diamond.Home.Z) >= cpu.InfieldBackFt;
+                var infieldBack = !ball.Held && !ball.Throwing && InfieldBack(ball);
                 var go = ctx.Outs == 2 || infieldBack || margin > cpu.ThirdHomeMarginSec + slack;
                 if (go) runner.Send(4);
                 return;
