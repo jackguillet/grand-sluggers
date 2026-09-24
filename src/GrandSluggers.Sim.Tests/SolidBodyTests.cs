@@ -52,7 +52,7 @@ public sealed class SolidBodyTests
         for (var i = 0; i < 600; i++)
         {
             var w = VolumeRoute.Waypoint(at, (0, 100), [tree.AsVolume(0)], 25, 1e-6, Rules.Fielding.Chase.VolumeClearFt);
-            at = FieldingResolver.StepToward(at.X, at.Z, w.X, w.Z, 25, 1.0 / 60);
+            at = FieldingResolver.StepToward(at.X, at.Z, w.X, w.Z, 25, 1.0 / 60, rules: Rules);
             Assert.True(Diamond.Dist(0, 50, at.X, at.Z) > tree.RadiusFt, $"inside at frame {i}");
             if (Diamond.Dist(at.X, at.Z, 0, 100) < 0.5) break;
         }

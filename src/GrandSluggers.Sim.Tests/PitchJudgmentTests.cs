@@ -20,7 +20,7 @@ public class PitchJudgmentTests
         // On the edge, then the stick carries it out (the cap is half a zone, spec §4.2).
         var edge = Scenario.PitchAt(curve * (StrikeZoneGeometry.HalfWidth - 0.1), StrikeZoneGeometry.CenterY);
         var delivered = match.PreparePitch(edge with { BreakX = curve });
-        var crossing = PitchFlight.Point(delivered, 1);
+        var crossing = PitchFlight.Point(delivered, 1, rules: Rules.Default);
         Assert.True(Math.Abs(crossing.X) > StrikeZoneGeometry.HalfWidth);
         var result = match.Play(delivered, Take);
         Assert.False(result.AtBat.InZone);
@@ -51,13 +51,13 @@ public class PitchJudgmentTests
         foreach (var charge in new[] { 0.0, 1.0 })
         {
             var pitch = new PitchCommand(type, charge, star != "", 0.2, -0.2, offset, offset * 0.3);
-            var world = PitchFlight.Point(pitch, 1, star);
-            var aim = PitchFlight.ContactAim(pitch, star);
+            var world = PitchFlight.Point(pitch, 1, Rules.Default, star);
+            var aim = PitchFlight.ContactAim(pitch, Rules.Default, star);
             Assert.Equal(world.X, aim.X * PitchFlight.PlateScaleX, 10);
             Assert.Equal(world.Y, PitchFlight.PlateY + aim.Y * PitchFlight.PlateScaleY, 10);
             var inside = Math.Abs(world.X) <= 0.92 && world.Y >= 1.45 && world.Y <= 3.65;
-            Assert.Equal(inside, AtBatResolver.PitchInZone(pitch, 1, star));
-            Assert.Equal(inside, AtBatResolver.PitchInZone(pitch, 10, star));
+            Assert.Equal(inside, AtBatResolver.PitchInZone(pitch, 1, Rules.Default, star));
+            Assert.Equal(inside, AtBatResolver.PitchInZone(pitch, 10, Rules.Default, star));
         }
     }
 
@@ -83,13 +83,13 @@ public class PitchJudgmentTests
         const double y = PitchFlight.PlateY;
         var body = AtBatResolver.BatterBodyX(0, bats);
         Assert.Equal(side * HomeSet.BoxX, body, 10);
-        Assert.True(AtBatResolver.HitsBatter(0, body, y, bats));
-        Assert.False(AtBatResolver.HitsBatter(0, -body, y, bats));
+        Assert.True(AtBatResolver.HitsBatter(0, body, y, Rules.Default, bats));
+        Assert.False(AtBatResolver.HitsBatter(0, -body, y, Rules.Default, bats));
 
         const double offset = 0.5;
         var walked = AtBatResolver.BatterBodyX(offset, bats);
         Assert.Equal(body + offset * HomeSet.BatterWalk, walked, 10);
-        Assert.True(AtBatResolver.HitsBatter(offset, walked, y, bats));
+        Assert.True(AtBatResolver.HitsBatter(offset, walked, y, Rules.Default, bats));
         // Body and cursor move the same world distance per box unit (spec §4.6).
         Assert.Equal(walked - body, SweetSpot.WorldCenter(offset).X - SweetSpot.WorldCenter(0).X, 10);
     }
@@ -100,9 +100,9 @@ public class PitchJudgmentTests
         var nearWorldX = StrikeZoneGeometry.HalfWidth + 0.05;
         var nearAimX = nearWorldX / PitchFlight.PlateScaleX;
         var near = PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", 0, false), nearAimX, 0);
-        Assert.False(StrikeZoneGeometry.Contains(near));
-        Assert.False(AtBatResolver.HitsBatter(0, nearWorldX, PitchFlight.PlateY, Hand.R));
+            new PitchCommand("fastball", 0, false), nearAimX, 0, rules: Rules.Default);
+        Assert.False(StrikeZoneGeometry.Contains(near, rules: Rules.Default));
+        Assert.False(AtBatResolver.HitsBatter(0, nearWorldX, PitchFlight.PlateY, Rules.Default, Hand.R));
         var ballMatch = Match.Slice(content, innings: 3, seed: 1);
         var ball = ballMatch.Play(near, Take);
         Assert.Equal(PlayKind.TakeBall, ball.Kind);
@@ -110,7 +110,7 @@ public class PitchJudgmentTests
         var bodyMatch = Match.Slice(content, innings: 3, seed: 1);
         var bodyAimX = AtBatResolver.BatterBodyX(0, bodyMatch.Batter.Bats) / PitchFlight.PlateScaleX;
         var bodyPitch = PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", 0, false), bodyAimX, 0);
+            new PitchCommand("fastball", 0, false), bodyAimX, 0, rules: Rules.Default);
         var plunk = bodyMatch.Play(bodyPitch, Take);
         Assert.Equal(PlayKind.HitByPitch, plunk.Kind);
         Assert.False(plunk.AtBat.InZone);
@@ -127,7 +127,7 @@ public class PitchJudgmentTests
         match.WalkPitcher(-1.2);
         var result = match.Play(ready, Take);
         Assert.Equal(ready, result.Pitch);
-        Assert.Equal(StrikeZoneGeometry.Contains(ready), result.AtBat.InZone);
+        Assert.Equal(StrikeZoneGeometry.Contains(ready, rules: Rules.Default), result.AtBat.InZone);
     }
     [Fact]
     public void TiredDeliveryIsPreparedOnceAndCrossesWhereItWasAimed()
@@ -142,13 +142,13 @@ public class PitchJudgmentTests
         Assert.True(ready.DeliveryPrepared);
         // No random miss (PH-08-R1): the aim is the aim.
         Assert.Equal((raw.AimX, raw.AimY), (ready.AimX, ready.AimY));
-        Assert.Equal(PitchFlight.Point(raw with { DeliveryPrepared = true, RubberX = ready.RubberX, Throws = ready.Throws }, 1),
-            PitchFlight.Point(ready, 1));
-        var crossing = PitchFlight.Point(ready, 1);
+        Assert.Equal(PitchFlight.Point(raw with { DeliveryPrepared = true, RubberX = ready.RubberX, Throws = ready.Throws }, 1, rules: Rules.Default),
+            PitchFlight.Point(ready, 1, rules: Rules.Default));
+        var crossing = PitchFlight.Point(ready, 1, rules: Rules.Default);
         for (var i = 0; i < 5; i++) Assert.Same(ready, match.PreparePitch(ready));
         var result = match.Play(ready, Take);
         Assert.Equal(ready, result.Pitch);
-        Assert.Equal(crossing, PitchFlight.Point(result.Pitch, 1));
+        Assert.Equal(crossing, PitchFlight.Point(result.Pitch, 1, rules: Rules.Default));
         Assert.Equal(StrikeZoneGeometry.Contains(crossing.X, crossing.Y), result.AtBat.InZone);
     }
 
@@ -160,8 +160,8 @@ public class PitchJudgmentTests
         foreach (var offset in new[] { -1.0, 0, 1.0 })
         {
             var raw = new PitchCommand(type, 1, star != "", BreakX: offset, RubberX: offset);
-            var aimed = PitchFlight.AimForCrossing(raw, 0.2, -0.1, star);
-            var contact = PitchFlight.ContactAim(aimed, star);
+            var aimed = PitchFlight.AimForCrossing(raw, 0.2, -0.1, Rules.Default, star);
+            var contact = PitchFlight.ContactAim(aimed, Rules.Default, star);
             Assert.Equal(0.2, contact.X, 10);
             Assert.Equal(-0.1, contact.Y, 10);
             Assert.Equal(raw.BreakX, aimed.BreakX);
@@ -184,7 +184,7 @@ public class PitchJudgmentTests
             var pitch = match.CpuPitch();
             var type = pitch.Type == PitchFamily.Changeup ? "changeup" : pitch.BreakX != 0 ? "break" : ChargeFeel.IsCharge(pitch.Charge01) ? "charge" : "fastball";
             seen[type] = seen.GetValueOrDefault(type) + 1;
-            if (AtBatResolver.PitchInZone(pitch, match.Pitcher.Stats.Pitch, match.Pitcher.StarPitch))
+            if (AtBatResolver.PitchInZone(pitch, match.Pitcher.Stats.Pitch, Rules.Default, match.Pitcher.StarPitch))
                 strikes[type] = strikes.GetValueOrDefault(type) + 1;
         }
         var rates = new Dictionary<string, double>();
@@ -206,19 +206,19 @@ public class PitchJudgmentTests
         var r = content.Rules;
         var still = new PitchCommand("fastball", 0, false);
         var walked = still with { RubberX = 0.5 };
-        Assert.Equal(HomeSet.PitcherWalk * 0.5, SetTells.Locator(walked).X - SetTells.Locator(still).X, 6);
+        Assert.Equal(HomeSet.PitcherWalk * 0.5, SetTells.Locator(walked, rules: Rules.Default).X - SetTells.Locator(still, rules: Rules.Default).X, 6);
         var bent = walked with { BreakX = -1 };
-        Assert.Equal(-r.Pitching.Flight.BreakMaxFt, SetTells.Locator(bent).X - SetTells.Locator(walked).X, 6);
+        Assert.Equal(-r.Pitching.Flight.BreakMaxFt, SetTells.Locator(bent, rules: Rules.Default).X - SetTells.Locator(walked, rules: Rules.Default).X, 6);
         var charged = bent with { Charge01 = 1 };
         Assert.Equal(-r.Pitching.Flight.BreakMaxFt * r.Pitching.Flight.BreakDampedMul,
-            SetTells.Locator(charged).X - SetTells.Locator(walked).X, 6);
+            SetTells.Locator(charged, rules: Rules.Default).X - SetTells.Locator(walked, rules: Rules.Default).X, 6);
         foreach (var pitch in new[] { still, walked, bent, charged })
         {
-            var (x, y) = SetTells.Locator(pitch);
-            var p = PitchFlight.Point(pitch, 1);
+            var (x, y) = SetTells.Locator(pitch, rules: Rules.Default);
+            var p = PitchFlight.Point(pitch, 1, rules: Rules.Default);
             Assert.Equal((p.X, p.Y), (x, y));
-            Assert.Equal(StrikeZoneGeometry.Contains(x, y), SetTells.InZone(pitch));
-            Assert.Equal(StrikeZoneGeometry.Contains(x, y), AtBatResolver.PitchInZone(pitch, 5));
+            Assert.Equal(StrikeZoneGeometry.Contains(x, y), SetTells.InZone(pitch, rules: Rules.Default));
+            Assert.Equal(StrikeZoneGeometry.Contains(x, y), AtBatResolver.PitchInZone(pitch, 5, rules: Rules.Default));
         }
         Assert.True(SetTells.AimTellOn(true, true));
         Assert.False(SetTells.AimTellOn(false, true));

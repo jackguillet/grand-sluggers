@@ -84,7 +84,7 @@ public sealed class StickShapingScenarioTests
             {
                 var intent = Intent(charge, stick.X, stick.Y);
                 // The intent still carries the stick (AtBatFeel is untouched); only the resolver ignores it.
-                Assert.Equal(AtBatResolver.SprayAimDeg(stick.X), intent.SprayAimDeg);
+                Assert.Equal(AtBatResolver.SprayAimDeg(stick.X, rules: Rules.Default), intent.SprayAimDeg);
                 Assert.Equal(stick.Y, intent.LaunchAim);
                 var hit = resolver.Resolve(Input(_shipped, batter, intent, err, x, CenterY), park, new Random(seed));
                 // Record equality: exit, launch, spray, carry, class, foul, quality — every field, exactly.
@@ -111,7 +111,7 @@ public sealed class StickShapingScenarioTests
         {
             var match = new Scenario(content, seed).Match;
             var swing = Scenario.SwingAt(0, stickX: stickX, launchAim: stickY);
-            Assert.Equal(AtBatResolver.SprayAimDeg(stickX), swing.SprayAimDeg);
+            Assert.Equal(AtBatResolver.SprayAimDeg(stickX, rules: Rules.Default), swing.SprayAimDeg);
             match.BeginAtBat(Middle, swing, out var hit, out _);
             return hit;
         }
@@ -395,7 +395,7 @@ public sealed class StickShapingScenarioTests
         var c = match.Rules.Batting.Cpu;
         var level = match.Rules.Cpu.Active;
         var batter = match.Batter;
-        var (cx, _) = PitchFlight.Crossing(Middle, match.Pitcher.StarPitch, match.Rules);
+        var (cx, _) = PitchFlight.Crossing(Middle, match.Rules, match.Pitcher.StarPitch);
         var charge = rng.Next() < Match.CpuChargeChance(batter, c.Archetype) ? 1.0 : 0;
         var tracked = rng.Next() < c.TrackPerfectChance;
         var err = rng.Gauss() * (11 - batter.Stats.Contact) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
@@ -447,7 +447,7 @@ public sealed class StickShapingScenarioTests
     /// </summary>
     static SwingInputIntent Intent(double charge01, double stickX, double stickY, bool bunt = false,
         BuntSide side = BuntSide.None) =>
-        SwingInputIntent.Capture(new ChargeButtonStep(default, true, charge01, 0), stickX, stickY, bunt, 0, side);
+        SwingInputIntent.Capture(new ChargeButtonStep(default, true, charge01, 0), stickX, stickY, bunt, 0, Rules.Default, side);
 
     static AtBatInput Input(ContentCatalog content, Character batter, SwingInputIntent intent, double err,
         double crossingX, double crossingY, bool inZone = true, bool star = false) =>

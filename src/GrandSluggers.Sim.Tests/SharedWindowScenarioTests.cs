@@ -188,9 +188,9 @@ public sealed class SharedWindowScenarioTests
         var pitch = new PitchCommand(PitchFamily.Curveball, 0, false);
         var crossing = PitchFlight.Point(pitch, 1, rules: content.Rules);
         var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
-        Assert.Equal(inZone, StrikeZoneGeometry.Contains(pitch, null, content.Rules));
-        Assert.Equal(inZone, AtBatResolver.PitchInZone(pitch, 5, null, content.Rules));
-        Assert.NotEqual(inZone, AtBatResolver.PitchInZone(pitch, 5));
+        Assert.Equal(inZone, StrikeZoneGeometry.Contains(pitch, content.Rules, null));
+        Assert.Equal(inZone, AtBatResolver.PitchInZone(pitch, 5, content.Rules, null));
+        Assert.NotEqual(inZone, AtBatResolver.PitchInZone(pitch, 5, rules: Rules.Default));
 
         // The whole auto-play path, in process, from the catalog.
         var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 1);

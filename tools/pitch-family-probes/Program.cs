@@ -102,7 +102,7 @@ foreach (var family in library)
                 cursorReach = hands.Select(bats => new
                 {
                     bats = bats.ToString(),
-                    ovalDistanceAtCrossing = R(SweetSpot.Distance(0, bats, crossX, crossY, 1, rules))
+                    ovalDistanceAtCrossing = R(SweetSpot.Distance(0, bats, crossX, crossY, rules, 1))
                 }).ToArray()
             });
         }
@@ -301,7 +301,7 @@ string Svg(Hand throws, bool side)
         [PitchFamily.Sinker] = "#a33208"
     };
 
-    var release = PitchFlight.Release(0, rules);
+    var release = PitchFlight.Release(rules, 0);
     var far = release.Z;
     var (lo, hi) = side ? (0.0, 7.0) : (-2.2, 2.2);
 

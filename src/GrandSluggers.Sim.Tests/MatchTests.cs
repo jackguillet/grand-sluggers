@@ -166,8 +166,8 @@ public class MatchTests
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
         BeginLive(match);
         var first = Diamond.First;
-        var halfway = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
-        Assert.True(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, halfway.X, halfway.Z));
+        var halfway = InPlay.AlongBases(Diamond.Baseline * 0.5, 1, rules: Rules.Default);
+        Assert.True(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, halfway.X, halfway.Z, rules: Rules.Default));
         var step = StepThrow(match, 1, runnerBeats: false, field.Fielder);
         Assert.True(step.Out);
         Assert.True(match.LivePlay.BatterOut);
@@ -225,9 +225,9 @@ public class MatchTests
         Assert.All(new[] { 1, 2, 3 }, bag => Assert.NotNull(match.RunnerAt(bag)));
         Assert.All(new[] { 1, 2, 3, 4 }, bag => Assert.False(match.LivePlay.Forces.At(bag)));
         var second = Diamond.Second;
-        var runner = InPlay.TowardBag(1, 2, Diamond.Baseline * 0.5);
+        var runner = InPlay.TowardBag(1, 2, Diamond.Baseline * 0.5, rules: Rules.Default);
         Assert.False(InPlay.ForceOnBag(match.LivePlay.Forces.At(2), 2, true, false,
-            second.X, second.Z, runner.X, runner.Z), "touching second cannot retire the distant runner after a batter tag");
+            second.X, second.Z, runner.X, runner.Z, rules: Rules.Default), "touching second cannot retire the distant runner after a batter tag");
         var later = StepThrow(match, 2, runnerBeats: false, match.Pitcher);
         Assert.True(later.Out, "the occupied runner can still be tagged at second");
         Assert.False(later.Force, "retiring the batter removes every dependent force");
@@ -417,7 +417,7 @@ public class MatchTests
         var match = Match.Slice(_content, innings: 3, seed: 1);
         var bodyX = AtBatResolver.BatterBodyX(0, match.Batter.Bats) / PitchFlight.PlateScaleX;
         var plunk = PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", 0, false), bodyX, 0);
+            new PitchCommand("fastball", 0, false), bodyX, 0, rules: Rules.Default);
         var take = new SwingCommand(false, 0, 0, false);
         var ev = match.Play(plunk, take);
         Assert.Equal(PlayKind.HitByPitch, ev.Kind);
@@ -439,7 +439,7 @@ public class MatchTests
         var best = 0.0;
         for (var seed = 0; seed < 20; seed++)
         {
-            var r = new AtBatResolver(_content.Chemistry).Resolve(input, park, new Random(seed));
+            var r = new AtBatResolver(_content.Chemistry, rules: Rules.Default).Resolve(input, park, new Random(seed));
             if (r.HomeRun) best = Math.Max(best, r.CarryFt);
             best = Math.Max(best, r.CarryFt);
         }
@@ -449,10 +449,10 @@ public class MatchTests
     [Fact]
     public void TrajectoryHasHangTime()
     {
-        var samples = BallFlight.Trajectory(95, 28, 0);
+        var samples = BallFlight.Trajectory(95, 28, 0, rules: Rules.Default);
         Assert.True(samples.Count > 10);
-        Assert.InRange(BallFlight.HangTime(samples), 3.0 * BallFlight.TimeScale(), 6.5 * BallFlight.TimeScale());
-        var p = BallFlight.PointAt(samples, 0.5);
+        Assert.InRange(BallFlight.HangTime(samples, rules: Rules.Default), 3.0 * BallFlight.TimeScale(rules: Rules.Default), 6.5 * BallFlight.TimeScale(rules: Rules.Default));
+        var p = BallFlight.PointAt(samples, 0.5, rules: Rules.Default);
         Assert.True(p.Y > 2);
         Assert.True(p.Z > 0);
     }
@@ -476,8 +476,8 @@ public class MatchTests
         // The C80 copy carries the hazards at the field's scale (#732): this volume stands at (47, 83). It stood at
         // (40, 70) / (36, 62) on the first-second lane until FD-19-R1 moved it outward along its own bearing (F4-e, #862).
         var (iceX, iceZ) = (47.0, 83.0);
-        Assert.True(ParkHazards.InFreeze(match.Park, iceX, iceZ));
-        Assert.False(ParkHazards.InFreeze(match.Park, 0, 0));
+        Assert.True(ParkHazards.InFreeze(match.Park, iceX, iceZ, rules: Rules.Default));
+        Assert.False(ParkHazards.InFreeze(match.Park, 0, 0, rules: Rules.Default));
     }
 
     [Fact]
@@ -572,8 +572,8 @@ public class MatchTests
         barrels.Begin(park, false, _content.Rules);
         Assert.NotNull(barrels.Entered(22, 0, 58));
         Assert.Equal("barrel cannon", CarnivalFront.RedirectName(HazardType.Barrel));
-        Assert.True(ParkHazards.CanClamber(park, _content.Must("konga")));
-        Assert.False(ParkHazards.CanClamber(park, _content.Must("rio")));
+        Assert.True(ParkHazards.CanClamber(park, _content.Must("konga"), rules: Rules.Default));
+        Assert.False(ParkHazards.CanClamber(park, _content.Must("rio"), rules: Rules.Default));
     }
 
     [Fact]
@@ -588,8 +588,8 @@ public class MatchTests
         // The C80 copy carries the hazards at the field's scale (#732): this pit stands at (44, 89). It stood at
         // (38, 78) / (34, 69) on the first-second lane until FD-19-R1 moved it outward along its own bearing (F4-e, #862).
         var (pitX, pitZ) = (44.0, 89.0);
-        Assert.True(ParkHazards.InSlow(park, pitX, pitZ));
-        Assert.False(ParkHazards.InSlow(park, 0, 0));
+        Assert.True(ParkHazards.InSlow(park, pitX, pitZ, rules: Rules.Default));
+        Assert.False(ParkHazards.InSlow(park, 0, 0, rules: Rules.Default));
         Assert.Equal("ember-keep", PresetTeams.HomeParkId(_content, "ashlord"));
         Assert.Equal("canopy-yard", PresetTeams.HomeParkId(_content, "konga"));
     }
@@ -599,9 +599,9 @@ public class MatchTests
     {
         var park = _content.Parks["canopy-yard"];
         var hit = FlightFixtures.OverTheFence(park, 12, 0);
-        Assert.True(ParkHazards.CanClamberRob(park, _content.Must("konga"), hit));
-        Assert.False(ParkHazards.CanClamberRob(park, _content.Must("ashlord"), hit));
-        Assert.False(ParkHazards.CanClamberRob(_content.Parks["harbor-diamond"], _content.Must("konga"), hit));
+        Assert.True(ParkHazards.CanClamberRob(park, _content.Must("konga"), hit, rules: Rules.Default));
+        Assert.False(ParkHazards.CanClamberRob(park, _content.Must("ashlord"), hit, rules: Rules.Default));
+        Assert.False(ParkHazards.CanClamberRob(_content.Parks["harbor-diamond"], _content.Must("konga"), hit, rules: Rules.Default));
     }
 
     [Fact]

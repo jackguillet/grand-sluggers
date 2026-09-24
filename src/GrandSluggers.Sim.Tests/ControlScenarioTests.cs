@@ -143,7 +143,7 @@ public sealed class ControlScenarioTests
         var start = Diamond.Positions["2B"];
         var route = FieldingPursuit.Plan(preview, match.Park, path, 0, start.X, start.Z,
             FieldingResolver.ChaseSpeedFt(map["2B"], "2B", preview, rules), rules, rules.Fielding.Reaction.LockoutSec("2B"));
-        var outfield = FieldingPursuit.Choose(map, FieldingResolver.OutfieldPursuitPositions, preview, match.Park, path, null, 0, rules,
+        var outfield = FieldingPursuit.Choose(map, FieldingResolver.OutfieldPursuitPositions, preview, match.Park, path, rules, null, 0,
             FieldingResolver.CpuReactionLockouts(rules, null));
         Assert.True(route.Reachable, "the fixture: 2B reaches the roll");
         Assert.True(Diamond.Dist(0, 0, route.X, route.Z) >= lip, $"the fixture: 2B meets it on the grass ({Diamond.Dist(0, 0, route.X, route.Z):0} ft)");
@@ -236,8 +236,8 @@ public sealed class ControlScenarioTests
             FieldingResolver.ChaseSpeedFt(map["SS"], "SS", preview, rules), rules);
         Assert.False(ssRoute.Reachable, "SS had no route to the plant (D17)");
         // By route (D16), not by distance: the outfielder whose planned route meets the ball earliest, from where the bodies stood.
-        var byRoute = FieldingPursuit.Choose(map, FieldingResolver.OutfieldPursuitPositions, preview, match.Park, preview.Ball.Samples,
-            before.At, before.T, rules, FieldingResolver.CpuReactionLockouts(rules, preview.HangTimeSec));
+        var byRoute = FieldingPursuit.Choose(map, FieldingResolver.OutfieldPursuitPositions, preview, match.Park, preview.Ball.Samples, rules,
+            before.At, before.T, FieldingResolver.CpuReactionLockouts(rules, preview.HangTimeSec));
         Assert.Equal(byRoute.Position, at.Glove);
         // Nobody teleports: every body's move across the hand-off frame and the coast is a step, and the new glove starts where it stood.
         for (var i = h; i <= Math.Min(frames.Count - 1, h + coastFrames + 1); i++)
@@ -304,7 +304,7 @@ public sealed class ControlScenarioTests
         {
             var preview = match.PreviewHit(FlightFixtures.Hit(match.Park, exit, launch, spray));
             if (!preview.Line || preview.Position != "SS") continue;
-            var plant = FlyCatch.ChaseTarget(preview, match.Park, rules);
+            var plant = FlyCatch.ChaseTarget(preview, rules, match.Park);
             if (!FieldingResolver.OutfieldGrass(plant.X, plant.Z, rules)) continue;
             var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, start.X, start.Z,
                 FieldingResolver.ChaseSpeedFt(map["SS"], "SS", preview, rules), rules, rules.Fielding.Reaction.LockoutSec("SS"));
@@ -321,7 +321,7 @@ public sealed class ControlScenarioTests
         Assert.True(preview.Line);
         Assert.Equal("SS", preview.Position);
         var rules = match.Rules;
-        var plant = FlyCatch.ChaseTarget(preview, match.Park, rules);
+        var plant = FlyCatch.ChaseTarget(preview, rules, match.Park);
         Assert.True(FieldingResolver.OutfieldGrass(plant.X, plant.Z, rules) == pastTheLip, "the fixture: the plant is past the lip, where a position-only hand-off fires");
         var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
         var start = Diamond.Positions["SS"];
@@ -367,7 +367,7 @@ public sealed class ControlScenarioTests
         Assert.Equal("SS", preview.Position);
         var start = Diamond.Positions["SS"];
         var intercept = LinerIntercept(preview, start, match.Rules);
-        var plant = FlyCatch.ChaseTarget(preview, match.Park, match.Rules);
+        var plant = FlyCatch.ChaseTarget(preview, match.Rules, match.Park);
         Assert.True(Diamond.Dist(intercept.X, intercept.Z, plant.X, plant.Z) > match.Rules.Fielding.Catch.RadiusBaseFt,
             "the fixture: the intercept is short of the bounce, so a plant-only catch would miss it");
 
@@ -484,7 +484,7 @@ public sealed class ControlScenarioTests
         Assert.True(preview.Line);
         var rules = match.Rules;
         var live0 = BallFlight.PointAt(preview.Ball!.Samples, 0, rules);
-        Assert.True(FieldingResolver.InAir(preview, live0.Y, 0, preview.HangTimeSec, rules),
+        Assert.True(FieldingResolver.InAir(preview, live0.Y, 0, rules, preview.HangTimeSec),
             "the fixture: still up at contact, where Plan used to hand RF the bounce");
         var rf = Diamond.Positions["RF"];
         var cf = Diamond.Positions["CF"];
@@ -494,7 +494,7 @@ public sealed class ControlScenarioTests
         var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
         var ready = FieldingResolver.CpuReactionLockouts(rules, preview.HangTimeSec);
         var byRoute = FieldingPursuit.Choose(map, FieldingResolver.OutfieldPursuitPositions, preview, match.Park,
-            preview.Ball.Samples, null, 0, rules, ready);
+            preview.Ball.Samples, rules, null, 0, ready);
         Assert.Equal("CF", byRoute.Position);
 
         var ring = new List<string>();

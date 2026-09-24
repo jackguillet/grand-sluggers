@@ -153,20 +153,17 @@ public sealed record RulesTable
 }
 
 /// <summary>
-/// The process-wide table for callers that hold no <see cref="ContentCatalog"/>: the data root
-/// found from the binary or named by <see cref="ContentCatalog.DataRootVariable"/>. There is no
-/// code table to fall back to, so a process that finds no readable root stops.
-/// <see cref="Match"/> and the Unity client pass <see cref="ContentCatalog.Rules"/> explicitly;
-/// every helper that reads a number takes a <c>rules</c> argument and only falls back here when
-/// it is omitted.
+/// The process-wide table: the data root found from the binary or named by
+/// <see cref="ContentCatalog.DataRootVariable"/>. Only entry points read it — the CLI, the Unity
+/// bootstrap, tools and tests — and hand it on. The sim takes the table it plays as an argument
+/// everywhere; nothing in the play loop reaches for this one (<c>RulesPlumbingTests</c>). There is
+/// no code table to fall back to, so a process that finds no readable root stops.
 /// </summary>
 public static class Rules
 {
     static RulesTable? _default;
 
     public static RulesTable Default => _default ??= LoadDefault();
-
-    public static RulesTable Or(RulesTable? rules) => rules ?? Default;
 
     static RulesTable LoadDefault()
     {

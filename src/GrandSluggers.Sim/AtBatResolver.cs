@@ -23,8 +23,8 @@ public sealed class AtBatResolver
     /// the swings <see cref="StickShapesContact"/> says the stick still shapes. The intent always
     /// carries it; whether the ball reads it is the resolver's call.
     /// </summary>
-    public static double SprayAimDeg(double stickX, RulesTable? rules = null) =>
-        Math.Clamp(stickX, -1, 1) * Rules.Or(rules).Batting.Spray.StickDeg;
+    public static double SprayAimDeg(double stickX, RulesTable rules) =>
+        Math.Clamp(stickX, -1, 1) * rules.Batting.Spray.StickDeg;
 
     /// <summary>
     /// Whether the stick at contact shapes this swing's ball (spec §5.3, §5.4, §5.8, PH-12): only a
@@ -40,10 +40,10 @@ public sealed class AtBatResolver
     readonly RulesTable _rules;
     readonly StarSkillTable _skills;
 
-    public AtBatResolver(ChemistryTable chem, RulesTable? rules = null, StarSkillTable? skills = null)
+    public AtBatResolver(ChemistryTable chem, RulesTable rules, StarSkillTable? skills = null)
     {
         _chem = chem;
-        _rules = Rules.Or(rules);
+        _rules = rules;
         _skills = StarSkillTable.Or(skills);
     }
 
@@ -73,7 +73,7 @@ public sealed class AtBatResolver
         // Cursor (§5.2): where the crossing meets the bat — the oval the client draws (S-134).
         var barrel = SweetSpot.SwingBarrel(input.Batter, input.Bat, input.Charge01, _rules);
         var quality = onPlane
-            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, input.CrossingY, barrel, _rules)
+            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, input.CrossingY, _rules, barrel)
             : ContactQuality.Miss;
         // The rim of the window is not square: one tier down, never two (§5.3).
         if (quality > ContactQuality.Sour && Math.Abs(err) > half * b.Window.SquareFraction)
@@ -187,10 +187,10 @@ public sealed class AtBatResolver
     /// on top of the pitch-height term. Near the rim's top it passes 90°: a foul pop behind the plate. Zero
     /// anywhere at or below the nice top. A bunt reads its own band instead (§5.8).
     /// </summary>
-    public static double UnderTheBallDeg(double boxOffsetX, double crossingY, RulesTable? rules = null)
+    public static double UnderTheBallDeg(double boxOffsetX, double crossingY, RulesTable rules)
     {
         var over = crossingY - (SweetSpot.WorldCenter(boxOffsetX).Y + SweetSpot.HalfHeightFt);
-        return over > 0 ? over * Rules.Or(rules).Batting.Launch.UnderBallDegPerFt : 0;
+        return over > 0 ? over * rules.Batting.Launch.UnderBallDegPerFt : 0;
     }
 
     /// <summary>
@@ -234,9 +234,9 @@ public sealed class AtBatResolver
     /// </para>
     /// </summary>
     public static double ContactWindowFrames(string? starPitch, Park? park, bool night,
-        RulesTable? rules = null, StarSkillTable? skills = null)
+        RulesTable rules, StarSkillTable? skills = null)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var w = r.Batting.Window;
         return Math.Max(w.FloorFrames, w.Frames);
     }
@@ -246,11 +246,11 @@ public sealed class AtBatResolver
     /// the pull line, latest ≈ +timingDeg toward the opposite line. A right-handed batter pulls
     /// toward third (negative spray); a left-handed batter pulls toward first.
     /// </summary>
-    public static double TimingSprayDeg(double errFrames, double windowFrames, Hand bats, RulesTable? rules = null)
+    public static double TimingSprayDeg(double errFrames, double windowFrames, Hand bats, RulesTable rules)
     {
         var half = Math.Max(0.01, windowFrames / 2);
         var t = Math.Clamp(errFrames / half, -1, 1);
-        return t * Rules.Or(rules).Batting.Spray.TimingDeg * SweetSpot.TipSign(bats);
+        return t * rules.Batting.Spray.TimingDeg * SweetSpot.TipSign(bats);
     }
 
     /// <summary>
@@ -423,12 +423,12 @@ public sealed class AtBatResolver
     /// reads its own families rather than the process-wide table's (#855). Absent, it is the
     /// process-wide table, as before.
     /// </summary>
-    public static bool PitchInZone(PitchCommand pitch, int pitchStat, string? starPitchId = null, RulesTable? rules = null)
+    public static bool PitchInZone(PitchCommand pitch, int pitchStat, RulesTable rules, string? starPitchId = null)
     {
         // Skill/charge affect the delivery, never an invisible resizing of the zone. Callers pass the
         // arm's Control; no rating reads here.
         _ = pitchStat;
-        return StrikeZoneGeometry.Contains(pitch, starPitchId, rules);
+        return StrikeZoneGeometry.Contains(pitch, rules, starPitchId);
     }
 
     /// <summary>The batter's body at the plate plane in world feet: the authored box plus the walk (spec §4.6).</summary>
@@ -440,17 +440,17 @@ public sealed class AtBatResolver
     /// centered where the body actually is, at the natural crossing height. World feet, the same
     /// point the umpire and the cursor read; body and cursor move the same distance per box unit.
     /// </summary>
-    public static bool HitsBatter(double boxOffsetX, double crossingX, double crossingY, Hand bats = Hand.R, RulesTable? rules = null)
+    public static bool HitsBatter(double boxOffsetX, double crossingX, double crossingY, RulesTable rules, Hand bats = Hand.R)
     {
-        var bodyR = Rules.Or(rules).Batting.Hbp.BodyRadiusFt;
+        var bodyR = rules.Batting.Hbp.BodyRadiusFt;
         var dx = crossingX - BatterBodyX(boxOffsetX, bats);
         var dy = crossingY - PitchFlight.PlateY;
         return dx * dx + dy * dy <= bodyR * bodyR;
     }
 
     /// <summary>CPU sac (batting.cpu.sacBuntChance): runner on first, fewer than two outs, in the zone.</summary>
-    public static bool CpuSacBuntSpot(bool inZone, bool runnerOnFirst, int outs, double roll, RulesTable? rules = null) =>
-        inZone && runnerOnFirst && outs < 2 && roll < Rules.Or(rules).Batting.Cpu.SacBuntChance;
+    public static bool CpuSacBuntSpot(bool inZone, bool runnerOnFirst, int outs, double roll, RulesTable rules) =>
+        inZone && runnerOnFirst && outs < 2 && roll < rules.Batting.Cpu.SacBuntChance;
 
     /// <summary>
     /// Speed by family, the arm's <b>Velocity</b> (<see cref="Stats.Velocity"/>, PH-15-R6) and charge: the family's row carries its own base mph and its own
@@ -459,10 +459,10 @@ public sealed class AtBatResolver
     /// skill's speedMul (star-skills.json). <paramref name="mphPenalty"/> is the tired / exhausted
     /// arm (spec §4.7).
     /// </summary>
-    public static double PitchSpeedMph(PitchCommand pitch, int pitchStat, RulesTable? rules = null,
+    public static double PitchSpeedMph(PitchCommand pitch, int pitchStat, RulesTable rules,
         string? starPitchId = null, StarSkillTable? skills = null, double mphPenalty = 0)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var sp = r.Pitching.Speed;
         var row = r.Pitching.Families.Of(pitch.Type);
         var speed = row.Mph + pitchStat * sp.MphPerPitchStat + pitch.Charge01 * row.ChargeMph;
@@ -471,7 +471,7 @@ public sealed class AtBatResolver
         return Math.Max(r.Pitching.Flight.MinMph, speed - mphPenalty);
     }
 
-    public static double PitchSpeedMph(PitchCommand pitch, Character pitcher, RulesTable? rules = null,
+    public static double PitchSpeedMph(PitchCommand pitch, Character pitcher, RulesTable rules,
         StarSkillTable? skills = null, double mphPenalty = 0) =>
         PitchSpeedMph(pitch, pitcher.Stats.Velocity, rules, pitcher.StarPitch, skills, mphPenalty);
 }

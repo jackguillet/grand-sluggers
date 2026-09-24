@@ -105,7 +105,7 @@ public sealed class BodySlows
     public bool Slowed(Runner runner) => _runners.TryGetValue(runner, out var s) && s.Slowed;
 
     /// <summary>What a step of a body is multiplied by: <c>fielding.chase.frozenMul</c> slowed, else exactly 1.</summary>
-    public static double Mul(bool slowed, RulesTable? rules = null) => slowed ? Rules.Or(rules).Fielding.Chase.FrozenMul : 1.0;
+    public static double Mul(bool slowed, RulesTable rules) => slowed ? rules.Fielding.Chase.FrozenMul : 1.0;
 
     static State Of<TKey>(Dictionary<TKey, State> bodies, TKey key) where TKey : notnull
     {

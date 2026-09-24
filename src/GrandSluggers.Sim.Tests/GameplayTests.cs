@@ -16,11 +16,11 @@ public class GameplayTests
         var vale = _content.Must("vale");
         var rio = _content.Must("rio");
         var bat = _content.Bats["harbor-lumber"];
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var hits = 0;
         var charmed = 0;
-        var plain = AtBatResolver.ContactWindowFrames(null, park, false);
-        var charm = AtBatResolver.ContactWindowFrames(vale.StarPitch, park, false);
+        var plain = AtBatResolver.ContactWindowFrames(null, park, false, rules: Rules.Default);
+        var charm = AtBatResolver.ContactWindowFrames(vale.StarPitch, park, false, rules: Rules.Default);
         Assert.Equal(plain, charm);
         // The frame the old test swung at: inside the plain window, outside the old charmball's
         // (plain × 0.75), halfway between the two half-widths.
@@ -44,7 +44,7 @@ public class GameplayTests
             _content.Must("vale"), _content.Must("dart"), _content.Must("zig"), [],
             false, false, 0, false, true,
             _content.Bats["harbor-lumber"], 80, PitchInZone: true, Charge01: 1);
-        var r = new AtBatResolver(_content.Chemistry).Resolve(input, park, new Random(1));
+        var r = new AtBatResolver(_content.Chemistry, rules: Rules.Default).Resolve(input, park, new Random(1));
         Assert.Equal("ground", r.StarSwingUsed);
         Assert.True(r.LaunchDeg < 14, $"launch {r.LaunchDeg}");
     }
@@ -68,7 +68,7 @@ public class GameplayTests
         var brondo = _content.Must("brondo");
         var nico = _content.Must("nico");
         var rio = _content.Must("rio");
-        var laser = FieldAbilities.ApplyThrow(boom, _content.Chemistry.FieldingThrow(boom, brondo, new Random(1)));
+        var laser = FieldAbilities.ApplyThrow(boom, _content.Chemistry.FieldingThrow(boom, brondo, new Random(1)), rules: Rules.Default);
         var buddy = _content.Chemistry.FieldingThrow(rio, nico, new Random(1));
         Assert.True(laser.SpeedMul > buddy.SpeedMul, $"laser {laser.SpeedMul} vs buddy {buddy.SpeedMul}");
     }
@@ -79,8 +79,8 @@ public class GameplayTests
         var park = _content.Parks["harbor-diamond"];
         var nico = _content.Must("nico");
         var hit = FlightFixtures.OverTheFence(park, 10, 0);
-        Assert.True(FieldAbilities.AirRob(park, nico, hit));
-        Assert.False(FieldAbilities.AirRob(park, _content.Must("rio"), hit));
+        Assert.True(FieldAbilities.AirRob(park, nico, hit, rules: Rules.Default));
+        Assert.False(FieldAbilities.AirRob(park, _content.Must("rio"), hit, rules: Rules.Default));
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class GameplayTests
         Assert.True(after.ItemHit);
         Assert.Equal("frost", after.ItemTarget?.Id);
         Assert.True(ErrorItems.IsPeel("banana"));
-        Assert.Equal(Rules.Default.Batting.Items.SlipSec, ErrorItems.EffectSec("banana"));
+        Assert.Equal(Rules.Default.Batting.Items.SlipSec, ErrorItems.EffectSec("banana", rules: Rules.Default));
         Assert.False(ErrorItems.AffectsEveryGlove("banana"));
     }
 
@@ -117,11 +117,11 @@ public class GameplayTests
             Assert.Equal("rio", rocket.ItemTarget?.Id);
             Assert.Equal(PlayKind.InPlay, rocket.Kind);
         }
-        Assert.Equal(Rules.Default.Batting.Items.DazeSec, ErrorItems.EffectSec("rocket"));
+        Assert.Equal(Rules.Default.Batting.Items.DazeSec, ErrorItems.EffectSec("rocket", rules: Rules.Default));
         // A peel is a spot: a body inside its radius is on it, one a step outside is not.
         var r = Rules.Default.Batting.Items.PeelRadiusFt;
-        Assert.True(ErrorItems.OnPeel(0, 100, r - 0.5, 100));
-        Assert.False(ErrorItems.OnPeel(0, 100, r + 0.5, 100));
+        Assert.True(ErrorItems.OnPeel(0, 100, r - 0.5, 100, rules: Rules.Default));
+        Assert.False(ErrorItems.OnPeel(0, 100, r + 0.5, 100, rules: Rules.Default));
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class GameplayTests
         Assert.True(after.ItemHit);
         Assert.Equal("pow", after.Item);
         Assert.True(ErrorItems.AffectsEveryGlove("pow"));
-        Assert.Equal(Rules.Default.Batting.Items.PowHopSec, ErrorItems.EffectSec("pow"));
+        Assert.Equal(Rules.Default.Batting.Items.PowHopSec, ErrorItems.EffectSec("pow", rules: Rules.Default));
         Assert.Equal(PlayKind.InPlay, after.Kind);
     }
 
@@ -512,10 +512,10 @@ public class GameplayTests
     [Fact]
     public void LickCatchAddsCatchRadius()
     {
-        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("zig")));
-        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("rio")));
-        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("fenn")));
-        Assert.Equal(0, FieldAbilities.CatchBonus(_content.Must("ashlord")));
+        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("zig"), rules: Rules.Default));
+        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("rio"), rules: Rules.Default));
+        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("fenn"), rules: Rules.Default));
+        Assert.Equal(0, FieldAbilities.CatchBonus(_content.Must("ashlord"), rules: Rules.Default));
         Assert.Equal(PlayKind.Single, FieldAbilities.SpinCheck(_content.Must("ashlord"), PlayKind.Double));
     }
 }

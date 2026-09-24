@@ -32,7 +32,7 @@ public sealed class StealScenarioTests
         Assert.True(match.RunnerAt(1)!.Broke);
         Assert.Equal(0, match.RunnerAt(1)!.Feet);
         match.PitchSetup.Advance(.1);
-        Assert.Equal(RunnerSystem.SpeedFtPerSec(match.First!, 0, match.Rules) * .1, match.RunnerAt(1)!.Feet, 6);
+        Assert.Equal(RunnerSystem.SpeedFtPerSec(match.First!, match.Rules, 0) * .1, match.RunnerAt(1)!.Feet, 6);
     }
 
     [Fact]
@@ -61,9 +61,9 @@ public sealed class StealScenarioTests
         Assert.Equal("2B", StealThrow.CoverPos(2));
         Assert.Equal("3B", StealThrow.CoverPos(3));
         Assert.Equal("C", StealThrow.CoverPos(4));
-        Assert.True(StealThrow.CatcherThrowSec(1, null) > 0);
-        Assert.True(StealThrow.CatcherThrowSec(2, null) > StealThrow.CatcherThrowSec(1, null));
-        Assert.Throws<ArgumentOutOfRangeException>(() => StealThrow.CatcherThrowSec(0, null));
+        Assert.True(StealThrow.CatcherThrowSec(1, null, rules: Rules.Default) > 0);
+        Assert.True(StealThrow.CatcherThrowSec(2, null, rules: Rules.Default) > StealThrow.CatcherThrowSec(1, null, rules: Rules.Default));
+        Assert.Throws<ArgumentOutOfRangeException>(() => StealThrow.CatcherThrowSec(0, null, rules: Rules.Default));
     }
 
     // ---------------------------------------------------------------------------------

@@ -28,11 +28,11 @@ public sealed class Scenario
         PitchFlight.AimForCrossing(
             new PitchCommand(family, charge, false),
             worldX / PitchFlight.PlateScaleX,
-            (worldY - PitchFlight.PlateY) / PitchFlight.PlateScaleY);
+            (worldY - PitchFlight.PlateY) / PitchFlight.PlateScaleY, rules: Rules.Default);
 
     /// <summary>A swing pressed <paramref name="errFrames"/> after the square press, the ball's plate time less the lead (negative = early, D13).</summary>
     public static SwingCommand SwingAt(double errFrames, double charge = 0, bool bunt = false, double stickX = 0, double launchAim = 0) =>
-        new(true, charge, errFrames, false, AtBatResolver.SprayAimDeg(stickX), bunt, launchAim);
+        new(true, charge, errFrames, false, AtBatResolver.SprayAimDeg(stickX, rules: Rules.Default), bunt, launchAim);
 
     public Scenario(ContentCatalog content, int seed = 1)
     {

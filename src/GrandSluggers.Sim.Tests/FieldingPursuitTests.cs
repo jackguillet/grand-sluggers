@@ -16,12 +16,12 @@ public class FieldingPursuitTests
         {
             var match = Match.Slice(_content, parkId: park.Id, seed: 7);
             var hit = FlightFixtures.Hit(park, exit, -12, spray);
-            var path = BallFlight.Trajectory(exit, -12, spray, park);
+            var path = BallFlight.Trajectory(exit, -12, spray, park, Rules.Default);
             var pre = match.PreviewHit(hit);
             var start = Diamond.Positions[pre.Position];
-            var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen);
-            var route = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z, speed);
-            var early = BallFlight.PointAt(path, Math.Min(0.2, route.MeetTimeSec * 0.5));
+            var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen, rules: Rules.Default);
+            var route = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z, speed, rules: Rules.Default);
+            var early = BallFlight.PointAt(path, Math.Min(0.2, route.MeetTimeSec * 0.5), rules: Rules.Default);
 
             Assert.False(route.AirCatch);
             Assert.True(route.MeetTimeSec > 0, $"{park.Id} {exit} mph {spray}°");
@@ -44,20 +44,20 @@ public class FieldingPursuitTests
         var park = match.Park;
         const double exit = 92;
         const double spray = -24;
-        var path = BallFlight.Trajectory(exit, 7, spray, park);
+        var path = BallFlight.Trajectory(exit, 7, spray, park, Rules.Default);
         var hit = FlightFixtures.Hit(park, exit, 7, spray);
         var pre = match.PreviewHit(hit);
         var at = Diamond.Positions[pre.Position];
-        var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen);
+        var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen, rules: Rules.Default);
         const double dt = 1.0 / 30;
 
         for (var t = 0.0; t < Math.Min(1.4, BallFlight.RestTime(path)); t += dt)
         {
-            var live = BallFlight.PointAt(path, t);
-            var route = FieldingPursuit.Plan(pre, park, path, t, at.X, at.Z, speed);
+            var live = BallFlight.PointAt(path, t, rules: Rules.Default);
+            var route = FieldingPursuit.Plan(pre, park, path, t, at.X, at.Z, speed, rules: Rules.Default);
             Assert.True(FieldBounds.DistHome(route.X, route.Z) + 0.1 >= FieldBounds.DistHome(live.X, live.Z),
                 $"target fell behind the ball at {t:0.00}s");
-            at = FieldingResolver.StepToward(at.X, at.Z, route.X, route.Z, speed, dt, park);
+            at = FieldingResolver.StepToward(at.X, at.Z, route.X, route.Z, speed, dt, Rules.Default, park);
         }
     }
 
@@ -68,17 +68,17 @@ public class FieldingPursuitTests
         foreach (var spray in new[] { -32d, 0d, 32d })
         {
             var match = Match.Slice(_content, parkId: park.Id, seed: 3);
-            var path = BallFlight.Trajectory(104, 30, spray, park);
+            var path = BallFlight.Trajectory(104, 30, spray, park, Rules.Default);
             var hit = FlightFixtures.Hit(park, 104, 30, spray, ContactQuality.Perfect);
             var pre = match.PreviewHit(hit);
             var start = Diamond.Positions[pre.Position];
-            var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen);
-            var route = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z, speed);
-            var plant = FlyCatch.ChaseTarget(pre, park);
+            var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen, rules: Rules.Default);
+            var route = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z, speed, rules: Rules.Default);
+            var plant = FlyCatch.ChaseTarget(pre, Rules.Default, park);
 
             if (route.AirCatch)
             {
-                var point = BallFlight.PointAt(path, route.MeetTimeSec);
+                var point = BallFlight.PointAt(path, route.MeetTimeSec, rules: Rules.Default);
                 var target = FlyCatch.NeedsJump(pre) ? plant : (X: point.X, Z: point.Z);
                 Assert.Equal(target.X, route.X, 6);
                 Assert.Equal(target.Z, route.Z, 6);
@@ -96,7 +96,7 @@ public class FieldingPursuitTests
             var elapsed = 0.0;
             while (elapsed + dt <= route.AvailableSec)
             {
-                at = FieldingResolver.StepToward(at.X, at.Z, route.X, route.Z, speed, dt, park);
+                at = FieldingResolver.StepToward(at.X, at.Z, route.X, route.Z, speed, dt, Rules.Default, park);
                 elapsed += dt;
             }
             var traveled = Diamond.Dist(start.X, start.Z, at.X, at.Z);
@@ -112,9 +112,9 @@ public class FieldingPursuitTests
         var match = Match.Slice(_content, seed: 1);
         var park = match.Park;
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
-        var path = BallFlight.Trajectory(88, 28, 20, park);
+        var path = BallFlight.Trajectory(88, 28, 20, park, Rules.Default);
         var landing = BallFlight.LandingPoint(path);
-        var pre = FlightFixtures.Preview(assigned["CF"], "CF", BattedBallClass.Fly, BallFlight.HangTime(path),
+        var pre = FlightFixtures.Preview(assigned["CF"], "CF", BattedBallClass.Fly, BallFlight.HangTime(path, rules: Rules.Default),
             landing.X, landing.Z);
         var live = assigned.ToDictionary(pair => pair.Key, pair => Diamond.Positions[pair.Key]);
         live["LF"] = (landing.X - 36, landing.Z);
@@ -123,11 +123,11 @@ public class FieldingPursuitTests
         assigned["RF"] = assigned["RF"] with { Stats = assigned["RF"].Stats with { Run = 1 } };
 
         var choice = FieldingPursuit.Choose(assigned, FieldingResolver.OutfieldPursuitPositions,
-            pre, park, path, live);
+            pre, park, path, Rules.Default, live);
         Assert.Equal("LF", choice.Position);
         Assert.True(choice.Route.TravelTimeSec
             < FieldingPursuit.Plan(pre, park, path, 0, live["RF"].X, live["RF"].Z,
-                FieldingResolver.ChaseSpeedFt(assigned["RF"], "RF", pre)).TravelTimeSec);
+                FieldingResolver.ChaseSpeedFt(assigned["RF"], "RF", pre, Rules.Default), Rules.Default).TravelTimeSec);
 
         Assert.True(FieldingResolver.HandoffToOutfield("SS", choice.Position));
         Assert.False(FieldingResolver.HandoffToOutfield(choice.Position, "SS"));
@@ -157,7 +157,7 @@ public class FieldingPursuitTests
             if (!pre.Line) continue;
             var path = pre.Ball!.Samples;
             var live = BallFlight.PointAt(path, 0, match.Rules);
-            if (!FieldingResolver.InAir(pre, live.Y, 0, pre.HangTimeSec, match.Rules)) continue;
+            if (!FieldingResolver.InAir(pre, live.Y, 0, match.Rules, pre.HangTimeSec)) continue;
             var atCorner = Diamond.Positions[corner];
             var atCf = Diamond.Positions["CF"];
             if (Diamond.Dist(atCorner.X, atCorner.Z, pre.LandingX, pre.LandingZ) + 8
@@ -172,7 +172,7 @@ public class FieldingPursuitTests
                 FieldingResolver.ChaseSpeedFt(assigned["CF"], "CF", pre, match.Rules), match.Rules, ready["CF"]);
             if (!FieldingPursuit.Better(cfRoute, cornerRoute)) continue;
             var choice = FieldingPursuit.Choose(assigned, FieldingResolver.OutfieldPursuitPositions,
-                pre, park, path, null, 0, match.Rules, ready);
+                pre, park, path, match.Rules, null, 0, ready);
             Assert.Equal("CF", choice.Position);
             Assert.False(choice.Route.AirCatch);
             Assert.True(choice.Route.Reachable, $"{park.Id} {spray}°: CF reaches the roll");
@@ -192,7 +192,7 @@ public class FieldingPursuitTests
         var hit = FlightFixtures.Hit(park, 95, 35, 20);
         var pre = match.PreviewHit(hit);
         Assert.Equal(BattedBallClass.Fly, pre.Class);
-        var plant = FlyCatch.ChaseTarget(pre, park);
+        var plant = FlyCatch.ChaseTarget(pre, Rules.Default, park);
         var rf = Diamond.Positions["RF"];
         var cf = Diamond.Positions["CF"];
         Assert.True(Diamond.Dist(rf.X, rf.Z, plant.X, plant.Z) + 8
@@ -201,10 +201,10 @@ public class FieldingPursuitTests
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
         var ready = FieldingResolver.CpuReactionLockouts(match.Rules, pre.HangTimeSec);
         var choice = FieldingPursuit.Choose(assigned, FieldingResolver.OutfieldPursuitPositions,
-            pre, park, pre.Ball!.Samples, null, 0, match.Rules, ready);
+            pre, park, pre.Ball!.Samples, match.Rules, null, 0, ready);
         Assert.Contains(choice.Position, FieldingResolver.OutfieldPursuitPositions);
         Assert.True(choice.Route.AirCatch);
-        var atCatch = BallFlight.PointAt(pre.Ball.Samples, choice.Route.MeetTimeSec);
+        var atCatch = BallFlight.PointAt(pre.Ball.Samples, choice.Route.MeetTimeSec, rules: Rules.Default);
         Assert.True(choice.Route.MeetTimeSec < pre.HangTimeSec);
         Assert.InRange(atCatch.Y, 0, match.Rules.Fielding.Catch.StandingHeightFt);
         Assert.Equal(atCatch.X, choice.Route.X, 6);

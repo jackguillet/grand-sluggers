@@ -340,8 +340,8 @@ public sealed class RunnerScenarioTests
         var field = Grounder(match);
         match.LivePlay.Apply(LivePlayCommand.Begin(PlayKind.GroundOut, LivePlayCommandSource.Cpu));
         // The contact play with two outs: the runner from third goes on contact and crosses before the force lands.
-        var homeAt = RunnerSystem.ArrivalSec(match.RunnerAt(3)!, 4, 0, 0, match.Rules);
-        var secondAt = RunnerSystem.ArrivalSec(match.RunnerAt(1)!, 2, 0, 0, match.Rules);
+        var homeAt = RunnerSystem.ArrivalSec(match.RunnerAt(3)!, 4, 0, match.Rules, 0);
+        var secondAt = RunnerSystem.ArrivalSec(match.RunnerAt(1)!, 2, 0, match.Rules, 0);
         Assert.True(homeAt < secondAt, $"the run crosses ({homeAt:0.00}) before the forced runner reaches second ({secondAt:0.00})");
         var snapshot = match.LivePlay.Apply(LivePlayCommand.Advance((homeAt + secondAt) / 2, PlayKind.GroundOut, true, false, true, 0, LivePlayCommandSource.Cpu)).Snapshot;
         Assert.Contains(snapshot.Runners, r => r.FromBag == 3 && r.Phase == RunnerPhase.Scored);

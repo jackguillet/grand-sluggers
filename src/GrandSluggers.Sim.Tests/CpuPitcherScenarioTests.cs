@@ -75,7 +75,7 @@ public sealed class CpuPitcherScenarioTests
                 // (b) The crossing is where the rubber put it. The solve is affine and exact, so a
                 //     walk that did not run into the legal range lands on the intent; one that did
                 //     misses short, on the near side, the way an arm out of rubber does.
-                var (x, y) = PitchFlight.Crossing(pitch, match.Pitcher.StarPitch, rules);
+                var (x, y) = PitchFlight.Crossing(pitch, rules, match.Pitcher.StarPitch);
                 if (Math.Abs(pitch.RubberX) < 1)
                     Assert.Equal(plan.IntentX, x, 9);
                 else
@@ -349,7 +349,7 @@ public sealed class CpuPitcherScenarioTests
         for (var i = 0; i < 100; i++)
         {
             var pitch = match.CpuPitchByInputs(out _);
-            var (x, y) = PitchFlight.Crossing(pitch, match.Pitcher.StarPitch, trial.Rules);
+            var (x, y) = PitchFlight.Crossing(pitch, trial.Rules, match.Pitcher.StarPitch);
             if (StrikeZoneGeometry.Contains(x, y)) continue;
             outside++;
             if (Math.Abs(x) > StrikeZoneGeometry.HalfWidth) byX++;
@@ -366,7 +366,7 @@ public sealed class CpuPitcherScenarioTests
         var center = 0;
         for (var i = 0; i < 100; i++)
         {
-            var (x, y) = PitchFlight.Crossing(even.CpuPitchByInputs(out _), even.Pitcher.StarPitch, trial.Rules);
+            var (x, y) = PitchFlight.Crossing(even.CpuPitchByInputs(out _), trial.Rules, even.Pitcher.StarPitch);
             if (Math.Abs(x) < 0.25 && Math.Abs(y - CenterY) < 0.25) center++;
         }
         Assert.True(center < 10, $"{center} of 100 down the middle");

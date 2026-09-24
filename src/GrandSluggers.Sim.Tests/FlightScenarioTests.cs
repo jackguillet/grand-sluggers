@@ -24,7 +24,7 @@ public sealed class FlightScenarioTests
     public void S20_BallAt44DegreesOverTheFenceIsAFairHomeRun()
     {
         var hit = FlightFixtures.OverTheFence(Harbor, 10, 44);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.True(hit.HomeRun);
         Assert.False(hit.Foul);
         Assert.True(hit.InPlay);
@@ -46,7 +46,7 @@ public sealed class FlightScenarioTests
     {
         var fair = FlightFixtures.OverTheFence(Harbor, 10, 44);
         var hit = FlightFixtures.Hit(Harbor, fair.ExitVeloMph, fair.LaunchDeg, 46, ContactQuality.Perfect);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.True(hit.Foul);
         Assert.False(hit.HomeRun);
         Assert.False(hit.InPlay);
@@ -63,7 +63,7 @@ public sealed class FlightScenarioTests
     public void S22_RollerThatSettlesFoulBeforeFirstUntouchedIsFoul()
     {
         var hit = FlightFixtures.Hit(Harbor, 36, 5, 47);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.True(hit.Foul);
         Assert.Equal(BattedBallClass.Foul, ball.Class);
         Assert.False(FieldBounds.PastTheBags(ball.DecidedX, ball.DecidedZ), "judged before the bag, where it came to rest");
@@ -75,7 +75,7 @@ public sealed class FlightScenarioTests
     public void S23_GrounderThatPassesFirstFairIsFairWhereverItRollsAfter()
     {
         var hit = FlightFixtures.Hit(Harbor, 84, 8, 44);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.False(hit.Foul);
         Assert.True(hit.InPlay);
         Assert.True(ball.Shape.OnTheDirt());
@@ -84,7 +84,7 @@ public sealed class FlightScenarioTests
         Assert.True(ball.DecidedT < BallFlight.RestTime(ball.Samples), "the roll after the bag cannot change the call");
 
         // The same slow roller as S-22 inside the line settles fair before the bag.
-        var slow = BattedBall.Of(36, 5, 44, Harbor);
+        var slow = BattedBall.Of(36, 5, 44, Harbor, rules: Rules.Default);
         Assert.False(slow.Foul);
         Assert.False(FieldBounds.PastTheBags(slow.DecidedX, slow.DecidedZ));
     }
@@ -125,7 +125,7 @@ public sealed class FlightScenarioTests
     public void S24b_FoulFlyNobodyReaches_IsFoulAndDeadWithinTheCountHold()
     {
         var hit = FlightFixtures.Hit(Harbor, 85, 30, 50);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.True(hit.Foul);
         Assert.NotNull(ball.LeavesT);
         var match = Match.Slice(_content, seed: 2);
@@ -166,7 +166,7 @@ public sealed class FlightScenarioTests
         for (var seed = 0; seed < 40; seed++)
         {
             var hit = UnderTheBall("rio", 0.26, seed);
-            var ball = BattedBall.Of(hit, Harbor);
+            var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
             if (ball.LandingZ < 0 && ball.LeavesT is null) return hit;
         }
         throw new Xunit.Sdk.XunitException("no seed popped rio's contact under the ball back behind the plate");
@@ -182,7 +182,7 @@ public sealed class FlightScenarioTests
         Assert.True(hit.Foul);
         Assert.False(hit.InPlay);
         Assert.Equal(BattedBallClass.Pop, hit.Class);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.InRange(ball.LandingZ, FieldBounds.BackstopZ, 0);
         Assert.True(ball.Samples.Max(s => s.Height) > 40, "a real pop, not a tip");
 
@@ -219,7 +219,7 @@ public sealed class FlightScenarioTests
     public void S24d_ContactUnderTheBall_NobodyUnderIt_IsFoulAndDead()
     {
         var hit = PopBehindHome();
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         var match = Match.Slice(_content, seed: 2);
         var preview = match.PreviewHit(hit);
         var strikes = match.Strikes;
@@ -246,7 +246,7 @@ public sealed class FlightScenarioTests
             for (var seed = 0; seed < 6; seed++)
             {
                 var hit = UnderTheBall(batter.Id, 0.33, seed);
-                var ball = BattedBall.Of(hit, Harbor);
+                var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
                 Assert.True(hit.Foul, $"{batter.Id} seed {seed}");
                 Assert.True(Math.Abs(hit.SprayDeg) > 90, $"{batter.Id} seed {seed} spray {hit.SprayDeg}");
                 Assert.True(ball.DecidedZ < 0, $"{batter.Id} seed {seed} decided at z {ball.DecidedZ:0.0}");
@@ -289,7 +289,7 @@ public sealed class FlightScenarioTests
     {
         var fair = FlightFixtures.OverTheFence(Harbor, 10, 44);
         var hit = FlightFixtures.Hit(Harbor, fair.ExitVeloMph, fair.LaunchDeg, 46, ContactQuality.Perfect);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         var match = Match.Slice(_content, seed: 2);
         var preview = match.PreviewHit(hit);
         var field = match.ResolveFielding(hit, preview);
@@ -308,7 +308,7 @@ public sealed class FlightScenarioTests
     public void FoulRollerTouchedOnFoulGroundIsDeadInTheGlove()
     {
         var hit = FlightFixtures.Hit(Harbor, 36, 5, 47);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.True(hit.Foul);
         Assert.True(ball.DecidedT > ball.HangT + 1, "untouched it would roll a while before resting foul");
         var match = Match.Slice(_content, seed: 2);
@@ -336,8 +336,8 @@ public sealed class FlightScenarioTests
         Assert.Equal(PlayKind.FlyOut, play.Kind);
         var only = Assert.Single(play.Outcome!.OutsMade);
         Assert.Equal((OutType.Catch, 0), (only.Type, only.FromBag));
-        Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, preview.Fielder, match.Park, match.Rules)
-                    || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, preview.Fielder, match.Park, match.Rules),
+        Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park)
+                    || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park),
             $"robbed at {caughtAt:0.00} vs the fence crossing {preview.HangTimeSec:0.00}");
         Assert.Contains(feat, new[] { DefensiveFeat.SuperJump, DefensiveFeat.BuddyJump });
         Assert.Equal(feat, play.Outcome.DefensiveFeat);
@@ -364,7 +364,7 @@ public sealed class FlightScenarioTests
     public void S58_FlyOffTheWallCaromsBackIntoThePark_LiveToADouble()
     {
         var hit = FlightFixtures.Hit(Harbor, 110, 35, 0, ContactQuality.Perfect);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.Equal(BattedBallClass.Wall, hit.Class);
         Assert.NotNull(ball.WallT);
         Assert.InRange(ball.FenceClearFt, -Harbor.FenceHeightFt, 0);
@@ -375,7 +375,7 @@ public sealed class FlightScenarioTests
 
         var match = Match.Slice(_content, seed: 2);
         var preview = match.PreviewHit(hit);
-        var plant = FlyCatch.ChaseTarget(preview, match.Park);
+        var plant = FlyCatch.ChaseTarget(preview, Rules.Default, match.Park);
         Assert.True(Diamond.Dist(0, 0, plant.X, plant.Z) < Harbor.CenterFenceFt, "the glove plants inside the wall");
         var cued = false;
         var wallAt = preview.HangTimeSec;
@@ -405,7 +405,7 @@ public sealed class FlightScenarioTests
         Assert.Equal(Harbor.FenceHeightFt, HarborWall.Height(Harbor, cf), 4);
 
         var over = FlightFixtures.OverTheFence(Harbor, 0.5, 0);
-        var overBall = BattedBall.Of(over, Harbor);
+        var overBall = BattedBall.Of(over, Harbor, rules: Rules.Default);
         Assert.True(over.HomeRun, $"clears by {overBall.FenceClearFt:0.00} ft");
         Assert.InRange(overBall.FenceClearFt, 0.2, 0.8);
         var crossing = overBall.Samples.First(s => s.Event == SampleEvent.Fence);
@@ -413,7 +413,7 @@ public sealed class FlightScenarioTests
         Assert.Null(overBall.WallT);
 
         var under = FlightFixtures.OverTheFence(Harbor, -0.5, 0);
-        var underBall = BattedBall.Of(under, Harbor);
+        var underBall = BattedBall.Of(under, Harbor, rules: Rules.Default);
         Assert.False(under.HomeRun, $"meets the padding {underBall.FenceClearFt:0.00} ft under the top");
         Assert.Equal(BattedBallClass.Wall, under.Class);
         Assert.NotNull(underBall.WallT);
@@ -435,7 +435,7 @@ public sealed class FlightScenarioTests
     void S59_Row(double exit, double launch, int neutralFrames)
     {
         var hit = FlightFixtures.Hit(Harbor, exit, launch, 0, ContactQuality.Perfect);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.True(ball.GroundRule, "lands on the field, hops the fence");
         Assert.False(ball.HomeRun);
         Assert.NotNull(ball.LeavesT);
@@ -472,7 +472,7 @@ public sealed class FlightScenarioTests
         foreach (var launch in new[] { 3.0, 8.0, 14.0, 22.0, 30.0, 45.0 })
         foreach (var spray in new[] { -44.0, -30.0, -10.0, 0.0, 15.0, 35.0, 44.5 })
         {
-            var ball = BattedBall.Of(exit, launch, spray, park);
+            var ball = BattedBall.Of(exit, launch, spray, park, rules: Rules.Default);
             if (ball.Foul) continue;
             fair++;
             var samples = ball.Samples;
@@ -599,14 +599,14 @@ public sealed class FlightScenarioTests
     (AtBatResult Hit, FieldingPreview Preview, PlayEvent Play, double CaughtAt) RunWallLeap(Match match, out DefensiveFeat feat)
     {
         var hit = FlightFixtures.OverTheFence(Harbor, 12, 0);
-        var ball = BattedBall.Of(hit, Harbor);
+        var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.InRange(ball.FenceClearFt, 11, 13);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
         Assert.True(FlyCatch.NeedsJump(preview));
         var who = preview.Fielder;
         var play = RunHuman(match, hit, preview, live =>
-            FlyCatch.JumpWindow(live.ElapsedSeconds, preview.HangTimeSec, who, match.Park, match.Rules)
+            FlyCatch.JumpWindow(live.ElapsedSeconds, preview.HangTimeSec, match.Rules, who, match.Park)
                 ? new LivePadInput(WestDown: true)
                 : LivePadInput.Dead, out var caughtAt);
         feat = play.Outcome?.DefensiveFeat ?? DefensiveFeat.None;

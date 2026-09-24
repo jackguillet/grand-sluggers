@@ -719,7 +719,7 @@ public sealed partial class Match
 
     /// <summary>Bobble on a live scoop, from the one seeded stream (S-92).</summary>
     internal bool RollBobble(double energy, Character who) =>
-        InPlay.Bobbles(energy, who, _rng, DefenseGlove, Rules);
+        InPlay.Bobbles(energy, who, _rng, Rules, DefenseGlove);
 
     /// <summary>One authoritative handling outcome per qualifying take (#721, F693-02-ordinary-handling-error-chance): a draw only when there is a chance.</summary>
     internal bool RollHandling(double chance) => chance > 0 && _rng.NextDouble() < chance;
@@ -1099,7 +1099,7 @@ public sealed partial class Match
         // resolver and the log all see the pitch the team could pay for.
         pitch = SettleStarPitch(pitch);
         // One crossing for the umpire, the body, and the bat: the shown pitch is the judged pitch (§3).
-        var crossing = PitchFlight.Point(pitch, 1, Pitcher.StarPitch, rules: Rules);
+        var crossing = PitchFlight.Point(pitch, 1, Rules, Pitcher.StarPitch);
         var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
         SpendPitch(pitch);
         if (Top) _awayLastCrossingX = crossing.X; else _homeLastCrossingX = crossing.X;
@@ -1109,7 +1109,7 @@ public sealed partial class Match
 
         if (!swing.Swing)
         {
-            finished = AtBatResolver.HitsBatter(box, crossing.X, crossing.Y, Batter.Bats, Rules)
+            finished = AtBatResolver.HitsBatter(box, crossing.X, crossing.Y, Rules, Batter.Bats)
                 ? FinishHitByPitch(pitch, swing, EmptyHit(inZone))
                 : FinishTake(pitch, swing, inZone);
             EndIfWalkOff();
@@ -1323,7 +1323,7 @@ public sealed partial class Match
         // there as anywhere, so the difference is the walk. The clamp is the legal rubber range —
         // the one Match.WalkPitcher enforces for a hand on the stick — and a walk that runs into it
         // simply misses short, the way a pitcher who has run out of rubber does.
-        var (zeroX, _) = PitchFlight.Crossing(delivery, Pitcher.StarPitch, Rules);
+        var (zeroX, _) = PitchFlight.Crossing(delivery, Rules, Pitcher.StarPitch);
         var rubber = Math.Clamp((intentX - zeroX) / HomeSet.PitcherWalk, -1, 1);
         PitcherOffsetX = rubber;
 
@@ -1427,8 +1427,8 @@ public sealed partial class Match
         var power = Batter.Stats.Power;
         // Commit from what can be seen: the read pitch replaces the final one for every decision below.
         pitch = CpuReadPitch(pitch, breakAtCommit);
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch, Rules);
-        var (cx, cy) = PitchFlight.Crossing(pitch, Pitcher.StarPitch, Rules);
+        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Rules, Pitcher.StarPitch);
+        var (cx, cy) = PitchFlight.Crossing(pitch, Rules, Pitcher.StarPitch);
         var zone = CpuZoneClass(cx, cy, inZone, c);
         var take = new SwingCommand(false, 0, 0, false);
 

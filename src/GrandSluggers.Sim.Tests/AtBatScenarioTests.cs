@@ -75,9 +75,9 @@ public sealed class AtBatScenarioTests
             // Near the frame with fewer than two strikes: chase (chaseBase − Bat)% (spec §5.9).
             chase = (_content.Rules.Batting.Cpu.ChaseBase - match.Batter.Stats.Bat) / 100.0;
             var edge = match.PreparePitch(Scenario.PitchAt(StrikeZoneGeometry.HalfWidth - 0.1, CenterY));
-            Assert.True(StrikeZoneGeometry.Contains(edge), "the launched pitch is a strike");
+            Assert.True(StrikeZoneGeometry.Contains(edge, rules: Rules.Default), "the launched pitch is a strike");
             var steered = edge with { BreakX = 1 };
-            Assert.False(StrikeZoneGeometry.Contains(steered), "full break carries it out");
+            Assert.False(StrikeZoneGeometry.Contains(steered, rules: Rules.Default), "full break carries it out");
             var swing = match.CpuSwing(steered);
             if (!swing.Swing) takes++;
         }
@@ -88,7 +88,7 @@ public sealed class AtBatScenarioTests
         var decide = AtBatMotion.CpuDecisionTime(plateAt, _content.Rules);
         Assert.True(decide < AtBatMotion.SquarePressAt(plateAt, rules: _content.Rules));
         var early = AtBatMotion.CommitCpuSwing(Scenario.SwingAt(-30), plateAt, _content.Rules);
-        Assert.Equal(AtBatMotion.SwingErrorFrames(decide, plateAt), early.TimingErrorFrames, 8);
+        Assert.Equal(AtBatMotion.SwingErrorFrames(decide, plateAt, rules: Rules.Default), early.TimingErrorFrames, 8);
         Assert.Equal(2, AtBatMotion.CommitCpuSwing(Scenario.SwingAt(2), plateAt, _content.Rules).TimingErrorFrames);
     }
 
@@ -109,7 +109,7 @@ public sealed class AtBatScenarioTests
     [Fact]
     public void S06_ChangeupDumpedLowIsContactWithAGrounderBias()
     {
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks["harbor-diamond"];
         var low = Input(bat: 5, err: 0, crossingY: 1.6, changeup: true);
         var mid = low with { CrossingY = CenterY, ChangeupPitch = false };
@@ -144,7 +144,7 @@ public sealed class AtBatScenarioTests
     [Fact]
     public void S07_SquareBatFiveSlapAtTheCenterIsPerfectStraightToCenter()
     {
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks["harbor-diamond"];
         var spread = _content.Rules.Batting.Spray.PerfectSpreadDeg / 2;
         Assert.Equal(LeadSec, _content.Rules.Batting.Window.LeadSec, 8);
@@ -163,13 +163,13 @@ public sealed class AtBatScenarioTests
     [Trait("Kind", "Balance")]
     public void S08_FourFramesEarlyInsideTheNineFrameWindowIsStillPerfectAndPulled()
     {
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks["harbor-diamond"];
         var err = PressFrames(LeadSec + 4.0 / 60);
         Assert.Equal(-4, err, 8);
         var input = Input(bat: 5, err: err);
         var pull = -SweetSpot.TipSign(input.Batter.Bats);
-        Assert.Equal(9, AtBatResolver.ContactWindowFrames(null, park, false));
+        Assert.Equal(9, AtBatResolver.ContactWindowFrames(null, park, false, rules: Rules.Default));
         for (var seed = 0; seed < 20; seed++)
         {
             var r = resolver.Resolve(input, park, new Random(seed));
@@ -186,7 +186,7 @@ public sealed class AtBatScenarioTests
     {
         // plate − 0.25 is 4.2 frames early and plate − 0.11 is 4.2 frames late: inside the
         // 4.5-frame half window, on its unsquare rim (one tier down, never a miss).
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks["harbor-diamond"];
         var err = PressFrames(beforePlate);
         Assert.Equal(side * 4.2, err, 8);
@@ -206,7 +206,7 @@ public sealed class AtBatScenarioTests
     [Trait("Kind", "Balance")]
     public void S09_FiveFramesLateIsOutsideTheNineFrameWindowAndAMiss()
     {
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks["harbor-diamond"];
         var r = resolver.Resolve(Input(bat: 5, err: 5), park, new Random(1));
         Assert.Equal(ContactQuality.Miss, r.Quality);
@@ -262,7 +262,7 @@ public sealed class AtBatScenarioTests
     [Fact]
     public void S11_ChargedSwingWithTheBallTowardTheTipIsNiceAtTheChargeNiceExit()
     {
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks["harbor-diamond"];
         var center = Input(bat: 5, err: 0);
         var tip = center with { Charge01 = 1, CrossingX = SweetSpot.TipSign(center.Batter.Bats) * 0.4 };
@@ -278,7 +278,7 @@ public sealed class AtBatScenarioTests
     [Fact]
     public void S12_OrdinarySourContactKeepsItsLaunchFromTheCrossing()
     {
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks["harbor-diamond"];
         var b = _content.Rules.Batting;
         var sour = Input(bat: 5, err: -1);
@@ -344,7 +344,7 @@ public sealed class AtBatScenarioTests
     public void S15_PressATenthBeforeReleaseIsAnEarlyMissStrike()
     {
         const double plateAt = 1.0;
-        var err = AtBatMotion.SwingErrorFrames(-0.1, plateAt);
+        var err = AtBatMotion.SwingErrorFrames(-0.1, plateAt, rules: Rules.Default);
         Assert.True(err < -9, $"early by {err} frames");
         var s = new Scenario(_content);
         var ev = s.Match.Play(Scenario.PitchAt(0, CenterY), Scenario.SwingAt(err));
@@ -387,8 +387,8 @@ public sealed class AtBatScenarioTests
         var toward = -SweetSpot.TipSign(bats);
         Assert.True(match.WalkPitcher(toward * 1.0));
         var pitch = new PitchCommand("fastball", 0, false, RubberX: match.PitcherOffsetX, BreakX: toward);
-        var (x, y) = PitchFlight.Crossing(pitch);
-        Assert.True(AtBatResolver.HitsBatter(0, x, y, bats), $"crossing {x:0.00} vs body {AtBatResolver.BatterBodyX(0, bats):0.00}");
+        var (x, y) = PitchFlight.Crossing(pitch, rules: Rules.Default);
+        Assert.True(AtBatResolver.HitsBatter(0, x, y, Rules.Default, bats), $"crossing {x:0.00} vs body {AtBatResolver.BatterBodyX(0, bats):0.00}");
         var ev = match.Play(pitch, Scenario.Take);
         Assert.Equal(PlayKind.HitByPitch, ev.Kind);
         // Without the break the same walk is a ball, not a plunk.
@@ -503,7 +503,7 @@ public sealed class AtBatScenarioTests
     [Fact]
     public void S19_AHeldBuntOnAHighPitchIsABuntPopAndTheHeldBatHasNoPressToTime()
     {
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks["harbor-diamond"];
         var b = _content.Rules.Batting;
         var high = Input(bat: 5, err: 0, crossingY: CenterY + b.Bunt.PopAboveCenterFt + 0.1)
@@ -561,11 +561,11 @@ public sealed class AtBatScenarioTests
         var ready = match.PreparePitch(aimed);
         Assert.Equal((aimed.AimX, aimed.AimY), (ready.AimX, ready.AimY));
         for (var i = 0; i < 20; i++)
-            Assert.Equal(PitchFlight.Crossing(ready), PitchFlight.Crossing(match.PreparePitch(aimed)));
+            Assert.Equal(PitchFlight.Crossing(ready, rules: Rules.Default), PitchFlight.Crossing(match.PreparePitch(aimed), rules: Rules.Default));
         var breakMul = st.BreakMul(match.PitcherStamina);
         Assert.Equal(breakMul, ready.BreakMul, 12);
         Assert.InRange(breakMul, st.TiredBreakMul, 1 - 1e-9);
-        var damped = PitchFlight.Crossing(ready).X - PitchFlight.Crossing(ready with { BreakX = 0 }).X;
+        var damped = PitchFlight.Crossing(ready, rules: Rules.Default).X - PitchFlight.Crossing(ready with { BreakX = 0 }, rules: Rules.Default).X;
         Assert.Equal(_content.Rules.Pitching.Flight.BreakMaxFt * breakMul, damped, 6);
     }
 
@@ -712,7 +712,7 @@ public sealed class AtBatScenarioTests
         Assert.Same(_content.Rules.Pitching.Cpu.Ahead, match.CpuPitchRow());
         var outside = 0;
         for (var i = 0; i < 100; i++)
-            if (!StrikeZoneGeometry.Contains(match.CpuPitch(), match.Pitcher.StarPitch)) outside++;
+            if (!StrikeZoneGeometry.Contains(match.CpuPitch(), Rules.Default, match.Pitcher.StarPitch)) outside++;
         Assert.True(outside >= 30, $"{outside} of 100 outside");
 
         // No dead-center default: an even count never aims at the middle.
@@ -721,7 +721,7 @@ public sealed class AtBatScenarioTests
         var center = 0;
         for (var i = 0; i < 100; i++)
         {
-            var (x, y) = PitchFlight.Crossing(even.CpuPitch(), even.Pitcher.StarPitch, even.Rules);
+            var (x, y) = PitchFlight.Crossing(even.CpuPitch(), even.Rules, even.Pitcher.StarPitch);
             if (Math.Abs(x) < 0.25 && Math.Abs(y - CenterY) < 0.25) center++;
         }
         Assert.True(center < 10, $"{center} of 100 down the middle");
@@ -793,7 +793,7 @@ public sealed class AtBatScenarioTests
         var swing = match.CpuSwing(pitch);
         if (!swing.Swing) return 0;
         // A failed re-read leaves the box at the last crossing (1.2 ft away); a fixed offset alone is under 0.5 ft.
-        var (cx, _) = PitchFlight.Crossing(pitch);
+        var (cx, _) = PitchFlight.Crossing(pitch, rules: Rules.Default);
         return Math.Abs(SweetSpot.WorldCenter(swing.BoxOffsetX).X - cx) > 0.5 ? 1 : 0;
     }
 

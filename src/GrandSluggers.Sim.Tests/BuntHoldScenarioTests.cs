@@ -633,7 +633,7 @@ public sealed class BuntHoldScenarioTests
         for (var i = 0; i <= 400; i++)
         {
             var x = tip * i * 0.01;
-            if (SweetSpot.Zone(0, batter.Bats, x, CenterY + dy, barrel, content.Rules) == zone) return x;
+            if (SweetSpot.Zone(0, batter.Bats, x, CenterY + dy, content.Rules, barrel) == zone) return x;
         }
         throw new InvalidOperationException($"no {zone} crossing at dy {dy}");
     }

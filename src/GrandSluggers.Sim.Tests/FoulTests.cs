@@ -28,8 +28,8 @@ public class FoulTests
         Assert.True(r.Foul);
         Assert.False(r.InPlay);
         Assert.False(r.HomeRun);
-        Assert.Equal(BattedBallClass.Foul, BattedBall.Of(r, park).Class);
-        var ball = BattedBall.Of(r, park);
+        Assert.Equal(BattedBallClass.Foul, BattedBall.Of(r, park, rules: Rules.Default).Class);
+        var ball = BattedBall.Of(r, park, rules: Rules.Default);
         Assert.False(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ), "the untouched ball is judged where it lands or rolls (§5.6)");
         Assert.True(r.ExitVeloMph > 1);
     }
@@ -40,10 +40,10 @@ public class FoulTests
         var park = _content.Parks["harbor-diamond"];
         for (var seed = 0; seed < 40; seed++)
         {
-            var r = new AtBatResolver(_content.Chemistry).Resolve(Square(0), park, new Random(seed));
+            var r = new AtBatResolver(_content.Chemistry, rules: Rules.Default).Resolve(Square(0), park, new Random(seed));
             Assert.False(r.Foul, $"seed {seed} spray {r.SprayDeg} labeled foul inside the lines");
             Assert.True(r.InPlay);
-            Assert.NotEqual(BattedBallClass.Foul, BattedBall.Of(r, park).Class);
+            Assert.NotEqual(BattedBallClass.Foul, BattedBall.Of(r, park, rules: Rules.Default).Class);
         }
     }
 
@@ -58,11 +58,11 @@ public class FoulTests
         var carry = 0.0;
         for (var seed = 0; seed < 20; seed++)
         {
-            var r = new AtBatResolver(_content.Chemistry).Resolve(input, park, new Random(seed));
+            var r = new AtBatResolver(_content.Chemistry, rules: Rules.Default).Resolve(input, park, new Random(seed));
             Assert.True(r.Foul, $"seed {seed} spray {r.SprayDeg}");
             Assert.False(r.HomeRun, $"seed {seed} homer in foul territory carry {r.CarryFt}");
             Assert.False(r.InPlay);
-            carry = Math.Max(carry, BallFlight.CarryFeet(r.ExitVeloMph, r.LaunchDeg, 0));
+            carry = Math.Max(carry, BallFlight.CarryFeet(r.ExitVeloMph, r.LaunchDeg, 0, rules: Rules.Default));
         }
         Assert.True(carry > park.RightFenceFt * 0.6, $"expected a real fly, best open carry {carry}");
     }
@@ -110,10 +110,10 @@ public class FoulTests
     public void FullStickShiftsTheRangeNotTheWholeField()
     {
         // Spec §5.3: the stick shifts direction by ±12°; timing across the window does the rest.
-        Assert.Equal(Rules.Default.Batting.Spray.StickDeg, AtBatResolver.SprayAimDeg(1));
-        Assert.True(AtBatResolver.SprayAimDeg(1) < AtBatResolver.FoulLineDeg);
-        Assert.Equal(-AtBatResolver.SprayAimDeg(1), AtBatResolver.SprayAimDeg(-1));
-        Assert.Equal(0, AtBatResolver.SprayAimDeg(0));
+        Assert.Equal(Rules.Default.Batting.Spray.StickDeg, AtBatResolver.SprayAimDeg(1, rules: Rules.Default));
+        Assert.True(AtBatResolver.SprayAimDeg(1, rules: Rules.Default) < AtBatResolver.FoulLineDeg);
+        Assert.Equal(-AtBatResolver.SprayAimDeg(1, rules: Rules.Default), AtBatResolver.SprayAimDeg(-1, rules: Rules.Default));
+        Assert.Equal(0, AtBatResolver.SprayAimDeg(0, rules: Rules.Default));
     }
 
     [Fact]
@@ -126,12 +126,12 @@ public class FoulTests
         var pullSide = -SweetSpot.TipSign(bats);
         for (var seed = 0; seed < 80; seed++)
         {
-            var r = new AtBatResolver(_content.Chemistry).Resolve(
-                Square(AtBatResolver.SprayAimDeg(pullSide), timing: -3.5) with
+            var r = new AtBatResolver(_content.Chemistry, rules: Rules.Default).Resolve(
+                Square(AtBatResolver.SprayAimDeg(pullSide, rules: Rules.Default), timing: -3.5) with
                     { CrossingX = -SweetSpot.TipSign(bats) * 0.95, CrossingY = StrikeZoneGeometry.CenterY },
                 park, new Random(seed));
             if (r.Quality == ContactQuality.Miss) continue;
-            var ball = BattedBall.Of(r, park);
+            var ball = BattedBall.Of(r, park, rules: Rules.Default);
             if (r.Foul)
             {
                 fouls++;

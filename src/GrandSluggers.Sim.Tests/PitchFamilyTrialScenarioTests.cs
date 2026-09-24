@@ -135,7 +135,7 @@ public sealed class PitchFamilyTrialScenarioTests
                 // Reachable, not merely legal: a batter standing where the box starts them, with an
                 // ordinary bat and no charge, has the crossing inside the drawn oval (§5.2, D4).
                 foreach (var bats in new[] { Hand.L, Hand.R })
-                    Assert.True(SweetSpot.Distance(0, bats, x, y, 1, rules) <= 1,
+                    Assert.True(SweetSpot.Distance(0, bats, x, y, rules, 1) <= 1,
                         $"{where}: a {bats} batter's nice oval does not reach ({x}, {y})");
             }
     }
@@ -268,8 +268,8 @@ public sealed class PitchFamilyTrialScenarioTests
             foreach (var u in new[] { 0.0, 0.3, 0.7, 0.9, 1.0 })
             {
                 var row = families.Of(family);
-                var right = PitchFlight.Point(family, u, 0.4, -0.3, 0.5, 0.6, rules: rules, throws: Hand.R).X;
-                var left = PitchFlight.Point(family, u, 0.4, -0.3, 0.5, 0.6, rules: rules, throws: Hand.L).X;
+                var right = PitchFlight.Point(family, u, rules, 0.4, -0.3, 0.5, 0.6, throws: Hand.R).X;
+                var left = PitchFlight.Point(family, u, rules, 0.4, -0.3, 0.5, 0.6, throws: Hand.L).X;
                 Assert.Equal(2 * PitchFlight.SweepShiftFt(u, row, Hand.R), right - left, 12);
             }
 

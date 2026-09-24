@@ -43,7 +43,7 @@ public sealed class TutorialFieldTests
                     var hang = preview.HangTimeSec;
                     if (live.ElapsedSeconds >= .4 && !live.HoldsBall)
                     {
-                        var target = FlyCatch.ChaseTarget(preview, run.Match.Park, run.Match.Rules);
+                        var target = FlyCatch.ChaseTarget(preview, run.Match.Rules, run.Match.Park);
                         var dx = target.X - live.GloveX;
                         var dz = target.Z - live.GloveZ;
                         var len = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));

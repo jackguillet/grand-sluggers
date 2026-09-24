@@ -28,6 +28,8 @@ namespace GrandSluggers.EditorTools
         const BindingFlags StaticHidden = BindingFlags.Static | BindingFlags.NonPublic;
         const float Step = 1f / 60f;
         static Gamepad _pad1;
+        /// <summary>The director's own rules table, set when the gate starts: the pads tick against it.</summary>
+        static RulesTable _rules;
         static Gamepad _pad2;
 
         static AtBatInputGate() { EditorApplication.update += Update; }
@@ -67,6 +69,7 @@ namespace GrandSluggers.EditorTools
             if (!EditorApplication.isPlaying) return;
             var play = UnityEngine.Object.FindFirstObjectByType<MatchDirector>();
             if (play == null || Get<Match>(play, "_match") == null) return;
+            _rules = Get<ContentCatalog>(play, "_content").Rules;
 
             SessionState.SetBool(Pending, false);
             var evidence = new Evidence
@@ -193,7 +196,7 @@ namespace GrandSluggers.EditorTools
                 var rb = State().WithButton(GamepadButton.RightShoulder);
                 Neutral();
                 InputSystem.QueueStateEvent(seat == LineupSeat.Pad1 ? _pad1 : _pad2, rb);
-                InputSystem.Update(); Controls.Tick(Step);
+                InputSystem.Update(); Controls.Tick(Step, _rules);
                 Invoke(play, "TickLineup");
                 Require(home ? lineup.HomeFull : lineup.AwayFull, "RB failed to fill the acting seat from roster focus.");
                 Require(other.SequenceEqual((home ? lineup.AwaySlots : lineup.HomeSlots).Select(c => c?.Id)),
@@ -202,7 +205,7 @@ namespace GrandSluggers.EditorTools
                 lineup.FocusCell(seat, LineupFocus.Pool, 0);
                 Neutral();
                 InputSystem.QueueStateEvent(seat == LineupSeat.Pad1 ? _pad1 : _pad2, State().WithButton(GamepadButton.West));
-                InputSystem.Update(); Controls.Tick(Step); Invoke(play, "TickLineup");
+                InputSystem.Update(); Controls.Tick(Step, _rules); Invoke(play, "TickLineup");
                 Require(home ? lineup.HomeFull : lineup.AwayFull, "West on the pool removed an unselected roster player.");
             }
             return new GateCase { name = "lineup-rb-fill-both-seats-" + swapSeats, phase = Phase(play) };
@@ -229,7 +232,7 @@ namespace GrandSluggers.EditorTools
             void Menu(GamepadState one, GamepadState two = default)
             {
                 InputSystem.QueueStateEvent(_pad1, one); InputSystem.QueueStateEvent(_pad2, two);
-                InputSystem.Update(); Controls.Tick(Step);
+                InputSystem.Update(); Controls.Tick(Step, _rules);
                 Set(play, "_t", 1f); Invoke(play, "TickFlow");
             }
             void Press(GamepadButton button, bool two = false)
@@ -500,7 +503,7 @@ namespace GrandSluggers.EditorTools
             Require(jump.WestDown && !jump.Attack && !jump.SouthDown, "North must route only to jump on defense.");
             Neutral();
             InputSystem.QueueStateEvent(_pad1, State().WithButton(GamepadButton.South));
-            InputSystem.Update(); Controls.Tick(Step);
+            InputSystem.Update(); Controls.Tick(Step, _rules);
             var close = Call<LivePadInput>(play, "FieldInput");
             Require(close.CloseResponse == true && !close.SouthDown, "South close response must not throw or catch.");
             return new GateCase { name = "controller-star-steal-jump-routing", phase = Phase(play) };
@@ -573,7 +576,7 @@ namespace GrandSluggers.EditorTools
                 "An ordinary RT release unexpectedly became a bunt.");
             Require(Math.Abs(swing.LaunchAim - input.Pad2Y) < 0.001,
                 "Player 2 Flight release lost its release-frame launch intent.");
-            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad2X)) < 0.001,
+            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad2X, _rules)) < 0.001,
                 "Player 2 Flight release lost its release-frame spray intent.");
             Require(Math.Abs(swing.BoxOffsetX - match.BatterOffsetX) < 0.001,
                 "Player 2 Flight release captured the prior frame's batter box position.");
@@ -1155,7 +1158,7 @@ namespace GrandSluggers.EditorTools
             InputSystem.QueueStateEvent(_pad1, pad1);
             InputSystem.QueueStateEvent(_pad2, pad2);
             InputSystem.Update();
-            Controls.Tick(Step);
+            Controls.Tick(Step, _rules);
             // The held modifier's guard ticks before any reader, as MatchDirector.Update does (PH-16-R10).
             Invoke(play, "TickStarModifiers");
             var input = new InputFrame(
@@ -1171,7 +1174,7 @@ namespace GrandSluggers.EditorTools
             InputSystem.QueueStateEvent(_pad1, State());
             InputSystem.QueueStateEvent(_pad2, State());
             InputSystem.Update();
-            Controls.Tick(Step);
+            Controls.Tick(Step, _rules);
         }
 
         static GamepadState State(bool south = false, bool west = false, float stickX = 0, float stickY = 0,

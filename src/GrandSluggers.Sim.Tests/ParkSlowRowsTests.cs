@@ -27,9 +27,9 @@ public sealed class ParkSlowRowsTests
         var chase = Rules.Default.Fielding.Chase;
         Assert.Equal(0.45, chase.FrozenMul);
         var rio = _content.Must("rio");
-        Assert.Equal(FieldingResolver.ChaseSpeedFt(rio, false) * chase.FrozenMul, FieldingResolver.ChaseSpeedFt(rio, true), 9);
-        Assert.Equal(chase.FrozenMul, BodySlows.Mul(true));
-        Assert.Equal(1.0, BodySlows.Mul(false));
+        Assert.Equal(FieldingResolver.ChaseSpeedFt(rio, false, rules: Rules.Default) * chase.FrozenMul, FieldingResolver.ChaseSpeedFt(rio, true, rules: Rules.Default), 9);
+        Assert.Equal(chase.FrozenMul, BodySlows.Mul(true, rules: Rules.Default));
+        Assert.Equal(1.0, BodySlows.Mul(false, rules: Rules.Default));
         // Burrow is the one body the park cannot slow (§8.1), on both tables.
         Assert.True(FieldAbilities.IgnoresParkSlow(_content.Must("soot")));
         Assert.False(FieldAbilities.IgnoresParkSlow(rio));
@@ -135,7 +135,7 @@ public sealed class ParkSlowRowsTests
         var source = human ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu;
         var field = human ? null : match.ResolveFielding(hit, preview);
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, seats, 0, source)).Snapshot.Active);
-        var plant = FlyCatch.ChaseTarget(preview, match.Park, rules);
+        var plant = FlyCatch.ChaseTarget(preview, rules, match.Park);
         // The copy's pursuit stick (#718) takes the glove only after it has been seen at neutral: six dead frames first.
         var neutral = 6;
         var frames = new List<(string Glove, double Step, bool Slowed)>();

@@ -298,7 +298,7 @@ public sealed class Game : IDisposable
         pitch = _match.PreparePitch(pitch);
         _pitch = pitch;
         var mph = _match.PitchSpeedMph(pitch);
-        _pitchDur = (float)PitchFlight.AirSeconds(mph);
+        _pitchDur = (float)PitchFlight.AirSeconds(mph, _match.Rules);
         _flightAge = 0;
         _playerSwung = false;
         _charge = 0;
@@ -312,7 +312,7 @@ public sealed class Game : IDisposable
     {
         _flightAge += dt;
         var u = Math.Clamp(_flightAge / _pitchDur, 0, 1);
-        var p = PitchFlight.Point(_pitch!, u, _match.Pitcher.StarPitch);
+        var p = PitchFlight.Point(_pitch!, u, _match.Rules, _match.Pitcher.StarPitch);
         var x = (float)p.X;
         var y = (float)p.Y;
         var z = (float)p.Z;
@@ -328,7 +328,7 @@ public sealed class Game : IDisposable
             {
                 _playerSwung = true;
                 var frames = (_flightAge - _pitchDur) * 60;
-                _swing = new SwingCommand(true, _charge, frames, _starArmed && _match.CanStarSwing, AtBatResolver.SprayAimDeg(batter.Spray));
+                _swing = new SwingCommand(true, _charge, frames, _starArmed && _match.CanStarSwing, AtBatResolver.SprayAimDeg(batter.Spray, _match.Rules));
             }
         }
 
@@ -420,10 +420,10 @@ public sealed class Game : IDisposable
             _fz += field.MoveZ * speed * dt;
             var hang = BallFlight.HangTime(_hitPath, _match.Rules);
             var needsJump = FlyCatch.NeedsJump(pre);
-            var plant = FlyCatch.ChaseTarget(pre, _match.Park, _match.Rules);
-            var window = FieldingResolver.CatchWindowFt(pre.CatchRadius, false, field.Jump);
-            var under = FlyCatch.Under(_fx, _fz, _ball.X, _ball.Z, plant.X, plant.Z, window, needsJump);
-            var inWin = FlyCatch.JumpWindow(_hitT, hang, pre.Fielder, _match.Park, _match.Rules);
+            var plant = FlyCatch.ChaseTarget(pre, _match.Rules, _match.Park);
+            var window = FieldingResolver.CatchWindowFt(pre.CatchRadius, false, field.Jump, _match.Rules);
+            var under = FlyCatch.Under(_fx, _fz, _ball.X, _ball.Z, plant.X, plant.Z, window, needsJump, _match.Rules);
+            var inWin = FlyCatch.JumpWindow(_hitT, hang, _match.Rules, pre.Fielder, _match.Park);
             var jumpTry = field.Jump && FlyCatch.HighEnough(_ball.Y, needsJump || FieldingResolver.BuddyJumpOffered(pre), _match.Rules);
             if (FlyCatch.PlayerCaught(jumpTry, field.ConfirmPressed, under, inWin, needsJump))
             {
@@ -455,7 +455,7 @@ public sealed class Game : IDisposable
                 var caught = _buddyJump || _caught;
                 var kind = FlyCatch.PlayerKind(caught, pre);
                 var feat = kind == PlayKind.FlyOut
-                    ? FieldingResolver.PlayerCatchFeat(pre, _match.Park, _buddyJump, _catchJump)
+                    ? FieldingResolver.PlayerCatchFeat(pre, _match.Park, _match.Rules, _buddyJump, _catchJump)
                     : DefensiveFeat.None;
                 result = new FieldingResult(kind, pre.Fielder, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
                     pre.Heatball, pre.Furnace, caught ? thr : null, pre.Buddy, pre.Warped, Feat: feat);

@@ -63,7 +63,7 @@ namespace GrandSluggers.EditorTools
                     var ball = Get<Vector3>(play, "_ball");
                     var result = Get<PlayEvent>(play, "_last");
                     Require(result != null, "Final flight tick did not produce a taken-pitch result.");
-                    var actual = PitchFlight.Point(result.Pitch, 1, starId);
+                    var actual = PitchFlight.Point(result.Pitch, 1, match.Rules, starId);
                     Require(Math.Abs(ball.x - actual.X) < 0.0001 && Math.Abs(ball.y - actual.Y) < 0.0001,
                         "Rendered crossing differs from recorded delivery.");
                     var inside = StrikeZoneGeometry.Contains(ball.x, ball.y);

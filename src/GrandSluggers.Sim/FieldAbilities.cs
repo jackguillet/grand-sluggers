@@ -3,9 +3,9 @@ namespace GrandSluggers.Sim;
 /// <summary>One defensive verb per character — the Sluggers "who you are on defense."</summary>
 public static class FieldAbilities
 {
-    public static double CatchBonus(Character c, RulesTable? rules = null)
+    public static double CatchBonus(Character c, RulesTable rules)
     {
-        var a = Rules.Or(rules).Fielding.Abilities;
+        var a = rules.Fielding.Abilities;
         return c.FieldAbility switch
         {
             "lick-catch" or "grow" or "withdraw" => a.BigCatchBonusFt,
@@ -15,24 +15,24 @@ public static class FieldAbilities
     }
 
     /// <summary>Lick Catch / Grow reach further on the tag (§10.3): fielding.abilities.tagReachBonusFt.</summary>
-    public static double TagReachBonus(Character? c, RulesTable? rules = null) => c?.FieldAbility switch
+    public static double TagReachBonus(Character? c, RulesTable rules) => c?.FieldAbility switch
     {
-        "lick-catch" or "grow" => Rules.Or(rules).Fielding.Abilities.TagReachBonusFt,
+        "lick-catch" or "grow" => rules.Fielding.Abilities.TagReachBonusFt,
         _ => 0
     };
 
-    public static double FlyRangeBonus(Character c, RulesTable? rules = null) =>
-        c.FieldAbility == "super-jump" ? Rules.Or(rules).Fielding.Abilities.SuperJumpFlyRangeFt : 0;
+    public static double FlyRangeBonus(Character c, RulesTable rules) =>
+        c.FieldAbility == "super-jump" ? rules.Fielding.Abilities.SuperJumpFlyRangeFt : 0;
 
-    public static double GroundRangeBonus(Character c, RulesTable? rules = null) => c.FieldAbility switch
+    public static double GroundRangeBonus(Character c, RulesTable rules) => c.FieldAbility switch
     {
-        "dive" or "burrow" => Rules.Or(rules).Fielding.Abilities.DiveGroundRangeFt,
+        "dive" or "burrow" => rules.Fielding.Abilities.DiveGroundRangeFt,
         _ => 0
     };
 
-    public static double ThrowMul(Character c, RulesTable? rules = null)
+    public static double ThrowMul(Character c, RulesTable rules)
     {
-        var a = Rules.Or(rules).Fielding.Abilities;
+        var a = rules.Fielding.Abilities;
         return c.FieldAbility switch
         {
             "laser" => a.LaserMul,
@@ -46,19 +46,19 @@ public static class FieldAbilities
         c.FieldAbility.Equals("ball-dash", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>What a body carries the ball at, as a multiple of its pursuit speed: <c>fielding.abilities.ballDashMul</c> for a Ball Dash holder, 1 for everyone else.</summary>
-    public static double CarryMul(Character c, RulesTable? rules = null) =>
-        HasBallDash(c) ? Rules.Or(rules).Fielding.Abilities.BallDashMul : 1.0;
+    public static double CarryMul(Character c, RulesTable rules) =>
+        HasBallDash(c) ? rules.Fielding.Abilities.BallDashMul : 1.0;
 
     public static bool IgnoresParkSlow(Character c) =>
         c.FieldAbility.Equals("burrow", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Super Jump robs a ball clearing the fence by at most fielding.catch.superJumpRobFt (§8.4).</summary>
-    public static bool AirRob(Park park, Character fielder, AtBatResult hit, RulesTable? rules = null)
+    public static bool AirRob(Park park, Character fielder, AtBatResult hit, RulesTable rules)
     {
         if (!fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
             return false;
         var ball = BattedBall.Of(hit, park, rules);
-        return ball.HomeRun && ball.FenceClearFt <= Rules.Or(rules).Fielding.Catch.SuperJumpRobFt;
+        return ball.HomeRun && ball.FenceClearFt <= rules.Fielding.Catch.SuperJumpRobFt;
     }
 
     public static PlayKind SpinCheck(Character fielder, PlayKind kind)
@@ -74,7 +74,7 @@ public static class FieldAbilities
     }
 
     /// <summary>The thrower's arm and ability on a chemistry throw: one speed multiplier the one throw clock reads (§8.5), and the arm rating its range is measured from.</summary>
-    public static ThrowResult ApplyThrow(Character from, ThrowResult throwRes, RulesTable? rules = null) =>
+    public static ThrowResult ApplyThrow(Character from, ThrowResult throwRes, RulesTable rules) =>
         throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) * InPlay.ArmMul(from, rules), Arm = from.Stats.Arm };
 }
 
@@ -110,9 +110,9 @@ public static class ErrorItems
     }
 
     /// <summary>Seconds the item keeps its glove off the ball (batting.items).</summary>
-    public static double EffectSec(string? item, RulesTable? rules = null)
+    public static double EffectSec(string? item, RulesTable rules)
     {
-        var items = Rules.Or(rules).Batting.Items;
+        var items = rules.Batting.Items;
         return item?.Trim().ToLowerInvariant() switch
         {
             "banana" => items.SlipSec,
@@ -137,8 +137,8 @@ public static class ErrorItems
         shape.OnTheDirt() ? (runnersOn ? "pow" : "banana") : "rocket";
 
     /// <summary>A body inside the peel's radius is on the peel.</summary>
-    public static bool OnPeel(double peelX, double peelZ, double bodyX, double bodyZ, RulesTable? rules = null) =>
-        Diamond.Dist(peelX, peelZ, bodyX, bodyZ) <= Rules.Or(rules).Batting.Items.PeelRadiusFt;
+    public static bool OnPeel(double peelX, double peelZ, double bodyX, double bodyZ, RulesTable rules) =>
+        Diamond.Dist(peelX, peelZ, bodyX, bodyZ) <= rules.Batting.Items.PeelRadiusFt;
 
     /// <summary>Attack smashed the flying item: it never lands.</summary>
     public static FieldingResult Smash(FieldingResult field, bool grounder)

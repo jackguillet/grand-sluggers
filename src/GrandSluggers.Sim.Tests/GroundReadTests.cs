@@ -237,7 +237,7 @@ public sealed class GroundReadTests
         var land = BallFlight.LandingIndex(onGrass);
         Assert.Equal(land, BallFlight.LandingIndex(onIce));
         Assert.Equal(SampleEvent.Ground, onGrass[land].Event);
-        Assert.Equal(BallFlight.FirstLandingDist(onGrass), BallFlight.FirstLandingDist(onIce));
+        Assert.Equal(BallFlight.FirstLandingDist(onGrass, rules: Rules.Default), BallFlight.FirstLandingDist(onIce, rules: Rules.Default));
         SamePath("to the first landing", onGrass.Take(land + 1).ToList(), onIce.Take(land + 1).ToList());
 
         // Every ground contact of both paths is in the outfield, so each whole path is one row's.

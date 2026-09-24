@@ -25,30 +25,30 @@ public static class StealBreak
     /// the ordinary arm, inside the perfect window is the perfect steal, later in the windup breaks at
     /// release, and a press after release (<see cref="Motion.PitchRelease"/>) is too late — nothing.
     /// </summary>
-    public static StealArm ArmFor(double windupSec, RulesTable? rules = null)
+    public static StealArm ArmFor(double windupSec, RulesTable rules)
     {
         if (double.IsNaN(windupSec) || windupSec < 0) return StealArm.Set;
-        if (windupSec <= Rules.Or(rules).Running.Steal.PerfectWindowSec) return StealArm.Perfect;
+        if (windupSec <= rules.Running.Steal.PerfectWindowSec) return StealArm.Perfect;
         if (windupSec < Motion.PitchRelease) return StealArm.Windup;
         return StealArm.None;
     }
 
     /// <summary>Seconds before release this arm breaks: the perfect steal's head start, 0 for the rest.</summary>
-    public static double BreakBeforeReleaseSec(StealArm arm, RulesTable? rules = null) =>
-        arm == StealArm.Perfect ? Rules.Or(rules).Running.Steal.PerfectEarlySec : 0;
+    public static double BreakBeforeReleaseSec(StealArm arm, RulesTable rules) =>
+        arm == StealArm.Perfect ? rules.Running.Steal.PerfectEarlySec : 0;
 
     /// <summary>Feet off the bag <paramref name="sinceReleaseSec"/> after release, while the pitch is in the air (the ⅔ run).</summary>
-    public static double FeetAt(Character who, StealArm arm, double sinceReleaseSec, RulesTable? rules = null)
+    public static double FeetAt(Character who, StealArm arm, double sinceReleaseSec, RulesTable rules)
     {
         if (arm == StealArm.None) return 0;
-        var r = Rules.Or(rules);
+        var r = rules;
         var running = Math.Max(0, sinceReleaseSec + BreakBeforeReleaseSec(arm, r));
-        var feet = RunnerSystem.SpeedFtPerSec(who, 0, r) * r.Running.Steal.AirSpeedMul * running;
+        var feet = RunnerSystem.SpeedFtPerSec(who, r, 0) * r.Running.Steal.AirSpeedMul * running;
         return Math.Min(feet, Diamond.Baseline);
     }
 
     /// <summary>The body's head start when the ball reaches the plate: the run through the pitch's <paramref name="airSec"/>.</summary>
-    public static double HeadStartFt(Character who, StealArm arm, double airSec, RulesTable? rules = null) =>
+    public static double HeadStartFt(Character who, StealArm arm, double airSec, RulesTable rules) =>
         FeetAt(who, arm, airSec, rules);
 
     /// <summary>A pickoff motion in SET is the pitcher's first motion: only a runner armed in SET has broken on it (D3).</summary>

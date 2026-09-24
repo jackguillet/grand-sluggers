@@ -52,8 +52,8 @@ public sealed class LiveBallScenarioTests
         var only = Assert.Single(play.Outcome!.OutsMade);
         Assert.Equal((OutType.Catch, 0), (only.Type, only.FromBag));
         // Inside the catch window (fielding.catch.windowBefore/After plus the glove's ability bonus), not force-fed early.
-        Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, preview.Fielder, match.Park, match.Rules)
-                    || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, preview.Fielder, match.Park, match.Rules),
+        Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park)
+                    || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park),
             $"caught at {caughtAt:0.00} vs hang {preview.HangTimeSec:0.00}");
     }
 
@@ -97,7 +97,7 @@ public sealed class LiveBallScenarioTests
                 {
                     sawThrowToThird = true;
                     var body = match.RunnerAt(2);
-                    if (body is { Live: true }) arrivalBeforeLanding = RunnerSystem.ArrivalSec(body, 3, live.ElapsedSeconds, live.Dash01, match.Rules);
+                    if (body is { Live: true }) arrivalBeforeLanding = RunnerSystem.ArrivalSec(body, 3, live.ElapsedSeconds, match.Rules, live.Dash01);
                 }
             },
             // LB at contact sends the runner; the offense mashes a few frames after the icon (§9.6).

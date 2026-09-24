@@ -64,8 +64,8 @@ public sealed class CursorOvalScenarioTests
                 // Every drawn point sits on the judged boundary.
                 var pts = SweetSpot.Outline(oval);
                 foreach (var (x, y) in pts)
-                    Assert.Equal(1.0, SweetSpot.Distance(box, bats, oval.CenterX + x, oval.CenterY + y,
-                        oval.BarrelScale, R), 9);
+                    Assert.Equal(1.0, SweetSpot.Distance(box, bats, oval.CenterX + x, oval.CenterY + y, R,
+                        oval.BarrelScale), 9);
 
                 // And the resolver agrees at the drawn line: just inside is Nice, just outside is
                 // Sour, on the four axes of the drawn line: the tip, the top, the handle, the bottom.
@@ -95,7 +95,7 @@ public sealed class CursorOvalScenarioTests
         foreach (var charge in Charges)
         {
             var oval = SweetSpot.Oval(Hitter(contact, bats), null, charge, 0, R);
-            var before = SweetSpot.Outline(bats, oval.BarrelScale, 40, R);
+            var before = SweetSpot.Outline(bats, R, oval.BarrelScale, 40);
             Assert.Equal(before, SweetSpot.Outline(oval, 40));
         }
     }
@@ -245,10 +245,10 @@ public sealed class CursorOvalScenarioTests
         Assert.Equal(expected, loading.BatterOffsetX);
 
         // The committed swing carries the walked box, the same box a quick swing on that frame would.
-        var charged = SwingInputIntent.Capture(commit, stick, 0, false, loading.BatterOffsetX);
+        var charged = SwingInputIntent.Capture(commit, stick, 0, false, loading.BatterOffsetX, rules: Rules.Default);
         var quick = SwingInputIntent.Capture(
             ChargeButton.Advance(default, true, false, true, dt, feel.SwingChargeSeconds),
-            stick, 0, false, walking.BatterOffsetX);
+            stick, 0, false, walking.BatterOffsetX, rules: Rules.Default);
         Assert.True(quick.Committed);
         Assert.Equal(quick.BoxOffsetX, charged.BoxOffsetX);
 

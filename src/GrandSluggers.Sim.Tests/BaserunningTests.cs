@@ -8,12 +8,12 @@ public class BaserunningTests
     [Fact]
     public void DiamondMatchesThrows()
     {
-        Assert.Equal(InPlay.DiamondBag(1, 0), Baserunning.DiamondBag(1, 0));
-        Assert.Equal(1, Baserunning.DiamondBag(1, 0));
-        Assert.Equal(2, Baserunning.DiamondBag(0, 1));
-        Assert.Equal(3, Baserunning.DiamondBag(-1, 0));
-        Assert.Equal(4, Baserunning.DiamondBag(0, -1));
-        Assert.Equal(0, Baserunning.DiamondBag(0, 0));
+        Assert.Equal(InPlay.DiamondBag(1, 0, rules: Rules.Default), Baserunning.DiamondBag(1, 0, rules: Rules.Default));
+        Assert.Equal(1, Baserunning.DiamondBag(1, 0, rules: Rules.Default));
+        Assert.Equal(2, Baserunning.DiamondBag(0, 1, rules: Rules.Default));
+        Assert.Equal(3, Baserunning.DiamondBag(-1, 0, rules: Rules.Default));
+        Assert.Equal(4, Baserunning.DiamondBag(0, -1, rules: Rules.Default));
+        Assert.Equal(0, Baserunning.DiamondBag(0, 0, rules: Rules.Default));
     }
 
     [Fact]

@@ -93,7 +93,7 @@ public sealed class TagUpDecisionTests
         Assert.True(runner.OnBag);
         var next = bag + 1;
         // The glove has it in right field; the runner's read of the throw to the next bag is the clock we dial.
-        var arrival = RunnerSystem.ArrivalSec(runner, next, 0, 0, rules) + marginWanted - rules.Running.Cpu.ReactionSec;
+        var arrival = RunnerSystem.ArrivalSec(runner, next, 0, rules, 0) + marginWanted - rules.Running.Cpu.ReactionSec;
         var ball = new BallSituation(true, false, 0, 0, 90, 240, 0, true, 90, 240, carryFt, ThrowClock: (x, z, b) => b == next ? arrival : 99);
         var ctx = new RunnerAiContext(0, 1, int.MinValue, FlyState.Caught, ball, 0, AtCatch: atCatch);
         Assert.Equal(marginWanted, RunnerAi.Margin(runner, next, ctx, rules), 6);
@@ -116,7 +116,7 @@ public sealed class TagUpDecisionTests
         var rules = Game.Rules.AtLevel(rung);
         var runner = new Runner(Game.Must("konga"), 3);
         runner.BeginPlay(forced: false, tagAndGo: false);
-        var arrival = RunnerSystem.ArrivalSec(runner, 4, 0, 0, rules) + marginWanted - rules.Running.Cpu.ReactionSec;
+        var arrival = RunnerSystem.ArrivalSec(runner, 4, 0, rules, 0) + marginWanted - rules.Running.Cpu.ReactionSec;
         var ball = new BallSituation(true, false, 0, 0, 0, 250, 0, true, 0, 250, 250, ThrowClock: (x, z, b) => b == 4 ? arrival : 99);
         var ctx = new RunnerAiContext(0, 1, int.MinValue, FlyState.Caught, ball, 0, AtCatch: true);
         RunnerAi.Decide([runner], ctx, _ => false, rules);

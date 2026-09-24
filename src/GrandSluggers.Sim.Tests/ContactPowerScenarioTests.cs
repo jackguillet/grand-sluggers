@@ -156,7 +156,7 @@ public class ContactPowerScenarioTests
     public void S122_TheJudgedOvalFollowsContactAndNotPower()
     {
         var park = _content.Parks[ExhibitionPick.DefaultPark];
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var sure = Hitter(contact: 9, power: 2);
         var slugger = Hitter(contact: 2, power: 9);
 
@@ -179,7 +179,7 @@ public class ContactPowerScenarioTests
     public void S122_ExitVelocityAndLoftFollowPowerAndNotContact()
     {
         var park = _content.Parks[ExhibitionPick.DefaultPark];
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var sure = Hitter(contact: 9, power: 2);
         var slugger = Hitter(contact: 2, power: 9);
 

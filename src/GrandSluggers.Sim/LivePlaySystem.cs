@@ -563,13 +563,13 @@ public sealed partial class LivePlaySystem
             var runner = _match.RunnerAt(bag - 1);
             if (runner is null || !runner.Live || runner.Bag >= bag) continue;
             if (Fly == FlyState.InAir) continue;
-            if (!InPlay.OnThisBag(bag, gloveX, gloveZ, bags.OccupyRadiusFt)) continue;
+            if (!InPlay.OnThisBag(bag, gloveX, gloveZ, _match.Rules, bags.OccupyRadiusFt)) continue;
             return ApplyThrow(bag, runnerBeats: false, fielder);
         }
         foreach (var runner in Runners)
         {
             if (!runner.Live || !runner.LeftEarly || _match.Outs >= 3) continue;
-            if (!InPlay.OnThisBag(runner.FromBag, gloveX, gloveZ, bags.OccupyRadiusFt)) continue;
+            if (!InPlay.OnThisBag(runner.FromBag, gloveX, gloveZ, _match.Rules, bags.OccupyRadiusFt)) continue;
             if (!Retire(runner.FromBag, runner.FromBag, OutType.Force, fielder)) continue;
             LastMoment = new LiveMoment(InPlay.ThrowVerdict.DoubledOff, runner.FromBag, fielder, runner.Who);
             return new LivePlayCommandResult(Snapshot, TaggedFromBag: runner.FromBag);
@@ -595,8 +595,8 @@ public sealed partial class LivePlaySystem
             bool BagProtects(int bag) => ProtectsOn(runner, bag);
             var under = InPlay.BagUnder(x, z, bags.TagSafeRadiusFt, homeIsABag);
             var onBag = under != 0 && BagProtects(under);
-            var reach = InPlay.TagReachFt(fielder, runner.Sliding, _match.Rules);
-            var tagged = InPlay.Touches(true, false, gloveX, gloveZ, x, z, onBag, _match.Rules, runner.Sliding, fielder);
+            var reach = InPlay.TagReachFt(fielder, _match.Rules, runner.Sliding);
+            var tagged = InPlay.Touches(true, false, gloveX, gloveZ, x, z, _match.Rules, onBag, runner.Sliding, fielder);
             if (!tagged && _heldSince >= 0 && _heldSince <= _prevAt + 1e-9 && _prevPos.TryGetValue(runner, out var prev))
                 tagged = InPlay.TagWithinFrame(_prevGlove, (gloveX, gloveZ), prev, (x, z), reach, homeIsABag, _match.Rules, protects: BagProtects) >= 0;
             if (tagged && ApplyTag(runner.FromBag, fielder, BagUnderGlove(gloveX, gloveZ)))
@@ -621,7 +621,7 @@ public sealed partial class LivePlaySystem
     {
         var radius = _match.Rules.Running.Bags.OccupyRadiusFt;
         for (var bag = 1; bag <= 4; bag++)
-            if (InPlay.OnThisBag(bag, gloveX, gloveZ, radius)) return bag;
+            if (InPlay.OnThisBag(bag, gloveX, gloveZ, _match.Rules, radius)) return bag;
         return 0;
     }
 
@@ -707,13 +707,13 @@ public sealed partial class LivePlaySystem
         }
         var traceRunner = _trace is null ? null : _match.RunnerAt(fromBag);
         double? predictedAt = traceRunner is null || atBag < 1 ? null
-            : ElapsedSeconds + RunnerSystem.ArrivalSec(traceRunner, atBag, ElapsedSeconds, Dash01, R);
+            : ElapsedSeconds + RunnerSystem.ArrivalSec(traceRunner, atBag, ElapsedSeconds, R, Dash01);
         if (!_match.RetireLiveRunner(fromBag, atBag, type, fielder)) return false;
         _trace?.Mark(PlayTraceMarkKind.Out, ElapsedSeconds, fielder?.Id, atBag, traceRunner is null ? null : PlayTraceRunner.Of(traceRunner), type, predictedAt);
         Forces = Forces.AfterOutAt(fromBag + 1);
         _aiPending = true;
         var feat = type == OutType.Catch && Preview is not null
-            ? FieldingResolver.PlayerCatchFeat(Preview, Park, Buddy, CatchJump, CatchDive)
+            ? FieldingResolver.PlayerCatchFeat(Preview, Park, _match.Rules, Buddy, CatchJump, CatchDive)
             : DefensiveFeat.None;
         RaiseStamp(PlayStamp.OutTell(type, atBag, feat, Swing?.Bunt ?? false));
         return true;

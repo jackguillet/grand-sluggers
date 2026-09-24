@@ -861,11 +861,11 @@ namespace GrandSluggers.UnityClient
                 CaptureReleaseFromHand();
                 if (!StillPose.PitchReleaseIsOnTheMound(_relFrom.z))
                 {
-                    var rel = PitchFlight.Release(_pitch.RubberX);
+                    var rel = PitchFlight.Release(_match.Rules, _pitch.RubberX);
                     _relFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
                 }
                 _park.Ball.Release();
-                var p = PitchFlight.Point("fastball", StillPose.PitchBallU, 0, 0, 0, 0,
+                var p = PitchFlight.Point("fastball", StillPose.PitchBallU, _match.Rules, 0, 0, 0, 0,
                     ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z));
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
                 _park.Ball.Place(_ball, "", "fastball", false, true);

@@ -11,8 +11,8 @@ public static class OutfieldStarts
 {
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Park, IReadOnlyDictionary<string, (double X, double Z)>> Cache = new();
 
-    public static IReadOnlyDictionary<string, (double X, double Z)> Of(Park park, RulesTable? rules = null) =>
-        Cache.GetValue(park, p => Build(p, Rules.Or(rules)));
+    public static IReadOnlyDictionary<string, (double X, double Z)> Of(Park park, RulesTable rules) =>
+        Cache.GetValue(park, p => Build(p, rules));
 
     static IReadOnlyDictionary<string, (double X, double Z)> Build(Park park, RulesTable rules)
     {

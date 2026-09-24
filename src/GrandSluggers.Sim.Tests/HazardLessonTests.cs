@@ -81,7 +81,7 @@ public sealed class HazardLessonTests
     static LivePadInput Fly(TutorialSession run, LivePlaySystem live, bool around)
     {
         var p = live.Preview!;
-        var target = FlyCatch.ChaseTarget(p, run.Match.Park, run.Match.Rules);
+        var target = FlyCatch.ChaseTarget(p, run.Match.Rules, run.Match.Park);
         var dx = target.X - live.GloveX; var dz = target.Z - live.GloveZ;
         var len = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
         double sx = dx / len, sz = dz / len;

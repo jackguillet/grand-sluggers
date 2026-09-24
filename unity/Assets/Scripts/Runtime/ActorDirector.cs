@@ -141,7 +141,7 @@ namespace GrandSluggers.UnityClient
                         var speed = FieldingResolver.ChaseSpeedFt(who, _glovePos, _preview, _match.Rules);
                         var route = FieldingPursuit.Plan(
                             _preview, _match.Park, _path,
-                            LiveTime, fromX, fromZ, speed, cutOff: !FieldingResolver.IsOutfield(_glovePos));
+                            LiveTime, fromX, fromZ, speed, _match.Rules, cutOff: !FieldingResolver.IsOutfield(_glovePos));
                         if (CartoonJuice.ChaseIsARun(
                                 _caught || _buddy,
                                 Diamond.Dist(fromX, fromZ, route.X, route.Z)))
@@ -392,8 +392,8 @@ namespace GrandSluggers.UnityClient
                     : new BodyFacing.Facts(-x, -z + 8, Pinned: true);
             var releasing = _throwing && pos == _throwFromPos;
             var fly = onBall && _preview != null && !(_caught || _buddy)
-                      && FieldingResolver.InAir(_preview, _ball.y, LiveTime, _preview.HangTimeSec);
-            var plant = fly ? FlyCatch.ChaseTarget(_preview, _match.Park, _match.Rules) : default;
+                      && FieldingResolver.InAir(_preview, _ball.y, LiveTime, _match.Rules, _preview.HangTimeSec);
+            var plant = fly ? FlyCatch.ChaseTarget(_preview, _match.Rules, _match.Park) : default;
             return BodyFacing.Fielder(x, z, _ball.x, _ball.z, releasing, _throwTo.x, _throwTo.z,
                 fly, plant.X, plant.Z, BodyFacing.Rates.Of(_content.Feel));
         }

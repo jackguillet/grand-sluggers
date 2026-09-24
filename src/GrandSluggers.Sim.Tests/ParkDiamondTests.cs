@@ -65,7 +65,7 @@ public class ParkDiamondTests
         Assert.Equal(Harbor.RightFenceFt, AtBatResolver.FenceAt(Harbor, AtBatResolver.FoulLineDeg), 1);
         Assert.True(AtBatResolver.FenceIsSmoothAtCenter(Harbor),
             "CF wall must be a round arc, not two lerps meeting in a point");
-        Assert.True(ParkDiamond.TrackIsInsideTheWall(Harbor));
+        Assert.True(ParkDiamond.TrackIsInsideTheWall(Harbor, rules: Rules.Default));
         Assert.True(ParkDiamond.TrackSegs >= 48);
         Assert.True(ParkDiamond.TrackFollowsTheFenceArc(Harbor),
             "warning track inner edge must follow the fence, not sawtooth boxes");
@@ -82,7 +82,7 @@ public class ParkDiamondTests
         };
         Assert.True(ParkDiamond.PoleIsOnTheFoulLine(shortPark));
         Assert.True(ParkDiamond.PoleSitsOnThatParkFence(shortPark));
-        Assert.True(ParkDiamond.TrackIsInsideTheWall(shortPark));
+        Assert.True(ParkDiamond.TrackIsInsideTheWall(shortPark, rules: Rules.Default));
         var harborPole = ParkDiamond.FoulPole(Harbor, 1);
         var shortPole = ParkDiamond.FoulPole(shortPark, 1);
         Assert.True(Diamond.Dist(0, 0, shortPole.X, shortPole.Z)

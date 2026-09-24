@@ -45,10 +45,10 @@ public static class BuntDefense
     public static Dictionary<string, (double X, double Z)> Spots(
         IReadOnlyDictionary<string, Character> assigned,
         double squareSec,
-        RulesTable? rules = null,
+        RulesTable rules,
         IReadOnlyDictionary<string, (double X, double Z)>? rest = null)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var b = r.Fielding.Bunt;
         var cover = r.Fielding.Cover;
         var held = Math.Max(0, squareSec);

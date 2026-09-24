@@ -30,15 +30,16 @@ public static class LandingMark
         double hitT,
         bool caught,
         bool buddy,
+        RulesTable rules,
         double? hangSec = null) =>
-        !caught && !buddy && FieldingResolver.InAir(pre, ballY, hitT, hangSec);
+        !caught && !buddy && FieldingResolver.InAir(pre, ballY, hitT, rules, hangSec);
 
-    public static (double X, double Z) At(FieldingPreview pre, Park? park = null) =>
-        FlyCatch.ChaseTarget(pre, park);
+    public static (double X, double Z) At(FieldingPreview pre, RulesTable rules, Park? park = null) =>
+        FlyCatch.ChaseTarget(pre, rules, park);
 
     /// <summary>The yellow ring is the stand-up catch (§8.3, #669), not a 16 ft floor.</summary>
     public static double RadiusFt(FieldingPreview pre) => pre.CatchRadius;
 
-    public static bool Hot(double hitT, double hangSec, Character? fielder = null, Park? park = null) =>
-        FlyCatch.JumpWindow(hitT, hangSec, fielder, park);
+    public static bool Hot(double hitT, double hangSec, RulesTable rules, Character? fielder = null, Park? park = null) =>
+        FlyCatch.JumpWindow(hitT, hangSec, rules, fielder, park);
 }

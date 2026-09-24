@@ -45,8 +45,8 @@ public sealed class ChargeCancelScenarioTests
         Assert.True(cancel.Cancelled);
         Assert.Equal(new ChargeButtonState(false, 0, 0, MustRelease: true), state);
         for (var f = 0; f < 60; f++)
-            committed |= SwingInputIntent.Capture(Frame(ref state, held: true), 0, 0, false, 0).Committed;
-        committed |= SwingInputIntent.Capture(Frame(ref state, released: true), 0, 0, false, 0).Committed;
+            committed |= SwingInputIntent.Capture(Frame(ref state, held: true), 0, 0, false, 0, rules: Rules.Default).Committed;
+        committed |= SwingInputIntent.Capture(Frame(ref state, released: true), 0, 0, false, 0, rules: Rules.Default).Committed;
         Assert.False(committed, "the cancelled hold's release is not a swing");
         Assert.Equal(default, state);
 

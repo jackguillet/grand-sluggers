@@ -87,7 +87,7 @@ namespace GrandSluggers.EditorTools
             var pitch = new PitchCommand("fastball", 0, false);
             var swing = new SwingCommand(true, 0, 0, false);
             Require(match.BeginAtBat(pitch, swing, out var hit, out _), "Fixture did not enter contact.");
-            hit = hit with { HomeRun = true, CarryFt = BallFlight.CarryFeet(110, 35, match.Park.WindMph), ExitVeloMph = 110, LaunchDeg = 35, SprayDeg = 0 };
+            hit = hit with { HomeRun = true, CarryFt = BallFlight.CarryFeet(110, 35, match.Park.WindMph, match.Rules), ExitVeloMph = 110, LaunchDeg = 35, SprayDeg = 0 };
             var preview = match.PreviewHit(hit);
             var field = new FieldingResult(PlayKind.HomeRun, null, null, preview.HangTimeSec,
                 preview.LandingX, preview.LandingZ, false, false);
@@ -100,7 +100,7 @@ namespace GrandSluggers.EditorTools
             Invoke(play, "InitGloves");
             Invoke(play, "StartFly", hit);
             var batter = match.Batter.Id;
-            var hang = BallFlight.HangTime(Get<Sample[]>(play, "_path"));
+            var hang = BallFlight.HangTime(Get<Sample[]>(play, "_path"), match.Rules);
             var elapsed = 0f;
             var caught = false;
             while (Phase(play) == "InPlay" && elapsed < hang + 5)

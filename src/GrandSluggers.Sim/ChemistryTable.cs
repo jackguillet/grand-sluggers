@@ -12,9 +12,9 @@ public sealed class ChemistryTable
     readonly HashSet<string> _bad = new(StringComparer.OrdinalIgnoreCase);
     readonly RulesTable _rules;
 
-    public ChemistryTable(IEnumerable<Character> roster, ChemistryOverrides overrides, RulesTable? rules = null)
+    public ChemistryTable(IEnumerable<Character> roster, ChemistryOverrides overrides, RulesTable rules)
     {
-        _rules = Rules.Or(rules);
+        _rules = rules;
         foreach (var c in roster)
             _faction[c.Id] = c.Faction;
 

@@ -12,11 +12,11 @@ public static class StealThrow
     public static string CoverPos(int bag) => FieldAssist.CoverKey(bag);
 
     /// <summary>The catcher with the ball at the crossing (§11.3): fielding.catcher.behindPlateFt behind the plate. The SET crouch (<see cref="Diamond.Positions"/>) is presentation.</summary>
-    public static (double X, double Z) CatcherSpot(RulesTable? rules = null) =>
-        (Diamond.Home.X, Diamond.Home.Z - Rules.Or(rules).Fielding.Catcher.BehindPlateFt);
+    public static (double X, double Z) CatcherSpot(RulesTable rules) =>
+        (Diamond.Home.X, Diamond.Home.Z - rules.Fielding.Catcher.BehindPlateFt);
 
     /// <summary>Flight from the catcher to a named bag: <see cref="InPlay.ThrowSec"/> with the catcher's arm in <paramref name="thr"/>.</summary>
-    public static double CatcherThrowSec(int bag, ThrowResult? thr, RulesTable? rules = null)
+    public static double CatcherThrowSec(int bag, ThrowResult? thr, RulesTable rules)
     {
         if (bag is < 1 or > 4)
             throw new ArgumentOutOfRangeException(nameof(bag), "Catcher throws go to a bag.");
@@ -26,9 +26,9 @@ public static class StealThrow
     }
 
     /// <summary>CPU catcher release (fielding.catcher.cpuRelease*, × cpu reactionMul). Dead stick still guns.</summary>
-    public static double CpuReleaseSec(Character catcher, Random rng, RulesTable? rules = null)
+    public static double CpuReleaseSec(Character catcher, Random rng, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var k = r.Fielding.Catcher;
         var hands = Math.Clamp(catcher.Stats.Field, 1, 10);
         var mean = k.CpuReleaseBaseSec - hands * k.CpuReleasePerField;

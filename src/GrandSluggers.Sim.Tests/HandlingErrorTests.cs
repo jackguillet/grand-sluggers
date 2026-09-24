@@ -58,9 +58,9 @@ public sealed class HandlingErrorTests
         Assert.Equal(0, FieldingResolver.HopDifficulty(0.75, Rise(1.5, 0.5), HopOff));   // nothing with the switch off
         // H: Hands 1 → 0, 10 → 1, and the glove's help counts.
         Character Hands(int h) => Game.Must("vale") with { Stats = Game.Must("vale").Stats with { Hands = h } };
-        Assert.Equal(0, FieldingResolver.HandlingQuality(Hands(1), null, r));
-        Assert.Equal(0.5, FieldingResolver.HandlingQuality(Hands(5), null, r) + 1.0 / 18, 9);
-        Assert.Equal(1, FieldingResolver.HandlingQuality(Hands(10), null, r));
+        Assert.Equal(0, FieldingResolver.HandlingQuality(Hands(1), r, null));
+        Assert.Equal(0.5, FieldingResolver.HandlingQuality(Hands(5), r, null) + 1.0 / 18, 9);
+        Assert.Equal(1, FieldingResolver.HandlingQuality(Hands(10), r, null));
         // p = 0.10 × D × (1 − 0.80 × H): 10 / 6 / 2 % at full difficulty for weak / middle / strong; 5 / 3 / 1 at half.
         Assert.Equal(0.10, FieldingResolver.HandlingErrorChance(1, 0, r), 9);
         Assert.Equal(0.06, FieldingResolver.HandlingErrorChance(1, 0.5, r), 9);
@@ -114,7 +114,7 @@ public sealed class HandlingErrorTests
             Assert.Equal("P", run.Pos);
             Assert.True(run.TakeAt >= Game.Rules.Fielding.Reaction.PitcherRecoverySec, $"the pitcher took the ball at {run.TakeAt:0.00} s, inside his recovery");
             Assert.InRange(run.Difficulty, 0.01, 0.25);
-            Assert.Equal(FieldingResolver.HandlingErrorChance(run.Difficulty, FieldingResolver.HandlingQuality(vale, run.Glove, Game.Rules), Game.Rules), run.Chance, 12);
+            Assert.Equal(FieldingResolver.HandlingErrorChance(run.Difficulty, FieldingResolver.HandlingQuality(vale, Game.Rules, run.Glove), Game.Rules), run.Chance, 12);
             Assert.Equal(1, run.Rolls);
         }
     }
@@ -132,7 +132,7 @@ public sealed class HandlingErrorTests
         Assert.Equal("LF", run.Pos);
         Assert.InRange(run.Difficulty, 0.90, 0.91);
         var vine = Game.Must("vine");
-        Assert.Equal(FieldingResolver.HandlingErrorChance(run.Difficulty, FieldingResolver.HandlingQuality(vine, run.Glove, Game.Rules), Game.Rules), run.Chance, 12);
+        Assert.Equal(FieldingResolver.HandlingErrorChance(run.Difficulty, FieldingResolver.HandlingQuality(vine, Game.Rules, run.Glove), Game.Rules), run.Chance, 12);
         Assert.InRange(run.Chance, 0.03, 0.04);
         var weak = Drive(Game, 78, 21.5, -18, ContactQuality.Perfect, seed: 1, lfHands: 1);
         Assert.Equal(run.Difficulty, weak.Difficulty);

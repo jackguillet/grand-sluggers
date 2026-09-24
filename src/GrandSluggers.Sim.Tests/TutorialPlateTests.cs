@@ -110,7 +110,7 @@ public sealed class TutorialPlateTests
     [Fact]
     public void TakingTheBallIsARealCalledBallAndChasingOrSquaringDoesNotEarnIt()
     {
-        var run = Start("T-B08"); Assert.False(AtBatResolver.PitchInZone(run.CpuPitch, run.Match.Pitcher.Stats.Pitch));
+        var run = Start("T-B08"); Assert.False(AtBatResolver.PitchInZone(run.CpuPitch, run.Match.Pitcher.Stats.Pitch, rules: Rules.Default));
         run.Swing(new(true, 0, 0, false)); Assert.Equal("chased-ball", run.Feedback!.Code);
         run.Retry(); run.Swing(new(false, 0, 0, false, Bunt: true)); Assert.False(run.Feedback!.Success);
         run.Retry(); Perform(run);
@@ -122,7 +122,7 @@ public sealed class TutorialPlateTests
     {
         // T-B10 (PH-13-R1). The session steps the player's own plate buttons: the pass rests on East / G discarding
         // an armed load, never on a flag the client sets. The released hold after the cancel commits nothing.
-        var run = Start("T-B10"); Assert.False(AtBatResolver.PitchInZone(run.CpuPitch, run.Match.Pitcher.Stats.Pitch));
+        var run = Start("T-B10"); Assert.False(AtBatResolver.PitchInZone(run.CpuPitch, run.Match.Pitcher.Stats.Pitch, rules: Rules.Default));
         Assert.True(CancelThenTake(run, LivePlayCommandSource.Human));
         Assert.True(run.CancelledLoad); Assert.False(run.PlateState.SwingCommitted);
         Assert.Equal("cancelled-take", run.Feedback!.Code); Assert.Equal(PlayKind.TakeBall, run.LastPlay!.Kind);

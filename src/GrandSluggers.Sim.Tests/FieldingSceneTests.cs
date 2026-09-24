@@ -102,17 +102,17 @@ public class FieldingSceneTests
         // The C80 copy (#719): the jump is a leap of the body (catch.jumpAirSec), not feet on the window.
         Assert.Equal(0, c.JumpReachFt);
         Assert.Equal(c.RadiusBaseFt, FieldingResolver.StandUpCatchFt(c.RadiusBaseFt));
-        Assert.Equal(c.RadiusBaseFt + c.DiveReachFt, FieldingResolver.DiveCatchFt(c.RadiusBaseFt));
-        var plain = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, false, false);
-        var dive = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, true, false);
-        var jump = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, false, true);
-        var both = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, true, true);
+        Assert.Equal(c.RadiusBaseFt + c.DiveReachFt, FieldingResolver.DiveCatchFt(c.RadiusBaseFt, rules: Rules.Default));
+        var plain = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, false, false, rules: Rules.Default);
+        var dive = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, true, false, rules: Rules.Default);
+        var jump = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, false, true, rules: Rules.Default);
+        var both = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, true, true, rules: Rules.Default);
         Assert.Equal(c.RadiusBaseFt + c.WindowPadFt, plain);
         Assert.Equal(plain + c.DiveReachFt, dive);
         Assert.Equal(plain + c.JumpReachFt, jump);
         Assert.Equal(dive, both);
         Assert.True(both > jump);
-        var lunged = FieldDash.Lunge(0, 0, 30, 0, 10);
+        var lunged = FieldDash.Lunge(0, 0, 30, 0, Rules.Default, 10);
         Assert.InRange(lunged.X, 9, 11);
         Assert.Equal(0, lunged.Z);
     }
@@ -150,7 +150,7 @@ public class FieldingSceneTests
         var spark = PresetTeams.SparkAllStars(_content);
         var park = _content.Parks["harbor-diamond"];
         var rio = _content.Must("rio");
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var homer = FlightFixtures.OverTheFence(park, 5, 0, 60);
         var pre = fielding.Preview(homer, park, spark.Roster, rio, new Random(1));
         Assert.Equal("CF", pre.Position);
@@ -169,7 +169,7 @@ public class FieldingSceneTests
         var spark = PresetTeams.SparkAllStars(_content);
         var mixed = PresetTeams.MixedRivals(_content);
         var park = _content.Parks["harbor-diamond"];
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var rng = new Random(1);
 
         var can = fielding.Preview(Fly(180, 28, 0), park, spark.Roster, spark.Captain, rng);
@@ -196,10 +196,10 @@ public class FieldingSceneTests
     {
         var ss = Diamond.Positions["SS"];
         var cf = Diamond.Positions["CF"];
-        Assert.False(FieldingResolver.OutfieldGrass(ss.X, ss.Z));
-        Assert.False(FieldingResolver.OutfieldGrass(0, Rules.Default.Flight.Classes.InfieldLipFt - 1));
-        Assert.True(FieldingResolver.OutfieldGrass(0, Rules.Default.Flight.Classes.InfieldLipFt));
-        Assert.True(FieldingResolver.OutfieldGrass(cf.X, cf.Z));
+        Assert.False(FieldingResolver.OutfieldGrass(ss.X, ss.Z, rules: Rules.Default));
+        Assert.False(FieldingResolver.OutfieldGrass(0, Rules.Default.Flight.Classes.InfieldLipFt - 1, rules: Rules.Default));
+        Assert.True(FieldingResolver.OutfieldGrass(0, Rules.Default.Flight.Classes.InfieldLipFt, rules: Rules.Default));
+        Assert.True(FieldingResolver.OutfieldGrass(cf.X, cf.Z, rules: Rules.Default));
     }
 
     [Fact]
@@ -208,15 +208,15 @@ public class FieldingSceneTests
         var match = Match.Slice(_content, seed: 1);
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
         // The C80 copy: the lip is 137.78 ft, not 155, and the infield stands at 8/9 of the depth. The same three balls at 8/9.
-        var dirt = FieldingResolver.PlayGlove(assigned, 0, 107);
+        var dirt = FieldingResolver.PlayGlove(assigned, 0, 107, rules: Rules.Default);
         Assert.False(FieldingResolver.IsOutfield(dirt.Pos));
         Assert.Equal("2B", dirt.Pos);
 
-        var overTheInfield = FieldingResolver.PlayGlove(assigned, 0, 124);
+        var overTheInfield = FieldingResolver.PlayGlove(assigned, 0, 124, rules: Rules.Default);
         Assert.False(FieldingResolver.IsOutfield(overTheInfield.Pos),
             "ball still on the dirt stays an infielder — they chase the hop over their head");
 
-        var grass = FieldingResolver.PlayGlove(assigned, 0, 178);
+        var grass = FieldingResolver.PlayGlove(assigned, 0, 178, rules: Rules.Default);
         Assert.True(FieldingResolver.IsOutfield(grass.Pos));
         Assert.Equal("CF", grass.Pos);
         Assert.True(FieldingResolver.HandoffToOutfield(dirt.Pos, grass.Pos));
@@ -226,16 +226,16 @@ public class FieldingSceneTests
     [Fact]
     public void OutfielderChargesTheLandingThenTheLiveHop()
     {
-        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 80, 0, 220));
-        Assert.False(FieldingResolver.OutfieldShouldCharge(0, 80, 0, 70));
-        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 180, 0, 70));
-        var toLanding = FieldingResolver.OutfieldChaseTarget(0, 80, -40, 220);
+        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 80, 0, 220, rules: Rules.Default));
+        Assert.False(FieldingResolver.OutfieldShouldCharge(0, 80, 0, 70, rules: Rules.Default));
+        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 180, 0, 70, rules: Rules.Default));
+        var toLanding = FieldingResolver.OutfieldChaseTarget(0, 80, -40, 220, rules: Rules.Default);
         Assert.Equal(-40, toLanding.X);
         Assert.Equal(220, toLanding.Z);
-        var toLive = FieldingResolver.OutfieldChaseTarget(12, 190, -40, 220);
+        var toLive = FieldingResolver.OutfieldChaseTarget(12, 190, -40, 220, rules: Rules.Default);
         Assert.Equal(12, toLive.X);
         Assert.Equal(190, toLive.Z);
-        var stillUp = FieldingResolver.OutfieldChaseTarget(12, 190, -40, 220, inAir: true);
+        var stillUp = FieldingResolver.OutfieldChaseTarget(12, 190, -40, 220, inAir: true, rules: Rules.Default);
         Assert.Equal(-40, stillUp.X);
         Assert.Equal(220, stillUp.Z);
 
@@ -246,10 +246,10 @@ public class FieldingSceneTests
         var of = FieldingResolver.NearestOutfielder(assigned, ballX, ballZ);
         Assert.Equal("LF", of.Pos);
         var start = Diamond.Positions["LF"];
-        var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, frozen: false);
+        var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, frozen: false, rules: Rules.Default);
         var stepped = start;
         for (var i = 0; i < 45; i++)
-            stepped = FieldingResolver.StepToward(stepped.X, stepped.Z, ballX, ballZ, speed, 1.0 / 30);
+            stepped = FieldingResolver.StepToward(stepped.X, stepped.Z, ballX, ballZ, speed, 1.0 / 30, rules: Rules.Default);
         Assert.True(Diamond.Dist(stepped.X, stepped.Z, ballX, ballZ)
                     < Diamond.Dist(start.X, start.Z, ballX, ballZ) - 20,
             "outfielder must close on a ball in the grass, not stay on the pad");
@@ -259,17 +259,17 @@ public class FieldingSceneTests
     public void DeepHopperStaysTheInfielderUntilPlayGloveHandsOff()
     {
         var match = Match.Slice(_content, seed: 1);
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
         var deep = FlightFixtures.Hit(match.Park, 104, 9, 0);
         Assert.True(deep.Class.OnTheDirt());
         var pre = fielding.Preview(deep, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Grounder);
-        Assert.True(FieldingResolver.OutfieldGrass(pre.LandingX, pre.LandingZ));
+        Assert.True(FieldingResolver.OutfieldGrass(pre.LandingX, pre.LandingZ, rules: Rules.Default));
         Assert.False(FieldingResolver.IsOutfield(pre.Position),
             "infielder still owns the first run so they chase a ball over their head");
-        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 80, pre.LandingX, pre.LandingZ));
-        var onGrass = FieldingResolver.PlayGlove(assigned, pre.LandingX, pre.LandingZ);
+        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 80, pre.LandingX, pre.LandingZ, rules: Rules.Default));
+        var onGrass = FieldingResolver.PlayGlove(assigned, pre.LandingX, pre.LandingZ, rules: Rules.Default);
         Assert.True(FieldingResolver.IsOutfield(onGrass.Pos));
         Assert.True(FieldingResolver.HandoffToOutfield(pre.Position, onGrass.Pos));
     }
@@ -278,7 +278,7 @@ public class FieldingSceneTests
     public void LineDriveIsInfieldWindowNotAFlyRing()
     {
         var match = Match.Slice(_content, seed: 1);
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var liner = FlightFixtures.Hit(match.Park, 95, 16, 6);
         Assert.Equal(BattedBallClass.Liner, liner.Class);
         var pre = fielding.Preview(liner, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
@@ -286,7 +286,7 @@ public class FieldingSceneTests
         Assert.False(pre.Grounder);
         Assert.False(FieldingResolver.IsOutfield(pre.Position));
         Assert.False(FieldingResolver.BuddyJumpOffered(pre));
-        var flyHang = BallFlight.HangTime(BallFlight.Trajectory(95, 28, 0));
+        var flyHang = BallFlight.HangTime(BallFlight.Trajectory(95, 28, 0, rules: Rules.Default), rules: Rules.Default);
         Assert.True(pre.HangTimeSec < flyHang, $"line hang {pre.HangTimeSec} vs fly {flyHang}");
     }
 
@@ -294,16 +294,16 @@ public class FieldingSceneTests
     public void GloveChaseOnAFlyIsTheLandingNotTheLiveBall()
     {
         var match = Match.Slice(_content, seed: 1);
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         // The C80 copy: Harbor's center fence is 280, so the shipped 280-ft fly meets the wall. The same fly at 0.70 of the carry.
         var fly = Fly(196, 28, 8);
         Assert.Equal(BattedBallClass.Fly, fly.Class);
         var pre = fielding.Preview(fly, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.False(pre.Grounder);
-        Assert.True(FieldingResolver.InAir(pre, ballY: 18, hitT: 0.25));
+        Assert.True(FieldingResolver.InAir(pre, ballY: 18, hitT: 0.25, rules: Rules.Default));
 
-        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 3, ballZ: 14, ballY: 18, hitT: 0.25);
-        var plant = FlyCatch.ChaseTarget(pre, match.Park);
+        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 3, ballZ: 14, ballY: 18, hitT: 0.25, rules: Rules.Default);
+        var plant = FlyCatch.ChaseTarget(pre, Rules.Default, match.Park);
         Assert.Equal(plant.X, chase.X, 3);
         Assert.Equal(plant.Z, chase.Z, 3);
         Assert.True(Diamond.Dist(chase.X, chase.Z, 0, 0) > 150,
@@ -311,9 +311,9 @@ public class FieldingSceneTests
 
         var start = Diamond.Positions[pre.Position];
         var at = start;
-        var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, frozen: false);
+        var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, frozen: false, rules: Rules.Default);
         for (var i = 0; i < 24; i++)
-            at = FieldingResolver.StepToward(at.X, at.Z, chase.X, chase.Z, speed, 1.0 / 30);
+            at = FieldingResolver.StepToward(at.X, at.Z, chase.X, chase.Z, speed, 1.0 / 30, rules: Rules.Default);
         Assert.True(Diamond.Dist(at.X, at.Z, chase.X, chase.Z)
                     < Diamond.Dist(start.X, start.Z, chase.X, chase.Z) - 12,
             "glove must close on the landing");
@@ -322,10 +322,10 @@ public class FieldingSceneTests
             "closer to the landing than to the live ball at home");
 
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
-        var liveGlove = FieldingResolver.PlayGlove(assigned, 3, 14);
+        var liveGlove = FieldingResolver.PlayGlove(assigned, 3, 14, rules: Rules.Default);
         Assert.False(FieldingResolver.IsOutfield(liveGlove.Pos),
             "live XZ near home is an infielder — that is the bug if chase used it");
-        var landingGlove = FieldingResolver.PlayGlove(assigned, chase.X, chase.Z);
+        var landingGlove = FieldingResolver.PlayGlove(assigned, chase.X, chase.Z, rules: Rules.Default);
         Assert.True(FieldingResolver.IsOutfield(landingGlove.Pos));
     }
 
@@ -333,14 +333,14 @@ public class FieldingSceneTests
     public void GloveChaseOnALinerInTheAirIsStillTheLanding()
     {
         var match = Match.Slice(_content, seed: 1);
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var liner = FlightFixtures.Hit(match.Park, 95, 16, 6);
         Assert.Equal(BattedBallClass.Liner, liner.Class);
         var pre = fielding.Preview(liner, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Line);
-        Assert.True(FieldingResolver.InAir(pre, ballY: 7, hitT: 0.2));
+        Assert.True(FieldingResolver.InAir(pre, ballY: 7, hitT: 0.2, rules: Rules.Default));
 
-        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 5, ballZ: 16, ballY: 7, hitT: 0.2);
+        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 5, ballZ: 16, ballY: 7, hitT: 0.2, rules: Rules.Default);
         Assert.Equal(pre.LandingX, chase.X, 3);
         Assert.Equal(pre.LandingZ, chase.Z, 3);
         Assert.True(Diamond.Dist(chase.X, chase.Z, 0, 0) > Diamond.Dist(5, 16, 0, 0) + 40,
@@ -351,14 +351,14 @@ public class FieldingSceneTests
     public void GloveChaseOnAHopperIsTheLiveHop()
     {
         var match = Match.Slice(_content, seed: 1);
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var hopper = FlightFixtures.Hit(match.Park, 88, 8, -12);
         Assert.True(hopper.Class.OnTheDirt());
         var pre = fielding.Preview(hopper, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Grounder);
-        Assert.False(FieldingResolver.InAir(pre, ballY: 4, hitT: 0.1));
+        Assert.False(FieldingResolver.InAir(pre, ballY: 4, hitT: 0.1, rules: Rules.Default));
 
-        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 18, ballZ: 62, ballY: 1.2, hitT: 0.35);
+        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 18, ballZ: 62, ballY: 1.2, hitT: 0.35, rules: Rules.Default);
         Assert.Equal(18, chase.X);
         Assert.Equal(62, chase.Z);
     }
@@ -367,14 +367,14 @@ public class FieldingSceneTests
     public void GloveChaseAfterTheBallIsDownIsTheLiveHop()
     {
         var match = Match.Slice(_content, seed: 1);
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var fly = Fly(260, 26, -10);
         var pre = fielding.Preview(fly, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.False(pre.Grounder);
-        Assert.False(FieldingResolver.InAir(pre, ballY: 0.2, hitT: pre.HangTimeSec + 0.3));
+        Assert.False(FieldingResolver.InAir(pre, ballY: 0.2, hitT: pre.HangTimeSec + 0.3, rules: Rules.Default));
 
         var chase = FieldingResolver.GloveChaseTarget(
-            pre, match.Park, ballX: 22, ballZ: 205, ballY: 0.2, hitT: pre.HangTimeSec + 0.3);
+            pre, match.Park, ballX: 22, ballZ: 205, ballY: 0.2, hitT: pre.HangTimeSec + 0.3, rules: Rules.Default);
         Assert.Equal(22, chase.X);
         Assert.Equal(205, chase.Z);
     }
@@ -407,7 +407,7 @@ public class FieldingSceneTests
 
         var rio = _content.Must("rio");
         var deep = FlightFixtures.Preview(rio, "CF", BattedBallClass.Fly, 4.0, 0, 460);
-        var plant = FlyCatch.ChaseTarget(deep, harbor);
+        var plant = FlyCatch.ChaseTarget(deep, Rules.Default, harbor);
         Assert.True(FieldBounds.Inside(harbor, plant.X, plant.Z),
             "a 460 ft fly chase is the wall, not the seats");
         Assert.True(Diamond.Dist(0, 0, plant.X, plant.Z) < harbor.CenterFenceFt);
@@ -415,7 +415,7 @@ public class FieldingSceneTests
         var start = Diamond.Positions["CF"];
         var at = start;
         for (var i = 0; i < 90; i++)
-            at = FieldingResolver.StepToward(at.X, at.Z, 0, 520, 28, 1.0 / 30, harbor);
+            at = FieldingResolver.StepToward(at.X, at.Z, 0, 520, 28, 1.0 / 30, Rules.Default, harbor);
         Assert.True(FieldBounds.Of(harbor).Contains(at.X, at.Z), "running at the wall stays inside the field");
         var clearance = _content.Rules.Fielding.Chase.WallClearanceFt;
         Assert.InRange(harbor.CenterFenceFt - at.Z, clearance - .01, clearance + .5);

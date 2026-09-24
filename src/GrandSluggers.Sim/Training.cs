@@ -42,11 +42,15 @@ public sealed class Training
     bool _ranDash;
     bool _skipped;
 
-    Training(Park park, IReadOnlyList<string> pitches)
+    Training(Park park, RulesTable rules)
     {
         Park = park;
-        Pitches = pitches;
+        Rules = rules;
+        Pitches = PitchesOf(rules);
     }
+
+    /// <summary>The table this session was started from; every judgment it makes reads it.</summary>
+    public RulesTable Rules { get; }
 
     public Park Park { get; }
     /// <summary>The families this session offers: <see cref="PitchesOf"/> the catalog it started from (#888).</summary>
@@ -75,7 +79,7 @@ public sealed class Training
     {
         if (!content.Parks.TryGetValue(ParkId, out var park))
             throw new InvalidDataException("harbor-diamond is missing");
-        return new Training(park, PitchesOf(content.Rules));
+        return new Training(park, content.Rules);
     }
 
     public Match MakeMatch(ContentCatalog content, int seed = 1, int innings = 9)
@@ -137,7 +141,7 @@ public sealed class Training
     {
         if (Finished || Lesson != PracticeLesson.Pitching) return false;
         if (canStar) _needStar = true;
-        if (!AtBatResolver.PitchInZone(pitch, pitchStat)) return false;
+        if (!AtBatResolver.PitchInZone(pitch, pitchStat, Rules)) return false;
         _throws++;
         if (ChargeFeel.AtMax(pitch.Charge01, 0, 0.5) || pitch.Charge01 >= 1)
             _maxCharges++;
@@ -208,7 +212,7 @@ public sealed class Training
     public bool RecordGrounder(FieldingResult field)
     {
         if (Finished || (Lesson != PracticeLesson.Fielding && Lesson != PracticeLesson.Running)) return false;
-        var hopper = field.Kind is PlayKind.GroundOut or PlayKind.Single && field.HangTimeSec < 1.9 * BallFlight.TimeScale();
+        var hopper = field.Kind is PlayKind.GroundOut or PlayKind.Single && field.HangTimeSec < 1.9 * BallFlight.TimeScale(Rules);
         var scooped = field.Fielder is not null && field.Throw is not null;
         if (!hopper || !scooped) return false;
         _scoopedHopper = true;

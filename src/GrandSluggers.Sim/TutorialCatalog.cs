@@ -266,7 +266,7 @@ public sealed class TutorialCatalog
                 {
                     var crossing = PitchFlight.Crossing(pitch, rules: content.Rules);
                     Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy is "cpu-strike" or "cpu-item" or "game-contact"), s.Id + " CPU pitch disagrees with strike/ball policy");
-                    Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, hand, content.Rules)), s.Id + " CPU pitch hits the batter");
+                    Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, content.Rules, hand)), s.Id + " CPU pitch hits the batter");
                 }
             }
             else if (s.Policy is "steal-offense" or "steal-defense")

@@ -99,10 +99,10 @@ public class PlayOutcomeTests
         var nico = Preview(_content.Must("nico"), null, 0, 360, homeRunLikely: true);
         var buddy = Preview(_content.Must("nico"), _content.Must("gull"), 0, 360, homeRunLikely: true);
 
-        Assert.Equal(DefensiveFeat.None, FieldingResolver.PlayerCatchFeat(konga, park, false, false));
-        Assert.Equal(DefensiveFeat.Clamber, FieldingResolver.PlayerCatchFeat(konga, park, false, true));
-        Assert.Equal(DefensiveFeat.SuperJump, FieldingResolver.PlayerCatchFeat(nico, park, false, true));
-        Assert.Equal(DefensiveFeat.BuddyJump, FieldingResolver.PlayerCatchFeat(buddy, park, true, true));
+        Assert.Equal(DefensiveFeat.None, FieldingResolver.PlayerCatchFeat(konga, park, Rules.Default, false, false));
+        Assert.Equal(DefensiveFeat.Clamber, FieldingResolver.PlayerCatchFeat(konga, park, Rules.Default, false, true));
+        Assert.Equal(DefensiveFeat.SuperJump, FieldingResolver.PlayerCatchFeat(nico, park, Rules.Default, false, true));
+        Assert.Equal(DefensiveFeat.BuddyJump, FieldingResolver.PlayerCatchFeat(buddy, park, Rules.Default, true, true));
     }
 
     static FieldingPreview Preview(

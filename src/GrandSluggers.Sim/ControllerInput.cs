@@ -50,7 +50,7 @@ public sealed class ControllerInput
         TargetHeld = TargetFlick = 0;
         _rightArmed = _rightActive = false;
     }
-    public void Tick(ControllerButton buttons, double rt, double lt, double rightX, double rightY)
+    public void Tick(ControllerButton buttons, double rt, double lt, double rightX, double rightY, RulesTable rules)
     {
         // Charge is time held, not trigger depth. Separate release threshold prevents chatter.
         _rt = rt >= (_rt ? .35 : .5);
@@ -64,7 +64,7 @@ public sealed class ControllerInput
         TargetFlick = 0;
         var length = Math.Sqrt(rightX * rightX + rightY * rightY);
         if (length < .25) { _rightArmed = true; _rightActive = false; }
-        TargetHeld = length >= .55 && _rightArmed ? InPlay.DiamondBag(rightX, rightY) : 0;
+        TargetHeld = length >= .55 && _rightArmed ? InPlay.DiamondBag(rightX, rightY, rules) : 0;
         if (TargetHeld > 0)
         {
             ThrowTarget = TargetFlick = TargetHeld;
@@ -72,6 +72,6 @@ public sealed class ControllerInput
             _rightActive = true;
         }
         // Held target is for a deliberate pre-charge pickoff. Flicks alone update the live throw latch.
-        if (length >= .55 && _rightActive) TargetHeld = InPlay.DiamondBag(rightX, rightY);
+        if (length >= .55 && _rightActive) TargetHeld = InPlay.DiamondBag(rightX, rightY, rules);
     }
 }

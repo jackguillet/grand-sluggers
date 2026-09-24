@@ -28,10 +28,10 @@ public sealed class FieldingResolver
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
 
-    public FieldingResolver(ChemistryTable chem, RulesTable? rules = null)
+    public FieldingResolver(ChemistryTable chem, RulesTable rules)
     {
         _chem = chem;
-        _rules = Rules.Or(rules);
+        _rules = rules;
     }
 
     public FieldingPreview Preview(
@@ -59,9 +59,8 @@ public sealed class FieldingResolver
             PursuitPool(shape, ball.Foul),
             seed,
             park,
-            samples,
+            samples, _rules,
             at,
-            rules: _rules,
             readyAt: CpuReactionLockouts(_rules, grounder ? null : hang, hit.Class == BattedBallClass.Bunt));
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
@@ -113,14 +112,14 @@ public sealed class FieldingResolver
     }
 
     /// <summary>The resolved catch verb, kept as a fact so copy can change without changing behavior.</summary>
-    public static DefensiveFeat CatchFeat(FieldingPreview shown, AtBatResult hit, Park park)
+    public static DefensiveFeat CatchFeat(FieldingPreview shown, AtBatResult hit, Park park, RulesTable rules)
     {
         _ = hit;
         if (BuddyJumpOffered(shown))
             return DefensiveFeat.BuddyJump;
         if (!shown.HomeRunLikely)
             return DefensiveFeat.None;
-        if (ParkHazards.CanClamber(park, shown.Fielder))
+        if (ParkHazards.CanClamber(park, shown.Fielder, rules))
             return DefensiveFeat.Clamber;
         if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
             return DefensiveFeat.SuperJump;
@@ -132,13 +131,13 @@ public sealed class FieldingResolver
     /// The feat the glove made the catch with (§8.4), typed for the outcome and the stamp (§15):
     /// the buddy jump, a wall rob by ability, a plain jump in the window, or a dive.
     /// </summary>
-    public static DefensiveFeat PlayerCatchFeat(FieldingPreview shown, Park park, bool buddyJump, bool jumped, bool dived = false)
+    public static DefensiveFeat PlayerCatchFeat(FieldingPreview shown, Park park, RulesTable rules, bool buddyJump, bool jumped, bool dived = false)
     {
         if (buddyJump)
             return DefensiveFeat.BuddyJump;
         if (jumped && shown.HomeRunLikely)
         {
-            if (ParkHazards.CanClamber(park, shown.Fielder))
+            if (ParkHazards.CanClamber(park, shown.Fielder, rules))
                 return DefensiveFeat.Clamber;
             if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
                 return DefensiveFeat.SuperJump;
@@ -182,9 +181,9 @@ public sealed class FieldingResolver
     /// Dirt scoop / armed-verb window (fielding.catch). A fly stand-up is the catch radius
     /// itself (#669); <c>windowPadFt</c> is scoop slack, not a stand-up fly out.
     /// </summary>
-    public static double CatchWindowFt(double catchRadius, bool dive, bool jump, RulesTable? rules = null)
+    public static double CatchWindowFt(double catchRadius, bool dive, bool jump, RulesTable rules)
     {
-        var c = Rules.Or(rules).Fielding.Catch;
+        var c = rules.Fielding.Catch;
         var w = catchRadius + c.WindowPadFt;
         if (dive) w += c.DiveReachFt;
         if (jump) w += c.JumpReachFt;
@@ -195,9 +194,9 @@ public sealed class FieldingResolver
     public static double StandUpCatchFt(double catchRadius) => catchRadius;
 
     /// <summary>What this body's dive costs (F693-02-dive-recovery-cost, #719): <c>catch.diveRecoverySec</c> cut by <c>diveRecoveryFieldCut</c> of itself per Field point above 1. 0 on the shipped table.</summary>
-    public static double DiveRecoverySec(Character who, RulesTable? rules = null)
+    public static double DiveRecoverySec(Character who, RulesTable rules)
     {
-        var c = Rules.Or(rules).Fielding.Catch;
+        var c = rules.Fielding.Catch;
         if (c.DiveRecoverySec <= 0) return 0;
         return c.DiveRecoverySec * Math.Max(0, 1 - c.DiveRecoveryFieldCut * (who.Stats.Field - 1));
     }
@@ -207,29 +206,29 @@ public sealed class FieldingResolver
     /// speed, linear between. 0 whenever the rule is off (<c>recoil.onsetFtPerSec</c> 0, the shipped table). A catch in the air
     /// (<paramref name="airborne"/>) reads the airborne pair (F693-02-grounded-air-catch-recoil), off at <c>airOnsetFtPerSec</c> 0.
     /// </summary>
-    public static double RecoilSeverity(double incomingFtPerSec, RulesTable? rules = null, bool airborne = false)
+    public static double RecoilSeverity(double incomingFtPerSec, RulesTable rules, bool airborne = false)
     {
-        var r = Rules.Or(rules).Fielding.Recoil;
+        var r = rules.Fielding.Recoil;
         var (onset, full) = airborne ? (r.AirOnsetFtPerSec, r.AirFullFtPerSec) : (r.OnsetFtPerSec, r.FullFtPerSec);
         if (onset <= 0 || full <= onset) return 0;
         return Math.Clamp((incomingFtPerSec - onset) / (full - onset), 0, 1);
     }
 
     /// <summary>The Hands factor (F693-02-recoil-field-factors): <c>1 − handsCutPerPoint × (Hands − 1)</c>, never below 0 — 1 / 0.80 / 0.55 at Hands 1 / 5 / 10.</summary>
-    public static double RecoilHandsFactor(Character who, RulesTable? rules = null) =>
-        Math.Max(0, 1 - Rules.Or(rules).Fielding.Recoil.HandsCutPerPoint * (who.Stats.Hands - 1));
+    public static double RecoilHandsFactor(Character who, RulesTable rules) =>
+        Math.Max(0, 1 - rules.Fielding.Recoil.HandsCutPerPoint * (who.Stats.Hands - 1));
 
     /// <summary>The one weight <c>w = S × F</c> the recovery, the kick and the skid all read (F693-02-recoil-field-shaping: severity bounded first, then the hands).</summary>
-    public static double RecoilWeight(Character who, double incomingFtPerSec, RulesTable? rules = null, bool airborne = false) =>
+    public static double RecoilWeight(Character who, double incomingFtPerSec, RulesTable rules, bool airborne = false) =>
         RecoilSeverity(incomingFtPerSec, rules, airborne) * RecoilHandsFactor(who, rules);
 
     /// <summary>What this take costs these hands: <c>capSec × w</c> — 0.20 / 0.16 / 0.11 s at full severity for Hands 1 / 5 / 10, nothing for a routine arrival, nothing on the shipped table.</summary>
-    public static double RecoilSec(Character who, double incomingFtPerSec, RulesTable? rules = null, bool airborne = false) =>
-        Rules.Or(rules).Fielding.Recoil.CapSec * RecoilWeight(who, incomingFtPerSec, rules, airborne);
+    public static double RecoilSec(Character who, double incomingFtPerSec, RulesTable rules, bool airborne = false) =>
+        rules.Fielding.Recoil.CapSec * RecoilWeight(who, incomingFtPerSec, rules, airborne);
 
     /// <summary>The impact kick's initial speed, <c>kickFtPerSec × w</c> (F693-02-ordinary-recoil-motion-profile).</summary>
-    public static double RecoilKickFtPerSec(double weight, RulesTable? rules = null) =>
-        Rules.Or(rules).Fielding.Recoil.KickFtPerSec * weight;
+    public static double RecoilKickFtPerSec(double weight, RulesTable rules) =>
+        rules.Fielding.Recoil.KickFtPerSec * weight;
 
     /// <summary>
     /// The normalized difficulty of a ground-ball take (F693-02-awkward-hop-difficulty-source, #721): 0 for a roll, a falling ball
@@ -237,9 +236,9 @@ public sealed class FieldingResolver
     /// difficulty is 1 at φ = 0.5, falling linearly to 0 <c>hopPhaseHalfWidth</c> either side, scaled from 0 at <c>hopMinApexFt</c>
     /// to 1 at <c>hopFullApexFt</c> of projected apex. 0 whenever the rule is off.
     /// </summary>
-    public static double HopDifficulty(double ballY, double ballVy, RulesTable? rules = null)
+    public static double HopDifficulty(double ballY, double ballVy, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var h = r.Fielding.Handling;
         if (!h.Active || ballVy <= 0 || ballY <= 1e-9) return 0;
         var apex = ballY + ballVy * ballVy / (2 * r.Flight.Gravity);
@@ -251,9 +250,9 @@ public sealed class FieldingResolver
     }
 
     /// <summary>Normalized handling quality H (F693-02-ordinary-handling-chance-curve): the Hands trait plus the glove's help, 1 → 0 and 10 → 1.</summary>
-    public static double HandlingQuality(Character who, GloveItem? glove = null, RulesTable? rules = null)
+    public static double HandlingQuality(Character who, RulesTable rules, GloveItem? glove = null)
     {
-        var hands = who.Stats.Hands + (glove?.ErrorReduction ?? 0) * Rules.Or(rules).Fielding.Bobble.HandsPerGloveReduction;
+        var hands = who.Stats.Hands + (glove?.ErrorReduction ?? 0) * rules.Fielding.Bobble.HandsPerGloveReduction;
         return (Math.Clamp(hands, 1, 10) - 1) / 9.0;
     }
 
@@ -265,38 +264,38 @@ public sealed class FieldingResolver
         windowFt <= 0 ? 1 : Math.Clamp(1 - distFt / windowFt, 0, 1);
 
     /// <summary>What a continuing deflection keeps of the ball's speed (F693-02-continuing-error-speed-retention): <c>retainMax</c> for a glancing touch, down to <c>retainMin</c> at the knockdown boundary.</summary>
-    public static double DeflectionRetention(double obstruction, RulesTable? rules = null)
+    public static double DeflectionRetention(double obstruction, RulesTable rules)
     {
-        var h = Rules.Or(rules).Fielding.Handling;
+        var h = rules.Fielding.Handling;
         var c = h.DeflectObstruction <= 0 ? 1 : Math.Clamp(obstruction / h.DeflectObstruction, 0, 1);
         return h.DeflectRetainMax - (h.DeflectRetainMax - h.DeflectRetainMin) * c;
     }
 
     /// <summary>The failed take carries on rather than dropping at the feet when the touch was glancing and the ball came in hot (F693-02-error-outcome-selection, -expanded-ordinary-error-outcomes): the contact and the speed decide, never a second roll.</summary>
-    public static bool DeflectionContinues(double obstruction, double incomingFtPerSec, RulesTable? rules = null)
+    public static bool DeflectionContinues(double obstruction, double incomingFtPerSec, RulesTable rules)
     {
-        var h = Rules.Or(rules).Fielding.Handling;
+        var h = rules.Fielding.Handling;
         return obstruction < h.DeflectObstruction && incomingFtPerSec >= h.DeflectMinFtPerSec;
     }
 
     /// <summary>The accepted curve, <c>p = cap × D × (1 − handsCut × H)</c>: 10 / 6 / 2 % at full difficulty for weak / middle / strong hands, zero for a routine take.</summary>
-    public static double HandlingErrorChance(double difficulty, double quality, RulesTable? rules = null)
+    public static double HandlingErrorChance(double difficulty, double quality, RulesTable rules)
     {
-        var h = Rules.Or(rules).Fielding.Handling;
+        var h = rules.Fielding.Handling;
         if (!h.Active || difficulty <= 0) return 0;
         return Math.Clamp(h.ChanceCap * Math.Clamp(difficulty, 0, 1) * (1 - h.HandsCut * Math.Clamp(quality, 0, 1)), 0, h.ChanceCap);
     }
 
     /// <summary>The skid the kick integrates to over the recovery, <c>K T / 2</c>: <c>w²</c> feet at 10 ft/s and 0.20 s, one foot at most (F693-02-ordinary-recoil-distance-cap).</summary>
-    public static double RecoilSkidFt(double weight, RulesTable? rules = null)
+    public static double RecoilSkidFt(double weight, RulesTable rules)
     {
-        var r = Rules.Or(rules).Fielding.Recoil;
+        var r = rules.Fielding.Recoil;
         return r.KickFtPerSec * weight * r.CapSec * weight / 2;
     }
 
     /// <summary>Stand-up plus <c>diveReachFt</c> — the rim. Past this is a drop.</summary>
-    public static double DiveCatchFt(double catchRadius, RulesTable? rules = null) =>
-        StandUpCatchFt(catchRadius) + Rules.Or(rules).Fielding.Catch.DiveReachFt;
+    public static double DiveCatchFt(double catchRadius, RulesTable rules) =>
+        StandUpCatchFt(catchRadius) + rules.Fielding.Catch.DiveReachFt;
 
     /// <summary>
     /// Base catch radius for a glove (fielding.catch.radius*, abilities, clamber parks). The stand-up reach is
@@ -305,9 +304,9 @@ public sealed class FieldingResolver
     /// <c>radiusBaseFt + radiusPerField x Field</c>
     /// (F693-02-catch-reach-envelope, F693-02-character-catch-range).
     /// </summary>
-    public static double CatchRadiusFt(Character fielder, Park? park, RulesTable? rules = null)
+    public static double CatchRadiusFt(Character fielder, Park? park, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var c = r.Fielding.Catch;
         var standUp = fielder.ReachFt
                       ?? (c.StandUpReachFt > 0 ? c.StandUpReachFt : c.RadiusBaseFt + fielder.Stats.Field * c.RadiusPerField);
@@ -326,21 +325,21 @@ public sealed class FieldingResolver
     /// Dirt / grass lip ~95 ft past the rubber (flight.classes.infieldLipFt), same split baseball
     /// games use: infielders own the hop on the dirt; outfielders own the grass.
     /// </summary>
-    public static bool OutfieldGrass(double x, double z, RulesTable? rules = null) =>
-        Diamond.Dist(0, 0, x, z) >= Rules.Or(rules).Flight.Classes.InfieldLipFt;
+    public static bool OutfieldGrass(double x, double z, RulesTable rules) =>
+        Diamond.Dist(0, 0, x, z) >= rules.Flight.Classes.InfieldLipFt;
 
-    public static bool OutfieldShouldCharge(double ballX, double ballZ, double landingX, double landingZ, RulesTable? rules = null) =>
+    public static bool OutfieldShouldCharge(double ballX, double ballZ, double landingX, double landingZ, RulesTable rules) =>
         OutfieldGrass(ballX, ballZ, rules) || OutfieldGrass(landingX, landingZ, rules);
 
     /// <summary>
     /// Still up: fly or liner, hang not due, height above a hop (<c>catch.inAirMinY</c>).
     /// A hopper is never in the air for chase — they charge the live ball.
     /// </summary>
-    public static bool InAir(FieldingPreview pre, double ballY, double hitT, double? hangSec = null, RulesTable? rules = null)
+    public static bool InAir(FieldingPreview pre, double ballY, double hitT, RulesTable rules, double? hangSec = null)
     {
         if (pre.Grounder) return false;
         var hang = hangSec ?? pre.HangTimeSec;
-        return hitT < hang && ballY > Rules.Or(rules).Fielding.Catch.InAirMinY;
+        return hitT < hang && ballY > rules.Fielding.Catch.InAirMinY;
     }
 
     /// <summary>
@@ -355,10 +354,10 @@ public sealed class FieldingResolver
         double ballZ,
         double ballY,
         double hitT,
-        double? hangSec = null,
-        RulesTable? rules = null) =>
-        InAir(pre, ballY, hitT, hangSec)
-            ? FlyCatch.ChaseTarget(pre, park, rules)
+        RulesTable rules,
+        double? hangSec = null) =>
+        InAir(pre, ballY, hitT, rules, hangSec)
+            ? FlyCatch.ChaseTarget(pre, rules, park)
             : (ballX, ballZ);
 
     /// <summary>
@@ -366,7 +365,7 @@ public sealed class FieldingResolver
     /// Live hop only once it is on the grass.
     /// </summary>
     public static (double X, double Z) OutfieldChaseTarget(
-        double ballX, double ballZ, double landingX, double landingZ, bool inAir = false, RulesTable? rules = null) =>
+        double ballX, double ballZ, double landingX, double landingZ, RulesTable rules, bool inAir = false) =>
         inAir || !OutfieldGrass(ballX, ballZ, rules) ? (landingX, landingZ) : (ballX, ballZ);
 
     /// <summary>
@@ -379,8 +378,8 @@ public sealed class FieldingResolver
         IReadOnlyDictionary<string, Character> assigned,
         double ballX,
         double ballZ,
-        IReadOnlyDictionary<string, (double X, double Z)>? at = null,
-        RulesTable? rules = null) =>
+        RulesTable rules,
+        IReadOnlyDictionary<string, (double X, double Z)>? at = null) =>
         OutfieldGrass(ballX, ballZ, rules)
             ? NearestIn(assigned, OutfieldPursuitPositions, ballX, ballZ, at)
             : NearestIn(assigned, InfieldPursuitPositions, ballX, ballZ, at);
@@ -400,9 +399,9 @@ public sealed class FieldingResolver
     /// <paramref name="frozen"/> is the heart swing's play-wide slow (<see cref="FieldingPreview.Frozen"/>, a special). A
     /// status volume's slow is not an input here: it is the touching body's, applied to its steps (<see cref="BodySlows"/>).
     /// </summary>
-    public static double ChaseSpeedFt(Character fielder, bool frozen, RulesTable? rules = null, bool dash = false)
+    public static double ChaseSpeedFt(Character fielder, bool frozen, RulesTable rules, bool dash = false)
     {
-        var c = Rules.Or(rules).Fielding.Chase;
+        var c = rules.Fielding.Chase;
         return (c.BaseFtPerSec + fielder.Stats.Run * c.FtPerSecPerRun) * (frozen ? c.FrozenMul : 1)
                * (dash ? FieldDash.ChaseMul(rules) : 1);
     }
@@ -414,7 +413,7 @@ public sealed class FieldingResolver
     /// stick and CPU chase share it. A ball on the dirt, an infielder on a liner (a rope gets past the glove or it does not, §7.6), a carry,
     /// and a loose ball run at the one speed.
     /// </summary>
-    public static double ChaseSpeedFt(Character fielder, string pos, FieldingPreview? pre, RulesTable? rules = null, bool dash = false) =>
+    public static double ChaseSpeedFt(Character fielder, string pos, FieldingPreview? pre, RulesTable rules, bool dash = false) =>
         ChaseSpeedFt(fielder, pre?.Frozen ?? false, rules, dash) * AirMul(pos, pre, rules);
 
     /// <summary>
@@ -422,9 +421,9 @@ public sealed class FieldingResolver
     /// shipped table, the body's own pursuit speed as far as <c>fielding.cover.chaseSpeedWeight</c> reads it. At 0 it
     /// is <c>cover.ftPerSec</c> itself, not a product, so the shipped walk is the same double it always was.
     /// </summary>
-    public static double CoverSpeedFt(Character who, RulesTable? rules = null)
+    public static double CoverSpeedFt(Character who, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var c = r.Fielding.Cover;
         if (c.ChaseSpeedWeight <= 0) return c.FtPerSec;
         return c.FtPerSec + c.ChaseSpeedWeight * (ChaseSpeedFt(who, false, r) - c.FtPerSec);
@@ -435,13 +434,13 @@ public sealed class FieldingResolver
     /// asked for, × <c>fielding.abilities.ballDashMul</c> for a Ball Dash holder. For every other body it is the asked speed
     /// itself, not a product, so the walk the game shipped with is the same double it always was.
     /// </summary>
-    public static double CarrySpeedFt(Character who, double pursuitFt, RulesTable? rules = null) =>
-        FieldAbilities.HasBallDash(who) ? pursuitFt * Rules.Or(rules).Fielding.Abilities.BallDashMul : pursuitFt;
+    public static double CarrySpeedFt(Character who, double pursuitFt, RulesTable rules) =>
+        FieldAbilities.HasBallDash(who) ? pursuitFt * rules.Fielding.Abilities.BallDashMul : pursuitFt;
 
-    static double AirMul(string pos, FieldingPreview? pre, RulesTable? rules)
+    static double AirMul(string pos, FieldingPreview? pre, RulesTable rules)
     {
         if (pre is not { Grounder: false }) return 1;
-        var c = Rules.Or(rules).Fielding.Chase;
+        var c = rules.Fielding.Chase;
         if (IsOutfield(pos)) return c.OutfieldAirMul;
         return pre.Line ? 1 : c.InfieldAirMul;
     }
@@ -452,9 +451,9 @@ public sealed class FieldingResolver
     /// lockout at its hang, so no body is still frozen when the ball it waits on comes down. A ball on the dirt
     /// passes no cap: the infield numbers are the ones the §10.4 double-play rows were tuned on.
     /// </summary>
-    public static Dictionary<string, double> ReactionLockouts(RulesTable? rules = null, double mul = 1, double? airHangSec = null, bool bunt = false)
+    public static Dictionary<string, double> ReactionLockouts(RulesTable rules, double mul = 1, double? airHangSec = null, bool bunt = false)
     {
-        var re = Rules.Or(rules).Fielding.Reaction;
+        var re = rules.Fielding.Reaction;
         var map = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
         foreach (var pos in Diamond.Order)
         {
@@ -467,16 +466,16 @@ public sealed class FieldingResolver
     }
 
     /// <summary>The lockouts a CPU-driven body waits: × the rung's <c>cpu.reactionMul</c> (§8.2, §16). The human glove waits <see cref="ReactionLockouts"/> at ×1.</summary>
-    public static Dictionary<string, double> CpuReactionLockouts(RulesTable? rules = null, double? airHangSec = null, bool bunt = false) =>
-        ReactionLockouts(rules, Rules.Or(rules).Cpu.Active.ReactionMul, airHangSec, bunt);
+    public static Dictionary<string, double> CpuReactionLockouts(RulesTable rules, double? airHangSec = null, bool bunt = false) =>
+        ReactionLockouts(rules, rules.Cpu.Active.ReactionMul, airHangSec, bunt);
 
     public static (double X, double Z) StepToward(
-        double x, double z, double tx, double tz, double speed, double dt, Park? park = null, RulesTable? rules = null)
+        double x, double z, double tx, double tz, double speed, double dt, RulesTable rules, Park? park = null)
     {
         var dx = tx - x;
         var dz = tz - z;
         var dist = Math.Sqrt(dx * dx + dz * dz);
-        if (dist <= Rules.Or(rules).Fielding.Chase.StepStopFt) return park == null ? (x, z) : FieldBounds.ClampFielder(park, x, z, rules);
+        if (dist <= rules.Fielding.Chase.StepStopFt) return park == null ? (x, z) : FieldBounds.ClampFielder(park, x, z, rules);
         var step = Math.Min(dist, speed * dt);
         var next = (X: x + dx / dist * step, Z: z + dz / dist * step);
         return park == null ? next : FieldBounds.ClampFielder(park, next.X, next.Z, rules);
@@ -531,8 +530,7 @@ public sealed class FieldingResolver
         var own = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z,
             ChaseSpeedFt(pre.Fielder, pre.Position, pre, _rules), _rules, ready[pre.Position]);
         if (!own.Reachable) return null;
-        var choice = FieldingPursuit.Choose(partners, OutfieldPursuitPositions, pre, park, path, at,
-            rules: _rules, readyAt: ready);
+        var choice = FieldingPursuit.Choose(partners, OutfieldPursuitPositions, pre, park, path, _rules, at, readyAt: ready);
         return choice.Route.Reachable ? choice.Fielder : null;
     }
 
@@ -686,8 +684,8 @@ public sealed record FieldingPreview(
 /// </summary>
 public static class ParkHazards
 {
-    public static bool InFreeze(Park park, double x, double z, bool night = false, RulesTable? rules = null) =>
-        InSlow(park, x, z, night, rules);
+    public static bool InFreeze(Park park, double x, double z, RulesTable rules, bool night = false) =>
+        InSlow(park, x, z, rules, night);
 
     /// <summary>
     /// The disc an instance of radius <paramref name="radiusFt"/> plays at night: the type row's own
@@ -702,9 +700,9 @@ public static class ParkHazards
     /// A point inside one of the park's <see cref="HazardPattern.StatusVolume"/> discs: a body standing
     /// there is touching the volume (F4-b, #896). The disc is <see cref="StatusVolumes"/>'s, <see cref="NightDiscFt"/> at night. Nothing tests a landing mark against it any more.
     /// </summary>
-    public static bool InSlow(Park park, double x, double z, bool night = false, RulesTable? rules = null)
+    public static bool InSlow(Park park, double x, double z, RulesTable rules, bool night = false)
     {
-        foreach (var v in StatusVolumes(park, night, rules))
+        foreach (var v in StatusVolumes(park, rules, night))
             if (v.Contains(x, z)) return true;
         return false;
     }
@@ -715,9 +713,9 @@ public static class ParkHazards
     /// centre, its radius × the row's <c>nightRadiusMul</c> at night, and the row's <c>slowSec</c>. Empty
     /// at a park with none, and at a hazards-off match's park, which has no instance to list.
     /// </summary>
-    public static IReadOnlyList<StatusVolume> StatusVolumes(Park park, bool night = false, RulesTable? rules = null)
+    public static IReadOnlyList<StatusVolume> StatusVolumes(Park park, RulesTable rules, bool night = false)
     {
-        var hazards = Rules.Or(rules).Hazards;
+        var hazards = rules.Hazards;
         List<StatusVolume>? list = null;
         for (var i = 0; i < park.Hazards.Count; i++)
         {
@@ -738,18 +736,18 @@ public static class ParkHazards
     /// today — the row's position and radius are never read — which is what FD-06 turns into a
     /// property of one wall span.
     /// </summary>
-    public static bool CanClamber(Park park, Character fielder, RulesTable? rules = null)
+    public static bool CanClamber(Park park, Character fielder, RulesTable rules)
     {
         if (!fielder.FieldAbility.Equals("clamber", StringComparison.OrdinalIgnoreCase)) return false;
-        var hazards = Rules.Or(rules).Hazards;
+        var hazards = rules.Hazards;
         return park.Hazards.Any(h => hazards.Of(h.Type).Pattern == HazardPattern.WallTrait);
     }
 
     /// <summary>Clamber robs a ball clearing the fence by at most fielding.catch.clamberRobFt (§8.4).</summary>
-    public static bool CanClamberRob(Park park, Character fielder, AtBatResult hit, RulesTable? rules = null)
+    public static bool CanClamberRob(Park park, Character fielder, AtBatResult hit, RulesTable rules)
     {
         if (!CanClamber(park, fielder, rules)) return false;
         var ball = BattedBall.Of(hit, park, rules);
-        return ball.HomeRun && ball.FenceClearFt <= Rules.Or(rules).Fielding.Catch.ClamberRobFt;
+        return ball.HomeRun && ball.FenceClearFt <= rules.Fielding.Catch.ClamberRobFt;
     }
 }

@@ -94,7 +94,7 @@ public sealed class VolumeRouteTests
         for (var i = 0; i < 60 * 10; i++)
         {
             var w = VolumeRoute.Waypoint(at, goal, [disc], Speed, Mul, Clear);
-            at = FieldingResolver.StepToward(at.X, at.Z, w.X, w.Z, Speed, Frame);
+            at = FieldingResolver.StepToward(at.X, at.Z, w.X, w.Z, Speed, Frame, rules: Rules.Default);
             Assert.False(disc.Contains(at.X, at.Z), $"inside at frame {i}: ({at.X:0.00}, {at.Z:0.00})");
             if (Diamond.Dist(at.X, at.Z, goal.X, goal.Z) < 0.5) break;
         }
@@ -145,7 +145,7 @@ public sealed class VolumeRouteTests
         var from = Diamond.Positions[chaser];
         var disc = (X: from.X + (plainPre.LandingX - from.X) * 0.4, Z: from.Z + (plainPre.LandingZ - from.Z) * 0.4);
         var park = harbor with { Hazards = [.. harbor.Hazards, new Hazard(HazardType.FreezeVolume, disc.X, disc.Z, 8, null)] };
-        var volume = ParkHazards.StatusVolumes(park).Single();
+        var volume = ParkHazards.StatusVolumes(park, rules: Rules.Default).Single();
 
         foreach (var seats in new LiveSeats?[] { null, HumanGlove })
         {

@@ -18,9 +18,9 @@ public static class StrikeZoneGeometry
     /// The pitch's plate crossing is inside the frame. <paramref name="rules"/> is the table the family
     /// flies on — the match's own when a match asks (#855); absent, the process-wide table.
     /// </summary>
-    public static bool Contains(PitchCommand pitch, string? starPitchId = null, RulesTable? rules = null)
+    public static bool Contains(PitchCommand pitch, RulesTable rules, string? starPitchId = null)
     {
-        var p = PitchFlight.Point(pitch, 1, starPitchId, rules: rules);
+        var p = PitchFlight.Point(pitch, 1, rules, starPitchId);
         return Contains(p.X, p.Y);
     }
 }

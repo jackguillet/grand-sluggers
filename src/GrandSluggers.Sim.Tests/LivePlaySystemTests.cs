@@ -188,7 +188,7 @@ public sealed class LivePlaySystemTests
         match.LivePlay.Apply(LivePlayCommand.Begin(field.Kind, source));
         match.LivePlay.Apply(LivePlayCommand.Advance(4.2, field.Kind, false, false, false, 0, source));
         Assert.False(InPlay.DeadBallResultReady(field.Kind, match.LivePlay.ElapsedSeconds,
-            field.HangTimeSec, false, false, false)); // Wall-catch window is still open.
+            field.HangTimeSec, false, false, false, rules: Rules.Default)); // Wall-catch window is still open.
         match.SetPaused(true);
         match.LivePlay.Apply(LivePlayCommand.Advance(10, field.Kind, false, false, false, 0, source));
         Assert.Equal(4.2, match.LivePlay.ElapsedSeconds);
@@ -197,7 +197,7 @@ public sealed class LivePlaySystemTests
             0.2, field.Kind, false, false, false, 0, source)).Snapshot;
         Assert.False(atEnd.IsTime); // Ordinary live-ball Time correctly requires possession.
         Assert.True(InPlay.DeadBallResultReady(field.Kind, atEnd.ElapsedSeconds,
-            field.HangTimeSec, false, false, false));
+            field.HangTimeSec, false, false, false, rules: Rules.Default));
         var command = LivePlayCommand.Complete(Paint, Swing, hit, field, source);
         var result = match.LivePlay.Apply(command).CompletedPlay;
         Assert.Equal(PlayKind.HomeRun, result!.Kind);
@@ -222,7 +222,7 @@ public sealed class LivePlaySystemTests
     public void DeadBallCompletionCannotResolveACatchThrowEffectOrOrdinaryLiveBall(
         PlayKind kind, bool caught, bool throwing, bool effectInFlight)
     {
-        Assert.False(InPlay.DeadBallResultReady(kind, 100, 4, caught, throwing, effectInFlight));
+        Assert.False(InPlay.DeadBallResultReady(kind, 100, 4, caught, throwing, effectInFlight, rules: Rules.Default));
     }
 
     [Fact]
@@ -230,8 +230,8 @@ public sealed class LivePlaySystemTests
     {
         // §7.11: dead at the verdict plus the spectacle beat, never before it.
         Assert.True(InPlay.HasDeadBallResult(PlayKind.Foul));
-        Assert.True(InPlay.DeadBallResultReady(PlayKind.Foul, 100, 4, false, false, false));
-        Assert.False(InPlay.DeadBallResultReady(PlayKind.Foul, 4.1, 4, false, false, false));
+        Assert.True(InPlay.DeadBallResultReady(PlayKind.Foul, 100, 4, false, false, false, rules: Rules.Default));
+        Assert.False(InPlay.DeadBallResultReady(PlayKind.Foul, 4.1, 4, false, false, false, rules: Rules.Default));
     }
 
     (Match Match, AtBatResult Hit, FieldingResult Field) GrounderOnFirst()

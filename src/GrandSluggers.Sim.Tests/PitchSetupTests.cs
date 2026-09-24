@@ -53,7 +53,7 @@ public sealed class PitchSetupTests
         var r = m.RunnerAt(1)!;
         Assert.Equal(0, r.Feet);
         m.PitchSetup.Advance(.1);
-        Assert.Equal(RunnerSystem.SpeedFtPerSec(r.Who, 0, m.Rules) * m.Rules.Running.Steal.AirSpeedMul * .1, r.Feet, 8);
+        Assert.Equal(RunnerSystem.SpeedFtPerSec(r.Who, m.Rules, 0) * m.Rules.Running.Steal.AirSpeedMul * .1, r.Feet, 8);
         var feet = r.Feet;
         var elapsed = m.PitchSetup.ElapsedSeconds;
         m.SetPaused(true);

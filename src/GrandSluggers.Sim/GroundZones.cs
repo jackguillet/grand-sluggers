@@ -145,25 +145,19 @@ public readonly record struct GroundZones
     public string FoulApron { get; init; }
 
     /// <summary>
-    /// The park's zone map, on the process-wide table. Present for the callers that hold no table
-    /// (the same fallback <see cref="ParkBoundary.Default"/> takes); a match hands over its own.
-    /// </summary>
-    public static GroundZones Of(Park park) => Of(park, null);
-
-    /// <summary>
     /// The park's zone map on one rules table. Each zone is what the park's optional <c>zones</c> block
     /// names, else the default derived from <c>surface</c> — <c>outfield</c> and <c>foulApron</c> are
     /// the surface, <c>infieldDirt</c> and <c>warningTrack</c> are dirt. Those defaults are chosen so
     /// that <c>surface</c> keeps exactly the meaning it has: the ground of the outfield. No shipped or
     /// trial park names a <c>zones</c> block, so every park today is its surface plus dirt.
     /// </summary>
-    public static GroundZones Of(Park park, RulesTable? rules)
+    public static GroundZones Of(Park park, RulesTable rules)
     {
         var zones = park.Zones;
         return new GroundZones
         {
             Park = park,
-            InfieldLipFt = Rules.Or(rules).Flight.Classes.InfieldLipFt,
+            InfieldLipFt = rules.Flight.Classes.InfieldLipFt,
             TrackWidthFt = ParkDiamond.TrackWidth,
             InfieldDirt = zones?.InfieldDirt ?? Ground.Dirt,
             Outfield = zones?.Outfield ?? park.Surface,

@@ -20,7 +20,7 @@ public sealed class RunnersShareABagTests
     static void TickUntil(IReadOnlyList<Runner> runners, Func<int, bool> forceAt, Func<bool> done, double maxSec = 12, FlyState fly = FlyState.None)
     {
         for (var t = 0.0; t < maxSec && !done(); t += Frame)
-            RunnerSystem.Tick(runners, Frame, new RunnerTickContext(t, 0, fly, 0, forceAt, NoForce));
+            RunnerSystem.Tick(runners, Frame, new RunnerTickContext(t, 0, fly, 0, forceAt, NoForce), rules: Rules.Default);
     }
 
     /// <summary>A runner from <paramref name="from"/> run all the way onto <paramref name="bag"/> by the tick, next to whoever stands there.</summary>
@@ -66,7 +66,7 @@ public sealed class RunnersShareABagTests
         var closest = double.MaxValue;
         for (var t = 0.0; t < 10; t += Frame)
         {
-            RunnerSystem.Tick(runners, Frame, new RunnerTickContext(t, 0, FlyState.None, 0, NoForce, NoForce));
+            RunnerSystem.Tick(runners, Frame, new RunnerTickContext(t, 0, FlyState.None, 0, NoForce, NoForce), rules: Rules.Default);
             closest = Math.Min(closest, lead.Progress - trail.Progress);
         }
 
@@ -166,9 +166,9 @@ public sealed class RunnersShareABagTests
         TickUntil(runners, NoForce, () => false, maxSec: 2);
         Assert.True(lead.OnBag && trail.OnBag && trail.OnBagSec >= Rules.Default.Running.Bags.TimeOnBagSec);
 
-        Assert.False(InPlay.Time(true, false, 0, true, runners), "two bodies on second: one of them owes the play a move");
+        Assert.False(InPlay.Time(true, false, 0, true, runners, rules: Rules.Default), "two bodies on second: one of them owes the play a move");
         trail.Retire();
-        Assert.True(InPlay.Time(true, false, 0, true, runners));
+        Assert.True(InPlay.Time(true, false, 0, true, runners, rules: Rules.Default));
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public sealed class RunnersShareABagTests
         var runners = new List<Runner> { lead };
         var trail = RunOnto(runners, 1, 2, 1);
         var ball = new BallSituation(true, false, 0, 0, 0, 60, 0, false, 0, 60, 0);
-        RunnerAi.Decide(runners, new RunnerAiContext(0, 0, 0, FlyState.None, ball, 0), NoForce);
+        RunnerAi.Decide(runners, new RunnerAiContext(0, 0, 0, FlyState.None, ball, 0), NoForce, rules: Rules.Default);
         Assert.Equal(1, trail.DestBag);
         TickUntil(runners, NoForce, () => trail.IsOn(1) && trail.OnBag);
 
@@ -198,7 +198,7 @@ public sealed class RunnersShareABagTests
         runners.Add(trail);
         RunnerSystem.MarkShares(runners, NoForce, FlyState.None);
         var ball = new BallSituation(true, false, 0, 0, 0, 60, 0, false, 0, 60, 0);
-        RunnerAi.Decide(runners, new RunnerAiContext(0, 0, 0, FlyState.None, ball, 0), NoForce);
+        RunnerAi.Decide(runners, new RunnerAiContext(0, 0, 0, FlyState.None, ball, 0), NoForce, rules: Rules.Default);
 
         Assert.Equal(2, trail.DestBag);
         Assert.True(trail.Unentitled);

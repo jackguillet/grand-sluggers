@@ -135,10 +135,10 @@ public static class BuntHold
     /// The side's lean on the outgoing bunt in degrees of spray (<c>batting.bunt.sideDeg</c>): toward first is
     /// positive, toward third negative, none is straight. A bias, never a landing point (PH-14-R2).
     /// </summary>
-    public static double LeanDeg(BuntSide side, RulesTable? rules = null) => side switch
+    public static double LeanDeg(BuntSide side, RulesTable rules) => side switch
     {
-        BuntSide.Third => -Rules.Or(rules).Batting.Bunt.SideDeg,
-        BuntSide.First => Rules.Or(rules).Batting.Bunt.SideDeg,
+        BuntSide.Third => -rules.Batting.Bunt.SideDeg,
+        BuntSide.First => rules.Batting.Bunt.SideDeg,
         _ => 0
     };
 }

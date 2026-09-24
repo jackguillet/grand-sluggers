@@ -583,28 +583,28 @@ public sealed class OutsScenarioTests
         runner.BeginPlay(forced: false, tagAndGo: false);
         runner.Send(2);
         // Past the commit fraction (running.cpu.commitFraction): the ordinary read keeps a body this far along going.
-        RunnerSystem.Tick([runner], 1.5, new RunnerTickContext(1.5, 0, FlyState.None, 0, _ => false, _ => false));
+        RunnerSystem.Tick([runner], 1.5, new RunnerTickContext(1.5, 0, FlyState.None, 0, _ => false, _ => false), rules: Rules.Default);
         Assert.True(runner.Feet > Diamond.Baseline * 40 / 90 && runner.DestBag == 2);   // 40 ft of 90 shipped; the same fraction of the C80 path
         runner.MarkRundown(true);
         var second = Diamond.Bag(2);
         var first = Diamond.Bag(1);
         RunnerAiContext Throwing(int bag) => new(1.0, 0, int.MinValue, FlyState.None,
             new BallSituation(false, true, bag, 1.8, bag == 2 ? second.X : first.X, bag == 2 ? second.Z : first.Z, 1.0, false, 60, 70, 90), 0);
-        RunnerAi.Decide([runner], Throwing(2), _ => false);
+        RunnerAi.Decide([runner], Throwing(2), _ => false, rules: Rules.Default);
         Assert.Equal(1, runner.DestBag);
-        RunnerAi.Decide([runner], Throwing(1), _ => false);
+        RunnerAi.Decide([runner], Throwing(1), _ => false, rules: Rules.Default);
         Assert.Equal(2, runner.DestBag);
         // Off the rundown the same throw does not turn a committed body around.
         runner.MarkRundown(false);
-        RunnerAi.Decide([runner], Throwing(2), _ => false);
+        RunnerAi.Decide([runner], Throwing(2), _ => false, rules: Rules.Default);
         Assert.Equal(2, runner.DestBag);
         // Beaten both ways (#640): the ball lands at second before a body 15 ft short of it could get back to first
         // (the throw's next leg beats them there too), so it keeps going and takes the tag at the bag.
-        RunnerSystem.Tick([runner], 1.0, new RunnerTickContext(2.5, 0, FlyState.None, 0, _ => false, _ => false));
+        RunnerSystem.Tick([runner], 1.0, new RunnerTickContext(2.5, 0, FlyState.None, 0, _ => false, _ => false), rules: Rules.Default);
         Assert.True(runner.Feet > Diamond.Baseline * 70 / 90 && runner.DestBag == 2);   // 70 ft of 90 shipped; 62.2 of 80 on the C80 copy
         runner.MarkRundown(true);
         RunnerAi.Decide([runner], new RunnerAiContext(2.5, 0, int.MinValue, FlyState.None,
-            new BallSituation(false, true, 2, 2.8, second.X, second.Z, 2.5, false, 60, 70, 90), 0), _ => false);
+            new BallSituation(false, true, 2, 2.8, second.X, second.Z, 2.5, false, 60, 70, 90), 0), _ => false, rules: Rules.Default);
         Assert.Equal(2, runner.DestBag);
     }
 
@@ -722,8 +722,8 @@ public sealed class OutsScenarioTests
                     inFlight.TargetId = target.Who.Id;
                     // The race the throw is judged on: the way back for a body owing a retouch (§10.5), the way forward otherwise.
                     inFlight.TargetArrivalBeforeLanding = target.LeftEarly && target.FromBag == inFlight.Bag
-                        ? RunnerSystem.ReturnSec(target, live.Dash01, match.Rules)
-                        : RunnerSystem.ArrivalSec(target, inFlight.Bag, live.ElapsedSeconds, live.Dash01, match.Rules);
+                        ? RunnerSystem.ReturnSec(target, match.Rules, live.Dash01)
+                        : RunnerSystem.ArrivalSec(target, inFlight.Bag, live.ElapsedSeconds, match.Rules, live.Dash01);
                 }
             }
             if (inFlight is not null && !live.Throwing)

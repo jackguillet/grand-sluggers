@@ -25,7 +25,7 @@ public sealed class TutorialAbilityTests
             if (move && i > 0)
             {
                 var target = live.Preview!.Grounder
-                    ? (live.BallX, live.BallZ) : FlyCatch.ChaseTarget(live.Preview, run.Match.Park, run.Match.Rules);
+                    ? (live.BallX, live.BallZ) : FlyCatch.ChaseTarget(live.Preview, run.Match.Rules, run.Match.Park);
                 var who = live.Preview.Fielder;
                 var bonus = FieldAbilities.CatchBonus(who, run.Match.Rules)
                     + (live.Preview.Grounder ? FieldAbilities.GroundRangeBonus(who, run.Match.Rules)

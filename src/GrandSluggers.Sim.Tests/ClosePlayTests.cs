@@ -26,7 +26,7 @@ public class ClosePlayTests
         Assert.True(ClosePlay.OffenseSafe(0.10, 0.20));
         Assert.False(ClosePlay.OffenseSafe(0.30, 0.12));
         Assert.True(ClosePlay.OffenseSafe(0.18, 0.18));
-        Assert.True(ClosePlay.CpuReactionSec(10) < ClosePlay.CpuReactionSec(1));
+        Assert.True(ClosePlay.CpuReactionSec(10, rules: Rules.Default) < ClosePlay.CpuReactionSec(1, rules: Rules.Default));
         Assert.Contains("SAFE", ClosePlay.Caption(4, true));
         Assert.Contains("OUT", ClosePlay.Caption(3, false));
     }
@@ -34,11 +34,11 @@ public class ClosePlayTests
     [Fact]
     public void AttackSmashesAFlyingItemAndKicksNearby()
     {
-        Assert.True(FieldDash.KickOffered(12));
-        Assert.False(FieldDash.KickOffered(40));
-        Assert.True(FieldDash.DestroysItem(true, true, 10));
-        Assert.False(FieldDash.DestroysItem(false, true, 10));
-        Assert.False(FieldDash.DestroysItem(true, false, 10));
+        Assert.True(FieldDash.KickOffered(12, rules: Rules.Default));
+        Assert.False(FieldDash.KickOffered(40, rules: Rules.Default));
+        Assert.True(FieldDash.DestroysItem(true, true, 10, rules: Rules.Default));
+        Assert.False(FieldDash.DestroysItem(false, true, 10, rules: Rules.Default));
+        Assert.False(FieldDash.DestroysItem(true, false, 10, rules: Rules.Default));
         var field = new FieldingResult(PlayKind.InPlay, null, null, 1, 0, 40, false, false, Item: "banana", ItemHit: true);
         var smashed = ErrorItems.Smash(field, grounder: true);
         Assert.Equal(PlayKind.InPlay, smashed.Kind);

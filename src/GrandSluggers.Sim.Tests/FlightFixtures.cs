@@ -15,7 +15,7 @@ public static class FlightFixtures
     public static AtBatResult Hit(Park park, double exitMph, double launchDeg, double sprayDeg,
         ContactQuality quality = ContactQuality.Nice, bool bunt = false, RulesTable? rules = null)
     {
-        var ball = BattedBall.Of(exitMph, launchDeg, sprayDeg, bunt, park, rules);
+        var ball = BattedBall.Of(exitMph, launchDeg, sprayDeg, bunt, park, rules ?? Rules.Default);
         return new AtBatResult(quality, !ball.Foul, false, exitMph, launchDeg, Math.Round(ball.LandingDist, 1),
             ball.HomeRun, false, null, null, SprayDeg: sprayDeg, Foul: ball.Foul, Class: ball.Shape);
     }
@@ -28,7 +28,7 @@ public static class FlightFixtures
         for (var i = 0; i < 40; i++)
         {
             var mid = (lo + hi) * 0.5;
-            if (BallFlight.CarryFeet(mid, launchDeg, 0, rules) < carryFt) lo = mid;
+            if (BallFlight.CarryFeet(mid, launchDeg, 0, rules ?? Rules.Default) < carryFt) lo = mid;
             else hi = mid;
         }
         return Math.Round((lo + hi) * 0.5, 1);
@@ -47,7 +47,7 @@ public static class FlightFixtures
         for (var i = 0; i < 40; i++)
         {
             var mid = (lo + hi) * 0.5;
-            var ball = BattedBall.Of(mid, launchDeg, sprayDeg, park, rules);
+            var ball = BattedBall.Of(mid, launchDeg, sprayDeg, park, rules ?? Rules.Default);
             var clear = ball.HomeRun ? ball.FenceClearFt : ball.WallT is not null ? ball.FenceClearFt : double.NegativeInfinity;
             if (clear < clearFt) lo = mid;
             else hi = mid;

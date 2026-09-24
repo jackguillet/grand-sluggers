@@ -129,8 +129,8 @@ public sealed class ParkEnvironmentTests
 
         var open = BallFlight.Trajectory(95, 28, 0, global);
         var heavy = BallFlight.Trajectory(95, 28, 0, thick);
-        Assert.True(BallFlight.FirstLandingDist(heavy) < BallFlight.FirstLandingDist(open) - 10,
-            $"thicker air should cost carry: {BallFlight.FirstLandingDist(open):0.0} -> {BallFlight.FirstLandingDist(heavy):0.0} ft");
+        Assert.True(BallFlight.FirstLandingDist(heavy, rules: Rules.Default) < BallFlight.FirstLandingDist(open, rules: Rules.Default) - 10,
+            $"thicker air should cost carry: {BallFlight.FirstLandingDist(open, rules: Rules.Default):0.0} -> {BallFlight.FirstLandingDist(heavy, rules: Rules.Default):0.0} ft");
 
         // The same swing left the bat: same plate, same instant, the same 28° off it.
         Assert.Equal(open[0].T, heavy[0].T);
@@ -279,12 +279,12 @@ public sealed class ParkEnvironmentTests
         Assert.NotEqual(Rules.Default.Flight.Drag, fixture.Flight.Drag);
 
         // BallFlight.Trajectory, open field and clipped in a park.
-        Assert.True(BallFlight.CarryFeet(95, 28, 0, fixture) < BallFlight.CarryFeet(95, 28, 0) - 10);
+        Assert.True(BallFlight.CarryFeet(95, 28, 0, fixture) < BallFlight.CarryFeet(95, 28, 0, rules: Rules.Default) - 10);
         Assert.True(Landing(park, fixture) < Landing(park, Rules.Default) - 10);
 
         // BattedBall.Of — the one flight the resolver, the preview and the ring share.
         var thrown = BattedBall.Of(95, 28, 0, park, fixture);
-        var light = BattedBall.Of(95, 28, 0, park);
+        var light = BattedBall.Of(95, 28, 0, park, rules: Rules.Default);
         Assert.True(thrown.LandingDist < light.LandingDist - 10,
             $"the batted ball has to use the handed table: {light.LandingDist:0.0} -> {thrown.LandingDist:0.0} ft");
 
@@ -422,7 +422,7 @@ public sealed class ParkEnvironmentTests
     // ---------------------------------------------------------------------------------
 
     static double Landing(Park park, RulesTable rules) =>
-        BallFlight.FirstLandingDist(BallFlight.Trajectory(95, 28, 0, park, rules));
+        BallFlight.FirstLandingDist(BallFlight.Trajectory(95, 28, 0, park, rules), rules: Rules.Default);
 
     /// <summary>
     /// One seeded swing at <paramref name="park"/>, run the way a game runs it: the scripted pitch and press
@@ -442,7 +442,7 @@ public sealed class ParkEnvironmentTests
         Assert.NotNull(preview.Ball);
         Assert.NotNull(live.Path);
         return (hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg,
-            hit.CarryFt, preview.Ball!.LandingDist, BallFlight.FirstLandingDist(live.Path!));
+            hit.CarryFt, preview.Ball!.LandingDist, BallFlight.FirstLandingDist(live.Path!, rules: Rules.Default));
     }
 
     /// <summary>

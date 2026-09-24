@@ -254,7 +254,7 @@ public sealed class HazardLibraryTests
                 foreach (var night in new[] { false, true })
                     Assert.Equal(
                         OldDispatch.InSlow(park, x, z, night),
-                        ParkHazards.InSlow(park, x, z, night, Table));
+                        ParkHazards.InSlow(park, x, z, Table, night));
     }
 
     static BallHazards Live(Park park, bool night = false)
