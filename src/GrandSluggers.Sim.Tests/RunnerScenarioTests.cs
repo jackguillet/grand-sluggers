@@ -93,7 +93,7 @@ public sealed class RunnerScenarioTests
     public void S38_RunnerOnThirdHoldsOnAGrounderToShortWithTheInfieldInAndFewerThanTwoOuts()
     {
         // §9.9: with fewer than two outs the runner on third goes only when the infield is back — the glove meets
-        // the ball at or beyond running.cpu.infieldBackFt (110) from home — or the margin home is there. A grounder
+        // the ball at or behind its own depth from home — or the margin home is there. A grounder
         // the shortstop charges is met inside that line: the infield is in, the runner holds, the throw goes to first.
         var scenario = new Scenario(_content, seed: 1).Runner(3, 2).Outs(1);
         var match = scenario.Match;
@@ -115,7 +115,9 @@ public sealed class RunnerScenarioTests
             if (throwsTo.Count == 0 && third is { Live: true } && (third.DestBag == 4 || third.Feet > 0)) wentBeforeTheThrow = true;
         });
 
-        Assert.True(metFromHome < match.Rules.Running.Cpu.InfieldBackFt, $"the shortstop met the ball {metFromHome:0} ft from home: the infield is in");
+        var ss = Diamond.Positions["SS"];
+        Assert.True(metFromHome < Diamond.Dist(ss.X, ss.Z, Diamond.Home.X, Diamond.Home.Z),
+            $"the shortstop met the ball {metFromHome:0} ft from home, in front of his depth: the infield is in");
         Assert.False(wentBeforeTheThrow, "the runner on third held at contact and at the pickup (§9.9)");
         Assert.Equal(1, Assert.Single(throwsTo));
         Assert.Equal(2, match.Outs);
