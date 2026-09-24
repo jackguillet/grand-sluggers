@@ -10,35 +10,33 @@ public static class Scheme
 
     public static readonly IReadOnlyList<Verb> Product =
     [
-        new("confirm", "South", "Space / Enter", "Left click"),
-        new("charge", "South hold", "Space hold", "Left click hold"),
-        // The special modifier (PH-16-R10, R11, R17): held, read at the accepted release of the pitch or the swing.
-        // A finger button, never a thumb: the right thumb works South. Keyboard + mouse is player 1's Q.
-        new("star", "LB hold at release", "Q hold at release", "Q hold at release"),
-        new("aim-run", "Left stick", "WASD", "Right-drag"),
-        new("bags", "D-pad", "1 2 3 4", "Click bag / mouse quadrant"),
-        // During the pitch (SET and flight) LB is the special modifier, not all-advance (PH-16-R17).
-        new("all-advance", "LB after contact", ", after contact", "Click advance"),
-        new("all-return", "RB", ".", "Click return"),
-        new("steal", "Stick to the next bag / L3", "Z", "Click steal"),
-        new("cyclePitch", "RB", "Tab", "Tab"),
-        new("swap", "Select", "R", "Click swap"),
-        // The held bunt is two directional holds (PH-14-R5): the trigger names the side. Keyboard + mouse is J / L.
-        new("bunt-third", "LT hold", "J hold", "J hold in the box"),
-        new("bunt-first", "RT hold", "L hold", "L hold in the box"),
-        // The explicit swing cancel (PH-13-R1): before the swing button comes up; a committed swing follows through.
-        new("cancel-swing", "East before release", "G", "G before release"),
-        new("cutoff", "LB", "X", "Click relay"),
-        new("cancel-throw", "RB (fielding)", ".", "Click cancel"),
-        new("freeze", "LB+RB", "/", "Click freeze"),
-        new("call-time", "Start", "H", "H"),
-        new("how-to", "Esc", "Esc", "Esc"),
-        new("dash", "South mash", "Space mash", "Left click mash"),
-        new("pickoff", "D-pad + South", "1 2 3 + Space", "Click bag + left click"),
-        new("skip", "East", "G", "Right click (menus)"),
-        new("attack", "North (in-play)", "B", "Middle click (in-play)"),
-        new("dive", "East tap", "G", "Left click while dashing"),
-        new("jump", "West", "F", "Click jump"),
+        new("confirm", "South", "", ""),
+        new("charge", "RT hold / release", "", ""),
+        new("star", "LT hold at RT release", "", ""),
+        new("aim-run", "Left stick", "", ""),
+        new("bags", "Right stick flick", "", ""),
+        new("all-advance", "LB", "", ""),
+        new("all-return", "RB", "", ""),
+        new("steal", "LB", "", ""),
+        new("cyclePitch", "West", "", ""),
+        new("swap", "LB", "", ""),
+        new("bunt-third", "West hold", "", ""),
+        new("bunt-first", "North hold", "", ""),
+        new("cancel-swing", "East before release", "", ""),
+        new("cutoff", "RB", "", ""),
+        new("cancel-throw", "East while queued", "", ""),
+        new("freeze", "D-pad Up", "", ""),
+        new("all-select", "D-pad Down", "", ""),
+        new("call-time", "Start", "", ""),
+        new("how-to", "View / Select", "", ""),
+        new("dash", "South mash", "", ""),
+        new("pickoff", "Right stick held + RT", "", ""),
+        new("skip", "East", "", ""),
+        new("attack", "West", "", ""),
+        new("dive", "East", "", ""),
+        new("jump", "North", "", ""),
+        new("throw", "RT", "", ""),
+        new("catch", "Automatic by position", "", ""),
     ];
 
     public static readonly IReadOnlyList<string> DebugKeys = ["F1", "F2", "F3"];

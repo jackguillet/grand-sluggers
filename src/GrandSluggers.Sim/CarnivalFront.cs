@@ -4,11 +4,11 @@ namespace GrandSluggers.Sim;
 /// Exhibition front of house: the park is the poster, captains are toys, the field is a postcard.
 /// HUD draws this copy; tests lock it. Not a second UI toolkit.
 /// </summary>
-public static class CarnivalFront
+public static partial class CarnivalFront
 {
     public const string ExhibitionTitle = "EXHIBITION · BUILD YOUR MATCH";
     public const string Logo = "GRAND SLUGGERS";
-    public const string PlayBall = "South / Space    play ball";
+    public const string PlayBall = "EXHIBITION";
     public const string YouAreHome = "HOME";
     public const string YouAreAway = "AWAY";
 
@@ -20,7 +20,7 @@ public static class CarnivalFront
     public const string OnePlayer = "1 PLAYER";
     public const string TwoPlayers = "2 PLAYERS";
     public const string SelectHelp =
-        "LB 1 player    RB 2 players    L/R your team    U/D the other    North HOME/AWAY    South lineup    West stadium";
+        "Up/down choose • Left/right change • South confirm • East stadium";
     public const string PlugPad2 = "Plug in controller 2. Until then you play the CPU.";
 
     public static string SeatModeLabel(bool versus) => versus ? TwoPlayers : OnePlayer;
@@ -231,7 +231,7 @@ public static class CarnivalFront
         TitleSetup(innings, level, rules) + "  ·  " + HazardsLabel(hazards);
 
     /// <summary>The field postcard's footer: every verb on the screen, the hazards switch beside night.</summary>
-    public const string FieldFooter = "stick L/R the field    South captains    West title    N night    R hazards    Esc how to play";
+    public const string FieldFooter = "Up/down choose • Left/right change • South confirm • East title • View controls";
 
     /// <summary>What the caption calls the redirect the ball went through (F4-c). Copy, not a rule.</summary>
     public static string RedirectName(string? type) => type switch
@@ -337,16 +337,16 @@ public static class CarnivalFront
     public const string SetupEditSettings = "Edit settings";
     public const string SetupBackPositions = "Positions / order";
     public const string SetupWaiting = "P1 ready · waiting";
-    public static string SetupNightLabel(bool on, bool keys) => "Night mode   " + (on ? "ON" : "OFF") + (keys ? "    N" : "    R3");
-    public static string SetupHazardsLabel(bool on, bool keys) => "Hazards   " + (on ? "ON" : "OFF") + (keys ? "    R" : "    Select");
-    public static string SetupStadiumHelp(bool keys) => keys ? "A/D  Stadium    Space  Captains    F  Back" : "Stick  Stadium    South  Captains    West  Back";
+    public static string SetupNightLabel(bool on, bool keys) => "Night mode   " + (on ? "ON" : "OFF") + (keys ? "    N" : "");
+    public static string SetupHazardsLabel(bool on, bool keys) => "Hazards   " + (on ? "ON" : "OFF") + (keys ? "    R" : "");
+    public static string SetupStadiumHelp(bool keys) => keys ? "A/D  Stadium    Space  Captains    F  Back" : "Up/down choose    Left/right change    South confirm    East back";
     public static string SetupPickLineup(bool keys) => keys ? "Space  Pick lineup →" : "South  Pick lineup →";
     public static string SetupCaptainHelp(bool keys) => keys
         ? "A/D  Your team    W/S  Opponent    Q  Home / away\nComma  1 player    Tab  2 players    F  Back"
-        : "L/R  Your team    U/D  Opponent    North  Home / away\nLB  1 player    RB  2 players    West  Back";
+        : "Up/down choose    Left/right change\nSouth confirm    East back";
     public static string SetupAwayName(string captain) => captain + " at";
     public static string SetupPlayBall(bool keys) => keys ? "Q  Ready / play ball" : "North  Ready / play ball";
-    public static string SetupRulesHelp(bool keys) => keys ? "W/S  Select     A/D or Space  Change\nF  Back     Esc  How to play" : "Stick  Select / change     South  Change\nWest  Back     Esc  How to play";
+    public static string SetupRulesHelp(bool keys) => keys ? "W/S  Select     A/D or Space  Change\nF  Back     Esc  How to play" : "Stick  Select / change     South  Change\nEast  Back     View  How to play";
     public static string SetupReadySeat(LineupSeat seat, bool ready) => (seat == LineupSeat.Pad1 ? "P1" : "P2") + (ready ? " · READY" : " · NOT READY");
-    public static string SetupReadyHelp(bool keys) => keys ? "Q  Ready    F  Edit" : "North  Ready    West  Edit";
+    public static string SetupReadyHelp(bool keys) => keys ? "Q  Ready    F  Edit" : "North  Ready    East  Edit";
 }

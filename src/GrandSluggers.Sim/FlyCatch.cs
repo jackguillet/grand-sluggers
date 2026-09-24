@@ -97,7 +97,8 @@ public static class FlyCatch
 
     /// <summary>
     /// Stick-owned catch. Jump is the leap while it is armed, not only the
-    /// press frame. South scoops a routine fly you are under — not a rob.
+    /// press frame. Ordinary catches need position and eligibility, never a button.
+    /// southDown remains a compatibility argument for recordings and has no catch effect.
     /// </summary>
     public static bool PlayerCaught(
         bool jumpDown,
@@ -105,8 +106,10 @@ public static class FlyCatch
         bool under,
         bool inWindow,
         bool needsJump,
-        bool canRob = true) =>
-        (jumpDown && inWindow && under && (!needsJump || canRob)) || (southDown && under && !needsJump);
+        bool canRob = true,
+        bool linerInAir = false) =>
+        (jumpDown && inWindow && under && (!needsJump || canRob))
+        || AutoCatch(under, inWindow, needsJump, canRob: false, linerInAir: linerInAir);
 
     /// <summary>
     /// East dive at the rim (#669): past the stand-up ring, inside dive reach, ball low

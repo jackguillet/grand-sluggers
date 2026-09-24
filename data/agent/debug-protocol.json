@@ -69,7 +69,7 @@
       "stage": "sitting",
       "cause": "HowToPlay.cs contents KeyLines and ControlDiagram.KeysCallouts lumped H and Esc. docs/how-to-play.md intro and the face table said Esc opens Call time. Scheme and Controls.HowTo already split them (#348): H is Call time, Esc is the book.",
       "fix": "H / Start is Call time. Esc is How to play, including at first pitch. Name each verb in the book, the hardware diagram, and how-to-play.md. Do not change the shortcut.",
-      "promoted": "SchemeTests.HCallsTimeAndEscOpensTheBook",
+      "promoted": "SchemeTests.EveryProductVerbHasControllerOnlyBindings",
       "issue": "#629",
       "pr": "#663"
     },
@@ -572,6 +572,43 @@
       "fix": "BroadcastHud.Mode follows the plate/live phase with a compact runner diamond and outs during play. Effect clocks do not control HUD visibility. Only explicit capture/debug mute hides play overlays.",
       "promoted": "BroadcastHudTests.ContactHandsOffToLiveInformationAndNextPlateReturnsWithoutDelay",
       "issue": "#981",
+      "pr": ""
+    },
+    {
+      "id": "star-runner-input-collision",
+      "signature": "Steal and Star hit compete on LB; moving the batter also sends a selected runner",
+      "stage": "sitting",
+      "cause": "Role and phase-dependent hardware meanings shared the Star bumper and the batter movement stick with runner orders.",
+      "fix": "ControllerLayout keeps LT Star, RT baseball and LB/RB runner orders independent across SET, flight and contact. Right-stick selection is separate from left-stick movement; automatic catches never create a throw request.",
+      "promoted": "ControllerInputTests.StarAndRunnerOrdersAreIndependentDuringASwing",
+      "issue": "#983"
+    },
+    {
+      "id": "macos-synthetic-controller-stall",
+      "signature": "Unity stops at Initializing Unity extensions; sample waits in AppleSyntheticGameController and IOServiceOpen; older editor waits in InputShutdown",
+      "stage": "unity-console",
+      "cause": "Observed macOS synthetic controller connection stall shared by an older editor and a new editor, before the new editor ran game code. Underlying OS cause is unproven.",
+      "fix": "Follow docs/editor-startup.md: identify PIDs and stacks, disconnect only the implicated controller, preserve pairing and unsaved work, and obtain explicit approval before force-quitting stuck editors. Clearing the approved stale sessions restored startup and 35 real input checks. Do not disable OS protections.",
+      "issue": "#983"
+    },
+    {
+      "id": "lineup-fill-button-binding-drift",
+      "signature": "RB Fill team is displayed but pressing RB does nothing in Team Setup.",
+      "stage": "sitting",
+      "cause": "FlowDirector.TickLineupPad moved fill to West only from pool focus while TeamSheet still advertised RB.",
+      "fix": "RB fills the acting seat from any team-setup focus; West removes. AtBatInputGate.VerifyLineupFill validates both controllers in both home/away assignments through real input routing.",
+      "promoted": "",
+      "issue": "#988",
+      "pr": ""
+    },
+    {
+      "id": "captain-setup-overlap",
+      "signature": "Captain stats and home-away caption overlap; setup navigation covers the selected characters.",
+      "stage": "sitting",
+      "cause": "Independent HudView.Select pixel rectangles and SetupSheet.CaptainFocus rows were drawn over the same selection screen.",
+      "fix": "CaptainSheet owns a scaled board with two team panels, a separate portrait row and footer; match options live on stadium setup. The layout test checks all panel and portrait pairs, and the GUI gate captures every captain.",
+      "promoted": "CaptainSelectionTests.TeamPanelsAndEveryPortraitHaveSeparateSpaceAboveTheFooter",
+      "issue": "#987",
       "pr": ""
     },
     {

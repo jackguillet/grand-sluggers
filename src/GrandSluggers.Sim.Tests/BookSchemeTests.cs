@@ -51,7 +51,7 @@ public class BookSchemeTests : IDisposable
     {
         Assert.NotEmpty(ControlDiagram.PadParts);
         Assert.NotEmpty(ControlDiagram.KeysParts);
-        Assert.Contains(ControlDiagram.PadCallouts, c => c.Hardware == "South");
+        Assert.Contains(ControlDiagram.PadCallouts, c => c.Hardware.StartsWith("South"));
         Assert.Contains(ControlDiagram.PadCallouts, c => c.Hardware.Contains("stick", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(ControlDiagram.PadCallouts, c => c.Offense.Contains("steal", StringComparison.OrdinalIgnoreCase)
             || c.Always.Contains("Move", StringComparison.OrdinalIgnoreCase));
@@ -128,7 +128,7 @@ public class BookSchemeTests : IDisposable
         Assert.NotNull(page.KeyLines);
         var pad = page.Shown(InputScheme.Pad);
         var keys = page.Shown(InputScheme.Keys);
-        Assert.Contains(pad, l => l.Contains("South"));
+        Assert.Contains(pad, l => l.Contains("RT"));
         Assert.DoesNotContain(pad, l => l.Contains("Space"));
         Assert.Contains(keys, l => l.Contains("Space") || l.Contains("left click"));
         Assert.DoesNotContain(keys, l => l.Contains("South"));

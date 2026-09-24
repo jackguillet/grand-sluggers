@@ -91,40 +91,13 @@ namespace GrandSluggers.UnityClient
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                $"South / Space pick stadium    West / F tutorials    Esc how to play    Start / H mode    F6 input: {Controls.Player1InputLabel}", _tiny);
+                "South confirm    East back    View how to play    Start options", _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,
             bool versus = false, bool pad2 = false)
         {
-            Ensure();
-            DrawSeatModeTabs(versus);
-            var yours = pad1Home ? homeId : awayId;
-            var theirs = pad1Home ? awayId : homeId;
-            if (content != null && content.Characters.TryGetValue(yours, out var youWho))
-                Card(CharacterCard.Of(youWho), 36, 28);
-            var vs = "vs  ";
-            if (content != null && content.Characters.TryGetValue(theirs, out var themWho))
-                vs += themWho.Name;
-            Sticker(CarnivalFront.SeatMark(pad1Home) + "  " + vs, 36, 268, 480, 24, _gold);
-            GUI.Label(new Rect(36, 300, 520, 22), CarnivalFront.SeatModeHint(versus, pad2, pad1Home), _tiny);
-            SetupSheet.CaptainControls();
-        }
-
-        static void DrawSeatModeTabs(bool versus)
-        {
-            DrawSeatModeTab(false, versus);
-            DrawSeatModeTab(true, versus);
-        }
-
-        static void DrawSeatModeTab(bool two, bool versus)
-        {
-            var t = CarnivalFront.SeatModeTab(two, Screen.width, Screen.height);
-            var r = new Rect(t.X, t.Y, t.W, t.H);
-            var on = two == versus;
-            GUI.DrawTexture(r, on ? _ink : _panel);
-            GUI.Label(new Rect(r.x + 8, r.y + 6, r.width - 12, r.height - 8),
-                CarnivalFront.SeatModeLabel(two), on ? _h1 : _body);
+            CaptainSheet.Draw(new CaptainSelection(new ExhibitionPick(homeId, awayId, ExhibitionPick.DefaultPark, pad1Home), versus), content, pad2);
         }
 
         public static void Card(CharacterCard card, float x, float y)
@@ -333,7 +306,7 @@ namespace GrandSluggers.UnityClient
                 Screen.width, Screen.height, MeasureWidth(_bookHeader, pageLabel));
             GUI.Label(ToRect(header.Title), p.Title.ToUpperInvariant(), _bookHeader);
             GUI.Label(ToRect(header.Page), pageLabel, _bookHeaderNumber);
-            DrawSchemeToggle(scheme);
+
             DrawSchemeBadges(p, scheme);
             if (p.Id == "contents")
                 DrawContentsToc(p);

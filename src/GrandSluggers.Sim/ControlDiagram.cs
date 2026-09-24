@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class ControlDiagram
 {
-    public static readonly IReadOnlyList<string> PageIds = ["controls", "controls-2", "controls-3"];
+    public static readonly IReadOnlyList<string> PageIds = ["controls", "controls-2", "controls-3", "controls-4"];
     public sealed record Part(string Id, float U, float V, float W, float H);
 
     public sealed record Callout(
@@ -27,10 +27,10 @@ public static class ControlDiagram
     }
 
     public static IReadOnlyList<Part> Parts(InputScheme scheme) =>
-        scheme == InputScheme.Keys ? KeysParts : PadParts;
+        PadParts;
 
     public static IReadOnlyList<Callout> Callouts(InputScheme scheme) =>
-        scheme == InputScheme.Keys ? KeysCallouts : PadCallouts;
+        PadCallouts;
 
     public static IReadOnlyList<Callout> PageCallouts(InputScheme scheme, string pageId)
     {
@@ -86,24 +86,18 @@ public static class ControlDiagram
 
     public static readonly IReadOnlyList<Callout> PadCallouts =
     [
-        new("stick", "Left stick", "To the next bag: steal (L3 too)", "", "Move / run", 0.02f, 0.38f),
-        new("dpad", "D-pad", "", "", "Bags — 1B 2B 3B home", 0.02f, 0.56f),
-        // The triggers are the held bunt (PH-14-R5): LT toward third, RT toward first. A trigger held for a bunt
-        // is no other verb until it comes up (PH-14-R6); LT stays the item modifier after a fresh press.
-        new("lt", "LT / RT", "Hold to bunt: LT third, RT first · LT + RB item", "", "", 0.02f, 0.20f),
-        // RB is the mound's cycle in SET (PH-02-R5, #825). It rides the shoulder lozenge it already
-        // shares with all-return rather than taking a new card: the pad spread is three couch-size
-        // pages and a fourth two-action callout on any one of them does not fit at 1024×768.
-        // LB is the held special modifier during the pitch for both seats (PH-16-R17); all-advance is LB once the
-        // ball is live.
-        new("lb", "LB / RB", "Hold LB as you let go: star swing · after contact all advance / return",
-            "Hold LB as you let go: star pitch · cutoff · RB cycles the pitch in SET", "", 0.02f, 0.28f),
-        new("south", "South", "Hold/release pitch / swing; dash", "Catch / throw", "", 0.70f, 0.50f),
-        new("east", "East", "Cancel a loaded swing", "Dive", "Back", 0.70f, 0.40f),
-        new("west", "West", "", "Jump", "", 0.70f, 0.30f),
-        new("north", "North", "", "Attack", "", 0.70f, 0.20f),
-        new("select", "Select", "", "", "Swap glove / pitcher", 0.70f, 0.62f),
-        new("start", "Start", "", "", "Call time", 0.70f, 0.72f),
+        new("stick", "Left stick", "Move batter", "Move glove / break pitch", "", 0, 0),
+        new("right-stick", "Right stick", "Runner", "Throw base", "Flick", 0, 0),
+        new("dpad", "D-pad", "Up halt / Down ALL", "", "Menus", 0, 0),
+        new("rt", "RT", "Swing", "Pitch / throw", "", 0, 0),
+        new("lt", "LT", "Star swing", "Star pitch", "", 0, 0),
+        new("lb", "LB / RB", "Advance-steal / return", "Switch / relay", "Pages", 0, 0),
+        new("south", "South · Confirm", "Dash / close", "Close", "", 0, 0),
+        new("east", "East · Back", "Cancel swing", "Dive / cancel", "", 0, 0),
+        new("west", "West · Secondary", "Bunt 3B / slide", "Pitch / attack", "", 0, 0),
+        new("north", "North · Ready", "Bunt 1B", "Jump / buddy", "", 0, 0),
+        new("select", "View / Select", "", "", "How to play", 0, 0),
+        new("start", "Start / Menu", "", "", "Call time / options", 0, 0),
     ];
 
     public static readonly IReadOnlyList<Part> KeysParts =

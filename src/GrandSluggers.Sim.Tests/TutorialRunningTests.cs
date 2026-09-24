@@ -70,6 +70,24 @@ public sealed class TutorialRunningTests
         }
     }
 
+    [Fact]
+    public void ControllerSelectionSendHaltAndReturnEarnAndReplayTheRunnerLesson()
+    {
+        var run = Start("T-R01");
+        for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
+        {
+            var runner = run.Match.RunnerAt(2);
+            var order = runner is null ? new RunnerOrderInput()
+                : runner.Held ? new(Return: true)
+                : runner.Phase == RunnerPhase.Returning ? new()
+                : runner.Feet > 8 ? new(Halt: true)
+                : new(SelectBag: i == 0 ? 2 : 0, Advance: true);
+            run.Tick(Frame, new LivePadInput(Orders: order));
+        }
+        Assert.True(run.Feedback?.Success, run.Feedback?.Detail);
+        Assert.Equal(run.Feedback, TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording()).Feedback);
+    }
+
     [Theory]
     [InlineData("T-R01")]
     [InlineData("T-R02")]
