@@ -149,15 +149,15 @@ public sealed class HazardsOffTests
     /// </summary>
     static IReadOnlyList<(string Park, bool Night, int Seed)> NoHazardEventSeeds =>
         [
-            ("crystal-rink", false, 1),   // a freeze volume slows the chase (a Crystal night is its day since FD-11-R2)
-            ("ember-keep", true, 1),      // a lava pit or the breath slows the chase
-            ("funfair-park", true, 16),   // a chomper or a can redirects the ball
-            ("canopy-yard", false, 4),    // a barrel redirects the ball
-            ("rooftop-city", false, 2)    // a billboard pays the batting team
+            (ParkIds.Crystal, false, 1),   // a freeze volume slows the chase (a Crystal night is its day since FD-11-R2)
+            (ParkIds.Ember, true, 1),      // a lava pit or the breath slows the chase
+            (ParkIds.Funfair, true, 16),   // a chomper or a can redirects the ball
+            (ParkIds.Canopy, false, 4),    // a barrel redirects the ball
+            (ParkIds.Rooftop, false, 2)    // a billboard pays the batting team
         ];
 
     /// <summary>A park, a condition and a seed at which the switch changes the whole game.</summary>
-    static (string Park, bool Night, int Seed) DefaultOnGame => ("canopy-yard", false, 4);
+    static (string Park, bool Night, int Seed) DefaultOnGame => (ParkIds.Canopy, false, 4);
 
     /// <summary>
     /// <c>SF-24</c>, the event half. Over the fixed seed set, hazards on plays at least one hazard outcome
@@ -238,7 +238,7 @@ public sealed class HazardsOffTests
     /// </summary>
     static (double Carry, double Spray) RinkFly()
     {
-        var rink = Catalog.MustPark("crystal-rink");
+        var rink = Catalog.MustPark(ParkIds.Crystal);
         var deep = rink.Hazards
             .Where(h => Catalog.Rules.Hazards.Of(h.Type).Pattern == HazardPattern.StatusVolume)
             .OrderByDescending(h => Diamond.Dist(0, 0, h.X, h.Z))
@@ -262,7 +262,7 @@ public sealed class HazardsOffTests
         {
             // Match.Slice's teams, so the glove that plays the fly is the one ParkSlowRowsTests slows.
             var match = new Match(Catalog, PresetTeams.EmberCourt(Catalog), PresetTeams.SparkAllStars(Catalog),
-                Catalog.MustPark("crystal-rink"), seed: 1, hazards: hazards);
+                Catalog.MustPark(ParkIds.Crystal), seed: 1, hazards: hazards);
             var hit = FlightFixtures.Landing(match.Park, carry, 30, spray);
             var preview = match.PreviewHit(hit);
             Assert.False(preview.Frozen);
@@ -281,9 +281,9 @@ public sealed class HazardsOffTests
             Assert.Equal(HumanGlove, human.Context!.Seats);
             Assert.Same(match.Park, human.Context.Park);
 
-            var cpu = Match.Slice(Catalog, seed: 1, parkId: "crystal-rink");
+            var cpu = Match.Slice(Catalog, seed: 1, parkId: ParkIds.Crystal);
             if (!hazards) cpu = new Match(Catalog, PresetTeams.EmberCourt(Catalog), PresetTeams.SparkAllStars(Catalog),
-                Catalog.MustPark("crystal-rink"), seed: 1, hazards: false);
+                Catalog.MustPark(ParkIds.Crystal), seed: 1, hazards: false);
             Assert.Equal(hazards, cpu.Hazards);
             // The CPU's first half-dozen live plays: each one's trace names the park the live ball ran on.
             cpu.Tracing = true;

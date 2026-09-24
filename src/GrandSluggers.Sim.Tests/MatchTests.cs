@@ -431,7 +431,7 @@ public class MatchTests
     [Fact]
     public void PerfectAshlordSwingCanLeaveTheYard()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         var input = new AtBatInput(
             _content.Must("rio"), _content.Must("ashlord"), _content.Must("cinder"), [],
             false, false, 0, false, true,
@@ -470,8 +470,8 @@ public class MatchTests
     [Fact]
     public void CrystalRinkHasFreezeHazards()
     {
-        var match = Match.Slice(_content, seed: 1, parkId: "crystal-rink");
-        Assert.Equal("crystal-rink", match.Park.Id);
+        var match = Match.Slice(_content, seed: 1, parkId: ParkIds.Crystal);
+        Assert.Equal(ParkIds.Crystal, match.Park.Id);
         Assert.Equal("ice", match.Park.Surface);
         // The C80 copy carries the hazards at the field's scale (#732): this volume stands at (47, 83). It stood at
         // (40, 70) / (36, 62) on the first-second lane until FD-19-R1 moved it outward along its own bearing (F4-e, #862).
@@ -493,7 +493,7 @@ public class MatchTests
     [Fact]
     public void CrystalGameFinishes()
     {
-        var match = Match.Slice(_content, innings: 3, seed: 11, parkId: "crystal-rink");
+        var match = Match.Slice(_content, innings: 3, seed: 11, parkId: ParkIds.Crystal);
         match.AutoPlayGame();
         Assert.True(match.Over);
         Assert.True(match.Log.Count > 8);
@@ -502,8 +502,8 @@ public class MatchTests
     [Fact]
     public void FunfairHasWarpPipes()
     {
-        var park = _content.Parks["funfair-park"];
-        Assert.Equal("funfair-park", park.Id);
+        var park = _content.Parks[ParkIds.Funfair];
+        Assert.Equal(ParkIds.Funfair, park.Id);
         Assert.Equal("grass", park.Surface);
         Assert.Contains(park.Hazards, h => h.Type == "warp_pipe");
         Assert.Contains(park.Hazards, h => h.Type == "warp_pipe" && h.Tag == "A");
@@ -522,8 +522,8 @@ public class MatchTests
     [Fact]
     public void RooftopHasBillboards()
     {
-        var park = _content.Parks["rooftop-city"];
-        Assert.Equal("rooftop-city", park.Id);
+        var park = _content.Parks[ParkIds.Rooftop];
+        Assert.Equal(ParkIds.Rooftop, park.Id);
         Assert.Equal("dirt", park.Surface);
         Assert.Contains(park.Hazards, h => h.Type == "billboard");
         Assert.Contains(park.Hazards, h => h.Type == "ac_unit");
@@ -551,7 +551,7 @@ public class MatchTests
     [Fact]
     public void FourParksFinishAGame()
     {
-        foreach (var id in new[] { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city" })
+        foreach (var id in new[] { ParkIds.Harbor, ParkIds.Crystal, ParkIds.Funfair, ParkIds.Rooftop })
         {
             var match = Match.Slice(_content, innings: 3, seed: 5, parkId: id);
             match.AutoPlayGame();
@@ -562,8 +562,8 @@ public class MatchTests
     [Fact]
     public void CanopyYardHasBarrelsAndClimbWalls()
     {
-        var park = _content.Parks["canopy-yard"];
-        Assert.Equal("canopy-yard", park.Id);
+        var park = _content.Parks[ParkIds.Canopy];
+        Assert.Equal(ParkIds.Canopy, park.Id);
         Assert.Equal("dirt", park.Surface);
         Assert.Contains(park.Hazards, h => h.Type == "barrel");
         Assert.Contains(park.Hazards, h => h.Type == "tree");
@@ -579,8 +579,8 @@ public class MatchTests
     [Fact]
     public void EmberKeepLavaSlowsFielders()
     {
-        var park = _content.Parks["ember-keep"];
-        Assert.Equal("ember-keep", park.Id);
+        var park = _content.Parks[ParkIds.Ember];
+        Assert.Equal(ParkIds.Ember, park.Id);
         Assert.Equal("ash", park.Surface);
         Assert.Contains(park.Hazards, h => h.Type == "lava_pit");
         Assert.Contains(park.Hazards, h => h.Type == "fire_breath");
@@ -590,25 +590,25 @@ public class MatchTests
         var (pitX, pitZ) = (44.0, 89.0);
         Assert.True(ParkHazards.InSlow(park, pitX, pitZ, rules: Rules.Default));
         Assert.False(ParkHazards.InSlow(park, 0, 0, rules: Rules.Default));
-        Assert.Equal("ember-keep", PresetTeams.HomeParkId(_content, "ashlord"));
-        Assert.Equal("canopy-yard", PresetTeams.HomeParkId(_content, "konga"));
+        Assert.Equal(ParkIds.Ember, PresetTeams.HomeParkId(_content, "ashlord"));
+        Assert.Equal(ParkIds.Canopy, PresetTeams.HomeParkId(_content, "konga"));
     }
 
     [Fact]
     public void ClamberRobsAJustOverFenceHomer()
     {
-        var park = _content.Parks["canopy-yard"];
+        var park = _content.Parks[ParkIds.Canopy];
         var hit = FlightFixtures.OverTheFence(park, 12, 0);
         Assert.True(ParkHazards.CanClamberRob(park, _content.Must("konga"), hit, rules: Rules.Default));
         Assert.False(ParkHazards.CanClamberRob(park, _content.Must("ashlord"), hit, rules: Rules.Default));
-        Assert.False(ParkHazards.CanClamberRob(_content.Parks["harbor-diamond"], _content.Must("konga"), hit, rules: Rules.Default));
+        Assert.False(ParkHazards.CanClamberRob(_content.Parks[ParkIds.Harbor], _content.Must("konga"), hit, rules: Rules.Default));
     }
 
     [Fact]
     public void SixParksFinishAGame()
     {
         foreach (var id in new[]
-                 { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" })
+                 { ParkIds.Harbor, ParkIds.Crystal, ParkIds.Funfair, ParkIds.Rooftop, ParkIds.Canopy, ParkIds.Ember })
         {
             var match = Match.Exhibition(_content, "konga", "ashlord", innings: 3, seed: 8, parkId: id);
             match.AutoPlayGame();

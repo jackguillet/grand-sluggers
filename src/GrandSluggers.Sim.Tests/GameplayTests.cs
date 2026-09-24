@@ -12,7 +12,7 @@ public class GameplayTests
     {
         // PH-16-R1, PH-16-R18: the charmball once narrowed the window (batterWindowMul 0.75), so a
         // swing just inside the plain window missed it. Now the same swing meets both pitches alike.
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         var vale = _content.Must("vale");
         var rio = _content.Must("rio");
         var bat = _content.Bats["harbor-lumber"];
@@ -39,7 +39,7 @@ public class GameplayTests
     [Fact]
     public void RolePlayerStarSwingIsAGrounder()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         var input = new AtBatInput(
             _content.Must("vale"), _content.Must("dart"), _content.Must("zig"), [],
             false, false, 0, false, true,
@@ -76,7 +76,7 @@ public class GameplayTests
     [Fact]
     public void SuperJumpHasAirRobRange()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         var nico = _content.Must("nico");
         var hit = FlightFixtures.OverTheFence(park, 10, 0);
         Assert.True(FieldAbilities.AirRob(park, nico, hit, rules: Rules.Default));

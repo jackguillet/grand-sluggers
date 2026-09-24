@@ -269,7 +269,7 @@ public sealed class FielderTellsTests
         var d = Defense;
         var home = content.Team("Defense", d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8]);
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
-        var match = Match.Exhibition(content, home, away, 3, seed, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, seed, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, quality, rules: match.Rules);
         Assert.False(hit.Foul);
         var preview = match.PreviewHit(hit);
@@ -283,7 +283,7 @@ public sealed class FielderTellsTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "grit", "marlow", "vine", "basil", "hex");
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "konga", "ashlord");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);

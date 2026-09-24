@@ -11,7 +11,7 @@ public sealed class BuddyJumpTests
     Match Defense()
     {
         var home = _content.Team("Buddies", "vale", "pewter", "lace", "frost", "grit", "marlow", "zig", "dart", "nico");
-        return Match.Exhibition(_content, home, PresetTeams.EmberCourt(_content), seed: 1, parkId: "harbor-diamond");
+        return Match.Exhibition(_content, home, PresetTeams.EmberCourt(_content), seed: 1, parkId: ParkIds.Harbor);
     }
 
     [Theory]

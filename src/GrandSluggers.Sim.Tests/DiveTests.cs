@@ -127,7 +127,7 @@ public sealed class DiveTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Hit(match.Park, ball?.Exit ?? 115, ball?.Launch ?? 16, ball?.Spray ?? 2, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         return (match, hit, preview);

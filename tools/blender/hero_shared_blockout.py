@@ -14,7 +14,6 @@ Stage 1 blocking (data/agent/dcc-stages.json): --clay scratchpad/takes/body.png,
 from __future__ import annotations
 
 import argparse
-import json
 import math
 import shutil
 import sys
@@ -23,8 +22,11 @@ from pathlib import Path
 import bpy
 from mathutils import Vector
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import data_json  # noqa: E402  (tools/ is not a package)
 
-RIG = json.loads((Path(__file__).resolve().parents[2] / "data/art/rig.json").read_text())
+
+RIG = data_json.read(Path(__file__).resolve().parents[2] / "data/art/rig.json")
 BONES = RIG["bones"]
 ANATOMY = RIG["anatomy"]
 

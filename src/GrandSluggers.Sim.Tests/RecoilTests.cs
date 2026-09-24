@@ -208,7 +208,7 @@ public sealed class RecoilTests
             home = home with { Captain = p, Roster = home.Roster.Select(c => c.Id == p.Id ? p : c).ToList() };
         }
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Hit(match.Park, exitMph, launchDeg, sprayDeg, quality, rules: match.Rules);
         Assert.False(hit.Foul);
         var preview = match.PreviewHit(hit);

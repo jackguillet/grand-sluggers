@@ -10,8 +10,8 @@ public class HarborPostcardTests
     [Fact]
     public void FieldPickAndLiveSetShareOneHarborDress()
     {
-        Assert.True(HarborPostcard.Owns("harbor-diamond"));
-        Assert.False(HarborPostcard.Owns("crystal-rink"));
+        Assert.True(HarborPostcard.Owns(ParkIds.Harbor));
+        Assert.False(HarborPostcard.Owns(ParkIds.Crystal));
         Assert.True(_content.Art.TryPark(HarborPostcard.ParkId, out var kit) && kit.Placed);
         var field = _content.Shots.Must("field");
         var harbor = _content.Parks[HarborPostcard.ParkId];

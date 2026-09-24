@@ -50,7 +50,7 @@ public sealed class ParkEnvironmentTests
         var catalog = Catalog;
         Assert.Equal(6, catalog.Parks.Count);
         // Every park that names no air (F9-a: Crystal names its cold air and resolves to a copy, F9A_… below).
-        Assert.Equal(["crystal-rink"], catalog.Parks.Values.Where(p => p.Environment is not null).Select(p => p.Id));
+        Assert.Equal([ParkIds.Crystal], catalog.Parks.Values.Where(p => p.Environment is not null).Select(p => p.Id));
         foreach (var park in catalog.Parks.Values.Where(p => p.Environment is null))
         {
             Assert.Null(park.Environment);
@@ -67,7 +67,7 @@ public sealed class ParkEnvironmentTests
     public void SF01_TheMatchAtHarborPlaysTheCatalogsOwnTable()
     {
         var match = Match.Exhibition(Catalog, "rio", "ashlord", innings: 3, seed: 7);
-        Assert.Equal("harbor-diamond", match.Park.Id);
+        Assert.Equal(ParkIds.Harbor, match.Park.Id);
         Assert.Same(Catalog.Rules, match.Rules);
         var hard = Match.Exhibition(Catalog, "rio", "ashlord", innings: 3, seed: 7, difficulty: "hard");
         Assert.Same(Catalog.Rules.Flight, hard.Rules.Flight);
@@ -340,7 +340,7 @@ public sealed class ParkEnvironmentTests
             Assert.DoesNotContain("environment", PlayTraceIdentity.Capture(match).InputsJson, StringComparison.OrdinalIgnoreCase);
         }
         // Crystal names its air (F9-a), so its identity carries it.
-        var crystal = new Match(Catalog, away, home, Catalog.MustPark("crystal-rink"), innings: 3, seed: 7);
+        var crystal = new Match(Catalog, away, home, Catalog.MustPark(ParkIds.Crystal), innings: 3, seed: 7);
         Assert.Contains("\"dragMul\":1.06", PlayTraceIdentity.Capture(crystal).InputsJson);
     }
 
@@ -409,7 +409,7 @@ public sealed class ParkEnvironmentTests
 
         Assert.Empty(ContentDataValidator.Validate(fixture.Root));
         var content = ContentCatalog.Load(fixture.Root);
-        var park = content.Parks["harbor-diamond"];
+        var park = content.Parks[ParkIds.Harbor];
         Assert.Equal(1.25, park.Environment!.DragMul);
         Assert.Equal(0.5, park.Environment.WindMul);
 

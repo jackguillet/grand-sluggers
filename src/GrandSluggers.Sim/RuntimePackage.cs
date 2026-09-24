@@ -4,8 +4,7 @@ namespace GrandSluggers.Sim;
 /// What a player build carries beside the app (<c>data/package.json</c>): the runtime folders, and within
 /// them only files with a listed extension. Tooling folders stay in the repository. Every folder at the
 /// data root is declared one or the other, so a new folder is a decision, not an accident that ships.
-/// <c>tools/local-player.py</c> copies exactly <see cref="Files"/>; the file stays plain JSON so Python
-/// reads it without a comment-aware parser.
+/// <c>tools/local-player.py</c> copies exactly <see cref="Files"/>, reading this file with <c>tools/data_json.py</c>.
 /// </summary>
 public sealed class RuntimePackage
 {

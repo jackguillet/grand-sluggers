@@ -159,7 +159,7 @@ public sealed class GroundReadTests
         using var fixture = new UnequalGrounds();
         var catalog = fixture.Catalog;
         var rules = catalog.Rules;
-        var plain = catalog.Parks["harbor-diamond"];
+        var plain = catalog.Parks[ParkIds.Harbor];
         var iced = plain with { Zones = new ParkZones(Outfield: Ground.Ice) };
         var dt = 1.0 / rules.Flight.SampleHz;
 
@@ -224,7 +224,7 @@ public sealed class GroundReadTests
         using var fixture = new UnequalGrounds();
         var catalog = fixture.Catalog;
         var rules = catalog.Rules;
-        var plain = catalog.Parks["harbor-diamond"];
+        var plain = catalog.Parks[ParkIds.Harbor];
         var iced = plain with { Zones = new ParkZones(Outfield: Ground.Ice) };
         // The softest fly at 34° that lands past the lip: it hops and rolls out on the outfield, short of the track.
         const double launch = 34, spray = 8;
@@ -270,7 +270,7 @@ public sealed class GroundReadTests
         foreach (var catalog in new[] { control, softer })
         {
             var rules = catalog.Rules;
-            var park = catalog.Parks["harbor-diamond"];
+            var park = catalog.Parks[ParkIds.Harbor];
             var fence = AtBatResolver.FenceAt(park, 0);
             var dt = 1.0 / rules.Flight.SampleHz;
             // Rolling, 6 ft short of the fence, heading out and to the right.
@@ -325,7 +325,7 @@ public sealed class GroundReadTests
         using var fixture = new UnequalGrounds();
         var catalog = fixture.Catalog;
         var rules = catalog.Rules;
-        var park = catalog.Parks["harbor-diamond"];
+        var park = catalog.Parks[ParkIds.Harbor];
         var zones = GroundZones.Of(park, rules);
         var lip = rules.Flight.Classes.InfieldLipFt;
         var h = rules.Fielding.Handling;
@@ -395,11 +395,11 @@ public sealed class GroundReadTests
     public void AGroundWithNoRowStopsTheBallAndTheRowsAreTheHandedTables()
     {
         var rules = Game.Rules;
-        var mud = Game.Parks["harbor-diamond"] with { Zones = new ParkZones(Outfield: "mud") };
+        var mud = Game.Parks[ParkIds.Harbor] with { Zones = new ParkZones(Outfield: "mud") };
         var zones = GroundZones.Of(mud, rules);
         var past = rules.Flight.Classes.InfieldLipFt + 20;
 
-        var (exit, launch, spray) = LipGrounder(Game.Parks["harbor-diamond"], rules);
+        var (exit, launch, spray) = LipGrounder(Game.Parks[ParkIds.Harbor], rules);
         var thrown = Assert.Throws<ArgumentException>(() => BallFlight.Trajectory(exit, launch, spray, mud, rules));
         Assert.Contains("'mud' is not a ground with a row in rules/grounds.json", thrown.Message, StringComparison.Ordinal);
         Assert.Throws<ArgumentException>(() => BallFlight.OverthrowTick(zones, rules.Grounds, 0, past, 6, 0, Frame));
@@ -408,7 +408,7 @@ public sealed class GroundReadTests
         _ = BallFlight.OverthrowTick(zones, rules.Grounds, 0, 60, 6, 0, Frame);
 
         using var fixture = new UnequalGrounds();
-        var park = fixture.Catalog.Parks["harbor-diamond"];
+        var park = fixture.Catalog.Parks[ParkIds.Harbor];
         Assert.NotEqual(Rules.Default.Grounds.Dirt.Roll.Friction, fixture.Catalog.Rules.Grounds.Dirt.Roll.Friction);
         (exit, launch, spray) = LipGrounder(park, fixture.Catalog.Rules);
         Assert.NotEqual(BallFlight.Trajectory(exit, launch, spray, park, Rules.Default)[^1].Dist,

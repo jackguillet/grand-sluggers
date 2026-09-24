@@ -1,4 +1,3 @@
-using System.Text.Json;
 using GrandSluggers.Sim;
 using Xunit;
 
@@ -33,14 +32,6 @@ public sealed class RuntimePackageTests : IDisposable
 
     [Fact]
     public void TheShippedPackageIsValid() => Assert.Empty(RuntimePackage.Validate(ShippedRoot));
-
-    [Fact]
-    public void ThePackageFileIsPlainJsonForTheDeliveryScript()
-    {
-        // tools/local-player.py reads it with Python's json module, which has no comment handling.
-        using var doc = JsonDocument.Parse(File.ReadAllText(RuntimePackage.PathFor(ShippedRoot)));
-        Assert.Equal(JsonValueKind.Object, doc.RootElement.ValueKind);
-    }
 
     [Fact]
     public void AgentLedgersAndBakeScriptsDoNotShip()

@@ -283,7 +283,7 @@ public class AtBatFeelTests
         Assert.Equal("MAX", ChargeFeel.NiceCopy(false, 1, 0, feel.ChargeMaxHoldSeconds));
         Assert.Equal("", ChargeFeel.NiceCopy(true, 1, 0.9, feel.ChargeMaxHoldSeconds));
 
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         // A charge costs the barrel, never the timing window (PH-10-R1, PH-11-R1, S-125): the old
         // "slap contacts more" window-edge claim went with the split window (#860, #887).
         var resolver = new AtBatResolver(_content.Chemistry, _content.Rules, _content.StarSkills);
@@ -316,7 +316,7 @@ public class AtBatFeelTests
         Assert.Equal(StrikeZoneGeometry.Height / 2, SweetSpot.HalfHeightFt);
         Assert.True(SweetSpot.CoversTheZone(Hand.R, rules: Rules.Default), "every strike is on the bat with the box centered");
         Assert.True(SweetSpot.CoversTheZone(Hand.L, rules: Rules.Default), "every strike is on the bat with the box centered");
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var vale = _content.Must("vale");
         var rio = _content.Must("rio");

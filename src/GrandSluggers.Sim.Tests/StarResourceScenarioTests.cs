@@ -345,7 +345,7 @@ public sealed class StarResourceScenarioTests
     [Fact]
     public void S175_AChargedStarSwingGainsPowerAndLosesPlacementExactlyAsTheOrdinarySwingDoes()
     {
-        var park = Shipped.Parks["harbor-diamond"];
+        var park = Shipped.Parks[ParkIds.Harbor];
         var resolver = new AtBatResolver(Shipped.Chemistry, Shipped.Rules, Shipped.StarSkills);
         var pitcher = Shipped.Must("vale");
         var bat = Shipped.Bats["harbor-lumber"];

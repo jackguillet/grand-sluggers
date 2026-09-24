@@ -106,7 +106,7 @@ public sealed class DeflectionTests
     [Fact]
     public void TheContinuedPathIsTheSharedPhysicsFromTheContact()
     {
-        var park = Game.Parks["harbor-diamond"];
+        var park = Game.Parks[ParkIds.Harbor];
         var hit = FlightFixtures.Hit(park, 100, 4, 0, ContactQuality.Perfect, rules: Game.Rules);
         var ball = BattedBall.Of(hit, park, Game.Rules);
         var path = ball.Samples;
@@ -143,7 +143,7 @@ public sealed class DeflectionTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
-        var match = Match.Exhibition(content, home, away, 3, seed, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, seed, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Hit(match.Park, exitMph, launchDeg, sprayDeg, quality, rules: match.Rules);
         Assert.False(hit.Foul);
         var preview = match.PreviewHit(hit);

@@ -62,15 +62,17 @@ public static class ContentDataValidator
             else
             {
                 var row = DataJson.Read<CharacterDto>(file, data.ReadErrors);
-                if (row is not null) data.Characters.Add(new(row, file));
+                if (row is null) continue;
+                IdMatchesFile(file, row.Id, data.ReadErrors);
+                data.Characters.Add(new(row, file));
             }
         }
 
         // Every catalog is read strictly (spec §16, FR-03): a key a file does not declare is a stop, named with
         // its file and key, the way it is for a rule table (DataJson.Read).
-        ReadRows(root, "parks", data.Parks, data.ReadErrors);
-        ReadRows(root, "bats", data.Bats, data.ReadErrors);
-        ReadRows(root, "gloves", data.Gloves, data.ReadErrors);
+        ReadRows(root, "parks", data.Parks, row => row.Id, data.ReadErrors);
+        ReadRows(root, "bats", data.Bats, row => row.Id, data.ReadErrors);
+        ReadRows(root, "gloves", data.Gloves, row => row.Id, data.ReadErrors);
 
         var teamsPath = root.Resolve("teams", "teams.json");
         data.Teams = DataJson.Read<TeamsFile>(teamsPath, data.ReadErrors) ?? new();
@@ -101,13 +103,28 @@ public static class ContentDataValidator
         DataRoot root,
         string directory,
         List<Sourced<T>> destination,
+        Func<T, string> id,
         List<string> errors) where T : class
     {
         foreach (var file in Files(root, directory, errors))
         {
             var row = DataJson.Read<T>(file, errors);
-            if (row is not null) destination.Add(new(row, file));
+            if (row is null) continue;
+            IdMatchesFile(file, id(row), errors);
+            destination.Add(new(row, file));
         }
+    }
+
+    /// <summary>
+    /// A one-row file is named for its row: <c>parks/X.json</c> carries <c>"id": "X"</c>. A
+    /// renamed file or a copied row that kept its old id would otherwise load under a name no file shows.
+    /// A missing id is reported by the row's own check.
+    /// </summary>
+    static void IdMatchesFile(string file, string id, List<string> errors)
+    {
+        var name = Path.GetFileNameWithoutExtension(file);
+        if (id.Length > 0 && !string.Equals(id, name, StringComparison.Ordinal))
+            errors.Add($"{file}: id '{id}' must equal the file name '{name}'");
     }
 
     /// <summary>

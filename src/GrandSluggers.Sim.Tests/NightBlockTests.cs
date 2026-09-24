@@ -87,7 +87,7 @@ public sealed class NightBlockTests
         Assert.Equal(1, withBlock);
         Assert.Equal(
             ["L", "C", "R"],
-            content.Parks["funfair-park"].Night!.Hazards.Select(h => h.Type == HazardType.Chomper ? h.Tag : "not a chomper"));
+            content.Parks[ParkIds.Funfair].Night!.Hazards.Select(h => h.Type == HazardType.Chomper ? h.Tag : "not a chomper"));
     }
 
     /// <summary>
@@ -140,7 +140,7 @@ public sealed class NightBlockTests
             }
         }
 
-        var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: "funfair-park", night: true, hazards: false);
+        var match = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: ParkIds.Funfair, night: true, hazards: false);
         Assert.Empty(match.Park.Hazards); // the train is a mover since F4-f, so the switch removes it too
         Assert.Null(match.Park.Night);
     }
@@ -169,16 +169,16 @@ public sealed class NightBlockTests
             ("environment", new JsonObject { ["dragMul"] = 1.2 }),
             ("sky", "stars")
         };
-        fixture.Park("funfair-park", json =>
+        fixture.Park(ParkIds.Funfair, json =>
         {
             var night = json["night"]!.AsObject();
             foreach (var (key, value) in named) night[key] = value.DeepClone();
             night["hazards"]![0]!["nightOnly"] = true;
         });
-        fixture.Park("crystal-rink", json => json["nightContactWindowMul"] = 0.85);
+        fixture.Park(ParkIds.Crystal, json => json["nightContactWindowMul"] = 0.85);
 
         var errors = ContentDataValidator.Validate(fixture.Root());
-        var funfair = fixture.ParkFile("funfair-park");
+        var funfair = fixture.ParkFile(ParkIds.Funfair);
         foreach (var (key, _) in named)
         {
             var refusal = Assert.Single(errors, e => e.Contains($": night.{key} is not a key", StringComparison.Ordinal));
@@ -188,7 +188,7 @@ public sealed class NightBlockTests
         }
         Assert.Contains(errors, e => e.StartsWith(funfair + ": night.hazards[0].nightOnly is not a key this file declares; the keys of hazard are [",
             StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.StartsWith(fixture.ParkFile("crystal-rink") + ": nightContactWindowMul is not a key this file declares",
+        Assert.Contains(errors, e => e.StartsWith(fixture.ParkFile(ParkIds.Crystal) + ": nightContactWindowMul is not a key this file declares",
             StringComparison.Ordinal));
         Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root()));
     }
@@ -222,7 +222,7 @@ public sealed class NightBlockTests
         Assert.Equal(1 - r * (mul - 1), HazardPlacement.ClearanceFt(x, z, ParkHazards.NightDiscFt(r, content.Rules.Hazards.Of(HazardType.FireBreath)), infield), 9);
 
         using var fixture = new NightFixture();
-        fixture.Park("funfair-park", json =>
+        fixture.Park(ParkIds.Funfair, json =>
         {
             var night = json["night"]!["hazards"]!.AsArray();
             night.Add(new JsonObject { ["type"] = "sprinkler", ["x"] = 0, ["z"] = 200, ["radius"] = 5 });           // [3]
@@ -232,10 +232,10 @@ public sealed class NightBlockTests
             night.Add(new JsonObject { ["type"] = "freeze_volume", ["x"] = infield.CornerFt, ["z"] = infield.CornerFt, ["radius"] = 2 }); // [7]
             night.Add(new JsonObject { ["type"] = "fire_breath", ["x"] = x, ["z"] = z, ["radius"] = r });           // [8]
         });
-        fixture.Park("ember-keep", json =>
+        fixture.Park(ParkIds.Ember, json =>
             json["hazards"]!.AsArray().Add(new JsonObject { ["type"] = "fire_breath", ["x"] = x, ["z"] = z, ["radius"] = r }));
-        fixture.Park("crystal-rink", json => json["night"] = new JsonObject { ["hazards"] = new JsonArray() });
-        var ember = content.Parks["ember-keep"].Hazards.Count;
+        fixture.Park(ParkIds.Crystal, json => json["night"] = new JsonObject { ["hazards"] = new JsonArray() });
+        var ember = content.Parks[ParkIds.Ember].Hazards.Count;
 
         var errors = ContentDataValidator.Validate(fixture.Root());
         string Refusal(string where) => Assert.Single(errors, e => e.Contains(where, StringComparison.Ordinal));
@@ -302,7 +302,7 @@ public sealed class NightBlockTests
     /// </summary>
     static readonly (string Park, int Seed)[] NightGames =
     [
-        ("funfair-park", 1), ("funfair-park", 11), ("ember-keep", 1), ("ember-keep", 2)
+        (ParkIds.Funfair, 1), (ParkIds.Funfair, 11), (ParkIds.Ember, 1), (ParkIds.Ember, 2)
     ];
 
     const string NightGamesFixture = "night-games.json";
@@ -378,9 +378,9 @@ public sealed class NightBlockTests
     {
         var content = Game;
         var row = content.Rules.Hazards.Of(HazardType.FireBreath);
-        var byDay = Played(content, "ember-keep", night: false);
-        var atNight = Played(content, "ember-keep", night: true);
-        Assert.Same(content.Parks["ember-keep"], atNight);
+        var byDay = Played(content, ParkIds.Ember, night: false);
+        var atNight = Played(content, ParkIds.Ember, night: true);
+        Assert.Same(content.Parks[ParkIds.Ember], atNight);
         var breath = Assert.Single(atNight.Hazards, h => h.Type == HazardType.FireBreath);
         var reach = ParkHazards.NightDiscFt(breath.Radius, row);
         Assert.Equal(breath.Radius * 1.6, reach);
@@ -405,9 +405,9 @@ public sealed class NightBlockTests
         Assert.Null(typeof(ParkHazards).GetMethod("ContactWindowMul"));
         foreach (var pitch in new[] { new PitchCommand("fastball", 0, false), new PitchCommand("fastball", 0, true) })
         {
-            var harbor = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: "harbor-diamond").SwingWindowFrames(pitch);
-            var day = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink").SwingWindowFrames(pitch);
-            var night = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: "crystal-rink", night: true).SwingWindowFrames(pitch);
+            var harbor = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: ParkIds.Harbor).SwingWindowFrames(pitch);
+            var day = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: ParkIds.Crystal).SwingWindowFrames(pitch);
+            var night = Match.Exhibition(Game, "rio", "ashlord", innings: 3, seed: 1, parkId: ParkIds.Crystal, night: true).SwingWindowFrames(pitch);
             Assert.Equal(day, night);
             Assert.Equal(harbor, night);
         }

@@ -26,7 +26,8 @@ sealed class ArtCommand : Command
         var errors = art.Validate(content)
             .Concat(AgentData.Validate(content.Root))
             .Concat(RuntimePackage.Validate(content.Root.Shipped))
+            .Concat(DataNaming.Validate(content.Root.Shipped))
             .ToList();
-        return Report(errors, "catalog matches roster, clips, parks; agent data and the runtime package are valid");
+        return Report(errors, "catalog matches roster, clips, parks; agent data, the runtime package and key units are valid");
     }
 }

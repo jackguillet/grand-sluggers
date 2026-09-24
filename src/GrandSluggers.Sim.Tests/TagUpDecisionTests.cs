@@ -143,7 +143,7 @@ public sealed class TagUpDecisionTests
     {
         var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
         var away = Game.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: ParkIds.Harbor);
         var runner = Game.Must(who);
         Assert.True(match.StationRunner(3, runner));
         Assert.True(match.SetOuts(1));

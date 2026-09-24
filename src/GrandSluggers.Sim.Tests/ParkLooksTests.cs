@@ -33,8 +33,8 @@ public sealed class ParkLooksTests
     {
         var expected = new Dictionary<string, string>
         {
-            ["harbor-diamond"] = "harbor", ["crystal-rink"] = "ice-garden", ["funfair-park"] = "carnival",
-            ["rooftop-city"] = "neon", ["canopy-yard"] = "canopy", ["ember-keep"] = "courtyard",
+            [ParkIds.Harbor] = "harbor", [ParkIds.Crystal] = "ice-garden", [ParkIds.Funfair] = "carnival",
+            [ParkIds.Rooftop] = "neon", [ParkIds.Canopy] = "canopy", [ParkIds.Ember] = "courtyard",
         };
         Assert.Equal(expected.Keys.OrderBy(k => k), Catalog.Parks.Keys.OrderBy(k => k));
         foreach (var (park, look) in expected)
@@ -87,28 +87,28 @@ public sealed class ParkLooksTests
     [Fact]
     public void FD16_ThePalettesAreTheOldChainsColors()
     {
-        var harbor = Kit("harbor-diamond").Palette!;
+        var harbor = Kit(ParkIds.Harbor).Palette!;
         Assert.Equal((0x3EA84E, "grass", 18.0, 0.08), (harbor.Grass.Color.Hex, harbor.Grass.Texture, harbor.Grass.Tile, harbor.Grass.Smooth));
         Assert.Equal((0x2E7CB0, 0.85), (harbor.Water.Color.Hex, harbor.Water.Smooth));
         Assert.Equal((0xC49A60, "dirt", 8.0, 0.12), (harbor.Dirt.Color.Hex, harbor.Dirt.Texture, harbor.Dirt.Tile, harbor.Dirt.Smooth));
 
-        var crystal = Kit("crystal-rink").Palette!;
+        var crystal = Kit(ParkIds.Crystal).Palette!;
         Assert.Equal((0xBED8F0, (string?)null, 0.72), (crystal.Grass.Color.Hex, crystal.Grass.Texture, crystal.Grass.Smooth));
         Rgb(0.74, 0.84, 0.90, crystal.Dirt.Color);
         Assert.Equal((6.0, 0.35), (crystal.Dirt.Tile, crystal.Dirt.Smooth));
         Assert.Equal((0.92, 0.62, 0.75), (crystal.Water.Smooth, crystal.Wall.Smooth, crystal.Cap.Smooth));
         Assert.Equal(0xE878A8, crystal.Pole.Color.Hex);
 
-        Assert.Equal(0xFF7A20, Kit("ember-keep").Palette!.Wall.Color.Hex);
-        Assert.Null(Kit("ember-keep").Palette!.Grass.Texture);
-        Rgb(0.32, 0.32, 0.34, Kit("rooftop-city").Palette!.Grass.Color);
-        Assert.Equal(0.18, Kit("rooftop-city").Palette!.Grass.Smooth);
-        Assert.Null(Kit("rooftop-city").Palette!.Grass.Texture);
-        Assert.Equal(0xE8BC28, Kit("rooftop-city").Palette!.Pole.Color.Hex);
-        Assert.Equal("grass", Kit("canopy-yard").Palette!.Grass.Texture);
+        Assert.Equal(0xFF7A20, Kit(ParkIds.Ember).Palette!.Wall.Color.Hex);
+        Assert.Null(Kit(ParkIds.Ember).Palette!.Grass.Texture);
+        Rgb(0.32, 0.32, 0.34, Kit(ParkIds.Rooftop).Palette!.Grass.Color);
+        Assert.Equal(0.18, Kit(ParkIds.Rooftop).Palette!.Grass.Smooth);
+        Assert.Null(Kit(ParkIds.Rooftop).Palette!.Grass.Texture);
+        Assert.Equal(0xE8BC28, Kit(ParkIds.Rooftop).Palette!.Pole.Color.Hex);
+        Assert.Equal("grass", Kit(ParkIds.Canopy).Palette!.Grass.Texture);
         foreach (var park in Catalog.Parks.Keys)
-            Assert.Equal(park == "funfair-park", Kit(park).Palette!.WallAlt is not null);
-        Rgb(0.96, 0.90, 0.72, Kit("funfair-park").Palette!.WallAlt!.Color);
+            Assert.Equal(park == ParkIds.Funfair, Kit(park).Palette!.WallAlt is not null);
+        Rgb(0.96, 0.90, 0.72, Kit(ParkIds.Funfair).Palette!.WallAlt!.Color);
     }
 
     /// <summary>The reader is strict: an unknown key, a missing key, a bad color, a texture that is not one, and a tile with no texture stop the load.</summary>
@@ -132,7 +132,7 @@ public sealed class ParkLooksTests
     [Fact]
     public void FD16_TheValidatorRefusesAnUnknownLookAnEmptyLookAndNoPalette()
     {
-        var kit = Kit("crystal-rink");
+        var kit = Kit(ParkIds.Crystal);
         var slots = new Dictionary<string, string?>(kit.Slots!, StringComparer.Ordinal) { [ParkKitSlots.Light] = "moon", [ParkKitSlots.Sky] = null };
         var errors = ParkKitSlots.Validate(kit with { Slots = slots, Palette = null }, Looks);
         Assert.Contains("park kit crystal-rink slot light names moon, which is not a light in looks.json", errors);

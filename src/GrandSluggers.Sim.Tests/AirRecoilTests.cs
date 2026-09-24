@@ -148,7 +148,7 @@ public sealed class AirRecoilTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Hit(match.Park, exitMph, launchDeg, sprayDeg, ContactQuality.Perfect, rules: match.Rules);
         Assert.False(hit.Foul);
         var preview = match.PreviewHit(hit);

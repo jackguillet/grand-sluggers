@@ -402,12 +402,12 @@ public sealed class HarborWallTests
     /// <c>PolylineFenceTests.SF06_EveryCatalogParkPlaysAndDrawsTheThreePostFenceBitForBit</c>.
     /// </summary>
     [Theory]
-    [InlineData("harbor-diamond", "12")]
-    [InlineData("crystal-rink", "8")]
-    [InlineData("funfair-park", "8")]
-    [InlineData("rooftop-city", "12")]
-    [InlineData("canopy-yard", "12")]
-    [InlineData("ember-keep", "10")]
+    [InlineData(ParkIds.Harbor, "12")]
+    [InlineData(ParkIds.Crystal, "8")]
+    [InlineData(ParkIds.Funfair, "8")]
+    [InlineData(ParkIds.Rooftop, "12")]
+    [InlineData(ParkIds.Canopy, "12")]
+    [InlineData(ParkIds.Ember, "10")]
     public void TheCatalogParksDrawTheTopsTheLookGateWasShown(string id, string fence)
     {
         var park = _content.Parks[id];
@@ -543,7 +543,7 @@ public sealed class HarborWallTests
     {
         // The value is Jack's call (D15); twelve is the recommendation: taller than MLB's eight so a rob and a
         // carom read, far under the old 26-ft dressing so a deep fly is still a homer.
-        Assert.Equal(12, _content.Parks["harbor-diamond"].FenceHeightFt);
+        Assert.Equal(12, _content.Parks[ParkIds.Harbor].FenceHeightFt);
     }
 
     [Theory]
@@ -564,7 +564,7 @@ public sealed class HarborWallTests
     [Fact]
     public void AFenceUnderTheRailIsRefused()
     {
-        var harbor = _content.Parks["harbor-diamond"];
+        var harbor = _content.Parks[ParkIds.Harbor];
         Assert.False(HarborWall.OutfieldIsTheFence(harbor with { FenceHeightFt = HarborWall.HipHeight }));
     }
 }

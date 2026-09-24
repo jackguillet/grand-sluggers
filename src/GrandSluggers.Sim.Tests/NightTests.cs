@@ -22,7 +22,7 @@ public class NightTests
         Assert.False(slice.Night);
         var show = Match.Exhibition(_content, "vale", "brondo", seed: 7);
         Assert.False(show.Night);
-        Assert.Equal("crystal-rink", show.Park.Id);
+        Assert.Equal(ParkIds.Crystal, show.Park.Id);
     }
 
     [Fact]
@@ -30,10 +30,10 @@ public class NightTests
     {
         var harbor = Match.Slice(_content, seed: 7, night: true);
         Assert.True(harbor.Night);
-        Assert.Equal("harbor-diamond", harbor.Park.Id);
-        var crystal = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "crystal-rink", night: true);
+        Assert.Equal(ParkIds.Harbor, harbor.Park.Id);
+        var crystal = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: ParkIds.Crystal, night: true);
         Assert.True(crystal.Night);
-        Assert.Equal("crystal-rink", crystal.Park.Id);
+        Assert.Equal(ParkIds.Crystal, crystal.Park.Id);
     }
 
     [Fact]
@@ -60,12 +60,12 @@ public class NightTests
     [Fact]
     public void CrystalNightPlaysTheDayWindow()
     {
-        var park = _content.Parks["crystal-rink"];
+        var park = _content.Parks[ParkIds.Crystal];
         var rio = _content.Must("rio");
         var dayWindow = AtBatResolver.ContactWindowFrames(null, park, false, rules: Rules.Default);
         var nightWindow = AtBatResolver.ContactWindowFrames(null, park, true, rules: Rules.Default);
         Assert.Equal(dayWindow, nightWindow);
-        Assert.Equal(AtBatResolver.ContactWindowFrames(null, _content.Parks["harbor-diamond"], true, rules: Rules.Default), nightWindow);
+        Assert.Equal(AtBatResolver.ContactWindowFrames(null, _content.Parks[ParkIds.Harbor], true, rules: Rules.Default), nightWindow);
 
         // Between the day window's edge and the edge the dropped × 0.85 would have drawn.
         var removedNightWindow = dayWindow * 0.85;
@@ -90,9 +90,9 @@ public class NightTests
     [Fact]
     public void FunfairNightChompersTakeFliesOnlyAtNight()
     {
-        var catalog = _content.Parks["funfair-park"];
-        var byDay = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "funfair-park").Park;
-        var atNight = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "funfair-park", night: true).Park;
+        var catalog = _content.Parks[ParkIds.Funfair];
+        var byDay = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: ParkIds.Funfair).Park;
+        var atNight = Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: ParkIds.Funfair, night: true).Park;
         var mouthZ = 160.0;
         Assert.DoesNotContain(catalog.Hazards, h => h.Type == HazardType.Chomper);
         Assert.DoesNotContain(byDay.Hazards, h => h.Type == HazardType.Chomper);
@@ -101,7 +101,7 @@ public class NightTests
         Assert.False(Mouth(byDay, 6));
         Assert.True(Mouth(atNight, 6));
         Assert.False(Mouth(atNight, 20), "above the mouth");
-        Assert.False(Mouth(Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: "harbor-diamond", night: true).Park, 6));
+        Assert.False(Mouth(Match.Exhibition(_content, "vale", "brondo", seed: 7, parkId: ParkIds.Harbor, night: true).Park, 6));
 
         // The same fly is the same preview by day and at night: nothing is decided from where it lands.
         var hit = FlightFixtures.Landing(catalog, mouthZ, 22, 0);
@@ -121,7 +121,7 @@ public class NightTests
     [Fact]
     public void EmberNightFireBreathReachesFarther()
     {
-        var park = _content.Parks["ember-keep"];
+        var park = _content.Parks[ParkIds.Ember];
         // The C80 copy carries the statue's breath at the field's scale (#732): (0, 175) with a 11.2 ft disc, so the same two
         // points are 175 ft and 189 ft out (20 ft past the mouth at 0.70).
         var (mouthZ, pastZ) = (175.0, 189.0);
@@ -129,7 +129,7 @@ public class NightTests
         Assert.False(ParkHazards.InSlow(park, 0, pastZ, rules: Rules.Default));
         Assert.False(ParkHazards.InSlow(park, 0, pastZ, night: false, rules: Rules.Default));
         Assert.True(ParkHazards.InSlow(park, 0, pastZ, night: true, rules: Rules.Default));
-        Assert.False(ParkHazards.InSlow(_content.Parks["harbor-diamond"], 0, pastZ, night: true, rules: Rules.Default));
+        Assert.False(ParkHazards.InSlow(_content.Parks[ParkIds.Harbor], 0, pastZ, night: true, rules: Rules.Default));
 
         var lava = park.Hazards.First(h => h.Type == "lava_pit");
         Assert.False(ParkHazards.InSlow(park, lava.X, lava.Z + lava.Radius + 4, rules: Rules.Default));
@@ -139,7 +139,7 @@ public class NightTests
     [Fact]
     public void NightGamesFinishOnTheRuleParks()
     {
-        foreach (var id in new[] { "harbor-diamond", "crystal-rink", "funfair-park", "ember-keep" })
+        foreach (var id in new[] { ParkIds.Harbor, ParkIds.Crystal, ParkIds.Funfair, ParkIds.Ember })
         {
             var match = Match.Exhibition(_content, "vale", "brondo", innings: 3, seed: 7, parkId: id, night: true);
             Assert.True(match.Night, id);

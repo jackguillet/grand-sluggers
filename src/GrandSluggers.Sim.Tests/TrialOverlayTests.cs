@@ -81,7 +81,7 @@ public sealed class TrialOverlayTests
         Assert.Equal(control.Rules.Fielding.Throw.BaseFtPerSec, candidate.Rules.Fielding.Throw.BaseFtPerSec);
         Assert.Equal(control.Characters.Count, candidate.Characters.Count);
         Assert.Equal(control.Must("rio").Stats.Run, candidate.Must("rio").Stats.Run);
-        Assert.Equal(control.Parks["harbor-diamond"].CenterFenceFt, candidate.Parks["harbor-diamond"].CenterFenceFt);
+        Assert.Equal(control.Parks[ParkIds.Harbor].CenterFenceFt, candidate.Parks[ParkIds.Harbor].CenterFenceFt);
     }
 
     /// <summary>Resolution is per file, not per table: a trial may override a character as readily as a rule.</summary>
@@ -119,7 +119,7 @@ public sealed class TrialOverlayTests
         Assert.Equal(expected, withTrial.Select(Path.GetFileName));
         Assert.Equal(expected, new DataRoot(Shipped).Files("parks", "*.json").Select(Path.GetFileName));
         Assert.Single(withTrial, file => file.StartsWith(trial.Overlay, StringComparison.Ordinal));
-        Assert.Equal(300, ContentCatalog.Load(trial.Root).Parks["harbor-diamond"].CenterFenceFt);
+        Assert.Equal(300, ContentCatalog.Load(trial.Root).Parks[ParkIds.Harbor].CenterFenceFt);
     }
 
     /// <summary>
@@ -327,7 +327,7 @@ public sealed class TrialOverlayTests
         Assert.Equal(Control.Must("rio").Stats.Run, candidate.Must("rio").Stats.Run);
         Assert.Equal(Control.Must("rio").StarSwing, candidate.Must("rio").StarSwing);
         Assert.Equal(Control.Parks.Count, candidate.Parks.Count);
-        Assert.Equal(Control.Parks["harbor-diamond"].CenterFenceFt, candidate.Parks["harbor-diamond"].CenterFenceFt);
+        Assert.Equal(Control.Parks[ParkIds.Harbor].CenterFenceFt, candidate.Parks[ParkIds.Harbor].CenterFenceFt);
         Assert.Equal(Control.Bats.Count, candidate.Bats.Count);
         Assert.Equal(Control.Gloves.Count, candidate.Gloves.Count);
         Assert.Equal(Control.Rules.Infield.BaselineFt, candidate.Rules.Infield.BaselineFt);
@@ -412,7 +412,7 @@ public sealed class TrialOverlayTests
         trial.Override("parks/harbor-diamond.json", json => json["hazards"] = new JsonArray());
 
         Assert.Equal(["parks/harbor-diamond.json"], trial.Root.Overrides);
-        Assert.Empty(ContentCatalog.Load(trial.Root).Parks["harbor-diamond"].Hazards);
+        Assert.Empty(ContentCatalog.Load(trial.Root).Parks[ParkIds.Harbor].Hazards);
     }
 
     /// <summary>
@@ -479,8 +479,8 @@ public sealed class TrialOverlayTests
         Assert.NotNull(stamp);
         Assert.Equal(["rules/infield.json"], stamp!.Files);
 
-        var control = new PlayTraceLog(7, "rio", "ashlord", "harbor-diamond", []).ToJson();
-        var candidate = new PlayTraceLog(7, "rio", "ashlord", "harbor-diamond", [], Trial: stamp).ToJson();
+        var control = new PlayTraceLog(7, "rio", "ashlord", ParkIds.Harbor, []).ToJson();
+        var candidate = new PlayTraceLog(7, "rio", "ashlord", ParkIds.Harbor, [], Trial: stamp).ToJson();
         Assert.DoesNotContain("trial", control, StringComparison.Ordinal);
         Assert.Contains("rules/infield.json", candidate, StringComparison.Ordinal);
     }

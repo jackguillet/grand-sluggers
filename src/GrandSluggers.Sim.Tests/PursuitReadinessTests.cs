@@ -24,7 +24,7 @@ public sealed class PursuitReadinessTests
     {
         var home = content.Team("Home", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
         var away = content.Team("Away", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
-        return Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond").LivePlay;
+        return Match.Exhibition(content, home, away, 3, 1, parkId: ParkIds.Harbor).LivePlay;
     }
 
     /// <summary>Tick <paramref name="seconds"/> of frames from <paramref name="clock"/>; returns the clock after.</summary>

@@ -84,7 +84,7 @@ public sealed class BallDashTests
     {
         var home = Game.Team("Defense", "vale", "pewter", first, "frost", "basil", "lace", "vine", "moss", "hex");
         var away = Game.Team("Offense", "rio", "boom", "cinder", "grit", "soot", "nugget", "nico", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Hit(match.Park, 85, -12, 34, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("1B", preview.Position);
@@ -131,7 +131,7 @@ public sealed class BallDashTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", shortstop, "vine", "moss", "hex");
         var away = content.Team("Offense", "rio", "boom", "cinder", "grit", "soot", "nugget", "nico", "gull", "marlow");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Hit(match.Park, 85, -12, -18, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);

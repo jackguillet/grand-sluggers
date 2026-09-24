@@ -8,7 +8,7 @@ public class AtBatTests
     readonly ContentCatalog _content = Shipped.Content;
     readonly Park _harbor;
 
-    public AtBatTests() => _harbor = _content.Parks["harbor-diamond"];
+    public AtBatTests() => _harbor = _content.Parks[ParkIds.Harbor];
 
     [Fact]
     public void PerfectTimingIsInPlay()
@@ -47,15 +47,15 @@ public class AtBatTests
     [Fact]
     public void CrystalRinkHasFreezeVolumes()
     {
-        var rink = _content.Parks["crystal-rink"];
+        var rink = _content.Parks[ParkIds.Crystal];
         Assert.Contains(rink.Hazards, h => h.Type == "freeze_volume");
     }
 
     [Fact]
     public void CrystalRinkIsIceGardenNotHarbor()
     {
-        var rink = _content.Parks["crystal-rink"];
-        Assert.Equal("crystal-rink", rink.Id);
+        var rink = _content.Parks[ParkIds.Crystal];
+        Assert.Equal(ParkIds.Crystal, rink.Id);
         Assert.Equal("ice", rink.Surface);
         Assert.Equal("royal", rink.Faction);
         Assert.Contains(rink.Hazards, h => h.Type == "freeze_volume");
@@ -65,14 +65,14 @@ public class AtBatTests
                 or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
-        Assert.Equal("crystal-rink", PresetTeams.HomeParkId(_content, "vale"));
+        Assert.Equal(ParkIds.Crystal, PresetTeams.HomeParkId(_content, "vale"));
     }
 
     [Fact]
     public void FunfairParkIsCarnivalNotHarbor()
     {
-        var fair = _content.Parks["funfair-park"];
-        Assert.Equal("funfair-park", fair.Id);
+        var fair = _content.Parks[ParkIds.Funfair];
+        Assert.Equal(ParkIds.Funfair, fair.Id);
         Assert.Equal("grass", fair.Surface);
         Assert.Equal("carnival", fair.Faction);
         Assert.Contains(fair.Hazards, h => h.Type == "warp_pipe");
@@ -81,7 +81,7 @@ public class AtBatTests
         Assert.DoesNotContain(fair.Hazards, h =>
             h.Type is "freeze_volume" or "billboard" or "ac_unit" or "barrel"
                 or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
-        Assert.Equal("funfair-park", PresetTeams.HomeParkId(_content, "zig"));
+        Assert.Equal(ParkIds.Funfair, PresetTeams.HomeParkId(_content, "zig"));
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
     }
@@ -89,8 +89,8 @@ public class AtBatTests
     [Fact]
     public void RooftopCityIsUrbanRoofNotHarbor()
     {
-        var roof = _content.Parks["rooftop-city"];
-        Assert.Equal("rooftop-city", roof.Id);
+        var roof = _content.Parks[ParkIds.Rooftop];
+        Assert.Equal(ParkIds.Rooftop, roof.Id);
         Assert.Equal("dirt", roof.Surface);
         Assert.Equal("goldrush", roof.Faction);
         Assert.Contains(roof.Hazards, h => h.Type == "billboard");
@@ -99,7 +99,7 @@ public class AtBatTests
         Assert.DoesNotContain(roof.Hazards, h =>
             h.Type is "freeze_volume" or "warp_pipe" or "barrel"
                 or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
-        Assert.Equal("rooftop-city", PresetTeams.HomeParkId(_content, "brondo"));
+        Assert.Equal(ParkIds.Rooftop, PresetTeams.HomeParkId(_content, "brondo"));
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
     }
@@ -107,8 +107,8 @@ public class AtBatTests
     [Fact]
     public void CanopyYardIsJungleNotHarbor()
     {
-        var yard = _content.Parks["canopy-yard"];
-        Assert.Equal("canopy-yard", yard.Id);
+        var yard = _content.Parks[ParkIds.Canopy];
+        Assert.Equal(ParkIds.Canopy, yard.Id);
         Assert.Equal("dirt", yard.Surface);
         Assert.Equal("canopy", yard.Faction);
         Assert.Contains(yard.Hazards, h => h.Type == "barrel");
@@ -117,7 +117,7 @@ public class AtBatTests
         Assert.DoesNotContain(yard.Hazards, h =>
             h.Type is "freeze_volume" or "warp_pipe" or "billboard" or "ac_unit"
                 or "lava_pit" or "fire_breath" or "statue");
-        Assert.Equal("canopy-yard", PresetTeams.HomeParkId(_content, "konga"));
+        Assert.Equal(ParkIds.Canopy, PresetTeams.HomeParkId(_content, "konga"));
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);
     }
@@ -125,8 +125,8 @@ public class AtBatTests
     [Fact]
     public void EmberKeepIsCourtyardNotHarbor()
     {
-        var keep = _content.Parks["ember-keep"];
-        Assert.Equal("ember-keep", keep.Id);
+        var keep = _content.Parks[ParkIds.Ember];
+        Assert.Equal(ParkIds.Ember, keep.Id);
         Assert.Equal("ash", keep.Surface);
         Assert.Equal("ember", keep.Faction);
         Assert.Contains(keep.Hazards, h => h.Type == "lava_pit");
@@ -135,7 +135,7 @@ public class AtBatTests
         Assert.DoesNotContain(keep.Hazards, h =>
             h.Type is "freeze_volume" or "warp_pipe" or "billboard" or "ac_unit"
                 or "barrel" or "climb_wall");
-        Assert.Equal("ember-keep", PresetTeams.HomeParkId(_content, "ashlord"));
+        Assert.Equal(ParkIds.Ember, PresetTeams.HomeParkId(_content, "ashlord"));
         Assert.Equal(286, keep.CenterFenceFt);
         Assert.Equal("grass", _harbor.Surface);
         Assert.Empty(_harbor.Hazards);

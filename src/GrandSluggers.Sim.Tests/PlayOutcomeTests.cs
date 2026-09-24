@@ -12,7 +12,7 @@ public class PlayOutcomeTests
     {
         // CF dart with LF zig (same faction): two good-chem outfielders under a high fly homer by five feet;
         // the CPU bodies plant at the wall and the buddy jump's rob height (18) takes it (§8.3, §8.4).
-        var match = RobMatch("harbor-diamond", "zig", "dart", "nico");
+        var match = RobMatch(ParkIds.Harbor, "zig", "dart", "nico");
         var hit = FlightFixtures.OverTheFence(match.Park, 5, 0, 60);
         var preview = match.PreviewHit(hit);
         Assert.Equal("dart", preview.Fielder.Id);
@@ -32,7 +32,7 @@ public class PlayOutcomeTests
     public void LiveSuperJumpRobCarriesTypedFeatIntoEvent()
     {
         // CF nico (Super Jump, rob height 18) between two neutral outfielders: the leap at the wall is the glove's own.
-        var match = RobMatch("harbor-diamond", "zig", "nico", "dart");
+        var match = RobMatch(ParkIds.Harbor, "zig", "nico", "dart");
         var hit = FlightFixtures.OverTheFence(match.Park, 10, 0);
         var preview = match.PreviewHit(hit);
         Assert.Equal("nico", preview.Fielder.Id);
@@ -51,7 +51,7 @@ public class PlayOutcomeTests
     public void LiveClamberRobCarriesTypedFeatIntoEvent()
     {
         // CF konga (Clamber) at Canopy Yard's climb wall, between two neutral outfielders: rob height 28 takes a homer by twelve feet.
-        var match = RobMatch("canopy-yard", "frost", "konga", "hex");
+        var match = RobMatch(ParkIds.Canopy, "frost", "konga", "hex");
         var hit = FlightFixtures.OverTheFence(match.Park, 12, 0);
         var preview = match.PreviewHit(hit);
         Assert.Equal("konga", preview.Fielder.Id);
@@ -70,7 +70,7 @@ public class PlayOutcomeTests
     public void LiveHomerNobodyCanRobIsAHomeRun()
     {
         // CF rio (no leap ability) between two neutral outfielders under the same ten-foot homer: the window is there, the reach is not (§8.4).
-        var match = RobMatch("harbor-diamond", "frost", "rio", "hex", captain: "pip");
+        var match = RobMatch(ParkIds.Harbor, "frost", "rio", "hex", captain: "pip");
         var hit = FlightFixtures.OverTheFence(match.Park, 10, 0);
         var preview = match.PreviewHit(hit);
         Assert.Equal("rio", preview.Fielder.Id);
@@ -94,7 +94,7 @@ public class PlayOutcomeTests
     [Fact]
     public void LiveCatchFeatRequiresThePlayerToPerformTheVerb()
     {
-        var park = _content.Parks["canopy-yard"];
+        var park = _content.Parks[ParkIds.Canopy];
         var konga = Preview(_content.Must("konga"), null, 0, 360, homeRunLikely: true);
         var nico = Preview(_content.Must("nico"), null, 0, 360, homeRunLikely: true);
         var buddy = Preview(_content.Must("nico"), _content.Must("gull"), 0, 360, homeRunLikely: true);

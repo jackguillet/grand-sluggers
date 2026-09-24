@@ -25,7 +25,7 @@ public sealed class BoundaryTests
     readonly ContentCatalog _content = Shipped.Content;
 
     public static TheoryData<string> Parks() => new()
-        { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" };
+        { ParkIds.Harbor, ParkIds.Crystal, ParkIds.Funfair, ParkIds.Rooftop, ParkIds.Canopy, ParkIds.Ember };
 
     [Theory]
     [MemberData(nameof(Parks))]
@@ -92,7 +92,7 @@ public sealed class BoundaryTests
     [Fact]
     public void ADifferentEdgeIsADifferentPolygon()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         var shipped = ParkBoundary.Default;
         var wide = shipped with { FoulOffsetFt = shipped.FoulOffsetFt + 10 };
 

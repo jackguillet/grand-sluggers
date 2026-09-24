@@ -14,7 +14,7 @@ public sealed class FieldingReachTests
     [InlineData("easy", true)] [InlineData("normal", true)] [InlineData("hard", true)]
     public void PitcherRecoveryBlocksBothMovementAndTheLinerAlreadyOnTheirBody(string level, bool human)
     {
-        var m = Match.Exhibition(Game, seed: 1, parkId: "harbor-diamond", difficulty: level);
+        var m = Match.Exhibition(Game, seed: 1, parkId: ParkIds.Harbor, difficulty: level);
         var hit = FlightFixtures.Hit(m.Park, 125, 1, 0, rules: m.Rules);
         var pre = m.PreviewHit(hit) with { Position = "P", Fielder = m.Pitcher };
         var l = m.LivePlay;
@@ -64,7 +64,7 @@ public sealed class FieldingReachTests
     [InlineData(40, true)] [InlineData(50, true)] [InlineData(60, true)]
     public void PitcherRecoversInTimeForWeakFullSwingGrounders(double exitMph, bool human)
     {
-        var m = Match.Exhibition(Game, seed: 1, parkId: "harbor-diamond");
+        var m = Match.Exhibition(Game, seed: 1, parkId: ParkIds.Harbor);
         var hit = FlightFixtures.Hit(m.Park, exitMph, -12, 0, rules: m.Rules);
         var pre = m.PreviewHit(hit);
         Assert.Equal("P", pre.Position);
@@ -85,7 +85,7 @@ public sealed class FieldingReachTests
     [Fact]
     public void FielderCanReachALooseBallAgainstTheWall()
     {
-        var park = Game.Parks["harbor-diamond"];
+        var park = Game.Parks[ParkIds.Harbor];
         var wall = FieldBounds.Of(park).RadiusAt(0);
         var at = FieldBounds.ClampFielder(park, 0, wall, Game.Rules);
         Assert.True(Diamond.Dist(0, wall, at.X, at.Z) < Game.Rules.Fielding.Chase.LooseScoopFt);
@@ -111,7 +111,7 @@ public sealed class FieldingReachTests
     public void NewReachRequiresTheBodyToGetCloserForCatchScoopAndDive()
     {
         var r = Game.Rules;
-        var reach = FieldingResolver.CatchRadiusFt(Game.Must("ashlord"), Game.Parks["harbor-diamond"], r);
+        var reach = FieldingResolver.CatchRadiusFt(Game.Must("ashlord"), Game.Parks[ParkIds.Harbor], r);
         Assert.Equal(4, reach);
         Assert.Equal(5, FieldingResolver.CatchWindowFt(reach, false, false, r));
         Assert.Equal(6, FieldingResolver.DiveCatchFt(reach, r));

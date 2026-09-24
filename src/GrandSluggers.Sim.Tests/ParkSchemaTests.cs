@@ -22,7 +22,7 @@ public sealed class ParkSchemaTests
 
     /// <summary>The field-pick cycle as the shipped six-id literal in <c>ExhibitionPick</c> spelled it.</summary>
     static readonly string[] PickOrder =
-        ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep"];
+        [ParkIds.Harbor, ParkIds.Crystal, ParkIds.Funfair, ParkIds.Rooftop, ParkIds.Canopy, ParkIds.Ember];
 
     // ---------------------------------------------------------------------------------
     // SF-02  An unknown field, an unknown id or a misspelled key stops the load and names it
@@ -115,7 +115,7 @@ public sealed class ParkSchemaTests
     {
         var slice = Assert.Throws<KeyNotFoundException>(() => Match.Slice(Shipped, parkId: "nope"));
         Assert.Contains("No park 'nope'", slice.Message, StringComparison.Ordinal);
-        Assert.Contains("harbor-diamond", slice.Message, StringComparison.Ordinal);
+        Assert.Contains(ParkIds.Harbor, slice.Message, StringComparison.Ordinal);
 
         Assert.Throws<KeyNotFoundException>(() =>
             Match.Exhibition(Shipped, "rio", "ashlord", innings: 3, seed: 1, parkId: "nope"));
@@ -140,11 +140,11 @@ public sealed class ParkSchemaTests
     public void TheFieldPickCycleComesFromTheParkFilesInTheOrderTheLiteralHeld()
     {
         Assert.Equal(PickOrder, Shipped.ParkPickOrder);
-        Assert.Equal("crystal-rink", ExhibitionPick.WrapPark(Shipped, "harbor-diamond", 1));
-        Assert.Equal("ember-keep", ExhibitionPick.WrapPark(Shipped, "harbor-diamond", -1));
-        Assert.Equal("harbor-diamond", ExhibitionPick.WrapPark(Shipped, "ember-keep", 1));
+        Assert.Equal(ParkIds.Crystal, ExhibitionPick.WrapPark(Shipped, ParkIds.Harbor, 1));
+        Assert.Equal(ParkIds.Ember, ExhibitionPick.WrapPark(Shipped, ParkIds.Harbor, -1));
+        Assert.Equal(ParkIds.Harbor, ExhibitionPick.WrapPark(Shipped, ParkIds.Ember, 1));
         // A pick the catalog does not have still cycles, from the first park.
-        Assert.Equal("crystal-rink", ExhibitionPick.WrapPark(Shipped, "nope", 1));
+        Assert.Equal(ParkIds.Crystal, ExhibitionPick.WrapPark(Shipped, "nope", 1));
 
         var pick = ExhibitionPick.Default;
         foreach (var id in PickOrder.Skip(1).Concat([PickOrder[0]]))
@@ -162,14 +162,14 @@ public sealed class ParkSchemaTests
     /// Harbor through his own faction; Fenn reaches it because no park is a fen park.
     /// </summary>
     [Theory]
-    [InlineData("rio", "harbor-diamond")]
-    [InlineData("vale", "crystal-rink")]
-    [InlineData("zig", "funfair-park")]
-    [InlineData("brondo", "rooftop-city")]
-    [InlineData("konga", "canopy-yard")]
-    [InlineData("ashlord", "ember-keep")]
-    [InlineData("fenn", "harbor-diamond")]
-    [InlineData("nobody-by-that-name", "harbor-diamond")]
+    [InlineData("rio", ParkIds.Harbor)]
+    [InlineData("vale", ParkIds.Crystal)]
+    [InlineData("zig", ParkIds.Funfair)]
+    [InlineData("brondo", ParkIds.Rooftop)]
+    [InlineData("konga", ParkIds.Canopy)]
+    [InlineData("ashlord", ParkIds.Ember)]
+    [InlineData("fenn", ParkIds.Harbor)]
+    [InlineData("nobody-by-that-name", ParkIds.Harbor)]
     public void EveryCaptainsHomeParkIsTheOneTheSwitchNamed(string captain, string park)
     {
         Assert.Equal(park, PresetTeams.HomeParkId(Shipped, captain));

@@ -128,7 +128,7 @@ public sealed class HazardLibraryTests
     public void SF03_AParkHazardTypeOutsideTheLibraryStopsTheLoadAndNamesIt(bool overlay)
     {
         using var fixture = new HazardFixture(overlay);
-        fixture.Park("funfair-park", json => json["hazards"]![0]!["type"] = "sprinkler");
+        fixture.Park(ParkIds.Funfair, json => json["hazards"]![0]!["type"] = "sprinkler");
 
         var errors = ContentDataValidator.Validate(fixture.Root());
         Assert.Contains(errors, e => e.Contains("hazard[0] type must be one of", StringComparison.Ordinal)
@@ -224,13 +224,13 @@ public sealed class HazardLibraryTests
     [Fact]
     public void EveryActingHazardMustHaveADisc()
     {
-        var train = Content.Parks["funfair-park"].Hazards.Single(h => h.Type == HazardType.Train);
+        var train = Content.Parks[ParkIds.Funfair].Hazards.Single(h => h.Type == HazardType.Train);
         Assert.Equal(6, train.Radius);
         Assert.Equal(HazardPattern.TimedMover, Table.Hazards.Of(HazardType.Train).Pattern);
         Assert.Empty(ContentDataValidator.Validate(Content.Root));
 
         using var fixture = new HazardFixture(overlay: false);
-        fixture.Park("funfair-park", json => json["hazards"]![0]!["radius"] = 0);
+        fixture.Park(ParkIds.Funfair, json => json["hazards"]![0]!["radius"] = 0);
         Assert.Contains(
             ContentDataValidator.Validate(fixture.Root()),
             e => e.Contains("hazard[0] radius must be greater than 0", StringComparison.Ordinal));
@@ -329,7 +329,7 @@ public sealed class HazardLibraryTests
     [Fact]
     public void TheChomperRowsAreTheOracleLiterals()
     {
-        var funfair = Content.Parks["funfair-park"];
+        var funfair = Content.Parks[ParkIds.Funfair];
         var rows = Played(funfair, night: true).Hazards
             .Where(h => h.Type == HazardType.Chomper)
             .ToList();
@@ -344,7 +344,7 @@ public sealed class HazardLibraryTests
         Assert.DoesNotContain(Played(funfair, night: false).Hazards, h => h.Type == HazardType.Chomper);
 
         // And nowhere else: the mouths are one park's rows, not a rule about a park.
-        foreach (var park in Parks.Where(p => p.Id != "funfair-park"))
+        foreach (var park in Parks.Where(p => p.Id != ParkIds.Funfair))
             Assert.DoesNotContain(Played(park, night: true).Hazards, h => h.Type == HazardType.Chomper);
     }
 
@@ -435,7 +435,7 @@ public sealed class HazardLibraryTests
 
         public static bool ChompFly(Park park, bool night, double x, double z, bool grounder)
         {
-            if (!night || grounder || park.Id != "funfair-park") return false;
+            if (!night || grounder || park.Id != ParkIds.Funfair) return false;
             foreach (var h in FunfairChompers)
                 if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
             return false;

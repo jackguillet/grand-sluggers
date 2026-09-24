@@ -19,11 +19,12 @@ Stage 3 motion (data/agent/dcc-stages.json): --sheets scratchpad/takes/{clip}.pn
 from __future__ import annotations
 
 import argparse
-import json
 import math
 import shutil
 import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import data_json  # noqa: E402  (tools/ is not a package)
 
 import bpy
 from mathutils import Matrix, Quaternion, Vector
@@ -257,7 +258,7 @@ def _jump_keys():
 JUMP = _jump_keys()
 
 # Named default motion data; both hands are baked from this one source.
-BASEBALL = json.loads((Path(__file__).resolve().parents[2] / "data/art/baseball-takes.json").read_text())
+BASEBALL = data_json.read(Path(__file__).resolve().parents[2] / "data/art/baseball-takes.json")
 BASEBALL_TAKES = {row["id"]: row for row in BASEBALL["takes"]}
 
 SCOOP = [
@@ -326,7 +327,7 @@ SWING_CHARGE = "swing-charge"
 
 
 def _load_swings():
-    doc = json.loads(SWING_CATALOG.read_text())
+    doc = data_json.read(SWING_CATALOG)
     swings = {}
     for row in doc["takes"]:
         keys = sorted(row["keys"], key=lambda k: k["t"])

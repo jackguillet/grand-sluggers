@@ -41,7 +41,7 @@ public sealed class SharedWindowScenarioTests
     Park Harbor => _shipped.Parks[ExhibitionPick.DefaultPark];
 
     /// <summary>The park that authored the night window multiplier until FD-11-R2 dropped it (F4-d, #895).</summary>
-    Park CrystalRink => _shipped.Parks["crystal-rink"];
+    Park CrystalRink => _shipped.Parks[ParkIds.Crystal];
 
     // ---------------------------------------------------------------------------------
     // S-125  One window for every hitter, every swing, every bat and every rung

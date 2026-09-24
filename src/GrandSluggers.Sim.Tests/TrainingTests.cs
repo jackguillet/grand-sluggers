@@ -11,12 +11,12 @@ public class TrainingTests
     public void StartsOnHarborDiamond()
     {
         var run = Training.Start(_content);
-        Assert.Equal("harbor-diamond", run.Park.Id);
+        Assert.Equal(ParkIds.Harbor, run.Park.Id);
         Assert.Equal(PracticeLesson.Pitching, run.Lesson);
         Assert.Equal(1, run.CurrentDrill);
         Assert.False(run.Finished);
         var match = run.MakeMatch(_content, seed: 1);
-        Assert.Equal("harbor-diamond", match.Park.Id);
+        Assert.Equal(ParkIds.Harbor, match.Park.Id);
         Assert.Equal("rio", match.Home.Captain.Id);
     }
 

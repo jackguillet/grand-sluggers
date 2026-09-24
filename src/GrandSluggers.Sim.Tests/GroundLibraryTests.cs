@@ -242,7 +242,7 @@ public sealed class GroundLibraryTests
     {
         var global = Game.Rules;
         var air = new ParkEnvironment(DragMul: 1.5);
-        var park = Game.Parks["harbor-diamond"] with { Environment = air };
+        var park = Game.Parks[ParkIds.Harbor] with { Environment = air };
 
         foreach (var derived in new[] { global.AtLevel("hard"), global.AtPark(park), global.AtLevel("easy").AtPark(park) })
         {
@@ -421,7 +421,7 @@ public sealed class GroundLibraryTests
     public void ZoneAtNamesTheDirtTheGrassTheTrackAndTheApron()
     {
         var catalog = Game;
-        var park = catalog.Parks["harbor-diamond"];
+        var park = catalog.Parks[ParkIds.Harbor];
         var zones = GroundZones.Of(park, catalog.Rules);
         var lip = catalog.Rules.Flight.Classes.InfieldLipFt;
         var fence = AtBatResolver.FenceAt(park, 0);
@@ -500,7 +500,7 @@ public sealed class GroundLibraryTests
     [Fact]
     public void AParkMayOverrideOneZoneAndLeaveTheRestDerived()
     {
-        var harbor = Game.Parks["harbor-diamond"];
+        var harbor = Game.Parks[ParkIds.Harbor];
         Assert.Equal(Ground.Grass, harbor.Surface);
 
         var iced = harbor with { Zones = new ParkZones(InfieldDirt: Ground.Ice) };
@@ -535,7 +535,7 @@ public sealed class GroundLibraryTests
 
         Assert.Empty(ContentDataValidator.Validate(new DataRoot(fixture.Root)));
         var content = ContentCatalog.Load(new DataRoot(fixture.Root));
-        var park = content.Parks["harbor-diamond"];
+        var park = content.Parks[ParkIds.Harbor];
         Assert.Equal("ash", park.Zones!.InfieldDirt);
         Assert.Null(park.Zones.Outfield);
 
@@ -557,7 +557,7 @@ public sealed class GroundLibraryTests
     [Fact]
     public void TheNoTableOverloadTakesTheProcessWideTableAndNothingElse()
     {
-        var park = Game.Parks["harbor-diamond"] with { Zones = new ParkZones(WarningTrack: Ground.Ash) };
+        var park = Game.Parks[ParkIds.Harbor] with { Zones = new ParkZones(WarningTrack: Ground.Ash) };
         Assert.Equal(GroundZones.Of(park, Rules.Default), GroundZones.Of(park, rules: Rules.Default));
         Assert.Equal(Rules.Default.Flight.Classes.InfieldLipFt, GroundZones.Of(park, rules: Rules.Default).InfieldLipFt);
         // The zones themselves come from the park either way; only the lip is the table's.
@@ -579,7 +579,7 @@ public sealed class GroundLibraryTests
             Assert.Same(catalog.Rules, catalog.Rules.AtPark(park));
 
         // A park that names zones and no air is still the global table: zones are not on it.
-        var zoned = catalog.Parks["harbor-diamond"] with { Zones = new ParkZones(Outfield: Ground.Ice) };
+        var zoned = catalog.Parks[ParkIds.Harbor] with { Zones = new ParkZones(Outfield: Ground.Ice) };
         Assert.Same(catalog.Rules, catalog.Rules.AtPark(zoned));
         Assert.Equal(Ground.Ice, GroundZones.Of(zoned, catalog.Rules).Outfield);
     }
@@ -601,7 +601,7 @@ public sealed class GroundLibraryTests
             Assert.DoesNotContain("\"zones\"", PlayTraceIdentity.Capture(match).InputsJson, StringComparison.Ordinal);
         }
 
-        var plain = Game.Parks["harbor-diamond"];
+        var plain = Game.Parks[ParkIds.Harbor];
         var iced = plain with { Zones = new ParkZones(Outfield: Ground.Ice) };
         var identity = PlayTraceIdentity.Capture(new Match(Game, away, home, iced, innings: 3, seed: 7));
         Assert.Contains("\"zones\":{\"outfield\":\"ice\"", identity.InputsJson, StringComparison.Ordinal);

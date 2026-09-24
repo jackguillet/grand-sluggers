@@ -87,7 +87,7 @@ public sealed class InningsScenarioTests
     [InlineData(6, false)]    // off when the match says so: it plays on
     public void S82_ATenRunLeadAfterTheTrailingSideBatsInTheThirdIsMercy(int innings, bool mercy)
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         var match = new Match(_content, PresetTeams.EmberCourt(_content), PresetTeams.SparkAllStars(_content), park, innings, seed: 1, mercy: mercy);
         var m = match.Rules.Match.Mercy;
         for (var half = 0; half < 4; half++) EndHalf(match);
@@ -105,7 +105,7 @@ public sealed class InningsScenarioTests
     [Fact]
     public void S82_MercyIsOffForAThreeInningGame()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkIds.Harbor];
         var match = new Match(_content, PresetTeams.EmberCourt(_content), PresetTeams.SparkAllStars(_content), park, innings: 3, seed: 1, mercy: true);
         for (var half = 0; half < 4; half++) EndHalf(match);
         for (var slam = 0; slam < 3; slam++) Assert.True(Slam(match));

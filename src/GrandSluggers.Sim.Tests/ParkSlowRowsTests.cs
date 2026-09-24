@@ -53,7 +53,7 @@ public sealed class ParkSlowRowsTests
     public void AGloveThatTouchesTheRinksVolumeRunsAtFrozenMulOfItsSpeed(bool human)
     {
         var (carry, spray) = RinkFly;
-        var rink = Chase("crystal-rink", carry, 50, spray, human);
+        var rink = Chase(ParkIds.Crystal, carry, 50, spray, human);
         Assert.False(rink.Preview.Frozen, "the landing mark slows nobody (FD-08-R1)");
         Assert.True(rink.Touch is not null, "the fixture: the glove runs into the deep freeze volume");
         var rules = rink.Rules;
@@ -62,7 +62,7 @@ public sealed class ParkSlowRowsTests
         Assert.Equal(asked, rink.TopFree, 6);
         Assert.Equal(asked * rules.Fielding.Chase.FrozenMul, rink.TopSlowed, 6);
 
-        var harbor = Chase("harbor-diamond", carry, 50, spray, human);
+        var harbor = Chase(ParkIds.Harbor, carry, 50, spray, human);
         Assert.False(harbor.Preview.Frozen);
         Assert.Null(harbor.Touch);
         Assert.Equal(0, harbor.SlowedFrames);
@@ -77,7 +77,7 @@ public sealed class ParkSlowRowsTests
     public void TheSlowIsMovementOnlyWhatTheTakeCostsHasNoTermForIt()
     {
         var ss = Diamond.Positions["SS"];
-        var harbor = _content.MustPark("harbor-diamond");
+        var harbor = _content.MustPark(ParkIds.Harbor);
         var park = harbor with { Hazards = [.. harbor.Hazards, new Hazard(HazardType.LavaPit, ss.X, ss.Z, 12, null)] };
         var match = new Match(_content, PresetTeams.EmberCourt(_content), PresetTeams.SparkAllStars(_content), park, seed: 1);
         var hit = FlightFixtures.Hit(park, 100, -12, Math.Atan2(ss.X, ss.Z) * 180 / Math.PI);

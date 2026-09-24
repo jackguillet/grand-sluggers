@@ -20,10 +20,10 @@ public sealed class HazardLessonTests
     enum Read { Patient, Eager, Dead }
 
     [Theory]
-    [InlineData("T-H01", "crystal-rink")]
-    [InlineData("T-H02", "crystal-rink")]
-    [InlineData("T-H03", "funfair-park")]
-    [InlineData("T-H04", "canopy-yard")]
+    [InlineData("T-H01", ParkIds.Crystal)]
+    [InlineData("T-H02", ParkIds.Crystal)]
+    [InlineData("T-H03", ParkIds.Funfair)]
+    [InlineData("T-H04", ParkIds.Canopy)]
     public void EachLessonPlaysAtItsParkAndIsEarnedByTheRead(string id, string park)
     {
         var run = Start(id);

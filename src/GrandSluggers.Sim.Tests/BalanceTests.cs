@@ -252,8 +252,8 @@ public sealed class BalanceTests
         Assert.Null(typeof(Park).GetProperty("NightContactWindowMul"));
         Assert.Null(typeof(ParkHazardRules).GetProperty("CrystalNightWindowMul"));
         Assert.Null(typeof(ParkHazards).GetMethod("ContactWindowMul"));
-        var day = AtBatResolver.ContactWindowFrames(null, _content.Parks["crystal-rink"], false, rules: Rules.Default);
-        var night = AtBatResolver.ContactWindowFrames(null, _content.Parks["crystal-rink"], true, rules: Rules.Default);
+        var day = AtBatResolver.ContactWindowFrames(null, _content.Parks[ParkIds.Crystal], false, rules: Rules.Default);
+        var night = AtBatResolver.ContactWindowFrames(null, _content.Parks[ParkIds.Crystal], true, rules: Rules.Default);
         Assert.Equal(day, night);
     }
 }

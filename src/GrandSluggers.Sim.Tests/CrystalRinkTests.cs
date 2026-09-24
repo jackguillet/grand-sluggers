@@ -15,8 +15,8 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class CrystalRinkTests(ITestOutputHelper output)
 {
     static readonly ContentCatalog Game = Shipped.Content;
-    static Park Harbor => Game.MustPark("harbor-diamond");
-    static Park Crystal => Game.MustPark("crystal-rink");
+    static Park Harbor => Game.MustPark(ParkIds.Harbor);
+    static Park Crystal => Game.MustPark(ParkIds.Crystal);
 
     /// <summary>
     /// The intent is data: the ice outfield and apron are the <c>ice</c> row, the fence is glass from pole to pole on the

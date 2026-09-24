@@ -23,8 +23,8 @@ public sealed class CompactFieldTests
     /// <summary>The basepath scale: 80 ft over the full-size 90.</summary>
     const double Infield = 80.0 / 90.0;
 
-    static readonly string[] ParkIds =
-        ["canopy-yard", "crystal-rink", "ember-keep", "funfair-park", "harbor-diamond", "rooftop-city"];
+    static readonly string[] AllParkIds =
+        [ParkIds.Canopy, ParkIds.Crystal, ParkIds.Ember, ParkIds.Funfair, ParkIds.Harbor, ParkIds.Rooftop];
 
     /// <summary>
     /// 80-ft basepaths. The bags are the full-size rounded 63.64 / 127.28 multiplied by 80/90 and kept at two decimals;
@@ -82,12 +82,12 @@ public sealed class CompactFieldTests
     /// used would move with it and prove nothing. One scale for all six keeps each park's identity and their order.
     /// </summary>
     [Theory]
-    [InlineData("canopy-yard", 218, 265, 223)]
-    [InlineData("crystal-rink", 224, 270, 224)]
-    [InlineData("ember-keep", 237, 286, 237)]
-    [InlineData("funfair-park", 220, 273, 238)]
-    [InlineData("harbor-diamond", 232, 280, 232)]
-    [InlineData("rooftop-city", 223, 272, 225)]
+    [InlineData(ParkIds.Canopy, 218, 265, 223)]
+    [InlineData(ParkIds.Crystal, 224, 270, 224)]
+    [InlineData(ParkIds.Ember, 237, 286, 237)]
+    [InlineData(ParkIds.Funfair, 220, 273, 238)]
+    [InlineData(ParkIds.Harbor, 232, 280, 232)]
+    [InlineData(ParkIds.Rooftop, 223, 272, 225)]
     public void EachParkPlaysItsAcceptedFences(string id, int left, int center, int right)
     {
         var park = Game.Parks[id];
@@ -100,10 +100,10 @@ public sealed class CompactFieldTests
     [Fact]
     public void TheParksKeepTheirOrderAndTheirWalls()
     {
-        string[] bySize = ["canopy-yard", "crystal-rink", "rooftop-city", "funfair-park", "harbor-diamond", "ember-keep"];
-        Assert.Equal(bySize, ParkIds.OrderBy(id => Game.Parks[id].CenterFenceFt).ToArray());
-        Assert.Equal(8, Game.Parks["crystal-rink"].FenceHeightFt);
-        Assert.Equal(12, Game.Parks["harbor-diamond"].FenceHeightFt);
+        string[] bySize = [ParkIds.Canopy, ParkIds.Crystal, ParkIds.Rooftop, ParkIds.Funfair, ParkIds.Harbor, ParkIds.Ember];
+        Assert.Equal(bySize, AllParkIds.OrderBy(id => Game.Parks[id].CenterFenceFt).ToArray());
+        Assert.Equal(8, Game.Parks[ParkIds.Crystal].FenceHeightFt);
+        Assert.Equal(12, Game.Parks[ParkIds.Harbor].FenceHeightFt);
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public sealed class CompactFieldTests
         Assert.Equal(35.5, launch);
         Assert.Equal(304.0, BallFlight.CarryFeet(exit, launch, 0, Game.Rules), 1);
 
-        foreach (var id in ParkIds)
+        foreach (var id in AllParkIds)
         {
             var park = Game.Parks[id];
             for (var power = 9; power <= 10; power++)
@@ -197,12 +197,12 @@ public sealed class CompactFieldTests
         Assert.Equal((-77.09, 175.19), Diamond.Positions["LF"]);
         Assert.Equal((0, 213.5), Diamond.Positions["CF"]);
 
-        var harbor = Game.Parks["harbor-diamond"];
+        var harbor = Game.Parks[ParkIds.Harbor];
         Assert.Equal(213.5, FieldBounds.Clamp(harbor, 0, 213.5).Z, 2);
         Assert.Equal(66.5, harbor.CenterFenceFt - 213.5, 2);
 
         var tightest = double.MaxValue;
-        foreach (var id in ParkIds)
+        foreach (var id in AllParkIds)
         foreach (var pos in new[] { "LF", "CF", "RF" })
         {
             var park = Game.Parks[id];
@@ -248,8 +248,8 @@ public sealed class CompactFieldTests
     [Fact]
     public void TheCentreFielderIsClearOfTheFunfairChompers()
     {
-        var funfair = PlayedPark.Of(Game.Parks["funfair-park"], night: true, hazards: true, Game.Rules.Hazards);
-        var funfairByDay = PlayedPark.Of(Game.Parks["funfair-park"], night: false, hazards: true, Game.Rules.Hazards);
+        var funfair = PlayedPark.Of(Game.Parks[ParkIds.Funfair], night: true, hazards: true, Game.Rules.Hazards);
+        var funfairByDay = PlayedPark.Of(Game.Parks[ParkIds.Funfair], night: false, hazards: true, Game.Rules.Hazards);
         var centre = funfair.Hazards.Single(h => h.Type == HazardType.Chomper && h.Tag == "C");
         var cf = Game.Rules.Fielders.Spot("CF");
         Assert.Equal((0.0, 160.0, 12.6), (centre.X, centre.Z, centre.Radius));
@@ -266,7 +266,7 @@ public sealed class CompactFieldTests
         }
         Assert.NotNull(Mouths(funfair).Entered(centre.X, 6, centre.Z));
         Assert.Null(Mouths(funfairByDay).Entered(centre.X, 6, centre.Z));
-        foreach (var id in ParkIds.Where(p => p != "funfair-park"))
+        foreach (var id in AllParkIds.Where(p => p != ParkIds.Funfair))
             Assert.Null(Mouths(PlayedPark.Of(Game.Parks[id], night: true, hazards: true, Game.Rules.Hazards)).Entered(centre.X, 6, centre.Z));
     }
 
@@ -278,7 +278,7 @@ public sealed class CompactFieldTests
     [Fact]
     public void ABarrelsCaptureDiscIsOnTheFenceScale()
     {
-        foreach (var (id, type, disc) in new[] { ("canopy-yard", "barrel", 9.10), ("funfair-park", "warp_pipe", 8.40) })
+        foreach (var (id, type, disc) in new[] { (ParkIds.Canopy, "barrel", 9.10), (ParkIds.Funfair, "warp_pipe", 8.40) })
         {
             var park = Game.Parks[id];
             var hazard = park.Hazards.First(h => h.Type == type);
@@ -291,7 +291,7 @@ public sealed class CompactFieldTests
         }
 
         // Ember's fire breath: 11.2 by day, 17.92 at night — the multiplier is dimensionless and the radius under it moved.
-        var ember = Game.Parks["ember-keep"];
+        var ember = Game.Parks[ParkIds.Ember];
         var fire = ember.Hazards.Single(h => h.Type == "fire_breath");
         Assert.Equal(11.2, fire.Radius);
         Assert.Equal(17.92, fire.Radius * Game.Rules.Hazards.Of(HazardType.FireBreath).NightRadiusMul, 2);

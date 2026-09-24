@@ -49,7 +49,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     const int CutFrom = 100;
     const int ReverseFrom = 160;
 
-    static Park Plain(ContentCatalog catalog) => catalog.Parks["harbor-diamond"];
+    static Park Plain(ContentCatalog catalog) => catalog.Parks[ParkIds.Harbor];
 
     /// <summary>
     /// Every zone on a shipped row still at 1.0 (ash; ice is Crystal's own since F9-a): the park the <c>AtOne</c> rows walk,

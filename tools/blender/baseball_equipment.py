@@ -3,14 +3,16 @@
 These meshes are used by extras.fbx and the motion evidence renders, so the
 artist sees the same bat and gloves the player receives.
 """
-import json
 import math
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import data_json  # noqa: E402  (tools/ is not a package)
 import bpy
 from mathutils import Vector
 import hero_shared_blockout as body
 
-SPEC = json.loads((Path(__file__).resolve().parents[2] / 'data/art/baseball-equipment.json').read_text())
+SPEC = data_json.read(Path(__file__).resolve().parents[2] / 'data/art/baseball-equipment.json')
 
 
 def surface(name, vertices, faces, material):

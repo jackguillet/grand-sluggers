@@ -239,7 +239,7 @@ public class InPlayTests
     {
         // §8.6: a rocket at the shins can be fumbled; the ball scatters loose, the runner gains the
         // fumble, and the play goes on — nothing converts the play by the roll.
-        var hit = FlightFixtures.Hit(_content.Parks["harbor-diamond"], 110, 6, -19, ContactQuality.Perfect);
+        var hit = FlightFixtures.Hit(_content.Parks[ParkIds.Harbor], 110, 6, -19, ContactQuality.Perfect);
         Assert.True(hit.Class.OnTheDirt());
         var bobbled = 0;
         var outs = 0;

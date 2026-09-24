@@ -146,7 +146,7 @@ public class TeamBuilderTests
         var overlap = home.Order.Select(c => c.Id)
             .Intersect(away.Order.Select(c => c.Id), StringComparer.OrdinalIgnoreCase);
         Assert.Empty(overlap);
-        var match = Match.Exhibition(_content, home.ToTeam(), away.ToTeam(), seed: 7, parkId: "crystal-rink");
+        var match = Match.Exhibition(_content, home.ToTeam(), away.ToTeam(), seed: 7, parkId: ParkIds.Crystal);
         Assert.Equal("vale", match.Home.Captain.Id);
         Assert.Equal("brondo", match.Away.Captain.Id);
         Assert.Equal(9, match.Home.Roster.Count);

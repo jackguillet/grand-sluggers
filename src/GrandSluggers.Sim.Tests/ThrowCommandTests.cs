@@ -283,7 +283,7 @@ public sealed class ThrowCommandTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", second, "grit", shortstop, "basil", centre, "gull");
         var away = content.Team("Offense", "zig", "boom", "cinder", "soot", "nugget", "ashlord", "konga", "dart", "rio");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkIds.Harbor);
         var bodies = new Dictionary<string, Character>(StringComparer.OrdinalIgnoreCase)
         {
             ["P"] = content.Must("vale"), ["C"] = content.Must("pewter"), ["1B"] = content.Must("lace"), ["2B"] = content.Must(second),
