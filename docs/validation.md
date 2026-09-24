@@ -5,7 +5,7 @@ Grand Sluggers keeps portable rules/content checks separate from Unity-specific 
 ## What runs where
 
 - **Locally:** `tools/test-fast.sh <Class> [<Class> ...]` for the classes you touched. It runs `Kind!=Balance`, narrowed to those classes. Never run the full test suite locally; it freezes the shared Mac.
-- **Every PR (CI):** the breakage suite, in the `portable` job. A ruleset on `main` requires `portable` to pass before a PR merges, with no bypass. A PR is done when it compiles, this suite is green on its final head, and the human gates that apply are noted.
+- **Every PR (CI):** the `portable` job builds every project in `GrandSluggers.sln`, runs the breakage suite, validates the art catalog (with the debug protocol, dual stills and DCC stages) and the tutorials catalog, and runs the tool tests (`tools/tests`). A ruleset on `main` requires `portable` to pass before a PR merges, with no bypass. A PR is done when it compiles, this suite is green on its final head, and the human gates that apply are noted.
 - **Unity (local, never CI):** a PR that changes Unity code (`unity/Assets/Scripts`) runs the narrow compile below and names the result in its body. After a merge, the delivery build (`tools/local-player.py`, below) is the revision's Unity build evidence.
 - **On demand (Actions → Full tests):** every test class, the tool tests and the evidence seals. The `balance_only` input runs only the `[Trait("Kind","Balance")]` set. Run it only when Jack says he wants to balance the game. No PR owes it, a tuning PR included. Contract: [agent-rails.md](agent-rails.md) §1.2.
 
