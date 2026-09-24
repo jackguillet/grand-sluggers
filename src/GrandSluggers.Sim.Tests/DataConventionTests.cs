@@ -30,6 +30,9 @@ public sealed class DataConventionTests
     [InlineData("restSpeed")]
     [InlineData("speed")]
     [InlineData("hold")]
+    [InlineData("radius")]
+    [InlineData("throwDistance")]
+    [InlineData("bodyHeight")]
     public void AUnitSpelledLongOrMissingIsRefused(string key) =>
         Assert.NotNull(DataNaming.Problem(key));
 
@@ -43,8 +46,22 @@ public sealed class DataConventionTests
     [InlineData("holdUntilSec")]
     [InlineData("contactMod")]
     [InlineData("chance")]
+    [InlineData("radiusFt")]
+    [InlineData("heightMul")]
+    [InlineData("perFtOfHeight")]
     public void AKeyThatNamesItsUnitPasses(string key) =>
         Assert.Null(DataNaming.Problem(key));
+
+    [Fact]
+    public void AFolderRowCoversEveryFileInItsFolderAndNoOther()
+    {
+        using var fixture = new ContentFixture();
+        // A new park's hazard discs carry the same grandfathered radius; a radius anywhere else is new, and refused.
+        fixture.Copy("parks/crystal-rink.json", "parks/new-park.json");
+        fixture.ChangeObject("rules/fielding.json", json => json["radius"] = 4);
+        var error = Assert.Single(DataNaming.Validate(fixture.Root));
+        Assert.Contains("rules/fielding.json: 'radius' is a length with no unit", error);
+    }
 
     [Fact]
     public void ANewKeyWithoutItsUnitFailsInItsFile()

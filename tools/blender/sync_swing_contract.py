@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Regenerate the measured C# bat contract from its authoring JSON. No bpy."""
 import argparse
-import json
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import jsonc  # noqa: E402  (the one reader for data files with // notes)
 
 ROOT=Path(__file__).resolve().parents[2]
 
@@ -20,7 +22,7 @@ if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--check',action='store_true');args=p.parse_args()
     dest=ROOT/'src/GrandSluggers.Sim/SwingPresentation.cs';text=dest.read_text()
     a=text.index('    // <swing-keys>');b=text.index('    // </swing-keys>',a)+len('    // </swing-keys>')
-    result=text[:a]+generated(json.loads((ROOT/'data/art/swing-takes.json').read_text()))+text[b:]
+    result=text[:a]+generated(jsonc.load(ROOT/'data/art/swing-takes.json'))+text[b:]
     if args.check:
         if result!=text:raise SystemExit('swing contract stale; run sync_swing_contract.py')
     else:dest.write_text(result)

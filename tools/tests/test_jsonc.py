@@ -21,6 +21,10 @@ class JsoncTests(unittest.TestCase):
         text = '{\n  // a note\n  "url": "http://x/*y*/", /* block */ "a": [1, 2,],\n  "q": "say \\"//\\"",\n}\n'
         self.assertEqual({"url": "http://x/*y*/", "a": [1, 2], "q": 'say "//"'}, jsonc.loads(text))
 
+    def test_a_trailing_comma_inside_a_string_stays(self):
+        text = '{"note": "ends, }", "list": [1, /* last */ ], "b": "x ,]",}'
+        self.assertEqual({"note": "ends, }", "list": [1], "b": "x ,]"}, jsonc.loads(text))
+
     def test_an_unterminated_block_comment_is_refused(self):
         with self.assertRaises(ValueError):
             jsonc.loads('{"a": 1 /* open')
