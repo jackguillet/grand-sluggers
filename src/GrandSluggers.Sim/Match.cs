@@ -650,7 +650,7 @@ public sealed partial class Match
         var outs = _outsThisPlay.Where(o => o.FromBag != 0).ToList();
         var advances = _movesThisPlay.Skip(movesBefore).Where(m => m.FromBag != 0 && m.ToBag > m.FromBag).ToList();
         var kind = pitch.Kind;
-        var caption = pitch.Caption;
+        var call = pitch.Call ?? PlayCall.Of();
         var result = RunnerPlayResult.None;
         var fromBag = 0;
         var toBag = 0;
@@ -661,9 +661,13 @@ public sealed partial class Match
             result = pickoff ? RunnerPlayResult.PickedOff : RunnerPlayResult.CaughtStealing;
             fromBag = outs[0].FromBag;
             toBag = outs[0].Bag;
-            var live = LivePlay.Caption;
-            var named = string.Join(" ", outs.Select(o => $"{o.Runner.Name} {(pickoff ? "picked off" : "caught stealing")}."));
-            caption = string.IsNullOrEmpty(live) ? $"{caption}  {named}" : $"{caption}  {live} {named}";
+            // The live decision, when it says something, leads the runner play; the outs name their runners.
+            var moment = LivePlay.LastMoment;
+            var said = new List<CallPart>();
+            if (moment is not null) said.Add(LiveCall(moment) with { Aside = true });
+            said.AddRange(outs.Select((o, i) =>
+                new CallPart(pickoff ? CallBeat.PickedOff : CallBeat.CaughtStealing, Who: o.Runner.Name, Aside: i == 0 && moment is null)));
+            call = call.Then(said);
         }
         else if (advances.Count > 0)
         {
@@ -679,13 +683,13 @@ public sealed partial class Match
                 Scorebook.Credit(m.Runner.Id, Rules.Stars.Mvp.StolenBase);
                 AddStars(defense: false, Rules.Stars.Gains.StolenBase);
             }
-            var named = string.Join(" ", advances.OrderByDescending(m => m.ToBag).Select(m => $"{m.Runner.Name} steals {InPlay.BagName(m.ToBag)}."));
-            caption = $"{caption}  {named}";
+            call = call.Then(advances.OrderByDescending(m => m.ToBag)
+                .Select((m, i) => new CallPart(CallBeat.Steals, Who: m.Runner.Name, Number: m.ToBag, Aside: i == 0)));
         }
         else if (pickoff)
         {
             var back = _runners.FirstOrDefault(r => r.Live && r.Bag == pickoffBag)?.Who;
-            caption = back is not null ? $"{back.Name} back to the bag." : caption;
+            if (back is not null) call = PlayCall.Of(new CallPart(CallBeat.BackToBag, Who: back.Name));
         }
         var facts = (pitch.Outcome ?? PlayOutcome.Empty) with
         {
@@ -699,7 +703,8 @@ public sealed partial class Match
         var ev = pitch with
         {
             Kind = kind,
-            Caption = caption,
+            Caption = BroadcastHud.Narrate(call),
+            Call = call,
             RunsScored = pitch.RunsScored + runs,
             Scorers = pitch.Scorers.Concat(scorers).ToList(),
             Fielder = LivePlay.LastMoment?.Fielder ?? pitch.Fielder,
@@ -910,7 +915,7 @@ public sealed partial class Match
         BeginPlay();
         var fake = new PitchCommand(PitchFamily.Fastball, 0, false);
         var take = new SwingCommand(false, 0, 0, false);
-        var ev = Emit(PlayKind.Pickoff, fake, take, EmptyHit(true), "Pickoff.", 0, [], Pitcher);
+        var ev = Emit(PlayKind.Pickoff, fake, take, EmptyHit(true), PlayCall.Of(new CallPart(CallBeat.Pickoff)), 0, [], Pitcher);
         LivePlay.Apply(LivePlayCommand.BeginPickoff(ev, bag, seats, source));
         return LivePlay.Active;
     }
@@ -1265,28 +1270,28 @@ public sealed partial class Match
             if (Strikes >= 2)
                 return FinishStrike(pitch, swing, empty, swinging: false);
             Strikes++;
-            return AfterPitch(Emit(PlayKind.TakeStrike, pitch, swing, empty, $"Strike {Strikes} looking.", 0, []));
+            return AfterPitch(Emit(PlayKind.TakeStrike, pitch, swing, empty, PlayCall.Of(new CallPart(CallBeat.StrikeLooking, Number: Strikes)), 0, []));
         }
         Balls++;
         if (Balls >= 4)
             return FinishWalk(pitch, swing, empty);
-        return AfterPitch(Emit(PlayKind.TakeBall, pitch, swing, empty, $"Ball {Balls}.", 0, []));
+        return AfterPitch(Emit(PlayKind.TakeBall, pitch, swing, empty, PlayCall.Of(new CallPart(CallBeat.Ball, Number: Balls)), 0, []));
     }
 
-    PlayEvent FinishStrike(PitchCommand pitch, SwingCommand swing, AtBatResult hit, bool swinging, string? how = null)
+    PlayEvent FinishStrike(PitchCommand pitch, SwingCommand swing, AtBatResult hit, bool swinging, CallBeat? how = null)
     {
         Strikes++;
         if (Strikes < 3)
         {
-            var cap = swinging ? $"Strike {Strikes}." : $"Strike {Strikes} looking.";
+            var cap = PlayCall.Of(new CallPart(swinging ? CallBeat.StrikeSwinging : CallBeat.StrikeLooking, Number: Strikes));
             return AfterPitch(Emit(swinging ? PlayKind.SwingMiss : PlayKind.TakeStrike, pitch, swing, hit, cap, 0, []));
         }
         ClearSteal();
         Scorebook.Credit(Pitcher.Id, Rules.Stars.Mvp.Strikeout);
         AddStars(defense: true, Rules.Stars.Gains.Strikeout);
         RecordOut(OutType.Strikeout, 0, 0, Batter, Pitcher);
-        how ??= swinging ? "goes down swinging." : "is caught looking.";
-        var ev = Emit(PlayKind.Strikeout, pitch, swing, hit, $"{Batter.Name} {how}", 0, []);
+        how ??= swinging ? CallBeat.StruckOutSwinging : CallBeat.StruckOutLooking;
+        var ev = Emit(PlayKind.Strikeout, pitch, swing, hit, PlayCall.Of(new CallPart(how.Value, Who: Batter.Name)), 0, []);
         NextBatter();
         CheckInning();
         return AfterPitch(FinishEvent(ev));
@@ -1298,7 +1303,7 @@ public sealed partial class Match
         var ledBefore = OffenseLead;
         var (runs, scorers) = PlaceByWalk(Batter);
         Scorebook.CreditBatter(Rules.Stars.Mvp.Walk, runs, ledBefore);
-        var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers,
+        var ev = Emit(PlayKind.Walk, pitch, swing, hit, PlayCall.Of(new CallPart(CallBeat.Walk, Who: Batter.Name)), runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
         return AfterPitch(ev);
@@ -1310,7 +1315,7 @@ public sealed partial class Match
         var ledBefore = OffenseLead;
         var (runs, scorers) = PlaceByWalk(Batter);
         Scorebook.CreditBatter(Rules.Stars.Mvp.HitByPitch, runs, ledBefore);
-        var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, $"{Batter.Name} is hit.", runs, scorers,
+        var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, PlayCall.Of(new CallPart(CallBeat.HitByPitch, Who: Batter.Name)), runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
         return AfterPitch(ev);
@@ -1327,7 +1332,7 @@ public sealed partial class Match
         ClearSteal();
         SendAll = false;
         var kind = field.Kind;
-        var caption = "";
+        var call = new List<CallPart>();
         var runs = 0;
         var ledBefore = OffenseLead;
         var mvp = Rules.Stars.Mvp;
@@ -1348,13 +1353,13 @@ public sealed partial class Match
                 {
                     ResetRunnersToBags();
                     LivePlay.Reset();
-                    return FinishStrike(pitch, swing, hit, swinging: true, how: "bunts foul for strike three.");
+                    return FinishStrike(pitch, swing, hit, swinging: true, how: CallBeat.StruckOutBuntFoul);
                 }
                 // Dead where it landed, rolled foul, or left the field, or was first touched foul (§5.6).
                 // Fewer than two strikes adds one; runners return; the at-bat continues.
                 if (Strikes < 2) Strikes++;
                 ResetRunnersToBags();
-                caption = "Foul.";
+                call.Add(new(CallBeat.Foul));
                 break;
             case PlayKind.HomeRun:
                 // Dead at the crossing (§7.10): everyone circles; the trot is presentation.
@@ -1362,9 +1367,7 @@ public sealed partial class Match
                 batterToBag = 4;
                 Scorebook.CreditBatter(mvp.HomeRun, runs, ledBefore);
                 AddStars(defense: false, Rules.Stars.Gains.HomeRun);
-                caption = hit.StarSwingUsed is "furnace" or "heat-swing"
-                    ? $"{Batter.Name} {hit.StarSwingUsed!.ToUpperInvariant()} - it's gone."
-                    : $"{Batter.Name} goes deep.";
+                call.Add(new(CallBeat.HomeRun, Who: Batter.Name, Word: hit.StarSwingUsed));
                 NextBatter();
                 break;
             default:
@@ -1376,7 +1379,7 @@ public sealed partial class Match
                     kind = PlayKind.Double;
                     Scorebook.CreditBatter(mvp.Hit, runs, ledBefore);
                     AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
-                    caption = $"{Batter.Name} - over the fence on a hop. Ground-rule double.";
+                    call.Add(new(CallBeat.GroundRuleDouble, Who: Batter.Name));
                     NextBatter();
                     break;
                 }
@@ -1401,26 +1404,29 @@ public sealed partial class Match
                     case PlayKind.HomeRun:
                         Scorebook.CreditBatter(mvp.HomeRun, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.HomeRun);
-                        caption = $"{Batter.Name} - all the way around!";
+                        call.Add(new(CallBeat.InsideTheParkHomeRun, Who: Batter.Name));
                         break;
                     case PlayKind.Triple:
                         Scorebook.CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
-                        caption = $"{Batter.Name} triples.";
+                        call.Add(new(CallBeat.Triple, Who: Batter.Name));
                         break;
                     case PlayKind.Double:
                         Scorebook.CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
-                        caption = $"{Batter.Name} doubles.";
+                        call.Add(new(CallBeat.Double, Who: Batter.Name));
                         break;
                     case PlayKind.Single:
                         Scorebook.CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.Single);
-                        caption = moment is not null
-                            ? moment.NarratesBatterAtFirst ? LivePlay.Caption : $"{LivePlay.Caption} {Batter.Name} in at first."
-                            : field.Warped ? $"{Batter.Name} - it went through a {CarnivalFront.RedirectName(field.RedirectType)}!"
-                            : field.Heatball ? $"{Batter.Name} - it drops! Heatball."
-                            : $"{Batter.Name} singles.";
+                        if (moment is not null)
+                        {
+                            call.Add(LiveCall(moment));
+                            call.Add(new(CallBeat.BatterInAtFirst, Who: Batter.Name));
+                        }
+                        else if (field.Warped) call.Add(new(CallBeat.RedirectSingle, Who: Batter.Name, Word: field.RedirectType));
+                        else if (field.Heatball) call.Add(new(CallBeat.HeatballSingle, Who: Batter.Name));
+                        else call.Add(new(CallBeat.Single, Who: Batter.Name));
                         liveNarrated = true;
                         break;
                     default:
@@ -1435,26 +1441,23 @@ public sealed partial class Match
                             AddStars(defense: true, Rules.Stars.Gains.RobbedHomer);
                         }
                         // A chain of outs names the chain (§10.4, §10.7) ahead of the last decision it narrated.
-                        var chain = _outsThisPlay.Count >= 3 ? "Triple play! "
-                            : _outsThisPlay.Count == 2 && moment is not { Verdict: InPlay.ThrowVerdict.TurnedTwo } ? "Double play. "
-                            : "";
-                        caption = moment is not null ? $"{chain}{LivePlay.Caption}"
+                        if (_outsThisPlay.Count >= 3) call.Add(new(CallBeat.TriplePlay));
+                        else if (_outsThisPlay.Count == 2) call.Add(new(CallBeat.DoublePlay));
+                        var who = field.Fielder?.Name;
+                        call.Add(moment is not null ? LiveCall(moment)
                             : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.BuddyJump && field.Buddy is not null
-                                ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
-                            : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.Clamber
-                                ? $"{field.Fielder?.Name} CLAMBERS the wall!"
-                            : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.SuperJump
-                                ? $"{field.Fielder?.Name} SUPER JUMP!"
-                            : kind == PlayKind.FlyOut
-                                ? $"{field.Fielder?.Name} puts it away."
-                                : $"{field.Fielder?.Name} to first.";
+                                ? new(CallBeat.BuddyJump, Who: who, Other: field.Buddy.Name)
+                            : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.Clamber ? new(CallBeat.Clamber, Who: who)
+                            : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.SuperJump ? new(CallBeat.SuperJump, Who: who)
+                            : kind == PlayKind.FlyOut ? new(CallBeat.PutAway, Who: who)
+                            : new(CallBeat.ToFirst, Who: who));
                         if (kind == PlayKind.FlyOut && runs > 0)
-                            caption = $"{caption} Sac fly.";
-                        if (batterToBag == 1 && !(moment?.NarratesBatterAtFirst ?? false))
-                            caption = $"{caption} {Batter.Name} in at first.";
+                            call.Add(new(CallBeat.SacFly));
+                        if (batterToBag == 1)
+                            call.Add(new(CallBeat.BatterInAtFirst, Who: Batter.Name));
                         // The batter safe at first behind an out on another body is the fielder's choice (§10.4): the stamp reads the typed flag.
                         if (FieldersChoiceNow(batterToBag))
-                            caption = $"{caption} Fielder's choice.";
+                            call.Add(new(CallBeat.FieldersChoice));
                         liveNarrated = true;
                         break;
                 }
@@ -1468,7 +1471,7 @@ public sealed partial class Match
             kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun or PlayKind.FlyOut)
         {
             AddStars(defense: false, Rules.Stars.Gains.Billboard);
-            caption += "  Billboard STAR!";
+            call.Add(new(CallBeat.Billboard));
         }
 
         // The item that mattered (§12): it landed and the batter reached.
@@ -1476,26 +1479,18 @@ public sealed partial class Match
             Scorebook.Credit(Batter.Id, mvp.ItemMattered);
 
         if (field.Item is { } item)
-        {
-            caption += item switch
-            {
-                "banana" => "  Banana slip!",
-                "rocket" => "  Rocket daze!",
-                "pow" => "  POW!",
-                _ => $"  {item}!"
-            };
-        }
+            call.Add(new(CallBeat.Item, Word: item));
 
         // A live decision nobody narrated above leads the caption. Typed: no branch reads caption text.
         if (moment is not null && !liveNarrated)
-            caption = $"{LivePlay.Caption} {caption}";
+            call.Insert(0, LiveCall(moment));
 
         // The ERROR (§8.5, §8.6): a throw that skipped past its cover let the offense take what it took.
         // A bobble is only time; it is never the error by itself.
         var error = kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple && field.ThrowSailed;
         LivePlay.Reset();
         // A foul keeps the at-bat and a hit ends it; either way the pitch is over and the box recenters (D12).
-        return AfterPitch(Emit(kind, pitch, swing, hit, caption, runs, scorers,
+        return AfterPitch(Emit(kind, pitch, swing, hit, new PlayCall(call), runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
             field.Heatball, field.Furnace,
             new PlayOutcome(DefensiveFeat: field.Feat, BatterToBag: batterToBag, Error: error,
@@ -1555,7 +1550,7 @@ public sealed partial class Match
     }
 
     PlayEvent Emit(
-        PlayKind kind, PitchCommand pitch, SwingCommand swing, AtBatResult hit, string caption,
+        PlayKind kind, PitchCommand pitch, SwingCommand swing, AtBatResult hit, PlayCall call,
         int runs, IReadOnlyList<string> scorers,
         Character? fielder = null, ThrowResult? throwRes = null,
         double hang = 0, double lx = 0, double lz = 0,
@@ -1567,9 +1562,9 @@ public sealed partial class Match
         pitch = Settled(pitch);
         swing = Settled(swing);
         var ev = new PlayEvent(
-            kind, hit, pitch, swing, origin.Batter, origin.Pitcher, fielder, throwRes, runs, scorers, caption,
+            kind, hit, pitch, swing, origin.Batter, origin.Pitcher, fielder, throwRes, runs, scorers, BroadcastHud.Narrate(call),
             heat, furnace, hang, lx, lz, next.Outs, next.AwayScore, next.HomeScore,
-            _outsOnCurrentPlay, origin.Context, next, WithPlayFacts(outcome));
+            _outsOnCurrentPlay, origin.Context, next, WithPlayFacts(outcome), call);
         _log.Add(ev);
         _pendingPlay = null;
         return ev;
@@ -1882,6 +1877,9 @@ public sealed partial class Match
             else HomeStars = Math.Min(max, HomeStars + amount);
         }
     }
+
+    /// <summary>The live ball's last decision as a fact of the call, named from the hitter and pitcher on the field now.</summary>
+    CallPart LiveCall(LiveMoment moment) => new(CallBeat.Live, Who: Batter.Name, Other: Pitcher.Name, Moment: moment);
 
     AtBatResult EmptyHit(bool inZone) => new(
         ContactQuality.Miss, false, inZone, 0, 0, 0, false, false, null, null, 0, false, inZone);
