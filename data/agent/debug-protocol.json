@@ -650,6 +650,16 @@
       "promoted": "BuddyJumpTests.LiveBuddyRunsAtNormalSpeedAndCatchesOnlyWithBothBodiesUnderBall",
       "issue": "#997",
       "pr": ""
+    },
+    {
+      "id": "infielder-runs-to-the-rest-point",
+      "signature": "An infielder turns and runs into the outfield on a hard grounder or a liner that passes in front of him.",
+      "stage": "sim",
+      "cause": "FieldingPursuit.Rolling fell back to the last legal sample, the ball's resting place 250-270 ft out, when no pickup was reachable. A slowing roll also gives that point the smallest miss.",
+      "fix": "An unreachable infield route plays the ball where it passes closest to the body while the ball is still coming (FieldingPursuit.Crossing, cutOff). Outfielders keep chasing the roll. A tutorial fixture that relied on the deep run needs a new ball.",
+      "promoted": "InfieldCrossingRouteTests.NoInfieldChaseAcrossTheInfieldGridRunsPastTheCrossing",
+      "issue": "#580",
+      "pr": ""
     }
   ]
 }

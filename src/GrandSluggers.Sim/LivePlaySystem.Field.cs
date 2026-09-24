@@ -1792,7 +1792,8 @@ public sealed partial class LivePlaySystem
         {
             var who = GloveChar();
             var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
-            var route = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
+            var route = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
+                !FieldingResolver.IsOutfield(GlovePos));
             var meetAt = route.Reachable ? route.MeetTimeSec : Math.Max(Rest, ElapsedSeconds + route.TravelTimeSec);
             ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
                 FieldingResolver.OutfieldGrass(route.X, route.Z, R), Preview.LandingX, Preview.LandingZ, carry);
@@ -1841,7 +1842,8 @@ public sealed partial class LivePlaySystem
         if (!CanMove(GlovePos)) return;
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
-        var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
+        var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
+            !FieldingResolver.IsOutfield(GlovePos));
         var next = StepTo(GlovePos, (GloveX, GloveZ), (route.X, route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         if (Diamond.Dist(GloveX, GloveZ, next.X, next.Z) > 1e-6)
             TutorialAssistedPursuitGloveId = who.Id;
@@ -1873,7 +1875,8 @@ public sealed partial class LivePlaySystem
         // outfielder's (the plant on a fly, the first reachable sample on a roller or a liner that will bounce).
         var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
-        var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
+        var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
+            !FieldingResolver.IsOutfield(GlovePos));
         // A scoopable ball inside the glove's reach is a route of zero feet: the touch (§8.3) is this frame's play, whatever the planner says of the next sample.
         var inReach = !airborne && FlyCatch.TouchScoop(Preview, Park, BallX, BallZ, BallY, ElapsedSeconds, Hang,
             Diamond.Dist(GloveX, GloveZ, BallX, BallZ), CatchWindow(map), R);
@@ -2593,7 +2596,8 @@ public sealed partial class LivePlaySystem
             var map = Assigned();
             var who = map.TryGetValue(GlovePos, out var fielder) ? fielder : pre.Fielder;
             var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
-            var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
+            var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
+                !FieldingResolver.IsOutfield(GlovePos));
             return (route.X, route.Z);
         }
         return (BallX, BallZ);
