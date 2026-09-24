@@ -298,8 +298,8 @@ public static class FieldBounds
     }
 
     /// <summary>Keep a fielder inside the wall while close enough to recover a loose wall ball.</summary>
-    public static (double X, double Z) ClampFielder(Park park, double x, double z, RulesTable? rules = null) =>
-        Clamp(park, x, z, Rules.Or(rules).Fielding.Chase.WallClearanceFt);
+    public static (double X, double Z) ClampFielder(Park park, double x, double z, RulesTable rules) =>
+        Clamp(park, x, z, rules.Fielding.Chase.WallClearanceFt);
 
     public static (double X, double Z) Clamp(Park park, double x, double z) => Clamp(park, x, z, InsideFt);
 

@@ -62,10 +62,10 @@ public class NightTests
     {
         var park = _content.Parks["crystal-rink"];
         var rio = _content.Must("rio");
-        var dayWindow = AtBatResolver.ContactWindowFrames(null, park, false);
-        var nightWindow = AtBatResolver.ContactWindowFrames(null, park, true);
+        var dayWindow = AtBatResolver.ContactWindowFrames(null, park, false, rules: Rules.Default);
+        var nightWindow = AtBatResolver.ContactWindowFrames(null, park, true, rules: Rules.Default);
         Assert.Equal(dayWindow, nightWindow);
-        Assert.Equal(AtBatResolver.ContactWindowFrames(null, _content.Parks["harbor-diamond"], true), nightWindow);
+        Assert.Equal(AtBatResolver.ContactWindowFrames(null, _content.Parks["harbor-diamond"], true, rules: Rules.Default), nightWindow);
 
         // Between the day window's edge and the edge the dropped × 0.85 would have drawn.
         var removedNightWindow = dayWindow * 0.85;
@@ -73,7 +73,7 @@ public class NightTests
             _content.Must("ashlord"), rio, _content.Must("nico"), [],
             false, false, (dayWindow + removedNightWindow) / 4, false, false,
             _content.Bats["harbor-lumber"], 80, PitchInZone: true);
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var day = resolver.Resolve(input, park, new Random(1));
         var night = resolver.Resolve(input, park, new Random(1), night: true);
         Assert.NotEqual(ContactQuality.Miss, day.Quality);
@@ -106,7 +106,7 @@ public class NightTests
         // The same fly is the same preview by day and at night: nothing is decided from where it lands.
         var hit = FlightFixtures.Landing(catalog, mouthZ, 22, 0);
         var spark = PresetTeams.SparkAllStars(_content);
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         var day = fielding.Resolve(hit, byDay, spark.Roster, spark.Captain, new Random(1));
         var night = fielding.Resolve(hit, atNight, spark.Roster, spark.Captain, new Random(1), night: true);
         Assert.Equal(day.Kind, night.Kind);
@@ -125,15 +125,15 @@ public class NightTests
         // The C80 copy carries the statue's breath at the field's scale (#732): (0, 175) with a 11.2 ft disc, so the same two
         // points are 175 ft and 189 ft out (20 ft past the mouth at 0.70).
         var (mouthZ, pastZ) = (175.0, 189.0);
-        Assert.True(ParkHazards.InSlow(park, 0, mouthZ));
-        Assert.False(ParkHazards.InSlow(park, 0, pastZ));
-        Assert.False(ParkHazards.InSlow(park, 0, pastZ, night: false));
-        Assert.True(ParkHazards.InSlow(park, 0, pastZ, night: true));
-        Assert.False(ParkHazards.InSlow(_content.Parks["harbor-diamond"], 0, pastZ, night: true));
+        Assert.True(ParkHazards.InSlow(park, 0, mouthZ, rules: Rules.Default));
+        Assert.False(ParkHazards.InSlow(park, 0, pastZ, rules: Rules.Default));
+        Assert.False(ParkHazards.InSlow(park, 0, pastZ, night: false, rules: Rules.Default));
+        Assert.True(ParkHazards.InSlow(park, 0, pastZ, night: true, rules: Rules.Default));
+        Assert.False(ParkHazards.InSlow(_content.Parks["harbor-diamond"], 0, pastZ, night: true, rules: Rules.Default));
 
         var lava = park.Hazards.First(h => h.Type == "lava_pit");
-        Assert.False(ParkHazards.InSlow(park, lava.X, lava.Z + lava.Radius + 4));
-        Assert.False(ParkHazards.InSlow(park, lava.X, lava.Z + lava.Radius + 4, night: true));
+        Assert.False(ParkHazards.InSlow(park, lava.X, lava.Z + lava.Radius + 4, rules: Rules.Default));
+        Assert.False(ParkHazards.InSlow(park, lava.X, lava.Z + lava.Radius + 4, night: true, rules: Rules.Default));
     }
 
     [Fact]

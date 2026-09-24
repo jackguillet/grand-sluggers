@@ -43,9 +43,9 @@ public static class BattedBallClasses
     /// The coarse read at the crack from launch and exit alone (flight.classes): topper, grounder,
     /// liner, or fly. The flight refines it (chopper, pop, wall, homer) in <see cref="BattedBall.Of(double, double, double, bool, Park, RulesTable?)"/>.
     /// </summary>
-    public static BattedBallClass ByLaunch(double launchDeg, double exitMph, RulesTable? rules = null)
+    public static BattedBallClass ByLaunch(double launchDeg, double exitMph, RulesTable rules)
     {
-        var c = Rules.Or(rules).Flight.Classes;
+        var c = rules.Flight.Classes;
         if (launchDeg < c.TopperMaxLaunchDeg) return BattedBallClass.Topper;
         if (launchDeg < c.GrounderMaxLaunchDeg) return BattedBallClass.Grounder;
         if (launchDeg < c.ChopperMaxLaunchDeg)
@@ -94,22 +94,22 @@ public sealed record BattedBall(
     /// <summary>The ball leaves the park (over the fence or into the foul stands).</summary>
     public bool Leaves => LeavesT is not null;
 
-    public static BattedBall Of(AtBatResult hit, Park park, RulesTable? rules = null) =>
+    public static BattedBall Of(AtBatResult hit, Park park, RulesTable rules) =>
         Of(hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg, hit.Class == BattedBallClass.Bunt, park, rules);
 
-    public static BattedBall Of(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable? rules = null) =>
+    public static BattedBall Of(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules) =>
         Of(exitMph, launchDeg, sprayDeg, false, park, rules);
 
-    public static BattedBall Of(double exitMph, double launchDeg, double sprayDeg, bool bunt, Park park, RulesTable? rules = null)
+    public static BattedBall Of(double exitMph, double launchDeg, double sprayDeg, bool bunt, Park park, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var samples = BallFlight.Trajectory(exitMph, launchDeg, sprayDeg, park, r);
         return Read(samples, exitMph, launchDeg, bunt, park, r);
     }
 
     /// <summary>The same reading of a path that has been continued from a state (#721): what the deflected ball decides from here — the wall, the fence, the stands.</summary>
-    public static BattedBall Reread(IReadOnlyList<Sample> samples, double exitMph, double launchDeg, bool bunt, Park park, RulesTable? rules = null) =>
-        Read(samples, exitMph, launchDeg, bunt, park, Rules.Or(rules));
+    public static BattedBall Reread(IReadOnlyList<Sample> samples, double exitMph, double launchDeg, bool bunt, Park park, RulesTable rules) =>
+        Read(samples, exitMph, launchDeg, bunt, park, rules);
 
     static BattedBall Read(IReadOnlyList<Sample> samples, double exitMph, double launchDeg, bool bunt, Park park, RulesTable rules)
     {

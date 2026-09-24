@@ -20,8 +20,8 @@ public static class ChargeFeel
         fill01 >= 1 && secondsPastFull <= maxHold;
 
     /// <summary>A release inside the first <c>pitching.release.niceBandSec</c> of MAX is Nice! (spec §4.1).</summary>
-    public static bool NiceRelease(double fill01, double secondsPastFull, double maxHold, RulesTable? rules = null) =>
-        AtMax(fill01, secondsPastFull, maxHold) && secondsPastFull <= Rules.Or(rules).Pitching.Release.NiceBandSec;
+    public static bool NiceRelease(double fill01, double secondsPastFull, double maxHold, RulesTable rules) =>
+        AtMax(fill01, secondsPastFull, maxHold) && secondsPastFull <= rules.Pitching.Release.NiceBandSec;
 
     public static bool IsSlap(double effective01) => effective01 < SlapBelow;
 
@@ -79,13 +79,14 @@ public readonly record struct SwingInputIntent(
         double stickY,
         bool bunt,
         double boxOffsetX,
+        RulesTable rules,
         BuntSide buntSide = BuntSide.None) =>
         button.Committed
             ? new SwingInputIntent(
                 true,
                 button.CommitFill01,
                 button.CommitSecondsPastFull,
-                AtBatResolver.SprayAimDeg(stickX),
+                AtBatResolver.SprayAimDeg(stickX, rules),
                 bunt,
                 stickY,
                 boxOffsetX,
@@ -93,11 +94,11 @@ public readonly record struct SwingInputIntent(
             : default;
 
     public SwingCommand Resolve(double releaseAt, double plateAt, double effectiveCharge, bool star,
-        RulesTable? rules = null) =>
+        RulesTable rules) =>
         new(
             true,
             effectiveCharge,
-            AtBatMotion.SwingErrorFrames(releaseAt, plateAt, Bunt, rules),
+            AtBatMotion.SwingErrorFrames(releaseAt, plateAt, rules, Bunt),
             star,
             SprayAimDeg,
             Bunt,
@@ -434,17 +435,17 @@ public static class SweetSpot
     public static double HalfHeightFt => StrikeZoneGeometry.Height / 2;
 
     /// <summary>Bat (contact) scales the barrel around 5.</summary>
-    public static double ContactScale(int contact, RulesTable? rules = null) =>
-        Math.Max(0.5, 1 + (Math.Clamp(contact, 1, 10) - 5) * Rules.Or(rules).Batting.Cursor.ScalePerContact);
+    public static double ContactScale(int contact, RulesTable rules) =>
+        Math.Max(0.5, 1 + (Math.Clamp(contact, 1, 10) - 5) * rules.Batting.Cursor.ScalePerContact);
 
     /// <summary>
     /// The barrel scale for one swing: contact × (a charge narrows). The Charge Bat is a MAX charge
     /// with the narrowing off (spec §5.5). Runners on base never widen it: there is no plate-level
     /// chemistry (PH-16-R14, #891).
     /// </summary>
-    public static double BarrelScale(int contact, bool charged, bool chargeBat, RulesTable? rules = null)
+    public static double BarrelScale(int contact, bool charged, bool chargeBat, RulesTable rules)
     {
-        var c = Rules.Or(rules).Batting.Cursor;
+        var c = rules.Batting.Cursor;
         var scale = ContactScale(contact, rules);
         if (charged) return chargeBat ? scale : scale * c.ChargeMul;
         return scale;
@@ -457,7 +458,7 @@ public static class SweetSpot
     /// with this and <see cref="Oval"/> draws with it, so the two cannot drift (P2-d, #889).
     /// </summary>
     /// <param name="charge01">The effective charge (after overcharge decay), 0–1.</param>
-    public static double SwingBarrel(Character batter, BatItem? bat, double charge01, RulesTable? rules = null)
+    public static double SwingBarrel(Character batter, BatItem? bat, double charge01, RulesTable rules)
     {
         var contact = Math.Clamp(batter.Stats.Contact + (bat?.ContactMod ?? 0), 1, 10);
         var chargeBat = bat?.ChargeAlwaysFull == true;
@@ -472,7 +473,7 @@ public static class SweetSpot
     /// height is the zone's and never scales (PH-11-R1, PH-15-R7, S-135, S-136).
     /// </summary>
     public static CursorOval Oval(Character batter, BatItem? bat, double charge01, double boxOffsetX,
-        RulesTable? rules = null)
+        RulesTable rules)
     {
         var scale = SwingBarrel(batter, bat, charge01, rules);
         var bats = batter.Bats;
@@ -485,9 +486,9 @@ public static class SweetSpot
     }
 
     /// <summary>Nice half-axis along the barrel on the side of <paramref name="dx"/> (world feet from the center).</summary>
-    public static double NiceHalfWidthFt(Hand bats, double dx, double barrelScale, RulesTable? rules = null)
+    public static double NiceHalfWidthFt(Hand bats, double dx, double barrelScale, RulesTable rules)
     {
-        var c = Rules.Or(rules).Batting.Cursor;
+        var c = rules.Batting.Cursor;
         var towardTip = dx * TipSign(bats) >= 0;
         return (towardTip ? c.NiceTipFt : c.NiceHandleFt) * barrelScale;
     }
@@ -496,7 +497,8 @@ public static class SweetSpot
     /// Normalized distance of a crossing from the cursor center: 1 on the drawn (nice) boundary.
     /// </summary>
     public static double Distance(double boxOffsetX, Hand bats, double crossingX, double crossingY,
-        double barrelScale = 1, RulesTable? rules = null)
+        RulesTable rules,
+        double barrelScale = 1)
     {
         var (cx, cy) = WorldCenter(boxOffsetX);
         var dx = crossingX - cx;
@@ -513,9 +515,10 @@ public static class SweetSpot
     /// zone are on the bat with the box centered.
     /// </summary>
     public static ContactQuality Zone(double boxOffsetX, Hand bats, double crossingX, double crossingY,
-        double barrelScale = 1, RulesTable? rules = null)
+        RulesTable rules,
+        double barrelScale = 1)
     {
-        var c = Rules.Or(rules).Batting.Cursor;
+        var c = rules.Batting.Cursor;
         var (cx, cy) = WorldCenter(boxOffsetX);
         var dx = crossingX - cx;
         var dy = crossingY - cy;
@@ -534,8 +537,8 @@ public static class SweetSpot
     /// The drawn oval: the nice boundary, local to the cursor center, in world feet. The client
     /// draws exactly the hitbox the sim judges; the tip half is longer than the handle half.
     /// </summary>
-    public static IReadOnlyList<(double X, double Y)> Outline(Hand bats, double barrelScale = 1,
-        int segments = 40, RulesTable? rules = null)
+    public static IReadOnlyList<(double X, double Y)> Outline(Hand bats, RulesTable rules, double barrelScale = 1,
+        int segments = 40)
     {
         var pts = new List<(double X, double Y)>(segments);
         for (var i = 0; i < segments; i++)
@@ -568,11 +571,11 @@ public static class SweetSpot
     }
 
     /// <summary>Every strike is hittable with the box centered: no zone corner is off the bat (spec §5.2).</summary>
-    public static bool CoversTheZone(Hand bats, double barrelScale = 1, RulesTable? rules = null)
+    public static bool CoversTheZone(Hand bats, RulesTable rules, double barrelScale = 1)
     {
         foreach (var x in new[] { -StrikeZoneGeometry.HalfWidth, 0, StrikeZoneGeometry.HalfWidth })
         foreach (var y in new[] { StrikeZoneGeometry.Bottom, StrikeZoneGeometry.CenterY, StrikeZoneGeometry.Top })
-            if (Zone(0, bats, x, y, barrelScale, rules) == ContactQuality.Miss)
+            if (Zone(0, bats, x, y, rules, barrelScale) == ContactQuality.Miss)
                 return false;
         return true;
     }
@@ -581,21 +584,21 @@ public static class SweetSpot
 /// <summary>Fielding dash and buddy-toss before the glove (fielding.dash).</summary>
 public static class FieldDash
 {
-    public static double ChaseMul(RulesTable? rules = null) => Rules.Or(rules).Fielding.Dash.ChaseMul;
+    public static double ChaseMul(RulesTable rules) => rules.Fielding.Dash.ChaseMul;
 
-    public static bool BuddyTossOffered(Chemistry rel, double distFt, RulesTable? rules = null) =>
-        rel == Chemistry.Good && distFt < Rules.Or(rules).Fielding.Dash.BuddyTossFt;
+    public static bool BuddyTossOffered(Chemistry rel, double distFt, RulesTable rules) =>
+        rel == Chemistry.Good && distFt < rules.Fielding.Dash.BuddyTossFt;
 
     public static FieldingResult ApplyBuddyToss(FieldingResult field, Character partner, ThrowResult thr) =>
         field with { Fielder = partner, Throw = thr };
 
-    public static bool KickOffered(double distFt, RulesTable? rules = null) =>
-        distFt < Rules.Or(rules).Fielding.Dash.KickFt;
+    public static bool KickOffered(double distFt, RulesTable rules) =>
+        distFt < rules.Fielding.Dash.KickFt;
 
     /// <summary>Project the target onto the lateral axis of a fielder facing home. No forward/backward lunge.</summary>
-    public static (double X, double Z) Lunge(double x, double z, double tx, double tz, double? ft = null, RulesTable? rules = null)
+    public static (double X, double Z) Lunge(double x, double z, double tx, double tz, RulesTable rules, double? ft = null)
     {
-        var reach = ft ?? Rules.Or(rules).Fielding.Dash.DiveLungeFt;
+        var reach = ft ?? rules.Fielding.Dash.DiveLungeFt;
         var homeDistance = Math.Sqrt(x * x + z * z);
         var sideX = homeDistance > 0.01 ? z / homeDistance : 1;
         var sideZ = homeDistance > 0.01 ? -x / homeDistance : 0;
@@ -603,8 +606,8 @@ public static class FieldDash
         return (x + sideX * lateral, z + sideZ * lateral);
     }
 
-    public static bool DestroysItem(bool attack, bool itemFlying, double distFt, RulesTable? rules = null) =>
-        attack && itemFlying && distFt < Rules.Or(rules).Fielding.Dash.ItemSmashFt;
+    public static bool DestroysItem(bool attack, bool itemFlying, double distFt, RulesTable rules) =>
+        attack && itemFlying && distFt < rules.Fielding.Dash.ItemSmashFt;
 }
 
 /// <summary>The button starts the swing; the ball at the plate is what the press is judged against
@@ -655,9 +658,9 @@ public static class AtBatMotion
     /// Seconds from the press to the take's Contact mark (D13): inside the window the ball's plate
     /// time (never before the press), outside it the take's own mark, so the bat misses honestly.
     /// </summary>
-    public static double SwingContactSec(double errorFrames, double windowFrames, RulesTable? rules = null) =>
+    public static double SwingContactSec(double errorFrames, double windowFrames, RulesTable rules) =>
         AtBatResolver.InWindow(errorFrames, windowFrames)
-            ? Math.Max(0, Rules.Or(rules).Batting.Window.LeadSec - errorFrames / 60)
+            ? Math.Max(0, rules.Batting.Window.LeadSec - errorFrames / 60)
             : Motion.SwingContact;
 
     /// <summary>
@@ -683,32 +686,32 @@ public static class AtBatMotion
     /// The press against the square press, the ball's plate time less batting.window.leadSec (D13),
     /// in 60 Hz frames: negative is early. A bunt is already on the plane, so it has no lead (§5.8).
     /// </summary>
-    public static double SwingErrorFrames(double pressAt, double plateAt, bool bunt = false, RulesTable? rules = null) =>
-        (pressAt - SquarePressAt(plateAt, bunt, rules)) * 60;
+    public static double SwingErrorFrames(double pressAt, double plateAt, RulesTable rules, bool bunt = false) =>
+        (pressAt - SquarePressAt(plateAt, rules, bunt)) * 60;
 
     /// <summary>The press that is square: the ball's plate time less the authored lead (none for a bunt).</summary>
-    public static double SquarePressAt(double plateAt, bool bunt = false, RulesTable? rules = null) =>
-        plateAt - (bunt ? 0 : Rules.Or(rules).Batting.Window.LeadSec);
+    public static double SquarePressAt(double plateAt, RulesTable rules, bool bunt = false) =>
+        plateAt - (bunt ? 0 : rules.Batting.Window.LeadSec);
 
     /// <summary>
     /// When the CPU batter commits (spec §3, §5.9): the square press less batting.cpu.decideLeadSec,
     /// from the trajectory as it stands then. A human who has already pressed is in the same
     /// position: the judgment still reads the final crossing.
     /// </summary>
-    public static double CpuDecisionTime(double plateAt, RulesTable? rules = null) =>
-        SquarePressAt(plateAt, rules: rules) - Rules.Or(rules).Batting.Cpu.DecideLeadSec;
+    public static double CpuDecisionTime(double plateAt, RulesTable rules) =>
+        SquarePressAt(plateAt, rules: rules) - rules.Batting.Cpu.DecideLeadSec;
 
     /// <summary>A CPU swing cannot start before the decision: the judged error is clamped to what the bat can show.</summary>
-    public static SwingCommand CommitCpuSwing(SwingCommand swing, double plateAt, RulesTable? rules = null)
+    public static SwingCommand CommitCpuSwing(SwingCommand swing, double plateAt, RulesTable rules)
     {
         if (!swing.Swing) return swing;
-        var earliest = SwingErrorFrames(CpuDecisionTime(plateAt, rules), plateAt, swing.Bunt, rules);
+        var earliest = SwingErrorFrames(CpuDecisionTime(plateAt, rules), plateAt, rules, swing.Bunt);
         return swing.TimingErrorFrames < earliest ? swing with { TimingErrorFrames = earliest } : swing;
     }
 
     /// <summary>The press, recovered from its error: the square press plus the error.</summary>
-    public static double SwingStart(double plateAt, double errorFrames, bool bunt = false, RulesTable? rules = null) =>
-        SquarePressAt(plateAt, bunt, rules) + errorFrames / 60;
+    public static double SwingStart(double plateAt, double errorFrames, RulesTable rules, bool bunt = false) =>
+        SquarePressAt(plateAt, rules, bunt) + errorFrames / 60;
 
     /// <summary>
     /// Advance one committed action clock, in real seconds after the press. The

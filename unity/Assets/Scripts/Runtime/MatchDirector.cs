@@ -248,7 +248,7 @@ namespace GrandSluggers.UnityClient
 
         void Update()
         {
-            Controls.Tick(Time.unscaledDeltaTime);
+            Controls.Tick(Time.unscaledDeltaTime, _content.Rules);
             TickStarModifiers();
             if (_match == null) return;
             // The pursuit stick's seats (#718) bind every frame, recovery and Call time included, on the input clock.
@@ -850,7 +850,7 @@ namespace GrandSluggers.UnityClient
                 _relFrom = hand.position;
             else
             {
-                var rel = PitchFlight.Release(_pitch != null ? _pitch.RubberX : 0);
+                var rel = PitchFlight.Release(MatchRules, _pitch != null ? _pitch.RubberX : 0);
                 _relFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             }
         }

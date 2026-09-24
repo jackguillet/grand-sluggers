@@ -418,7 +418,7 @@ static void SimAtBat(ContentCatalog content, string matchup, int seed)
     var pitcher = content.Must(ember ? "ashlord" : "rio");
     var batter = content.Must(ember ? "rio" : "ashlord");
     var onDeck = content.Must(ember ? "nico" : "cinder");
-    var resolver = new AtBatResolver(content.Chemistry);
+    var resolver = new AtBatResolver(content.Chemistry, content.Rules);
     var rng = new Random(seed);
 
     Console.WriteLine($"{pitcher.Name} vs {batter.Name} at {park.Name}  (seed {seed})");

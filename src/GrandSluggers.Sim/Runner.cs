@@ -444,16 +444,16 @@ public sealed record RunnerTickContext(
 public static class RunnerSystem
 {
     /// <summary>Seconds per 90 ft for this runner: <c>baseSec − Run × secPerRun</c>, clamped (§9.1).</summary>
-    public static double BagSec(Character who, RulesTable? rules = null)
+    public static double BagSec(Character who, RulesTable rules)
     {
-        var s = Rules.Or(rules).Running.BagSec;
+        var s = rules.Running.BagSec;
         return Math.Clamp(s.BaseSec - who.Stats.Run * s.SecPerRun, s.MinSec, s.MaxSec);
     }
 
     /// <summary>Feet per second on the path, with the dash (§9.4).</summary>
-    public static double SpeedFtPerSec(Character who, double dash01 = 0, RulesTable? rules = null)
+    public static double SpeedFtPerSec(Character who, RulesTable rules, double dash01 = 0)
     {
-        var s = Rules.Or(rules).Running.BagSec;
+        var s = rules.Running.BagSec;
         return Diamond.Baseline / BagSec(who, rules) * (1 + s.DashMul * Math.Clamp(dash01, 0, 1));
     }
 
@@ -463,26 +463,26 @@ public static class RunnerSystem
     /// delay included); 0 when already there or past it. Whether they intend to go is
     /// <see cref="Runner.DestBag"/>, not this.
     /// </summary>
-    public static double ArrivalSec(Runner runner, int bag, double elapsed, double dash01 = 0, RulesTable? rules = null)
+    public static double ArrivalSec(Runner runner, int bag, double elapsed, RulesTable rules, double dash01 = 0)
     {
         if (!runner.Live) return double.PositiveInfinity;
         var feet = runner.FeetTo(bag);
         if (feet <= 0) return 0;
         var wait = runner.IsBatter && runner.Bag == 0
-            ? Math.Max(0, Rules.Or(rules).Running.BagSec.BatterStartSec - elapsed)
+            ? Math.Max(0, rules.Running.BagSec.BatterStartSec - elapsed)
             : 0;
-        return wait + feet / SpeedFtPerSec(runner.Who, dash01, rules);
+        return wait + feet / SpeedFtPerSec(runner.Who, rules, dash01);
     }
 
     /// <summary>
     /// Seconds until this runner is back on their start bag from where they are (§10.5): the
     /// doubled-off race the fielder reads. 0 when standing there; infinite when not live.
     /// </summary>
-    public static double ReturnSec(Runner runner, double dash01 = 0, RulesTable? rules = null)
+    public static double ReturnSec(Runner runner, RulesTable rules, double dash01 = 0)
     {
         if (!runner.Live) return double.PositiveInfinity;
         var feet = runner.FeetBackToStart();
-        return feet <= 0 ? 0 : feet / SpeedFtPerSec(runner.Who, dash01, rules);
+        return feet <= 0 ? 0 : feet / SpeedFtPerSec(runner.Who, rules, dash01);
     }
 
     /// <summary>
@@ -490,9 +490,9 @@ public static class RunnerSystem
     /// the ground the bag stands on (FD-04 B, F3-d). One reader for the automatic slide and the player's forced one, so the two
     /// never disagree about where the slide starts. With no park named it is the table's own length.
     /// </summary>
-    public static double SlideFt(int bag, GroundZones? zones, RulesTable? rules = null)
+    public static double SlideFt(int bag, GroundZones? zones, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var feet = r.Running.Bags.SlideFt;
         if (zones is not { } z) return feet;
         var at = Diamond.Bag(bag);
@@ -504,9 +504,9 @@ public static class RunnerSystem
     /// <c>body.overrunMul</c> of the ground the bag stands on (FD-04 B, F3-d). Only first is run through today; the bag is named so
     /// a bag that is not first needs no second reader. With no park named it is the table's own length.
     /// </summary>
-    public static double OverrunFt(int bag, GroundZones? zones, RulesTable? rules = null)
+    public static double OverrunFt(int bag, GroundZones? zones, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var feet = r.Running.Bags.OverrunFt;
         if (zones is not { } z) return feet;
         var at = Diamond.Bag(bag);
@@ -519,9 +519,9 @@ public static class RunnerSystem
             .OrderByDescending(r => r.Progress)
             .FirstOrDefault();
 
-    public static void Tick(IReadOnlyList<Runner> runners, double dt, RunnerTickContext ctx, RulesTable? rules = null)
+    public static void Tick(IReadOnlyList<Runner> runners, double dt, RunnerTickContext ctx, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var bagRules = r.Running.Bags;
         var speedRules = r.Running.BagSec;
         // Leaders move first so a trailer can be held behind them (no passing, §9.1).
@@ -548,7 +548,7 @@ public static class RunnerSystem
 
             var held = runner.Held && !forcedNow;
             // His own speed, × the status volume's slow while one slows him (F4-b): along his path, the one way this body moves.
-            var speed = SpeedFtPerSec(runner.Who, ctx.Dash01, r);
+            var speed = SpeedFtPerSec(runner.Who, r, ctx.Dash01);
             if (ctx.SpeedMul is { } slow) speed *= slow(runner);
             var waiting = runner.IsBatter && runner.Bag == 0 && ctx.Elapsed < speedRules.BatterStartSec;
 

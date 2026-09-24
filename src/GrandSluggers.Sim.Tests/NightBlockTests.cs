@@ -364,8 +364,8 @@ public sealed class NightBlockTests
         var reach = ParkHazards.NightDiscFt(breath.Radius, row);
         Assert.Equal(breath.Radius * 1.6, reach);
         var past = breath.Z + (breath.Radius + reach) / 2;
-        Assert.False(ParkHazards.InSlow(byDay, breath.X, past, night: false, content.Rules));
-        Assert.True(ParkHazards.InSlow(atNight, breath.X, past, night: true, content.Rules));
+        Assert.False(ParkHazards.InSlow(byDay, breath.X, past, content.Rules, night: false));
+        Assert.True(ParkHazards.InSlow(atNight, breath.X, past, content.Rules, night: true));
     }
 
     // ---------------------------------------------------------------------------------

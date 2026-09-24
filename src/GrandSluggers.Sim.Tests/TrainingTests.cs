@@ -66,7 +66,7 @@ public class TrainingTests
     {
         var run = Training.Start(_content);
         var ball = new PitchCommand("fastball", 1, false, 0.95, 0);
-        Assert.False(AtBatResolver.PitchInZone(ball, 10));
+        Assert.False(AtBatResolver.PitchInZone(ball, 10, rules: Rules.Default));
         Assert.False(run.RecordPitch(ball, 10, canStar: false));
         Assert.Equal(PracticeLesson.Pitching, run.Lesson);
         Assert.Equal(0, run.MaxCharges);

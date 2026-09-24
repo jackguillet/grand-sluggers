@@ -12,8 +12,8 @@ public class InPlayTests
     {
         var soft = Hit(ContactQuality.Sour, 60);
         var hard = Hit(ContactQuality.Perfect, 100);
-        Assert.True(InPlay.Energy(hard) > InPlay.Energy(soft),
-            $"hard {InPlay.Energy(hard)} vs soft {InPlay.Energy(soft)}");
+        Assert.True(InPlay.Energy(hard, rules: Rules.Default) > InPlay.Energy(soft, rules: Rules.Default),
+            $"hard {InPlay.Energy(hard, rules: Rules.Default)} vs soft {InPlay.Energy(soft, rules: Rules.Default)}");
     }
 
     [Fact]
@@ -27,8 +27,8 @@ public class InPlayTests
         const int n = 80;
         for (var i = 0; i < n; i++)
         {
-            if (InPlay.Bobbles(InPlay.Energy(hard), rio, new Random(i))) hardN++;
-            if (InPlay.Bobbles(InPlay.Energy(dying), rio, new Random(i))) dyingN++;
+            if (InPlay.Bobbles(InPlay.Energy(hard, rules: Rules.Default), rio, new Random(i), rules: Rules.Default)) hardN++;
+            if (InPlay.Bobbles(InPlay.Energy(dying, rules: Rules.Default), rio, new Random(i), rules: Rules.Default)) dyingN++;
         }
         Assert.True(hardN > dyingN, $"hard bobbles {hardN} vs dying {dyingN}");
         Assert.Equal(0, dyingN);
@@ -41,19 +41,19 @@ public class InPlayTests
         // leaves the box 0.5 s after contact; a left-handed batter's box is closer to first.
         var dart = _content.Must("dart");
         var brick = _content.Must("brondo");
-        Assert.True(RunnerSystem.BagSec(dart) < RunnerSystem.BagSec(brick), $"dart {RunnerSystem.BagSec(dart)} vs brondo {RunnerSystem.BagSec(brick)}");
+        Assert.True(RunnerSystem.BagSec(dart, rules: Rules.Default) < RunnerSystem.BagSec(brick, rules: Rules.Default), $"dart {RunnerSystem.BagSec(dart, rules: Rules.Default)} vs brondo {RunnerSystem.BagSec(brick, rules: Rules.Default)}");
         var s = Rules.Default.Running.BagSec;
-        Assert.Equal(Math.Clamp(s.BaseSec - dart.Stats.Run * s.SecPerRun, s.MinSec, s.MaxSec), RunnerSystem.BagSec(dart), 6);
+        Assert.Equal(Math.Clamp(s.BaseSec - dart.Stats.Run * s.SecPerRun, s.MinSec, s.MaxSec), RunnerSystem.BagSec(dart, rules: Rules.Default), 6);
         var righty = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.R), HomeSet.BatterZ);
         var lefty = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.L), HomeSet.BatterZ);
-        var toFirstR = RunnerSystem.ArrivalSec(righty, 1, 0);
-        var toFirstL = RunnerSystem.ArrivalSec(lefty, 1, 0);
+        var toFirstR = RunnerSystem.ArrivalSec(righty, 1, 0, rules: Rules.Default);
+        var toFirstL = RunnerSystem.ArrivalSec(lefty, 1, 0, rules: Rules.Default);
         Assert.True(toFirstL < toFirstR, $"lefty {toFirstL} vs righty {toFirstR}");
-        Assert.InRange(toFirstR - s.BatterStartSec, RunnerSystem.BagSec(dart) * 0.9, RunnerSystem.BagSec(dart) * 1.1);
+        Assert.InRange(toFirstR - s.BatterStartSec, RunnerSystem.BagSec(dart, rules: Rules.Default) * 0.9, RunnerSystem.BagSec(dart, rules: Rules.Default) * 1.1);
         var seated = new Runner(dart, 1);
-        Assert.Equal(RunnerSystem.BagSec(dart), RunnerSystem.ArrivalSec(seated, 2, 0), 6);
-        Assert.Equal(2 * RunnerSystem.BagSec(dart), RunnerSystem.ArrivalSec(seated, 3, 0), 6);
-        Assert.Equal(0, RunnerSystem.ArrivalSec(seated, 1, 0));
+        Assert.Equal(RunnerSystem.BagSec(dart, rules: Rules.Default), RunnerSystem.ArrivalSec(seated, 2, 0, rules: Rules.Default), 6);
+        Assert.Equal(2 * RunnerSystem.BagSec(dart, rules: Rules.Default), RunnerSystem.ArrivalSec(seated, 3, 0, rules: Rules.Default), 6);
+        Assert.Equal(0, RunnerSystem.ArrivalSec(seated, 1, 0, rules: Rules.Default));
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public class InPlayTests
     {
         var dart = _content.Must("dart");
         var body = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.R), HomeSet.BatterZ);
-        var still = RunnerSystem.ArrivalSec(body, 1, 0, 0);
-        var dash = RunnerSystem.ArrivalSec(body, 1, 0, 1);
+        var still = RunnerSystem.ArrivalSec(body, 1, 0, Rules.Default, 0);
+        var dash = RunnerSystem.ArrivalSec(body, 1, 0, Rules.Default, 1);
         Assert.True(dash < still, $"dash {dash} vs {still}");
         Assert.True(still - dash < 0.6, "dash is not a teleport");
         // A throw that lands between the two: out standing still, in on the mash.
@@ -74,7 +74,7 @@ public class InPlayTests
     public void TheResolverNamesNothingOnAGrounderTheLiveBallDoes()
     {
         var match = Match.Slice(_content, seed: 4);
-        var fielding = new FieldingResolver(_content.Chemistry);
+        var fielding = new FieldingResolver(_content.Chemistry, rules: Rules.Default);
         // Deep hopper: landing is past the infield so the nearest glove cannot scoop it before the grass.
         var hit = FlightFixtures.Hit(match.Park, 140, -35, 2);
         var rng = new Random(4);
@@ -226,13 +226,13 @@ public class InPlayTests
         Assert.False(InPlay.StickNamesBag(chasing: true, caught: false));
         Assert.False(InPlay.StickNamesBag(chasing: false, caught: true));
         Assert.True(InPlay.StickNamesBag(chasing: false, caught: false));
-        Assert.Equal(0, InPlay.DiamondBag(0, 0));
-        Assert.Equal(1, InPlay.DiamondBag(1, 0));
-        Assert.Equal(2, InPlay.DiamondBag(0, 1));
-        Assert.Equal(3, InPlay.DiamondBag(-1, 0));
-        Assert.Equal(4, InPlay.DiamondBag(0, -1));
-        Assert.Equal(0, InPlay.ArmedBag(0, InPlay.DiamondBag(1, 0), stickOk: false));
-        Assert.Equal(1, InPlay.ArmedBag(0, InPlay.DiamondBag(1, 0), stickOk: true));
+        Assert.Equal(0, InPlay.DiamondBag(0, 0, rules: Rules.Default));
+        Assert.Equal(1, InPlay.DiamondBag(1, 0, rules: Rules.Default));
+        Assert.Equal(2, InPlay.DiamondBag(0, 1, rules: Rules.Default));
+        Assert.Equal(3, InPlay.DiamondBag(-1, 0, rules: Rules.Default));
+        Assert.Equal(4, InPlay.DiamondBag(0, -1, rules: Rules.Default));
+        Assert.Equal(0, InPlay.ArmedBag(0, InPlay.DiamondBag(1, 0, rules: Rules.Default), stickOk: false));
+        Assert.Equal(1, InPlay.ArmedBag(0, InPlay.DiamondBag(1, 0, rules: Rules.Default), stickOk: true));
         Assert.Equal(1, InPlay.ArmedBag(1, 2, stickOk: true));
         Assert.Equal(2, InPlay.ArmedBag(2, 1, stickOk: false));
         Assert.Equal(3, InPlay.ArmedBag(3, 0, stickOk: false));
@@ -268,13 +268,13 @@ public class InPlayTests
         // fumble, and the play goes on — nothing converts the play by the roll.
         var hit = FlightFixtures.Hit(_content.Parks["harbor-diamond"], 110, 6, -19, ContactQuality.Perfect);
         Assert.True(hit.Class.OnTheDirt());
-        var energy = InPlay.Energy(hit);
+        var energy = InPlay.Energy(hit, rules: Rules.Default);
         var weakHands = _content.Must("konga");
         var rolls = 0;
         for (var i = 0; i < 80; i++)
-            if (InPlay.Bobbles(energy, weakHands, new Random(i))) rolls++;
+            if (InPlay.Bobbles(energy, weakHands, new Random(i), rules: Rules.Default)) rolls++;
         Assert.True(rolls > 0, "a rocket at the shins must eat someone in 80 tries");
-        Assert.True(InPlay.KnockbackSec(energy, weakHands) > 0, "a 110 mph perfect hopper must shove the fielder");
+        Assert.True(InPlay.KnockbackSec(energy, weakHands, rules: Rules.Default) > 0, "a 110 mph perfect hopper must shove the fielder");
 
         var bobbled = 0;
         var outs = 0;
@@ -312,13 +312,13 @@ public class InPlayTests
     public void DyingRollerDoesNotBobbleOrKnockBack()
     {
         var hit = new AtBatResult(ContactQuality.Sour, true, false, 40, 6, 30, false, false, null, null, SprayDeg: 0);
-        var energy = InPlay.Energy(hit);
+        var energy = InPlay.Energy(hit, rules: Rules.Default);
         foreach (var who in new[] { "konga", "rio", "frost" })
         {
             var c = _content.Must(who);
             for (var i = 0; i < 40; i++)
-                Assert.False(InPlay.Bobbles(energy, c, new Random(i)));
-            Assert.Equal(0, InPlay.KnockbackSec(energy, c));
+                Assert.False(InPlay.Bobbles(energy, c, new Random(i), rules: Rules.Default));
+            Assert.Equal(0, InPlay.KnockbackSec(energy, c, rules: Rules.Default));
         }
     }
 
@@ -338,9 +338,9 @@ public class InPlayTests
         Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(fly));
         Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(homer));
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(star));
-        Assert.Equal(BattedBallClass.Liner, BattedBallClasses.ByLaunch(line.LaunchDeg, line.ExitVeloMph));
-        Assert.True(BattedBallClasses.ByLaunch(hopper.LaunchDeg, hopper.ExitVeloMph).OnTheDirt());
-        Assert.False(BattedBallClasses.ByLaunch(fly.LaunchDeg, fly.ExitVeloMph).OnTheDirt());
+        Assert.Equal(BattedBallClass.Liner, BattedBallClasses.ByLaunch(line.LaunchDeg, line.ExitVeloMph, rules: Rules.Default));
+        Assert.True(BattedBallClasses.ByLaunch(hopper.LaunchDeg, hopper.ExitVeloMph, rules: Rules.Default).OnTheDirt());
+        Assert.False(BattedBallClasses.ByLaunch(fly.LaunchDeg, fly.ExitVeloMph, rules: Rules.Default).OnTheDirt());
     }
 
     [Fact]
@@ -352,91 +352,91 @@ public class InPlayTests
         var rio = _content.Must("rio");
         var batter = Runner.BatterRunner(rio, HomeSet.BatterX, HomeSet.BatterZ);
         var runners = new[] { batter };
-        Assert.True(InPlay.Time(true, false, 3, true, runners), "three outs is Time");
-        Assert.False(InPlay.Time(false, false, 0, true, runners), "no ball is not Time");
-        Assert.False(InPlay.Time(true, true, 0, true, runners), "a throw is not Time");
-        Assert.False(InPlay.Time(true, false, 0, true, runners), "batter between bags");
+        Assert.True(InPlay.Time(true, false, 3, true, runners, rules: Rules.Default), "three outs is Time");
+        Assert.False(InPlay.Time(false, false, 0, true, runners, rules: Rules.Default), "no ball is not Time");
+        Assert.False(InPlay.Time(true, true, 0, true, runners, rules: Rules.Default), "a throw is not Time");
+        Assert.False(InPlay.Time(true, false, 0, true, runners, rules: Rules.Default), "batter between bags");
         var t = 0.0;
         const double dt = 1.0 / 60;
         while (!batter.IsOn(1))
         {
-            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t, 0, FlyState.None, 0, _ => false, _ => false));
+            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t, 0, FlyState.None, 0, _ => false, _ => false), rules: Rules.Default);
             t += dt;
             Assert.True(t < 10, "the batter reaches first");
         }
-        var expected = Rules.Default.Running.BagSec.BatterStartSec + batter.SegmentFt / RunnerSystem.SpeedFtPerSec(rio);
+        var expected = Rules.Default.Running.BagSec.BatterStartSec + batter.SegmentFt / RunnerSystem.SpeedFtPerSec(rio, rules: Rules.Default);
         Assert.InRange(t, expected - 0.05, expected + 0.05);
-        Assert.False(InPlay.Time(true, false, 0, true, runners), "batter just arrived");
+        Assert.False(InPlay.Time(true, false, 0, true, runners, rules: Rules.Default), "batter just arrived");
         // The batter runs through first (§9.4): the bag is theirs on the way out and straight back, and Time waits for the return.
         Assert.True(batter.Overrunning && batter.OverrunProtected, "through the bag, protected");
         var farthest = 0.0;
         while (batter.Overrunning)
         {
-            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false));
+            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false), rules: Rules.Default);
             farthest = Math.Max(farthest, batter.OverrunFt);
             Assert.True(batter.IsOn(1), "holds first through the run-through");
-            Assert.False(InPlay.Time(true, false, 0, true, runners), "not settled while through the bag");
+            Assert.False(InPlay.Time(true, false, 0, true, runners, rules: Rules.Default), "not settled while through the bag");
             Assert.True(t < 10);
         }
         Assert.InRange(farthest, Rules.Default.Running.Bags.OverrunFt - 0.7, Rules.Default.Running.Bags.OverrunFt + 0.01);
         for (var i = 0; i < 63; i++)
-            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false));
-        Assert.True(InPlay.Time(true, false, 0, true, runners));
-        Assert.False(InPlay.Time(true, false, 0, false, runners), "an outfielder holding it on the grass is not Time (§10.6)");
+            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false), rules: Rules.Default);
+        Assert.True(InPlay.Time(true, false, 0, true, runners, rules: Rules.Default));
+        Assert.False(InPlay.Time(true, false, 0, false, runners, rules: Rules.Default), "an outfielder holding it on the grass is not Time (§10.6)");
 
         var third = new Runner(_content.Must("vale"), 3);
         var two = new[] { batter, third };
-        Assert.False(InPlay.Time(true, false, 0, true, two), "a runner just seated has not settled");
+        Assert.False(InPlay.Time(true, false, 0, true, two, rules: Rules.Default), "a runner just seated has not settled");
         for (var i = 0; i < 63; i++)
-            RunnerSystem.Tick(two, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false));
-        Assert.True(InPlay.Time(true, false, 0, true, two));
+            RunnerSystem.Tick(two, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false), rules: Rules.Default);
+        Assert.True(InPlay.Time(true, false, 0, true, two, rules: Rules.Default));
         batter.Retire();
-        Assert.True(InPlay.Time(true, false, 1, true, two), "an out is not a live runner");
+        Assert.True(InPlay.Time(true, false, 1, true, two, rules: Rules.Default), "an out is not a live runner");
         third.Send(4);
-        RunnerSystem.Tick(two, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 1, _ => false, _ => false));
-        Assert.False(InPlay.Time(true, false, 1, true, two), "a runner going home keeps the play alive");
-        var mid = InPlay.AlongBases(Diamond.Baseline * 0.5, 2);
-        Assert.False(InPlay.OccupyingBag(mid.X, mid.Z), "halfway to first is not a bag");
-        var atTwo = InPlay.TowardBag(0, 2, Diamond.Baseline * 2);
-        Assert.True(InPlay.OccupyingBag(atTwo.X, atTwo.Z), "double dest is second");
+        RunnerSystem.Tick(two, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 1, _ => false, _ => false), rules: Rules.Default);
+        Assert.False(InPlay.Time(true, false, 1, true, two, rules: Rules.Default), "a runner going home keeps the play alive");
+        var mid = InPlay.AlongBases(Diamond.Baseline * 0.5, 2, rules: Rules.Default);
+        Assert.False(InPlay.OccupyingBag(mid.X, mid.Z, rules: Rules.Default), "halfway to first is not a bag");
+        var atTwo = InPlay.TowardBag(0, 2, Diamond.Baseline * 2, rules: Rules.Default);
+        Assert.True(InPlay.OccupyingBag(atTwo.X, atTwo.Z, rules: Rules.Default), "double dest is second");
         Assert.Equal(Diamond.Second.X, atTwo.X, 1);
     }
 
     [Fact]
     public void TouchesIsATagOffTheBag()
     {
-        var midPath = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
-        Assert.False(InPlay.OccupyingBag(midPath.X, midPath.Z, Rules.Default.Running.Bags.TagSafeRadiusFt));
-        Assert.True(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z));
-        Assert.False(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z, runnerOnBag: true),
+        var midPath = InPlay.AlongBases(Diamond.Baseline * 0.5, 1, rules: Rules.Default);
+        Assert.False(InPlay.OccupyingBag(midPath.X, midPath.Z, Rules.Default, Rules.Default.Running.Bags.TagSafeRadiusFt));
+        Assert.True(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z, rules: Rules.Default));
+        Assert.False(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z, runnerOnBag: true, rules: Rules.Default),
             "on a bag they are safe");
-        Assert.False(InPlay.Touches(false, false, midPath.X, midPath.Z, midPath.X, midPath.Z), "no ball");
-        Assert.False(InPlay.Touches(true, true, midPath.X, midPath.Z, midPath.X, midPath.Z), "throwing");
+        Assert.False(InPlay.Touches(false, false, midPath.X, midPath.Z, midPath.X, midPath.Z, rules: Rules.Default), "no ball");
+        Assert.False(InPlay.Touches(true, true, midPath.X, midPath.Z, midPath.X, midPath.Z, rules: Rules.Default), "throwing");
         var first = Diamond.First;
-        Assert.True(InPlay.OccupyingBag(first.X, first.Z, Rules.Default.Running.Bags.TagSafeRadiusFt));
-        Assert.False(InPlay.Touches(true, false, first.X, first.Z, first.X, first.Z),
+        Assert.True(InPlay.OccupyingBag(first.X, first.Z, Rules.Default, Rules.Default.Running.Bags.TagSafeRadiusFt));
+        Assert.False(InPlay.Touches(true, false, first.X, first.Z, first.X, first.Z, rules: Rules.Default),
             "standing on first is not a tag");
-        Assert.True(InPlay.CloseSafe(3.2, 3.1), "a step ahead of the throw is SAFE");
-        Assert.False(InPlay.CloseSafe(3.0, 3.1), "throw beats the runner");
-        Assert.False(InPlay.CloseSafe(4.5, 3.1), "waiting on the bag is not bang-bang");
-        var off = InPlay.AlongBases(Diamond.Baseline * 0.2, 1);
-        Assert.False(InPlay.OccupyingBag(off.X, off.Z, Rules.Default.Running.Bags.TagSafeRadiusFt), "off home toward first");
+        Assert.True(InPlay.CloseSafe(3.2, 3.1, rules: Rules.Default), "a step ahead of the throw is SAFE");
+        Assert.False(InPlay.CloseSafe(3.0, 3.1, rules: Rules.Default), "throw beats the runner");
+        Assert.False(InPlay.CloseSafe(4.5, 3.1, rules: Rules.Default), "waiting on the bag is not bang-bang");
+        var off = InPlay.AlongBases(Diamond.Baseline * 0.2, 1, rules: Rules.Default);
+        Assert.False(InPlay.OccupyingBag(off.X, off.Z, Rules.Default, Rules.Default.Running.Bags.TagSafeRadiusFt), "off home toward first");
         // The reach is 4 ft (§10.3): a glove three feet away tags, ten feet away does not; Lick / Grow add two.
         Assert.Equal(4, Rules.Default.Running.Bags.TagReachFt);
-        Assert.True(InPlay.Touches(true, false, off.X + 3, off.Z, off.X, off.Z), "inside the reach");
-        Assert.False(InPlay.Touches(true, false, off.X + 10, off.Z, off.X, off.Z), "ten feet is no tag");
+        Assert.True(InPlay.Touches(true, false, off.X + 3, off.Z, off.X, off.Z, rules: Rules.Default), "inside the reach");
+        Assert.False(InPlay.Touches(true, false, off.X + 10, off.Z, off.X, off.Z, rules: Rules.Default), "ten feet is no tag");
         var grow = _content.Must("rio");
         Assert.Equal("grow", grow.FieldAbility);
-        Assert.Equal(6, InPlay.TagReachFt(grow));
-        Assert.True(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z, fielder: grow), "Grow reaches five feet");
-        Assert.False(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z), "an ordinary glove does not");
+        Assert.Equal(6, InPlay.TagReachFt(grow, rules: Rules.Default));
+        Assert.True(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z, fielder: grow, rules: Rules.Default), "Grow reaches five feet");
+        Assert.False(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z, rules: Rules.Default), "an ordinary glove does not");
         // A slide narrows the window but never closes it: the safe radius stays inside the slid reach.
-        Assert.True(Rules.Default.Running.Bags.TagSafeRadiusFt < InPlay.TagReachFt(null, sliding: true));
-        var stepOffFirst = InPlay.AlongBases(Diamond.Baseline - 8, 1);
-        Assert.False(InPlay.OccupyingBag(stepOffFirst.X, stepOffFirst.Z, Rules.Default.Running.Bags.TagSafeRadiusFt),
+        Assert.True(Rules.Default.Running.Bags.TagSafeRadiusFt < InPlay.TagReachFt(null, sliding: true, rules: Rules.Default));
+        var stepOffFirst = InPlay.AlongBases(Diamond.Baseline - 8, 1, rules: Rules.Default);
+        Assert.False(InPlay.OccupyingBag(stepOffFirst.X, stepOffFirst.Z, Rules.Default, Rules.Default.Running.Bags.TagSafeRadiusFt),
             "a step off first is a tag");
-        Assert.True(InPlay.Touches(true, false, stepOffFirst.X, stepOffFirst.Z, stepOffFirst.X, stepOffFirst.Z));
-        Assert.False(InPlay.Touches(true, false, 0, 0, midPath.X, midPath.Z), "too far");
+        Assert.True(InPlay.Touches(true, false, stepOffFirst.X, stepOffFirst.Z, stepOffFirst.X, stepOffFirst.Z, rules: Rules.Default));
+        Assert.False(InPlay.Touches(true, false, 0, 0, midPath.X, midPath.Z, rules: Rules.Default), "too far");
         Assert.True(Rules.Default.Running.Bags.TagSafeRadiusFt < Rules.Default.Running.Bags.OccupyRadiusFt);
         Assert.True(Rules.Default.Running.Bags.TagSafeRadiusFt < Rules.Default.Running.Bags.TagReachFt);
     }
@@ -445,9 +445,9 @@ public class InPlayTests
     public void SteppingOnFirstWithTheBallIsTheForceOut()
     {
         var first = Diamond.First;
-        var halfway = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
-        Assert.True(InPlay.OnThisBag(1, first.X, first.Z));
-        Assert.False(InPlay.OnThisBag(1, halfway.X, halfway.Z));
+        var halfway = InPlay.AlongBases(Diamond.Baseline * 0.5, 1, rules: Rules.Default);
+        Assert.True(InPlay.OnThisBag(1, first.X, first.Z, rules: Rules.Default));
+        Assert.False(InPlay.OnThisBag(1, halfway.X, halfway.Z, rules: Rules.Default));
         Assert.True(InPlay.ForceAtBag(1, false, false, false));
         Assert.False(InPlay.ForceAtBag(2, false, false, false));
         Assert.True(InPlay.ForceAtBag(2, true, false, false));
@@ -455,20 +455,20 @@ public class InPlayTests
         Assert.True(InPlay.ForceAtBag(4, true, true, true));
         Assert.False(InPlay.ForceAtBag(3, true, false, false));
 
-        Assert.True(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, halfway.X, halfway.Z),
+        Assert.True(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, halfway.X, halfway.Z, rules: Rules.Default),
             "1B on the bag, batter still coming: out");
-        Assert.False(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, first.X, first.Z),
+        Assert.False(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, first.X, first.Z, rules: Rules.Default),
             "batter already on first is safe");
-        Assert.False(InPlay.ForceOnBag(true, 1, true, false, halfway.X, halfway.Z, halfway.X, halfway.Z),
+        Assert.False(InPlay.ForceOnBag(true, 1, true, false, halfway.X, halfway.Z, halfway.X, halfway.Z, rules: Rules.Default),
             "glove off the bag is not a force");
-        Assert.False(InPlay.ForceOnBag(false, 1, true, false, first.X, first.Z, halfway.X, halfway.Z));
-        Assert.False(InPlay.ForceOnBag(true, 1, false, false, first.X, first.Z, halfway.X, halfway.Z),
+        Assert.False(InPlay.ForceOnBag(false, 1, true, false, first.X, first.Z, halfway.X, halfway.Z, rules: Rules.Default));
+        Assert.False(InPlay.ForceOnBag(true, 1, false, false, first.X, first.Z, halfway.X, halfway.Z, rules: Rules.Default),
             "no ball");
-        Assert.False(InPlay.ForceOnBag(true, 1, true, true, first.X, first.Z, halfway.X, halfway.Z),
+        Assert.False(InPlay.ForceOnBag(true, 1, true, true, first.X, first.Z, halfway.X, halfway.Z, rules: Rules.Default),
             "throwing");
         var second = Diamond.Second;
-        var leavingFirst = InPlay.TowardBag(1, 2, 20);
-        Assert.True(InPlay.ForceOnBag(true, 2, true, false, second.X, second.Z, leavingFirst.X, leavingFirst.Z),
+        var leavingFirst = InPlay.TowardBag(1, 2, 20, rules: Rules.Default);
+        Assert.True(InPlay.ForceOnBag(true, 2, true, false, second.X, second.Z, leavingFirst.X, leavingFirst.Z, rules: Rules.Default),
             "2B on second, runner from first still coming");
     }
 

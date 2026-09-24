@@ -295,10 +295,10 @@ public sealed class CompactFieldTests
         var fire = ember.Hazards.Single(h => h.Type == "fire_breath");
         Assert.Equal(11.2, fire.Radius);
         Assert.Equal(17.92, fire.Radius * Game.Rules.Hazards.Of(HazardType.FireBreath).NightRadiusMul, 2);
-        Assert.True(ParkHazards.InSlow(ember, fire.X + 11.1, fire.Z, night: false, Game.Rules));
-        Assert.False(ParkHazards.InSlow(ember, fire.X + 11.3, fire.Z, night: false, Game.Rules));
-        Assert.True(ParkHazards.InSlow(ember, fire.X + 17.9, fire.Z, night: true, Game.Rules));
-        Assert.False(ParkHazards.InSlow(ember, fire.X + 18.0, fire.Z, night: true, Game.Rules));
+        Assert.True(ParkHazards.InSlow(ember, fire.X + 11.1, fire.Z, Game.Rules, night: false));
+        Assert.False(ParkHazards.InSlow(ember, fire.X + 11.3, fire.Z, Game.Rules, night: false));
+        Assert.True(ParkHazards.InSlow(ember, fire.X + 17.9, fire.Z, Game.Rules, night: true));
+        Assert.False(ParkHazards.InSlow(ember, fire.X + 18.0, fire.Z, Game.Rules, night: true));
     }
 
     static double Exit(BattingRules b, int power, double qualityMul, double starMul = 1.0) =>

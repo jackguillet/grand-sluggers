@@ -194,16 +194,16 @@ public sealed class StarPitchWindowScenarioTests
         for (var i = 0; i <= 20; i++)
         {
             var u = i / 20.0;
-            var plain = PitchFlight.Point(pitch, u, null, rules: rules);
-            Assert.Equal(plain, PitchFlight.Point(pitch, u, "skullball", rules: rules));
-            Assert.Equal(plain, PitchFlight.Point(pitch, u, "fogball", rules: rules));
-            charmMoves |= PitchFlight.Point(pitch, u, "charmball", rules: rules) != plain;
-            phonyMoves |= PitchFlight.Point(pitch, u, "phonyball", rules: rules) != plain;
+            var plain = PitchFlight.Point(pitch, u, rules, null);
+            Assert.Equal(plain, PitchFlight.Point(pitch, u, rules, "skullball"));
+            Assert.Equal(plain, PitchFlight.Point(pitch, u, rules, "fogball"));
+            charmMoves |= PitchFlight.Point(pitch, u, rules, "charmball") != plain;
+            phonyMoves |= PitchFlight.Point(pitch, u, rules, "phonyball") != plain;
         }
         Assert.True(charmMoves, "the charmball keeps its wobble");
         Assert.True(phonyMoves, "the phonyball keeps its decoy path");
-        var early = PitchFlight.Point(pitch, rules.Pitching.StarShapes.PhonyballSwitchAt - 0.01, "phonyball", rules: rules).X;
-        var late = PitchFlight.Point(pitch, rules.Pitching.StarShapes.PhonyballSwitchAt + 0.01, "phonyball", rules: rules).X;
+        var early = PitchFlight.Point(pitch, rules.Pitching.StarShapes.PhonyballSwitchAt - 0.01, rules, "phonyball").X;
+        var late = PitchFlight.Point(pitch, rules.Pitching.StarShapes.PhonyballSwitchAt + 0.01, rules, "phonyball").X;
         Assert.True(Math.Abs(late - early) > 1, $"the decoy switches sides late: {early} → {late}");
     }
 

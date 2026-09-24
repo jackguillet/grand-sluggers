@@ -144,12 +144,12 @@ public class AtBatTests
     [Fact]
     public void CarryIncreasesWithExitVelo()
     {
-        var slow = BallFlight.CarryFeet(80, 28, 0);
-        var fast = BallFlight.CarryFeet(100, 28, 0);
+        var slow = BallFlight.CarryFeet(80, 28, 0, rules: Rules.Default);
+        var fast = BallFlight.CarryFeet(100, 28, 0, rules: Rules.Default);
         Assert.True(fast > slow);
         // The C80 copy's drag is 0.0040: the same fly carries 233 ft, inside the same band at 0.70.
         var (lo, hi) = (210.0, 315.0);
-        Assert.InRange(BallFlight.CarryFeet(95, 28, 0), lo, hi);
+        Assert.InRange(BallFlight.CarryFeet(95, 28, 0, rules: Rules.Default), lo, hi);
     }
 
     [Fact]
@@ -169,17 +169,17 @@ public class AtBatTests
         Assert.True(bunt.ExitVeloMph < swing.ExitVeloMph, $"bunt {bunt.ExitVeloMph} vs swing {swing.ExitVeloMph}");
         Assert.False(bunt.HomeRun);
         Assert.True(bunt.CarryFt < 180, $"bunt carry {bunt.CarryFt}");
-        Assert.True(AtBatResolver.CpuSacBuntSpot(true, true, 0, 0.05));
-        Assert.False(AtBatResolver.CpuSacBuntSpot(true, true, 2, 0.05));
-        Assert.False(AtBatResolver.CpuSacBuntSpot(true, false, 0, 0.05));
-        Assert.False(AtBatResolver.CpuSacBuntSpot(false, true, 0, 0.05));
+        Assert.True(AtBatResolver.CpuSacBuntSpot(true, true, 0, 0.05, rules: Rules.Default));
+        Assert.False(AtBatResolver.CpuSacBuntSpot(true, true, 2, 0.05, rules: Rules.Default));
+        Assert.False(AtBatResolver.CpuSacBuntSpot(true, false, 0, 0.05, rules: Rules.Default));
+        Assert.False(AtBatResolver.CpuSacBuntSpot(false, true, 0, 0.05, rules: Rules.Default));
     }
 
     [Fact]
     public void InsideAimIsStillABallAfterLocation()
     {
-        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0.95, 0), 7));
-        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0.1, 0.1), 7));
+        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0.95, 0), 7, rules: Rules.Default));
+        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0.1, 0.1), 7, rules: Rules.Default));
     }
 
     [Fact]
@@ -247,6 +247,6 @@ public class AtBatTests
             Bunt: bunt,
             LaunchAim: launchAim);
 
-        return new AtBatResolver(_content.Chemistry).Resolve(input, _harbor, new Random(seed));
+        return new AtBatResolver(_content.Chemistry, rules: Rules.Default).Resolve(input, _harbor, new Random(seed));
     }
 }

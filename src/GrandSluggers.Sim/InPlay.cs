@@ -11,9 +11,9 @@ public static class InPlay
     /// must instead finish through the ordinary live-play rules.
     /// </summary>
     public static bool DeadBallResultReady(PlayKind kind, double elapsed, double deadAtSeconds,
-        bool caught, bool throwing, bool effectInFlight, RulesTable? rules = null)
+        bool caught, bool throwing, bool effectInFlight, RulesTable rules)
     {
-        var dead = Rules.Or(rules).Flight.DeadBall;
+        var dead = rules.Flight.DeadBall;
         return HasDeadBallResult(kind) && !caught && !throwing && !effectInFlight
             && elapsed >= Math.Max(dead.MinSec, deadAtSeconds + dead.AfterHangSec);
     }
@@ -21,9 +21,9 @@ public static class InPlay
     /// <summary>The play ends by the ball, not by a glove: a home run, or a foul nobody caught (§7.10, §7.11).</summary>
     public static bool HasDeadBallResult(PlayKind kind) => kind is PlayKind.HomeRun or PlayKind.Foul;
 
-    public static double Energy(AtBatResult hit, RulesTable? rules = null)
+    public static double Energy(AtBatResult hit, RulesTable rules)
     {
-        var quality = Rules.Or(rules).Batting.Quality;
+        var quality = rules.Batting.Quality;
         var q = hit.Quality switch
         {
             ContactQuality.Perfect => quality.PerfectEnergyMul,
@@ -34,17 +34,17 @@ public static class InPlay
         return hit.ExitVeloMph * q;
     }
 
-    public static double KnockbackSec(double energy, Character? fielder, RulesTable? rules = null)
+    public static double KnockbackSec(double energy, Character? fielder, RulesTable rules)
     {
-        var k = Rules.Or(rules).Fielding.Knockback;
+        var k = rules.Fielding.Knockback;
         if (energy < k.MinEnergy || fielder is null) return 0;
         var w = (11 - fielder.Stats.Hands) * k.SecPerFieldDeficit;
         return Math.Clamp((energy - k.MinEnergy) / k.EnergySpan * w, 0, k.MaxSec);
     }
 
-    public static bool Bobbles(double energy, Character fielder, Random rng, GloveItem? glove = null, RulesTable? rules = null)
+    public static bool Bobbles(double energy, Character fielder, Random rng, RulesTable rules, GloveItem? glove = null)
     {
-        var b = Rules.Or(rules).Fielding.Bobble;
+        var b = rules.Fielding.Bobble;
         if (energy < b.MinEnergy) return false;
         var hands = fielder.Stats.Field + (glove?.ErrorReduction ?? 0) * b.HandsPerGloveReduction;
         var chance = Math.Clamp((energy - b.MinEnergy) / b.EnergySpan * (11 - hands) * b.ChancePerHands, 0, b.MaxChance);
@@ -54,8 +54,8 @@ public static class InPlay
     /// <summary>Bang-bang: the throw arrived and the runner got there first by a step (running.close.marginSec).</summary>
     /// <param name="arrivedAt">Live play time when the throw (or mash) lands.</param>
     /// <param name="runnerAt">Live play time the runner touched the bag.</param>
-    public static bool CloseSafe(double arrivedAt, double runnerAt, RulesTable? rules = null) =>
-        arrivedAt >= runnerAt && arrivedAt - runnerAt <= Rules.Or(rules).Running.Close.MarginSec;
+    public static bool CloseSafe(double arrivedAt, double runnerAt, RulesTable rules) =>
+        arrivedAt >= runnerAt && arrivedAt - runnerAt <= rules.Running.Close.MarginSec;
 
     /// <summary>Named camera for the contact type. One table: <see cref="PlayCamera"/>.</summary>
     public static string TheaterShot(AtBatResult hit) => PlayCamera.FromHit(hit);
@@ -73,9 +73,9 @@ public static class InPlay
     /// With <c>longThrowLossSec</c> 0 the loss term is exactly 0.0 and this is the flat clock the game
     /// shipped with, to the bit.
     /// </summary>
-    public static double ThrowSec(double distFt, ThrowResult? thr, RulesTable? rules = null)
+    public static double ThrowSec(double distFt, ThrowResult? thr, RulesTable rules)
     {
-        var t = Rules.Or(rules).Fielding.Throw;
+        var t = rules.Fielding.Throw;
         var fps = t.BaseFtPerSec * (thr?.SpeedMul ?? 1);
         var flight = distFt / Math.Max(t.MinFtPerSec, fps);
         var arm = thr?.Arm ?? NeutralArm;
@@ -86,26 +86,26 @@ public static class InPlay
     }
 
     /// <summary>The thrower's arm (§8.5): <c>armBase + Arm × armPerField</c>. Arm seeds from Field until authored.</summary>
-    public static double ArmMul(Character who, RulesTable? rules = null) => ArmMul(who.Stats.Arm, rules);
+    public static double ArmMul(Character who, RulesTable rules) => ArmMul(who.Stats.Arm, rules);
 
     /// <summary>The arm multiplier for a rating: 1.0 at the neutral arm on the shipped table.</summary>
-    public static double ArmMul(int arm, RulesTable? rules = null)
+    public static double ArmMul(int arm, RulesTable rules)
     {
-        var t = Rules.Or(rules).Fielding.Throw;
+        var t = rules.Fielding.Throw;
         return Math.Max(0.1, t.ArmBase + arm * t.ArmPerField);
     }
 
     /// <summary>The CPU fielder's delay between gaining the ball and throwing it (§8.8): <c>throwBaseSec − Field × throwPerFieldSec</c>, × the difficulty's reaction multiplier.</summary>
-    public static double ThrowReactionSec(Character who, RulesTable? rules = null)
+    public static double ThrowReactionSec(Character who, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var re = r.Fielding.Reaction;
         return Math.Max(re.ThrowMinSec, re.ThrowBaseSec - who.Stats.Field * re.ThrowPerFieldSec) * r.Cpu.Active.ReactionMul;
     }
 
     /// <summary>A throw is caught when it lands inside the cover radius of its receiver (§8.5, fielding.cover.radiusFt).</summary>
-    public static bool ThrowCaught(double landingX, double landingZ, double receiverX, double receiverZ, RulesTable? rules = null) =>
-        Diamond.Dist(landingX, landingZ, receiverX, receiverZ) <= Rules.Or(rules).Fielding.Cover.RadiusFt;
+    public static bool ThrowCaught(double landingX, double landingZ, double receiverX, double receiverZ, RulesTable rules) =>
+        Diamond.Dist(landingX, landingZ, receiverX, receiverZ) <= rules.Fielding.Cover.RadiusFt;
 
     /// <summary>Where a throw released at (fromX, fromZ) toward (toX, toZ) lands with a signed lateral miss (feet to the thrower's right of the line).</summary>
     public static (double X, double Z) ThrowLanding(double fromX, double fromZ, double toX, double toZ, double lateralFt)
@@ -219,7 +219,7 @@ public static class InPlay
     }
 
     /// <summary>Seconds until a throw released now from (x, z) lands at <paramref name="bag"/>: <see cref="ThrowSec"/> over that distance.</summary>
-    public static double ThrowArrivalSec(double fromX, double fromZ, int bag, ThrowResult? thr, RulesTable? rules = null)
+    public static double ThrowArrivalSec(double fromX, double fromZ, int bag, ThrowResult? thr, RulesTable rules)
     {
         var to = Diamond.Bag(bag);
         return ThrowSec(Diamond.Dist(fromX, fromZ, to.X, to.Z), thr, rules);
@@ -482,9 +482,9 @@ public static class InPlay
     public static bool StickNamesBag(bool chasing, bool caught) => !chasing && !caught;
 
     /// <summary>Right 1B, up 2B, left 3B, down home. Dead stick is 0 (running.stick.diamondDeadMag2).</summary>
-    public static int DiamondBag(double x, double y, double? mag2 = null, RulesTable? rules = null)
+    public static int DiamondBag(double x, double y, RulesTable rules, double? mag2 = null)
     {
-        var dead = mag2 ?? Rules.Or(rules).Running.Stick.DiamondDeadMag2;
+        var dead = mag2 ?? rules.Running.Stick.DiamondDeadMag2;
         if (x * x + y * y < dead) return 0;
         if (Math.Abs(x) > Math.Abs(y)) return x > 0 ? 1 : 3;
         return y > 0 ? 2 : 4;
@@ -532,11 +532,11 @@ public static class InPlay
         int outs,
         bool heldInInfield,
         IEnumerable<Runner> runners,
-        RulesTable? rules = null)
+        RulesTable rules)
     {
         if (outs >= 3) return true;
         if (!hasBall || throwing || !heldInInfield) return false;
-        var onBagSec = Rules.Or(rules).Running.Bags.TimeOnBagSec;
+        var onBagSec = rules.Running.Bags.TimeOnBagSec;
         var list = runners as IReadOnlyCollection<Runner> ?? runners.ToList();
         foreach (var r in list)
         {
@@ -547,16 +547,16 @@ public static class InPlay
     }
 
     /// <summary>The ball is held on the infield: inside the dirt / grass lip (flight.classes.infieldLipFt), where 2B and SS stand.</summary>
-    public static bool HeldInInfield(double gloveX, double gloveZ, RulesTable? rules = null) =>
+    public static bool HeldInInfield(double gloveX, double gloveZ, RulesTable rules) =>
         !FieldingResolver.OutfieldGrass(gloveX, gloveZ, rules);
 
     /// <summary>
     /// The tag reach of this glove (§10.3): running.bags.tagReachFt, plus the Lick / Grow bonus,
     /// less the slide cut when the runner is sliding (§9.4).
     /// </summary>
-    public static double TagReachFt(Character? fielder, bool sliding = false, RulesTable? rules = null)
+    public static double TagReachFt(Character? fielder, RulesTable rules, bool sliding = false)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var bags = r.Running.Bags;
         return bags.TagReachFt + FieldAbilities.TagReachBonus(fielder, r) - (sliding ? bags.SlideReachCutFt : 0);
     }
@@ -573,16 +573,16 @@ public static class InPlay
         double gloveZ,
         double runnerX,
         double runnerZ,
+        RulesTable rules,
         bool? runnerOnBag = null,
-        RulesTable? rules = null,
         bool sliding = false,
         Character? fielder = null)
     {
         if (!hasBall || throwing) return false;
-        var bags = Rules.Or(rules).Running.Bags;
-        var onBag = runnerOnBag ?? OccupyingBag(runnerX, runnerZ, bags.TagSafeRadiusFt);
+        var bags = rules.Running.Bags;
+        var onBag = runnerOnBag ?? OccupyingBag(runnerX, runnerZ, rules, bags.TagSafeRadiusFt);
         if (onBag) return false;
-        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < TagReachFt(fielder, sliding, rules);
+        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < TagReachFt(fielder, rules, sliding);
     }
 
     /// <summary>
@@ -597,9 +597,9 @@ public static class InPlay
     public static double TagWithinFrame(
         (double X, double Z) glovePrev, (double X, double Z) gloveNow,
         (double X, double Z) runnerPrev, (double X, double Z) runnerNow,
-        double reachFt, bool homeIsABag, RulesTable? rules = null, int steps = 12, Func<int, bool>? protects = null)
+        double reachFt, bool homeIsABag, RulesTable rules, int steps = 12, Func<int, bool>? protects = null)
     {
-        var safe = Rules.Or(rules).Running.Bags.TagSafeRadiusFt;
+        var safe = rules.Running.Bags.TagSafeRadiusFt;
         for (var i = 1; i <= steps; i++)
         {
             var u = (double)i / steps;
@@ -641,9 +641,9 @@ public static class InPlay
     }
 
     /// <summary>Inside a bag's occupy radius (running.bags.occupyRadiusFt) of home or any bag.</summary>
-    public static bool OccupyingBag(double x, double z, double? radius = null, RulesTable? rules = null)
+    public static bool OccupyingBag(double x, double z, RulesTable rules, double? radius = null)
     {
-        var r = radius ?? Rules.Or(rules).Running.Bags.OccupyRadiusFt;
+        var r = radius ?? rules.Running.Bags.OccupyRadiusFt;
         if (Diamond.Dist(x, z, 0, 0) <= r) return true;
         for (var bag = 1; bag <= 3; bag++)
         {
@@ -654,11 +654,11 @@ public static class InPlay
     }
 
     /// <summary>On this bag only. Home is 4.</summary>
-    public static bool OnThisBag(int bag, double x, double z, double? radius = null, RulesTable? rules = null)
+    public static bool OnThisBag(int bag, double x, double z, RulesTable rules, double? radius = null)
     {
         if (bag is < 1 or > 4) return false;
         var p = Diamond.Bag(bag);
-        return Diamond.Dist(x, z, p.X, p.Z) <= (radius ?? Rules.Or(rules).Running.Bags.OccupyRadiusFt);
+        return Diamond.Dist(x, z, p.X, p.Z) <= (radius ?? rules.Running.Bags.OccupyRadiusFt);
     }
 
     /// <summary>
@@ -689,24 +689,24 @@ public static class InPlay
         double gloveZ,
         double runnerX,
         double runnerZ,
-        RulesTable? rules = null)
+        RulesTable rules)
     {
         if (!force || !hasBall || throwing) return false;
-        var bags = Rules.Or(rules).Running.Bags;
-        if (!OnThisBag(bag, gloveX, gloveZ, bags.OccupyRadiusFt)) return false;
-        if (OnThisBag(bag, runnerX, runnerZ, bags.TagSafeRadiusFt)) return false;
+        var bags = rules.Running.Bags;
+        if (!OnThisBag(bag, gloveX, gloveZ, rules, bags.OccupyRadiusFt)) return false;
+        if (OnThisBag(bag, runnerX, runnerZ, rules, bags.TagSafeRadiusFt)) return false;
         return true;
     }
 
     /// <summary>Feet along home → 1B → 2B → 3B → home. destBag 1..4. fromBag 0 is home.</summary>
     public static (double X, double Z) TowardBag(
-        int fromBag, int destBag, double feet, double homeX = 0, double homeZ = 0, RulesTable? rules = null)
+        int fromBag, int destBag, double feet, RulesTable rules, double homeX = 0, double homeZ = 0)
     {
         if (destBag <= fromBag)
             return fromBag <= 0 ? (homeX, homeZ) : Diamond.Bag(fromBag);
         var cap = (destBag - fromBag) * Diamond.Baseline;
         feet = Math.Clamp(feet, 0, cap);
-        if (feet >= cap - Rules.Or(rules).Running.Bags.SnapFt)
+        if (feet >= cap - rules.Running.Bags.SnapFt)
         {
             var end = destBag >= 4 ? Diamond.Home : Diamond.Bag(destBag);
             return (end.X, end.Z);
@@ -719,6 +719,6 @@ public static class InPlay
         return (from.X + (to.X - from.X) * u, from.Z + (to.Z - from.Z) * u);
     }
 
-    public static (double X, double Z) AlongBases(double feet, int destBag, double startX = 0, double startZ = 0, RulesTable? rules = null) =>
-        TowardBag(0, destBag, feet, startX, startZ, rules);
+    public static (double X, double Z) AlongBases(double feet, int destBag, RulesTable rules, double startX = 0, double startZ = 0) =>
+        TowardBag(0, destBag, feet, rules, startX, startZ);
 }

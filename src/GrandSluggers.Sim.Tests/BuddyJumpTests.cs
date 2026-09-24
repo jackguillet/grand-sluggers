@@ -22,7 +22,7 @@ public sealed class BuddyJumpTests
         var match = Defense();
         var hit = FlightFixtures.OverTheFence(match.Park, 5, 0, 60);
         var pre = match.PreviewHit(hit);
-        var plant = FlyCatch.ChaseTarget(pre, match.Park, match.Rules);
+        var plant = FlyCatch.ChaseTarget(pre, match.Rules, match.Park);
         var map = FieldingResolver.Assign(match.Defense, match.Pitcher);
         var spots = OutfieldStarts.Of(match.Park, match.Rules).ToDictionary(kv => kv.Key, kv => kv.Value);
         spots["CF"] = mainLate ? (0, 0) : plant;
@@ -43,7 +43,7 @@ public sealed class BuddyJumpTests
         var match = Defense();
         var pre = match.PreviewHit(FlightFixtures.OverTheFence(match.Park, 5, 0, 60));
         Assert.True(FieldingResolver.BuddyJumpOffered(pre));
-        var plant = FlyCatch.ChaseTarget(pre, match.Park, match.Rules);
+        var plant = FlyCatch.ChaseTarget(pre, match.Rules, match.Park);
         Assert.Equal(expected, FlyCatch.BuddyInPosition(pre, match.Park,
             plant.X + gloveOffset, plant.Z, plant.X + buddyOffset, plant.Z,
             plant.X + ballOffset, 12, plant.Z, pre.HangTimeSec - .1, pre.HangTimeSec, match.Rules));

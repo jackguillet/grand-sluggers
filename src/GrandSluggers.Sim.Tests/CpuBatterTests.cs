@@ -28,7 +28,7 @@ public class CpuBatterTests
         {
             var match = Match.Exhibition(_content, "rio", "ashlord", seed: seed);
             Assert.True(match.Top, "human pitches the top");
-            var inZone = AtBatResolver.PitchInZone(Meatball, match.Pitcher.Stats.Pitch);
+            var inZone = AtBatResolver.PitchInZone(Meatball, match.Pitcher.Stats.Pitch, rules: Rules.Default);
             Assert.True(inZone, "middle-middle uncharged fastball is in the zone");
             var swing = match.CpuSwing(Meatball);
             if (!swing.Swing) continue;
@@ -52,7 +52,7 @@ public class CpuBatterTests
         for (var seed = 1; seed <= 40; seed++)
         {
             var match = Match.Exhibition(_content, "rio", "ashlord", seed: seed);
-            var inZone = AtBatResolver.PitchInZone(Meatball, match.Pitcher.Stats.Pitch);
+            var inZone = AtBatResolver.PitchInZone(Meatball, match.Pitcher.Stats.Pitch, rules: Rules.Default);
             var swing = match.CpuSwing(Meatball);
             if (swing.Swing) swings++;
             var ev = match.Play(Meatball, swing);

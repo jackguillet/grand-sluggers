@@ -37,11 +37,11 @@ public static class FieldingPursuit
         double fromX,
         double fromZ,
         double speedFtPerSec,
-        RulesTable? rules = null,
+        RulesTable rules,
         double readySec = 0,
         bool cutOff = false)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var hang = BallFlight.HangTime(path, r);
         var startSec = Math.Max(nowSec, readySec);
         var ramp = RampSec(park, fromX, fromZ, r);
@@ -49,7 +49,7 @@ public static class FieldingPursuit
         {
             if (FlyCatch.NeedsJump(preview))
             {
-                var plant = FlyCatch.ChaseTarget(preview, park, r);
+                var plant = FlyCatch.ChaseTarget(preview, r, park);
                 return Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, true, ramp, r);
             }
             foreach (var sample in path)
@@ -123,9 +123,9 @@ public static class FieldingPursuit
         FieldingPreview preview,
         Park park,
         IReadOnlyList<Sample> path,
+        RulesTable rules,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null,
         double nowSec = 0,
-        RulesTable? rules = null,
         IReadOnlyDictionary<string, double>? readyAt = null)
     {
         Choice? best = null;

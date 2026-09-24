@@ -15,12 +15,12 @@ public class PlayCameraTests
         var world = AtBatControl.WorldHorizontal(1, shot);
         Assert.Equal(expectedWorldSign, world);
 
-        var centerRubber = PitchFlight.Release(0);
-        var movedRubber = PitchFlight.Release(world);
+        var centerRubber = PitchFlight.Release(Rules.Default,0);
+        var movedRubber = PitchFlight.Release(Rules.Default, world);
         AssertProjectsRight(shot, centerRubber, movedRubber);
 
-        var centerCurve = PitchFlight.Point("fastball", 0.82, breakX: 0);
-        var movedCurve = PitchFlight.Point("fastball", 0.82, breakX: world);
+        var centerCurve = PitchFlight.Point("fastball", 0.82, breakX: 0, rules: Rules.Default);
+        var movedCurve = PitchFlight.Point("fastball", 0.82, breakX: world, rules: Rules.Default);
         AssertProjectsRight(shot, centerCurve, movedCurve);
     }
 

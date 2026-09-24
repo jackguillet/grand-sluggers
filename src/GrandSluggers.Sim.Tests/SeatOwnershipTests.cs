@@ -78,7 +78,7 @@ public sealed class SeatOwnershipTests
         var field = match.ResolveFielding(hit, preview);
         var batterSec = match.Rules.Running.BagSec.BatterStartSec
                         + Diamond.Dist(HomeSet.BatterBodyX(match.Batter.Bats), HomeSet.BatterZ, Diamond.First.X, Diamond.First.Z)
-                        / RunnerSystem.SpeedFtPerSec(match.Batter, 0, match.Rules);
+                        / RunnerSystem.SpeedFtPerSec(match.Batter, match.Rules, 0);
 
         var offense = new LivePadInput(StickX: 0.9, StickY: 0.3, Swap: true);
         var fieldPad = offenseStickLeaksToFieldPad ? offense : LivePadInput.Dead;

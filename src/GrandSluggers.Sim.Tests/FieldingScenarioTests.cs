@@ -37,7 +37,7 @@ public sealed class FieldingScenarioTests
         Assert.Equal((OutType.ThrowOutAtFirst, 1, 0), (only.Type, only.Bag, only.FromBag));
         // The out is the arrival compare (§10.2): the ball was at first before the body could be.
         var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ);
-        var batterAt = RunnerSystem.ArrivalSec(body, 1, 0, 0, match.Rules);
+        var batterAt = RunnerSystem.ArrivalSec(body, 1, 0, match.Rules, 0);
         Assert.True(throwLandedAt > 0 && throwLandedAt < batterAt, $"ball at first {throwLandedAt:0.00} vs body {batterAt:0.00}");
         Assert.NotNull(thrown);
         Assert.Equal(1.0, thrown!.SpeedMul / (InPlay.ArmMul(match.Defense.Roster.First(c => c.Id == "ashlord"), match.Rules)), 3);
@@ -63,7 +63,7 @@ public sealed class FieldingScenarioTests
         {
             var batter = match.Log[^1].Batter;
             var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ);
-            Assert.True(throwLandedAt >= RunnerSystem.ArrivalSec(body, 1, 0, 0, match.Rules));
+            Assert.True(throwLandedAt >= RunnerSystem.ArrivalSec(body, 1, 0, match.Rules, 0));
         }
     }
 
@@ -191,7 +191,7 @@ public sealed class FieldingScenarioTests
         var (play, throwLandedAt, _) = RunCpu(match, hit, preview, out var threwTo);
         Assert.True(play.Kind is PlayKind.GroundOut or PlayKind.Single, play.Kind.ToString());
         var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ);
-        var batterAt = RunnerSystem.ArrivalSec(body, 1, 0, 0, match.Rules);
+        var batterAt = RunnerSystem.ArrivalSec(body, 1, 0, match.Rules, 0);
         if (play.Kind == PlayKind.GroundOut)
         {
             Assert.Equal(1, threwTo);
@@ -258,8 +258,8 @@ public sealed class FieldingScenarioTests
         {
             Assert.NotEqual("", catcherPos);
             var who = map[catcherPos];
-            Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, who, match.Park, match.Rules)
-                        || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, who, match.Park, match.Rules),
+            Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules, who, match.Park)
+                        || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules, who, match.Park),
                 $"{catcherPos} caught at {caughtAt:0.00} inside the window around {preview.HangTimeSec:0.00}");
         }
         else

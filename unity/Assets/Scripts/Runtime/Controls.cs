@@ -189,7 +189,7 @@ namespace GrandSluggers.UnityClient
                 _input[i].Catch();
             }
         }
-        public static void Tick(float dt)
+        public static void Tick(float dt, RulesTable rules)
         {
             SeatNewDevices();
             for (var i = 0; i < 2; i++)
@@ -204,7 +204,7 @@ namespace GrandSluggers.UnityClient
                 Read(g?.dpad.up, ControllerButton.Up); Read(g?.dpad.down, ControllerButton.Down);
                 Read(g?.dpad.left, ControllerButton.Left); Read(g?.dpad.right, ControllerButton.Right);
                 var right = g?.rightStick.ReadValue() ?? Vector2.zero;
-                _input[i].Tick(b, g?.rightTrigger.ReadValue() ?? 0, g?.leftTrigger.ReadValue() ?? 0, right.x, right.y);
+                _input[i].Tick(b, g?.rightTrigger.ReadValue() ?? 0, g?.leftTrigger.ReadValue() ?? 0, right.x, right.y, rules);
                 var left = g?.leftStick.ReadValue() ?? Vector2.zero;
                 _pads[i].Tick(left.x, left.y, dt);
             }

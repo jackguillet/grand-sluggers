@@ -127,7 +127,7 @@ public class PitchRatingsScenarioTests
         var step = PitchFlight.BreakStep(0, 1, 1 / 60.0, match.Pitcher.Stats.Control, rules);
 
         // A Nice crossing: the arm's say over non-perfect contact is the one term left between arms.
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var batter = _content.Must("pip");
         var x = SweetSpot.TipSign(batter.Bats) * rules.Batting.Cursor.NiceTipFt * 0.8;
         var hit = resolver.Resolve(new AtBatInput(

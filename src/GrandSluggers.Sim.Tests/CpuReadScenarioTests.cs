@@ -26,8 +26,8 @@ public sealed class CpuReadScenarioTests
     {
         var edge = match.PreparePitch(Scenario.PitchAt(StrikeZoneGeometry.HalfWidth - 0.1, CenterY));
         var steered = edge with { BreakX = 1 };
-        Assert.True(StrikeZoneGeometry.Contains(edge), "the launched pitch is a strike");
-        Assert.False(StrikeZoneGeometry.Contains(steered), "full break carries it out");
+        Assert.True(StrikeZoneGeometry.Contains(edge, rules: Rules.Default), "the launched pitch is a strike");
+        Assert.False(StrikeZoneGeometry.Contains(steered, rules: Rules.Default), "full break carries it out");
         return (edge, steered);
     }
 

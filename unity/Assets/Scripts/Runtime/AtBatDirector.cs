@@ -219,7 +219,7 @@ namespace GrandSluggers.UnityClient
             _banner = _sub = "";
             // The body starts this SET where the last pitch left it; the rubber persists (§4.2).
             _moundX = (float)_match.PitcherOffsetX;
-            var rel = PitchFlight.Release(_match.PitcherOffsetX);
+            var rel = PitchFlight.Release(_match.Rules, _match.PitcherOffsetX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _park.Ball.Place(_ball, "", PitchFamily.Fastball, false, false);
             _pitchAir = false;
@@ -520,7 +520,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             var (x, y) = teaching
-                ? SetTells.Locator(pitch, _match.Pitcher.StarPitch, _match.Rules)
+                ? SetTells.Locator(pitch, _match.Rules, _match.Pitcher.StarPitch)
                 : SetTells.RubberRing(_match.PitcherOffsetX);
             _zone.AimTell(true, (float)x, (float)y);
         }
@@ -585,7 +585,7 @@ namespace GrandSluggers.UnityClient
             pitch = _match.PreparePitch(pitch);
             _pitch = pitch;
             var mph = _match.PitchSpeedMph(pitch);
-            _pitchDur = (float)PitchFlight.AirSeconds(mph);
+            _pitchDur = (float)PitchFlight.AirSeconds(mph, _match.Rules);
             _flight = -(float)Motion.PitchRelease;
             _pitchAir = false;
             _swung = false;
@@ -604,7 +604,7 @@ namespace GrandSluggers.UnityClient
             }
             _phase = Phase.Flight;
             _t = 0;
-            var rel = PitchFlight.Release(pitch.RubberX);
+            var rel = PitchFlight.Release(_match.Rules, pitch.RubberX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _aimX = (float)pitch.AimX;
             _aimY = (float)pitch.AimY;
@@ -663,7 +663,7 @@ namespace GrandSluggers.UnityClient
                     // square cancels a load before it can commit (PlateButtons), so the two never share a tick.
                     if (plate.Swing.Committed)
                         CommitSwing(SwingInputIntent.Capture(
-                            plate.Swing, box.StickX, box.StickY, bunt: false, _match.BatterOffsetX), ReleaseStar(box));
+                            plate.Swing, box.StickX, box.StickY, false, _match.BatterOffsetX, _match.Rules), ReleaseStar(box));
                 }
             }
             // The held trigger through the pitch keeps the square (§5.8); the CPU's square holds from SET.
@@ -703,7 +703,7 @@ namespace GrandSluggers.UnityClient
                     _match.Pitcher.Stats.Control, _match.Rules);
             var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
             var shown = _cpuSteer != 0 ? _pitch with { BreakX = _breakX } : _pitch;
-            var p = PitchFlight.Point(shown, u, _match.Pitcher.StarPitch, from);
+            var p = PitchFlight.Point(shown, u, _match.Rules, _match.Pitcher.StarPitch, from);
             _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             ShowAimTell(HumanPitches ? _pitch : null);
             // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9):
@@ -713,7 +713,7 @@ namespace GrandSluggers.UnityClient
                     (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, _breakX)),
                     _pitchDur, _match.Rules));
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
-                && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt, _match.Rules))
+                && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _match.Rules, _swing.Bunt))
             {
                 _swung = true;
                 _swingContactSec = SwingContactSec(_swing);

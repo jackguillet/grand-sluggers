@@ -12,8 +12,8 @@ public enum RunStick { None, Steal, Return }
 public static class Baserunning
 {
     /// <summary>Right 1B, up 2B, left 3B, down home. Dead stick is 0.</summary>
-    public static int DiamondBag(double x, double y, double? mag2 = null, RulesTable? rules = null) =>
-        InPlay.DiamondBag(x, y, mag2, rules);
+    public static int DiamondBag(double x, double y, RulesTable rules, double? mag2 = null) =>
+        InPlay.DiamondBag(x, y, rules, mag2);
 
     public static int NextBag(int bag) => bag is >= 1 and <= 3 ? bag + 1 : 0;
 

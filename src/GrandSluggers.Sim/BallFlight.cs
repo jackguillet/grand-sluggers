@@ -25,7 +25,7 @@ public static class BallFlight
     const double MphToFtPerSec = 1.4667;
 
     /// <summary>Arcade hang (flight.timeScale). Distances stay; the clock is slower than the ballistic.</summary>
-    public static double TimeScale(RulesTable? rules = null) => Rules.Or(rules).Flight.TimeScale;
+    public static double TimeScale(RulesTable rules) => rules.Flight.TimeScale;
 
     /// <summary>
     /// The ground the open field stands on (FD-05, F3-c). <see cref="Trajectory(double, double, double, RulesTable?)"/> has no
@@ -36,17 +36,17 @@ public static class BallFlight
     public const string OpenFieldGround = Ground.Grass;
 
     /// <summary>Open-field carry with the wind straight out at <paramref name="windMph"/> — the carry the tables were tuned on. No fence.</summary>
-    public static double CarryFeet(double exitMph, double launchDeg, double windMph, RulesTable? rules = null) =>
+    public static double CarryFeet(double exitMph, double launchDeg, double windMph, RulesTable rules) =>
         FirstLandingDist(Trajectory(exitMph, launchDeg, windMph, rules), rules);
 
     /// <summary>Open field: no walls, wind blowing out along the ball's line, on <see cref="OpenFieldGround"/>. For estimates and tests.</summary>
-    public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double windMph, RulesTable? rules = null) =>
-        Integrate(exitMph, launchDeg, 0, windMph, (0, 1), null, null, Rules.Or(rules));
+    public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double windMph, RulesTable rules) =>
+        Integrate(exitMph, launchDeg, 0, windMph, (0, 1), null, null, rules);
 
     /// <summary>The clipped path in this park: 3-D, the park's directional wind, the fence and the foul walls, on the park's ground zones.</summary>
-    public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable? rules = null)
+    public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         return Integrate(exitMph, launchDeg, sprayDeg, park.WindMph, park.WindDirection, FieldBounds.Of(park), GroundZones.Of(park, r), r);
     }
 
@@ -77,9 +77,9 @@ public static class BallFlight
     /// <paramref name="vz"/>) measured in play seconds, on the same time scale the hit had. A deflected ball is a batted ball still.
     /// </summary>
     public static IReadOnlyList<Sample> Continue(IReadOnlyList<Sample> path, double fromT, double x, double y, double z,
-        double vx, double vy, double vz, double launchDeg, double exitMph, Park park, RulesTable? rules = null)
+        double vx, double vy, double vz, double launchDeg, double exitMph, Park park, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var f = r.Flight;
         var wx = park.WindMph * MphToFtPerSec * f.WindMul * park.WindDirection.X;
         var wz = park.WindMph * MphToFtPerSec * f.WindMul * park.WindDirection.Z;
@@ -315,7 +315,7 @@ public static class BallFlight
     }
 
     /// <summary>Time of the landing mark (first grass, or the wall / fence if the ball meets it first) — not the end of the play.</summary>
-    public static double HangTime(IReadOnlyList<Sample> samples, RulesTable? rules = null)
+    public static double HangTime(IReadOnlyList<Sample> samples, RulesTable rules)
     {
         _ = rules;
         if (samples.Count == 0) return 0;
@@ -327,9 +327,9 @@ public static class BallFlight
     public static double RestTime(IReadOnlyList<Sample> samples) =>
         samples.Count == 0 ? 0 : samples[^1].T;
 
-    public static double FirstGrassTime(IReadOnlyList<Sample> samples, RulesTable? rules = null) => HangTime(samples, rules);
+    public static double FirstGrassTime(IReadOnlyList<Sample> samples, RulesTable rules) => HangTime(samples, rules);
 
-    public static double FirstLandingDist(IReadOnlyList<Sample> samples, RulesTable? rules = null)
+    public static double FirstLandingDist(IReadOnlyList<Sample> samples, RulesTable rules)
     {
         _ = rules;
         if (samples.Count == 0) return 0;
@@ -347,9 +347,9 @@ public static class BallFlight
     }
 
     /// <summary>Where the ball is at play time <paramref name="t"/> (the same clock the samples carry).</summary>
-    public static (double X, double Y, double Z) PointAt(IReadOnlyList<Sample> samples, double t, RulesTable? rules = null)
+    public static (double X, double Y, double Z) PointAt(IReadOnlyList<Sample> samples, double t, RulesTable rules)
     {
-        if (samples.Count == 0) return (0, Rules.Or(rules).Flight.PlateHeightFt, 0);
+        if (samples.Count == 0) return (0, rules.Flight.PlateHeightFt, 0);
         if (t <= 0) return (samples[0].X, samples[0].Height, samples[0].Z);
         var last = samples[^1];
         if (t >= last.T) return (last.X, last.Height, last.Z);

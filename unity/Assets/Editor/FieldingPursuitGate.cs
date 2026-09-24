@@ -121,9 +121,9 @@ namespace GrandSluggers.EditorTools
             var initialPos = Get<string>(play, "_glovePos");
             var initialWho = map[initialPos];
             var initialAt = Get<Dictionary<string, (double X, double Z)>>(play, "_gloveAt")[initialPos];
-            var initialSpeed = FieldingResolver.ChaseSpeedFt(initialWho, preview.Frozen);
+            var initialSpeed = FieldingResolver.ChaseSpeedFt(initialWho, preview.Frozen, match.Rules);
             var initialRoute = FieldingPursuit.Plan(
-                preview, match.Park, unityPath, 0, initialAt.X, initialAt.Z, initialSpeed);
+                preview, match.Park, unityPath, 0, initialAt.X, initialAt.Z, initialSpeed, match.Rules);
             entry.initialFielder = initialWho.Id;
             entry.initialPosition = initialPos;
             entry.initialTargetX = initialRoute.X;
@@ -133,7 +133,7 @@ namespace GrandSluggers.EditorTools
                 Require(initialRoute.Reachable, "Ground fixture has no reachable planned intercept.");
             if (spec.Wall)
             {
-                var plant = FlyCatch.ChaseTarget(preview, match.Park);
+                var plant = FlyCatch.ChaseTarget(preview, match.Rules, match.Park);
                 Require(initialRoute.AirCatch, "Wall route was not treated as an air catch.");
                 Require(Diamond.Dist(initialRoute.X, initialRoute.Z, plant.X, plant.Z) < 0.01,
                     "Wall route did not use the legal wall plant.");
@@ -164,7 +164,7 @@ namespace GrandSluggers.EditorTools
                 {
                     var step = Diamond.Dist(before.X, before.Z, afterX, afterZ);
                     var who = map.TryGetValue(afterOwner, out var active) ? active : preview.Fielder;
-                    var allowed = FieldingResolver.ChaseSpeedFt(who, preview.Frozen) * Dt + 0.06;
+                    var allowed = FieldingResolver.ChaseSpeedFt(who, preview.Frozen, match.Rules) * Dt + 0.06;
                     maxRunStep = Math.Max(maxRunStep, step);
                     maxAllowedStep = Math.Max(maxAllowedStep, allowed);
                     Require(step <= allowed,
@@ -187,10 +187,10 @@ namespace GrandSluggers.EditorTools
                 {
                     var ball = Get<Vector3>(play, "_ball");
                     var who = map.TryGetValue(afterOwner, out var active) ? active : preview.Fielder;
-                    var speed = FieldingResolver.ChaseSpeedFt(who, preview.Frozen);
+                    var speed = FieldingResolver.ChaseSpeedFt(who, preview.Frozen, match.Rules);
                     var route = FieldingPursuit.Plan(
                         preview, match.Park, unityPath, match.LivePlay.ElapsedSeconds,
-                        afterX, afterZ, speed);
+                        afterX, afterZ, speed, match.Rules);
                     frames.Add(new Frame
                     {
                         tick = tick,

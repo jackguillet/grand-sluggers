@@ -68,7 +68,7 @@ public sealed class JumpTests
         live.Recording = true;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0, LivePlayCommandSource.Human)).Snapshot.Active);
         var hang = preview.HangTimeSec;
-        var plant = FlyCatch.ChaseTarget(preview, match.Park, match.Rules);
+        var plant = FlyCatch.ChaseTarget(preview, match.Rules, match.Park);
         PlayEvent? play = null;
         var pressed = false; var takeoffAt = -1.0; var caughtAt = -1.0; var caughtAirborne = false; var throwStartedAt = -1.0; var southWhileAirborne = 0;
         for (var i = 0; i < 60 * 14 && play is null; i++)

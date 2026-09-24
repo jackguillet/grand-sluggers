@@ -199,7 +199,7 @@ public sealed class BodyFacingTests
         var live = match.LivePlay;
         var field = match.ResolveFielding(hit, preview);
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, LiveSeats.CpuOnly)).Snapshot.Active);
-        var plant = FlyCatch.ChaseTarget(preview, match.Park, match.Rules);
+        var plant = FlyCatch.ChaseTarget(preview, match.Rules, match.Park);
 
         var headings = new Dictionary<string, BodyHeading>();
         foreach (var pos in Diamond.Order)
@@ -231,7 +231,7 @@ public sealed class BodyFacingTests
                 var onBall = kv.Key == live.GlovePos;
                 var (x, z) = onBall ? (live.GloveX, live.GloveZ) : kv.Value;
                 var fly = onBall && !live.HoldsBall
-                          && FieldingResolver.InAir(preview, live.BallY, live.ElapsedSeconds, preview.HangTimeSec);
+                          && FieldingResolver.InAir(preview, live.BallY, live.ElapsedSeconds, Rules.Default, preview.HangTimeSec);
                 var facts = BodyFacing.Fielder(x, z, live.BallX, live.BallZ,
                     live.Throwing && kv.Key == live.ThrowFromPos, live.ThrowTo.X, live.ThrowTo.Z,
                     fly, plant.X, plant.Z, r);

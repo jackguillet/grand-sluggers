@@ -27,18 +27,18 @@ public static class PitchFlight
         (aimX * PlateScaleX, PlateY + aimY * PlateScaleY);
 
     /// <summary>Throwing hand, not the torso (pitching.flight.releaseHand*). +X toward first from a RHP. The rubber walk moves it by <see cref="HomeSet.PitcherWalk"/> per unit.</summary>
-    public static (double X, double Y, double Z) Release(double rubberX = 0, RulesTable? rules = null)
+    public static (double X, double Y, double Z) Release(RulesTable rules, double rubberX = 0)
     {
-        var f = Rules.Or(rules).Pitching.Flight;
+        var f = rules.Pitching.Flight;
         return (rubberX * HomeSet.PitcherWalk + f.ReleaseHandX, f.ReleaseHandY, MoundZ - f.ReleaseTowardPlate);
     }
 
     /// <summary>
     /// Super Sluggers air time, not MLB 90 (pitching.flight.arcadeScale, airMin/MaxSec). A changeup is 0.80× the meat and ~0.25 s longer.
     /// </summary>
-    public static double AirSeconds(double mph, RulesTable? rules = null)
+    public static double AirSeconds(double mph, RulesTable rules)
     {
-        var f = Rules.Or(rules).Pitching.Flight;
+        var f = rules.Pitching.Flight;
         var real = Diamond.Mound / (Math.Max(f.MinMph, mph) * 1.4667);
         return Math.Clamp(real * f.ArcadeScale, f.AirMinSec, f.AirMaxSec);
     }
@@ -52,19 +52,19 @@ public static class PitchFlight
     /// distance as the body, once (spec §4.2).
     /// </summary>
     public static (double X, double Y, double Z) Point(
-        string type, double u, double aimX = 0, double aimY = 0,
+        string type, double u, RulesTable rules, double aimX = 0, double aimY = 0,
         double breakX = 0, double rubberX = 0,
-        (double X, double Y, double Z)? from = null, RulesTable? rules = null, bool charged = false,
+        (double X, double Y, double Z)? from = null, bool charged = false,
         Hand throws = Hand.R)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var f = r.Pitching.Flight;
         var row = r.Pitching.Families.Of(type);
         u = Math.Clamp(u, 0, 1);
         var (tx, ty) = PlateTarget(aimX, aimY);
         tx += rubberX * HomeSet.PitcherWalk;
         ty -= row.DropFt;
-        var rel = from ?? Release(rubberX, r);
+        var rel = from ?? Release(r, rubberX);
         var z = rel.Z * (1 - u);
         var (x, y, zz) = Shape(u, tx, ty, z, rel, row);
         // Shape → sweep → stick → star. The sweep is the family's own movement and the stick's shift
@@ -80,12 +80,13 @@ public static class PitchFlight
 
     /// <summary>The same delivered ball is used by rendering, contact and the umpire.</summary>
     public static (double X, double Y, double Z) Point(PitchCommand pitch, double u,
-        string? starPitchId = null, (double X, double Y, double Z)? from = null, RulesTable? rules = null)
+        RulesTable rules,
+        string? starPitchId = null, (double X, double Y, double Z)? from = null)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         u = Math.Clamp(u, 0, 1);
-        var p = Point(pitch.Type, u, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
-            pitch.RubberX, from, r, ChargeFeel.IsCharge(pitch.Charge01), pitch.Throws);
+        var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
+            pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01), pitch.Throws);
         if (!pitch.Star) return p;
         var st = r.Pitching.StarShapes;
         return starPitchId switch
@@ -103,9 +104,9 @@ public static class PitchFlight
     /// The plate crossing in world feet: the u=1 sample of the shown flight. The aim tell draws
     /// it, the umpire judges it, the cursor meets it, the CPU batter reads it (spec §3, #577).
     /// </summary>
-    public static (double X, double Y) Crossing(PitchCommand pitch, string? starPitchId = null, RulesTable? rules = null)
+    public static (double X, double Y) Crossing(PitchCommand pitch, RulesTable rules, string? starPitchId = null)
     {
-        var p = Point(pitch, 1, starPitchId, rules: rules);
+        var p = Point(pitch, 1, rules, starPitchId);
         return (p.X, p.Y);
     }
 
@@ -179,9 +180,9 @@ public static class PitchFlight
     /// fast the bend reaches full is the arm's <b>Control</b> (<see cref="Stats.Control"/>, PH-15-R6; the
     /// rules keep the historical name pitching.flight.breakRate*PerPitchStat). Clamped to ±1.
     /// </summary>
-    public static double BreakStep(double breakX, double stickDir, double dt, int pitchStat, RulesTable? rules = null)
+    public static double BreakStep(double breakX, double stickDir, double dt, int pitchStat, RulesTable rules)
     {
-        var f = Rules.Or(rules).Pitching.Flight;
+        var f = rules.Pitching.Flight;
         var dir = Math.Sign(stickDir);
         if (dir == 0) return breakX;
         var rate = BreakRatePerSec(pitchStat, f);
@@ -216,8 +217,8 @@ public static class PitchFlight
     /// </summary>
     /// <param name="pitchStat">The arm's Control (<see cref="Stats.Control"/>), clamped to 1..10 as <see cref="BreakStep"/> clamps it.</param>
     /// <param name="airSec">Seconds of flight the stick is held for (<see cref="AirSeconds"/>).</param>
-    public static double BreakReach(int pitchStat, double airSec, RulesTable? rules = null) =>
-        Math.Min(1, BreakRatePerSec(pitchStat, Rules.Or(rules).Pitching.Flight) * Math.Max(0, airSec));
+    public static double BreakReach(int pitchStat, double airSec, RulesTable rules) =>
+        Math.Min(1, BreakRatePerSec(pitchStat, rules.Pitching.Flight) * Math.Max(0, airSec));
 
     /// <summary>
     /// Aim a delivery at an intended normalized plate crossing while preserving
@@ -226,16 +227,17 @@ public static class PitchFlight
     /// Call before PreparePitch adds execution error.
     /// </summary>
     public static PitchCommand AimForCrossing(PitchCommand pitch, double targetX, double targetY,
-        string? starPitchId = null, RulesTable? rules = null)
+        RulesTable rules,
+        string? starPitchId = null)
     {
-        var actual = ContactAim(pitch, starPitchId, rules);
+        var actual = ContactAim(pitch, rules, starPitchId);
         return pitch with { AimX = pitch.AimX + targetX - actual.X,
             AimY = pitch.AimY + targetY - actual.Y };
     }
 
-    public static (double X, double Y) ContactAim(PitchCommand pitch, string? starPitchId = null, RulesTable? rules = null)
+    public static (double X, double Y) ContactAim(PitchCommand pitch, RulesTable rules, string? starPitchId = null)
     {
-        var p = Point(pitch, 1, starPitchId, rules: rules);
+        var p = Point(pitch, 1, rules, starPitchId);
         return (p.X / PlateScaleX, (p.Y - PlateY) / PlateScaleY);
     }
 

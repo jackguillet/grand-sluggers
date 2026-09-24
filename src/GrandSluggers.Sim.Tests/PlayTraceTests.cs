@@ -82,13 +82,13 @@ public sealed class PlayTraceTests
         Assert.Equal((OutType.Catch, 0), (only.Type, only.FromBag));
         AssertMonotonic(trace);
 
-        var plant = FlyCatch.ChaseTarget(preview, match.Park, match.Rules);
+        var plant = FlyCatch.ChaseTarget(preview, match.Rules, match.Park);
         var window = FieldingResolver.CatchWindowFt(preview.CatchRadius, true, false, match.Rules);
         var catchTick = trace.Ticks.FirstOrDefault(t => t.Ball.Caught || t.Glove.HasBall);
         Assert.NotNull(catchTick);
         Assert.True(
-            FlyCatch.JumpWindow(catchTick!.T, preview.HangTimeSec, preview.Fielder, match.Park, match.Rules)
-            || FlyCatch.JumpWindow(catchTick.T - Frame, preview.HangTimeSec, preview.Fielder, match.Park, match.Rules),
+            FlyCatch.JumpWindow(catchTick!.T, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park)
+            || FlyCatch.JumpWindow(catchTick.T - Frame, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park),
             $"caught at t={catchTick.T:0.00} vs hang {preview.HangTimeSec:0.00}");
         Assert.True(
             FlyCatch.Under(catchTick.Glove.X, catchTick.Glove.Z, catchTick.Ball.X, catchTick.Ball.Z,
@@ -125,7 +125,7 @@ public sealed class PlayTraceTests
         AssertMonotonic(trace);
 
         var plate = Diamond.Home;
-        var reach = InPlay.TagReachFt(null, sliding: false, match.Rules);
+        var reach = InPlay.TagReachFt(null, match.Rules, sliding: false);
         var tagTick = trace.Ticks.LastOrDefault(t =>
         {
             var body = t.Runners.FirstOrDefault(r => r.Id == runner.Id);
@@ -159,8 +159,8 @@ public sealed class PlayTraceTests
         Assert.True(steal.StartSteal());
         Assert.Equal(StealArm.Set, steal.RunnerAt(1)!.StealArm);
         Assert.True(steal.RunnerAt(1)!.Broke);
-        Assert.True(InPlay.OnThisBag(1, steal.RunnerAt(1)!.Position.X, steal.RunnerAt(1)!.Position.Z,
-            steal.Rules.Running.Bags.OccupyRadiusFt, steal.Rules));
+        Assert.True(InPlay.OnThisBag(1, steal.RunnerAt(1)!.Position.X, steal.RunnerAt(1)!.Position.Z, steal.Rules,
+            steal.Rules.Running.Bags.OccupyRadiusFt));
         steal.PitchSetup.ReleaseBall();
         steal.PitchSetup.Advance(.7);
         steal.LivePlay.Recording = true;

@@ -117,7 +117,7 @@ namespace GrandSluggers.EditorTools
             Set(play, "_swing", swing);
             Set(play, "_swung", true);
             Set(play, "_pitchAir", true);
-            Set(play, "_flight", (float)AtBatMotion.SwingStart(pitchDur, timingFrames));
+            Set(play, "_flight", (float)AtBatMotion.SwingStart(pitchDur, timingFrames, Get<Match>(play, "_match").Rules));
             Invoke(play, "DrawActors", 0f);
 
             var result = new GateCase

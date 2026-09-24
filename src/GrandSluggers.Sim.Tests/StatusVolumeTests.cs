@@ -350,7 +350,7 @@ public sealed class StatusVolumeTests
         Assert.Equal(index, touch.Hazard);
         Assert.Equal(touch.T + SlowSec, touch.UntilT, 9);
         Assert.DoesNotContain(p.Live.SlowsThisPlay, t => !t.IsRunner);
-        var speed = RunnerSystem.SpeedFtPerSec(touch.Who, 0, match.Rules);
+        var speed = RunnerSystem.SpeedFtPerSec(touch.Who, match.Rules, 0);
         var slowed = p.Batter.Where(b => b.Slowed && b.Velocity > 0).ToArray();
         Assert.NotEmpty(slowed);
         Assert.All(slowed, b => Assert.Equal(speed * match.Rules.Fielding.Chase.FrozenMul, b.Velocity, 9));

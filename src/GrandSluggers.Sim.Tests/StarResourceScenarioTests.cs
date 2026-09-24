@@ -332,7 +332,7 @@ public sealed class StarResourceScenarioTests
             Assert.True(Mph(loaded with { Star = true }) > Mph(quick with { Star = true }));
             // Steering: the stick moves a charged special exactly as little as a charged ordinary pitch.
             double Steer(PitchCommand p) =>
-                PitchFlight.Point(p with { BreakX = 1 }, 1, c.StarPitch, rules: rules).X - PitchFlight.Point(p, 1, c.StarPitch, rules: rules).X;
+                PitchFlight.Point(p with { BreakX = 1 }, 1, rules, c.StarPitch).X - PitchFlight.Point(p, 1, rules, c.StarPitch).X;
             Assert.Equal(Steer(loaded), Steer(loaded with { Star = true }), 9);
             Assert.Equal(Steer(quick), Steer(quick with { Star = true }), 9);
             // A family already damped at every charge (the changeup's row) loses nothing more; the rest lose steering.

@@ -78,12 +78,12 @@ namespace GrandSluggers.UnityClient
             if (_ring != null && _preview != null)
             {
                 var hang = _path != null ? BallFlight.HangTime(_path, MatchRules) : _preview.HangTimeSec;
-                if (LandingMark.On(_preview, _ball.y, LiveTime, _caught, _buddy, hang))
+                if (LandingMark.On(_preview, _ball.y, LiveTime, _caught, _buddy, _match.Rules, hang))
                 {
-                    var plant = LandingMark.At(_preview, _match.Park);
+                    var plant = LandingMark.At(_preview, _match.Rules, _match.Park);
                     var who = PlayFielder();
                     _ring.Show(plant.X, plant.Z, (float)LandingMark.RadiusFt(_preview),
-                        LandingMark.Hot(LiveTime, hang, who, _match.Park));
+                        LandingMark.Hot(LiveTime, hang, _match.Rules, who, _match.Park));
                 }
                 else
                     _ring.Hide();
@@ -341,7 +341,7 @@ namespace GrandSluggers.UnityClient
 
         bool BuddySet => _preview != null && FieldingResolver.BuddyJumpOffered(_preview);
 
-        (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, _match?.Park, MatchRules);
+        (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, MatchRules, _match?.Park);
 
         PlayKind LiveKind() => _match.LivePlay.PlayKind;
 

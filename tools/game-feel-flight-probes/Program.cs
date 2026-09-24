@@ -76,13 +76,13 @@ foreach (var (label, drag) in new[] { ("control-drag", controlDrag), ("trial-dra
                 grounded |= current.Event == SampleEvent.Ground;
             }
             rows.Add(new { id, dragProfile = label, drag, exitMph = exit, launchDeg = launch, sprayDeg = spray,
-                windMph = 0, firstLandingDistanceFt = R(BallFlight.FirstLandingDist(open)),
-                firstLandingTimeSec = R(BallFlight.HangTime(open)),
+                windMph = 0, firstLandingDistanceFt = R(BallFlight.FirstLandingDist(open, rules: rules)),
+                firstLandingTimeSec = R(BallFlight.HangTime(open, rules: rules)),
                 fenceDistanceAlongSprayFt = R(boundary.RadiusAt(spray)), fenceCrossing = crossing,
                 groundStations = probe["kind"]!.GetValue<string>() == "ground" ? stations : null,
                 groundImpacts = probe["kind"]!.GetValue<string>() == "ground" ? impacts : null });
             if (spray == 0)
-                regression[$"{label}/{id}"] = (BallFlight.FirstLandingDist(open),
+                regression[$"{label}/{id}"] = (BallFlight.FirstLandingDist(open, rules: rules),
                     AtDistance(open, 100)?.TimeSec ?? double.NaN, outcome);
         }
     }

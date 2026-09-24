@@ -217,12 +217,12 @@ public sealed class PitchFamilyGoldenTests
         PitchCommand Bare => Delivery with { BreakX = 0, Star = false };
 
         public double ActualX(RulesTable r) => Crossing
-            ? PitchFlight.Crossing(Delivery, Star, r).X
-            : PitchFlight.Point(Delivery, U, Star, rules: r).X;
+            ? PitchFlight.Crossing(Delivery, r, Star).X
+            : PitchFlight.Point(Delivery, U, r, Star).X;
 
         public double StoredXBase(RulesTable r) => Crossing
-            ? PitchFlight.Crossing(Bare, Star, r).X
-            : PitchFlight.Point(Bare, U, Star, rules: r).X;
+            ? PitchFlight.Crossing(Bare, r, Star).X
+            : PitchFlight.Point(Bare, U, r, Star).X;
 
         /// <summary>
         /// The damping <see cref="PitchFlight.Point"/> hands <see cref="PitchFlight.BreakShiftFt"/>.
@@ -238,10 +238,10 @@ public sealed class PitchFamilyGoldenTests
                 return Bits(AtBatResolver.PitchSpeedMph(Delivery, m.Stat, r, Star));
             var parts = new List<string>();
             if (Crossing)
-                parts.Add(Bits(PitchFlight.Crossing(Delivery, Star, r).Y));
+                parts.Add(Bits(PitchFlight.Crossing(Delivery, r, Star).Y));
             else
             {
-                var p = PitchFlight.Point(Delivery, U, Star, rules: r);
+                var p = PitchFlight.Point(Delivery, U, r, Star);
                 parts.Add(Bits(p.Y));
                 parts.Add(Bits(p.Z));
             }
@@ -270,12 +270,12 @@ public sealed class PitchFamilyGoldenTests
                 yield break;
             }
 
-            var actualY = Crossing ? PitchFlight.Crossing(Delivery, Star, r).Y : PitchFlight.Point(Delivery, U, Star, rules: r).Y;
+            var actualY = Crossing ? PitchFlight.Crossing(Delivery, r, Star).Y : PitchFlight.Point(Delivery, U, r, Star).Y;
             if (Bits(actualY) != token[0])
                 yield return $"Y fixture {token[0]} vs now {Bits(actualY)} ({Readable(token[0])} vs {actualY:R})";
             if (!Crossing)
             {
-                var actualZ = PitchFlight.Point(Delivery, U, Star, rules: r).Z;
+                var actualZ = PitchFlight.Point(Delivery, U, r, Star).Z;
                 if (Bits(actualZ) != token[1])
                     yield return $"Z fixture {token[1]} vs now {Bits(actualZ)} ({Readable(token[1])} vs {actualZ:R})";
             }

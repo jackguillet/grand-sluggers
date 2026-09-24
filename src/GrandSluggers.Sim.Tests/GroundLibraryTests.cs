@@ -558,10 +558,10 @@ public sealed class GroundLibraryTests
     public void TheNoTableOverloadTakesTheProcessWideTableAndNothingElse()
     {
         var park = Game.Parks["harbor-diamond"] with { Zones = new ParkZones(WarningTrack: Ground.Ash) };
-        Assert.Equal(GroundZones.Of(park, Rules.Default), GroundZones.Of(park));
-        Assert.Equal(Rules.Default.Flight.Classes.InfieldLipFt, GroundZones.Of(park).InfieldLipFt);
+        Assert.Equal(GroundZones.Of(park, Rules.Default), GroundZones.Of(park, rules: Rules.Default));
+        Assert.Equal(Rules.Default.Flight.Classes.InfieldLipFt, GroundZones.Of(park, rules: Rules.Default).InfieldLipFt);
         // The zones themselves come from the park either way; only the lip is the table's.
-        Assert.Equal(Ground.Ash, GroundZones.Of(park).WarningTrack);
+        Assert.Equal(Ground.Ash, GroundZones.Of(park, rules: Rules.Default).WarningTrack);
     }
 
     /// <summary>

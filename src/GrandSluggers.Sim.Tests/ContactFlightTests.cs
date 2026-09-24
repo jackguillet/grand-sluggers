@@ -31,8 +31,8 @@ public sealed class ContactFlightTests
     {
         var early = BallFlight.Trajectory(85, -20, 0, game.Rules);
         var late = BallFlight.Trajectory(85, 7, 0, game.Rules);
-        Assert.InRange(BallFlight.FirstLandingDist(early), 0, 15);
-        Assert.True(BallFlight.FirstLandingDist(late) > BallFlight.FirstLandingDist(early) + 40);
+        Assert.InRange(BallFlight.FirstLandingDist(early, rules: Rules.Default), 0, 15);
+        Assert.True(BallFlight.FirstLandingDist(late, rules: Rules.Default) > BallFlight.FirstLandingDist(early, rules: Rules.Default) + 40);
         foreach (var angle in new[] { -20d, 7d })
         {
             var match = Match.Slice(game);
@@ -42,7 +42,7 @@ public sealed class ContactFlightTests
             var next = path.Skip(first + 1).TakeWhile(s => s.Event != SampleEvent.Ground).ToArray();
             Assert.NotEmpty(next);
             Assert.True(next.Max(s => s.Height) > .25, "a real hop after the first bounce");
-            Assert.All(path, s => Assert.False(LandingMark.On(pre, s.Height, s.T, false, false)));
+            Assert.All(path, s => Assert.False(LandingMark.On(pre, s.Height, s.T, false, false, rules: Rules.Default)));
         }
     }
 
@@ -89,7 +89,7 @@ public sealed class ContactFlightTests
             var named = pre with { Class = label };
             Assert.False(FlyCatch.InPosition(named, sample.X, sample.Z, sample.X, sample.Z,
                 sample.Height, sample.X, sample.Z, 20, sample.T, pre.HangTimeSec, false, game.Rules));
-            Assert.False(LandingMark.On(named, sample.Height, sample.T, false, false));
+            Assert.False(LandingMark.On(named, sample.Height, sample.T, false, false, rules: Rules.Default));
             Assert.True(FlyCatch.PickupInPlay(named, Park, sample.X, sample.Z, sample.T, pre.HangTimeSec, game.Rules));
         }
     }
@@ -100,13 +100,13 @@ public sealed class ContactFlightTests
         var path = BallFlight.Trajectory(95, 30, 0, Park, game.Rules);
         const double dt = 1.0 / 60;
         const double t = 1;
-        var before = BallFlight.PointAt(path, t - dt);
-        var now = BallFlight.PointAt(path, t);
+        var before = BallFlight.PointAt(path, t - dt, rules: Rules.Default);
+        var now = BallFlight.PointAt(path, t, rules: Rules.Default);
         var vx = (now.X - before.X) / dt;
         var vy = (now.Y - before.Y) / dt;
         var vz = (now.Z - before.Z) / dt;
         var continued = BallFlight.Continue(path, t, now.X, now.Y, now.Z, vx, vy, vz, 30, 95, Park, game.Rules);
-        var after = BallFlight.PointAt(continued, t + dt);
+        var after = BallFlight.PointAt(continued, t + dt, rules: Rules.Default);
         Assert.InRange((after.Z - now.Z) / dt / vz, .98, 1.01);
         Assert.InRange((after.Y - now.Y) / dt / vy, .98, 1.01);
     }

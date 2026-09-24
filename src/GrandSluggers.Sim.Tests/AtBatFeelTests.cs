@@ -77,11 +77,11 @@ public class AtBatFeelTests
             deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
         const double releaseDuringWindup = -0.2;
         const double plateAt = 1.0;
-        var error = AtBatMotion.SwingErrorFrames(releaseDuringWindup, plateAt);
+        var error = AtBatMotion.SwingErrorFrames(releaseDuringWindup, plateAt, rules: Rules.Default);
 
         Assert.True(released.Committed);
         Assert.True(error < 0, $"windup release should be early, got {error} frames");
-        Assert.Equal(releaseDuringWindup, AtBatMotion.SwingStart(plateAt, error), 8);
+        Assert.Equal(releaseDuringWindup, AtBatMotion.SwingStart(plateAt, error, rules: Rules.Default), 8);
     }
 
     [Fact]
@@ -92,21 +92,21 @@ public class AtBatFeelTests
         var released = ChargeButton.Advance(held.Next, pressed: false, held: false, released: true,
             deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
         var intent = SwingInputIntent.Capture(
-            released, stickX: 0.6, stickY: 0.25, bunt: false, boxOffsetX: -0.35);
+            released, stickX: 0.6, stickY: 0.25, bunt: false, boxOffsetX: -0.35, rules: Rules.Default);
 
         Assert.True(intent.Committed);
         Assert.Equal(released.CommitFill01, intent.Fill01);
-        Assert.Equal(AtBatResolver.SprayAimDeg(0.6), intent.SprayAimDeg);
+        Assert.Equal(AtBatResolver.SprayAimDeg(0.6, rules: Rules.Default), intent.SprayAimDeg);
         Assert.Equal(0.25, intent.LaunchAim);
         Assert.Equal(-0.35, intent.BoxOffsetX);
 
         const double releaseAt = -Motion.PitchRelease;
         const double plateAt = 1.0;
-        var swing = intent.Resolve(releaseAt, plateAt, effectiveCharge: 0.4, star: true);
+        var swing = intent.Resolve(releaseAt, plateAt, effectiveCharge: 0.4, star: true, rules: Rules.Default);
         Assert.True(swing.Swing);
         Assert.Equal(0.4, swing.Charge01);
         Assert.True(swing.Star);
-        Assert.Equal(releaseAt, AtBatMotion.SwingStart(plateAt, swing.TimingErrorFrames), 8);
+        Assert.Equal(releaseAt, AtBatMotion.SwingStart(plateAt, swing.TimingErrorFrames, rules: Rules.Default), 8);
         Assert.Equal(intent.SprayAimDeg, swing.SprayAimDeg);
         Assert.Equal(intent.BoxOffsetX, swing.BoxOffsetX);
     }
@@ -119,14 +119,14 @@ public class AtBatFeelTests
     {
         // D13: the square press is the ball's plate time less the lead, whatever the pitch speed.
         var lead = Rules.Default.Batting.Window.LeadSec;
-        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - lead, flight), 8);
-        Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - lead - 0.05, flight), 8);
-        Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - lead + 0.05, flight), 8);
+        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - lead, flight, rules: Rules.Default), 8);
+        Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - lead - 0.05, flight, rules: Rules.Default), 8);
+        Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - lead + 0.05, flight, rules: Rules.Default), 8);
         // Pressing when the ball is already on the plate is past the half window.
-        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > Rules.Default.Batting.Window.Frames / 2);
-        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight, flight, bunt: true), 8);
+        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight, rules: Rules.Default) > Rules.Default.Batting.Window.Frames / 2);
+        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight, flight, bunt: true, rules: Rules.Default), 8);
         foreach (var error in new[] { -8.0, 0, 5.0 })
-            Assert.Equal(error, AtBatMotion.SwingErrorFrames(AtBatMotion.SwingStart(flight, error), flight), 8);
+            Assert.Equal(error, AtBatMotion.SwingErrorFrames(AtBatMotion.SwingStart(flight, error, rules: Rules.Default), flight, rules: Rules.Default), 8);
     }
 
     [Theory]
@@ -177,7 +177,7 @@ public class AtBatFeelTests
     {
         const double plateAt = 0.50;
         const double lateFrames = 12;
-        var start = AtBatMotion.SwingStart(plateAt, lateFrames);
+        var start = AtBatMotion.SwingStart(plateAt, lateFrames, rules: Rules.Default);
         var clock = AtBatMotion.SwingNotStarted;
 
         clock = AtBatMotion.AdvanceCommittedSwing(clock, start, start, 0);
@@ -205,7 +205,7 @@ public class AtBatFeelTests
     {
         const double plateAt = 0.50;
         const double earlyFrames = -30;
-        var start = AtBatMotion.SwingStart(plateAt, earlyFrames);
+        var start = AtBatMotion.SwingStart(plateAt, earlyFrames, rules: Rules.Default);
         var clock = AtBatMotion.SwingNotStarted;
 
         clock = AtBatMotion.AdvanceCommittedSwing(clock, start, start, 0);
@@ -223,7 +223,7 @@ public class AtBatFeelTests
     [Fact]
     public void ReleaseIsTheHandNotTheTorsoAndPathFacesBothLooks()
     {
-        var rel = PitchFlight.Release();
+        var rel = PitchFlight.Release(rules: Rules.Default);
         Assert.True(rel.X > 1.2, $"hand x={rel.X}");
         Assert.True(rel.Z < Diamond.Mound - 1.5, $"in front of rubber z={rel.Z}");
         Assert.InRange(Baseball.DiameterFt, 0.45, 0.85);
@@ -243,25 +243,25 @@ public class AtBatFeelTests
         var pitch = _content.Shots.Must("pitch");
         for (var u = 0.05; u <= 1; u += 0.15)
         {
-            var p = PitchFlight.Point("fastball", u);
+            var p = PitchFlight.Point("fastball", u, rules: Rules.Default);
             Assert.True(PitchFlight.InFrontOfLook(p.X, p.Y, p.Z, plate), $"plate u={u} {p}");
             Assert.True(PitchFlight.InFrontOfLook(p.X, p.Y, p.Z, mound), $"mound u={u} {p}");
             Assert.True(PitchFlight.InFrontOfLook(p.X, p.Y, p.Z, pitch), $"pitch u={u} {p}");
         }
-        var leave = PitchFlight.Point("fastball", StillPose.PitchBallU);
+        var leave = PitchFlight.Point("fastball", StillPose.PitchBallU, rules: Rules.Default);
         Assert.True(PitchFlight.InFrontOfLook(leave.X, leave.Y, leave.Z, pitch), $"release {leave}");
         Assert.True(leave.Z > 40, $"release still on the pitcher z={leave.Z}");
-        var mid = PitchFlight.Point("fastball", 0.55);
+        var mid = PitchFlight.Point("fastball", 0.55, rules: Rules.Default);
         var size = PitchFlight.ApparentDeg(mid.X, mid.Y, mid.Z, plate, Baseball.ApparentScale(true, mid.Z));
         var still = PitchFlight.ApparentDeg(mid.X, mid.Y, mid.Z, plate, Baseball.DiameterFt);
         Assert.True(size > still, $"flight {size} vs still {still}");
         Assert.True(size > 1.2, $"mid-flight speck {size} deg");
-        var early = PitchFlight.Point("fastball", 0.2);
+        var early = PitchFlight.Point("fastball", 0.2, rules: Rules.Default);
         var earlyDeg = PitchFlight.ApparentDeg(early.X, early.Y, early.Z, plate, Baseball.ApparentScale(true, early.Z));
         Assert.True(earlyDeg > 0.9, $"early pitch speck {earlyDeg} deg");
         for (var u = 0.15; u <= 0.9; u += 0.2)
         {
-            var pt = PitchFlight.Point("fastball", u);
+            var pt = PitchFlight.Point("fastball", u, rules: Rules.Default);
             var vp = PlayCamera.Project(plate, new Vec3(pt.X, pt.Y, pt.Z));
             Assert.True(PlayCamera.InFrame(vp, 0.0), $"hitter lost the pitch u={u} {vp}");
         }
@@ -298,26 +298,26 @@ public class AtBatFeelTests
             lateCarry += resolver.Resolve(Input(vale, rio, bat, late, 0), park, new Random(seed)).CarryFt;
         }
         Assert.True(maxCarry > lateCarry, $"MAX carry {maxCarry} vs overcharge {lateCarry}");
-        var maxMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, false), 7);
-        var overMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", late, false), 7);
+        var maxMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, false), 7, rules: Rules.Default);
+        var overMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", late, false), 7, rules: Rules.Default);
         Assert.True(maxMph > overMph, $"MAX mph {maxMph} vs over {overMph}");
     }
 
     [Fact]
     public void CursorEatsHeartAndWalkedOffMisses()
     {
-        Assert.Equal(ContactQuality.Perfect, SweetSpot.Zone(0, Hand.R, 0, StrikeZoneGeometry.CenterY));
-        Assert.Equal(ContactQuality.Miss, SweetSpot.Zone(0.9, Hand.R, 0, StrikeZoneGeometry.CenterY));
+        Assert.Equal(ContactQuality.Perfect, SweetSpot.Zone(0, Hand.R, 0, StrikeZoneGeometry.CenterY, rules: Rules.Default));
+        Assert.Equal(ContactQuality.Miss, SweetSpot.Zone(0.9, Hand.R, 0, StrikeZoneGeometry.CenterY, rules: Rules.Default));
         var left = SweetSpot.WorldCenter(-0.4);
         var right = SweetSpot.WorldCenter(0.4);
         Assert.True(right.X > left.X, $"cursor right {right.X} vs left {left.X}");
         Assert.Equal(0.8 * HomeSet.BatterWalk, right.X - left.X, 8);
         Assert.Equal(StrikeZoneGeometry.CenterY, left.Y);
         Assert.Equal(StrikeZoneGeometry.Height / 2, SweetSpot.HalfHeightFt);
-        Assert.True(SweetSpot.CoversTheZone(Hand.R), "every strike is on the bat with the box centered");
-        Assert.True(SweetSpot.CoversTheZone(Hand.L), "every strike is on the bat with the box centered");
+        Assert.True(SweetSpot.CoversTheZone(Hand.R, rules: Rules.Default), "every strike is on the bat with the box centered");
+        Assert.True(SweetSpot.CoversTheZone(Hand.L, rules: Rules.Default), "every strike is on the bat with the box centered");
         var park = _content.Parks["harbor-diamond"];
-        var resolver = new AtBatResolver(_content.Chemistry);
+        var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var vale = _content.Must("vale");
         var rio = _content.Must("rio");
         var bat = _content.Bats["harbor-lumber"];
@@ -407,17 +407,17 @@ public class AtBatFeelTests
     public void DashShortensHomeToFirstBuddyTossTransfers()
     {
         var dart = _content.Must("dart");
-        var still = RunnerSystem.SpeedFtPerSec(dart);
-        var dash = RunnerSystem.SpeedFtPerSec(dart, 1);
+        var still = RunnerSystem.SpeedFtPerSec(dart, rules: Rules.Default);
+        var dash = RunnerSystem.SpeedFtPerSec(dart, Rules.Default, 1);
         Assert.True(dash > still, $"dash {dash} vs {still}");
         Assert.True(dash < still * 1.3, "dash is not a teleport");
         // The fielder's dash is no free chase multiplier (dash.chaseMul 1.0); the faster carry is the Ball Dash carrier's (#718).
-        Assert.Equal(1.0, FieldDash.ChaseMul());
+        Assert.Equal(1.0, FieldDash.ChaseMul(rules: Rules.Default));
         var rio = _content.Must("rio");
         var nico = _content.Must("nico");
-        Assert.True(FieldDash.BuddyTossOffered(_content.Chemistry.Between(rio, nico), 12)
-                    || FieldDash.BuddyTossOffered(Chemistry.Good, 12));
-        Assert.False(FieldDash.BuddyTossOffered(Chemistry.Bad, 8));
+        Assert.True(FieldDash.BuddyTossOffered(_content.Chemistry.Between(rio, nico), 12, rules: Rules.Default)
+                    || FieldDash.BuddyTossOffered(Chemistry.Good, 12, rules: Rules.Default));
+        Assert.False(FieldDash.BuddyTossOffered(Chemistry.Bad, 8, rules: Rules.Default));
         var field = new FieldingResult(PlayKind.GroundOut, rio, nico, 0.8, 10, 40, false, false,
             new ThrowResult(Chemistry.Neutral, 1.0, false));
         var thr = new ThrowResult(Chemistry.Good, 1.35, false);

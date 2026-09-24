@@ -415,9 +415,9 @@ public static class ParkDiamond
         return true;
     }
 
-    public static bool TrackIsInsideTheWall(Park park) =>
+    public static bool TrackIsInsideTheWall(Park park, RulesTable rules) =>
         TrackWidth > 8f && TrackWidth < 24f
-        && TrackMid(park, 0) > Rules.Default.Flight.Classes.InfieldLipFt
+        && TrackMid(park, 0) > rules.Flight.Classes.InfieldLipFt
         && TrackMid(park, 0) < park.CenterFenceFt;
 
     public static bool PoleIsOnTheFoulLine(Park park)

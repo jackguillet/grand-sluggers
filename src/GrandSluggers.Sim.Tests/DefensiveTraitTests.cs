@@ -59,13 +59,13 @@ public class DefensiveTraitTests
     {
         var weak = Character(arm: 1);
         var strong = Character(arm: 10);
-        Assert.True(InPlay.ArmMul(strong) > InPlay.ArmMul(weak), "a better arm throws harder");
+        Assert.True(InPlay.ArmMul(strong, rules: Rules.Default) > InPlay.ArmMul(weak, rules: Rules.Default), "a better arm throws harder");
 
         // Hands and reach are untouched by the arm rating.
-        Assert.Equal(InPlay.KnockbackSec(200, weak), InPlay.KnockbackSec(200, strong), 6);
+        Assert.Equal(InPlay.KnockbackSec(200, weak, rules: Rules.Default), InPlay.KnockbackSec(200, strong, rules: Rules.Default), 6);
         Assert.Equal(
-            FieldingResolver.CatchRadiusFt(weak, null),
-            FieldingResolver.CatchRadiusFt(strong, null), 6);
+            FieldingResolver.CatchRadiusFt(weak, null, rules: Rules.Default),
+            FieldingResolver.CatchRadiusFt(strong, null, rules: Rules.Default), 6);
     }
 
     [Fact]
@@ -73,13 +73,13 @@ public class DefensiveTraitTests
     {
         var clumsy = Character(hands: 1);
         var sure = Character(hands: 10);
-        Assert.True(InPlay.KnockbackSec(200, sure) < InPlay.KnockbackSec(200, clumsy),
+        Assert.True(InPlay.KnockbackSec(200, sure, rules: Rules.Default) < InPlay.KnockbackSec(200, clumsy, rules: Rules.Default),
             "better hands recover sooner");
 
-        Assert.Equal(InPlay.ArmMul(clumsy), InPlay.ArmMul(sure), 6);
+        Assert.Equal(InPlay.ArmMul(clumsy, rules: Rules.Default), InPlay.ArmMul(sure, rules: Rules.Default), 6);
         Assert.Equal(
-            FieldingResolver.CatchRadiusFt(clumsy, null),
-            FieldingResolver.CatchRadiusFt(sure, null), 6);
+            FieldingResolver.CatchRadiusFt(clumsy, null, rules: Rules.Default),
+            FieldingResolver.CatchRadiusFt(sure, null, rules: Rules.Default), 6);
     }
 
     [Fact]

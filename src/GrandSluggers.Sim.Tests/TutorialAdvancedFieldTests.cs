@@ -90,7 +90,7 @@ public sealed class TutorialAdvancedFieldTests
             }
             else if (act && run.Lesson.Id == "T-F12" && live.Preview is { } fly)
             {
-                var plant = FlyCatch.WallPlant(fly, run.Match.Park, run.Match.Rules);
+                var plant = FlyCatch.WallPlant(fly, run.Match.Rules, run.Match.Park);
                 var dx = plant.X - live.GloveX;
                 var dz = plant.Z - live.GloveZ;
                 var len = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));

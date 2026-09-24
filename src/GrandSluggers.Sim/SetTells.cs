@@ -63,8 +63,8 @@ public static class SetTells
     /// plane. Walking the rubber moves it with the body; the stick moves it during flight; it is
     /// the same point the umpire judges (spec §4.4, #577).
     /// </summary>
-    public static (double X, double Y) Locator(PitchCommand pitch, string? starPitchId = null, RulesTable? rules = null) =>
-        PitchFlight.Crossing(pitch, starPitchId, rules);
+    public static (double X, double Y) Locator(PitchCommand pitch, RulesTable rules, string? starPitchId = null) =>
+        PitchFlight.Crossing(pitch, rules, starPitchId);
 
     /// <summary>
     /// The ordinary-play SET ring (PH-06, PH-06-R1): <b>where the pitcher stands</b>, not where the
@@ -84,8 +84,8 @@ public static class SetTells
     public static (double X, double Y) RubberRing(double rubberX) =>
         (rubberX * HomeSet.PitcherWalk, StrikeZoneGeometry.CenterY);
 
-    public static bool InZone(PitchCommand pitch, string? starPitchId = null) =>
-        StrikeZoneGeometry.Contains(pitch, starPitchId);
+    public static bool InZone(PitchCommand pitch, RulesTable rules, string? starPitchId = null) =>
+        StrikeZoneGeometry.Contains(pitch, rules, starPitchId);
 
     /// <summary>The tell is the pitcher's: shown on the pitching seat, never to the batter as a giveaway.</summary>
     public static bool AimTellOn(bool humanPitches, bool setOrFlight) => humanPitches && setOrFlight;

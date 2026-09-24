@@ -56,9 +56,9 @@ public static class RunnerAi
     /// Seconds until a throw could arrive at <paramref name="bag"/>: the ball in the glove (or met)
     /// plus the defense's reaction plus the live throw clock. One estimate for every runner.
     /// </summary>
-    public static double ThrowArrivalSec(BallSituation ball, int bag, double elapsed, RulesTable? rules = null)
+    public static double ThrowArrivalSec(BallSituation ball, int bag, double elapsed, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var reaction = r.Running.Cpu.ReactionSec;
         // The clock the runner reads (#722): the defense's plan when the ball carries one, else the neutral flat throw.
         double Clock(double x, double z) => ball.ThrowClock?.Invoke(x, z, bag) ?? InPlay.ThrowArrivalSec(x, z, bag, null, r);
@@ -73,8 +73,8 @@ public static class RunnerAi
     }
 
     /// <summary>Seconds of slack a runner has to reach <paramref name="bag"/> ahead of the throw (positive is safe).</summary>
-    public static double Margin(Runner runner, int bag, RunnerAiContext ctx, RulesTable? rules = null) =>
-        ThrowArrivalSec(ctx.Ball, bag, ctx.Elapsed, rules) - RunnerSystem.ArrivalSec(runner, bag, ctx.Elapsed, ctx.Dash01, rules);
+    public static double Margin(Runner runner, int bag, RunnerAiContext ctx, RulesTable rules) =>
+        ThrowArrivalSec(ctx.Ball, bag, ctx.Elapsed, rules) - RunnerSystem.ArrivalSec(runner, bag, ctx.Elapsed, rules, ctx.Dash01);
 
     /// <summary>
     /// The infield is back (§9.9): one of the four depth infielders meets the ball at or behind his own standard depth from
@@ -90,13 +90,13 @@ public static class RunnerAi
     /// A grounder "in front" of a runner on second: to the left side, where the fielder looks at
     /// them (SS / 3B). A runner does not run at a ball in front of them (§9.9).
     /// </summary>
-    public static bool InFront(Runner runner, double ballX) =>
-        runner.Bag == 2 && ballX < -Rules.Default.Running.Bags.OccupyRadiusFt;
+    public static bool InFront(Runner runner, double ballX, RulesTable rules) =>
+        runner.Bag == 2 && ballX < -rules.Running.Bags.OccupyRadiusFt;
 
     /// <summary>Decide for every CPU-owned live runner. Forced runners and the fly hold are the runner tick's; this is the choice.</summary>
-    public static void Decide(IReadOnlyList<Runner> runners, RunnerAiContext ctx, Func<int, bool> forceAt, RulesTable? rules = null)
+    public static void Decide(IReadOnlyList<Runner> runners, RunnerAiContext ctx, Func<int, bool> forceAt, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var cpu = r.Running.Cpu;
         var slack = r.Cpu.Active.RunnerMarginSec
                     - (ctx.TrailingInLastInning >= cpu.DesperateTrailRuns ? cpu.DesperateSec : 0);
@@ -176,7 +176,7 @@ public static class RunnerAi
         {
             if (runner.DestBag > runner.Bag && ball.ThrowBag == runner.DestBag)
             {
-                var backSec = runner.Feet / RunnerSystem.SpeedFtPerSec(runner.Who, ctx.Dash01, r);
+                var backSec = runner.Feet / RunnerSystem.SpeedFtPerSec(runner.Who, r, ctx.Dash01);
                 if (ThrowArrivalSec(ball, runner.Bag, ctx.Elapsed, r) - backSec > slack) runner.Return();
             }
             else if (runner.DestBag <= runner.Bag && ball.ThrowBag == runner.Bag && next > runner.Bag
@@ -221,7 +221,7 @@ public static class RunnerAi
                 if (go) runner.Send(4);
                 return;
             }
-            if (margin > cpu.GroundGoMarginSec + slack && !InFront(runner, ball.BallX))
+            if (margin > cpu.GroundGoMarginSec + slack && !InFront(runner, ball.BallX, r))
                 runner.Send(next);
             return;
         }
@@ -237,9 +237,9 @@ public static class RunnerAi
     /// SET's, exposed to the pickoff (D3). The rolls are the caller's seeded stream.
     /// </summary>
     public static IReadOnlyList<(Runner Runner, StealArm Arm)> StealPlan(
-        IReadOnlyList<Runner> runners, bool captainUp, int outs, int trailingRuns, Random rng, RulesTable? rules = null)
+        IReadOnlyList<Runner> runners, bool captainUp, int outs, int trailingRuns, Random rng, RulesTable rules)
     {
-        var r = Rules.Or(rules);
+        var r = rules;
         var cpu = r.Running.Cpu;
         var plan = new List<(Runner, StealArm)>();
         if (trailingRuns >= cpu.StealTrailingRuns) return plan;
