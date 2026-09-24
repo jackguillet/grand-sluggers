@@ -5,7 +5,8 @@ Grand Sluggers keeps portable rules/content checks separate from Unity-specific 
 ## What runs where
 
 - **Locally:** `tools/test-fast.sh <Class> [<Class> ...]` for the classes you touched. It runs `Kind!=Balance`, narrowed to those classes. Never run the full test suite locally; it freezes the shared Mac.
-- **Every PR (CI):** the breakage suite. A PR is done when it compiles, this suite is green on its final head, and the human gates that apply are noted.
+- **Every PR (CI):** the breakage suite, in the `portable` job. A ruleset on `main` requires `portable` to pass before a PR merges, with no bypass. A PR is done when it compiles, this suite is green on its final head, and the human gates that apply are noted.
+- **Unity (local, never CI):** a PR that changes Unity code (`unity/Assets/Scripts`) runs the narrow compile below and names the result in its body. After a merge, the delivery build (`tools/local-player.py`, below) is the revision's Unity build evidence.
 - **On demand (Actions → Full tests):** every test class, the tool tests and the evidence seals. The `balance_only` input runs only the `[Trait("Kind","Balance")]` set. Run it only when Jack says he wants to balance the game. No PR owes it, a tuning PR included. Contract: [agent-rails.md](agent-rails.md) §1.2.
 
 ## Portable checks
@@ -32,11 +33,13 @@ tools/unity-compile.sh
 
 The script never searches another working copy. Its pass means only that this compiler emulation succeeded; it does not prove Unity imported assets or built a player.
 
-## Configured Unity import gate
+## Configured Unity import gate (no runner)
 
-`tools/unity-project-validate.sh` is for a licensed, configured runner that supports Unity batch mode. Set `UNITY_EDITOR_BIN` to the Unity executable and explicitly set `GS_UNITY_BATCH_LICENSED=1` on that runner. Do not set the opt-in for the local Personal editor; local delivery uses the GUI path. The gate requires a clean tracked checkout, records its full Git revision, imports the real project, verifies the four expected source assemblies, runs art validation, and opens `Assets/Scenes/HarborDiamond.unity`.
+CI has no Unity job. Two things block one: the Personal license does not allow batch mode, and the repository is public, so a self-hosted runner would execute any fork's pull request on Jack's Mac. A Unity lane in CI needs a paid Unity seat and either a private repository or a hosted runner. Until then the Unity gates are the narrow compile, the delivery build and the opt-in GUI gates below.
 
-It writes `unity/Temp/validation/unity-evidence.json` and a Unity log. The evidence names the revision, Unity version, assemblies, scene, result, and any art errors. GitHub runs this job only when the repository variable `UNITY_VALIDATION_ENABLED` is `true`, on a runner labeled `self-hosted`, `macOS`, and `grand-sluggers-unity`. Configure `UNITY_EDITOR_BIN`, `UNITY_EDITOR_ROOT`, and `GS_UNITY_BATCH_LICENSED=1` as repository variables on that runner.
+`tools/unity-project-validate.sh` is kept for that future licensed, configured runner that supports Unity batch mode. Set `UNITY_EDITOR_BIN` to the Unity executable and explicitly set `GS_UNITY_BATCH_LICENSED=1` on that runner. Do not set the opt-in for the local Personal editor; local delivery uses the GUI path. The gate requires a clean tracked checkout, records its full Git revision, imports the real project, verifies the four expected source assemblies, runs art validation, and opens `Assets/Scenes/HarborDiamond.unity`.
+
+It writes `unity/Temp/validation/unity-evidence.json` and a Unity log. The evidence names the revision, Unity version, assemblies, scene, result, and any art errors. No workflow runs it today.
 
 ## Harbor standalone evidence
 
