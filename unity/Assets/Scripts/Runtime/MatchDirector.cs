@@ -69,8 +69,6 @@ namespace GrandSluggers.UnityClient
         StrikeZone _zone;
         AudioBus _audio;
         StarMeter _stars;
-        const string TrainedKey = "gs.trained";
-        bool _hideHelp;
         HighlightClip _clip;
         Vector3 _hlAt;
         Sample[] _hlPath;
@@ -228,7 +226,6 @@ namespace GrandSluggers.UnityClient
             _audio.Build(data);
             _stars = gameObject.AddComponent<StarMeter>();
             _stars.Build(transform);
-            _hideHelp = PlayerPrefs.GetInt(TrainedKey, 0) == 1;
             var cam = Camera.main;
             if (cam == null)
             {
@@ -415,7 +412,7 @@ namespace GrandSluggers.UnityClient
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TutorialOn ? HowToPlay.TutorialGoal(_coach.Tutorial.Lesson.Id) : TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
-                HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
+                HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, ShowingSide,
                 CarnivalFront.ExhibitionTitle,
                 _starNo, Time.unscaledTime - _starNoAt,
@@ -851,8 +848,6 @@ namespace GrandSluggers.UnityClient
             var x = t % 2f;
             return x < 1f ? x : 2f - x;
         }
-
-        bool HideHelp() => _hideHelp || PlayerPrefs.GetInt(TrainedKey, 0) == 1;
 
         string HighlightCaption() => _clip != null ? _clip.Play.Caption : "";
 
