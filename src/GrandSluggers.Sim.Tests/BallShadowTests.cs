@@ -38,20 +38,21 @@ public sealed class BallShadowTests
     [Fact]
     public void TuningChangesTheFootprintWithoutChangingItsGroundPosition()
     {
-        var custom = new BallShadowFeel { NearDiameterFt = 8, FarDiameterFt = 4, HeightRangeFt = 100 };
+        var custom = _feel with { NearDiameterFt = 8, FarDiameterFt = 4, HeightRangeFt = 100 };
         Assert.Equal(6, BallShadow.Diameter(50, custom));
         Assert.Equal(BallShadow.Project(12, 210, _feel), BallShadow.Project(12, 210, custom));
-        custom.SurfaceLiftFt = 0.1;
+        custom = custom with { SurfaceLiftFt = 0.1 };
         Assert.Equal(0.06, BallShadow.Project(12, 210, custom).Y - BallShadow.Project(12, 210, _feel).Y, 6);
     }
 
     [Fact]
     public void InvalidTuningCannotHideOrInvertTheShadow()
     {
-        Assert.Throws<InvalidDataException>(() => new BallShadowFeel { FarDiameterFt = 0 }.Validate());
-        Assert.Throws<InvalidDataException>(() => new BallShadowFeel { NearDiameterFt = 2 }.Validate());
-        Assert.Throws<InvalidDataException>(() => new BallShadowFeel { HeightRangeFt = double.NaN }.Validate());
-        Assert.Throws<InvalidDataException>(() => new BallShadowFeel { SurfaceLiftFt = -1 }.Validate());
-        Assert.Throws<InvalidDataException>(() => new BallShadowFeel { Opacity = 0 }.Validate());
+        _feel.Validate();
+        Assert.Throws<InvalidDataException>(() => (_feel with { FarDiameterFt = 0 }).Validate());
+        Assert.Throws<InvalidDataException>(() => (_feel with { NearDiameterFt = 2 }).Validate());
+        Assert.Throws<InvalidDataException>(() => (_feel with { HeightRangeFt = double.NaN }).Validate());
+        Assert.Throws<InvalidDataException>(() => (_feel with { SurfaceLiftFt = -1 }).Validate());
+        Assert.Throws<InvalidDataException>(() => (_feel with { Opacity = 0 }).Validate());
     }
 }
