@@ -19,7 +19,7 @@ public sealed class JumpTests
     [Trait("Kind", "Balance")]
     public void TheJumpIsAnArc()
     {
-        Assert.False(new CatchRules { JumpAirSec = 0 }.JumpArc);
+        Assert.False((Rules.Default.Fielding.Catch with { JumpAirSec = 0 }).JumpArc);
         var t = Game.Rules.Fielding.Catch;
         Assert.True(t.JumpArc);
         Assert.Equal((0.60, 2.0, 0.10, 0.10, 0.0), (t.JumpAirSec, t.JumpRiseFt, t.JumpBufferSec, t.JumpAirResponseMul, t.JumpReachFt));

@@ -19,8 +19,7 @@ public sealed class Training
     public const int DrillCount = 5;
     /// <summary>
     /// The families a practice pitcher can actually throw on <paramref name="rules"/>, in library order
-    /// (spec §4.3): the rows that table's <c>pitching.json</c> authors, not a second list and not the
-    /// code defaults (#888). Charge and break are verbs on a family, not families. The shipped root
+    /// (spec §4.3): the rows that table's <c>pitching.json</c> authors, not a second list (#888). Charge and break are verbs on a family, not families. The shipped root
     /// authors all five; a table that leaves the optional rows null offers fastball and changeup.
     /// </summary>
     public static IReadOnlyList<string> PitchesOf(RulesTable rules) => rules.Pitching.Families.Authored;

@@ -15,7 +15,7 @@ public sealed class RecoilTests
 {
     static readonly ContentCatalog Game = ContentCatalog.Load();
     /// <summary>The game's tables with the impact recoil off: the energy knockback's rule.</summary>
-    static readonly RulesTable RecoilOff = new() { Fielding = new FieldingRules { Recoil = new RecoilRules { OnsetFtPerSec = 0, FullFtPerSec = 0 } } };
+    static readonly RulesTable RecoilOff = Rules.Default with { Fielding = Rules.Default.Fielding with { Recoil = Rules.Default.Fielding.Recoil with { OnsetFtPerSec = 0, FullFtPerSec = 0 } } };
     static string WithoutRecoil(string fielding) => fielding.Replace("\"onsetFtPerSec\": 55", "\"onsetFtPerSec\": 0").Replace("\"fullFtPerSec\": 75", "\"fullFtPerSec\": 0");
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);

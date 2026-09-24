@@ -46,30 +46,6 @@ public sealed class HazardLibraryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// The JSON is the source of truth and the C# initializers are its load fallback (§16). Checked
-    /// here as well as in <c>RulesTests</c> because this table's leaves are mostly strings and bools,
-    /// and a pattern that drifted between the file and the code would move every dispatch at once.
-    /// </summary>
-    [Fact]
-    public void ShippedJsonEqualsTheCodeFallbackRowForRow()
-    {
-        var loaded = RulesTable.Load(Content.Root).Hazards;
-        var defaults = RulesTable.Defaults.Hazards;
-        foreach (var type in HazardType.All)
-        {
-            var json = loaded.Of(type);
-            var code = defaults.Of(type);
-            Assert.Equal(code.Pattern, json.Pattern);
-            Assert.Equal(code.NightRadiusMul, json.NightRadiusMul);
-            Assert.Equal(code.ReachPadFt, json.ReachPadFt);
-            Assert.Equal(code.SlowSec, json.SlowSec);
-        }
-        // nightOnly left the rows with F4-d (FD-11): whether an instance exists only at night is where
-        // the park authors it, its night block, so no row carries it and no row can drift from it.
-        Assert.Null(typeof(HazardTypeRules).GetProperty("NightOnly"));
-    }
-
-    /// <summary>
     /// The library and the table are one list. Every id has a property named for it, every property
     /// is an id, and the key is derived from the id rather than typed twice — so a type cannot be
     /// spelled one way in code and another in <c>data/</c>.
@@ -184,7 +160,7 @@ public sealed class HazardLibraryTests
         Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root()));
 
         // In code the same hole is a named stop, never a hazard that quietly does nothing.
-        var table = new HazardRules { WarpPipe = null! };
+        var table = Rules.Default.Hazards with { WarpPipe = null! };
         var ex = Assert.Throws<InvalidOperationException>(() => table.Of(HazardType.WarpPipe));
         Assert.Contains("is in the library but has no authored row", ex.Message, StringComparison.Ordinal);
         Assert.Throws<ArgumentException>(() => table.Of("sprinkler"));

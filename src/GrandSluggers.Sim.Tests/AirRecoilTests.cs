@@ -19,7 +19,7 @@ public sealed class AirRecoilTests
     [Trait("Kind", "Balance")]
     public void TheAirbornePairIsItsOwn()
     {
-        var airOff = new RulesTable { Fielding = new FieldingRules { Recoil = new RecoilRules { AirOnsetFtPerSec = 0, AirFullFtPerSec = 0 } } };
+        var airOff = Rules.Default with { Fielding = Rules.Default.Fielding with { Recoil = Rules.Default.Fielding.Recoil with { AirOnsetFtPerSec = 0, AirFullFtPerSec = 0 } } };
         Assert.False(airOff.Fielding.Recoil.AirActive);
         Assert.True(airOff.Fielding.Recoil.Active, "the ground pair is its own switch");
         var t = Game.Rules.Fielding.Recoil;

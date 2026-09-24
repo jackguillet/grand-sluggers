@@ -106,7 +106,7 @@ public sealed class ContentCatalog
                 string.IsNullOrWhiteSpace(dto.Visual) ? "glove-brown" : dto.Visual);
         }
 
-        var rules = data.Rules ?? RulesTable.Defaults;
+        var rules = data.Rules ?? throw new InvalidOperationException("content data read no rules table");
         var chemistry = new ChemistryTable(characters.Values, data.Chemistry, rules);
         var shots = CameraShots.Load(root);
         var feel = FeelTable.Load(root);

@@ -79,13 +79,7 @@ public sealed class SharedWindowScenarioTests
         // the last step, which the fixture table below shows by putting the window on it.
         Assert.True(w.Frames > w.FloorFrames, $"the window is over the floor: {w.Frames} vs {w.FloorFrames}");
 
-        var onTheFloor = new RulesTable
-        {
-            Batting = new BattingRules
-            {
-                Window = new ContactWindowRules { Frames = w.FloorFrames, FloorFrames = w.FloorFrames }
-            }
-        };
+        var onTheFloor = trial with { Batting = trial.Batting with { Window = w with { Frames = w.FloorFrames } } };
         Assert.Equal(w.FloorFrames,
             AtBatResolver.ContactWindowFrames("charmball", CrystalRink, true, onTheFloor, Skills));
     }

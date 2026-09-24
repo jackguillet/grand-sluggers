@@ -112,10 +112,9 @@ public class PitchTests
         Assert.Contains("not a pitch family", unknown.Message, StringComparison.Ordinal);
 
         // "curveball" is different: it is in the library, and a table with no row for it must say so
-        // by name rather than quietly flying it as a fastball. #860 (Jack, September 22, 2026:
-        // "trial was good."): the shipped data authors all three now, so the unauthored case is the
-        // code-default table, whose three optional rows are null — the stop is still reachable by data.
-        var bare = RulesTable.Defaults;
+        // by name rather than quietly flying it as a fastball. The shipped data authors all three, so
+        // the unauthored case is a copy of it with the three optional rows cleared.
+        var bare = RuleCopies.TwoFamilies();
         foreach (var unauthored in new[] { PitchFamily.Curveball, PitchFamily.Slider, PitchFamily.Sinker })
         {
             var fell = Assert.Throws<InvalidOperationException>(() => PitchFlight.Point(unauthored, 1, rules: bare));
@@ -129,8 +128,8 @@ public class PitchTests
             Assert.True(AtBatResolver.PitchSpeedMph(new PitchCommand(unauthored, 0, false), 5) > 0);
         }
 
-        // Training offers the loaded table's authored rows (#888): the code defaults author two, the
-        // shipped data the whole library since #860.
+        // Training offers the loaded table's authored rows (#888): the two-family copy offers two, the
+        // shipped data the whole library.
         Assert.Equal(["fastball", "changeup"], Training.PitchesOf(bare));
         Assert.Equal(bare.Pitching.Families.Authored, Training.PitchesOf(bare));
         Assert.Equal(PitchFamily.All, Rules.Default.Pitching.Families.Authored);

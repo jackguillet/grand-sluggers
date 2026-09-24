@@ -32,7 +32,7 @@ public sealed class StatusVolumeTests
 
     /// <summary>
     /// <c>slowSec</c> is 3.0 on the three status volumes — Jack's number (FD-08-R2) —
-    /// and absent from every other row; the JSON is the code fallback; the slow's factor is still <c>frozenMul</c> 0.45.
+    /// and absent from every other row; the slow's factor is still <c>frozenMul</c> 0.45.
     /// </summary>
     [Fact]
     public void FD08R2_EveryStatusVolumeSlowsForThreeSecondsAndNothingElseCarriesATime()
@@ -42,7 +42,6 @@ public sealed class StatusVolumeTests
         foreach (var type in HazardType.All)
         {
             var row = rules.Hazards.Of(type);
-            Assert.Equal(RulesTable.Defaults.Hazards.Of(type).SlowSec, row.SlowSec);
             if (row.Pattern == HazardPattern.StatusVolume) Assert.Equal(SlowSec, row.SlowSec);
             else Assert.Null(row.SlowSec);
         }

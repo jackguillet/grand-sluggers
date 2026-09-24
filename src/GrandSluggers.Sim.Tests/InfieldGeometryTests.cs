@@ -143,10 +143,8 @@ public sealed class InfieldGeometryTests
 
     /// <summary>
     /// The shipped starts, spelled out. The left side is read through <see cref="Diamond.Positions"/>
-    /// — the path the whole sim uses — and the right side is typed, so it is independent of both the
-    /// JSON and the C# initializers the JSON is compared against.
-    /// <c>RulesTests.ShippedJsonEqualsTheCodeFallbackFieldForField</c> pins the file to the
-    /// initializers, and a digit typed the same way in both would pass it.
+    /// — the path the whole sim uses — and the right side is typed, so a digit mistyped in the JSON
+    /// fails here.
     /// </summary>
     [Fact]
     public void TheShippedStartsAreSpelledOut()
@@ -408,8 +406,8 @@ public sealed class InfieldGeometryTests
 
     /// <summary>
     /// Every <c>.cs</c> file outside the tests that spells <paramref name="literal"/> in code.
-    /// <c>Rules.cs</c> is the one file allowed to: that is where the tables declare their numbers,
-    /// and the initializers are the documented load fallback, not a second copy.
+    /// <c>Rules.cs</c> is the one file allowed to: its comments explain the numbers the JSON holds.
+    /// The tables themselves carry no numbers (<c>RulesTests.TheTablesCarryNoCodeDefaults</c>).
     /// </summary>
     IReadOnlyList<string> Offenders(string literal)
     {

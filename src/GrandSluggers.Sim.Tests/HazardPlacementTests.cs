@@ -152,7 +152,7 @@ public sealed class HazardPlacementTests
     {
         var shipped = Game.Rules.Infield;
         Assert.Equal((56.57, 113.14, 53.78), (shipped.CornerFt, shipped.SecondFt, shipped.MoundFt));
-        var ninety = new InfieldRules { BaselineFt = 90, MoundFt = 60.5, CornerFt = 63.64, SecondFt = 127.28, InnerHalfFt = 50, BackArcFt = 92 };
+        var ninety = shipped with { BaselineFt = 90, MoundFt = 60.5, CornerFt = 63.64, SecondFt = 127.28, InnerHalfFt = 50, BackArcFt = 92 };
 
         Assert.Empty(HazardPlacement.Crossings(7, 131, 7, shipped));
         Assert.Equal(Diamond.Dist(7, 131, 0, 113.14) - 7 - ParkDiamond.BagPadR, HazardPlacement.ClearanceFt(7, 131, 7, shipped), 9);

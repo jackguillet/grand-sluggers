@@ -22,8 +22,8 @@ public sealed class PitchSelectionScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
 
-    /// <summary>What the shipped <c>pitching.json</c> authors today: fastball and changeup (#810).</summary>
-    static IReadOnlyList<string> ShippedAuthored => new PitchFamilyTable().Authored;
+    /// <summary>A table that authors only the two required families: fastball and changeup (#810).</summary>
+    static IReadOnlyList<string> TwoAuthored => RuleCopies.TwoFamilies().Pitching.Families.Authored;
 
     /// <summary>A table that authors the whole library, so the cycle is the full accepted order (P1-d's future).</summary>
     static IReadOnlyList<string> AllAuthored => PitchFamily.All;
@@ -171,7 +171,7 @@ public sealed class PitchSelectionScenarioTests
             Assert.Equal(PitchFamily.Fastball,
                 PitchSelection.FamilyAt(PitchSelectionState.Reset, who.Repertoire, AllAuthored));
             Assert.Equal(PitchFamily.Fastball,
-                PitchSelection.FamilyAt(PitchSelectionState.Reset, who.Repertoire, ShippedAuthored));
+                PitchSelection.FamilyAt(PitchSelectionState.Reset, who.Repertoire, TwoAuthored));
         }
 
         var match = Match.Slice(_content, innings: 3, seed: 1);
@@ -228,21 +228,21 @@ public sealed class PitchSelectionScenarioTests
     [Fact]
     public void S105_UnauthoredFamiliesAreSkippedSoNoPressSelectsAPitchThatCannotFly()
     {
-        Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, ShippedAuthored);
+        Assert.Equal(new[] { PitchFamily.Fastball, PitchFamily.Changeup }, TwoAuthored);
 
         // Rio throws changeup + curveball: the curveball has no row, so the cycle is a two-stop
         // loop between the fastball and the changeup.
         var rio = _content.Must("rio").Repertoire;
         Assert.Equal(PitchFamily.Curveball, rio.Third);
-        var mound = new Mound(rio, ShippedAuthored);
+        var mound = new Mound(rio, TwoAuthored);
         foreach (var expected in new[] { PitchFamily.Changeup, PitchFamily.Fastball, PitchFamily.Changeup })
             Assert.Equal(expected, mound.Tick(cycle: true).Family);
 
         // Vale throws curveball + slider: neither has a row, so every press stays on the fastball.
         var vale = _content.Must("vale").Repertoire;
-        Assert.DoesNotContain(vale.Second, ShippedAuthored);
-        Assert.DoesNotContain(vale.Third, ShippedAuthored);
-        var only = new Mound(vale, ShippedAuthored);
+        Assert.DoesNotContain(vale.Second, TwoAuthored);
+        Assert.DoesNotContain(vale.Third, TwoAuthored);
+        var only = new Mound(vale, TwoAuthored);
         for (var i = 0; i < 5; i++)
         {
             Assert.Equal(PitchFamily.Fastball, only.Tick(cycle: true).Family);
@@ -252,11 +252,11 @@ public sealed class PitchSelectionScenarioTests
         // No press, for any of the 25, ever selects a family the table cannot fly.
         foreach (var who in Roster)
         {
-            var seat = new Mound(who.Repertoire, ShippedAuthored);
+            var seat = new Mound(who.Repertoire, TwoAuthored);
             for (var press = 0; press < 12; press++)
             {
                 var step = seat.Tick(cycle: true);
-                Assert.Contains(step.Family, ShippedAuthored);
+                Assert.Contains(step.Family, TwoAuthored);
                 Assert.True(who.Repertoire.Has(step.Family), $"{who.Id} does not throw {step.Family}");
             }
         }
@@ -369,7 +369,7 @@ public sealed class PitchSelectionScenarioTests
     public void TheSameInputStreamGivesTheSameStateStreamForEveryRepertoire()
     {
         foreach (var who in Roster)
-        foreach (var authored in new[] { ShippedAuthored, AllAuthored })
+        foreach (var authored in new[] { TwoAuthored, AllAuthored })
         {
             var first = Stream(who.Repertoire, authored);
             var second = Stream(who.Repertoire, authored);
@@ -403,9 +403,9 @@ public sealed class PitchSelectionScenarioTests
         // The mound changed without a reset and the new arm's slot 2 has no authored row: the
         // fastball every pitcher throws, never a pitch that would stop the delivery.
         var stillOnTheThird = new PitchSelectionState(2, true);
-        Assert.Equal(PitchFamily.Fastball, PitchSelection.FamilyAt(stillOnTheThird, rep, ShippedAuthored));
+        Assert.Equal(PitchFamily.Fastball, PitchSelection.FamilyAt(stillOnTheThird, rep, TwoAuthored));
         var read = PitchSelection.Advance(stillOnTheThird, cyclePressed: false, selectable: true,
-            default, default, rep, ShippedAuthored);
+            default, default, rep, TwoAuthored);
         Assert.Equal(0, read.Next.Slot);
         Assert.Equal(PitchFamily.Fastball, read.Family);
 

@@ -62,15 +62,6 @@ public sealed class BoundaryTests
         Assert.Equal(-36, shipped.BackstopZFt);
         Assert.Equal(18, shipped.DugoutPadFt);
 
-        // JSON = code fallback, for this table, by name. (RulesTests makes the same comparison over
-        // every table; the row is here too because a boundary that drifts moves the polygon.)
-        var defaults = new BoundaryRules();
-        Assert.Equal(defaults.FoulOffsetFt, shipped.FoulOffsetFt);
-        Assert.Equal(defaults.FlareStartFt, shipped.FlareStartFt);
-        Assert.Equal(defaults.RailHeightFt, shipped.RailHeightFt);
-        Assert.Equal(defaults.BackstopZFt, shipped.BackstopZFt);
-        Assert.Equal(defaults.DugoutPadFt, shipped.DugoutPadFt);
-
         // The kit and the flight read one edge, not two copies of it.
         Assert.Equal(ParkBoundary.Default.FoulOffsetFt, HarborWall.FoulOffset);
         Assert.Equal(ParkBoundary.Default.BackstopZFt, HarborWall.HomeZ);

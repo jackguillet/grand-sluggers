@@ -25,15 +25,18 @@ namespace GrandSluggers.UnityClient
         public static string Label => Root.OverlayName is { } name ? "TRIAL  " + name : null;
 
         /// <summary>
-        /// Before any scene object: a window playing a trial pins the process-wide table to the root it loads. <see cref="Diamond"/>
-        /// and every helper without a catalog read <see cref="Rules.Default"/>, which finds its root from the binary; left alone,
-        /// the bags could be the control's while the match plays the copy's rules. A shipped run sets nothing.
+        /// Before any scene object: pin the process-wide table to the root this window loads. <see cref="Diamond"/> and every
+        /// helper without a catalog read <see cref="Rules.Default"/>, which otherwise looks for a root above the binary — in the
+        /// editor that is Unity's install, where there is none, and the rules tables have no code fallback. A run that already
+        /// names a root keeps it. The editor pins on load as well, so the edit-mode gates that drive the sim find the same root.
         /// </summary>
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#endif
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void PinProcessTable()
         {
             _root = null;
-            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DataRoot.OverlayVariable))) return;
             if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(ContentCatalog.DataRootVariable))) return;
             Environment.SetEnvironmentVariable(ContentCatalog.DataRootVariable, ShippedRoot);
         }
