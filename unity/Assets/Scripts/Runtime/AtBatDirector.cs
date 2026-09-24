@@ -327,15 +327,15 @@ namespace GrandSluggers.UnityClient
             _pip += dt * 1.35f;
             // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI's steal table runs once per at-bat.
             if (!HumanPitches && _t < dt) _match.CpuConsidersSwap();
-            if (!HumanBats && _t < dt) _match.CpuArmSteal();
+            if (!HumanBats && _t < dt) _match.CpuBatter.ArmSteal();
             // The CPU batter's square is read at SET (§5.9, §7.3) so a human pitcher sees it before the pitch.
-            if (!HumanBats && _t < dt) _match.CpuSquaresBunt();
+            if (!HumanBats && _t < dt) _match.CpuBatter.SquaresBunt();
             // The CPU decides its delivery at the top of SET, the way a hand decides before it
             // charges (§4.8, PH-18-R1): the rubber the model solves for is then somewhere to walk to
             // during SET instead of a place to appear at on the release frame.
             if (!HumanPitches && _t < dt && _cpuPitch == null && !TutorialOn)
             {
-                _cpuPitch = _match.CpuPitchByInputs(out var cpuPlan);
+                _cpuPitch = _match.CpuPitcher.PitchByInputs(out var cpuPlan);
                 _cpuSteer = Math.Sign(cpuPlan.SteerDir);
             }
             // The held special modifier (PH-16-R11): no arming. The card reads STAR while it is down, free and paid for;
@@ -383,13 +383,13 @@ namespace GrandSluggers.UnityClient
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
             {
                 // The CPU pitcher's pickoff read (§4.5, §4.8): a runner who armed in SET is between bags on the motion.
-                var pickoffBag = TutorialOn ? 0 : _match.CpuPickoffBag();
+                var pickoffBag = TutorialOn ? 0 : _match.CpuPitcher.PickoffBag();
                 if (pickoffBag > 0)
                 {
                     BeginPickoff(pickoffBag);
                     return;
                 }
-                Launch(TutorialOn && HumanBats ? _coach.Tutorial.CpuPitch : _cpuPitch ?? _match.CpuPitch());
+                Launch(TutorialOn && HumanBats ? _coach.Tutorial.CpuPitch : _cpuPitch ?? _match.CpuPitcher.Pitch());
             }
         }
 
@@ -710,7 +710,7 @@ namespace GrandSluggers.UnityClient
             // the break it can see is the one drawn so far, never the steer still to come (PH-18).
             if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
                 _swing = WithSquare(AtBatMotion.CommitCpuSwing(
-                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch, _breakX)),
+                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuBatter.Swing(_pitch, _breakX)),
                     _pitchDur, _match.Rules));
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _match.Rules, _swing.Bunt))
@@ -724,7 +724,7 @@ namespace GrandSluggers.UnityClient
             _swing ??= WithSquare(HumanBats
                 ? PlateButtons.HeldBuntAtPlate(_plateStep, _match.BatterOffsetX, _squareSec)
                   ?? new SwingCommand(false, _charge, 12, false)
-                : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuSwing(_pitch)));
+                : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuBatter.Swing(_pitch)));
             Resolve();
         }
 

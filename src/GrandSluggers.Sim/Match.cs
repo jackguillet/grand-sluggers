@@ -8,7 +8,9 @@ public sealed partial class Match
     readonly FieldingResolver _fielding;
     /// <summary>The only random stream that may decide a play. Seeded per match; every roll is a sim call.</summary>
     readonly Random _rng;
-    readonly Dictionary<string, int> _mvp = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The match's one seeded stream, for the subsystems that draw on it in the match's order.</summary>
+    internal Random Rng => _rng;
     readonly List<PlayEvent> _log = [];
 
     public ContentCatalog Content { get; }
@@ -70,7 +72,6 @@ public sealed partial class Match
     readonly List<Character> _awayDefense;
     bool _swappedThisHalf;
     /// <summary>What the CPU batter remembers between pitches (spec §5.9 tracking): the last crossing seen by each offense, and the rubber the last pitch left from.</summary>
-    double? _awayLastCrossingX, _homeLastCrossingX;
     double _lastPitchRubberX;
     Character _homePitcher;
     Character _awayPitcher;
@@ -86,6 +87,15 @@ public sealed partial class Match
     public LivePlaySystem LivePlay { get; }
     /// <summary>The live runners and pitcher commitment before contact or the catch.</summary>
     public PitchSetupSystem PitchSetup { get; }
+
+    /// <summary>The CPU pitcher (spec §4.8): the pitch and the pickoff read, from the inputs a hand has.</summary>
+    public CpuPitcher CpuPitcher { get; }
+
+    /// <summary>The CPU batter (spec §5.9): the swing, the bunt square and the steal decision.</summary>
+    public CpuBatter CpuBatter { get; }
+
+    /// <summary>The MVP points and the box line (spec §12).</summary>
+    public Scorebook Scorebook { get; }
     public RunnerOrders ControllerRunners { get; } = new();
     /// <summary>The seed this match was constructed with. Tracing and <c>cli match --seed</c> both read it.</summary>
     public int Seed { get; }
@@ -140,6 +150,9 @@ public sealed partial class Match
         _fielding = new FieldingResolver(content.Chemistry, _rules);
         LivePlay = new LivePlaySystem(this);
         PitchSetup = new PitchSetupSystem(this);
+        CpuPitcher = new CpuPitcher(this);
+        CpuBatter = new CpuBatter(this);
+        Scorebook = new Scorebook(this);
         AwayOrder = away.BattingOrder;
         HomeOrder = home.BattingOrder;
         // One pool per team, the same usable reserve for both, set once here and never again (PH-16-R4, R6, R16):
@@ -313,11 +326,7 @@ public sealed partial class Match
     public bool StealOn => _runners.Any(r => r.Live && r.StealArmed);
     public double Dash01 { get; set; }
     /// <summary>The CPU steal table runs once per at-bat (§11.6).</summary>
-    bool _cpuStealDecided;
     // The CPU batter's square (§5.9, §7.3): read once per pitch at SET, spent at the plate plane.
-    bool _cpuSquareDecided;
-    bool _cpuSquared;
-    BuntSide _cpuBuntSide;
 
     sealed record PlayOrigin(PlayContext Context, Character Batter, Character Pitcher);
     PlayOrigin? _pendingPlay;
@@ -327,10 +336,13 @@ public sealed partial class Match
     /// <summary>The specials released on the current pitch, as settled (§12, PH-16-R12). Emit stamps them on the outcome.</summary>
     readonly List<StarRequest> _starRequestsThisPlay = [];
     int _outsOnCurrentPlay => _outsThisPlay.Count;
-    public double PitcherOffsetX { get; private set; }
+    public double PitcherOffsetX { get; internal set; }
     public double BatterOffsetX { get; private set; }
     /// <summary>World-X box offset held from bat-ball contact into the live run.</summary>
     public double BatterContactOffsetX { get; private set; }
+    /// <summary>The pitcher walked the rubber since the last pitch this offense saw.</summary>
+    public bool RubberMovedSinceLastPitch => Math.Abs(PitcherOffsetX - _lastPitchRubberX) > 0.05;
+
     public bool PitcherTired => PitcherStamina < Rules.Pitching.Stamina.TiredBelow;
     public bool Paused { get; private set; }
     /// <summary>
@@ -561,7 +573,7 @@ public sealed partial class Match
         var batterShortOfFirst = runner.IsBatter && runner.Bag < 1;
         runner.Retire();
         RecordOut(type, atBag, fromBag, runner.Who, fielder, batterShortOfFirst);
-        AddMvp(fielder?.Id ?? Pitcher.Id, Rules.Stars.Mvp.PutOut);
+        Scorebook.Credit(fielder?.Id ?? Pitcher.Id, Rules.Stars.Mvp.PutOut);
         AddStars(defense: true, Rules.Stars.Gains.LiveOut);
         SyncSelection();
         return true;
@@ -664,7 +676,7 @@ public sealed partial class Match
             error = LivePlay.ThrowSailed;
             foreach (var m in advances)
             {
-                AddMvp(m.Runner.Id, Rules.Stars.Mvp.StolenBase);
+                Scorebook.Credit(m.Runner.Id, Rules.Stars.Mvp.StolenBase);
                 AddStars(defense: false, Rules.Stars.Gains.StolenBase);
             }
             var named = string.Join(" ", advances.OrderByDescending(m => m.ToBag).Select(m => $"{m.Runner.Name} steals {InPlay.BagName(m.ToBag)}."));
@@ -922,24 +934,6 @@ public sealed partial class Match
         _traces.Add(LivePlay.TakeTrace(ev));
     }
 
-    /// <summary>
-    /// The CPU pitcher's pickoff read at SET (§4.5, §4.8): cpu.*.pickoffChance with a runner on, ×
-    /// running.cpu.pickoffSeenArmMul when a steal pip is armed in SET (that runner's bag); else the
-    /// lead runner, or first on the corners by the table's chance. 0 is no pickoff this SET. One seeded stream.
-    /// </summary>
-    public int CpuPickoffBag()
-    {
-        if (Over || Outs >= 3 || LeadBag == 0 || LivePlay.Active) return 0;
-        var cpu = Rules.Running.Cpu;
-        var seen = _runners.Where(r => r.Live && !r.Broke && r.StealArm == StealArm.Set).OrderByDescending(r => r.Bag).FirstOrDefault();
-        var chance = Rules.Cpu.Active.PickoffChance * (seen is not null ? cpu.PickoffSeenArmMul : 1);
-        if (_rng.NextDouble() >= chance) return 0;
-        if (seen is not null) return seen.Bag;
-        if (First is not null && Third is not null && Second is null && _rng.NextDouble() < cpu.PickoffFirstOnCornersChance)
-            return 1;
-        return LeadBag;
-    }
-
     /// <summary>L3 / Z: the selected runner's steal on or off (§11.1).</summary>
     public bool ToggleSteal(double windupSec = -1)
     {
@@ -1087,9 +1081,7 @@ public sealed partial class Match
         PitchSetup.PitchResolved();
         BeginPlay();
         // The square was spent on this pitch's swing; the next pitch reads it again at SET (§5.9).
-        _cpuSquareDecided = false;
-        _cpuSquared = false;
-        _cpuBuntSide = BuntSide.None;
+        CpuBatter.PitchSpent();
 
         pitch = PreparePitch(pitch);
         // A released special is settled before anything reads it (PH-16-R12): the flight, the stamina, the
@@ -1099,7 +1091,7 @@ public sealed partial class Match
         var crossing = PitchFlight.Point(pitch, 1, Rules, Pitcher.StarPitch);
         var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
         SpendPitch(pitch);
-        if (Top) _awayLastCrossingX = crossing.X; else _homeLastCrossingX = crossing.X;
+        CpuBatter.SawCrossing(crossing.X);
         // Runner positions already came from the pre-contact clock; never recalculate a head start.
         var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
         BatterContactOffsetX = box;
@@ -1245,368 +1237,16 @@ public sealed partial class Match
         return ErrorItems.Apply(field, item, target);
     }
 
-    /// <summary>
-    /// The CPU pitcher (spec §4.8): one row of the table per SET from the count, the outs and the
-    /// runners, built from the inputs a hand has and nothing else (<see cref="CpuPitchByInputs"/>,
-    /// PH-18-R1, #823).
-    /// </summary>
-    public PitchCommand CpuPitch() => CpuPitchByInputs(out _);
-
-    /// <summary>
-    /// The CPU pitcher built from the inputs a human has and nothing else (spec §4.8, §3; PH-18,
-    /// PH-18-R1, PH-02-R3/R4/R5, PH-03, PH-04).
-    ///
-    /// <para>Five rules, in the order this method applies them:</para>
-    /// <list type="number">
-    /// <item><b>Location is the rubber.</b> The row's location is a <i>horizontal</i> intent in world
-    /// feet at the plate — there is no vertical intent, because a hand has no vertical input (PH-03)
-    /// — and the body walks the rubber until the family's own crossing lands on it. The solve is
-    /// exact because the crossing is affine in the rubber: everything else the flight does
-    /// (<see cref="PitchFlight.SweepShiftFt"/>, <see cref="PitchFlight.BreakShiftFt"/>, a Star's
-    /// wobble) is the same at every rubber position, so one <see cref="PitchFlight.Crossing"/> of the
-    /// same delivery from the middle gives the offset and
-    /// <c>r = (intent − X₀) / <see cref="HomeSet.PitcherWalk"/></c>. <c>AimX</c> and <c>AimY</c> stay
-    /// 0. The arm is stamped before the solve, so a left-hander's sweep is compensated the right way
-    /// (P1-d's finding).</item>
-    /// <item><b>Family is presses.</b> The row's per-family weights are filtered to the slots this
-    /// pitcher can actually select — in the repertoire <i>and</i> authored
-    /// (<see cref="PitchSelection.IsSelectable"/>) — renormalised, and rolled once. The choice is
-    /// then the 0 / 1 / 2 cycle presses it is, so the CPU cannot select what a hand cannot reach.</item>
-    /// <item><b>Charge and steer are modifiers, not verbs.</b> Two independent rolls: a charged pitch
-    /// is still steerable (damped by <c>breakDampedMul</c>, exactly as a human's is). Nice! stays a
-    /// roll on charged pitches; Star stays as it was.</item>
-    /// <item><b>Steer is what a held stick reaches.</b> <see cref="PitchFlight.BreakReach"/> over
-    /// this delivery's own air time, never an instant ±1 no arm could get to.</item>
-    /// <item><b>Scatter is a legal mistake.</b> The Gaussian lands on the CPU's own rubber intent, in
-    /// X only, and TIRED still widens it. Fatigue lays no random miss on the delivery itself, the CPU's
-    /// or a human's (PH-08-R1).</item>
-    /// </list>
-    /// </summary>
-    /// <param name="plan">What the pitch was built from, for a scenario to read: the press count, the
-    /// family those presses land on, the charge, the steer direction and the reach it was scaled by,
-    /// the solved rubber and the horizontal intent it was solved for.</param>
-    public PitchCommand CpuPitchByInputs(out CpuPitchPlan plan)
-    {
-        var c = Rules.Pitching.Cpu;
-        var row = CpuPitchRow();
-
-        // (1) The horizontal intent, plus the arm's own scatter on it. No vertical term exists.
-        var intentX = CpuPitchIntentX(row.Location, c.Locations);
-        // The CPU arm's miss on its own intent is Control's (§4.8, PH-15-R6).
-        var scatter = (11 - Pitcher.Stats.Control) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
-        intentX += Gauss() * scatter;
-
-        // (2) The family, as presses from the fastball every SET resets to (PH-02-R5).
-        var presses = CpuPitchPresses(row);
-        var family = CpuFamilyAfter(presses);
-
-        // (3) Charge, then Nice! on a charged pitch.
-        var charged = _rng.NextDouble() < row.ChargeChance;
-        var charge = charged ? 1.0 : c.TapMin + _rng.NextDouble() * c.TapSpan;
-        var nice = charged && _rng.NextDouble() < c.NiceChance;
-        var star = CanStarPitch && Pitcher.Captain && _rng.NextDouble() < row.StarChance;
-
-        // (4) The stick, held one way from release for as long as this delivery is in the air. The
-        // speed is read off the delivery as it stands, which is every term AtBatResolver.PitchSpeedMph
-        // looks at (family, charge, Nice!, Star, fatigue); the stick is lateral and does not reach it.
-        var delivery = new PitchCommand(family, charge, star, RubberX: 0, Nice: nice, Throws: Pitcher.Throws);
-        var airSec = PitchFlight.AirSeconds(PitchSpeedMph(delivery), Rules);
-        var reach = PitchFlight.BreakReach(Pitcher.Stats.Control, airSec, Rules);
-        var steerDir = _rng.NextDouble() < row.SteerChance ? (_rng.NextDouble() < 0.5 ? -1 : 1) : 0;
-        delivery = delivery with { BreakX = steerDir * reach };
-
-        // (5) Walk the rubber until this delivery crosses on the intent. X₀ is where it crosses from
-        // the middle of the rubber; everything the flight adds after the straight line is the same
-        // there as anywhere, so the difference is the walk. The clamp is the legal rubber range —
-        // the one Match.WalkPitcher enforces for a hand on the stick — and a walk that runs into it
-        // simply misses short, the way a pitcher who has run out of rubber does.
-        var (zeroX, _) = PitchFlight.Crossing(delivery, Rules, Pitcher.StarPitch);
-        var rubber = Math.Clamp((intentX - zeroX) / HomeSet.PitcherWalk, -1, 1);
-        PitcherOffsetX = rubber;
-
-        plan = new CpuPitchPlan(presses, family, charged, steerDir, reach, rubber, intentX);
-        return delivery with { RubberX = rubber };
-    }
-
-    /// <summary>
-    /// The named location as a <b>horizontal</b> intent in world feet at the plate plane (§4.8): the
-    /// sides by batter hand, and no vertical term, because a hand has no vertical input (PH-03).
-    /// </summary>
-    double CpuPitchIntentX(string location, CpuPitchLocations loc)
-    {
-        var away = SweetSpot.TipSign(Batter.Bats);
-        var halfW = StrikeZoneGeometry.HalfWidth;
-        return location switch
-        {
-            "waste" => away * (halfW + loc.WasteOutFt),
-            "middleIn" => -away * loc.MiddleInFt,
-            "middle" => 0,
-            _ => (_rng.NextDouble() < loc.EdgeAwayChance ? away : -away) * (halfW - loc.EdgeInsetFt)
-        };
-    }
-
-    /// <summary>
-    /// How many cycle presses the CPU spends this SET (§3, §4.8). The candidates are walked the way
-    /// a player walks them — <see cref="PitchSelection.Advance"/> from
-    /// <see cref="PitchSelectionState.Reset"/>, which skips a slot this pitcher or this table cannot
-    /// throw — so the roll is over the families presses actually reach, never over slots 0/1/2.
-    /// A row that weights nothing this pitcher can select falls back to no presses at all: the
-    /// fastball, the one family every pitcher throws (PH-15-R1) and the one every SET starts on.
-    /// </summary>
-    int CpuPitchPresses(CpuPitchRow row)
-    {
-        var authored = Rules.Pitching.Families.Authored;
-        Span<double> weights = stackalloc double[Repertoire.Slots];
-        var total = 0.0;
-        var state = PitchSelectionState.Reset;
-        for (var presses = 0; presses < Repertoire.Slots; presses++)
-        {
-            weights[presses] = row.Families.Of(PitchSelection.FamilyAt(state, Pitcher.Repertoire, authored));
-            total += weights[presses];
-            state = PitchSelection.Advance(state, true, true, default, default, Pitcher.Repertoire, authored).Next;
-            // The cycle wrapped early (an unauthored second and third): there is nothing further to weigh.
-            if (state.Slot == 0) { for (var rest = presses + 1; rest < Repertoire.Slots; rest++) weights[rest] = 0; break; }
-        }
-        if (total <= 0) return 0;
-
-        var roll = _rng.NextDouble() * total;
-        var chosen = 0;
-        for (var presses = 0; presses < Repertoire.Slots; presses++)
-        {
-            if (weights[presses] <= 0) continue;
-            // The last positive candidate is also the landing place for a roll that runs off the end
-            // of the sum by a rounding step, so a zero-weight family can never be selected.
-            chosen = presses;
-            if (roll < weights[presses]) break;
-            roll -= weights[presses];
-        }
-        return chosen;
-    }
-
-    /// <summary>The family this many cycle presses from a SET reset lands on, for this pitcher and this table.</summary>
-    public string CpuFamilyAfter(int presses)
-    {
-        var authored = Rules.Pitching.Families.Authored;
-        var state = PitchSelectionState.Reset;
-        for (var i = 0; i < presses; i++)
-            state = PitchSelection.Advance(state, true, true, default, default, Pitcher.Repertoire, authored).Next;
-        return PitchSelection.FamilyAt(state, Pitcher.Repertoire, authored);
-    }
-
-    /// <summary>Which row of §4.8 this SET reads.</summary>
-    public CpuPitchRow CpuPitchRow()
-    {
-        var c = Rules.Pitching.Cpu;
-        if (Outs == 2 && RunnersOn().Any()) return c.RunnerTwoOuts;
-        if (Strikes == 2 && Balls <= 1) return c.Ahead;
-        if (Balls >= 2 && Strikes <= 1) return c.Behind;
-        return c.Even;
-    }
-
-    /// <summary>
-    /// The CPU batter (spec §5.9): a table read from one crossing, the same whoever is pitching. It
-    /// commits from what it can see (PH-18): <see cref="CpuReadPitch"/>, the flight as it stands at the
-    /// commit instant, and the zone, the swing / take and the box are all judged on that read; the
-    /// umpire and the bat still meet the ball that is thrown. No side effects: the box it stands in and
-    /// the swing it makes are the returned command. Steals are the runner AI's (<see cref="CpuArmSteal"/>).
-    /// </summary>
-    /// <param name="breakAtCommit">The stick's break as it stood at the commit instant, when the
-    /// caller watched it (a client ticking the flight, a scenario steering late). Absent, the steer is
-    /// taken as held one way from release, the CPU pitcher's own (S-117).</param>
-    public SwingCommand CpuSwing(PitchCommand pitch, double? breakAtCommit = null)
-    {
-        var c = Rules.Batting.Cpu;
-        var level = Rules.Cpu.Active;
-        // Two traits, not one rating (§5.9, PH-15-R5): making contact is Contact's — whether it
-        // offers at a ball it cannot square up, and how far off the ball its bat arrives — while
-        // swinging for it is Power's.
-        var contact = Batter.Stats.Contact;
-        var power = Batter.Stats.Power;
-        // Commit from what can be seen: the read pitch replaces the final one for every decision below.
-        pitch = CpuReadPitch(pitch, breakAtCommit);
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Rules, Pitcher.StarPitch);
-        var (cx, cy) = PitchFlight.Crossing(pitch, Rules, Pitcher.StarPitch);
-        var zone = CpuZoneClass(cx, cy, inZone, c);
-        var take = new SwingCommand(false, 0, 0, false);
-
-        // Sac bunt (§5.9, §7.3): the square and its side were read at SET (<see cref="CpuSquaresBunt"/>); in the
-        // zone the held bat meets the ball (§5.8: no timed press, the same held bunt a pad lays down), out of it the
-        // batter pulls the bat back and takes — the corners are in either way, that is the tell's cost.
-        if (CpuSquaresBunt())
-        {
-            var squareSec = c.SacBuntSquareSec;
-            if (!inZone) return take with { SquareSec = squareSec };
-            return SwingCommand.HeldBunt(_cpuBuntSide, CpuTrackedBox(cx, c, level), squareSec, human: false);
-        }
-
-        var swing = zone switch
-        {
-            CpuZone.Middle => true,
-            CpuZone.Edge => Strikes == 2 || _rng.NextDouble() < c.EdgeSwingChance,
-            // Chase: a better-Contact hitter lays off the pitch it cannot square up.
-            CpuZone.Near => _rng.NextDouble() * 100 < (Strikes == 2 ? c.ChaseTwoStrikesBase : c.ChaseBase) - contact,
-            _ => false
-        };
-        if (!swing) return take;
-
-        var star = CanStarSwing && Batter.Captain && inZone && (RunnersOn().Any() || Strikes == 2)
-                   && _rng.NextDouble() < c.StarChance;
-        var risp = Second is not null || Third is not null;
-        // Forced charge: swinging for it on a hitter's count is Power's read, not Contact's.
-        var forcedCharge = zone == CpuZone.Middle
-                           && (((Balls, Strikes) is (2, 0) or (3, 1) or (3, 0)) && power >= c.ChargeBatMin
-                               || risp && Outs < 2 && power >= c.RispChargeBatMin);
-        var charge = forcedCharge || _rng.NextDouble() < CpuChargeChance(Batter, c.Archetype) ? 1.0 : 0;
-
-        var tracked = _rng.NextDouble() < c.TrackPerfectChance;
-        // Timing sigma: how far off the ball the bat arrives is Contact's (⚠️ P2-b re-reads this one).
-        var err = Gauss() * (11 - contact) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
-        var offSpeed = Rules.Pitching.Families.Of(pitch.Type).OffSpeed;
-        if (!tracked && (offSpeed || ChargeFeel.IsCharge(pitch.Charge01)))
-        {
-            // Fooled: an off-speed family pulls the bat early past the ball (late), a charged pitch beats it (early).
-            var fooled = c.FooledMinFrames + _rng.NextDouble() * c.FooledSpanFrames;
-            err += offSpeed ? fooled : -fooled;
-        }
-        var box = tracked ? Math.Clamp(cx / HomeSet.BatterWalk, -1, 1) : CpuTrackedBox(cx, c, level);
-        // The stick at contact (§5.9, PH-12, PH-18). No human's stick shapes an ordinary swing, so
-        // the CPU holds none: 0 / 0 and neither Gaussian is drawn. A Star Swing still steers and
-        // draws both aims; the sac bunt above holds a side instead (§5.8).
-        if (!AtBatResolver.StickShapesContact(bunt: false, star))
-            return new SwingCommand(true, charge, err, star, BoxOffsetX: box);
-        return new SwingCommand(true, charge, err, star, Gauss() * c.SpraySigmaDeg,
-            LaunchAim: Gauss() * c.LaunchAimSigma, BoxOffsetX: box);
-    }
-
-    /// <summary>
-    /// The pitch the CPU batter can see at its commit instant (spec §3, §5.9; PH-18, #892): the same
-    /// delivery with the stick's break frozen where it stood at plate − <c>batting.cpu.decideLeadSec</c>
-    /// − <c>batting.window.leadSec</c> (<see cref="AtBatMotion.CpuDecisionTime"/>). Its crossing is the
-    /// flight as it stands — the family's own movement, the rubber and the break so far, with no future
-    /// steering. Given no <paramref name="breakAtCommit"/>, the steer is the stick held one way from
-    /// release (<see cref="PitchFlight.BreakReach"/> over the time to the commit, never more than the
-    /// command carries): exactly what a hand holding it, or the CPU pitcher's drawn steer, has reached
-    /// by then. Pure: no draw, no state.
-    /// </summary>
-    public PitchCommand CpuReadPitch(PitchCommand pitch, double? breakAtCommit = null)
-    {
-        if (breakAtCommit is { } seen) return pitch with { BreakX = Math.Clamp(seen, -1, 1) };
-        if (pitch.BreakX == 0) return pitch;
-        var airSec = PitchFlight.AirSeconds(PitchSpeedMph(pitch), Rules);
-        var commitSec = Math.Max(0, AtBatMotion.CpuDecisionTime(airSec, Rules));
-        var soFar = Math.Min(Math.Abs(pitch.BreakX), PitchFlight.BreakReach(Pitcher.Stats.Pitch, commitSec, Rules));
-        return pitch with { BreakX = Math.Sign(pitch.BreakX) * soFar };
-    }
-
-    enum CpuZone { Middle, Edge, Near, Far }
-
-    static CpuZone CpuZoneClass(double x, double y, bool inZone, CpuBatterRules c)
-    {
-        var dx = Math.Abs(x);
-        var dy = Math.Abs(y - StrikeZoneGeometry.CenterY);
-        if (inZone)
-            return dx <= StrikeZoneGeometry.HalfWidth * c.MiddleFraction && dy <= StrikeZoneGeometry.Height / 2 * c.MiddleFraction
-                ? CpuZone.Middle
-                : CpuZone.Edge;
-        var outX = Math.Max(0, dx - StrikeZoneGeometry.HalfWidth);
-        var outY = Math.Max(0, dy - StrikeZoneGeometry.Height / 2);
-        return Math.Sqrt(outX * outX + outY * outY) <= c.NearFt ? CpuZone.Near : CpuZone.Far;
-    }
-
-    /// <summary>
-    /// The box after a failed re-read (spec §5.9 tracking): the guess is the last crossing this
-    /// offense saw (the first pitch guesses the middle) plus a fixed offset; the miss is likelier
-    /// when the pitcher moved on the rubber since the last pitch.
-    /// </summary>
-    double CpuTrackedBox(double crossingX, CpuBatterRules c, CpuLevelRules level)
-    {
-        var last = Top ? _awayLastCrossingX : _homeLastCrossingX;
-        var chance = Math.Min(0.95, (RubberMovedSinceLastPitch ? c.MistrackMovedChance : c.MistrackChance) * level.MistrackMul);
-        var guess = _rng.NextDouble() < chance ? (last ?? 0) : crossingX;
-        var offset = (c.MistrackMinFt + _rng.NextDouble() * c.MistrackSpanFt) * (_rng.NextDouble() < 0.5 ? -1 : 1);
-        return Math.Clamp((guess + offset) / HomeSet.BatterWalk, -1, 1);
-    }
-
-    /// <summary>The pitcher walked the rubber since the last pitch this offense saw.</summary>
-    public bool RubberMovedSinceLastPitch => Math.Abs(PitcherOffsetX - _lastPitchRubberX) > 0.05;
-
-    /// <summary>
-    /// Charge vs slap by archetype (spec §5.9). The technique gate is <b>Contact</b> and Run — the
-    /// hitter who can both square it up and beat it out slaps — while the slugger-vs-speedster split
-    /// is <b>Power</b> against Run (PH-15-R5).
-    /// </summary>
-    public static double CpuChargeChance(Character who, CpuArchetypeRules a)
-    {
-        var contact = who.Stats.Contact;
-        var power = who.Stats.Power;
-        var run = who.Stats.Run;
-        if (contact >= a.TechniqueMin && run >= a.TechniqueMin) return a.Technique;
-        if (power - run >= a.SplitStat) return a.Power;
-        if (run - power >= a.SplitStat) return a.Speed;
-        return a.Balanced;
-    }
-
-    /// <summary>The CPU batter is squared to bunt on this pitch (§7.3): the tell a human pitcher sees before the pitch.</summary>
-    public bool CpuSquared => _cpuSquared;
-
-    /// <summary>
-    /// The side the squared CPU batter holds on this pitch (§5.8, §5.9; PH-14-R2), decided at SET with the square so
-    /// the bat angle is a tell before the pitch. <see cref="BuntSide.None"/> when it is not squared.
-    /// </summary>
-    public BuntSide CpuBuntSide => _cpuSquared ? _cpuBuntSide : BuntSide.None;
-
-    /// <summary>
-    /// The CPU batter's sac-bunt read (§5.9's row), once per pitch at SET so the square is a tell the defense
-    /// reads before the pitch (§7.3): runner on first only, no outs, a light bat, a close game, at the table's
-    /// chance, on the one seeded stream. At the plate plane the square is the bunt if the pitch is in the zone
-    /// and a take otherwise (<see cref="CpuSwing"/>). Idempotent for the pitch; <see cref="BeginAtBat"/> clears it.
-    /// </summary>
-    public bool CpuSquaresBunt()
-    {
-        if (_cpuSquareDecided) return _cpuSquared;
-        if (Over || Outs >= 3 || LivePlay.Active) return false;
-        _cpuSquareDecided = true;
-        var c = Rules.Batting.Cpu;
-        var trailing = Top ? HomeScore - AwayScore : AwayScore - HomeScore;
-        // The light bat that gives itself up is the weak-Contact hitter (§5.9).
-        _cpuSquared = First is not null && Second is null && Third is null && Outs == 0
-                      && Batter.Stats.Contact <= c.SacBuntBatMax && trailing <= c.SacBuntTrailMax
-                      && _rng.NextDouble() < c.SacBuntChance;
-        // The side is held with the square (PH-14-R2): one draw, only when it squares.
-        _cpuBuntSide = _cpuSquared
-            ? (_rng.NextDouble() < c.SacBuntFirstSideChance ? BuntSide.First : BuntSide.Third)
-            : BuntSide.None;
-        return _cpuSquared;
-    }
-
-    /// <summary>
-    /// The CPU offense's steal decision (§11.6): the runner AI's table, once per at-bat at SET, on
-    /// the one seeded stream. A chosen runner departs now and is exposed to a legal pitcher throw.
-    /// </summary>
-    public bool CpuArmSteal()
-    {
-        if (_cpuStealDecided || Over || Outs >= 3 || LivePlay.Active) return false;
-        _cpuStealDecided = true;
-        var trailing = Top ? HomeScore - AwayScore : AwayScore - HomeScore;
-        var plan = RunnerAi.StealPlan(_runners, Batter.Captain, Outs, trailing, _rng, Rules);
-        var any = false;
-        foreach (var (runner, _) in plan)
-        {
-            any |= StartStealAt(runner.FromBag);
-        }
-        return any;
-    }
-
     public PlayEvent AutoPlay()
     {
         CpuConsidersSwap();
-        CpuArmSteal();
-        CpuSquaresBunt();
-        var pickoffBag = CpuPickoffBag();
+        CpuBatter.ArmSteal();
+        CpuBatter.SquaresBunt();
+        var pickoffBag = CpuPitcher.PickoffBag();
         if (pickoffBag > 0 && Pickoff(pickoffBag) is { } pickoff)
             return pickoff;
-        var pitch = PreparePitch(CpuPitch());
-        var swing = CpuSwing(pitch);
+        var pitch = PreparePitch(CpuPitcher.Pitch());
+        var swing = CpuBatter.Swing(pitch);
         return Play(pitch, swing);
     }
 
@@ -1616,40 +1256,6 @@ public sealed partial class Match
         while (!Over && guard++ < 2000)
             AutoPlay();
     }
-
-    /// <summary>
-    /// The MVP (§12, stars.json mvp): a walk-off hit names its hitter; otherwise the most points on
-    /// either roster, the winning pitcher's points included once the game is over.
-    /// </summary>
-    public (Character Who, int Points, string Why) Mvp()
-    {
-        var m = Rules.Stars.Mvp;
-        var points = new Dictionary<string, int>(_mvp, StringComparer.OrdinalIgnoreCase);
-        if (Over && HomeScore != AwayScore && _leadPitcherId is { } arm)
-            points[arm] = points.GetValueOrDefault(arm) + m.WinningPitcher;
-        var walkOff = WalkOffHitter();
-        string id;
-        if (walkOff is not null) id = walkOff.Id;
-        else if (points.Count == 0) return (Home.Captain, 0, "showed up");
-        else id = points.OrderByDescending(kv => kv.Value).First().Key;
-        var who = Away.Roster.Concat(Home.Roster).First(c => c.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
-        var pts = points.GetValueOrDefault(id);
-        var why = pts >= m.TookOverAt ? "took over the diamond" : pts >= m.KeptMovingAt ? "kept the line moving" : "did the little things";
-        return (who, pts, why);
-    }
-
-    /// <summary>The hitter whose hit ended the game in the home half with the winning run (§12), or null.</summary>
-    Character? WalkOffHitter()
-    {
-        if (!Over || _log.Count == 0) return null;
-        var last = _log[^1];
-        if (last.Context is not { Top: false } ctx || last.RunsScored <= 0) return null;
-        if (last.Kind is not (PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun)) return null;
-        return last.HomeScoreAfter > last.AwayScoreAfter && ctx.HomeScoreBefore <= ctx.AwayScoreBefore ? last.Batter : null;
-    }
-
-    public string BoxLine() =>
-        $"G{Away.Name} {AwayScore}  {Home.Name} {HomeScore}  {(Over ? "F" : (Top ? "T" : "B") + Inning)}  {Outs} out";
 
     PlayEvent FinishTake(PitchCommand pitch, SwingCommand swing, bool inZone)
     {
@@ -1676,7 +1282,7 @@ public sealed partial class Match
             return AfterPitch(Emit(swinging ? PlayKind.SwingMiss : PlayKind.TakeStrike, pitch, swing, hit, cap, 0, []));
         }
         ClearSteal();
-        AddMvp(Pitcher.Id, Rules.Stars.Mvp.Strikeout);
+        Scorebook.Credit(Pitcher.Id, Rules.Stars.Mvp.Strikeout);
         AddStars(defense: true, Rules.Stars.Gains.Strikeout);
         RecordOut(OutType.Strikeout, 0, 0, Batter, Pitcher);
         how ??= swinging ? "goes down swinging." : "is caught looking.";
@@ -1691,7 +1297,7 @@ public sealed partial class Match
         ClearSteal();
         var ledBefore = OffenseLead;
         var (runs, scorers) = PlaceByWalk(Batter);
-        CreditBatter(Rules.Stars.Mvp.Walk, runs, ledBefore);
+        Scorebook.CreditBatter(Rules.Stars.Mvp.Walk, runs, ledBefore);
         var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
@@ -1703,7 +1309,7 @@ public sealed partial class Match
         ClearSteal();
         var ledBefore = OffenseLead;
         var (runs, scorers) = PlaceByWalk(Batter);
-        CreditBatter(Rules.Stars.Mvp.HitByPitch, runs, ledBefore);
+        Scorebook.CreditBatter(Rules.Stars.Mvp.HitByPitch, runs, ledBefore);
         var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, $"{Batter.Name} is hit.", runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
@@ -1754,7 +1360,7 @@ public sealed partial class Match
                 // Dead at the crossing (§7.10): everyone circles; the trot is presentation.
                 (runs, scorers) = ScoreEveryone();
                 batterToBag = 4;
-                CreditBatter(mvp.HomeRun, runs, ledBefore);
+                Scorebook.CreditBatter(mvp.HomeRun, runs, ledBefore);
                 AddStars(defense: false, Rules.Stars.Gains.HomeRun);
                 caption = hit.StarSwingUsed is "furnace" or "heat-swing"
                     ? $"{Batter.Name} {hit.StarSwingUsed!.ToUpperInvariant()} - it's gone."
@@ -1768,7 +1374,7 @@ public sealed partial class Match
                     (runs, scorers) = AwardBases(2);
                     batterToBag = 2;
                     kind = PlayKind.Double;
-                    CreditBatter(mvp.Hit, runs, ledBefore);
+                    Scorebook.CreditBatter(mvp.Hit, runs, ledBefore);
                     AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                     caption = $"{Batter.Name} - over the fence on a hop. Ground-rule double.";
                     NextBatter();
@@ -1793,22 +1399,22 @@ public sealed partial class Match
                 switch (kind)
                 {
                     case PlayKind.HomeRun:
-                        CreditBatter(mvp.HomeRun, runs, ledBefore);
+                        Scorebook.CreditBatter(mvp.HomeRun, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.HomeRun);
                         caption = $"{Batter.Name} - all the way around!";
                         break;
                     case PlayKind.Triple:
-                        CreditBatter(mvp.Hit, runs, ledBefore);
+                        Scorebook.CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                         caption = $"{Batter.Name} triples.";
                         break;
                     case PlayKind.Double:
-                        CreditBatter(mvp.Hit, runs, ledBefore);
+                        Scorebook.CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                         caption = $"{Batter.Name} doubles.";
                         break;
                     case PlayKind.Single:
-                        CreditBatter(mvp.Hit, runs, ledBefore);
+                        Scorebook.CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.Single);
                         caption = moment is not null
                             ? moment.NarratesBatterAtFirst ? LivePlay.Caption : $"{LivePlay.Caption} {Batter.Name} in at first."
@@ -1819,13 +1425,13 @@ public sealed partial class Match
                         break;
                     default:
                         // A run driven in by an out (the sac fly) is still the batter's RBI (§12); a chain of outs is the defense's star gain.
-                        if (runs > 0) CreditBatter(0, runs, ledBefore);
+                        if (runs > 0) Scorebook.CreditBatter(0, runs, ledBefore);
                         if (_outsThisPlay.Count >= 2) AddStars(defense: true, Rules.Stars.Gains.DoublePlay);
                         // A leap that took a ball clearing the fence (§8.4): the robbed homer, and the buddy who jumped with them.
                         if (kind == PlayKind.FlyOut && field.Feat is DefensiveFeat.SuperJump or DefensiveFeat.Clamber or DefensiveFeat.BuddyJump && hit.HomeRun)
                         {
-                            AddMvp(field.Fielder?.Id, mvp.RobbedHomer);
-                            if (field.Feat == DefensiveFeat.BuddyJump) AddMvp(field.Buddy?.Id, mvp.RobbedHomer);
+                            Scorebook.Credit(field.Fielder?.Id, mvp.RobbedHomer);
+                            if (field.Feat == DefensiveFeat.BuddyJump) Scorebook.Credit(field.Buddy?.Id, mvp.RobbedHomer);
                             AddStars(defense: true, Rules.Stars.Gains.RobbedHomer);
                         }
                         // A chain of outs names the chain (§10.4, §10.7) ahead of the last decision it narrated.
@@ -1867,7 +1473,7 @@ public sealed partial class Match
 
         // The item that mattered (§12): it landed and the batter reached.
         if (LivePlay.ItemLanded && batterToBag >= 1 && kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun)
-            AddMvp(Batter.Id, mvp.ItemMattered);
+            Scorebook.Credit(Batter.Id, mvp.ItemMattered);
 
         if (field.Item is { } item)
         {
@@ -2036,7 +1642,7 @@ public sealed partial class Match
         }
         Balls = 0;
         Strikes = 0;
-        _cpuStealDecided = false;
+        CpuBatter.NextBatter();
         // The next hitter starts centered (the box recenters after every pitch too, D12: AfterPitch).
         ResetBatter();
         if (Top) AwayBatter = (AwayBatter + 1) % AwayOrder.Count;
@@ -2225,28 +1831,14 @@ public sealed partial class Match
         else HomeScore++;
         // The arm that will be the winning pitcher (§12): the offense's own, whenever the offense takes the lead.
         if (ledBefore <= 0 && OffenseLead > 0)
-            _leadPitcherId = (Top ? _awayPitcher : _homePitcher).Id;
+            Scorebook.LeadTakenBy((Top ? _awayPitcher : _homePitcher).Id);
     }
 
     /// <summary>The offense's lead in runs (negative when trailing).</summary>
-    int OffenseLead => Top ? AwayScore - HomeScore : HomeScore - AwayScore;
-
-    /// <summary>The pitcher of the side that last took the lead (the winning pitcher if it holds, §12).</summary>
-    string? _leadPitcherId;
-
-    /// <summary>
-    /// The batter's MVP credit for the play (§12, stars.json mvp): the base points of the hit / walk /
-    /// HBP, an RBI per run driven in, and the go-ahead RBI on top when the play put the offense ahead.
-    /// </summary>
-    void CreditBatter(int basePoints, int runs, int ledBefore)
-    {
-        var m = Rules.Stars.Mvp;
-        var goAhead = runs > 0 && ledBefore <= 0 && OffenseLead > 0;
-        AddMvp(Batter.Id, basePoints + runs * m.Rbi + (goAhead ? m.GoAheadRbi : 0));
-    }
+    internal int OffenseLead => Top ? AwayScore - HomeScore : HomeScore - AwayScore;
 
     /// <summary>The seat that won a close play at a bag (§9.6, §12): the runner called safe, or the glove that tagged.</summary>
-    internal void CreditClosePlay(Character? who) => AddMvp(who?.Id, Rules.Stars.Mvp.ClosePlayWon);
+    internal void CreditClosePlay(Character? who) => Scorebook.Credit(who?.Id, Rules.Stars.Mvp.ClosePlayWon);
 
     void SpendPitch(PitchCommand pitch)
     {
@@ -2291,43 +1883,13 @@ public sealed partial class Match
         }
     }
 
-    void AddMvp(string? id, int pts)
-    {
-        if (string.IsNullOrEmpty(id) || pts <= 0) return;
-        _mvp[id] = _mvp.GetValueOrDefault(id) + pts;
-    }
-
     AtBatResult EmptyHit(bool inZone) => new(
         ContactQuality.Miss, false, inZone, 0, 0, 0, false, false, null, null, 0, false, inZone);
 
-    double Gauss()
+    internal double Gauss()
     {
         var u1 = 1.0 - _rng.NextDouble();
         var u2 = _rng.NextDouble();
         return Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
     }
 }
-
-/// <summary>
-/// What a CPU pitch was built from (spec §4.8, #823), so a
-/// scenario can read the inputs rather than infer them from the flight: the presses, the family
-/// those presses land on, the charge, the stick and the rubber.
-///
-/// A fact about one delivery, not state: <see cref="Match.CpuPitchByInputs"/> hands it back beside
-/// the command and keeps nothing. A readonly record struct, so the hot path allocates nothing for it.
-/// </summary>
-/// <param name="Presses">Cycle presses from the SET reset, 0 / 1 / 2 (PH-02-R5).</param>
-/// <param name="Family">The family <paramref name="Presses"/> presses reach for this pitcher and this table.</param>
-/// <param name="Charged">The charge went to MAX. An uncharged pitch still carries the row's tap.</param>
-/// <param name="SteerDir">−1, 0 or +1: which way the stick was held from release, if at all.</param>
-/// <param name="SteerReach">What a stick held that whole flight reaches (<see cref="PitchFlight.BreakReach"/>); the command's <c>BreakX</c> is this times <paramref name="SteerDir"/>.</param>
-/// <param name="RubberX">The solved rubber, in rubber units (<see cref="HomeSet.PitcherWalk"/> feet each), clamped to the legal ±1.</param>
-/// <param name="IntentX">The horizontal intent in world feet the rubber was solved for, scatter included.</param>
-public readonly record struct CpuPitchPlan(
-    int Presses,
-    string Family,
-    bool Charged,
-    int SteerDir,
-    double SteerReach,
-    double RubberX,
-    double IntentX);

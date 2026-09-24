@@ -15,9 +15,11 @@ landmarks here are the eyes Unity draws.
 """
 from __future__ import annotations
 
-import json
 import math
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import jsonc  # noqa: E402  (the one reader for data files with // notes)
 
 import bpy
 from mathutils import Matrix, Quaternion, Vector
@@ -35,7 +37,7 @@ FEET_FACE_PLATE_DOT = 0.7071
 
 
 def _load_keys():
-    rows = json.loads(CATALOG.read_text())["keys"]
+    rows = jsonc.load(CATALOG)["keys"]
     keys = [
         (
             round(float(row["t"]), 4),

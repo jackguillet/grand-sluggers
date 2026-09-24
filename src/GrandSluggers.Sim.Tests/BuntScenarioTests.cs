@@ -247,20 +247,20 @@ public sealed class BuntScenarioTests
             var match = Defense("pip", seed); // pip: Bat 3, the leadoff
             Station(match, [1]);
             Assert.True(match.Batter.Stats.Bat <= match.Rules.Batting.Cpu.SacBuntBatMax);
-            var squared = match.CpuSquaresBunt();
-            Assert.Equal(squared, match.CpuSquaresBunt()); // idempotent for the pitch
-            Assert.Equal(squared, match.CpuSquared);
+            var squared = match.CpuBatter.SquaresBunt();
+            Assert.Equal(squared, match.CpuBatter.SquaresBunt()); // idempotent for the pitch
+            Assert.Equal(squared, match.CpuBatter.Squared);
             if (!squared) continue;
             squaredOnce = true;
             var pitch = match.PreparePitch(Scenario.PitchAt(0, StrikeZoneGeometry.CenterY));
-            var ball = match.CpuSwing(match.PreparePitch(Scenario.PitchAt(2.5, StrikeZoneGeometry.CenterY)));
+            var ball = match.CpuBatter.Swing(match.PreparePitch(Scenario.PitchAt(2.5, StrikeZoneGeometry.CenterY)));
             Assert.False(ball.Swing);
             Assert.True(ball.SquareSec > 0);
-            var swing = match.CpuSwing(pitch);
+            var swing = match.CpuBatter.Swing(pitch);
             Assert.True(swing.Swing && swing.Bunt && swing.SquareSec > 0);
             var play = match.Play(pitch, swing);
             Assert.True(play.Swing.Bunt);
-            Assert.False(match.CpuSquared); // spent on this pitch
+            Assert.False(match.CpuBatter.Squared); // spent on this pitch
             Assert.Contains(play.AtBat.Class, new[] { BattedBallClass.Bunt, BattedBallClass.Pop, BattedBallClass.Foul });
             if (play.Kind is PlayKind.Foul or PlayKind.Strikeout or PlayKind.SwingMiss) continue;
             // A live play (§10.6): typed bodies at Time, a glove from the bunt's four, never a table row.
@@ -279,11 +279,11 @@ public sealed class BuntScenarioTests
     {
         var match = Defense("cinder"); // cinder: Bat 8
         Station(match, [1]);
-        Assert.False(match.CpuSquaresBunt());
+        Assert.False(match.CpuBatter.SquaresBunt());
         var light = Defense("pip");
-        Assert.False(light.CpuSquaresBunt()); // nobody on
+        Assert.False(light.CpuBatter.SquaresBunt()); // nobody on
         Station(light, [1, 2]);
-        Assert.False(light.CpuSquaresBunt()); // not first only
+        Assert.False(light.CpuBatter.SquaresBunt()); // not first only
     }
 
     // ---------------------------------------------------------------------------------

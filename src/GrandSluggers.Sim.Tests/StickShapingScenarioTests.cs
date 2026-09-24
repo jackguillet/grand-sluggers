@@ -283,8 +283,8 @@ public sealed class StickShapingScenarioTests
         {
             var match = Match.Slice(_shipped, innings: 3, seed: seed);
             AssertTheComposedPath(match);
-            var first = match.CpuSwing(Middle);
-            var second = match.CpuSwing(Middle);
+            var first = match.CpuBatter.Swing(Middle);
+            var second = match.CpuBatter.Swing(Middle);
 
             Assert.False(first.Star);
             Assert.Equal(0, first.SprayAimDeg);
@@ -303,7 +303,7 @@ public sealed class StickShapingScenarioTests
         var ordinary = 0;
         foreach (var seed in Enumerable.Range(1, 120))
         {
-            var onShipped = CaptainUp(_shipped, seed).CpuSwing(Middle);
+            var onShipped = CaptainUp(_shipped, seed).CpuBatter.Swing(Middle);
             Assert.True(onShipped.Swing);
             if (onShipped.Bunt) continue;
             if (onShipped.Star)
@@ -336,11 +336,11 @@ public sealed class StickShapingScenarioTests
         foreach (var seed in Enumerable.Range(1, 60))
         {
             var onShipped = LightBatWithARunnerOnFirst(_shipped, seed);
-            if (!onShipped.CpuSquaresBunt()) continue;
-            var shippedBunt = onShipped.CpuSwing(Middle);
+            if (!onShipped.CpuBatter.SquaresBunt()) continue;
+            var shippedBunt = onShipped.CpuBatter.Swing(Middle);
             Assert.True(shippedBunt.Bunt);
             Assert.NotEqual(BuntSide.None, shippedBunt.BuntSide);
-            Assert.Equal(onShipped.CpuBuntSide, shippedBunt.BuntSide);
+            Assert.Equal(onShipped.CpuBatter.BuntSide, shippedBunt.BuntSide);
             Assert.Equal(0, shippedBunt.SprayAimDeg);
             Assert.Equal(0, shippedBunt.LaunchAim);
             Assert.Equal(0, shippedBunt.TimingErrorFrames);
@@ -386,7 +386,7 @@ public sealed class StickShapingScenarioTests
     }
 
     /// <summary>
-    /// Today's <see cref="Match.CpuSwing"/> on the path <see cref="AssertTheComposedPath"/> holds,
+    /// Today's <see cref="CpuBatter.Swing"/> on the path <see cref="AssertTheComposedPath"/> holds,
     /// composed from <paramref name="rng"/> in today's order: the charge roll, the tracking roll, the
     /// timing Gaussian, and the three mistrack draws when it did not track. No aim is drawn.
     /// </summary>
@@ -396,7 +396,7 @@ public sealed class StickShapingScenarioTests
         var level = match.Rules.Cpu.Active;
         var batter = match.Batter;
         var (cx, _) = PitchFlight.Crossing(Middle, match.Rules, match.Pitcher.StarPitch);
-        var charge = rng.Next() < Match.CpuChargeChance(batter, c.Archetype) ? 1.0 : 0;
+        var charge = rng.Next() < CpuBatter.ChargeChance(batter, c.Archetype) ? 1.0 : 0;
         var tracked = rng.Next() < c.TrackPerfectChance;
         var err = rng.Gauss() * (11 - batter.Stats.Contact) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
         double box;

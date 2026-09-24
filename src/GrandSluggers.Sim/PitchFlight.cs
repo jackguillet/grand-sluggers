@@ -206,7 +206,7 @@ public static class PitchFlight
     /// <para>
     /// This exists because two callers must agree on one number. A hand holding the stick
     /// accumulates it a frame at a time; the CPU pitcher has no frames to hold, so it takes the same total in one
-    /// step (<see cref="Match.CpuPitchByInputs"/>) rather than an instant ±1 no arm could reach.
+    /// step (<see cref="CpuPitcher.PitchByInputs"/>) rather than an instant ±1 no arm could reach.
     /// A short flight, a low Control, or both, and the hold simply does not get there.
     /// </para>
     ///

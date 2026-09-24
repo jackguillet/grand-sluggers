@@ -10,9 +10,12 @@ namespace GrandSluggers.Sim;
 /// <list type="bullet">
 /// <item>a unit spelled long (<c>chargeSeconds</c>, <c>depthFeet</c>): write <c>chargeSec</c>, <c>depthFt</c>;</item>
 /// <item>a time or a speed with no unit (<c>smashFreeze</c>, <c>restSpeed</c>): write <c>smashFreezeSec</c>,
-/// <c>restSpeedFtPerSec</c>.</item>
+/// <c>restSpeedFtPerSec</c>;</item>
+/// <item>a length with no unit (<c>radius</c>, <c>throwDistance</c>): write <c>radiusFt</c>. A scale is not a length:
+/// name it <c>…Mul</c> or <c>…Scale</c>. A rate names both units (<c>perFtOfHeight</c>) and passes.</item>
 /// </list>
-/// The keys that broke the rule before it existed are <see cref="Grandfathered"/>; renaming one removes its entry.
+/// The keys that broke the rule before it existed are <see cref="Grandfathered"/>; renaming one removes its entry. An
+/// entry's file may be <c>folder/*.json</c> for a key every file in that folder carries.
 /// </summary>
 public static class DataNaming
 {
@@ -25,6 +28,13 @@ public static class DataNaming
         + "|^(freeze|hold|blend|delay|duration|time|timeout|lag|wait|pause|speed|velocity|velo)$",
         RegexOptions.CultureInvariant);
 
+    static readonly Regex NoLength = new(
+        "(^|[a-z0-9])(Distance|Length|Height|Width|Radius|Depth|Reach|Range)$"
+        + "|^(distance|length|height|width|radius|depth|reach|range)$",
+        RegexOptions.CultureInvariant);
+
+    static readonly Regex Rate = new("(^per|Per)[A-Z]", RegexOptions.CultureInvariant);
+
     /// <summary>
     /// Keys that broke the rule before it existed: a data file relative to <c>data/</c>, and the key. Their C# members
     /// read them by these names; renaming one is its own change, and removes its line here.
@@ -33,7 +43,15 @@ public static class DataNaming
 
     static readonly HashSet<(string File, string Key)> _grandfathered = new()
     {
+        ("art/baseball-equipment.json", "length"),      // Blender units
+        ("art/baseball-equipment.json", "pocketDepth"),
+        ("art/baseball-equipment.json", "radius"),
+        ("art/baseball-equipment.json", "width"),
+        ("art/baseball-equipment.json", "wristRadius"),
         ("art/baseball-takes.json", "duration"),
+        ("art/rig.json", "height"),                     // Blender units
+        ("characters/*.json", "height"),                // a proportion: a scale on the shared rig
+        ("characters/*.json", "width"),
         ("feel/shots.json", "blend"),
         ("feel/table.json", "afterCountSeconds"),
         ("feel/table.json", "afterOutSeconds"),
@@ -48,6 +66,8 @@ public static class DataNaming
         ("feel/table.json", "solidFreeze"),
         ("feel/table.json", "swingChargeSeconds"),
         ("rules/batting.json", "speed"),
+        ("parks/*.json", "radius"),                     // a hazard's disc, in feet
+        ("rules/fielding.json", "hopPhaseHalfWidth"),   // a fraction of the hop's phase
         ("rules/flight.json", "maxSeconds"),
         ("rules/grounds.json", "restSpeed"),
     };
@@ -84,6 +104,7 @@ public static class DataNaming
     {
         if (LongUnit.IsMatch(key)) return "spells its unit long; use Sec, Ft, Deg, FtPerSec or Mph";
         if (NoUnit.IsMatch(key)) return "is a time or a speed with no unit; end it in Sec, FtPerSec or Mph";
+        if (NoLength.IsMatch(key) && !Rate.IsMatch(key)) return "is a length with no unit; end it in Ft (a scale ends in Mul or Scale)";
         return null;
     }
 
@@ -94,7 +115,7 @@ public static class DataNaming
             case JsonObject obj:
                 foreach (var (key, value) in obj)
                 {
-                    if (IsNumeric(value) && !_grandfathered.Contains((file, key)) && Problem(key) is { } problem)
+                    if (IsNumeric(value) && !IsGrandfathered(file, key) && Problem(key) is { } problem)
                         errors.Add($"{file}: '{key}' {problem}");
                     Walk(file, value, errors);
                 }
@@ -112,7 +133,11 @@ public static class DataNaming
             case JsonObject obj:
                 foreach (var (key, value) in obj)
                 {
-                    if (IsNumeric(value)) seen.Add((file, key));
+                    if (IsNumeric(value))
+                    {
+                        seen.Add((file, key));
+                        seen.Add((Folder(file), key));
+                    }
                     Keys(file, value, seen);
                 }
                 break;
@@ -120,6 +145,16 @@ public static class DataNaming
                 foreach (var item in array) Keys(file, item, seen);
                 break;
         }
+    }
+
+    static bool IsGrandfathered(string file, string key) =>
+        _grandfathered.Contains((file, key)) || _grandfathered.Contains((Folder(file), key));
+
+    /// <summary>The folder form of a data file: <c>parks/crystal-rink.json</c> is <c>parks/*.json</c>.</summary>
+    static string Folder(string file)
+    {
+        var slash = file.LastIndexOf('/');
+        return (slash < 0 ? "" : file[..(slash + 1)]) + "*.json";
     }
 
     static bool IsNumeric(JsonNode? value) => value switch

@@ -54,7 +54,7 @@ public sealed class CpuPitcherScenarioTests
             Assert.Equal(who.Id, match.Pitcher.Id);
             for (var i = 0; i < 25; i++)
             {
-                var pitch = match.CpuPitchByInputs(out var plan);
+                var pitch = match.CpuPitcher.PitchByInputs(out var plan);
                 total++;
                 hands[who.Throws] = hands.GetValueOrDefault(who.Throws) + 1;
 
@@ -143,7 +143,7 @@ public sealed class CpuPitcherScenarioTests
             var match = MatchPitchedBy(_shipped, who, seed: 5);
             for (var i = 0; i < 60; i++)
             {
-                var pitch = match.CpuPitchByInputs(out var plan);
+                var pitch = match.CpuPitcher.PitchByInputs(out var plan);
                 Assert.Equal(plan.Family, pitch.Type);
                 seen.Add(pitch.Type);
 
@@ -153,7 +153,7 @@ public sealed class CpuPitcherScenarioTests
 
                 // The choice is the presses it is: replay them the way a player does and land on it.
                 Assert.InRange(plan.Presses, 0, Repertoire.Slots - 1);
-                Assert.Equal(plan.Family, match.CpuFamilyAfter(plan.Presses));
+                Assert.Equal(plan.Family, match.CpuPitcher.FamilyAfter(plan.Presses));
                 Assert.Equal(plan.Family, Replay(plan.Presses, who.Repertoire, authored));
             }
         }
@@ -190,10 +190,10 @@ public sealed class CpuPitcherScenarioTests
             var match = MatchPitchedBy(content, who, seed: 9);
             for (var i = 0; i < 40; i++)
             {
-                var pitch = match.CpuPitchByInputs(out var plan);
+                var pitch = match.CpuPitcher.PitchByInputs(out var plan);
                 Assert.Contains(pitch.Type, new[] { PitchFamily.Fastball, PitchFamily.Changeup });
                 Assert.True(who.Repertoire.Has(pitch.Type));
-                Assert.Equal(plan.Family, match.CpuFamilyAfter(plan.Presses));
+                Assert.Equal(plan.Family, match.CpuPitcher.FamilyAfter(plan.Presses));
             }
         }
     }
@@ -214,7 +214,7 @@ public sealed class CpuPitcherScenarioTests
             var match = MatchPitchedBy(_shipped, who, seed: 13);
             for (var i = 0; i < 40; i++)
             {
-                var pitch = match.CpuPitchByInputs(out var plan);
+                var pitch = match.CpuPitcher.PitchByInputs(out var plan);
                 var airSec = PitchFlight.AirSeconds(match.PitchSpeedMph(pitch), rules);
                 var reach = PitchFlight.BreakReach(who.Stats.Pitch, airSec, rules);
 
@@ -297,14 +297,14 @@ public sealed class CpuPitcherScenarioTests
             ("ahead", cpu.Ahead, AheadCount(_shipped, seed: 22)),
         })
         {
-            Assert.Same(row, match.CpuPitchRow());
+            Assert.Same(row, match.CpuPitcher.Row());
             const int n = 4000;
             var charged = 0;
             var steered = 0;
             var both = 0;
             for (var i = 0; i < n; i++)
             {
-                match.CpuPitchByInputs(out var plan);
+                match.CpuPitcher.PitchByInputs(out var plan);
                 if (plan.Charged) charged++;
                 if (plan.SteerDir != 0) steered++;
                 if (plan.Charged && plan.SteerDir != 0) both++;
@@ -331,14 +331,14 @@ public sealed class CpuPitcherScenarioTests
     public void S119_AtZeroTwoTheCpuStillWastesOutsideTheZoneByRubberAlone()
     {
         var match = AheadCount(_shipped, seed: 27);
-        Assert.Same(_shipped.Rules.Pitching.Cpu.Ahead, match.CpuPitchRow());
+        Assert.Same(_shipped.Rules.Pitching.Cpu.Ahead, match.CpuPitcher.Row());
 
         var outside = 0;
         var byX = 0;
         var byY = 0;
         for (var i = 0; i < 100; i++)
         {
-            var pitch = match.CpuPitchByInputs(out _);
+            var pitch = match.CpuPitcher.PitchByInputs(out _);
             var (x, y) = PitchFlight.Crossing(pitch, _shipped.Rules, match.Pitcher.StarPitch);
             if (StrikeZoneGeometry.Contains(x, y)) continue;
             outside++;
@@ -352,11 +352,11 @@ public sealed class CpuPitcherScenarioTests
 
         // And the even row still never sits down the middle, the second half of S-27's claim.
         var even = EvenCount(_shipped, seed: 28);
-        Assert.Same(_shipped.Rules.Pitching.Cpu.Even, even.CpuPitchRow());
+        Assert.Same(_shipped.Rules.Pitching.Cpu.Even, even.CpuPitcher.Row());
         var center = 0;
         for (var i = 0; i < 100; i++)
         {
-            var (x, y) = PitchFlight.Crossing(even.CpuPitchByInputs(out _), _shipped.Rules, even.Pitcher.StarPitch);
+            var (x, y) = PitchFlight.Crossing(even.CpuPitcher.PitchByInputs(out _), _shipped.Rules, even.Pitcher.StarPitch);
             if (Math.Abs(x) < 0.25 && Math.Abs(y - CenterY) < 0.25) center++;
         }
         Assert.True(center < 10, $"{center} of 100 down the middle");
@@ -406,7 +406,7 @@ public sealed class CpuPitcherScenarioTests
         var content = ContentCatalog.Load(weighsTheUnauthored);
         var match = EvenCount(content, seed: 31);
         for (var i = 0; i < 200; i++)
-            Assert.Contains(match.CpuPitchByInputs(out _).Type, new[] { PitchFamily.Fastball, PitchFamily.Changeup });
+            Assert.Contains(match.CpuPitcher.PitchByInputs(out _).Type, new[] { PitchFamily.Fastball, PitchFamily.Changeup });
 
         // (d) A row that weights nothing at all is a broken table and stops by name.
         var weighsNothing = WriteRoot(json =>
@@ -430,7 +430,7 @@ public sealed class CpuPitcherScenarioTests
         var fallback = EvenCount(ContentCatalog.Load(weighsOnlyTheUnavailable), seed: 32);
         for (var i = 0; i < 50; i++)
         {
-            var pitch = fallback.CpuPitchByInputs(out var plan);
+            var pitch = fallback.CpuPitcher.PitchByInputs(out var plan);
             Assert.Equal(PitchFamily.Fastball, pitch.Type);
             Assert.Equal(0, plan.Presses);
         }

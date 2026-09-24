@@ -12,6 +12,7 @@ import sys
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import jsonc  # noqa: E402
 import unity_gui  # noqa: E402  (tools/ is not a package)
 
 
@@ -91,7 +92,7 @@ def trial_overlay(source, name):
 
 def runtime_data_files(data):
     """The files a player build carries, as data/package.json names them (RuntimePackage.Files in the sim)."""
-    package = json.loads((data / 'package.json').read_text())
+    package = jsonc.load(data / 'package.json')
     extensions = {e.lower() for e in package['extensions']}
     files = []
     for folder in package['runtime']:

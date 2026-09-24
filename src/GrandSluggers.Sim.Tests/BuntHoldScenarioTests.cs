@@ -461,30 +461,30 @@ public sealed class BuntHoldScenarioTests
         foreach (var seed in Enumerable.Range(1, 80))
         {
             var match = LightBatWithARunnerOnFirst(Shipped, seed);
-            Assert.Equal(BuntSide.None, match.CpuBuntSide);
-            if (!match.CpuSquaresBunt())
+            Assert.Equal(BuntSide.None, match.CpuBatter.BuntSide);
+            if (!match.CpuBatter.SquaresBunt())
             {
-                Assert.Equal(BuntSide.None, match.CpuBuntSide);
+                Assert.Equal(BuntSide.None, match.CpuBatter.BuntSide);
                 continue;
             }
             squared++;
-            var side = match.CpuBuntSide;
+            var side = match.CpuBatter.BuntSide;
             Assert.NotEqual(BuntSide.None, side);
             sides.Add(side);
             // Idempotent for the pitch: the tell does not flicker.
-            Assert.True(match.CpuSquaresBunt());
-            Assert.Equal(side, match.CpuBuntSide);
+            Assert.True(match.CpuBatter.SquaresBunt());
+            Assert.Equal(side, match.CpuBatter.BuntSide);
 
             // Out of the zone the bat is pulled back: a take, the corners still in.
-            var ball = match.CpuSwing(Scenario.PitchAt(2.5, CenterY));
+            var ball = match.CpuBatter.Swing(Scenario.PitchAt(2.5, CenterY));
             Assert.False(ball.Swing);
             Assert.True(ball.SquareSec > 0);
             // In the zone: the held bunt, toward the side, with no timed press.
-            var bunt = match.CpuSwing(Scenario.PitchAt(0, CenterY));
+            var bunt = match.CpuBatter.Swing(Scenario.PitchAt(0, CenterY));
             Assert.Equal((true, side, 0.0), (bunt.Bunt, bunt.BuntSide, bunt.TimingErrorFrames));
             var ev = match.Play(Scenario.PitchAt(0, CenterY), bunt);
             Assert.Equal(side, ev.Swing.BuntSide);
-            Assert.Equal(BuntSide.None, match.CpuBuntSide);
+            Assert.Equal(BuntSide.None, match.CpuBatter.BuntSide);
         }
         Assert.True(squared > 5, $"{squared} of 80 seeds squared");
         Assert.Equal([BuntSide.Third, BuntSide.First], sides.Order());

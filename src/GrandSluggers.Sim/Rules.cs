@@ -818,7 +818,7 @@ public sealed record StaminaRules
 /// <summary>
 /// The CPU pitcher (spec §4.8): a decision table, evaluated once per SET from the count, the
 /// outs, the runners, and its stamina. Each row names a horizontal location and a family mix, and
-/// <see cref="Match.CpuPitch"/> builds the pitch from the inputs a human has and nothing else
+/// <see cref="CpuPitcher.Pitch"/> builds the pitch from the inputs a human has and nothing else
 /// (PH-18-R1): the rubber for location, presses for the family, charge and steer as modifiers, a
 /// bend no bigger than a held stick reaches. Scatter is σ = (11 − Control) × scatterFtPerPitchStat on
 /// the rubber intent, never a dead-center default.
@@ -854,7 +854,7 @@ public sealed record CpuPitcherRules
             // A row that weights nothing has no family to throw. The run-time filter can still empty
             // a row for one pitcher (the row weights only families this arm does not own, or the
             // table does not author) and that falls back to the fastball every pitcher throws
-            // (PH-15-R1, Match.CpuPitchByInputs) — but a row that weights nothing for *anybody* is a
+            // (PH-15-R1, CpuPitcher.PitchByInputs) — but a row that weights nothing for *anybody* is a
             // broken table, and it is caught here rather than read as "always the fastball".
             if (row.Families.Total() <= 0)
                 errors.Add($"{source}: pitching.cpu.{name}.families must weight at least one family: a row with no "
@@ -1181,7 +1181,7 @@ public sealed record OffenseItemRules
 
 /// <summary>
 /// The CPU batter (spec §5.9): a table evaluated from one read of the crossing — the flight as it stands at
-/// the commit instant (<see cref="Match.CpuReadPitch"/>), never the future the pitcher has yet to steer. Zone class by the crossing (middle third / edge / near / far), the swing by
+/// the commit instant (<see cref="CpuBatter.ReadPitch"/>), never the future the pitcher has yet to steer. Zone class by the crossing (middle third / edge / near / far), the swing by
 /// count, the box by tracking (perfect, or the last pitch's crossing plus a fixed offset; worse
 /// after the pitcher moved on the rubber), timing σ by Bat and the difficulty rung.
 /// </summary>
@@ -2691,7 +2691,7 @@ public sealed record StarGainRules
 
 /// <summary>
 /// The MVP point table (§12, <c>stars.json</c> <c>mvp</c>). A walk-off hit names its hitter ahead of the
-/// points; otherwise the most points on either roster. Read by <see cref="Match.Mvp"/>, never literals.
+/// points; otherwise the most points on either roster. Read by <see cref="Scorebook.Mvp"/>, never literals.
 /// </summary>
 public sealed record MvpRules
 {
