@@ -54,13 +54,17 @@ jobs:
       - name: Tool tests
         if: ${{ !inputs.balance_only }}
         run: python3 -m unittest discover -s tools/tests -p 'test_*.py'
-      # Both research evidence files seal the sources they were derived from.
+      # The research evidence files seal the sources they were derived from. A feature PR does not reseal
+      # (agent-rails.md, Evidence seals): a stale seal here is resealed in a balance pass Jack asks for.
       # Refresh order matters: the compact-field report asserts the flight seals
       # inside derive(), so a stale flight file blocks it in either mode. Regenerate
       # with the probe's --write first, then run the report with no flag.
       - name: Flight evidence seals are current
         if: ${{ !inputs.balance_only }}
         run: dotnet run --project tools/game-feel-flight-probes -- --check
+      - name: Pitch family evidence seal is current
+        if: ${{ !inputs.balance_only }}
+        run: dotnet run --project tools/pitch-family-probes -- --check
       - name: Compact field evidence seals are current
         if: ${{ !inputs.balance_only }}
         run: python3 tools/compact-field-report.py --check
