@@ -100,7 +100,7 @@ public static class Hud
 
     public static void DrawGameOver(Match match, int w, int h, Challenge? campaign)
     {
-        var mvp = match.Mvp();
+        var mvp = match.Scorebook.Mvp();
         Raylib.DrawRectangle(0, 0, w, h, Palette.Fade(Palette.Night, 120));
         Raylib.DrawText("FINAL", 80, 80, 28, Palette.Gold);
         Raylib.DrawText($"{match.Away.Name}  {match.AwayScore}", 80, 130, 42, Palette.Body(match.Away.Captain.Faction));

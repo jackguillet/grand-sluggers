@@ -43,7 +43,7 @@ public sealed partial class Match
         foreach (var runner in arrived)
         {
             RecordMove(runner.Who, runner.FromBag, runner.Bag);
-            AddMvp(runner.Who.Id, Rules.Stars.Mvp.StolenBase);
+            Scorebook.Credit(runner.Who.Id, Rules.Stars.Mvp.StolenBase);
             AddStars(defense: false, Rules.Stars.Gains.StolenBase);
             if (runner.Scored)
             {

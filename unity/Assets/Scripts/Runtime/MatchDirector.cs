@@ -99,9 +99,9 @@ namespace GrandSluggers.UnityClient
         /// The side the batter shows right now (§5.8, PH-14-R3): a human's held trigger, or the side the CPU batter
         /// drew with its square at SET. Public on the batter card for both seats.
         /// </summary>
-        BuntSide ShowingSide => HumanBats ? _buntSide : _match != null ? _match.CpuBuntSide : BuntSide.None;
+        BuntSide ShowingSide => HumanBats ? _buntSide : _match != null ? _match.CpuBatter.BuntSide : BuntSide.None;
         /// <summary>The batter is squared right now: a bunt trigger held (a human), or the CPU batter's square read at SET.</summary>
-        bool SquaredNow => HumanBats ? _buntSide != BuntSide.None : _match != null && _match.CpuSquared;
+        bool SquaredNow => HumanBats ? _buntSide != BuntSide.None : _match != null && _match.CpuBatter.Squared;
         float _charge;
         float _chargePast;
         float _pitchCharge;

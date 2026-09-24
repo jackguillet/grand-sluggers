@@ -364,5 +364,5 @@ static class ScenarioExtensions
         return scenario;
     }
 
-    public static PitchCommand CpuPitch(this Scenario scenario) => scenario.Match.PreparePitch(scenario.Match.CpuPitch());
+    public static PitchCommand CpuPitch(this Scenario scenario) => scenario.Match.PreparePitch(scenario.Match.CpuPitcher.Pitch());
 }

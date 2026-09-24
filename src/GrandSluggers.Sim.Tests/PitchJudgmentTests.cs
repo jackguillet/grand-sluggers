@@ -181,7 +181,7 @@ public class PitchJudgmentTests
         var strikes = new Dictionary<string, int>();
         for (var i = 0; i < 5000; i++)
         {
-            var pitch = match.CpuPitch();
+            var pitch = match.CpuPitcher.Pitch();
             var type = pitch.Type == PitchFamily.Changeup ? "changeup" : pitch.BreakX != 0 ? "break" : ChargeFeel.IsCharge(pitch.Charge01) ? "charge" : "fastball";
             seen[type] = seen.GetValueOrDefault(type) + 1;
             if (AtBatResolver.PitchInZone(pitch, match.Pitcher.Stats.Pitch, Rules.Default, match.Pitcher.StarPitch))

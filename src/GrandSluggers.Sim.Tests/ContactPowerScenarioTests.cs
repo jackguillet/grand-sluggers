@@ -141,7 +141,7 @@ public class ContactPowerScenarioTests
                 : bat - run >= a.SplitStat ? a.Power
                 : run - bat >= a.SplitStat ? a.Speed
                 : a.Balanced;
-            Assert.Equal(before, Match.CpuChargeChance(c, a));
+            Assert.Equal(before, CpuBatter.ChargeChance(c, a));
         }
     }
 
@@ -214,11 +214,11 @@ public class ContactPowerScenarioTests
         for (var seed = 1; seed <= 200; seed++)
         {
             // The same seed gives the same draw, so the only thing that can move the answer is the trait.
-            if (MatchWith(Hitter(contact: 9, power: 2), seed).CpuSwing(near).Swing) sureChases++;
-            if (MatchWith(Hitter(contact: 2, power: 9), seed).CpuSwing(near).Swing) sluggerChases++;
+            if (MatchWith(Hitter(contact: 9, power: 2), seed).CpuBatter.Swing(near).Swing) sureChases++;
+            if (MatchWith(Hitter(contact: 2, power: 9), seed).CpuBatter.Swing(near).Swing) sluggerChases++;
 
-            var sure = MatchWith(Hitter(contact: 9, power: 2), seed).CpuSwing(middle);
-            var slugger = MatchWith(Hitter(contact: 2, power: 9), seed).CpuSwing(middle);
+            var sure = MatchWith(Hitter(contact: 9, power: 2), seed).CpuBatter.Swing(middle);
+            var slugger = MatchWith(Hitter(contact: 2, power: 9), seed).CpuBatter.Swing(middle);
             Assert.True(sure.Swing && slugger.Swing, "the table swings at a middle-middle strike");
             if (Math.Abs(sure.TimingErrorFrames) < 1e-12) continue;
             sigmaRows++;
@@ -257,7 +257,7 @@ public class ContactPowerScenarioTests
         {
             var match = MatchWith(who, seed);
             Assert.True(match.StationRunner(2, match.Away.Roster[3]), "station second");
-            return match.CpuSwing(pitch).Charge01 == 1.0;
+            return match.CpuBatter.Swing(pitch).Charge01 == 1.0;
         }
     }
 
@@ -266,15 +266,15 @@ public class ContactPowerScenarioTests
     {
         var a = _content.Rules.Batting.Cpu.Archetype;
         // The split is Power against Run: the same Contact, the same Bat, opposite answers.
-        Assert.Equal(a.Power, Match.CpuChargeChance(Hitter(contact: 5, power: 9, run: 2), a));
-        Assert.Equal(a.Speed, Match.CpuChargeChance(Hitter(contact: 5, power: 2, run: 9), a));
+        Assert.Equal(a.Power, CpuBatter.ChargeChance(Hitter(contact: 5, power: 9, run: 2), a));
+        Assert.Equal(a.Speed, CpuBatter.ChargeChance(Hitter(contact: 5, power: 2, run: 9), a));
         // Swapping Contact alone cannot move the split.
-        Assert.Equal(a.Power, Match.CpuChargeChance(Hitter(contact: 2, power: 9, run: 2), a));
-        Assert.Equal(a.Power, Match.CpuChargeChance(Hitter(contact: 9, power: 9, run: 2), a));
+        Assert.Equal(a.Power, CpuBatter.ChargeChance(Hitter(contact: 2, power: 9, run: 2), a));
+        Assert.Equal(a.Power, CpuBatter.ChargeChance(Hitter(contact: 9, power: 9, run: 2), a));
 
         // The technique gate is Contact and Run: Contact 9 / Run 9 slaps, and the Power 9 twin does not.
-        Assert.Equal(a.Technique, Match.CpuChargeChance(Hitter(contact: 9, power: 2, run: 9), a));
-        Assert.Equal(a.Balanced, Match.CpuChargeChance(Hitter(contact: 2, power: 9, run: 9), a));
+        Assert.Equal(a.Technique, CpuBatter.ChargeChance(Hitter(contact: 9, power: 2, run: 9), a));
+        Assert.Equal(a.Balanced, CpuBatter.ChargeChance(Hitter(contact: 2, power: 9, run: 9), a));
         Assert.True(a.TechniqueMin > SharedBat, "the shared Bat could not have reached the gate");
     }
 
@@ -298,7 +298,7 @@ public class ContactPowerScenarioTests
         {
             var match = MatchWith(who, seed);
             Assert.True(match.StationRunner(1, match.Away.Roster[3]), "station first");
-            return match.CpuSquaresBunt();
+            return match.CpuBatter.SquaresBunt();
         }
     }
 

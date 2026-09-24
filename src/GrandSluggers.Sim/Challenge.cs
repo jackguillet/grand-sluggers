@@ -63,7 +63,7 @@ public sealed class Challenge
     }
 
     public Character? Resolve(Match match) =>
-        ApplyOutcome(match.HomeScore > match.AwayScore, match.Away.Captain, match.Away.Roster, match.Mvp().Who);
+        ApplyOutcome(match.HomeScore > match.AwayScore, match.Away.Captain, match.Away.Roster, match.Scorebook.Mvp().Who);
 
     public Character? ApplyOutcome(
         bool won,

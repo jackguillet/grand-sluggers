@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 /// The CPU batter commits from the flight as it stands (PH-18, spec §3 and §5.9), Appendix B.1
 /// rows S-141 … S-143, plus S-04 and S-28 read through it.
 ///
-/// The CPU reads <see cref="Match.CpuReadPitch"/>: the delivery with the stick's break frozen where
+/// The CPU reads <see cref="CpuBatter.ReadPitch"/>: the delivery with the stick's break frozen where
 /// it stood at the commit instant. Zone, swing / take and the box follow that read; the umpire and the
 /// bat still meet the ball that is thrown. The rule has no switch: the batting table refuses one.
 ///
@@ -43,10 +43,10 @@ public sealed class CpuReadScenarioTests
             // The stick was centered at the commit (the steer began after it): the CPU saw the edge strike.
             var late = new Scenario(Shipped, seed).Match;
             var (edge, steered) = EdgeAndSteered(late);
-            var decided = late.CpuSwing(steered, breakAtCommit: 0);
+            var decided = late.CpuBatter.Swing(steered, breakAtCommit: 0);
 
             // The same seed shown the unsteered pitch: the decision is the pre-commit read's, draw for draw.
-            var read = new Scenario(Shipped, seed).Match.CpuSwing(edge);
+            var read = new Scenario(Shipped, seed).Match.CpuBatter.Swing(edge);
             Assert.Equal(read, decided);
 
             // The ball that is thrown still crosses where the steer took it: the umpire judges the final crossing.
@@ -68,7 +68,7 @@ public sealed class CpuReadScenarioTests
         {
             var late = new Scenario(Shipped, seed).Match;
             var (_, steered) = EdgeAndSteered(late);
-            if (late.CpuSwing(steered, breakAtCommit: 0).Swing) swings++;
+            if (late.CpuBatter.Swing(steered, breakAtCommit: 0).Swing) swings++;
         }
         // An edge strike is offered at edgeSwingChance with fewer than two strikes, far above the chase a ball earns.
         var edgeChance = Shipped.Rules.Batting.Cpu.EdgeSwingChance;
@@ -90,7 +90,7 @@ public sealed class CpuReadScenarioTests
             var reach = PitchFlight.BreakReach(match.Pitcher.Stats.Pitch, commit, Shipped.Rules);
             foreach (var b in new[] { -1.0, -0.4, 0.3, 1.0 })
             {
-                var read = match.CpuReadPitch(edge with { BreakX = b });
+                var read = match.CpuBatter.ReadPitch(edge with { BreakX = b });
                 Assert.Equal(Math.Sign(b), Math.Sign(read.BreakX));
                 Assert.Equal(Math.Min(Math.Abs(b), reach), Math.Abs(read.BreakX));
                 Assert.Equal(edge with { BreakX = read.BreakX }, read);
@@ -100,10 +100,10 @@ public sealed class CpuReadScenarioTests
             var held = 0.0;
             var steps = (int)Math.Floor(commit * 600);
             for (var i = 0; i < steps; i++) held = PitchFlight.BreakStep(held, 1, 1 / 600.0, match.Pitcher.Stats.Pitch, Shipped.Rules);
-            Assert.InRange(match.CpuReadPitch(edge with { BreakX = 1 }).BreakX - held, 0, 0.01);
+            Assert.InRange(match.CpuBatter.ReadPitch(edge with { BreakX = 1 }).BreakX - held, 0, 0.01);
 
             // A client that watched the stick hands it in; it wins over the derivation.
-            Assert.Equal(-0.25, match.CpuReadPitch(edge with { BreakX = 1 }, breakAtCommit: -0.25).BreakX);
+            Assert.Equal(-0.25, match.CpuBatter.ReadPitch(edge with { BreakX = 1 }, breakAtCommit: -0.25).BreakX);
         }
     }
 
@@ -123,11 +123,11 @@ public sealed class CpuReadScenarioTests
             // S-04's full steer held one way from release has reached the whole ±1 by the commit (S-117): the
             // unwatched read is the stick watched at full. Five decisions in a row: the same commands in the
             // same order, so the read draws nothing of its own.
-            Assert.Equal(steered, unwatched.CpuReadPitch(steered));
+            Assert.Equal(steered, unwatched.CpuBatter.ReadPitch(steered));
             for (var i = 0; i < 5; i++)
-                Assert.Equal(unwatched.CpuSwing(steered), watched.CpuSwing(steered, breakAtCommit: 1));
+                Assert.Equal(unwatched.CpuBatter.Swing(steered), watched.CpuBatter.Swing(steered, breakAtCommit: 1));
             // The read pitch is pure: no draw, no state.
-            Assert.Equal(steered with { BreakX = 0 }, unwatched.CpuReadPitch(steered, breakAtCommit: 0));
+            Assert.Equal(steered with { BreakX = 0 }, unwatched.CpuBatter.ReadPitch(steered, breakAtCommit: 0));
         }
     }
 
@@ -170,9 +170,9 @@ public sealed class CpuReadScenarioTests
             var before = new Scenario(Shipped, seed).Match;
             chase = (Shipped.Rules.Batting.Cpu.ChaseBase - before.Batter.Stats.Bat) / 100.0;
             var (_, steered) = EdgeAndSteered(before);
-            if (!before.CpuSwing(steered, breakAtCommit: 1).Swing) takesBefore++;
+            if (!before.CpuBatter.Swing(steered, breakAtCommit: 1).Swing) takesBefore++;
             var after = new Scenario(Shipped, seed).Match;
-            if (!after.CpuSwing(steered, breakAtCommit: 0).Swing) takesAfter++;
+            if (!after.CpuBatter.Swing(steered, breakAtCommit: 0).Swing) takesAfter++;
         }
         Assert.InRange(takesBefore / (double)n, 1 - chase - 0.08, 1 - chase + 0.08);
         Assert.True(takesAfter < takesBefore / 2, $"after {takesAfter} vs before {takesBefore}");
@@ -185,8 +185,8 @@ public sealed class CpuReadScenarioTests
         for (var seed = 1; seed <= 100; seed++)
         {
             var meat = Scenario.PitchAt(0, CenterY);
-            var unwatched = Match.Exhibition(Shipped, "rio", "ashlord", seed: seed).CpuSwing(meat);
-            var watched = Match.Exhibition(Shipped, "rio", "ashlord", seed: seed).CpuSwing(meat, breakAtCommit: 0);
+            var unwatched = Match.Exhibition(Shipped, "rio", "ashlord", seed: seed).CpuBatter.Swing(meat);
+            var watched = Match.Exhibition(Shipped, "rio", "ashlord", seed: seed).CpuBatter.Swing(meat, breakAtCommit: 0);
             Assert.Equal(unwatched, watched);
         }
 
@@ -196,7 +196,7 @@ public sealed class CpuReadScenarioTests
         var rubber = match.PitcherOffsetX;
         var stream = s.Stream();
         for (var i = 0; i < 50; i++)
-            match.CpuSwing(Scenario.PitchAt(0.3, CenterY) with { BreakX = 1 });
+            match.CpuBatter.Swing(Scenario.PitchAt(0.3, CenterY) with { BreakX = 1 });
         Assert.Equal(box, match.BatterOffsetX);
         Assert.Equal(rubber, match.PitcherOffsetX);
         Assert.Equal(stream, s.Stream());

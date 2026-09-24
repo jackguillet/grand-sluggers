@@ -89,7 +89,7 @@ sealed class MatchCommand : Command
                 var ev = match.AutoPlay();
                 Console.WriteLine($"{half,-3} {match.AwayScore}-{match.HomeScore}  {ev.Kind,-11}  {ev.Caption}");
             }
-            var mvp = match.Mvp();
+            var mvp = match.Scorebook.Mvp();
             Console.WriteLine($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
             Console.WriteLine($"MVP  {mvp.Who.Name} ({mvp.Points}) — {mvp.Why}");
         }
