@@ -1329,6 +1329,35 @@
       ]
     },
     {
+      "id": "T-R02-B",
+      "revision": 1,
+      "mechanics": [
+        "running.02"
+      ],
+      "title": "two runners on one bag: give the bag back",
+      "category": "running",
+      "status": "implemented",
+      "issue": 688,
+      "reason": "Headless live share-rule lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-R01"
+      ],
+      "setup": "T-R02-B",
+      "objective": "human-give-back",
+      "controls": [
+        "control:running/Select runner",
+        "control:running/Send",
+        "control:running/All return"
+      ],
+      "tests": [
+        "TutorialRunningTests"
+      ]
+    },
+    {
       "id": "T-R03",
       "revision": 3,
       "mechanics": [
@@ -3993,6 +4022,46 @@
           "exitMph": 85,
           "launchDeg": -12,
           "sprayDeg": -18
+        }
+      },
+      "seat": "offense"
+    },
+    {
+      "id": "T-R02-B",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [
+        2
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 100,
+          "launchDeg": 35,
+          "sprayDeg": -15
         }
       },
       "seat": "offense"
