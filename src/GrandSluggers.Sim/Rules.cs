@@ -2677,9 +2677,7 @@ public sealed class CpuRunnerRules
     public double ReactionSec { get; init; } = 0.35;
     /// <summary>Unforced on a grounder to the infield: go if margin(next) is at least this and the ball is not in front.</summary>
     public double GroundGoMarginSec { get; init; } = 0.4;
-    /// <summary>Runner on third, grounder, fewer than two outs: go if the fielder is this far from home (infield back) …</summary>
-    public double InfieldBackFt { get; init; } = 110;
-    /// <summary>… or margin(home) is at least this.</summary>
+    /// <summary>Runner on third, grounder, fewer than two outs: go if the infield is back (the fielder meets it at or behind his own depth) or margin(home) is at least this.</summary>
     public double ThirdHomeMarginSec { get; init; } = 0.3;
     /// <summary>Hit to the outfield: go if margin(next) is at least outfieldGoSec − Run × outfieldGoPerRunSec.</summary>
     public double OutfieldGoSec { get; init; } = 0.5;
