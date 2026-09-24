@@ -863,7 +863,7 @@
     },
     {
       "id": "T-F10",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "fielding.10"
       ],
@@ -5662,7 +5662,7 @@
         "shipped": {
           "carryFt": 0,
           "exitMph": 88,
-          "launchDeg": 4,
+          "launchDeg": -6,
           "sprayDeg": 35
         }
       }
