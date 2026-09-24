@@ -27,6 +27,8 @@ public static class FieldingPursuit
     public readonly record struct Choice(Character Fielder, string Position, Route Route);
 
     /// <param name="readySec">Play seconds when this body may start moving (the reaction lockout, §8.2); the route's travel time starts there.</param>
+    /// <param name="cutOff">The body has the outfield behind it (the infield, the pitcher, the catcher): a ball it cannot reach that is still
+    /// coming is played where it crosses (<see cref="Crossing"/>). An outfielder is the last body; it chases the roll (#667).</param>
     public static Route Plan(
         FieldingPreview preview,
         Park park,
@@ -36,7 +38,8 @@ public static class FieldingPursuit
         double fromZ,
         double speedFtPerSec,
         RulesTable? rules = null,
-        double readySec = 0)
+        double readySec = 0,
+        bool cutOff = false)
     {
         var r = Rules.Or(rules);
         var hang = BallFlight.HangTime(path, r);
@@ -59,7 +62,50 @@ public static class FieldingPursuit
                 if (air.Reachable) return air;
             }
         }
-        return Rolling(path, park, nowSec, startSec, fromX, fromZ, speedFtPerSec, ramp, r);
+        var ground = Rolling(path, park, nowSec, startSec, fromX, fromZ, speedFtPerSec, ramp, r);
+        if (ground.Reachable || !cutOff) return ground;
+        return Crossing(path, park, hang, startSec, fromX, fromZ, speedFtPerSec, ramp, r, preview.CatchRadius) ?? ground;
+    }
+
+    /// <summary>
+    /// A ball an infield body cannot reach, still coming toward it (§8.2, #580): the route is where the ball passes closest — a sample
+    /// at catch height before the bounce or at scoop height after it — not where the ball comes to rest behind the body. Null
+    /// once the ball has passed (its nearest playable point is its next one): then the body chases the smallest miss, and the
+    /// outfield takes the ball on the grass (§8.9).
+    /// </summary>
+    static Route? Crossing(
+        IReadOnlyList<Sample> path,
+        Park park,
+        double hang,
+        double startSec,
+        double fromX,
+        double fromZ,
+        double speedFtPerSec,
+        double rampSec,
+        RulesTable rules,
+        double catchRadius)
+    {
+        Sample? first = null;
+        Sample? nearest = null;
+        var nearestFt = double.MaxValue;
+        foreach (var sample in path)
+        {
+            if (sample.T < startSec) continue;
+            if (sample.Event is SampleEvent.Fence or SampleEvent.Stands) break;
+            var air = sample.T < hang;
+            if (air ? sample.Height > rules.Fielding.Catch.StandingHeightFt : sample.Height >= rules.Fielding.Catch.TouchScoopY) continue;
+            if (!FieldBounds.Inside(park, sample.X, sample.Z)) continue;
+            first ??= sample;
+            var d = Diamond.Dist(fromX, fromZ, sample.X, sample.Z);
+            if (d < nearestFt)
+            {
+                nearestFt = d;
+                nearest = sample;
+            }
+        }
+        if (nearest is not { } at || first is not { } next || at.T <= next.T) return null;
+        var inAir = at.T < hang;
+        return Fixed(at.X, at.Z, at.T, startSec, fromX, fromZ, speedFtPerSec, inAir, rampSec, rules, inAir ? catchRadius : 0);
     }
 
     /// <summary>
@@ -91,7 +137,7 @@ public static class FieldingPursuit
                 : OutfieldStarts.Of(park, rules)[position];
             var speed = FieldingResolver.ChaseSpeedFt(fielder, position, preview, rules);
             var ready = readyAt != null && readyAt.TryGetValue(position, out var r0) ? r0 : 0;
-            var route = Plan(preview, park, path, nowSec, start.X, start.Z, speed, rules, ready);
+            var route = Plan(preview, park, path, nowSec, start.X, start.Z, speed, rules, ready, !FieldingResolver.IsOutfield(position));
             var candidate = new Choice(fielder, position, route);
             if (best is null || Better(candidate.Route, best.Value.Route))
                 best = candidate;
