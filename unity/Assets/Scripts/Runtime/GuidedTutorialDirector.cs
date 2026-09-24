@@ -6,11 +6,14 @@ namespace GrandSluggers.UnityClient
 {
     public sealed partial class MatchDirector
     {
-        static bool GuidedLesson(string id) => id is "T-G01" or "T-G05" or "T-G06" or "T-G06-R" or "T-G06-C";
+        static bool GuidedLesson(string id) => id is "T-G01" or "T-G05" or "T-G06" or "T-G06-R" or "T-G06-C" or "T-G07";
         bool GuidedAttempt(string id) => _guided?.Lesson.Id == id && _guided.Phase == TutorialPhase.Attempt;
         string _guidedHomeCaptain, _guidedAwayCaptain, _guidedPark;
         bool _guidedNight, _guidedPad1Home;
         int _guidedSeed;
+        ExhibitionSettings _exhibitionSettings;
+        int _exhibitionInnings;
+        string _exhibitionDifficulty;
 
         void PrepareGuidedTutorial(TutorialLesson lesson)
         {
@@ -40,6 +43,7 @@ namespace GrandSluggers.UnityClient
             if (needsPad && Controls.PadCount == 0)
                 return;
             _lineup = null; // Every lesson attempt needs a fresh roster, unlike Back during setup.
+            if (_guided.Lesson.Id == "T-G07") LendGuidedSettings();
             _guided.Begin();
             _tutorialUiAge = 0;
             Controls.CatchPlay();
@@ -48,6 +52,51 @@ namespace GrandSluggers.UnityClient
             _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
             _clip = null; _hlPath = null;
             BeginSet();
+        }
+
+        /// <summary>T-G07 edits a fresh default rule set; the player's own Exhibition rules come back when the lesson ends.</summary>
+        void LendGuidedSettings()
+        {
+            if (_exhibitionSettings == null)
+            {
+                _exhibitionSettings = _settings; _exhibitionInnings = Innings; _exhibitionDifficulty = Difficulty;
+            }
+            _settings = new ExhibitionSettings();
+            Innings = _settings.Innings; Difficulty = _settings.Difficulty;
+        }
+
+        void ReturnGuidedSettings()
+        {
+            if (_exhibitionSettings == null) return;
+            _settings = _exhibitionSettings; Innings = _exhibitionInnings; Difficulty = _exhibitionDifficulty;
+            _exhibitionSettings = null;
+        }
+
+        void GuidedStadiumChosen()
+        {
+            if (GuidedAttempt("T-G07")) GuidedObserve(GuidedAction.StadiumChosen);
+        }
+
+        /// <summary>Player 1's settings edit as the rule owner typed it, and whether it cleared a human ready.</summary>
+        void GuidedRuleEdit(int row, LineupSeat seat, string refusal, bool clearedReady)
+        {
+            if (GuidedAttempt("T-G07")) _guided.ObserveRuleEdit(row, seat, refusal, clearedReady);
+        }
+
+        void GuidedReadyChanged(LineupSeat seat)
+        {
+            if (GuidedAttempt("T-G07") && _lineup != null && _lineup.Step == LineupStep.MatchSettings)
+                _guided.ObserveReady(seat, _lineup.IsReady(seat));
+        }
+
+        void GuidedSettingsStart()
+        {
+            if (!GuidedAttempt("T-G07") || _lineup == null || _lineup.Step != LineupStep.MatchSettings) return;
+            var humans = new System.Collections.Generic.List<LineupSeat>();
+            if (_lineup.HomeSeat != LineupSeat.Cpu) humans.Add(_lineup.HomeSeat);
+            if (_lineup.AwaySeat != LineupSeat.Cpu) humans.Add(_lineup.AwaySeat);
+            _guided.ObserveSettingsStart(humans);
+            _tutorialUiAge = 0; _tutorialSaved = false;
         }
 
         void GuidedObserve(GuidedAction action)
