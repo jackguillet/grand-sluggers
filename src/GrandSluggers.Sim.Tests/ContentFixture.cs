@@ -33,7 +33,7 @@ sealed class ContentFixture : IDisposable
     public void ChangeObject(string relative, Action<JsonObject> change)
     {
         var path = Path(relative);
-        var json = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        var json = JsonNode.Parse(File.ReadAllText(path), documentOptions: DataJson.Document)!.AsObject();
         change(json);
         File.WriteAllText(path, json.ToJsonString(WriteOptions));
     }
@@ -41,7 +41,7 @@ sealed class ContentFixture : IDisposable
     public void ChangeArray(string relative, Action<JsonArray> change)
     {
         var path = Path(relative);
-        var json = JsonNode.Parse(File.ReadAllText(path))!.AsArray();
+        var json = JsonNode.Parse(File.ReadAllText(path), documentOptions: DataJson.Document)!.AsArray();
         change(json);
         File.WriteAllText(path, json.ToJsonString(WriteOptions));
     }

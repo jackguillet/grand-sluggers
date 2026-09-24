@@ -23,19 +23,6 @@ public sealed class DebugProtocol
         "id", "signature", "stage", "cause", "fix", "promoted", "issue", "pr"
     };
 
-    static readonly JsonSerializerOptions Json = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
-    static readonly JsonDocumentOptions Document = new()
-    {
-        CommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
     public IReadOnlyList<DebugProtocolEntry> Entries { get; }
 
     DebugProtocol(IReadOnlyList<DebugProtocolEntry> entries) => Entries = entries;
@@ -65,7 +52,7 @@ public sealed class DebugProtocol
         JsonNode? node;
         try
         {
-            node = JsonNode.Parse(File.ReadAllText(path), documentOptions: Document);
+            node = JsonNode.Parse(File.ReadAllText(path), documentOptions: DataJson.Document);
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
@@ -81,7 +68,7 @@ public sealed class DebugProtocol
         for (var i = 0; i < rows.Count; i++)
         {
             if (rows[i] is not JsonObject) continue;
-            var dto = rows[i].Deserialize<DebugProtocolEntryDto>(Json);
+            var dto = rows[i].Deserialize<DebugProtocolEntryDto>(DataJson.Options);
             if (dto is null) continue;
             entries.Add(new DebugProtocolEntry(
                 dto.Id ?? "", dto.Signature ?? "", dto.Stage ?? "",

@@ -49,8 +49,6 @@ public sealed class TutorialCatalog
         "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "guided-settings", "star-pitch", "star-swing", "star-resource", "star-unavailable", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run", "game-count-sequence", "game-foul-fair", "game-half-change", "human-triple-off", "human-bobble-recovery", "human-corner-dash", "human-early-fly-return", "human-fumble-recovery", "human-third-force-cancels-run", "human-third-tag-counts-run", "human-give-back"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground", "game-count", "game-contact", "game-half", "defense-swap"];
 
-    static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
-
     TutorialCatalog(TutorialMechanicFile mechanics, TutorialLessonFile lessons, TutorialMigrationFile migration, string profile)
     {
         if (mechanics.Version != 1 || lessons.Version != 1 || migration.Version != 1)
@@ -64,8 +62,7 @@ public sealed class TutorialCatalog
 
     public static TutorialCatalog Load(ContentCatalog content)
     {
-        T Read<T>(string name) => JsonSerializer.Deserialize<T>(File.ReadAllText(content.Root.Resolve("tutorials", name + ".json")), Json)
-            ?? throw new InvalidDataException("Null tutorial file: " + name);
+        T Read<T>(string name) where T : class => DataJson.Require<T>(content.Root.Resolve("tutorials", name + ".json"));
         try
         {
             var profile = content.Root.Overlay is null ? "shipped" : Path.GetFileName(content.Root.Overlay);

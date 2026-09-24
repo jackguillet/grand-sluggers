@@ -100,12 +100,6 @@ public sealed class DccStages
         "skip"
     };
 
-    static readonly JsonDocumentOptions Document = new()
-    {
-        CommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
     public string OneShot { get; }
     public IReadOnlyList<DccStage> Stages { get; }
 
@@ -140,7 +134,7 @@ public sealed class DccStages
         JsonNode? node;
         try
         {
-            node = JsonNode.Parse(File.ReadAllText(path), documentOptions: Document);
+            node = JsonNode.Parse(File.ReadAllText(path), documentOptions: DataJson.Document);
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {

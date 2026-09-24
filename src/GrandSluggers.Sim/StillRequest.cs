@@ -177,8 +177,7 @@ public sealed class StillRequest
     {
         if (string.IsNullOrWhiteSpace(json))
             throw new InvalidDataException("still request is empty");
-        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var req = JsonSerializer.Deserialize<StillRequest>(json, opts)
+        var req = JsonSerializer.Deserialize<StillRequest>(json, DataJson.Options)
             ?? throw new InvalidDataException("still request is empty");
         _ = req.ResolvedShots();
         _ = req.ResolvedSwingCaptains();

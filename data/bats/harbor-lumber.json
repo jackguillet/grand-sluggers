@@ -1,10 +1,9 @@
 {
+  // Rio's default. Harbor kid spark bat.
   "id": "harbor-lumber",
   "name": "Harbor Lumber",
-  "slot": "bat",
   "contactMod": 0,
   "powerMod": 0,
   "chargeAlwaysFull": false,
-  "visual": "bat-spark",
-  "notes": "Rio's default. Harbor kid spark bat."
+  "visual": "bat-spark"
 }

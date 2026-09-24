@@ -303,11 +303,7 @@ public sealed class DataRoot
         {
             return JsonNode.Parse(
                 System.IO.File.ReadAllText(path),
-                documentOptions: new JsonDocumentOptions
-                {
-                    CommentHandling = JsonCommentHandling.Skip,
-                    AllowTrailingCommas = true
-                });
+                documentOptions: DataJson.Document);
         }
         catch (Exception ex) when (ex is IOException or JsonException)
         {
