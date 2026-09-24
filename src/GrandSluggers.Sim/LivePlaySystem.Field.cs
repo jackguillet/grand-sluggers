@@ -159,6 +159,8 @@ public sealed partial class LivePlaySystem
     readonly HashSet<string> _routeImmune = new(StringComparer.OrdinalIgnoreCase);
     readonly List<BodySlowed> _slows = [];
     readonly List<BodySlowed> _slowsThisPlay = [];
+    readonly List<LiveFact> _facts = [];
+    readonly List<LiveFact> _factsThisPlay = [];
     readonly HashSet<Runner> _scoreTold = [];
     bool _gloved;
     readonly GloveRecoil _recoil = new();
@@ -226,9 +228,11 @@ public sealed partial class LivePlaySystem
     readonly LiveItems _items = new();
     /// <summary>A thrown item landed this play and took effect (<see cref="LiveItems.Landed"/>).</summary>
     public bool ItemLanded => _items.Landed;
-    /// <summary>Observation of a real glove take made possible by this fielder's authored reach bonus.</summary>
-    public string TutorialAbilityReachUsed { get; private set; } = "";
-    internal bool TutorialItemEffectActive(string item, string targetId) => item switch
+    /// <summary>
+    /// The named item's field effect is in force now (§12): the peel is down, the rocket's target is still dazed, the
+    /// dirt is hopping. <paramref name="targetId"/> matters only for the item that targets a body.
+    /// </summary>
+    public bool ItemEffectActive(string item, string targetId) => item switch
     {
         "banana" => _items.PeelDown,
         "rocket" => Field?.ItemTarget is { } target && target.Id == targetId
@@ -272,9 +276,6 @@ public sealed partial class LivePlaySystem
     public string GlovePos { get; private set; } = "P";
     public double GloveX { get; private set; }
     public double GloveZ { get; private set; }
-    /// <summary>Observation for tutorial ownership: the body whose assisted route actually advanced this frame.
-    /// Passive braking/coast is not an assisted route.</summary>
-    internal string TutorialAssistedPursuitGloveId { get; private set; } = "";
     public bool PlayerFielding { get; private set; }
     public bool Caught { get; private set; }
     public bool Buddy { get; private set; }
@@ -393,6 +394,16 @@ public sealed partial class LivePlaySystem
 
     /// <summary>Every status-volume touch this play, in order. Cleared on the next Begin, not at Time.</summary>
     public IReadOnlyList<BodySlowed> SlowsThisPlay => _slowsThisPlay;
+    /// <summary>What bodies actually did this frame, as typed facts (<see cref="LiveFact"/>).</summary>
+    public IReadOnlyList<LiveFact> Facts => _facts;
+    /// <summary>Every fact of this play that lasts the play (<see cref="ReachBonusTake"/>), kept until the next live ball.</summary>
+    public IReadOnlyList<LiveFact> FactsThisPlay => _factsThisPlay;
+
+    void RecordFact(LiveFact fact)
+    {
+        _facts.Add(fact);
+        _factsThisPlay.Add(fact);
+    }
 
     /// <summary>The volumes this play's bodies are tested against (F4-b): the park's status volumes, the night disc at night; none with hazards off.</summary>
     public IReadOnlyList<StatusVolume> StatusVolumes => _bodySlows.Volumes;
@@ -488,7 +499,9 @@ public sealed partial class LivePlaySystem
         if (command.Hit is null || command.Pitch is null || command.Swing is null)
             return new LivePlayCommandResult(Snapshot);
         ResetField();
-        TutorialAbilityReachUsed = ""; // receipt survives a same-tick completed catch
+        // The play's facts survive a same-tick completed catch; the next live ball clears them.
+        _facts.Clear();
+        _factsThisPlay.Clear();
         _events.Clear();
         _stamps.Clear();
         _stampsThisPlay.Clear();
@@ -694,7 +707,7 @@ public sealed partial class LivePlaySystem
         _events.Clear();
         _stamps.Clear();
         _slows.Clear();
-        TutorialAssistedPursuitGloveId = "";
+        _facts.Clear();
         var dt = command.DeltaSeconds;
         // Ownership of a press is decided here, once, from the seats: the offense pad never
         // reaches the gloves and the defense pad never reaches the runners (spec §0.4, #579).
@@ -1794,7 +1807,7 @@ public sealed partial class LivePlaySystem
             var run = FieldingResolver.ChaseSpeedFt(chaser, pre.Frozen, R);
             var step = StepTo(GlovePos, (GloveX, GloveZ), (BallX, BallZ), run, R.Fielding.Chase.StepStopFt, dt, flat: false);
             if (Diamond.Dist(GloveX, GloveZ, step.X, step.Z) > 1e-6)
-                TutorialAssistedPursuitGloveId = chaser.Id;
+                _facts.Add(new AssistedRouteStep(chaser.Id));
             GloveX = step.X;
             GloveZ = step.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1812,7 +1825,7 @@ public sealed partial class LivePlaySystem
             !FieldingResolver.IsOutfield(GlovePos));
         var next = StepTo(GlovePos, (GloveX, GloveZ), (route.X, route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         if (Diamond.Dist(GloveX, GloveZ, next.X, next.Z) > 1e-6)
-            TutorialAssistedPursuitGloveId = who.Id;
+            _facts.Add(new AssistedRouteStep(who.Id));
         GloveX = next.X;
         GloveZ = next.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -3465,7 +3478,7 @@ public sealed partial class LivePlaySystem
                         FlyCatch.ChaseTarget(preview, R, Park).X, FlyCatch.ChaseTarget(preview, R, Park).Z,
                         CatchDive ? FieldingResolver.DiveCatchFt(ordinary, R) : ordinary,
                         ElapsedSeconds, Hang, FlyCatch.NeedsJump(preview), R);
-                if (!ordinaryCouldTake) TutorialAbilityReachUsed = who.FieldAbility;
+                if (!ordinaryCouldTake) RecordFact(new ReachBonusTake(who.Id, who.FieldAbility));
             }
         }
         // The ball's speed the frame before the take (F693-02-ground-pickup-recoil-basis): the one input the recoil reads,
@@ -3761,6 +3774,8 @@ public sealed partial class LivePlaySystem
         _stampsThisPlay.Clear();
         _slows.Clear();
         _slowsThisPlay.Clear();
+        _facts.Clear();
+        _factsThisPlay.Clear();
         _scoreTold.Clear();
         RunnerPlay = true;
         PickoffBag = pickoffBag;

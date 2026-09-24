@@ -80,7 +80,7 @@ public sealed partial class TutorialSession
         }
         var live = Match.LivePlay;
         var received = _humanPickoffBag == 1 && live.PickoffBag == 1
-            && live.FirstThrowBag == 1 && live.TutorialPickoffReceivedAtFirst;
+            && live.FirstThrowBag == 1 && live.PickoffReceivedAtFirst;
         if (received)
         {
             Finish(true, "pickoff-checked", "Your pickoff reached first while the runner had broken from the bag.");
@@ -89,10 +89,4 @@ public sealed partial class TutorialSession
         if (result.CompletedPlay is not null)
             Finish(false, "pickoff-missed", "The pickoff did not reach the named receiver while the runner was exposed.");
     }
-}
-
-public sealed partial class LivePlaySystem
-{
-    internal bool TutorialPickoffReceivedAtFirst => _receivedClean && HoldsBall && GlovePos == CoverPos
-        && Diamond.Dist(GloveX, GloveZ, Diamond.First.X, Diamond.First.Z) <= R.Fielding.Cover.RadiusFt;
 }

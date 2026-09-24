@@ -52,8 +52,8 @@ public sealed class TutorialAbilityTests
         for (var n = 1; n <= 3; n++)
         {
             Drive(run, profile, LivePlayCommandSource.Human, move: true);
-            Assert.True(run.Feedback!.Success, id + "/" + profile + ": " + run.Feedback.Detail + $" catcher={run.LastPlay?.Fielder?.Id} ability={run.Match.LivePlay.TutorialAbilityReachUsed} feat={run.LastPlay?.Outcome?.DefensiveFeat}");
-            Assert.Equal(catalog.Setups.Single(s => s.Id == id).Skill, run.Match.LivePlay.TutorialAbilityReachUsed);
+            Assert.True(run.Feedback!.Success, id + "/" + profile + ": " + run.Feedback.Detail + $" catcher={run.LastPlay?.Fielder?.Id} ability={run.Match.LivePlay.FactsThisPlay.OfType<ReachBonusTake>().LastOrDefault()?.Ability} feat={run.LastPlay?.Outcome?.DefensiveFeat}");
+            Assert.Equal(catalog.Setups.Single(s => s.Id == id).Skill, run.Match.LivePlay.FactsThisPlay.OfType<ReachBonusTake>().LastOrDefault()?.Ability);
             Assert.Equal(n, run.Successes); Assert.Equal(n == 3, run.Passed);
             Assert.Equal(run.Feedback, TutorialSession.Replay(content, catalog, run.Recording()).Feedback);
             run.Retry();
