@@ -67,19 +67,19 @@ public sealed class SharedWindowScenarioTests
         // Re-authored to FD-11-R2 (F4-d, #895): the park's night multiplier is gone on both roots, so
         // night at the rink is the day window. Re-authored to PH-16-R18: the star multiplier is gone
         // too, so a charmball at the rink at night is the plain window (S-190 walks every star pitch).
-        var trial = ShippedRules;
-        var w = trial.Batting.Window;
-        Assert.Equal(w.Frames, AtBatResolver.ContactWindowFrames("charmball", Harbor, false, trial, Skills));
-        Assert.Equal(AtBatResolver.ContactWindowFrames(null, Harbor, false, trial, Skills),
-            AtBatResolver.ContactWindowFrames("charmball", CrystalRink, true, trial, Skills));
-        Assert.Equal(AtBatResolver.ContactWindowFrames(null, Harbor, false, trial, Skills),
-            AtBatResolver.ContactWindowFrames(null, CrystalRink, true, trial, Skills));
+        var rules = ShippedRules;
+        var w = rules.Batting.Window;
+        Assert.Equal(w.Frames, AtBatResolver.ContactWindowFrames("charmball", Harbor, false, rules, Skills));
+        Assert.Equal(AtBatResolver.ContactWindowFrames(null, Harbor, false, rules, Skills),
+            AtBatResolver.ContactWindowFrames("charmball", CrystalRink, true, rules, Skills));
+        Assert.Equal(AtBatResolver.ContactWindowFrames(null, Harbor, false, rules, Skills),
+            AtBatResolver.ContactWindowFrames(null, CrystalRink, true, rules, Skills));
 
         // Reported, not asserted as a target: on 9 frames the floor never bites. The floor is still
         // the last step, which the fixture table below shows by putting the window on it.
         Assert.True(w.Frames > w.FloorFrames, $"the window is over the floor: {w.Frames} vs {w.FloorFrames}");
 
-        var onTheFloor = trial with { Batting = trial.Batting with { Window = w with { Frames = w.FloorFrames } } };
+        var onTheFloor = rules with { Batting = rules.Batting with { Window = w with { Frames = w.FloorFrames } } };
         Assert.Equal(w.FloorFrames,
             AtBatResolver.ContactWindowFrames("charmball", CrystalRink, true, onTheFloor, Skills));
     }
@@ -87,17 +87,17 @@ public sealed class SharedWindowScenarioTests
     [Fact]
     public void S125_TheSpatialHalfOfThePlateStillReadsContactAndTheCharge()
     {
-        var trial = ShippedRules;
+        var rules = ShippedRules;
         // PH-11-R1: a charge trades placement forgiveness, never timing. PH-15-R7: Contact is
         // spatial forgiveness. Both live in the cursor.
         foreach (var contact in Enumerable.Range(1, 10))
         {
-            Assert.True(SweetSpot.BarrelScale(contact, true, false, trial)
-                        < SweetSpot.BarrelScale(contact, false, false, trial),
+            Assert.True(SweetSpot.BarrelScale(contact, true, false, rules)
+                        < SweetSpot.BarrelScale(contact, false, false, rules),
                 $"a charge still narrows the barrel at Contact {contact}");
             if (contact < 10)
-                Assert.True(SweetSpot.BarrelScale(contact + 1, false, false, trial)
-                            > SweetSpot.BarrelScale(contact, false, false, trial),
+                Assert.True(SweetSpot.BarrelScale(contact + 1, false, false, rules)
+                            > SweetSpot.BarrelScale(contact, false, false, rules),
                     $"Contact {contact + 1} still carries a wider barrel than {contact}");
         }
 
@@ -105,8 +105,8 @@ public sealed class SharedWindowScenarioTests
         var sure = Hitter(contact: 9, power: 2);
         var slugger = Hitter(contact: 2, power: 9);
         Assert.Equal(sure.Stats.Bat, slugger.Stats.Bat);
-        Assert.True(SweetSpot.BarrelScale(sure.Stats.Contact, false, false, trial)
-                    > SweetSpot.BarrelScale(slugger.Stats.Contact, false, false, trial));
+        Assert.True(SweetSpot.BarrelScale(sure.Stats.Contact, false, false, rules)
+                    > SweetSpot.BarrelScale(slugger.Stats.Contact, false, false, rules));
     }
 
     // ---------------------------------------------------------------------------------

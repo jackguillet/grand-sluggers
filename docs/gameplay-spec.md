@@ -1353,7 +1353,7 @@ A candidate profile is authored as an **overlay**, not as a second `data/` tree:
 
 A second full tree would duplicate characters, bats, gloves, chemistry, abilities, art and feel, none of which a rules trial changes; the first edit to a character would make the trial and the control differ on something the trial never meant to own, and the comparison the trial exists to make would be quietly worthless. So:
 
-- **Whole files, never fields.** A trial's copy must carry every field the shipped file carries, and a partial one is refused by name. Field-level merging makes a table that is half one profile and half another, and a field the trial does not name falls back to the C# default while provenance claims the whole table. Array rows are the trial's own business: a park may carry a different number of hazards.
+- **Whole files, never fields.** A trial's copy must carry every field the shipped file carries, and a partial one is refused by name. Field-level merging makes a table that is half one profile and half another, and a field the trial does not name would play the shipped value while provenance claims the whole table. Array rows are the trial's own business: a park may carry a different number of hazards.
 - **The tree is the declaration.** A file is overridden because the overlay carries it. A manifest would be a second place to keep in sync, and a file that fell out of it would silently run the control.
 - **Override, never add.** A path the shipped root does not have stops the run, for the same reason `GRAND_SLUGGERS_DATA` refuses a root with no `characters/`. That includes a name differing only in case: the declaration is built by enumerating the shipped root, so a spelling the shipped root does not use is a stray file on any filesystem rather than an override that works on a laptop and vanishes in CI. `README.md` at the top of an overlay is the one exception, because a trial that cannot explain itself is not evidence either.
 - **Every run stops rather than falls back.** Tables that cannot be read throw, whether or not either variable is set: there is no code table, and `Diamond` reads the process table, so any substitute would put the bags where the data never said.
@@ -1368,6 +1368,10 @@ The overlays in the tree:
 | Overlay | What it proposes |
 | --- | --- |
 | — | None today. |
+
+**Kept dormant.** With no overlay in the tree, the machinery stays so the next trial is a folder, not new code: `DataRoot`, `GRAND_SLUGGERS_TRIAL` and `GRAND_SLUGGERS_DATA`, the Unity window's `DataProfile`, `tools/local-player.py --trial`, and `TrialOverlayTests`, which builds its overlays in temporary folders. Tests that read the shipped root are named for what they test, not for the trial that first proposed it.
+
+**Also retired:** `trials/fatigue`, `trials/stars`, `trials/bunt` and `trials/cpu-read`. Each was promoted into `data/` and its folder deleted.
 
 **Retired:** `trials/c80` (#715–#723). The compact profile — the 80-ft field, the heavier ball, and the reads, clocks and throws derived to match them — became the shipped game when Jack decided to promote it on September 22, 2026 (3e, the ordinary loop only; §0.2 holds its contract). Every value it carried is in `data/`, and the folder was deleted.
 
