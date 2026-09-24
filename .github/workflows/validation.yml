@@ -34,6 +34,10 @@ jobs:
       # xunit.runner.json caps local runs at half the cores; MaxParallelThreads=0 gives CI one thread per core.
       - name: Build every project
         run: dotnet build GrandSluggers.sln -c Release
+      # The research probes under tools/ are outside the solution. Build them so a rule-table change that breaks
+      # one fails here. Build only: their evidence checks run on demand, not on a PR.
+      - name: Build the tools/ probes
+        run: for p in tools/*/*.csproj; do dotnet build "$p" -c Release || exit 1; done
       - name: Breakage suite
         run: >-
           dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj -c Release --no-build
