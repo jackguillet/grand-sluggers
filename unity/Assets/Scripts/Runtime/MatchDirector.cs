@@ -168,7 +168,7 @@ namespace GrandSluggers.UnityClient
 
         bool TrainingOn => _coach != null && _coach.Session != null;
         Seats SelectedSeats =>
-            TutorialOn ? (_coach.PlayerBats || _coach.PlayerRuns ? Seats.AwayOne : Seats.One) : TrainingOn || _mode != PlayMode.Exhibition
+            TutorialOn ? (_coach.PlayerBats || _coach.PlayerRuns || _coach.Tutorial.DefendsAsAway ? Seats.AwayOne : Seats.One) : TrainingOn || _mode != PlayMode.Exhibition
                 ? Seats.One
                 : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
         Seats LiveSeats => _matchSeats.Current(SelectedSeats);

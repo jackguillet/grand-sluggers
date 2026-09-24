@@ -5,7 +5,7 @@ public sealed record TutorialFeedback(bool Success, string Code, string Detail);
 public sealed record TutorialInput(double Time, LivePlayCommandSource Source, PitchCommand? Pitch = null,
     SwingCommand? Swing = null, LivePadInput? Field = null, int PickoffBag = 0, string? SwapPitcherId = null,
     int StealBag = 0, string? ItemId = null, string? ItemTargetId = null, TutorialPlateTick? Plate = null,
-    bool BeginPitchCharge = false);
+    bool BeginPitchCharge = false, string[]? SwapPositions = null);
 public sealed record TutorialRecording(int Version, string Lesson, int Revision, string Profile, string InputsHash, bool Demonstration, TutorialInput[] Inputs);
 public sealed record TutorialCompletion(string Lesson, int Revision, string Profile);
 
@@ -121,6 +121,7 @@ public sealed partial class TutorialSession
         }
         if (_setup.OpponentStars > 0) Match.GiveOffenseStars(_setup.OpponentStars);
         if (_setup.PoolStars is { } pool) Match.SetDefenseStarsForLesson(pool);
+        if (_setup.Bottom) PrepareBottomHalf();
         if (!Match.SetOuts(_setup.Outs)) throw new InvalidDataException("Cannot stage tutorial outs.");
         if (_setup.Policy == "game-half") PrepareGameHalf();
         var namedRunners = _setup.RunnerIdsByProfile?.GetValueOrDefault(_catalog.Profile);
@@ -531,7 +532,7 @@ public sealed partial class TutorialSession
             if (input is null || !double.IsFinite(input.Time) || input.Time < run.Elapsed || run.Phase != TutorialPhase.Attempt
                 || new[] { input.Pitch is not null, input.Swing is not null, input.Field is not null,
                     input.PickoffBag > 0, input.SwapPitcherId is not null, input.StealBag > 0, input.ItemId is not null,
-                    input.Plate is not null, input.BeginPitchCharge }.Count(b => b) != 1)
+                    input.Plate is not null, input.BeginPitchCharge, input.SwapPositions is not null }.Count(b => b) != 1)
                 throw new InvalidDataException("Invalid tutorial input timeline.");
             if (input.Field is not null) run.Tick(input.Time - run.Elapsed, input.Field, input.Source);
             else
@@ -544,6 +545,7 @@ public sealed partial class TutorialSession
                     : input.StealBag > 0 ? run.ArmSteal(input.StealBag, input.Source)
                     : input.ItemId is not null ? run.Item(input.ItemId, input.ItemTargetId!, input.Source)
                     : input.Plate is not null ? run.Plate(input.Plate, input.Source)
+                    : input.SwapPositions is { Length: 2 } pair ? run.SwapPositions(pair[0], pair[1], input.Source)
                     : run.SwapPitcher(input.SwapPitcherId!, input.Source);
                 if (!accepted) throw new InvalidDataException("Tutorial input does not belong to the teaching role.");
             }
