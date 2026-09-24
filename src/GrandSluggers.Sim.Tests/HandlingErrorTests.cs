@@ -98,6 +98,27 @@ public sealed class HandlingErrorTests
         }
     }
 
+
+    /// <summary>
+    /// The roll reads the ball, never the body (#921). The pitcher cannot take a full-swing ball inside his 0.65-s delivery recovery, so
+    /// at any take he is past it and rolls as any infielder does: a grounder to the mound never rolls (above), and a soft 40-mph looper
+    /// he meets rising in its first hop carries that hop's chance off the curve — small, never zero, the same every seed.
+    /// </summary>
+    [Fact]
+    public void ThePitcherPastHisRecoveryRollsTheHopLikeAnyInfielder()
+    {
+        var vale = Game.Must("vale");
+        for (var seed = 1; seed <= 10; seed++)
+        {
+            var run = Drive(Game, 40, 12, 18, ContactQuality.Nice, seed);
+            Assert.Equal("P", run.Pos);
+            Assert.True(run.TakeAt >= Game.Rules.Fielding.Reaction.PitcherRecoverySec, $"the pitcher took the ball at {run.TakeAt:0.00} s, inside his recovery");
+            Assert.InRange(run.Difficulty, 0.01, 0.25);
+            Assert.Equal(FieldingResolver.HandlingErrorChance(run.Difficulty, FieldingResolver.HandlingQuality(vale, run.Glove, Game.Rules), Game.Rules), run.Chance, 12);
+            Assert.Equal(1, run.Rolls);
+        }
+    }
+
     /// <summary>
     /// A 78-mph liner at 21.5° into left lands and comes up at vine 0.73 ft off the grass and rising: 90 % of the way to the hardest
     /// ball. Hands 8 with the glove faces 3.1 %; authored Hands 1 faces 8.7 %, and nothing faces more than 10 %. The chance is what the
