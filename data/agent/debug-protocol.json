@@ -616,9 +616,29 @@
       "signature": "Home plate is absent although the authored home-plate mesh loads; the primitive fallback is visible when the asset is missing.",
       "stage": "sitting",
       "cause": "FieldKit.Plate placed the ground-origin authored mesh at Y=0. Its white top at 0.22 ft and rim below 0.27 ft were buried by the home dirt at 0.38 ft.",
-      "fix": "Seat the authored mesh on ParkDiamond.PathTop in the shared FieldKit. HomeSet ties the footprint to the strike zone and places both boxes outside it. ArtRailsValidate.ValidateHomePlateClearance checks the imported upward white faces against the rendered home pad, zone width and box stripes; this Unity gate is separate from the .NET test catalog.",
+      "fix": "Embed the authored slab with its white playing face 1/8 inch above ParkDiamond.PathTop in the shared FieldKit; seating its underside on the dirt instead makes home plate stand up like a bag. The fallback uses the same face height. HomeSet ties the footprint to the strike zone and places both boxes outside it. ArtRailsValidate.ValidateHomePlateClearance checks the imported upward white faces against the rendered home pad, zone width and box stripes; this Unity gate is separate from the .NET test catalog.",
       "promoted": "",
       "issue": "#989",
+      "pr": ""
+    },
+    {
+      "id": "imported-plate-points-at-mound",
+      "signature": "Home plate is visible but sits behind home and points toward the mound instead of the catcher.",
+      "stage": "sitting",
+      "cause": "The home-plate FBX stores its broad edge on negative Z after exporting Blender +Y. FieldKit.Plate used identity rotation while HomeSet and its fallback extend toward positive Z.",
+      "fix": "Rotate the imported plate 180 degrees around its authored rear point in FieldKit. Validate all five transformed outline corners and containment inside the foul rays, not only renderer bounds.",
+      "promoted": "",
+      "issue": "#995",
+      "pr": ""
+    },
+    {
+      "id": "home-plate-has-a-raised-rim",
+      "signature": "Home plate looks like stacked layers or a raised ledge instead of one nearly flush rubber slab.",
+      "stage": "sitting",
+      "cause": "harbor_kit.build_home_plate joined a separately extruded navy ring above the chalk playing face.",
+      "fix": "Author one connected chalk slab with a rounded upper perimeter, no second shell and no geometry above the playing face. Keep its datum for the shared FieldKit to embed in dirt; standard bags keep their own geometry.",
+      "promoted": "",
+      "issue": "#998",
       "pr": ""
     },
     {

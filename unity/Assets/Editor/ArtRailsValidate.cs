@@ -100,6 +100,7 @@ namespace GrandSluggers.EditorTools
                 if (plate.Find("PrimitivePlate") != null)
                     errors.Add("home-plate import missing: validation reached the primitive fallback");
                 var whiteTopArea = 0f;
+                var footprint = new List<Vector3>();
                 var bounds = new Bounds();
                 var first = true;
                 foreach (var filter in plate.GetComponentsInChildren<MeshFilter>())
@@ -110,6 +111,8 @@ namespace GrandSluggers.EditorTools
                     else bounds.Encapsulate(renderer.bounds);
                     var mesh = filter.sharedMesh;
                     var vertices = mesh.vertices;
+                    foreach (var vertex in vertices)
+                        footprint.Add(filter.transform.TransformPoint(vertex));
                     var mats = renderer.sharedMaterials;
                     for (var sub = 0; sub < mesh.subMeshCount; sub++)
                     {
@@ -121,16 +124,25 @@ namespace GrandSluggers.EditorTools
                             var b = filter.transform.TransformPoint(vertices[indices[i + 1]]);
                             var c = filter.transform.TransformPoint(vertices[indices[i + 2]]);
                             var normal = Vector3.Cross(b - a, c - a);
-                            if (normal.normalized.y < 0.9f) continue;
+                            // The bevel is intentionally embedded; measure the flat playing face.
+                            if (normal.normalized.y < 0.999f) continue;
                             if (Mathf.Min(a.y, Mathf.Min(b.y, c.y)) <= dirt.max.y)
                                 errors.Add("home-plate white face is buried in home dirt");
+                            var expectedTop = dirt.max.y + FieldKit.PlateFaceClearanceFt;
+                            if (Mathf.Max(Mathf.Abs(a.y - expectedTop),
+                                Mathf.Max(Mathf.Abs(b.y - expectedTop), Mathf.Abs(c.y - expectedTop))) > 0.001f)
+                                errors.Add("home-plate white playing face is not nearly flush with the dirt");
                             whiteTopArea += normal.y * 0.5f;
                         }
                     }
                 }
+                errors.AddRange(ValidatePlateFootprint(footprint));
                 if (whiteTopArea < (float)(HomeSet.PlateW * HomeSet.PlateDepth * 0.5))
                     errors.Add("home-plate has no readable upward white pentagon");
-                Check(errors, "plate underside on dirt", bounds.min.y, dirt.max.y);
+                if (bounds.min.y >= dirt.max.y)
+                    errors.Add("home-plate slab must be embedded in the home dirt");
+                if (bounds.max.y > dirt.max.y + 1f / 16f)
+                    errors.Add("home-plate rim stands more than 3/4 inch above the dirt");
                 Check(errors, "plate left edge", bounds.min.x, (float)(Diamond.Home.X - HomeSet.PlateW * 0.5));
                 Check(errors, "plate right edge", bounds.max.x, (float)(Diamond.Home.X + HomeSet.PlateW * 0.5));
                 Check(errors, "plate catcher point", bounds.min.z, (float)(Diamond.Home.Z + HomeSet.PlatePointZ));
@@ -149,6 +161,36 @@ namespace GrandSluggers.EditorTools
                         if (mat != null) materials.Add(mat);
                 UnityEngine.Object.DestroyImmediate(root);
                 foreach (var mat in materials) UnityEngine.Object.DestroyImmediate(mat);
+            }
+            return errors;
+        }
+
+        // Bounds alone cannot distinguish a pentagon from the same bounds with
+        // its point facing the pitcher. Check the actual imported outline.
+        internal static List<string> ValidatePlateFootprint(List<Vector3> vertices)
+        {
+            const float tolerance = 0.01f;
+            var errors = new List<string>();
+            var outline = HomeSet.PlateOutline();
+            foreach (var corner in outline)
+            {
+                var expected = new Vector2((float)(Diamond.Home.X + corner.X),
+                    (float)(Diamond.Home.Z + corner.Z));
+                if (!vertices.Exists(v => Vector2.Distance(new Vector2(v.x, v.z), expected) <= tolerance))
+                    errors.Add("home-plate missing outline corner " + expected
+                        + "; rear point must meet the foul rays and wide edge must face the mound");
+            }
+            foreach (var vertex in vertices)
+            {
+                var x = vertex.x - (float)Diamond.Home.X;
+                var z = vertex.z - (float)Diamond.Home.Z;
+                if (Mathf.Abs(x) > (float)HomeSet.PlateW * 0.5f + tolerance
+                    || z > (float)HomeSet.PlateFrontZ + tolerance
+                    || z < Mathf.Abs(x) - tolerance)
+                {
+                    errors.Add("home-plate imported outline crosses the foul rays or shared footprint at " + vertex);
+                    break;
+                }
             }
             return errors;
         }
