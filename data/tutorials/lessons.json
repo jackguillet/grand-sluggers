@@ -1725,6 +1725,30 @@
       ]
     },
     {
+      "id": "T-G07",
+      "revision": 1,
+      "mechanics": [
+        "game.07"
+      ],
+      "title": "stadium and match settings",
+      "category": "game",
+      "status": "implemented",
+      "issue": 962,
+      "reason": "Guided existing-screen interactions; standalone two-player learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "guided-settings",
+      "controls": [],
+      "tests": [
+        "GuidedTutorialTests",
+        "ExhibitionSettingsTests"
+      ]
+    },
+    {
       "id": "T-X01",
       "revision": 4,
       "mechanics": [

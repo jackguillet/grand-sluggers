@@ -39,7 +39,7 @@ public sealed class TutorialCatalog
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
-        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "star-pitch", "star-swing", "star-resource", "star-unavailable", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run", "game-count-sequence", "game-foul-fair", "game-half-change", "human-triple-off", "human-bobble-recovery", "human-corner-dash", "human-early-fly-return", "human-fumble-recovery", "human-third-force-cancels-run", "human-third-tag-counts-run"];
+        "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "guided-settings", "star-pitch", "star-swing", "star-resource", "star-unavailable", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run", "game-count-sequence", "game-foul-fair", "game-half-change", "human-triple-off", "human-bobble-recovery", "human-corner-dash", "human-early-fly-return", "human-fumble-recovery", "human-third-force-cancels-run", "human-third-tag-counts-run"];
     public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground", "game-count", "game-contact", "game-half"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
@@ -122,12 +122,12 @@ public sealed class TutorialCatalog
             Require(l.Status is "planned" or "blocked" or "implemented", l.Id + " has unknown status (human acceptance is recorded separately)");
             if (l.Status != "implemented") continue;
             Require(Objectives.Contains(l.Objective), l.Id + " has unknown objective");
-            var guided = l.Objective is "guided-lineup" or "guided-seats" or "guided-pause" or "guided-recovery" or "guided-calibration";
+            var guided = l.Objective is "guided-lineup" or "guided-seats" or "guided-pause" or "guided-recovery" or "guided-calibration" or "guided-settings";
             Require(l.Tests.Length > 0 && (guided || l.Controls.Length > 0), l.Id + " needs regression evidence and controls");
             if (guided)
             {
                 Require((l.Id, l.Objective) is ("T-G01", "guided-lineup") or ("T-G05", "guided-seats")
-                    or ("T-G06", "guided-pause") or ("T-G06-R", "guided-recovery") or ("T-G06-C", "guided-calibration"),
+                    or ("T-G06", "guided-pause") or ("T-G06-R", "guided-recovery") or ("T-G06-C", "guided-calibration") or ("T-G07", "guided-settings"),
                     l.Id + " has unknown guided objective");
                 if (l.Objective == "guided-calibration")
                 {

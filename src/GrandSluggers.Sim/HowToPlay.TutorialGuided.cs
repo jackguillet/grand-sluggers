@@ -6,7 +6,7 @@ public static partial class HowToPlay
     public static string TutorialGuidedTitle(string id) => id switch
     {
         "T-G01" => "Build your lineup", "T-G05" => "Seat two players", "T-G06" => "Call time",
-        "T-G06-R" => "Recover your seat", "T-G06-C" => "Reset the stick", _ => ""
+        "T-G06-R" => "Recover your seat", "T-G06-C" => "Reset the stick", "T-G07" => "Set the match rules", _ => ""
     };
     public static string TutorialGuidedGoal(string id) => id switch
     {
@@ -15,6 +15,7 @@ public static partial class HowToPlay
         "T-G06" => "Call time, open How to play from that menu, then restart the match from Call time.",
         "T-G06-R" => "Lose an active controller and recover that same player's seat without changing teams.",
         "T-G06-C" => "Complete Reset stick from Call time on a supported controller.",
+        "T-G07" => "Choose a stadium or time of day, change Stars, innings and mercy, then ready and play ball with those rules.",
         _ => ""
     };
     public static string TutorialGuidedSetup(string id) => id switch
@@ -24,6 +25,7 @@ public static partial class HowToPlay
         "T-G06" => "Use the ordinary Call time menu in an Exhibition play. Restart begins the same tutorial setup again.",
         "T-G06-R" => "Connect a gamepad and set F6 input to Controller or Auto before starting. The prepared Harbor play begins at SET. Disconnect the active pad; the game pauses. Reconnect it or take that same seat with an unseated pad. Keyboard and mouse can recover Player 1.",
         "T-G06-C" => "Connect a gamepad and set F6 input to Controller or Auto before starting. The prepared Harbor play begins at SET. In Call time choose Reset stick and release the stick until the new centre is adopted.",
+        "T-G07" => "Each attempt starts on the stadium screen with the default rules. Only Player 1 edits rules. Items stay unavailable. A rule change clears every ready, so each human player readies again. The CPU is always ready and earns nothing. With two controllers both players ready on their own pads.",
         _ => ""
     };
     public static string TutorialGuidedControls(string id, InputScheme scheme) => id switch
@@ -37,6 +39,9 @@ public static partial class HowToPlay
             : "H opens Call time. Choose How to play, return to Call time, then choose Restart.",
         "T-G06-R" => "An active pad loss pauses the match. Reconnect it or press South on an unseated pad to take that player's seat.",
         "T-G06-C" => "Physical gamepad required. Start opens Call time. Choose Reset stick, then let go until the new centre is accepted.",
+        "T-G07" => scheme == InputScheme.Pad
+            ? "Stadium: up/down chooses Stadium or Time; left/right changes it. Settings: up/down chooses a rule; left/right or South changes it. North readies; East withdraws."
+            : "Stadium: W/S chooses Stadium or Time; A/D changes it. Settings: W/S chooses a rule; A/D, Space or a click changes it. Q or Play ball readies; F withdraws.",
         _ => ""
     };
     public static string GuidedNext(IReadOnlyList<GuidedAction> missing) => missing.Count == 0 ? "Ready" : missing[0] switch
@@ -51,6 +56,11 @@ public static partial class HowToPlay
         GuidedAction.SeatLost => "Disconnect an active controller",
         GuidedAction.SeatRecovered => "Recover that same seat",
         GuidedAction.StickRecalibrated => "Complete Reset stick",
+        GuidedAction.StadiumChosen => "Change the stadium or time of day",
+        GuidedAction.StarsChanged => "Change Stars in Match settings",
+        GuidedAction.InningsChanged => "Change the innings",
+        GuidedAction.MercyChanged => "Change the mercy rule",
+        GuidedAction.SettingsStarted => "Every player readies to play ball",
         _ => ""
     };
 }

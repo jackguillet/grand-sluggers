@@ -36,7 +36,7 @@ namespace GrandSluggers.UnityClient
         readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
         readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
         LineupScreens _lineup;
-        readonly ExhibitionSettings _settings = new ExhibitionSettings();
+        ExhibitionSettings _settings = new ExhibitionSettings();
         MenuNav.Gate _lineupX;
         MenuNav.Gate _lineupX2;
         MenuNav.Gate _lineupY;
@@ -364,7 +364,7 @@ namespace GrandSluggers.UnityClient
             }
             if (_phase == Phase.Select || _phase == Phase.Field || (_phase == Phase.Lineup && _lineup != null))
             {
-                HudView.GuidedHint(_guided);
+                HudView.GuidedHint(_guided, GuidedNotice);
                 return;
             }
             var ui = _phase switch
@@ -479,7 +479,7 @@ namespace GrandSluggers.UnityClient
                     _feelSlow, _freezeCam,
                     _spec != null ? _spec.CurrentEvent : "");
             }
-            HudView.GuidedHint(_guided);
+            HudView.GuidedHint(_guided, GuidedNotice);
         }
 
         string RunnerOrderLabel()

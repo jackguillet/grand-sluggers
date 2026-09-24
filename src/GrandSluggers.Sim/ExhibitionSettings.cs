@@ -13,9 +13,12 @@ public sealed class ExhibitionSettings
     public static readonly string[] Labels = { "Stars", "Items", "Innings", "Mercy rule", "CPU skill" };
     public void Select(int row) => Selected = Math.Clamp(row, 0, RowCount - 1);
     public void Move(int direction) => Select((Selected + Math.Sign(direction) + RowCount) % RowCount);
+    /// <summary>Why the selected row refuses this edit, or null when <see cref="Change"/> accepts it.</summary>
+    public string? Refusal(LineupSeat seat, int direction = 1) =>
+        seat != LineupSeat.Pad1 ? "rules-player-one" : direction == 0 ? "no-change" : Selected == 1 ? "items-unavailable" : null;
     public bool Change(LineupSeat seat, int direction = 1)
     {
-        if (seat != LineupSeat.Pad1 || direction == 0 || Selected == 1) return false;
+        if (Refusal(seat, direction) != null) return false;
         switch (Selected)
         {
             case 0: Stars = !Stars; break;
