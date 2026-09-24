@@ -299,7 +299,7 @@
       "stage": "sitting",
       "cause": "Controls.SouthDown aliases MouseLeftDown. Tutorial modal Update dispatched primary confirm before IMGUI button mouse-up.",
       "fix": "TutorialDirector excludes PointerDown from modal primary confirm. Uses Controls.PointerDown/GuiMouse and shared HowToPlay hit rectangles, like Call time. Draw-only IMGUI labels do not depend on legacy mouse-up events. Pad/keyboard confirm and in-play mouse baseball stay unchanged.",
-      "promoted": "TutorialNavigationTests.FooterRoutesToItsNamedAction",
+      "promoted": "Retired: pointer input was removed (gamepad only).",
       "issue": "#776",
       "pr": ""
     },
@@ -349,7 +349,7 @@
       "stage": "sim",
       "cause": "HowToPlay.MixesHardware searched keyboard names as substrings, so center matched Enter.",
       "fix": "Match complete key names with the same word-boundary rule used for controller labels; keep real mixed instructions rejected.",
-      "promoted": "HowToPlayTests.HardwareCopyChecksWholeKeyNames",
+      "promoted": "HowToPlayTests.KeyboardCopyChecksWholeKeyNames",
       "issue": "#795",
       "pr": ""
     },
@@ -420,7 +420,7 @@
       "stage": "sim",
       "cause": "Every couch page is measured, not counted. BookletLayout.BestFlow reflows a paragraph page into two columns when one does not fit, so an extra paragraph or ~30 more characters can push one column past the band; ControlDiagram.PageCallouts splits the callout list into three fixed pages, so adding a callout can put a fourth two-action card on a page and the stack no longer fits even at BookLineMinPt. HowToPlay.KidLineMax and RoleTables.MaxRows pass while the pixels do not, and the smaller supported window is the one that binds (#825).",
       "fix": "Fit the copy to the band, do not widen the band or drop the assertion. Measure before writing: ApproxWidth is length * pt * 0.55 and a block is ceil(width/columnW) lines of pt * 1.2, so a paragraph page's budget is a character count you can compute. Replace a row rather than adding one (RoleTables.MaxRows is a page count, not the limit that bites), put a new hardware callout on a lozenge that already exists rather than adding a card, and move copy that will not fit to the spread that owns that verb instead of deleting the rule.",
-      "promoted": "BookletLayoutTests.EveryRenderedPageBodyFitsAtCouchSizeInBothSchemes",
+      "promoted": "BookletLayoutTests.EveryRenderedPageBodyFitsAtCouchSize",
       "issue": "#825",
       "pr": "#835"
     },

@@ -60,13 +60,12 @@ public class PitcherSwapTests
     }
 
     [Fact]
-    public void TheBookNamesTheCycleAndSwapOnThePitchingSpreadInBothSchemes()
+    public void TheBookNamesTheCycleAndSwapOnThePitchingSpread()
     {
         // PH-02-R5 (#825): the Changeup row is replaced, not joined — MaxRows is 10 and the spread
         // is two couch-size pages of five. The changeup is now a family inside the cycle.
-        foreach (var scheme in new[] { RoleTables.Pad, RoleTables.Keys })
         {
-            var pitching = scheme.First(b => b.Id == "pitching").Rows;
+            var pitching = RoleTables.Pad.First(b => b.Id == "pitching").Rows;
             Assert.Contains(pitching, r => r.Verb == "Cycle pitch");
             Assert.DoesNotContain(pitching, r => r.Verb == "Changeup");
             Assert.Contains(pitching, r => r.Verb == "Swap pitcher" && r.Press.Contains("Arrange defense"));
@@ -77,9 +76,7 @@ public class PitcherSwapTests
         var pad = RoleTables.Pad.First(b => b.Id == "pitching").Rows;
         Assert.Contains(pad, r => r.Verb == "Cycle pitch" && r.Press.Contains("West") && r.Press.Contains("Fastball"));
         Assert.Contains(pad, r => r.Verb == "Swap pitcher" && r.Press.Contains("Start"));
-        var keys = RoleTables.Keys.First(b => b.Id == "pitching").Rows;
-        Assert.Contains(keys, r => r.Verb == "Cycle pitch" && r.Press.Contains("West") && r.Press.Contains("Fastball"));
-        Assert.Contains(keys, r => r.Verb == "Swap pitcher" && r.Press.StartsWith("Start"));
+        Assert.Contains(pad, r => r.Verb == "Swap pitcher" && r.Press.StartsWith("Start"));
         Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("any fielder"));
     }
 

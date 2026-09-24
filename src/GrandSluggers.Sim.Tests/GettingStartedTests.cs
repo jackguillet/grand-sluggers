@@ -16,30 +16,19 @@ public class GettingStartedTests
         Assert.Equal("Two controllers", GettingStarted.Modes[2].Title);
         foreach (var step in GettingStarted.Path)
         {
-            Assert.False(HowToPlay.MixesHardware(step.PadCaption), step.Id);
-            Assert.False(HowToPlay.MixesHardware(step.KeysCaption), step.Id);
+            Assert.False(HowToPlay.NamesKeyboard(step.Caption), step.Id);
             Assert.StartsWith("how-to-start-", step.Picture);
             Assert.True(StillRequest.AllowedShots.Contains(step.Shot), step.Shot);
         }
         foreach (var mode in GettingStarted.Modes)
-        {
-            Assert.False(HowToPlay.MixesHardware(mode.PadLine), mode.Id);
-            Assert.False(HowToPlay.MixesHardware(mode.KeysLine), mode.Id);
-        }
-        Assert.Contains("South", GettingStarted.Caption(GettingStarted.Path[0], InputScheme.Pad));
-        Assert.DoesNotContain("Space", GettingStarted.Caption(GettingStarted.Path[0], InputScheme.Pad));
-        Assert.Contains("Space", GettingStarted.Caption(GettingStarted.Path[0], InputScheme.Keys));
-        Assert.DoesNotContain("South", GettingStarted.Caption(GettingStarted.Path[0], InputScheme.Keys));
-        Assert.Contains("Tutorials", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Pad));
-        Assert.Contains("F", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Keys));
-        Assert.DoesNotContain("West", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Keys));
-        Assert.Contains("Controller", GettingStarted.Line(GettingStarted.Modes[2], InputScheme.Pad));
-        Assert.Contains("player 1 only", GettingStarted.Line(GettingStarted.Modes[2], InputScheme.Keys));
+            Assert.False(HowToPlay.NamesKeyboard(mode.Line), mode.Id);
+        Assert.Contains("South", GettingStarted.Path[0].Caption);
+        Assert.Contains("Tutorials", GettingStarted.Modes[1].Line);
+        Assert.Contains("Controller", GettingStarted.Modes[2].Line);
         var banned = new[] { "Challenge", "Toy Field", "minigame", "Records", "save file", "Wii", "disc" };
-        var copy = GettingStarted.Path.SelectMany(s => new[] { s.Title, s.PadCaption, s.KeysCaption })
-            .Concat(GettingStarted.Modes.SelectMany(m => new[] { m.Title, m.PadLine, m.KeysLine }))
-            .Concat(HowToPlay.Must("getting-started").Lines)
-            .Concat(HowToPlay.Must("getting-started").KeyLines!);
+        var copy = GettingStarted.Path.SelectMany(s => new[] { s.Title, s.Caption })
+            .Concat(GettingStarted.Modes.SelectMany(m => new[] { m.Title, m.Line }))
+            .Concat(HowToPlay.Must("getting-started").Lines);
         foreach (var needle in banned)
             Assert.DoesNotContain(copy, l => l.Contains(needle, StringComparison.OrdinalIgnoreCase));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Exhibition"));

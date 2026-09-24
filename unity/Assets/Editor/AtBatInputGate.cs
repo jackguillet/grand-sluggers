@@ -29,7 +29,6 @@ namespace GrandSluggers.EditorTools
         const float Step = 1f / 60f;
         static Gamepad _pad1;
         static Gamepad _pad2;
-        static Keyboard _keyboard;
 
         static AtBatInputGate() { EditorApplication.update += Update; }
 
@@ -79,8 +78,6 @@ namespace GrandSluggers.EditorTools
             {
                 _pad1 = InputSystem.AddDevice<Gamepad>("AtBatGatePad1");
                 _pad2 = InputSystem.AddDevice<Gamepad>("AtBatGatePad2");
-                _keyboard = InputSystem.AddDevice<Keyboard>("AtBatGateKeyboard");
-                _keyboard.MakeCurrent();
                 Neutral();
                 play.StartCoroutine(ExecuteChecks(play, evidence));
             }
@@ -139,7 +136,6 @@ namespace GrandSluggers.EditorTools
                 () => VerifyTwoSeatFlightRelease(play),
                 () => VerifyCpuSetReleaseIgnored(play),
                 () => VerifyTwoSeatSetReleaseIgnored(play),
-                () => VerifyKeyboardCannotReleasePadTwo(play),
                 () => VerifyScreenDirections(play),
                 () => VerifyCursorIgnoresCurve(play),
                 () => VerifyCycleOnceChangeup(play, padTwo: false),
@@ -148,7 +144,7 @@ namespace GrandSluggers.EditorTools
                 () => VerifyCycleResetsEachPitch(play),
                 () => VerifySelectSwapPick(play, padTwo: false),
                 () => VerifySelectSwapPick(play, padTwo: true),
-                // P4-c (#803): the held bunt's triggers, the East / G cancel and the leak guards, through the real
+                // P4-c (#803): the held bunt's triggers, the East cancel and the leak guards, through the real
                 // Controls -> TickSet / TickFlight path (PH-13-R1, PH-14-R3 ... R6).
                 () => VerifyCancelThenTake(play, padTwo: false),
                 () => VerifyCancelThenTake(play, padTwo: true),
@@ -158,7 +154,7 @@ namespace GrandSluggers.EditorTools
                 () => VerifyReleaseAllWithdraws(play),
                 () => VerifyEastCancelIsNotATrainingSkip(play),
                 // P5-c (#803): the held special modifier, read at the accepted release (PH-16-R10 ... R12, R17).
-                () => VerifyStarHeldAtReleaseIsSpecial(play, keys: false),
+                () => VerifyStarHeldAtReleaseIsSpecial(play),
                 () => VerifyStarLetGoBeforeReleaseIsOrdinary(play),
                 () => VerifyStarPressedWhileChargingCounts(play),
                 () => VerifyStarAfterReleaseChangesNothing(play),
@@ -364,10 +360,8 @@ namespace GrandSluggers.EditorTools
         static void Finish(Evidence evidence)
         {
             Controls.EndMatch();
-            if (_keyboard != null && _keyboard.added) InputSystem.RemoveDevice(_keyboard);
             if (_pad2 != null && _pad2.added) InputSystem.RemoveDevice(_pad2);
             if (_pad1 != null && _pad1.added) InputSystem.RemoveDevice(_pad1);
-            _keyboard = null;
             _pad1 = _pad2 = null;
             Write(evidence);
             EditorApplication.isPlaying = false;
@@ -594,20 +588,6 @@ namespace GrandSluggers.EditorTools
                 boxOffset = swing.BoxOffsetX,
                 bunt = swing.Bunt
             };
-        }
-
-        static GateCase VerifyKeyboardCannotReleasePadTwo(MatchDirector play)
-        {
-            Setup(play, Seats.Versus);
-            Tick(play, "TickSet", State(), State(south: true), Keys(Key.Space));
-            Require(SwingButton(play).Armed,
-                "Pad 2 South did not arm the away batter.");
-            Tick(play, "TickSet", State(), State(south: true), Keys());
-            Require(SwingButton(play).Armed,
-                "Player 1 keyboard release committed Player 2's held swing.");
-            Require(Get<SwingCommand>(play, "_swing") == null,
-                "Player 1 keyboard release created Player 2's swing.");
-            return new GateCase { name = "keyboard-seat-isolation", phase = Phase(play) };
         }
 
         static GateCase VerifyCpuSetReleaseIgnored(MatchDirector play)
@@ -942,33 +922,24 @@ namespace GrandSluggers.EditorTools
         }
 
         /// <summary>
-        /// PH-16-R11, R17: LB (or player 1's Q) held at the accepted South (Space) release asks for the Star Pitch; the pool
+        /// PH-16-R11, R17: LB held at the accepted South release asks for the Star Pitch; the pool
         /// pays, the delivery flies as the special, and the hold is spent until it comes up.
         /// </summary>
-        static GateCase VerifyStarHeldAtReleaseIsSpecial(MatchDirector play, bool keys)
+        static GateCase VerifyStarHeldAtReleaseIsSpecial(MatchDirector play)
         {
-            var match = keys ? SetupKeys(play) : Setup(play, Seats.One);
+            var match = Setup(play, Seats.One);
             Require(match.CanStarPitch, "The star fixture's defense cannot pay for its Star Pitch.");
             var before = match.DefenseStars;
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
-            if (keys)
-            {
-                Tick(play, "TickSet", State(), State(), Keys(Key.Space, Key.Q));
-                Require(Get<bool>(play, "_starPitch"), "Q held in SET did not read STAR on the card.");
-                Tick(play, "TickSet", State(), State(), Keys(Key.Q));
-            }
-            else
-            {
-                Tick(play, "TickSet", State(south: true, lb: true), State());
-                Require(Get<bool>(play, "_starPitch"), "LB held in SET did not read STAR on the card.");
-                Tick(play, "TickSet", State(lb: true), State());
-            }
+            Tick(play, "TickSet", State(south: true, lb: true), State());
+            Require(Get<bool>(play, "_starPitch"), "LB held in SET did not read STAR on the card.");
+            Tick(play, "TickSet", State(lb: true), State());
             var pitch = Get<PitchCommand>(play, "_pitch");
             Require(Phase(play) == "Flight" && pitch != null && pitch.Star, "The release with the modifier held was not the Star Pitch.");
             Require(Get<bool>(play, "_pitchStarAsked"), "The release did not record the request.");
             Require(!Get<StarModifierState[]>(play, "_starMods")[0].IsFreeNow(), "The hold that asked for the special is not spent.");
             Require(Math.Abs(match.DefenseStars - before) < 1e-9, "The pool paid before the match settled the release.");
-            return new GateCase { name = keys ? "star-held-at-release-keys" : "star-held-at-release-pad1", phase = Phase(play),
+            return new GateCase { name = "star-held-at-release-pad1", phase = Phase(play),
                 charge = pitch.Charge01 };
         }
 
@@ -1096,22 +1067,6 @@ namespace GrandSluggers.EditorTools
             return new GateCase { name = "spent-lb-no-live-verb", phase = Phase(play) };
         }
 
-        /// <summary>Player 1 seated on keyboard and mouse, pitching the top against the CPU.</summary>
-        static Match SetupKeys(MatchDirector play)
-        {
-            Neutral();
-            var match = Match.Slice(Get<ContentCatalog>(play, "_content"), innings: 3, seed: 1);
-            Set(play, "_match", match);
-            var lifecycle = Get<MatchSeatLifecycle>(play, "_matchSeats");
-            lifecycle.Release();
-            lifecycle.Bind(Seats.One);
-            SetStatic(typeof(Controls), "_devices", new DeviceSeats(null, null, pad1KeyboardMouse: true));
-            Invoke(play, "BeginSet");
-            Set(play, "_gateHold", true);
-            Set(play, "_t", 0f);
-            return match;
-        }
-
         static void Launch(MatchDirector play)
         {
             Invoke(play, "Launch", new PitchCommand("fastball", 0, false));
@@ -1197,15 +1152,8 @@ namespace GrandSluggers.EditorTools
 
         static InputFrame Tick(MatchDirector play, string method, GamepadState pad1, GamepadState pad2)
         {
-            return Tick(play, method, pad1, pad2, Keys());
-        }
-
-        static InputFrame Tick(MatchDirector play, string method, GamepadState pad1, GamepadState pad2,
-            KeyboardState keyboard)
-        {
             InputSystem.QueueStateEvent(_pad1, pad1);
             InputSystem.QueueStateEvent(_pad2, pad2);
-            InputSystem.QueueStateEvent(_keyboard, keyboard);
             InputSystem.Update();
             Controls.Tick(Step);
             // The held modifier's guard ticks before any reader, as MatchDirector.Update does (PH-16-R10).
@@ -1219,10 +1167,9 @@ namespace GrandSluggers.EditorTools
 
         static void Neutral()
         {
-            if (_pad1 == null || _pad2 == null || _keyboard == null) return;
+            if (_pad1 == null || _pad2 == null) return;
             InputSystem.QueueStateEvent(_pad1, State());
             InputSystem.QueueStateEvent(_pad2, State());
-            InputSystem.QueueStateEvent(_keyboard, Keys());
             InputSystem.Update();
             Controls.Tick(Step);
         }
@@ -1242,8 +1189,6 @@ namespace GrandSluggers.EditorTools
             if (east) state = state.WithButton(GamepadButton.East);
             return west ? state.WithButton(GamepadButton.West) : state;
         }
-
-        static KeyboardState Keys(params Key[] pressed) => new(pressed);
 
         static void Write(Evidence evidence)
         {

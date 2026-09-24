@@ -31,7 +31,7 @@ public class HudCalloutsTests
         Assert.True(BroadcastHud.InFrame(BroadcastHud.YouTell, 1280, 800));
         Assert.True(BroadcastHud.InFrame(BroadcastHud.ItemTell, 1280, 800));
         foreach (var mark in HudCallouts.Set.Marks.Concat(HudCallouts.InPlay.Marks))
-            Assert.False(HowToPlay.MixesHardware(mark.Label), mark.Id);
+            Assert.False(HowToPlay.NamesKeyboard(mark.Label), mark.Id);
         var row = HudCallouts.Row(0, 1280, 800);
         Assert.True(row.W > 500);
         var next = HudCallouts.Row(1, 1280, 800);

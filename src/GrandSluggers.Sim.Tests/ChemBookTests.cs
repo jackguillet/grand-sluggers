@@ -21,9 +21,9 @@ public class ChemBookTests
         Assert.Contains(ChemBook.Types, t => t.Id == "running" && t.Line.Contains("Close play"));
         Assert.Contains(ChemBook.Types, t => t.Id == "fielding" && t.Line.Contains("field verb"));
         foreach (var pair in ChemBook.ChemistryPairs)
-            Assert.False(HowToPlay.MixesHardware(pair.Caption), pair.Id);
+            Assert.False(HowToPlay.NamesKeyboard(pair.Caption), pair.Id);
         foreach (var row in ChemBook.Types)
-            Assert.False(HowToPlay.MixesHardware(row.Line), row.Id);
+            Assert.False(HowToPlay.NamesKeyboard(row.Line), row.Id);
         var good = ChemBook.ChemCell(0, 1280, 800);
         var bad = ChemBook.ChemCell(1, 1280, 800);
         Assert.True(bad.X > good.X);

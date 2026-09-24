@@ -132,44 +132,27 @@ public class SeatsTests
     }
 
     [Fact]
-    public void KeyboardAndMouseCanRecoverPlayerOneOnly()
+    public void OnePlayerBindsTheFirstGamepadAndWaitsWithoutOne()
     {
-        var devices = new DeviceSeats(pad1DeviceId: 101, pad2DeviceId: 202);
-        Assert.Equal(LineupSeat.Pad1, devices.Missing(Seats.Versus, [202]));
-
-        Assert.False(devices.UseKeyboardMouse(LineupSeat.Pad2));
-        Assert.True(devices.UseKeyboardMouse(LineupSeat.Pad1));
-
-        Assert.True(devices.Pad1UsesKeyboardMouse);
-        Assert.Null(devices.Pad1DeviceId);
-        Assert.Equal(LineupSeat.Cpu, devices.Missing(Seats.Versus, [202]));
-    }
-
-    [Fact]
-    public void OnePlayerSupportsControllerAndKeyboardMatchBindings()
-    {
-        var controller = DeviceSeats.BeginMatch([101], player1KeyboardMouse: false, versus: false);
-        var keyboard = DeviceSeats.BeginMatch([101], player1KeyboardMouse: true, versus: false);
-        var controllerModeWithoutAPad = DeviceSeats.BeginMatch([], player1KeyboardMouse: false, versus: false);
+        var controller = DeviceSeats.BeginMatch([101], versus: false);
+        var noPad = DeviceSeats.BeginMatch([], versus: false);
 
         Assert.Equal(LineupSeat.Pad1, controller.Missing(Seats.One, []));
         Assert.Equal(LineupSeat.Cpu, controller.Missing(Seats.One, [101]));
-        Assert.Equal(LineupSeat.Cpu, keyboard.Missing(Seats.One, []));
-        Assert.False(keyboard.Present(LineupSeat.Pad2, []));
-        Assert.True(controllerModeWithoutAPad.Pad1UsesKeyboardMouse);
+        Assert.False(controller.Present(LineupSeat.Pad2, [101]));
+        Assert.Null(noPad.Pad1DeviceId);
+        Assert.Equal(LineupSeat.Pad1, noPad.Missing(Seats.One, []));
     }
 
     [Fact]
-    public void KeyboardPlayerOneStillLeavesTheSecondPhysicalGamepadForPlayerTwo()
+    public void VersusBindsTheSecondPhysicalGamepadToPlayerTwo()
     {
-        var controllerMatch = DeviceSeats.BeginMatch([101, 202], player1KeyboardMouse: false, versus: true);
-        var keyboardMatch = DeviceSeats.BeginMatch([101, 202], player1KeyboardMouse: true, versus: true);
+        var match = DeviceSeats.BeginMatch([101, 202], versus: true);
+        var single = DeviceSeats.BeginMatch([101, 202], versus: false);
 
-        Assert.Equal(101, controllerMatch.Pad1DeviceId);
-        Assert.Equal(202, controllerMatch.Pad2DeviceId);
-        Assert.True(keyboardMatch.Pad1UsesKeyboardMouse);
-        Assert.Null(keyboardMatch.Pad1DeviceId);
-        Assert.Equal(202, keyboardMatch.Pad2DeviceId);
+        Assert.Equal(101, match.Pad1DeviceId);
+        Assert.Equal(202, match.Pad2DeviceId);
+        Assert.Null(single.Pad2DeviceId);
     }
 
     [Fact]
@@ -210,7 +193,7 @@ public class SeatsTests
         Assert.Equal(Seats.One, lifecycle.Current(Seats.FromPads(1, versus: true)));
 
         var confirmed = lifecycle.Bind(Seats.FromPads(2, versus: true));
-        var devices = DeviceSeats.BeginMatch([101, 202], player1KeyboardMouse: false, versus: confirmed.BothHuman);
+        var devices = DeviceSeats.BeginMatch([101, 202], versus: confirmed.BothHuman);
 
         Assert.Equal(Seats.Versus, confirmed);
         Assert.True(lifecycle.Bound);

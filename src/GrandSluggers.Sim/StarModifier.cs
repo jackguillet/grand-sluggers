@@ -16,12 +16,11 @@ public readonly record struct StarModifierRelease(bool Request, StarModifierStat
 
 /// <summary>
 /// The held special modifier (spec §12, PH-16-R10 … R12, R17), pure: no clock, no draw, no rules table. The
-/// binding is the client's (pad LB held, keyboard Q held, on either seat's own pad; the keys are player 1's).
+/// binding is the client's (the star button held on either seat's own pad).
 ///
 /// <para>
-/// <b>Read at the release.</b> The pitch or the swing is ordinary or special on the tick its South / Space /
-/// left click release is accepted (<see cref="Release"/>): pressing or letting go of the modifier while the
-/// button charges changes the intent; after the release nothing does. The ordinary pitch family still locks at
+/// <b>Read at the release.</b> The pitch or the swing is ordinary or special on the tick its release is accepted
+/// (<see cref="Release"/>): pressing or letting go of the modifier while the button charges changes the intent; after the release nothing does. The ordinary pitch family still locks at
 /// the charge (§3). The client sends the request; <see cref="Match"/> settles it (an unaffordable request is the
 /// ordinary action, spends nothing, and is recorded as a <see cref="StarRequest"/> not afforded).
 /// </para>

@@ -145,76 +145,57 @@ namespace GrandSluggers.UnityClient
             }
             if (!_tutorialWasModal) { _tutorialUiAge = 0; _tutorialWasModal = true; }
             if (_tutorialUiAge < .2f) return true;
-            var mouse = Controls.GuiMouse;
-            var pageStart = HowToPlay.TutorialPageStart(_tutorialPick);
-            var rows = Math.Max(1, Math.Min(HowToPlay.TutorialPageSize, _tutorialChoices.Length - pageStart));
-            var click = Controls.PointerDown ? HowToPlay.TutorialHit(mouse.x, mouse.y, Screen.width, Screen.height,
-                _tutorialMenu, rows, TutorialFeedbackReady) : -1;
-            // Use the same Input System pointer and hit rectangles as the book/Call time menus.
-            var confirm = Controls.SouthDown && !Controls.PointerDown;
+            var confirm = Controls.SouthDown;
             if (_tutorialMenu)
             {
                 var categoryStep = _tutorialX.Tick(Controls.MenuX, Controls.MenuTapX, dt);
                 if (categoryStep != 0) { SelectTutorialCategory(_tutorialCategory + categoryStep); return true; }
-                if (Controls.PointerDown)
-                {
-                    var tab = HowToPlay.TutorialTabHit(mouse.x, mouse.y, Screen.width, Screen.height, _tutorialCategories.Length);
-                    if (tab >= 0) { SelectTutorialCategory(tab); return true; }
-                    var pages = HowToPlay.TutorialPages(_tutorialChoices.Length);
-                    var direction = HowToPlay.TutorialPageHit(mouse.x, mouse.y, Screen.width, Screen.height);
-                    if (pages > 1 && direction != 0)
-                    {
-                        var page = (pageStart / HowToPlay.TutorialPageSize + direction + pages) % pages;
-                        _tutorialPick = page * HowToPlay.TutorialPageSize; return true;
-                    }
-                }
                 var count = Math.Max(1, _tutorialChoices.Length);
                 var step = _tutorialY.Tick(Controls.MenuY, Controls.MenuTapY, dt);
                 if (step != 0) _tutorialPick = (_tutorialPick - step % count + count) % count;
-                if (click >= 0) { _tutorialPick = pageStart + click; ChooseTutorialMenu(); }
-                else if (confirm || click == -2) ChooseTutorialMenu();
-                else if (Controls.EastDown || click == -4) { _tutorialMenu = false; _mode = PlayMode.Exhibition; _t = 0; }
+                if (confirm) ChooseTutorialMenu();
+                else if (Controls.EastDown) { _tutorialMenu = false; _mode = PlayMode.Exhibition; _t = 0; }
                 return true;
             }
             if (_guided != null && _guided.Phase == TutorialPhase.Brief)
             {
-                if (confirm || click == -2) BeginGuidedAttempt();
-                else if (Controls.EastDown || click == -3) OpenTutorials();
+                if (confirm) BeginGuidedAttempt();
+                else if (Controls.EastDown) OpenTutorials();
                 return true;
             }
             if (_guided != null && _guided.Phase == TutorialPhase.Feedback)
             {
-                if (confirm || click == -2)
+                if (confirm)
                 {
                     var id = _guided.Lesson.Id;
                     PrepareTutorial(id);
                 }
-                else if (Controls.WestDown || click == -5)
+                else if (Controls.WestDown)
                 {
                     var next = (Array.FindIndex(_tutorialAll, l => l.Id == _guided.Lesson.Id) + 1) % _tutorialAll.Length;
                     PrepareTutorial(_tutorialAll[next].Id);
                 }
-                else if (Controls.EastDown || click == -3) OpenTutorials();
+                else if (Controls.EastDown) OpenTutorials();
                 return true;
             }
             if (_coach.Tutorial.Phase == TutorialPhase.Brief)
             {
-                if (confirm || click == -2) BeginTutorialAttempt();
-                else if (Controls.EastDown || click == -3) OpenTutorials();
+                if (confirm) BeginTutorialAttempt();
+                else if (Controls.EastDown) OpenTutorials();
                 return true;
             }
             if (TutorialFeedbackReady)
             {
-                if (confirm || click == -2)
+                if (confirm)
                 {
                     PrepareTutorial(_coach.Tutorial.Lesson.Id);
                 }
-                else if (Controls.WestDown || click == -5)
+                else if (Controls.WestDown)
                 {
                     var next = (Array.FindIndex(_tutorialAll, l => l.Id == _coach.Tutorial.Lesson.Id) + 1) % _tutorialAll.Length;
                     PrepareTutorial(_tutorialAll[next].Id);
                 }
-                else if (Controls.EastDown || click == -3) OpenTutorials();
+                else if (Controls.EastDown) OpenTutorials();
                 return true;
             }
             return false;

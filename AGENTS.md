@@ -14,7 +14,7 @@ Where to look things up. Vision: `docs/vision.md`. Look: `docs/look.md`. Couch m
 
 Pick work from the top. Do not pick a lower row because it is easier.
 
-1. **Harbor Exhibition is playable.** Jack finishes a half from Call time How to play, pad and keyboard+mouse, no Slack. [#346](https://github.com/jackguillet/grand-sluggers/issues/346) / [#209](https://github.com/jackguillet/grand-sluggers/issues/209). Agents **do not pass** human gates.
+1. **Harbor Exhibition is playable.** Jack finishes a half from Call time How to play, with one pad and then with two pads, no Slack. [#346](https://github.com/jackguillet/grand-sluggers/issues/346) / [#209](https://github.com/jackguillet/grand-sluggers/issues/209). Agents **do not pass** human gates.
 2. **Sitting-found children.** File them. Do not silently patch. Parent is the epic that owns the lie (#342 book, #209 play, #188 toy).
 3. **The toy reads HUD-off.** Six captains name themselves at gameplay distance. Cameras look at the body, not a brim. [#188](https://github.com/jackguillet/grand-sluggers/issues/188).
 4. **Authored sound.** Bat crack, glove pop, crowd bed. Generated tones are not the product. [#223](https://github.com/jackguillet/grand-sluggers/issues/223). After play, not instead of it.
@@ -30,8 +30,8 @@ Unit tests are necessary and not sufficient. When Jack names a thing (a batter's
 - Research the spec (MLB, the reference still, existing tables, `docs/gameplay-spec.md`) **before** coding. Write the numbers and name the relationships the still must show (bags *inside* the foul line, the 1B–2B–3B apron thicker and more curved than the home legs, a 6-inch box gap). Tests must encode those relationships (`BagIsInsideTheFoulLine`, `BoxesClearThePlate`), not "a mesh exists." Cartoon fat is allowed; wrong topology is not. A play is decided by geometry (ball, runner, glove, bag), never by a roll or a caption; rule numbers live in `data/rules/` (a trial's own copies in `trials/`, never a second default).
 - **View the change** (Play `HarborDiamond` + Scene orbit, still, live bounds vs the reference). Math-only is not verification. If you cannot look, say so — do not claim look done.
 - "Close" / "better" from Jack is a correction, not acceptance.
-- If you change a screen, **be that screen as a player**: every captain if select, both schemes if controls, title → lineup → first pitch if front-of-house.
-- A menu still is not a half. HID Space is confirm, not baseball.
+- If you change a screen, **be that screen as a player**: every captain if select, both pads and both seats if controls, title → lineup → first pitch if front-of-house.
+- A menu still is not a half. South on a menu is confirm, not baseball.
 - Human gates (#346 and screenshot gates) stay human. Note what stuck. File children. Do not declare pass because CI is green.
 - Look / character work is a human gate. Dual stills in `docs/screenshot-gate.md` (DCC `dcc-*.png` + in-game `char-{id}-rest.png` / `char-{id}-pose.png`) are the falsifier. A critic files; Jack passes. `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. Agents do not pass look.
 - Fail if a stranger would need Slack, F2, or `docs/how-to-play.md` on disk to finish the path you touched.
@@ -108,7 +108,7 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 - One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`.
 - Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix; a repeat or a PR name is not a row. If the signature has fired twice, promote it to a validator or a scenario. If the lesson is procedural, grow `.claude/skills/character-art/` or `docs/agent-rails.md`. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`) and `data/agent/dcc-stages.json` (`cli stages`) and walk the stages: blocking → fill → motion → export → still. One-shotting a captain extra or a kit mesh is a patch.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
-- Gamepad is the couch product. Keyboard + mouse are the same scheme, player 1 only. Pad 2 is a second gamepad.
+- The game is gamepad only. Pad 1 is player 1; pad 2 is a second gamepad (player 2). There is no keyboard or mouse scheme.
 - Couch copy lives in `HowToPlay` / `CarnivalFront` / `BroadcastHud`, not scattered strings.
 - Content ids in `data/` stay stable. Feel numbers live in `data/feel/`. Do not grow `MatchDirector`.
 - Falsify with `tools/test-fast.sh <Classes you touched>`, `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Capture look stills with `tools/dcc-still.sh` and `tools/still-gate-character.sh`. Personal Unity cannot `-batchmode`.

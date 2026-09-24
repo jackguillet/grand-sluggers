@@ -26,22 +26,22 @@ public class PauseMenuTests
     }
 
     [Fact]
-    public void ClickHitsTheHighlightedRow()
+    public void RowsStackInsideThePanelWithoutOverlap()
     {
         const float sw = 1280f;
         const float sh = 720f;
-        var howTo = PauseMenu.HitItem(0, 0, sw, sh);
-        Assert.Equal(-1, howTo);
+        var p = PauseMenu.Panel(sw, sh);
         for (var i = 0; i < PauseMenu.Items.Count; i++)
         {
             var r = PauseMenu.ItemRect(i, sw, sh);
-            Assert.Equal(i, PauseMenu.HitItem(r.X + 8, r.Y + 8, sw, sh));
+            Assert.True(r.X >= p.X && r.X + r.W <= p.X + p.W, $"row {i} leaves the panel");
+            Assert.True(r.Y >= p.Y && r.Y + r.H <= p.Y + p.H, $"row {i} leaves the panel");
+            if (i > 0) Assert.True(r.Y >= PauseMenu.ItemRect(i - 1, sw, sh).Y + PauseMenu.ItemRect(i - 1, sw, sh).H, $"row {i} overlaps");
         }
-        Assert.True(PauseMenu.Contains(sw * 0.5f, sh * 0.5f, sw, sh));
     }
 
     [Fact]
-    public void EscOpensHowToOnTheFrontOfHouse()
+    public void ViewOpensHowToOnTheFrontOfHouse()
     {
         Assert.False(PauseMenu.OpenHowTo(paused: false, allowed: true, howTo: true, t: 0f));
         Assert.True(PauseMenu.OpenHowTo(paused: false, allowed: true, howTo: true, t: 0.21f));

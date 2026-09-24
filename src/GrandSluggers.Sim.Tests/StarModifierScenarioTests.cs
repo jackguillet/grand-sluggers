@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// The held special modifier (spec §12, PH-16-R10, R11, R12, R17), Appendix B.1 rows S-200 … S-205.
 ///
-/// The client reads LB (pad) or Q (player 1's keys) at the accepted release of the pitch or the swing and sends the
+/// The client reads the pad's star button at the accepted release of the pitch or the swing and sends the
 /// request; <see cref="Match"/> settles it. <see cref="StarModifier"/> is the pure step behind the read and its leak
 /// guard; <see cref="Match.PitchStarRequest"/> / <see cref="Match.SwingStarRequest"/> are the typed request the
 /// release shows and the play records; <see cref="BroadcastHud.StarUnavailable(StarRequest)"/> is the couch tell.
@@ -217,8 +217,8 @@ public sealed class StarModifierScenarioTests
         Assert.Contains(HowToPlay.Must("stars").Lines, l => l.Contains("Hold LT") && l.Contains("RT"));
         Assert.Contains(HowToPlay.Must("stars").Lines, l => l.Contains("flash red"));
         Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("before contact"));
-        // North / Q no longer select or arm a star anywhere in the book.
-        var every = HowToPlay.Pages.SelectMany(p => p.Lines.Concat(p.KeyLines ?? [])).ToArray();
+        // North no longer selects or arms a star anywhere in the book.
+        var every = HowToPlay.Pages.SelectMany(p => p.Lines).ToArray();
         Assert.DoesNotContain(every, l => l.Contains("North + South") || l.Contains("Q + Space") || l.Contains("Q+Space")
             || l.Contains("selects the named skill") || l.Contains("North selects"));
         Assert.DoesNotContain(ControlDiagram.PadCallouts, c => c.Id == "north" && (c.Offense + c.Defense).Contains("Star"));
@@ -240,10 +240,8 @@ public sealed class StarModifierScenarioTests
         foreach (var lesson in stars)
         {
             Assert.True(lesson.Revision >= (lesson.Id == "T-G03-U" ? 1 : 3), lesson.Id + " revision did not move with the verb");
-            var pad = HowToPlay.TutorialControls(lesson.Id, InputScheme.Pad);
-            var keys = HowToPlay.TutorialControls(lesson.Id, InputScheme.Keys);
+            var pad = HowToPlay.TutorialControls(lesson.Id);
             Assert.Contains("hold LT as you let go of RT", pad, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("hold Q as you let go of Space", keys, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("North", pad);
         }
     }

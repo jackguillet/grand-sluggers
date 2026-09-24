@@ -1,6 +1,6 @@
 # How to play
 
-Grand Sluggers uses controllers. One plays against CPU; two control separate teams. Keyboard and mouse do not operate player menus or baseball. Face-button names describe positions: South at the bottom, East right, West left, North top.
+Grand Sluggers is gamepad only. Pad 1 is player 1; pad 2 is player 2. One pad plays against the CPU; two pads control separate teams. There is no keyboard or mouse scheme. Face-button names describe positions: South at the bottom, East right, West left, North top.
 
 ## Start a game
 
@@ -46,7 +46,7 @@ Only when an item is offered in its lesson, D-pad left/right selects the item, l
 
 Devices stay assigned through setup and play, regardless of device-list order. Losing an active controller pauses the game. Reconnect it, or press South on an unseated controller to claim the missing seat. A surviving controller never inherits the other team. Release buttons and center sticks before resuming. Pause, book close and tutorial retry use the same release protection. No controller at launch shows Connect a controller.
 
-Developer F1/F2/F3 diagnostics remain separate from player input in the Editor. The debug sandbox and old literal-input recordings are not product keyboard/mouse schemes.
+F1/F2/F3 are editor-only developer keys for diagnostics. They are not player controls.
 
 ## Human checks still required
 

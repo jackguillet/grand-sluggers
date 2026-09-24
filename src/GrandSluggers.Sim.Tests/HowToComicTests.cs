@@ -20,27 +20,18 @@ public class HowToComicTests
         Assert.Contains("MAX", HowToComic.Pitch.First.Label);
         Assert.Contains("MAX", HowToComic.Swing.First.Label);
 
-        var padPitch = HowToComic.Caption(HowToComic.Pitch, InputScheme.Pad);
-        var keyPitch = HowToComic.Caption(HowToComic.Pitch, InputScheme.Keys);
-        var padSwing = HowToComic.Caption(HowToComic.Swing, InputScheme.Pad);
-        var keySwing = HowToComic.Caption(HowToComic.Swing, InputScheme.Keys);
-        Assert.Contains("RT", padPitch);
-        Assert.DoesNotContain("Space", padPitch);
-        Assert.Contains("Space", keyPitch);
-        Assert.DoesNotContain("South", keyPitch);
-        Assert.Contains("RT", padSwing);
-        Assert.Contains("Space", keySwing);
-        Assert.Contains("MAX", padPitch);
-        Assert.Contains("MAX", keySwing);
-        Assert.False(HowToPlay.MixesHardware(padPitch));
-        Assert.False(HowToPlay.MixesHardware(keyPitch));
-        Assert.False(HowToPlay.MixesHardware(padSwing));
-        Assert.False(HowToPlay.MixesHardware(keySwing));
+        var pitch = HowToComic.Pitch.Caption;
+        var swing = HowToComic.Swing.Caption;
+        Assert.Contains("RT", pitch);
+        Assert.Contains("RT", swing);
+        Assert.Contains("MAX", pitch);
+        Assert.Contains("MAX", swing);
+        Assert.False(HowToPlay.NamesKeyboard(pitch));
+        Assert.False(HowToPlay.NamesKeyboard(swing));
 
-        Assert.Equal("Hold RT", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Charge);
-        Assert.Equal("Release RT", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Commit);
-        Assert.Contains("Hold Space", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Charge);
-        Assert.Equal("Release", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Commit);
+        Assert.Equal("Hold RT", HowToComic.Pitch.Motion.Charge);
+        Assert.Equal("Release RT", HowToComic.Pitch.Motion.Commit);
+        Assert.Equal("Hold RT", HowToComic.Swing.Motion.Charge);
 
         var row = HowToComic.Row(0, 1280, 800);
         Assert.True(row.W > 500);

@@ -65,17 +65,4 @@ public class MenuNavTests
         Assert.Equal(1, MenuNav.AxisStep(0.95f, 0.20f, ref armed, ref hold));
         Assert.Equal(0, MenuNav.AxisStep(0.55f, 0.20f, ref armed, ref hold));
     }
-
-    [Fact]
-    public void InertialScrollIsOnePageThenRest()
-    {
-        var spinning = false;
-        Assert.Equal(1, MenuNav.WheelStep(-2f, ref spinning));
-        Assert.Equal(0, MenuNav.WheelStep(-1.2f, ref spinning));
-        Assert.Equal(0, MenuNav.WheelStep(-0.4f, ref spinning));
-        Assert.Equal(0, MenuNav.WheelStep(0f, ref spinning));
-        Assert.Equal(-1, MenuNav.WheelStep(2f, ref spinning));
-        spinning = true;
-        Assert.Equal(0, MenuNav.WheelStep(-3f, ref spinning));
-    }
 }

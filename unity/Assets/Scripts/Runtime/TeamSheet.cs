@@ -1,34 +1,18 @@
 using System;
 using GrandSluggers.Sim;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace GrandSluggers.UnityClient
 {
-    /// <summary>The lineup board uses one layout for rendering, pointer targets and pad navigation.</summary>
+    /// <summary>The lineup board uses one layout for rendering and pad navigation.</summary>
     public static partial class TeamSheet
     {
-        public enum Action { None, Player, Continue, Back, Fill }
         static GUIStyle _title, _heading, _body, _small, _name, _mark, _badge, _cardName, _fieldName;
         static Texture2D _white, _field;
-        static bool _hover, _pointerMode;
-        static LineupFocus _hoverFocus;
-        static int _hoverIndex;
         static readonly Color Ink = FrontBoardStyle.Ink;
         static readonly Color Muted = FrontBoardStyle.Muted;
         static readonly Color Gold = FrontBoardStyle.Gold;
 
-        public static void UseController(LineupSeat seat) { if (seat == LineupSeat.Pad1) { _hover = false; _pointerMode = false; } }
-
-        public static Action Pointer(LineupScreens lineup, out LineupFocus focus, out int index)
-        {
-            focus = default;
-            index = -1;
-            _hover = _pointerMode = false;
-            return Action.None;
-        }
-
-        static bool Contains(LineupCell c, float x, float y) => x >= c.X && x <= c.X + c.W && y >= c.Y && y <= c.Y + c.H;
         static LineupCell Cell(LineupFocus f, int i, int count) => f switch
         {
             LineupFocus.HomeRow => LineupLayout.HomeSlot(i), LineupFocus.AwayRow => LineupLayout.AwaySlot(i),
@@ -84,8 +68,7 @@ namespace GrandSluggers.UnityClient
         }
 
         static string SeatName(LineupSeat seat) => seat == LineupSeat.Cpu ? "CPU" : seat == LineupSeat.Pad1 ? "P1" : "P2";
-        static Character Inspection(LineupScreens lineup, LineupSeat seat) => seat == LineupSeat.Pad1 && _pointerMode
-            ? (_hover ? lineup.CharacterAt(_hoverFocus, _hoverIndex) : null) : lineup.InspectedBy(seat);
+        static Character Inspection(LineupScreens lineup, LineupSeat seat) => lineup.InspectedBy(seat);
         static void TeamLabel(LineupScreens lineup, bool home, float y)
         {
             var seat = home ? lineup.HomeSeat : lineup.AwaySeat;
@@ -116,8 +99,7 @@ namespace GrandSluggers.UnityClient
             {
                 var c = Cell(focus, i, count);
                 var who = lineup.CharacterAt(focus, i);
-                var one = _pointerMode ? _hover && focus == _hoverFocus && i == _hoverIndex
-                    : lineup.FocusOf(LineupSeat.Pad1) == focus && lineup.IndexOf(LineupSeat.Pad1) == i;
+                var one = lineup.FocusOf(LineupSeat.Pad1) == focus && lineup.IndexOf(LineupSeat.Pad1) == i;
                 var two = (lineup.HomeSeat == LineupSeat.Pad2 || lineup.AwaySeat == LineupSeat.Pad2)
                     && lineup.FocusOf(LineupSeat.Pad2) == focus && lineup.IndexOf(LineupSeat.Pad2) == i;
                 var on = one || two;
@@ -127,11 +109,6 @@ namespace GrandSluggers.UnityClient
                 var buddy = focus == LineupFocus.Pool
                     ? lineup.Buddies(p1, who) || lineup.Buddies(p2, who)
                     : lineup.Buddies(seat == LineupSeat.Pad1 ? p1 : seat == LineupSeat.Pad2 ? p2 : null, who);
-                if (_pointerMode && _hover && focus != LineupFocus.Pool)
-                {
-                    var hoverHome = _hoverFocus is LineupFocus.HomeRow or LineupFocus.HomeOrder or LineupFocus.HomeDiamond;
-                    if (_hoverFocus != LineupFocus.Pool && hoverHome == home) buddy |= lineup.Buddies(p1, who);
-                }
                 var r = RectOf(c);
                 var order = focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder;
                 var field = focus is LineupFocus.HomeDiamond or LineupFocus.AwayDiamond;
@@ -287,6 +264,5 @@ namespace GrandSluggers.UnityClient
             tex.SetPixels(pixels); tex.Apply(); return tex;
         }
         public static void Place(LineupScreens lineup, Transform parent, ChemToy chem, CardToy card) { chem?.Hide(); card?.Hide(); }
-        public static void HideBoard() { _hover = false; _pointerMode = false; }
     }
 }

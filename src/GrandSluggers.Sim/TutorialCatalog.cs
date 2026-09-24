@@ -79,7 +79,7 @@ public sealed class TutorialCatalog
 
     /// <summary>Enumerated independently of lesson data. Adding a control, ability, item or star exposes missing coverage.</summary>
     public static IEnumerable<string> RuntimeSources(ContentCatalog content) =>
-        RoleTables.Of(InputScheme.Pad).Concat(RoleTables.Of(InputScheme.Keys)).SelectMany(b => b.Rows.Select(r => $"control:{b.Id}/{r.Verb}")).Distinct()
+        RoleTables.Pad.SelectMany(b => b.Rows.Select(r => $"control:{b.Id}/{r.Verb}")).Distinct()
         .Concat(ContentDataValidator.TutorialFieldAbilities.Select(a => "ability:" + a))
         .Concat(content.StarSkills.Pitches.Keys.Select(a => "star-pitch:" + a))
         .Concat(content.StarSkills.Swings.Keys.Select(a => "star-swing:" + a))

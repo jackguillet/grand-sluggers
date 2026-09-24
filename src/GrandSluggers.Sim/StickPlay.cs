@@ -1,10 +1,9 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Gameplay analog: pad, WASD, and mouse mix here. A parked pad does not
+/// Gameplay analog: the pad's left stick. A parked pad does not
 /// walk the pitcher. Analog is dead until the stick has been in the deadzone
-/// this Catch (SET). Keys already down at Catch do not walk. Holding a throw
-/// still walks.
+/// this Catch (SET). Holding a throw still walks.
 /// </summary>
 public static class StickPlay
 {
@@ -81,52 +80,11 @@ public static class StickPlay
         public float LiveY(float rawY) => SeenCenter ? Live(rawY, RestY) : 0;
     }
 
-    /// <summary>
-    /// WASD. Already-down at Catch does not walk until release, then press.
-    /// Unity holding D while the OS does not cannot slide the rubber.
-    /// </summary>
-    public struct Key
-    {
-        bool _block;
-
-        public bool On { get; private set; }
-
-        public void Catch(bool down)
-        {
-            _block = down;
-            On = false;
-        }
-
-        public bool Tick(bool pressedThisFrame, bool down)
-        {
-            if (!down)
-            {
-                _block = false;
-                On = false;
-                return false;
-            }
-            if (_block)
-            {
-                On = false;
-                return false;
-            }
-            if (pressedThisFrame) On = true;
-            return On;
-        }
-    }
-
     public static float Live(float raw, float rest)
     {
         var v = raw - rest;
         if (Math.Abs(v) < Dead) return 0;
         return Math.Clamp(v, -1, 1);
-    }
-
-    public static float Mix(float pad, float key, float mouse)
-    {
-        var v = Math.Clamp(pad + key + mouse, -1, 1);
-        if (Math.Abs(v) < Dead) return 0;
-        return v;
     }
 
     public static float Mag(float x, float y) => (float)Math.Sqrt(x * x + y * y);

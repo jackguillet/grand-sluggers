@@ -107,7 +107,7 @@ The consolidated checklist is on #209. In order:
 
 1. **Parity sitting (#534)** — **played twice, not passed.** First: `95026535d3` (2026-09-13). Re-sit: `850dd95` with #628 body (2026-09-14). **D7 wait** (#677) until the next re-sit. Closes #563, #564 when Jack would keep the feel.
 2. **Narrated half-inning** — every out has a reason you saw. Watch the outfield on every fly for #580 and the glove read (#609). Closes #565–#568 and the fielding notes. **Not run yet.**
-3. **Three innings, then the book (#346)** — pad and keyboard; Call time → How to play must be enough. Closes #209 and #342. **Not run yet.**
+3. **Three innings, then the book (#346)** — one pad, then two pads; Call time → How to play must be enough. Closes #209 and #342. **Not run yet.**
 
 What sticks becomes a sitting-found child. Distill: file, append `data/agent/debug-protocol.json` in the fix PR, promote on the second firing.
 

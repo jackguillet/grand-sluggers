@@ -3,35 +3,11 @@ using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
-    /// <summary>Pointer and controller views share the same setup cells.</summary>
+    /// <summary>The setup screens draw on the shared setup cells; pads navigate them.</summary>
     public static class SetupSheet
     {
-        public enum Action { None, Change, Next, Back, PreviousPark, NextPark, Night, Hazards }
         static GUIStyle _title, _label, _body, _small;
         static readonly Color Ink = new Color(.045f, .075f, .095f);
-        public static Action Pointer(bool settings, out int row)
-        {
-            row = -1;
-            if (!Controls.PointerDown) return Action.None;
-            var p = Controls.GuiMouse;
-            var x = p.x / Screen.width; var y = 1 - p.y / Screen.height;
-            if (Hit(ExhibitionSetupLayout.Back, x, y)) return Action.Back;
-            if (Hit(ExhibitionSetupLayout.Next, x, y)) return Action.Next;
-            if (settings)
-            {
-                for (var i = 0; i < ExhibitionSettings.RowCount; i++)
-                    if (Hit(ExhibitionSetupLayout.SettingsRow(i), x, y)) { row = i; return Action.Change; }
-            }
-            else
-            {
-                if (Hit(ExhibitionSetupLayout.PreviousPark, x, y)) return Action.PreviousPark;
-                if (Hit(ExhibitionSetupLayout.NextPark, x, y)) return Action.NextPark;
-                if (Hit(ExhibitionSetupLayout.Night, x, y)) return Action.Night;
-                if (Hit(ExhibitionSetupLayout.Hazards, x, y)) return Action.Hazards;
-            }
-            return Action.None;
-        }
-        static bool Hit(LineupCell c, float x, float y) => ExhibitionSetupLayout.Contains(c, x, y);
         static Matrix4x4 Begin()
         {
             if (_title == null)
@@ -95,15 +71,14 @@ namespace GrandSluggers.UnityClient
         public static void FieldControls(bool night, bool hazards)
         {
             var old = Begin();
-            var keys = Controls.SeatUsesKeyboard(0);
             Text(40, 8, 650, 22, CarnivalFront.SetupStadiumStep, _small);
-            Button(ExhibitionSetupLayout.Night, CarnivalFront.SetupNightLabel(night, keys), night);
-            Button(ExhibitionSetupLayout.Hazards, CarnivalFront.SetupHazardsLabel(hazards, keys), hazards);
+            Button(ExhibitionSetupLayout.Night, CarnivalFront.SetupNightLabel(night), night);
+            Button(ExhibitionSetupLayout.Hazards, CarnivalFront.SetupHazardsLabel(hazards), hazards);
             Button(ExhibitionSetupLayout.PreviousPark, CarnivalFront.SetupPreviousStadium, false);
             Button(ExhibitionSetupLayout.NextPark, CarnivalFront.SetupNextStadium, false);
             Button(ExhibitionSetupLayout.Back, CarnivalFront.SetupBackTitle, false);
             Button(ExhibitionSetupLayout.Next, CarnivalFront.SetupPickCaptains, true);
-            Text(250, 718, 710, 48, CarnivalFront.SetupStadiumHelp(keys), _body);
+            Text(250, 718, 710, 48, CarnivalFront.SetupStadiumHelp, _body);
             GUI.matrix = old;
         }
         public static void Settings(ExhibitionSettings settings, LineupScreens lineup, Match match)
@@ -131,18 +106,16 @@ namespace GrandSluggers.UnityClient
                 ReadySeat(850, 455, LineupSeat.Pad2, lineup);
             else Text(850, 455, 370, 32, CarnivalFront.SetupCpuReady, _body);
             Text(850, 563, 370, 48, CarnivalFront.SetupRulesChanged, _small);
-            var keys = Controls.SeatUsesKeyboard(0);
             Button(ExhibitionSetupLayout.Back, lineup.IsReady(LineupSeat.Pad1) ? CarnivalFront.SetupEditSettings : CarnivalFront.SetupBackPositions, false);
-            Button(ExhibitionSetupLayout.Next, lineup.IsReady(LineupSeat.Pad1) ? CarnivalFront.SetupWaiting : CarnivalFront.SetupPlayBall(keys), true);
-            Text(242, 716, 734, 50, CarnivalFront.SetupRulesHelp(keys), _body);
+            Button(ExhibitionSetupLayout.Next, lineup.IsReady(LineupSeat.Pad1) ? CarnivalFront.SetupWaiting : CarnivalFront.SetupPlayBall, true);
+            Text(242, 716, 734, 50, CarnivalFront.SetupRulesHelp, _body);
             GUI.matrix = old;
         }
         static void ReadySeat(float x, float y, LineupSeat seat, LineupScreens lineup)
         {
             var ready = lineup.IsReady(seat);
             Text(x, y, 370, 30, CarnivalFront.SetupReadySeat(seat, ready), _label);
-            var keys = Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1);
-            Text(x, y + 31, 370, 24, CarnivalFront.SetupReadyHelp(keys), _small);
+            Text(x, y + 31, 370, 24, CarnivalFront.SetupReadyHelp, _small);
         }
         static void Button(LineupCell c, string text, bool primary)
         {

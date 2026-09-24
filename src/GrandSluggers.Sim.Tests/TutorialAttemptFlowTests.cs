@@ -72,17 +72,15 @@ public sealed class TutorialAttemptFlowTests
             Assert.False(HowToPlay.TutorialRepeatsImmediately(phase, successes));
     }
 
-    [Theory]
-    [InlineData(InputScheme.Keys)]
-    [InlineData(InputScheme.Pad)]
-    public void CorrectionAndControlsRemainAvailableDuringTheNextAttempt(InputScheme scheme)
+    [Fact]
+    public void CorrectionAndControlsRemainAvailableDuringTheNextAttempt()
     {
         var failure = new TutorialFeedback(false, "use-changeup", "");
-        var text = HowToPlay.TutorialAttemptHint("T-P03", scheme, "shipped", failure);
+        var text = HowToPlay.TutorialAttemptHint("T-P03", "shipped", failure);
         Assert.Contains(HowToPlay.TutorialFeedbackText(failure.Code), text);
-        Assert.Contains(HowToPlay.TutorialControls("T-P03", scheme), text);
-        Assert.Equal(HowToPlay.TutorialControls("T-P03", scheme),
-            HowToPlay.TutorialAttemptHint("T-P03", scheme, "shipped", failure with { Success = true }));
+        Assert.Contains(HowToPlay.TutorialControls("T-P03"), text);
+        Assert.Equal(HowToPlay.TutorialControls("T-P03"),
+            HowToPlay.TutorialAttemptHint("T-P03", "shipped", failure with { Success = true }));
     }
 
     [Fact]
