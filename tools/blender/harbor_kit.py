@@ -416,7 +416,7 @@ def build_home_plate(chalk):
     # Round the playing-face perimeter into the side of this same solid.
     # Keep the buried bottom's five corners as the exact footprint datum.
     perimeter = [e for e in bm.edges if all(abs(v.co.z - face_z) < 1e-6 for v in e.verts)]
-    bmesh.ops.bevel(bm, geom=perimeter, offset=0.035, segments=5, affect="EDGES")
+    bmesh.ops.bevel(bm, geom=perimeter, offset=0.035, segments=5, profile=0.5, affect="EDGES")
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     for face in bm.faces:
         face.smooth = 0.001 < face.normal.z < 0.999
@@ -431,6 +431,9 @@ def build_home_plate(chalk):
         pending.extend(e.other_vert(v) for e in v.link_edges)
     assert len(seen) == len(bm.verts), "plate contains a separate rim or shell"
     assert abs(max(v.co.z for v in bm.verts) - face_z) < 1e-6, "plate rises above its playing face"
+    for face in bm.faces:
+        if face.normal.z > 0.999:
+            assert all(abs(v.co.z - face_z) < 1e-6 for v in face.verts), "plate has a horizontal ledge below its playing face"
     for x, y in verts2d:
         assert any((v.co - Vector((x, y, 0))).length < 1e-6 for v in bm.verts), "plate footprint moved"
     bm.to_mesh(mesh)
