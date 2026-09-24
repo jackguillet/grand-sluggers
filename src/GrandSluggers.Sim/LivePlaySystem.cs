@@ -236,6 +236,22 @@ public sealed partial class LivePlaySystem
 
     internal LivePlaySystem(Match match) => _match = match;
 
+    // ---- Observations: read-only queries on the live state, for any reader (a lesson, a test, a trace). ----
+
+    /// <summary>The glove the player steers could dive now: the same eligibility <c>MovePlayer</c> uses.</summary>
+    internal bool CanDiveNow => PlayerFielding && !HoldsBall && !Throwing && CanMove(GlovePos);
+    /// <summary>The position whose glove is mid-lunge, or empty.</summary>
+    internal string LungingGlovePos => _lungePos;
+    /// <summary>The body on the glove the ball is assigned to now.</summary>
+    internal string GloveId => GloveChar().Id;
+    /// <summary>The first glove the play assigned the ball to, or empty.</summary>
+    internal string FirstGloveId => _firstGlove?.Id ?? "";
+    /// <summary>Who stands at a position on this play's assignment.</summary>
+    internal Character? FielderAt(string position) => Assigned().GetValueOrDefault(position);
+    /// <summary>A pickoff throw was received clean by the first-base cover, on the bag.</summary>
+    internal bool PickoffReceivedAtFirst => _receivedClean && HoldsBall && GlovePos == CoverPos
+        && Diamond.Dist(GloveX, GloveZ, Diamond.First.X, Diamond.First.Z) <= R.Fielding.Cover.RadiusFt;
+
     /// <summary>
     /// Opt-in geometry dump. Off by default so S-29 and the scenario harness allocate nothing extra.
     /// The recorder never feeds a <see cref="PlayEvent"/>; it only copies positions after the tick.

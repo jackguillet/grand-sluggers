@@ -6,10 +6,10 @@ public sealed partial class TutorialSession
 
     void EvaluateAbilityReach(LivePlaySystem live, LivePlayCommandResult result)
     {
-        if (live.TutorialAbilityReachUsed == _setup.Skill
+        if (live.FactsThisPlay.OfType<ReachBonusTake>().LastOrDefault()?.Ability == _setup.Skill
             && (live.HoldsBall || result.CompletedPlay?.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true))
         {
-            var who = result.CompletedPlay?.Fielder?.Id ?? live.TutorialFirstGloveId;
+            var who = result.CompletedPlay?.Fielder?.Id ?? live.FirstGloveId;
             var manual = _manualGloves.Contains(who) && !_assistedSinceManual.Contains(who);
             Finish(manual, manual ? "ability-reach-" + _setup.Skill : "assisted-ability-catch",
                 manual ? "Your " + _setup.Skill + " fielder reached a ball an ordinary glove could not."

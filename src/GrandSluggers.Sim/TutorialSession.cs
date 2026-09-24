@@ -294,8 +294,8 @@ public sealed partial class TutorialSession
         var closeIconBefore = live.CloseIcon;
         TickDoubledOffOpponent();
         TickDelayedStealOpponent(seconds);
-        var pos = live.GlovePos; var who = live.TutorialGloveId; var x = live.GloveX; var z = live.GloveZ;
-        var couldDive = live.TutorialCanDive;
+        var pos = live.GlovePos; var who = live.GloveId; var x = live.GloveX; var z = live.GloveZ;
+        var couldDive = live.CanDiveNow;
         var previousDive = live.DiveT;
         var runnerBefore = IsOffenseLesson ? CaptureRunnerBefore() : null;
         var thirdWasOnBag = Lesson.Objective == "human-double-steal" && Match.Runners.Any(r => r.Bag == 3 && r.Phase == RunnerPhase.OnBag);
@@ -334,8 +334,8 @@ public sealed partial class TutorialSession
         if (owned && pad.WestDown && acceptedJump)
             _humanJumpPresses.Add(who);
         var moved = Math.Abs(live.GloveX - x) + Math.Abs(live.GloveZ - z) > 1e-6;
-        if (live.TutorialAssistedPursuitGloveId.Length > 0)
-            _assistedSinceManual.Add(live.TutorialAssistedPursuitGloveId);
+        foreach (var step in live.Facts.OfType<AssistedRouteStep>())
+            _assistedSinceManual.Add(step.GloveId);
         if (owned && live.GlovePos == pos && moved && live.PursuitManual)
         {
             _manualTakeoverMoved = true;
@@ -345,7 +345,7 @@ public sealed partial class TutorialSession
             _manualGloves.Add(who);
         var divingOut = result.CompletedPlay?.Outcome?.DefensiveFeat == DefensiveFeat.Dive;
         if (owned && pad.EastDown && couldDive
-            && ((live.TutorialDiver == pos && live.DiveT > previousDive)
+            && ((live.LungingGlovePos == pos && live.DiveT > previousDive)
                 || divingOut && result.CompletedPlay?.Fielder?.Id == who))
             _divers[who] = Elapsed + Match.Rules.Fielding.Catch.DiveArmSec;
         // Human-owned defense never supplies its own throw. ThrowCommitted is emitted once when the throw command is accepted,
@@ -362,15 +362,15 @@ public sealed partial class TutorialSession
         }
         if (owned && live.Events.Contains(LiveEvent.Glove) && live.Caught && live.PursuitManual)
         {
-            if (!live.CatchJump && !live.CatchDive && _manualGloves.Contains(live.TutorialFirstGloveId)
-                && !_assistedSinceManual.Contains(live.TutorialFirstGloveId))
-                _humanAerialCatcher = live.TutorialFirstGloveId;
+            if (!live.CatchJump && !live.CatchDive && _manualGloves.Contains(live.FirstGloveId)
+                && !_assistedSinceManual.Contains(live.FirstGloveId))
+                _humanAerialCatcher = live.FirstGloveId;
         }
         LastPlay = result.CompletedPlay;
         if (Lesson.Objective == "manual-ground-possession" && live.HoldsBall && live.Call != FairFoulCall.Caught)
         {
-            var manual = _manualGloves.Contains(live.TutorialFirstGloveId)
-                && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
+            var manual = _manualGloves.Contains(live.FirstGloveId)
+                && !_assistedSinceManual.Contains(live.FirstGloveId);
             Finish(manual, manual ? "ground-possession" : "assisted-pickup", manual ? "You moved to the ground ball and secured it." : "The assistance collected that ball. Retry and move the glove yourself.");
         }
         else if (Lesson.Objective is "hazard-redirect-take" or "hazard-carom-take") EvaluateHazardTake(live, result);
@@ -383,7 +383,7 @@ public sealed partial class TutorialSession
                 || live.StampsThisPlay.Any(s => PlayStamp.IsOutWord(s.Word)) && live.CatchDive;
             if (caughtOut && (live.CatchDive || divingOut))
             {
-                var catcher = result.CompletedPlay?.Fielder?.Id ?? live.TutorialFirstGloveId;
+                var catcher = result.CompletedPlay?.Fielder?.Id ?? live.FirstGloveId;
                 var humanDive = _divers.TryGetValue(catcher, out var until) && Elapsed <= until;
                 Finish(humanDive, humanDive ? "diving-out" : "assisted-catch", humanDive ? "Your dive caught the ball in the air for an out." : "That catch was assisted. Retry and command the dive.");
             }
@@ -418,7 +418,7 @@ public sealed partial class TutorialSession
         var what = Lesson.Objective == "hazard-redirect-take" ? "came out of the other mouth" : "bounced off the body";
         if (live.HoldsBall)
         {
-            var manual = _manualGloves.Contains(live.TutorialFirstGloveId) && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
+            var manual = _manualGloves.Contains(live.FirstGloveId) && !_assistedSinceManual.Contains(live.FirstGloveId);
             var success = acted && manual;
             Finish(success, success ? "hazard-take" : acted ? "assisted-pickup" : "before-hazard",
                 success ? $"You read where the ball {what} and took it yourself."
@@ -452,8 +452,8 @@ public sealed partial class TutorialSession
         {
             if (!live.HoldsBall || live.Preview?.Grounder != true) return;
             var playerTookOver = _manualTakeoverMoved
-                && _manualGloves.Contains(live.TutorialFirstGloveId)
-                && !_assistedSinceManual.Contains(live.TutorialFirstGloveId);
+                && _manualGloves.Contains(live.FirstGloveId)
+                && !_assistedSinceManual.Contains(live.FirstGloveId);
             Finish(playerTookOver, playerTookOver ? "manual-takeover" : "assisted-pickup",
                 playerTookOver ? "You took the glove and secured the ground ball."
                     : "The helper kept the glove, or you did not move it to the ball after taking control.");
@@ -585,13 +585,4 @@ public static class TutorialContact
         return new(ContactQuality.Nice, !ball.Foul, false, exit, fixture.LaunchDeg, Math.Round(ball.LandingDist, 1),
             ball.HomeRun, false, null, null, SprayDeg: fixture.SprayDeg, Foul: ball.Foul, Class: ball.Shape);
     }
-}
-
-public sealed partial class LivePlaySystem
-{
-    // Observation only: the same action eligibility/owner that MovePlayer uses. No tutorial exceptions to baseball.
-    internal bool TutorialCanDive => PlayerFielding && !HoldsBall && !Throwing && CanMove(GlovePos);
-    internal string TutorialDiver => _lungePos;
-    internal string TutorialGloveId => GloveChar().Id;
-    internal string TutorialFirstGloveId => _firstGlove?.Id ?? "";
 }
