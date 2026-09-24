@@ -105,7 +105,7 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 
 ## Operating
 
-- One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`.
+- One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`. In Claude Code, `tools/bash_guard.py` (wired in `.claude/settings.json`) refuses `git add -A` / `git add .` and `dotnet test` without `--filter`; other agents follow the rule by hand.
 - Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix; a repeat or a PR name is not a row. If the signature has fired twice, promote it to a validator or a scenario. If the lesson is procedural, grow `.claude/skills/character-art/` or `docs/agent-rails.md`. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`) and `data/agent/dcc-stages.json` (`cli stages`) and walk the stages: blocking → fill → motion → export → still. One-shotting a captain extra or a kit mesh is a patch.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
 - The game is gamepad only. Pad 1 is player 1; pad 2 is a second gamepad (player 2). There is no keyboard or mouse scheme.
