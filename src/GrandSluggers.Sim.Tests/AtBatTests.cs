@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class AtBatTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     readonly Park _harbor;
 
     public AtBatTests() => _harbor = _content.Parks["harbor-diamond"];

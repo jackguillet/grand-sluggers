@@ -16,7 +16,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class VolumeRouteTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
     const double Frame = 1.0 / 60.0;
     const double SlowSec = 3.0;
     const double Mul = 0.45;

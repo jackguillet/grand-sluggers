@@ -12,7 +12,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class StealScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanCatcher = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
     static readonly LiveSeats HumanRunners = new(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);

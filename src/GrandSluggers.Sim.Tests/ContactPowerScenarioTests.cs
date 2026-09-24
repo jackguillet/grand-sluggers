@@ -20,7 +20,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public class ContactPowerScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     // ---------------------------------------------------------------------------------
     // S-121 — unauthored tracks Bat, and stays unauthored
@@ -46,7 +46,7 @@ public class ContactPowerScenarioTests
     {
         // Belt and braces for the row above: a key spelled in a file would be an authored value
         // whoever read it, and authoring one is banned in this child.
-        var root = ContentCatalog.Load().Root.Shipped;
+        var root = Shipped.Content.Root.Shipped;
         foreach (var file in Directory.GetFiles(Path.Combine(root, "characters"), "*.json"))
         {
             var node = JsonNode.Parse(File.ReadAllText(file), documentOptions: DataJson.Document)!;

@@ -21,7 +21,7 @@ public sealed class FeelTableTests
     [Fact]
     public void TheShippedTableLoadsWhole()
     {
-        var feel = ContentCatalog.Load().Feel;
+        var feel = Shipped.Content.Feel;
         Assert.Equal(0.35, feel.FieldAssistStick);
         Assert.Equal(0.42, feel.ContactCutSeconds);
         Assert.Equal(0.06, feel.RaceCamera.Margin);

@@ -13,7 +13,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class ControlScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     const double Frame = 1.0 / 60.0;
     /// <summary>A body's step in one frame at the fastest chase (Run 9, dash) is under this: any larger move is a teleport.</summary>
     const double StepCapFt = 1.5;

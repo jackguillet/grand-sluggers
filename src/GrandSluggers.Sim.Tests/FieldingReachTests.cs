@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class FieldingReachTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
     const double Dt = 1d / 60;
     static readonly LiveSeats Human = new(false, true, true, false);
 

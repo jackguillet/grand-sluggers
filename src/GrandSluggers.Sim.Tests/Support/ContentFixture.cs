@@ -16,7 +16,7 @@ sealed class ContentFixture : IDisposable
     public ContentFixture()
     {
         Root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-content-" + Guid.NewGuid().ToString("N"));
-        CopyDirectory(ContentCatalog.Load().Root.Shipped, Root);
+        CopyDirectory(Shipped.Content.Root.Shipped, Root);
     }
 
     public string Root { get; }

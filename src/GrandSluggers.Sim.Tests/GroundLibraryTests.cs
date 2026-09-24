@@ -21,7 +21,7 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class GroundLibraryTests
 {
     /// <summary>The data root, named explicitly so the process's own overlay cannot stand in for it.</summary>
-    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(Shipped.Content.Root.Shipped));
 
     // ---------------------------------------------------------------------------------
     // Parity — every row is today's number, written here
@@ -664,7 +664,7 @@ public sealed class GroundLibraryTests
         public RulesFileFixture()
         {
             Root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-grounds-" + Guid.NewGuid().ToString("N"));
-            CopyTree(ContentCatalog.Load().Root.Shipped, Root);
+            CopyTree(Shipped.Content.Root.Shipped, Root);
         }
 
         public string Root { get; }

@@ -29,7 +29,7 @@ public sealed class StillShotsTests
     /// <summary>A framed point sits inside the middle 90 % of the picture's width and height.</summary>
     const double SafeFrame = 0.9;
 
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
 
     static readonly string[] PoleIds = ["pole-left", "pole-right"];
 

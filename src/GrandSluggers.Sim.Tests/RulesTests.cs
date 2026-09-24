@@ -20,7 +20,7 @@ public sealed class RulesTests
         AllowTrailingCommas = true
     };
 
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Fact]
     public void EveryShippedTableExistsAndLoadsCleanly()
@@ -233,7 +233,7 @@ public sealed class RulesTests
         public RulesFixture()
         {
             Root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-rules-" + Guid.NewGuid().ToString("N"));
-            var source = ContentCatalog.Load().Root.Shipped;
+            var source = Shipped.Content.Root.Shipped;
             Directory.CreateDirectory(Root);
             foreach (var directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
                 Directory.CreateDirectory(System.IO.Path.Combine(Root, System.IO.Path.GetRelativePath(source, directory)));

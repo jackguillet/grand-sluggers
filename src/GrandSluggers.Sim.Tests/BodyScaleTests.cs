@@ -5,8 +5,8 @@ namespace GrandSluggers.Sim.Tests;
 
 public class BodyScaleTests
 {
-    readonly string _repo = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly string _repo = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, ".."));
+    readonly ContentCatalog _content = Shipped.Content;
 
     static readonly string[] NotGrow =
         ["lick-catch", "super-jump", "dive", "laser", "clamber", "snap-throw", ""];

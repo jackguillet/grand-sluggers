@@ -18,7 +18,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class ParkSchemaTests
 {
-    static readonly ContentCatalog Shipped = ContentCatalog.Load();
+    static readonly ContentCatalog Shipped = global::GrandSluggers.Sim.Tests.Shipped.Content;
 
     /// <summary>The field-pick cycle as the shipped six-id literal in <c>ExhibitionPick</c> spelled it.</summary>
     static readonly string[] PickOrder =

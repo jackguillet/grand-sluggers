@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class InfieldBackReadTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Theory]
     [InlineData("2B", 4, true)]

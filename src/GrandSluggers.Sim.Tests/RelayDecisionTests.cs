@@ -11,7 +11,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class RelayDecisionTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
     const double Frame = 1.0 / 60.0;
 
     // ---------------------------------------------------------------------------------

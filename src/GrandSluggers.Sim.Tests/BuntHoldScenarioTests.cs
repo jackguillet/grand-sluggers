@@ -20,7 +20,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class BuntHoldScenarioTests
 {
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped));
 
     const double Dt = 1.0 / 60;
     static double ToFull => Shipped.Feel.SwingChargeSeconds;

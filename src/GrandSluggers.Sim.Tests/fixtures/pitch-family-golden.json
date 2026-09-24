@@ -1,7 +1,7 @@
 {
   "what": "Bit-identical pitch flights for the authored families (#810, PH-02-R2). Captured before the family library replaced PitchCommand.Changeup; every value must survive the refactor unchanged.",
   "encoding": "IEEE-754 doubles as 16 lower-case hex digits (BitConverter.DoubleToInt64Bits), space separated. mph rows are one double. Flight rows are \u0027y z xBase damped\u0027 (crossing rows drop z): xBase is the same delivery with no break and no star, which is the only part of X no Math.Sin touches, and damped is the break damping (charged || changeup) the old code gave that delivery. The test rebuilds the real X from those on the running platform, because Math.Sin differs by one ULP between macOS libm and glibc (#736).",
-  "regenerate": "GRAND_SLUGGERS_WRITE_PITCH_GOLDEN=1 dotnet test --filter \u0022FullyQualifiedName~PitchFamilyGolden\u0022",
+  "regenerate": "tools/regenerate.sh pitch-golden",
   "rows": {
     "pt|f#0|c0|b-1|u0": "4018cccccccccccd 4049970a3d70a3d7 3ff8cccccccccccd 0",
     "pt|f#0|c0|b-1|u0.05": "40185604189374bc 40484f7ced916872 3ff78f5c28f5c290 0",

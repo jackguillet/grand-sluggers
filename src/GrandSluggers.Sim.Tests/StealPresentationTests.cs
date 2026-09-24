@@ -30,7 +30,7 @@ public sealed class StealPresentationTests
     [InlineData(4.0 / 3)] [InlineData(16.0 / 10)] [InlineData(16.0 / 9)] [InlineData(21.0 / 9)]
     public void DoubleStealReturnAndRetargetKeepBodiesAndBothBagsInsideTheFrame(double aspect)
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var match = Match.Slice(content, seed: 7);
         match.StationRunner(1, match.AwayOrder[1]);
         match.StationRunner(3, match.AwayOrder[2]);
@@ -63,7 +63,7 @@ public sealed class StealPresentationTests
     [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)]
     public void ThePrePitchInsetKeepsTheRaceVisibleFromInsideTheHomeBoard(int bag)
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var subjects = new[] { PlayCamera.BagSubject(4), PlayCamera.BagSubject(1), PlayCamera.BagSubject(2), PlayCamera.BagSubject(bag) };
         {
             var frame = PlayCamera.RaceFraming(content.Shots, subjects, 16.0 / 9, content.Feel.RaceCamera);

@@ -35,7 +35,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
 
     public BodyGroundTests(Roots roots) => _roots = roots;
 
-    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(Shipped.Content.Root.Shipped));
 
     /// <summary>The fixture ice row. Distinct values, so a reader that took the wrong multiplier fails by name.</summary>
     static readonly (double Start, double Brake, double Cut, double Slide, double Overrun) Slick = (1.5, 2.0, 2.5, 1.5, 2.0);
@@ -539,7 +539,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
         {
             var root = Path.Combine(Path.GetTempPath(), "grand-sluggers-body-ground-" + Guid.NewGuid().ToString("N"));
             _dirs.Add(root);
-            CopyTree(ContentCatalog.Load().Root.Shipped, root);
+            CopyTree(Shipped.Content.Root.Shipped, root);
             Change(Path.Combine(root, RulesTable.Directory, "grounds.json"), grounds);
             Change(Path.Combine(root, RulesTable.Directory, "fielding.json"), fielding);
             return root;

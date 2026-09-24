@@ -4,7 +4,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class RunnerOrdersTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     Match Game()
     {
         var m = Match.Slice(_content, seed: 7);

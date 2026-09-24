@@ -11,7 +11,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class FatigueFadeScenarioTests
 {
-    static readonly ContentCatalog Content = ContentCatalog.Load();
+    static readonly ContentCatalog Content = Shipped.Content;
 
     static IEnumerable<int> Pools => Enumerable.Range(-40, 200);
 

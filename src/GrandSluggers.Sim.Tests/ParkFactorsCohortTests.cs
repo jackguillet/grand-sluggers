@@ -17,10 +17,9 @@ namespace GrandSluggers.Sim.Tests;
 /// </para>
 /// </summary>
 [Trait("Kind", "Balance")]
-[Trait("Cost", "Heavy")]
 public class ParkFactorsCohortTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     static readonly IReadOnlyList<int> OneSeed = new[] { 1 };
     static IReadOnlyList<(string Home, string Away)> OneMatchup => ParkFactorCohort.Matchups.Take(1).ToArray();
@@ -116,10 +115,9 @@ public class ParkFactorsCohortTests
 /// slowest thing in the suite, and two of them in one collection would run back to back.
 /// </summary>
 [Trait("Kind", "Balance")]
-[Trait("Cost", "Heavy")]
 public class ParkFactorsNightTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     /// <summary>
     /// The night half of the cohort, and <c>cli match --night</c>, reach the match the same way:
@@ -169,10 +167,9 @@ public class ParkFactorsNightTests
 /// <see cref="ParkFactorsCohortTests"/>.
 /// </summary>
 [Trait("Kind", "Balance")]
-[Trait("Cost", "Heavy")]
 public class ParkFactorsHazardsTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     static readonly IReadOnlyList<int> OneSeed = new[] { 1 };
     static IReadOnlyList<(string Home, string Away)> OneMatchup => ParkFactorCohort.Matchups.Take(1).ToArray();

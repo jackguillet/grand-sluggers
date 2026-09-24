@@ -15,7 +15,7 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class HarborKitScriptTests
 {
     static readonly string Script = File.ReadAllText(Path.Combine(
-        Directory.GetParent(ContentCatalog.Load().Root.Shipped)!.FullName, "tools", "blender", "harbor_kit.py"));
+        Directory.GetParent(Shipped.Content.Root.Shipped)!.FullName, "tools", "blender", "harbor_kit.py"));
 
     static double Const(string name)
     {
@@ -57,7 +57,7 @@ public sealed class HarborKitScriptTests
     public void TheKitReadsTheDirtAndDugoutFromTheSimsOwnTable()
     {
         var reads = new (string Table, Type Class)[] { ("DIAMOND", typeof(ParkDiamond)), ("DUGOUT", typeof(HarborDugout)) };
-        var repo = Directory.GetParent(ContentCatalog.Load().Root.Shipped)!.FullName;
+        var repo = Directory.GetParent(Shipped.Content.Root.Shipped)!.FullName;
         foreach (var (table, cls) in reads)
         {
             Assert.Contains($"{table} = sim_consts(\"{cls.Name}\")", Script, StringComparison.Ordinal);

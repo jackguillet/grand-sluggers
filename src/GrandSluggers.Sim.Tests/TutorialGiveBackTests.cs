@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class TutorialGiveBackTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     const double Frame = 1.0 / 60;
 
     public enum Scheme { Keys, AllReturn, Controller }

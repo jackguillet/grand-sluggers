@@ -11,7 +11,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class ChargeCancelScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     const double Dt = 1.0 / 60;
 
     double ToFull => _content.Feel.SwingChargeSeconds;

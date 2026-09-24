@@ -5,8 +5,8 @@ namespace GrandSluggers.Sim.Tests;
 
 public class ThrowTrailTests
 {
-    readonly string _repo = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly string _repo = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, ".."));
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Fact]
     public void CatalogThrowVfxNeverDrawADestinationLine()

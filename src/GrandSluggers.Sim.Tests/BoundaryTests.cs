@@ -22,7 +22,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class BoundaryTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     public static TheoryData<string> Parks() => new()
         { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" };
@@ -156,7 +156,7 @@ public sealed class BoundaryTests
         {
             Root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-boundary-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(System.IO.Path.Combine(Root, RulesTable.Directory));
-            var source = System.IO.Path.Combine(ContentCatalog.Load().Root.Shipped, RulesTable.Directory);
+            var source = System.IO.Path.Combine(Shipped.Content.Root.Shipped, RulesTable.Directory);
             foreach (var file in Directory.GetFiles(source, "*.json"))
                 File.Copy(file, System.IO.Path.Combine(Root, RulesTable.Directory, System.IO.Path.GetFileName(file)));
         }

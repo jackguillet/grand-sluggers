@@ -21,7 +21,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class HazardPlacementTests
 {
-    static readonly string Shipped = ContentCatalog.Load().Root.Shipped;
+    static readonly string Shipped = global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped;
     static readonly DataRoot Root = new(Shipped);
     static readonly ContentCatalog Game = ContentCatalog.Load(Root);
 

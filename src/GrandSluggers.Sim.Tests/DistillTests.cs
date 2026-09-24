@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class DistillTests
 {
-    readonly DataRoot _root = ContentCatalog.Load().Root;
+    readonly DataRoot _root = Shipped.Content.Root;
     string Repo => Path.GetFullPath(Path.Combine(_root.Shipped, ".."));
 
     [Fact]

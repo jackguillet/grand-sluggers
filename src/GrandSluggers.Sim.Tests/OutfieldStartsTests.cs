@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class OutfieldStartsTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
     static readonly string[] Outfield = ["LF", "CF", "RF"];
 
     /// <summary>Harbor's fence is the authored one, so its starts are the global starts to the bit; the infield is global everywhere.</summary>

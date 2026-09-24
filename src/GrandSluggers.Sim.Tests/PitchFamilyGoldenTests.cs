@@ -40,13 +40,13 @@ namespace GrandSluggers.Sim.Tests;
 /// numbers the old code produced. A flipped <c>breakDamped</c> changes the shift tenfold and fails.
 ///
 /// The fixture is regenerated only on purpose, and only from the pre-#810 sources:
-/// <c>GRAND_SLUGGERS_WRITE_PITCH_GOLDEN=1 dotnet test --filter "FullyQualifiedName~PitchFamilyGolden"</c>.
+/// <c>tools/regenerate.sh pitch-golden</c>.
 /// A regeneration that changes a single byte is a behaviour change and has to be argued, not merged.
 /// </summary>
 [Trait("Kind", "Balance")]
 public sealed class PitchFamilyGoldenTests
 {
-    /// <summary>Set to 1 to rewrite the fixture from the current code. Never set in CI.</summary>
+    /// <summary>Set it to rewrite the fixture from the current code (<c>tools/regenerate.sh pitch-golden</c>). Never set in CI.</summary>
     public const string WriteVariable = "GRAND_SLUGGERS_WRITE_PITCH_GOLDEN";
 
     // The grid is written as literals, not read from the rules table, on purpose: a sample point
@@ -167,17 +167,15 @@ public sealed class PitchFamilyGoldenTests
         Assert.Contains(keys, k => k.StartsWith("star|", StringComparison.Ordinal));
     }
 
-    [Fact]
-    public void RegenerateOnlyWhenTheEnvironmentAsksForIt()
+    [WriterFact(WriteVariable)]
+    public void Regenerate()
     {
-        if (Environment.GetEnvironmentVariable(WriteVariable) != "1") return;
-
         var rules = Shipped;
         var document = new JsonObject
         {
             ["what"] = What,
             ["encoding"] = Encoding,
-            ["regenerate"] = WriteVariable + "=1 dotnet test --filter \"FullyQualifiedName~PitchFamilyGolden\"",
+            ["regenerate"] = "tools/regenerate.sh pitch-golden",
             ["rows"] = new JsonObject(Samples().Select(s =>
                 new KeyValuePair<string, JsonNode?>(s.Key, s.Store(rules))))
         };
@@ -382,14 +380,12 @@ public sealed class PitchFamilyGoldenTests
 
     // ---- the file ------------------------------------------------------------------------------
 
-    static readonly ContentCatalog ShippedContent = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    static readonly ContentCatalog ShippedContent = ContentCatalog.Load(new DataRoot(global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped));
 
     /// <summary>Named explicitly: the golden is the shipped library, whatever overlay a process carries.</summary>
     internal static RulesTable Shipped => ShippedContent.Rules;
 
-    static string FixturePath => Path.Combine(
-        Path.GetFullPath(Path.Combine(ShippedContent.Root.Shipped, "..")),
-        "src", "GrandSluggers.Sim.Tests", "fixtures", "pitch-family-golden.json");
+    static string FixturePath => Fixtures.PathOf("pitch-family-golden.json");
 
     static Dictionary<string, string> Stored()
     {

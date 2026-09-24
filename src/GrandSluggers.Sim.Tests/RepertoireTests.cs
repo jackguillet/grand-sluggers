@@ -22,7 +22,7 @@ public class RepertoireTests
 {
     // Named explicitly rather than through the ambient root: the assertion is about the shipped
     // roster, whatever overlay a process names.
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped));
     static string Repo => Path.GetFullPath(Path.Combine(Shipped.Root.Shipped, ".."));
 
     // ---- the library -------------------------------------------------------------------------
@@ -109,7 +109,7 @@ public class RepertoireTests
     public void CharactersStillCompareByValueWithTheirRepertoires()
     {
         var rio = Shipped.Characters["rio"];
-        var same = ContentCatalog.Load().Characters["rio"];
+        var same = global::GrandSluggers.Sim.Tests.Shipped.Content.Characters["rio"];
         Assert.Equal(rio, same);
         Assert.Equal(rio.GetHashCode(), same.GetHashCode());
         Assert.Single(new[] { rio, same }.Distinct());

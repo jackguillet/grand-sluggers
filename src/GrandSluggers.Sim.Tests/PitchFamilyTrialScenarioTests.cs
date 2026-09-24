@@ -25,7 +25,7 @@ namespace GrandSluggers.Sim.Tests;
 [Trait("Kind", "Balance")]
 public sealed class PitchFamilyTrialScenarioTests
 {
-    readonly ContentCatalog _shippedContent = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    readonly ContentCatalog _shippedContent = ContentCatalog.Load(new DataRoot(global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped));
 
     string Shipped => _shippedContent.Root.Shipped;
 

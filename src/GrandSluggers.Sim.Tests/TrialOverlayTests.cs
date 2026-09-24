@@ -19,7 +19,7 @@ public sealed class TrialOverlayTests
         AllowTrailingCommas = true
     };
 
-    static readonly ContentCatalog Control = ContentCatalog.Load();
+    static readonly ContentCatalog Control = global::GrandSluggers.Sim.Tests.Shipped.Content;
     static string Shipped => Control.Root.Shipped;
 
     /// <summary>

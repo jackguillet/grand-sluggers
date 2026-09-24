@@ -12,7 +12,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class LiveBallScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     const double Frame = 1.0 / 60.0;
 
     [Theory]
@@ -303,5 +303,5 @@ public sealed class LiveBallScenarioTests
             new ThrowResult(Chemistry.Good, 1.35, false));
     }
 
-    static string RepoRoot() => Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
+    static string RepoRoot() => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, ".."));
 }

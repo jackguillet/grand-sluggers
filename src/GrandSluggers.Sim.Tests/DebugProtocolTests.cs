@@ -18,7 +18,7 @@ public sealed class DebugProtocolTests
         "bat-behind-head-at-ready"
     ];
 
-    readonly DataRoot _root = ContentCatalog.Load().Root;
+    readonly DataRoot _root = Shipped.Content.Root;
 
     [Fact]
     public void ShippedCatalogLoadsAndValidates()
@@ -118,7 +118,7 @@ public sealed class DebugProtocolTests
             var dest = Path.Combine(Root, DebugProtocol.Directory);
             Directory.CreateDirectory(dest);
             File.Copy(
-                DebugProtocol.PathFor(ContentCatalog.Load().Root),
+                DebugProtocol.PathFor(Shipped.Content.Root),
                 Path.Combine(dest, DebugProtocol.FileName));
         }
 

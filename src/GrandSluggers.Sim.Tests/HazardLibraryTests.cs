@@ -23,7 +23,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class HazardLibraryTests
 {
-    static readonly ContentCatalog Content = ContentCatalog.Load();
+    static readonly ContentCatalog Content = Shipped.Content;
     static readonly RulesTable Table = Content.Rules;
 
     static readonly JsonDocumentOptions JsonComments = new()
@@ -488,7 +488,7 @@ public sealed class HazardLibraryTests
 
         public HazardFixture(bool overlay)
         {
-            var source = ContentCatalog.Load().Root.Shipped;
+            var source = Shipped.Content.Root.Shipped;
             var temp = Path.Combine(Path.GetTempPath(), "grand-sluggers-hazards-" + Guid.NewGuid().ToString("N"));
             _shipped = Path.Combine(temp, "data");
             Copy(source, _shipped);

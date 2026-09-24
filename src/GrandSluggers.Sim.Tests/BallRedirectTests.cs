@@ -12,7 +12,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class BallRedirectTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
     const double Frame = 1.0 / 60.0;
     static Park Harbor => Catalog.MustPark("harbor-diamond");
 

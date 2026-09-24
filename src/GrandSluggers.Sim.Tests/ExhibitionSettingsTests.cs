@@ -25,7 +25,7 @@ public class ExhibitionSettingsTests
     public void InningsAndSkillCycleBothWaysAndMercyExplainsShortGames()
     {
         var settings = new ExhibitionSettings();
-        var rules = ContentCatalog.Load().Rules;
+        var rules = Shipped.Content.Rules;
         Assert.Contains("3-inning", settings.Description(3, rules));
         settings.Select(2);
         foreach (var innings in new[] { 6, 9, 3 })
@@ -51,7 +51,7 @@ public class ExhibitionSettingsTests
     [InlineData(true)]
     public void BothPlayersApprovePositionsThenApproveSettingsSeparately(bool reversed)
     {
-        var lineup = LineupScreens.Open(ContentCatalog.Load(), "vale", "brondo",
+        var lineup = LineupScreens.Open(Shipped.Content, "vale", "brondo",
             reversed ? LineupSeat.Pad2 : LineupSeat.Pad1, reversed ? LineupSeat.Pad1 : LineupSeat.Pad2);
         lineup.RandomFill(LineupSeat.Pad1);
         lineup.RandomFill(LineupSeat.Pad2);
@@ -78,7 +78,7 @@ public class ExhibitionSettingsTests
     [Fact]
     public void ReturningThroughSetupPreservesAnUnchangedTeamsOrderAndGloves()
     {
-        var lineup = LineupScreens.Open(ContentCatalog.Load(), "vale", "brondo");
+        var lineup = LineupScreens.Open(Shipped.Content, "vale", "brondo");
         lineup.RandomFill();
         lineup.ConfirmTeam();
         lineup.FocusCell(LineupSeat.Pad1, LineupFocus.HomeOrder, 0);

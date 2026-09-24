@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class TutorialMasteryTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Theory]
     [InlineData("T-P01")][InlineData("T-P03")][InlineData("T-B01")]

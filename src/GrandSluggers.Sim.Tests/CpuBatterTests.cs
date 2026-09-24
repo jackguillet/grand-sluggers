@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public class CpuBatterTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     /// <summary>A normal fastball crossing at the zone center: the human's meatball.</summary>
     static PitchCommand Meatball => Scenario.PitchAt(0, StrikeZoneGeometry.CenterY);

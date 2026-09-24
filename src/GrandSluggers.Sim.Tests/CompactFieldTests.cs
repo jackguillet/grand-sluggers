@@ -18,7 +18,7 @@ namespace GrandSluggers.Sim.Tests;
 [Trait("Kind", "Balance")]
 public sealed class CompactFieldTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
 
     /// <summary>The basepath scale: 80 ft over the full-size 90.</summary>
     const double Infield = 80.0 / 90.0;

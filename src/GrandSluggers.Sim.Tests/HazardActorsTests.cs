@@ -12,7 +12,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class HazardActorsTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
 
     /// <summary>Every type of the library has a toy and every acting pattern a ring; the shipped rows validate.</summary>
     [Fact]

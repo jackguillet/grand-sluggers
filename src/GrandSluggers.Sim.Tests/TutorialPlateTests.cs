@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class TutorialPlateTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     static readonly string[] Added = ["T-P04", "T-P05", "T-P06", "T-B02", "T-B04", "T-B07", "T-B08", "T-B10", "T-B11"];
     const double Tick = 1 / 60.0;
     public static IEnumerable<object[]> Lessons => Added.Select(id => new object[] { id });

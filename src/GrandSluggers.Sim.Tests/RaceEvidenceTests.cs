@@ -5,11 +5,11 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class RaceEvidenceTests
 {
-    static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(RaceEvidence.PathFor(ContentCatalog.Load().Root)))!.AsObject();
+    static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(RaceEvidence.PathFor(Shipped.Content.Root)))!.AsObject();
     [Fact]
     public void PendingMeasurementsStayNullAndTheScoringDecisionIsAccepted()
     {
-        var root = ContentCatalog.Load().Root;
+        var root = Shipped.Content.Root;
         Assert.Empty(RaceEvidence.Validate(root));
         var pending = Catalog()["budgets"]![1]!;
         Assert.Null(pending["lower"]);
