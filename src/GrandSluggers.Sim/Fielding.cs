@@ -67,8 +67,10 @@ public sealed class FieldingResolver
         var pos = pursuit.Position;
         // A park's redirects act on the live ball (F4-c, FR-07): the preview plans the path as hit and nothing is foreseen.
         var warped = false;
-        var buddyPlant = FlyCatch.ChaseTarget(seed with { Fielder = fielder, Position = pos }, park, _rules);
-        var buddy = Buddy(assigned, fielder, pos, buddyPlant.X, buddyPlant.Z, OutfieldStarts.Of(park, _rules));
+        var buddy = Buddy(assigned, seed with
+        {
+            Fielder = fielder, Position = pos, Frozen = hit.StarSwingUsed == "heart-swing"
+        }, park, samples, at);
         // The heart swing's slow (a special, §13; outside D21 and the 3e boundary): every chaser for the play, exactly as it
         // shipped. A park's status volume is not read here any more (F4-b, #896, FR-07): it slows the body that touches it,
         // live (BodySlows), and nothing is decided from where the ball lands.
@@ -510,24 +512,25 @@ public sealed class FieldingResolver
 
     Character? Buddy(
         IReadOnlyDictionary<string, Character> keyed,
-        Character fielder,
-        string fielderPos,
-        double x,
-        double z,
-        IReadOnlyDictionary<string, (double X, double Z)> starts)
+        FieldingPreview pre,
+        Park park,
+        IReadOnlyList<Sample> path,
+        IReadOnlyDictionary<string, (double X, double Z)>? at)
     {
-        if (!IsOutfield(fielderPos)) return null;
-        Character? best = null;
-        var bestD = double.MaxValue;
-        foreach (var pos in new[] { "LF", "CF", "RF" })
-        {
-            if (!keyed.TryGetValue(pos, out var c) || c.Id == fielder.Id) continue;
-            if (_chem.Between(fielder, c) != Chemistry.Good) continue;
-            var p = starts[pos];
-            var d = Diamond.Dist(p.X, p.Z, x, z);
-            if (d < bestD) { bestD = d; best = c; }
-        }
-        return best;
+        if (!IsOutfield(pre.Position) || !pre.HomeRunLikely) return null;
+        var partners = keyed.Where(kv => IsOutfield(kv.Key) && kv.Key != pre.Position
+            && _chem.Between(pre.Fielder, kv.Value) == Chemistry.Good).ToDictionary(kv => kv.Key, kv => kv.Value);
+        if (partners.Count == 0) return null;
+        pre = pre with { Buddy = partners.Values.First() };
+        var start = at != null && at.TryGetValue(pre.Position, out var live)
+            ? live : OutfieldStarts.Of(park, _rules)[pre.Position];
+        var ready = CpuReactionLockouts(_rules, pre.HangTimeSec);
+        var own = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z,
+            ChaseSpeedFt(pre.Fielder, pre.Position, pre, _rules), _rules, ready[pre.Position]);
+        if (!own.Reachable) return null;
+        var choice = FieldingPursuit.Choose(partners, OutfieldPursuitPositions, pre, park, path, at,
+            rules: _rules, readyAt: ready);
+        return choice.Route.Reachable ? choice.Fielder : null;
     }
 
     /// <summary>The defensive alignment: the team's glove diamond (§8.1) with whoever is on the mound now.</summary>
