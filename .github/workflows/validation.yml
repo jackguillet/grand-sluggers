@@ -9,6 +9,9 @@ permissions:
   contents: read
 
 jobs:
+  # The one required check on main (a repository ruleset requires it; no bypass). There is no Unity job here:
+  # the Personal license does not allow batch mode and the repository is public, so a self-hosted Unity runner
+  # would run fork PRs on Jack's Mac. The Unity gates are local; see docs/validation.md.
   portable:
     runs-on: ubuntu-latest
     steps:
@@ -26,25 +29,3 @@ jobs:
           dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj -c Release
           --filter "Kind!=Balance"
           -- xUnit.MaxParallelThreads=0
-
-  unity-project:
-    if: vars.UNITY_VALIDATION_ENABLED == 'true'
-    needs: portable
-    runs-on: [self-hosted, macOS, grand-sluggers-unity]
-    env:
-      UNITY_EDITOR_BIN: ${{ vars.UNITY_EDITOR_BIN }}
-      UNITY_EDITOR: ${{ vars.UNITY_EDITOR_ROOT }}
-      GS_UNITY_BATCH_LICENSED: ${{ vars.GS_UNITY_BATCH_LICENSED }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          clean: true
-      - run: tools/unity-project-validate.sh
-      - run: tools/unity-compile.sh
-      - if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: unity-validation-${{ github.sha }}
-          path: |
-            unity/Temp/validation/unity-evidence.json
-            unity/Temp/validation/unity.log
