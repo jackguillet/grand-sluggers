@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -798,7 +799,7 @@ namespace GrandSluggers.UnityClient
             for (var i = 0; i < block.Rows.Count; i++)
             {
                 var row = block.Rows[i];
-                var cell = RoleTables.RowCard(i, block.Rows.Count, Screen.width, Screen.height);
+                var cell = ControlDiagram.RowCard(i, block.Rows.Count, Screen.width, Screen.height);
                 var r = new Rect(cell.X, cell.Y, cell.W, cell.H);
                 GUI.DrawTexture(r, _bookCard);
                 var line = row.Verb.ToUpperInvariant() + "  ·  " + row.Press;

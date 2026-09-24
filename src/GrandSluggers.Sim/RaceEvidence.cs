@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Tooling;
 
 /// <summary>Research catalog validation; never a source of gameplay defaults. Unknown values stay null.</summary>
 public static class RaceEvidence

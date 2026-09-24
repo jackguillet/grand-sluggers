@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 using Motion = GrandSluggers.Sim.Motion;
 using GrandSluggers.UnityClient;
 using UnityEditor;

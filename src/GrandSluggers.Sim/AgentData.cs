@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Tooling;
 
 /// <summary>
 /// The agent catalogs in <c>data/agent</c>: how sessions work, never what the game plays. The game load

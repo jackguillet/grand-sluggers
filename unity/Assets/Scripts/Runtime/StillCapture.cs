@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
+using GrandSluggers.Sim.Tooling;
 using Motion = GrandSluggers.Sim.Motion;
 using UnityEngine;
 

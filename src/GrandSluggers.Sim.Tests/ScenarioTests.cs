@@ -199,7 +199,7 @@ public sealed class ScenarioTests
         Assert.True(play.Outcome.FieldersChoice);
         // The caption is narrated from the typed moment, last. (Its wording — the relay's
         // "in at first" repeats today — is P8's FIELDER'S CHOICE stamp, not a rule.)
-        Assert.StartsWith(BroadcastHud.Verdict(InPlay.ThrowVerdict.BatterSafeAfterForce, 1, field.Fielder!.Name, play.Batter.Name), play.Caption);
+        Assert.StartsWith(PlayNarrator.Verdict(InPlay.ThrowVerdict.BatterSafeAfterForce, 1, field.Fielder!.Name, play.Batter.Name), play.Caption);
     }
 
     [Fact]
@@ -278,7 +278,7 @@ public sealed class ScenarioTests
     {
         var step = InPlay.ThrowToBag(2, firstOccupied: true, alreadyForced: false, runnerBeats: false, outs: 0, "Rio", "Vale");
         Assert.Equal(InPlay.ThrowVerdict.ForceOut, step.Verdict);
-        Assert.Equal(BroadcastHud.Verdict(step.Verdict, step.Bag, "Rio", "Vale"), step.Caption);
+        Assert.Equal(PlayNarrator.Verdict(step.Verdict, step.Bag, "Rio", "Vale"), step.Caption);
         Assert.Equal(OutType.Force, step.OutType);
 
         var two = InPlay.ThrowToBag(1, firstOccupied: true, alreadyForced: true, runnerBeats: false, outs: 1, "Rio", "Vale");
@@ -287,7 +287,7 @@ public sealed class ScenarioTests
 
         var safe = InPlay.ThrowToBag(1, firstOccupied: true, alreadyForced: true, runnerBeats: true, outs: 1, "Rio", "Vale");
         Assert.Equal(InPlay.ThrowVerdict.BatterSafeAfterForce, safe.Verdict);
-        Assert.True(BroadcastHud.NarratesBatterAtFirst(safe.Verdict));
+        Assert.True(PlayNarrator.NarratesBatterAtFirst(safe.Verdict));
     }
 
     // ---------------------------------------------------------------------------------

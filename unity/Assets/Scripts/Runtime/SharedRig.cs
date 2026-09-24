@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient

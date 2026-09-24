@@ -1,11 +1,8 @@
 using System.Globalization;
 
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 public enum LineupStep { TeamSetup, DefenseSetup, MatchSettings }
-
-/// <summary>Who owns a roster row. Pad 1 is home. Pad 2 sits away when a second pad is plugged in.</summary>
-public enum LineupSeat { Pad1, Pad2, Cpu }
 
 /// <summary>
 /// Stick target. Team Setup: a row or the pool. Defense Setup: a batting list or a diamond.

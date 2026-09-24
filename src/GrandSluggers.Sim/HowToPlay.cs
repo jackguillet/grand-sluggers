@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>
 /// In-game call-time menu. Couch copy lives here so Play can show it and tests can lock it.

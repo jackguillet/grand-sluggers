@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>Inspection and explicit source/destination selection for the in-game defense window.</summary>
 public sealed class DefenseSetupPick

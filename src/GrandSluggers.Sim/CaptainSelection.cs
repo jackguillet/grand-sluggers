@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>Presentation state for the shared captain board. Hover never moves the other seat.</summary>
 public sealed class CaptainSelection

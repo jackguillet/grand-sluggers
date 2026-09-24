@@ -39,17 +39,6 @@ public static class RoleTables
         return new Block(block.Id, block.Title, block.Rows.Skip(start).Take(end - start).ToArray());
     }
 
-    public static (float X, float Y, float W, float H) RowCard(
-        int index, int count, float screenW, float screenH)
-    {
-        var board = ControlDiagram.Board(screenW, screenH);
-        const float head = 52f;
-        const float gap = 6f;
-        var rows = Math.Max(1, count);
-        var h = (board.H - head - gap * (rows - 1)) / rows;
-        return (board.X, board.Y + head + index * (h + gap), board.W, h);
-    }
-
     public static readonly IReadOnlyList<Block> Pad =
     [
         new("batting", "Batting",

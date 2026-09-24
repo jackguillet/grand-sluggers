@@ -1,13 +1,13 @@
 using System.Globalization;
 
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 /// <summary>
 /// Plate information gives way to runners and outs during live play. Effects never mute play information.
 /// Title, select, lineup, and final still draw.
 /// Play HUD anchors are normalized 0–1, Y down (IMGUI). 1P and 2P share one layout (#325).
 /// </summary>
-public static partial class BroadcastHud
+public static class BroadcastHud
 {
     public enum PlayMode { Plate, InPlay, Hidden }
 
@@ -365,28 +365,6 @@ public static partial class BroadcastHud
         }
         return pips;
     }
-
-    /// <summary>Banner headline. Kind.ToString() is TAKESTRIKE, not a scorebug.</summary>
-    public static string Headline(PlayKind kind) => kind switch
-    {
-        PlayKind.StolenBase => "STOLEN BASE",
-        PlayKind.CaughtStealing => "CAUGHT STEALING",
-        PlayKind.Pickoff => "PICKOFF",
-        PlayKind.HomeRun => "HOME RUN",
-        PlayKind.Triple => "TRIPLE",
-        PlayKind.Double => "DOUBLE",
-        PlayKind.Single => "SINGLE",
-        PlayKind.Walk => "WALK",
-        PlayKind.HitByPitch => "HIT BY PITCH",
-        PlayKind.Strikeout => "STRIKE OUT",
-        PlayKind.FlyOut => "OUT",
-        PlayKind.GroundOut => "OUT",
-        PlayKind.Foul => "FOUL",
-        PlayKind.SwingMiss => "SWING AND A MISS",
-        PlayKind.TakeStrike => "STRIKE",
-        PlayKind.TakeBall => "BALL",
-        _ => kind.ToString().ToUpperInvariant()
-    };
 
     public static Scorebug From(Match match)
     {

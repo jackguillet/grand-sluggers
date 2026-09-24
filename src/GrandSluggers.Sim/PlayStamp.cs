@@ -81,7 +81,7 @@ public static class PlayStamp
             PlayKind.StolenBase => "STOLEN BASE",
             PlayKind.CaughtStealing => "CAUGHT STEALING",
             PlayKind.FlyOut or PlayKind.GroundOut => "OUT",
-            _ => BroadcastHud.Headline(kind)
+            _ => PlayNarrator.Headline(kind)
         };
     }
 

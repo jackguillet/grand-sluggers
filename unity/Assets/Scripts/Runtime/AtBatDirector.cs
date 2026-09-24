@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 using Motion = GrandSluggers.Sim.Motion;
 using UnityEngine;
 

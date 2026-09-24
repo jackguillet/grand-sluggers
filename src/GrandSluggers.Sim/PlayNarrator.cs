@@ -2,8 +2,12 @@ using System.Text;
 
 namespace GrandSluggers.Sim;
 
-/// <summary>The one narrator (spec §12): every play caption and every live decision's line is built here.</summary>
-public static partial class BroadcastHud
+/// <summary>
+/// The one narrator (spec §12): every play caption and every live decision's line is built here, from typed facts the
+/// match raises (<see cref="PlayCall"/>, <see cref="InPlay.ThrowVerdict"/>). It is core, not front-of-house: the sim
+/// narrates its own events, and the HUD (<see cref="Front.BroadcastHud"/>) only lays them out.
+/// </summary>
+public static class PlayNarrator
 {
     /// <summary>
     /// The caption for a call. Facts join with one space; a Billboard or an item line, and an <see cref="CallPart.Aside"/>,
@@ -57,7 +61,7 @@ public static partial class BroadcastHud
         CallBeat.Triple => $"{p.Who} triples.",
         CallBeat.Double => $"{p.Who} doubles.",
         CallBeat.Single => $"{p.Who} singles.",
-        CallBeat.RedirectSingle => $"{p.Who} - it went through a {CarnivalFront.RedirectName(p.Word)}!",
+        CallBeat.RedirectSingle => $"{p.Who} - it went through a {RedirectName(p.Word)}!",
         CallBeat.HeatballSingle => $"{p.Who} - it drops! Heatball.",
         CallBeat.Live => p.Moment is { } m ? Verdict(m.Verdict, m.Bag, m.Fielder?.Name ?? p.Other, p.Who, m.Runner?.Name) : "",
         CallBeat.BatterInAtFirst => $"{p.Who} in at first.",
@@ -116,5 +120,35 @@ public static partial class BroadcastHud
         3 => "third",
         4 => "home",
         _ => "the cutoff"
+    };
+
+    /// <summary>What a redirect hazard is called on the broadcast.</summary>
+    public static string RedirectName(string? type) => type switch
+    {
+        HazardType.Barrel => "barrel cannon",
+        HazardType.Chomper => "chomper",
+        _ => "warp can"
+    };
+
+    /// <summary>Banner headline. Kind.ToString() is TAKESTRIKE, not a scorebug.</summary>
+    public static string Headline(PlayKind kind) => kind switch
+    {
+        PlayKind.StolenBase => "STOLEN BASE",
+        PlayKind.CaughtStealing => "CAUGHT STEALING",
+        PlayKind.Pickoff => "PICKOFF",
+        PlayKind.HomeRun => "HOME RUN",
+        PlayKind.Triple => "TRIPLE",
+        PlayKind.Double => "DOUBLE",
+        PlayKind.Single => "SINGLE",
+        PlayKind.Walk => "WALK",
+        PlayKind.HitByPitch => "HIT BY PITCH",
+        PlayKind.Strikeout => "STRIKE OUT",
+        PlayKind.FlyOut => "OUT",
+        PlayKind.GroundOut => "OUT",
+        PlayKind.Foul => "FOUL",
+        PlayKind.SwingMiss => "SWING AND A MISS",
+        PlayKind.TakeStrike => "STRIKE",
+        PlayKind.TakeBall => "BALL",
+        _ => kind.ToString().ToUpperInvariant()
     };
 }

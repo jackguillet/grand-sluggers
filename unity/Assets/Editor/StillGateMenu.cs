@@ -1,5 +1,6 @@
 using System.IO;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Tooling;
 using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEditor.SceneManagement;

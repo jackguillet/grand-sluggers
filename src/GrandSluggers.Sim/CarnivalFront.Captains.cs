@@ -1,4 +1,4 @@
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Front;
 
 public readonly record struct CaptainPanelRect(float X, float Y, float W, float H);
 

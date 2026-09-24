@@ -4,7 +4,7 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The one narrator (spec §12): the match raises a <see cref="PlayCall"/> and <see cref="BroadcastHud.Narrate(PlayCall)"/>
+/// The one narrator (spec §12): the match raises a <see cref="PlayCall"/> and <see cref="PlayNarrator.Narrate(PlayCall)"/>
 /// is the only place its words are chosen. These pin the joins the pinned night games rely on.
 /// </summary>
 public sealed class NarratorTests
@@ -17,25 +17,25 @@ public sealed class NarratorTests
     [Fact]
     public void FactsJoinWithOneSpaceAndTheBillboardAndItemWithTwo() =>
         Assert.Equal("Rio singles.  Billboard STAR!  Banana slip!",
-            BroadcastHud.Narrate(PlayCall.Of(new CallPart(CallBeat.Single, Who: "Rio"), new CallPart(CallBeat.Billboard),
+            PlayNarrator.Narrate(PlayCall.Of(new CallPart(CallBeat.Single, Who: "Rio"), new CallPart(CallBeat.Billboard),
                 new CallPart(CallBeat.Item, Word: "banana"))));
 
     [Fact]
     public void ALiveLineThatPlacesTheBatterDropsTheSeparateInAtFirst()
     {
         var call = PlayCall.Of(Live(InPlay.ThrowVerdict.BatterSafeAfterForce), new CallPart(CallBeat.BatterInAtFirst, Who: "Rio"));
-        Assert.Equal("Force at second. Rio in at first.", BroadcastHud.Narrate(call));
+        Assert.Equal("Force at second. Rio in at first.", PlayNarrator.Narrate(call));
         var beat = PlayCall.Of(Live(InPlay.ThrowVerdict.Beat), new CallPart(CallBeat.BatterInAtFirst, Who: "Rio"));
-        Assert.Equal("Rio beats the throw. Rio in at first.", BroadcastHud.Narrate(beat));
+        Assert.Equal("Rio beats the throw. Rio in at first.", PlayNarrator.Narrate(beat));
     }
 
     [Fact]
     public void TurningTwoIsTheDoublePlaysOwnLine()
     {
         Assert.Equal($"{Fielder.Name} turns two.",
-            BroadcastHud.Narrate(PlayCall.Of(new CallPart(CallBeat.DoublePlay), Live(InPlay.ThrowVerdict.TurnedTwo))));
+            PlayNarrator.Narrate(PlayCall.Of(new CallPart(CallBeat.DoublePlay), Live(InPlay.ThrowVerdict.TurnedTwo))));
         Assert.Equal($"Double play. {Fielder.Name} to first.",
-            BroadcastHud.Narrate(PlayCall.Of(new CallPart(CallBeat.DoublePlay), Live(InPlay.ThrowVerdict.OutAtFirst))));
+            PlayNarrator.Narrate(PlayCall.Of(new CallPart(CallBeat.DoublePlay), Live(InPlay.ThrowVerdict.OutAtFirst))));
     }
 
     [Fact]
@@ -43,16 +43,16 @@ public sealed class NarratorTests
     {
         // The runner play after a pitch: a live decision with no line leaves "Ball 2.  Zig caught stealing.".
         var ball = PlayCall.Of(new CallPart(CallBeat.Ball, Number: 2));
-        Assert.Equal("Ball 2.  Zig caught stealing.", BroadcastHud.Narrate(ball.Then(
+        Assert.Equal("Ball 2.  Zig caught stealing.", PlayNarrator.Narrate(ball.Then(
             [Live(InPlay.ThrowVerdict.None, aside: true), new CallPart(CallBeat.CaughtStealing, Who: "Zig")])));
-        Assert.Equal($"Ball 2.  {Fielder.Name} tags the runner at third. Zig caught stealing.", BroadcastHud.Narrate(ball.Then(
+        Assert.Equal($"Ball 2.  {Fielder.Name} tags the runner at third. Zig caught stealing.", PlayNarrator.Narrate(ball.Then(
             [Live(InPlay.ThrowVerdict.TagOut, bag: 3, aside: true), new CallPart(CallBeat.CaughtStealing, Who: "Zig")])));
     }
 
     [Fact]
     public void APlainFactThatSaysNothingKeepsItsSpace() =>
         // A leading live decision with no line still takes its separator: the caption the night games pinned.
-        Assert.Equal(" Foul.", BroadcastHud.Narrate(PlayCall.Of(Live(InPlay.ThrowVerdict.None), new CallPart(CallBeat.Foul))));
+        Assert.Equal(" Foul.", PlayNarrator.Narrate(PlayCall.Of(Live(InPlay.ThrowVerdict.None), new CallPart(CallBeat.Foul))));
 
     [Theory]
     [InlineData("furnace", "Rio FURNACE - it's gone.")]
@@ -60,7 +60,7 @@ public sealed class NarratorTests
     [InlineData("cask-swing", "Rio goes deep.")]
     [InlineData(null, "Rio goes deep.")]
     public void AHomeRunNamesOnlyTheStarSwingsThatCallThemselves(string? star, string caption) =>
-        Assert.Equal(caption, BroadcastHud.Narrate(PlayCall.Of(new CallPart(CallBeat.HomeRun, Who: "Rio", Word: star))));
+        Assert.Equal(caption, PlayNarrator.Narrate(PlayCall.Of(new CallPart(CallBeat.HomeRun, Who: "Rio", Word: star))));
 
     [Fact]
     public void EveryBeatSaysSomethingButTheLiveLine()
@@ -68,7 +68,7 @@ public sealed class NarratorTests
         foreach (var beat in Enum.GetValues<CallBeat>())
         {
             if (beat == CallBeat.Live) continue;
-            Assert.NotEqual("", BroadcastHud.Narrate(PlayCall.Of(new CallPart(beat, Who: "Rio", Other: "Vale", Number: 2, Word: "pow"))));
+            Assert.NotEqual("", PlayNarrator.Narrate(PlayCall.Of(new CallPart(beat, Who: "Rio", Other: "Vale", Number: 2, Word: "pow"))));
         }
     }
 
@@ -81,7 +81,7 @@ public sealed class NarratorTests
         foreach (var ev in match.Log)
         {
             Assert.NotNull(ev.Call);
-            Assert.Equal(BroadcastHud.Narrate(ev.Call!), ev.Caption);
+            Assert.Equal(PlayNarrator.Narrate(ev.Call!), ev.Caption);
         }
     }
 }

@@ -28,7 +28,8 @@ Parent epic: **#647**. Children: **#648–#654**. Product epics these rails serv
 4. **Playtest → detect failure → repair → remember.** Generating code is cheap. Keeping the game playable across files, state, and the next play type is the work. A sitting that only becomes a Slack sentence is lost.
 5. **Generation cannot pass itself.** A builder does not grade its own still. A critic files diffs. Jack passes look and play. Agents do not pass #346, #209 sittings, or #188.
 6. **Sim owns baseball. Unity is eyes, not the engine.** `cli match` and the scenario harness are the agent playtest loop. Unity CLI / MCP, if wired, inspect hierarchy, console, and still capture. They do not decide outs.
-7. **One worktree per child. Never `git add -A`.** Stacked PRs against `main`. CI runs the breakage suite on every PR; never run the full suite locally (§1.2). After merge: `python3 tools/local-player.py` when Jack needs the window.
+7. **The Sim points one way.** `GrandSluggers.Sim` is the core: rules, the match, live play, the narrator, and the camera and stamp tables the sim emits. `GrandSluggers.Sim.Front` is front-of-house: menus, the book, HUD layout. `GrandSluggers.Sim.Tooling` is stills, DCC stages, the debug protocol, evidence and data checks. Front and Tooling read the core; the core reads neither. `NamespaceRulesTests` walks the compiled core's signatures and method bodies and fails on any reference into Front or Tooling. A type the core needs lives in the core.
+8. **One worktree per child. Never `git add -A`.** Stacked PRs against `main`. CI runs the breakage suite on every PR; never run the full suite locally (§1.2). After merge: `python3 tools/local-player.py` when Jack needs the window.
 
 ### 0.1 Decisions (steal / reject)
 

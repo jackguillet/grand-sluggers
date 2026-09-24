@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// What a play's call says, as typed facts in the order it says them (spec §12). The match raises these; the one
-/// narrator, <see cref="BroadcastHud.Narrate(PlayCall)"/>, turns them into the caption. No rule reads the text.
+/// narrator, <see cref="PlayNarrator.Narrate(PlayCall)"/>, turns them into the caption. No rule reads the text.
 /// </summary>
 public enum CallBeat
 {

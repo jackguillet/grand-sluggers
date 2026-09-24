@@ -2259,7 +2259,7 @@ public sealed partial class LivePlaySystem
         if (!_events.Contains(LiveEvent.BallRedirected)) _events.Add(LiveEvent.BallRedirected);
         _trace?.Mark(PlayTraceMarkKind.BallRedirected, t,
             hazard: new PlayTraceHazard(mouth.Hazard, mouth.Type, mouth.X, mouth.Z, mouth.DiscFt, t, exit.Hazard));
-        Sub = $"Into the {CarnivalFront.RedirectName(mouth.Type)}!";
+        Sub = $"Into the {PlayNarrator.RedirectName(mouth.Type)}!";
     }
 
     double VolumeMul(string pos, bool specialSlowed) => BodySlows.Mul(!specialSlowed && _bodySlows.Slowed(pos), R);

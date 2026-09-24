@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using static System.FormattableString;
 
-namespace GrandSluggers.Sim;
+namespace GrandSluggers.Sim.Tooling;
 
 /// <summary>Predeclared sampling plans for #693. Runs the existing match, without changing any coefficient.</summary>
 public static class RaceCohort
