@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class DefenseSetupPickTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     static int At(string pos) => Array.IndexOf(Diamond.Order, pos);
     static Dictionary<string, Character> Map(Match m) => FieldingResolver.Assign(m.DefenseRoster, m.Pitcher, m.Defense.Gloves);
 

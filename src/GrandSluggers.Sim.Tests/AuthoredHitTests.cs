@@ -12,7 +12,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public class AuthoredHitTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     Clip Load(string id)
     {

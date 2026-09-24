@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class LineupScreensTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Fact]
     public void TeamSetupHasNineHomeAndNineAwaySlots()

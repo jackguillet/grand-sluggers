@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class ParkDiamondTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     Park Harbor => _content.Parks[HarborPostcard.ParkId];
 
     [Fact]

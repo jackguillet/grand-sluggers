@@ -8,7 +8,7 @@ public sealed class TutorialAttemptFlowTests
     [Fact]
     public void SuccessAndFailureBothRepeatUntilThreeEarnedSuccesses()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var catalog = TutorialCatalog.Load(content);
         var progress = new TutorialProgress();
         var run = new TutorialSession(content, catalog, "T-P03", progress);
@@ -44,7 +44,7 @@ public sealed class TutorialAttemptFlowTests
     [Fact]
     public void GuidedAttemptsRepeatWithFreshActionEvidenceUntilThreeSuccesses()
     {
-        var catalog = TutorialCatalog.Load(ContentCatalog.Load());
+        var catalog = TutorialCatalog.Load(Shipped.Content);
         var lesson = catalog.Lessons.Single(l => l.Id == "T-G06");
         var progress = new TutorialProgress();
         for (var attempt = 1; attempt <= 3; attempt++)

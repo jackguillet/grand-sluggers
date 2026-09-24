@@ -7,14 +7,13 @@ namespace GrandSluggers.Sim.Tests;
 [Trait("Kind", "Balance")]
 public sealed class ThreeDExportTests
 {
-    static readonly ContentCatalog Content = ContentCatalog.Load();
+    static readonly ContentCatalog Content = Shipped.Content;
     const double Frame = 1.0 / 60;
 
-    [Fact]
+    [WriterFact("GS_RACE_TRACE_OUTPUT")]
     public void Export()
     {
-        var folder = Environment.GetEnvironmentVariable("GS_RACE_TRACE_OUTPUT");
-        if (string.IsNullOrEmpty(folder)) return;
+        var folder = Environment.GetEnvironmentVariable("GS_RACE_TRACE_OUTPUT")!;
         Directory.CreateDirectory(folder);
         var errors = new List<string>();
         void Try(string id, Func<PlayTrace> make)

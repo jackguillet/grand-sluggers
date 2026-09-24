@@ -21,7 +21,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class HarborWallTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     /// <summary>
     /// The catalog's own pick cycle (#820), not a literal, so a park added to <c>data/parks/</c> is
@@ -30,7 +30,7 @@ public sealed class HarborWallTests
     public static TheoryData<string> Parks()
     {
         var parks = new TheoryData<string>();
-        foreach (var id in ContentCatalog.Load().ParkPickOrder) parks.Add(id);
+        foreach (var id in Shipped.Content.ParkPickOrder) parks.Add(id);
         return parks;
     }
 

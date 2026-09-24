@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class SolidBodyTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
     static RulesTable Rules => Catalog.Rules;
     static SolidBody Tree(double x, double z) => new(0, HazardType.Tree, x, z, 6, Rules.Hazards.Of(HazardType.Tree));
 

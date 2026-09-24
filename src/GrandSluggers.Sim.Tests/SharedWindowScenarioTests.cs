@@ -30,7 +30,7 @@ public sealed class SharedWindowScenarioTests
         AllowTrailingCommas = true
     };
 
-    readonly ContentCatalog _shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    readonly ContentCatalog _shipped = ContentCatalog.Load(new DataRoot(Shipped.Content.Root.Shipped));
 
     string ShippedRoot => _shipped.Root.Shipped;
     string Repo => Path.GetFullPath(Path.Combine(ShippedRoot, ".."));
@@ -220,7 +220,7 @@ public sealed class SharedWindowScenarioTests
         public RulesFixture()
         {
             Root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-window-" + Guid.NewGuid().ToString("N"));
-            var source = ContentCatalog.Load().Root.Shipped;
+            var source = Shipped.Content.Root.Shipped;
             Directory.CreateDirectory(Root);
             foreach (var directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
                 Directory.CreateDirectory(System.IO.Path.Combine(Root, System.IO.Path.GetRelativePath(source, directory)));

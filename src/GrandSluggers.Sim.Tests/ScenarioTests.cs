@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class ScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     // ---------------------------------------------------------------------------------
     // S-90  Same seed + same recorded commands → identical PlayEvent stream, CPU seat and human seat
@@ -353,7 +353,7 @@ public sealed class ScenarioTests
         PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false,
         new ThrowResult(Chemistry.Good, 1.7, false));
 
-    static string RepoRoot() => Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
+    static string RepoRoot() => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, ".."));
 }
 
 static class ScenarioExtensions

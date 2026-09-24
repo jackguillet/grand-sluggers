@@ -10,7 +10,7 @@ public class PlayCameraTests
     [InlineData(AtBatShots.Plate, 1)]
     public void PitchingHorizontalIntentAlwaysProjectsToTheSameScreenSide(string shotId, double expectedWorldSign)
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var shot = content.Shots.Must(shotId);
         var world = AtBatControl.WorldHorizontal(1, shot);
         Assert.Equal(expectedWorldSign, world);
@@ -76,7 +76,7 @@ public class PlayCameraTests
             Assert.False(string.IsNullOrWhiteSpace(one), beat.ToString());
         }
         // Spec §15: the shot per class, every id in data/feel/shots.json.
-        var shots = ContentCatalog.Load().Shots;
+        var shots = Shipped.Content.Shots;
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Grounder));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.GrounderPull));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Rundown));
@@ -109,7 +109,7 @@ public class PlayCameraTests
     [Fact]
     public void LiveBeatIsDecidedFromTypedStateInSection15Order()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var feel = content.Feel;
         var fly = Hopper with { LaunchDeg = 32, CarryFt = 280, Class = BattedBallClass.Fly };
         var liner = Hopper with { LaunchDeg = 18, ExitVeloMph = 95, CarryFt = 180, Class = BattedBallClass.Liner };
@@ -138,7 +138,7 @@ public class PlayCameraTests
     [Fact]
     public void LiveFramingTranslatesTheAuthoredShotOntoTheBagTheBallOrTheBody()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var feel = content.Feel;
         var shots = content.Shots;
 
@@ -179,7 +179,7 @@ public class PlayCameraTests
     [Fact]
     public void EachLiveFrameCarriesItsShotsAuthoredBlend_TheInPlayViewsAndTheBagCamsAreCuts()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var feel = content.Feel;
         var shots = content.Shots;
         var fly = Hopper with { LaunchDeg = 32, CarryFt = 280, Class = BattedBallClass.Fly };
@@ -209,7 +209,7 @@ public class PlayCameraTests
     [Fact]
     public void TheHoldKeepsATargetForCameraHoldSecondsAndABagCamOnItsFirstBag()
     {
-        var feel = ContentCatalog.Load().Feel;
+        var feel = Shipped.Content.Feel;
         var hold = feel.CameraHoldSeconds;
         Assert.Equal(0.25, hold, 6);
         var h = new PlayCamera.CameraHold();
@@ -236,7 +236,7 @@ public class PlayCameraTests
     [Fact]
     public void ARoutineSixThreeIsSetThenOneCutThenTheFollow_NoBagCamOnTheThrow()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var match = Match.Slice(content, seed: 2);
         var hit = FlightFixtures.Hit(match.Park, 85, -12, -18);
         var preview = match.PreviewHit(hit);
@@ -277,7 +277,7 @@ public class PlayCameraTests
     [Fact]
     public void AStealUsesTheOrdinaryLiveCameraFromPossessionThroughTheThrow()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var scenario = new Scenario(content, seed: 2).Runner(1, 1);
         var match = scenario.Match;
         Assert.True(match.StartSteal());
@@ -312,7 +312,7 @@ public class PlayCameraTests
     [Fact]
     public void ACloseRaceAtHomeIsTheTagCamOnThePlate()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var shots = content.Shots;
         var feel = content.Feel;
         var hold = new PlayCamera.CameraHold();
@@ -362,7 +362,7 @@ public class PlayCameraTests
     {
         // #665: hopper vs rope name themselves HUD-off. Beat.Line is diamond-line, never
         // diamond (hopper) or diamond-grounder (the scoop still). A fly still pulls back further.
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var shots = content.Shots;
         var feel = content.Feel;
         var match = Match.Slice(content, seed: 2);

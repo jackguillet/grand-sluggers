@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>The SET swap pick (spec §4.7, #582): any fielder, a visible pick, the card updating.</summary>
 public class PitcherSwapTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Fact]
     public void ThePickWalksEveryGloveInOrderAndStartsOnTheBestArm()

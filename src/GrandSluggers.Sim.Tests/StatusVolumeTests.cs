@@ -21,7 +21,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class StatusVolumeTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
     const double Frame = 1.0 / 60.0;
     const double SlowSec = 3.0;
     static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);

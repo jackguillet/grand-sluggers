@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class BallShadowTests
 {
-    readonly BallShadowFeel _feel = ContentCatalog.Load().Feel.BallShadow;
+    readonly BallShadowFeel _feel = Shipped.Content.Feel.BallShadow;
 
     [Fact]
     public void HighFlyKeepsAReadableFootprintAndTightensAsItRises()

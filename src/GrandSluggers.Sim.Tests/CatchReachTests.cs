@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class CatchReachTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
 
     [Fact]
     [Trait("Kind", "Balance")]

@@ -10,7 +10,7 @@ public sealed class ContentValidationTests
     [Fact]
     public void ShippedGameplayCatalogPassesTheNamedValidator()
     {
-        var root = ContentCatalog.Load().Root;
+        var root = Shipped.Content.Root;
         Assert.Empty(ContentDataValidator.Validate(root));
     }
 

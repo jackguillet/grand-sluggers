@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class PitchJudgmentTests
 {
-    readonly ContentCatalog content = ContentCatalog.Load();
+    readonly ContentCatalog content = Shipped.Content;
     static readonly SwingCommand Take = new(false, 0, 0, false);
 
     [Theory]

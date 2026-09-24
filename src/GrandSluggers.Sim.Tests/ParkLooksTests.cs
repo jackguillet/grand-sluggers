@@ -12,7 +12,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class ParkLooksTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
     static ParkLooks Looks => Catalog.Art.Looks;
 
     static ParkKitSlot Kit(string id)

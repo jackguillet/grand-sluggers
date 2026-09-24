@@ -20,7 +20,7 @@ public sealed class RulesPlumbingTests
     /// </summary>
     static readonly string[] ProcessGeometry = ["Rules.cs", "Diamond.cs", "ParkDiamond.cs", "ParkBoundary.cs"];
 
-    static readonly string Sim = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, "..", "src", "GrandSluggers.Sim"));
+    static readonly string Sim = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "src", "GrandSluggers.Sim"));
 
     static IEnumerable<(string File, int Line, string Text)> Code()
     {

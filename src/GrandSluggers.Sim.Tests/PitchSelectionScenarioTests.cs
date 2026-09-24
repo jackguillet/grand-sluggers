@@ -20,7 +20,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class PitchSelectionScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     /// <summary>A table that authors only the two required families: fastball and changeup (#810).</summary>
     static IReadOnlyList<string> TwoAuthored => RuleCopies.TwoFamilies().Pitching.Families.Authored;

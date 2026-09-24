@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class FoulTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     AtBatInput Square(double sprayAim, double timing = 0, bool starSwing = false) =>
         new(_content.Must("vale"), _content.Must("rio"), _content.Must("nico"), [],

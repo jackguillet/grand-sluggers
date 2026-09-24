@@ -34,7 +34,7 @@ public sealed class TutorialNavigationTests
     [Fact]
     public void EveryRunnableLessonHasPadTeachingCopy()
     {
-        var catalog = TutorialCatalog.Load(ContentCatalog.Load());
+        var catalog = TutorialCatalog.Load(Shipped.Content);
         foreach (var lesson in catalog.Lessons.Where(l => l.Status == "implemented" && l.Profiles.Contains(catalog.Profile)))
         {
             Assert.NotEqual(lesson.Id, HowToPlay.TutorialTitle(lesson.Id));

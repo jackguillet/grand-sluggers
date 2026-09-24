@@ -29,7 +29,7 @@ public class ChemBookTests
         Assert.True(bad.X > good.X);
         Assert.Contains(HowToPlay.Must("chemistry").Lines, l => l.Contains("Hearts"));
         Assert.Contains(HowToPlay.Must("abilities").Lines, l => l.Contains("field verb"));
-        var rio = CharacterCard.Of(ContentCatalog.Load().Must("rio"));
+        var rio = CharacterCard.Of(Shipped.Content.Must("rio"));
         Assert.False(string.IsNullOrWhiteSpace(rio.StarPitch));
         Assert.False(string.IsNullOrWhiteSpace(rio.StarSwing));
         Assert.False(string.IsNullOrWhiteSpace(rio.FieldVerb));

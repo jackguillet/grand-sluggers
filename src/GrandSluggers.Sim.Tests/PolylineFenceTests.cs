@@ -20,7 +20,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class PolylineFenceTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
 
     /// <summary>
     /// The fixture fence: a tall short porch down the left-field line, back out to the arc, a notch at centre, and a short,

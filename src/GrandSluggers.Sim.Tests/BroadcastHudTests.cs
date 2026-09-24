@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class BroadcastHudTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Theory]
     [InlineData(1)]

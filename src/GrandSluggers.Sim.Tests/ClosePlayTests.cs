@@ -50,7 +50,7 @@ public class ClosePlayTests
     public void HaltBeforeThePitchHoldsTheDepartedRunnerWhereTheyStand()
     {
         // A departure creates a live body; halt stops it without restoring the bag.
-        var match = Match.Slice(ContentCatalog.Load(), seed: 1);
+        var match = Match.Slice(Shipped.Content, seed: 1);
         Assert.False(match.HaltAt(1));
         var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);

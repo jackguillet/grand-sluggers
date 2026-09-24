@@ -60,7 +60,7 @@ public sealed class DataJsonTests
     [Fact]
     public void NoSimLoaderBuildsItsOwnJsonOptions()
     {
-        var sim = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, "..", "src", "GrandSluggers.Sim"));
+        var sim = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "src", "GrandSluggers.Sim"));
         var own = new Regex(@"new JsonSerializerOptions|new JsonDocumentOptions|JsonDocumentOptions \w+ = new|JsonSerializerOptions \w+ = new");
         var offenders = Directory.EnumerateFiles(sim, "*.cs")
             .Where(f => Path.GetFileName(f) is not ("DataJson.cs" or "PlayTrace.cs"))   // PlayTrace writes; it does not read data

@@ -22,7 +22,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class HazardsOffTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
     const double Frame = 1.0 / 60.0;
 
     static bool ActsInPlay(ContentCatalog content, Hazard h) =>
@@ -167,7 +167,6 @@ public sealed class HazardsOffTests
     /// </summary>
     [Fact]
     [Trait("Kind", "Balance")]
-    [Trait("Cost", "Heavy")]
     public void SF24_OverAFixedSeedSetHazardsOnPlaysAHazardOutcomeAndHazardsOffPlaysNone()
     {
         var (home, away) = ParkFactorCohort.Matchups[0];
@@ -319,7 +318,6 @@ public sealed class HazardsOffTests
     /// </summary>
     [Fact]
     [Trait("Kind", "Balance")]
-    [Trait("Cost", "Heavy")]
     public void SF24_AMatchBuiltWithoutTheArgumentIsTheHazardsOnMatchSeedForSeed()
     {
         var (park, night, seed) = DefaultOnGame;

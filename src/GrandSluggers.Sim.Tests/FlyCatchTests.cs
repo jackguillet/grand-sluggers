@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class FlyCatchTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Theory]
     [InlineData(false)]
@@ -22,7 +22,7 @@ public class FlyCatchTests
     [Fact]
     public void NearWallHomerCannotBeScoopedThroughTheFence()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         foreach (var park in content.Parks.Values)
         {
             var match = Match.Slice(content, parkId: park.Id);
@@ -50,7 +50,7 @@ public class FlyCatchTests
     [Fact]
     public void HarborNearWallFlightMeetsTheWallAndStaysInThePark()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var match = Match.Slice(content);
         var park = match.Park;
         // In the open this carries a few feet past Harbor's 400; in the park it meets the 8-ft wall below the top (§6.1).

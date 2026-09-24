@@ -13,7 +13,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class StarModifierScenarioTests
 {
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped));
     static double CenterY => StrikeZoneGeometry.CenterY;
 
     static void DrainDefense(Match m)

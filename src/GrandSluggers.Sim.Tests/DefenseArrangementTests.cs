@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class DefenseArrangementTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     Match Game(bool drafted = false)
     {
         if (!drafted) return Match.Slice(_content, seed: 7);

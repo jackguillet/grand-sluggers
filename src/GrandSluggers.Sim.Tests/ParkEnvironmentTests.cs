@@ -29,7 +29,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class ParkEnvironmentTests
 {
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
 
     /// <summary>A park that exists only here. Harbor's posts, so the only thing that can move a flight is the air.</summary>
     static Park Air(ParkEnvironment? environment, double windMph = 0, double windDeg = 0) =>

@@ -19,6 +19,6 @@ public sealed class RoleTablesTests
         Assert.Contains("Automatic", RoleTables.Pad[2].Rows.Single(r => r.Verb == "Catch").Press);
         Assert.Contains("D-pad Up", RoleTables.Pad[3].Rows.Single(r => r.Verb == "Halt").Press);
         Assert.All(RoleTables.PageIds, id => Assert.Equal(id, HowToPlay.Must(id).Id));
-        Assert.Empty(TutorialCatalog.Load(ContentCatalog.Load()).Validate(ContentCatalog.Load()));
+        Assert.Empty(TutorialCatalog.Load(Shipped.Content).Validate(Shipped.Content));
     }
 }

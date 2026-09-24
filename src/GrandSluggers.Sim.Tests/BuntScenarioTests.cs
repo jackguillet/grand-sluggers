@@ -13,7 +13,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class BuntScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     const double Frame = 1.0 / 60.0;
     /// <summary>Exhibition's defense seat (D18): the CPU runs the glove until the stick takes it.</summary>
     static readonly LiveSeats HumanDefense = new(HumanBats: false, HumanPitches: true, PlayerMustField: false, Versus: false);

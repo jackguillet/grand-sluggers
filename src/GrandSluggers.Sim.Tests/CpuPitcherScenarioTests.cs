@@ -27,7 +27,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class CpuPitcherScenarioTests
 {
-    readonly ContentCatalog _shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    readonly ContentCatalog _shipped = ContentCatalog.Load(new DataRoot(Shipped.Content.Root.Shipped));
 
     string ShippedRoot => _shipped.Root.Shipped;
 
