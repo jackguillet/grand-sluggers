@@ -867,7 +867,9 @@ public sealed record PlayEvent(
     int OutsOnPlay = 0,
     PlayContext? Context = null,
     MatchState? NextState = null,
-    PlayOutcome? Outcome = null);
+    PlayOutcome? Outcome = null,
+    // What the caption was narrated from (BroadcastHud.Narrate). Traces carry the caption; the call stays out of them.
+    [property: JsonIgnore] PlayCall? Call = null);
 
 /// <summary>What happened to the ball at this sample of the clipped path (spec §6.1).</summary>
 public enum SampleEvent
