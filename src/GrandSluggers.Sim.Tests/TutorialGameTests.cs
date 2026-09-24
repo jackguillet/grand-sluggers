@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class TutorialGameTests
 {
-    static readonly ContentCatalog Shipped = ContentCatalog.Load();
+    static readonly ContentCatalog Shipped = global::GrandSluggers.Sim.Tests.Shipped.Content;
     public static IEnumerable<object[]> Cases => from profile in new[] { "shipped" }
         from id in new[] { "T-G04", "T-G04-F", "T-G04-H" }
         select new object[] { profile, id };

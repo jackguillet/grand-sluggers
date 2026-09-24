@@ -13,7 +13,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class PursuitReadinessTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
     static FieldStickRules Radial => Game.Rules.Fielding.Stick;
     const double Frame = 1.0 / 60.0;
 

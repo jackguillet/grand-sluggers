@@ -14,7 +14,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class FieldKitSourceTests
 {
-    static readonly ContentCatalog Content = ContentCatalog.Load();
+    static readonly ContentCatalog Content = Shipped.Content;
     readonly string _repo = Path.GetFullPath(Path.Combine(Content.Root.Shipped, ".."));
 
     string Runtime(string file) =>

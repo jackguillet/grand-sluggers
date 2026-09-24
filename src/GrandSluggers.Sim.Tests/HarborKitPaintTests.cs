@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class HarborKitPaintTests
 {
-    readonly string _repo = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
+    readonly string _repo = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, ".."));
 
     [Theory]
     [InlineData("bag", "chalk")]

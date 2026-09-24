@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class RunnersShareABagTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     const double Frame = 1.0 / 60.0;
     static readonly LiveSeats HumanOffense = new(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
     static readonly Func<int, bool> NoForce = _ => false;

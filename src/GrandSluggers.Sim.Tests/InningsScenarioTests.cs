@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>Spec §1 / B.6 rows S-80 … S-82: walk-off on every path, extra innings to the cap, mercy.</summary>
 public sealed class InningsScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     static readonly PitchCommand Paint = new("fastball", 0, false);
     static readonly SwingCommand Take = new(false, 0, 0, false);
     static readonly PitchCommand Wide = new("fastball", 0, false, AimX: 1.5);

@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class MatchOptionsTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     [Theory]
     [InlineData(false)]

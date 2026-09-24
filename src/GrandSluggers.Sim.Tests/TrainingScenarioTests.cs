@@ -13,7 +13,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class TrainingScenarioTests
 {
-    static readonly string ShippedRoot = ContentCatalog.Load().Root.Shipped;
+    static readonly string ShippedRoot = Shipped.Content.Root.Shipped;
 
     [Fact]
     public void S133_TrainingOffersTheLoadedTablesPitchFamilies()

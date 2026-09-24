@@ -4,7 +4,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class TutorialDirectionTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     public static IEnumerable<object[]> Lessons => new[] { "T-P02", "T-B03", "T-B03-L", "T-B05" }.Select(id => new object[] { id });
     TutorialSession Start(string id) { var run = new TutorialSession(_content, TutorialCatalog.Load(_content), id); run.Begin(); return run; }
     static bool Perform(TutorialSession run, LivePlayCommandSource source = LivePlayCommandSource.Human) => run.Lesson.Id switch

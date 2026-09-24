@@ -11,7 +11,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class BodyFacingTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     readonly ITestOutputHelper _out;
     const double Frame = 1.0 / 60.0;
 

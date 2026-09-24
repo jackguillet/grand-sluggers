@@ -12,7 +12,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class TagUpDecisionTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
     const double Frame = 1.0 / 60.0;
 
     /// <summary>The game's table with the carry gates at 200 / 250 ft and the race off: the carry-gated tag-up.</summary>

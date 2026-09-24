@@ -10,7 +10,7 @@ public sealed class DualStillsTests
     /// <summary>A rename of a required kind is a spec change (docs/agent-rails.md §4).</summary>
     public static readonly string[] RequiredKindIds = ["body", "extras", "harbor-kit", "takes"];
 
-    readonly DataRoot _root = ContentCatalog.Load().Root;
+    readonly DataRoot _root = Shipped.Content.Root;
     string Repo => Path.GetFullPath(Path.Combine(_root.Shipped, ".."));
 
     [Fact]
@@ -177,7 +177,7 @@ public sealed class DualStillsTests
             var dest = Path.Combine(Root, DualStills.Directory);
             Directory.CreateDirectory(dest);
             File.Copy(
-                DualStills.PathFor(ContentCatalog.Load().Root),
+                DualStills.PathFor(Shipped.Content.Root),
                 Path.Combine(dest, DualStills.FileName));
         }
 

@@ -78,7 +78,7 @@ public sealed class GuidedTutorialTests
 
     static LineupScreens AtSettings(bool versus)
     {
-        var lineup = LineupScreens.Open(ContentCatalog.Load(), "vale", "brondo", LineupSeat.Pad1, versus ? LineupSeat.Pad2 : LineupSeat.Cpu);
+        var lineup = LineupScreens.Open(Shipped.Content, "vale", "brondo", LineupSeat.Pad1, versus ? LineupSeat.Pad2 : LineupSeat.Cpu);
         lineup.RandomFill(LineupSeat.Pad1);
         if (versus) lineup.RandomFill(LineupSeat.Pad2);
         Assert.True(lineup.ConfirmTeam());

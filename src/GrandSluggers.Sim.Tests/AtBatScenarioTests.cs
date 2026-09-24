@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class AtBatScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     static double CenterY => StrikeZoneGeometry.CenterY;
 
     // ---------------------------------------------------------------------------------
@@ -799,7 +799,6 @@ public sealed class AtBatScenarioTests
 
     [Fact]
     [Trait("Kind", "Balance")]
-    [Trait("Cost", "Heavy")]
     public void S29_FiftySeedCpuGamesLandInTheBand()
     {
         // 50 three-inning CPU-vs-CPU games across the captain pairs, each pair played both ways

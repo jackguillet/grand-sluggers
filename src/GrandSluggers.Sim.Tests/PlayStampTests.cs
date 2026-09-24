@@ -116,7 +116,7 @@ public class PlayStampTests
     public void ContactWordsComeOnlyFromTheTypedZoneNeverTheRelease()
     {
         // #578: MAX on the release is the charge tell; a whiff shows STRIKE through the stamp, never a hit word.
-        var feel = ContentCatalog.Load().Feel;
+        var feel = Shipped.Content.Feel;
         Assert.Equal("MAX", ChargeFeel.NiceCopy(false, 1, 0, feel.ChargeMaxHoldSeconds));
         Assert.Equal("Nice!", ChargeFeel.NiceCopy(true, 1, 0, feel.ChargeMaxHoldSeconds));
         Assert.DoesNotContain("HIT", ChargeFeel.NiceCopy(false, 1, 0, feel.ChargeMaxHoldSeconds), StringComparison.OrdinalIgnoreCase);
@@ -261,7 +261,7 @@ public class PlayStampTests
         bool fieldersChoice = false, int batterToBag = 0, RunnerPlayResult runner = RunnerPlayResult.None)
         => [row, expected, Ev(kind, "Caption lies: a banana peel on the mound.", outs, runs, feat, bunt, error, fieldersChoice, batterToBag, runner)];
 
-    static readonly ContentCatalog Content = ContentCatalog.Load();
+    static readonly ContentCatalog Content = Shipped.Content;
 
     static PlayEvent Ev(PlayKind kind, string caption, int outs = 0, int runs = 0,
         DefensiveFeat feat = DefensiveFeat.None, bool bunt = false, bool error = false,
@@ -289,7 +289,7 @@ public class PlayStampTests
     [Fact]
     public void StrikeoutKeepsThatBatterInTheBox()
     {
-        var match = Match.Slice(ContentCatalog.Load(), innings: 3, seed: 1);
+        var match = Match.Slice(Shipped.Content, innings: 3, seed: 1);
         var paint = new PitchCommand("fastball", 0, false);
         var take = new SwingCommand(false, 0, 0, false);
         PlayEvent? ev = null;
@@ -308,7 +308,7 @@ public class PlayStampTests
     {
         // #574: on a third out made elsewhere the match flips and the batter is nobody's runner any more;
         // the typed bodies at Time still say where they stood, so the box stays empty for the result beat.
-        var match = Match.Exhibition(ContentCatalog.Load(), "rio", "ashlord", 3, seed: 1);
+        var match = Match.Exhibition(Shipped.Content, "rio", "ashlord", 3, seed: 1);
         var batter = match.Batter;
         var onFirst = new PlayOutcome(Bodies: [new FieldBody(FieldBody.Runner, batter, Diamond.First.X, Diamond.First.Z)]);
         var ev = new PlayEvent(PlayKind.GroundOut, new AtBatResult(ContactQuality.Nice, true, false, 88, 8, 100, false, false, null, null),
@@ -321,7 +321,7 @@ public class PlayStampTests
     [Fact]
     public void OutsRecordedSurvivesTheInningFlip()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         var match = Match.Exhibition(content, "rio", "ashlord", 3, seed: 1);
         Assert.Equal(2, PlayStamp.OutsRecorded(1, match.Inning - 1, match.Top, match));
         Assert.Equal(1, PlayStamp.OutsRecorded(2, match.Inning, !match.Top, match));
@@ -331,7 +331,7 @@ public class PlayStampTests
     [Fact]
     public void HoldIsABeatNotASkip()
     {
-        var feel = ContentCatalog.Load().Feel;
+        var feel = Shipped.Content.Feel;
         Assert.InRange(PlayStamp.HoldSeconds(PlayKind.FlyOut, feel), 1.0, 2.0);
         Assert.True(PlayStamp.HoldSeconds(PlayKind.HomeRun, feel) >
             PlayStamp.HoldSeconds(PlayKind.Single, feel));

@@ -12,7 +12,7 @@ public class CarnivalFrontTests
         Assert.Contains("EXHIBITION", CarnivalFront.PlayBall, StringComparison.OrdinalIgnoreCase);
         Assert.True(CarnivalFront.HarborIsTheProduct("harbor-diamond"));
         Assert.False(CarnivalFront.HarborIsTheProduct("crystal-rink"));
-        Assert.Contains("real diamond", CarnivalFront.FieldCard(ContentCatalog.Load().MustPark("harbor-diamond"), ContentCatalog.Load().Rules)[0], StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("real diamond", CarnivalFront.FieldCard(Shipped.Content.MustPark("harbor-diamond"), Shipped.Content.Rules)[0], StringComparison.OrdinalIgnoreCase);
         Assert.Equal("DAY", CarnivalFront.SkyGag(false));
         Assert.Equal("NIGHT", CarnivalFront.SkyGag(true));
         Assert.Equal("HOME", CarnivalFront.SeatMark(true));
@@ -43,7 +43,7 @@ public class CarnivalFrontTests
     [Fact]
     public void F8A_TheFieldCardIsReadFromThePlayedPark()
     {
-        var c = ContentCatalog.Load();
+        var c = Shipped.Content;
         IReadOnlyList<string> Card(string id, bool night = false, bool hazards = true) =>
             CarnivalFront.FieldCard(PlayedPark.Of(c.MustPark(id), night, hazards, c.Rules.Hazards), c.Rules);
         var crystal = Card("crystal-rink");
@@ -103,7 +103,7 @@ public class CarnivalFrontTests
     [Fact]
     public void TitleIsAStickerOverTheInfield()
     {
-        var title = ContentCatalog.Load().Shots.Must("title");
+        var title = Shipped.Content.Shots.Must("title");
         Assert.True(CarnivalFront.TitlePoster(title.Pos, title.Target),
             $"title is not a sticker poster cam={title.Pos} look={title.Target} " +
             $"logoDeg={CarnivalFront.OffLook(title.Pos, title.Target, CarnivalFront.TitleLogoAt):0.0}");
@@ -114,7 +114,7 @@ public class CarnivalFrontTests
     [Fact]
     public void TitleLogoReadsLeftToRightFromTheTitleCamera()
     {
-        var title = ContentCatalog.Load().Shots.Must("title");
+        var title = Shipped.Content.Shots.Must("title");
         var logo = CarnivalFront.TitleLogoAt;
         var fwd = CarnivalFront.TitleLogoForward(title.Pos, logo);
         Assert.True(fwd.Z > 0, $"sticker looks back at home z={fwd.Z}");
@@ -151,7 +151,7 @@ public class CarnivalFrontTests
     [Fact]
     public void SelectCaptainsStayOnTheDirt()
     {
-        var content = ContentCatalog.Load();
+        var content = Shipped.Content;
         Assert.Equal(0f, CarnivalFront.SelectDirtY);
         Assert.Equal(Motion.Verb.Idle, CarnivalFront.SelectPose(true, false));
         Assert.Equal(Motion.Verb.Idle, CarnivalFront.SelectPose(false, true));
@@ -188,7 +188,7 @@ public class CarnivalFrontTests
         }
     }
 
-    static readonly ContentCatalog Catalog = ContentCatalog.Load();
+    static readonly ContentCatalog Catalog = Shipped.Content;
 
     /// <summary>
     /// The hazards switch on the title (FD-10, §14): the line under PLAY BALL ends with it, on by default and read both

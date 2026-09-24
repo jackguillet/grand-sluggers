@@ -19,7 +19,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class GroundReadTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    static readonly ContentCatalog Game = ContentCatalog.Load(new DataRoot(Shipped.Content.Root.Shipped));
 
     /// <summary>The loose-ball clock the live play ticks on (<c>LivePlaySystem</c> at 60 Hz).</summary>
     const double Frame = 1.0 / 60.0;

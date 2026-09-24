@@ -10,7 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class InfieldCrossingRouteTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
     static readonly string[] Infield = { "P", "1B", "2B", "SS", "3B" };
     /// <summary>A step or two of settling around the crossing point, and the glove's reach.</summary>
     const double SlackFt = 12;

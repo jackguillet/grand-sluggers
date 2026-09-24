@@ -15,7 +15,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class StarResourceScenarioTests
 {
-    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(ContentCatalog.Load().Root.Shipped));
+    static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped));
     static double CenterY => StrikeZoneGeometry.CenterY;
 
     /// <summary>Spend the defense down with paid Star Pitches thrown as takes well outside, until it cannot pay.</summary>

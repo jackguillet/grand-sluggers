@@ -19,7 +19,7 @@ dotnet run --project src/GrandSluggers.Cli -- art
 python3 -m unittest discover -s tools/tests -p 'test_*.py'
 ```
 
-The .NET test assembly contains simulation and content contracts only. PRs run the breakage suite (`--filter "Kind!=Balance"`); balance and calibration tests carry `[Trait("Kind", "Balance")]` and run on demand (`full-tests.yml`, or `tools/test-fast.sh --balance`). `tools/test-fast.sh [ClassName ...]` runs the breakage suite locally, optionally narrowed to classes. Tool tests cover revision-safe local delivery and the compiler source inventory.
+The .NET test assembly contains simulation and content contracts only. PRs run the breakage suite (`--filter "Kind!=Balance"`); balance and calibration tests carry `[Trait("Kind", "Balance")]` and run on demand (`full-tests.yml`, or `tools/test-fast.sh --balance`). `tools/test-fast.sh [ClassName ...]` runs the breakage suite locally, optionally narrowed to classes. A test that rewrites a checked-in fixture or exports evidence is a writer (`[WriterFact]`): it is reported skipped unless its variable is set, so it never counts as a pass. `tools/regenerate.sh pitch-golden|night-games` runs a fixture writer; a regenerated fixture that changed is a behaviour change the PR explains. Test helpers live in `src/GrandSluggers.Sim.Tests/Support/`, and a test that only reads the shipped data uses the one shared catalog, `Shipped.Content`; `ContentFixture` is for a test that changes data. Tool tests cover revision-safe local delivery and the compiler source inventory.
 
 ## Narrow Unity C# compile
 

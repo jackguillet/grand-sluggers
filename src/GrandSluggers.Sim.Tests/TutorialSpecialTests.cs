@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class TutorialSpecialTests
 {
-    static readonly ContentCatalog Control = ContentCatalog.Load();
+    static readonly ContentCatalog Control = Shipped.Content;
     static readonly string[] StarLessons = ["T-P09", "T-B09",
         "T-SP-heatball", "T-SP-charmball", "T-SP-prismball", "T-SP-phonyball", "T-SP-caskball",
         "T-SP-skullball", "T-SP-fogball", "T-SP-fastball", "T-SP-changeup", "T-SP-breaker",

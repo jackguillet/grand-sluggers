@@ -13,7 +13,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class InfieldGeometryTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     static readonly JsonDocumentOptions JsonComments = new()
     {
@@ -438,7 +438,7 @@ public sealed class InfieldGeometryTests
         public CopiedRoot()
         {
             Root = Path.Combine(Path.GetTempPath(), "grand-sluggers-infield-" + Guid.NewGuid().ToString("N"));
-            var source = ContentCatalog.Load().Root.Shipped;
+            var source = Shipped.Content.Root.Shipped;
             Directory.CreateDirectory(Root);
             foreach (var directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
                 Directory.CreateDirectory(Path.Combine(Root, Path.GetRelativePath(source, directory)));

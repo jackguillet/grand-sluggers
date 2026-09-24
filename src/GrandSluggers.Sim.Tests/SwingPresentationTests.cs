@@ -209,7 +209,7 @@ public class SwingPresentationTests
     [Fact]
     public void DccSwingTakesCatalogCarriesTheContractKeys()
     {
-        var repo = Directory.GetParent(ContentCatalog.Load().Root.Shipped)!.FullName;
+        var repo = Directory.GetParent(Shipped.Content.Root.Shipped)!.FullName;
         var doc = JsonNode.Parse(File.ReadAllText(Path.Combine(repo, "data", "art", "swing-takes.json")))!;
         Assert.Equal(Motion.SwingContact, doc["contactAt"]!.GetValue<double>(), 8);
         Assert.Equal(Motion.SwingFinish, doc["finishAt"]!.GetValue<double>(), 8);
@@ -340,7 +340,7 @@ public class SwingPresentationTests
         // #560: the plate SET hid the ready barrel in the head disk. Tuning
         // that shot cannot pull it out inside the SET constraints; the ready
         // key has to stand the bat beside the head. MAX already did (#623).
-        var plate = ContentCatalog.Load().Shots.Must("plate");
+        var plate = Shipped.Content.Shots.Must("plate");
         Assert.Equal(HomeSet.CamX, plate.Pos.X, 6);
         Assert.Equal(HomeSet.CamZ, plate.Pos.Z, 6);
         foreach (var body in Shipped.CaptainIds)
@@ -365,7 +365,7 @@ public class SwingPresentationTests
     [Fact]
     public void BarrelBesideHeadRejectsABarrelHiddenByTheCurrentRigHead()
     {
-        var plate = ContentCatalog.Load().Shots.Must("plate");
+        var plate = Shipped.Content.Shots.Must("plate");
         // #560 remains a projection falsifier after the rig revision: place the
         // barrel along the camera-to-head ray so the current head hides it.
         // The historical revision-1 key is no longer hidden by the smaller head.
@@ -393,7 +393,7 @@ public class SwingPresentationTests
     [Fact]
     public void TheFinishHoldsThroughTheStampUntilSetOrTheFirstStep()
     {
-        var feel = ContentCatalog.Load().Feel;
+        var feel = Shipped.Content.Feel;
         var step = feel.SwingFinishStepFt;
         var takeSec = AtBatMotion.SwingTakeSeconds(Motion.SwingContact);
         // A whiff: the take, then its finish, however long the STRIKE stamp and the contact freeze last.
@@ -411,7 +411,7 @@ public class SwingPresentationTests
     [Fact]
     public void DccCatalogCarriesThePortableStanceDirections()
     {
-        var repo = Directory.GetParent(ContentCatalog.Load().Root.Shipped)!.FullName;
+        var repo = Directory.GetParent(Shipped.Content.Root.Shipped)!.FullName;
         var path = Path.Combine(repo, "data", "art", "batting-stance.json");
         var keys = JsonNode.Parse(File.ReadAllText(path))!["keys"]!.AsArray();
         Assert.Equal(BattingStance.Keys.Count, keys.Count);
@@ -503,7 +503,7 @@ public class SwingPresentationTests
     [Fact]
     public void MatchHoldsTheWorldBoxOffsetAfterResettingTheLiveCursor()
     {
-        var match = Match.Slice(ContentCatalog.Load(), seed: 503);
+        var match = Match.Slice(Shipped.Content, seed: 503);
         const double atContact = 0.35;
         match.BeginAtBat(
             new PitchCommand("fastball", 0, false),

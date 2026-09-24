@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class TutorialDefenseSwapTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     public static IEnumerable<object[]> Lessons => new[] { "T-G01-S", "T-G01-SA" }.Select(id => new object[] { id });
 
     TutorialSession Start(string id, bool demonstration = false)

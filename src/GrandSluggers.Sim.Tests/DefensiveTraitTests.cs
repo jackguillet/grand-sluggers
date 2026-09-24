@@ -11,7 +11,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public class DefensiveTraitTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     static Stats Seeded(int field) => new(5, 5, field, 5);
 

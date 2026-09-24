@@ -1,0 +1,30 @@
+{
+  "what": "SF-25: night games at Funfair and Ember, pinned by final line and the SHA-256 of the play log (NightBlockTests.Log).",
+  "regenerate": "tools/regenerate.sh night-games",
+  "games": [
+    {
+      "park": "funfair-park",
+      "seed": 1,
+      "final": "Final  Ember Court 1  Spark All-Stars 2",
+      "sha256": "a928a8f526953c9af7e498c64055b46ec030e393b392aaf755c090a6929b9ea7"
+    },
+    {
+      "park": "funfair-park",
+      "seed": 11,
+      "final": "Final  Ember Court 6  Spark All-Stars 0",
+      "sha256": "6ffb6300f93abc12fdb204f360724bbc2f59d49632418ad09e118f6ce589db57"
+    },
+    {
+      "park": "ember-keep",
+      "seed": 1,
+      "final": "Final  Ember Court 10  Spark All-Stars 1",
+      "sha256": "9c6a235c68e7504cab69877a85be45e19a1f354a465733a03687d18914dadb0c"
+    },
+    {
+      "park": "ember-keep",
+      "seed": 2,
+      "final": "Final  Ember Court 9  Spark All-Stars 0",
+      "sha256": "51e83e5058368a038c726ff540f02f71f1af5327b743b7b8bdce616fa25d9e92"
+    }
+  ]
+}

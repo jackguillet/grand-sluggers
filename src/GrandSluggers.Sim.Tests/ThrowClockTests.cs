@@ -12,7 +12,7 @@ namespace GrandSluggers.Sim.Tests;
 [Trait("Kind", "Balance")]
 public sealed class ThrowClockTests
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
 
     /// <summary>The game's table with the long-throw loss switched off: the flat clock.</summary>
     static readonly RulesTable Flat = PatchedRules("rules/fielding.json", "\"longThrowLossSec\": 0.60", "\"longThrowLossSec\": 0");

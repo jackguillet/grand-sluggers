@@ -24,7 +24,7 @@ public class PitchRatingsScenarioTests
 {
     static readonly string[] Keys = ["velocity", "movement", "control", "endurance"];
 
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     // ---------------------------------------------------------------------------------
     // S-138 — unauthored tracks Pitch, and stays unauthored
@@ -46,7 +46,7 @@ public class PitchRatingsScenarioTests
     [Fact]
     public void S138_NoCharacterFileAuthorsAPitchingRatingKey()
     {
-        var root = ContentCatalog.Load().Root.Shipped;
+        var root = Shipped.Content.Root.Shipped;
         foreach (var file in Directory.GetFiles(Path.Combine(root, "characters"), "*.json"))
         {
             var node = JsonNode.Parse(File.ReadAllText(file), documentOptions: DataJson.Document)!;

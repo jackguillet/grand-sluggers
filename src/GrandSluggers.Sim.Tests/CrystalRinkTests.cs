@@ -14,7 +14,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class CrystalRinkTests(ITestOutputHelper output)
 {
-    static readonly ContentCatalog Game = ContentCatalog.Load();
+    static readonly ContentCatalog Game = Shipped.Content;
     static Park Harbor => Game.MustPark("harbor-diamond");
     static Park Crystal => Game.MustPark("crystal-rink");
 

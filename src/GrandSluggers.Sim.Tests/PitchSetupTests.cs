@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class PitchSetupTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
     static readonly LiveSeats Both = new(true, true, true, true);
     const double Dt = 1.0 / 120;
 

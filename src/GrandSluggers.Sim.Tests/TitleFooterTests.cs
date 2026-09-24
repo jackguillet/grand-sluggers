@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public class TitleFooterTests
 {
-    readonly string _repo = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
+    readonly string _repo = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, ".."));
 
     [Fact]
     public void TheTitleFooterNamesEveryTitleVerb()

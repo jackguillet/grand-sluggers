@@ -16,7 +16,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class PlateChemistryScenarioTests
 {
-    readonly ContentCatalog _content = ContentCatalog.Load();
+    readonly ContentCatalog _content = Shipped.Content;
 
     RulesTable R => _content.Rules;
     Park Harbor => _content.Parks[ExhibitionPick.DefaultPark];
