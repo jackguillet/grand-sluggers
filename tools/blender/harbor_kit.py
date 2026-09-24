@@ -16,7 +16,6 @@ Existing flags --out and --clay still run. This script does not retarget a rig.
 from __future__ import annotations
 
 import argparse
-import json
 import math
 import re
 import shutil
@@ -28,33 +27,10 @@ import bpy
 from mathutils import Matrix, Vector
 
 REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / "tools"))  # tools/ is not a package
+import jsonc  # noqa: E402  (the one reader for data files with // notes)
+
 PARK_ID = "harbor-diamond"
-
-
-def read_jsonc(path: Path) -> dict:
-    """Data files carry // notes (data/rules/*.json). Strip them outside strings, then parse."""
-    text = path.read_text()
-    out, i, n, in_str = [], 0, len(text), False
-    while i < n:
-        c = text[i]
-        if in_str:
-            out.append(c)
-            if c == "\\" and i + 1 < n:
-                out.append(text[i + 1])
-                i += 1
-            elif c == '"':
-                in_str = False
-        elif c == '"':
-            in_str = True
-            out.append(c)
-        elif text.startswith("//", i):
-            while i < n and text[i] != "\n":
-                i += 1
-            continue
-        else:
-            out.append(c)
-        i += 1
-    return json.loads(re.sub(r",(\s*[}\]])", r"\1", "".join(out)))
 
 
 def sim_consts(cls: str) -> dict:
@@ -72,9 +48,9 @@ def sim_consts(cls: str) -> dict:
 # The diamond the sim plays (data/rules/infield.json), the edge it ends at
 # (data/rules/boundary.json) and the park's fence (data/parks/harbor-diamond.json).
 # The next geometry change rebakes with no code edit.
-INFIELD = read_jsonc(REPO / "data" / "rules" / "infield.json")
-BOUNDARY = read_jsonc(REPO / "data" / "rules" / "boundary.json")
-PARK = read_jsonc(REPO / "data" / "parks" / (PARK_ID + ".json"))
+INFIELD = jsonc.load(REPO / "data" / "rules" / "infield.json")
+BOUNDARY = jsonc.load(REPO / "data" / "rules" / "boundary.json")
+PARK = jsonc.load(REPO / "data" / "parks" / (PARK_ID + ".json"))
 CORNER = float(INFIELD["cornerFt"])
 SECOND = float(INFIELD["secondFt"])
 MOUND_FT = float(INFIELD["moundFt"])

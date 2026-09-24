@@ -374,7 +374,7 @@ public class FlyCatchTests
         Assert.True(FlyCatch.NeedsJump(offered));
     }
 
-    Park Harbor => _content.Parks["harbor-diamond"];
+    Park Harbor => _content.Parks[ParkId.Harbor];
 
     static AtBatResult Pop() =>
         new(ContactQuality.Nice, true, false, 88, 32, 240, false, false, null, null, SprayDeg: 0);

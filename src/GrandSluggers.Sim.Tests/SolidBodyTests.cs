@@ -65,7 +65,7 @@ public sealed class SolidBodyTests
     [Fact]
     public void SF28_TheMoversPlaceIsAFunctionOfThePlayClock()
     {
-        var funfair = Catalog.MustPark("funfair-park");
+        var funfair = Catalog.MustPark(ParkId.Funfair);
         var train = Assert.Single(SolidBodies.Of(funfair, Rules), b => b.Moves);
         var row = train.Row;
         Assert.Equal((train.X, train.Z), train.At(0));
@@ -84,10 +84,10 @@ public sealed class SolidBodyTests
     [Fact]
     public void EveryBodyParkListsItsBodies()
     {
-        Assert.Single(SolidBodies.Of(Catalog.MustPark("ember-keep"), Rules));
-        Assert.Single(SolidBodies.Of(Catalog.MustPark("rooftop-city"), Rules));
-        Assert.Equal(4, SolidBodies.Of(Catalog.MustPark("canopy-yard"), Rules).Count);
-        Assert.Empty(SolidBodies.Of(Catalog.MustPark("harbor-diamond"), Rules));
+        Assert.Single(SolidBodies.Of(Catalog.MustPark(ParkId.Ember), Rules));
+        Assert.Single(SolidBodies.Of(Catalog.MustPark(ParkId.Rooftop), Rules));
+        Assert.Equal(4, SolidBodies.Of(Catalog.MustPark(ParkId.Canopy), Rules).Count);
+        Assert.Empty(SolidBodies.Of(Catalog.MustPark(ParkId.Harbor), Rules));
     }
 
     sealed class NearPoint : IEqualityComparer<(double, double)>

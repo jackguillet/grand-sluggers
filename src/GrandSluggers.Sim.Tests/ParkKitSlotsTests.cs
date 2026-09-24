@@ -41,7 +41,7 @@ public sealed class ParkKitSlotsTests
     [Fact]
     public void FD16_HarborFillsItsKitsSevenPiecesAndTheOtherParksNameTheirDress()
     {
-        var harbor = Kit("harbor-diamond");
+        var harbor = Kit(ParkId.Harbor);
         Assert.Equal(ParkKitSlots.HarborLawn, harbor.Filler(ParkKitSlots.Lawn));
         Assert.Equal(ParkKitSlots.HarborDugouts, harbor.Filler(ParkKitSlots.Dugouts));
         Assert.Equal(ParkKitSlots.HarborWall, harbor.Filler(ParkKitSlots.Wall));
@@ -51,12 +51,12 @@ public sealed class ParkKitSlotsTests
         Assert.Equal(ParkKitSlots.HarborFireworks, harbor.Filler(ParkKitSlots.Night));
         Assert.Equal([ParkKitSlots.Props, ParkKitSlots.HazardActors], harbor.Empty);
         string[] harborOnly = [ParkKitSlots.Lawn, ParkKitSlots.Dugouts, ParkKitSlots.Wall, ParkKitSlots.Scoreboard];
-        Assert.Equal(harborOnly, Kit("crystal-rink").Empty);
-        Assert.Equal([.. harborOnly, ParkKitSlots.Night], Kit("funfair-park").Empty);
-        Assert.Equal([.. harborOnly, ParkKitSlots.Props], Kit("rooftop-city").Empty);
-        Assert.Equal(harborOnly, Kit("canopy-yard").Empty);
-        Assert.Equal(harborOnly, Kit("ember-keep").Empty);
-        foreach (var park in Catalog.Parks.Keys.Where(p => p != "harbor-diamond"))
+        Assert.Equal(harborOnly, Kit(ParkId.Crystal).Empty);
+        Assert.Equal([.. harborOnly, ParkKitSlots.Night], Kit(ParkId.Funfair).Empty);
+        Assert.Equal([.. harborOnly, ParkKitSlots.Props], Kit(ParkId.Rooftop).Empty);
+        Assert.Equal(harborOnly, Kit(ParkId.Canopy).Empty);
+        Assert.Equal(harborOnly, Kit(ParkId.Ember).Empty);
+        foreach (var park in Catalog.Parks.Keys.Where(p => p != ParkId.Harbor))
             Assert.Equal(ParkKitSlots.ToyActors, Kit(park).Filler(ParkKitSlots.HazardActors));
     }
 
@@ -64,7 +64,7 @@ public sealed class ParkKitSlotsTests
     [Fact]
     public void FD16_TheValidatorRefusesAMissingSlotAnUnknownSlotAWrongBuilderAndAHarborPieceOffTheLawn()
     {
-        var harbor = Kit("harbor-diamond");
+        var harbor = Kit(ParkId.Harbor);
         ParkKitSlot With(Action<Dictionary<string, string?>> change)
         {
             var slots = new Dictionary<string, string?>(harbor.Slots!, StringComparer.Ordinal);

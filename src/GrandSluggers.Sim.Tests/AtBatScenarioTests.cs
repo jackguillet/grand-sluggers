@@ -110,7 +110,7 @@ public sealed class AtBatScenarioTests
     public void S06_ChangeupDumpedLowIsContactWithAGrounderBias()
     {
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var low = Input(bat: 5, err: 0, crossingY: 1.6, changeup: true);
         var mid = low with { CrossingY = CenterY, ChangeupPitch = false };
         for (var seed = 0; seed < 12; seed++)
@@ -145,7 +145,7 @@ public sealed class AtBatScenarioTests
     public void S07_SquareBatFiveSlapAtTheCenterIsPerfectStraightToCenter()
     {
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var spread = _content.Rules.Batting.Spray.PerfectSpreadDeg / 2;
         Assert.Equal(LeadSec, _content.Rules.Batting.Window.LeadSec, 8);
         var err = PressFrames(LeadSec);
@@ -164,7 +164,7 @@ public sealed class AtBatScenarioTests
     public void S08_FourFramesEarlyInsideTheNineFrameWindowIsStillPerfectAndPulled()
     {
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var err = PressFrames(LeadSec + 4.0 / 60);
         Assert.Equal(-4, err, 8);
         var input = Input(bat: 5, err: err);
@@ -187,7 +187,7 @@ public sealed class AtBatScenarioTests
         // plate − 0.25 is 4.2 frames early and plate − 0.11 is 4.2 frames late: inside the
         // 4.5-frame half window, on its unsquare rim (one tier down, never a miss).
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var err = PressFrames(beforePlate);
         Assert.Equal(side * 4.2, err, 8);
         var input = Input(bat: 5, err: err);
@@ -207,7 +207,7 @@ public sealed class AtBatScenarioTests
     public void S09_FiveFramesLateIsOutsideTheNineFrameWindowAndAMiss()
     {
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var r = resolver.Resolve(Input(bat: 5, err: 5), park, new Random(1));
         Assert.Equal(ContactQuality.Miss, r.Quality);
         Assert.False(r.InPlay);
@@ -237,7 +237,7 @@ public sealed class AtBatScenarioTests
     [Fact]
     public void S10_OnTheShippedRootTheWindowIsOneNumberForEverySwingAndEveryHitter()
     {
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var rules = _content.Rules;
         var frames = rules.Batting.Window.Frames;
         Assert.Equal(frames, AtBatResolver.ContactWindowFrames(null, park, false, rules, _content.StarSkills));
@@ -263,7 +263,7 @@ public sealed class AtBatScenarioTests
     public void S11_ChargedSwingWithTheBallTowardTheTipIsNiceAtTheChargeNiceExit()
     {
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var center = Input(bat: 5, err: 0);
         var tip = center with { Charge01 = 1, CrossingX = SweetSpot.TipSign(center.Batter.Bats) * 0.4 };
         var slap = resolver.Resolve(center, park, new Random(1));
@@ -279,7 +279,7 @@ public sealed class AtBatScenarioTests
     public void S12_OrdinarySourContactKeepsItsLaunchFromTheCrossing()
     {
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var b = _content.Rules.Batting;
         var sour = Input(bat: 5, err: -1);
         sour = sour with { CrossingX = -SweetSpot.TipSign(sour.Batter.Bats) * 0.9 };
@@ -307,7 +307,7 @@ public sealed class AtBatScenarioTests
     public void S13_OnTheShippedRootStickUpAndStickCenterLaunchTheSame()
     {
         var resolver = new AtBatResolver(_content.Chemistry, _content.Rules);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         for (var seed = 0; seed < 20; seed++)
         {
             var flat = resolver.Resolve(Input(bat: 6, err: 0), park, new Random(seed));
@@ -504,7 +504,7 @@ public sealed class AtBatScenarioTests
     public void S19_AHeldBuntOnAHighPitchIsABuntPopAndTheHeldBatHasNoPressToTime()
     {
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var b = _content.Rules.Batting;
         var high = Input(bat: 5, err: 0, crossingY: CenterY + b.Bunt.PopAboveCenterFt + 0.1)
             with { Bunt = true, BuntSide = BuntSide.First };
@@ -865,7 +865,7 @@ public sealed class AtBatScenarioTests
     public void S30_OnTheShippedRootTheChargeBatKeepsItsZonesAndSharesEveryonesWindow()
     {
         var rules = _content.Rules;
-        var park = _content.Parks["harbor-diamond"];
+        var park = _content.Parks[ParkId.Harbor];
         var resolver = new AtBatResolver(_content.Chemistry, rules, _content.StarSkills);
         var manual = Input(bat: 5, err: 0, charge: 1);
         var chargeBat = Input(bat: 5, err: 0, charge: 0, batId: "charge-bat");

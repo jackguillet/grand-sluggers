@@ -213,7 +213,7 @@ public sealed class JumpTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "grit", "marlow", "vine", centre, "hex");
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "konga", "ashlord");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
@@ -225,7 +225,7 @@ public sealed class JumpTests
     {
         var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "marlow", "grit", "vine", "moss", "hex");
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "konga", "ashlord");
-        var match = Match.Exhibition(content, home, away, 3, 1, parkId: "harbor-diamond");
+        var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Landing(match.Park, 110, 60, -20, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);

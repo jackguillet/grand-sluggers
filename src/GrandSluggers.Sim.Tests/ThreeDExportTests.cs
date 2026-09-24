@@ -27,9 +27,9 @@ public sealed class ThreeDExportTests
         // The #702 fixtures.
         Try("S31", () => { var m = Defense702("cinder"); return Run(m, Landing(m, 118, 4, -18)); });
         Try("S32", () => { var m = Defense702("dart"); return Run(m, Landing(m, 118, 4, -18)); });
-        Try("harbor-fixed-grounder", () => { var m = Defense702("cinder", "harbor-diamond"); return Run(m, Hit(m, 84, 8, -12)); });
-        Try("harbor-tactical-grounder", () => { var m = Defense702("cinder", "harbor-diamond"); return Run(m, Landing(m, 118, 4, -18)); });
-        Try("harbor-fly", () => { var m = Defense702("cinder", "harbor-diamond"); return Run(m, Hit(m, 100, 30, -18)); });
+        Try("harbor-fixed-grounder", () => { var m = Defense702("cinder", ParkId.Harbor); return Run(m, Hit(m, 84, 8, -12)); });
+        Try("harbor-tactical-grounder", () => { var m = Defense702("cinder", ParkId.Harbor); return Run(m, Landing(m, 118, 4, -18)); });
+        Try("harbor-fly", () => { var m = Defense702("cinder", ParkId.Harbor); return Run(m, Hit(m, 100, 30, -18)); });
         Try("relay", () =>
         {
             var m = Defense702("cinder");
@@ -93,7 +93,7 @@ public sealed class ThreeDExportTests
     {
         var home = Content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
         var away = Content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
-        return Match.Exhibition(Content, home, away, 3, 1, parkId: "harbor-diamond");
+        return Match.Exhibition(Content, home, away, 3, 1, parkId: ParkId.Harbor);
     }
 
     static Match DefenseOuts(string leadoff)

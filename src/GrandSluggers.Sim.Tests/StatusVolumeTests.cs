@@ -147,7 +147,7 @@ public sealed class StatusVolumeTests
     /// <summary>Harbor with one more hazard instance, the index it has in the park's list.</summary>
     static (Park Park, int Index) HarborWith(string type, double x, double z, double radius)
     {
-        var harbor = Catalog.MustPark("harbor-diamond");
+        var harbor = Catalog.MustPark(ParkId.Harbor);
         var park = harbor with { Hazards = [.. harbor.Hazards, new Hazard(type, x, z, radius, null)] };
         return (park, park.Hazards.Count - 1);
     }
@@ -195,7 +195,7 @@ public sealed class StatusVolumeTests
     [Fact]
     public void SF20_AFielderWhoRunsIntoAVolumeIsSlowedForThreeSecondsAndNoOtherBodyIs()
     {
-        var harbor = Catalog.MustPark("harbor-diamond");
+        var harbor = Catalog.MustPark(ParkId.Harbor);
         var carry = Diamond.Positions["CF"].Z - 75;
         var plain = new Match(Catalog, PresetTeams.EmberCourt(Catalog), PresetTeams.SparkAllStars(Catalog), harbor, seed: 1)
             .PreviewHit(FlightFixtures.Landing(harbor, carry, 40, 0));
@@ -308,13 +308,13 @@ public sealed class StatusVolumeTests
     public void SF20_TheBurrowFielderIsNeverSlowed()
     {
         // Ember Court defends the top here, so Soot is on the field.
-        var probe = new Match(Catalog, PresetTeams.SparkAllStars(Catalog), PresetTeams.EmberCourt(Catalog), Catalog.MustPark("harbor-diamond"), seed: 1);
+        var probe = new Match(Catalog, PresetTeams.SparkAllStars(Catalog), PresetTeams.EmberCourt(Catalog), Catalog.MustPark(ParkId.Harbor), seed: 1);
         var map = FieldingResolver.Assign(probe.DefenseRoster, probe.Pitcher, probe.Defense.Gloves);
         var burrow = map.Single(kv => FieldAbilities.IgnoresParkSlow(kv.Value));
         var other = map.First(kv => kv.Key is not ("P" or "C") && !FieldAbilities.IgnoresParkSlow(kv.Value));
         var at = Diamond.Positions[burrow.Key];
         var near = Diamond.Positions[other.Key];
-        var harbor = Catalog.MustPark("harbor-diamond");
+        var harbor = Catalog.MustPark(ParkId.Harbor);
         var park = harbor with
         {
             Hazards = [.. harbor.Hazards, new Hazard(HazardType.FreezeVolume, at.X, at.Z, 6, null), new Hazard(HazardType.FreezeVolume, near.X, near.Z, 6, null)]
@@ -374,7 +374,7 @@ public sealed class StatusVolumeTests
     [Fact]
     public void SF20_AtTheRinkTheChaserWhoEntersTheDeepVolumeIsTheOnlyBodySlowed()
     {
-        var rink = Catalog.MustPark("crystal-rink");
+        var rink = Catalog.MustPark(ParkId.Crystal);
         var deep = rink.Hazards
             .Select((h, i) => (h, i))
             .Where(x => Catalog.Rules.Hazards.Of(x.h.Type).Pattern == HazardPattern.StatusVolume)
@@ -382,7 +382,7 @@ public sealed class StatusVolumeTests
             .First();
         var carry = Diamond.Dist(0, 0, deep.h.X, deep.h.Z);
         var spray = Math.Atan2(deep.h.X, deep.h.Z) * 180 / Math.PI;
-        var match = Match.Slice(Catalog, seed: 1, parkId: "crystal-rink");
+        var match = Match.Slice(Catalog, seed: 1, parkId: ParkId.Crystal);
         // A high fly (50°): the second baseman who goes out for it is still under it when it comes down, in the disc.
         var p = Play(match, FlightFixtures.Landing(rink, carry + 10, 50, spray));
         Assert.False(p.Preview.Frozen);
