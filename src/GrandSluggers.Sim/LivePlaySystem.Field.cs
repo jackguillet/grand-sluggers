@@ -343,18 +343,15 @@ public sealed partial class LivePlaySystem
     LivePadInput? _recoveryPress;
     LivePadInput? _approachPress;
     double _approachAge;
-    /// <summary>The glove is in the air on a normal jump (#719, F693-02-normal-jump-*): never on the shipped table.</summary>
-    public bool Airborne { get; private set; }
-    /// <summary>Seconds since takeoff while <see cref="Airborne"/>.</summary>
-    public double JumpAirT { get; private set; }
-    /// <summary>The body's root rise this frame, <c>4 H u (1 − u)</c> over the airtime: 0 on the ground.</summary>
-    public double JumpHeightFt { get; private set; }
-    /// <summary>A grounded West press waiting on its first eligible instant (F693-02-normal-jump-input-buffer).</summary>
-    public bool JumpPending => _jumpPending;
-    bool _jumpPending;
-    double _jumpAge;
-    string _jumpPos = "";
-    bool _westHeld;
+    readonly NormalJump _jump = new();
+    /// <summary>The glove is in the air on a normal jump (<see cref="NormalJump.Airborne"/>).</summary>
+    public bool Airborne => _jump.Airborne;
+    /// <summary>Seconds since takeoff while <see cref="Airborne"/> (<see cref="NormalJump.AirT"/>).</summary>
+    public double JumpAirT => _jump.AirT;
+    /// <summary>The body's root rise this frame (<see cref="NormalJump.HeightFt"/>).</summary>
+    public double JumpHeightFt => _jump.HeightFt;
+    /// <summary>A grounded West press waiting on its first eligible instant (<see cref="NormalJump.Pending"/>).</summary>
+    public bool JumpPending => _jump.Pending;
     public bool CatchJump { get; private set; }
     /// <summary>A close play's mash contest is running (<see cref="CloseContest.Active"/>).</summary>
     public bool InClosePlay => _close.Active;
@@ -635,13 +632,7 @@ public sealed partial class LivePlaySystem
         _recoveryPress = null;
         _approachPress = null;
         _approachAge = 0;
-        Airborne = false;
-        JumpAirT = 0;
-        JumpHeightFt = 0;
-        _jumpPending = false;
-        _jumpAge = 0;
-        _jumpPos = "";
-        _westHeld = false;
+        _jump.Reset();
         Bobbling = false;
         PlayerBobble = false;
         CatchDive = CatchJump = false;
@@ -760,7 +751,7 @@ public sealed partial class LivePlaySystem
         if (DiveT > 0) DiveT -= dt;
         if (JumpT > 0) JumpT -= dt;
         if (SwapLock > 0) SwapLock -= dt;
-        TickJumpClock(dt);
+        _jump.Tick(dt, R.Fielding.Catch);
         // The live ball between frames (#719): what the CPU's dive reads, position and motion, never the resolved path.
         _ballVel = _ballPrev is { } prev ? ((BallX - prev.X) / dt, (BallY - prev.Y) / dt, (BallZ - prev.Z) / dt) : (0, 0, 0);
         _ballPrev = (BallX, BallY, BallZ);
@@ -2695,60 +2686,12 @@ public sealed partial class LivePlaySystem
     /// <summary>A takeoff is eligible when the body may move, holds nothing, throws nothing and is not committed to a dive.</summary>
     bool JumpEligible() => !Airborne && !HoldsBall && !Throwing && DiveT <= 0 && RecoilT <= 0 && CanMove(GlovePos);
 
-    /// <summary>
-    /// West (F693-02-normal-jump-takeoff-ownership, -input-buffer, -input-profile): a fresh grounded press takes
-    /// off at once when eligible; blocked by the read or a recovery it is remembered for <c>catch.jumpBufferSec</c>, bound to
-    /// this body, and takes off at the first eligible instant; a press in the air queues nothing, and holding through the landing
-    /// repeats nothing. A throw or a dive already committed prevents the buffer.
-    /// </summary>
+    /// <summary>West this frame (<see cref="NormalJump.Press"/>): a takeoff starts the arm window for the client's pose and the buddy leap.</summary>
     void TickJumpPress(LivePadInput pad, double dt)
     {
-        var fresh = pad.WestDown && !_westHeld;
-        _westHeld = pad.WestDown;
-        if (_jumpPending && (_jumpPos != GlovePos || HoldsBall || Throwing || DiveT > 0))
-            _jumpPending = false;
-        if (fresh && !Airborne)
-        {
-            if (JumpEligible()) { Takeoff(); return; }
-            if (!Throwing && DiveT <= 0 && !HoldsBall && R.Fielding.Catch.JumpBufferSec > 0)
-            {
-                _jumpPending = true;
-                _jumpAge = 0;
-                _jumpPos = GlovePos;
-            }
-            return;
-        }
-        if (!_jumpPending) return;
-        _jumpAge += dt;
-        if (JumpEligible()) { _jumpPending = false; Takeoff(); return; }
-        if (_jumpAge > R.Fielding.Catch.JumpBufferSec + 1e-9) _jumpPending = false;
-    }
-
-    /// <summary>Takeoff, with no added startup: the airborne clock starts now, the arm window is the airtime for the client's pose and the buddy leap.</summary>
-    void Takeoff()
-    {
-        Airborne = true;
-        JumpAirT = 0;
-        JumpHeightFt = 0;
+        if (!_jump.Press(pad.WestDown, GlovePos, HoldsBall || Throwing || DiveT > 0, JumpEligible, dt, R.Fielding.Catch)) return;
         JumpT = R.Fielding.Catch.JumpAirSec;
         _events.Add(LiveEvent.JumpTakeoff);
-    }
-
-    /// <summary>The airborne clock and the root rise, <c>h = 4 H u (1 − u)</c>; the body lands when the airtime is spent.</summary>
-    void TickJumpClock(double dt)
-    {
-        if (!Airborne) return;
-        var c = R.Fielding.Catch;
-        JumpAirT += dt;
-        if (JumpAirT >= c.JumpAirSec - 1e-9)
-        {
-            Airborne = false;
-            JumpAirT = 0;
-            JumpHeightFt = 0;
-            return;
-        }
-        var u = JumpAirT / c.JumpAirSec;
-        JumpHeightFt = 4 * c.JumpRiseFt * u * (1 - u);
     }
 
     /// <summary>
