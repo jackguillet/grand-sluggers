@@ -21,9 +21,9 @@ public sealed class FielderTellsTests
     public void TheFeelTableNamesTheGetUpAndTheBrace()
     {
         Assert.Equal((0.20, 0.16), (Game.Feel.FieldTells.DiveGetUpSec, Game.Feel.FieldTells.BraceSquash));
-        Assert.Throws<InvalidDataException>(() => new FieldTellsFeel { DiveGetUpSec = -0.1 }.Validate());
-        Assert.Throws<InvalidDataException>(() => new FieldTellsFeel { BraceSquash = 0.5 }.Validate());
-        Assert.Throws<InvalidDataException>(() => new FieldTellsFeel { BraceSquash = double.NaN }.Validate());
+        Assert.Throws<InvalidDataException>(() => (Feel with { DiveGetUpSec = -0.1 }).Validate());
+        Assert.Throws<InvalidDataException>(() => (Feel with { BraceSquash = 0.5 }).Validate());
+        Assert.Throws<InvalidDataException>(() => (Feel with { BraceSquash = double.NaN }).Validate());
     }
 
     /// <summary>A debt is the body's, not the ring's: the fumbler and the diver show theirs while another body holds the ring.</summary>

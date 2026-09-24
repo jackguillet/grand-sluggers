@@ -258,6 +258,9 @@ public static class RulesValidation
     }
 
     /// <summary>Every numeric leaf is finite and inside its attribute range.</summary>
+    /// <summary>The same finite / range check for another table (<see cref="FeelTable"/>): every numeric leaf by its attribute.</summary>
+    public static void Ranges(object node, string source, string path, List<string> errors) => Walk(node, source, path, errors);
+
     static void Walk(object node, string source, string path, List<string> errors)
     {
         foreach (var p in node.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
