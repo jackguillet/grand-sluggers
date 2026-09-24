@@ -398,35 +398,18 @@ public sealed class StatusVolumeTests
     // SF-22: no result by chance
     // ---------------------------------------------------------------------------------
 
-    /// <summary>Counts every draw on the match's one stream without changing a value it hands out.</summary>
-    sealed class CountingRandom(Random inner) : Random
+    /// <summary>Counts every draw on the match's streams from now (<see cref="MatchStreams.Draws"/>), without drawing.</summary>
+    sealed class DrawCount(Match match)
     {
-        public int Draws { get; private set; }
-        public override int Next() { Draws++; return inner.Next(); }
-        public override int Next(int maxValue) { Draws++; return inner.Next(maxValue); }
-        public override int Next(int minValue, int maxValue) { Draws++; return inner.Next(minValue, maxValue); }
-        public override double NextDouble() { Draws++; return inner.NextDouble(); }
-        public override long NextInt64() { Draws++; return inner.NextInt64(); }
-        public override long NextInt64(long maxValue) { Draws++; return inner.NextInt64(maxValue); }
-        public override long NextInt64(long minValue, long maxValue) { Draws++; return inner.NextInt64(minValue, maxValue); }
-        public override float NextSingle() { Draws++; return inner.NextSingle(); }
-        public override void NextBytes(byte[] buffer) { Draws++; inner.NextBytes(buffer); }
-        public override void NextBytes(Span<byte> buffer) { Draws++; inner.NextBytes(buffer); }
-        protected override double Sample() { Draws++; return inner.NextDouble(); }
+        readonly long _start = match.Streams.Draws;
+        public long Draws => match.Streams.Draws - _start;
     }
 
-    static readonly FieldInfo RngField = typeof(Match).GetField("_rng", BindingFlags.NonPublic | BindingFlags.Instance)!;
-
-    static CountingRandom Count(Match match)
-    {
-        var counting = new CountingRandom((Random)RngField.GetValue(match)!);
-        RngField.SetValue(match, counting);
-        return counting;
-    }
+    static DrawCount Count(Match match) => new(match);
 
     /// <summary>
     /// <c>SF-22</c>, over a seed set: a fly to the short stop, who stands in a freeze volume from the crack and is
-    /// slowed the whole play, is caught by the glove on every seed, and the live ball draws nothing from the match's stream —
+    /// slowed the whole play, is caught by the glove on every seed, and the live ball draws nothing from the match's streams —
     /// no <c>drops.frozen</c> roll. The heart swing, the special that still owns that table, is the control: the same ball
     /// under it draws the one drop roll, so the probe sees a draw when there is one.
     /// </summary>

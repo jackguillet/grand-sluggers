@@ -9,8 +9,11 @@ public sealed partial class Match
     /// <summary>The only random stream that may decide a play. Seeded per match; every roll is a sim call.</summary>
     readonly MatchStreams _streams;
 
-    /// <summary>The match's named random streams, split from its seed (<see cref="MatchStreams"/>).</summary>
-    internal MatchStreams Streams => _streams;
+    /// <summary>
+    /// The match's named random streams, split from its seed (<see cref="MatchStreams"/>). Read their draw counts;
+    /// a draw taken from outside the match changes the game.
+    /// </summary>
+    public MatchStreams Streams => _streams;
     readonly List<PlayEvent> _log = [];
 
     public ContentCatalog Content { get; }

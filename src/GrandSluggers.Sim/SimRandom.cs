@@ -10,6 +10,9 @@ public sealed class SimRandom : Random
 {
     ulong _s0, _s1, _s2, _s3;
 
+    /// <summary>How many 64-bit draws this stream has handed out: a probe can see a draw without taking one.</summary>
+    public long Draws { get; private set; }
+
     public SimRandom(ulong seed)
     {
         var sm = seed;
@@ -45,6 +48,7 @@ public sealed class SimRandom : Random
     /// <summary>The next 64 raw bits.</summary>
     public ulong NextULong()
     {
+        Draws++;
         var result = Rotl(_s1 * 5, 7) * 9;
         var t = _s1 << 17;
         _s2 ^= _s0;
@@ -140,4 +144,7 @@ public sealed class MatchStreams
 
     /// <summary>What a park hazard does (FD-08): which exit it picks, where it sends the ball.</summary>
     public SimRandom Hazard { get; }
+
+    /// <summary>Every draw on every stream so far.</summary>
+    public long Draws => PitchAi.Draws + BatAi.Draws + Contact.Draws + Handling.Draws + Hazard.Draws;
 }

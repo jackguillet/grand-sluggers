@@ -633,14 +633,15 @@ public sealed class StealScenarioTests
     }
 
     [Theory]
-    [InlineData("soot", false)]
-    [InlineData("lace", true)]
-    public void S70_AnEarlierPhysicalDepartureAgainstTheCatcherIsTheRace(string catcherId, bool niceRelease)
+    // The CPU catcher's release carries a noise draw (§11); seed 2 is a close race it throws on rather than concedes.
+    [InlineData("soot", false, 2)]
+    [InlineData("lace", true, 1)]
+    public void S70_AnEarlierPhysicalDepartureAgainstTheCatcherIsTheRace(string catcherId, bool niceRelease, int seed)
     {
         // Zig (Run 9) armed 0.2 s into the windup breaks 0.4 s early (D2). Against a Field-5 CPU catcher the body
         // is in ahead of the ball; against the roster's best arm (Field 8; the spec row names 9) released at once
         // (the human's Nice release) the tag is there.
-        var match = Defense(catcher: catcherId);
+        var match = Defense(catcher: catcherId, seed: seed);
         Assert.True(match.StationRunner(1, _content.Must("zig")));
         Assert.True(match.StartSteal(windupSec: 0.2));
         Assert.True(match.RunnerAt(1)!.Broke);

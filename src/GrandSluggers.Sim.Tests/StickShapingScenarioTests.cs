@@ -412,19 +412,14 @@ public sealed class StickShapingScenarioTests
         return new SwingCommand(true, charge, err, false, BoxOffsetX: box);
     }
 
-    /// <summary>A <see cref="Random"/> of the match's seed, read the way <c>Match</c> reads its own.</summary>
+    /// <summary>The CPU batter's stream of the match's seed (<see cref="MatchStreams.BatAi"/>), read the way the batter reads it.</summary>
     sealed class Replay(int seed)
     {
-        readonly Random _rng = new(seed);
+        readonly SimRandom _rng = SimRandom.Stream(seed, "bat-ai");
 
         public double Next() => _rng.NextDouble();
 
-        public double Gauss()
-        {
-            var u1 = 1.0 - _rng.NextDouble();
-            var u2 = _rng.NextDouble();
-            return Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
-        }
+        public double Gauss() => _rng.Gauss();
     }
 
     static AtBatResolver Resolver(ContentCatalog content) => new(content.Chemistry, content.Rules, content.StarSkills);
