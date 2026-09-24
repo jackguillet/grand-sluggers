@@ -1,10 +1,9 @@
 {
+  // Zig's default. Short slap stick for bunts and infield hits.
   "id": "prism-stick",
   "name": "Prism Stick",
-  "slot": "bat",
   "contactMod": 1,
   "powerMod": -1,
   "chargeAlwaysFull": false,
-  "visual": "bat-short",
-  "notes": "Zig's default. Short slap stick for bunts and infield hits."
+  "visual": "bat-short"
 }

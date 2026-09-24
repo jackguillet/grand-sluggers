@@ -1,10 +1,9 @@
 {
+  // Ashlord's default. Spiked furnace club. Heavy, mean, misses more.
   "id": "furnace-club",
   "name": "Furnace Club",
-  "slot": "bat",
   "contactMod": -1,
   "powerMod": 2,
   "chargeAlwaysFull": false,
-  "visual": "bat-furnace",
-  "notes": "Ashlord's default. Spiked furnace club. Heavy, mean, misses more."
+  "visual": "bat-furnace"
 }

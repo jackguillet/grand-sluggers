@@ -42,14 +42,7 @@ public sealed class CameraShots
     public static CameraShots Load(DataRoot dataRoot)
     {
         var path = dataRoot.Resolve("feel", "shots.json");
-        var json = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            AllowTrailingCommas = true
-        };
-        var dto = JsonSerializer.Deserialize<ShotsFile>(File.ReadAllText(path), json)
-            ?? throw new InvalidDataException($"Bad shots file {path}");
+        var dto = DataJson.Require<ShotsFile>(path);
         var map = new Dictionary<string, CameraShot>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in dto.Shots ?? [])
         {
@@ -169,17 +162,12 @@ public sealed record FeelTable
         try
         {
             var text = File.ReadAllText(path);
-            using (var doc = JsonDocument.Parse(text, new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }))
+            using (var doc = JsonDocument.Parse(text, DataJson.Document))
             {
                 RulesValidation.UnknownFields(doc.RootElement, typeof(FeelTable), "feel", path, errors);
                 RulesValidation.MissingFields(doc.RootElement, typeof(FeelTable), "feel", path, errors);
             }
-            table = JsonSerializer.Deserialize<FeelTable>(text, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            });
+            table = JsonSerializer.Deserialize<FeelTable>(text, DataJson.Options);
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {

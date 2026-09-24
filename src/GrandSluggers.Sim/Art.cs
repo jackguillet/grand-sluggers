@@ -459,55 +459,43 @@ public sealed class ArtCatalog
 
     public static ArtCatalog Load(DataRoot dataRoot)
     {
-        var json = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            AllowTrailingCommas = true
-        };
         string Art(string file) => dataRoot.Resolve("art", file);
 
-        var rigDto = Read<RigFile>(Art("rig.json"), json);
+        var rigDto = DataJson.Require<RigFile>(Art("rig.json"));
         var rig = new RigBoneMap(rigDto.Id, rigDto.Bones ?? [], rigDto.Events ?? [], rigDto.Slot ?? "");
 
-        var clipDto = Read<ClipsFile>(Art("clips.json"), json);
+        var clipDto = DataJson.Require<ClipsFile>(Art("clips.json"));
         var clips = (clipDto.Clips ?? []).Select(c =>
             new ClipSlot(c.Id, c.Loop, c.Handed, c.Events ?? [], c.Slot, c.PlayerSlot,
                 c.ContactAt, c.ReleaseAt, c.FootPlantAt, c.FinishAt)).ToList();
 
-        var skinDto = Read<SkinsFile>(Art("skins.json"), json);
+        var skinDto = DataJson.Require<SkinsFile>(Art("skins.json"));
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
         foreach (var s in skinDto.Skins ?? [])
             skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette);
 
         var extras = new Dictionary<string, ExtraSlot>(StringComparer.OrdinalIgnoreCase);
-        foreach (var e in Read<ExtrasFile>(Art("extras.json"), json).Extras ?? [])
+        foreach (var e in DataJson.Require<ExtrasFile>(Art("extras.json")).Extras ?? [])
             extras[e.Id] = new ExtraSlot(e.Id, e.Bone, e.Hides ?? []);
 
-        var vfx = (Read<EventsFile>(Art("vfx.json"), json).Events ?? [])
+        var vfx = (DataJson.Require<EventsFile>(Art("vfx.json")).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Kind ?? "")).ToList();
-        var audio = (Read<EventsFile>(Art("audio.json"), json).Events ?? [])
+        var audio = (DataJson.Require<EventsFile>(Art("audio.json")).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Bus ?? e.Kind ?? "", e.Authored)).ToList();
-        var mats = (Read<MatsFile>(Art("materials.json"), json).Slots ?? [])
+        var mats = (DataJson.Require<MatsFile>(Art("materials.json")).Slots ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Shader ?? "")).ToList();
-        var nodeOptions = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
+        var nodeOptions = DataJson.Document;
         // The palettes are read strictly from the same file (F6-c): a kit row's palette block, by the row's index.
         var parksNode = JsonNode.Parse(File.ReadAllText(Art("parks.json")), documentOptions: nodeOptions)?["kits"] as JsonArray;
-        var parks = (Read<ParksFile>(Art("parks.json"), json).Kits ?? [])
+        var parks = (DataJson.Require<ParksFile>(Art("parks.json")).Kits ?? [])
             .Select((p, i) => new ParkKitSlot(p.Id, p.Slot, p.Placed,
                 p.Slots is null ? null : new Dictionary<string, string?>(p.Slots, StringComparer.Ordinal),
                 parksNode?[i]?["palette"] is { } palette ? ParkLooks.ParsePalette(palette, "parks.json " + p.Id + ".palette") : null)).ToList();
         var looks = ParkLooks.Parse(JsonNode.Parse(File.ReadAllText(Art("looks.json")), documentOptions: nodeOptions), "looks.json");
-        var folders = Read<FoldersFile>(Art("folders.json"), json).Folders ?? [];
+        var folders = DataJson.Require<FoldersFile>(Art("folders.json")).Folders ?? [];
 
         var actors = HazardActors.Parse(JsonNode.Parse(File.ReadAllText(Art("hazard-actors.json")), documentOptions: nodeOptions), "hazard-actors.json");
         return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders, looks, actors);
-    }
-
-    static T Read<T>(string path, JsonSerializerOptions json)
-    {
-        var dto = JsonSerializer.Deserialize<T>(File.ReadAllText(path), json);
-        return dto ?? throw new InvalidDataException("Bad art file " + path);
     }
 
     sealed class RigFile
@@ -516,6 +504,12 @@ public sealed class ArtCatalog
         public string Slot { get; set; } = "";
         public List<string>? Bones { get; set; }
         public List<string>? Events { get; set; }
+        // The DCC half of the rig contract (the Blender scripts and BaseballMotionContractTests read these); the sim carries
+        // them through so a strict read still refuses a key nobody declares. Blender reads plain JSON, so notes are a key.
+        public int Revision { get; set; }
+        public JsonElement Joints { get; set; }
+        public JsonElement Anatomy { get; set; }
+        public string? Notes { get; set; }
     }
 
     sealed class ClipsFile { public List<ClipDto>? Clips { get; set; } }
@@ -544,7 +538,12 @@ public sealed class ArtCatalog
         public string Palette { get; set; } = "";
     }
 
-    sealed class ExtrasFile { public List<ExtraDto>? Extras { get; set; } }
+    sealed class ExtrasFile
+    {
+        public List<ExtraDto>? Extras { get; set; }
+        /// <summary>Authoring notes: Blender reads plain JSON, so they are a key, not a comment.</summary>
+        public string? Notes { get; set; }
+    }
     sealed class ExtraDto
     {
         public string Id { get; set; } = "";
