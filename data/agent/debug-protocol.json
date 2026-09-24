@@ -630,6 +630,16 @@
       "promoted": "",
       "issue": "#995",
       "pr": ""
+    },
+    {
+      "id": "home-plate-has-a-raised-rim",
+      "signature": "Home plate looks like stacked layers or a raised ledge instead of one nearly flush rubber slab.",
+      "stage": "sitting",
+      "cause": "harbor_kit.build_home_plate joined a separately extruded navy ring above the chalk playing face.",
+      "fix": "Author one connected chalk slab with a rounded upper perimeter, no second shell and no geometry above the playing face. Keep its datum for the shared FieldKit to embed in dirt; standard bags keep their own geometry.",
+      "promoted": "",
+      "issue": "#998",
+      "pr": ""
     }
   ]
 }

@@ -97,7 +97,7 @@ public class HarborKitPaintTests
     {
         var py = File.ReadAllText(Path.Combine(_repo, "tools/blender/harbor_kit.py"));
         Assert.Contains("def build_bag(chalk, navy):", py, StringComparison.Ordinal);
-        Assert.Contains("def build_home_plate(chalk, navy):", py, StringComparison.Ordinal);
+        Assert.Contains("def build_home_plate(chalk):", py, StringComparison.Ordinal);
         Assert.Contains("chalk = mat(\"chalk\"", py, StringComparison.Ordinal);
         Assert.DoesNotContain("build_bag(dirt", py, StringComparison.Ordinal);
         Assert.DoesNotContain("build_bag(wood", py, StringComparison.Ordinal);

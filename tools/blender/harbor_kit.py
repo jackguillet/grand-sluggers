@@ -25,7 +25,7 @@ from pathlib import Path
 
 import bmesh
 import bpy
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 
 REPO = Path(__file__).resolve().parents[2]
 PARK_ID = "harbor-diamond"
@@ -395,16 +395,17 @@ def origin_world(ob):
     return ob
 
 
-def build_home_plate(chalk, navy):
-    """MLB pentagon, Harbor-fat. Point at origin (catcher). Front +Y = pitcher after FBX."""
+def build_home_plate(chalk):
+    """One rounded chalk slab. Point at origin; FieldKit turns FBX -Z toward the mound."""
     mesh = bpy.data.meshes.new("home-plate")
     ob = bpy.data.objects.new("home-plate", mesh)
     bpy.context.collection.objects.link(ob)
     bm = bmesh.new()
     w = PLATE_HALF_W
     verts2d = [(-w, PLATE_FRONT), (w, PLATE_FRONT), (w, PLATE_SHOULDER), (0.0, 0.0), (-w, PLATE_SHOULDER)]
+    face_z = 0.22  # FieldKit's AuthoredPlateFaceY; the rest of the slab sits in dirt.
     bottom = [bm.verts.new((x, y, 0.0)) for x, y in verts2d]
-    top = [bm.verts.new((x, y, 0.22)) for x, y in verts2d]
+    top = [bm.verts.new((x, y, face_z)) for x, y in verts2d]
     bm.faces.new(bottom)
     bm.faces.new(list(reversed(top)))
     n = len(bottom)
@@ -412,31 +413,33 @@ def build_home_plate(chalk, navy):
         j = (i + 1) % n
         bm.faces.new((bottom[i], bottom[j], top[j], top[i]))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bmesh.ops.bevel(bm, geom=bm.edges, offset=0.05, segments=2, affect="EDGES")
+    # Round the playing-face perimeter into the side of this same solid.
+    # Keep the buried bottom's five corners as the exact footprint datum.
+    perimeter = [e for e in bm.edges if all(abs(v.co.z - face_z) < 1e-6 for v in e.verts)]
+    bmesh.ops.bevel(bm, geom=perimeter, offset=0.035, segments=5, profile=0.5, affect="EDGES")
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    for face in bm.faces:
+        face.smooth = 0.001 < face.normal.z < 0.999
+    # A ledge is a second shell or geometry above the flat playing face.
+    assert all(e.is_manifold for e in bm.edges), "plate must be one closed slab"
+    seen, pending = set(), [next(iter(bm.verts))]
+    while pending:
+        v = pending.pop()
+        if v in seen:
+            continue
+        seen.add(v)
+        pending.extend(e.other_vert(v) for e in v.link_edges)
+    assert len(seen) == len(bm.verts), "plate contains a separate rim or shell"
+    assert abs(max(v.co.z for v in bm.verts) - face_z) < 1e-6, "plate rises above its playing face"
+    for face in bm.faces:
+        if face.normal.z > 0.999:
+            assert all(abs(v.co.z - face_z) < 1e-6 for v in face.verts), "plate has a horizontal ledge below its playing face"
+    for x, y in verts2d:
+        assert any((v.co - Vector((x, y, 0))).length < 1e-6 for v in bm.verts), "plate footprint moved"
     bm.to_mesh(mesh)
     bm.free()
     ob.data.materials.append(chalk)
-
-    rim_mesh = bpy.data.meshes.new("home-plate-rim")
-    rim = bpy.data.objects.new("home-plate-rim", rim_mesh)
-    bpy.context.collection.objects.link(rim)
-    bm = bmesh.new()
-    scale = 0.86
-    inner = [(x * scale, y * scale + 0.08) for x, y in verts2d]
-    outer_v = [bm.verts.new((x, y, 0.225)) for x, y in verts2d]
-    inner_v = [bm.verts.new((x, y, 0.225)) for x, y in inner]
-    n = len(outer_v)
-    for i in range(n):
-        j = (i + 1) % n
-        bm.faces.new((outer_v[i], outer_v[j], inner_v[j], inner_v[i]))
-    geom = bmesh.ops.extrude_face_region(bm, geom=bm.faces)
-    for v in [e for e in geom["geom"] if isinstance(e, bmesh.types.BMVert)]:
-        v.co.z += 0.04
-    bm.to_mesh(rim_mesh)
-    bm.free()
-    rim.data.materials.append(navy)
-    plate = join_in_place("home-plate", [ob, rim])
-    return origin_world(plate)
+    return origin_world(ob)
 
 
 def build_bag(chalk, navy):
@@ -653,7 +656,7 @@ def build():
     build_wall(pad, gold)
     build_fan("fan-stand", sit=False, jersey=jersey, flesh=flesh, cap=cap)
     build_fan("fan-sit", sit=True, jersey=jersey, flesh=flesh, cap=cap)
-    build_home_plate(chalk, navy)
+    build_home_plate(chalk)
     build_bag(chalk, navy)
     hill = mat("hill", (0.66, 0.44, 0.26))
     build_mound(dirt, hill)
