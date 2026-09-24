@@ -14,5 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GrandSluggers.Sim\GrandSluggers.Sim.csproj" />
+    <!-- CliCommandLineTests: the command line is refused before anything runs. -->
+    <ProjectReference Include="..\GrandSluggers.Cli\GrandSluggers.Cli.csproj" />
   </ItemGroup>
 </Project>

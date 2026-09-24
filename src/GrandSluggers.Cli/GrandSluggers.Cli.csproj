@@ -4,6 +4,9 @@
     <RootNamespace>GrandSluggers.Cli</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="GrandSluggers.Sim.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\GrandSluggers.Sim\GrandSluggers.Sim.csproj" />
   </ItemGroup>
 </Project>
