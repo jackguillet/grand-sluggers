@@ -186,6 +186,7 @@ namespace GrandSluggers.UnityClient
             {
                 if (_fieldFocus == 0) ApplyPick(ExhibitionPick.CyclePark(_content, CurrentPick(), dx == 0 ? 1 : dx));
                 if (_fieldFocus == 1) Night = !Night;
+                if (_fieldFocus is 0 or 1) GuidedStadiumChosen();
                 if (_fieldFocus == 2) Hazards = !Hazards;
                 if (_fieldFocus == 3) WantVersus(!_versusWanted);
                 if (_fieldFocus == 4) ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
@@ -427,7 +428,7 @@ namespace GrandSluggers.UnityClient
 
         void ReadyLineup(LineupSeat seat)
         {
-            _lineup.ToggleReady(seat);
+            if (_lineup.ToggleReady(seat)) GuidedReadyChanged(seat);
             if (!_lineup.BothReady) return;
             if (_lineup.Step == LineupStep.DefenseSetup)
             {
@@ -449,19 +450,32 @@ namespace GrandSluggers.UnityClient
             if (action == SetupSheet.Action.Change) _settings.Select(row);
             if (dx != 0 || action == SetupSheet.Action.Change || (pad.SouthDown && !Controls.PointerDown))
             {
-                if (_settings.Change(LineupSeat.Pad1, dx == 0 ? 1 : dx)) _lineup.ResetReady();
+                var direction = dx == 0 ? 1 : dx;
+                var refusal = _settings.Refusal(LineupSeat.Pad1, direction);
+                var wasReady = HumanReady(LineupSeat.Pad1) || HumanReady(LineupSeat.Pad2);
+                var changed = _settings.Change(LineupSeat.Pad1, direction);
+                if (changed) _lineup.ResetReady();
+                GuidedRuleEdit(_settings.Selected, LineupSeat.Pad1, refusal, changed && wasReady);
                 Innings = _settings.Innings;
                 Difficulty = _settings.Difficulty;
             }
-            if (pad.EastDown || action == SetupSheet.Action.Back) { _lineup.West(LineupSeat.Pad1); return; }
+            if (pad.EastDown || action == SetupSheet.Action.Back)
+            {
+                _lineup.West(LineupSeat.Pad1);
+                GuidedReadyChanged(LineupSeat.Pad1);
+                return;
+            }
             if (pad.NorthDown || action == SetupSheet.Action.Next) ReadyLineup(LineupSeat.Pad1);
             if (_phase != Phase.Lineup || _lineup.Step != LineupStep.MatchSettings) return;
             if (_lineup.HomeSeat == LineupSeat.Pad2 || _lineup.AwaySeat == LineupSeat.Pad2)
             {
-                if (Controls.Pad2.EastDown) _lineup.West(LineupSeat.Pad2);
+                if (Controls.Pad2.EastDown) { _lineup.West(LineupSeat.Pad2); GuidedReadyChanged(LineupSeat.Pad2); }
                 else if (Controls.Pad2.NorthDown) ReadyLineup(LineupSeat.Pad2);
             }
         }
+
+        bool HumanReady(LineupSeat seat) =>
+            (_lineup.HomeSeat == seat || _lineup.AwaySeat == seat) && seat != LineupSeat.Cpu && _lineup.IsReady(seat);
 
         void ConfirmDraft()
         {
@@ -472,6 +486,7 @@ namespace GrandSluggers.UnityClient
                     _lineup.RandomFill();
                     _lineup.ConfirmTeam();
                 }
+                GuidedSettingsStart();
                 if (_lineup.Home != null)
                 {
                     var homeBat = _match.HomeBat;

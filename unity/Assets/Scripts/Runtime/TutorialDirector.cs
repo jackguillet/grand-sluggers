@@ -30,6 +30,8 @@ namespace GrandSluggers.UnityClient
                 || TutorialFeedbackReady && _coach.Tutorial.Passed)
             || _guided != null && (_guided.Phase == TutorialPhase.Brief
                 || _guided.Phase == TutorialPhase.Feedback && _guided.Passed);
+        /// <summary>The guided hint names the live refusal, else the reason the last attempt failed.</summary>
+        TutorialFeedback GuidedNotice => _guided?.Notice ?? (_tutorialPreviousFeedback is { Success: false } ? _tutorialPreviousFeedback : null);
 
         string TutorialSaveKey(TutorialLesson lesson) => "tutorial.v2." + _tutorials.Profile + "." + lesson.Id + "." + lesson.Revision;
 
@@ -37,6 +39,7 @@ namespace GrandSluggers.UnityClient
         {
             var selected = _guided?.Lesson.Id ?? (TutorialOn ? _coach.Tutorial.Lesson.Id : null);
             _guided?.Exit(); _guided = null;
+            ReturnGuidedSettings();
             _coach?.Stop();
             ReleaseMatchSeats();
             _tutorials ??= TutorialCatalog.Load(_content);
@@ -62,6 +65,7 @@ namespace GrandSluggers.UnityClient
         {
             _tutorialPreviousFeedback = null;
             var lesson = _tutorialAll.First(l => l.Id == id);
+            ReturnGuidedSettings();
             SelectTutorialCategory(Array.IndexOf(_tutorialCategories, lesson.Category), id);
             if (GuidedLesson(id)) { PrepareGuidedTutorial(lesson); return; }
             _guided?.Exit(); _guided = null;
@@ -112,7 +116,9 @@ namespace GrandSluggers.UnityClient
             // again in the fresh setup: returning true skips the rest of this frame's play tick.
             if (_guided != null && HowToPlay.TutorialRepeatsImmediately(_guided.Phase, _guided.Successes))
             {
+                var feedback = _guided.Feedback;
                 PrepareTutorial(_guided.Lesson.Id);
+                _tutorialPreviousFeedback = feedback;
                 BeginGuidedAttempt();
                 return true;
             }

@@ -492,6 +492,13 @@
       "sources": []
     },
     {
+      "id": "game.07",
+      "title": "stadium, time of day and match settings",
+      "category": "game",
+      "spec": "gameplay-spec:1",
+      "sources": []
+    },
+    {
       "id": "special.01",
       "title": "items, one exercise per distinct enabled item",
       "category": "special",
