@@ -18,7 +18,7 @@ public static partial class HowToPlay
         if (ability.Length == 0) return null;
         return new("Reach with " + ability, "Make a catch that needs " + ability + "'s extra reach.",
             "Control center field. Move to the right edge of the yellow landing ring and catch before the ball lands. The ability must reach beyond an ordinary glove.",
-            "Start with the stick centered, then move to the ring's right edge. Tap South as the ball enters reach.",
+            "Start with the stick centered, then move to the ring's right edge. The ball is caught automatically in reach.",
             "Use WASD to move to the ring's right edge. Tap Space as the ball enters reach.");
     }
 }

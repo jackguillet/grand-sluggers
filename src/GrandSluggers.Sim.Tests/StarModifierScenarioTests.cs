@@ -206,26 +206,17 @@ public sealed class StarModifierScenarioTests
     [Fact]
     public void S204_TheBookAndTheSchemeTeachTheHeldModifierAndWhereAllAdvanceLives()
     {
-        Assert.Equal("LB hold at release", Scheme.Pad("star"));
-        Assert.Equal("Q hold at release", Scheme.Keys("star"));
-        Assert.Contains("after contact", Scheme.Pad("all-advance"));
-
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+        Assert.Equal("LT hold at RT release", Scheme.Pad("star"));
+        Assert.Equal("LB", Scheme.Pad("all-advance"));
+        foreach (var role in new[] { "batting", "pitching" })
         {
-            var hold = scheme == InputScheme.Pad ? "LB" : "Q";
-            foreach (var role in new[] { "batting", "pitching" })
-            {
-                var row = RoleTables.Of(scheme).Single(b => b.Id == role).Rows
-                    .Single(r => r.Verb is "Star swing" or "Star pitch");
-                Assert.Contains("Hold " + hold, row.Press);
-                Assert.Contains("let go", row.Press);
-            }
-            var advance = RoleTables.Of(scheme).Single(b => b.Id == "running").Rows.Single(r => r.Verb == "All advance");
-            Assert.Contains("after contact", advance.Press);
-            Assert.Contains(HowToPlay.Must("stars").Shown(scheme), l => l.Contains("Hold " + hold) && l.Contains("let go"));
-            Assert.Contains(HowToPlay.Must("stars").Shown(scheme), l => l.Contains("flash red"));
-            Assert.Contains(HowToPlay.Must("running").Shown(scheme), l => l.Contains("After contact"));
+            var row = RoleTables.Pad.Single(b => b.Id == role).Rows.Single(r => r.Verb is "Star swing" or "Star pitch");
+            Assert.Contains("Hold LT", row.Press);
+            Assert.Contains("RT release", row.Press);
         }
+        Assert.Contains(HowToPlay.Must("stars").Lines, l => l.Contains("Hold LT") && l.Contains("RT"));
+        Assert.Contains(HowToPlay.Must("stars").Lines, l => l.Contains("flash red"));
+        Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("before contact"));
         // North / Q no longer select or arm a star anywhere in the book.
         var every = HowToPlay.Pages.SelectMany(p => p.Lines.Concat(p.KeyLines ?? [])).ToArray();
         Assert.DoesNotContain(every, l => l.Contains("North + South") || l.Contains("Q + Space") || l.Contains("Q+Space")
@@ -251,7 +242,7 @@ public sealed class StarModifierScenarioTests
             Assert.True(lesson.Revision >= (lesson.Id == "T-G03-U" ? 1 : 3), lesson.Id + " revision did not move with the verb");
             var pad = HowToPlay.TutorialControls(lesson.Id, InputScheme.Pad);
             var keys = HowToPlay.TutorialControls(lesson.Id, InputScheme.Keys);
-            Assert.Contains("hold LB as you let go of South", pad, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("hold LT as you let go of RT", pad, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("hold Q as you let go of Space", keys, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("North", pad);
         }

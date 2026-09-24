@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// Exhibition pregame: captains, the field, and which seat pad 1 sits.
 /// Cycling a captain must not move the park; cycling the park must not move the captains.
-/// North on select toggles <see cref="Pad1Home"/> — pad 1 can sit away and bat the top.
+/// Stadium setup chooses <see cref="Pad1Home"/> — pad 1 can sit away and bat the top.
 /// </summary>
 public readonly record struct ExhibitionPick(string Home, string Away, string Park, bool Pad1Home = true)
 {

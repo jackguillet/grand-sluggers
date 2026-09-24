@@ -6,11 +6,11 @@ public static partial class HowToPlay
     {
         if (id == "T-G03") return new("Earn and spend stars", "Earn stars with a strikeout, then spend them on a star pitch.",
             "The batter has two strikes. Throw an ordinary strike to earn meter. Against the next batter, throw the star pitch.",
-            "Tap South for the third strike. Next batter: hold LB as you let go of South.",
+            "Tap South for the third strike. Next batter: hold LT as you let go of RT.",
             "Tap Space for the third strike. Next batter: hold Q as you let go of Space.");
         if (id == "T-G03-U") return new("When the stars run out", "Ask for a star pitch you cannot pay for, and watch the ordinary pitch go.",
             "Your pitcher has no stars. Ask for the star pitch anyway: the pitch goes out ordinary, nothing is spent, and your stars flash red.",
-            "Hold LB as you let go of South.",
+            "Hold LT as you let go of RT.",
             "Hold Q as you let go of Space.");
         if (id == "T-X02") return new("Field a star grounder", "Move your glove to the opponent's star grounder and secure it yourself.",
             "The CPU uses a real star ground swing. Take control and move into the ball's path; an assisted pickup does not count.",
@@ -21,7 +21,7 @@ public static partial class HowToPlay
             var item = id == "T-I-rocket" ? "Rocket" : id == "T-I-pow" ? "POW" : "Banana";
             return new("Use " + item, "Make fair contact, then land " + item + " on your selected defender.",
                 "Your batting pair offers an item after contact. Hit the strike fair, choose " + item + ", aim at a defender and throw while the play is live.",
-                "South hits. RB cycles items; hold LT to aim with the stick. LT + RB or LT + South throws.",
+                "RT hits. D-pad left/right cycles items; left stick aims. North throws.",
                 "Space hits. Tab cycles items; aim toward a defender with WASD. E throws.");
         }
         var pitch = id == "T-P09" || id.StartsWith("T-SP-");
@@ -55,11 +55,11 @@ public static partial class HowToPlay
         return pitch
             ? new("Pitch: " + skill, "Throw " + skill + " and spend its star cost.",
                 "Your pitcher has " + skill + " and enough meter. Hold the star button as you let go of the pitch.",
-                "Hold LB as you let go of South.",
+                "Hold LT as you let go of RT.",
                 "Hold Q as you let go of Space.")
             : new("Swing: " + skill, "Use " + skill + " to make fair contact and spend its star cost.",
                 "Your batter has " + skill + " and enough meter. Hold the star button as you let go of the swing, and time contact with the strike.",
-                "Hold LB as you let go of South, as the pitch arrives.",
+                "Hold LT as you let go of RT, as the pitch arrives.",
                 "Hold Q as you let go of Space, as the pitch arrives.");
     }
 }

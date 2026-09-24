@@ -26,7 +26,7 @@ namespace GrandSluggers.UnityClient
         }
 
         // Drawing and pointer targets use the same couch coordinates. Hover only inspects;
-        // clicking a player picks a source/destination; Select/R is the pitcher shortcut.
+        // clicking a player picks a source/destination; West/R is the pitcher shortcut.
         public static PitcherAction PitcherPointer(DefenseSetupPick pick)
         {
             if (Mouse.current == null) return PitcherAction.None;
@@ -72,7 +72,7 @@ namespace GrandSluggers.UnityClient
             Label(138, 650, 550, 24, "CHEMISTRY WITH YOUR FOCUS  ·  Good / Poor / Neutral", _small);
             Label(138, 677, 550, 24, keys ? "WASD  Move · Space / click  Pick & swap" : "Stick / D-pad  Move · South  Pick & swap", _body);
             PitcherButton(PitcherConfirm, !match.CanSwapPitcher ? "Pitcher changed this half"
-                : keys ? "R  Quick swap to mound" : "Select  Quick swap to mound", false);
+                : keys ? "R  Quick swap to mound" : "West  Quick swap to mound", false);
             PitcherButton(PitcherCancel, pick.PickedPosition != null ? (keys ? "G  Cancel pick" : "East  Cancel pick")
                 : (keys ? "G  Close" : "East  Close"), false);
             PitcherButton(PitcherDone, "Done", true);

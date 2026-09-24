@@ -20,20 +20,20 @@ public static class BagDiagrams
     public static readonly Diagram BagMap = new(
         Kind.BagMap,
         "Name a bag",
-        "D-PAD",
+        "RIGHT STICK",
         "1  2  3  4\nCLICK A QUADRANT",
         []);
 
     public static readonly Diagram Advance = new(
         Kind.Advance,
-        "All advance",
+        "Advance",
         "LB",
         ",",
         [new(1, Baserunning.NextBag(1)), new(2, Baserunning.NextBag(2)), new(3, Baserunning.NextBag(3))]);
 
     public static readonly Diagram Return = new(
         Kind.Return,
-        "All return",
+        "Return",
         "RB",
         ".",
         [new(1, Baserunning.PrevBag(1)), new(2, Baserunning.PrevBag(2)), new(3, Baserunning.PrevBag(3))]);

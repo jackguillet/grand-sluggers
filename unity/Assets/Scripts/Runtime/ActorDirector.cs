@@ -36,7 +36,8 @@ namespace GrandSluggers.UnityClient
             {
                 TeamSheet.HideBoard();
                 _chem?.Hide();
-                PlaceSelectRoster();
+                if (_phase == Phase.Title) PlaceSelectRoster();
+                else { _logo?.Hide(); _card?.Hide(); }
                 foreach (var kv in _heroes)
                     if (!_used.Contains(kv.Key) && kv.Value != null)
                         kv.Value.gameObject.SetActive(false);
@@ -486,17 +487,7 @@ namespace GrandSluggers.UnityClient
             if (!HumanBats || _phase is not (Phase.Set or Phase.Flight)) return;
             // Tutorial UI owns input and evidence before advancing its pre-contact clock.
             if (TutorialOn && _coach.Tutorial.IsStealLesson) return;
-            var run = RunPad;
-            if (run.ThrowBag is >= 1 and <= 3)
-                _match.SelectRunner(run.ThrowBag);
-            if (run.FreezeRunnersWith(StarFree(run))) _match.FreezeRunners();
-            else if (run.AllReturn) _match.ReturnAll();
-            var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
-            var stick = InPlay.DiamondBag(run.StickX, run.StickY);
-            var verb = Baserunning.StickVerb(stick, bag);
-            if (verb == RunStick.Steal) _match.StartStealAt(bag);
-            else if (verb == RunStick.Return) _match.ReturnToBagAt(bag);
-            if (run.Steal) _match.StartStealAt(bag);
+            _match.PitchSetup.RunnerInput(RunInput());
             if (TrainingOn) _coach.OnRun(_match);
         }
 

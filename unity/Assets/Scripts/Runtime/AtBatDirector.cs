@@ -56,8 +56,7 @@ namespace GrandSluggers.UnityClient
         float _moundX;
 
         /// <summary>
-        /// Each seat's held special modifier (spec §12, PH-16-R10, R11, R17), by pad index: LB on the pad, Q on player
-        /// 1's keys. The state is the leak guard; the step that moves it is the sim's (<see cref="StarModifier"/>).
+        /// Each seat's held special modifier (spec §12, PH-16-R10, R11, R17), by pad index: LT on either controller. The state is the leak guard; the step that moves it is the sim's (<see cref="StarModifier"/>).
         /// </summary>
         readonly StarModifierState[] _starMods = new StarModifierState[2];
 
@@ -79,7 +78,7 @@ namespace GrandSluggers.UnityClient
             _starMods[1] = StarModifier.Tick(_starMods[1], Controls.Pad2.StarHeld);
         }
 
-        /// <summary>Whether <paramref name="pad"/>'s LB may mean all-advance, the cutoff or half the halt on this tick.</summary>
+        /// <summary>Whether this seat may make a fresh Star request. Runner orders are independent.</summary>
         bool StarFree(Controls.Pad pad) =>
             pad.Index < 0 || pad.Index >= _starMods.Length || StarModifier.IsFree(_starMods[pad.Index]);
 
@@ -161,6 +160,8 @@ namespace GrandSluggers.UnityClient
             }
             _phase = Phase.Set;
             Controls.CatchPlay();
+            Controls.ClearTargets();
+            _match?.ControllerRunners.Reset();
             _t = 0;
             _charge = 0;
             _pitchCharge = 0;
@@ -420,10 +421,10 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return "";
             var set = _phase == Phase.Set && HumanPitches;
-            if (set && _match.PitchSetup.Committed) return BroadcastHud.PitchCommitted;
+            if (set && _match.PitchSetup.Committed) return BroadcastHud.ShortFamily(_match.FamilyAt(_pitchSelect)) + " · " + BroadcastHud.PitchCommitted;
             return BroadcastHud.PitcherExtra(
                 _starPitch && HumanPitches,
-                null,
+                set ? BroadcastHud.ShortFamily(_match.FamilyAt(_pitchSelect)) + " · West cycle" : null,
                 set && _swapPick == null && _match.CanArrangeDefense);
         }
 
@@ -438,18 +439,20 @@ namespace GrandSluggers.UnityClient
         /// Select opens the defense window. South picks two positions; Select is the pitcher shortcut.
         /// East cancels a pending pick or closes. All baseball input waits for the window.
         /// </summary>
+        bool OpenDefenseSetup()
+        {
+            if (_phase != Phase.Set || !HumanPitches || _match.PitchSetup.Committed || !_match.CanArrangeDefense) return false;
+            _swapPick = new DefenseSetupPick(_match);
+            TeamSheet.BeginPitcherPick();
+            _swapX.Catch(FieldPad.MenuAxisX); _swapY.Catch(FieldPad.MenuAxisY);
+            _match.SetPaused(false);
+            Controls.CatchPlay();
+            return true;
+        }
+
         void TickSwapPick(float dt, Controls.Pad mound)
         {
-            if (_swapPick == null)
-            {
-                if (mound.SwapPitcher && _match.CanArrangeDefense)
-                {
-                    _swapPick = new DefenseSetupPick(_match);
-                    TeamSheet.BeginPitcherPick();
-                    _swapX.Catch(mound.MenuAxisX); _swapY.Catch(mound.MenuAxisY);
-                }
-                return;
-            }
+            if (_swapPick == null) return;
             var pointer = Controls.SeatUsesKeyboard(mound.Index)
                 ? TeamSheet.PitcherPointer(_swapPick) : TeamSheet.PitcherAction.None;
             if (mound.EastDown || pointer == TeamSheet.PitcherAction.Cancel)
@@ -462,7 +465,7 @@ namespace GrandSluggers.UnityClient
             var dx = _swapX.Tick(mound.MenuAxisX, mound.MenuTapX, dt);
             var dy = _swapY.Tick(mound.MenuAxisY, mound.MenuTapY, dt);
             if (dx != 0 || dy != 0) _swapPick.Move(dx, dy);
-            if (mound.SwapPitcher || pointer == TeamSheet.PitcherAction.Confirm)
+            if (mound.WestDown || pointer == TeamSheet.PitcherAction.Confirm)
                 _swapPick.QuickPitcher(_match, WindowPitcherSwap);
             else if (pointer == TeamSheet.PitcherAction.Pick || (mound.SouthDown && !Controls.PointerDown))
                 _swapPick.PickOrSwap(_match, WindowPitcherSwap);
@@ -530,7 +533,7 @@ namespace GrandSluggers.UnityClient
             ref ChargeButtonState state, ref float charge, ref float past, bool accepting = true,
             bool commits = true)
         {
-            var step = ChargeButton.Advance(state, pad.SouthDown, pad.SouthHeld, pad.SouthUp, dt, seconds,
+            var step = ChargeButton.Advance(state, pad.BallDown, pad.BallHeld, pad.BallUp, dt, seconds,
                 accepting, commits);
             state = step.Next;
             charge = (float)state.Fill01;

@@ -207,7 +207,7 @@ public static class SeatRecoveryCopy
             "Game paused. Your team stays in your seat.",
             "Reconnect the same controller to resume.",
             "South on an unseated controller takes Player 1.",
-            "Space / Enter / left click uses keyboard + mouse this match."
+            "Release the buttons and center the sticks to continue."
         ]
         :
         [

@@ -11,8 +11,6 @@ namespace GrandSluggers.UnityClient
         public enum Action { None, Player, Continue, Back, Fill }
         static GUIStyle _title, _heading, _body, _small, _name, _mark;
         static Texture2D _white, _field;
-        static LineupScreens _shown;
-        static Vector2 _mouse;
         static bool _hover, _pointerMode;
         static LineupFocus _hoverFocus;
         static int _hoverIndex;
@@ -26,34 +24,7 @@ namespace GrandSluggers.UnityClient
         {
             focus = default;
             index = -1;
-            var mouse = Mouse.current;
-            if (mouse == null) { _hover = false; return Action.None; }
-            var p = mouse.position.ReadValue();
-            if (_shown != lineup) { _shown = lineup; _mouse = p; _hover = false; }
-            var moved = (p - _mouse).sqrMagnitude > .01f;
-            _mouse = p;
-            var clicked = Controls.PointerDown;
-            if (moved || clicked) _pointerMode = true;
-            if (!moved && !clicked && !_hover) return Action.None;
-            var x = p.x / Screen.width;
-            var y = p.y / Screen.height;
-            _hover = false;
-            foreach (LineupFocus target in Enum.GetValues(typeof(LineupFocus)))
-            {
-                var teamTarget = target is LineupFocus.Pool or LineupFocus.HomeRow or LineupFocus.AwayRow;
-                if (teamTarget != (lineup.Step == LineupStep.TeamSetup)) continue;
-                var count = target == LineupFocus.Pool ? lineup.Pool.Count : LineupScreens.Size;
-                for (var i = 0; i < count; i++)
-                {
-                    if (!Contains(Cell(target, i, count), x, y)) continue;
-                    _hover = true; _hoverFocus = focus = target; _hoverIndex = index = i;
-                    return clicked ? Action.Player : Action.None;
-                }
-            }
-            if (!clicked) return Action.None;
-            if (Contains(LineupLayout.ContinueButton, x, y)) return Action.Continue;
-            if (Contains(LineupLayout.BackButton, x, y)) return Action.Back;
-            if (lineup.Step == LineupStep.TeamSetup && Contains(LineupLayout.FillButton, x, y)) return Action.Fill;
+            _hover = _pointerMode = false;
             return Action.None;
         }
 
@@ -98,13 +69,13 @@ namespace GrandSluggers.UnityClient
             PlayerCard(lineup, true, lineup.HomeSeat == LineupSeat.Pad2 ? p2 : lineup.HomeSeat == LineupSeat.Pad1 ? p1 : lineup.HomeCaptain);
             PlayerCard(lineup, false, lineup.AwaySeat == LineupSeat.Pad2 ? p2 : lineup.AwaySeat == LineupSeat.Pad1 ? p1 : lineup.AwayCaptain);
             var keys = Controls.SeatUsesKeyboard(0);
-            Button(LineupLayout.BackButton, team ? "Back to captains" : lineup.IsReady(LineupSeat.Pad1) ? (keys ? "F  Edit lineup" : "West  Edit lineup") : lineup.HasPick(LineupSeat.Pad1) ? (keys ? "F  Cancel pick" : "West  Cancel pick") : (keys ? "F  Back" : "West  Back"), false);
+            Button(LineupLayout.BackButton, team ? "Back to captains" : lineup.IsReady(LineupSeat.Pad1) ? (keys ? "F  Edit lineup" : "East  Edit lineup") : lineup.HasPick(LineupSeat.Pad1) ? (keys ? "F  Cancel pick" : "East  Cancel pick") : (keys ? "F  Back" : "East  Back"), false);
             if (team)
             {
                 Button(LineupLayout.FillButton, keys ? "Tab  Fill team" : "RB  Fill team", false);
-                Label(390, 716, 605, 46, keys ? "WASD  Move · Space  Add / continue\nF  Remove · G  Captains · Esc  How to play" : "Stick  Move · South  Add / continue\nWest  Remove · East  Captains · Esc  How to play", _body);
+                Label(390, 716, 605, 46, keys ? "WASD  Move · Space  Add / continue\nF  Remove · G  Captains · View  How to play" : "Stick  Move · South  Add / continue\nWest  Remove · East  Captains · View  How to play", _body);
             }
-            else Label(206, 720, 785, 42, keys ? "WASD  Move     Space / click  Pick & swap\nG  Order / field     Esc  How to play" : "Stick  Move     South  Pick & swap\nEast  Order / field     Esc  How to play", _body);
+            else Label(206, 720, 785, 42, keys ? "WASD  Move     Space / click  Pick & swap\nG  Order / field     View  How to play" : "Stick  Move     South  Pick & swap\nLB/RB  Order / field     View  How to play", _body);
             Button(LineupLayout.ContinueButton, team ? "Continue  →" : lineup.IsReady(LineupSeat.Pad1) ? "P1 Ready · waiting for P2" : (keys ? "Q  Next: settings  →" : "North  Next: settings  →"), team ? lineup.Ready : !lineup.HasPick(LineupSeat.Pad1));
             GUI.matrix = old;
         }
@@ -190,7 +161,7 @@ namespace GrandSluggers.UnityClient
             {
                 var keys = Controls.SeatUsesKeyboard(seat == LineupSeat.Pad1 ? 0 : 1);
                 Label(r.x + 16, r.y + 240, r.width - 32, 20, ready
-                    ? (keys ? "Waiting for other player · F to edit" : "Waiting for other player · West to edit")
+                    ? (keys ? "Waiting for other player · F to edit" : "Waiting for other player · East to edit")
                     : (keys ? "Q  Continue to match settings" : "North  Continue to match settings"), _small);
             }
         }
@@ -290,6 +261,6 @@ namespace GrandSluggers.UnityClient
             tex.SetPixels(pixels); tex.Apply(); return tex;
         }
         public static void Place(LineupScreens lineup, Transform parent, ChemToy chem, CardToy card) { chem?.Hide(); card?.Hide(); }
-        public static void HideBoard() { _hover = false; _shown = null; }
+        public static void HideBoard() { _hover = false; _pointerMode = false; }
     }
 }

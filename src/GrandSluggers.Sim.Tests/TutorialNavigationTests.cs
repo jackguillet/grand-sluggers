@@ -165,7 +165,7 @@ public sealed class TutorialNavigationTests
     public void NamedThrowLessonsTeachTheCorrespondingBagInput(string id, string bag, string direction, string key)
     {
         Assert.Contains(bag, HowToPlay.TutorialGoal(id).ToLowerInvariant());
-        Assert.Contains("D-pad " + direction, HowToPlay.TutorialControls(id, InputScheme.Pad));
+        Assert.Contains("Right stick " + direction, HowToPlay.TutorialControls(id, InputScheme.Pad));
         Assert.Contains(key + " selects", HowToPlay.TutorialControls(id, InputScheme.Keys));
     }
 
