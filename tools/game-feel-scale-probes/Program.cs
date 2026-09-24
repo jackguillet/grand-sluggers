@@ -143,10 +143,11 @@ foreach (var id in parkIds)
             shareCompactUnscaled = Math.Round(Math.PI * h.Radius * h.Radius / fairCompact, 5),
             shareCompactFenceScaled = Math.Round(Math.PI * Math.Pow(h.Radius * Fence, 2) / fairCompact, 5),
             // Barrels and pipes are caught by radius + pad, so the pad decides how much scaling matters.
-            captureUnscaledFt = h.Type is "warp_pipe" or "barrel"
-                ? Math.Round(h.Radius + shipped.Rules.Fielding.Park.PipeReachPadFt, 2) : h.Radius,
-            captureFenceScaledFt = h.Type is "warp_pipe" or "barrel"
-                ? Math.Round(h.Radius * Fence + shipped.Rules.Fielding.Park.PipeReachPadFt, 2)
+            // Each type reads the pad on its own hazards.json row.
+            captureUnscaledFt = h.Type is HazardType.WarpPipe or HazardType.Barrel
+                ? Math.Round(h.Radius + shipped.Rules.Hazards.Of(h.Type).ReachPadFt, 2) : h.Radius,
+            captureFenceScaledFt = h.Type is HazardType.WarpPipe or HazardType.Barrel
+                ? Math.Round(h.Radius * Fence + shipped.Rules.Hazards.Of(h.Type).ReachPadFt, 2)
                 : Math.Round(h.Radius * Fence, 2)
         });
     }
