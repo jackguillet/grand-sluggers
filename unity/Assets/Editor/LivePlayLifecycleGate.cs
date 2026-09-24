@@ -40,7 +40,7 @@ namespace GrandSluggers.EditorTools
                 return;
             }
             if (!EditorApplication.isPlaying) return;
-            var play = UnityEngine.Object.FindFirstObjectByType<MatchDirector>();
+            var play = UnityEngine.Object.FindAnyObjectByType<MatchDirector>();
             if (play == null || Get<Match>(play, "_match") == null) return;
             SessionState.SetBool(Pending, false);
             var evidence = new Evidence { revision = Environment.GetEnvironmentVariable("GS_VALIDATION_REVISION") ?? "",

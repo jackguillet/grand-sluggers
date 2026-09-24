@@ -111,7 +111,7 @@ public sealed class DistillTests
         if (Regex.IsMatch(reference, @"^tools/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.sh$"))
         {
             var path = Path.Combine(Repo, reference);
-            return File.Exists(path) && File.ReadLines(path).FirstOrDefault()?.StartsWith("#!") == true;
+            return File.Exists(path) && File.ReadLines(path).FirstOrDefault()?.StartsWith("#!", StringComparison.Ordinal) == true;
         }
         var match = Regex.Match(reference, @"^([A-Za-z_]\w*)\.([A-Za-z_]\w*)$");
         if (!match.Success) return false;

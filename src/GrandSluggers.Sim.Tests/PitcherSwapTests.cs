@@ -76,7 +76,7 @@ public class PitcherSwapTests
         var pad = RoleTables.Pad.First(b => b.Id == "pitching").Rows;
         Assert.Contains(pad, r => r.Verb == "Cycle pitch" && r.Press.Contains("West") && r.Press.Contains("Fastball"));
         Assert.Contains(pad, r => r.Verb == "Swap pitcher" && r.Press.Contains("Start"));
-        Assert.Contains(pad, r => r.Verb == "Swap pitcher" && r.Press.StartsWith("Start"));
+        Assert.Contains(pad, r => r.Verb == "Swap pitcher" && r.Press.StartsWith("Start", StringComparison.Ordinal));
         Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("any fielder"));
     }
 

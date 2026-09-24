@@ -35,7 +35,7 @@ public class BaseballMotionContractTests
         }
         foreach (var (joint, parent) in parents)
             Assert.Equal(parent, joints[joint]["parent"]!.GetValue<string>());
-        foreach (var name in joints.Keys.Where(n => n.StartsWith("l")))
+        foreach (var name in joints.Keys.Where(n => n.StartsWith('l')))
         foreach (var endpoint in new[] { "head", "tail" })
         for (var axis = 0; axis < 3; axis++)
             Assert.Equal(joints[name][endpoint]![axis]!.GetValue<double>() * (axis == 0 ? -1 : 1),

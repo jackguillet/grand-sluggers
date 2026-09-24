@@ -57,10 +57,12 @@ done
 
 mkdir -p "$out"
 
+# A warning fails the gate. Muted: 0649 (a [SerializeField] field Unity assigns) and 1701/1702 (netstandard
+# reference unification, which MSBuild also mutes). Each assembly reads the csc.rsp Unity reads for it.
 csc_compile() {
   "$dotnet" exec "$csc" /nologo /nostdlib /noconfig /t:library \
-    /langversion:latest /deterministic /optimize+ \
-    /nowarn:0169 /nowarn:0649 /nowarn:0282 /nowarn:1701 /nowarn:1702 /nowarn:0436 /nowarn:0618 /nowarn:8632 \
+    /langversion:latest /deterministic /optimize+ /warnaserror+ \
+    /nowarn:0649 /nowarn:1701 /nowarn:1702 \
     "$@"
 }
 
@@ -91,15 +93,16 @@ for dll in "$engine"/UnityEditor*.dll; do
 done
 
 echo "unity-compile  GrandSluggers.Sim (${#sim_cs[@]} sources)"
-csc_compile /out:"$out/GrandSluggers.Sim.dll" "${framework_refs[@]}" "${engine_refs[@]}" "${sim_cs[@]}"
+# The Sim asmdef sets noEngineReferences: it compiles against the framework alone.
+csc_compile @"$root/src/GrandSluggers.Sim/csc.rsp" /out:"$out/GrandSluggers.Sim.dll" "${framework_refs[@]}" "${sim_cs[@]}"
 echo "unity-compile  GrandSluggers.Runtime (${#runtime_cs[@]} sources)"
-csc_compile /out:"$out/GrandSluggers.Runtime.dll" "${framework_refs[@]}" "${engine_refs[@]}" \
+csc_compile @"$root/unity/Assets/Scripts/Runtime/csc.rsp" /out:"$out/GrandSluggers.Runtime.dll" "${framework_refs[@]}" "${engine_refs[@]}" \
   "${package_refs[@]}" -r:"$out/GrandSluggers.Sim.dll" "${runtime_cs[@]}"
 echo "unity-compile  Assembly-CSharp (${#project_cs[@]} sources)"
 csc_compile /out:"$out/Assembly-CSharp.dll" "${framework_refs[@]}" "${engine_refs[@]}" \
   "${package_refs[@]}" -r:"$out/GrandSluggers.Sim.dll" -r:"$out/GrandSluggers.Runtime.dll" "${project_cs[@]}"
 echo "unity-compile  GrandSluggers.Editor (${#editor_cs[@]} sources)"
-csc_compile /out:"$out/GrandSluggers.Editor.dll" "${framework_refs[@]}" "${engine_refs[@]}" \
+csc_compile @"$root/unity/Assets/Editor/csc.rsp" /out:"$out/GrandSluggers.Editor.dll" "${framework_refs[@]}" "${engine_refs[@]}" \
   "${editor_refs[@]}" "${package_refs[@]}" -r:"$out/GrandSluggers.Sim.dll" \
   -r:"$out/GrandSluggers.Runtime.dll" "${editor_cs[@]}"
 echo "OK     narrow C# compile (Unity import/build not run)"

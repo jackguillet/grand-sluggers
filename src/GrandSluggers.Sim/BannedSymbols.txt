@@ -1,0 +1,11 @@
+P:System.DateTime.Now;The sim is deterministic: time comes from the match clock, not the machine.
+P:System.DateTime.UtcNow;The sim is deterministic: time comes from the match clock, not the machine.
+P:System.DateTime.Today;The sim is deterministic: time comes from the match clock, not the machine.
+P:System.DateTimeOffset.Now;The sim is deterministic: time comes from the match clock, not the machine.
+P:System.DateTimeOffset.UtcNow;The sim is deterministic: time comes from the match clock, not the machine.
+P:System.Environment.TickCount;The sim is deterministic: time comes from the match clock, not the machine.
+P:System.Environment.TickCount64;The sim is deterministic: time comes from the match clock, not the machine.
+T:System.Diagnostics.Stopwatch;The sim is deterministic: time comes from the match clock, not the machine.
+M:System.Random.#ctor;An unseeded Random breaks replay: draw from the match's seeded stream.
+P:System.Random.Shared;An unseeded Random breaks replay: draw from the match's seeded stream.
+M:System.Guid.NewGuid;A fresh Guid breaks replay: ids come from data or the match's seeded stream.

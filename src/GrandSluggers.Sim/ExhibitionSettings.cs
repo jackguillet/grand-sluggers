@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace GrandSluggers.Sim;
 
 /// <summary>Shared Exhibition choices. Player 1 edits the rules; each human readies their own seat.</summary>
@@ -30,7 +32,7 @@ public sealed class ExhibitionSettings
     }
     public string Value(int row) => row switch
     {
-        0 => Stars ? "ON" : "OFF", 1 => "UNAVAILABLE", 2 => Innings.ToString(),
+        0 => Stars ? "ON" : "OFF", 1 => "UNAVAILABLE", 2 => Innings.ToString(CultureInfo.InvariantCulture),
         3 => Mercy ? "ON" : "OFF", _ => Difficulty.ToUpperInvariant()
     };
     public string Description(int row, RulesTable rules) => row switch

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using GrandSluggers.Sim;
@@ -372,9 +373,9 @@ public sealed class PitchFamilyGoldenTests
 
     // ---- exact doubles -------------------------------------------------------------------------
 
-    internal static string Bits(double value) => BitConverter.DoubleToInt64Bits(value).ToString("x16");
+    internal static string Bits(double value) => BitConverter.DoubleToInt64Bits(value).ToString("x16", CultureInfo.InvariantCulture);
 
-    static string Readable(string bits) => BitConverter.Int64BitsToDouble(Convert.ToInt64(bits, 16)).ToString("R");
+    static string Readable(string bits) => BitConverter.Int64BitsToDouble(Convert.ToInt64(bits, 16)).ToString("R", CultureInfo.InvariantCulture);
 
     /// <summary>A grid coordinate in the key: round-trip exact, so no sample point is ambiguous.</summary>
     static string Name(double value) => value.ToString("R", System.Globalization.CultureInfo.InvariantCulture);

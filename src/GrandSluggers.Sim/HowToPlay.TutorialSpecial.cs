@@ -20,7 +20,7 @@ public static partial class HowToPlay
                 "Your batting pair offers an item after contact. Hit the strike fair, choose " + item + ", aim at a defender and throw while the play is live.",
                 "RT hits. D-pad left/right cycles items; left stick aims. North throws.");
         }
-        var pitch = id == "T-P09" || id.StartsWith("T-SP-");
+        var pitch = id == "T-P09" || id.StartsWith("T-SP-", StringComparison.Ordinal);
         var skill = id switch
         {
             "T-P09" => "Heatball",

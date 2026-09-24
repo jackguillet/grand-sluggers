@@ -21,7 +21,7 @@ public class BookControlsTests
     public void ControlDiagramNamesPadHardwareOnly()
     {
         Assert.NotEmpty(ControlDiagram.PadParts);
-        Assert.Contains(ControlDiagram.PadCallouts, c => c.Hardware.StartsWith("South"));
+        Assert.Contains(ControlDiagram.PadCallouts, c => c.Hardware.StartsWith("South", StringComparison.Ordinal));
         Assert.Contains(ControlDiagram.PadCallouts, c => c.Hardware.Contains("stick", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(ControlDiagram.PadCallouts, c => c.Offense.Contains("steal", StringComparison.OrdinalIgnoreCase)
             || c.Always.Contains("Move", StringComparison.OrdinalIgnoreCase));

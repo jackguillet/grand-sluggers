@@ -423,7 +423,7 @@ public sealed class InfieldGeometryTests
         bool Spells(string line)
         {
             var code = line.TrimStart();
-            if (code.StartsWith("//") || code.StartsWith("*")) return false;
+            if (code.StartsWith("//", StringComparison.Ordinal) || code.StartsWith('*')) return false;
             return code.Contains(literal);
         }
     }
