@@ -55,7 +55,7 @@ public sealed class JumpTests
     /// <summary>
     /// The player owns the timing. A manual stick holds the centre fielder on the plant (no assistance catch); West 0.30 s
     /// before the ball lands is a jumping catch, and the runner on third tags, so the seat's South presses through the air are
-    /// held and the throw leaves at landing — takeoff plus 0.60 s. West 1.2 s early lands before the ball and the fly falls in.
+    /// held and the throw leaves at landing — takeoff plus 0.60 s. A jump 1.2 s early lands before the ball; the ordinary glove can still catch automatically.
     /// </summary>
     [Theory]
     [InlineData(0.30, true)]
@@ -105,7 +105,8 @@ public sealed class JumpTests
         }
         else
         {
-            Assert.NotEqual(PlayKind.FlyOut, play.Kind);
+            Assert.Equal(PlayKind.FlyOut, play.Kind);
+            Assert.False(caughtAirborne);
             Assert.NotEqual(DefensiveFeat.Jump, play.Outcome?.DefensiveFeat);
         }
     }

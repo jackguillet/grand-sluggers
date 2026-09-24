@@ -19,6 +19,65 @@ public sealed class ThrowCommandTests
     // The tables and the clock
     // ---------------------------------------------------------------------------------
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AutomaticCatchNeverCreatesAnUnrequestedOrUntargetedThrow(bool pressWithoutTarget)
+    {
+        var (match, _) = Defence(Game, centre: "moss", second: "marlow", shortstop: "frost");
+        var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
+        var live = match.LivePlay;
+        live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, match.PreviewHit(hit), null,
+            HumanGlove, 0, LivePlayCommandSource.Human));
+        var caught = false;
+        for (var i = 0; i < 1800 && live.Active; i++)
+        {
+            var result = live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(SouthDown: pressWithoutTarget, ExplicitTarget: true),
+                LivePadInput.Dead, false, LivePlayCommandSource.Human));
+            caught |= live.Caught || result.CompletedPlay?.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true;
+            Assert.False(live.Throwing);
+            Assert.DoesNotContain(LiveEvent.ThrowCommitted, live.Events);
+        }
+        Assert.True(caught);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void ExplicitThrowBeforePossessionUsesTheExistingBufferAndCancellation(bool cancel, bool tooEarly)
+    {
+        var (match, _) = Defence(Game, centre: "moss", second: "marlow", shortstop: "frost");
+        Assert.True(match.StationRunner(3, Game.Must("konga")));
+        var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
+        var preview = match.PreviewHit(hit);
+        var live = match.LivePlay;
+        live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0));
+        // Measure actual glove possession, which follows the physical ball's reach envelope.
+        var (baseline, _) = Defence(Game, centre: "moss", second: "marlow", shortstop: "frost");
+        Assert.True(baseline.StationRunner(3, Game.Must("konga")));
+        baseline.LivePlay.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit,
+            baseline.PreviewHit(hit), null, HumanGlove, 0));
+        while (baseline.LivePlay.Active && !baseline.LivePlay.Caught && baseline.LivePlay.ElapsedSeconds < 20)
+            baseline.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false));
+        Assert.True(baseline.LivePlay.Caught);
+        var catchAt = baseline.LivePlay.ElapsedSeconds;
+        var sent = false; var cancelled = false; var queued = false; var threw = false;
+        for (var i = 0; i < 1000 && live.Active; i++)
+        {
+            var press = !sent && live.ElapsedSeconds >= catchAt - (tooEarly ? .5 : .1);
+            var cancelNow = cancel && sent && !cancelled;
+            live.Apply(LivePlayCommand.Tick(Frame,
+                new LivePadInput(KeysBag: 4, SouthDown: press, Cancel: cancelNow, ExplicitTarget: true), LivePadInput.Dead, false));
+            sent |= press; cancelled |= cancelNow;
+            queued |= live.Events.Contains(LiveEvent.ThrowQueued);
+            threw |= live.Events.Contains(LiveEvent.ThrowCommitted);
+            if (live.ElapsedSeconds > catchAt + 1) break;
+        }
+        Assert.True(queued);
+        Assert.Equal(!cancel && !tooEarly, threw);
+    }
+
     [Fact]
     public void TheTablesCarryTheCommands()
     {
