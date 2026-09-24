@@ -26,10 +26,11 @@ The .NET test assembly contains simulation and content contracts only. PRs run t
 `tools/unity-compile.sh` invokes the compiler shipped with the pinned editor. It recursively compiles the tracked Sim, Runtime, `Assembly-CSharp`, and Editor source groups, including `MatchBootstrap.cs`. It needs package DLLs imported for this checkout, or an explicit configured cache:
 
 ```sh
-UNITY_EDITOR=/path/to/6000.5.9f1 \
 UNITY_PACKAGE_ASSEMBLIES=/path/to/ScriptAssemblies \
 tools/unity-compile.sh
 ```
+
+The editor is the version `unity/ProjectSettings/ProjectVersion.txt` pins (`m_EditorVersion`), in the Unity Hub editor folder, and the compiler is the newest .NET SDK that editor bundles. `UNITY_EDITOR` names an editor folder outright; `UNITY_HUB_EDITORS` moves the Hub folder. `tools/local-player.py` finds its editor the same way (`tools/unity_gui.py`). When the pinned editor is not installed, both stop and name the version and the editors that are installed.
 
 The script never searches another working copy. Its pass means only that this compiler emulation succeeded; it does not prove Unity imported assets or built a player.
 
