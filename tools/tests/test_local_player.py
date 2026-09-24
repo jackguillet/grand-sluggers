@@ -97,6 +97,28 @@ class MainDeliveryTests(unittest.TestCase):
 
 
 
+class RuntimeDataTests(unittest.TestCase):
+    def test_the_shipped_package_leaves_agent_data_and_scripts_behind(self):
+        data = Path(__file__).parents[2] / "data"
+        files = player.runtime_data_files(data)
+        self.assertIn("rules/match.json", files)
+        self.assertIn("art/audio-clips/glove.wav", files)
+        self.assertFalse([f for f in files if f.startswith("agent/")])
+        self.assertFalse([f for f in files if f.endswith(".py")])
+
+    def test_only_listed_folders_and_extensions_are_copied(self):
+        with tempfile.TemporaryDirectory() as temp:
+            data = Path(temp) / "data"
+            for relative in ("rules/a.json", "rules/deep/b.WAV", "rules/bake.py", "rules/.DS_Store", "agent/ledger.json"):
+                (data / relative).parent.mkdir(parents=True, exist_ok=True)
+                (data / relative).write_text("x")
+            (data / "package.json").write_text('{"runtime": ["rules"], "tooling": ["agent"], "extensions": [".json", ".wav"]}')
+            target = Path(temp) / "release" / "data"
+            player.copy_runtime_data(data, target)
+            copied = sorted(p.relative_to(target).as_posix() for p in target.rglob("*") if p.is_file())
+            self.assertEqual(["rules/a.json", "rules/deep/b.WAV"], copied)
+
+
 class TrialOverlayTests(unittest.TestCase):
     """The window can play a trial overlay (#715) — only one the built revision carries, named as the game names it."""
 

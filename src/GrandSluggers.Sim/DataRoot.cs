@@ -88,6 +88,14 @@ public sealed class DataRoot
         _overrides = new HashSet<string>(Overrides, StringComparer.Ordinal);
     }
 
+    /// <summary>True when both name the same shipped root and the same overlay (or neither has one).</summary>
+    public bool SameAs(DataRoot other) =>
+        SamePath(Shipped, other.Shipped)
+        && (Overlay is null ? other.Overlay is null : other.Overlay is not null && SamePath(Overlay, other.Overlay));
+
+    static bool SamePath(string a, string b) =>
+        string.Equals(a.TrimEnd('/', '\\'), b.TrimEnd('/', '\\'), StringComparison.Ordinal);
+
     /// <summary>A bare path is a root with no overlay, so every existing caller keeps its meaning.</summary>
     public static implicit operator DataRoot(string path) => new(path);
 
