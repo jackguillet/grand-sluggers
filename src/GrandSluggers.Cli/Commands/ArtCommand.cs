@@ -24,10 +24,9 @@ sealed class ArtCommand : Command
         }
         Console.WriteLine($"FOLDERS {art.Folders.Count}");
         var errors = art.Validate(content)
-            .Concat(DebugProtocol.Validate(content.Root))
-            .Concat(DualStills.Validate(content.Root))
-            .Concat(DccStages.Validate(content.Root))
+            .Concat(AgentData.Validate(content.Root))
+            .Concat(RuntimePackage.Validate(content.Root.Shipped))
             .ToList();
-        return Report(errors, "catalog matches roster, clips, parks, debug protocol, dual stills, dcc stages");
+        return Report(errors, "catalog matches roster, clips, parks; agent data and the runtime package are valid");
     }
 }

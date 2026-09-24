@@ -45,10 +45,10 @@ public sealed class RaceEvidenceTests
     }
 
     [Fact]
-    public void GameplayCatalogLoadingAlsoRejectsBadResearchData()
+    public void AgentDataValidationRejectsAMissingLedger()
     {
-        // Use the existing content validator entry point; no caller can silently treat a missing catalog as defaults.
+        // The agent step (cli art) still refuses it; the game load does not read it (RuntimePackageTests).
         var missingRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Assert.Contains(ContentDataValidator.Validate(missingRoot), e => e.Contains("race-evidence.json"));
+        Assert.Contains(AgentData.Validate(missingRoot), e => e.Contains("race-evidence.json"));
     }
 }

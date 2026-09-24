@@ -1,0 +1,6 @@
+{
+  "about": "What a player build carries beside the app. Runtime folders ship, and only their files with a listed extension; tooling folders stay in the repository. Keep this plain JSON: tools/local-player.py reads it.",
+  "runtime": ["abilities", "art", "bats", "characters", "chemistry", "feel", "gloves", "parks", "rules", "teams", "tutorials"],
+  "tooling": ["agent"],
+  "extensions": [".json", ".wav"]
+}

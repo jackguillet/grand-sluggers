@@ -89,6 +89,26 @@ def trial_overlay(source, name):
     return relative.as_posix()
 
 
+def runtime_data_files(data):
+    """The files a player build carries, as data/package.json names them (RuntimePackage.Files in the sim)."""
+    package = json.loads((data / 'package.json').read_text())
+    extensions = {e.lower() for e in package['extensions']}
+    files = []
+    for folder in package['runtime']:
+        for path in (data / folder).rglob('*'):
+            if path.is_file() and not path.name.startswith('.') and path.suffix.lower() in extensions:
+                files.append(path.relative_to(data).as_posix())
+    return sorted(files)
+
+
+def copy_runtime_data(data, target):
+    """Copy the runtime catalogs only: agent ledgers and bake scripts stay in the repository."""
+    for relative in runtime_data_files(data):
+        destination = target / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(data / relative, destination)
+
+
 def refuse_unless_replace(players, replace, consequence):
     """Delivery closes the open game window. Name what it is, and stop unless the caller said --replace."""
     if players and not replace:
@@ -316,7 +336,7 @@ def deliver(args):
         app = release / 'GrandSluggers.app'
         shutil.copytree(built, app, symlinks=True)
         # Application.dataPath is <app>/Contents; the game loads ../../data.
-        shutil.copytree(source / 'data', release / 'data')
+        copy_runtime_data(source / 'data', release / 'data')
         if trial:
             # A trial overlay resolves beside data/ (GRAND_SLUGGERS_TRIAL=trials/<name> names <release>/trials/<name>).
             shutil.copytree(source / trial, release / trial)

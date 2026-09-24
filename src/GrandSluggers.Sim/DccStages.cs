@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public sealed class DccStages
 {
-    public const string Directory = "agent";
+    public const string Directory = AgentData.Directory;
     public const string FileName = "dcc-stages.json";
     public const string OneShotBanned = "banned";
 
