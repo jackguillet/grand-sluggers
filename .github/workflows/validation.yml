@@ -8,12 +8,18 @@ on:
 permissions:
   contents: read
 
+# A new push to a PR cancels that PR's older run; runs on main always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # The one required check on main (a repository ruleset requires it; no bypass). There is no Unity job here:
   # the Personal license does not allow batch mode and the repository is public, so a self-hosted Unity runner
   # would run fork PRs on Jack's Mac. The Unity gates are local; see docs/validation.md.
   portable:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
@@ -21,13 +27,24 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      # The PR check answers one question: does this change break the game? It builds everything and runs the
-      # breakage suite: every test not tagged [Trait("Kind", "Balance")]. Balance and calibration (rate bands,
-      # seed sweeps, cohorts, pinned tuned numbers), the tool tests and the evidence seals run
-      # on demand from the Actions tab (full-tests.yml). xunit.runner.json caps local runs at half the cores;
-      # MaxParallelThreads=0 gives CI the default, one thread per core.
-      - run: dotnet build src/GrandSluggers.Cli/GrandSluggers.Cli.csproj -c Release
-      - run: >-
-          dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj -c Release
+      # The PR check answers one question: does this change break the game? It builds every project, runs the
+      # breakage suite (every test not tagged [Trait("Kind", "Balance")]), validates the art and tutorial
+      # catalogs, and runs the tool tests. Balance and calibration (rate bands, seed sweeps, cohorts, pinned
+      # tuned numbers) and the evidence seals run on demand from the Actions tab (full-tests.yml).
+      # xunit.runner.json caps local runs at half the cores; MaxParallelThreads=0 gives CI one thread per core.
+      - name: Build every project
+        run: dotnet build GrandSluggers.sln -c Release
+      - name: Breakage suite
+        run: >-
+          dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj -c Release --no-build
           --filter "Kind!=Balance"
           -- xUnit.MaxParallelThreads=0
+      - name: Art catalog, debug protocol, dual stills and DCC stages
+        run: dotnet run --project src/GrandSluggers.Cli -c Release --no-build -- art
+      - name: Tutorials catalog
+        run: dotnet run --project src/GrandSluggers.Cli -c Release --no-build -- tutorials
+      # Delivery (local-player.py), the GUI Unity lock and the still tools. Two tests drive zsh scripts.
+      - name: Install tooling shell
+        run: sudo apt-get update -qq && sudo apt-get install --yes --no-install-recommends zsh
+      - name: Tool tests
+        run: python3 -m unittest discover -s tools/tests -p 'test_*.py'
