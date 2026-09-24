@@ -32,8 +32,11 @@ public sealed partial class Match
     /// <summary>A runner completed a steal while the pitcher still held the ball. No plate appearance completes.</summary>
     internal PlayEvent? SettleSetupArrivals()
     {
+        // A body on a bag another runner holds has not stolen it (§9.1): nobody is forced before the pitch, so the runner
+        // already there keeps it and the arrival must go back or be tagged.
         var arrived = _runners.Where(r => !r.IsBatter && r.Broke &&
-            (r.Scored || r.Live && r.Bag > r.FromBag && r.IsOn(r.Bag))).ToList();
+            (r.Scored || r.Live && r.Bag > r.FromBag && r.IsOn(r.Bag)
+                && !RunnerSystem.Unentitled(_runners, r, _ => false, FlyState.None))).ToList();
         if (arrived.Count == 0) return null;
         BeginPlay();
         var scorers = new List<string>();

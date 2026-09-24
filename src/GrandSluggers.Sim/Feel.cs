@@ -176,6 +176,11 @@ public sealed class FeelTable
     /// of the box: the finish holds through the contact freeze and the first step of the run.
     /// </summary>
     public double SwingFinishStepFt { get; private init; } = 2.5;
+    /// <summary>
+    /// Two runners on one bag (§9.1): the one the bag does not protect is drawn this far off it, toward the bag he came
+    /// from (or, forced off it, toward the next), so the two bodies never merge (<see cref="Runner.DrawPosition"/>).
+    /// </summary>
+    public double RunnerShareStepFt { get; private init; } = 6;
 
     public RaceCameraFeel RaceCamera { get; private init; } = new();
     public BallShadowFeel BallShadow { get; private init; } = new();
@@ -231,7 +236,8 @@ public sealed class FeelTable
             HeadingTeleportFtPerSec = dto.HeadingTeleportFtPerSec > 0 ? dto.HeadingTeleportFtPerSec : 90,
             BackpedalFt = dto.BackpedalFt >= 0 ? dto.BackpedalFt : 12,
             FaceBallMinFt = dto.FaceBallMinFt >= 0 ? dto.FaceBallMinFt : 3,
-            SwingFinishStepFt = dto.SwingFinishStepFt > 0 ? dto.SwingFinishStepFt : 2.5
+            SwingFinishStepFt = dto.SwingFinishStepFt > 0 ? dto.SwingFinishStepFt : 2.5,
+            RunnerShareStepFt = dto.RunnerShareStepFt > 0 ? dto.RunnerShareStepFt : 6
         };
     }
 
@@ -260,5 +266,6 @@ public sealed class FeelTable
         public double BackpedalFt { get; set; } = 12;
         public double FaceBallMinFt { get; set; } = 3;
         public double SwingFinishStepFt { get; set; } = 2.5;
+        public double RunnerShareStepFt { get; set; } = 6;
     }
 }

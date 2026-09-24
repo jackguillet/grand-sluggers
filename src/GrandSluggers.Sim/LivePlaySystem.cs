@@ -591,16 +591,30 @@ public sealed partial class LivePlaySystem
             if (!runner.Live || runner.OverrunProtected) continue;
             var (x, z) = runner.Position;
             var homeIsABag = !(runner.IsBatter && runner.Bag == 0);
-            var onBag = homeIsABag && InPlay.OccupyingBag(x, z, bags.TagSafeRadiusFt);
+            // A bag protects a body only when no other runner on it is entitled to it (§9.1, OBR 5.06(a)(2)).
+            bool BagProtects(int bag) => ProtectsOn(runner, bag);
+            var under = InPlay.BagUnder(x, z, bags.TagSafeRadiusFt, homeIsABag);
+            var onBag = under != 0 && BagProtects(under);
             var reach = InPlay.TagReachFt(fielder, runner.Sliding, _match.Rules);
             var tagged = InPlay.Touches(true, false, gloveX, gloveZ, x, z, onBag, _match.Rules, runner.Sliding, fielder);
             if (!tagged && _heldSince >= 0 && _heldSince <= _prevAt + 1e-9 && _prevPos.TryGetValue(runner, out var prev))
-                tagged = InPlay.TagWithinFrame(_prevGlove, (gloveX, gloveZ), prev, (x, z), reach, homeIsABag, _match.Rules) >= 0;
+                tagged = InPlay.TagWithinFrame(_prevGlove, (gloveX, gloveZ), prev, (x, z), reach, homeIsABag, _match.Rules, protects: BagProtects) >= 0;
             if (tagged && ApplyTag(runner.FromBag, fielder, BagUnderGlove(gloveX, gloveZ)))
                 return new LivePlayCommandResult(Snapshot, TaggedFromBag: runner.FromBag);
         }
         return new LivePlayCommandResult(Snapshot);
     }
+
+    /// <summary>Does <paramref name="bag"/> protect <paramref name="runner"/> this frame (§9.1): the share rule over the live force chain.</summary>
+    bool ProtectsOn(Runner runner, int bag) => RunnerSystem.Protects(Runners, runner, bag, Forces.At, Fly);
+
+    /// <summary>Standing on a bag another runner is entitled to (§9.1): the body a tag at that bag retires.</summary>
+    bool UnentitledNow(Runner runner) => RunnerSystem.Unentitled(Runners, runner, Forces.At, Fly);
+
+    /// <summary>The runner standing on <paramref name="bag"/> the bag protects (§9.1); null when nobody stands there.</summary>
+    Runner? EntitledOn(int bag) => bag is >= 1 and <= 3
+        ? RunnerSystem.EntitledOn(Runners, bag, Forces.At, Fly)
+        : Runners.FirstOrDefault(r => r.Live && r.IsOn(bag));
 
     /// <summary>The bag the glove stands on (running.bags.occupyRadiusFt), or 0 out in the field: where a tag is recorded.</summary>
     int BagUnderGlove(double gloveX, double gloveZ)
@@ -637,7 +651,7 @@ public sealed partial class LivePlaySystem
         var target = RunnerForBag(bag);
         if (target is null && scripted)
             target = Runners.FirstOrDefault(r => r.Live && r.Bag == bag - 1 && (bag == 1 ? r.IsBatter : !r.IsBatter));
-        var standing = Runners.FirstOrDefault(r => r.Live && r.IsOn(bag));
+        var standing = EntitledOn(bag);
         var present = target is not null || standing is not null;
         if (target is null && standing is not null) runnerBeats = true;
         var step = InPlay.ThrowToBag(

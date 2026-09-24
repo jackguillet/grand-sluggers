@@ -19,6 +19,7 @@
   "backpedalFt": 12,
   "faceBallMinFt": 3,
   "swingFinishStepFt": 2.5,
+  "runnerShareStepFt": 6,
   "ballShadow": {
     "nearDiameterFt": 5.0,
     "farDiameterFt": 3.0,
