@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>Runner lessons observe the production offense pad and runner bodies after each live tick.</summary>
 public sealed partial class TutorialSession
 {
-    sealed record RunnerBefore(string Id, int Bag, double Feet, RunnerPhase Phase, bool Held, bool ForceSlide);
+    sealed record RunnerBefore(string Id, int Bag, double Feet, RunnerPhase Phase, bool Held, bool ForceSlide, bool Unentitled = false);
     string _lessonRunner = "";
     bool _runnerSelected;
     bool _runnerSent;
@@ -19,6 +19,8 @@ public sealed partial class TutorialSession
     bool _cornerDash;
     bool _earlyFlySent;
     bool _earlyFlyReturned;
+    bool _bagShared;
+    bool _gaveBagBack;
 
     void ResetRunningEvidence()
     {
@@ -28,15 +30,17 @@ public sealed partial class TutorialSession
         _allSent = false; _allReturned = false; _humanSlide = false; _humanTaggedUp = false;
         _humanCornerSend = false; _cornerDash = false;
         _earlyFlySent = false; _earlyFlyReturned = false;
+        _bagShared = false; _gaveBagBack = false;
     }
 
     RunnerBefore? CaptureRunnerBefore()
     {
         var bag = Lesson.Objective is "runner-send-halt-return" or "all-runner-return" ? 2
             : Lesson.Objective is "human-tag-up" or "human-early-fly-return" ? 3 : 0;
-        var runner = Lesson.Objective == "human-corner-dash" && _lessonRunner.Length > 0
+        var runner = Lesson.Objective == "human-give-back" ? Match.Runners.FirstOrDefault(r => r.Live && r.Who.Id == _batter)
+            : Lesson.Objective == "human-corner-dash" && _lessonRunner.Length > 0
             ? Match.Runners.FirstOrDefault(r => r.Who.Id == _lessonRunner) : Match.RunnerAt(bag);
-        return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held, runner.ForceSlide);
+        return runner is null ? null : new(runner.Who.Id, runner.Bag, runner.Feet, runner.Phase, runner.Held, runner.ForceSlide, runner.Unentitled);
     }
 
     // Translate only observation receipts; production already applied the semantic order once.
@@ -97,6 +101,7 @@ public sealed partial class TutorialSession
             }
             return;
         }
+        if (Lesson.Objective == "human-give-back") { ObserveGiveBack(owned, before, result); return; }
         if (before is null) return;
         var runner = Match.Runners.FirstOrDefault(r => r.Who.Id == before.Id);
         if (runner is null) return;
@@ -166,5 +171,36 @@ public sealed partial class TutorialSession
                 && runner.Phase == RunnerPhase.Advancing)
                 Finish(true, "runner-rounded-dashed", "You sent the runner beyond first and dashed along the turn toward second.");
         }
+    }
+
+    /// <summary>
+    /// Two runners on one bag (§9.1, OBR 5.06(a)(2)): the batter-runner the player sent reaches second while the runner who
+    /// started there still stands on it. The bag is the lead runner's; the player gives it back with a return order on the
+    /// batter, and he must reach first safely by his own legs with the play ending one to a bag. The share is read from the
+    /// share rule itself (<see cref="Runner.Unentitled"/>), the give-back from the accepted human order on that body, and the
+    /// verdict from the completed play's outs and bags. A tag on the shared bag, or anywhere, is the failure.
+    /// </summary>
+    void ObserveGiveBack(bool owned, RunnerBefore? before, LivePlayCommandResult result)
+    {
+        var batter = Match.Runners.FirstOrDefault(r => r.Live && r.Who.Id == _batter);
+        var lead = Match.Runners.FirstOrDefault(r => r.Live && r.Who.Id == _secondRunner);
+        if (batter is { Unentitled: true, Bag: 2, Feet: <= 1e-6 } && lead is not null && lead.IsOn(2)
+            && RunnerSystem.Shared(Match.Runners))
+            _bagShared = true;
+        // The accepted return: the body stood on the lead runner's bag before this frame's pad and now heads for the bag behind.
+        if (owned && _bagShared && before is { Bag: 2, Unentitled: true } && before.Id == _batter
+            && batter is { Phase: RunnerPhase.Returning, DestBag: 1 })
+            _gaveBagBack = true;
+        if (result.CompletedPlay is not { } play) return;
+        var outs = play.Outcome?.OutsMade ?? [];
+        var taggedOnShare = outs.Any(o => o.Runner.Id == _batter && o.Bag == 2);
+        var bothSafe = outs.All(o => o.Runner.Id != _batter && o.Runner.Id != _secondRunner);
+        var success = _bagShared && _gaveBagBack && bothSafe
+            && Match.First?.Id == _batter && Match.Second?.Id == _secondRunner;
+        Finish(success, success ? "bag-given-back" : taggedOnShare ? "tagged-on-shared-bag" : _bagShared ? "bag-not-given-back" : "bag-not-shared",
+            success ? "Second was the lead runner's. You gave it back and your batter-runner stood safe on first."
+                : taggedOnShare ? "Two runners on second: the lead runner keeps it, so yours was tagged there. Give the bag back sooner."
+                : _bagShared ? "Two runners stood on second. Return yours to first before the defense tags him."
+                : "Send the batter-runner all the way to second while the lead runner stays there, then give the bag back.");
     }
 }
