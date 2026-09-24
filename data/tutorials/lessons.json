@@ -1531,6 +1531,62 @@
       ]
     },
     {
+      "id": "T-G01-S",
+      "revision": 1,
+      "mechanics": [
+        "game.01"
+      ],
+      "title": "Rearrange the defense in SET",
+      "category": "game",
+      "status": "implemented",
+      "issue": 976,
+      "reason": "Headless SET Arrange defense lesson, home nine in the top half; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-G01"
+      ],
+      "setup": "T-G01-S",
+      "objective": "human-defense-swap",
+      "controls": [
+        "control:pitching/Swap pitcher"
+      ],
+      "tests": [
+        "TutorialDefenseSwapTests",
+        "DefenseSetupPickTests"
+      ]
+    },
+    {
+      "id": "T-G01-SA",
+      "revision": 1,
+      "mechanics": [
+        "game.01"
+      ],
+      "title": "Rearrange the away defense",
+      "category": "game",
+      "status": "implemented",
+      "issue": 976,
+      "reason": "Headless SET Arrange defense lesson, away nine in the bottom half; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [
+        "T-G01-S"
+      ],
+      "setup": "T-G01-SA",
+      "objective": "human-defense-swap",
+      "controls": [
+        "control:pitching/Swap pitcher"
+      ],
+      "tests": [
+        "TutorialDefenseSwapTests",
+        "DefenseSetupPickTests"
+      ]
+    },
+    {
       "id": "T-G02",
       "revision": 3,
       "mechanics": [
@@ -4047,6 +4103,77 @@
       ],
       "runners": [],
       "balls": {}
+    },
+    {
+      "id": "T-G01-S",
+      "policy": "defense-swap",
+      "seed": 1,
+      "timeoutSec": 60,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "defense",
+      "swapPair": [
+        "SS",
+        "CF"
+      ]
+    },
+    {
+      "id": "T-G01-SA",
+      "policy": "defense-swap",
+      "seed": 1,
+      "timeoutSec": 60,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "seat": "defense",
+      "swapPair": [
+        "1B",
+        "LF"
+      ],
+      "bottom": true
     },
     {
       "id": "T-P08",

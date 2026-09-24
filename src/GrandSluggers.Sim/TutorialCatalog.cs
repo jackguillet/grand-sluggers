@@ -18,7 +18,14 @@ public sealed record TutorialSetup(string Id, string Policy, int Seed, double Ti
     /// The teaching side's pool set exactly, below the reserve if need be (§12, PH-16-R12): a lesson about an
     /// unaffordable special names it. Null leaves the pool on the reserve (raised by <c>startingStars</c>).
     /// </summary>
-    double? PoolStars = null);
+    double? PoolStars = null,
+    /// <summary>The two non-pitcher positions an Arrange defense lesson asks the player to trade (policy <c>defense-swap</c>).</summary>
+    string[]? SwapPair = null,
+    /// <summary>
+    /// Stage the bottom of the first through three ordinary called strikeouts, so the away nine defends. Only the
+    /// SET-only <c>defense-swap</c> policy reads it; every other lesson teaches from the top half.
+    /// </summary>
+    bool Bottom = false);
 public sealed record TutorialMechanicFile(int Version, TutorialMechanic[] Mechanics);
 public sealed record TutorialLessonFile(int Version, TutorialLesson[] Lessons, TutorialSetup[] Setups);
 public sealed record TutorialMigrationFile(int Version, Dictionary<string, int> Mechanics);
@@ -31,7 +38,7 @@ public sealed class TutorialCatalog
     public TutorialSetup[] Setups { get; }
     public IReadOnlyDictionary<string, int> Migration { get; }
     public string Profile { get; }
-    public static readonly string[] Objectives = [.. TutorialPlateObjectives.PitchIds, .. TutorialPlateObjectives.SwingIds,
+    public static readonly string[] Objectives = [.. TutorialPlateObjectives.PitchIds, .. TutorialPlateObjectives.SwingIds, "human-defense-swap",
         "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
         "hazard-dodge-catch", "hazard-redirect-take", "hazard-carom-take",
@@ -40,7 +47,7 @@ public sealed class TutorialCatalog
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
         "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "guided-settings", "star-pitch", "star-swing", "star-resource", "star-unavailable", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run", "game-count-sequence", "game-foul-fair", "game-half-change", "human-triple-off", "human-bobble-recovery", "human-corner-dash", "human-early-fly-return", "human-fumble-recovery", "human-third-force-cancels-run", "human-third-tag-counts-run"];
-    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground", "game-count", "game-contact", "game-half"];
+    public static readonly string[] Policies = ["cpu-take", "cpu-strike", "cpu-ball", "grounder", "liner", "airborne", "pickoff", "pitcher-swap", "steal-offense", "steal-defense", "cpu-item", "cpu-special-ground", "game-count", "game-contact", "game-half", "defense-swap"];
 
     static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
@@ -153,6 +160,7 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "cpu-ball" && l.Objective is "take-ball" or "cancel-take")
                 || (setup.Policy == "pickoff" && l.Objective is "human-pickoff" or "human-rundown-tag")
                 || (setup.Policy == "pitcher-swap" && l.Objective == "tired-pitcher-swap")
+                || (setup.Policy == "defense-swap" && l.Objective == "human-defense-swap")
                 || (setup.Policy == "steal-offense" && l.Objective is "human-steal" or "human-double-steal")
                 || (setup.Policy == "steal-defense" && l.Objective == "human-catcher-tag")
                 || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "manual-takeover" or "human-double-play"
@@ -267,6 +275,15 @@ public sealed class TutorialCatalog
                     s.Id + " has invalid scripted steal pitch");
             else Require(s.Pitch is null, s.Id + " CPU pitch is not used by this policy");
             Require(Policies.Contains(s.Policy), s.Id + " has unknown CPU/setup policy");
+            // Arrange defense (§ "Arrange defense between pitches"): a named pair of two distinct non-pitcher gloves, in SET,
+            // with nothing else staged. A mound trade is T-P07's lesson; the pair never includes P.
+            Require((s.Policy == "defense-swap") == (s.SwapPair is not null), s.Id + " swap pair belongs to the defense-swap policy only");
+            if (s.SwapPair is { } swap)
+                Require(swap.Length == 2 && swap[0] != swap[1] && swap.All(Diamond.Order.Contains) && !swap.Contains("P")
+                    && s.Seat == "defense" && s.Runners.Length == 0 && s.Strikes == 0 && s.Outs == 0 && s.Balls.Count == 0
+                    && s.StartingStars == 0 && s.OpponentStars == 0 && s.PoolStars is null,
+                    s.Id + " needs two distinct non-pitcher positions and an empty SET");
+            Require(!s.Bottom || s.Policy == "defense-swap", s.Id + " stages the bottom half outside the defense-swap policy");
             Require(double.IsFinite(s.TimeoutSec) && s.TimeoutSec > 0 && s.TimeoutSec <= 120, s.Id + " has invalid timeout");
             Require(s.Home.Length == 9 && s.Away.Length == 9 && s.Home.Distinct().Count() == 9 && s.Away.Distinct().Count() == 9
                 && s.Home.Concat(s.Away).All(content.Characters.ContainsKey), s.Id + " has invalid teams");

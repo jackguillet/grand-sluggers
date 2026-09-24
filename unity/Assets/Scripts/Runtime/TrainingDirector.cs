@@ -20,7 +20,7 @@ namespace GrandSluggers.UnityClient
             var setup = System.Array.Find(catalog.Setups, s => s.Id == Tutorial.Lesson.Setup);
             Session.Choose(Tutorial.IsOffenseLesson ? PracticeLesson.Running
                 : Tutorial.IsDefenseLesson ? PracticeLesson.Fielding
-                : setup.Policy is "cpu-take" or "pickoff" or "pitcher-swap" or "game-count" or "game-half" ? PracticeLesson.Pitching : PracticeLesson.Batting);
+                : setup.Policy is "cpu-take" or "pickoff" or "pitcher-swap" or "defense-swap" or "game-count" or "game-half" ? PracticeLesson.Pitching : PracticeLesson.Batting);
         }
 
         public bool Active => Session != null && !Session.Finished;
