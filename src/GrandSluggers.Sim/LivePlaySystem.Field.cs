@@ -223,25 +223,19 @@ public sealed partial class LivePlaySystem
     bool _cpuDecided;
 
     // Items (§12): one body kept off the ball for a beat, or every ball on the dirt hopping.
-    /// <summary>Bodies kept off the ball by an item (§12): position → seconds left on the peel or the daze.</summary>
-    readonly Dictionary<string, double> _foil = new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>The peel on the grass, where it landed, while it lasts (batting.items.peelSec).</summary>
-    (double X, double Z)? _peel;
-    double _peelT;
-    double _powT;
-    /// <summary>A thrown item landed this play and took effect (a peel down, a body dazed, the dirt hopping).</summary>
-    public bool ItemLanded { get; private set; }
+    readonly LiveItems _items = new();
+    /// <summary>A thrown item landed this play and took effect (<see cref="LiveItems.Landed"/>).</summary>
+    public bool ItemLanded => _items.Landed;
     /// <summary>Observation of a real glove take made possible by this fielder's authored reach bonus.</summary>
     public string TutorialAbilityReachUsed { get; private set; } = "";
     internal bool TutorialItemEffectActive(string item, string targetId) => item switch
     {
-        "banana" => _peel is not null && _peelT > 0,
+        "banana" => _items.PeelDown,
         "rocket" => Field?.ItemTarget is { } target && target.Id == targetId
-            && _foil.TryGetValue(PosOf(Assigned(), target), out var daze) && daze > 0,
-        "pow" => _powT > 0,
+            && _items.OffLeft(PosOf(Assigned(), target)) > 0,
+        "pow" => _items.Hopping,
         _ => false
     };
-    double _itemLandAt = -1;
 
     // ---- What Unity draws. Read after every Apply; never written from outside. ----
 
@@ -541,7 +535,7 @@ public sealed partial class LivePlaySystem
         BallY = R.Flight.PlateHeightFt;
         BallZ = 0;
         // An item thrown before the ball was live (the headless game) lands on its body after its flight (§12).
-        if (Field is { ItemHit: true }) _itemLandAt = R.Batting.Items.FlySec;
+        if (Field is { ItemHit: true }) _items.LandAt(R.Batting.Items.FlySec);
         return new LivePlayCommandResult(Snapshot);
     }
 
@@ -670,15 +664,10 @@ public sealed partial class LivePlaySystem
         _relayBag = 0;
         _cpuThrowAt = -1;
         _cpuDecided = false;
-        _foil.Clear();
+        _items.Reset();
         _bodySlows.Begin([]);
         _ballHazards.Clear();
         _solids = [];
-        _peel = null;
-        _peelT = 0;
-        _powT = 0;
-        ItemLanded = false;
-        _itemLandAt = -1;
         AwaitingRelay = false;
         InClosePlay = false;
         CloseIcon = false;
@@ -784,12 +773,10 @@ public sealed partial class LivePlaySystem
                 StunPos = "";
             }
         }
-        TickItems(dt);
-        if (_itemLandAt >= 0 && ElapsedSeconds >= _itemLandAt)
-        {
-            _itemLandAt = -1;
+        foreach (var pos in _items.Tick(dt, _fielders, R))
+            Foil(pos, R.Batting.Items.SlipSec);
+        if (_items.Due(ElapsedSeconds))
             LandItem();
-        }
 
         TickBuddyPartner(dt);
         TickCoverBags(dt);
@@ -1868,7 +1855,7 @@ public sealed partial class LivePlaySystem
     {
         var pick = FieldingResolver.NearestGlove(map, BallX, BallZ, _fielders);
         if (pick.Pos == GlovePos || string.IsNullOrEmpty(pick.Pos)) return;
-        if (_foil.ContainsKey(pick.Pos)) return;
+        if (_items.IsOff(pick.Pos)) return;
         HandGloveTo(pick.Pos);
     }
 
@@ -2788,9 +2775,9 @@ public sealed partial class LivePlaySystem
         // Off the bat (§7.11): the batted ball in its flight is no glove's until it has cleared the bat.
         if (!OffTheBat && !_loose && Path is not null) return false;
         if (pos == "P" && ElapsedSeconds + 1e-9 < ReadyAt(pos)) return false;
-        if (_foil.ContainsKey(pos)) return false;
+        if (_items.IsOff(pos)) return false;
         if (Stunned(pos)) return false;   // the fumbler waits out the stun (#721); a helper may take it first
-        if (_powT > 0 && BallY < R.Fielding.Catch.TouchScoopY) return false;
+        if (_items.Hopping && BallY < R.Fielding.Catch.TouchScoopY) return false;
         return true;
     }
 
@@ -3569,47 +3556,17 @@ public sealed partial class LivePlaySystem
     void LandItem()
     {
         if (Field is not { ItemHit: true, Item: { } item }) return;
-        var items = R.Batting.Items;
-        ItemLanded = true;
-        if (ErrorItems.AffectsEveryGlove(item))
-        {
-            _powT = ErrorItems.EffectSec(item, R);
-            return;
-        }
-        var map = Assigned();
-        var pos = Field.ItemTarget is not null ? PosOf(map, Field.ItemTarget) : GlovePos;
+        var pos = Field.ItemTarget is not null ? PosOf(Assigned(), Field.ItemTarget) : GlovePos;
         if (string.IsNullOrEmpty(pos)) pos = GlovePos;
-        if (ErrorItems.IsPeel(item))
-        {
-            _peel = _fielders.TryGetValue(pos, out var feet) ? feet : (GloveX, GloveZ);
-            _peelT = items.PeelSec;
-            return;
-        }
-        Foil(pos, ErrorItems.EffectSec(item, R));
-    }
-
-    /// <summary>The peel and the dazes run down; any body standing on the peel slips (§12).</summary>
-    void TickItems(double dt)
-    {
-        if (_foil.Count > 0)
-            foreach (var pos in _foil.Keys.ToList())
-                if ((_foil[pos] -= dt) <= 0) _foil.Remove(pos);
-        if (_powT > 0) _powT -= dt;
-        if (_peel is not { } peel) return;
-        if ((_peelT -= dt) <= 0)
-        {
-            _peel = null;
-            return;
-        }
-        foreach (var kv in _fielders)
-            if (!_foil.ContainsKey(kv.Key) && ErrorItems.OnPeel(peel.X, peel.Z, kv.Value.X, kv.Value.Z, R))
-                Foil(kv.Key, R.Batting.Items.SlipSec);
+        var feet = _fielders.TryGetValue(pos, out var at) ? at : (GloveX, GloveZ);
+        if (_items.Land(item, feet, R) is { } sec)
+            Foil(pos, sec);
     }
 
     /// <summary>A body on a peel or dazed by a rocket is off the ball for <paramref name="sec"/>; holding the ball, it drops it where it stands.</summary>
     void Foil(string pos, double sec)
     {
-        _foil[pos] = sec;
+        _items.KeepOff(pos, sec);
         if (HoldsBall && !Throwing && pos == GlovePos)
         {
             Caught = false;
@@ -3771,7 +3728,7 @@ public sealed partial class LivePlaySystem
         Field ??= new FieldingResult(LiveKind(), Preview.Fielder, null, Preview.HangTimeSec, Preview.LandingX, Preview.LandingZ, Preview.Heatball, Preview.Furnace);
         Field = _match.ThrowItem(Field, command.ItemId, command.Fielder ?? GloveChar());
         // The item is in the air for its flight (batting.items.flySec); it lands by geometry when the clock gets there.
-        _itemLandAt = Field is { ItemHit: true } ? ElapsedSeconds + R.Batting.Items.FlySec : -1;
+        _items.LandAt(Field is { ItemHit: true } ? ElapsedSeconds + R.Batting.Items.FlySec : -1);
         return new LivePlayCommandResult(Snapshot);
     }
 
@@ -3779,7 +3736,7 @@ public sealed partial class LivePlaySystem
     {
         if (Field is not null)
             Field = ErrorItems.Smash(Field, Preview is not null && Preview.Grounder);
-        _itemLandAt = -1;
+        _items.Cancel();
         _events.Add(LiveEvent.ItemSmashed);
         Sub = "Item smashed.";
         return new LivePlayCommandResult(Snapshot);
