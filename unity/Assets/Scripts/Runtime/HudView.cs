@@ -807,17 +807,7 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        static readonly System.Collections.Generic.Dictionary<string, Texture2D> _bookPics = new();
         static readonly System.Collections.Generic.HashSet<string> _bookOverflowWarnings = new();
-
-        static Texture2D BookPic(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return null;
-            if (_bookPics.TryGetValue(id, out var cached) && cached != null) return cached;
-            var tex = Resources.Load<Texture2D>("Art/Booklet/" + id);
-            if (tex != null) _bookPics[id] = tex;
-            return tex;
-        }
 
         public static void ControlDisplay(string pos, string name, bool jump = false, bool dive = false)
         {

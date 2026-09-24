@@ -17,7 +17,6 @@ public class GettingStartedTests
         foreach (var step in GettingStarted.Path)
         {
             Assert.False(HowToPlay.NamesKeyboard(step.Caption), step.Id);
-            Assert.StartsWith("how-to-start-", step.Picture);
             Assert.True(StillRequest.AllowedShots.Contains(step.Shot), step.Shot);
         }
         foreach (var mode in GettingStarted.Modes)

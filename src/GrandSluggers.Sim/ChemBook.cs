@@ -9,7 +9,6 @@ public static class ChemBook
     public sealed record Pair(
         string Id,
         string Title,
-        string Picture,
         string Caption,
         Chemistry Chem);
 
@@ -18,20 +17,16 @@ public static class ChemBook
     public static readonly Pair Good = new(
         "chem-good",
         "Good chemistry",
-        "how-to-chem-good",
         "Hearts. Buddy throws. Buddy jump. Items.",
         Chemistry.Good);
 
     public static readonly Pair Bad = new(
         "chem-bad",
         "Bad chemistry",
-        "how-to-chem-bad",
         "Scribbles. Rivals throw slow.",
         Chemistry.Bad);
 
     public static readonly IReadOnlyList<Pair> ChemistryPairs = [Good, Bad];
-
-    public const string AbilityPicture = "how-to-ability-card";
 
     public static readonly IReadOnlyList<string> CardStats = ["PIT", "BAT", "FLD", "RUN"];
 

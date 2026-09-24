@@ -15,8 +15,6 @@ public class HowToComicTests
         Assert.Equal("pitch", HowToComic.Pitch.Second.Shot);
         Assert.Equal("plate", HowToComic.Swing.First.Shot);
         Assert.Equal("smash", HowToComic.Swing.Second.Shot);
-        Assert.Equal("how-to-pitch-1", HowToComic.Pitch.First.Picture);
-        Assert.Equal("how-to-swing-1", HowToComic.Swing.First.Picture);
         Assert.Contains("MAX", HowToComic.Pitch.First.Label);
         Assert.Contains("MAX", HowToComic.Swing.First.Label);
 

@@ -52,18 +52,12 @@ public class SchemeTests
         Assert.True(book.W >= 1100, $"book too narrow w={book.W}");
         Assert.True(book.H >= 700, $"book too short h={book.H}");
         foreach (var page in HowToPlay.Pages)
-        {
-            Assert.False(string.IsNullOrWhiteSpace(page.Picture), page.Id);
             Assert.InRange(page.Lines.Count, 1, HowToPlay.KidLineMax);
-        }
         Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("instruction booklet") || l.Contains("Call time"));
         var contents = HowToPlay.Must("contents");
         var introBand = ContentsToc.LineBand(1280, 800);
         Assert.True(contents.Lines.Count * HowToPlay.KidLineH <= introBand.H,
             "contents copy must fit the readable intro band");
-        Assert.False(HowToPlay.ShowsSplash("fielding"));
-        Assert.False(HowToPlay.ShowsSplash("stars"));
-        Assert.False(HowToPlay.ShowsSplash("the-box"));
         Assert.True(HowToPlay.KidLineH >= 48);
         Assert.True(HowToPlay.BookLinePt >= 32);
         var text = HowToPlay.TextRect(1280, 800);
