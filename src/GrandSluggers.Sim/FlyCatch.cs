@@ -39,6 +39,26 @@ public static class FlyCatch
     public static bool CanRob(double clearFt, Character? fielder, Park? park, bool buddy = false, RulesTable? rules = null) =>
         !double.IsNaN(clearFt) && clearFt <= RobHeightFt(fielder, park, buddy, rules);
 
+    /// <summary>Both outfielders must plant together and meet the live ball overhead before it leaves play.</summary>
+    public static bool BuddyInPosition(FieldingPreview pre, Park park,
+        double gloveX, double gloveZ, double buddyX, double buddyZ,
+        double ballX, double ballY, double ballZ, double hitT, double hangSec, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var c = r.Fielding.Catch;
+        var plant = ChaseTarget(pre, park, r);
+        return FieldingResolver.BuddyJumpOffered(pre) && hitT < hangSec
+            && (pre.Ball?.LeavesT is not double leaves || hitT < leaves)
+            && JumpWindow(hitT, hangSec, pre.Fielder, park, r)
+            && HighEnough(ballY, true, r)
+            && ballY <= AtBatResolver.FenceSpotAt(park, FieldBounds.SprayDeg(plant.X, plant.Z)).TopFt + c.BuddyJumpRobFt
+            && CanRob(pre.Ball?.FenceClearFt ?? double.NaN, pre.Fielder, park, true, r)
+            && Diamond.Dist(gloveX, gloveZ, plant.X, plant.Z) < c.BuddyPlantFt
+            && Diamond.Dist(buddyX, buddyZ, plant.X, plant.Z) < c.BuddyPlantFt
+            && Diamond.Dist(gloveX, gloveZ, ballX, ballZ) < c.BuddyPlantFt
+            && Diamond.Dist(buddyX, buddyZ, ballX, ballZ) < c.BuddyPlantFt;
+    }
+
     /// <summary>
     /// Super Jump / Grow / Clamber add seconds, not an auto-rob.
     /// Harbor has no climb wall, so Clamber is zero there.
@@ -223,7 +243,10 @@ public static class FlyCatch
         if (dist < 1) return (x, z);
         var spray = Math.Atan2(x, z) * (180.0 / Math.PI);
         var fence = park != null ? AtBatResolver.FenceAt(park, spray) : dist;
-        var along = Math.Min(dist, fence) - w.InsideFenceFt;
+        // A two-body boost plants at the legal wall edge so the live ball can pass overhead.
+        var inside = FieldingResolver.BuddyJumpOffered(pre)
+            ? Rules.Or(rules).Fielding.Chase.WallClearanceFt : w.InsideFenceFt;
+        var along = Math.Min(dist, fence) - inside;
         if (along < dist * w.MinFraction) along = dist - w.FallbackInsideFt;
         along = Math.Max(w.MinFt, along);
         var s = along / dist;
@@ -235,7 +258,9 @@ public static class FlyCatch
     {
         var atWall = NeedsJump(pre) || pre.Class == BattedBallClass.Wall;
         var raw = atWall ? WallPlant(pre, park, rules) : (X: pre.LandingX, Z: pre.LandingZ);
-        return park == null ? raw : FieldBounds.Clamp(park, raw.X, raw.Z);
+        return park == null ? raw : FieldingResolver.BuddyJumpOffered(pre)
+            ? FieldBounds.ClampFielder(park, raw.X, raw.Z, rules)
+            : FieldBounds.Clamp(park, raw.X, raw.Z);
     }
 
     /// <summary>
