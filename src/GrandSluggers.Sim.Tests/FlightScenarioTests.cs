@@ -147,6 +147,143 @@ public sealed class FlightScenarioTests
         Assert.False(match.LivePlay.Active, "the play never hangs");
     }
 
+    // ---------------------------------------------------------------------------------
+    // S-24c / S-24d  Under the ball: a real contact pops up behind the plate (§5.4, §7.11)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>Where the crossing sits above the barrel's nice top: the upper sour rim, the bat under the ball.</summary>
+    static double AboveNiceTop(double ft) => StrikeZoneGeometry.CenterY + SweetSpot.HalfHeightFt + ft;
+
+    AtBatResult UnderTheBall(string batter, double aboveNiceTopFt, int seed) =>
+        new AtBatResolver(_content.Chemistry, _content.Rules, _content.StarSkills).Resolve(
+            new AtBatInput(_content.Must("vale"), _content.Must(batter), null, [], false, false, 0, false, false, null, 80,
+                PitchInZone: false, CrossingY: AboveNiceTop(aboveNiceTopFt)),
+            Harbor, new Random(seed));
+
+    /// <summary>A real swing's pop that comes down behind the plate inside the backstop: no fixture launch or spray.</summary>
+    AtBatResult PopBehindHome()
+    {
+        for (var seed = 0; seed < 40; seed++)
+        {
+            var hit = UnderTheBall("rio", 0.26, seed);
+            var ball = BattedBall.Of(hit, Harbor);
+            if (ball.LandingZ < 0 && ball.LeavesT is null) return hit;
+        }
+        throw new Xunit.Sdk.XunitException("no seed popped rio's contact under the ball back behind the plate");
+    }
+
+    [Fact]
+    public void S24c_ContactUnderTheBall_PopsUpBehindThePlate_CatcherTakesItForAFlyOut()
+    {
+        var hit = PopBehindHome();
+        Assert.Equal(ContactQuality.Sour, hit.Quality);
+        Assert.InRange(hit.LaunchDeg, 0, 90);
+        Assert.True(Math.Abs(hit.SprayDeg) > 90, $"spray {hit.SprayDeg}: the ball goes back over the plate");
+        Assert.True(hit.Foul);
+        Assert.False(hit.InPlay);
+        Assert.Equal(BattedBallClass.Pop, hit.Class);
+        var ball = BattedBall.Of(hit, Harbor);
+        Assert.InRange(ball.LandingZ, FieldBounds.BackstopZ, 0);
+        Assert.True(ball.Samples.Max(s => s.Height) > 40, "a real pop, not a tip");
+
+        var match = Match.Slice(_content, seed: 2);
+        var preview = match.PreviewHit(hit);
+        Assert.True(preview.Foul);
+        Assert.Equal("C", preview.Position);
+        Assert.Contains(preview.Position, FieldingResolver.FoulPursuitPositions);
+        var field = match.ResolveFielding(hit, preview);
+        var play = RunCpu(match, hit, preview, field, out var caughtAt);
+        Assert.Equal(PlayKind.FlyOut, play.Kind);
+        var only = Assert.Single(play.Outcome!.OutsMade);
+        Assert.Equal(OutType.Catch, only.Type);
+        Assert.Equal(preview.Fielder.Id, only.Fielder?.Id);
+        Assert.True(caughtAt > 0 && caughtAt <= preview.HangTimeSec + Frame, $"caught at {caughtAt:0.00}, lands at {preview.HangTimeSec:0.00}");
+        // Caught coming down, never off the bat on the contact frame (§7.11 off the bat).
+        Assert.True(caughtAt > preview.HangTimeSec / 2, $"caught at {caughtAt:0.00} on the way up");
+        Assert.Equal(1, match.Outs);
+    }
+
+    [Fact]
+    public void OffTheBat_NoGloveTakesTheBallUntilItHasClearedTheBat()
+    {
+        var path = BallFlight.Trajectory(55, 80, 180, Harbor, _content.Rules);
+        var o = path[0];
+        var clear = _content.Rules.Fielding.Catch.OffTheBatFt;
+        Assert.False(FlyCatch.OffTheBat(path, o.X, o.Height, o.Z, _content.Rules), "at the bat");
+        Assert.False(FlyCatch.OffTheBat(path, o.X, o.Height + clear - 0.1, o.Z, _content.Rules), "still inside the bat's reach");
+        Assert.True(FlyCatch.OffTheBat(path, o.X, o.Height + clear, o.Z, _content.Rules), "cleared");
+        Assert.True(FlyCatch.OffTheBat(path, o.X, 0, o.Z - 2, _content.Rules), "on the ground: a bunt in front of the plate is fieldable");
+    }
+
+    [Fact]
+    public void S24d_ContactUnderTheBall_NobodyUnderIt_IsFoulAndDead()
+    {
+        var hit = PopBehindHome();
+        var ball = BattedBall.Of(hit, Harbor);
+        var match = Match.Slice(_content, seed: 2);
+        var preview = match.PreviewHit(hit);
+        var strikes = match.Strikes;
+        // The human glove runs out toward the mound, away from it (a dead stick lets the CPU run the glove; the seat owes one neutral frame
+        // before it steers): the pop comes down untouched behind the plate.
+        var frames = 0;
+        var play = RunHuman(match, hit, preview, _ => frames++ == 0 ? LivePadInput.Dead : new LivePadInput(StickY: 1),
+            out var caughtAt, out var deadAt);
+        Assert.True(caughtAt < 0, $"touched at {caughtAt:0.00}: nobody is under it");
+        Assert.Equal(PlayKind.Foul, play.Kind);
+        Assert.Equal("FOUL", PlayStamp.Label(play));
+        Assert.Equal(strikes + 1, match.Strikes);
+        Assert.Equal(0, match.Outs);
+        Assert.Equal(0, play.Outcome!.BatterToBag);
+        Assert.Empty(play.Outcome.Moves);
+        Assert.True(ball.DecidedZ < 0, "called foul behind the plate");
+        Assert.InRange(deadAt, ball.DecidedT - Frame, ball.DecidedT + _content.Feel.AfterCountSeconds + Frame);
+    }
+
+    [Fact]
+    public void UnderTheBall_EveryBatterNearTheRimTopGoesBackOverThePlate()
+    {
+        foreach (var batter in _content.Characters.Values)
+            for (var seed = 0; seed < 6; seed++)
+            {
+                var hit = UnderTheBall(batter.Id, 0.33, seed);
+                var ball = BattedBall.Of(hit, Harbor);
+                Assert.True(hit.Foul, $"{batter.Id} seed {seed}");
+                Assert.True(Math.Abs(hit.SprayDeg) > 90, $"{batter.Id} seed {seed} spray {hit.SprayDeg}");
+                Assert.True(ball.DecidedZ < 0, $"{batter.Id} seed {seed} decided at z {ball.DecidedZ:0.0}");
+            }
+    }
+
+    [Fact]
+    public void UnderTheBall_NoCrossingInsideTheNiceHeightGoesBack()
+    {
+        var resolver = new AtBatResolver(_content.Chemistry, _content.Rules, _content.StarSkills);
+        foreach (var batter in _content.Characters.Values)
+            for (var y = StrikeZoneGeometry.Bottom; y <= AboveNiceTop(0); y += 0.2)
+                for (var seed = 0; seed < 4; seed++)
+                {
+                    var hit = resolver.Resolve(new AtBatInput(_content.Must("vale"), batter, null, [], false, false, 0, false, false,
+                        null, 80, CrossingY: y), Harbor, new Random(seed));
+                    Assert.Equal(0, AtBatResolver.UnderTheBallDeg(0, y, _content.Rules));
+                    Assert.True(Math.Abs(hit.SprayDeg) <= 90, $"{batter.Id} y {y:0.00} spray {hit.SprayDeg}");
+                }
+    }
+
+    [Fact]
+    public void PastVertical_IsTheSupplementTurnedAround()
+    {
+        Assert.Equal((80.0, 180.0), AtBatResolver.PastVertical(100, 0));
+        Assert.Equal((70.0, -160.0), AtBatResolver.PastVertical(110, 20));
+        Assert.Equal((60.0, 150.0), AtBatResolver.PastVertical(120, -30));
+        Assert.Equal((90.0, 12.0), AtBatResolver.PastVertical(90, 12));
+        Assert.Equal((35.0, -8.0), AtBatResolver.PastVertical(35, -8));
+        // The same flight: the folded ball lands where the unfolded one flies.
+        var a = BallFlight.Trajectory(55, 100, 10, Harbor, _content.Rules);
+        var (l, sp) = AtBatResolver.PastVertical(100, 10);
+        var b = BallFlight.Trajectory(55, l, sp, Harbor, _content.Rules);
+        Assert.Equal(a[^1].X, b[^1].X, 6);
+        Assert.Equal(a[^1].Z, b[^1].Z, 6);
+    }
+
     [Fact]
     public void S21_Live_FoulAt46DegreesIsDeadWhenItLands()
     {
