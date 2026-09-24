@@ -650,6 +650,16 @@
       "promoted": "BuddyJumpTests.LiveBuddyRunsAtNormalSpeedAndCatchesOnlyWithBothBodiesUnderBall",
       "issue": "#997",
       "pr": ""
+    },
+    {
+      "id": "catch-on-the-contact-frame",
+      "signature": "A ball popped back over the plate is caught by the catcher on the first live frame (FlyOut at 0.02 s), even with the human glove steering away.",
+      "stage": "sim",
+      "cause": "The batted ball starts at the plate, inside the catcher's standing reach (C stands 15 ft back, the catch radius is 10+ ft); nothing kept the glove off the ball until it had left the bat.",
+      "fix": "Off the bat (FlyCatch.OffTheBat, fielding.catch.offTheBatFt): LivePlaySystem.GloveMayTake refuses the flying batted ball until it has been 10 ft from the contact point or reached the ground. Straight into the mitt is a foul tip, not a catch.",
+      "promoted": "FlightScenarioTests.S24c_ContactUnderTheBall_PopsUpBehindThePlate_CatcherTakesItForAFlyOut",
+      "issue": "#684",
+      "pr": ""
     }
   ]
 }

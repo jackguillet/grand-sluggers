@@ -111,7 +111,8 @@ public sealed class AtBatResolver
         var height = input.CrossingY - StrikeZoneGeometry.CenterY;
         var loft = b.Launch.LoftBaseDeg + (power - 5) * b.Launch.LoftPerPower
                    + (charged ? b.Charge.LoftDeg : 0) + height * b.Launch.PerFtOfHeight;
-        var launch = loft - launchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
+        var launch = loft + UnderTheBallDeg(input.BoxOffsetX, input.CrossingY, _rules)
+                     - launchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
         if (quality == ContactQuality.Sour && input.UseStarSwing && !input.Bunt)
         {
             // Only an authored special retains this override. Ordinary contact keeps its signed launch.
@@ -152,6 +153,8 @@ public sealed class AtBatResolver
         if (!input.PitchInZone)
             spray += (rng.NextDouble() - 0.5) * b.Spray.OutOfZoneSpanDeg;
         spray = Math.Round(SourFoulPull(quality, spray, rng, b.Foul), 1);
+        // Past the vertical (§5.4): a launch over 90° is the ball going up and back over the plate.
+        (launch, spray) = PastVertical(launch, spray);
 
         // The flight decides (spec §5.6, §6.1): the clipped path in this park says where the ball
         // lands, whether it clears the fence, and whether the untouched ball is fair or foul.
@@ -176,6 +179,32 @@ public sealed class AtBatResolver
             Foul: ball.Foul,
             InZone: input.PitchInZone,
             Class: ball.Shape);
+    }
+
+    /// <summary>
+    /// Under the ball (spec §5.4): the crossing above the barrel's nice top — the upper sour rim, where the
+    /// bat meets the bottom of the ball — lifts the launch by <c>batting.launch.underBallDegPerFt</c> per foot,
+    /// on top of the pitch-height term. Near the rim's top it passes 90°: a foul pop behind the plate. Zero
+    /// anywhere at or below the nice top. A bunt reads its own band instead (§5.8).
+    /// </summary>
+    public static double UnderTheBallDeg(double boxOffsetX, double crossingY, RulesTable? rules = null)
+    {
+        var over = crossingY - (SweetSpot.WorldCenter(boxOffsetX).Y + SweetSpot.HalfHeightFt);
+        return over > 0 ? over * Rules.Or(rules).Batting.Launch.UnderBallDegPerFt : 0;
+    }
+
+    /// <summary>
+    /// A launch past the vertical is the same flight as its supplement turned around (spec §5.4): up and back
+    /// over the plate. The ball's launch is carried as 0 … 90° up, and its spray turns 180° (wrapped to
+    /// −180 … 180), so every reader of a launch and a spray — the flight, the class, the fielding pool —
+    /// reads one ball. A launch at or under 90° is unchanged.
+    /// </summary>
+    public static (double LaunchDeg, double SprayDeg) PastVertical(double launchDeg, double sprayDeg)
+    {
+        if (launchDeg <= 90) return (launchDeg, sprayDeg);
+        var back = sprayDeg + 180;
+        if (back > 180) back -= 360;
+        return (180 - launchDeg, back);
     }
 
     /// <summary>The bat is on the plane when the error is inside half the window (spec §5.3).</summary>

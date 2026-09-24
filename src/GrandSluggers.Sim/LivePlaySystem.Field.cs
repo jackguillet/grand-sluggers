@@ -258,6 +258,8 @@ public sealed partial class LivePlaySystem
     public BattedBall? Ball { get; private set; }
     public LiveSeats Seats { get; private set; } = LiveSeats.CpuOnly;
     public bool FlightDone { get; private set; }
+    /// <summary>The batted ball has cleared the bat this play (§7.11, <see cref="FlyCatch.OffTheBat"/>): a glove may take it.</summary>
+    public bool OffTheBat { get; private set; }
     /// <summary>The fair / foul call so far (§5.6): the untouched path's verdict until a glove touches the ball.</summary>
     public FairFoulCall Call => _call;
     /// <summary>Foul as things stand: called foul on a touch, or untouched on a path the flight says is foul.</summary>
@@ -583,6 +585,7 @@ public sealed partial class LivePlaySystem
         Path = null;
         Ball = null;
         FlightDone = false;
+        OffTheBat = false;
         _call = FairFoulCall.Undecided;
         RunnerPlay = false;
         PickoffBag = 0;
@@ -760,6 +763,7 @@ public sealed partial class LivePlaySystem
         {
             var p = BallFlight.PointAt(Path, ElapsedSeconds, R);
             (BallX, BallY, BallZ) = p;
+            OffTheBat |= FlyCatch.OffTheBat(Path, BallX, BallY, BallZ, R);
             ReadBallHazards(dt);
         }
 
@@ -2829,6 +2833,8 @@ public sealed partial class LivePlaySystem
     /// <summary>A body on a peel or dazed by a rocket cannot take the ball; a POW keeps every ball on the dirt hopping (§12).</summary>
     bool GloveMayTake(string pos)
     {
+        // Off the bat (§7.11): the batted ball in its flight is no glove's until it has cleared the bat.
+        if (!OffTheBat && !_loose && Path is not null) return false;
         if (pos == "P" && ElapsedSeconds + 1e-9 < ReadyAt(pos)) return false;
         if (_foil.ContainsKey(pos)) return false;
         if (Stunned(pos)) return false;   // the fumbler waits out the stun (#721); a helper may take it first
