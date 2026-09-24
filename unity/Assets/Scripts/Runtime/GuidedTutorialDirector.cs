@@ -37,7 +37,7 @@ namespace GrandSluggers.UnityClient
         {
             var onSet = _guided.Lesson.Id.StartsWith("T-G06", StringComparison.Ordinal);
             var needsPad = _guided.Lesson.Id is "T-G06-R" or "T-G06-C";
-            if (needsPad && (Controls.PadCount == 0 || Controls.Player1InputMode == Controls.P1InputMode.KeyboardMouse))
+            if (needsPad && Controls.PadCount == 0)
                 return;
             _lineup = null; // Every lesson attempt needs a fresh roster, unlike Back during setup.
             _guided.Begin();

@@ -73,7 +73,7 @@ namespace GrandSluggers.UnityClient
                 _stickResetShown += Time.unscaledDeltaTime;
                 if (_stickResetShown < StickResetHoldSec) return;
             }
-            else if (!PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
+            else if (!PauseMenu.Dismiss(_pausePad.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
                 return;
             _pursuit.Close();
             _stickReset = false;

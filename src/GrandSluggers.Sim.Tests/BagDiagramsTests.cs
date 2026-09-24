@@ -22,7 +22,7 @@ public class BagDiagramsTests
         Assert.Equal("DOWN", BagDiagrams.Direction(4));
         Assert.Equal("HOME", BagDiagrams.BagName(4));
 
-        Assert.Equal("D-PAD", BagDiagrams.Press(BagDiagrams.BagMap, InputScheme.Pad));
+        Assert.Equal("RIGHT STICK", BagDiagrams.Press(BagDiagrams.BagMap, InputScheme.Pad));
         Assert.Contains("1", BagDiagrams.Press(BagDiagrams.BagMap, InputScheme.Keys));
         Assert.DoesNotContain("South", BagDiagrams.Press(BagDiagrams.BagMap, InputScheme.Keys));
         Assert.Equal("LB", BagDiagrams.Press(BagDiagrams.Advance, InputScheme.Pad));

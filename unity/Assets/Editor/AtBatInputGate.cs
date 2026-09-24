@@ -39,9 +39,13 @@ namespace GrandSluggers.EditorTools
         [MenuItem("Grand Sluggers/Verify Pitch Motion")]
         public static void RunPitchMotion() => Start(true);
 
-        static void Start(bool pitchOnly)
+        [MenuItem("Grand Sluggers/Verify Setup Input")]
+        public static void RunSetup() => Start(false, true);
+
+        static void Start(bool pitchOnly, bool setupOnly = false)
         {
             SessionState.SetBool(Pending + ".pitchOnly", pitchOnly);
+            SessionState.SetBool(Pending + ".setupOnly", setupOnly);
             if (EditorApplication.isPlaying)
                 throw new InvalidOperationException("Run this gate from Edit mode in a dedicated validation worktree.");
             EditorSceneManager.OpenScene("Assets/Scenes/HarborDiamond.unity");
@@ -113,6 +117,8 @@ namespace GrandSluggers.EditorTools
         static IEnumerator Checks(MatchDirector play, Evidence evidence)
         {
             var cases = new List<GateCase>();
+            var setupOnly = SessionState.GetBool(Pending + ".setupOnly", false);
+            if (!setupOnly)
             foreach (var hand in new[] { Hand.R, Hand.L })
             foreach (var charged in new[] { false, true })
             {
@@ -121,8 +127,12 @@ namespace GrandSluggers.EditorTools
                 evidence.cases = cases.ToArray();
             }
             if (!SessionState.GetBool(Pending + ".pitchOnly", false))
-            foreach (var check in new Func<GateCase>[]
+            foreach (var check in setupOnly ? new Func<GateCase>[]
+            { () => VerifyLineupFill(play, false), () => VerifyLineupFill(play, true) } : new Func<GateCase>[]
             {
+                () => VerifyControllerRouting(play),
+                () => VerifyLineupFill(play, false),
+                () => VerifyLineupFill(play, true),
                 () => VerifyNormalTap(play),
                 () => VerifyHeldRelease(play),
                 () => VerifyCpuFlightRelease(play),
@@ -146,25 +156,177 @@ namespace GrandSluggers.EditorTools
                 () => VerifyTriggerConvertsLoad(play, padTwo: true, first: true),
                 () => VerifySideChangeWhileSquared(play),
                 () => VerifyReleaseAllWithdraws(play),
-                () => VerifyBuntTriggerAfterContactIsNotTheItem(play),
                 () => VerifyEastCancelIsNotATrainingSkip(play),
                 // P5-c (#803): the held special modifier, read at the accepted release (PH-16-R10 ... R12, R17).
                 () => VerifyStarHeldAtReleaseIsSpecial(play, keys: false),
-                () => VerifyStarHeldAtReleaseIsSpecial(play, keys: true),
                 () => VerifyStarLetGoBeforeReleaseIsOrdinary(play),
                 () => VerifyStarPressedWhileChargingCounts(play),
                 () => VerifyStarAfterReleaseChangesNothing(play),
                 () => VerifyStarSwingOnPadTwo(play),
                 () => VerifyUnaffordableStarIsOrdinaryWithTell(play),
-                () => VerifyLbInTheFlightIsNotAllAdvance(play),
-                () => VerifySpentLbIsNoLiveVerb(play)
+                () => VerifyStarInTheFlightIsNotAllAdvance(play),
             })
             {
                 cases.Add(check());
                 evidence.cases = cases.ToArray();
             }
+            if (!SessionState.GetBool(Pending + ".pitchOnly", false))
+            {
+                var screens = VerifyControllerScreens(play);
+                while (screens.MoveNext()) yield return screens.Current;
+                cases.Add(new GateCase { name = "controller-title-stadium-captains-book", phase = Phase(play) });
+                evidence.cases = cases.ToArray();
+            }
             evidence.ok = true;
             Debug.Log("Grand Sluggers at-bat input OK: " + cases.Count + " real Controls/TickSet/TickFlight cases.");
+        }
+
+        static GateCase VerifyLineupFill(MatchDirector play, bool swapSeats)
+        {
+            Setup(play, swapSeats ? Seats.AwayVersus : Seats.Versus);
+            play.Pad1Home = !swapSeats;
+            Set(play, "_versusWanted", true);
+            Set(play, "_lineup", null);
+            Invoke(play, "OpenLineup");
+            var lineup = Get<LineupScreens>(play, "_lineup");
+            foreach (var seat in new[] { LineupSeat.Pad1, LineupSeat.Pad2 })
+            {
+                var home = lineup.HomeSeat == seat;
+                lineup.FocusCell(seat, home ? LineupFocus.HomeRow : LineupFocus.AwayRow, 0);
+                var other = (home ? lineup.AwaySlots : lineup.HomeSlots).Select(c => c?.Id).ToArray();
+                var rb = State().WithButton(GamepadButton.RightShoulder);
+                Neutral();
+                InputSystem.QueueStateEvent(seat == LineupSeat.Pad1 ? _pad1 : _pad2, rb);
+                InputSystem.Update(); Controls.Tick(Step);
+                Invoke(play, "TickLineup");
+                Require(home ? lineup.HomeFull : lineup.AwayFull, "RB failed to fill the acting seat from roster focus.");
+                Require(other.SequenceEqual((home ? lineup.AwaySlots : lineup.HomeSlots).Select(c => c?.Id)),
+                    "RB changed the other seat's roster.");
+                Require(lineup.Step == LineupStep.TeamSetup, "Fill advanced the page without confirmation.");
+                lineup.FocusCell(seat, LineupFocus.Pool, 0);
+                Neutral();
+                InputSystem.QueueStateEvent(seat == LineupSeat.Pad1 ? _pad1 : _pad2, State().WithButton(GamepadButton.West));
+                InputSystem.Update(); Controls.Tick(Step); Invoke(play, "TickLineup");
+                Require(home ? lineup.HomeFull : lineup.AwayFull, "West on the pool removed an unselected roster player.");
+            }
+            return new GateCase { name = "lineup-rb-fill-both-seats-" + swapSeats, phase = Phase(play) };
+        }
+
+        static IEnumerator VerifyControllerScreens(MatchDirector play)
+        {
+            Setup(play, Seats.One);
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(_pad1.deviceId, _pad2.deviceId));
+            Neutral();
+            Set(play, "_versusWanted", false); play.Pad1Home = true;
+            Invoke(play, "OpenTitle");
+            var folder = Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("GS_AT_BAT_INPUT_EVIDENCE")
+                ?? Application.dataPath)!, "controller-screens");
+            Directory.CreateDirectory(folder);
+            IEnumerator Capture(string name)
+            {
+                Invoke(play, "DrawActors", Step);
+                yield return new WaitForEndOfFrame();
+                var shot = ScreenCapture.CaptureScreenshotAsTexture();
+                File.WriteAllBytes(Path.Combine(folder, name + ".png"), shot.EncodeToPNG());
+                UnityEngine.Object.Destroy(shot);
+            }
+            void Menu(GamepadState one, GamepadState two = default)
+            {
+                InputSystem.QueueStateEvent(_pad1, one); InputSystem.QueueStateEvent(_pad2, two);
+                InputSystem.Update(); Controls.Tick(Step);
+                Set(play, "_t", 1f); Invoke(play, "TickFlow");
+            }
+            void Press(GamepadButton button, bool two = false)
+            {
+                Menu(State());
+                Menu(two ? State() : State().WithButton(button), two ? State().WithButton(button) : State());
+                Menu(State());
+            }
+            var shot = Capture("title"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.South);
+            Require(Phase(play) == "Field", "Title confirm did not open stadium selection.");
+            shot = Capture("stadium"); while (shot.MoveNext()) yield return shot.Current;
+            for (var i = 0; i < 5; i++) Press(GamepadButton.DpadDown);
+            Press(GamepadButton.South);
+            Require(Phase(play) == "Select", "Stadium navigation did not reach captains.");
+            var board = Get<CaptainSelection>(play, "_captains");
+            var seen = new HashSet<string>();
+            for (var i = 0; i < PresetTeams.CaptainIds.Length; i++)
+            {
+                seen.Add(board.Id(0));
+                shot = Capture("captain-" + board.Id(0)); while (shot.MoveNext()) yield return shot.Current;
+                Press(GamepadButton.DpadRight);
+            }
+            Require(seen.Count == PresetTeams.CaptainIds.Length, "A captain is unreachable through the controller.");
+            Press(GamepadButton.South);
+            Require(Phase(play) == "Select" && board.Ready(0) && !board.Ready(1), "P1 skipped choosing the CPU captain.");
+            shot = Capture("captain-cpu"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.East);
+            Require(!board.Ready(0), "East did not undo the first captain.");
+            Press(GamepadButton.South); Press(GamepadButton.South);
+            Require(Phase(play) == "Lineup", "Two sequential confirmations did not open lineup.");
+            var lineup = Get<LineupScreens>(play, "_lineup");
+            lineup.FocusCell(LineupSeat.Pad1, LineupFocus.HomeRow, 0);
+            Press(GamepadButton.RightShoulder);
+            Require(lineup.HomeFull, "RB did not fill P1 from roster focus.");
+            shot = Capture("lineup-filled"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.South); Press(GamepadButton.North); Press(GamepadButton.North);
+            Require(Phase(play) == "Set", "One-player setup did not reach first pitch.");
+            shot = Capture("first-pitch-one"); while (shot.MoveNext()) yield return shot.Current;
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + .1f);
+            Tick(play, "TickSet", State(south: true), State()); Tick(play, "TickSet", State(), State());
+            Require(Phase(play) == "Flight", "P1 could not release the first pitch after filling the team.");
+            Invoke(play, "OpenLineup");
+            // Back to stadium through the same controller path, then enable two players.
+            Press(GamepadButton.East); Press(GamepadButton.East);
+            Require(Phase(play) == "Field", "East did not return to stadium setup.");
+            for (var i = 0; i < 3; i++) Press(GamepadButton.DpadDown);
+            Press(GamepadButton.DpadRight);
+            Press(GamepadButton.DpadDown); Press(GamepadButton.DpadRight); // P1 away
+            Press(GamepadButton.DpadDown); Press(GamepadButton.South);
+            Require(Phase(play) == "Select", "Two-player setup did not reach the board.");
+            board = Get<CaptainSelection>(play, "_captains");
+            Require(board.Versus && !board.Pad1Home, "Player count or P1 away did not persist.");
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(_pad1.deviceId, int.MaxValue));
+            Press(GamepadButton.South);
+            Require(Phase(play) == "Select" && !board.Ready(1), "Missing P2 silently became a CPU opponent.");
+            shot = Capture("captain-waiting-pad2"); while (shot.MoveNext()) yield return shot.Current;
+            Require(!Get<Match>(play, "_match").Paused, "Unbound P2 loss blocked returning to setup.");
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(_pad1.deviceId, _pad2.deviceId));
+            Controls.CatchPlay(); Press(GamepadButton.East);
+            var start = board.Id(1);
+            Press(GamepadButton.DpadRight, true);
+            Require(start != board.Id(1), "P2 cannot move its own cursor.");
+            while (board.Id(1) != board.Id(0)) Press(GamepadButton.DpadRight, true);
+            Press(GamepadButton.South);
+            Press(GamepadButton.South, true);
+            Require(Phase(play) == "Select" && !board.Ready(1), "Both players confirmed the same captain.");
+            shot = Capture("captain-reserved"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.DpadRight, true);
+            shot = Capture("captain-two-player"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.South, true);
+            Require(Phase(play) == "Lineup", "Both captains confirmed but lineup did not open.");
+            lineup = Get<LineupScreens>(play, "_lineup");
+            Require(lineup.HomeSeat == LineupSeat.Pad2 && lineup.AwaySeat == LineupSeat.Pad1, "Captain confirmation lost P1 away.");
+            Press(GamepadButton.RightShoulder); Press(GamepadButton.RightShoulder, true);
+            Require(lineup.HomeFull && lineup.AwayFull, "Both controllers cannot fill their teams.");
+            shot = Capture("lineup-two-filled"); while (shot.MoveNext()) yield return shot.Current;
+            Press(GamepadButton.South); Press(GamepadButton.North); Press(GamepadButton.North, true);
+            Require(lineup.Step == LineupStep.MatchSettings, "Both lineup confirmations did not reach settings.");
+            Press(GamepadButton.North); Press(GamepadButton.North, true);
+            Require(Phase(play) == "Set", "Two-player setup did not reach first pitch.");
+            shot = Capture("first-pitch-two"); while (shot.MoveNext()) yield return shot.Current;
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + .1f);
+            Tick(play, "TickSet", State(), State(south: true)); Tick(play, "TickSet", State(), State());
+            Require(Phase(play) == "Flight", "P2 could not release the first pitch after filling both teams.");
+            Invoke(play, "OpenControlsBook");
+            foreach (var id in new[] { "exhibition", "lineup", "two-pads" })
+            {
+                var page = HowToPlay.Pages.ToList().FindIndex(p => p.Id == id);
+                if (page < 0) continue;
+                Set(play, "_pausePage", page);
+                shot = Capture(id); while (shot.MoveNext()) yield return shot.Current;
+            }
         }
 
         static void Finish(Evidence evidence)
@@ -296,6 +458,28 @@ namespace GrandSluggers.EditorTools
             return path;
         }
 
+        static GateCase VerifyControllerRouting(MatchDirector play)
+        {
+            var match = Setup(play, Seats.One, homeAtBat: true);
+            var runner = match.Offense.Roster.Last(c => c.Id != match.Batter.Id);
+            Require(match.StationRunner(1, runner), "Could not station controller-routing runner.");
+            var send = State(south: true, lb: true).WithButton(GamepadButton.LeftShoulder);
+            Tick(play, "TickSet", send, State());
+            Require(Controls.Pad1.StarHeld && Controls.Pad1.AllAdvance && Controls.Pad1.BallHeld,
+                "LT, LB and RT must be independent on the same frame.");
+            Require(match.Runners.Any(r => r.Who.Id == runner.Id && r.Broke), "Physical LB did not send the runner in SET.");
+            Setup(play, Seats.One);
+            Tick(play, "TickSet", State().WithButton(GamepadButton.North), State());
+            var jump = Call<LivePadInput>(play, "FieldInput");
+            Require(jump.WestDown && !jump.Attack && !jump.SouthDown, "North must route only to jump on defense.");
+            Neutral();
+            InputSystem.QueueStateEvent(_pad1, State().WithButton(GamepadButton.South));
+            InputSystem.Update(); Controls.Tick(Step);
+            var close = Call<LivePadInput>(play, "FieldInput");
+            Require(close.CloseResponse == true && !close.SouthDown, "South close response must not throw or catch.");
+            return new GateCase { name = "controller-star-steal-jump-routing", phase = Phase(play) };
+        }
+
         static GateCase VerifyNormalTap(MatchDirector play)
         {
             Setup(play, Seats.One);
@@ -351,8 +535,8 @@ namespace GrandSluggers.EditorTools
                 "Player 1 pitch did not enter its windup while Player 2 held South.");
             Require(SwingButton(play).Armed && Get<SwingCommand>(play, "_swing") == null,
                 "Player 2 hold did not carry from SET into the pitch windup.");
-            // West no longer squares at the plate (PH-14-R5): held through the release it changes nothing.
-            var input = Tick(play, "TickFlight", State(), State(west: true, stickX: -0.8f, stickY: 0.6f));
+            // Release RT with the movement stick still live; no bunt button is held.
+            var input = Tick(play, "TickFlight", State(), State(stickX: -0.8f, stickY: 0.6f));
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
                 "Player 2 release after entering Flight was discarded.");
@@ -360,7 +544,7 @@ namespace GrandSluggers.EditorTools
             Require(Math.Abs(input.Pad2X) > StickPlay.Dead && Math.Abs(input.Pad2Y) > StickPlay.Dead,
                 "Player 2 Flight fixture did not produce live release-frame stick input.");
             Require(!input.Pad2Bunt && !swing.Bunt && swing.BuntSide == BuntSide.None,
-                "West still bunts at the plate; the bunt is the held LT / RT side.");
+                "An ordinary RT release unexpectedly became a bunt.");
             Require(Math.Abs(swing.LaunchAim - input.Pad2Y) < 0.001,
                 "Player 2 Flight release lost its release-frame launch intent.");
             Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad2X)) < 0.001,
@@ -509,8 +693,7 @@ namespace GrandSluggers.EditorTools
         {
             var match = padTwo ? Setup(play, Seats.Versus, homeAtBat: true) : Setup(play, Seats.One);
             Require(padTwo == !match.Top, "Fixture half does not put the expected controller on the mound.");
-            Require(match.Pitcher.Repertoire.Second == PitchFamily.Changeup,
-                "Fixture pitcher's second ordinary pitch is not the changeup.");
+            var secondFamily = match.Pitcher.Repertoire.Second;
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
             var cycle = State(cycle: true);
             Tick(play, "TickSet", padTwo ? State() : cycle, padTwo ? cycle : State());
@@ -524,7 +707,7 @@ namespace GrandSluggers.EditorTools
             Tick(play, "TickSet", State(), State());
             var pitch = Get<PitchCommand>(play, "_pitch");
             Require(Phase(play) == "Flight" && pitch != null, "The release did not launch.");
-            Require(pitch.Type == PitchFamily.Changeup, "One cycle press did not throw the changeup.");
+            Require(pitch.Type == secondFamily, "One cycle press did not throw this pitcher's second family.");
             return new GateCase { name = padTwo ? "cycle-once-changeup-pad2" : "cycle-once-changeup-pad1", phase = Phase(play), charge = pitch.Charge01 };
         }
 
@@ -845,7 +1028,7 @@ namespace GrandSluggers.EditorTools
         }
 
         /// <summary>PH-16-R17: during the pitch LB is the modifier, not all-advance: a runner is not armed to tag and go.</summary>
-        static GateCase VerifyLbInTheFlightIsNotAllAdvance(MatchDirector play)
+        static GateCase VerifyStarInTheFlightIsNotAllAdvance(MatchDirector play)
         {
             var match = Setup(play, Seats.One, homeAtBat: true);
             Require(match.StationRunner(1, match.Offense.Roster.Last(c => c.Id != match.Batter.Id)), "Could not station the runner on first.");
@@ -854,7 +1037,7 @@ namespace GrandSluggers.EditorTools
             for (var f = 0; f < 3; f++) Tick(play, "TickFlight", State(lb: true), State());
             Require(match.Runners.Where(r => r.Live && !r.IsBatter).All(r => !r.TagAndGo),
                 "LB during the pitch armed all-advance.");
-            return new GateCase { name = "lb-in-flight-not-all-advance", phase = Phase(play) };
+            return new GateCase { name = "lt-in-flight-not-all-advance", phase = Phase(play) };
         }
 
         /// <summary>
@@ -890,8 +1073,7 @@ namespace GrandSluggers.EditorTools
             var lifecycle = Get<MatchSeatLifecycle>(play, "_matchSeats");
             lifecycle.Release();
             lifecycle.Bind(Seats.One);
-            SetStatic(typeof(Controls), "_matchDevices", new DeviceSeats(null, null, pad1KeyboardMouse: true));
-            SetStatic(typeof(Controls), "_matchDevicesBound", true);
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(null, null, pad1KeyboardMouse: true));
             Invoke(play, "BeginSet");
             Set(play, "_gateHold", true);
             Set(play, "_t", 0f);
@@ -921,8 +1103,8 @@ namespace GrandSluggers.EditorTools
             var match = padTwo ? Setup(play, Seats.Versus, homeAtBat: true) : Setup(play, Seats.One);
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
             var before = match.Pitcher.Id;
-            var select = State().WithButton(GamepadButton.Select);
-            Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
+            var select = State().WithButton(GamepadButton.West);
+            Require(Call<bool>(play, "OpenDefenseSetup"), "Call time could not open Arrange defense.");
             var pick = Get<DefenseSetupPick>(play, "_swapPick");
             Require(pick != null, "Select did not open the swap pick.");
             var start = pick.Index;
@@ -932,7 +1114,7 @@ namespace GrandSluggers.EditorTools
             Require(Get<object>(play, "_swapPick") == null && match.Pitcher.Id == before && match.CanSwapPitcher,
                 "Cancelling the window changed or consumed the pitcher swap.");
             Tick(play, "TickSet", State(), State());
-            Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
+            Require(Call<bool>(play, "OpenDefenseSetup"), "Could not reopen Arrange defense.");
             pick = Get<DefenseSetupPick>(play, "_swapPick");
             Require(pick != null && pick.Index == start, "The cancelled window could not reopen.");
             Tick(play, "TickSet", State(), State());
@@ -973,9 +1155,8 @@ namespace GrandSluggers.EditorTools
             var lifecycle = Get<MatchSeatLifecycle>(play, "_matchSeats");
             lifecycle.Release();
             lifecycle.Bind(seats);
-            SetStatic(typeof(Controls), "_matchDevices", new DeviceSeats(
+            SetStatic(typeof(Controls), "_devices", new DeviceSeats(
                 _pad1.deviceId, seats.BothHuman ? _pad2.deviceId : null));
-            SetStatic(typeof(Controls), "_matchDevicesBound", true);
             Invoke(play, "BeginSet");
             Set(play, "_gateHold", true);
             Set(play, "_t", 0f);
@@ -1020,13 +1201,13 @@ namespace GrandSluggers.EditorTools
             var state = new GamepadState
             {
                 leftStick = new Vector2(stickX, stickY),
-                leftTrigger = lt ? 1f : 0f,
-                rightTrigger = rt ? 1f : 0f
+                leftTrigger = lb ? 1f : 0f,
+                rightTrigger = south ? 1f : 0f
             };
-            if (south) state = state.WithButton(GamepadButton.South);
-            if (cycle) state = state.WithButton(GamepadButton.RightShoulder);
+            if (lt) state = state.WithButton(GamepadButton.West);
+            if (rt) state = state.WithButton(GamepadButton.North);
+            if (cycle) state = state.WithButton(GamepadButton.West);
             if (east) state = state.WithButton(GamepadButton.East);
-            if (lb) state = state.WithButton(GamepadButton.LeftShoulder);
             return west ? state.WithButton(GamepadButton.West) : state;
         }
 

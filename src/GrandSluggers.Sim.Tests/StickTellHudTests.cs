@@ -14,16 +14,16 @@ public sealed class StickTellHudTests
     {
         Assert.Equal(PauseMenu.Items, PauseMenu.ItemsFor(false));
         Assert.Equal(
-            [PauseMenu.Item.Resume, PauseMenu.Item.Restart, PauseMenu.Item.HowToPlay, PauseMenu.Item.ResetStick, PauseMenu.Item.Title],
+            [PauseMenu.Item.Resume, PauseMenu.Item.Restart, PauseMenu.Item.HowToPlay, PauseMenu.Item.ResetStick, PauseMenu.Item.ArrangeDefense, PauseMenu.Item.Title, PauseMenu.Item.Quit],
             PauseMenu.ItemsFor(true));
         Assert.DoesNotContain(PauseMenu.Item.ResetStick, PauseMenu.Items);
         // The book keeps its row (Esc opens Call time on it) and Title stays last, with or without the entry.
         Assert.Equal(PauseMenu.Item.HowToPlay, PauseMenu.At(2, false));
         Assert.Equal(PauseMenu.Item.HowToPlay, PauseMenu.At(2, true));
-        Assert.Equal(PauseMenu.Item.Title, PauseMenu.ItemsFor(true)[^1]);
+        Assert.Equal(PauseMenu.Item.Quit, PauseMenu.ItemsFor(true)[^1]);
         Assert.Equal("Reset stick", PauseMenu.Label(PauseMenu.Item.ResetStick));
-        Assert.Equal(0, PauseMenu.Wrap(4, 1, true));
-        Assert.Equal(4, PauseMenu.Wrap(0, -1, true));
+        Assert.Equal(0, PauseMenu.Wrap(6, 1, true));
+        Assert.Equal(6, PauseMenu.Wrap(0, -1, true));
         Assert.Equal(PauseMenu.Item.ResetStick, PauseMenu.At(3, true));
     }
 

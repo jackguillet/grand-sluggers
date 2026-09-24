@@ -53,8 +53,8 @@ public class PitcherSwapTests
         // same for both seats.
         Assert.Equal("", BroadcastHud.PitcherExtra(false));
         Assert.Equal("STAR", BroadcastHud.PitcherExtra(true));
-        Assert.Equal("Select DEFENSE", BroadcastHud.PitcherExtra(false, null, canSwap: true));
-        Assert.Equal("SWAP → SS Nugget  ·  Select", BroadcastHud.PitcherExtra(false, "SWAP → SS Nugget", canSwap: true));
+        Assert.Equal("Start → Arrange defense", BroadcastHud.PitcherExtra(false, null, canSwap: true));
+        Assert.Equal("SWAP → SS Nugget", BroadcastHud.PitcherExtra(false, "SWAP → SS Nugget", canSwap: true));
         // The SET HUD map names the swap on the pitcher card (the mark cell is one measured line).
         Assert.Contains("SWAP", HudCallouts.Set.Marks.First(m => m.Id == "pitcher").Label);
     }
@@ -69,17 +69,17 @@ public class PitcherSwapTests
             var pitching = scheme.First(b => b.Id == "pitching").Rows;
             Assert.Contains(pitching, r => r.Verb == "Cycle pitch");
             Assert.DoesNotContain(pitching, r => r.Verb == "Changeup");
-            Assert.Contains(pitching, r => r.Verb == "Swap pitcher" && r.Press.Contains("any fielder"));
+            Assert.Contains(pitching, r => r.Verb == "Swap pitcher" && r.Press.Contains("Arrange defense"));
             Assert.Contains(pitching, r => r.Verb == "Break");
             Assert.DoesNotContain(pitching, r => r.Verb == "Curve");
             Assert.InRange(pitching.Count, RoleTables.MinRows, RoleTables.MaxRows);
         }
         var pad = RoleTables.Pad.First(b => b.Id == "pitching").Rows;
-        Assert.Contains(pad, r => r.Verb == "Cycle pitch" && r.Press.Contains("RB") && r.Press.Contains("Fastball"));
-        Assert.Contains(pad, r => r.Verb == "Swap pitcher" && r.Press.Contains("Select"));
+        Assert.Contains(pad, r => r.Verb == "Cycle pitch" && r.Press.Contains("West") && r.Press.Contains("Fastball"));
+        Assert.Contains(pad, r => r.Verb == "Swap pitcher" && r.Press.Contains("Start"));
         var keys = RoleTables.Keys.First(b => b.Id == "pitching").Rows;
-        Assert.Contains(keys, r => r.Verb == "Cycle pitch" && r.Press.Contains("Tab") && r.Press.Contains("Fastball"));
-        Assert.Contains(keys, r => r.Verb == "Swap pitcher" && r.Press.StartsWith("R"));
+        Assert.Contains(keys, r => r.Verb == "Cycle pitch" && r.Press.Contains("West") && r.Press.Contains("Fastball"));
+        Assert.Contains(keys, r => r.Verb == "Swap pitcher" && r.Press.StartsWith("Start"));
         Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("any fielder"));
     }
 
