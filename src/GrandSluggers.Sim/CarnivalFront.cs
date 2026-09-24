@@ -343,16 +343,14 @@ public static partial class CarnivalFront
     public const string SetupEditSettings = "Edit settings";
     public const string SetupBackPositions = "Positions / order";
     public const string SetupWaiting = "P1 ready · waiting";
-    public static string SetupNightLabel(bool on, bool keys) => "Night mode   " + (on ? "ON" : "OFF") + (keys ? "    N" : "");
-    public static string SetupHazardsLabel(bool on, bool keys) => "Hazards   " + (on ? "ON" : "OFF") + (keys ? "    R" : "");
-    public static string SetupStadiumHelp(bool keys) => keys ? "A/D  Stadium    Space  Captains    F  Back" : "Up/down choose    Left/right change    South confirm    East back";
-    public static string SetupPickLineup(bool keys) => keys ? "Space  Pick lineup →" : "South  Pick lineup →";
-    public static string SetupCaptainHelp(bool keys) => keys
-        ? "A/D  Your team    W/S  Opponent    Q  Home / away\nComma  1 player    Tab  2 players    F  Back"
-        : "Up/down choose    Left/right change\nSouth confirm    East back";
+    public static string SetupNightLabel(bool on) => "Night mode   " + (on ? "ON" : "OFF");
+    public static string SetupHazardsLabel(bool on) => "Hazards   " + (on ? "ON" : "OFF");
+    public const string SetupStadiumHelp = "Up/down choose    Left/right change    South confirm    East back";
+    public const string SetupPickLineup = "South  Pick lineup →";
+    public const string SetupCaptainHelp = "Up/down choose    Left/right change\nSouth confirm    East back";
     public static string SetupAwayName(string captain) => captain + " at";
-    public static string SetupPlayBall(bool keys) => keys ? "Q  Ready / play ball" : "North  Ready / play ball";
-    public static string SetupRulesHelp(bool keys) => keys ? "W/S  Select     A/D or Space  Change\nF  Back     Esc  How to play" : "Stick  Select / change     South  Change\nEast  Back     View  How to play";
+    public const string SetupPlayBall = "North  Ready / play ball";
+    public const string SetupRulesHelp = "Stick  Select / change     South  Change\nEast  Back     View  How to play";
     public static string SetupReadySeat(LineupSeat seat, bool ready) => (seat == LineupSeat.Pad1 ? "P1" : "P2") + (ready ? " · READY" : " · NOT READY");
-    public static string SetupReadyHelp(bool keys) => keys ? "Q  Ready    F  Edit" : "North  Ready    East  Edit";
+    public const string SetupReadyHelp = "North  Ready    East  Edit";
 }

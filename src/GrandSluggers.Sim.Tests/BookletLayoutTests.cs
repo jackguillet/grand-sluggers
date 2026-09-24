@@ -28,38 +28,26 @@ public class BookletLayoutTests
     }
 
     [Fact]
-    public void EveryPageSharesAnAtomicHeaderAndFittingSchemeTabs()
+    public void EveryPageSharesAnAtomicHeaderAndFittingBadges()
     {
         foreach (var (w, h) in SupportedWindows)
         {
             var book = HowToPlay.BookPanel(w, h);
-            var bar = BookScheme.ToggleBar(w, h);
-            Assert.True(bar.X >= book.X && bar.X + bar.W <= book.X + book.W);
-            Assert.True(bar.Y >= book.Y && bar.Y + bar.H <= book.Y + 84f);
-
-            foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-            {
-                var tab = BookScheme.Tab(scheme, w, h);
-                var label = BookScheme.Label(scheme);
-                Assert.True(tab.W - 16f >= ApproxWidth(label, HowToPlay.BookTabPt), $"{w}×{h} {label} tab wraps");
-                Assert.True(tab.H - 8f >= ApproxLineHeight(HowToPlay.BookTabPt), $"{w}×{h} {label} tab clips");
-            }
-
             var howWidth = ApproxWidth("HOW TO PLAY", 20f);
-            var badgeLabels = new[] { "Player 1 only", "Two controllers" };
+            var badgeLabels = new[] { HowToPlay.PageBadge("two-pads")!, "Two controllers" };
             var badges = BookletLayout.Badges(w, h, howWidth,
                 badgeLabels.Select(label => ApproxWidth(label, HowToPlay.BookBadgePt)).ToArray());
             var howRight = book.X + 88f + howWidth;
             Assert.True(badges[0].X > howRight, $"{w}×{h} first badge covers HOW TO PLAY");
-            Assert.True(badges.All(badge => badge.Right <= bar.X - 12f));
+            Assert.True(badges.All(badge => badge.Right <= book.X + book.W - 16f + 0.01f));
             Assert.True(BookletLayout.HasNoOverlap(badgeLabels.Select((label, i) =>
                 new BookletLayout.TextBlock(label, badges[i])).ToArray()));
             Assert.True(ApproxLineHeight(HowToPlay.BookBadgePt) <= BookletLayout.BadgeH,
                 $"{w}×{h} badge text clips vertically");
 
-            var footer = BookScheme.Footer(InputScheme.Keys);
+            var footer = HowToPlay.BookFooter;
             Assert.True(ApproxWidth(footer, HowToPlay.BookFooterPt) <= book.W - 56f,
-                $"{w}×{h} keyboard footer wraps");
+                $"{w}×{h} footer wraps");
 
             foreach (var pageIndex in Enumerable.Range(0, HowToPlay.Pages.Count))
             {
@@ -77,7 +65,7 @@ public class BookletLayoutTests
     }
 
     [Fact]
-    public void EveryRenderedPageBodyFitsAtCouchSizeInBothSchemes()
+    public void EveryRenderedPageBodyFitsAtCouchSize()
     {
         static bool DrawsParagraphBand(string id) =>
             !id.StartsWith("controls", StringComparison.Ordinal) &&
@@ -85,14 +73,13 @@ public class BookletLayoutTests
             id is not "running" and not "getting-started" and not "abilities-types";
         foreach (var (w, h) in SupportedWindows)
         foreach (var page in HowToPlay.Pages.Where(p => DrawsParagraphBand(p.Id)))
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {
             var band = CopyBand(page.Id, w, h);
-            var blocks = BookletLayout.BestFlow(page.Shown(scheme), band,
+            var blocks = BookletLayout.BestFlow(page.Lines, band,
                 (text, width) => ApproxBodyHeight(text, width, HowToPlay.BookLineMinPt));
-            Assert.True(BookletLayout.HasNoOverlap(blocks), $"{w}×{h} {page.Id} {scheme} overlaps");
+            Assert.True(BookletLayout.HasNoOverlap(blocks), $"{w}×{h} {page.Id} overlaps");
             Assert.True(BookletLayout.Fits(blocks, band),
-                $"{w}×{h} {page.Id} {scheme} does not fit at {HowToPlay.BookLineMinPt}pt; " +
+                $"{w}×{h} {page.Id} does not fit at {HowToPlay.BookLineMinPt}pt; " +
                 $"band={band.W:0}×{band.H:0}; blocks={string.Join(",", blocks.Select(b => $"{b.Box.X:0}:{b.Box.H:0}:{b.Box.Bottom - band.Y:0}"))}");
         }
     }
@@ -101,11 +88,10 @@ public class BookletLayoutTests
     public void DiagramAndTableCellsFitTheirMeasuredCopy()
     {
         foreach (var (w, h) in SupportedWindows)
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {
             foreach (var pageId in ControlDiagram.PageIds)
             {
-                var calls = ControlDiagram.PageCallouts(scheme, pageId);
+                var calls = ControlDiagram.PageCallouts(pageId);
                 var board = ControlDiagram.Board(w, h);
                 var stackBand = new BookletLayout.Box(board.X, board.Y + 40f, board.W, board.H - 40f);
                 var point = (float)HowToPlay.BookLinePt;
@@ -131,7 +117,7 @@ public class BookletLayoutTests
 
             foreach (var pageId in RoleTables.PageIds)
             {
-                var block = RoleTables.OnPage(scheme, pageId);
+                var block = RoleTables.OnPage(pageId);
                 for (var i = 0; i < block.Rows.Count; i++)
                 {
                     var cell = RoleTables.RowCard(i, block.Rows.Count, w, h);
@@ -148,7 +134,7 @@ public class BookletLayoutTests
                 var columns = BookletLayout.NumberedRow(cell, ApproxWidth(title, HowToPlay.BookHeaderPt));
                 Assert.True(ApproxWidth(title, HowToPlay.BookHeaderPt) <= columns.Title.W,
                     $"{w}×{h} getting started title {step.step.Id}");
-                Assert.True(ApproxBodyHeight(GettingStarted.Caption(step.step, scheme), columns.Body.W,
+                Assert.True(ApproxBodyHeight(step.step.Caption, columns.Body.W,
                     HowToPlay.BookLineMinPt) <= columns.Body.H, $"{w}×{h} getting started {step.step.Id}");
             }
 
@@ -166,14 +152,13 @@ public class BookletLayoutTests
     public void EverySpecialRendererReservesItsMeasuredTextAtSupportedWindows()
     {
         foreach (var (w, h) in SupportedWindows)
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {
             foreach (var (diagram, index) in BagDiagrams.Running.Select((item, index) => (item, index)))
             {
                 var card = BagDiagrams.Card(index, w, h);
                 Assert.True(ApproxWidth(diagram.Title.ToUpperInvariant(), HowToPlay.BookHeaderPt) <= card.W - 20,
                     $"{w}×{h} running heading {diagram.Title}");
-                var press = BagDiagrams.Press(diagram, scheme);
+                var press = diagram.Press;
                 var pressH = Math.Max(36f,
                     ApproxBodyHeight(press, card.W - 32, HowToPlay.BookTabPt) + 8f);
                 var caption = diagram.Kind == BagDiagrams.Kind.BagMap
@@ -189,7 +174,7 @@ public class BookletLayoutTests
                 var card = BagDiagrams.CalloutCard(index, w, h);
                 Assert.True(ApproxWidth(callout.Title.ToUpperInvariant(), HowToPlay.BookHeaderPt) <= card.W - 20,
                     $"{w}×{h} running callout heading {callout.Title}");
-                Assert.True(ApproxWidth(BagDiagrams.CalloutPress(callout, scheme), 20f) <= card.W - 28,
+                Assert.True(ApproxWidth(callout.Press, 20f) <= card.W - 28,
                     $"{w}×{h} running callout press {callout.Title}");
                 Assert.True(ApproxBodyHeight(callout.Line, card.W - 20, HowToPlay.BookLineMinPt) <= card.H - 88,
                     $"{w}×{h} running callout body {callout.Title}");
@@ -202,7 +187,7 @@ public class BookletLayoutTests
             {
                 var columns = BookletLayout.LabeledRow(modeTable, ApproxWidth(mode.Title, 26f));
                 return Math.Max(ApproxBodyHeight(mode.Title, columns.Label.W - 12f, 26f) + 12f,
-                    ApproxBodyHeight(GettingStarted.Line(mode, scheme), columns.Body.W, point) + 8f);
+                    ApproxBodyHeight(mode.Line, columns.Body.W, point) + 8f);
             }).ToArray();
             var modeRows = BookletLayout.MeasuredStack(modeBand, ModeHeights(modePoint));
             if (!BookletLayout.Fits(modeRows, modeBand))
@@ -218,7 +203,7 @@ public class BookletLayoutTests
                     (row.X, row.Y, row.W, row.H), ApproxWidth(mode.Title, 26f));
                 Assert.True(ApproxWidth(mode.Title, 26f) <= columns.Label.W - 12f,
                     $"{w}×{h} mode heading {mode.Title}");
-                Assert.True(ApproxBodyHeight(GettingStarted.Line(mode, scheme), columns.Body.W,
+                Assert.True(ApproxBodyHeight(mode.Line, columns.Body.W,
                     modePoint) <= columns.Body.H, $"{w}×{h} mode body {mode.Id}");
             }
 
@@ -239,7 +224,7 @@ public class BookletLayoutTests
             {
                 var row = HowToComic.Row(index, w, h);
                 var chipW = (row.W - 64f) * 0.5f;
-                var motion = HowToComic.MotionOf(strip, scheme);
+                var motion = strip.Motion;
                 var chipH = Math.Max(56f, Math.Max(
                     ApproxBodyHeight(motion.Charge, chipW - 16, HowToPlay.BookTabPt),
                     ApproxBodyHeight(motion.Commit, chipW - 16, HowToPlay.BookTabPt)) + 10f);
@@ -247,7 +232,7 @@ public class BookletLayoutTests
                     $"{w}×{h} {strip.Id} charge chip");
                 Assert.True(ApproxBodyHeight(motion.Commit, chipW - 16, HowToPlay.BookTabPt) <= chipH - 10f,
                     $"{w}×{h} {strip.Id} commit chip");
-                Assert.True(ApproxBodyHeight(HowToComic.Caption(strip, scheme), row.W - 32, 26f) <= row.H - chipH - 58f,
+                Assert.True(ApproxBodyHeight(strip.Caption, row.W - 32, 26f) <= row.H - chipH - 58f,
                     $"{w}×{h} {strip.Id} caption");
             }
 
@@ -285,11 +270,10 @@ public class BookletLayoutTests
 
             var source = ContentsToc.LineBand(w, h);
             var band = new BookletLayout.Box(source.X, source.Y, source.W, source.H);
-            foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
             {
-                var blocks = BookletLayout.Flow(contents.Shown(scheme), band, ApproxBodyHeight);
-                Assert.True(BookletLayout.HasNoOverlap(blocks), $"{w}×{h} {scheme} paragraphs overlap");
-                Assert.True(BookletLayout.Fits(blocks, band), $"{w}×{h} {scheme} intro reaches the footer");
+                var blocks = BookletLayout.Flow(contents.Lines, band, ApproxBodyHeight);
+                Assert.True(BookletLayout.HasNoOverlap(blocks), $"{w}×{h} paragraphs overlap");
+                Assert.True(BookletLayout.Fits(blocks, band), $"{w}×{h} intro reaches the footer");
             }
         }
     }

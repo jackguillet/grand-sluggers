@@ -30,7 +30,7 @@ public sealed class StickTellHudTests
     [Theory]
     [InlineData(1280f, 800f)]
     [InlineData(1920f, 1080f)]
-    public void TheCallTimePanelGrowsOneRowForTheEntryAndEveryRowIsClickable(float sw, float sh)
+    public void TheCallTimePanelGrowsOneRowForTheEntryAndEveryRowSitsAboveTheFooter(float sw, float sh)
     {
         var shipped = PauseMenu.Panel(sw, sh);
         var stick = PauseMenu.Panel(sw, sh, true);
@@ -38,11 +38,10 @@ public sealed class StickTellHudTests
         for (var i = 0; i < PauseMenu.ItemsWithStick.Count; i++)
         {
             var r = PauseMenu.ItemRect(i, sw, sh, true);
-            Assert.Equal(i, PauseMenu.HitItem(r.X + 8, r.Y + 8, sw, sh, true));
             Assert.True(r.Y + r.H <= PauseMenu.FooterRect(sw, sh, true).Y, "the rows sit above the footer");
         }
         Assert.Equal(PauseMenu.Panel(sw, sh), PauseMenu.Panel(sw, sh, false));
-        Assert.Equal(PauseMenu.HitItem(sw / 2, shipped.Y + 70, sw, sh), PauseMenu.HitItem(sw / 2, shipped.Y + 70, sw, sh, false));
+        Assert.Equal(PauseMenu.ItemRect(0, sw, sh), PauseMenu.ItemRect(0, sw, sh, false));
     }
 
     [Fact]
@@ -50,7 +49,6 @@ public sealed class StickTellHudTests
     {
         Assert.Equal("LET GO OF THE STICK", BroadcastHud.StickLine(PursuitReadiness.Tell.LetGo, 0, twoPlayers: false));
         Assert.Equal("P2  ·  LET GO OF THE STICK", BroadcastHud.StickLine(PursuitReadiness.Tell.LetGo, 1, twoPlayers: true));
-        Assert.Equal("P1  ·  HANDS OFF THE KEYS", BroadcastHud.StickLine(PursuitReadiness.Tell.LetGo, 0, twoPlayers: true, keyboard: true));
         Assert.Equal("STICK RESET", BroadcastHud.StickLine(PursuitReadiness.Tell.Reset, 0, twoPlayers: false));
         Assert.Equal("", BroadcastHud.StickLine(PursuitReadiness.Tell.None, 0, twoPlayers: true));
         Assert.Contains("LET GO OF THE STICK", BroadcastHud.UnreadyTell);

@@ -34,7 +34,6 @@ namespace GrandSluggers.UnityClient
             _used.Clear();
             if (_phase is Phase.Title or Phase.Select)
             {
-                TeamSheet.HideBoard();
                 _chem?.Hide();
                 if (_phase == Phase.Title) PlaceSelectRoster();
                 else { _logo?.Hide(); _card?.Hide(); }
@@ -50,7 +49,6 @@ namespace GrandSluggers.UnityClient
             _logo?.Hide();
             if (_phase == Phase.Field)
             {
-                TeamSheet.HideBoard();
                 _chem?.Hide();
                 foreach (var kv in _heroes)
                     if (kv.Value != null)
@@ -71,7 +69,6 @@ namespace GrandSluggers.UnityClient
                 _ring?.Hide();
                 return;
             }
-            TeamSheet.HideBoard();
             _chem?.Hide();
             // A debt the play ended on runs out in the result beat: the diver gets up, the jumper lands, the fumbler recovers.
             if (_phase == Phase.Result) _owed = _owed.Aged(dt);

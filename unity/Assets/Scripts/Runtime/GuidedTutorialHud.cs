@@ -15,14 +15,14 @@ namespace GrandSluggers.UnityClient
             GUI.Label(Region(0), feedback ? HowToPlay.TutorialResultTitle(success, run.Successes)
                 : HowToPlay.TutorialAttemptTitle(run.Lesson.Id, run.Successes), _bookTitle);
             TutorialText(Region(1), HowToPlay.TutorialTitle(run.Lesson.Id), HowToPlay.TutorialGoal(run.Lesson.Id),
-                HowToPlay.TutorialControls(run.Lesson.Id, BookScheme.Current));
+                HowToPlay.TutorialControls(run.Lesson.Id));
             TutorialText(Region(2), feedback ? success ? "GOOD WORK" : "TRY AGAIN" : "THE SETUP",
                 feedback ? HowToPlay.TutorialFeedbackText(run.Feedback?.Code ?? "guided-complete") : HowToPlay.TutorialSetup(run.Lesson.Id),
                 feedback ? "" : HowToPlay.TutorialRule);
             var count = feedback ? 3 : 2;
-            TutorialButton(0, count, HowToPlay.TutorialButton(feedback && !run.Passed ? -7 : feedback ? -6 : -2, BookScheme.Current));
-            if (feedback) TutorialButton(1, count, HowToPlay.TutorialButton(-5, BookScheme.Current));
-            TutorialButton(count - 1, count, HowToPlay.TutorialButton(-3, BookScheme.Current));
+            TutorialButton(0, count, HowToPlay.TutorialButton(feedback && !run.Passed ? -7 : feedback ? -6 : -2));
+            if (feedback) TutorialButton(1, count, HowToPlay.TutorialButton(-5));
+            TutorialButton(count - 1, count, HowToPlay.TutorialButton(-3));
         }
 
         public static void GuidedHint(GuidedTutorialSession run, TutorialFeedback notice = null)

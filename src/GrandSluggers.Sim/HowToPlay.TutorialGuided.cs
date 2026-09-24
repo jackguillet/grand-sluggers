@@ -23,25 +23,19 @@ public static partial class HowToPlay
         "T-G01" => "Choose a stadium and captains, then use the ordinary Exhibition team and defense screens. A real roster drop, order change, and glove change must all stick. Each attempt starts fresh.",
         "T-G05" => "Choose a stadium first. Two distinct physical gamepads are required. Confirm the seats through the ordinary Select screen.",
         "T-G06" => "Use the ordinary Call time menu in an Exhibition play. Restart begins the same tutorial setup again.",
-        "T-G06-R" => "Connect a gamepad and set F6 input to Controller or Auto before starting. The prepared Harbor play begins at SET. Disconnect the active pad; the game pauses. Reconnect it or take that same seat with an unseated pad. Keyboard and mouse can recover Player 1.",
-        "T-G06-C" => "Connect a gamepad and set F6 input to Controller or Auto before starting. The prepared Harbor play begins at SET. In Call time choose Reset stick and release the stick until the new centre is adopted.",
+        "T-G06-R" => "Connect a gamepad before starting. The prepared Harbor play begins at SET. Disconnect the active pad; the game pauses. Reconnect it or take that same seat with an unseated pad.",
+        "T-G06-C" => "Connect a gamepad before starting. The prepared Harbor play begins at SET. In Call time choose Reset stick and release the stick until the new centre is adopted.",
         "T-G07" => "Each attempt starts on the stadium screen with the default rules. Only Player 1 edits rules. Items stay unavailable. A rule change clears every ready, so each human player readies again. The CPU is always ready and earns nothing. With two controllers both players ready on their own pads.",
         _ => ""
     };
-    public static string TutorialGuidedControls(string id, InputScheme scheme) => id switch
+    public static string TutorialGuidedControls(string id) => id switch
     {
-        "T-G01" => scheme == InputScheme.Pad
-            ? "South adds a pool player; RB fills the remaining places, but the lesson needs your own left-handed pick first. South after nine opens setup. Pick two batting slots with South to swap. LB/RB switches to the diamond; pick two fielders to swap positions."
-            : "Click a pool player to add them. Continue after nine opens setup. Click two batting slots to swap, then two fielders to swap positions. WASD moves; Space picks; G switches list / diamond.",
+        "T-G01" => "South adds a pool player; RB fills the remaining places, but the lesson needs your own left-handed pick first. South after nine opens setup. Pick two batting slots with South to swap. LB/RB switches to the diamond; pick two fielders to swap positions.",
         "T-G05" => "Connect two pads. In stadium setup choose 2 controllers. Each player chooses a captain and presses South to confirm their own seat.",
-        "T-G06" => scheme == InputScheme.Pad
-            ? "Start opens Call time. Choose How to play, return to Call time, then choose Restart."
-            : "H opens Call time. Choose How to play, return to Call time, then choose Restart.",
+        "T-G06" => "Start opens Call time. Choose How to play, return to Call time, then choose Restart.",
         "T-G06-R" => "An active pad loss pauses the match. Reconnect it or press South on an unseated pad to take that player's seat.",
         "T-G06-C" => "Physical gamepad required. Start opens Call time. Choose Reset stick, then let go until the new centre is accepted.",
-        "T-G07" => scheme == InputScheme.Pad
-            ? "Stadium: up/down chooses Stadium or Time; left/right changes it. Settings: up/down chooses a rule; left/right or South changes it. North readies; East withdraws."
-            : "Stadium: W/S chooses Stadium or Time; A/D changes it. Settings: W/S chooses a rule; A/D, Space or a click changes it. Q or Play ball readies; F withdraws.",
+        "T-G07" => "Stadium: up/down chooses Stadium or Time; left/right changes it. Settings: up/down chooses a rule; left/right or South changes it. North readies; East withdraws.",
         _ => ""
     };
     public static string GuidedNext(IReadOnlyList<GuidedAction> missing) => missing.Count == 0 ? "Ready" : missing[0] switch

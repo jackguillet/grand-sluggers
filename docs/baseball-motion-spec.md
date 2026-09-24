@@ -46,7 +46,7 @@ The bat has a knob, wrapped grip, continuous taper, barrel and rounded end. Keep
 4. Reflect bone transforms and anatomical sides in Blender, bake the left files, and compare every rendered landmark within 0.001 units per frame.
 5. Bake body, extras and all clips. Store byte-identical player copies. Inspect clay sheets with the actual equipment attached, both hands.
 6. Run anatomy/geometry validation, sim tests, art validation and Unity compile. Run the rendered swing/motion matrix for every captain and both hands.
-7. Commit the isolated worktree and build a standalone preview. Inspect the rendered window, then play pitching, normal/charged batting, bunting, catches and throws with keyboard/mouse and pads. Record failures; agent checks do not pass Jack's look or gameplay gate.
+7. Commit the isolated worktree and build a standalone preview. Inspect the rendered window, then play pitching, normal/charged batting, bunting, catches and throws with one pad and with two pads. Record failures; agent checks do not pass Jack's look or gameplay gate.
 8. Only after human acceptance merge and deliver the merged standalone. Keep reference, source data and evidence together so the next character follows the same loop.
 
 ## 6. Acceptance scenarios
@@ -59,7 +59,7 @@ M-05: pitch and throw release from the bare hand with the opposite foot leading;
 M-06: bunt hands meet the knob/taper and the barrel remains in the strike band.
 M-07: every Bats/Throws combination selects the correct bat clip and opposite-hand glove; brown/gold equipment obeys the same rule.
 M-08: all captain accessories remain attached and eyes/feet face the intended direction in Unity.
-M-09: title → lineup → first pitch → played half in the standalone; both control schemes, then two pads. Human gate stays pending until Jack accepts.
+M-09: title → lineup → first pitch → played half in the standalone; one pad, then two pads. Human gate stays pending until Jack accepts.
 
 ## 7. Rebuild commands
 
@@ -94,7 +94,7 @@ Current Unity rest and swing-contact evidence:
 ![Rio at rest](images/default-motion/rio-rest.png)
 ![Rio swing contact](images/default-motion/rio-contact.png)
 
-Pending human review: compare the rhythm and poses of all six reference verbs against visible Peach footage, inspect glove seating and palm direction during live catches/throws, and play M-09 with keyboard/mouse and pads. No human gate has been passed by an agent. In particular, this work does not claim a frame-matched Peach reconstruction; recorded reference timestamps are still required before that claim can be made.
+Pending human review: compare the rhythm and poses of all six reference verbs against visible Peach footage, inspect glove seating and palm direction during live catches/throws, and play M-09 with one pad and with two pads. No human gate has been passed by an agent. In particular, this work does not claim a frame-matched Peach reconstruction; recorded reference timestamps are still required before that claim can be made.
 
 ## 9. Live pitch regression
 

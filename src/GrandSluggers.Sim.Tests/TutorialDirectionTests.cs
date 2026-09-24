@@ -100,10 +100,9 @@ public sealed class TutorialDirectionTests
         Assert.DoesNotContain(catalog.Mechanics, m => m.Id == "batting.06");
         Assert.DoesNotContain("grounder-fair", TutorialPlateObjectives.SwingIds);
         Assert.DoesNotContain("fly-fair", TutorialPlateObjectives.SwingIds);
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {
             // The bunt's side is its held trigger since P4-b / P4-c (PH-14-R5): no row aims anything at contact.
-            var rows = RoleTables.Of(scheme).SelectMany(b => b.Rows).ToArray();
+            var rows = RoleTables.Pad.SelectMany(b => b.Rows).ToArray();
             Assert.DoesNotContain(rows, r => r.Verb == "Spray");
             Assert.DoesNotContain(rows, r => r.Press.Contains("at contact") || r.Verb == "Aim bunt");
         }

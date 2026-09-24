@@ -94,7 +94,7 @@ namespace GrandSluggers.UnityClient
             _match.SetPaused(true);
             _pauseHowTo = _pauseFromHowTo = true;
             _pausePage = 0; _t = 0;
-            BookScheme.Open(); Controls.CatchPlay();
+            Controls.CatchPlay();
         }
 
         void RebuildTitlePark()
@@ -314,8 +314,6 @@ namespace GrandSluggers.UnityClient
             _cam.Play("lineup");
         }
 
-        static bool Key(KeyCode k) => UnityEngine.Input.GetKeyDown(k);
-
         void TickLineup()
         {
             if (_lineup == null)
@@ -326,24 +324,6 @@ namespace GrandSluggers.UnityClient
 
             SyncLineupSeats();
             if (_lineup.Step == LineupStep.MatchSettings) { TickMatchSettings(); return; }
-            var action = TeamSheet.Pointer(_lineup, out var focus, out var index);
-            if (action == TeamSheet.Action.Player && _lineup.FocusCell(LineupSeat.Pad1, focus, index))
-            {
-                if (_lineup.Step == LineupStep.DefenseSetup) PickLineup(LineupSeat.Pad1);
-                else if (focus == LineupFocus.Pool) DropLineup(LineupSeat.Pad1);
-            }
-            else if (action == TeamSheet.Action.Continue)
-            {
-                if (_lineup.Step == LineupStep.TeamSetup) _lineup.ConfirmTeam();
-                else ReadyLineup(LineupSeat.Pad1);
-            }
-            else if (action == TeamSheet.Action.Back)
-            {
-                if (_lineup.Step == LineupStep.TeamSetup) OpenSelect();
-                else _lineup.West(LineupSeat.Pad1);
-            }
-            else if (action == TeamSheet.Action.Fill) _lineup.RandomFill(LineupSeat.Pad1);
-            if (_phase != Phase.Lineup || _lineup.Step == LineupStep.MatchSettings) return;
             TickLineupPad(Controls.Pad1, LineupSeat.Pad1, ref _lineupX, ref _lineupY);
             if (_phase != Phase.Lineup || _lineup.Step == LineupStep.MatchSettings) return;
             if (_lineup.HomeSeat == LineupSeat.Pad2 || _lineup.AwaySeat == LineupSeat.Pad2)
@@ -378,37 +358,25 @@ namespace GrandSluggers.UnityClient
         {
             TickLineupStick(pad, seat, ref armedX, ref armedY);
             if (pad.PageNext && _lineup.Step == LineupStep.TeamSetup)
-            {
-                TeamSheet.UseController(seat);
                 _lineup.RandomFill(seat);
-            }
             if (pad.WestDown && _lineup.Step == LineupStep.TeamSetup
                 && _lineup.FocusOf(seat) != LineupFocus.Pool)
-            {
-                TeamSheet.UseController(seat);
                 _lineup.Remove(seat);
-            }
             if (pad.EastDown)
             {
-                TeamSheet.UseController(seat);
                 if (_lineup.Step == LineupStep.TeamSetup) { if (seat == LineupSeat.Pad1) OpenSelect(); }
                 else _lineup.West(seat); // cancel pick, withdraw ready, then back; never change panels
                 return;
             }
             if ((pad.PagePrevious || pad.PageNext) && _lineup.Step == LineupStep.DefenseSetup)
-            {
-                TeamSheet.UseController(seat);
                 _lineup.ToggleArea(seat);
-            }
             if (pad.NorthDown && _lineup.CanPlay)
             {
                 ReadyLineup(seat);
                 return;
             }
-            // A pointer click is handled by its hit target above, never also as a global confirm.
-            if (pad.SouthDown && !(seat == LineupSeat.Pad1 && Controls.PointerDown))
+            if (pad.SouthDown)
             {
-                TeamSheet.UseController(seat);
                 if (_lineup.Step == LineupStep.TeamSetup) DropLineup(seat);
                 else PickLineup(seat);
             }
@@ -422,7 +390,6 @@ namespace GrandSluggers.UnityClient
             if (dx == 0 && dy == 0) return;
             if (dx != 0 && Mathf.Abs(pad.MenuAxisX) >= Mathf.Abs(pad.MenuAxisY)) dy = 0;
             else if (dy != 0) dx = 0;
-            TeamSheet.UseController(seat);
             _lineup.Stick(seat, dx, dy);
         }
 
@@ -435,7 +402,6 @@ namespace GrandSluggers.UnityClient
                 _lineup.OpenSettings();
                 _lineupX.Catch(Controls.Pad1.MenuAxisX);
                 _lineupY.Catch(Controls.Pad1.MenuAxisY);
-                TeamSheet.HideBoard();
             }
             else ConfirmDraft();
         }
@@ -443,12 +409,10 @@ namespace GrandSluggers.UnityClient
         void TickMatchSettings()
         {
             var pad = Controls.Pad1;
-            var action = SetupSheet.Pointer(true, out var row);
             var dy = _lineupY.Tick(pad.MenuAxisY, pad.MenuTapY, Time.unscaledDeltaTime);
             var dx = _lineupX.Tick(pad.MenuAxisX, pad.MenuTapX, Time.unscaledDeltaTime);
             if (dy != 0) _settings.Move(dy > 0 ? -1 : 1);
-            if (action == SetupSheet.Action.Change) _settings.Select(row);
-            if (dx != 0 || action == SetupSheet.Action.Change || (pad.SouthDown && !Controls.PointerDown))
+            if (dx != 0 || pad.SouthDown)
             {
                 var direction = dx == 0 ? 1 : dx;
                 var refusal = _settings.Refusal(LineupSeat.Pad1, direction);
@@ -459,13 +423,13 @@ namespace GrandSluggers.UnityClient
                 Innings = _settings.Innings;
                 Difficulty = _settings.Difficulty;
             }
-            if (pad.EastDown || action == SetupSheet.Action.Back)
+            if (pad.EastDown)
             {
                 _lineup.West(LineupSeat.Pad1);
                 GuidedReadyChanged(LineupSeat.Pad1);
                 return;
             }
-            if (pad.NorthDown || action == SetupSheet.Action.Next) ReadyLineup(LineupSeat.Pad1);
+            if (pad.NorthDown) ReadyLineup(LineupSeat.Pad1);
             if (_phase != Phase.Lineup || _lineup.Step != LineupStep.MatchSettings) return;
             if (_lineup.HomeSeat == LineupSeat.Pad2 || _lineup.AwaySeat == LineupSeat.Pad2)
             {
@@ -500,7 +464,6 @@ namespace GrandSluggers.UnityClient
                     RestoreGear(homeBat, homeGlove, awayBat, awayGlove);
                 }
             }
-            TeamSheet.HideBoard();
             BeginSet();
         }
 

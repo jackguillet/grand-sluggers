@@ -56,36 +56,4 @@ public class StickPlayTests
         Assert.Equal(0, pad.LiveX(-0.38f));
         Assert.True(pad.LiveX(-0.95f) < -0.4f);
     }
-
-    [Fact]
-    public void KeyAlreadyDownAtCatchDoesNotWalkUntilReleaseThenPress()
-    {
-        var key = new StickPlay.Key();
-        key.Catch(down: true);
-        Assert.False(key.Tick(pressedThisFrame: false, down: true));
-        Assert.False(key.On);
-        Assert.False(key.Tick(pressedThisFrame: true, down: true));
-        Assert.False(key.Tick(pressedThisFrame: false, down: false));
-        Assert.True(key.Tick(pressedThisFrame: true, down: true));
-        Assert.True(key.Tick(pressedThisFrame: false, down: true));
-        Assert.False(key.Tick(pressedThisFrame: false, down: false));
-    }
-
-    [Fact]
-    public void KeyPressAfterCatchWalksUntilRelease()
-    {
-        var key = new StickPlay.Key();
-        key.Catch(down: false);
-        Assert.True(key.Tick(true, true));
-        Assert.True(key.Tick(false, true));
-        Assert.False(key.Tick(false, false));
-    }
-
-    [Fact]
-    public void MixDeadzoneAppliesAfterPadKeyMouse()
-    {
-        Assert.Equal(0, StickPlay.Mix(0.10f, 0, 0.10f));
-        Assert.Equal(1, StickPlay.Mix(0, 1, 0));
-        Assert.True(StickPlay.Mix(0.20f, 0, 0.20f) > 0);
-    }
 }

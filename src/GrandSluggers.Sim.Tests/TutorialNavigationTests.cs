@@ -25,17 +25,14 @@ public sealed class TutorialNavigationTests
     {
         // Each human relay leg needs its own command (fielding.throw.relayAutoContinue 0): the book never says the receiver
         // sends it on its own.
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-        {
-            Assert.Contains("catch", HowToPlay.TutorialControls(id, scheme, "shipped"));
-            Assert.Contains("receiver", HowToPlay.TutorialSetup(id, "shipped"));
-            Assert.DoesNotContain("automatically", HowToPlay.TutorialSetup(id, "shipped"));
-        }
+        Assert.Contains("catch", HowToPlay.TutorialControls(id, "shipped"));
+        Assert.Contains("receiver", HowToPlay.TutorialSetup(id, "shipped"));
+        Assert.DoesNotContain("automatically", HowToPlay.TutorialSetup(id, "shipped"));
         Assert.Contains("second throw", HowToPlay.TutorialSetup("T-F07", "shipped"));
     }
 
     [Fact]
-    public void EveryRunnableLessonHasTeachingCopyForBothSchemes()
+    public void EveryRunnableLessonHasPadTeachingCopy()
     {
         var catalog = TutorialCatalog.Load(ContentCatalog.Load());
         foreach (var lesson in catalog.Lessons.Where(l => l.Status == "implemented" && l.Profiles.Contains(catalog.Profile)))
@@ -43,37 +40,14 @@ public sealed class TutorialNavigationTests
             Assert.NotEqual(lesson.Id, HowToPlay.TutorialTitle(lesson.Id));
             Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialGoal(lesson.Id)), lesson.Id + " needs a goal");
             Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialSetup(lesson.Id, catalog.Profile)), lesson.Id + " needs a setup");
-            foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-                Assert.False(string.IsNullOrWhiteSpace(HowToPlay.TutorialControls(lesson.Id, scheme, catalog.Profile)), lesson.Id + " needs " + scheme + " controls");
+            var controls = HowToPlay.TutorialControls(lesson.Id, catalog.Profile);
+            Assert.False(string.IsNullOrWhiteSpace(controls), lesson.Id + " needs pad controls");
+            // The game is gamepad only: no lesson copy names a keyboard or mouse.
+            foreach (var copy in new[] { controls, HowToPlay.TutorialGoal(lesson.Id), HowToPlay.TutorialSetup(lesson.Id, catalog.Profile) })
+                Assert.False(HowToPlay.NamesKeyboard(copy), lesson.Id + ": " + copy);
         }
     }
 
-    [Theory]
-    [InlineData(1280, 800)]
-    [InlineData(1920, 1080)]
-    public void ClickingAnyLessonSelectsThatRowAndBlankSpaceDoesNothing(int w, int h)
-    {
-        for (var i = 0; i < 7; i++)
-        {
-            var r = HowToPlay.TutorialRow(w, h, i, 7);
-            Assert.Equal(i, HowToPlay.TutorialHit(r.X + r.W / 2, r.Y + r.H / 2, w, h, true, 7, false));
-        }
-        Assert.Equal(-1, HowToPlay.TutorialHit(0, 0, w, h, true, 7, false));
-    }
-
-    [Theory]
-    [InlineData(true, false, 0, -2)]  // selected lesson
-    [InlineData(true, false, 1, -4)]  // title, never selected lesson
-    [InlineData(false, false, 0, -2)] // begin
-    [InlineData(false, false, 1, -3)] // lessons, never begin
-    [InlineData(false, true, 0, -2)]  // retry
-    [InlineData(false, true, 1, -5)]  // next, never retry
-    [InlineData(false, true, 2, -3)]  // lessons, never retry
-    public void FooterRoutesToItsNamedAction(bool menu, bool feedback, int button, int action)
-    {
-        var r = HowToPlay.TutorialAction(1280, 800, button, !menu && feedback ? 3 : 2);
-        Assert.Equal(action, HowToPlay.TutorialHit(r.X + r.W / 2, r.Y + r.H / 2, 1280, 800, menu, 7, feedback));
-    }
     [Theory]
     [InlineData(1, false)]
     [InlineData(2, false)]
@@ -90,20 +64,17 @@ public sealed class TutorialNavigationTests
     [Theory]
     [InlineData(1280, 800)]
     [InlineData(1920, 1080)]
-    public void CategoryTabsPagesAndLessonRowsHaveSeparateHitTargets(int w, int h)
+    public void CategoryTabsPagesAndLessonRowsDoNotOverlap(int w, int h)
     {
+        static bool Overlap((float X, float Y, float W, float H) a, (float X, float Y, float W, float H) b) =>
+            a.X < b.X + b.W && b.X < a.X + a.W && a.Y < b.Y + b.H && b.Y < a.Y + a.H;
         for (var i = 0; i < 8; i++)
         {
             var tab = HowToPlay.TutorialTab(w, h, i, 8);
-            var x = tab.X + tab.W / 2; var y = tab.Y + tab.H / 2;
-            Assert.Equal(i, HowToPlay.TutorialTabHit(x, y, w, h, 8));
-            Assert.Equal(-1, HowToPlay.TutorialHit(x, y, w, h, true, 6, false));
-        }
-        foreach (var direction in new[] { -1, 1 })
-        {
-            var button = HowToPlay.TutorialPageButton(w, h, direction);
-            Assert.Equal(direction, HowToPlay.TutorialPageHit(button.X + 2, button.Y + 2, w, h));
-            Assert.Equal(-1, HowToPlay.TutorialTabHit(button.X + 2, button.Y + 2, w, h, 8));
+            for (var r = 0; r < 6; r++)
+                Assert.False(Overlap(tab, HowToPlay.TutorialRow(w, h, r, 6)), $"tab {i} overlaps row {r}");
+            foreach (var direction in new[] { -1, 1 })
+                Assert.False(Overlap(tab, HowToPlay.TutorialPageButton(w, h, direction)), $"tab {i} overlaps page {direction}");
         }
         var last = HowToPlay.TutorialRow(w, h, 5, 6);
         Assert.True(last.Y + last.H < HowToPlay.TutorialAction(w, h, 0, 2).Y);
@@ -136,37 +107,33 @@ public sealed class TutorialNavigationTests
     [InlineData("T-B08")]
     [InlineData("T-B10")]
     [InlineData("T-B11")]
-    public void NewPlateLessonsExplainSetupGoalAndBothSchemes(string id)
+    public void NewPlateLessonsExplainSetupGoalAndPadControls(string id)
     {
         Assert.NotEqual(id, HowToPlay.TutorialTitle(id));
         Assert.NotEmpty(HowToPlay.TutorialSetup(id));
         Assert.NotEmpty(HowToPlay.TutorialGoal(id));
-        Assert.NotEmpty(HowToPlay.TutorialControls(id, InputScheme.Pad));
-        Assert.NotEmpty(HowToPlay.TutorialControls(id, InputScheme.Keys));
+        Assert.NotEmpty(HowToPlay.TutorialControls(id));
     }
 
     [Theory]
     [InlineData("T-F02")][InlineData("T-F03")][InlineData("T-F03-2")][InlineData("T-F03-3")]
     [InlineData("T-F03-H")][InlineData("T-F04")][InlineData("T-F06")]
-    public void FieldLessonsExplainTheGoalSetupAndBothControlSchemes(string id)
+    public void FieldLessonsExplainTheGoalSetupAndPadControls(string id)
     {
         Assert.NotEqual(id, HowToPlay.TutorialTitle(id));
         Assert.NotEmpty(HowToPlay.TutorialGoal(id));
         Assert.NotEmpty(HowToPlay.TutorialSetup(id));
-        Assert.NotEmpty(HowToPlay.TutorialControls(id, InputScheme.Keys));
-        Assert.NotEmpty(HowToPlay.TutorialControls(id, InputScheme.Pad));
+        Assert.NotEmpty(HowToPlay.TutorialControls(id));
     }
 
     [Theory]
-    [InlineData("T-F03", "first", "Right", "1")]
-    [InlineData("T-F03-2", "second", "Up", "2")]
-    [InlineData("T-F03-3", "third", "Left", "3")]
-    [InlineData("T-F03-H", "home", "Down", "4")]
-    public void NamedThrowLessonsTeachTheCorrespondingBagInput(string id, string bag, string direction, string key)
+    [InlineData("T-F03", "first", "Right")]
+    [InlineData("T-F03-2", "second", "Up")]
+    [InlineData("T-F03-3", "third", "Left")]
+    [InlineData("T-F03-H", "home", "Down")]
+    public void NamedThrowLessonsTeachTheCorrespondingBagInput(string id, string bag, string direction)
     {
         Assert.Contains(bag, HowToPlay.TutorialGoal(id).ToLowerInvariant());
-        Assert.Contains("Right stick " + direction, HowToPlay.TutorialControls(id, InputScheme.Pad));
-        Assert.Contains(key + " selects", HowToPlay.TutorialControls(id, InputScheme.Keys));
+        Assert.Contains("Right stick " + direction, HowToPlay.TutorialControls(id));
     }
-
 }

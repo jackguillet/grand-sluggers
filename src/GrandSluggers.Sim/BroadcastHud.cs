@@ -443,12 +443,12 @@ public static class BroadcastHud
     /// What a seat is told about its pursuit stick (#718, F693-02-pursuit-calibration-policy, -arming): let go while the seat has
     /// no profile or Call time is taking one, and that it took. Empty when there is nothing to say. Numbered only when two play.
     /// </summary>
-    public static string StickLine(PursuitReadiness.Tell tell, int seat, bool twoPlayers, bool keyboard = false)
+    public static string StickLine(PursuitReadiness.Tell tell, int seat, bool twoPlayers)
     {
         var who = twoPlayers ? $"P{seat + 1}  ·  " : "";
         return tell switch
         {
-            PursuitReadiness.Tell.LetGo => who + (keyboard ? "HANDS OFF THE KEYS" : "LET GO OF THE STICK"),
+            PursuitReadiness.Tell.LetGo => who + "LET GO OF THE STICK",
             PursuitReadiness.Tell.Reset => who + "STICK RESET",
             _ => ""
         };

@@ -1,8 +1,8 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// How to play in-game spread: four role tables, one scheme at a time.
-/// Verb | what you press. SMS p.6 shape. Never mix pad and keys in a cell.
+/// How to play in-game spread: four role tables for the pad.
+/// Verb | what you press. SMS p.6 shape.
 /// </summary>
 public static class RoleTables
 {
@@ -15,12 +15,9 @@ public static class RoleTables
     public sealed record Row(string Verb, string Press);
     public sealed record Block(string Id, string Title, IReadOnlyList<Row> Rows);
 
-    public static IReadOnlyList<Block> Of(InputScheme scheme) =>
-        Pad;
-
-    public static Block OnPage(InputScheme scheme, string pageId)
+    public static Block OnPage(string pageId)
     {
-        var blocks = Of(scheme);
+        var blocks = Pad;
         return pageId.ToLowerInvariant() switch
         {
             "roles" => Half(blocks[0], 0),
@@ -103,5 +100,4 @@ public static class RoleTables
             new("Throw item", "Offered lessons: D-left/right picks; North throws"),
         ]),
     ];
-    public static readonly IReadOnlyList<Block> Keys = Pad;
 }

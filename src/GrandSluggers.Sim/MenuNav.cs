@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Couch menus: flick once, then rest. Hold a hard throw (stick / d-pad) to
-/// repeat after a beat. Drift and mouse aim do not auto-repeat.
+/// repeat after a beat. Drift does not auto-repeat.
 /// </summary>
 public static class MenuNav
 {
@@ -11,7 +11,6 @@ public static class MenuNav
     public const float RepeatNeed = 0.75f;
     public const float RepeatAfter = 0.40f;
     public const float RepeatEvery = 0.14f;
-    public const float WheelRest = 0.15f;
 
     public struct Gate
     {
@@ -89,17 +88,5 @@ public static class MenuNav
             }
         }
         return 0;
-    }
-
-    public static int WheelStep(float scrollY, ref bool spinning)
-    {
-        if (Math.Abs(scrollY) < WheelRest)
-        {
-            spinning = false;
-            return 0;
-        }
-        if (spinning) return 0;
-        spinning = true;
-        return scrollY < 0f ? 1 : -1;
     }
 }

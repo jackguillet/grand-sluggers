@@ -85,9 +85,9 @@ namespace GrandSluggers.UnityClient
             else
                 Sticker(training ? HowToPlay.TutorialMenuTitle : "CHALLENGE", 44, 88, 420, 32, _h1);
             if (training)
-                GUI.Label(new Rect(44, 124, 640, 22), HowToPlay.TutorialTitleHint(BookScheme.Current), _tiny);
+                GUI.Label(new Rect(44, 124, 640, 22), HowToPlay.TutorialTitleHint, _tiny);
             else if (challenge)
-                GUI.Label(new Rect(44, 124, 640, 22), "South / Space  ·  next match", _gold);
+                GUI.Label(new Rect(44, 124, 640, 22), "South  ·  next match", _gold);
             _ = portrait;
             // Navigation, not onboarding: the title always names its verbs, after a match or a lesson too.
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22), CarnivalFront.TitleFooter, _tiny);
@@ -292,7 +292,6 @@ namespace GrandSluggers.UnityClient
         {
             var n = HowToPlay.Pages.Count;
             var p = HowToPlay.Pages[(page % n + n) % n];
-            var scheme = BookScheme.Current;
             var book = HowToPlay.BookPanel(Screen.width, Screen.height);
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _bookBack);
             GUI.DrawTexture(new Rect(book.X, book.Y, book.W, book.H), _bookBack);
@@ -306,21 +305,21 @@ namespace GrandSluggers.UnityClient
             GUI.Label(ToRect(header.Title), p.Title.ToUpperInvariant(), _bookHeader);
             GUI.Label(ToRect(header.Page), pageLabel, _bookHeaderNumber);
 
-            DrawSchemeBadges(p, scheme);
+            DrawPageBadges(p);
             if (p.Id == "contents")
                 DrawContentsToc(p);
             else if (p.Id == "getting-started")
-                DrawGettingStartedPath(scheme);
+                DrawGettingStartedPath();
             else if (p.Id == "getting-started-modes")
-                DrawGettingStartedModes(scheme, p);
+                DrawGettingStartedModes(p);
             else if (p.Id.StartsWith("controls", StringComparison.Ordinal))
-                DrawHardware(scheme, p.Id);
+                DrawHardware(p.Id);
             else if (p.Id.StartsWith("roles", StringComparison.Ordinal))
-                DrawRoleTable(scheme, p.Id);
+                DrawRoleTable(p.Id);
             else if (p.Id == "pitch-swing")
-                DrawHowToComics(scheme, p);
+                DrawHowToComics(p);
             else if (p.Id == "running")
-                DrawBagDiagrams(scheme, p);
+                DrawBagDiagrams(p);
             else if (p.Id == "screen")
                 DrawHudCallouts(p);
             else if (p.Id == "chemistry")
@@ -333,16 +332,10 @@ namespace GrandSluggers.UnityClient
             {
                 DrawBookLines(p, HowToPlay.TextRect(Screen.width, Screen.height));
             }
-            var footer = BookScheme.Footer(scheme);
+            var footer = HowToPlay.BookFooter;
             var footerH = MeasureHeight(_bookFooter, footer, book.W - 56f);
             GUI.Label(new Rect(book.X + 28, book.Y + book.H - footerH - 6f, book.W - 56, footerH),
                 footer, _bookFooter);
-        }
-
-        static void DrawSchemeToggle(InputScheme scheme)
-        {
-            DrawTab(InputScheme.Pad, scheme);
-            DrawTab(InputScheme.Keys, scheme);
         }
 
         static void DrawChapterMascot(string pageId)
@@ -355,12 +348,10 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(new Rect(r.x + 4, r.y + 4, r.width - 8, r.height - 8), tex, ScaleMode.ScaleAndCrop);
         }
 
-        static void DrawSchemeBadges(HowToPlay.Page page, InputScheme scheme)
+        static void DrawPageBadges(HowToPlay.Page page)
         {
             var labels = new System.Collections.Generic.List<string>();
-            var seat = BookScheme.SeatBadge(scheme);
-            if (!string.IsNullOrEmpty(seat)) labels.Add(seat);
-            var pageBadge = BookScheme.PageBadge(page.Id, scheme);
+            var pageBadge = HowToPlay.PageBadge(page.Id);
             if (!string.IsNullOrEmpty(pageBadge)) labels.Add(pageBadge);
             var widths = labels.Select(label => MeasureWidth(_bookBadge, label)).ToArray();
             var boxes = BookletLayout.Badges(
@@ -375,30 +366,20 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        static void DrawTab(InputScheme kind, InputScheme current)
-        {
-            var t = BookScheme.Tab(kind, Screen.width, Screen.height);
-            var r = new Rect(t.X, t.Y, t.W, t.H);
-            var on = kind == current;
-            GUI.DrawTexture(r, on ? _ink : _bookCard);
-            GUI.Label(new Rect(r.x + 8, r.y + 4, r.width - 16, r.height - 8),
-                BookScheme.Label(kind), on ? _bookTabSelected : _bookTab);
-        }
-
-        static void DrawHardware(InputScheme scheme, string pageId)
+        static void DrawHardware(string pageId)
         {
             var b = ControlDiagram.Board(Screen.width, Screen.height);
             var prev = GUI.color;
             GUI.color = new Color(0.22f, 0.78f, 0.38f, 1f);
             GUI.DrawTexture(new Rect(b.X, b.Y, 22, 22), _dotOn);
             GUI.color = prev;
-            GUI.Label(new Rect(b.X + 30, b.Y - 4, 180, 32), BookScheme.OffenseLabel, _h1);
+            GUI.Label(new Rect(b.X + 30, b.Y - 4, 180, 32), ControlDiagram.OffenseLabel, _h1);
             GUI.color = new Color(0.92f, 0.28f, 0.22f, 1f);
             GUI.DrawTexture(new Rect(b.X + 220, b.Y, 22, 22), _dotOn);
             GUI.color = prev;
-            GUI.Label(new Rect(b.X + 250, b.Y - 4, 180, 32), BookScheme.DefenseLabel, _h1);
+            GUI.Label(new Rect(b.X + 250, b.Y - 4, 180, 32), ControlDiagram.DefenseLabel, _h1);
 
-            var calls = ControlDiagram.PageCallouts(scheme, pageId);
+            var calls = ControlDiagram.PageCallouts(pageId);
             var stackBand = new BookletLayout.Box(b.X, b.Y + 40f, b.W, b.H - 40f);
             var actionStyle = _bookLine;
             var heights = calls.Select(call => 44f + HardwareActionsHeight(call, actionStyle, b.W - 24f)).ToArray();
@@ -457,7 +438,7 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        static void DrawBagDiagrams(InputScheme scheme, HowToPlay.Page page)
+        static void DrawBagDiagrams(HowToPlay.Page page)
         {
             _ = page;
             for (var i = 0; i < BagDiagrams.Running.Count; i++)
@@ -468,7 +449,7 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(r, _bookCard);
                 GUI.Label(new Rect(r.x + 10, r.y + 7, r.width - 20, 40), diagram.Title.ToUpperInvariant(), _bookHeader);
 
-                var press = BagDiagrams.Press(diagram, scheme);
+                var press = diagram.Press;
                 var pressH = Mathf.Max(36f, MeasureHeight(_bookChip, press, r.width - 32) + 8f);
                 GUI.DrawTexture(new Rect(r.x + 10, r.y + 46, r.width - 20, pressH), _ink);
                 GUI.Label(new Rect(r.x + 16, r.y + 50, r.width - 32, pressH - 8), press, _bookChip);
@@ -492,7 +473,7 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(box, _bookCard);
                 GUI.Label(new Rect(box.x + 10, box.y + 6, box.width - 20, 42), call.Title.ToUpperInvariant(), _bookHeader);
                 GUI.Label(new Rect(box.x + 14, box.y + 44, box.width - 28, 32),
-                    BagDiagrams.CalloutPress(call, scheme), _gold);
+                    call.Press, _gold);
                 DrawFittingBookText(new Rect(box.x + 10, box.y + 80, box.width - 20, box.height - 88),
                     call.Line, "running/" + call.Title);
             }
@@ -581,7 +562,7 @@ namespace GrandSluggers.UnityClient
             GUI.color = prev;
         }
 
-        static void DrawGettingStartedPath(InputScheme scheme)
+        static void DrawGettingStartedPath()
         {
             for (var i = 0; i < GettingStarted.Path.Count; i++)
             {
@@ -593,23 +574,23 @@ namespace GrandSluggers.UnityClient
                 var columns = BookletLayout.NumberedRow(cell, MeasureWidth(_bookHeader, title));
                 GUI.Label(ToRect(columns.Number), (i + 1).ToString(), _bookHeader);
                 GUI.Label(ToRect(columns.Title), title, _bookHeader);
-                var caption = GettingStarted.Caption(step, scheme);
+                var caption = step.Caption;
                 DrawFittingBookText(ToRect(columns.Body),
                     caption, "getting-started/" + step.Id);
             }
         }
 
-        static void DrawGettingStartedModes(InputScheme scheme, HowToPlay.Page page)
+        static void DrawGettingStartedModes(HowToPlay.Page page)
         {
             var table = GettingStarted.ModeTable(Screen.width, Screen.height);
             var tableBox = new BookletLayout.Box(table.X, table.Y, table.W, table.H);
             var bodyStyle = _bookLine;
-            var heights = ModeHeights(scheme, table, bodyStyle);
+            var heights = ModeHeights(table, bodyStyle);
             var rows = BookletLayout.MeasuredStack(tableBox, heights);
             if (!BookletLayout.Fits(rows, tableBox))
             {
                 bodyStyle = _bookLineCompact;
-                heights = ModeHeights(scheme, table, bodyStyle);
+                heights = ModeHeights(table, bodyStyle);
                 rows = BookletLayout.MeasuredStack(tableBox, heights);
             }
             if (!BookletLayout.Fits(rows, tableBox))
@@ -626,21 +607,20 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(head, _white);
                 GUI.color = prev;
                 GUI.Label(new Rect(head.x + 8, head.y + 4, head.width - 12, head.height - 8), mode.Title, _h1);
-                var line = GettingStarted.Line(mode, scheme);
+                var line = mode.Line;
                 DrawFittingBookText(ToRect(columns.Body),
                     line, "getting-started-modes/" + mode.Id);
             }
             DrawBookLines(page, GettingStarted.LineBand(Screen.width, Screen.height));
         }
 
-        static float[] ModeHeights(InputScheme scheme,
-            (float X, float Y, float W, float H) table, GUIStyle bodyStyle)
+        static float[] ModeHeights((float X, float Y, float W, float H) table, GUIStyle bodyStyle)
         {
             return GettingStarted.Modes.Select(mode =>
             {
                 var columns = BookletLayout.LabeledRow(table, MeasureWidth(_h1, mode.Title));
                 var labelH = MeasureHeight(_h1, mode.Title, columns.Label.W - 12f) + 12f;
-                var bodyH = MeasureHeight(bodyStyle, GettingStarted.Line(mode, scheme), columns.Body.W) + 8f;
+                var bodyH = MeasureHeight(bodyStyle, mode.Line, columns.Body.W) + 8f;
                 return Mathf.Max(labelH, bodyH);
             }).ToArray();
         }
@@ -709,7 +689,7 @@ namespace GrandSluggers.UnityClient
 
         static void DrawBookLines(HowToPlay.Page page, (float X, float Y, float W, float H) band)
         {
-            var lines = page.Shown(BookScheme.Current);
+            var lines = page.Lines;
             var box = new BookletLayout.Box(band.X, band.Y, band.W, band.H);
             var style = _bookLine;
             var blocks = BookletLayout.BestFlow(lines, box,
@@ -746,7 +726,7 @@ namespace GrandSluggers.UnityClient
 
         static void ReportBookOverflow(string context)
         {
-            var warning = context + " / " + BookScheme.Current + " / " + Screen.width + "x" + Screen.height;
+            var warning = context + " / " + Screen.width + "x" + Screen.height;
             if (_bookOverflowWarnings.Add(warning))
                 Debug.LogError("Booklet copy does not fit its band: " + warning);
         }
@@ -773,7 +753,7 @@ namespace GrandSluggers.UnityClient
             DrawBookLines(page, HudCallouts.LineBand(Screen.width, Screen.height));
         }
 
-        static void DrawHowToComics(InputScheme scheme, HowToPlay.Page page)
+        static void DrawHowToComics(HowToPlay.Page page)
         {
             var strips = HowToComic.OnPitchSwingPage;
             for (var i = 0; i < strips.Count; i++)
@@ -783,7 +763,7 @@ namespace GrandSluggers.UnityClient
                 var r = new Rect(row.X, row.Y, row.W, row.H);
                 GUI.DrawTexture(r, _bookCard);
                 GUI.Label(new Rect(r.x + 16, r.y + 8, r.width - 32, 40), strip.Title.ToUpperInvariant(), _bookHeader);
-                var motion = HowToComic.MotionOf(strip, scheme);
+                var motion = strip.Motion;
                 var chipH = Mathf.Max(56f,
                     Mathf.Max(MeasureHeight(_bookChip, motion.Charge, (r.width - 64f) * 0.5f - 16f),
                         MeasureHeight(_bookChip, motion.Commit, (r.width - 64f) * 0.5f - 16f)) + 10f);
@@ -794,7 +774,7 @@ namespace GrandSluggers.UnityClient
                 GUI.Label(new Rect(r.x + 16 + chipW, y, arrowW, chipH), "→", _bookHeader);
                 DrawMotionChip(new Rect(r.x + r.width - 16 - chipW, y, chipW, chipH), motion.Commit);
                 GUI.Label(new Rect(r.x + 16, y + chipH + 6, r.width - 32, r.height - chipH - 58),
-                    HowToComic.Caption(strip, scheme), _h1);
+                    strip.Caption, _h1);
             }
             DrawBookLines(page, HowToComic.LineBand(Screen.width, Screen.height));
         }
@@ -805,9 +785,9 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(r.x + 8, r.y + 5, r.width - 16, r.height - 10), label, _bookChip);
         }
 
-        static void DrawRoleTable(InputScheme scheme, string pageId)
+        static void DrawRoleTable(string pageId)
         {
-            var block = RoleTables.OnPage(scheme, pageId);
+            var block = RoleTables.OnPage(pageId);
             var board = ControlDiagram.Board(Screen.width, Screen.height);
             var head = new Rect(board.X, board.Y, board.W, 44);
             var prev = GUI.color;
@@ -879,7 +859,7 @@ namespace GrandSluggers.UnityClient
             var bagName = bag == 4 ? "HOME" : "3B";
             GUI.Label(new Rect(x + 20, y + 14, w - 40, 32), "CLOSE PLAY  ·  " + bagName, _h1);
             GUI.Label(new Rect(x + 20, y + 50, w - 40, 28),
-                icon ? "PRESS SOUTH  ·  Space / left click  ·  first wins" : "Get ready…", _gold);
+                icon ? "PRESS SOUTH  ·  first wins" : "Get ready…", _gold);
         }
 
         public static void BagTell(int bag)

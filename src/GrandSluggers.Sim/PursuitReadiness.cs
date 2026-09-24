@@ -7,8 +7,8 @@ namespace GrandSluggers.Sim;
 ///
 /// <list type="bullet">
 /// <item>A seat a controller sits in starts the match with no profile and samples a window outside live baseball, with the
-/// instruction on screen, until one is adopted. A keyboard seat keeps the identity profile a fresh stick starts on and never
-/// waits.</item>
+/// instruction on screen, until one is adopted. A seat with no bound gamepad keeps the identity profile a fresh stick starts on
+/// and never waits.</item>
 /// <item>A different device taking the seat is a replacement (no profile carried over); the same one coming back is a recovery
 /// (profile kept, one neutral read owed again).</item>
 /// <item>Call time's entry runs an explicit recalibration for every seated controller; backing out keeps the prior profile.</item>
@@ -27,12 +27,12 @@ public sealed class PursuitReadiness
     public const double StallSec = 0.10;
 
     /// <summary>One seat's device this frame, as the client binds it. X / Y are the pursuit coordinate the sim reads.</summary>
-    public readonly record struct SeatDevice(bool Human, int? DeviceId, bool Keyboard, bool Present, double X, double Y)
+    public readonly record struct SeatDevice(bool Human, int? DeviceId, bool Present, double X, double Y)
     {
-        public static SeatDevice Empty => new(false, null, false, false, 0, 0);
+        public static SeatDevice Empty => new(false, null, false, 0, 0);
 
         /// <summary>A controller's stick: the device a match-start window is owed for.</summary>
-        public bool Analog => Human && DeviceId.HasValue && !Keyboard;
+        public bool Analog => Human && DeviceId.HasValue;
     }
 
     /// <summary>What a seat is told.</summary>
@@ -50,7 +50,6 @@ public sealed class PursuitReadiness
     {
         public bool Seen;
         public int? DeviceId;
-        public bool Keyboard;
         public bool Present;
         public bool Requested;
         public bool Reset;
@@ -194,15 +193,14 @@ public sealed class PursuitReadiness
         if (!seat.Seen)
         {
             seat.Seen = true;
-            // A controller seated for this match has no profile yet; a fresh stick is the identity a keyboard reports.
+            // A controller seated for this match has no profile yet.
             if (d.Analog) stick.DeviceReplaced();
         }
-        else if (d.DeviceId != seat.DeviceId || d.Keyboard != seat.Keyboard)
+        else if (d.DeviceId != seat.DeviceId)
             stick.DeviceReplaced();   // a different device took the seat: nothing is carried over
         else if (d.Present && !seat.Present)
             stick.DeviceRecovered();  // the same device came back: the profile stands, one neutral read is owed
         seat.DeviceId = d.DeviceId;
-        seat.Keyboard = d.Keyboard;
         seat.Present = d.Present;
     }
 

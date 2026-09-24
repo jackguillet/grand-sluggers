@@ -21,7 +21,7 @@ public sealed record LivePadInput(
     bool AllReturn = false,
     /// <summary>Both shoulders: halt every runner; with the stick toward a bag, only that runner.</summary>
     bool Freeze = false,
-    /// <summary>RB / period on the defense pad (#723, F693-03-throw-cancel): cancels a queued onward throw. Read as a fresh press, never a held shoulder.</summary>
+    /// <summary>RB on the defense pad (#723, F693-03-throw-cancel): cancels a queued onward throw. Read as a fresh press, never a held shoulder.</summary>
     bool Cancel = false,
     /// <summary>Which bound device this pad is (#718): the pursuit stick's calibration and arming are per device. 0 for a single seat.</summary>
     int Device = 0,
@@ -2476,7 +2476,7 @@ public sealed partial class LivePlaySystem
     /// <summary>
     /// While a human's throw flies to the cutoff (F693-03-relay-ownership, -input-buffer, -throw-cancel): a fresh South press is
     /// remembered for <c>fielding.throw.relayBufferSec</c> of active play and fires at the catch; the bag selectors retarget the
-    /// armed bag without refreshing the press's age; a fresh RB / period clears it. Nothing here on the shipped table, whose
+    /// armed bag without refreshing the press's age; a fresh RB clears it. Nothing here on the shipped table, whose
     /// buffer is 0 and whose cutoff throws the armed leg for the player.
     /// </summary>
     void TickThrowQueue(LivePadInput field, double dt)

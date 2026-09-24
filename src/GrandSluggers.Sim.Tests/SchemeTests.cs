@@ -11,7 +11,7 @@ public class SchemeTests
         foreach (var v in Scheme.Product)
         {
             Assert.False(string.IsNullOrWhiteSpace(v.Pad), v.Id);
-            Assert.Empty(v.Keys); Assert.Empty(v.Mouse);
+            Assert.False(HowToPlay.NamesKeyboard(v.Pad), v.Id);
         }
         Assert.Equal("RT hold / release", Scheme.Pad("charge"));
         Assert.Equal("LT hold at RT release", Scheme.Pad("star"));
@@ -32,7 +32,7 @@ public class SchemeTests
         Assert.True(Scheme.IsDebug("F3"));
         Assert.False(Scheme.IsDebug("Space / Enter"));
         Assert.False(Scheme.IsDebug("Z"));
-        Assert.DoesNotContain(Scheme.Product, v => v.Keys.Contains("F1") || v.Keys.Contains("F2") || v.Keys.Contains("F3"));
+        Assert.DoesNotContain(Scheme.Product, v => v.Pad.Contains("F1") || v.Pad.Contains("F2") || v.Pad.Contains("F3"));
     }
 
     [Fact]
@@ -55,15 +55,12 @@ public class SchemeTests
         {
             Assert.False(string.IsNullOrWhiteSpace(page.Picture), page.Id);
             Assert.InRange(page.Lines.Count, 1, HowToPlay.KidLineMax);
-            if (page.KeyLines != null)
-                Assert.InRange(page.KeyLines.Count, 1, HowToPlay.KidLineMax);
         }
         Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("instruction booklet") || l.Contains("Call time"));
         var contents = HowToPlay.Must("contents");
         var introBand = ContentsToc.LineBand(1280, 800);
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-            Assert.True(contents.Shown(scheme).Count * HowToPlay.KidLineH <= introBand.H,
-                $"{scheme} contents copy must fit the readable intro band");
+        Assert.True(contents.Lines.Count * HowToPlay.KidLineH <= introBand.H,
+            "contents copy must fit the readable intro band");
         Assert.False(HowToPlay.ShowsSplash("fielding"));
         Assert.False(HowToPlay.ShowsSplash("stars"));
         Assert.False(HowToPlay.ShowsSplash("the-box"));
@@ -82,28 +79,21 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("BALL") && l.Contains("STRIKE") && l.Contains("WALK") && l.Contains("stamp"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("on the field") && l.Contains("next pitch"));
         Assert.True(HowToPlay.Mentions("South"));
-        Assert.True(HowToPlay.Mentions("Space"));
+        Assert.False(HowToPlay.Mentions("Space"));
         Assert.True(HowToPlay.Mentions("MAX"));
         Assert.True(HowToPlay.Mentions("oval"));
         Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("sitting") && l.Contains("stick"));
-        // D12: the box recenters after every pitch, and the book says so in both schemes.
+        // D12: the box recenters after every pitch, and the book says so.
         Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("resets each pitch"));
-        Assert.Contains(HowToPlay.Must("the-box").KeyLines!, l => l.Contains("resets each pitch"));
-        Assert.Contains(HowToPlay.Must("the-box").KeyLines!, l => l.Contains("SET") && l.Contains("do not walk"));
         // #876: the cycle walks all three of a pitcher's pitches (fastball, second, third), so the
         // pitching card names the slots rather than the old two-pitch "FB, CH changeup".
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-        {
-            Assert.Contains(HowToPlay.Must("pitch-swing").Shown(scheme), l => l.Contains("Cycle pitch") && l.Contains("charge"));
-            Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(scheme), l => l.Contains("CH changeup"));
-        }
+        Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("Cycle pitch") && l.Contains("charge"));
+        Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("CH changeup"));
         Assert.True(HowToPlay.Mentions("call time"));
         Assert.True(HowToPlay.Mentions("outfielder"));
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-            Assert.Contains(HowToPlay.Must("pitch-swing").Shown(scheme),
-                line => line.Contains("charge", StringComparison.OrdinalIgnoreCase) && line.Contains("MAX"));
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-            Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("Shadow tracks ball"));
+        Assert.Contains(HowToPlay.Must("pitch-swing").Lines,
+            line => line.Contains("charge", StringComparison.OrdinalIgnoreCase) && line.Contains("MAX"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Shadow tracks ball"));
         Assert.True(HowToPlay.Mentions("does not follow"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("time and hazards"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("portraits") && l.Contains("South"));
@@ -119,10 +109,9 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Two diamonds") || l.Contains("two diamonds"));
         Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("RT"));
         Assert.DoesNotContain(HowToPlay.Must("controls").Lines, l => l.Contains("Space"));
-        Assert.Contains(HowToPlay.Must("controls").KeyLines!, l => l.Contains("Space") || l.Contains("left click"));
-        Assert.DoesNotContain(HowToPlay.Must("controls").KeyLines!, l => l.Contains("South"));
-        Assert.True(HowToPlay.Mentions("mouse") || HowToPlay.Mentions("Mouse"));
-        Assert.True(HowToPlay.Mentions("Esc"));
+        Assert.False(HowToPlay.Mentions("mouse"));
+        Assert.False(HowToPlay.Mentions("keyboard"));
+        Assert.False(HowToPlay.Mentions("Esc"));
         Assert.Contains(HowToPlay.Must("chemistry").Lines, l => l.Contains("Hearts"));
         Assert.Contains(HowToPlay.Must("stars").Lines, l => l.Contains("two seconds"));
         Assert.Contains(HowToPlay.Must("abilities").Lines, l => l.Contains("field verb"));
@@ -143,13 +132,12 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("turn two"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("throw both"));
         // PH-02-R5 (#825) supersedes the #563 ban: the pre-charge family cycle IS the mound's verb now,
-        // so the book must teach it in both schemes. "cycle fastball" stays retired (it was a
+        // so the book must teach it. "cycle fastball" stays retired (it was a
         // post-release trajectory cycle, a different thing).
         Assert.True(HowToPlay.Mentions("Cycle pitch"));
         Assert.False(HowToPlay.Mentions("cycle fastball"));
         Assert.DoesNotContain(HowToPlay.Pages.SelectMany(p => p.Lines), l => l.Contains("F1") && l.Contains("timing", StringComparison.OrdinalIgnoreCase) && !l.Contains("debug"));
         Assert.Contains(HowToPlay.Must("pause-practice").Lines, l => l.Contains("Title → Tutorials"));
-        Assert.Contains(HowToPlay.Must("pause-practice").KeyLines!, l => l.Contains("Title F") && l.Contains("Tutorials"));
         var running = HowToPlay.Must("running").Lines;
         Assert.Contains(running, l => l.Contains("on a bag") && l.Contains("second"));
         Assert.Contains(running, l => l.Contains("nobody left") || l.Contains("out with nobody"));
@@ -168,8 +156,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("landing") && l.Contains("fly"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("hangs"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("North") && l.Contains("jumps"));
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
-            Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("dives sideways") && l.Contains("never automatic"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("dives sideways") && l.Contains("never automatic"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("wall"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("gun to first") || l.Contains("throw is yours") || l.Contains("guess a force"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("catch") && l.Contains("throw"));
@@ -187,28 +174,16 @@ public class SchemeTests
         Assert.Contains(two, l => l.Contains("Each player uses a controller"));
         Assert.Contains(two, l => l.Contains("drops") && l.Contains("play stops"));
         Assert.Contains(two, l => l.Contains("unseated controller") && l.Contains("South"));
-        Assert.Contains(HowToPlay.Must("two-pads").KeyLines!,
-            l => l.Contains("Space") && l.Contains("keyboard + mouse"));
         Assert.Contains(two, l => l.Contains("plate"));
         Assert.Contains(two, l => l.Contains("CPU never"));
         Assert.Contains(two, l => l.Contains("fielding controller") || l.Contains("Fielding controller"));
         Assert.True(HowToPlay.Mentions("controller 2") || HowToPlay.Mentions("Controller 2"));
         foreach (var page in HowToPlay.Pages)
-        {
-            foreach (var line in page.Shown(InputScheme.Pad))
-                Assert.False(HowToPlay.MixesHardware(line), page.Id + " pad: " + line);
-            foreach (var line in page.Shown(InputScheme.Keys))
-                Assert.False(HowToPlay.MixesHardware(line), page.Id + " keys: " + line);
-        }
-        Assert.True(HowToPlay.Must("pitch-swing").KeyLines is { Count: > 0 });
-        Assert.True(HowToPlay.Must("fielding").KeyLines is { Count: > 0 });
-        Assert.True(HowToPlay.Must("running").KeyLines is { Count: > 0 });
-        Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad), l => l.Contains("RT"));
-        Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad), l => l.Contains("Space"));
-        Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("Space"));
-        Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("South"));
+        foreach (var line in page.Lines)
+            Assert.False(HowToPlay.NamesKeyboard(line), page.Id + ": " + line);
+        Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("RT"));
 
-        var padPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad);
+        var padPitch = HowToPlay.Must("pitch-swing").Lines;
         Assert.Contains(padPitch, l => l.Contains("Cycle pitch: West before charge")
             && l.Contains("hold West / North") && l.Contains("East cancels")
             && l.Contains("LT at RT release"));
@@ -217,19 +192,17 @@ public class SchemeTests
         Assert.Contains("locks", cycle.Press);
         Assert.Contains("Fastball", cycle.Press);
         // PH-06-R1: the SET ring names the rubber, never the crossing.
-        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
         {
-            var box = HowToPlay.Must("the-box").Shown(scheme);
+            var box = HowToPlay.Must("the-box").Lines;
             Assert.Contains(box, l => l.Contains("pale ring") && l.Contains("rubber")
                 && l.Contains("not where the pitch will cross"));
             Assert.DoesNotContain(box, l => l.Contains("ring") && l.Contains("where it will cross"));
         }
 
-        var allCouchCopy = HowToPlay.Pages.SelectMany(page => page.Lines.Concat(page.KeyLines ?? []))
-            .Concat(GettingStarted.Modes.SelectMany(mode => new[] { mode.PadLine, mode.KeysLine }))
+        var allCouchCopy = HowToPlay.Pages.SelectMany(page => page.Lines)
+            .Concat(GettingStarted.Modes.Select(mode => mode.Line))
             .ToArray();
         Assert.DoesNotContain(allCouchCopy, line => line.Contains("Gamepad 0") || line.Contains("Gamepad 1"));
         Assert.DoesNotContain(allCouchCopy, line => line.Contains("Unplug = CPU"));
-        Assert.Contains(HowToPlay.Must("two-pads").KeyLines!, line => line.Contains("Player 1: Q"));
     }
 }

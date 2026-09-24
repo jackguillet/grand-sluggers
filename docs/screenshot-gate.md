@@ -4,7 +4,7 @@ The rails are closed. These stills are the product. If you would not show a pict
 
 **You do not have to pitch the top to get an out.** Play menu **Grand Sluggers → Capture Still Gate** (or an agent running `tools/still-gate.sh`) jumps to batting, scoop, and star and writes PNGs. The pad path below is optional, for taste.
 
-Gamepad is the couch product. Keyboard and mouse are the same scheme (F1/F2/F3 stay debug).
+The game is gamepad only: pad 1 is player 1, pad 2 is player 2. There is no keyboard or mouse scheme. F1/F2/F3 are editor-only developer keys.
 
 ---
 
@@ -135,7 +135,7 @@ Camera sits **behind home** looking at the mound for the whole pitch. Batter is 
 
 ### Star swing — **still 3**
 
-You need a star (chemistry from the lineup). **North / Y / Q** arms the star (gold tell). Hold South, then release to swing.
+You need a star (chemistry from the lineup). **North / Y** arms the star (gold tell). Hold South, then release to swing.
 
 Capture at the peak (~1 second in) while the scorebug is gone. Then one still a second later that is baseball again (scorebug can return).
 
@@ -151,34 +151,39 @@ Exhibition hoppers are RNG. Faster harness is Training drill 4 (Path B). If you 
 
 Title **West** (or Start until TRAINING, then South). Harbor drills, Rio vs Ashlord.
 
-| Drill | What | Controller | Keyboard |
-|---|---|---|---|
-| 1 Paint the zone | Four pitch types in the zone + a star | Stick aim, RB cycle type, hold/release South, North star | WASD, Tab, hold/release Space, Q |
-| 2 Time it and charge | Contact with charge | Hold/release South on the pitch | Hold/release Space |
-| 3 Catch it, throw a bag | Catch + throw | South catch, D-pad / stick flick bag | Space, 1/2/3/4 |
-| 4 **Grab a grounder** | **This is still 2** | Stick to the hop, South scoop, 1 to first | WASD, Space, 1 |
+| Drill | What | Controller |
+|---|---|---|
+| 1 Paint the zone | Four pitch types in the zone + a star | Stick aim, RB cycle type, hold/release South, North star |
+| 2 Time it and charge | Contact with charge | Hold/release South on the pitch |
+| 3 Catch it, throw a bag | Catch + throw | South catch, D-pad / stick flick bag |
+| 4 **Grab a grounder** | **This is still 2** | Stick to the hop, South scoop, 1 to first |
 
 On drill 4: scoop still = glove in the dirt, ball in the glove, runner leaving. Then throw still if you get it.
 
 ---
 
-## Pad ↔ keyboard
+## Pad buttons
 
-| Verb | Controller | Keyboard |
-|---|---|---|
-| South | Xbox A / Nintendo B | Space / Return |
-| East | Xbox B / Nintendo A | G |
-| West | Xbox X / Nintendo Y | F tap · V hold |
-| North (star) | Xbox Y / Nintendo X | Q |
-| Pitch / swing charge | South hold/release | Space hold/release |
-| RB cycle pitch | RB / R | Tab |
-| Start (mode) | Menu / + | H |
-| Night | R3 | N |
-| Timing bar | — | F1 |
-| Shot name overlay | — | F2 |
-| **Mute play HUD** | — | **F3** |
-| Slow-mo / freeze cam | — | [ / ] (F2 must be on) |
-| Throw bags | D-pad | 1 2 3 4 |
+| Verb | Controller |
+|---|---|
+| South | Xbox A / Nintendo B |
+| East | Xbox B / Nintendo A |
+| West | Xbox X / Nintendo Y |
+| North (star) | Xbox Y / Nintendo X |
+| Pitch / swing charge | South hold/release |
+| RB cycle pitch | RB / R |
+| Start (mode) | Menu / + |
+| Night | R3 |
+| Throw bags | D-pad |
+
+Editor-only developer keys (Unity Editor, not player controls):
+
+| Aid | Key |
+|---|---|
+| Timing bar | F1 |
+| Shot name overlay | F2 |
+| **Mute play HUD** | **F3** |
+| Slow-mo / freeze cam | [ / ] (F2 must be on) |
 
 ---
 

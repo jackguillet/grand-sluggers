@@ -443,7 +443,6 @@ namespace GrandSluggers.UnityClient
         {
             if (_phase != Phase.Set || !HumanPitches || _match.PitchSetup.Committed || !_match.CanArrangeDefense) return false;
             _swapPick = new DefenseSetupPick(_match);
-            TeamSheet.BeginPitcherPick();
             _swapX.Catch(FieldPad.MenuAxisX); _swapY.Catch(FieldPad.MenuAxisY);
             _match.SetPaused(false);
             Controls.CatchPlay();
@@ -453,23 +452,20 @@ namespace GrandSluggers.UnityClient
         void TickSwapPick(float dt, Controls.Pad mound)
         {
             if (_swapPick == null) return;
-            var pointer = Controls.SeatUsesKeyboard(mound.Index)
-                ? TeamSheet.PitcherPointer(_swapPick) : TeamSheet.PitcherAction.None;
-            if (mound.EastDown || pointer == TeamSheet.PitcherAction.Cancel)
+            if (mound.EastDown)
             {
                 if (_swapPick.PickedPosition != null) _swapPick.CancelPick();
                 else _swapPick = null;
                 return;
             }
-            if (pointer == TeamSheet.PitcherAction.Done) { _swapPick = null; return; }
             var dx = _swapX.Tick(mound.MenuAxisX, mound.MenuTapX, dt);
             var dy = _swapY.Tick(mound.MenuAxisY, mound.MenuTapY, dt);
             if (dx != 0 || dy != 0) _swapPick.Move(dx, dy);
             // The Arrange defense lesson owns every trade, the mound included, so a pitcher change is its typed failure.
             System.Func<Character, bool> pitcherSwap = TutorialOn && _coach.Tutorial.IsDefenseSwapLesson ? null : WindowPitcherSwap;
-            if (mound.WestDown || pointer == TeamSheet.PitcherAction.Confirm)
+            if (mound.WestDown)
                 _swapPick.QuickPitcher(_match, pitcherSwap, WindowPositionSwap);
-            else if (pointer == TeamSheet.PitcherAction.Pick || (mound.SouthDown && !Controls.PointerDown))
+            else if (mound.SouthDown)
                 _swapPick.PickOrSwap(_match, pitcherSwap, WindowPositionSwap);
         }
 

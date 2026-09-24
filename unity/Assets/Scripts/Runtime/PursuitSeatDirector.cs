@@ -50,7 +50,7 @@ namespace GrandSluggers.UnityClient
                 var human = TrainingOn ? i == 0 : seats.Home == seat || seats.Away == seat;
                 var pad = i == 1 ? Controls.Pad2 : Controls.Pad1;
                 _pursuitDevices.Add(new PursuitReadiness.SeatDevice(
-                    human, Controls.SeatDeviceId(i), Controls.SeatUsesKeyboard(i), pad.Present, pad.PursuitX, pad.PursuitY));
+                    human, Controls.SeatDeviceId(i), pad.Present, pad.PursuitX, pad.PursuitY));
             }
             return _pursuitDevices;
         }
@@ -73,7 +73,7 @@ namespace GrandSluggers.UnityClient
                 _stickResetShown += Time.unscaledDeltaTime;
                 if (_stickResetShown < StickResetHoldSec) return;
             }
-            else if (!PauseMenu.Dismiss(_pausePad.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
+            else if (!PauseMenu.Dismiss(_pausePad.EastDown || Controls.CallTime || Controls.HowTo, _t))
                 return;
             _pursuit.Close();
             _stickReset = false;
@@ -85,13 +85,12 @@ namespace GrandSluggers.UnityClient
         void DrawStickTells()
         {
             if (!RadialStick || !_matchSeats.Bound || _match.Paused || _phase is not (Phase.Set or Phase.Result)) return;
-            var devices = PursuitDevices();
             var two = LiveSeats.Count > 1;
             for (var i = 0; i < PursuitReadiness.SeatCount; i++)
             {
                 var tell = _pursuit.TellFor(i, _match.LivePlay, StickRules);
                 if (tell != PursuitReadiness.Tell.LetGo) continue;
-                HudView.StickTell(BroadcastHud.StickLine(tell, i, two, devices[i].Keyboard),
+                HudView.StickTell(BroadcastHud.StickLine(tell, i, two),
                     (float)_pursuit.Progress(i, StickRules, Time.unscaledTimeAsDouble));
                 return;
             }
@@ -107,13 +106,12 @@ namespace GrandSluggers.UnityClient
         /// <summary>Call time's Reset stick card: each seated controller's line and its window's progress.</summary>
         void DrawStickReset()
         {
-            var devices = PursuitDevices();
             var two = LiveSeats.Count > 1;
             var lines = new List<(string Text, float Progress)>(PursuitReadiness.SeatCount);
             for (var i = 0; i < PursuitReadiness.SeatCount; i++)
             {
                 var tell = _pursuit.TellFor(i, _match.LivePlay, StickRules);
-                var text = BroadcastHud.StickLine(tell, i, two, devices[i].Keyboard);
+                var text = BroadcastHud.StickLine(tell, i, two);
                 if (string.IsNullOrEmpty(text)) continue;
                 lines.Add((text, tell == PursuitReadiness.Tell.Reset ? 1f : (float)_pursuit.Progress(i, StickRules, Time.unscaledTimeAsDouble)));
             }

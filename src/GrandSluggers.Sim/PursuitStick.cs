@@ -16,7 +16,7 @@ public readonly record struct StickRead(bool Manual, double WantX, double WantY)
 /// A window is <c>fielding.stick.calibrationSec</c> long; it is adopted only when complete, its mean radial offset is at most
 /// <c>centerOffsetMax</c> and every sample is at most <c>sampleSpreadMax</c> from that mean, inclusive. Anything else keeps
 /// the prior profile. A fresh device starts on the identity profile — centre (0, 0), what a digital stick or a perfectly
-/// centred one reports — so a keyboard seat never waits on a window; a client that binds an analog device calls
+/// centred one reports — so a seat with no bound gamepad never waits on a window; a client that binds an analog device calls
 /// <see cref="Invalidate"/> and samples a window before the seat can arm. Nothing is copied to a replacement device.
 /// </summary>
 public sealed class StickCalibration

@@ -10,7 +10,6 @@ namespace GrandSluggers.UnityClient
             string[] categories, int category, int page, int pages)
         {
             Ensure();
-            var scheme = BookScheme.Current;
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _bookBack);
             Rect Region(int n) { var r = menu ? HowToPlay.TutorialBrowseRegion(Screen.width, Screen.height, n) : HowToPlay.TutorialRegion(Screen.width, Screen.height, n); return new Rect(r.X, r.Y, r.W, r.H); }
             var header = Region(0); var left = Region(1); var right = Region(2); var footer = Region(3);
@@ -18,7 +17,7 @@ namespace GrandSluggers.UnityClient
             {
                 GUI.Label(new Rect(header.x, header.y, header.width * .30f, header.height), HowToPlay.TutorialMenuTitle, _bookTitle);
                 GUI.Label(new Rect(header.x + header.width * .30f, header.y, header.width * .52f, header.height),
-                    HowToPlay.TutorialBrowseHint(scheme), _bookTab);
+                    HowToPlay.TutorialBrowseHint, _bookTab);
                 for (var i = 0; i < categories.Length; i++)
                 {
                     var b = HowToPlay.TutorialTab(Screen.width, Screen.height, i, categories.Length);
@@ -51,9 +50,9 @@ namespace GrandSluggers.UnityClient
                 var id = pick < lessons.Length ? lessons[pick].Id : null;
                 TutorialText(right, id == null ? HowToPlay.TutorialFree : HowToPlay.TutorialTitle(id),
                     id == null ? HowToPlay.TutorialFreeGoal : HowToPlay.TutorialGoal(id),
-                    id == null ? "" : HowToPlay.TutorialControls(id, scheme, profile));
-                TutorialButton(0, 2, HowToPlay.TutorialButton(-2, scheme));
-                TutorialButton(1, 2, HowToPlay.TutorialButton(-4, scheme));
+                    id == null ? "" : HowToPlay.TutorialControls(id, profile));
+                TutorialButton(0, 2, HowToPlay.TutorialButton(-2));
+                TutorialButton(1, 2, HowToPlay.TutorialButton(-4));
             }
             else
             {
@@ -61,13 +60,13 @@ namespace GrandSluggers.UnityClient
                 GUI.Label(header, feedback ? HowToPlay.TutorialResultTitle(run.Feedback.Success, run.Successes)
                     : HowToPlay.TutorialAttemptTitle(run.Lesson.Id, run.Successes), _bookTitle);
                 TutorialText(left, HowToPlay.TutorialTitle(run.Lesson.Id), HowToPlay.TutorialGoal(run.Lesson.Id),
-                    HowToPlay.TutorialControls(run.Lesson.Id, scheme, profile));
+                    HowToPlay.TutorialControls(run.Lesson.Id, profile));
                 TutorialText(right, feedback ? "" : "THE SETUP", feedback
                     ? HowToPlay.TutorialFeedbackText(run.Feedback.Code) : HowToPlay.TutorialSetup(run.Lesson.Id, profile), feedback ? "" : HowToPlay.TutorialRule);
                 var n = feedback ? 3 : 2;
-                TutorialButton(0, n, HowToPlay.TutorialButton(feedback ? run.Feedback.Success && !run.Passed ? -7 : -6 : -2, scheme));
-                if (feedback) TutorialButton(1, n, HowToPlay.TutorialButton(-5, scheme));
-                TutorialButton(n - 1, n, HowToPlay.TutorialButton(-3, scheme));
+                TutorialButton(0, n, HowToPlay.TutorialButton(feedback ? run.Feedback.Success && !run.Passed ? -7 : -6 : -2));
+                if (feedback) TutorialButton(1, n, HowToPlay.TutorialButton(-5));
+                TutorialButton(n - 1, n, HowToPlay.TutorialButton(-3));
             }
         }
 

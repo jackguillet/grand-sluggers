@@ -23,7 +23,7 @@ public class ContentsTocTests
             Assert.Equal(page.Title, chapter.Title);
             Assert.Equal(index + 1, chapter.Number);
             Assert.InRange(chapter.Number, 2, HowToPlay.Pages.Count);
-            Assert.False(HowToPlay.MixesHardware(chapter.Title), chapter.Id);
+            Assert.False(HowToPlay.NamesKeyboard(chapter.Title), chapter.Id);
         }
         Assert.Contains(HowToPlay.Must("contents").Lines,
             l => l.Contains("instruction booklet") || l.Contains("Call time"));

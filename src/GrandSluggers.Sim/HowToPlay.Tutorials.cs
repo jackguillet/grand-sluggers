@@ -10,16 +10,15 @@ public static partial class HowToPlay
     public const string TutorialRule = "Attempts restart automatically until three successes. Failures keep your earlier successes.";
     public static bool TutorialRepeatsImmediately(TutorialPhase phase, int successes) =>
         phase == TutorialPhase.Feedback && successes < TutorialProgress.RequiredSuccesses;
-    public static string TutorialAttemptHint(string id, InputScheme scheme, string profile, TutorialFeedback? previous) =>
+    public static string TutorialAttemptHint(string id, string profile, TutorialFeedback? previous) =>
         (previous is { Success: false } ? TutorialFeedbackText(previous.Code) + "\n" : "")
-        + TutorialControls(id, scheme, profile);
+        + TutorialControls(id, profile);
     public static string TutorialCount(int successes) => $"{successes}/{TutorialProgress.RequiredSuccesses}";
     public static string TutorialAttemptTitle(string id, int successes) => TutorialTitle(id) + " · " + TutorialCount(successes);
     public static string TutorialResultTitle(bool success, int successes) =>
         (success ? successes >= TutorialProgress.RequiredSuccesses ? TutorialComplete : "GOOD!" : TutorialRetry)
         + " · " + TutorialCount(successes);
-    public static string TutorialTitleHint(InputScheme scheme) => scheme == InputScheme.Pad
-        ? "Harbor · South opens tutorials" : "Harbor · Space opens tutorials";
+    public const string TutorialTitleHint = "Harbor · South opens tutorials";
     public static string TutorialTitle(string id) => id switch
     {
         "T-P02" => "Throw a ball", "T-B03" => "Pull an early hit", "T-B03-L" => "Push a late hit",
@@ -88,40 +87,38 @@ public static partial class HowToPlay
         "T-D02" => "A runner starts on first. Field the grounder, throw to second, then throw from that glove to first.",
         _ => RemainingTutorial(id, profile)?.Setup ?? TutorialGuidedSetup(id)
     };
-    public static string TutorialControls(string id, InputScheme scheme, string profile = "shipped")
+    public static string TutorialControls(string id, string profile = "shipped")
     {
-        var pad = scheme == InputScheme.Pad;
         return id switch
         {
-            "T-P02" => pad ? "Stick left/right moves the pitcher. Tap RT to pitch. Down recenters." : "A/D moves the pitcher. Tap Space to pitch. S recenters.",
-            "T-B03" => pad ? "Keep the stick centered. Tap South a little early; too early misses or goes foul." : "Keep the mouse still. Tap Space a little early; too early misses or goes foul.",
-            "T-B03-L" => pad ? "Keep the stick centered. Tap South a little late; too late misses or goes foul." : "Keep the mouse still. Tap Space a little late; too late misses or goes foul.",
-            "T-B05" => pad ? "Stick left/right moves the batter and oval. Center the oval on the pitch, then tap RT." : "A/D or mouse moves the batter and oval. Center it on the pitch, then tap Space.",
-            "T-P01" => pad ? "Stick aims. Tap RT to pitch." : "Mouse aims. Tap Space or left click to pitch.",
-            "T-P03" => pad ? "Stick aims. Press West once to select the changeup, then tap South." : "Mouse aims. Press Tab once to select the changeup, then tap Space or left click.",
-            "T-P10" => pad ? "Stick aims. Press West twice to select your third pitch, then tap RT." : "Mouse aims. Press Tab twice to select your third pitch, then tap Space or left click.",
-            "T-P04" => pad ? "Hold RT until MAX, then release. Keep the pitch in the zone." : "Hold Space or left click until MAX, then release.",
-            "T-P05" => pad ? "Tap South. After release, hold the stick left or right to bend the ball." : "Tap Space. After release, hold A or D to bend the ball.",
-            "T-P06" => pad ? "Stick left/right moves the pitcher. Down resets. Tap RT to pitch." : "A/D or mouse moves the pitcher. S resets. Tap Space to pitch.",
-            "T-B02" => pad ? "Stick moves the batter and oval. Line up the center, then tap South." : "A/D or mouse moves the batter and oval. Line up the center, then tap Space.",
-            "T-B04" => pad ? "Hold RT before the pitch arrives. Release at MAX as it nears the plate." : "Hold Space or left click before the pitch arrives. Release at MAX as it nears the plate.",
-            "T-B07" => pad ? "Line up with the stick. Hold West (third) or North (first) through the pitch to bunt." : "Line up with A/D or mouse. Hold J (third) or L (first) through the pitch to bunt.",
-            "T-B08" => pad ? "Watch the pitch. Leave RT, West and North alone as it passes." : "Watch the pitch. Leave Space, left click, J and L alone as it passes.",
-            "T-B10" => pad ? "Hold RT to load a swing. Press East before you let go. Then let the ball pass." : "Hold Space or left click to load a swing. Press G before you let go. Then let the ball pass.",
-            "T-B11" => pad ? "Line up with the stick. Hold North through the pitch. Let go of West." : "Line up with A/D or mouse. Hold L through the pitch. Let go of J.",
-            "T-B01" => pad ? "Stick aims the oval. Tap South as the ball arrives." : "Mouse aims the oval. Tap Space or left click as the ball arrives.",
-            "T-F02" => pad ? "Move the left stick to take the glove. Keep moving it yourself." : "Use WASD to take the glove. Keep moving it yourself.",
-            "T-F03" => pad ? "Collect the ball. Right stick Right selects first; RT throws." : "Collect the ball. 1 selects first; Space throws.",
-            "T-F03-2" => pad ? "Collect the ball. Right stick Up selects second; RT throws." : "Collect the ball. 2 selects second; Space throws.",
-            "T-F03-3" => pad ? "Collect the ball. Right stick Left selects third; RT throws." : "Collect the ball. 3 selects third; Space throws.",
-            "T-F03-H" => pad ? "Collect the ball. Right stick Down selects home; RT throws." : "Collect the ball. 4 selects home; Space throws.",
-            "T-F04" => pad ? "Keep moving into the catch circle. Catching is automatic." : "Keep WASD held as you tap Space in the catch window.",
-            "T-F06" => pad ? "Left stick moves your glove. Tap North in the catch window to jump." : "WASD moves your glove. Tap F in the catch window to jump.",
-            "T-F01" => pad ? "Left stick moves your glove. Run into the ground ball." : "WASD moves your glove. Run into the ground ball.",
-            "T-F05" => pad ? "Left stick moves your glove. East dives toward the ball." : "WASD moves your glove. G dives toward the ball.",
-            "T-D02" => pad ? "Right stick Up + RT throws to second. Then Right + RT throws to first."
-                : "2 + Space throws to second. Then 1 + Space throws to first.",
-            _ => (pad ? RemainingTutorial(id, profile)?.Pad : RemainingTutorial(id, profile)?.Keys) ?? TutorialGuidedControls(id, scheme)
+            "T-P02" => "Stick left/right moves the pitcher. Tap RT to pitch. Down recenters.",
+            "T-B03" => "Keep the stick centered. Tap South a little early; too early misses or goes foul.",
+            "T-B03-L" => "Keep the stick centered. Tap South a little late; too late misses or goes foul.",
+            "T-B05" => "Stick left/right moves the batter and oval. Center the oval on the pitch, then tap RT.",
+            "T-P01" => "Stick aims. Tap RT to pitch.",
+            "T-P03" => "Stick aims. Press West once to select the changeup, then tap South.",
+            "T-P10" => "Stick aims. Press West twice to select your third pitch, then tap RT.",
+            "T-P04" => "Hold RT until MAX, then release. Keep the pitch in the zone.",
+            "T-P05" => "Tap South. After release, hold the stick left or right to bend the ball.",
+            "T-P06" => "Stick left/right moves the pitcher. Down resets. Tap RT to pitch.",
+            "T-B02" => "Stick moves the batter and oval. Line up the center, then tap South.",
+            "T-B04" => "Hold RT before the pitch arrives. Release at MAX as it nears the plate.",
+            "T-B07" => "Line up with the stick. Hold West (third) or North (first) through the pitch to bunt.",
+            "T-B08" => "Watch the pitch. Leave RT, West and North alone as it passes.",
+            "T-B10" => "Hold RT to load a swing. Press East before you let go. Then let the ball pass.",
+            "T-B11" => "Line up with the stick. Hold North through the pitch. Let go of West.",
+            "T-B01" => "Stick aims the oval. Tap South as the ball arrives.",
+            "T-F02" => "Move the left stick to take the glove. Keep moving it yourself.",
+            "T-F03" => "Collect the ball. Right stick Right selects first; RT throws.",
+            "T-F03-2" => "Collect the ball. Right stick Up selects second; RT throws.",
+            "T-F03-3" => "Collect the ball. Right stick Left selects third; RT throws.",
+            "T-F03-H" => "Collect the ball. Right stick Down selects home; RT throws.",
+            "T-F04" => "Keep moving into the catch circle. Catching is automatic.",
+            "T-F06" => "Left stick moves your glove. Tap North in the catch window to jump.",
+            "T-F01" => "Left stick moves your glove. Run into the ground ball.",
+            "T-F05" => "Left stick moves your glove. East dives toward the ball.",
+            "T-D02" => "Right stick Up + RT throws to second. Then Right + RT throws to first.",
+            _ => RemainingTutorial(id, profile)?.Pad ?? TutorialGuidedControls(id)
         };
     }
     public static string TutorialFeedbackText(string code) => code switch
@@ -276,17 +273,16 @@ public static partial class HowToPlay
         "demonstration" => "Now try those actions yourself.",
         _ => "Read the goal and try the setup again."
     };
-    public static string TutorialButton(int action, InputScheme scheme)
+    public static string TutorialButton(int action)
     {
-        var pad = scheme == InputScheme.Pad;
         return action switch
         {
-            -2 => pad ? "South · Start" : "Space · Start",
-            -3 => pad ? "East · Lessons" : "G · Lessons",
-            -4 => pad ? "East · Title" : "G · Title",
-            -5 => pad ? "West · Next" : "F · Next",
-            -6 => pad ? "South · Retry" : "Space · Retry",
-            -7 => pad ? "South · Continue" : "Space · Continue",
+            -2 => "South · Start",
+            -3 => "East · Lessons",
+            -4 => "East · Title",
+            -5 => "West · Next",
+            -6 => "South · Retry",
+            -7 => "South · Continue",
             _ => ""
         };
     }
@@ -313,19 +309,6 @@ public static partial class HowToPlay
         var r = TutorialRegion(w, h, 3); var width = r.W / count;
         return (r.X + index * width, r.Y, width - 8, r.H);
     }
-    public static int TutorialHit(float x, float y, float w, float h, bool menu, int rows, bool feedback)
-    {
-        bool In((float X, float Y, float W, float H) r) => x >= r.X && x < r.X + r.W && y >= r.Y && y < r.Y + r.H;
-        if (menu)
-            for (var i = 0; i < rows; i++)
-                if (In(TutorialRow(w, h, i, rows))) return i;
-        var count = !menu && feedback ? 3 : 2;
-        for (var i = 0; i < count; i++)
-            if (In(TutorialAction(w, h, i, count)))
-                return i == 0 ? -2 : i == count - 1 ? menu ? -4 : -3 : -5;
-        return -1;
-    }
-
     public const int TutorialPageSize = 6;
     public static string[] TutorialCategories(IEnumerable<TutorialLesson> lessons) =>
         lessons.Select(l => l.Category).Distinct().Concat(new[] { "practice" }).ToArray();
@@ -334,8 +317,7 @@ public static partial class HowToPlay
         "pitching" => "Pitching", "batting" => "Batting", "fielding" => "Fielding", "outs" => "Outs",
         "running" => "Running", "game" => "Team", "special" => "Special", "practice" => "Free play", _ => category
     };
-    public static string TutorialBrowseHint(InputScheme scheme) => scheme == InputScheme.Pad
-        ? "←/→ categories · ↑/↓ lessons" : "A/D categories · W/S lessons";
+    public const string TutorialBrowseHint = "←/→ categories · ↑/↓ lessons";
     public static int TutorialPages(int count) => Math.Max(1, (count + TutorialPageSize - 1) / TutorialPageSize);
     public static int TutorialPageStart(int pick) => Math.Max(0, pick) / TutorialPageSize * TutorialPageSize;
     public static (float X, float Y, float W, float H) TutorialBrowseRegion(float w, float h, int region)
@@ -353,23 +335,4 @@ public static partial class HowToPlay
         var r = TutorialRegion(w, h, 0);
         return (r.X + r.W - (direction < 0 ? 184 : 56), r.Y, 56, 54);
     }
-    public static int TutorialTabHit(float x, float y, float w, float h, int count)
-    {
-        for (var i = 0; i < count; i++)
-        {
-            var r = TutorialTab(w, h, i, count);
-            if (x >= r.X && x < r.X + r.W && y >= r.Y && y < r.Y + r.H) return i;
-        }
-        return -1;
-    }
-    public static int TutorialPageHit(float x, float y, float w, float h)
-    {
-        foreach (var direction in new[] { -1, 1 })
-        {
-            var r = TutorialPageButton(w, h, direction);
-            if (x >= r.X && x < r.X + r.W && y >= r.Y && y < r.Y + r.H) return direction;
-        }
-        return 0;
-    }
-
 }

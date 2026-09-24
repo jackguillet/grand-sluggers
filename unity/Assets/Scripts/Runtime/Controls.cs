@@ -12,21 +12,15 @@ namespace GrandSluggers.UnityClient
         static readonly ControllerInput[] _input = { new(), new() };
         static readonly StickPlay.Pad[] _pads = new StickPlay.Pad[2];
         static float _rumbleT, _rumbleLow, _rumbleHigh;
-        public enum P1InputMode { Controller }
-        public static P1InputMode Player1InputMode => P1InputMode.Controller;
-        public static string Player1InputLabel => "Controller";
-        public static bool Player1InputToggleDown => false;
-        public static void CyclePlayer1Input() { }
         public static void Initialize() { _devices = new(null, null); SeatNewDevices(); CatchPlay(); }
         public static void BeginMatch(bool versus) { SeatNewDevices(); CatchPlay(); }
         public static void EndMatch() { CatchPlay(); }
-        public static Pad Pad1 { get; } = new(0, false);
-        public static Pad Pad2 { get; } = new(1, false);
-        public static Pad None { get; } = new(-1, false);
+        public static Pad Pad1 { get; } = new(0);
+        public static Pad Pad2 { get; } = new(1);
+        public static Pad None { get; } = new(-1);
         public static int PadCount => (Pad1.Present ? 1 : 0) + (Pad2.Present ? 1 : 0);
         public static Pad Of(LineupSeat seat) => seat == LineupSeat.Pad2 ? Pad2 : seat == LineupSeat.Cpu ? None : Pad1;
         public static int? SeatDeviceId(int index) => index < 0 ? null : _devices.DeviceId(index == 1 ? LineupSeat.Pad2 : LineupSeat.Pad1);
-        public static bool SeatUsesKeyboard(int index) => false;
         public static LineupSeat MissingMatchSeat(Seats seats) => _devices.Missing(seats, ConnectedDeviceIds());
         public static bool TryRecoverMatchSeat(LineupSeat seat)
         {
@@ -60,7 +54,7 @@ namespace GrandSluggers.UnityClient
         {
             readonly int _index;
             public int Index => _index;
-            public Pad(int index, bool keys) { _index = index; }
+            public Pad(int index) { _index = index; }
             Gamepad Device => DeviceForIndex(_index);
             ControllerInput Input => _index < 0 ? null : _input[_index];
             bool Down(ControllerButton b) => Input?.IsDown(b) == true;
@@ -92,7 +86,7 @@ namespace GrandSluggers.UnityClient
             public bool PagePrevious => Down(ControllerButton.LB);
             public bool PageNext => Down(ControllerButton.RB);
             public bool Start => Down(ControllerButton.Start);
-            public bool Esc => Down(ControllerButton.View);
+            public bool View => Down(ControllerButton.View);
             public bool Skip => EastDown;
             public bool AllAdvance => Held(ControllerLayout.Advance);
             public bool AllAdvanceDown => Down(ControllerLayout.Advance);
@@ -148,8 +142,8 @@ namespace GrandSluggers.UnityClient
         public static bool CyclePitch => Pad1.CyclePitch;
         public static bool Skip => Pad1.Skip;
         public static bool CallTime => Pad1.Start || Pad2.Start;
-        public static bool Esc => Pad1.Esc || Pad2.Esc;
-        public static bool HowTo => Esc;
+        public static bool View => Pad1.View || Pad2.View;
+        public static bool HowTo => View;
         public static bool Attack => Pad1.Attack;
         public static bool AllAdvance => Pad1.AllAdvance;
         public static bool AllAdvanceDown => Pad1.AllAdvanceDown;
@@ -177,20 +171,13 @@ namespace GrandSluggers.UnityClient
         public static int StickBag => 0;
         public static int ArrowBag => 0;
         public static int AimBag => Pad1.AimBag;
-        // Compatibility for old layout hit-testing: the product has no pointer input.
-        public static bool PointerDown => false;
-        public static bool MouseBack => false;
-        public static Vector2 GuiMouse => new(-10000, -10000);
-        public static int Wheel => 0;
-        public static float ScrollY => 0;
-        // Developer diagnostics never enter a player command.
+        // Editor-only developer diagnostics. Players have no keyboard; these never enter a player command.
         static bool DebugKey(Key key) => Application.isEditor && Keyboard.current != null && Keyboard.current[key].wasPressedThisFrame;
         public static bool TimingAid => DebugKey(Key.F1);
         public static bool FeelDebug => DebugKey(Key.F2);
         public static bool HudMute => DebugKey(Key.F3);
         public static bool SlowMo => DebugKey(Key.LeftBracket);
         public static bool FreezeCam => DebugKey(Key.RightBracket);
-        public static void NoteInput() => BookScheme.Select(InputScheme.Pad);
         public static void ClearTargets() { foreach (var input in _input) input.ClearTarget(); }
         public static void CatchPlay()
         {

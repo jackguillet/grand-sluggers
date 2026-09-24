@@ -306,7 +306,7 @@ The parent issue description was condensed after preserving its full history thr
 
 **Still pending:** compare Wii and GameCube result-to-next-ready intervals at normal speed, distinguishing routine plays from home runs, great catches, and inning-ending plays. Selected durations and the standalone human gate remain open. Record simulation time separately from hit freeze, camera cut/settle, possession readability, decision time, stamps, and next-ready delay. This direction concerns completed plays; it does not shorten live player decisions, introduce full-screen interruptions, or reopen D7’s separate pitch-pace hold.
 
-**Acceptance:** continuous standalone play with keyboard/mouse, one pad, and two pads; both halves and ownership roles; representative small and large captains; HUD-off diagnostic clips as well as the actual HUD. Jack watches the race and finishes the book-to-half path. No agent can sign this row off.
+**Acceptance:** continuous standalone play with one pad and with two pads; both halves and ownership roles; representative small and large captains; HUD-off diagnostic clips as well as the actual HUD. Jack watches the race and finishes the book-to-half path. No agent can sign this row off.
 
 ## Human review handoff
 
@@ -417,7 +417,7 @@ Jack assesses F693-07. File each new sitting finding under its owning epic and l
 - S-31/32/33 and double-play/sac-fly/tag/steal/wall/liner regression results.
 - Fixed-input tests plus tactical tests; no carry-solver-only validation.
 - Existing S-29 and Harbor-only cohort, disjoint validation seeds, explicit band decision.
-- Continuous standalone comparison, both schemes and seats, exact build/data revision.
+- Continuous standalone comparison, one pad and two pads, both seats, exact build/data revision.
 - Named human acceptance, remaining findings, and links to their owning issues.
 
 ## Validation of this research foundation

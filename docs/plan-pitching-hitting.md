@@ -164,7 +164,7 @@ Area: Shared duel. Depends on: PH-04, PH-09, PH-11. Evidence: WII, GC, Legacy.
 
 **Existing contract:** D7 is a HOLD, not superseded by this brief. Air time, visual tell time, input lead and reset duration are separate clocks.
 
-**Acceptance:** Record release, readable cue, swing command and plate arrival; Jack compares pad, keyboard and two-pad play before numeric acceptance.
+**Acceptance:** Record release, readable cue, swing command and plate arrival; Jack compares one-pad and two-pad play before numeric acceptance.
 
 ### PH-08 — What should fatigue change during a short game?
 
@@ -266,7 +266,7 @@ Area: Hitting. Depends on: PH-09, PH-10. Evidence: GC, SHOW-H.
 
 **Decision — Jack, September 20, 2026: B.** Reply “2” selects a deliberate cancel before swing commitment, allowing the player to abandon a charge and take the pitch. Committed swings follow through. Cancel remains distinct from releasing to swing; its input, exact cutoff, priority and rearming behavior remain open. This does not select automatic hesitation detection or mid-swing rescue. Preserve PH-09–PH-12 and geometric ball/strike judgment. Direction only; no runtime change or passed playtest. Evidence: this task’s PH-13 reply; full provenance is in the canonical JSON.
 
-**Validation requirements:** cancel before commitment must take the pitch without a later button release accidentally swinging; cancel after commitment cannot undo the swing or judgment. Teach and verify cancellation versus release, take and bunt withdrawal on both schemes and both seats. Exact binding and boundary decisions precede implementation.
+**Validation requirements:** cancel before commitment must take the pitch without a later button release accidentally swinging; cancel after commitment cannot undo the swing or judgment. Teach and verify cancellation versus release, take and bunt withdrawal with one pad and two pads, on both seats. Exact binding and boundary decisions precede implementation.
 
 Area: Hitting. Depends on: PH-11. Evidence: WII, SHOW-H.
 
@@ -427,7 +427,7 @@ Area: Accessibility. Depends on: PH-09, PH-10. Evidence: GC, SMB4, SHOW-H.
 
 **Recommendation:** A. Decide whether assists are per-seat and visible before numbers; do not silently rubber-band outcomes.
 
-**Existing contract:** Existing difficulty multipliers are baseline. Keyboard/mouse remains P1; pad 2 remains a real second gamepad.
+**Existing contract:** Existing difficulty multipliers are baseline. The game is gamepad only: pad 1 is P1; pad 2 is a real second gamepad.
 
 **Acceptance:** A new player and an experienced friend can play together and understand what help each receives.
 
@@ -481,7 +481,7 @@ Area: Delivery. Depends on: PH-01. Evidence: Legacy.
 
 **Existing contract:** Existing #346/#534 gates stay open. One implementation child per bounded worktree; presentation and art remain separate.
 
-**Acceptance:** Named revision, both schemes, two pads, both hands, representative captains, ordinary/star cases, reproducible tests and Jack’s dated acceptance.
+**Acceptance:** Named revision, one pad, two pads, both hands, representative captains, ordinary/star cases, reproducible tests and Jack’s dated acceptance.
 
 ## Proposed sequence after the direction round
 
@@ -575,6 +575,6 @@ Do not postpone all teaching and playtests until step 4: its delivery requiremen
 - [ ] Accept explicitly scoped numerical trials and reconcile any superseded spec decisions.
 - [ ] Implement serial gameplay children; separate presentation/book/tutorial and conditional art children.
 - [ ] Run changed-mechanic scenarios, appropriate full regression/cohort checks and visual verification.
-- [ ] Jack accepts the named standalone revision with both schemes and two pads.
+- [ ] Jack accepts the named standalone revision with one pad and two pads.
 
 A research-documentation merge may complete the foundation deliverable; it does not close the design tracker or #534/#346. No gameplay modification, standalone delivery, or passed human gate is claimed by this packet.

@@ -13,54 +13,42 @@ public static class BagDiagrams
     public sealed record Diagram(
         Kind Kind,
         string Title,
-        string PadPress,
-        string KeysPress,
+        string Press,
         IReadOnlyList<Route> Routes);
 
     public static readonly Diagram BagMap = new(
         Kind.BagMap,
         "Name a bag",
         "RIGHT STICK",
-        "1  2  3  4\nCLICK A QUADRANT",
         []);
 
     public static readonly Diagram Advance = new(
         Kind.Advance,
         "Advance",
         "LB",
-        ",",
         [new(1, Baserunning.NextBag(1)), new(2, Baserunning.NextBag(2)), new(3, Baserunning.NextBag(3))]);
 
     public static readonly Diagram Return = new(
         Kind.Return,
         "Return",
         "RB",
-        ".",
         [new(1, Baserunning.PrevBag(1)), new(2, Baserunning.PrevBag(2)), new(3, Baserunning.PrevBag(3))]);
 
     public static readonly IReadOnlyList<Diagram> Running = [BagMap, Advance, Return];
 
-    public sealed record Callout(string Title, string PadPress, string KeysPress, string Line);
+    public sealed record Callout(string Title, string Press, string Line);
 
     public static readonly Callout ClosePlay = new(
         "Close play",
         "FIRST SOUTH",
-        "FIRST SPACE / LEFT CLICK",
         "3rd or home only, bang-bang. Offense first: safe. Defense first: out.");
 
     public static readonly Callout Tag = new(
         "Tag",
         "TOUCH OFF THE BAG",
-        "TOUCH OFF THE BAG",
         "Glove: touch a runner off a bag to tag. On bag: safe. Force: throw.");
 
     public static readonly IReadOnlyList<Callout> Callouts = [ClosePlay, Tag];
-
-    public static string CalloutPress(Callout callout, InputScheme scheme) =>
-        scheme == InputScheme.Keys ? callout.KeysPress : callout.PadPress;
-
-    public static string Press(Diagram diagram, InputScheme scheme) =>
-        scheme == InputScheme.Keys ? diagram.KeysPress : diagram.PadPress;
 
     public static (double U, double V) Pip(int bag) => FieldAssist.BagPip(bag);
 

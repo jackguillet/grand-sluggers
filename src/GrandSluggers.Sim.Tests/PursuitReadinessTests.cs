@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// The Unity pass of #718: the couch side of the pursuit stick (<see cref="PursuitReadiness"/>; F693-02-pursuit-calibration-policy,
 /// -calibration-samples, -arming). A seated controller starts the match with no profile and adopts a released-stick window outside
-/// live baseball; a keyboard never waits; nothing is sampled while the ball is live and no window is stitched across a gap; a
+/// live baseball; nothing is sampled while the ball is live and no window is stitched across a gap; a
 /// different controller is a replacement, the same one back a recovery; Call time recalibrates every seated controller, and backing
 /// out or failing keeps the old centre. A stick table with the radial stick switched off reads no calibration, so none of it runs
 /// there.
@@ -17,8 +17,7 @@ public sealed class PursuitReadinessTests
     static FieldStickRules Radial => Game.Rules.Fielding.Stick;
     const double Frame = 1.0 / 60.0;
 
-    static PursuitReadiness.SeatDevice Pad(int id, double x = 0, double y = 0, bool present = true) => new(true, id, false, present, x, y);
-    static PursuitReadiness.SeatDevice Keys(double x = 0, double y = 0) => new(true, null, true, true, x, y);
+    static PursuitReadiness.SeatDevice Pad(int id, double x = 0, double y = 0, bool present = true) => new(true, id, present, x, y);
     static PursuitReadiness.SeatDevice Cpu => PursuitReadiness.SeatDevice.Empty;
 
     static LivePlaySystem NewLive(ContentCatalog content)
@@ -81,18 +80,6 @@ public sealed class PursuitReadinessTests
         Assert.Equal(-0.02, stick.Calibration.Center.Y, 9);
         Assert.False(stick.Armed, "adoption owes the neutral read; the seat's first read at rest arms it");
         Assert.Equal(PursuitReadiness.Tell.None, r.TellFor(0, live, Radial));
-    }
-
-    [Fact]
-    public void AKeyboardSeatNeverWaits()
-    {
-        var live = NewLive(Game);
-        var r = new PursuitReadiness();
-        Run(r, live, Radial, 0, 0.1, true, Keys(1, 0));
-        Assert.True(live.FieldStick(0).Calibration.Valid);
-        Assert.Equal(0, live.FieldStick(0).Calibration.Adopted);
-        Assert.Equal(PursuitReadiness.Tell.None, r.TellFor(0, live, Radial));
-        Assert.False(PursuitReadiness.Offered(Radial, [Keys()]), "Call time has no stick to reset for a keyboard");
     }
 
     /// <summary>No live learning: two seconds of a resting stick during a live ball adopt nothing, and a window a live ball interrupts starts over.</summary>
