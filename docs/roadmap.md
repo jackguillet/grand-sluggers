@@ -14,7 +14,7 @@ This is the production plan **after** feel infrastructure (#107) and art rails (
 
 **C80 promoted (2026-09-22, Jack's decision).** The compact profile's ordinary loop is the shipped game and `trials/c80` is retired (3e, #715); Jack's sitting on the promoted game and the Harbor kit's 80-ft art/presentation child are still owed.
 
-**The gap now.** Harbor still needs the human parity, narrated-half and book gates (#534 / #209 / #346), the ordinary-loop sitting on the promoted C80 game under #715, and remaining open gameplay findings including #684 and #688. The tracker closes #690 (live stamps), #692 (CPU fly return), and the original #693 research issue; its ongoing compact-profile work remains under #715/#708 and the [decision plan](plan-game-feel-693.md). Geometry/scaling questions #730/#732 remain open. Closed implementation issues do not pass the human gates. Special-attack/status work excluded from the ordinary C80 validation remains separate debt.
+**The gap now.** Harbor still needs the narrated-half and book gates (#209 / #346), played on the promoted 80-ft game with one pad and then two (the game is gamepad only), plus the D7 pitch-pace call in that sitting and the tutorial learning gate (#774). The sitting findings #684 and #688 are closed. The tracker closes #690 (live stamps), #692 (CPU fly return), and the original #693 research issue; its ongoing compact-profile work remains under #715/#708 and the [decision plan](plan-game-feel-693.md). Geometry/scaling questions #730/#732 are closed. Closed implementation issues do not pass the human gates. Special-attack/status work excluded from the ordinary C80 validation remains separate debt.
 
 **Tutorials are part of the bones.** Jack's September 19 direction is to keep building gameplay foundations before generating artwork and to provide a playable tutorial for every mechanic. [tutorials.md](tutorials.md), tracked in [#770](https://github.com/jackguillet/grand-sluggers/issues/770), defines the coverage contract, controlled CPU setups, and implementation slices. The tutorial catalog now covers plate skills, fielding and relays, running and steals, guided team screens, chemistry, named stars and items, with category navigation and three-success completion. The exact counts and remaining scenarios are reported by `cli tutorials`; standalone learning gates remain separate. Tutorial coverage grows with each feature rather than becoming a documentation sweep at the end.
 
@@ -105,7 +105,7 @@ Lesson from the day: stacked PRs must be opened **against `main`** (or the top o
 
 The consolidated checklist is on #209. In order:
 
-1. **Parity sitting (#534)** — **played twice, not passed.** First: `95026535d3` (2026-09-13). Re-sit: `850dd95` with #628 body (2026-09-14). **D7 wait** (#677) until the next re-sit. Closes #563, #564 when Jack would keep the feel.
+1. **Parity sitting (#534, closed 2026-09-24; the D7 call moved to #209)** — **played twice, not passed.** First: `95026535d3` (2026-09-13). Re-sit: `850dd95` with #628 body (2026-09-14). **D7 wait** (#677) until the next re-sit. Closes #563, #564 when Jack would keep the feel.
 2. **Narrated half-inning** — every out has a reason you saw. Watch the outfield on every fly for #580 and the glove read (#609). Closes #565–#568 and the fielding notes. **Not run yet.**
 3. **Three innings, then the book (#346)** — one pad, then two pads; Call time → How to play must be enough. Closes #209 and #342. **Not run yet.**
 
@@ -127,11 +127,11 @@ What sticks becomes a sitting-found child. Distill: file, append `data/agent/deb
 | Child | Observed | Status |
 | --- | --- | --- |
 | #683 | Bags brown, not white | ✅ #697 |
-| #684 | Foul pops behind the batter | open |
+| #684 | Foul pops behind the batter | closed |
 | #685 | Title captain arms-up X — remove | ✅ #694 |
 | #686 | Select bobs through the dirt | ✅ #695 |
 | #687 | Strip extras; size + color only | ✅ #698 |
-| #688 | Runners cannot share a bag; per-runner send/hold | open |
+| #688 | Runners cannot share a bag; per-runner send/hold | ✅ per-runner orders; two runners on one bag: the lead keeps it unless forced |
 | #689 | Yellow throw-destination line | ✅ #699 |
 | #690 | Stamp each event when it happens | closed; typed live stamps landed |
 | #691 | Infielders scale up holding the ball | ✅ #700 |
@@ -233,9 +233,9 @@ Only if A–C stills exist and Phase P has exited. Rule: **three good parks beat
 
 **Finish the learnable ordinary game, with tutorial coverage, before more artwork.**
 
-1. Sit the promoted C80 game (#715; promoted 2026-09-22) and land the 80-ft Harbor kit child; the special/status exclusions stand. Resolve #730/#732 scaling questions through their existing owners.
-2. Work the remaining Exhibition findings, including #684 and #688, in dedicated worktrees. Re-sit #534 and call D7 from that sitting; do not retune pitch pace from an older one.
-3. Continue [tutorials.md](tutorials.md) from the 26-lesson preview: ordinary plate and basic fielding/throw lessons are implemented; continue advanced fielding, relays and running. Keep gameplay and presentation in separate children. Every new mechanic carries tutorial coverage in its own PR.
+1. Sit #346 on the promoted 80-ft game with one pad, then two; call D7 in that sitting; do not retune pitch pace from an older one. The special/status exclusions stand (#1010, #1011).
+2. File what the sitting finds under #209 / #342 / #188 and work it in dedicated worktrees.
+3. Keep [tutorials.md](tutorials.md) coverage growing with each mechanic (`cli tutorials` reports the live counts). Keep gameplay and presentation in separate children. Every new mechanic carries tutorial coverage in its own PR.
 4. Narrated half, #346 book-to-play gate, and the tutorial learning/transfer check in the Mac standalone. Record build and profile; agents do not pass these.
 5. Skeptic pass on the named Exhibition path and lesson retries. Phase T (#246) follows the gameplay/learning gates. R5, extra parks and deferred modes stay later.
 

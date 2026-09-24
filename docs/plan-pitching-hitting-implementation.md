@@ -264,6 +264,8 @@ Every child in §3 is merged. Nothing below is a passed gate.
 **Questions the children raised**
 - Bunt: should the CPU corner on the called side crash harder? Is a 50 / 50 CPU sac-bunt side right? A trigger held after a take keeps the bat squared into the next pitch: intended? Trigger press point (0.5)? East always the cancel at the plate, never a Training skip? A third-base T-B11? T-B07's progress reset?
 - Stars: answered September 23, 2026 — the event bonuses, the CPU's per-pitch special chance and keyboard Q stay as they are.
-- Phase 6: replacement effects for Charmball, Skullball, Fogball and Phonyball (PH-16-R18, R19 follow-ups); the Star Swing contact-area field (PH-16-R2) as the next child.
+- Phase 6: replacement effects for Charmball, Skullball, Fogball and Phonyball (PH-16-R18, R19 follow-ups); the Star Swing contact-area field (PH-16-R2) as the next child. Filed as #1011; specials stay excluded until Jack opens the phase.
 - Art #943: the bat angle by bunt side and the let-go take.
-- A gradual TIRED tell (the card still switches at 25).
+- A gradual TIRED tell (the card still switches at 25). Filed as #1012.
+
+#803 closed on September 24, 2026 with every child merged. The pitch-family seal runs in Full tests with the other seals (#1013).
