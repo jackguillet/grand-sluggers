@@ -6,7 +6,7 @@
   "teamName": "Carnival Crew",
   "signatureBat": "prism-stick",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
-  "proportions": { "height": 0.56, "width": 1.18, "head": 1.62, "arms": 0.82, "torso": 0.68 },
+  "proportions": { "height": 0.63, "width": 1.18, "head": 1.62, "arms": 0.82, "torso": 0.68 },
   "pitch": 4,
   "bat": 4,
   "field": 6,

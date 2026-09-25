@@ -22,17 +22,17 @@ Gameplay: pitcher 3/4, batter over-shoulder, fly follow. Those cameras must stil
 
 ## Six body types
 
-Root scale is each captain's `proportions` in `data/characters` (Height × Width × Head × Arms × Torso), read through `Silhouette.Proportions`. Role players copy the faction captain. Identity on the field is palette + these numbers (#687). Extra bits (crown, snout, horns) stay catalog slots, not on skins.
+Each captain's `proportions` in `data/characters`, read through `Silhouette.Proportions`: Height and Width are the root scale; Head, Arms and Torso are the build, shape keys on the one mesh (`Silhouette.Build`). The shared body is about four heads tall. The ladder keeps the tallest head top at most 1.35 × Rio's and the shortest at least 0.70 × (`Silhouette.HeadTopFt`). Role players copy the faction captain. Identity on the field is palette + these numbers (#687). Extra bits (crown, snout, horns) stay catalog slots, not on skins.
 
 | Type | Who | Height | Width | Head | Arms | Torso | Read |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Harbor kid | Rio, Spark | 0.90 | 1.00 | 1.38 | 1.02 | 0.94 | Short, round head |
-| Pageant pitcher | Vale, Royal | 1.24 | 0.70 | 1.24 | 0.88 | 0.74 | Tall, slim, long neck — head still reads |
-| Speed | Zig, Carnival | 0.56 | 1.18 | 1.62 | 0.82 | 0.68 | Tiny body, huge head, stubby legs |
-| Brick | Brondo, Goldrush | 0.96 | 1.58 | 1.16 | 1.28 | 1.48 | Rio-height, cube torso, thick neck, square jaw |
-| Ape | Konga, Canopy | 1.30 | 1.36 | 1.34 | 1.72 | 1.20 | Hunched, longest arms, barrel torso |
-| Villain slug | Ashlord, Ember | 1.44 | 1.28 | 1.48 | 1.18 | 1.38 | Tallest, heavy boots |
-| Turtle elder | Fenn, Fen | 0.78 | 1.48 | 1.70 | 0.96 | 1.12 | Short, wide, big head |
+| Pageant pitcher | Vale, Royal | 1.09 | 0.70 | 1.24 | 0.88 | 0.74 | Tall, slim, long neck — head still reads |
+| Speed | Zig, Carnival | 0.63 | 1.18 | 1.62 | 0.82 | 0.68 | Tiny body, huge head, stubby legs |
+| Brick | Brondo, Goldrush | 0.97 | 1.58 | 1.16 | 1.28 | 1.48 | Rio-height, cube torso, thick neck, square jaw |
+| Ape | Konga, Canopy | 1.13 | 1.36 | 1.34 | 1.72 | 1.20 | Hunched, longest arms, barrel torso |
+| Villain slug | Ashlord, Ember | 1.17 | 1.28 | 1.48 | 1.18 | 1.38 | Tallest, heavy boots |
+| Turtle elder | Fenn, Fen | 0.74 | 1.48 | 1.70 | 0.96 | 1.12 | Short, wide, big head |
 
 SMS research ladder (outlines only, not IP): Baby < Mario ≈ Wario < Peach < DK < Bowser. Head/Height ≥ 1.0 so the face still reads.
 

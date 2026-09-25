@@ -6,7 +6,7 @@
   "teamName": "Stillwater",
   "signatureBat": "fen-cane",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
-  "proportions": { "height": 0.78, "width": 1.48, "head": 1.7, "arms": 0.96, "torso": 1.12 },
+  "proportions": { "height": 0.74, "width": 1.48, "head": 1.7, "arms": 0.96, "torso": 1.12 },
   "pitch": 7,
   "bat": 5,
   "field": 8,

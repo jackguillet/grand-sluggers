@@ -27,6 +27,7 @@ Use `tools/blender-run.sh` for background Blender commands. It checks Metal devi
 | `hero_shared_blockout.py` | the one body, `hero-shared.fbx` | `--clay` renders a four-view sheet |
 | `hero_shared_extras.py` | captain accessories + common props, `extras.fbx` | `--clay` renders one tile per extra on the body |
 | `hero_shared_takes.py` | every take, both hands, `Clips/*.fbx` | refuses to export a take that misses its contract; `--sheets` renders a clay contact sheet per clip |
+| `hero_lineup.py` | the body look-gate still: every captain side by side at root scale and build, palette and flat black, turnaround and gameplay distance | `--repo <tree>` draws another checkout (the before); `tools/dcc-still.sh lineup` |
 
 ```bash
 B=tools/blender-run.sh
