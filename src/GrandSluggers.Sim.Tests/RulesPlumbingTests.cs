@@ -14,10 +14,11 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class RulesPlumbingTests
 {
     /// <summary>
-    /// The one diamond every park shares, read as process-wide statics (<see cref="Diamond"/>). Moving it onto the
-    /// match's table is its own change; nothing else in the sim may join this list.
+    /// The one file that reads the process table: <see cref="Rules"/> itself, which loads it. The diamond and the park edge are
+    /// the match table's (<see cref="DiamondGeometry.Of"/>, <see cref="ParkBoundary.For(Park, RulesTable)"/>, #1067); nothing
+    /// else in the sim may join this list.
     /// </summary>
-    static readonly string[] ProcessGeometry = ["Rules.cs", "Diamond.cs"];
+    static readonly string[] ProcessGeometry = ["Rules.cs"];
 
     static readonly string Sim = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "src", "GrandSluggers.Sim"));
 
@@ -53,20 +54,5 @@ public sealed class RulesPlumbingTests
             .Select(c => $"{c.File}:{c.Line}")
             .ToList();
         Assert.True(offenders.Count == 0, "pass the match's table instead of Rules.Default: " + string.Join(", ", offenders));
-    }
-
-    /// <summary>
-    /// Readers of the process diamond (<see cref="Diamond"/>'s bags, rubber and starts; home is the origin on every table) left in the sim. A reader that holds a
-    /// table reads <see cref="DiamondGeometry.Of"/> of it (#1067); this ceiling only goes down, so no new reader joins them.
-    /// </summary>
-    const int ProcessDiamondReaders = 0;
-
-    [Fact]
-    public void NoNewReaderTakesTheProcessDiamond()
-    {
-        var read = new Regex(@"(?<![\w.])Diamond\.(Baseline|Mound|First|Second|Third|Rubber|Positions|Bag)\b");
-        var n = Code().Where(c => c.File != "Diamond.cs").Sum(c => read.Matches(c.Text).Count);
-        Assert.True(n <= ProcessDiamondReaders, $"{n} reads of the process diamond (ceiling {ProcessDiamondReaders}): read DiamondGeometry.Of(rules) instead");
-        Assert.True(n >= ProcessDiamondReaders, $"{n} reads of the process diamond: lower {nameof(ProcessDiamondReaders)} to {n}");
     }
 }

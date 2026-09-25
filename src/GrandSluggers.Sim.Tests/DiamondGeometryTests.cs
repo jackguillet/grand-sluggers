@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// A rules table's diamond (§8, §16): a match, a trial or a test that builds its own infield table plays its own bags and
-/// starts, not the process table's (#1067). The process-wide <see cref="Diamond"/> is the default table's diamond to the bit.
+/// starts, not the process table's (#1067).
 /// </summary>
 public sealed class DiamondGeometryTests
 {
@@ -22,18 +22,6 @@ public sealed class DiamondGeometryTests
             BaselineFt = Table.Infield.BaselineFt * 1.125
         }
     };
-
-    [Fact]
-    public void TheProcessDiamondIsTheDefaultTablesDiamondToTheBit()
-    {
-        var d = DiamondGeometry.Of(Table);
-        Assert.Equal(d.Baseline, Diamond.Baseline);
-        Assert.Equal(d.Mound, Diamond.Mound);
-        Assert.Equal(d.Rubber, Diamond.Rubber);
-        for (var bag = 0; bag <= 3; bag++) Assert.Equal(d.Bag(bag), Diamond.Bag(bag));
-        Assert.Equal(Diamond.Order, d.Positions.Keys);
-        foreach (var pos in Diamond.Order) Assert.Equal(d.Positions[pos], Diamond.Positions[pos]);
-    }
 
     [Fact]
     public void TheBagsAndTheRubberAreTheTablesInfield()
