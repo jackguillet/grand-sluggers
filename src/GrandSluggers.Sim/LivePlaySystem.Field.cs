@@ -183,10 +183,8 @@ public sealed partial class LivePlaySystem
     (double X, double Z) _coastVel;
     double _coastT;
     readonly GloveDive _dive = new();
-    /// <summary>Each body's velocity under the response law (#718), ft/s. Empty on the shipped table, whose steps are instantaneous.</summary>
-    readonly Dictionary<string, (double X, double Z)> _vel = new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>The bodies a walker stepped this frame; the rest brake to a stop at the start of the next.</summary>
-    readonly HashSet<string> _stepped = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Each body's velocity under the response law (#718) and this frame's step record.</summary>
+    readonly BodyResponse _response = new();
     /// <summary>The body braking out of a hand-off coast under the response law (#718), and what the coast's last step left of its frame (-1 on any later frame).</summary>
     string _coastBrakePos = "";
     double _coastBrakeLeft = -1;
@@ -630,8 +628,7 @@ public sealed partial class LivePlaySystem
         _coastPos = "";
         _coastVel = (0, 0);
         _coastT = 0;
-        _vel.Clear();
-        _stepped.Clear();
+        _response.Reset();
         _coastBrakePos = "";
         _coastBrakeLeft = -1;
         _receivedClean = false;
@@ -1870,8 +1867,7 @@ public sealed partial class LivePlaySystem
         _fielders[_coastPos] = FieldBounds.ClampFielder(Park, at.X + _coastVel.X * step, at.Z + _coastVel.Z * step, R);
         _coastT -= dt;
         // The body's velocity is the coast's, so when the coast ends it brakes rather than stopping dead (#718).
-        _vel[_coastPos] = _coastVel;
-        _stepped.Add(_coastPos);
+        _response.Carry(_coastPos, _coastVel);
         if (_coastT <= 1e-9)
         {
             // The coast's last step: what it left of the frame is the brake's, and so is every frame after that no walk takes.
@@ -1894,7 +1890,7 @@ public sealed partial class LivePlaySystem
         var ending = _coastBrakeLeft >= 0;
         var left = ending ? _coastBrakeLeft : dt;
         _coastBrakeLeft = -1;
-        if (pos == GlovePos || !ending && _stepped.Contains(pos) || !_vel.TryGetValue(pos, out var v)
+        if (pos == GlovePos || !ending && _response.Stepped(pos) || !_response.TryVelocity(pos, out var v)
             || Math.Abs(v.X) < 1e-9 && Math.Abs(v.Z) < 1e-9 || !_fielders.TryGetValue(pos, out var at))
         {
             _coastBrakePos = "";
@@ -2255,46 +2251,11 @@ public sealed partial class LivePlaySystem
     /// </summary>
     (double X, double Z) Respond(string pos, (double X, double Z) at, (double X, double Z) want, double asked, double dt)
     {
-        var c = R.Fielding.Chase;
         var ground = GroundZones.Of(Park, R).RowAt(at.X, at.Z, R.Grounds).Body;
         var top = RatedSpeed(pos, asked);
         // Airborne on a normal jump the body answers at a fraction of its ground rates (#719, F693-02-normal-jump-air-response-trial).
         var rate = Airborne && pos == GlovePos ? R.Fielding.Catch.JumpAirResponseMul : 1.0;
-        var accel = top / (c.AccelSec * ground.StartMul) * rate;
-        var brake = top / (c.BrakeSec * ground.BrakeMul) * rate;
-        // The cut-back: the component across the heading is corrected at the ramp rate, over the ground's own time for it.
-        var cut = top / (c.AccelSec * ground.CutMul) * rate;
-        var v = _vel.TryGetValue(pos, out var cur) ? cur : (X: 0.0, Z: 0.0);
-        var dvx = want.X - v.X;
-        var dvz = want.Z - v.Z;
-        var speed = Math.Sqrt(v.X * v.X + v.Z * v.Z);
-        double nx, nz;
-        if (speed < 1e-9)
-        {
-            var dv = Math.Sqrt(dvx * dvx + dvz * dvz);
-            if (dv < 1e-12) (nx, nz) = want;
-            else
-            {
-                var step = Math.Min(dv, accel * dt);
-                (nx, nz) = (v.X + dvx / dv * step, v.Z + dvz / dv * step);
-            }
-        }
-        else
-        {
-            var ux = v.X / speed;
-            var uz = v.Z / speed;
-            var along = dvx * ux + dvz * uz;
-            var px = dvx - along * ux;
-            var pz = dvz - along * uz;
-            var across = Math.Sqrt(px * px + pz * pz);
-            var alongStep = Math.Clamp(along, -brake * dt, accel * dt);
-            var acrossStep = across > 1e-12 ? Math.Min(across, cut * dt) / across : 0;
-            nx = v.X + alongStep * ux + px * acrossStep;
-            nz = v.Z + alongStep * uz + pz * acrossStep;
-        }
-        _vel[pos] = (nx, nz);
-        _stepped.Add(pos);
-        return (nx, nz);
+        return _response.Respond(pos, want, top, rate, ground, R.Fielding.Chase, dt);
     }
 
     /// <summary>
@@ -2336,19 +2297,17 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void TickIdleBrakes(double dt)
     {
-        var idle = _vel.Keys.Where(pos => !_stepped.Contains(pos) && !Coasting(pos)).ToList();
-        _stepped.Clear();
-        foreach (var pos in idle)
+        foreach (var pos in _response.Idle(Coasting))
         {
-            var v = _vel[pos];
+            _response.TryVelocity(pos, out var v);
             if (Math.Abs(v.X) < 1e-9 && Math.Abs(v.Z) < 1e-9 || !_fielders.TryGetValue(pos, out var at))
             {
-                _vel.Remove(pos);
+                _response.Forget(pos);
                 continue;
             }
             BrakeStep(pos, at, v, dt);
         }
-        _stepped.Clear();
+        _response.EndIdle();
     }
 
     /// <summary>One braking step of a body nobody steers (#718): its velocity dies at the brake rate and it moves on what is left.</summary>
