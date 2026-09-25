@@ -83,21 +83,21 @@ public sealed class HazardActorsTests
         Assert.DoesNotContain("new Hazard(", view);
         Assert.DoesNotMatch(new Regex(@"case\s+""", RegexOptions.None), view);
         Assert.DoesNotContain("HazardType.", view);
-        Assert.Contains("if (!placed) Dress();", view);
+        Assert.Contains("if (!placed) Dress(park, kitRow);", view);
         Assert.Contains("Ring(h, (float)HazardActors.PlayDiscFt(h.Radius, row, _night), Look.Of(ring));", view);
         foreach (var toy in HazardActors.Builders)
         {
             var constant = typeof(HazardActors).GetFields().Single(f => f.IsLiteral && (string)f.GetRawConstantValue()! == toy).Name;
             Assert.Contains("case HazardActors." + constant + ":", view);
         }
-        // Every non-Harbor dress builder the catalog allows has a case, so a slot the validator passes is one the view draws.
+        // Every non-Harbor dress builder the catalog allows is named by the view, so a slot the validator passes is one it draws.
         foreach (var field in typeof(ParkKitSlots).GetFields().Where(f => f.IsLiteral))
         {
             var value = (string)field.GetRawConstantValue()!;
             var isDress = new[] { ParkKitSlots.Stands, ParkKitSlots.Backdrop, ParkKitSlots.Night, ParkKitSlots.Props }
                 .Any(slot => ParkKitSlots.Builders[slot].Contains(value));
             if (isDress && !value.StartsWith("harbor-", StringComparison.Ordinal))
-                Assert.Contains("case ParkKitSlots." + field.Name + ":", view);
+                Assert.Contains("ParkKitSlots." + field.Name, view);
         }
     }
 }
