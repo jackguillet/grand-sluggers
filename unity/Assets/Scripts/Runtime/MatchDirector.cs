@@ -59,7 +59,6 @@ namespace GrandSluggers.UnityClient
         CameraDirector _cam { get => Scene.Cam; set => Scene.Cam = value; }
         internal FeelTable _feel { get => Scene.Feel; set => Scene.Feel = value; }
         FlowDirector _flow;
-        AtBatDirector _atBat;
         InPlayDirector _inPlay;
         ActorDirector _actors;
         SpecialFx _spec { get => Scene.Fx; set => Scene.Fx = value; }
@@ -77,8 +76,7 @@ namespace GrandSluggers.UnityClient
 
         internal enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         internal Phase _phase { get => Play.Phase; set => Play.Phase = value; }
-        /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
-        internal BuntSide _buntSide;
+        internal BuntSide _buntSide { get => AtBat.BuntSide; set => AtBat.BuntSide = value; }
         /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
         internal float _squareSec { get => Play.SquareSec; set => Play.SquareSec = value; }
         /// <summary>The bodies are off their spots on the square (crashing in, or walking back after a release).</summary>
@@ -91,9 +89,9 @@ namespace GrandSluggers.UnityClient
         /// <summary>The batter is squared right now: a bunt trigger held (a human), or the CPU batter's square read at SET.</summary>
         bool SquaredNow => HumanBats ? _buntSide != BuntSide.None : _match != null && _match.CpuBatter.Squared;
         internal float _charge { get => Play.Charge; set => Play.Charge = value; }
-        float _chargePast;
-        float _pitchCharge;
-        float _pitchPast;
+        float _chargePast { get => AtBat.ChargePast; set => AtBat.ChargePast = value; }
+        float _pitchCharge { get => AtBat.PitchCharge; set => AtBat.PitchCharge = value; }
+        float _pitchPast { get => AtBat.PitchPast; set => AtBat.PitchPast = value; }
         internal float _breakX { get => Play.BreakX; set => Play.BreakX = value; }
         float _dash01 { get => Live.Dash01; set => Live.Dash01 = value; }
         internal float _t;
@@ -208,7 +206,6 @@ namespace GrandSluggers.UnityClient
             _cam.Bind(_rig, _content.Shots, _feel, _park.Kit);
             _cam.Cut("title");
             _flow = new FlowDirector(this);
-            _atBat = new AtBatDirector(this);
             _inPlay = new InPlayDirector(Scene, Play, Live, this, transform);
             _actors = new ActorDirector(Scene, Play, Live, _inPlay, this, transform);
         }
@@ -278,7 +275,7 @@ namespace GrandSluggers.UnityClient
             else if (!_gateHold && !held)
             {
                 _flow.Tick();
-                _atBat.Tick(dt);
+                TickAtBat(dt);
                 _inPlay.Tick(dt);
             }
             _actors.Draw(dt);
