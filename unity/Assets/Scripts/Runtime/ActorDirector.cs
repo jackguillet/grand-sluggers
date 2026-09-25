@@ -87,7 +87,7 @@ namespace GrandSluggers.UnityClient
             var litId = "";
             if ((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && defense.TryGetValue(_live.GlovePos, out var litWho))
                 litId = litWho.Id;
-            var itemLit = _host.ItemOffered && _play.ItemTarget != null ? _play.ItemTarget.Id : "";
+            var itemLit = _host.Toss.Offered && _host.Toss.Target != null ? _host.Toss.Target.Id : "";
             var boxBatter = _play.Phase == MatchDirector.Phase.Result && _play.Last != null
                 ? PlayStamp.BoxBatter(_play.Last, _play.Match)
                 : _play.Match.Batter;
@@ -361,11 +361,7 @@ namespace GrandSluggers.UnityClient
             if (flash && !string.IsNullOrEmpty(_live.BuddyPos) && _live.GloveAt.TryGetValue(_live.BuddyPos, out var planted))
                 flashAt = new Vector3((float)planted.X, 0f, (float)planted.Z);
             _scene.Fx.BuddyTell(flash, flashAt, _live.BuddyWindow);
-            var itemTargetPos = _host.ItemTargetWorld();
-            var showThrow = _play.ItemFlying || (_play.ItemThrown && _play.Phase == MatchDirector.Phase.InPlay);
-            var flyU = !_play.ItemFlying && _play.ItemThrown ? 1f
-                : _play.ItemFlying ? Mathf.Clamp01(_play.ItemFly / (float)_scene.Content.Rules.Batting.Items.FlySec) : 0f;
-            _scene.Items?.Present(dt, _host.ItemOffered, _play.ItemPick, itemTargetPos, showThrow, _play.ItemId, flyU);
+            _host.Toss.Present(dt);
         }
 
         Motion.Verb BatterPose()
@@ -556,8 +552,7 @@ namespace GrandSluggers.UnityClient
         bool PlateSwingArmed { get; }
         float PitchCharge { get; }
         string ShownPitchType { get; }
-        bool ItemOffered { get; }
-        Vector3 ItemTargetWorld();
+        ItemToss Toss { get; }
         float SwingContactSec(SwingCommand swing);
         void ShowCursor();
         void HoldBallInGlove();

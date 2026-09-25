@@ -16,7 +16,7 @@ namespace GrandSluggers.UnityClient
         public void Tick(float dt) { _play.TickAtBat(dt); }
     }
 
-    public sealed partial class MatchDirector : IInPlayHost, IActorHost
+    public sealed partial class MatchDirector : IInPlayHost, IActorHost, IItemHost
     {
         internal ChargeButtonState _pitchButton;
 
@@ -152,12 +152,7 @@ namespace GrandSluggers.UnityClient
             _bagStamp = "";
             _bagStampT = 0;
             _pitchPast = 0;
-            _itemThrown = false;
-            _itemFlying = false;
-            _itemFly = 0;
-            _itemId = "";
-            _itemTarget = null;
-            _itemPick = 0;
+            Toss.Reset();
             _items?.Hide();
             _banner = _sub = "";
             // The body starts this SET where the last pitch left it; the rubber persists (§4.2).
@@ -776,12 +771,7 @@ namespace GrandSluggers.UnityClient
             _preview = _match.PreviewHit(hit, _swing);
             _cpuField = null;
             var playerStarts = FieldAssist.PlayerStartsOnGlove(PlayerMustField);
-            _itemThrown = false;
-            _itemFlying = false;
-            _itemFly = 0;
-            _itemId = "";
-            _itemPick = 0;
-            _itemTarget = _preview != null ? _preview.Fielder : null;
+            Toss.Reset(_preview != null ? _preview.Fielder : null);
             if (!playerStarts)
             {
                 _cpuField = _match.ResolveFielding(hit, _preview);
@@ -882,14 +872,9 @@ namespace GrandSluggers.UnityClient
         JuiceDirector IInPlayHost.Juice => _juice;
         TutorialSession IInPlayHost.FieldLesson => TutorialOn ? _coach.Tutorial : null;
         void IInPlayHost.OnFieldResult(FieldingResult result) => _coach?.OnField(result, _match);
-        void IInPlayHost.TickItem(float dt) => TickItem(dt);
-        bool IInPlayHost.ItemFlying => _itemFlying;
-        void IInPlayHost.ItemSmashed()
-        {
-            _itemFlying = false;
-            _itemId = "";
-            _items?.Hide();
-        }
+        void IInPlayHost.TickItem(float dt) => Toss.Tick(dt);
+        bool IInPlayHost.ItemFlying => Toss.Flying;
+        void IInPlayHost.ItemSmashed() => Toss.Smashed();
         void IInPlayHost.Banner() => Banner();
         void IInPlayHost.BeginResult() => BeginResult();
         Vector3 IInPlayHost.SmashLook() => SmashLook();
@@ -931,8 +916,7 @@ namespace GrandSluggers.UnityClient
         bool IActorHost.PlateSwingArmed => _plate.Swing.Armed;
         float IActorHost.PitchCharge => _pitchCharge;
         string IActorHost.ShownPitchType => ShownPitchType;
-        bool IActorHost.ItemOffered => ItemOffered;
-        Vector3 IActorHost.ItemTargetWorld() => ItemTargetWorld();
+        ItemToss IActorHost.Toss => Toss;
         float IActorHost.SwingContactSec(SwingCommand swing) => SwingContactSec(swing);
         void IActorHost.ShowCursor() => ShowCursor();
         void IActorHost.HoldBallInGlove() => HoldBallInGlove();
@@ -942,5 +926,11 @@ namespace GrandSluggers.UnityClient
         LineupScreens IActorHost.Lineup => _lineup;
         ExhibitionPick IActorHost.CurrentPick() => CurrentPick();
         Vector2 IActorHost.FieldStick => new Vector2(FieldPad.StickX, FieldPad.StickY);
+
+        // The on-deck item (#1042): ItemToss owns the pick, the target and the throw; the flow owns the subtitle.
+        ItemToss _toss;
+        internal ItemToss Toss => _toss ??= new ItemToss(Scene, Play, Live, Pads, this);
+        TrainingDirector IItemHost.Coach => _coach;
+        string IItemHost.Sub { set => _sub = value; }
     }
 }

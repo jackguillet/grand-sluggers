@@ -17,7 +17,7 @@ public sealed class DirectorRailTests
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
-    const int MatchDirectorCeiling = 891;
+    const int MatchDirectorCeiling = 802;
 
     static string Scripts => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "Assets", "Scripts"));
 
