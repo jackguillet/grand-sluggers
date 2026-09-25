@@ -1,6 +1,6 @@
 # Plan: the world — ten stadiums on one continent, ten captains
 
-Status: **planning. Nothing here is built.** Rails, data and greyboxes may be built now; art waits for #346 and each park's greybox sitting (WD-01, WD-02). Accepted decisions are marked in the matrix; the rest are open until Jack answers them, one at a time. Tracker: #1133. Register (canonical, with every option's trade-off): [world-decisions.json](../research/world-decisions.json). Ids: **WD-01 … WD-22**.
+Status: **planning. Nothing here is built.** Rails, data and greyboxes may be built now; art waits for #346 and each park's greybox sitting (WD-01, WD-02). Every decision is answered (see the matrix). Tracker: #1133. Register (canonical, with every option's trade-off): [world-decisions.json](../research/world-decisions.json). Ids: **WD-01 … WD-22**.
 
 ## What Jack asked for
 
@@ -26,7 +26,7 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 
 ## Decision matrix
 
-21 decisions are accepted; 1 is open (WD-22). The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
+All 22 decisions are accepted. Planning is complete; the children below can be filed. The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
 
 | Id | Area | Question | Options | Recommend | Depends on | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -51,9 +51,9 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 | WD-19 | World | Continent name | A Pennant Isles · B Grand Reach · C Homeplate Isles · D own | **Accepted: B, the Grand Reach** (Jack, 2026-09-25) | 05 | C1, C6 |
 | WD-20 | World | Crystal Rink's colder name | A Aurora Rink · B Glacier Garden · C Polar Palace · D own | **Accepted: A, Aurora Rink** (Jack, 2026-09-25) | 06 | C1 |
 | WD-21 | Captains | Stillwater Marsh's captain; where Kai goes | A Kai to the marsh · B new marsh captain, Kai dropped · C Kai joins Fenn (11 captains) · D own | **Accepted: B, a new marsh captain** (Jack, 2026-09-25) | 07, 11 | C2, C3 |
-| WD-22 | Captains | Stillwater Marsh's new captain | A Reed (frog jumper, Marsh Hoppers) · B Heron (wader, Reedwalkers) · C own | **A** | 21 | C2 |
+| WD-22 | Captains | Stillwater Marsh's new captain | A Reed (frog jumper, Marsh Hoppers) · B Heron (wader, Reedwalkers) · C own | **Accepted: A, Reed** (Jack, 2026-09-25) | 21 | C2 |
 
-Open now: WD-22 (Stillwater Marsh's new captain). Jack's answers WD-13 A and WD-15 A differ from the recommendations.
+Nothing is open. Jack's answers WD-13 A and WD-15 A differ from the recommendations.
 
 ## The continent (WD-05, WD-19)
 
@@ -138,7 +138,7 @@ Bars are the four derived bars (CF-1): **Pitch / Bat / Field / Run**, at most on
 | Konga | Canopy Clan · brown | Canopy Yard | 6 / 9 / 3 / 2 | Power and wall climbs | Caskball, Clamber |
 | Ashlord | Ember Keep · black / purple | Ember Keep | 5 / 10 / 3 / 3 | Pure slug | Skullball, Furnace |
 | Elder Fenn | Stillwater · sage / cream | **Coconut Cove** (WD-07: a turtle on the beach) | 7 / 5 / 8 / 3 | Glove and slow fog | Fogball |
-| **Reed** (draft, WD-22) | **Marsh Hoppers** · green / lotus pink | Stillwater Marsh | 4 / 6 / 7 / 8 | Frog jumper: speed and range, huge leaps in the field | **Lily Leap** (draft): a star jump catch that reaches a fly well over a fielder's head |
+| **Reed** (WD-22) | **Marsh Hoppers** · green / lotus pink | Stillwater Marsh | 4 / 6 / 7 / 8 | Frog jumper: speed and range, huge leaps in the field | **Lily Leap** (draft): a star jump catch that reaches a fly well over a fielder's head |
 | **Sable** | **Dune Nomads** · sand / rust | Sunscorch Mesa | 8 / 5 / 6 / 5 | Desert trickster: a heavy sinker, sure hands | **Mirage Ball**: the pitch draws a second, fainter ball for its first half that fades before the zone |
 | **Hollis** | **Peak Guard** · navy / white | Summit Park | 6 / 8 / 5 / 4 | Mountain climber: a big arm and high power | **Updraft**: a star swing whose fly rides the wind half again as far |
 

@@ -34,7 +34,7 @@
     "WD-21",
     "WD-22"
   ],
-  "next_decision": "WD-22",
+  "next_decision": null,
   "brief": "Jack, 2026-09-24: expand to 10 stadiums that make up a continent, each in the region that fits it (ice in a cold place, one in a volcano, one on a tropical island), selectable from the menu; define hazards, night lights and other defining features per stadium; grow to 10 captains, each assigned a field; one field is a tropical beach.",
   "decisions": [
     {
@@ -885,7 +885,7 @@
       "id": "WD-22",
       "area": "Captains",
       "question": "Who is Stillwater Marsh's new captain?",
-      "status": "open",
+      "status": "accepted",
       "depends_on": [
         "WD-21"
       ],
@@ -913,11 +913,15 @@
         "C2 captains",
         "C2b abilities"
       ],
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null
+      "selected_option": "A",
+      "accepted_scope": "Stillwater Marsh's captain is Reed, a long-legged frog jumper of the Marsh Hoppers, in green and lotus pink: speed and range. The draft bars and the Lily Leap line are proposals for C2 and C2b.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-22: A Reed, of the Marsh Hoppers / B Heron, of the Reedwalkers / C Jack's own",
+        "answer_quote": "A"
+      }
     }
   ],
   "history": [
@@ -986,6 +990,12 @@
       "who": "Jack",
       "quote": "answers are in",
       "effect": "WD-20 A (Aurora Rink), WD-21 B (a new marsh captain; Kai dropped) from the artifact. WD-22 opened: the marsh captain."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "A",
+      "effect": "WD-22 accepted: A."
     }
   ]
 }
