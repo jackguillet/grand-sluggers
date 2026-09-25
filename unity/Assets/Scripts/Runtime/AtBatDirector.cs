@@ -26,9 +26,9 @@ namespace GrandSluggers.UnityClient
         /// the leak guards (PH-13-R1, PH-14-R6): a trigger held for a bunt at contact and a cancel press the plate took
         /// are spent until they come up. It belongs to one pad (<see cref="_plateSeat"/>); a new batting pad starts at rest.
         /// </summary>
-        internal PlateButtonsState _plate;
+        internal PlateButtonsState _plate { get => Play.Plate; set => Play.Plate = value; }
         /// <summary>The pad index whose buttons <see cref="_plate"/> holds; -1 for none (a CPU batter).</summary>
-        int _plateSeat = -1;
+        int _plateSeat { get => Play.PlateSeat; set => Play.PlateSeat = value; }
         /// <summary>This frame's plate input and step, read at the plate plane and at contact.</summary>
         PlateInput _plateInput;
         PlateButtonsStep _plateStep;
@@ -144,12 +144,10 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>Whether <paramref name="pad"/>'s <paramref name="trigger"/> may mean any verb on this tick (PH-14-R6).</summary>
-        internal bool TriggerFree(Controls.Pad pad, BuntSide trigger) =>
-            pad.Index < 0 || pad.Index != _plateSeat || BuntHold.IsFree(_plate.Bunt, trigger);
+        internal bool TriggerFree(Controls.Pad pad, BuntSide trigger) => Pads.TriggerFree(pad, trigger);
 
         /// <summary>Whether <paramref name="pad"/>'s East / G may mean a dive, a dash or a skip on this tick (PH-13-R1).</summary>
-        internal bool CancelFree(Controls.Pad pad) =>
-            pad.Index < 0 || pad.Index != _plateSeat || PlateButtons.CancelIsFree(_plate);
+        internal bool CancelFree(Controls.Pad pad) => Pads.CancelFree(pad);
 
         internal void BeginSet()
         {
@@ -919,35 +917,9 @@ namespace GrandSluggers.UnityClient
         }
 
         // The live play (#1042): InPlayDirector owns the play; the pads, the seats, the items and the result beat are the flow's.
-        /// <summary>The sim's seat table for this half. Training seats come from the coach; a match derives them from (half, home/away, pads).</summary>
-        LiveSeats LiveSeatsNow() => TrainingOn
-            ? new LiveSeats(HumanBats, HumanPitches, PlayerMustField, Versus: false)
-            : _match != null ? GrandSluggers.Sim.LiveSeats.For(LiveSeats, _match.Top) : GrandSluggers.Sim.LiveSeats.CpuOnly;
-
-        internal LivePadInput FieldInput()
-        {
-            var pad = FieldPad;
-            // The calibrated radial stick (#718) reads the device coordinate before any dead zone, handed to the sim once.
-            var radial = _match != null;
-            var eastFree = CancelFree(pad);
-            var cancel = eastFree && pad.EastDown && (_phase == Phase.Flight || _match.LivePlay.CanCancelThrow);
-            if (cancel) pad.ClearThrowTarget();
-            return new LivePadInput(
-                radial ? pad.PursuitX : pad.StickX, radial ? pad.PursuitY : pad.StickY,
-                SouthDown: pad.BallDown && pad.ThrowBag > 0, WestDown: pad.JumpDown && TriggerFree(pad, BuntSide.First),
-                EastDown: pad.EastDown && eastFree && !cancel, EastHeld: pad.EastHeld && eastFree && !cancel,
-                Cutoff: pad.Cutoff, Swap: pad.SwapPitcher,
-                Attack: pad.Attack && TriggerFree(pad, BuntSide.Third), KeysBag: pad.ThrowBag,
-                Cancel: cancel, Device: pad.Index, ExplicitTarget: true, CloseResponse: pad.SouthDown);
-        }
-
-        /// <summary>Selection is a right-stick flick; the movement stick never issues a runner order.</summary>
-        LivePadInput RunInput()
-        {
-            var pad = RunPad;
-            return new LivePadInput(SouthDown: pad.SouthDown,
-                WestDown: pad.WestDown && TriggerFree(pad, BuntSide.Third), Orders: pad.RunnerOrders);
-        }
+        LiveSeats LiveSeatsNow() => Pads.LiveNow();
+        internal LivePadInput FieldInput() => Pads.FieldInput();
+        LivePadInput RunInput() => Pads.RunInput();
 
         /// <summary>A frame of the live play, for the editor gates that drive it.</summary>
         internal void TickLive(float dt) => _inPlay.Tick(dt);

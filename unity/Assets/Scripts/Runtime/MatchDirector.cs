@@ -166,37 +166,20 @@ namespace GrandSluggers.UnityClient
         string _banner, _sub;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
-        Seats SelectedSeats =>
-            TutorialOn ? (_coach.PlayerBats || _coach.PlayerRuns || _coach.Tutorial.DefendsAsAway ? Seats.AwayOne : Seats.One) : TrainingOn || _mode != PlayMode.Exhibition
-                ? Seats.One
-                : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
-        Seats LiveSeats => _matchSeats.Current(SelectedSeats);
-        internal bool HumanPitches => TrainingOn
-            ? _coach.PlayerPitches
-            : _match != null && LiveSeats.HumanPitches(_match.Top);
-        bool HumanBats => TrainingOn
-            ? (_coach.PlayerBats || _coach.PlayerRuns)
-            : _match != null && LiveSeats.HumanBats(_match.Top);
-        bool PlayerMustField => TrainingOn && _coach.PlayerFields;
+        // Who sits which seat, and which pad speaks for it (SeatPads, #1042); these names forward to it.
+        SeatPads _seatPads;
+        SeatPads Pads => _seatPads ??= new SeatPads(Play, _matchSeats, this);
+        Seats LiveSeats => Pads.Live;
+        internal bool HumanPitches => Pads.HumanPitches;
+        bool HumanBats => Pads.HumanBats;
+        bool PlayerMustField => Pads.PlayerMustField;
         bool PlayerFields => _playerFielding || PlayerMustField;
-        /// <summary>A human sits the defense this half (spec §0.4). Mirrors <see cref="GrandSluggers.Sim.LiveSeats.HumanFields"/>.</summary>
-        bool HumanFields => LiveSeatsNow().HumanFields;
-        bool HumanOwnsThrow => LiveSeatsNow().HumanOwnsThrow;
-        Controls.Pad PitchPad => HumanPitches && _match != null
-            ? Controls.Of(LiveSeats.Pitching(_match.Top))
-            : Controls.Pad1;
-        Controls.Pad BatPad => HumanBats && _match != null
-            ? Controls.Of(LiveSeats.Batting(_match.Top))
-            : Controls.None;
-        // The glove pad is the controller seated on defense this half; the runner pad is the one
-        // on offense. A seat the CPU holds is a dead pad, so the batting human's stick never
-        // takes a glove and their South never gates a CPU throw (#579, #209).
-        Controls.Pad FieldPad => !HumanFields ? Controls.None
-            : TrainingOn ? Controls.Pad1
-            : Controls.Of(LiveSeats.Fielding(_match.Top));
-        Controls.Pad RunPad => !HumanBats ? Controls.None
-            : TrainingOn ? Controls.Pad1
-            : Controls.Of(LiveSeats.Running(_match.Top));
+        bool HumanFields => Pads.HumanFields;
+        bool HumanOwnsThrow => Pads.HumanOwnsThrow;
+        Controls.Pad PitchPad => Pads.PitchPad;
+        Controls.Pad BatPad => Pads.BatPad;
+        Controls.Pad FieldPad => Pads.FieldPad;
+        Controls.Pad RunPad => Pads.RunPad;
         bool ItemOffered =>
             HumanBats && _pending != null && _pending.ChemistryItemOffered && !_itemThrown
             && _phase == Phase.InPlay && !_throwing;
@@ -616,7 +599,7 @@ namespace GrandSluggers.UnityClient
         void BindMatchSeats()
         {
             if (_matchSeats.Bound) return;
-            var seats = _matchSeats.Bind(SelectedSeats);
+            var seats = _matchSeats.Bind(Pads.Selected);
             Controls.BeginMatch(seats.BothHuman);
         }
 
