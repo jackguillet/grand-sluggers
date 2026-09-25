@@ -41,7 +41,16 @@ public sealed record LookSurface(LookColor Color, double Smooth, string? Texture
 /// wall's cap and the foul poles.
 /// </summary>
 public sealed record ParkPalette(
-    LookSurface Grass, LookSurface Water, LookSurface Dirt, LookSurface Wall, LookSurface? WallAlt, LookSurface Cap, LookSurface Pole);
+    LookSurface Grass, LookSurface Water, LookSurface Dirt, LookSurface Wall, LookSurface? WallAlt, LookSurface Cap, LookSurface Pole,
+    LookSurface? Track = null, ParkStandsLook? Stands = null);
+
+/// <summary>
+/// How a park's bowl of bleachers is painted (the <c>stands</c> block of its palette, drawn by the park-neutral
+/// <see cref="ParkKitSlots.KitBowl"/> builder): the concrete risers, the seat colors taken in turn one section at a time,
+/// the fans' shirt colors, the front rail and the back wall's trim, and an optional roof over the back rows of the
+/// horseshoe (null is open). <c>fill</c> is the share of seats with a fan in them, 0 to 1; the empty ones show the seats.
+/// </summary>
+public sealed record ParkStandsLook(LookSurface Steps, IReadOnlyList<LookColor> Seats, IReadOnlyList<LookColor> Crowd, LookSurface Rail, LookSurface? Roof, double Fill);
 
 /// <summary>
 /// The park looks (FD-16, FR-04; F6-c): the named skies and lights of <c>data/art/looks.json</c>, which a park's kit names
@@ -86,7 +95,7 @@ public sealed class ParkLooks
     /// <summary>A park's palette block, strictly.</summary>
     public static ParkPalette ParsePalette(JsonNode? node, string where)
     {
-        var o = Obj(node, where, "grass", "water", "dirt", "wall", "wallAlt", "cap", "pole");
+        var o = Obj(node, where, "grass", "water", "dirt", "wall", "wallAlt", "cap", "pole", "track?", "stands?");
         return new ParkPalette(
             Surface(o["grass"], where + ".grass"),
             Surface(o["water"], where + ".water"),
@@ -94,7 +103,28 @@ public sealed class ParkLooks
             Surface(o["wall"], where + ".wall"),
             o["wallAlt"] is null ? null : Surface(o["wallAlt"], where + ".wallAlt"),
             Surface(o["cap"], where + ".cap"),
-            Surface(o["pole"], where + ".pole"));
+            Surface(o["pole"], where + ".pole"),
+            o.ContainsKey("track") ? Surface(o["track"], where + ".track") : null,
+            o.ContainsKey("stands") ? Stands(o["stands"], where + ".stands") : null);
+    }
+
+    static ParkStandsLook Stands(JsonNode? node, string at)
+    {
+        var o = Obj(node, at, "steps", "seats", "crowd", "rail", "roof", "fill");
+        var seats = ColorList(o["seats"], at + ".seats");
+        var crowd = ColorList(o["crowd"], at + ".crowd");
+        var fill = Num(o["fill"], at + ".fill");
+        if (fill < 0 || fill > 1) throw Bad(at + ".fill", "must be 0 to 1");
+        return new ParkStandsLook(Surface(o["steps"], at + ".steps"), seats, crowd, Surface(o["rail"], at + ".rail"),
+            o["roof"] is null ? null : Surface(o["roof"], at + ".roof"), fill);
+    }
+
+    static List<LookColor> ColorList(JsonNode? node, string at)
+    {
+        if (node is not JsonArray a || a.Count is < 1 or > 8) throw Bad(at, "must be a list of 1 to 8 colors");
+        var colors = new List<LookColor>();
+        for (var i = 0; i < a.Count; i++) colors.Add(Color(a[i], at + "[" + i + "]"));
+        return colors;
     }
 
     static SkyState Sky(JsonNode? node, string at)

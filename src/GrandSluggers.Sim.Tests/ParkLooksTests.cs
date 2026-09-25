@@ -81,35 +81,48 @@ public sealed class ParkLooksTests
     }
 
     /// <summary>
-    /// The palettes are the old chains' colors: a named color stays its hex (read the way <c>Colors.Hex</c> reads it), a
-    /// literal stays its numbers; ice, ash and Rooftop draw untextured grass; only Funfair alternates its wall panels.
+    /// Harbor's palette is the one its kit was passed with. Every other park paints its infield with the dirt texture,
+    /// alternates its wall panels, names its warning track, and keeps its theme's ground: clear, glossy ice at Crystal (the
+    /// one flat ground: a texture tints ice grey), textured grey tar at Rooftop and grey ash at Ember, textured grass at
+    /// Funfair and Canopy. The infield dirt stands apart from the outfield it sits in.
     /// </summary>
     [Fact]
-    public void FD16_ThePalettesAreTheOldChainsColors()
+    public void FD16_HarborKeepsItsPaletteAndEveryOtherParkTexturesItsGroundAndPanelsItsWall()
     {
         var harbor = Kit(ParkId.Harbor).Palette!;
         Assert.Equal((0x3EA84E, "grass", 18.0, 0.08), (harbor.Grass.Color.Hex, harbor.Grass.Texture, harbor.Grass.Tile, harbor.Grass.Smooth));
         Assert.Equal((0x2E7CB0, 0.85), (harbor.Water.Color.Hex, harbor.Water.Smooth));
         Assert.Equal((0xC49A60, "dirt", 8.0, 0.12), (harbor.Dirt.Color.Hex, harbor.Dirt.Texture, harbor.Dirt.Tile, harbor.Dirt.Smooth));
+        Assert.Null(harbor.WallAlt);
+        Assert.Null(harbor.Stands);
 
-        var crystal = Kit(ParkId.Crystal).Palette!;
-        Assert.Equal((0xBED8F0, (string?)null, 0.72), (crystal.Grass.Color.Hex, crystal.Grass.Texture, crystal.Grass.Smooth));
-        Rgb(0.74, 0.84, 0.90, crystal.Dirt.Color);
-        Assert.Equal((6.0, 0.35), (crystal.Dirt.Tile, crystal.Dirt.Smooth));
-        Assert.Equal((0.92, 0.62, 0.75), (crystal.Water.Smooth, crystal.Wall.Smooth, crystal.Cap.Smooth));
-        Assert.Equal(0xE878A8, crystal.Pole.Color.Hex);
-
-        Assert.Equal(0xFF7A20, Kit(ParkId.Ember).Palette!.Wall.Color.Hex);
-        Assert.Null(Kit(ParkId.Ember).Palette!.Grass.Texture);
-        Rgb(0.32, 0.32, 0.34, Kit(ParkId.Rooftop).Palette!.Grass.Color);
-        Assert.Equal(0.18, Kit(ParkId.Rooftop).Palette!.Grass.Smooth);
-        Assert.Null(Kit(ParkId.Rooftop).Palette!.Grass.Texture);
+        foreach (var park in Catalog.Parks.Keys.Where(p => p != ParkId.Harbor))
+        {
+            var palette = Kit(park).Palette!;
+            Assert.Equal(park != ParkId.Crystal, palette.Grass.Texture is not null);
+            Assert.Equal("dirt", palette.Dirt.Texture);
+            Assert.True(Distance(palette.Grass.Color, palette.Dirt.Color) > 0.25, park + "'s infield dirt must stand apart from its outfield");
+            Assert.NotNull(palette.WallAlt);
+            Assert.NotEqual(palette.Wall.Color, palette.WallAlt!.Color);
+            Assert.NotNull(palette.Track);
+        }
+        var ice = Kit(ParkId.Crystal).Palette!.Grass;
+        Assert.True(ice.Color.B > 0.9 && ice.Color.R > 0.75 && ice.Smooth >= 0.5, "Crystal's outfield is pale, glossy ice");
+        foreach (var park in new[] { ParkId.Rooftop, ParkId.Ember })
+        {
+            var c = Kit(park).Palette!.Grass.Color;
+            Assert.True(Math.Abs(c.R - c.G) < 0.06 && Math.Abs(c.G - c.B) < 0.06 && c.G < 0.6, park + "'s outfield is a grey roof or ash");
+        }
+        foreach (var park in new[] { ParkId.Funfair, ParkId.Canopy })
+            Assert.Equal("grass", Kit(park).Palette!.Grass.Texture);
+        Assert.Equal(0xE878A8, Kit(ParkId.Crystal).Palette!.Pole.Color.Hex);
         Assert.Equal(0xE8BC28, Kit(ParkId.Rooftop).Palette!.Pole.Color.Hex);
-        Assert.Equal("grass", Kit(ParkId.Canopy).Palette!.Grass.Texture);
-        foreach (var park in Catalog.Parks.Keys)
-            Assert.Equal(park == ParkId.Funfair, Kit(park).Palette!.WallAlt is not null);
+        Assert.Equal(0xFF7A20, Kit(ParkId.Ember).Palette!.Cap.Color.Hex);
         Rgb(0.96, 0.90, 0.72, Kit(ParkId.Funfair).Palette!.WallAlt!.Color);
     }
+
+    static double Distance(LookColor a, LookColor b) =>
+        Math.Sqrt((a.R - b.R) * (a.R - b.R) + (a.G - b.G) * (a.G - b.G) + (a.B - b.B) * (a.B - b.B));
 
     /// <summary>The reader is strict: an unknown key, a missing key, a bad color, a texture that is not one, and a tile with no texture stop the load.</summary>
     [Theory]
