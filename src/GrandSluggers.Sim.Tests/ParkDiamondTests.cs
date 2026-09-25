@@ -11,39 +11,39 @@ public class ParkDiamondTests
     [Fact]
     public void SharedOutlinesAreNotAHarborHardcode()
     {
-        Assert.True(ParkDiamond.PathIsNotALake());
+        Assert.True(ParkDiamond.PathIsNotALake(DiamondGeometry.Of(Rules.Default)));
         Assert.True(ParkDiamond.BagIsABag());
         Assert.True(ParkDiamond.HomePackedIsAPad());
         Assert.True(ParkDiamond.MoundIsAHill());
-        Assert.True(ParkDiamond.PitcherStandsOnTheHill(),
-            $"pitcher y={ParkDiamond.StandY(0, Diamond.Mound)} must be the rubber, not dirt zero");
+        Assert.True(ParkDiamond.PitcherStandsOnTheHill(DiamondGeometry.Of(Rules.Default)),
+            $"pitcher y={ParkDiamond.StandY(0, Diamond.Mound, DiamondGeometry.Of(Rules.Default))} must be the rubber, not dirt zero");
         Assert.True(ParkDiamond.StripeReadsAtCouch());
         Assert.True(ParkDiamond.StripesRunHomeToCf());
         Assert.True(ParkDiamond.StripesAreCenteredOnTheField(),
             "mow band 0 must sit on home→CF, not start from the lawn’s left edge");
-        Assert.True(ParkDiamond.PathCornersAreRound());
-        Assert.True(ParkDiamond.BackApronIsCurved());
+        Assert.True(ParkDiamond.PathCornersAreRound(DiamondGeometry.Of(Rules.Default)));
+        Assert.True(ParkDiamond.BackApronIsCurved(DiamondGeometry.Of(Rules.Default)));
         Assert.True(ParkDiamond.DirtClearsTheLawn(),
             $"path top {ParkDiamond.PathTop:0.00} grass top {ParkDiamond.GrassTop:0.00} — dirt vanishes under the lawn");
         Assert.True(ParkDiamond.ChalkClearsTheDirt(),
             $"foul top {ParkDiamond.FoulY + ParkDiamond.FoulThick * 0.5f:0.00} dirt top {ParkDiamond.PathTop:0.00} — chalk is buried");
-        Assert.True(ParkDiamond.LawnRespectsPits());
-        Assert.True(ParkDiamond.OnDirt(0, 0), "home packed");
-        Assert.True(ParkDiamond.OnDirt(Diamond.First.X, Diamond.First.Z), "1B pad");
-        Assert.True(ParkDiamond.OnDirt(32, 32), "home-1B path");
-        Assert.True(ParkDiamond.OnDirt(0, Diamond.Mound), "mound");
-        Assert.False(ParkDiamond.OnDirt(0, 90), "inner grass Y");
-        Assert.True(ParkDiamond.OnInfieldGrass(0, 90));
-        Assert.False(ParkDiamond.OnDirt(0, 220), "outfield");
-        Assert.True(ParkDiamond.OnDirt(0, Diamond.Second.Z + 16), "curved apron past 2B");
-        Assert.False(ParkDiamond.OnDirt(43.3, 20.7), "foul of the thin home-1B path");
-        var outer = ParkDiamond.OuterVerts();
+        Assert.True(ParkDiamond.LawnRespectsPits(DiamondGeometry.Of(Rules.Default)));
+        Assert.True(ParkDiamond.OnDirt(0, 0, DiamondGeometry.Of(Rules.Default)), "home packed");
+        Assert.True(ParkDiamond.OnDirt(Diamond.First.X, Diamond.First.Z, DiamondGeometry.Of(Rules.Default)), "1B pad");
+        Assert.True(ParkDiamond.OnDirt(32, 32, DiamondGeometry.Of(Rules.Default)), "home-1B path");
+        Assert.True(ParkDiamond.OnDirt(0, Diamond.Mound, DiamondGeometry.Of(Rules.Default)), "mound");
+        Assert.False(ParkDiamond.OnDirt(0, 90, DiamondGeometry.Of(Rules.Default)), "inner grass Y");
+        Assert.True(ParkDiamond.OnInfieldGrass(0, 90, DiamondGeometry.Of(Rules.Default)));
+        Assert.False(ParkDiamond.OnDirt(0, 220, DiamondGeometry.Of(Rules.Default)), "outfield");
+        Assert.True(ParkDiamond.OnDirt(0, Diamond.Second.Z + 16, DiamondGeometry.Of(Rules.Default)), "curved apron past 2B");
+        Assert.False(ParkDiamond.OnDirt(43.3, 20.7, DiamondGeometry.Of(Rules.Default)), "foul of the thin home-1B path");
+        var outer = ParkDiamond.OuterVerts(DiamondGeometry.Of(Rules.Default));
         Assert.True(outer.Length > 16, "outer is a sampled loop, not 4 corners");
-        var v1 = ParkDiamond.InnerVerts()[1];
-        Assert.True(ParkDiamond.OnDirt(v1.X + ParkDiamond.BagPadR * 0.5, v1.Z), "1B pad");
-        Assert.True(ParkDiamond.BagIsInsideTheFoulLine(1), "1B must sit in fair, not on the chalk");
-        Assert.True(ParkDiamond.BagIsInsideTheFoulLine(3), "3B must sit in fair, not on the chalk");
-        Assert.True(ParkDiamond.FoulLinesAreSquare(), "1B and 3B lines from home are a 90° corner");
+        var v1 = ParkDiamond.InnerVerts(DiamondGeometry.Of(Rules.Default))[1];
+        Assert.True(ParkDiamond.OnDirt(v1.X + ParkDiamond.BagPadR * 0.5, v1.Z, DiamondGeometry.Of(Rules.Default)), "1B pad");
+        Assert.True(ParkDiamond.BagIsInsideTheFoulLine(1, DiamondGeometry.Of(Rules.Default)), "1B must sit in fair, not on the chalk");
+        Assert.True(ParkDiamond.BagIsInsideTheFoulLine(3, DiamondGeometry.Of(Rules.Default)), "3B must sit in fair, not on the chalk");
+        Assert.True(ParkDiamond.FoulLinesAreSquare(DiamondGeometry.Of(Rules.Default)), "1B and 3B lines from home are a 90° corner");
         Assert.True(HomeSet.PlatePointFacesTheCatcher());
         Assert.True(HomeSet.BoxesClearThePlate());
     }
@@ -122,8 +122,8 @@ public class ParkDiamondTests
     {
         // (44, 129) is 87 ft from the rubber, past the 81.78-ft back arc, yet inside the dirt's
         // bounding box (DirtMaxX 81.78, DirtMaxZ 135.56).
-        Assert.False(ParkDiamond.OnDirt(44, 129), "past the curved apron");
-        Assert.True(44 < ParkDiamond.DirtMaxX && 129 < ParkDiamond.DirtMaxZ,
+        Assert.False(ParkDiamond.OnDirt(44, 129, DiamondGeometry.Of(Rules.Default)), "past the curved apron");
+        Assert.True(44 < ParkDiamond.DirtMaxX(DiamondGeometry.Of(Rules.Default)) && 129 < ParkDiamond.DirtMaxZ(DiamondGeometry.Of(Rules.Default)),
             "this is the AABB hole the old CF stripes left as water");
         Assert.True(ParkDiamond.LawnCovers(44, 129, Harbor),
             "mow must cover the gap between the dirt arc and DirtMaxZ");

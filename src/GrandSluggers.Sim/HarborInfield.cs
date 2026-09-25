@@ -12,16 +12,16 @@ public static class HarborInfield
     public const float BagY = ParkDiamond.BagY;
     public const float HomePackedR = ParkDiamond.HomePackedR;
 
-    public static bool PathIsNotALake() => ParkDiamond.PathIsNotALake();
+    public static bool PathIsNotALake(DiamondGeometry d) => ParkDiamond.PathIsNotALake(d);
 
     public static bool BagIsABag() => ParkDiamond.BagIsABag();
 
     public static bool HomePackedIsAPad() => ParkDiamond.HomePackedIsAPad();
 
     /// <summary>Infield lawn must not recap a dugout well. Probed out along the first-base line.</summary>
-    public static bool LawnRespectsPits()
+    public static bool LawnRespectsPits(DiamondGeometry d)
     {
-        var reach = Diamond.First.Z;
+        var reach = d.First.Z;
         return !HarborDugout.InPitHole(0, reach) && HarborDugout.LawnCovers(0, reach);
     }
 }

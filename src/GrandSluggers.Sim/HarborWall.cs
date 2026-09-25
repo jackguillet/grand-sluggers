@@ -472,7 +472,7 @@ public static class HarborWall
             && home.Z > -FoulOffset - 8;
     }
 
-    public static bool WrapStaysInFoul(Park park)
+    public static bool WrapStaysInFoul(Park park, DiamondGeometry d)
     {
         foreach (var p in Loop(park))
         {
@@ -480,12 +480,12 @@ public static class HarborWall
             var spray = Math.Atan2(p.X, p.Z) * (180.0 / Math.PI);
             if (Math.Abs(spray) <= AtBatResolver.FoulLineDeg + 1) continue;
             if (Math.Abs(p.X) < p.Z - 2) return false;
-            if (ParkDiamond.OnDirt(p.X, p.Z)) return false;
+            if (ParkDiamond.OnDirt(p.X, p.Z, d)) return false;
         }
         return true;
     }
 
-    public static bool WrapsTheDiamond(Park park)
+    public static bool WrapsTheDiamond(Park park, DiamondGeometry d)
     {
         var loop = Loop(park);
         if (loop.Length < 40) return false;
@@ -498,7 +498,7 @@ public static class HarborWall
         if (Math.Abs(minDug - HarborDugout.HalfDeep) > 4) return false;
         var cf = FencePoint(park, 0);
         if (loop.Min(p => Diamond.Dist(p.X, p.Z, cf.X, cf.Z)) > 4) return false;
-        return WrapStaysInFoul(park)
+        return WrapStaysInFoul(park, d)
             // A symmetric park draws one wall on both sides. A lopsided park draws two, which is
             // the point of #845 — asking every park for a mirror is what hid the bug.
             && (!ParkIsSymmetric(park) || LoopIsSymmetric(park))

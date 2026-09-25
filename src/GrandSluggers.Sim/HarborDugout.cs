@@ -195,8 +195,8 @@ public static class HarborDugout
         Along0 - HalfAlong > 12f;
 
     /// <summary>Stops short of the 90-ft bag.</summary>
-    public static bool EndsBeforeTheBag() =>
-        Along0 + HalfAlong < Diamond.Baseline - 4;
+    public static bool EndsBeforeTheBag(DiamondGeometry d) =>
+        Along0 + HalfAlong < d.Baseline - 4;
 
     public static bool IsSunken() => PitDepth >= 2f;
 

@@ -113,4 +113,18 @@ public sealed class DiamondGeometryTests
         Assert.NotEqual(ParkBoundary.For(park, Table), ParkBoundary.For(park, t));
         Assert.NotSame(FieldBounds.Of(park, Table), FieldBounds.Of(park, t));
     }
+
+    /// <summary>The drawn dress stands on the table it is handed: the hill under that table's rubber, the dirt around its bags (#1190).</summary>
+    [Fact]
+    public void TheDressIsTheTablesDiamond()
+    {
+        var t = Wider();
+        var d = DiamondGeometry.Of(t);
+        Assert.Equal(ParkDiamond.RubberY, ParkDiamond.StandY(0, d.Mound, d));
+        Assert.True(ParkDiamond.StandY(0, d.Mound, DiamondGeometry.Of(Table)) < ParkDiamond.RubberY);
+        Assert.True(ParkDiamond.OnDirt(d.First.X, d.First.Z, d));
+        Assert.Equal((float)(d.Second.Z * 0.5), ParkDiamond.CenterZ(d));
+        Assert.Equal((float)t.Infield.InnerHalfFt, ParkDiamond.InnerHalf(d));
+        Assert.Equal((float)t.Infield.BackArcFt, ParkDiamond.BackR(d));
+    }
 }

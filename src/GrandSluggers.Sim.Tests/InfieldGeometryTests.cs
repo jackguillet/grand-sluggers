@@ -72,10 +72,10 @@ public sealed class InfieldGeometryTests
     {
         var infield = RulesTable.Load(_content.Root).Infield;
 
-        Assert.Equal((float)infield.InnerHalfFt, ParkDiamond.InnerHalf);
-        Assert.Equal((float)infield.BackArcFt, ParkDiamond.BackR);
-        Assert.Equal((float)(infield.MoundFt + infield.BackArcFt), ParkDiamond.DirtMaxZ);
-        Assert.Equal((float)infield.BackArcFt, ParkDiamond.DirtMaxX);
+        Assert.Equal((float)infield.InnerHalfFt, ParkDiamond.InnerHalf(DiamondGeometry.Of(Rules.Default)));
+        Assert.Equal((float)infield.BackArcFt, ParkDiamond.BackR(DiamondGeometry.Of(Rules.Default)));
+        Assert.Equal((float)(infield.MoundFt + infield.BackArcFt), ParkDiamond.DirtMaxZ(DiamondGeometry.Of(Rules.Default)));
+        Assert.Equal((float)infield.BackArcFt, ParkDiamond.DirtMaxX(DiamondGeometry.Of(Rules.Default)));
 
         // The dress the decision left in feet, named so a later reader does not migrate them too.
         Assert.Equal(10f, ParkDiamond.PathWidth);
@@ -303,8 +303,8 @@ public sealed class InfieldGeometryTests
         Assert.Equal(92, infield.BackArcFt);
 
         // The shipped table is untouched, and the running process still draws it.
-        Assert.Equal(44.44f, ParkDiamond.InnerHalf);
-        Assert.Equal(81.78f, ParkDiamond.BackR);
+        Assert.Equal(44.44f, ParkDiamond.InnerHalf(DiamondGeometry.Of(Rules.Default)));
+        Assert.Equal(81.78f, ParkDiamond.BackR(DiamondGeometry.Of(Rules.Default)));
     }
 
     /// <summary>A data root is named to a whole process, so two roots are two runs to diff.</summary>

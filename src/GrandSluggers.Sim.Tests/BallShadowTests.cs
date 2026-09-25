@@ -27,12 +27,12 @@ public sealed class BallShadowTests
     [InlineData(63.64, 63.64)] // Bag apron
     public void ProjectsStraightDownAndClearsEveryFieldSkin(double x, double z)
     {
-        var point = BallShadow.Project(x, z, _feel);
+        var point = BallShadow.Project(x, z, _feel, DiamondGeometry.Of(Rules.Default));
         Assert.Equal(x, point.X);
         Assert.Equal(z, point.Z);
         Assert.True(point.Y > ParkDiamond.GrassTop);
         Assert.True(point.Y > ParkDiamond.PathTop);
-        Assert.True(point.Y > ParkDiamond.StandY(x, z));
+        Assert.True(point.Y > ParkDiamond.StandY(x, z, DiamondGeometry.Of(Rules.Default)));
     }
 
     [Fact]
@@ -40,9 +40,9 @@ public sealed class BallShadowTests
     {
         var custom = _feel with { NearDiameterFt = 8, FarDiameterFt = 4, HeightRangeFt = 100 };
         Assert.Equal(6, BallShadow.Diameter(50, custom));
-        Assert.Equal(BallShadow.Project(12, 210, _feel), BallShadow.Project(12, 210, custom));
+        Assert.Equal(BallShadow.Project(12, 210, _feel, DiamondGeometry.Of(Rules.Default)), BallShadow.Project(12, 210, custom, DiamondGeometry.Of(Rules.Default)));
         custom = custom with { SurfaceLiftFt = 0.1 };
-        Assert.Equal(0.06, BallShadow.Project(12, 210, custom).Y - BallShadow.Project(12, 210, _feel).Y, 6);
+        Assert.Equal(0.06, BallShadow.Project(12, 210, custom, DiamondGeometry.Of(Rules.Default)).Y - BallShadow.Project(12, 210, _feel, DiamondGeometry.Of(Rules.Default)).Y, 6);
     }
 
     [Fact]
