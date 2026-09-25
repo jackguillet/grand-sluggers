@@ -3,7 +3,51 @@
   "takes": [
     {
       "file": "bunt-L.fbx",
-      "sha256": "4e772925086e17bd95ff0577f2c6387ef3ab889cb889bb1bb66d16a077d25953",
+      "sha256": "eb74867a63406766fdeb9f10bf0ff3d4547fb95e4ce8cd632a7b3ac89df9529b",
+      "frames": 13,
+      "contracts": [
+        "bunt",
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "bunt-pull-L.fbx",
+      "sha256": "e32445253ee0e077f7d306992570f1c159b901ef8c0c906348941e147a388726",
+      "frames": 13,
+      "contracts": [
+        "bunt",
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "bunt-pull.fbx",
+      "sha256": "e0a820cb95ebfe7f72776f9ee171eb0029d40059bcfa78927f685583701c7ad5",
+      "frames": 13,
+      "contracts": [
+        "bunt",
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "bunt-push-L.fbx",
+      "sha256": "171505bdbff304c82f18bbb9d64e2de60a173c11d25389ae75a7577d800b449a",
+      "frames": 13,
+      "contracts": [
+        "bunt",
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "bunt-push.fbx",
+      "sha256": "b95f1fd161a23e56114364df61600d384c4471c358f0864fda396e026eb56944",
       "frames": 13,
       "contracts": [
         "bunt",
@@ -14,7 +58,7 @@
     },
     {
       "file": "bunt.fbx",
-      "sha256": "2abc77e8167e2d2fd054f19ecd59e2e9544fa3976701b8f91c46070168638fdb",
+      "sha256": "8afa99e5c1c892a609038bdb57e04b9272522dd5d65b330c641c8c2f48aafb80",
       "frames": 13,
       "contracts": [
         "bunt",
@@ -109,10 +153,11 @@
     },
     {
       "file": "jump.fbx",
-      "sha256": "3d99fe6483765bd6e3cdd276fcacd78f25df7afc951b28b941125ff26b35732d",
+      "sha256": "9a423c331c8b0ca39caf6831ea2be7c2be28888ff6ce8640f8c18b9d8b755567",
       "frames": 34,
       "contracts": [
         "feet",
+        "jump",
         "sockets"
       ]
     },
@@ -191,10 +236,11 @@
     },
     {
       "file": "scoop.fbx",
-      "sha256": "e1688eac30383c50797655b85ca992427776108d46017bd6a732dc00113b1f63",
+      "sha256": "80dc29857aa5055ff7ec72535dc34e2012485a1604a69c4bb7f0111c0032f83d",
       "frames": 31,
       "contracts": [
         "feet",
+        "scoop",
         "sockets"
       ]
     },
@@ -227,7 +273,51 @@
     },
     {
       "file": "styles/ape/bunt-L.fbx",
-      "sha256": "16c94fdc00bd11bc6f86c41317ce04c77392675e7b83fc090fd70de3b0326f83",
+      "sha256": "a00419b9892ef3fdfab696ba697bbed11050b0f46557c334ffab1d72a81337cb",
+      "frames": 13,
+      "contracts": [
+        "bunt",
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/bunt-pull-L.fbx",
+      "sha256": "f7eaac919c9714bdffdf7f3433d6bc8767f443da5380f36c27247741816fd24b",
+      "frames": 13,
+      "contracts": [
+        "bunt",
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/bunt-pull.fbx",
+      "sha256": "1e418a60772804b100326ba788a55c9f6a05e79b639273237e220c25d3825da2",
+      "frames": 13,
+      "contracts": [
+        "bunt",
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/bunt-push-L.fbx",
+      "sha256": "569f8eb96e7d274a0c0e27cdbd1581e29df578299aeeb58d397dba98b10f3d78",
+      "frames": 13,
+      "contracts": [
+        "bunt",
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/bunt-push.fbx",
+      "sha256": "047aa80746092a7cf74948a6e271c0c53e19c955edf7829fedc111afd6dc19be",
       "frames": 13,
       "contracts": [
         "bunt",
@@ -238,7 +328,7 @@
     },
     {
       "file": "styles/ape/bunt.fbx",
-      "sha256": "245b00065efe67da22330b9843805371f1595a3694ce49a56c6d24108541a177",
+      "sha256": "6cf128ed18299ffa69de9d4f1dc409a47de505e1ec7570e6f7b281c621455adb",
       "frames": 13,
       "contracts": [
         "bunt",
@@ -333,10 +423,11 @@
     },
     {
       "file": "styles/ape/jump.fbx",
-      "sha256": "80ef497a28ba025ebcf71a8da96925931a85893af06b8ffd99c095a95826f012",
+      "sha256": "c3221afcaf32925c59644ad6bd373038d693ad520a58e05dd20bf90bd212933d",
       "frames": 34,
       "contracts": [
         "feet",
+        "jump",
         "sockets"
       ]
     },
@@ -415,10 +506,11 @@
     },
     {
       "file": "styles/ape/scoop.fbx",
-      "sha256": "8f811d2d5acfcd02876e1eb6a358c9c5a317b43d5abefab53abbd4cc9b676b10",
+      "sha256": "cdc7c664ad5bf8c40307a52b2b64aee5e519d00ab5ca1a231b2bf8b7db94d864",
       "frames": 31,
       "contracts": [
         "feet",
+        "scoop",
         "sockets"
       ]
     },
@@ -464,6 +556,28 @@
       "file": "styles/ape/swing-charge.fbx",
       "sha256": "50814316a474c22b0593bd7f4cf989e0444a2dc5a1cd8fce4af3e2efefc159ba",
       "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/ape/swing-letgo-L.fbx",
+      "sha256": "810ca94dd151351a011a7f6849ce9b428ec7c66b7b4eda04002eacae6963ff8d",
+      "frames": 23,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/ape/swing-letgo.fbx",
+      "sha256": "3443e0b6798edd1e6ff63ee58dcda6756109a978f1c365dbfd0ccce0d94d804c",
+      "frames": 23,
       "contracts": [
         "feet",
         "reflection",
@@ -1655,6 +1769,28 @@
       "file": "swing-charge.fbx",
       "sha256": "fd4dcfe4b2cf9b55e2e9e447e9f71b7047ff73f71faa9816d06a72b2372b6e32",
       "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "swing-letgo-L.fbx",
+      "sha256": "2e9cd69826b659c44c65fa14f3a4853845727ad7f5bd0f4d6a4836c0b42d82cd",
+      "frames": 23,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "swing-letgo.fbx",
+      "sha256": "313fe43aaff20c5f5b033e15d2d1521a491e559d6828904f35851c3bb193dbf2",
+      "frames": 23,
       "contracts": [
         "feet",
         "reflection",

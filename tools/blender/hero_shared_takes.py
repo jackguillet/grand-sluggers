@@ -315,11 +315,14 @@ def _jump_keys():
         air = _lerp(coil, 8, hang)
         thigh = _lerp(air, 42, land)
         shin = _lerp(_lerp(70, 20, take), _lerp(12, 50, land), min(1.0, hang * 0.2 + land))
-        arms = _lerp(_lerp(-20, 150, take), 40, land)
+        # The glove arm reaches all the way up; the bare arm comes up behind it and stops short (a one-hand reach).
+        glove = _lerp(_lerp(-20, 172, take), 40, land)
+        bare = _lerp(_lerp(-20, 118, take), 40, land)
+        # Coil and landing stand on the dirt (ground_hop); the soles' air is the hop, JUMP_PEAK at the top.
         keys.append((t, K(torso=spine(_lerp(18, 4, hang) + 10 * land), head=spine(-8 * hang),
-                          lUpper=limb(arms, 14), rUpper=limb(arms, 14), lFore=limb(20), rFore=limb(20),
+                          lUpper=limb(glove, 12), rUpper=limb(bare, 20), lFore=limb(12), rFore=limb(34),
                           lThigh=limb(thigh, 6), rThigh=limb(thigh, 6), lShin=limb(shin), rShin=limb(shin),
-                          lift=JUMP_PEAK * math.sin(math.pi * u))))
+                          hop=JUMP_PEAK * math.sin(math.pi * u))))
     return keys
 
 
@@ -603,15 +606,17 @@ STYLE_POSES = {
 BASEBALL = jsonc.load(Path(__file__).resolve().parents[2] / "data/art/baseball-takes.json")
 BASEBALL_TAKES = {row["id"]: row for row in BASEBALL["takes"]}
 
+# A ground ball fielded out front (#558): feet wider than the shoulders, the seat dropped, the back near 45°, the glove on
+# the dirt ahead of the toes and the bare hand over it, eyes on the ball; then up into the throw. Stands on the dirt (ground_hop).
 SCOOP = [
-    (0.00, K(torso=spine(14, 4), head=spine(10), lUpper=limb(20, 10), rUpper=limb(22, 10), lFore=limb(24), rFore=limb(26),
-             lThigh=limb(28, 8), rThigh=limb(24, 8), lShin=limb(24), rShin=limb(22), lift=-0.07)),
-    (0.10, K(torso=spine(24, 2), head=spine(16), lUpper=limb(34, 8), rUpper=limb(38, 8), lFore=limb(38), rFore=limb(42),
-             lThigh=limb(42, 10), rThigh=limb(38, 10), lShin=limb(36), rShin=limb(34), lift=-0.22)),
-    (0.22, K(torso=spine(32, 0), head=spine(18), lUpper=limb(44, 6), rUpper=limb(48, 6), lFore=limb(48), rFore=limb(52),
-             lThigh=limb(50, 12), rThigh=limb(46, 12), lShin=limb(44), rShin=limb(42), lift=-0.32)),
-    (0.50, K(torso=spine(10, -4), head=spine(6), lUpper=limb(16, 12), rUpper=limb(14, 12), lFore=limb(18), rFore=limb(20),
-             lThigh=limb(20, 4), rThigh=limb(18, 4), lShin=limb(16), rShin=limb(14), lift=-0.03)),
+    (0.00, K(torso=spine(16, 4), head=spine(4), lUpper=limb(24, 10), rUpper=limb(24, 10), lFore=limb(24), rFore=limb(30),
+             lThigh=limb(26, 16), rThigh=limb(24, 16), lShin=limb(30), rShin=limb(28))),
+    (0.10, K(torso=spine(36, 2), head=spine(-8), lUpper=limb(50, -4), rUpper=limb(48, -16, 14), lFore=limb(10), rFore=limb(22),
+             lThigh=limb(62, 24), rThigh=limb(60, 24), lShin=limb(76), rShin=limb(74))),
+    (0.22, K(torso=spine(64, 0), head=spine(-34), lUpper=limb(80, -12), rUpper=limb(70, -30, 30), lFore=limb(4), rFore=limb(4),
+             lThigh=limb(86, 36), rThigh=limb(84, 36), lShin=limb(104), rShin=limb(102))),
+    (0.50, K(torso=spine(12, -4), head=spine(4), lUpper=limb(18, 12), rUpper=limb(16, 12), lFore=limb(20), rFore=limb(22),
+             lThigh=limb(22, 10), rThigh=limb(20, 10), lShin=limb(22), rShin=limb(20))),
 ]
 
 SLIDE = [
@@ -853,7 +858,7 @@ def ground_support(arm):
     root.matrix=matrix;bpy.context.view_layer.update()
 
 
-def pose_swing_frame(arm, t, clip=SWING_SLAP):
+def pose_swing_frame(arm, t, clip=SWING_SLAP, extra=None, extra_w=0.0):
     swing = SWINGS[clip]
     times = swing["times"]
     keys = [(k, swing["legs"][k]) for k in times]
@@ -861,6 +866,9 @@ def pose_swing_frame(arm, t, clip=SWING_SLAP):
     stance = STYLE_POSES[ACTIVE["style"]]["stance"] if ACTIVE["style"] else {}
     if stance:
         keys = [(k, add_terms(pose, stance, stance_weight(k))) for k, pose in keys]
+    # A take built on this one (the let-go) adds its own body-term delta to every key; the hands still solve to the bat.
+    if extra and extra_w:
+        keys = [(k, add_terms(pose, extra, extra_w)) for k, pose in keys]
     apply_pose(arm, pose_at(keys, t, ease=False, loop=False, duration=SWING_FINISH))
     ground_support(arm)
     batting_stance.author_visible_stance(arm, t, bats=batting_stance.BATS_RIGHT, **STANCE_LANDMARKS)
@@ -1020,6 +1028,62 @@ def catch_validate(arm, t, bats):
     for hand in ("lHand", "rHand"):
         if center(hand).z < head:
             raise RuntimeError(f"catch {bats}: {hand} is below the head at the hold ({center(hand).z:.2f} vs {head:.2f})")
+
+
+def sole_height(arm) -> float:
+    """The lowest shoe vertex above the dirt (z 0), rig units."""
+    deps = bpy.context.evaluated_depsgraph_get()
+    low = 1e6
+    for name in ("lShoe", "rShoe"):
+        ob = bpy.data.objects[name].evaluated_get(deps)
+        mesh = ob.to_mesh()
+        low = min(low, min((ob.matrix_world @ v.co).z for v in mesh.vertices))
+        ob.to_mesh_clear()
+    return low
+
+
+def at_key(t, key):
+    return abs(t - key) <= 0.5 / FPS
+
+
+# The scoop's reference relationships at Contact (#558): the glove on the dirt out in front of the feet, a base wider than
+# the shoulders, the bare hand over the glove. Rig units (the body stands about 4.9 tall).
+SCOOP_GLOVE_MAX_Z = 0.45
+SCOOP_GLOVE_AHEAD = 0.6
+SCOOP_BARE_OVER = 0.9
+
+
+def scoop_validate(arm, t, bats):
+    if not at_key(t, 0.22):
+        return
+    glove, bare = center("lHand"), center("rHand")
+    ls, rs = center("lShoe"), center("rShoe")
+    shoulders = (arm.matrix_world @ arm.pose.bones["lUpper"].head - arm.matrix_world @ arm.pose.bones["rUpper"].head).length
+    if glove.z - sole_height(arm) > SCOOP_GLOVE_MAX_Z:
+        raise RuntimeError(f"scoop: the glove is {glove.z:.2f} off the dirt at Contact; it must be within {SCOOP_GLOVE_MAX_Z}")
+    if glove.y > min(ls.y, rs.y) - SCOOP_GLOVE_AHEAD:  # forward is -y
+        raise RuntimeError(f"scoop: the glove ({glove.y:.2f}) is not {SCOOP_GLOVE_AHEAD} ahead of the feet ({min(ls.y, rs.y):.2f})")
+    if abs(ls.x - rs.x) < shoulders:
+        raise RuntimeError(f"scoop: the base ({abs(ls.x - rs.x):.2f}) is narrower than the shoulders ({shoulders:.2f})")
+    if bare.z <= glove.z or (bare - glove).length > SCOOP_BARE_OVER:
+        raise RuntimeError(f"scoop: the bare hand is not over the glove ({tuple(bare)} vs {tuple(glove)})")
+
+
+JUMP_TOP_KEY = 0.28  # the jump's top key (_jump_keys)
+
+
+def jump_validate(arm, t, bats):
+    """Take-off and landing stand on the dirt; at the top the soles are JUMP_PEAK up and the glove reaches above the head
+    and above the bare hand (a one-hand reach)."""
+    sole = sole_height(arm)
+    if (at_key(t, 0.0) or at_key(t, JUMP_DUR)) and abs(sole) > 0.02:
+        raise RuntimeError(f"jump: the feet are {sole:.2f} off the dirt at {t:.3f}; take-off and landing stand on it")
+    if at_key(t, JUMP_TOP_KEY):
+        if abs(sole - JUMP_PEAK) > 0.15:
+            raise RuntimeError(f"jump: the soles rise {sole:.2f} at the top; Motion.JumpPeak is {JUMP_PEAK}")
+        glove, bare, head = center("lHand"), center("rHand"), center("headMesh")
+        if glove.z < head.z + 1.0 or glove.z < bare.z + 0.4:
+            raise RuntimeError(f"jump: the glove ({glove.z:.2f}) does not reach over the head ({head.z:.2f}) and the bare hand ({bare.z:.2f})")
 
 
 def frame_times(take):
@@ -1235,12 +1299,34 @@ def miss_frame(arm, t):
     bpy.context.view_layer.update()
 
 
-def bunt_frame(arm, t):
+BUNT_CLIPS = {"bunt": None, "bunt-pull": "pull", "bunt-push": "push"}
+
+
+def bunt_axis(side):
+    """The squared barrel in Unity batter axes (+Z pitcher): the row's barrel, turned about the vertical by the side's
+    yaw so a positive yaw carries the barrel end toward the pitcher and the face toward the pull side (PH-14-R3)."""
     row = BASEBALL["bunt"]
-    apply_pose(arm, row["pose"])
+    axis = Vector(row["barrel"]).normalized()
+    if side:
+        yaw = math.radians(row["sides"][side]["yawDeg"])
+        axis = Vector((axis.x * math.cos(yaw) - axis.z * math.sin(yaw), axis.y,
+                       axis.x * math.sin(yaw) + axis.z * math.cos(yaw))).normalized()
+    return axis
+
+
+def bunt_frame(side):
+    def custom(arm, t):
+        pose_bunt_frame(arm, side)
+    return custom
+
+
+def pose_bunt_frame(arm, side):
+    row = BASEBALL["bunt"]
+    pose = add_terms(row["pose"], row["sides"][side]["pose"]) if side else row["pose"]
+    apply_pose(arm, pose)
     ground_support(arm)
     batting_stance.author_visible_stance(arm, 0.0, bats=batting_stance.BATS_RIGHT, **STANCE_LANDMARKS)
-    axis = Vector(row["barrel"]).normalized()
+    axis = bunt_axis(side)
     grip = Vector(row["grip"])
     targets = {"lFore": batting_stance.unity_to_dcc(grip + axis*row["leadAlong"], normalize=False),
                "rFore": batting_stance.unity_to_dcc(grip + axis*row["topAlong"], normalize=False)}
@@ -1250,14 +1336,41 @@ def bunt_frame(arm, t):
     aim_bat(arm, axis, grip)
 
 
-def bunt_validate(arm, t, bats):
-    row=BASEBALL["bunt"]; bat=arm.pose.bones["bat"]
-    axis=-(bat.matrix.to_3x3() @ Vector((0,1,0))).normalized()
-    lead,top=("lHand","rHand") if bats==batting_stance.BATS_RIGHT else ("rHand","lHand")
-    for hand,along in ((lead,row["leadAlong"]),(top,row["topAlong"])):
-        miss=(center(hand)-(bat.head+axis*along)).length
-        if miss > .02: raise RuntimeError(f"bunt {bats} {hand} misses bat by {miss:.3f}")
-    if abs(axis.z) > .02: raise RuntimeError("bunt barrel must be level")
+def bunt_validate(side):
+    def validate(arm, t, bats):
+        row=BASEBALL["bunt"]; bat=arm.pose.bones["bat"]
+        axis=-(bat.matrix.to_3x3() @ Vector((0,1,0))).normalized()
+        lead,top=("lHand","rHand") if bats==batting_stance.BATS_RIGHT else ("rHand","lHand")
+        for hand,along in ((lead,row["leadAlong"]),(top,row["topAlong"])):
+            miss=(center(hand)-(bat.head+axis*along)).length
+            if miss > .02: raise RuntimeError(f"bunt {bats} {hand} misses bat by {miss:.3f}")
+        if abs(axis.z) > .02: raise RuntimeError("bunt barrel must be level")
+        # The side reads in the barrel (PH-14-R3): the barrel is the side's, reflected for a left-handed batter.
+        want = bunt_axis(side)
+        if bats == batting_stance.BATS_LEFT:
+            want.x = -want.x
+        if axis.dot(batting_stance.unity_to_dcc(tuple(want))) < 0.999:
+            raise RuntimeError(f"bunt {side} {bats}: the barrel is not the side's ({tuple(axis)})")
+    return validate
+
+
+LET_GO = BASEBALL["letGo"]
+
+
+def let_go_frame(arm, t):
+    """PH-13-R1: the held load walks back to the stance by returnAt, linearly (a partial load starts part-way in), then
+    the stance settles: the knees give and the shoulders drop by `settle` and come back by the end."""
+    ret = float(LET_GO["returnAt"])
+    u = min(1.0, t / ret)
+    source = float(LET_GO["fromAt"]) + (float(LET_GO["toAt"]) - float(LET_GO["fromAt"])) * u
+    w = math.sin(math.pi * (t - ret) / (float(LET_GO["duration"]) - ret)) if t > ret else 0.0
+    pose_swing_frame(arm, source, LET_GO["source"], extra=LET_GO["settle"], extra_w=max(0.0, w))
+
+
+def let_go_validate(arm, t, bats):
+    ret = float(LET_GO["returnAt"])
+    source = float(LET_GO["fromAt"]) + (float(LET_GO["toAt"]) - float(LET_GO["fromAt"])) * min(1.0, t / ret)
+    validate_swing_frame(arm, source, bats, LET_GO["source"])
 
 
 def solve_leg(arm, side, ankle):
@@ -1343,7 +1456,7 @@ def all_takes(style: str | None = None):
         Take("charm", CHARM, duration=1.2, loop=True),
         Take("walk", _stride(0.45, WALK_DUR, gait), duration=WALK_DUR, loop=True, sink=0.3),
         Take("run", _stride(1.0, RUN_DUR, gait), duration=RUN_DUR, loop=True, sink=0.3),
-        Take("jump", JUMP, duration=JUMP_DUR, sink=0.2),
+        Take("jump", JUMP, duration=JUMP_DUR, sink=0.2, ground=True, validate=jump_validate, contracts=("jump",)),
         *[Take(row["id"], [(k["t"],k["pose"]) for k in row["keys"]], duration=row["duration"],
                handed=True, mark=row["releaseAt"], custom=baseball_frame(row["id"]), validate=baseball_validate(row["id"]), sink=.3,
                view="three-quarter-right", contracts=("release",))
@@ -1355,15 +1468,19 @@ def all_takes(style: str | None = None):
           for clip in (SWING_SLAP, SWING_CHARGE)],
         Take("checkSwing", None, view="three-quarter-right", duration=HOLD, handed=True, custom=held_swing_frame(0.20), validate=None,
              sheet_times=[0.0], sink=0.2),
-        Take("bunt", None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame, validate=bunt_validate,
-             sheet_times=[0.0], sink=0.6, contracts=("bunt",)),
+        *[Take(clip, None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame(side),
+               validate=bunt_validate(side), sheet_times=[0.0], sink=0.6, contracts=("bunt",))
+          for clip, side in BUNT_CLIPS.items()],
+        Take("swing-letgo", None, view="three-quarter-right", duration=float(LET_GO["duration"]), handed=True, ease=False,
+             custom=let_go_frame, validate=let_go_validate, sink=0.2, contracts=("swing",),
+             sheet_times=[0.0, float(LET_GO["returnAt"]) * 0.5, float(LET_GO["returnAt"]), float(LET_GO["duration"]) * 0.8]),
         Take("miss", None, view="three-quarter-right", duration=HOLD, handed=True, custom=miss_frame, sheet_times=[0.0], sink=0.2),
         Take("catch", CATCH, duration=HOLD, validate=catch_validate, contracts=("catch",)),
         Take("dive", DIVE, duration=HOLD, sink=1.0),
         Take("crouch", CROUCH, duration=HOLD, sink=0.8),
         Take("stealLead", STEAL_LEAD, duration=HOLD, sink=0.8),
         Take("spin", SPIN, duration=HOLD),
-        Take("scoop", SCOOP, duration=0.50, mark=0.22, sink=0.9),
+        Take("scoop", SCOOP, duration=0.50, mark=0.22, sink=0.9, ground=True, validate=scoop_validate, contracts=("scoop",)),
         Take("slide", SLIDE, duration=0.40, mark=0.18, sink=1.2),
     ]
 
@@ -1410,7 +1527,7 @@ def add_review_equipment(arm):
 
 
 def review_equipment(clip, left=False):
-    batting=clip.startswith("swing-") or clip in ("bunt","checkSwing","miss")
+    batting=clip.startswith(("swing-","bunt")) or clip in ("checkSwing","miss")
     for name in ("bat-wood","glove-brown","glove-brown-R"):
         ob=bpy.data.objects.get(name)
         if ob:

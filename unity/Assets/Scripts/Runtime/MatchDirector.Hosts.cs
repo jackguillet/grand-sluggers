@@ -270,7 +270,7 @@ namespace GrandSluggers.UnityClient
         bool IActorHost.HumanBats => HumanBats;
         bool IActorHost.HumanPitches => HumanPitches;
         bool IActorHost.HumanOwnsThrow => HumanOwnsThrow;
-        bool IActorHost.SquaredNow => AtBat.SquaredNow;
+        IBatterTells IActorHost.Batter => AtBat;
         bool IActorHost.PlateSwingArmed => _plate.Swing.Armed;
         float IActorHost.PitchCharge => AtBat.PitchCharge;
         string IActorHost.ShownPitchType => AtBat.ShownPitchType;
