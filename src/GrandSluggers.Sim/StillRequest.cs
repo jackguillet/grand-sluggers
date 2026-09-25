@@ -134,6 +134,40 @@ public sealed class StillRequest
         shot.Equals("char-rest", StringComparison.OrdinalIgnoreCase)
         || shot.Equals("char-pose", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>The still-gate menu's request when nothing is staged: <see cref="DefaultShots"/>, Rio at home against Ashlord, HUD off.</summary>
+    public static string DefaultGateRequestJson() =>
+        "{\"shots\":[" + string.Join(",", DefaultShots.Select(s => "\"" + s + "\""))
+        + "],\"home\":\"rio\",\"away\":\"ashlord\",\"hudOff\":true,\"charge01\":1}";
+
+    /// <summary>The captain the character-still menu captures when no request names one.</summary>
+    public const string DefaultCharacterHome = "fenn";
+
+    /// <summary>The character-still request when nothing is staged: rest and pose for <see cref="DefaultCharacterHome"/>.</summary>
+    public static string DefaultCharacterRequestJson() =>
+        "{\"shots\":[\"char-rest\",\"char-pose\"],\"home\":\"" + DefaultCharacterHome
+        + "\",\"away\":\"rio\",\"hudOff\":true,\"width\":1920,\"height\":1080}";
+
+    /// <summary>
+    /// What the character-still menu stages. A request already staged for character
+    /// shots only (<c>tools/still-gate-character.sh {id}</c> writes one) is kept as it
+    /// is, so its captain is the one captured. Anything else (nothing staged, other
+    /// shots, or a request that does not parse) is replaced by the default.
+    /// </summary>
+    public static string CharacterRequestJson(string? staged)
+    {
+        if (!string.IsNullOrWhiteSpace(staged))
+        {
+            try
+            {
+                var shots = Parse(staged).ResolvedShots();
+                if (shots.Count > 0 && shots.All(IsCharShot)) return staged;
+            }
+            catch (InvalidDataException) { }
+            catch (System.Text.Json.JsonException) { }
+        }
+        return DefaultCharacterRequestJson();
+    }
+
     public static bool IsSwingMatrixShot(string shot) =>
         shot.Equals("swing-matrix", StringComparison.OrdinalIgnoreCase);
 
