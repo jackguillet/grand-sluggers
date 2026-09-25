@@ -27,7 +27,7 @@ Every arrow is a hand-off with a written artifact. Nothing is carried in someone
 
 ## 1. Research before code
 
-- **Two maps, made in parallel by read-only agents.** One maps the reference (what the game we are matching actually does, every fact cited or marked UNVERIFIED — [research-sluggers.md](research-sluggers.md) "Mechanics teardown"). The other maps the code (how it works *today*, with `file:line` for every decision, hack, roll, and literal). Neither proposes fixes.
+- **Two maps, made in parallel by read-only agents.** One maps the reference (what the game we are matching actually does, every fact cited or marked UNVERIFIED — [research-sluggers.md](archive/reference/research-sluggers.md) "Mechanics teardown"). The other maps the code (how it works *today*, with `file:line` for every decision, hack, roll, and literal). Neither proposes fixes.
 - **Play the headless game first.** `cli match --seed 7` before any change is the baseline; it said "8–0 doubles fest, items on every other hit" before anyone read a line.
 - **Corrections come from the reference, not from taste.** The first draft of the spec had lead-offs, a timing-based perfect band, and a random pickoff risk. The reference had none of them. Every such change is a numbered decision (spec §0.1) with the source that decided it.
 
@@ -61,22 +61,11 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 - Agents do not pass human gates. Each PR body ends with "what a sitting should check". The phase ends with a consolidated checklist on the parent epic (#209) that says what each block closes.
 - A sitting note or a failed still becomes **one issue per finding** with observed / likely cause (from the code map) / observable when fixed / files / tests, filed under the epic that owns the lie. Ten such children were filed from one sitting and routed to P1, P2, P4, P8, and the rig epic; three were closed by the epics without a dedicated PR.
 - "Do not silently patch" held: every sitting finding has an issue number and a PR number.
-- File *and* remember (R7 #654). After a sitting or a failed still:
-  1. **File** the child issue under the epic that owns the lie (#342 book, #209 play, #188 toy).
-  2. **Append** a row to `data/agent/debug-protocol.json` for a novel signature, in the same PR as the fix, or in the sitting-child PR. A repeat or a PR name is not a row. GitHub children stay; they are not the memory (`cli protocol`).
-  3. **Promote on the second firing** to a validator or a scenario (`BagIsInsideTheFoulLine` shape). Do not wait for a third. The protocol `promoted` field names the test that would catch the *next* captain or play, not only the screenshot that found it.
-  4. If the lesson is procedural (how to look, how to bake), add it to `.claude/skills/character-art/` or [agent-rails.md](agent-rails.md), not only the PR body. character-art grew from `swing-*-max-load` (#623 / `bat-through-head`).
+- File *and* remember: file one issue per finding, append a protocol row for a novel signature, promote on the second firing. The rule is [agent-rails.md §7](agent-rails.md#7-distill-file-and-remember); character-art grew from `swing-*-max-load`.
 
-## What it produced (2026-09-12)
+## What it produced
 
-| | |
-| --- | --- |
-| Sessions | 10 (P0–P8 and the seat fix #579), one worktree each |
-| PRs merged to `main` | 30, #561 → #604 |
-| Issues opened | 23 (9 epics, 10 sitting children, spec/roadmap threads) |
-| Rules moved to data | `data/rules/` batting, pitching, flight, fielding, running, stars, cpu, match |
-| Tests | ≈ 800 (from ≈ 600), including the scenario harness S-01 … S-92 and S-29 over fifty seeds |
-| Headless game | seed 7: 8–0, items on half the hits → 10–3 with walks, a sac fly, a ground-rule double, pickoff beats; fifty seeds 2.5–2.7 runs a side |
+Phase P's output is history: [archive/phase-p/shipped-phases.md](archive/phase-p/shipped-phases.md).
 
 ## What to keep doing
 

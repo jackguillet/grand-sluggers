@@ -1,10 +1,12 @@
 # Field proportions and the readable baseball race
 
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §0.2 (D19)](../../spec/00-decisions.md) and [the decision plan](../../decisions/plan-game-feel-693.md). Where they disagree, the contract is right.
+
 ## Decision status
 
 This is the research and design foundation for [#693](https://github.com/jackguillet/grand-sluggers/issues/693), serving #209 and the flight/fielding work in #564/#566. It responds to Jack's sitting on `850dd95`: contact and throws are too fast, and the field may need to be smaller. The implementation audit below uses `eff10d9`, not the sitting revision.[^10] Jack's direction on September 14, 2026 is **compare Wii Super Sluggers and GameCube Superstar Baseball before choosing**.
 
-The recommended decision unit is a **whole baseball race**: contact, defensive read, pursuit, possession, player decision, release, ball travel, receiver, runner arrival. World dimensions, character proportions, ball motion, and framing must support that race together. This document establishes research findings and proposed acceptance methods; it does not approve new gameplay coefficients or declare reference parity. The [execution plan](plan-game-feel-693.md) tracks what is established, what needs measurement, and who can accept the result.
+The recommended decision unit is a **whole baseball race**: contact, defensive read, pursuit, possession, player decision, release, ball travel, receiver, runner arrival. World dimensions, character proportions, ball motion, and framing must support that race together. This document establishes research findings and proposed acceptance methods; it does not approve new gameplay coefficients or declare reference parity. The [execution plan](../../decisions/plan-game-feel-693.md) tracks what is established, what needs measurement, and who can accept the result.
 
 Three conclusions are supported now:
 
@@ -24,7 +26,7 @@ Every numeric claim has one of five statuses:
 - **Proposed:** an experiment or design contract to evaluate. It must not be called a measured reference value.
 - **Unresolved:** evidence is missing, ambiguous, or contradictory. Use an explicit unknown, never a plausible default.
 
-The source register in §10 distinguishes the two games. The existing [reference teardown](research-sluggers.md) remains useful for mechanics. For scale and pace, its earlier figures must be read with this provenance rule. In particular, GameCube raw exit values such as 145–150 are not Harbor mph; GameCube timing cannot silently become Wii timing.
+The source register in §10 distinguishes the two games. The existing [reference teardown](../reference/research-sluggers.md) remains useful for mechanics. For scale and pace, its earlier figures must be read with this provenance rule. In particular, GameCube raw exit values such as 145–150 are not Harbor mph; GameCube timing cannot silently become Wii timing.
 
 No matched frame-count dataset for the Wii and GameCube games has yet been produced for #693. The Wii video in §10 was visually inspected at approximately 01:00, where a close infield view shows the player-controlled fielder, ball, dirt, and bags. That is qualitative framing evidence, not a world-space or timing calibration. The GameCube longplay is a candidate source; its introductory/cinematic material is excluded from measurement. Neither a video seek bar nor a single screenshot supplies simulation frames.
 
@@ -228,11 +230,11 @@ No schema or runtime loader for an approved feel profile is introduced by this r
 
 ## 9. Baseline and falsification
 
-The retained [baseline record](research/game-feel-693-baseline.json) gives formula checks, the seed-7 Harbor trace summary, and their provenance. It is descriptive, never a tuning input. The CLI run is a three-inning scheduled match that continued through extras to five innings and ended Ember Court 6, Spark All-Stars 3. It is not S-29 and it is not a human half.
+The retained [baseline record](../../research/game-feel-693-baseline.json) gives formula checks, the seed-7 Harbor trace summary, and their provenance. It is descriptive, never a tuning input. The CLI run is a three-inning scheduled match that continued through extras to five innings and ended Ember Court 6, Spark All-Stars 3. It is not S-29 and it is not a human half.
 
 A read-only replay of the existing S-31/S-32 helper adds a narrow race snapshot. These fixtures inherit Vale's **Crystal Rink**, not Harbor. With seed 1, an Ashlord shortstop (Field 3), and the inverse-solved 118-ft, 4° / −18° contact, the solver supplies **106.9 mph**. S-31 (Cinder, Run 5) first reports possession at **1.0333 s**, `Throwing` at **1.4833 s**, and the end of that throw at **2.8000 s**. The existing runner predictor gives **3.4583 s**, a **0.6583-s** arrival margin. S-32 (Dart, Run 9) reports the same initial possession, holds without a throw, and ends as a single; its predicted runner arrival is **2.8495 s**.
 
-These observations are quantized to the helper's 1/60-s tick. `Throwing` is a state flag, not a separately observed command or animated release; throw end is the helper's transition detector. The 0.45 s from possession to the first throw flag includes the existing model's readiness/decision behavior, not a newly measured animation budget. Predicted runner arrival is counterfactual for the retired batter. The margin is not an approved feel band or spare time that can safely be spent without testing other plays. [Reproduction instructions](research/game-feel-693-reproduce.md) retain the probe; #702 must replace this limited observation with explicit events and a Harbor fixture.
+These observations are quantized to the helper's 1/60-s tick. `Throwing` is a state flag, not a separately observed command or animated release; throw end is the helper's transition detector. The 0.45 s from possession to the first throw flag includes the existing model's readiness/decision behavior, not a newly measured animation budget. Predicted runner arrival is counterfactual for the retired batter. The margin is not an approved feel band or spare time that can safely be spent without testing other plays. [Reproduction instructions](../../research/game-feel-693-reproduce.md) retain the probe; #702 must replace this limited observation with explicit events and a Harbor fixture.
 
 The existing S-29 test is **50 games**, constructed from five captain pairs in both home/away orders using seeds 1–5. It is not fifty distinct seeds and is not Harbor-only: `Match.Exhibition` selects the home captain's park when none is specified. Its current assertions allow mean away and home runs **1.8–5**, doubles fewer than singles, mean homers at most **2 per game**, and nonzero aggregate strikeouts/walks. At the audited baseline, the spec headline still said **2–5**, while its #667 note explained the 1.8 floor. Jack resolved F693-06 on September 14, 2026 by retaining **1.8–5 as the regression guardrail**. The spec now matches the existing test; this decision changes no runtime coefficient and does not declare the eventual scoring experience accepted.
 

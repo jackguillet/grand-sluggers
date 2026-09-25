@@ -1,6 +1,8 @@
 # Field proportions — evidence and the deep-hit decision
 
-Research child [#701](https://github.com/jackguillet/grand-sluggers/issues/701), parent [#693](https://github.com/jackguillet/grand-sluggers/issues/693). September 14, 2026. Gameplay research/documentation; no runtime change. Companion to the [first observation packet](research-game-feel-701-comparison.md) and [decision register](plan-game-feel-693.md). Raw reports, calculations, and hypothetical sensitivity inputs live in the [geometry dataset](research/game-feel-701-geometry.json).
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §0.2 (D19)](../../spec/00-decisions.md) and [the decision plan](../../decisions/plan-game-feel-693.md). Where they disagree, the contract is right.
+
+Research child [#701](https://github.com/jackguillet/grand-sluggers/issues/701), parent [#693](https://github.com/jackguillet/grand-sluggers/issues/693). September 14, 2026. Gameplay research/documentation; no runtime change. Companion to the [first observation packet](research-game-feel-701-comparison.md) and [decision register](../../decisions/plan-game-feel-693.md). Raw reports, calculations, and hypothetical sensitivity inputs live in the [geometry dataset](../../research/game-feel-701-geometry.json).
 
 ## Finding
 

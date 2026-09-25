@@ -45,7 +45,7 @@ Art sessions walk named checkpoints. Name the stage, stop at its checkpoint, and
 
 ## Distill (from failed stills)
 
-After a sitting or a failed still: **file** the child under the epic that owns the lie, **append** a `data/agent/debug-protocol.json` row in the same PR as the fix, and on the **second** firing **promote** the signature to a validator or a scenario. Do not wait for a third. A procedural lesson (how to look, how to bake) goes here, not only the PR body.
+After a sitting or a failed still: file, append, promote on the second firing — the rule is [agent-rails.md §7](../../../docs/agent-rails.md#7-distill-file-and-remember). A procedural lesson (how to look, how to bake) goes here, not only the PR body. The stills below are the lessons that grew this skill.
 
 ### Bat through the head — `swing-*-max-load` (#623, `bat-through-head`)
 

@@ -1,10 +1,10 @@
 # Fields decision plan
 
-Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), serving #209 and building on [#713](https://github.com/jackguillet/grand-sluggers/issues/713) (the park override rail). Session kind: **Gameplay research/documentation**. Baseline: `d0c6e12c`. Research: [research-fields.md](research-fields.md). Code maps: [sim](research/fields-code-map-sim.md), [presentation](research/fields-code-map-presentation.md). Measured baseline: [fields-park-baseline.json](research/fields-park-baseline.json). Canonical structured record: [fields-decisions.json](research/fields-decisions.json). Implementation order, open questions and the ledger: [plan-fields-implementation.md](plan-fields-implementation.md). Shipping contract: [gameplay-spec.md](gameplay-spec.md) §0.3 (D21).
+Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), serving #209 and building on [#713](https://github.com/jackguillet/grand-sluggers/issues/713) (the park override rail). Session kind: **Gameplay research/documentation**. Baseline: `d0c6e12c`. Research: [research-fields.md](../archive/fields/research-fields.md). Code maps: [sim](../research/fields-code-map-sim.md), [presentation](../research/fields-code-map-presentation.md). Measured baseline: [fields-park-baseline.json](../research/fields-park-baseline.json). Canonical structured record: [fields-decisions.json](../research/fields-decisions.json). Implementation order, open questions and the ledger: [plan-fields-implementation.md](../archive/fields/plan-fields-implementation.md). Shipping contract: [gameplay-spec.md](../gameplay-spec.md) §0.3 (D21).
 
 ## Current state
 
-Research and maps are done. **All 19 directions and refinement FD-08-R1 are accepted (Jack, September 21, 2026). The code is complete; the human gates are open: see [status.md](status.md) and [plan-fields-implementation.md](plan-fields-implementation.md) §0.** Jack's brief: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **All 19 directions and refinement FD-08-R1 are accepted (Jack, September 21, 2026). The code is complete; the human gates are open: see [status.md](../status.md) and [plan-fields-implementation.md](../archive/fields/plan-fields-implementation.md) §0.** Jack's brief: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 
@@ -21,7 +21,7 @@ Directions only. Each line names its decision; the register below has the exact 
 - **Learning (FD-15).** The field card, then in-park tells and stamps, then a Practice lesson per hazard pattern and per ground that changes the ball.
 - **Order (FD-18).** Crystal Rink proves the rails first. Funfair Park is the expected second park because it carries the first random hazard; it is not selected.
 
-**Next work.** The spec is reconciled (D21, §0.3, §6.1, §14, §16, A.10, B.9), the owed corrections to [parks.md](parks.md), [systems.md](systems.md) and [research-sluggers.md](research-sluggers.md) are made, and the [implementation map](plan-fields-implementation.md) orders the children. Next: file one bounded child at a time, starting with F1-a, and bring Jack the map's questions one at a time as they start to block.
+**Next work.** The spec is reconciled (D21, §0.3, §6.1, §14, §16, A.10, B.9), the owed corrections to [parks.md](../parks.md), [systems.md](../systems.md) and [research-sluggers.md](../archive/reference/research-sluggers.md) are made, and the [implementation map](../archive/fields/plan-fields-implementation.md) orders the children. Next: file one bounded child at a time, starting with F1-a, and bring Jack the map's questions one at a time as they start to block.
 
 ## How we use this together
 
@@ -29,7 +29,7 @@ Directions only. Each line names its decision; the register below has the exact 
 2. The answer goes into the JSON: option, accepted scope, date, author, and the quote. A recommendation is never a selection.
 3. History is appended, never erased. A replaced choice is marked `superseded` with a link.
 4. A direction selects intent only. `numeric_targets` stays `null` until a scoped trial is accepted with units, conditions and limits.
-5. This file, the JSON and the tracker stay in step. The spec ([gameplay-spec.md](gameplay-spec.md) §6, §14, §16) stays the shipping contract; a changed rule is reconciled there before code.
+5. This file, the JSON and the tracker stay in step. The spec ([gameplay-spec.md](../gameplay-spec.md) §6, §14, §16) stays the shipping contract; a changed rule is reconciled there before code.
 6. An implementation child is filed only when its contract is ready. It names its decision ids, its rails (FR ids), its scenario ids and its banned files.
 
 Status: `open → direction-accepted → trial-accepted → implemented → validated → human-accepted`, plus `deferred`, `rejected`, `superseded`. Automated checks never fill `human_acceptance`.
@@ -42,9 +42,9 @@ Three findings from the maps set the work:
 
 | # | Finding | Evidence |
 | --- | --- | --- |
-| 1 | Today a park can change only its three fence posts, its fence height, its wind, one night number, and its hazards. `surface` changes no play. All ball physics and all body motion are global. | [sim map](research/fields-code-map-sim.md) §1–§2, §5 |
+| 1 | Today a park can change only its three fence posts, its fence height, its wind, one night number, and its hazards. `surface` changes no play. All ball physics and all body motion are global. | [sim map](../research/fields-code-map-sim.md) §1–§2, §5 |
 | 2 | Hazards are older than Phase P. Each is decided once, at the preview, from the ball's landing point. No body ever touches one. The warp exit and the frozen drop are rolls. Four of eleven types do nothing. Chompers are a code literal behind a park-id string. | sim map §3 |
-| 3 | There are two diamonds on screen. Harbor draws the kit. The other five draw an older primitive diamond with different bags, dirt, chalk and mound, and they do not draw the foul rail the ball hits. Looks are five private `ParkView` methods with literal positions and colors. | [presentation map](research/fields-code-map-presentation.md) §1–§2 |
+| 3 | There are two diamonds on screen. Harbor draws the kit. The other five draw an older primitive diamond with different bags, dirt, chalk and mound, and they do not draw the foul rail the ball hits. Looks are five private `ParkView` methods with literal positions and colors. | [presentation map](../research/fields-code-map-presentation.md) §1–§2 |
 
 One measurement sets the stakes. With the same matchup and seeds, **today's parks already move runs by up to 1.35× Harbor and home runs by up to 1.45×**, and nobody chose those numbers. S-29 pools all six parks, and 70 % of its games are not at Harbor.
 
@@ -57,7 +57,7 @@ One measurement sets the stakes. With the same matchup and seeds, **today's park
 | Canopy Yard | 4.02 | 1.03 | 1.58 | 1.27 | 0.10 | 0.12 |
 | Ember Keep | 4.34 | 1.11 | 1.28 | 1.03 | 0.60 | 0.38 |
 
-Fifty three-inning day games per park, CPU both sides. Read a factor within about 0.15 of 1.0 as noise. The C80 rows and the limits are in the [baseline file](research/fields-park-baseline.json). The two 8-ft parks give six to eight times Harbor's ground-rule doubles; that is the clearest single effect.
+Fifty three-inning day games per park, CPU both sides. Read a factor within about 0.15 of 1.0 as noise. The C80 rows and the limits are in the [baseline file](../research/fields-park-baseline.json). The two 8-ft parks give six to eight times Harbor's ground-rule doubles; that is the clearest single effect.
 
 ## Lever matrix
 
@@ -98,14 +98,14 @@ The engineering contract. These are patterns the repo already uses; each row nam
 | FR-06 | **Parity first.** Every rail lands with no behavior change. A number moves only in a later PR that a decision authorized. | #710 → #711 parity slice; P1-a / P1-b | A parity PR changes seals only. |
 | FR-07 | **Hazards are live, and their surprises are seeded.** A hazard acts on the thing that touches it (this ball, this body), when it touches it, for a stated time. No play-wide flag from a landing point. A hazard may draw from the match's seeded stream (FD-08 C); the draw is a typed live event, and the same seed replays the same game. A draw decides what the hazard does, never a play's result (FD-08-R1): no out, hit, drop or catch by chance. | Typed `PlayEvent`s (P0); spec B.7 determinism; the one seeded `_rng` | One scenario per pattern proves the outcome from positions and the seed. A trace replays bit for bit. Unity reads the event, not a caption. |
 | FR-08 | **Patterns, not one-offs.** The sim implements a few hazard patterns. A hazard type is a data row that picks a pattern. A ninth park needs rows, not code. | "Rails, not patches": the next park must not invent it again | A new type that fits a pattern lands with zero sim code. |
-| FR-09 | **Both roots, one authoring.** Park positions are written relative to the diamond and the fence, so the shipped root and a trial root place a hazard in the same spot. A shipped park edit that leaves the trial behind fails by name. | #716 whole-file rule; #730 / #732 (absolute feet that do not scale) | `CompactGeometryTests` key-equality holds when the trial is next used; a feature PR does not owe the twin ([agent-rails.md](agent-rails.md) §1.2). No hazard coordinate is a second copy. |
-| FR-10 | **Measure every park against Harbor.** ✅ #828 (PR #834): `cli match --cohort park-factors` reports run and home-run factors on predeclared seeds, both roots, day and night, for every park in the catalog; `tools/park-factors.py` is superseded and kept only as the tool that measured the `d0c6e12c` baseline. Each park declares its intent before it gets numbers. | Harbor cohorts (F693); "no expectation edited to make it pass" | The report runs on demand: in a tuning PR, or when Jack asks ([agent-rails.md](agent-rails.md) §1.2). A feature PR does not carry it. A factor outside the accepted band (FD-02) is a finding, not a tuning target for that PR. `SF-30` (`ParkFactorsCohortTests`) falsifies the *report* — determinism, every catalog park, the control at 1.00, day and night, the root named — and asserts no factor, so the cohort can never quietly become a gate. |
+| FR-09 | **Both roots, one authoring.** Park positions are written relative to the diamond and the fence, so the shipped root and a trial root place a hazard in the same spot. A shipped park edit that leaves the trial behind fails by name. | #716 whole-file rule; #730 / #732 (absolute feet that do not scale) | `CompactGeometryTests` key-equality holds when the trial is next used; a feature PR does not owe the twin ([agent-rails.md](../agent-rails.md) §1.2). No hazard coordinate is a second copy. |
+| FR-10 | **Measure every park against Harbor.** ✅ #828 (PR #834): `cli match --cohort park-factors` reports run and home-run factors on predeclared seeds, both roots, day and night, for every park in the catalog; `tools/park-factors.py` is superseded and kept only as the tool that measured the `d0c6e12c` baseline. Each park declares its intent before it gets numbers. | Harbor cohorts (F693); "no expectation edited to make it pass" | The report runs on demand: in a tuning PR, or when Jack asks ([agent-rails.md](../agent-rails.md) §1.2). A feature PR does not carry it. A factor outside the accepted band (FD-02) is a finding, not a tuning target for that PR. `SF-30` (`ParkFactorsCohortTests`) falsifies the *report* — determinism, every catalog park, the control at 1.00, day and night, the root named — and asserts no factor, so the cohort can never quietly become a gate. |
 | FR-11 | **Lever probes.** Each lever has a fixed-input row: the same ball at Harbor and at the park, one difference, asserted. | `ParkSlowRowsTests` row pattern | A lever with no row is not shipped. |
 | FR-12 | **Seat parity.** The CPU plans on the same resolved park the ball flies in. Every hazard scenario runs on the CPU seat and on the human seat. | P5 / P6 scenario pairs | Paired rows agree. |
 | FR-13 | **One field kit, slots per park.** One park-neutral builder draws the diamond, lines, bags, mound, wall and rail from the geometry owner. A park fills named slots. Empty slots draw a complete greybox from data. The `ParkView` fallback diamond and the per-park methods retire. | art-rails.md rule 4; `HarborKit` | Harbor fills the slots with no visual change first. Every park then draws the same bags, chalk and rail. |
 | FR-14 | **Greybox before art, one park at a time.** Order per park: rules green → greybox playable → greybox sitting (Jack) → DCC stages → dual stills. Stills can request a park and night. | #37; dcc-stages and dual-stills (Harbor lane only today) | `StillRequest` carries `park` and `night`. The stage catalog has a park lane. No mesh is commissioned before the greybox sitting. |
 | FR-15 | **Tell, stamp, lesson.** Every park rule that can decide a play has a tell before it acts, a typed event when it acts, and a Practice lesson. | AGENTS.md "Tutorials grow with gameplay"; `PlayStamp` | `cli tutorials` lists a lesson per hazard pattern and per ground that changes the ball. |
-| FR-16 | **Seals move on purpose.** A feature PR that touches a sealed source does not reseal. A tuning PR or an evidence packet reseals, in the known order (flight probe `--write`, then `compact-field-report.py`) ([agent-rails.md](agent-rails.md) §1.2). `Park` gains members with defaults so positional callers still compile. | #708 packet mechanics; PR #736 | Both `--check` runs pass in the on-demand Full tests run after a reseal. |
+| FR-16 | **Seals move on purpose.** A feature PR that touches a sealed source does not reseal. A tuning PR or an evidence packet reseals, in the known order (flight probe `--write`, then `compact-field-report.py`) ([agent-rails.md](../agent-rails.md) §1.2). `Park` gains members with defaults so positional callers still compile. | #708 packet mechanics; PR #736 | Both `--check` runs pass in the on-demand Full tests run after a reseal. |
 
 ## Park identity matrix
 
@@ -156,7 +156,7 @@ Grouped by the epic that fixes it. Lines are from the maps at `d0c6e12c`.
 
 ## Epic sequence
 
-Serial by default. Each epic is filed only when the decisions it needs are accepted. Scenario ids for this phase use the block `SF-01 …` (GS Appendix B.9) so they cannot collide with the pitching and hitting work. The child-level order, with what each child needs from Jack, is in the [implementation map](plan-fields-implementation.md); the table below is the epic view.
+Serial by default. Each epic is filed only when the decisions it needs are accepted. Scenario ids for this phase use the block `SF-01 …` (GS Appendix B.9) so they cannot collide with the pitching and hitting work. The child-level order, with what each child needs from Jack, is in the [implementation map](../archive/fields/plan-fields-implementation.md); the table below is the epic view.
 
 | Epic | Kind | Delivers | Needs | Rails |
 | --- | --- | --- | --- | --- |
@@ -195,11 +195,11 @@ F1, F2 and F5 can run beside the pitching and hitting children if their file lis
 
 ## Decision register
 
-FD-01 to FD-19, refinement FD-08-R1, FD-09-R1 (map §5 Q6) and the nine refinements of September 22, 2026 (FD-06-R1, FD-06-R2, FD-08-R2, FD-09-R2, FD-11-R1, FD-13-R1, FD-13-R2, FD-16-R1, FD-19-R1) are **DIRECTION ACCEPTED**. Detailed contracts, numeric trials, implementation and human acceptance remain open. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](research-fields.md#sources).
+FD-01 to FD-19, refinement FD-08-R1, FD-09-R1 (map §5 Q6) and the nine refinements of September 22, 2026 (FD-06-R1, FD-06-R2, FD-08-R2, FD-09-R2, FD-11-R1, FD-13-R1, FD-13-R2, FD-16-R1, FD-19-R1) are **DIRECTION ACCEPTED**. Detailed contracts, numeric trials, implementation and human acceptance remain open. The recommendation is the author's proposal. Only Jack's recorded answer selects an option. Each acceptance line is a proposed falsifier, not a passed gate. Source ids resolve in the [research report](../archive/fields/research-fields.md#sources).
 
 ### FD-01 — What does the fields phase authorize?
 
-**Decision — Jack, September 21, 2026: A, then B.** "A first, then B park by park." Build the rails at Harbor parity and prove them on one second park as a greybox. Then bring the other listed parks to a playable greybox one at a time. No park art: it stays behind #37, Phase T and each park's greybox sitting. This selects no first park (FD-18), no lever, no hazard rule and no number. The scope line is in [AGENTS.md](../AGENTS.md), [roadmap.md](roadmap.md) and [art-rails.md](art-rails.md). Full provenance is in the canonical JSON.
+**Decision — Jack, September 21, 2026: A, then B.** "A first, then B park by park." Build the rails at Harbor parity and prove them on one second park as a greybox. Then bring the other listed parks to a playable greybox one at a time. No park art: it stays behind #37, Phase T and each park's greybox sitting. This selects no first park (FD-18), no lever, no hazard rule and no number. The scope line is in [AGENTS.md](../../AGENTS.md), [roadmap.md](../roadmap.md) and [art-rails.md](../art-rails.md). Full provenance is in the canonical JSON.
 
 Area: Direction. Depends on: none. Evidence: MW-MSS, SMB-TG, MH-STAD.
 
@@ -429,7 +429,7 @@ Area: Rails. Depends on: FD-02. Evidence: SAVANT-PF.
 
 **Existing contract:** F693: Harbor-specific cohorts plus the mixed-park S-29 guardrail, which has no per-park band and plays 35 of 50 games away from Harbor. `cli match --cohort s29|harbor-calibration|harbor-validation`. #713: 'keep Harbor as the only thing calibrated against until the compact profile has been through whole-race validation'.
 
-**Acceptance:** A `park-factors` report exists for both roots and is part of the evidence for every park PR. No expectation is edited to make a park pass. (Since 2026-09-22 the report runs on demand, in a tuning PR or when Jack asks: [agent-rails.md](agent-rails.md) §1.2.)
+**Acceptance:** A `park-factors` report exists for both roots and is part of the evidence for every park PR. No expectation is edited to make a park pass. (Since 2026-09-22 the report runs on demand, in a tuning PR or when Jack asks: [agent-rails.md](../agent-rails.md) §1.2.)
 
 ### FD-14 — Must the CPU know the park?
 
@@ -448,7 +448,7 @@ Area: Rails. Depends on: FD-08. Evidence: code maps only.
 
 ### FD-15 — How does a player learn what a park does?
 
-**Decision — Jack, September 21, 2026: C.** Reply "c", delivered in order. **Card:** the field pick shows size, air, ground and hazards from the park data, replacing the per-id copy switch. **Tells:** a wind flag, a ground that looks like its row, a tell when a hazard acts (and before, where it is not a surprise), a stamp from the typed event. **Lessons:** one per hazard pattern and per ground that changes the ball, under the [tutorials.md](tutorials.md) contract; a lesson runs at a park that has the hazard, and a random hazard's lesson uses a fixed seed. Card and tells are Presentation children; a lesson is a Gameplay setup child plus a Presentation child. FD-01 unblocks the tutorials.md park rows for rails and lessons, not for art. Agents do not pass the learning gate. Full provenance is in the canonical JSON.
+**Decision — Jack, September 21, 2026: C.** Reply "c", delivered in order. **Card:** the field pick shows size, air, ground and hazards from the park data, replacing the per-id copy switch. **Tells:** a wind flag, a ground that looks like its row, a tell when a hazard acts (and before, where it is not a surprise), a stamp from the typed event. **Lessons:** one per hazard pattern and per ground that changes the ball, under the [tutorials.md](../tutorials.md) contract; a lesson runs at a park that has the hazard, and a random hazard's lesson uses a fixed seed. Card and tells are Presentation children; a lesson is a Gameplay setup child plus a Presentation child. FD-01 unblocks the tutorials.md park rows for rails and lessons, not for art. Agents do not pass the learning gate. Full provenance is in the canonical JSON.
 
 Area: Legibility. Depends on: FD-02, FD-08. Evidence: SHOW-SZ, SMB-TG.
 

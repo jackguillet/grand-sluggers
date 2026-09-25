@@ -1,6 +1,6 @@
 # Fields code map — sim, CLI, tests, tools and data
 
-Read-only map made on September 21, 2026 for [research-fields.md](../research-fields.md). Inspected revision: `d0c6e12c` (origin/main). Paths are relative to the repo root; `Sim/` = `src/GrandSluggers.Sim/`, `Tests/` = `src/GrandSluggers.Sim.Tests/`. This file records the code as it was. It proposes no fix. Line numbers go stale; re-check them before you cite them in an issue.
+Read-only map made on September 21, 2026 for [research-fields.md](../archive/fields/research-fields.md). Inspected revision: `d0c6e12c` (origin/main). Paths are relative to the repo root; `Sim/` = `src/GrandSluggers.Sim/`, `Tests/` = `src/GrandSluggers.Sim.Tests/`. This file records the code as it was. It proposes no fix. Line numbers go stale; re-check them before you cite them in an issue.
 
 
 ## State in one breath

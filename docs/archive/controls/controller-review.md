@@ -1,5 +1,7 @@
 # Controller-only control review
 
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [how-to-play.md](../../how-to-play.md). Where they disagree, the contract is right.
+
 Presentation design review, September 23, 2026. Audited against `355f3bf2`.
 Jack accepted the overall layout with corrections that catching needs no
 button and North on defense activates Jump / Buddy Jump. The implementation follows this design. The physical-controller sitting remains open.

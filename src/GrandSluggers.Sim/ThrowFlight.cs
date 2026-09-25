@@ -44,6 +44,23 @@ public sealed class ThrowFlight
     /// <summary>Seconds until the landing, 0 once there.</summary>
     public double Remaining => Math.Max(0, Duration - T);
 
+    /// <summary>Seconds the ball has hung at an uncovered bag as a lob (§8.5); 0 when it is not hanging.</summary>
+    public double LobT { get; private set; }
+
+    /// <summary>
+    /// One frame of the ball hanging at an uncovered bag for the cover: whether this is its first frame, and whether it has hung
+    /// <paramref name="maxSec"/> and drops there, live.
+    /// </summary>
+    public (bool First, bool Drops) Hang(double dt, double maxSec)
+    {
+        var first = LobT == 0;
+        LobT += dt;
+        return (first, LobT >= maxSec);
+    }
+
+    /// <summary>The ball is not hanging: taken, sailed, dropped or thrown again.</summary>
+    public void EndLob() => LobT = 0;
+
     /// <summary>The preparation is spent and the ball has not left the hand yet.</summary>
     public bool ReleaseDue => !Released && T >= ReleaseSec;
 
@@ -53,6 +70,7 @@ public sealed class ThrowFlight
         Duration = 0;
         ReleaseSec = 0;
         Released = false;
+        LobT = 0;
     }
 
     /// <summary>A new throw: the clock restarts from the command. The caller releases at once when <see cref="ReleaseDue"/>.</summary>

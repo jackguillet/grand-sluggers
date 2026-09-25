@@ -84,7 +84,7 @@ public static class HazardType
 ///
 /// <para>
 /// The set is what the sim does <b>today</b>, at parity. The matrix in
-/// <c>docs/plan-fields.md</c> also names a solid body and a timed mover; neither has any sim code,
+/// <c>docs/decisions/plan-fields.md</c> also names a solid body and a timed mover; neither has any sim code,
 /// so the four types that would take them (<c>statue</c>, <c>train</c>, <c>ac_unit</c>,
 /// <c>tree</c>) carry <see cref="Decoration"/> — an honest row that says the type changes no play —
 /// until the child that builds their pattern arrives (map §5 Q6, Jack, September 22, 2026).

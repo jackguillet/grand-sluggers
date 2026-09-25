@@ -1644,7 +1644,7 @@ public sealed record WallRules
 /// bearing</em>, measured through the circular fence arc (<see cref="AtBatResolver.FenceAt"/>).
 /// That is not one scale factor applied to these numbers, and it is not the park fence scale:
 /// LF and RF keep 0.7203 of a 379.16-ft fence at ∓23.75°, centre keeps 0.7625 of 400, and the
-/// two fractions are different. See <c>docs/research-game-feel-730.md</c>.
+/// two fractions are different. See <c>docs/archive/game-feel/research-game-feel-730.md</c>.
 /// </para>
 /// </summary>
 /// <summary>The fence the outfield starts were authored against (F2-d): the three posts, feet from home.</summary>
