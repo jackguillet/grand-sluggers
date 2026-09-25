@@ -967,12 +967,12 @@ namespace GrandSluggers.EditorTools
             var before = match.DefenseStars;
             play._t = (float)play._feel.PitcherReadySeconds + 0.01f;
             Tick(play, play.TickSet, State(south: true, lb: true), State());
-            Require(play._starPitch, "LB held in SET did not read STAR on the card.");
+            Require(play.StarAsks.PitchShown, "LB held in SET did not read STAR on the card.");
             Tick(play, play.TickSet, State(lb: true), State());
             var pitch = play._pitch;
             Require(Phase(play) == "Flight" && pitch != null && pitch.Star, "The release with the modifier held was not the Star Pitch.");
-            Require(play._pitchStarAsked, "The release did not record the request.");
-            Require(!play._starMods[0].IsFreeNow(), "The hold that asked for the special is not spent.");
+            Require(play.StarAsks.PitchAsked, "The release did not record the request.");
+            Require(!play.StarAsks.Mod(0).IsFreeNow(), "The hold that asked for the special is not spent.");
             Require(Math.Abs(match.DefenseStars - before) < 1e-9, "The pool paid before the match settled the release.");
             return new GateCase { name = "star-held-at-release-pad1", phase = Phase(play),
                 charge = pitch.Charge01 };
@@ -988,8 +988,8 @@ namespace GrandSluggers.EditorTools
             Tick(play, play.TickSet, State(), State());
             var pitch = play._pitch;
             Require(Phase(play) == "Flight" && pitch != null && !pitch.Star, "LB let go before the release still threw the special.");
-            Require(!play._pitchStarAsked, "A release with LB up asked for the special.");
-            Require(((bool)play.StarFree(Controls.Pad1)), "An unused modifier is spent.");
+            Require(!play.StarAsks.PitchAsked, "A release with LB up asked for the special.");
+            Require(((bool)play.StarAsks.Free(Controls.Pad1)), "An unused modifier is spent.");
             return new GateCase { name = "star-let-go-before-release", phase = Phase(play), charge = pitch.Charge01 };
         }
 
@@ -1016,7 +1016,7 @@ namespace GrandSluggers.EditorTools
             Require(Phase(play) == "Flight", "The ordinary release did not launch.");
             for (var f = 0; f < 4; f++) Tick(play, play.TickFlight, State(lb: true), State());
             var pitch = play._pitch;
-            Require(!pitch.Star && !play._pitchStarAsked && !play._starPitch,
+            Require(!pitch.Star && !play.StarAsks.PitchAsked && !play.StarAsks.PitchShown,
                 "LB after the release upgraded the pitch.");
             return new GateCase { name = "star-after-release-nothing", phase = Phase(play) };
         }
@@ -1032,8 +1032,8 @@ namespace GrandSluggers.EditorTools
             var swing = play._swing;
             Require(play._swung && swing != null && swing.Swing && swing.Star,
                 "Player 2's release with LB held was not the Star Swing.");
-            Require(play._swingStarAsked, "Player 2's request was not recorded.");
-            Require(play._starMods[0].IsFreeNow(), "Player 1's LB was spent by Player 2's swing.");
+            Require(play.StarAsks.SwingAsked, "Player 2's request was not recorded.");
+            Require(play.StarAsks.Mod(0).IsFreeNow(), "Player 1's LB was spent by Player 2's swing.");
             return new GateCase { name = "star-swing-pad2", phase = Phase(play), timingFrames = swing.TimingErrorFrames };
         }
 
@@ -1048,12 +1048,12 @@ namespace GrandSluggers.EditorTools
             Require(!match.CanStarPitch && match.DefenseStars == 0, "The fixture did not empty the defense's pool.");
             play._t = (float)play._feel.PitcherReadySeconds + 0.01f;
             Tick(play, play.TickSet, State(south: true, lb: true), State());
-            Require(!play._starPitch, "The card read STAR on a pool that cannot pay.");
+            Require(!play.StarAsks.PitchShown, "The card read STAR on a pool that cannot pay.");
             Tick(play, play.TickSet, State(lb: true), State());
             var pitch = play._pitch;
             Require(Phase(play) == "Flight" && pitch != null && !pitch.Star, "The unaffordable request did not fly as the ordinary pitch.");
-            Require(play._pitchStarAsked, "The unaffordable request was not recorded as asked.");
-            var tell = play._starNo;
+            Require(play.StarAsks.PitchAsked, "The unaffordable request was not recorded as asked.");
+            var tell = play.StarAsks.Unavailable;
             Require(tell.HasValue && tell.Value.Action == StarAction.Pitch && tell.Value.Home == match.Top,
                 "The unavailable tell did not name the defense's Star Pitch on the release tick.");
             ReachPlate(play, State(), State());
@@ -1091,13 +1091,13 @@ namespace GrandSluggers.EditorTools
             Tick(play, play.TickFlight, State(lb: true), State());
             Require(play._swing?.Star == true, "The fixture's release was not the Star Swing.");
             Tick(play, play.TickAtBat, State(lb: true), State());
-            Require(!((bool)play.StarFree(Controls.Pad1))
+            Require(!((bool)play.StarAsks.Free(Controls.Pad1))
                 && !Controls.Pad1.AllAdvanceWith(false) && !Controls.Pad1.CutoffWith(false) && Controls.Pad1.AllAdvanceWith(true),
                 "The spent LB still reads as all-advance or the cutoff.");
             Tick(play, play.TickAtBat, State(), State());
-            Require(((bool)play.StarFree(Controls.Pad1)), "LB released did not free the button.");
+            Require(((bool)play.StarAsks.Free(Controls.Pad1)), "LB released did not free the button.");
             Tick(play, play.TickAtBat, State(lb: true), State());
-            Require(Controls.Pad1.AllAdvanceWith(((bool)play.StarFree(Controls.Pad1))),
+            Require(Controls.Pad1.AllAdvanceWith(((bool)play.StarAsks.Free(Controls.Pad1))),
                 "A fresh LB press is not all-advance.");
             return new GateCase { name = "spent-lb-no-live-verb", phase = Phase(play) };
         }
@@ -1192,7 +1192,7 @@ namespace GrandSluggers.EditorTools
             InputSystem.Update();
             Controls.Tick(Step, _rules);
             // The held modifier's guard ticks before any reader, as MatchDirector.Update does (PH-16-R10).
-            play.TickStarModifiers();
+            play.StarAsks.Tick();
             var input = new InputFrame(
                 Controls.Pad1.StickX, Controls.Pad1.StickY, Controls.Pad1.BuntThirdHeld || Controls.Pad1.BuntFirstHeld,
                 Controls.Pad2.StickX, Controls.Pad2.StickY, Controls.Pad2.BuntThirdHeld || Controls.Pad2.BuntFirstHeld);
