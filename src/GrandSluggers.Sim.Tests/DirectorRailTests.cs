@@ -17,7 +17,7 @@ public sealed class DirectorRailTests
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
-    const int MatchDirectorCeiling = 915;
+    const int MatchDirectorCeiling = 913;
 
     static string Scripts => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "Assets", "Scripts"));
 
@@ -52,6 +52,22 @@ public sealed class DirectorRailTests
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));
         Assert.Contains("public sealed class " + director, text, StringComparison.Ordinal);
         Assert.DoesNotContain("partial class MatchDirector", text, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The scene and the play in flight are two objects MatchDirector owns and hands to directors; its old field names
+    /// only forward to them until the last partial leaves. A new scene or play field goes on the object, not here.
+    /// </summary>
+    [Fact]
+    public void TheSceneAndThePlayAreSharedObjects()
+    {
+        var director = File.ReadAllText(Path.Combine(Scripts, "Runtime", "MatchDirector.cs"));
+        Assert.Contains("internal readonly MatchScene Scene = new MatchScene();", director, StringComparison.Ordinal);
+        Assert.Contains("internal readonly PlayState Play = new PlayState();", director, StringComparison.Ordinal);
+        foreach (var forwarded in new[] { "_park", "_cam", "_heroes", "_content", "_feel" })
+            Assert.Matches(@"\s" + forwarded + @" (\{ get => Scene\.|=> Scene\.)", director);
+        foreach (var forwarded in new[] { "_match", "_phase", "_pitch", "_swing", "_pending", "_preview", "_path" })
+            Assert.Matches(@"\s" + forwarded + @" \{ get => Play\.", director);
     }
 
     [Fact]
