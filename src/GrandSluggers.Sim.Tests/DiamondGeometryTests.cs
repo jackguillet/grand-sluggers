@@ -109,7 +109,7 @@ public sealed class DiamondGeometryTests
     {
         var park = Shipped.Content.MustPark(ParkId.Harbor);
         var t = Table with { Boundary = Table.Boundary with { FoulOffsetFt = Table.Boundary.FoulOffsetFt + 6 } };
-        Assert.Equal(ParkBoundary.For(park, Table), ParkBoundary.For(park));
+        Assert.Equal(ParkBoundary.From(Table.Boundary), ParkBoundary.For(park, Table));
         Assert.NotEqual(ParkBoundary.For(park, Table), ParkBoundary.For(park, t));
         Assert.NotSame(FieldBounds.Of(park, Table), FieldBounds.Of(park, t));
     }

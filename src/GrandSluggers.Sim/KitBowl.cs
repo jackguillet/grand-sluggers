@@ -46,9 +46,9 @@ public static class KitBowl
     public const string CornerLeft = "corner-left";
     public const string CornerRight = "corner-right";
 
-    public static IReadOnlyList<Piece> Of(Park park)
+    public static IReadOnlyList<Piece> Of(Park park, RulesTable rules)
     {
-        var loop = HarborWall.Loop(park);
+        var loop = HarborWall.Loop(park, rules);
         var n = loop.Length;
         var spray = new double[n];
         for (var i = 0; i < n; i++) spray[i] = SprayDeg(loop[i]);
@@ -67,15 +67,15 @@ public static class KitBowl
         }
 
         var pieces = new List<Piece>(3);
-        if (right.Count >= 2) pieces.Add(Build(park, CornerRight, right, WallGapFt, CornerBase(park, right)));
-        if (shoe.Count >= 2) pieces.Add(Build(park, Horseshoe, shoe, FoulGapFt, HarborStands.RowY(0)));
-        if (left.Count >= 2) pieces.Add(Build(park, CornerLeft, left, WallGapFt, CornerBase(park, left)));
+        if (right.Count >= 2) pieces.Add(Build(park, CornerRight, right, WallGapFt, CornerBase(park, right, rules), rules));
+        if (shoe.Count >= 2) pieces.Add(Build(park, Horseshoe, shoe, FoulGapFt, HarborStands.RowY(0), rules));
+        if (left.Count >= 2) pieces.Add(Build(park, CornerLeft, left, WallGapFt, CornerBase(park, left, rules), rules));
         return pieces;
     }
 
     /// <summary>A corner bank's first tread: just under the highest fence top it stands behind.</summary>
-    static double CornerBase(Park park, List<int> idx) =>
-        idx.Max(i => (double)HarborWall.Height(park, i)) - UnderCapFt;
+    static double CornerBase(Park park, List<int> idx, RulesTable rules) =>
+        idx.Max(i => (double)HarborWall.Height(park, i, rules)) - UnderCapFt;
 
     /// <summary>The section a point at parameter <paramref name="s"/> is in, or -1 in an aisle.</summary>
     public static int SectionAt(double s)
@@ -88,9 +88,9 @@ public static class KitBowl
     /// <summary>Spray from home in degrees: 0 is centre field, +45 the right-field line, ±180 straight behind the plate.</summary>
     public static double SprayDeg((double X, double Z) p) => Math.Atan2(p.X, p.Z) * (180.0 / Math.PI);
 
-    static Piece Build(Park park, string kind, List<int> idx, double gap, double baseY)
+    static Piece Build(Park park, string kind, List<int> idx, double gap, double baseY, RulesTable rules)
     {
-        var loop = HarborWall.Loop(park);
+        var loop = HarborWall.Loop(park, rules);
         var m = idx.Count;
         var outs = new (double X, double Z)[m];
         for (var j = 0; j < m; j++)
@@ -98,8 +98,8 @@ public static class KitBowl
             // The vertex normal: the mean of the spans either side that belong to this piece.
             var i = idx[j];
             (double X, double Z) sum = (0, 0);
-            if (j > 0) sum = Add(sum, HarborWall.Outward(park, idx[j - 1]));
-            if (j < m - 1) sum = Add(sum, HarborWall.Outward(park, i));
+            if (j > 0) sum = Add(sum, HarborWall.Outward(park, idx[j - 1], rules));
+            if (j < m - 1) sum = Add(sum, HarborWall.Outward(park, i, rules));
             var len = Math.Sqrt(sum.X * sum.X + sum.Z * sum.Z);
             outs[j] = len < 1e-9 ? (0, 1) : (sum.X / len, sum.Z / len);
         }

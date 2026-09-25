@@ -27,7 +27,7 @@ public class ParkDiamondTests
             $"path top {ParkDiamond.PathTop:0.00} grass top {ParkDiamond.GrassTop:0.00} — dirt vanishes under the lawn");
         Assert.True(ParkDiamond.ChalkClearsTheDirt(),
             $"foul top {ParkDiamond.FoulY + ParkDiamond.FoulThick * 0.5f:0.00} dirt top {ParkDiamond.PathTop:0.00} — chalk is buried");
-        Assert.True(ParkDiamond.LawnRespectsPits(DiamondGeometry.Of(Rules.Default)));
+        Assert.True(ParkDiamond.LawnRespectsPits(Rules.Default));
         Assert.True(ParkDiamond.OnDirt(0, 0, DiamondGeometry.Of(Rules.Default)), "home packed");
         Assert.True(ParkDiamond.OnDirt(Diamond.First.X, Diamond.First.Z, DiamondGeometry.Of(Rules.Default)), "1B pad");
         Assert.True(ParkDiamond.OnDirt(32, 32, DiamondGeometry.Of(Rules.Default)), "home-1B path");
@@ -58,7 +58,7 @@ public class ParkDiamondTests
         // Re-authored by F2-b2 (#873, FD-06-R2). It read "hip→outfield wall is a ramp, not stair
         // boxes": the drawn rail climbed to the fence from 95 ft out while the ball's rail stayed
         // hip-high to the pole. Jack chose the ball's rail, so the wall steps up once, at the pole.
-        Assert.True(HarborWall.StepsOnlyAtThePoles(Harbor),
+        Assert.True(HarborWall.StepsOnlyAtThePoles(Harbor, Rules.Default),
             "the rail is hip-high to each pole and the wall steps up to the fence there, where the pole stands");
         Assert.Equal(Harbor.CenterFenceFt, AtBatResolver.FenceAt(Harbor, 0), 1);
         Assert.Equal(Harbor.LeftFenceFt, AtBatResolver.FenceAt(Harbor, -AtBatResolver.FoulLineDeg), 1);
@@ -125,12 +125,12 @@ public class ParkDiamondTests
         Assert.False(ParkDiamond.OnDirt(44, 129, DiamondGeometry.Of(Rules.Default)), "past the curved apron");
         Assert.True(44 < ParkDiamond.DirtMaxX(DiamondGeometry.Of(Rules.Default)) && 129 < ParkDiamond.DirtMaxZ(DiamondGeometry.Of(Rules.Default)),
             "this is the AABB hole the old CF stripes left as water");
-        Assert.True(ParkDiamond.LawnCovers(44, 129, Harbor),
+        Assert.True(ParkDiamond.LawnCovers(44, 129, Harbor, Rules.Default),
             "mow must cover the gap between the dirt arc and DirtMaxZ");
-        Assert.True(ParkDiamond.LawnCovers(62, 116, Harbor));
-        Assert.True(ParkDiamond.LawnCovers(0, 220, Harbor));
-        Assert.False(ParkDiamond.LawnCovers(0, Harbor.CenterFenceFt + 20, Harbor));
-        Assert.False(ParkDiamond.LawnCovers(HarborDugout.X, HarborDugout.Z, Harbor),
+        Assert.True(ParkDiamond.LawnCovers(62, 116, Harbor, Rules.Default));
+        Assert.True(ParkDiamond.LawnCovers(0, 220, Harbor, Rules.Default));
+        Assert.False(ParkDiamond.LawnCovers(0, Harbor.CenterFenceFt + 20, Harbor, Rules.Default));
+        Assert.False(ParkDiamond.LawnCovers(HarborDugout.X, HarborDugout.Z, Harbor, Rules.Default),
             "dugout pits stay open");
     }
 

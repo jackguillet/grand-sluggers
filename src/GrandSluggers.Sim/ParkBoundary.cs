@@ -63,17 +63,6 @@ public readonly record struct ParkBoundary
     };
 
     /// <summary>
-    /// The process-wide edge, from the one default table — the same fallback <see cref="Diamond"/>
-    /// reads, and for the same reason: every park shares this edge today, nothing may change it
-    /// mid-run, and tests execute in parallel. To play a different edge, point the process at
-    /// another data root or trial overlay and diff the two runs.
-    /// </summary>
-    public static ParkBoundary Default => From(Rules.Default.Boundary);
-
-    /// <summary>The process-wide edge a park dresses: <see cref="For(Park, RulesTable)"/> on <see cref="Rules.Default"/>.</summary>
-    public static ParkBoundary For(Park park) => For(park, Rules.Default);
-
-    /// <summary>
     /// The boundary a park plays on <paramref name="rules"/> (FD-07 C, F2-d): the table's edge with the park's own
     /// <see cref="Park.Foul"/> values over it. A park that names none is the table's edge itself, value for value.
     /// </summary>

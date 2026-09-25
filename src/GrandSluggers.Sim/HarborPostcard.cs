@@ -42,27 +42,27 @@ public static class HarborPostcard
     /// <summary>
     /// One piece of the ground loop (outfield + foul wrap). Chord plus overlap.
     /// </summary>
-    public static (double X, double Z, double Width, int I0, int I1) WallPiece(Park park, int i)
+    public static (double X, double Z, double Width, int I0, int I1) WallPiece(Park park, int i, RulesTable rules)
     {
-        var n = HarborWall.Loop(park).Length;
+        var n = HarborWall.Loop(park, rules).Length;
         var i0 = ((i % n) + n) % n;
         var i1 = (i0 + 1) % n;
-        var p0 = HarborWall.LoopPoint(park, i0);
-        var p1 = HarborWall.LoopPoint(park, i1);
+        var p0 = HarborWall.LoopPoint(park, i0, rules);
+        var p1 = HarborWall.LoopPoint(park, i1, rules);
         var dx = p1.X - p0.X;
         var dz = p1.Z - p0.Z;
         var chord = Math.Sqrt(dx * dx + dz * dz);
         return ((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5, chord + WallOverlapFt, i0, i1);
     }
 
-    public static bool WallPiecesConnect(Park park, DiamondGeometry d)
+    public static bool WallPiecesConnect(Park park, RulesTable rules)
     {
-        var n = HarborWall.Loop(park).Length;
+        var n = HarborWall.Loop(park, rules).Length;
         if (n != HarborWall.WrapSegs) return false;
         for (var i = 0; i < n; i++)
         {
-            var a = WallPiece(park, i);
-            var b = WallPiece(park, i + 1);
+            var a = WallPiece(park, i, rules);
+            var b = WallPiece(park, i + 1, rules);
             var dx = a.X - b.X;
             var dz = a.Z - b.Z;
             var gap = Math.Sqrt(dx * dx + dz * dz);
@@ -71,7 +71,7 @@ public static class HarborPostcard
         var cf = WallPoint(park, 0);
         var dist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
         return Math.Abs(dist - park.CenterFenceFt) < WallThickFt * 2
-            && HarborWall.WrapsTheDiamond(park, d);
+            && HarborWall.WrapsTheDiamond(park, rules);
     }
 
     public static bool SegOn(int value, int bit)

@@ -39,16 +39,16 @@ public sealed class HarborWallTests
     public void TheDrawnOutfieldTopIsTheParkFenceOnEveryLoopSegment(string id)
     {
         var park = _content.Parks[id];
-        var n = HarborWall.Loop(park).Length;
+        var n = HarborWall.Loop(park, Rules.Default).Length;
         var outfield = 0;
         for (var i = 0; i < n; i++)
         {
-            if (!HarborWall.IsOutfield(park, i)) continue;
+            if (!HarborWall.IsOutfield(park, i, Rules.Default)) continue;
             outfield++;
-            Assert.Equal(park.FenceHeightFt, HarborWall.Height(park, i), 4);
+            Assert.Equal(park.FenceHeightFt, HarborWall.Height(park, i, Rules.Default), 4);
         }
         Assert.True(outfield > HarborWall.OutfieldSegs / 2, $"{id}: {outfield} outfield vertices");
-        Assert.True(HarborWall.OutfieldIsTheFence(park));
+        Assert.True(HarborWall.OutfieldIsTheFence(park, Rules.Default));
 
         // The flight's fair fence is the same top.
         var bounds = FieldBounds.Of(park, Rules.Default);
@@ -77,33 +77,33 @@ public sealed class HarborWallTests
     public void TheFoulRailStaysHipHighToThePoleAndMatchesTheFlightsFoulWall(string id)
     {
         var park = _content.Parks[id];
-        Assert.Equal(4.2f, HarborWall.HipHeight);
-        Assert.Equal(HarborWall.HipHeight, FieldBounds.FoulWallHeightFt(Rules.Default), 4);
+        Assert.Equal(4.2f, HarborWall.HipHeight(Rules.Default));
+        Assert.Equal(HarborWall.HipHeight(Rules.Default), FieldBounds.FoulWallHeightFt(Rules.Default), 4);
         Assert.All(FieldBounds.Of(park, Rules.Default).Segments.Where(s => s.Kind == FieldBounds.WallKind.FoulWall),
             s => Assert.Equal(FieldBounds.FoulWallHeightFt(Rules.Default), s.HeightFt, 4));
 
         var rail = 0;
-        var n = HarborWall.Loop(park).Length;
+        var n = HarborWall.Loop(park, Rules.Default).Length;
         for (var i = 0; i < n; i++)
         {
-            if (HarborWall.IsOutfield(park, i)) continue;
+            if (HarborWall.IsOutfield(park, i, Rules.Default)) continue;
             rail++;
-            Assert.Equal(HarborWall.HipHeight, HarborWall.Height(park, i));
-            Assert.Equal((HarborWall.HipHeight, HarborWall.HipHeight), HarborWall.SpanTops(park, i));
+            Assert.Equal(HarborWall.HipHeight(Rules.Default), HarborWall.Height(park, i, Rules.Default));
+            Assert.Equal((HarborWall.HipHeight(Rules.Default), HarborWall.HipHeight(Rules.Default)), HarborWall.SpanTops(park, i, Rules.Default));
         }
         Assert.Equal(n - (HarborWall.OutfieldSegs + 1), rail);
 
         // The rail's last vertex before each pole: the old ramp's top end, now hip-high.
         foreach (var sign in new[] { -1, 1 })
         {
-            var last = Enumerable.Range(0, n).Where(i => !HarborWall.IsOutfield(park, i))
-                .MaxBy(i => sign * HarborWall.LoopPoint(park, i).X);
-            var p = HarborWall.LoopPoint(park, last);
+            var last = Enumerable.Range(0, n).Where(i => !HarborWall.IsOutfield(park, i, Rules.Default))
+                .MaxBy(i => sign * HarborWall.LoopPoint(park, i, Rules.Default).X);
+            var p = HarborWall.LoopPoint(park, last, Rules.Default);
             Assert.True(FieldBounds.DistHome(p.X, p.Z) > 0.9 * AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg),
                 $"{id}: the rail vertex nearest the {(sign < 0 ? "left" : "right")} pole is {FieldBounds.DistHome(p.X, p.Z):0.#} ft out");
-            Assert.Equal(HarborWall.HipHeight, HarborWall.Height(park, last));
+            Assert.Equal(HarborWall.HipHeight(Rules.Default), HarborWall.Height(park, last, Rules.Default));
         }
-        Assert.True(HarborWall.StepsOnlyAtThePoles(park), $"{id}: the wall steps from the rail to the fence at each pole and nowhere else");
+        Assert.True(HarborWall.StepsOnlyAtThePoles(park, Rules.Default), $"{id}: the wall steps from the rail to the fence at each pole and nowhere else");
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public sealed class HarborWallTests
     /// cycle:
     ///
     /// <list type="bullet">
-    /// <item>every drawn vertex lies on <see cref="FieldBounds.Of(Park, Rules.Default)"/>'s polygon;</item>
+    /// <item>every drawn vertex lies on <see cref="FieldBounds.Of(Park, RulesTable)"/>'s polygon;</item>
     /// <item>every drawn span lies on one flight segment and is drawn at that segment's top — the
     /// fence's on a fair span (D15), the rail's on a foul span, all the way to the pole;</item>
     /// <item>every drawn vertex stands at the tallest flight segment it lies on, so a pole is the
@@ -143,14 +143,14 @@ public sealed class HarborWallTests
     {
         var park = _content.Parks[id];
         var bounds = FieldBounds.Of(park, Rules.Default);
-        var loop = HarborWall.Loop(park);
+        var loop = HarborWall.Loop(park, Rules.Default);
         Assert.Equal(HarborWall.WrapSegs, loop.Length);
 
         var (fair, rail) = AssertDrawnIsFlight(id, park, bounds, loop);
         Assert.Equal(HarborWall.OutfieldSegs + 1, fair);
         Assert.Equal(loop.Length - fair, rail);
         // The rail the kit draws through the infield stands off the line at the edge's own offset.
-        Assert.Equal(ParkBoundary.Default.FoulOffsetFt, RailOffsetFt(loop), 6);
+        Assert.Equal(ParkBoundary.From(Rules.Default.Boundary).FoulOffsetFt, RailOffsetFt(loop), 6);
 
         // Each pole at its own distance, and the step at it. The mirror drew the right-field pole on both sides.
         foreach (var sign in new[] { -1, 1 })
@@ -182,8 +182,8 @@ public sealed class HarborWallTests
             Assert.True(under.Length > 0, $"{id}: drawn span {i} does not lie on one flight segment");
             Assert.Single(under);
             var seg = under[0];
-            var tops = HarborWall.SpanTops(park, i);
-            Assert.Equal(seg.Kind, HarborWall.FlightSpan(park, i).Kind);
+            var tops = HarborWall.SpanTops(park, i, Rules.Default);
+            Assert.Equal(seg.Kind, HarborWall.FlightSpan(park, i, Rules.Default).Kind);
             if (seg.HeightBFt is null)
             {
                 Assert.Equal((float)seg.HeightFt, tops.Start);
@@ -198,20 +198,20 @@ public sealed class HarborWallTests
             // The vertex stands at the tallest flight wall that meets there.
             var tallest = at.Max(s => s.HeightAt(Along(s, p)));
             if (at.All(s => s.HeightBFt is null))
-                Assert.Equal((float)tallest, HarborWall.Height(park, i));
+                Assert.Equal((float)tallest, HarborWall.Height(park, i, Rules.Default));
             else
-                Assert.Equal(tallest, HarborWall.Height(park, i), 4);
+                Assert.Equal(tallest, HarborWall.Height(park, i, Rules.Default), 4);
             var onFence = at.Any(s => s.Kind == FieldBounds.WallKind.FairFence);
-            Assert.Equal(onFence, HarborWall.IsOutfield(park, i));
+            Assert.Equal(onFence, HarborWall.IsOutfield(park, i, Rules.Default));
             if (onFence)
             {
                 fair++;
-                Assert.Equal(AtBatResolver.FenceSpotAt(park, FieldBounds.SprayDeg(p.X, p.Z)).TopFt, HarborWall.Height(park, i), 4);
+                Assert.Equal(AtBatResolver.FenceSpotAt(park, FieldBounds.SprayDeg(p.X, p.Z)).TopFt, HarborWall.Height(park, i, Rules.Default), 4);
             }
             else
             {
                 rail++;
-                Assert.Equal(FieldBounds.FoulWallHeightFt(Rules.Default), HarborWall.Height(park, i), 4);
+                Assert.Equal(FieldBounds.FoulWallHeightFt(Rules.Default), HarborWall.Height(park, i, Rules.Default), 4);
             }
         }
         return (fair, rail);
@@ -225,27 +225,27 @@ public sealed class HarborWallTests
     /// </summary>
     static void AssertTheStepIsAtThePole(string id, Park park, int sign)
     {
-        var loop = HarborWall.Loop(park);
+        var loop = HarborWall.Loop(park, Rules.Default);
         var want = AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg);
         var pole = Enumerable.Range(0, loop.Length)
             .MinBy(i => Math.Abs(FieldBounds.SprayDeg(loop[i].X, loop[i].Z) - sign * AtBatResolver.FoulLineDeg));
         var at = loop[pole];
         Assert.Equal(want, FieldBounds.DistHome(at.X, at.Z), 9);
-        Assert.True(HarborWall.IsPole(park, pole), $"{id}: vertex {pole} is not where the kit stands the pole");
+        Assert.True(HarborWall.IsPole(park, pole, Rules.Default), $"{id}: vertex {pole} is not where the kit stands the pole");
 
         // Walking the loop, the right pole is fence → rail and the left pole is rail → fence.
         var (fenceSide, railSide) = sign > 0 ? (pole - 1, pole) : (pole, pole - 1);
-        Assert.Equal(FieldBounds.WallKind.FairFence, HarborWall.FlightSpan(park, fenceSide).Kind);
-        Assert.Equal(FieldBounds.WallKind.FoulWall, HarborWall.FlightSpan(park, railSide).Kind);
+        Assert.Equal(FieldBounds.WallKind.FairFence, HarborWall.FlightSpan(park, fenceSide, Rules.Default).Kind);
+        Assert.Equal(FieldBounds.WallKind.FoulWall, HarborWall.FlightSpan(park, railSide, Rules.Default).Kind);
         var fenceTop = (float)AtBatResolver.FenceSpotAt(park, sign * AtBatResolver.FoulLineDeg).TopFt;
-        var fenceSpan = HarborWall.SpanTops(park, fenceSide);
+        var fenceSpan = HarborWall.SpanTops(park, fenceSide, Rules.Default);
         Assert.Equal(fenceTop, sign > 0 ? fenceSpan.End : fenceSpan.Start);
-        Assert.Equal((HarborWall.HipHeight, HarborWall.HipHeight), HarborWall.SpanTops(park, railSide));
-        Assert.Equal(fenceTop, HarborWall.Height(park, pole));
+        Assert.Equal((HarborWall.HipHeight(Rules.Default), HarborWall.HipHeight(Rules.Default)), HarborWall.SpanTops(park, railSide, Rules.Default));
+        Assert.Equal(fenceTop, HarborWall.Height(park, pole, Rules.Default));
         // One vertex into foul the wall is already the rail: the step is not spread over a sample.
         var intoFoul = sign > 0 ? pole + 1 : pole - 1;
-        Assert.False(HarborWall.IsOutfield(park, intoFoul), $"{id}: vertex {intoFoul} past the pole is drawn as fence");
-        Assert.Equal(HarborWall.HipHeight, HarborWall.Height(park, intoFoul));
+        Assert.False(HarborWall.IsOutfield(park, intoFoul, Rules.Default), $"{id}: vertex {intoFoul} past the pole is drawn as fence");
+        Assert.Equal(HarborWall.HipHeight(Rules.Default), HarborWall.Height(park, intoFoul, Rules.Default));
     }
 
     /// <summary>How far along a flight segment (0 at A, 1 at B) a point on it stands.</summary>
@@ -280,7 +280,7 @@ public sealed class HarborWallTests
             RightFenceFt = harbor.RightFenceFt + 30
         };
 
-        var loop = HarborWall.Loop(lopsided);
+        var loop = HarborWall.Loop(lopsided, Rules.Default);
         Assert.Equal(HarborWall.WrapSegs, loop.Length);
         var bounds = FieldBounds.Of(lopsided, Rules.Default);
         var (fair, rail) = AssertDrawnIsFlight(lopsided.Id, lopsided, bounds, loop);
@@ -288,7 +288,7 @@ public sealed class HarborWallTests
         Assert.Equal(loop.Length - fair, rail);
         foreach (var sign in new[] { -1, 1 })
             AssertTheStepIsAtThePole(lopsided.Id, lopsided, sign);
-        Assert.True(HarborWall.StepsOnlyAtThePoles(lopsided));
+        Assert.True(HarborWall.StepsOnlyAtThePoles(lopsided, Rules.Default));
 
         var left = loop.MinBy(p => Math.Abs(FieldBounds.SprayDeg(p.X, p.Z) + AtBatResolver.FoulLineDeg));
         var right = loop.MinBy(p => Math.Abs(FieldBounds.SprayDeg(p.X, p.Z) - AtBatResolver.FoulLineDeg));
@@ -297,14 +297,14 @@ public sealed class HarborWallTests
         Assert.Equal(60, FieldBounds.DistHome(right.X, right.Z) - FieldBounds.DistHome(left.X, left.Z), 9);
 
         Assert.False(HarborWall.ParkIsSymmetric(lopsided));
-        Assert.False(HarborWall.LoopIsSymmetric(lopsided),
+        Assert.False(HarborWall.LoopIsSymmetric(lopsided, Rules.Default),
             "a lopsided park must not draw one side's wall on the other (FD-06)");
         // Everything else the kit asks of a wall still holds; only the mirror is gone.
-        Assert.True(HarborWall.WrapsTheDiamond(lopsided, DiamondGeometry.Of(Rules.Default)));
-        Assert.True(HarborWall.OutfieldIsTheFence(lopsided));
-        Assert.True(HarborWall.WrapStaysInFoul(lopsided, DiamondGeometry.Of(Rules.Default)));
-        Assert.True(HarborWall.HomeWrapIsRound(lopsided));
-        Assert.True(HarborDugout.WallMeetsTheRail(lopsided));
+        Assert.True(HarborWall.WrapsTheDiamond(lopsided, Rules.Default));
+        Assert.True(HarborWall.OutfieldIsTheFence(lopsided, Rules.Default));
+        Assert.True(HarborWall.WrapStaysInFoul(lopsided, Rules.Default));
+        Assert.True(HarborWall.HomeWrapIsRound(lopsided, Rules.Default));
+        Assert.True(HarborDugout.WallMeetsTheRail(lopsided, Rules.Default));
     }
 
     /// <summary>
@@ -326,7 +326,7 @@ public sealed class HarborWallTests
         var catalog = _content;
         var harbor = catalog.Parks[HarborPostcard.ParkId];
         var park = harbor with { Id = "sf05-polyline", Fence = new ParkFence(points) };
-        var loop = HarborWall.Loop(park);
+        var loop = HarborWall.Loop(park, Rules.Default);
         var bounds = FieldBounds.Of(park, Rules.Default);
         var offGrid = points.Count(p => !FieldBounds.FenceBearings(harbor).Contains(p.BearingDeg));
         Assert.Equal(4, offGrid);
@@ -337,7 +337,7 @@ public sealed class HarborWallTests
             var at = BallFlight.GroundPoint(p.FenceFrac * AtBatResolver.FenceAt(harbor, p.BearingDeg), p.BearingDeg);
             var i = Array.IndexOf(loop, at);
             Assert.True(i >= 0, $"{catalog.Root.Provenance}: the point at {p.BearingDeg} degrees is not a drawn vertex");
-            Assert.Equal(p.HeightFt, HarborWall.Height(park, i), 4);
+            Assert.Equal(p.HeightFt, HarborWall.Height(park, i, Rules.Default), 4);
         }
 
         var sloped = 0;
@@ -346,12 +346,12 @@ public sealed class HarborWallTests
             var (dist, piece, along) = NearestPiece(bounds, loop[i].X, loop[i].Z);
             Assert.True(dist <= OnTheWallFt, $"drawn vertex {i} is {dist:0.###} ft off the flight wall");
             if (piece.Kind != FieldBounds.WallKind.FairFence) continue;
-            Assert.True(HarborWall.IsOutfield(park, i), $"vertex {i} is on a fair span but is not drawn as outfield");
-            Assert.Equal(piece.HeightAt(along), HarborWall.Height(park, i), 4);
+            Assert.True(HarborWall.IsOutfield(park, i, Rules.Default), $"vertex {i} is on a fair span but is not drawn as outfield");
+            Assert.Equal(piece.HeightAt(along), HarborWall.Height(park, i, Rules.Default), 4);
             if (piece.HeightBFt is not null) sloped++;
         }
         Assert.True(sloped > 4, $"{sloped} drawn vertices on a sloped span");
-        Assert.True(HarborWall.OutfieldIsTheFence(park));
+        Assert.True(HarborWall.OutfieldIsTheFence(park, Rules.Default));
 
         // F2-b2 (FD-06-R2) on the same fixture: every drawn span is its flight segment's top at both its ends, so a
         // sloped span is drawn sloped between its two point heights and every other span level; the rail stays hip-high
@@ -359,11 +359,11 @@ public sealed class HarborWallTests
         var (fair, rail) = AssertDrawnIsFlight(park.Id, park, bounds, loop);
         Assert.Equal(FieldBounds.FenceBearings(park).Count, fair);
         Assert.Equal(loop.Length - fair, rail);
-        var slopedSpans = Enumerable.Range(0, loop.Length).Count(i => HarborWall.SpanTops(park, i).Start != HarborWall.SpanTops(park, i).End);
+        var slopedSpans = Enumerable.Range(0, loop.Length).Count(i => HarborWall.SpanTops(park, i, Rules.Default).Start != HarborWall.SpanTops(park, i, Rules.Default).End);
         Assert.Equal(bounds.Segments.Count(sg => sg.HeightBFt is not null), slopedSpans);
         foreach (var sign in new[] { -1, 1 })
             AssertTheStepIsAtThePole(park.Id, park, sign);
-        Assert.True(HarborWall.StepsOnlyAtThePoles(park));
+        Assert.True(HarborWall.StepsOnlyAtThePoles(park, Rules.Default));
 
         // The poles stand where the polyline starts and ends; the drawn rail meets the fence there.
         foreach (var (sign, p) in new[] { (-1, points[0]), (1, points[^1]) })
@@ -411,11 +411,11 @@ public sealed class HarborWallTests
     public void TheCatalogParksDrawTheTopsTheLookGateWasShown(string id, string fence)
     {
         var park = _content.Parks[id];
-        var n = HarborWall.Loop(park).Length;
+        var n = HarborWall.Loop(park, Rules.Default).Length;
         Assert.Equal(108, n);
-        var vertices = Enumerable.Range(0, n).Select(i => HarborWall.Height(park, i));
-        var starts = Enumerable.Range(0, n).Select(i => HarborWall.SpanTops(park, i).Start);
-        var ends = Enumerable.Range(0, n).Select(i => HarborWall.SpanTops(park, i).End);
+        var vertices = Enumerable.Range(0, n).Select(i => HarborWall.Height(park, i, Rules.Default));
+        var starts = Enumerable.Range(0, n).Select(i => HarborWall.SpanTops(park, i, Rules.Default).Start);
+        var ends = Enumerable.Range(0, n).Select(i => HarborWall.SpanTops(park, i, Rules.Default).End);
         Assert.Equal($"{fence}x25 4.2x59 {fence}x24", Runs(vertices));
         Assert.Equal($"{fence}x24 4.2x60 {fence}x24", Runs(starts));
         Assert.Equal($"{fence}x24 4.2x60 {fence}x24", Runs(ends));
@@ -454,7 +454,7 @@ public sealed class HarborWallTests
         var to = src.IndexOf("static void RampPrism(", StringComparison.Ordinal);
         Assert.True(from >= 0 && to > from, "FieldKit.Wall and RampPrism are where this row reads them");
         var wall = src.Substring(from, to - from);
-        Assert.Contains("HarborWall.SpanTops(park, i)", wall, StringComparison.Ordinal);
+        Assert.Contains("HarborWall.SpanTops(park, i, _rules)", wall, StringComparison.Ordinal);
         Assert.DoesNotContain("HarborWall.Height(", wall, StringComparison.Ordinal);
         Assert.Contains("RampPrism(folder, \"Wall\" + i, a, b, h0, h1,", wall, StringComparison.Ordinal);
         Assert.Contains("RampCap(folder, \"Cap\" + i, a, b, h0, h1,", wall, StringComparison.Ordinal);
@@ -472,14 +472,14 @@ public sealed class HarborWallTests
     {
         var first = _content.Parks[_content.ParkPickOrder[0]];
         var second = _content.Parks[_content.ParkPickOrder[1]];
-        var shipped = ParkBoundary.Default;
+        var shipped = ParkBoundary.From(Rules.Default.Boundary);
 
-        var a = HarborWall.Loop(first);
-        var b = HarborWall.Loop(second);
+        var a = HarborWall.Loop(first, Rules.Default);
+        var b = HarborWall.Loop(second, Rules.Default);
         Assert.NotSame(a, b);
         // Neither park evicts the other, and the default edge is the edge Loop(park) plays.
-        Assert.Same(a, HarborWall.Loop(first));
-        Assert.Same(b, HarborWall.Loop(second));
+        Assert.Same(a, HarborWall.Loop(first, Rules.Default));
+        Assert.Same(b, HarborWall.Loop(second, Rules.Default));
         Assert.Same(a, HarborWall.Loop(first, shipped));
 
         var wide = shipped with { FoulOffsetFt = shipped.FoulOffsetFt + 10 };
@@ -487,7 +487,7 @@ public sealed class HarborWallTests
         Assert.NotSame(a, widened);
         Assert.Same(widened, HarborWall.Loop(first, wide));
         // The point of the key: asking for another edge does not change the edge this park draws.
-        Assert.Same(a, HarborWall.Loop(first));
+        Assert.Same(a, HarborWall.Loop(first, Rules.Default));
 
         // And it is a different wall, not just a different array: the rail moved 10 ft into foul.
         Assert.Equal(shipped.FoulOffsetFt, RailOffsetFt(a), 6);
@@ -502,7 +502,7 @@ public sealed class HarborWallTests
     /// </summary>
     static double RailOffsetFt((double X, double Z)[] loop)
     {
-        var flareStart = ParkBoundary.Default.FlareStartFt;
+        var flareStart = ParkBoundary.From(Rules.Default.Boundary).FlareStartFt;
         var off = 0.0;
         foreach (var p in loop)
         {
@@ -565,6 +565,6 @@ public sealed class HarborWallTests
     public void AFenceUnderTheRailIsRefused()
     {
         var harbor = _content.Parks[ParkId.Harbor];
-        Assert.False(HarborWall.OutfieldIsTheFence(harbor with { FenceHeightFt = HarborWall.HipHeight }));
+        Assert.False(HarborWall.OutfieldIsTheFence(harbor with { FenceHeightFt = HarborWall.HipHeight(Rules.Default) }, Rules.Default));
     }
 }

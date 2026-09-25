@@ -157,8 +157,8 @@ public static class StillPose
     public static bool ScoopIsNotTheMound(double x, double z, DiamondGeometry d) =>
         Diamond.Dist(x, z, 0, d.Mound) > 20;
 
-    public static bool CameraClearsTheDugout(double x, double z) =>
-        HarborDugout.CameraClears(x, z);
+    public static bool CameraClearsTheDugout(double x, double z, RulesTable rules) =>
+        HarborDugout.CameraClears(x, z, rules);
 
     public static bool CameraIsSideThreeQuarter(double camX, double camZ, double scoopX, double scoopZ) =>
         Math.Abs(camZ - scoopZ) > 8 && Math.Abs(camX - scoopX) > 8;

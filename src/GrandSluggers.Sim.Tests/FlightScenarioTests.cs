@@ -404,9 +404,9 @@ public sealed class FlightScenarioTests
     public void S58b_HalfAFootOverTheDrawnWallIsAHomer_HalfAFootUnderIsACarom()
     {
         // D15: the wall you see is the fence the flight clips against. Center field's drawn top is the park's number.
-        var cf = Enumerable.Range(0, HarborWall.Loop(Harbor).Length).First(i => HarborWall.IsOutfield(Harbor, i)
-            && Math.Abs(HarborWall.LoopPoint(Harbor, i).X) < 1);
-        Assert.Equal(Harbor.FenceHeightFt, HarborWall.Height(Harbor, cf), 4);
+        var cf = Enumerable.Range(0, HarborWall.Loop(Harbor, Rules.Default).Length).First(i => HarborWall.IsOutfield(Harbor, i, Rules.Default)
+            && Math.Abs(HarborWall.LoopPoint(Harbor, i, Rules.Default).X) < 1);
+        Assert.Equal(Harbor.FenceHeightFt, HarborWall.Height(Harbor, cf, Rules.Default), 4);
 
         var over = FlightFixtures.OverTheFence(Harbor, 0.5, 0);
         var overBall = BattedBall.Of(over, Harbor, rules: Rules.Default);

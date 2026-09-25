@@ -46,16 +46,16 @@ public static class HarborDugout
     public static float StarZ0 => Z - HalfAlong + 1.7f;
 
     /// <summary>World X of the field-side rail (the hip wall).</summary>
-    public static float FieldX(float x) => x > 0f ? RailX(1) : RailX(-1);
+    public static float FieldX(float x, RulesTable rules) => x > 0f ? RailX(1, rules) : RailX(-1, rules);
 
-    public static float RailX(int sign) => sign * Inv * (Along0 + HarborWall.FoulOffset);
+    public static float RailX(int sign, RulesTable rules) => sign * Inv * (Along0 + HarborWall.FoulOffset(rules));
 
-    public static float RailZ() => Inv * (Along0 - HarborWall.FoulOffset);
+    public static float RailZ(RulesTable rules) => Inv * (Along0 - HarborWall.FoulOffset(rules));
 
     /// <summary>Hip-wall point at this distance along the baseline.</summary>
-    public static (float X, float Z) RailAt(int sign, float along)
+    public static (float X, float Z) RailAt(int sign, float along, RulesTable rules)
     {
-        var off = HarborWall.FoulOffset;
+        var off = HarborWall.FoulOffset(rules);
         return (sign * (Inv * along + Inv * off), Inv * along - Inv * off);
     }
 
@@ -64,18 +64,18 @@ public static class HarborDugout
     /// <summary>Lawn must not cover this box (pit + field stairs). Pad so the lip reads.</summary>
     public const float HolePad = 1.2f;
 
-    public static float HoleMinX => FieldX(X) - FieldStairRun - HolePad;
+    public static float HoleMinX(RulesTable rules) => FieldX(X, rules) - FieldStairRun - HolePad;
     public static float HoleMaxX => X + HalfDeep + HolePad;
     public static float HoleMinZ => Z - HalfAlong - HolePad;
     public static float HoleMaxZ => Z + HalfAlong + HolePad;
 
-    public static bool InPitHole(double x, double z)
+    public static bool InPitHole(double x, double z, RulesTable rules)
     {
         var ax = Math.Abs(x);
         var along = (ax + z) * Inv;
         var into = (ax - z) * Inv;
         return Math.Abs(along - Along0) <= HalfAlong + HolePad
-            && Math.Abs(into - (HarborWall.FoulOffset + HalfDeep)) <= HalfDeep + FieldStairRun + HolePad;
+            && Math.Abs(into - (HarborWall.FoulOffset(rules) + HalfDeep)) <= HalfDeep + FieldStairRun + HolePad;
     }
 
     /// <summary>Z span of the pit at this X, for punching a lawn hole on a 45° dugout.</summary>
@@ -95,21 +95,21 @@ public static class HarborDugout
         return z1 > z0 + 1f;
     }
 
-    public static bool LawnCovers(double x, double z) => !InPitHole(x, z);
+    public static bool LawnCovers(double x, double z, RulesTable rules) => !InPitHole(x, z, rules);
 
     /// <summary>
     /// The short wall opens here: DressWall skips the hip boxes so the
     /// padded rail is the wall along home-to-bag. The rail <b>ends</b> stay
     /// closed so the loop can pin a vertex on each end and resume flush.
     /// </summary>
-    public static bool WallOpensHere(double x, double z)
+    public static bool WallOpensHere(double x, double z, RulesTable rules)
     {
         var ax = Math.Abs(x);
         var along = (ax + z) * Inv;
         var into = (ax - z) * Inv;
         return along > AlongHome + 0.5f
             && along < AlongBag - 0.5f
-            && Math.Abs(into - HarborWall.FoulOffset) < 5f
+            && Math.Abs(into - HarborWall.FoulOffset(rules)) < 5f
             && z < 95;
     }
 
@@ -117,12 +117,12 @@ public static class HarborDugout
     /// Unity Y-yaw of local −X: x′ = −cos(yaw), z′ = sin(yaw). That vector
     /// must point at the origin from the 1B rail — not into the stands.
     /// </summary>
-    public static bool RailFacesTheDiamond()
+    public static bool RailFacesTheDiamond(RulesTable rules)
     {
         var yaw = YawDeg(1) * Math.PI / 180.0;
         var lx = -Math.Cos(yaw);
         var lz = Math.Sin(yaw);
-        var rail = RailAt(1, Along0);
+        var rail = RailAt(1, Along0, rules);
         return lx * (-rail.X) + lz * (-rail.Z) > 0;
     }
 
@@ -137,16 +137,16 @@ public static class HarborDugout
     }
 
     /// <summary>Front rail sits on the hip wall, pit behind it into foul.</summary>
-    public static bool RailIsTheHipWall()
+    public static bool RailIsTheHipWall(RulesTable rules)
     {
         var into = Math.Abs(X - Z) / 1.41421356f;
-        var expectX = Inv * (Along0 + HarborWall.FoulOffset + HalfDeep);
-        var expectZ = Inv * (Along0 - HarborWall.FoulOffset - HalfDeep);
-        return Math.Abs(into - (HarborWall.FoulOffset + HalfDeep)) < 0.8f
-            && Math.Abs(FasciaY - HarborWall.HipHeight) < 0.15f
+        var expectX = Inv * (Along0 + HarborWall.FoulOffset(rules) + HalfDeep);
+        var expectZ = Inv * (Along0 - HarborWall.FoulOffset(rules) - HalfDeep);
+        return Math.Abs(into - (HarborWall.FoulOffset(rules) + HalfDeep)) < 0.8f
+            && Math.Abs(FasciaY - HarborWall.HipHeight(rules)) < 0.15f
             && Math.Abs(X - expectX) < 0.15f
             && Math.Abs(Z - expectZ) < 0.15f
-            && RailFacesTheDiamond()
+            && RailFacesTheDiamond(rules)
             && YawFollowsTheFoulLine();
     }
 
@@ -155,14 +155,14 @@ public static class HarborDugout
     /// of it. Skipping a 16-ft segment that merely <i>touches</i> the opening
     /// is what left the Play gap.
     /// </summary>
-    public static bool WallMeetsTheRail(Park park)
+    public static bool WallMeetsTheRail(Park park, RulesTable rules)
     {
-        var loop = HarborWall.Loop(park);
+        var loop = HarborWall.Loop(park, rules);
         foreach (var sign in new[] { 1, -1 })
         {
             foreach (var along in new[] { AlongHome, AlongBag })
             {
-                var r = RailAt(sign, along);
+                var r = RailAt(sign, along, rules);
                 var pinned = false;
                 for (var i = 0; i < loop.Length; i++)
                 {
@@ -170,7 +170,7 @@ public static class HarborDugout
                     if (Diamond.Dist(p.X, p.Z, r.X, r.Z) > 1.2) continue;
                     var prev = loop[(i - 1 + loop.Length) % loop.Length];
                     var next = loop[(i + 1) % loop.Length];
-                    if (WallOpensHere(prev.X, prev.Z) != WallOpensHere(next.X, next.Z))
+                    if (WallOpensHere(prev.X, prev.Z, rules) != WallOpensHere(next.X, next.Z, rules))
                         pinned = true;
                 }
                 if (!pinned) return false;
@@ -187,8 +187,8 @@ public static class HarborDugout
         localAlongFt >= HalfAlong * 1.6f;
 
     /// <summary>Field-side lip is the hip wall, past the 11-ft dirt path.</summary>
-    public static bool IsSetBackFromTheDirt() =>
-        HarborWall.FoulOffset > 12f;
+    public static bool IsSetBackFromTheDirt(RulesTable rules) =>
+        HarborWall.FoulOffset(rules) > 12f;
 
     /// <summary>Just past the plate dirt, not on the chalk.</summary>
     public static bool StartsAfterHome() =>
@@ -208,8 +208,8 @@ public static class HarborDugout
     /// <summary>
     /// Scoop / plate cameras must not sit inside either dugout box (roof included).
     /// </summary>
-    public static bool CameraClears(double camX, double camZ)
+    public static bool CameraClears(double camX, double camZ, RulesTable rules)
     {
-        return !InPitHole(camX, camZ);
+        return !InPitHole(camX, camZ, rules);
     }
 }

@@ -60,11 +60,11 @@ public sealed class OutfieldStartsTests
     public void AParksFoulValuesSitOverTheTable()
     {
         var harbor = Catalog.MustPark(ParkId.Harbor);
-        Assert.Equal(ParkBoundary.Default, ParkBoundary.For(harbor));
+        Assert.Equal(ParkBoundary.From(Rules.Default.Boundary), ParkBoundary.For(harbor, Rules.Default));
         var wide = harbor with { Foul = new ParkFoul(OffsetFt: 30) };
-        var b = ParkBoundary.For(wide);
+        var b = ParkBoundary.For(wide, Rules.Default);
         Assert.Equal(30, b.FoulOffsetFt);
-        Assert.Equal(ParkBoundary.Default.FlareStartFt, b.FlareStartFt);
+        Assert.Equal(ParkBoundary.From(Rules.Default.Boundary).FlareStartFt, b.FlareStartFt);
         Assert.False(FieldBounds.Of(harbor, Rules.Default).Segments.SequenceEqual(FieldBounds.Of(wide, Rules.Default).Segments), "the wider wrap moves the rail");
         Assert.All(Catalog.Parks.Values, p => Assert.Null(p.Foul));
     }

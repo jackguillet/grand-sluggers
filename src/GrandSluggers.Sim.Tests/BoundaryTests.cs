@@ -63,11 +63,11 @@ public sealed class BoundaryTests
         Assert.Equal(18, shipped.DugoutPadFt);
 
         // The kit and the flight read one edge, not two copies of it.
-        Assert.Equal(ParkBoundary.Default.FoulOffsetFt, HarborWall.FoulOffset);
-        Assert.Equal(ParkBoundary.Default.BackstopZFt, HarborWall.HomeZ);
-        Assert.Equal(ParkBoundary.Default.DugoutPadFt, HarborWall.DugoutPad);
-        Assert.Equal((double)HarborWall.HipHeight, FieldBounds.FoulWallHeightFt(Rules.Default));
-        Assert.Equal(ParkBoundary.Default.BackstopZFt, FieldBounds.BackstopZ(Rules.Default));
+        Assert.Equal(ParkBoundary.From(Rules.Default.Boundary).FoulOffsetFt, HarborWall.FoulOffset(Rules.Default));
+        Assert.Equal(ParkBoundary.From(Rules.Default.Boundary).BackstopZFt, HarborWall.HomeZ(Rules.Default));
+        Assert.Equal(ParkBoundary.From(Rules.Default.Boundary).DugoutPadFt, HarborWall.DugoutPad(Rules.Default));
+        Assert.Equal((double)HarborWall.HipHeight(Rules.Default), FieldBounds.FoulWallHeightFt(Rules.Default));
+        Assert.Equal(ParkBoundary.From(Rules.Default.Boundary).BackstopZFt, FieldBounds.BackstopZ(Rules.Default));
     }
 
     /// <summary>
@@ -78,10 +78,10 @@ public sealed class BoundaryTests
     [Fact]
     public void TheRailTopIsTheShippedFloat()
     {
-        Assert.Equal(4.2, ParkBoundary.Default.RailHeightFt);
-        Assert.Equal((double)4.2f, ParkBoundary.Default.RailTopFt);
-        Assert.NotEqual(4.2, ParkBoundary.Default.RailTopFt);
-        Assert.Equal(ParkBoundary.Default.RailTopFt, FieldBounds.FoulWallHeightFt(Rules.Default));
+        Assert.Equal(4.2, ParkBoundary.From(Rules.Default.Boundary).RailHeightFt);
+        Assert.Equal((double)4.2f, ParkBoundary.From(Rules.Default.Boundary).RailTopFt);
+        Assert.NotEqual(4.2, ParkBoundary.From(Rules.Default.Boundary).RailTopFt);
+        Assert.Equal(ParkBoundary.From(Rules.Default.Boundary).RailTopFt, FieldBounds.FoulWallHeightFt(Rules.Default));
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public sealed class BoundaryTests
     public void ADifferentEdgeIsADifferentPolygon()
     {
         var park = _content.Parks[ParkId.Harbor];
-        var shipped = ParkBoundary.Default;
+        var shipped = ParkBoundary.From(Rules.Default.Boundary);
         var wide = shipped with { FoulOffsetFt = shipped.FoulOffsetFt + 10 };
 
         Assert.Same(FieldBounds.Of(park, Rules.Default), FieldBounds.Of(park, shipped));

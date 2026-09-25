@@ -90,7 +90,7 @@ namespace GrandSluggers.EditorTools
             var materials = new HashSet<Material>();
             try
             {
-                var kit = new FieldKit(root.transform, DiamondGeometry.Of(Rules.Default));
+                var kit = new FieldKit(root.transform, Rules.Default);
                 var chalk = kit.Fill(HarborKitPaint.Fill.Chalk);
                 kit.HomePad(chalk);
                 kit.Plate();

@@ -65,12 +65,12 @@ namespace GrandSluggers.UnityClient
         /// <summary>
         /// Cuts to a named park shot (F7-b1, #882) on the park this still captures. The pose is
         /// the sim's (<see cref="StillShots.Frame"/>), from the park's own pole, fence and rail;
-        /// the rail is the edge <see cref="HarborWall"/> draws, <see cref="ParkBoundary.Default"/>.
+        /// the rail is the edge <see cref="HarborWall"/> draws, the match table's <see cref="ParkBoundary.From"/>.
         /// The client holds no Vector3 of its own.
         /// </summary>
         void CutParkShot(ParkShot row)
         {
-            var pose = StillShots.Frame(row, _play.Match.Park, ParkBoundary.Default);
+            var pose = StillShots.Frame(row, _play.Match.Park, ParkBoundary.From(_play.Match.Rules.Boundary));
             _scene.Cam.CutRaw(pose.Id,
                 new Vector3((float)pose.Pos.X, (float)pose.Pos.Y, (float)pose.Pos.Z),
                 new Vector3((float)pose.Target.X, (float)pose.Target.Y, (float)pose.Target.Z),

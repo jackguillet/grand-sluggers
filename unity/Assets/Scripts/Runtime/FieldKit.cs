@@ -120,13 +120,15 @@ namespace GrandSluggers.UnityClient
         Material _chalk;
         Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh, _kitChalk, _kitNavy, _kitDirt, _kitHill;
 
-        /// <summary>The diamond this kit draws: the match table's bags, rubber and dirt (#1190).</summary>
+        /// <summary>The table this kit draws: its bags, rubber and dirt, and the edge its wall and rail stand on (#1190).</summary>
+        readonly RulesTable _rules;
         readonly DiamondGeometry _diamond;
 
-        public FieldKit(Transform root, DiamondGeometry diamond)
+        public FieldKit(Transform root, RulesTable rules)
         {
             _root = root;
-            _diamond = diamond;
+            _rules = rules;
+            _diamond = rules != null ? DiamondGeometry.Of(rules) : null;
         }
 
         public Transform Root => _root;
@@ -313,15 +315,15 @@ namespace GrandSluggers.UnityClient
             var folder = Anchor(TrackName);
             Wipe(folder);
             if (park == null) return;
-            var n = HarborWall.Loop(park).Length;
+            var n = HarborWall.Loop(park, _rules).Length;
             var y0 = ParkDiamond.TrackY - ParkDiamond.TrackThick * 0.5f;
             var y1 = ParkDiamond.TrackY + ParkDiamond.TrackThick * 0.5f;
             var verts = new Vector3[n * 4];
             var uvs = new Vector2[n * 4];
             for (var i = 0; i < n; i++)
             {
-                var inn = HarborWall.TrackInner(park, i);
-                var outt = HarborWall.TrackOuter(park, i);
+                var inn = HarborWall.TrackInner(park, i, _rules);
+                var outt = HarborWall.TrackOuter(park, i, _rules);
                 var inner = new Vector3((float)inn.X, 0f, (float)inn.Z);
                 var outer = new Vector3((float)outt.X, 0f, (float)outt.Z);
                 var u = i / (float)n;
@@ -476,19 +478,19 @@ namespace GrandSluggers.UnityClient
             if (park == null || faces == null || faces.Length == 0) return;
             var thick = HarborPostcard.WallThickFt;
             var half = thick * 0.5f;
-            var n = HarborWall.Loop(park).Length;
+            var n = HarborWall.Loop(park, _rules).Length;
             for (var i = 0; i < n; i++)
             {
-                var p0 = HarborWall.LoopPoint(park, i);
-                var p1 = HarborWall.LoopPoint(park, i + 1);
+                var p0 = HarborWall.LoopPoint(park, i, _rules);
+                var p1 = HarborWall.LoopPoint(park, i + 1, _rules);
                 var mid = new Vector3((float)((p0.X + p1.X) * 0.5), 0f, (float)((p0.Z + p1.Z) * 0.5));
-                var (h0, h1) = HarborWall.SpanTops(park, i);
+                var (h0, h1) = HarborWall.SpanTops(park, i, _rules);
                 // Skip the claimed span only. A vertex sits on each end of a claim, so the
                 // span beside it butts the dress instead of leaving a 16-ft gap.
                 var claimed = opens != null && opens((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5);
-                if (h0 <= HarborWall.HipHeight + RailSlackFt && h1 <= HarborWall.HipHeight + RailSlackFt && claimed)
+                if (h0 <= HarborWall.HipHeight(_rules) + RailSlackFt && h1 <= HarborWall.HipHeight(_rules) + RailSlackFt && claimed)
                     continue;
-                var o = HarborWall.Outward(park, i);
+                var o = HarborWall.Outward(park, i, _rules);
                 var outward = new Vector3((float)o.X, 0f, (float)o.Z);
                 var a = new Vector3((float)p0.X, 0f, (float)p0.Z);
                 var b = new Vector3((float)p1.X, 0f, (float)p1.Z);
