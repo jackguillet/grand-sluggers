@@ -90,7 +90,7 @@ Only if A–C stills exist and Phase P has exited. Rule: **three good parks beat
 | Epic | Gate |
 | --- | --- |
 | **D1. Role-player variants** (#25) | Captains read at gameplay distance. Same rig, jersey/stripe only. |
-| **D2. Crystal Rink as a kit** (#37 starts here, not six parks) | Copy HarborKit pattern. Hazards are `data/rules` field effects (spec §14). |
+| **D2. Aurora Rink as a kit** (#37 starts here, not six parks) | Copy HarborKit pattern. Hazards are `data/rules` field effects (spec §14). |
 | **D3. One gimmick park** (Funfair **or** Ember, not both) | Hazard must change a routine fly into a story. |
 | **D4. Night as rules + look** | Already in sim; kit + lighting slot. |
 | **D5. Challenge island** (#36) | Kill it if it is not more fun than Exhibition. |

@@ -1,0 +1,119 @@
+using GrandSluggers.Sim;
+using Xunit;
+
+namespace GrandSluggers.Sim.Tests;
+
+/// <summary>
+/// The continent the parks stand on (WD-05, WD-19, WD-20; data/world/regions.json): the Grand Reach, one land and one
+/// island. Every park names one region, no two parks share one, every region sits on the unit map, and the park players
+/// used to call Crystal Rink reads Aurora Rink while its id stays.
+/// </summary>
+public sealed class WorldMapTests
+{
+    static readonly ContentCatalog Catalog = Shipped.Content;
+
+    [Fact]
+    public void TheContinentIsTheGrandReachWithTenRegionsAndOneIsland()
+    {
+        var world = Catalog.World;
+        Assert.Equal("The Grand Reach", world.Continent);
+        Assert.Equal(10, world.Regions.Count);
+        Assert.Equal("tropical-island", Assert.Single(world.Regions, r => r.Island).Id);
+        Assert.All(world.Regions, r =>
+        {
+            Assert.InRange(r.X, 0, 1);
+            Assert.InRange(r.Y, 0, 1);
+            Assert.False(string.IsNullOrWhiteSpace(r.Name));
+        });
+    }
+
+    /// <summary>Every park stands in its own region, where the plan's map puts it.</summary>
+    [Fact]
+    public void EveryParkStandsInItsOwnRegion()
+    {
+        var expected = new Dictionary<string, string>
+        {
+            [ParkId.Harbor] = "south-coast",
+            [ParkId.Crystal] = "frozen-north",
+            [ParkId.Funfair] = "central-plains",
+            [ParkId.Rooftop] = "eastern-capital",
+            [ParkId.Canopy] = "rainforest",
+            [ParkId.Ember] = "volcano",
+        };
+        foreach (var park in Catalog.Parks.Keys)
+            Assert.Equal(expected[park], Catalog.World.RegionOf(park).Id);
+        Assert.Equal(Catalog.Parks.Count, Catalog.Parks.Keys.Select(p => Catalog.World.RegionOf(p).Id).Distinct().Count());
+        // The four regions that wait for their park files.
+        foreach (var waiting in new[] { "high-peaks", "river-delta", "desert-canyon", "tropical-island" })
+            Assert.Null(Catalog.World.ParkIn(waiting));
+        Assert.Equal(ParkId.Harbor, Catalog.World.ParkIn("south-coast"));
+    }
+
+    /// <summary>The map's relationships: the cold park is the northernmost, the island the southernmost.</summary>
+    [Fact]
+    public void TheColdParkIsNorthAndTheIslandIsSouth()
+    {
+        var regions = Catalog.World.Regions;
+        Assert.Equal("frozen-north", regions.MinBy(r => r.Y)!.Id);
+        Assert.Equal("tropical-island", regions.MaxBy(r => r.Y)!.Id);
+        Assert.True(Catalog.World.RegionOf(ParkId.Rooftop).X > Catalog.World.RegionOf(ParkId.Canopy).X, "the capital is east of the rainforest");
+    }
+
+    [Fact]
+    public void AuroraRinkIsTheNamePlayersReadAndTheIdStays()
+    {
+        var park = Catalog.MustPark(ParkId.Crystal);
+        Assert.Equal("crystal-rink", park.Id);
+        Assert.Equal("Aurora Rink", park.Name);
+        foreach (var lesson in new[] { "T-H01", "T-H02" })
+        {
+            var copy = GrandSluggers.Sim.Front.HowToPlay.TutorialGoal(lesson) + "\n" + GrandSluggers.Sim.Front.HowToPlay.TutorialSetup(lesson);
+            Assert.DoesNotContain("Crystal", copy, StringComparison.Ordinal);
+        }
+        Assert.Contains("Aurora Rink", GrandSluggers.Sim.Front.HowToPlay.TutorialSetup("T-H01"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AParkWithNoRegionOrAnUnknownRegionIsRefusedByName()
+    {
+        using var missing = new ContentFixture();
+        missing.ChangeObject("parks/crystal-rink.json", json => json.Remove("region"));
+        Assert.Contains(ContentDataValidator.Validate(missing.Root), e =>
+            e.StartsWith(missing.Path("parks/crystal-rink.json"), StringComparison.Ordinal)
+            && e.Contains("park 'crystal-rink' region must name its place on the map", StringComparison.Ordinal));
+
+        using var unknown = new ContentFixture();
+        unknown.ChangeObject("parks/crystal-rink.json", json => json["region"] = "the-moon");
+        Assert.Contains(ContentDataValidator.Validate(unknown.Root), e =>
+            e.Contains("park 'crystal-rink' region 'the-moon' is not a region in", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TwoParksInOneRegionAreRefused()
+    {
+        using var fixture = new ContentFixture();
+        fixture.ChangeObject("parks/crystal-rink.json", json => json["region"] = "south-coast");
+        var thrown = Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
+        Assert.Contains("park region 'south-coast' is claimed by more than one park", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains(fixture.Path("parks/harbor-diamond.json"), thrown.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheWorldFileIsReadStrictly()
+    {
+        using var offMap = new ContentFixture();
+        offMap.ChangeObject("world/regions.json", json => json["regions"]![0]!["x"] = 1.5);
+        Assert.Contains(ContentDataValidator.Validate(offMap.Root), e =>
+            e.Contains("'frozen-north' x must be 0 to 1 on the unit map; got 1.5", StringComparison.Ordinal));
+
+        using var twice = new ContentFixture();
+        twice.ChangeObject("world/regions.json", json => json["regions"]![1]!["id"] = "frozen-north");
+        Assert.Contains(ContentDataValidator.Validate(twice.Root), e =>
+            e.Contains("id 'frozen-north' is declared twice", StringComparison.Ordinal));
+
+        using var extra = new ContentFixture();
+        extra.ChangeObject("world/regions.json", json => json["regions"]![0]!["climate"] = "cold");
+        Assert.Contains(ContentDataValidator.Validate(extra.Root), e =>
+            e.Contains("climate", StringComparison.Ordinal) && e.Contains("is not a key this file declares", StringComparison.Ordinal));
+    }
+}

@@ -13,7 +13,7 @@ public sealed class DirectorRailTests
     static readonly string[] StillPartial =
     [
         "ActorDirector.cs", "AtBatDirector.cs", "FlowDirector.cs", "InPlayDirector.cs",
-        "MatchDirector.cs", "StillStaging.cs",
+        "MatchDirector.cs",
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
@@ -47,10 +47,11 @@ public sealed class DirectorRailTests
     [InlineData("PursuitSeatDirector")]
     [InlineData("GuidedTutorialDirector")]
     [InlineData("TutorialDirector")]
+    [InlineData("StillStaging")]
     public void TheDirectorIsARealClass(string director)
     {
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));
-        Assert.Contains("public sealed class " + director, text, StringComparison.Ordinal);
+        Assert.Matches(@"(public|internal) sealed class " + director + @"\b", text);
         Assert.DoesNotContain("partial class MatchDirector", text, StringComparison.Ordinal);
     }
 

@@ -221,8 +221,8 @@ A setup may name a `park` and `night`. The lesson plays at that park with its ha
 
 | Lesson | Park | Opportunity | Passes | Fails |
 | --- | --- | --- | --- | --- |
-| T-H01 | Crystal Rink | grounder onto the ice | manual ground possession | assistance's pickup, dead pad |
-| T-H02 | Crystal Rink | fly behind the freezer at (7, 131) from 2B | the player's catch, no slow on the catcher | the straight run through the freezer (`slowed`), no catch |
+| T-H01 | Aurora Rink | grounder onto the ice | manual ground possession | assistance's pickup, dead pad |
+| T-H02 | Aurora Rink | fly behind the freezer at (7, 131) from 2B | the player's catch, no slow on the catcher | the straight run through the freezer (`slowed`), no catch |
 | T-H03 | Funfair Park | grounder into the warp can at (18, 49) | the player's glove takes it after it leaves the other can | the assistance's take, a take before the redirect |
 | T-H04 | Canopy Yard | liner off the tree at (35, 217) | the player's glove takes it after the carom | the assistance's take, a take before the carom |
 | T-H05 | Funfair Park | the train (timed mover) | planned | |
