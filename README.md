@@ -4,7 +4,7 @@ Arcade baseball with a cartoon roster, team chemistry, signature bats and gloves
 
 Inspired by *Mario Super Sluggers* (Wii, 2008) — **original characters and world**, not a Mario clone. The pitch is the same: a party sports game where *who you draft together* matters as much as who swings the bat.
 
-**How you play: Unity Play.** Open `unity/` in Unity **6000.5.9f1** and press Play on `Assets/Scenes/HarborDiamond.unity`. Gamepad first. Couch map: [docs/how-to-play.md](docs/how-to-play.md). Editor setup: [unity/README.md](unity/README.md).
+**How you play: the standalone window.** `python3 tools/local-player.py` builds `main` and opens the Mac game in its own window ([docs/local-player.md](docs/local-player.md)). Gamepad only. What is shipped and open: [docs/status.md](docs/status.md). Couch map: [docs/how-to-play.md](docs/how-to-play.md). Editor setup: [unity/README.md](unity/README.md).
 
 The baseball rules live in `src/GrandSluggers.Sim`. Engine decision: [docs/engine-decision.md](docs/engine-decision.md). Raylib (`src/GrandSluggers.Play`) is a `dotnet run` debug sandbox for the rules, not a second product.
 
@@ -48,7 +48,7 @@ Controls, Exhibition flow and Training drills (F1/F2/F3 are editor-only develope
 Portable simulation/content checks and a headless match (no window, no presentation):
 
 ```bash
-PATH=/opt/homebrew/bin:$PATH dotnet test
+PATH=/opt/homebrew/bin:$PATH tools/test-fast.sh <Classes you touched>   # never the full suite locally; CI runs it
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- art
 python3 -m unittest discover -s tools/tests -p 'test_*.py'
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7
