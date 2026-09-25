@@ -22,7 +22,7 @@ public sealed class CaptainDataTests
     public void TheCatalogCarriesEveryCaptainsIdentity()
     {
         var content = Shipped.Content;
-        Assert.Equal(new[] { "rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn" }, content.CaptainIds);
+        Assert.Equal(new[] { "rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn", "sable", "hollis", "reed" }, content.CaptainIds);
         Assert.Equal("Stillwater", PresetTeams.TeamName(content.Must("fenn")));
         Assert.Equal("fen-cane", GearMesh.SignatureBat(content, "fenn").Id);
         Assert.Equal("zig", content.Must("jester").BodyType);
@@ -30,7 +30,7 @@ public sealed class CaptainDataTests
         Assert.Equal("Ember Court", PresetTeams.EmberCourt(content).Name);
         Assert.Equal(9, PresetTeams.EmberCourt(content).Roster.Count);
         Assert.Equal("vale", PresetTeams.NextCaptain(content, "rio"));
-        Assert.Equal("fenn", PresetTeams.PrevCaptain(content, "rio"));
+        Assert.Equal("reed", PresetTeams.PrevCaptain(content, "rio"));
     }
 
     [Theory]

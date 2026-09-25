@@ -19,8 +19,8 @@ public class ExhibitionPickTests
         Assert.NotEqual(PresetTeams.HomeParkId(_content, next.Home), next.Park);
 
         var prev = ExhibitionPick.CycleHome(Shipped.Content, start, -1);
-        Assert.Equal("fenn", prev.Home);
-        Assert.NotEqual("fenn", prev.Away);
+        Assert.Equal("reed", prev.Home);
+        Assert.NotEqual("reed", prev.Away);
         Assert.Equal(ParkId.Harbor, prev.Park);
     }
 

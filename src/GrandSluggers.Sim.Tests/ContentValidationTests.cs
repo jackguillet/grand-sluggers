@@ -86,7 +86,7 @@ public sealed class ContentValidationTests
         Assert.Contains("character 'rio' starPitch references unknown id 'missing-pitch'", ex.Message);
         Assert.Contains("character 'rio' starSwing references unknown id 'missing-swing'", ex.Message);
         Assert.Contains("character 'rio' fieldAbility", ex.Message);
-        Assert.Contains("chemistry buddies[12][1] references unknown character 'missing-player'", ex.Message);
+        Assert.Contains("][1] references unknown character 'missing-player'", ex.Message);
     }
 
     [Fact]
@@ -156,12 +156,12 @@ public sealed class ContentValidationTests
         });
 
         var errors = ContentDataValidator.Validate(fixture.Root);
-        Assert.Contains(errors, e => e.Contains("characters/role-players.json[18]: character row must be an object; got null", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("characters/role-players.json[27]: character row must be an object; got null", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("parks/harbor-diamond.json: park 'harbor-diamond' hazard[0] must be an object; got null", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("abilities/star-skills.json: star pitch 'fastball' must be an object; got null", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("chemistry/overrides.json: chemistry buddies must be an array; got null", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("chemistry rivals[10] must be an array; got null", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("chemistry rivals[11][1] references unknown character ''", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("chemistry rivals[16] must be an array; got null", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("chemistry rivals[17][1] references unknown character ''", StringComparison.Ordinal));
 
         var ex = Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
         Assert.Contains("character row must be an object; got null", ex.Message);

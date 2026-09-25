@@ -1,0 +1,9 @@
+{
+  // Hollis's default stat loadout. Power first; the mountain bat.
+  "id": "summit-axe",
+  "name": "Summit Axe",
+  "contactMod": -1,
+  "powerMod": 1,
+  "chargeAlwaysFull": false,
+  "visual": "bat-axe"
+}

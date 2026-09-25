@@ -1,7 +1,7 @@
 {
   // The captains in select order (the captain sheet, the Exhibition pick and Challenge walk this list). Every captain in
   // data/characters appears once; a role player never does.
-  "captains": ["rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn"],
+  "captains": ["rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn", "sable", "hollis", "reed"],
   // The authored nines: a team the game can name without a pick (the CLI's default match, tests, Training).
   "presets": [
     { "id": "spark-all-stars", "name": "Spark All-Stars", "roster": ["rio", "nico", "pip", "marlow", "vale", "lace", "zig", "dart", "vine"] },

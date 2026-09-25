@@ -1,0 +1,25 @@
+{
+  "id": "sable",
+  "name": "Sable",
+  "faction": "dune",
+  "captain": true,
+  // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
+  "bodyClass": "trickster",
+  "teamName": "Dune Nomads",
+  "signatureBat": "mirage-bat",
+  // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
+  "proportions": { "height": 1.02, "width": 0.86, "head": 1.3, "arms": 1.08, "torso": 0.88 },
+  // Nine sub-stats (spec §2); the bars are derived, the rounded mean of each group: Bat (contact, power), Pitch (velocity = power, endurance = stamina, control, movement = break), Field (hands, arm = throw speed), Run.
+  "contact": 6, "power": 4,
+  "velocity": 7, "endurance": 8, "control": 8, "movement": 9,
+  "hands": 7, "arm": 5,
+  "run": 5,
+  "bats": "R",
+  "throws": "R",
+  "repertoire": ["sinker", "changeup"],
+  // Generic library abilities until this captain's own three land (WD-15 A; #1149); never another captain's.
+  "starPitch": "breaker",
+  "starSwing": "line",
+  "fieldAbility": "dive",
+  "bio": "A desert trickster from the canyon rim. The sinker drops out of the heat haze; nobody reads where it went."
+}
