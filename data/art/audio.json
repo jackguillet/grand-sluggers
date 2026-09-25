@@ -1,21 +1,21 @@
 {
   "events": [
-    { "id": "bat-perfect", "slot": "Assets/Art/Audio/bat-perfect", "bus": "sfx", "authored": true },
-    { "id": "bat-solid", "slot": "Assets/Art/Audio/bat-solid", "bus": "sfx", "authored": true },
-    { "id": "bat-cheap", "slot": "Assets/Art/Audio/bat-cheap", "bus": "sfx", "authored": true },
-    { "id": "glove", "slot": "Assets/Art/Audio/glove", "bus": "sfx", "authored": true },
-    { "id": "throw", "slot": "Assets/Art/Audio/throw", "bus": "sfx", "authored": true },
-    { "id": "crowd-bed", "slot": "Assets/Art/Audio/crowd-bed", "bus": "crowd", "authored": true },
-    { "id": "crowd-swell", "slot": "Assets/Art/Audio/crowd-swell", "bus": "crowd" },
-    { "id": "vo-rio", "slot": "Assets/Art/Audio/vo-rio", "bus": "vo" },
-    { "id": "vo-vale", "slot": "Assets/Art/Audio/vo-vale", "bus": "vo" },
-    { "id": "vo-zig", "slot": "Assets/Art/Audio/vo-zig", "bus": "vo" },
-    { "id": "vo-brondo", "slot": "Assets/Art/Audio/vo-brondo", "bus": "vo" },
-    { "id": "vo-konga", "slot": "Assets/Art/Audio/vo-konga", "bus": "vo" },
-    { "id": "vo-ashlord", "slot": "Assets/Art/Audio/vo-ashlord", "bus": "vo" },
-    { "id": "vo-fenn", "slot": "Assets/Art/Audio/vo-fenn", "bus": "vo" },
-    { "id": "banana", "slot": "Assets/Art/Audio/banana", "bus": "sfx" },
-    { "id": "rocket", "slot": "Assets/Art/Audio/rocket", "bus": "sfx" },
-    { "id": "pow", "slot": "Assets/Art/Audio/pow", "bus": "sfx" }
+    { "id": "bat-perfect", "slot": "data/art/audio-clips/bat-perfect.wav", "bus": "sfx", "authored": true },
+    { "id": "bat-solid", "slot": "data/art/audio-clips/bat-solid.wav", "bus": "sfx", "authored": true },
+    { "id": "bat-cheap", "slot": "data/art/audio-clips/bat-cheap.wav", "bus": "sfx", "authored": true },
+    { "id": "glove", "slot": "data/art/audio-clips/glove.wav", "bus": "sfx", "authored": true },
+    { "id": "throw", "slot": "data/art/audio-clips/throw.wav", "bus": "sfx", "authored": true },
+    { "id": "crowd-bed", "slot": "data/art/audio-clips/crowd-bed.wav", "bus": "crowd", "authored": true },
+    { "id": "crowd-swell", "slot": "data/art/audio-clips/crowd-swell.wav", "bus": "crowd" },
+    { "id": "vo-rio", "slot": "data/art/audio-clips/vo-rio.wav", "bus": "vo" },
+    { "id": "vo-vale", "slot": "data/art/audio-clips/vo-vale.wav", "bus": "vo" },
+    { "id": "vo-zig", "slot": "data/art/audio-clips/vo-zig.wav", "bus": "vo" },
+    { "id": "vo-brondo", "slot": "data/art/audio-clips/vo-brondo.wav", "bus": "vo" },
+    { "id": "vo-konga", "slot": "data/art/audio-clips/vo-konga.wav", "bus": "vo" },
+    { "id": "vo-ashlord", "slot": "data/art/audio-clips/vo-ashlord.wav", "bus": "vo" },
+    { "id": "vo-fenn", "slot": "data/art/audio-clips/vo-fenn.wav", "bus": "vo" },
+    { "id": "banana", "slot": "data/art/audio-clips/banana.wav", "bus": "sfx" },
+    { "id": "rocket", "slot": "data/art/audio-clips/rocket.wav", "bus": "sfx" },
+    { "id": "pow", "slot": "data/art/audio-clips/pow.wav", "bus": "sfx" }
   ]
 }

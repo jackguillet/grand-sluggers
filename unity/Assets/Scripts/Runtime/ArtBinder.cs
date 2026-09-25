@@ -198,7 +198,8 @@ namespace GrandSluggers.UnityClient
         public static GameObject LoadParkKit(string parkId)
         {
             if (string.IsNullOrWhiteSpace(parkId)) return null;
-            if (!parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase))
+            // Only a placed kit has a mesh (data/art/parks.json placed); every other park draws the greybox.
+            if (_art == null || !_art.TryPark(parkId, out var row) || !row.Placed)
                 return null;
             if (_harborKit != null) return _harborKit;
             if (_harborMiss) return null;
@@ -300,14 +301,7 @@ namespace GrandSluggers.UnityClient
         static string ParkKitFbx(string parkId)
         {
             var slot = ParkKitPath(parkId);
-            if (string.IsNullOrWhiteSpace(slot))
-            {
-                if (parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase))
-                    return "Assets/Art/Parks/harbor-diamond/harbor-kit.fbx";
-                return "";
-            }
-            if (slot.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) return slot;
-            return slot.TrimEnd('/') + "/harbor-kit.fbx";
+            return slot.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase) ? slot : "";
         }
 
         public static SkinSlot SkinOf(Character who)

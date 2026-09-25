@@ -25,9 +25,9 @@ namespace GrandSluggers.UnityClient
         MenuNav.Gate _selectX;
         MenuNav.Gate _selectY;
         MenuNav.Gate _selectX2;
-        public string ParkId = "harbor-diamond";
-        public string HomeCaptain = "rio";
-        public string AwayCaptain = "ashlord";
+        [System.NonSerialized] public string ParkId = ExhibitionPick.DefaultPark;
+        [System.NonSerialized] public string HomeCaptain = ExhibitionPick.Default.Home;
+        [System.NonSerialized] public string AwayCaptain = ExhibitionPick.Default.Away;
         public bool Night;
         /// <summary>The hazards switch (FD-10): on by default; the title and the field toggle it for an exhibition.</summary>
         public bool Hazards = true;
@@ -239,7 +239,7 @@ namespace GrandSluggers.UnityClient
             _rig = gameObject.AddComponent<CameraRig>();
             _rig.Bind(cam);
             _cam = gameObject.AddComponent<CameraDirector>();
-            _cam.Bind(_rig, _content.Shots, _feel);
+            _cam.Bind(_rig, _content.Shots, _feel, _park.Kit);
             _cam.Cut("title");
             _flow = new FlowDirector(this);
             _atBat = new AtBatDirector(this);
@@ -324,8 +324,8 @@ namespace GrandSluggers.UnityClient
             // East / G that the plate took as the swing cancel is not also the Training skip (PH-13-R1).
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main, CancelFree(Controls.Pad1));
             _stars?.Set(_match.HomeStars, _match.AwayStars);
-            if (HarborKit.Instance != null && HarborKit.Instance.OwnsDiamond)
-                HarborKit.Instance.SetScore(_match.AwayScore, _match.HomeScore, _match.Inning);
+            if (_park != null && _park.Kit != null && _park.Kit.OwnsDiamond)
+                _park.Kit.SetScore(_match.AwayScore, _match.HomeScore, _match.Inning);
             _audio?.Tick(dt);
             if (!_freezeCam) _rig.Tick(dt);
         }
@@ -870,9 +870,7 @@ namespace GrandSluggers.UnityClient
             if (_match.Log.Count == 0 || !ReferenceEquals(_match.Log[_match.Log.Count - 1], pick.Play)) return;
             _clip = pick;
             _hlAt = _ball;
-            var fly = _last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double
-                or PlayKind.Single or PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Foul;
-            _hlPath = fly ? _path : null;
+            _hlPath = pick.UsesFlightPath ? _path : null;
         }
 
         void BeginGameOver()
@@ -899,12 +897,12 @@ namespace GrandSluggers.UnityClient
                 var t = Mathf.Clamp(_t, 0f, Mathf.Max(0.4f, hang));
                 var p = BallFlight.PointAt(_hlPath, t, MatchRules);
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
-                if (_clip != null && _clip.Beat is HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer)
-                    _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);
-                else if (_clip != null && _clip.Beat == HighlightBeat.StarK)
-                    _cam.SmashAt(_cam.SmashFallback);
-                else
-                    _cam.SmashAt(_ball);
+                _cam.SmashAt(_clip?.Aim switch
+                {
+                    HighlightAim.Moment => _hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball,
+                    HighlightAim.Batter => _cam.SmashFallback,
+                    _ => _ball
+                });
                 return;
             }
             _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _cam.SmashFallback);
