@@ -2627,5 +2627,5 @@
     }
   ],
   "implementation_map": "../plan-fields-implementation.md",
-  "shipping_contract": "../gameplay-spec.md#03-fields--d21-814"
+  "shipping_contract": "../spec/00-decisions.md#03-fields--d21-814"
 }

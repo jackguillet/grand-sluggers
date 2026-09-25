@@ -92,7 +92,7 @@ Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on deman
 
 **Debug protocol.** Add a row to `data/agent/debug-protocol.json` only for a novel failure signature (§2). A repeat of a known signature, or a row whose only news is a PR number, is not a row.
 
-**Reading.** Start from "Start here" in [AGENTS.md](../AGENTS.md). Read the gameplay-spec sections your change touches. Look up the other docs when the work needs them. Research reports (`docs/research-*.md`, `docs/research/`) and handoffs are reference, not required reading.
+**Reading.** Start from "Start here" in [AGENTS.md](../AGENTS.md). Read the spec files under `docs/spec/` that your change touches. Look up the other docs when the work needs them. Research reports (`docs/research-*.md`, `docs/research/`) and handoffs are reference, not required reading.
 
 ## 1.3 Decided: C80 promoted
 
@@ -125,7 +125,7 @@ A sitting note is still **one GitHub issue per finding** under the epic that own
 
 ### 2.1 Scale and pace decisions (#693)
 
-Before a session changes gameplay distances or clocks, read [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693). [The reference research](research-game-feel-693.md) and [the decision register](plan-game-feel-693.md) are reference: look up the rows the change touches. Compare reference versions explicitly; carry source status, units, uncertainty, and the accepting decision with every target. A proposed or unresolved number cannot become an active default or a verified debug-protocol fix.
+Before a session changes gameplay distances or clocks, read [gameplay-spec D19](spec/00-decisions.md#02-field-proportions-and-race-calibration--d19-693). [The reference research](research-game-feel-693.md) and [the decision register](plan-game-feel-693.md) are reference: look up the rows the change touches. Compare reference versions explicitly; carry source status, units, uncertainty, and the accepting decision with every target. A proposed or unresolved number cannot become an active default or a verified debug-protocol fix.
 
 Measure full races, not only outcomes: contact, pursuit/possession, command/release, receiver/coverage, runner/tag. Keep field/body proportions separate from camera projection. Use the existing trace/scenario/catalog paths; the versioned #702 extensions and evidence validation are specified in [race-traces.md](race-traces.md); their draft/merge state remains in the #693 plan. Preserve both fixed-input and fixed-tactical fixtures so an inverse carry solver cannot conceal a changed flight.
 
