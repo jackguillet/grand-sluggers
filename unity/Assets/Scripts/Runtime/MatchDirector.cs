@@ -86,8 +86,6 @@ namespace GrandSluggers.UnityClient
         internal bool _itemFlying { get => Play.ItemFlying; set => Play.ItemFlying = value; }
         float _itemFly { get => Play.ItemFly; set => Play.ItemFly = value; }
         string _itemId { get => Play.ItemId; set => Play.ItemId = value; }
-        internal bool _starPitch;
-        bool _starSwing;
         /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
         internal BuntSide _buntSide;
         /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
@@ -232,7 +230,7 @@ namespace GrandSluggers.UnityClient
         void Update()
         {
             Controls.Tick(Time.unscaledDeltaTime, _content.Rules);
-            TickStarModifiers();
+            StarAsks.Tick();
             if (_match == null) return;
             // The pursuit stick's seats (#718) bind every frame, recovery and Call time included, on the input clock.
             _seatStick.Tick(_match, _matchSeats.Bound, _phase is Phase.Set or Phase.Result, LiveSeats, TrainingOn);
@@ -384,14 +382,14 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
-                _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
+                StarAsks.PitchShown || StarAsks.SwingShown, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TutorialOn ? HowToPlay.TutorialGoal(_coach.Tutorial.Lesson.Id) : TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
-                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, ShowingSide,
+                LiveSeats.Count, HumanPitches, HumanBats, StarAsks.PitchShown, StarAsks.SwingShown, Pad1Home, ShowingSide,
                 CarnivalFront.ExhibitionTitle,
-                _starNo, Time.unscaledTime - _starNoAt,
+                StarAsks.Unavailable, Time.unscaledTime - StarAsks.UnavailableAt,
                 inPlay: _phase is Phase.InPlay or Phase.StealThrow);
             if (_phase == Phase.Title && !_match.Paused) SetupSheet.TitleMenu(_titleFocus);
             if (!_match.Paused && _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow)
