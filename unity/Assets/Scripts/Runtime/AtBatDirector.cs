@@ -325,7 +325,7 @@ namespace GrandSluggers.UnityClient
                 _plateSeat = -1;
                 _plate = default;
             }
-            _pip += dt * 1.35f;
+            _pip += dt * (float)_feel.PipPulseHz;
             // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI's steal table runs once per at-bat.
             if (!HumanPitches && _t < dt) _match.CpuConsidersSwap();
             if (!HumanBats && _t < dt) _match.CpuBatter.ArmSteal();
@@ -348,7 +348,7 @@ namespace GrandSluggers.UnityClient
             if (HumanBats)
             {
                 // Down resets the box in SET only (§5.4); in flight the same axis aims launch.
-                if (box.StickY < -0.7f) _match.ResetBatter();
+                if (box.StickY < -(float)_feel.SetResetStick) _match.ResetBatter();
                 else _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
             }
             // The square is a clock (§7.3): the defense crashes for as long as it has been held; released, it winds back.
@@ -356,8 +356,8 @@ namespace GrandSluggers.UnityClient
             if (HumanPitches)
             {
                 if (_swapPick != null || _match.PitchSetup.Committed) { }
-                else if (mound.StickY < -0.7f) _match.ResetPitcher();
-                else _match.WalkPitcher(PitchWorldX(mound.StickX) * dt * 1.6f);
+                else if (mound.StickY < -(float)_feel.SetResetStick) _match.ResetPitcher();
+                else _match.WalkPitcher(HomeSet.RubberWalkStep(PitchWorldX(mound.StickX), dt));
                 _moundX = (float)_match.PitcherOffsetX;
                 _aimX = (float)_match.PitcherOffsetX;
                 _aimY = 0;
@@ -376,7 +376,7 @@ namespace GrandSluggers.UnityClient
                 // walks (§4.8). Presentation only: the delivery already carries that rubber, and
                 // with no plan (a tutorial) the body sits on the match's own value.
                 _moundX = _cpuPitch != null
-                    ? Mathf.MoveTowards(_moundX, (float)_match.PitcherOffsetX, dt * 1.6f)
+                    ? Mathf.MoveTowards(_moundX, (float)_match.PitcherOffsetX, (float)HomeSet.RubberWalkStep(1f, dt))
                     : (float)_match.PitcherOffsetX;
             ShowCursor();
             ShowAimTell(HumanPitches ? PreviewPitch(pitchFamily) : null);

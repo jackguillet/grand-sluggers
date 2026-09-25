@@ -886,27 +886,29 @@ namespace GrandSluggers.UnityClient
 
         static void Replay(Match match, string highlight)
         {
-            GUI.DrawTexture(new Rect(40, 36, 520, 92), _panel);
-            GUI.Label(new Rect(56, 44, 500, 24), "HIGHLIGHT", _gold);
-            GUI.Label(new Rect(56, 70, 490, 40), string.IsNullOrEmpty(highlight) ? "The play of the game." : highlight, _h1);
-            GUI.Label(new Rect(56, 140, 400, 22), Short(match.Away) + " " + match.AwayScore + "   " + Short(match.Home) + " " + match.HomeScore, _body);
+            var card = BroadcastHud.ReplayCard;
+            GUI.DrawTexture(Px(card.Panel), _panel);
+            GUI.Label(Px(card.Label), BroadcastHud.HighlightLabel, _gold);
+            GUI.Label(Px(card.Highlight), string.IsNullOrEmpty(highlight) ? BroadcastHud.HighlightDefault : highlight, _h1);
+            GUI.Label(Px(card.Score), Short(match.Away) + " " + match.AwayScore + "   " + Short(match.Home) + " " + match.HomeScore, _body);
         }
 
         static void Final(Match match, string highlight)
         {
             var mvp = match.Scorebook.Mvp();
-            GUI.DrawTexture(new Rect(48, 48, 640, 320), _panel);
-            GUI.Label(new Rect(68, 62, 400, 28), "FINAL", _gold);
-            GUI.Label(new Rect(68, 100, 600, 40), match.Away.Name + "  " + match.AwayScore, _h1);
-            GUI.Label(new Rect(68, 148, 600, 40), match.Home.Name + "  " + match.HomeScore, _h1);
+            var card = BroadcastHud.FinalCard;
+            GUI.DrawTexture(Px(card.Panel), _panel);
+            GUI.Label(Px(card.Title), BroadcastHud.FinalTitle, _gold);
+            GUI.Label(Px(card.Away), match.Away.Name + "  " + match.AwayScore, _h1);
+            GUI.Label(Px(card.Home), match.Home.Name + "  " + match.HomeScore, _h1);
             if (!string.IsNullOrEmpty(highlight))
             {
-                GUI.Label(new Rect(68, 200, 600, 22), "HIGHLIGHT", _tiny);
-                GUI.Label(new Rect(68, 222, 600, 24), highlight, _gold);
+                GUI.Label(Px(card.HighlightLabel), BroadcastHud.HighlightLabel, _tiny);
+                GUI.Label(Px(card.Highlight), highlight, _gold);
             }
-            GUI.Label(new Rect(68, 258, 600, 28), "MVP  " + mvp.Who.Name, _gold);
-            GUI.Label(new Rect(68, 290, 600, 22), mvp.Why, _body);
-            GUI.Label(new Rect(68, 330, 600, 22), "SPACE  continue", _tiny);
+            GUI.Label(Px(card.Mvp), BroadcastHud.MvpPrefix + mvp.Who.Name, _gold);
+            GUI.Label(Px(card.MvpWhy), mvp.Why, _body);
+            GUI.Label(Px(card.Continue), BroadcastHud.FinalContinue, _tiny);
         }
 
         static void Play(Match match, string pitcherExtra, bool star, bool steal, string item,

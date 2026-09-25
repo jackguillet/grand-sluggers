@@ -87,6 +87,15 @@ public static class HomeSet
     /// before the commit leaves the walk's speed unchanged (PH-09-R1, S-137).
     /// </summary>
     public static double BoxWalkStep(float stickX, float dt) => stickX * dt * BoxWalkPerSec;
+
+    /// <summary>Rubber units a held stick walks the pitcher per second in SET (spec §4.2): the same pace as the box walk.</summary>
+    public const float RubberWalkPerSec = 1.6f;
+
+    /// <summary>
+    /// One frame of rubber walk for a horizontal stick (spec §4.2): stick × dt × <see cref="RubberWalkPerSec"/>. The human
+    /// pitcher's walk and the CPU body's walk to its solved rubber use it, so the two move at one pace.
+    /// </summary>
+    public static double RubberWalkStep(float stickX, float dt) => stickX * dt * RubberWalkPerSec;
     /// <summary>Feet the pitcher's body, release hand, and crossing move per unit of rubber walk (spec §4.2): once, the same for both seats.</summary>
     public const double PitcherWalk = 2.4;
     public const double BatterChestY = 3.2;

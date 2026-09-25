@@ -60,7 +60,7 @@ namespace GrandSluggers.UnityClient
             if (_replaying)
             {
                 TickReplay(Time.deltaTime);
-                if (_t > 2.05f || Controls.SouthDown)
+                if (_t > (float)_feel.ReplaySec || Controls.SouthDown)
                 {
                     _replaying = false;
                     _t = 0;
@@ -319,7 +319,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_lineup == null)
             {
-                if (Controls.SouthDown || _t > 10f) BeginSet();
+                if (Controls.SouthDown || _t > (float)_feel.LineupAutoStartSec) BeginSet();
                 return;
             }
 

@@ -8,7 +8,8 @@ public readonly record struct CameraShot(
     Vec3 Pos,
     Vec3 Target,
     double Fov,
-    int Blend);
+    int Blend,
+    Vec3? Fallback = null);
 
 public sealed class CameraShots
 {
@@ -54,7 +55,8 @@ public sealed class CameraShots
                 row.Pos.ToVec(),
                 row.Target.ToVec(),
                 row.Fov,
-                row.Blend);
+                row.Blend,
+                row.Fallback?.ToVec());
         }
         var parks = new Dictionary<string, ParkShot>(StringComparer.OrdinalIgnoreCase);
         var rows = dto.ParkShots ?? [];
@@ -83,6 +85,8 @@ public sealed class CameraShots
         public VecDto Target { get; set; } = new();
         public double Fov { get; set; }
         public int Blend { get; set; }
+        /// <summary>Where a shot centered on a moment looks when the play left none (the smash replay's batter).</summary>
+        public VecDto? Fallback { get; set; }
     }
 
     sealed class VecDto
@@ -110,6 +114,14 @@ public sealed record FeelTable
     /// <summary>Stick magnitude that takes the glove from the CPU (the one threshold; FieldAssist reads it).</summary>
     [Positive, Chance] public double FieldAssistStick { get; init; }
     [Positive] public double PitcherReadySeconds { get; init; }
+    /// <summary>Stick down past this in SET resets the batter's box or the pitcher's rubber (spec §5.4, §4.2).</summary>
+    [Positive, Chance] public double SetResetStick { get; init; }
+    /// <summary>How fast the HUD's pips pulse, in cycles per second.</summary>
+    [Positive] public double PipPulseHz { get; init; }
+    /// <summary>How long the game-over replay runs before the final card, unless South skips it.</summary>
+    [Positive] public double ReplaySec { get; init; }
+    /// <summary>With no lineup screen open, how long before the match starts on its own.</summary>
+    [Positive] public double LineupAutoStartSec { get; init; }
     [Positive] public double AfterOutSeconds { get; init; }
     [Positive] public double AfterCountSeconds { get; init; }
     [Positive] public double ChargeMaxHoldSeconds { get; init; }
