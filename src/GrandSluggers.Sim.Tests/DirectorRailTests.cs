@@ -57,6 +57,7 @@ public sealed class DirectorRailTests
     [InlineData("AtBatDirector")]
     [InlineData("LineupFlow")]
     [InlineData("FrontMenus")]
+    [InlineData("TutorialFlow")]
     public void TheDirectorIsARealClass(string director)
     {
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));
@@ -80,7 +81,7 @@ public sealed class DirectorRailTests
     }
 
     /// <summary>
-    /// The scene and the play in flight are two objects MatchDirector owns and hands to directors; its old field names
+    /// The scene, the play in flight, the live field and the menus' choices are objects MatchDirector owns and hands to directors; its old field names
     /// only forward to them until the last partial leaves. A new scene or play field goes on the object, not here.
     /// </summary>
     [Fact]
@@ -96,6 +97,9 @@ public sealed class DirectorRailTests
         Assert.Contains("internal readonly LiveFieldState Live = new LiveFieldState();", director, StringComparison.Ordinal);
         foreach (var forwarded in new[] { "_glovePos", "_throwing", "_closePlay", "_caught", "_cpuField", "_bagStamp" })
             Assert.Matches(@"\s" + forwarded + @" \{ get => Live\.", director);
+        Assert.Contains("internal readonly FlowChoices Choices = new FlowChoices();", director, StringComparison.Ordinal);
+        foreach (var forwarded in new[] { "Seed", "Innings", "Difficulty", "ParkId", "HomeCaptain", "AwayCaptain", "Night", "Hazards", "Pad1Home", "_mode", "_settings" })
+            Assert.Matches(@"\s" + forwarded + @" \{ get => Choices\.", director);
     }
 
     [Fact]

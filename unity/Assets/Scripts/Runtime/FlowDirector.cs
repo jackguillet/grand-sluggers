@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
         public void Tick() { _play.TickFlow(); }
     }
 
-    public sealed partial class MatchDirector : IStillHost, ISeatHost, IFrontMenusHost, ILineupHost, IAtBatHost, IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost
+    public sealed partial class MatchDirector : IStillHost, ISeatHost, IFrontMenusHost, ITutorialFlowHost, ILineupHost, IAtBatHost, IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost
     {
         internal void TickFlow()
         {
@@ -74,7 +74,7 @@ namespace GrandSluggers.UnityClient
 
         // The title, the stadium screen and the captain board (#1042): FrontMenus owns them; the pick and the match are the flow's.
         FrontMenus _front;
-        internal FrontMenus Front => _front ??= new FrontMenus(Scene, Play, this);
+        internal FrontMenus Front => _front ??= new FrontMenus(Scene, Play, Choices, this);
         internal int _fieldFocus => Front.FieldFocus;
         internal CaptainSelection _captains => Front.Captains;
         void OpenSelect() => Front.OpenSelect();
@@ -91,14 +91,11 @@ namespace GrandSluggers.UnityClient
             Controls.CatchPlay();
         }
 
-        ExhibitionPick CurrentPick() => new(HomeCaptain, AwayCaptain, ParkId, Pad1Home);
+        ExhibitionPick CurrentPick() => Choices.Pick();
 
         void ApplyPick(ExhibitionPick pick)
         {
-            HomeCaptain = pick.Home;
-            AwayCaptain = pick.Away;
-            ParkId = pick.Park;
-            Pad1Home = pick.Pad1Home;
+            Choices.Take(pick);
             _match = NewMatch();
         }
 
@@ -178,230 +175,43 @@ namespace GrandSluggers.UnityClient
 
         internal void TickLineup() => Lineup.Tick();
 
-        // The Tutorials section's flow. The menu, progress and card state are TutorialDirector's; building a lesson's match
-        // and scene, and routing the card's pad, are the flow's.
-        readonly TutorialDirector _lessons = new TutorialDirector();
-        GuidedTutorialSession _guided => _lessons.Guided.Session;
-        bool TutorialOn => _coach != null && _coach.Tutorial != null;
-        bool TutorialFeedbackReady => TutorialOn && _coach.Tutorial.Phase == TutorialPhase.Feedback
-            && (_coach.Tutorial.IsFieldLesson || !_coach.PlayerBats || _phase == Phase.Result || _coach.Tutorial.Feedback.Code == "timeout");
-        bool TutorialModal => _lessons.MenuOpen || TutorialOn && (_coach.Tutorial.Phase == TutorialPhase.Brief
-                || TutorialFeedbackReady && _coach.Tutorial.Passed)
-            || _guided != null && (_guided.Phase == TutorialPhase.Brief
-                || _guided.Phase == TutorialPhase.Feedback && _guided.Passed);
-        /// <summary>The guided hint names the live refusal, else the reason the last attempt failed.</summary>
-        TutorialFeedback GuidedNotice => _guided?.Notice ?? (_lessons.PreviousFeedback is { Success: false } ? _lessons.PreviousFeedback : null);
-
-        void OpenTutorials()
+        // The Tutorials section (#1042): TutorialFlow owns the menu, the lessons and the guided hooks; these names forward to it.
+        TutorialFlow _tutorials;
+        internal TutorialFlow Tutorials => _tutorials ??= new TutorialFlow(Scene, Play, Live, Choices, Pads, this);
+        TutorialDirector _lessons => Tutorials.Lessons;
+        GuidedTutorialSession _guided => Tutorials.Guided;
+        bool TutorialOn => Tutorials.TutorialOn;
+        bool TutorialModal => Tutorials.TutorialModal;
+        TutorialFeedback GuidedNotice => Tutorials.GuidedNotice;
+        void OpenTutorials() => Tutorials.OpenTutorials();
+        void PrepareTutorial(string id) => Tutorials.PrepareTutorial(id);
+        bool TickTutorialUi(float dt) => Tutorials.TickTutorialUi(dt);
+        bool DrawTutorialUi() => Tutorials.DrawTutorialUi();
+        bool GuidedAttempt(string id) => Tutorials.GuidedAttempt(id);
+        void PrepareGuidedTutorial(TutorialLesson lesson) => Tutorials.PrepareGuidedTutorial(lesson);
+        void BeginGuidedAttempt() => Tutorials.BeginGuidedAttempt();
+        void GuidedFeedbackOpened() => Tutorials.GuidedFeedbackOpened();
+        void GuidedObserve(string lesson, GuidedAction action) => Tutorials.GuidedObserve(lesson, action);
+        void StickResetClosed(bool recalibrated) => Tutorials.StickResetClosed(recalibrated);
+        void GuidedSeatRecovered(LineupSeat seat) => Tutorials.GuidedSeatRecovered(seat);
+        void GuidedSeatsBound() => Tutorials.GuidedSeatsBound();
+        TrainingDirector ITutorialFlowHost.Coach => _coach;
+        void ITutorialFlowHost.EnsureCoach() { if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>(); }
+        void ITutorialFlowHost.BuildScene()
         {
-            var selected = _guided?.Lesson.Id ?? (TutorialOn ? _coach.Tutorial.Lesson.Id : null);
-            _lessons.Guided.Exit();
-            ReturnGuidedSettings();
-            _coach?.Stop();
-            ReleaseMatchSeats();
-            _lessons.OpenMenu(_content, selected);
-            _phase = Phase.Title; _cam.Play("title");
-        }
-
-        void PrepareTutorial(string id)
-        {
-            var lesson = _lessons.Prepare(id);
-            ReturnGuidedSettings();
-            if (GuidedTutorialDirector.IsGuided(id)) { PrepareGuidedTutorial(lesson); return; }
-            _lessons.Guided.Exit();
-            ReleaseMatchSeats();
-            _mode = PlayMode.Training; ParkId = Training.ParkId;
-            if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
-            _coach.BeginTutorial(_content, _lessons.Catalog, id, _lessons.Progress);
-            _match = _coach.Tutorial.Match;
-            HomeCaptain = _match.Home.Captain.Id; AwayCaptain = _match.Away.Captain.Id;
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec.Build(transform, DiamondGeometry.Of(_match.Rules)); _items.Build(transform); _stars?.Build(transform);
             _clip = null; _hlPath = null;
-            _lessons.LessonReady();
-            BeginSet();
         }
-
-        void BeginTutorialAttempt()
-        {
-            var run = _coach.Tutorial;
-            run.Begin(); _lessons.AttemptBegun();
-            Controls.CatchPlay();
-            if (run.IsStealLesson && _match.LivePlay.Active) { StartRunnerPlay(null); return; }
-            if (!run.IsFieldLesson) return;
-            _pending = run.LastHit; _preview = _match.LivePlay.Preview;
-            _pitch = _match.LivePlay.Pitch; _swing = _match.LivePlay.Swing;
-            _cpuField = null;
-            _park.Ball.Release();
-            StartFly(_pending, alreadyLive: true);
-        }
-
-        bool TickTutorialUi(float dt)
-        {
-            if (!_lessons.MenuOpen && !TutorialOn && _guided == null) return false;
-            if (_guided != null && _guided.Phase == TutorialPhase.Attempt) return false;
-            if (_guided != null && _guided.Phase == TutorialPhase.Feedback) _lessons.Save(_guided.Lesson, _guided.Successes);
-            _lessons.Age(dt);
-            if (TutorialOn && _coach.Tutorial.Feedback?.Success == true) _lessons.Save(_coach.Tutorial.Lesson, _coach.Tutorial.Successes);
-            // Save the completed attempt before replacing its session. Never consume its input
-            // again in the fresh setup: returning true skips the rest of this frame's play tick.
-            if (_guided != null && HowToPlay.TutorialRepeatsImmediately(_guided.Phase, _guided.Successes))
-            {
-                var feedback = _guided.Feedback;
-                PrepareTutorial(_guided.Lesson.Id);
-                _lessons.PreviousFeedback = feedback;
-                BeginGuidedAttempt();
-                return true;
-            }
-            if (TutorialFeedbackReady && HowToPlay.TutorialRepeatsImmediately(_coach.Tutorial.Phase, _coach.Tutorial.Successes))
-            {
-                var feedback = _coach.Tutorial.Feedback;
-                PrepareTutorial(_coach.Tutorial.Lesson.Id);
-                _lessons.PreviousFeedback = feedback;
-                BeginTutorialAttempt();
-                return true;
-            }
-            if (!_lessons.Modal(TutorialModal, out var settled))
-            {
-                if (!_coach.Tutorial.IsFieldLesson && !_match.LivePlay.Active && _coach.Tutorial.Phase == TutorialPhase.Attempt)
-                {
-                    var left = (double)dt;
-                    var runnerInput = _coach.Tutorial.IsStealLesson ? RunInput() with { SouthDown = false, WestDown = false } : LivePadInput.Dead;
-                    while (left > 0 && !_match.LivePlay.Active) { var step = Math.Min(left, .05); _coach.Tutorial.Tick(step, runnerInput); left -= step; }
-                    if (_coach.Tutorial.IsStealLesson && _match.LivePlay.Active)
-                    { StartRunnerPlay(null); return true; }
-                }
-                return false;
-            }
-            if (!settled) return true;
-            var confirm = Controls.SouthDown;
-            if (_lessons.MenuOpen)
-            {
-                switch (_lessons.TickMenu(dt, confirm, Controls.EastDown))
-                {
-                    case TutorialDirector.MenuStep.Choose: ChooseTutorialMenu(); break;
-                    case TutorialDirector.MenuStep.Leave: _mode = PlayMode.Exhibition; _t = 0; break;
-                }
-                return true;
-            }
-            if (_guided != null && _guided.Phase == TutorialPhase.Brief)
-            {
-                if (confirm) BeginGuidedAttempt();
-                else if (Controls.EastDown) OpenTutorials();
-                return true;
-            }
-            if (_guided != null && _guided.Phase == TutorialPhase.Feedback)
-            {
-                if (confirm) PrepareTutorial(_guided.Lesson.Id);
-                else if (Controls.WestDown) PrepareTutorial(_lessons.NextAfter(_guided.Lesson.Id));
-                else if (Controls.EastDown) OpenTutorials();
-                return true;
-            }
-            if (_coach.Tutorial.Phase == TutorialPhase.Brief)
-            {
-                if (confirm) BeginTutorialAttempt();
-                else if (Controls.EastDown) OpenTutorials();
-                return true;
-            }
-            if (TutorialFeedbackReady)
-            {
-                if (confirm) PrepareTutorial(_coach.Tutorial.Lesson.Id);
-                else if (Controls.WestDown) PrepareTutorial(_lessons.NextAfter(_coach.Tutorial.Lesson.Id));
-                else if (Controls.EastDown) OpenTutorials();
-                return true;
-            }
-            return false;
-        }
-
-        void ChooseTutorialMenu()
-        {
-            if (_lessons.Chosen == null)
-            {
-                _lessons.CloseMenu(); PracticePick = PracticeLesson.Free; BeginTraining();
-            }
-            else PrepareTutorial(_lessons.Chosen.Id);
-        }
-
-        bool DrawTutorialUi()
-        {
-            if (!TutorialModal) return false;
-            if (_guided != null) HudView.GuidedTutorial(_guided);
-            else _lessons.Draw(TutorialOn ? _coach.Tutorial : null);
-            return true;
-        }
-
-        // The guided lessons' flow: the state is GuidedTutorialDirector's; building the match and the scene is the flow's.
-        bool GuidedAttempt(string id) => _lessons.Guided.Attempt(id);
-
-        void PrepareGuidedTutorial(TutorialLesson lesson)
-        {
-            var pick = _lessons.Guided.Start(lesson, _lessons.Profile, _lessons.Progress,
-                new GuidedTutorialDirector.Pick(HomeCaptain, AwayCaptain, ParkId, Night, Pad1Home, Seed));
-            _coach?.Stop();
-            ReleaseMatchSeats();
-            _mode = PlayMode.Exhibition;
-            _versusWanted = false;
-            (HomeCaptain, AwayCaptain, ParkId, Night, Pad1Home, Seed) = (pick.Home, pick.Away, pick.Park, pick.Night, pick.Pad1Home, pick.Seed);
-            _lessons.LessonReady();
-            _match = NewMatch();
-            _phase = Phase.Title;
-            _cam.Play("title");
-        }
-
-        void BeginGuidedAttempt()
-        {
-            if (!_lessons.Guided.CanBegin(Controls.PadCount)) return;
-            _lineup = null; // Every lesson attempt needs a fresh roster, unlike Back during setup.
-            if (_guided.Lesson.Id == "T-G07")
-            {
-                _settings = _lessons.Guided.LendSettings(_settings, Innings, Difficulty);
-                Innings = _settings.Innings; Difficulty = _settings.Difficulty;
-            }
-            _guided.Begin();
-            _lessons.AttemptBegun();
-            Controls.CatchPlay();
-            if (!_lessons.Guided.StartsOnSet) { OpenField(); return; }
-            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform, DiamondGeometry.Of(_match.Rules)); _items.Build(transform); _stars?.Build(transform);
-            _clip = null; _hlPath = null;
-            BeginSet();
-        }
-
-        void ReturnGuidedSettings()
-        {
-            if (_lessons.Guided.ReturnSettings(out var own, out var innings, out var difficulty))
-                (_settings, Innings, Difficulty) = (own, innings, difficulty);
-        }
-
-        /// <summary>A guided observation opened the lesson's feedback: the card starts fresh and the match runs again.</summary>
-        void GuidedFeedbackOpened()
-        {
-            _lessons.FeedbackOpened();
-            _match.SetPaused(false);
-        }
-
-        void GuidedObserve(string lesson, GuidedAction action)
-        {
-            if (_lessons.Guided.Observe(lesson, action)) GuidedFeedbackOpened();
-        }
-
-        /// <summary>Call time's Reset stick card closed (<see cref="PursuitSeatDirector"/>); a recalibrated close is T-G06-C's action.</summary>
-        void StickResetClosed(bool recalibrated)
-        {
-            _t = 0;
-            if (recalibrated) GuidedObserve("T-G06-C", GuidedAction.StickRecalibrated);
-        }
-
-        void GuidedSeatRecovered(LineupSeat seat)
-        {
-            if (_lessons.Guided.SeatRecovered(seat)) GuidedFeedbackOpened();
-        }
-
-        void GuidedSeatsBound()
-        {
-            if (_lessons.Guided.SeatsBound(_matchSeats.Bound, LiveSeats.BothHuman, Controls.SeatDeviceId(0), Controls.SeatDeviceId(1)))
-                GuidedFeedbackOpened();
-        }
+        Match ITutorialFlowHost.NewMatch() => NewMatch();
+        void ITutorialFlowHost.ReleaseMatchSeats() => ReleaseMatchSeats();
+        bool ITutorialFlowHost.SeatsBound => _matchSeats.Bound;
+        void ITutorialFlowHost.ClearLineup() => _lineup = null;
+        void ITutorialFlowHost.BeginSet() => BeginSet();
+        void ITutorialFlowHost.StartFly(AtBatResult hit, bool alreadyLive) => StartFly(hit, alreadyLive);
+        void ITutorialFlowHost.StartRunnerPlay() => _inPlay.StartRunnerPlay(null);
+        void ITutorialFlowHost.OpenField() => OpenField();
+        void ITutorialFlowHost.BeginTraining() => BeginTraining();
 
         // The still gate's host (#1042): StillStaging owns the staging; the flow owns the match it stages and the switches.
         StillStaging _stills;
@@ -433,25 +243,15 @@ namespace GrandSluggers.UnityClient
 
         // The lineup screens (#1042): LineupFlow owns the screens and their pads; the flow owns the settings and the match they build.
         LineupFlow _lineupFlow;
-        internal LineupFlow Lineup => _lineupFlow ??= new LineupFlow(Play, Scene, Pads, this);
+        internal LineupFlow Lineup => _lineupFlow ??= new LineupFlow(Play, Scene, Choices, Pads, this);
         internal LineupScreens _lineup { get => Lineup.Screens; set => Lineup.Screens = value; }
         TutorialDirector ILineupHost.Lessons => _lessons;
         void ILineupHost.GuidedObserve(string lesson, GuidedAction action) => GuidedObserve(lesson, action);
         void ILineupHost.GuidedFeedbackOpened() => GuidedFeedbackOpened();
-        ExhibitionSettings ILineupHost.Settings => _settings;
-        void ILineupHost.SettingsChanged() { Innings = _settings.Innings; Difficulty = _settings.Difficulty; }
-        string ILineupHost.AwayCaptain => AwayCaptain;
-        Match ILineupHost.NewExhibition(Team home, Team away) =>
-            Match.Exhibition(_content, home, away, Innings, Seed, ParkId, Night, Difficulty, Hazards, mercy: _settings.Mercy, stars: _settings.Stars);
         void ILineupHost.OpenSelect() => OpenSelect();
         void ILineupHost.BeginSet() => BeginSet();
 
-        ExhibitionPick IFrontMenusHost.CurrentPick() => CurrentPick();
         void IFrontMenusHost.ApplyPick(ExhibitionPick pick) => ApplyPick(pick);
-        bool IFrontMenusHost.Night { get => Night; set => Night = value; }
-        bool IFrontMenusHost.Hazards { get => Hazards; set => Hazards = value; }
-        bool IFrontMenusHost.VersusWanted { get => _versusWanted; set => _versusWanted = value; }
-        bool IFrontMenusHost.ExhibitionMode => _mode == PlayMode.Exhibition;
         void IFrontMenusHost.BeginExhibition()
         {
             _mode = PlayMode.Exhibition;

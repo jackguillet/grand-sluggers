@@ -9,20 +9,21 @@ namespace GrandSluggers.UnityClient
     /// The lineup screens' flow (its own class since #1042): team setup, defense setup and match settings for an
     /// exhibition, each seat on its own pad. The screens' state and rules are the sim's (<see cref="LineupScreens"/>,
     /// <see cref="ExhibitionSettings"/>); this class turns the pads into their verbs, tells the guided lessons what the
-    /// player did, and builds the match the draft confirms. Where the match's settings live, and what comes before and
-    /// after the screens, are the flow's (<see cref="ILineupHost"/>).
+    /// player did, and builds the match the draft confirms from <see cref="FlowChoices"/>. The lessons and what comes
+    /// before and after the screens are the flow's (<see cref="ILineupHost"/>).
     /// </summary>
     internal sealed class LineupFlow
     {
         readonly PlayState _play;
         readonly MatchScene _scene;
+        readonly FlowChoices _choices;
         readonly SeatPads _pads;
         readonly ILineupHost _host;
         MenuNav.Gate _x, _x2, _y, _y2;
 
-        public LineupFlow(PlayState play, MatchScene scene, SeatPads pads, ILineupHost host)
+        public LineupFlow(PlayState play, MatchScene scene, FlowChoices choices, SeatPads pads, ILineupHost host)
         {
-            _play = play; _scene = scene; _pads = pads; _host = host;
+            _play = play; _scene = scene; _choices = choices; _pads = pads; _host = host;
         }
 
         /// <summary>The exhibition's screens, or null outside an exhibition (the lineup then auto-starts).</summary>
@@ -146,7 +147,7 @@ namespace GrandSluggers.UnityClient
         void TickMatchSettings()
         {
             var pad = Controls.Pad1;
-            var settings = _host.Settings;
+            var settings = _choices.Settings;
             var dy = _y.Tick(pad.MenuAxisY, pad.MenuTapY, Time.unscaledDeltaTime);
             var dx = _x.Tick(pad.MenuAxisX, pad.MenuTapX, Time.unscaledDeltaTime);
             if (dy != 0) settings.Move(dy > 0 ? -1 : 1);
@@ -158,7 +159,7 @@ namespace GrandSluggers.UnityClient
                 var changed = settings.Change(LineupSeat.Pad1, direction);
                 if (changed) Screens.ResetReady();
                 Guided.RuleEdit(settings.Selected, LineupSeat.Pad1, refusal, changed && wasReady);
-                _host.SettingsChanged();
+                _choices.FollowSettings();
             }
             if (pad.EastDown)
             {
@@ -212,8 +213,10 @@ namespace GrandSluggers.UnityClient
                     var awayGlove = match.AwayGlove;
                     var away = Screens.Away != null
                         ? Screens.Away.ToTeam()
-                        : PresetTeams.ForCaptain(_scene.Content, _host.AwayCaptain);
-                    _play.Match = _host.NewExhibition(Screens.Home.ToTeam(), away);
+                        : PresetTeams.ForCaptain(_scene.Content, _choices.AwayCaptain);
+                    var c = _choices;
+                    _play.Match = Match.Exhibition(_scene.Content, Screens.Home.ToTeam(), away, c.Innings, c.Seed, c.ParkId, c.Night,
+                        c.Difficulty, c.Hazards, mercy: c.Settings.Mercy, stars: c.Settings.Stars);
                     RestoreGear(homeBat, homeGlove, awayBat, awayGlove);
                 }
             }
@@ -230,20 +233,13 @@ namespace GrandSluggers.UnityClient
         }
     }
 
-    /// <summary>What <see cref="LineupFlow"/> reads from the flow: the lessons, the match's settings, the next screens.</summary>
+    /// <summary>What <see cref="LineupFlow"/> asks of the flow: the lessons and the screens on either side.</summary>
     internal interface ILineupHost
     {
         TutorialDirector Lessons { get; }
         void GuidedObserve(string lesson, GuidedAction action);
         /// <summary>A guided observation opened the lesson's feedback: the card starts fresh and the match runs again.</summary>
         void GuidedFeedbackOpened();
-        /// <summary>The exhibition's settings; the flow may lend a lesson's in their place.</summary>
-        ExhibitionSettings Settings { get; }
-        /// <summary>A setting changed: the flow's innings and difficulty follow it.</summary>
-        void SettingsChanged();
-        string AwayCaptain { get; }
-        /// <summary>The exhibition the draft confirmed: these teams, on the flow's park, seed and settings.</summary>
-        Match NewExhibition(Team home, Team away);
         void OpenSelect();
         void BeginSet();
     }
