@@ -84,11 +84,11 @@ namespace GrandSluggers.UnityClient
                     GUI.Label(new Rect(44, 120, 640, 32), setup, _gold);
             }
             else
-                Sticker(training ? HowToPlay.TutorialMenuTitle : "CHALLENGE", 44, 88, 420, 32, _h1);
+                Sticker(training ? HowToPlay.TutorialMenuTitle : CarnivalFront.ChallengeTitle, 44, 88, 420, 32, _h1);
             if (training)
                 GUI.Label(new Rect(44, 124, 640, 22), HowToPlay.TutorialTitleHint, _tiny);
             else if (challenge)
-                GUI.Label(new Rect(44, 124, 640, 22), "South  ·  next match", _gold);
+                GUI.Label(new Rect(44, 124, 640, 22), CarnivalFront.ChallengeNext, _gold);
             _ = portrait;
             // Navigation, not onboarding: the title always names its verbs, after a match or a lesson too.
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22), CarnivalFront.TitleFooter, _tiny);
@@ -108,10 +108,10 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(x, y, w, h), _panel);
             GUI.Label(new Rect(x + 18, y + 8, w - 56, 28), card.Name.ToUpperInvariant(), _h1);
             ChemPip(x + w - 34, y + 14, card.VsCaptain);
-            StatRow(x + 14, y + 42, "PIT", card.Stats.Pitch);
-            StatRow(x + 14, y + 64, "BAT", card.Stats.Bat);
-            StatRow(x + 14, y + 86, "FLD", card.Stats.Field);
-            StatRow(x + 14, y + 108, "RUN", card.Stats.Run);
+            StatRow(x + 14, y + 42, CarnivalFront.StatPitch, card.Stats.Pitch);
+            StatRow(x + 14, y + 64, CarnivalFront.StatBat, card.Stats.Bat);
+            StatRow(x + 14, y + 86, CarnivalFront.StatField, card.Stats.Field);
+            StatRow(x + 14, y + 108, CarnivalFront.StatRun, card.Stats.Run);
             GUI.Label(new Rect(x + 14, y + 136, w - 28, 24), card.StarPitch, _body);
             GUI.Label(new Rect(x + 14, y + 160, w - 28, 24), card.StarSwing, _body);
             GUI.Label(new Rect(x + 14, y + 184, w - 28, 20), card.FieldVerb, _tiny);
@@ -161,7 +161,7 @@ namespace GrandSluggers.UnityClient
                 y += 26;
             }
             if (!CarnivalFront.HarborIsTheProduct(parkId))
-                GUI.Label(new Rect(44, y, 720, 22), "Harbor is the slice.", _tiny);
+                GUI.Label(new Rect(44, y, 720, 22), CarnivalFront.HarborIsTheSlice, _tiny);
 
         }
 
@@ -229,7 +229,7 @@ namespace GrandSluggers.UnityClient
             }
             var panel = PauseMenu.Panel(Screen.width, Screen.height, stick);
             GUI.DrawTexture(new Rect(panel.X, panel.Y, panel.W, panel.H), _panel);
-            GUI.Label(new Rect(panel.X + 24, panel.Y + 16, panel.W - 48, 32), "CALL TIME", _h1);
+            GUI.Label(new Rect(panel.X + 24, panel.Y + 16, panel.W - 48, 32), PauseMenu.CallTimeTitle, _h1);
             // A trial overlay names itself (#715): the sitting must know which table it is playing.
             if (!string.IsNullOrEmpty(profile))
                 GUI.Label(new Rect(panel.X + panel.W * 0.5f, panel.Y + 22, panel.W * 0.5f - 24, 24), profile, _tiny);
@@ -297,7 +297,7 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _bookBack);
             GUI.DrawTexture(new Rect(book.X, book.Y, book.W, book.H), _bookBack);
             DrawChapterMascot(p.Id);
-            const string bookLabel = "HOW TO PLAY";
+            const string bookLabel = HowToPlay.BookLabel;
             var bookLabelWidth = MeasureWidth(_gold, bookLabel);
             GUI.Label(new Rect(book.X + 88, book.Y + 10, bookLabelWidth, 28), bookLabel, _gold);
             var pageLabel = (page + 1) + " / " + n;
@@ -356,7 +356,7 @@ namespace GrandSluggers.UnityClient
             if (!string.IsNullOrEmpty(pageBadge)) labels.Add(pageBadge);
             var widths = labels.Select(label => MeasureWidth(_bookBadge, label)).ToArray();
             var boxes = BookletLayout.Badges(
-                Screen.width, Screen.height, MeasureWidth(_gold, "HOW TO PLAY"), widths);
+                Screen.width, Screen.height, MeasureWidth(_gold, HowToPlay.BookLabel), widths);
             for (var i = 0; i < labels.Count; i++)
             {
                 var r = ToRect(boxes[i]);
@@ -480,13 +480,7 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        static string BagDiagramCaption(BagDiagrams.Kind kind) => kind switch
-        {
-            BagDiagrams.Kind.BagMap => "PICK A RUNNER · ARM A THROW",
-            BagDiagrams.Kind.Advance => "EVERY RUNNER GOES FOR THE NEXT BAG",
-            BagDiagrams.Kind.Return => "EVERY RUNNER COMES BACK ONE BAG",
-            _ => ""
-        };
+        static string BagDiagramCaption(BagDiagrams.Kind kind) => HowToPlay.BagDiagramCaption(kind);
 
         static void DrawBagDiamond(float x, float y, float size, BagDiagrams.Diagram diagram)
         {
@@ -532,14 +526,7 @@ namespace GrandSluggers.UnityClient
 
         static void DrawBagDirection(Vector2 point, int bag, Vector2 offset)
         {
-            var mark = bag switch
-            {
-                1 => "→ 1B",
-                2 => "↑ 2B",
-                3 => "3B ←",
-                4 => "↓ HOME",
-                _ => ""
-            };
+            var mark = HowToPlay.BagArrow(bag);
             GUI.Label(new Rect(point.x + offset.x, point.y + offset.y, 62, 20), mark, _gold);
         }
 
@@ -665,7 +652,7 @@ namespace GrandSluggers.UnityClient
             var stillCell = ChemBook.AbilityStill(Screen.width, Screen.height);
             var still = new Rect(stillCell.X, stillCell.Y, stillCell.W, stillCell.H);
             GUI.DrawTexture(still, _bookCard);
-            GUI.Label(new Rect(still.x + 20, still.y + 20, still.width - 40, 44), "THE CARD", _bookHeader);
+            GUI.Label(new Rect(still.x + 20, still.y + 20, still.width - 40, 44), HowToPlay.CardStillTitle, _bookHeader);
             for (var i = 0; i < ChemBook.CardStats.Count; i++)
             {
                 var w = (still.width - 40) / ChemBook.CardStats.Count;
@@ -847,10 +834,8 @@ namespace GrandSluggers.UnityClient
             var x = Screen.width * 0.5f - w * 0.5f;
             var y = Screen.height * 0.38f;
             GUI.DrawTexture(new Rect(x, y, w, h), _panel);
-            var bagName = bag == 4 ? "HOME" : "3B";
-            GUI.Label(new Rect(x + 20, y + 14, w - 40, 32), "CLOSE PLAY  ·  " + bagName, _h1);
-            GUI.Label(new Rect(x + 20, y + 50, w - 40, 28),
-                icon ? "PRESS SOUTH  ·  first wins" : "Get ready…", _gold);
+            GUI.Label(new Rect(x + 20, y + 14, w - 40, 32), BroadcastHud.ClosePlayTitle(bag == 4 ? 4 : 3), _h1);
+            GUI.Label(new Rect(x + 20, y + 50, w - 40, 28), BroadcastHud.ClosePlayPrompt(icon), _gold);
         }
 
         public static void BagTell(int bag)
@@ -859,7 +844,7 @@ namespace GrandSluggers.UnityClient
             const float size = 88f;
             var x = Screen.width * 0.5f - size * 0.5f;
             var y = Screen.height - 168f;
-            GUI.Label(new Rect(x - 40, y - 22, size + 80, 20), "throw", _tiny);
+            GUI.Label(new Rect(x - 40, y - 22, size + 80, 20), BroadcastHud.ThrowPadLabel, _tiny);
             for (var i = 1; i <= 4; i++)
             {
                 var uv = FieldAssist.BagPip(i);
@@ -962,7 +947,7 @@ namespace GrandSluggers.UnityClient
             var r = Px(lay.Score);
             GUI.DrawTexture(r, _panel);
             GUI.DrawTexture(new Rect(r.x, r.y, 6, r.height), _ink);
-            var half = bug.Over ? "FINAL" : (bug.Top ? "TOP" : "BOT");
+            var half = BroadcastHud.InningHalf(bug.Over, bug.Top);
             GUI.Label(Px(BroadcastHud.InningMark(lay.Score)), half, _gold);
             var innings = Mathf.Max(1, bug.Innings);
             for (var i = 1; i <= innings; i++)
@@ -1051,14 +1036,14 @@ namespace GrandSluggers.UnityClient
         {
             var bug = BroadcastHud.From(match);
             var bStar = starSwing || (star && humanBats);
-            SeatCard(Px(lay.BatterCard), "AB", bug.Batter, humanBats,
-                "NEXT  " + bug.Next,
+            SeatCard(Px(lay.BatterCard), BroadcastHud.BatterRole, bug.Batter, humanBats,
+                BroadcastHud.NextBatter(bug.Next),
                 BroadcastHud.BatterExtra(bStar, steal, match.CanSteal, bunt, item),
                 Look.Portrait(match.Batter));
-            SeatCard(Px(lay.PitcherCard), "P", bug.Pitcher, humanPitches,
+            SeatCard(Px(lay.PitcherCard), BroadcastHud.PitcherRole, bug.Pitcher, humanPitches,
                 BroadcastHud.ArmLine(match.PitcherStamina, match.Rules),
                 (pitcherExtra ?? "")
-                    + (BroadcastHud.PoorArm(match.PitcherStamina, match.Rules) ? "  SWEAT" : ""),
+                    + (BroadcastHud.PoorArm(match.PitcherStamina, match.Rules) ? BroadcastHud.SweatTag : ""),
                 Look.Portrait(match.Pitcher),
                 // This arm's ordinary pitches, in repertoire order, on both seats' screen and in
                 // every phase: no highlight, no cursor, no press count (PH-02-R5, #825).

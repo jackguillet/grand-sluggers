@@ -485,8 +485,7 @@ namespace GrandSluggers.UnityClient
             var label = orders.Label(_match);
             var runner = orders.Selected(_match);
             if (runner == null) return label;
-            var bag = runner.DestBag == 4 ? "HOME" : runner.DestBag + "B";
-            return label + (runner.Held ? " · HALTED" : " → " + bag);
+            return BroadcastHud.RunnerOrder(label, runner.Held, runner.DestBag);
         }
 
         void TickPause()
@@ -757,7 +756,7 @@ namespace GrandSluggers.UnityClient
                     _itemFlying = false;
                     _itemId = "";
                     _items?.Hide();
-                    _sub = "Item smashed.";
+                    _sub = BroadcastHud.ItemSmashed;
                     return;
                 }
             }
@@ -769,7 +768,7 @@ namespace GrandSluggers.UnityClient
                 _itemPick = (_itemPick + pad.ItemCycle + ErrorItems.All.Length) % ErrorItems.All.Length;
             AimItem();
             if (!TrainingOn)
-                _sub = ErrorItems.All[_itemPick].ToUpperInvariant() + "  ·  left stick aim  ·  North throw";
+                _sub = BroadcastHud.ItemAim(ErrorItems.All[_itemPick]);
             if (!pad.ItemConfirmWith(ltFree) || _itemTarget == null) return;
             var id = ErrorItems.All[_itemPick];
             if (TutorialOn && _coach.Tutorial.IsItemLesson)

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using GrandSluggers.Sim;
+using GrandSluggers.Sim.Front;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -22,7 +23,7 @@ namespace GrandSluggers.UnityClient
         public static DataRoot Root => _root ??= DataRoot.FromEnvironment(ShippedRoot);
 
         /// <summary>What Call time names when a trial is on (<c>TRIAL  trials/c80</c>); null for the shipped table.</summary>
-        public static string Label => Root.OverlayName is { } name ? "TRIAL  " + name : null;
+        public static string Label => Root.OverlayName is { } name ? CarnivalFront.TrialLabel(name) : null;
 
         /// <summary>
         /// Before any scene object: pin the process-wide table to the root this window loads. <see cref="Diamond"/> and every
