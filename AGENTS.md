@@ -79,6 +79,8 @@ Declare one kind per session, in the prompt and on the issue. Mixing them is a p
 | **Presentation** | `data/feel/` cameras and timing, HUD, `HowToPlay.cs`, `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
 | **Art** | one catalog slot in `data/art/`, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
 
+Each kind has a procedure skill: `.claude/skills/gameplay-session/`, `.claude/skills/presentation-session/`, `.claude/skills/character-art/` (art; `look-critic` reads its stills). A durable pitfall goes into its skill or a protocol row, not only a private note.
+
 End the session with the artifact of its kind: gameplay → `tools/test-fast.sh <Classes you touched>` + `cli match`; presentation → named shot or book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the `.app` as proof of look.
 
 ## Art — Super Sluggers weight, original toys
