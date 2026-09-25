@@ -33,7 +33,7 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | Common hitting bat | `GearMesh.HittingBatVisual()` (`bat-wood`) | named `bat-wood` model in `Assets/Art/Characters/SharedRig/extras.fbx` | procedural wood bat |
 | Portraits | skin `portrait` | `Assets/Art/UI/Portraits/{id}` | `Resources/Art/{id}-hero` |
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
-| Audio | `data/art/audio.json` + `data/art/audio-clips/{id}.wav` | `Assets/Art/Audio/{id}` | generated tones in `AudioBus` |
+| Audio | `data/art/audio.json` (its `slot` is the wav) + `data/art/audio-clips/{id}.wav` | `data/art/audio-clips/{id}.wav` | generated tones in `AudioBus` |
 | Materials | `data/art/materials.json` | `Assets/Art/Materials/{id}` | `Look.Toon` / `ToonFill` |
 | Park kits | `data/art/parks.json` | `Assets/Art/Parks/{id}` | `harbor-kit.fbx` bind; else `HarborKit` primitive dress; `ParkView` elsewhere |
 

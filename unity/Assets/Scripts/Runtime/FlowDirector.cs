@@ -229,8 +229,8 @@ namespace GrandSluggers.UnityClient
         {
             _mode = PlayMode.Training;
             ParkId = Training.ParkId;
-            HomeCaptain = "rio";
-            AwayCaptain = "ashlord";
+            HomeCaptain = ExhibitionPick.Default.Home;
+            AwayCaptain = ExhibitionPick.Default.Away;
             if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
             _coach.Begin(_content, PracticePick);
             _match = _coach.MakeMatch(_content, Seed);

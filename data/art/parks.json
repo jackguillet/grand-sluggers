@@ -4,7 +4,7 @@
   // (wallAlt alternates panels; null repeats the wall), cap and pole. A color is "#RRGGBB" or [r, g, b].
   "kits": [
     {
-      "id": "harbor-diamond", "slot": "Assets/Art/Parks/harbor-diamond", "placed": true,
+      "id": "harbor-diamond", "slot": "Assets/Art/Parks/harbor-diamond/harbor-kit.fbx", "placed": true,
       "slots": { "lawn": "harbor-lawn", "dugouts": "harbor-dugouts", "wall": "harbor-ads", "scoreboard": "harbor-scoreboard", "stands": "harbor-bowl", "backdrop": "harbor-town", "night": "harbor-fireworks", "props": null, "light": "harbor", "sky": "harbor", "hazardActors": null },
       "palette": {"grass": {"color": "#3EA84E", "texture": "grass", "tile": 18, "smooth": 0.08}, "water": {"color": "#2E7CB0", "smooth": 0.85}, "dirt": {"color": "#C49A60", "texture": "dirt", "tile": 8, "smooth": 0.12}, "wall": {"color": [0.22, 0.48, 0.28], "smooth": 0.18}, "wallAlt": null, "cap": {"color": "#FFCC40", "smooth": 0.4}, "pole": {"color": "#FFCC40", "smooth": 0.45}}
     },

@@ -417,6 +417,10 @@ public sealed class ArtCatalog
                 errors.Add("audio " + ev.Id + " unknown bus " + bus);
             if (ev.Authored && !wavs.Contains(ev.Id))
                 errors.Add("authored audio missing wav " + ev.Id);
+            // The slot names the file the game loads (AuthoredAudio): one place for a wav, not an empty Unity folder.
+            var wav = "data/" + AuthoredAudio.Directory + "/" + ev.Id + ".wav";
+            if (!string.Equals(ev.Slot, wav, StringComparison.Ordinal))
+                errors.Add("audio " + ev.Id + " slot must be " + wav + "; got " + ev.Slot);
         }
 
         foreach (var need in new[] { "puff", "fireworks", "buddy-flash", "throw-trail-good", "throw-trail-bad" })

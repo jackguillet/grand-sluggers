@@ -9,7 +9,7 @@ namespace GrandSluggers.UnityClient
     public static class Look
     {
         static Shader _lit, _toon;
-        static Texture2D _grass, _dirt, _crowd, _white, _rio, _vale, _zig, _brondo, _konga, _ashlord;
+        static Texture2D _grass, _dirt, _crowd, _white;
         static readonly Dictionary<string, Texture2D> _generated = new Dictionary<string, Texture2D>();
 
         public static Shader LitShader
@@ -27,32 +27,11 @@ namespace GrandSluggers.UnityClient
         public static Texture2D Grass => _grass ??= Load("tex-grass.jpg", true);
         public static Texture2D Dirt => _dirt ??= Load("tex-dirt.jpg", true);
         public static Texture2D Crowd => _crowd ??= Load("tex-crowd.jpg", false);
-        public static Texture2D Rio => _rio ??= Load("rio-hero.jpg", false);
 
-        public static bool HasPortrait(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return false;
-            if (ArtBinder.HasPortrait(id)) return true;
-            switch (id)
-            {
-                case "rio":
-                case "vale":
-                case "zig":
-                case "brondo":
-                case "konga":
-                case "ashlord":
-                    return true;
-                default:
-                    return false;
-            }
-        }
+        /// <summary>The captain's portrait the skins catalog names (data/art/skins.json <c>portrait</c>); none is null.</summary>
+        public static bool HasPortrait(string id) => !string.IsNullOrEmpty(id) && ArtBinder.HasPortrait(id);
 
-        public static Texture2D Portrait(string id)
-        {
-            var file = LoadPortraitFile(id);
-            if (file != null) return file;
-            return Rio;
-        }
+        public static Texture2D Portrait(string id) => LoadPortraitFile(id);
 
         /// <summary>Every drafted head gets a face. Role players reuse the faction captain.</summary>
         public static Texture2D Portrait(Character who)
@@ -67,18 +46,12 @@ namespace GrandSluggers.UnityClient
 
         static Texture2D LoadPortraitFile(string id)
         {
-            var bound = ArtBinder.LoadPortrait(id);
-            if (bound != null) return bound;
-            switch (id)
-            {
-                case "vale": return _vale ??= Load("vale-hero.jpg", false);
-                case "zig": return _zig ??= Load("zig-hero.jpg", false);
-                case "brondo": return _brondo ??= Load("brondo-hero.jpg", false);
-                case "konga": return _konga ??= Load("konga-hero.jpg", false);
-                case "ashlord": return _ashlord ??= Load("ashlord-hero.jpg", false);
-                case "rio": return Rio;
-                default: return null;
-            }
+            if (string.IsNullOrEmpty(id)) return null;
+            var tex = ArtBinder.LoadPortrait(id);
+            if (tex == null) return null;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            return tex;
         }
 
         static Texture2D GeneratedHead(Character who)

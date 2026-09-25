@@ -384,7 +384,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: GrandSluggers.Runtime::GrandSluggers.UnityClient.MatchDirector
   Seed: 7
   Innings: 3
-  ParkId: harbor-diamond
 --- !u!4 &1729465931
 Transform:
   m_ObjectHideFlags: 0

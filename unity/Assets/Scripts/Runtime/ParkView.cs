@@ -12,6 +12,12 @@ namespace GrandSluggers.UnityClient
         bool _night;
 
         public BallView Ball => _ball;
+        HarborKit _kit;
+        /// <summary>
+        /// The Harbor kit this view draws with, or null for a greybox park. Found once in the scene (HarborDiamond places it)
+        /// or made for a park whose lawn slot names it; the camera, the scoreboard and the stills read it from here.
+        /// </summary>
+        public HarborKit Kit => _kit;
         readonly System.Collections.Generic.List<(SolidBody Body, Transform Actor)> _movers = new();
 
         /// <summary>
@@ -74,14 +80,13 @@ namespace GrandSluggers.UnityClient
             var dirtMat = palette != null ? Look.Lit(palette.Dirt) : Look.Lit(Colors.Dirt, Look.Dirt, 8f, 0.12f);
             var waterMat = palette != null ? Look.Lit(palette.Water) : Look.Lit(Colors.Water, smooth: 0.85f);
 
-            var kit = HarborKit.Instance != null
-                ? HarborKit.Instance
-                : FindAnyObjectByType<HarborKit>(FindObjectsInactive.Include);
+            if (_kit == null) _kit = FindAnyObjectByType<HarborKit>(FindObjectsInactive.Include);
+            var kit = _kit;
             // The Harbor kit exists for a park whose lawn slot names it (FD-16, FR-13; data/art/parks.json).
             if (kit == null && ArtBinder.ParkKit(park.Id).Fills(ParkKitSlots.Lawn, ParkKitSlots.HarborLawn))
             {
                 var go = new GameObject("HarborKit");
-                kit = go.AddComponent<HarborKit>();
+                kit = _kit = go.AddComponent<HarborKit>();
                 kit.EnsureAnchors();
             }
             if (kit != null) kit.Bind(park, night);
@@ -166,15 +171,13 @@ namespace GrandSluggers.UnityClient
 
         public void Tick(Vector3 ball, float dt)
         {
-            var kit = HarborKit.Instance;
-            if (kit != null && kit.OwnsDiamond) kit.Tick(ball, dt);
+            if (_kit != null && _kit.OwnsDiamond) _kit.Tick(ball, dt);
         }
 
         /// <summary>Fireworks are Harbor's night dress; no other park has any.</summary>
         public void BurstFireworks(Vector3 at)
         {
-            var kit = HarborKit.Instance;
-            if (kit != null && kit.OwnsDiamond) kit.BurstFireworks(at);
+            if (_kit != null && _kit.OwnsDiamond) _kit.BurstFireworks(at);
         }
 
         /// <summary>

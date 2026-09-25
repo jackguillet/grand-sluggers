@@ -11,7 +11,23 @@ public enum HighlightBeat
     BuddyJump
 }
 
-public sealed record HighlightClip(PlayEvent Play, HighlightBeat Beat, int Score);
+public sealed record HighlightClip(PlayEvent Play, HighlightBeat Beat, int Score)
+{
+    /// <summary>The replay follows the ball's flight: a batted ball (fair, foul, caught or not), never a strikeout.</summary>
+    public bool UsesFlightPath => Play.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double
+        or PlayKind.Single or PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Foul;
+
+    /// <summary>What the replay's camera centers on.</summary>
+    public HighlightAim Aim => Beat switch
+    {
+        HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer => HighlightAim.Moment,
+        HighlightBeat.StarK => HighlightAim.Batter,
+        _ => HighlightAim.Ball
+    };
+}
+
+/// <summary>The replay's subject: the ball in flight, the moment the play was made (the catch at the wall), or the batter.</summary>
+public enum HighlightAim { Ball, Moment, Batter }
 
 public static class Highlight
 {
