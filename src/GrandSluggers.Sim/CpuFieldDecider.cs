@@ -87,7 +87,7 @@ public static class CpuFieldDecider
         bool PlateWorthIt() => TagWorthIt(4);
         double DistTo(int bag)
         {
-            var at = Diamond.Bag(bag);
+            var at = DiamondGeometry.Of(v.Rules).Bag(bag);
             return Diamond.Dist(v.GloveX, v.GloveZ, at.X, at.Z);
         }
         // The lead forced bag ahead of a forced runner still short of it (second, third, home), or 0.
@@ -185,7 +185,7 @@ public static class CpuFieldDecider
     /// </summary>
     static CpuFieldDecision PlayAt(ICpuFieldView v, int bag)
     {
-        var at = Diamond.Bag(bag);
+        var at = DiamondGeometry.Of(v.Rules).Bag(bag);
         var forceThere = v.Forces.At(bag) || v.Runners.Any(r => r.Live && r.LeftEarly && r.FromBag == bag);
         if (forceThere && Diamond.Dist(v.GloveX, v.GloveZ, at.X, at.Z) <= v.Rules.Fielding.Throw.UnassistedFt)
             return new(CpuFieldAction.WalkTo, bag);
