@@ -1,6 +1,6 @@
 # Plan: every ability, re-evaluated as a whole
 
-Status: **planning. Nothing here is built.** AB-01, AB-02, AB-03, AB-06 and AB-12 are accepted. Round 1 accepted the mechanics for Rio, Vale, Brondo and Fenn; round 2 (the captain matrix below) covers all ten captains, their themes and looks, and waits for Jack's review. Review page: https://claude.ai/artifact/2EyWdxgTiSXnN71r8nXHC4. Tracker: #1011 (rescoped from four Star Pitch proposals to the whole set, Jack, 2026-09-25). Folds in #1010 (Spin Check). Rules that stay in force: [plan-pitching-hitting.md](plan-pitching-hitting.md) PH-16 and its refinements, spec §12–§13, and principle 2 in [00-decisions](../spec/00-decisions.md).
+Status: **planning. Nothing here is built.** AB-01, AB-02, AB-03, AB-06, AB-09 and AB-12 are accepted. Round 1 accepted the mechanics for Rio, Vale, Brondo and Fenn; round 2 (the captain matrix below) covers all ten captains, their themes and looks, and waits for Jack's review. Review page: https://claude.ai/artifact/2EyWdxgTiSXnN71r8nXHC4. Tracker: #1011 (rescoped from four Star Pitch proposals to the whole set, Jack, 2026-09-25). Folds in #1010 (Spin Check). Rules that stay in force: [plan-pitching-hitting.md](plan-pitching-hitting.md) PH-16 and its refinements, spec §12–§13, and principle 2 in [00-decisions](../spec/00-decisions.md).
 
 ## What Jack asked for
 
@@ -99,7 +99,7 @@ The recommendation is not the decision.
 | AB-06 | Swings | Who gets a contact-area swing (PH-16-R2)? | A a duplicated swing · B per captain · C not yet | **Accepted: B, per captain** (Jack, 2026-09-25): Fenn and Rio below |
 | AB-07 | Field | Spin Check (#1010) | A redesign as a live, geometric rail · B retire it | Settled by AB-12: not in the starting pool |
 | AB-08 | Field | The three copies of the catch-radius bonus | Settled by AB-12: not in the starting pool | — |
-| AB-09 | Tiers | Which captains hold top-tier specials? | A keep Rio, Konga, Ashlord · B re-tier | A (the proposal keeps them) |
+| AB-09 | Tiers | Which captains hold top-tier specials? | A keep Rio, Konga, Ashlord · B re-tier | **Accepted: every captain Star Pitch and Star Swing costs 2 stars (mid) for now; no captain carries the top tier** (Jack, 2026-09-25). Role players stay low (1). The prices and the top tier return in the balance child |
 | AB-10 | Role players | Generic low-tier specials | A keep the six generics · B faction-flavoured variants | A |
 | AB-11 | Tutorials | Lessons | A every changed ability updates its lesson in the same child (the tutorial rule) | A |
 | AB-12 | Field | Are field abilities per captain? | A distinct per captain · B one shared pool for captains and role players | **Accepted: B** (Jack, 2026-09-25): the pool starts with Snap Throw, Lick Catch, Laser and Clamber |
@@ -111,12 +111,12 @@ Jack, 2026-09-25: be more creative, add the other three captains, and match each
 
 | Captain | Theme | Star Pitch (family) | Star Swing (family) | Field | Tier |
 | --- | --- | --- | --- | --- | --- |
-| Rio Sparks | The harbor's fireworks kid | Skyrocket (Late rise) · Accepted | Sparkler (Bigger sweet spot) · Accepted | Laser | Top |
+| Rio Sparks | The harbor's fireworks kid | Skyrocket (Late rise) · Accepted | Sparkler (Bigger sweet spot) · Accepted | Laser | Mid |
 | Queen Vale | The Aurora Rink's figure-skating champion | Charmball (Swelling sway) · Accepted | Spotlight (One fielder paused) · Accepted | Snap Throw | Mid |
 | Zig | The funfair chameleon | Loop-the-Loop (Path spectacle) · New | Spinning Top (Ball stalls on its hop) · New | Lick Catch | Mid |
 | Brondo | The rooftop hustler | Phonyball (Decoy switch) · Accepted | Double Deal (Decoy ball) · Accepted | Laser | Mid |
-| Konga | The canopy's storm drummer | Vine Swing (Pendulum arc) · New | Lightning Liner (Jagged flight) · New | Clamber | Top |
-| Ashlord | The forge warlord of the volcano | Anvil (Late drop) · New | Hot Iron (Hot ball on the glove) · New | Laser | Top |
+| Konga | The canopy's storm drummer | Vine Swing (Pendulum arc) · New | Lightning Liner (Jagged flight) · New | Clamber | Mid |
+| Ashlord | The forge warlord of the volcano | Anvil (Late drop) · New | Hot Iron (Hot ball on the glove) · New | Laser | Mid |
 | Elder Fenn | The old sea turtle of the cove | Sea Mist (Payload on the runner) · Accepted | Driftwood Reach (Taller contact area) · Accepted | Snap Throw | Mid |
 | Sable | The desert coyote trickster | Mirage (Vanish mid-flight) · Changed | Quicksand (Terrain) · Changed | Snap Throw | Mid |
 | Hollis | The summit mountaineer | Belay (Speed hitch) · Changed | Summit Gust (Carry at the apex) · Changed | Clamber | Mid |
