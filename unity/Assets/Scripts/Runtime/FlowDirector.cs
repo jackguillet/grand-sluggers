@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
         public void Tick() { _play.TickFlow(); }
     }
 
-    public sealed partial class MatchDirector : IStillHost
+    public sealed partial class MatchDirector : IStillHost, ISeatHost
     {
         internal void TickFlow()
         {
@@ -744,5 +744,10 @@ namespace GrandSluggers.UnityClient
         void IStillHost.HoldPitchInHand() => HoldPitchInHand();
         void IStillHost.CaptureReleaseFromHand() => CaptureReleaseFromHand();
         Vector3 IStillHost.Ball { get => _ball; set => _ball = value; }
+
+        TrainingDirector ISeatHost.Coach => _coach;
+        bool ISeatHost.Exhibition => _mode == PlayMode.Exhibition;
+        bool ISeatHost.Pad1Home => Pad1Home;
+        bool ISeatHost.VersusWanted => _versusWanted;
     }
 }
