@@ -1,6 +1,6 @@
 # Plan: the world — ten stadiums on one continent, ten captains
 
-Status: **planning. Nothing here is built.** WD-01 is accepted (B: rails, data and greyboxes may be built now; art waits for #346). The other decisions are open until Jack answers them, one at a time. Tracker: #1133. Register (canonical, with every option's trade-off): [world-decisions.json](../research/world-decisions.json). Ids: **WD-01 … WD-18**.
+Status: **planning. Nothing here is built.** Rails, data and greyboxes may be built now; art waits for #346 and each park's greybox sitting (WD-01, WD-02). Accepted decisions are marked in the matrix; the rest are open until Jack answers them, one at a time. Tracker: #1133. Register (canonical, with every option's trade-off): [world-decisions.json](../research/world-decisions.json). Ids: **WD-01 … WD-18**.
 
 ## What Jack asked for
 
