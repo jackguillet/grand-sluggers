@@ -315,11 +315,14 @@ def _jump_keys():
         air = _lerp(coil, 8, hang)
         thigh = _lerp(air, 42, land)
         shin = _lerp(_lerp(70, 20, take), _lerp(12, 50, land), min(1.0, hang * 0.2 + land))
-        arms = _lerp(_lerp(-20, 150, take), 40, land)
+        # The glove arm reaches all the way up; the bare arm comes up behind it and stops short (a one-hand reach).
+        glove = _lerp(_lerp(-20, 172, take), 40, land)
+        bare = _lerp(_lerp(-20, 118, take), 40, land)
+        # Coil and landing stand on the dirt (ground_hop); the soles' air is the hop, JUMP_PEAK at the top.
         keys.append((t, K(torso=spine(_lerp(18, 4, hang) + 10 * land), head=spine(-8 * hang),
-                          lUpper=limb(arms, 14), rUpper=limb(arms, 14), lFore=limb(20), rFore=limb(20),
+                          lUpper=limb(glove, 12), rUpper=limb(bare, 20), lFore=limb(12), rFore=limb(34),
                           lThigh=limb(thigh, 6), rThigh=limb(thigh, 6), lShin=limb(shin), rShin=limb(shin),
-                          lift=JUMP_PEAK * math.sin(math.pi * u))))
+                          hop=JUMP_PEAK * math.sin(math.pi * u))))
     return keys
 
 
@@ -603,15 +606,17 @@ STYLE_POSES = {
 BASEBALL = jsonc.load(Path(__file__).resolve().parents[2] / "data/art/baseball-takes.json")
 BASEBALL_TAKES = {row["id"]: row for row in BASEBALL["takes"]}
 
+# A ground ball fielded out front (#558): feet wider than the shoulders, the seat dropped, the back near 45°, the glove on
+# the dirt ahead of the toes and the bare hand over it, eyes on the ball; then up into the throw. Stands on the dirt (ground_hop).
 SCOOP = [
-    (0.00, K(torso=spine(14, 4), head=spine(10), lUpper=limb(20, 10), rUpper=limb(22, 10), lFore=limb(24), rFore=limb(26),
-             lThigh=limb(28, 8), rThigh=limb(24, 8), lShin=limb(24), rShin=limb(22), lift=-0.07)),
-    (0.10, K(torso=spine(24, 2), head=spine(16), lUpper=limb(34, 8), rUpper=limb(38, 8), lFore=limb(38), rFore=limb(42),
-             lThigh=limb(42, 10), rThigh=limb(38, 10), lShin=limb(36), rShin=limb(34), lift=-0.22)),
-    (0.22, K(torso=spine(32, 0), head=spine(18), lUpper=limb(44, 6), rUpper=limb(48, 6), lFore=limb(48), rFore=limb(52),
-             lThigh=limb(50, 12), rThigh=limb(46, 12), lShin=limb(44), rShin=limb(42), lift=-0.32)),
-    (0.50, K(torso=spine(10, -4), head=spine(6), lUpper=limb(16, 12), rUpper=limb(14, 12), lFore=limb(18), rFore=limb(20),
-             lThigh=limb(20, 4), rThigh=limb(18, 4), lShin=limb(16), rShin=limb(14), lift=-0.03)),
+    (0.00, K(torso=spine(16, 4), head=spine(4), lUpper=limb(24, 10), rUpper=limb(24, 10), lFore=limb(24), rFore=limb(30),
+             lThigh=limb(26, 16), rThigh=limb(24, 16), lShin=limb(30), rShin=limb(28))),
+    (0.10, K(torso=spine(36, 2), head=spine(-8), lUpper=limb(50, -4), rUpper=limb(48, -16, 14), lFore=limb(10), rFore=limb(22),
+             lThigh=limb(62, 24), rThigh=limb(60, 24), lShin=limb(76), rShin=limb(74))),
+    (0.22, K(torso=spine(64, 0), head=spine(-34), lUpper=limb(80, -12), rUpper=limb(70, -30, 30), lFore=limb(4), rFore=limb(4),
+             lThigh=limb(86, 36), rThigh=limb(84, 36), lShin=limb(104), rShin=limb(102))),
+    (0.50, K(torso=spine(12, -4), head=spine(4), lUpper=limb(18, 12), rUpper=limb(16, 12), lFore=limb(20), rFore=limb(22),
+             lThigh=limb(22, 10), rThigh=limb(20, 10), lShin=limb(22), rShin=limb(20))),
 ]
 
 SLIDE = [
@@ -1025,6 +1030,62 @@ def catch_validate(arm, t, bats):
             raise RuntimeError(f"catch {bats}: {hand} is below the head at the hold ({center(hand).z:.2f} vs {head:.2f})")
 
 
+def sole_height(arm) -> float:
+    """The lowest shoe vertex above the dirt (z 0), rig units."""
+    deps = bpy.context.evaluated_depsgraph_get()
+    low = 1e6
+    for name in ("lShoe", "rShoe"):
+        ob = bpy.data.objects[name].evaluated_get(deps)
+        mesh = ob.to_mesh()
+        low = min(low, min((ob.matrix_world @ v.co).z for v in mesh.vertices))
+        ob.to_mesh_clear()
+    return low
+
+
+def at_key(t, key):
+    return abs(t - key) <= 0.5 / FPS
+
+
+# The scoop's reference relationships at Contact (#558): the glove on the dirt out in front of the feet, a base wider than
+# the shoulders, the bare hand over the glove. Rig units (the body stands about 4.9 tall).
+SCOOP_GLOVE_MAX_Z = 0.45
+SCOOP_GLOVE_AHEAD = 0.6
+SCOOP_BARE_OVER = 0.9
+
+
+def scoop_validate(arm, t, bats):
+    if not at_key(t, 0.22):
+        return
+    glove, bare = center("lHand"), center("rHand")
+    ls, rs = center("lShoe"), center("rShoe")
+    shoulders = (arm.matrix_world @ arm.pose.bones["lUpper"].head - arm.matrix_world @ arm.pose.bones["rUpper"].head).length
+    if glove.z - sole_height(arm) > SCOOP_GLOVE_MAX_Z:
+        raise RuntimeError(f"scoop: the glove is {glove.z:.2f} off the dirt at Contact; it must be within {SCOOP_GLOVE_MAX_Z}")
+    if glove.y > min(ls.y, rs.y) - SCOOP_GLOVE_AHEAD:  # forward is -y
+        raise RuntimeError(f"scoop: the glove ({glove.y:.2f}) is not {SCOOP_GLOVE_AHEAD} ahead of the feet ({min(ls.y, rs.y):.2f})")
+    if abs(ls.x - rs.x) < shoulders:
+        raise RuntimeError(f"scoop: the base ({abs(ls.x - rs.x):.2f}) is narrower than the shoulders ({shoulders:.2f})")
+    if bare.z <= glove.z or (bare - glove).length > SCOOP_BARE_OVER:
+        raise RuntimeError(f"scoop: the bare hand is not over the glove ({tuple(bare)} vs {tuple(glove)})")
+
+
+JUMP_TOP_KEY = 0.28  # the jump's top key (_jump_keys)
+
+
+def jump_validate(arm, t, bats):
+    """Take-off and landing stand on the dirt; at the top the soles are JUMP_PEAK up and the glove reaches above the head
+    and above the bare hand (a one-hand reach)."""
+    sole = sole_height(arm)
+    if (at_key(t, 0.0) or at_key(t, JUMP_DUR)) and abs(sole) > 0.02:
+        raise RuntimeError(f"jump: the feet are {sole:.2f} off the dirt at {t:.3f}; take-off and landing stand on it")
+    if at_key(t, JUMP_TOP_KEY):
+        if abs(sole - JUMP_PEAK) > 0.15:
+            raise RuntimeError(f"jump: the soles rise {sole:.2f} at the top; Motion.JumpPeak is {JUMP_PEAK}")
+        glove, bare, head = center("lHand"), center("rHand"), center("headMesh")
+        if glove.z < head.z + 1.0 or glove.z < bare.z + 0.4:
+            raise RuntimeError(f"jump: the glove ({glove.z:.2f}) does not reach over the head ({head.z:.2f}) and the bare hand ({bare.z:.2f})")
+
+
 def frame_times(take):
     frames = int(round(take.duration * FPS))
     if take.loop:
@@ -1395,7 +1456,7 @@ def all_takes(style: str | None = None):
         Take("charm", CHARM, duration=1.2, loop=True),
         Take("walk", _stride(0.45, WALK_DUR, gait), duration=WALK_DUR, loop=True, sink=0.3),
         Take("run", _stride(1.0, RUN_DUR, gait), duration=RUN_DUR, loop=True, sink=0.3),
-        Take("jump", JUMP, duration=JUMP_DUR, sink=0.2),
+        Take("jump", JUMP, duration=JUMP_DUR, sink=0.2, ground=True, validate=jump_validate, contracts=("jump",)),
         *[Take(row["id"], [(k["t"],k["pose"]) for k in row["keys"]], duration=row["duration"],
                handed=True, mark=row["releaseAt"], custom=baseball_frame(row["id"]), validate=baseball_validate(row["id"]), sink=.3,
                view="three-quarter-right", contracts=("release",))
@@ -1419,7 +1480,7 @@ def all_takes(style: str | None = None):
         Take("crouch", CROUCH, duration=HOLD, sink=0.8),
         Take("stealLead", STEAL_LEAD, duration=HOLD, sink=0.8),
         Take("spin", SPIN, duration=HOLD),
-        Take("scoop", SCOOP, duration=0.50, mark=0.22, sink=0.9),
+        Take("scoop", SCOOP, duration=0.50, mark=0.22, sink=0.9, ground=True, validate=scoop_validate, contracts=("scoop",)),
         Take("slide", SLIDE, duration=0.40, mark=0.18, sink=1.2),
     ]
 

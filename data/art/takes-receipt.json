@@ -153,10 +153,11 @@
     },
     {
       "file": "jump.fbx",
-      "sha256": "3d99fe6483765bd6e3cdd276fcacd78f25df7afc951b28b941125ff26b35732d",
+      "sha256": "9a423c331c8b0ca39caf6831ea2be7c2be28888ff6ce8640f8c18b9d8b755567",
       "frames": 34,
       "contracts": [
         "feet",
+        "jump",
         "sockets"
       ]
     },
@@ -235,10 +236,11 @@
     },
     {
       "file": "scoop.fbx",
-      "sha256": "e1688eac30383c50797655b85ca992427776108d46017bd6a732dc00113b1f63",
+      "sha256": "80dc29857aa5055ff7ec72535dc34e2012485a1604a69c4bb7f0111c0032f83d",
       "frames": 31,
       "contracts": [
         "feet",
+        "scoop",
         "sockets"
       ]
     },
@@ -421,10 +423,11 @@
     },
     {
       "file": "styles/ape/jump.fbx",
-      "sha256": "80ef497a28ba025ebcf71a8da96925931a85893af06b8ffd99c095a95826f012",
+      "sha256": "c3221afcaf32925c59644ad6bd373038d693ad520a58e05dd20bf90bd212933d",
       "frames": 34,
       "contracts": [
         "feet",
+        "jump",
         "sockets"
       ]
     },
@@ -503,10 +506,11 @@
     },
     {
       "file": "styles/ape/scoop.fbx",
-      "sha256": "8f811d2d5acfcd02876e1eb6a358c9c5a317b43d5abefab53abbd4cc9b676b10",
+      "sha256": "cdc7c664ad5bf8c40307a52b2b64aee5e519d00ab5ca1a231b2bf8b7db94d864",
       "frames": 31,
       "contracts": [
         "feet",
+        "scoop",
         "sockets"
       ]
     },

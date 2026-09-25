@@ -88,6 +88,8 @@ Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`
 | Scoop | scoop | verb | no | Contact 0.22 |
 | Slide | slide | verb | no | FootPlant 0.18 |
 
+The fielding takes carry the reference's relationships as bake contracts (#558). The scoop at Contact has the glove within 0.45 of the dirt and 0.6 ahead of the feet, a base wider than the shoulders and the bare hand over the glove. The jump stands on the dirt at take-off and landing, its soles rise `Motion.JumpPeak` at the top key, and the glove reaches over the head and the bare hand. The catch hold has both hands above the head.
+
 A held load samples the one-shot at `LoadSampleAt(charge) = NormalLoadAt · (1 − charge)`: MAX holds the full coil at 0, a tap starts from the half load. The committed verb then samples `LoadedClipTime(poseT, loadAt, eventAt)`, which is monotonic and lands the marker exactly at `eventAt`. One function for pitch and swing.
 
 The squared bunt shows its side (PH-14-R3): `data/art/baseball-takes.json` `bunt.sides` turns the barrel about the vertical by `yawDeg` (positive carries the barrel end toward the pitcher, so the face points at the pull field) and adds a body-term delta.
