@@ -6,6 +6,8 @@ One park, one primary gimmick. Harbor Diamond has none — it is the control map
 
 Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so homers happen.
 
+Every park but Harbor stands a rough Blender backdrop behind its outfield and a greybox night rig (`data/art/backdrops.json`, `data/art/night-rigs.json`; #1156): Aurora Rink's glaciers and aurora, Funfair's wheel, tents and coaster, Rooftop's towers, Canopy's giant trees, Ember Keep's volcano rim, the marsh's pond and willows, the cove's sea, palms and island hill, the mesa's buttes and cacti, and Summit's peaks and cable car. Rough is enough until each greybox is sat (FD-17).
+
 ## Harbor Diamond (slice)
 
 - Faction: Spark League

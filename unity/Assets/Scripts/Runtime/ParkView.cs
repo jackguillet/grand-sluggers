@@ -158,6 +158,12 @@ namespace GrandSluggers.UnityClient
                 new ParkStands(_root).Build(park, stands, _rules);
             else
                 GreyboxStands();
+            // The backdrop behind the outfield and, at night, the rig: the rows the park's slots name, never a park's id.
+            var art = ArtBinder.Art;
+            if (art != null && kitRow.Fills(ParkKitSlots.Backdrop, ParkKitSlots.BlockoutBackdrop))
+                new ParkBackdropView(_root).Build(art.Backdrops.FirstOrDefault(b => b.Park == park.Id));
+            if (art != null && _night && kitRow.Fills(ParkKitSlots.Night, ParkKitSlots.NightRig))
+                new NightRigView(_root).Build(art.NightRigs.FirstOrDefault(r => r.Park == park.Id));
         }
 
         /// <summary>

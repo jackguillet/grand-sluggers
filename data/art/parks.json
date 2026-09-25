@@ -11,63 +11,63 @@
     },
     {
       "id": "crystal-rink", "slot": "Assets/Art/Parks/crystal-rink", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "ice-garden", "sky": "ice-garden", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "ice-garden", "sky": "ice-garden", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": [0.8, 0.92, 1.0], "smooth": 0.6}, "water": {"color": [0.55, 0.78, 0.92], "smooth": 0.92}, "dirt": {"color": [0.8, 0.68, 0.6], "texture": "dirt", "tile": 8, "smooth": 0.14}, "wall": {"color": [0.62, 0.84, 0.94], "smooth": 0.86}, "wallAlt": {"color": [0.5, 0.74, 0.9], "smooth": 0.86}, "cap": {"color": [0.94, 0.97, 1.0], "smooth": 0.75}, "pole": {"color": "#E878A8", "smooth": 0.45},
         "track": {"color": [0.7, 0.62, 0.56], "texture": "dirt", "tile": 6, "smooth": 0.12},
         "stands": {"steps": {"color": [0.84, 0.88, 0.93], "smooth": 0.3}, "seats": ["#2E5FB8", "#F2F6FA", "#9C8CD8"], "crowd": ["#2E5FB8", "#F2F6FA", "#E878A8", "#9C8CD8", "#1E2A48"], "rail": {"color": [0.86, 0.9, 0.96], "smooth": 0.7}, "roof": {"color": [0.9, 0.95, 1.0], "smooth": 0.8}, "fill": 0.7}}
     },
     {
       "id": "funfair-park", "slot": "Assets/Art/Parks/funfair-park", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "carnival", "sky": "carnival", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "carnival", "sky": "carnival", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": "#3EA84E", "texture": "grass", "tile": 18, "smooth": 0.08}, "water": {"color": [0.46, 0.32, 0.22], "smooth": 0.85}, "dirt": {"color": "#C49A60", "texture": "dirt", "tile": 8, "smooth": 0.12}, "wall": {"color": [0.86, 0.18, 0.28], "smooth": 0.18}, "wallAlt": {"color": [0.96, 0.9, 0.72], "smooth": 0.18}, "cap": {"color": "#FFCC40", "smooth": 0.4}, "pole": {"color": "#FFCC40", "smooth": 0.45},
         "track": {"color": [0.72, 0.52, 0.32], "texture": "dirt", "tile": 6, "smooth": 0.1},
         "stands": {"steps": {"color": [0.92, 0.88, 0.78], "smooth": 0.14}, "seats": ["#E03A48", "#FFC83A", "#3A7BE0"], "crowd": ["#E03A48", "#FFC83A", "#3A7BE0", "#F2F0E6", "#46B45A"], "rail": {"color": "#FFCC40", "smooth": 0.4}, "roof": {"color": [0.86, 0.18, 0.28], "smooth": 0.2}, "fill": 0.8}}
     },
     {
       "id": "rooftop-city", "slot": "Assets/Art/Parks/rooftop-city", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "neon", "sky": "neon", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "neon", "sky": "neon", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": [0.5, 0.5, 0.54], "texture": "dirt", "tile": 14, "smooth": 0.22}, "water": {"color": [0.08, 0.08, 0.12], "smooth": 0.85}, "dirt": {"color": [0.78, 0.6, 0.42], "texture": "dirt", "tile": 8, "smooth": 0.14}, "wall": {"color": [0.2, 0.2, 0.26], "smooth": 0.3}, "wallAlt": {"color": [0.3, 0.27, 0.38], "smooth": 0.3}, "cap": {"color": "#E8BC28", "smooth": 0.45}, "pole": {"color": "#E8BC28", "smooth": 0.45},
         "track": {"color": [0.4, 0.36, 0.33], "texture": "dirt", "tile": 6, "smooth": 0.12},
         "stands": {"steps": {"color": [0.48, 0.48, 0.52], "smooth": 0.25}, "seats": ["#E8BC28", "#2E2E38", "#D83A9A"], "crowd": ["#E8BC28", "#D83A9A", "#3AC8D8", "#F2F0E6", "#2E2E38"], "rail": {"color": "#E8BC28", "smooth": 0.45}, "roof": null, "fill": 0.7}}
     },
     {
       "id": "canopy-yard", "slot": "Assets/Art/Parks/canopy-yard", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "canopy", "sky": "canopy", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "canopy", "sky": "canopy", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": [0.16, 0.46, 0.2], "texture": "grass", "tile": 18, "smooth": 0.08}, "water": {"color": [0.08, 0.18, 0.1], "smooth": 0.85}, "dirt": {"color": [0.5, 0.36, 0.2], "texture": "dirt", "tile": 8, "smooth": 0.1}, "wall": {"color": [0.22, 0.4, 0.16], "smooth": 0.14}, "wallAlt": {"color": [0.4, 0.26, 0.13], "smooth": 0.12}, "cap": {"color": [0.7, 0.58, 0.32], "smooth": 0.3}, "pole": {"color": "#FFCC40", "smooth": 0.45},
         "track": {"color": [0.46, 0.33, 0.2], "texture": "dirt", "tile": 6, "smooth": 0.1},
         "stands": {"steps": {"color": [0.52, 0.38, 0.22], "texture": "dirt", "tile": 3, "smooth": 0.1}, "seats": ["#4C9A38", "#E88C2E", "#F2CC48"], "crowd": ["#E88C2E", "#F2CC48", "#8A5A2E", "#F2F0E6", "#2E6A2A"], "rail": {"color": [0.7, 0.58, 0.32], "smooth": 0.3}, "roof": {"color": [0.24, 0.46, 0.18], "smooth": 0.12}, "fill": 0.7}}
     },
     {
       "id": "ember-keep", "slot": "Assets/Art/Parks/ember-keep", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "courtyard", "sky": "courtyard", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "courtyard", "sky": "courtyard", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": [0.52, 0.5, 0.5], "texture": "dirt", "tile": 14, "smooth": 0.08}, "water": {"color": [0.35, 0.11, 0.07], "smooth": 0.85}, "dirt": {"color": [0.82, 0.44, 0.24], "texture": "dirt", "tile": 8, "smooth": 0.12}, "wall": {"color": [0.3, 0.22, 0.22], "smooth": 0.12}, "wallAlt": {"color": [0.22, 0.16, 0.16], "smooth": 0.12}, "cap": {"color": "#FF7A20", "smooth": 0.4}, "pole": {"color": "#FFCC40", "smooth": 0.45},
         "track": {"color": [0.36, 0.26, 0.22], "texture": "dirt", "tile": 6, "smooth": 0.1},
         "stands": {"steps": {"color": [0.38, 0.31, 0.3], "texture": "dirt", "tile": 3, "smooth": 0.1}, "seats": ["#B82420", "#2E2424", "#E8A030"], "crowd": ["#E8A030", "#B82420", "#F2E6D0", "#5A4A48", "#FF7A20"], "rail": {"color": [0.22, 0.19, 0.19], "smooth": 0.3}, "roof": null, "fill": 0.75}}
     },
     {
       "id": "stillwater-marsh", "slot": "Assets/Art/Parks/stillwater-marsh", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "canopy", "sky": "canopy", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "marsh", "sky": "marsh", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": [0.14, 0.4, 0.2], "texture": "grass", "tile": 18, "smooth": 0.12}, "water": {"color": [0.2, 0.3, 0.26], "smooth": 0.9}, "dirt": {"color": [0.42, 0.32, 0.22], "texture": "dirt", "tile": 8, "smooth": 0.18}, "wall": {"color": [0.62, 0.56, 0.34], "smooth": 0.12}, "wallAlt": {"color": [0.5, 0.46, 0.28], "smooth": 0.12}, "cap": {"color": [0.94, 0.9, 0.78], "smooth": 0.3}, "pole": {"color": "#E88CB0", "smooth": 0.45},
         "track": {"color": [0.4, 0.32, 0.22], "texture": "dirt", "tile": 6, "smooth": 0.14},
         "stands": {"steps": {"color": [0.56, 0.5, 0.4], "texture": "dirt", "tile": 3, "smooth": 0.1}, "seats": ["#8FB08A", "#EDE6CF", "#E88CB0"], "crowd": ["#4C9A48", "#E88CB0", "#EDE6CF", "#2E6A4A", "#F2CC48"], "rail": {"color": [0.94, 0.9, 0.78], "smooth": 0.3}, "roof": {"color": [0.62, 0.5, 0.28], "smooth": 0.1}, "fill": 0.7}}
     },
     {
       "id": "coconut-cove", "slot": "Assets/Art/Parks/coconut-cove", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "harbor", "sky": "harbor", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "island", "sky": "island", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": [0.94, 0.84, 0.62], "texture": "dirt", "tile": 14, "smooth": 0.1}, "water": {"color": [0.12, 0.6, 0.72], "smooth": 0.92}, "dirt": {"color": [0.78, 0.56, 0.36], "texture": "dirt", "tile": 8, "smooth": 0.12}, "wall": {"color": [0.66, 0.52, 0.38], "smooth": 0.14}, "wallAlt": {"color": [0.56, 0.42, 0.3], "smooth": 0.14}, "cap": {"color": [0.86, 0.76, 0.52], "smooth": 0.3}, "pole": {"color": "#FF7F66", "smooth": 0.45},
         "track": {"color": [0.84, 0.72, 0.5], "texture": "dirt", "tile": 6, "smooth": 0.1},
         "stands": {"steps": {"color": [0.9, 0.86, 0.76], "smooth": 0.14}, "seats": ["#FF7F66", "#2FB5A8", "#FFD24A"], "crowd": ["#FF7F66", "#2FB5A8", "#FFD24A", "#F2F0E6", "#3A7BE0"], "rail": {"color": [0.86, 0.76, 0.52], "smooth": 0.3}, "roof": null, "fill": 0.8}}
     },
     {
       "id": "sunscorch-mesa", "slot": "Assets/Art/Parks/sunscorch-mesa", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "carnival", "sky": "carnival", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "mesa", "sky": "mesa", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": [0.86, 0.56, 0.34], "texture": "dirt", "tile": 14, "smooth": 0.08}, "water": {"color": [0.5, 0.3, 0.2], "smooth": 0.8}, "dirt": {"color": [0.72, 0.36, 0.22], "texture": "dirt", "tile": 8, "smooth": 0.1}, "wall": {"color": [0.8, 0.56, 0.38], "smooth": 0.1}, "wallAlt": {"color": [0.7, 0.46, 0.3], "smooth": 0.1}, "cap": {"color": "#B85A2E", "smooth": 0.3}, "pole": {"color": "#2FB8B0", "smooth": 0.45},
         "track": {"color": [0.66, 0.42, 0.28], "texture": "dirt", "tile": 6, "smooth": 0.1},
         "stands": {"steps": {"color": [0.78, 0.6, 0.44], "texture": "dirt", "tile": 3, "smooth": 0.1}, "seats": ["#B85A2E", "#2FB8B0", "#EFE6D2"], "crowd": ["#B85A2E", "#2FB8B0", "#EFE6D2", "#E8A030", "#5A3A2A"], "rail": {"color": "#B85A2E", "smooth": 0.3}, "roof": {"color": [0.9, 0.84, 0.7], "smooth": 0.15}, "fill": 0.7}}
     },
     {
       "id": "summit-park", "slot": "Assets/Art/Parks/summit-park", "placed": false,
-      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": null, "night": null, "props": null, "light": "harbor", "sky": "harbor", "hazardActors": "toy-actors" },
+      "slots": { "lawn": null, "dugouts": null, "wall": null, "scoreboard": null, "stands": "kit-bowl", "backdrop": "blockout-backdrop", "night": "night-rig", "props": null, "light": "summit", "sky": "summit", "hazardActors": "toy-actors" },
       "palette": {"grass": {"color": [0.3, 0.56, 0.3], "texture": "grass", "tile": 18, "smooth": 0.08}, "water": {"color": [0.3, 0.45, 0.6], "smooth": 0.85}, "dirt": {"color": [0.56, 0.52, 0.48], "texture": "dirt", "tile": 8, "smooth": 0.12}, "wall": {"color": [0.42, 0.3, 0.2], "smooth": 0.12}, "wallAlt": {"color": [0.5, 0.5, 0.52], "smooth": 0.18}, "cap": {"color": [0.96, 0.97, 1.0], "smooth": 0.5}, "pole": {"color": "#E03A3A", "smooth": 0.45},
         "track": {"color": [0.5, 0.46, 0.42], "texture": "dirt", "tile": 6, "smooth": 0.12},
         "stands": {"steps": {"color": [0.6, 0.6, 0.62], "smooth": 0.2}, "seats": ["#243A6B", "#F2F4F8", "#E03A3A"], "crowd": ["#243A6B", "#F2F4F8", "#E03A3A", "#6A8FB8", "#2E2E38"], "rail": {"color": [0.96, 0.97, 1.0], "smooth": 0.4}, "roof": null, "fill": 0.7}}

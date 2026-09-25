@@ -96,6 +96,12 @@ public static class ParkKitSlots
     /// <summary>The park-neutral bowl of bleachers: tiered risers, seat sections and crowd, painted by the palette's <c>stands</c> block.</summary>
     public const string KitBowl = "kit-bowl";
 
+    /// <summary>The park's rough Blender blockout behind the outfield (<c>data/art/backdrops.json</c>, <see cref="ParkBackdrop"/>).</summary>
+    public const string BlockoutBackdrop = "blockout-backdrop";
+
+    /// <summary>The park's night shapes, greybox towers, torches, neon and lanterns (<c>data/art/night-rigs.json</c>, <see cref="NightRig"/>).</summary>
+    public const string NightRig = "night-rig";
+
     /// <summary>Every slot, in the order <c>cli art</c> prints them.</summary>
     public static IReadOnlyList<string> All { get; } =
         [Lawn, Dugouts, Wall, Scoreboard, Stands, Backdrop, Night, Props, Light, Sky, HazardActors];
@@ -109,8 +115,8 @@ public static class ParkKitSlots
             [Wall] = [HarborWall],
             [Scoreboard] = [HarborScoreboard],
             [Stands] = [HarborStands, KitBowl],
-            [Backdrop] = [HarborTown],
-            [Night] = [HarborFireworks],
+            [Backdrop] = [HarborTown, BlockoutBackdrop],
+            [Night] = [HarborFireworks, NightRig],
             [Props] = [], // no park names props; a non-Harbor park draws the greybox
             [Light] = [], // rows of data/art/looks.json, checked against the catalog's looks
             [Sky] = [],
@@ -213,6 +219,10 @@ public sealed class ArtCatalog
     public HazardActors Actors { get; }
     /// <summary>The continent map's painted art (<c>data/art/map.json</c>, WD-18): its Resources slot and whether it is placed.</summary>
     public MapArtSlot Map { get; init; } = new("", false);
+    /// <summary>Each park's night rig (<c>data/art/night-rigs.json</c>).</summary>
+    public IReadOnlyList<NightRig> NightRigs { get; init; } = [];
+    /// <summary>Each park's rough backdrop (<c>data/art/backdrops.json</c>).</summary>
+    public IReadOnlyList<ParkBackdrop> Backdrops { get; init; } = [];
     /// <summary>Each faction's jersey, accent and skin (<c>data/art/factions.json</c>).</summary>
     public FactionLooks Factions { get; init; } = null!;
     /// <summary>The character toon's bands and rim (CF-7, <c>data/art/toon.json</c>).</summary>
@@ -456,6 +466,7 @@ public sealed class ArtCatalog
         foreach (var kitRow in Parks)
             errors.AddRange(ParkKitSlots.Validate(kitRow, Looks));
         errors.AddRange(Actors.Validate());
+        errors.AddRange(ParkDress.Validate(content, Parks, NightRigs, Backdrops, slot => File.Exists(Unity(content.Root, slot))));
         errors.AddRange(ToonLook.Validate(Materials));
         // Every character's faction has its colors; a faction nobody plays is a stale row.
         var played = content.Characters.Values.Select(c => c.Faction).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -698,6 +709,8 @@ public sealed class ArtCatalog
             ExtrasSlot = extrasFile.Slot,
             Toon = ToonLook.Parse(JsonNode.Parse(File.ReadAllText(Art("toon.json")), documentOptions: nodeOptions), "toon.json"),
             Map = DataJson.Require<MapArtSlot>(Art("map.json")),
+            NightRigs = DataJson.Require<NightRigFile>(Art("night-rigs.json")).Rigs ?? [],
+            Backdrops = DataJson.Require<BackdropFile>(Art("backdrops.json")).Backdrops ?? [],
             Factions = FactionLooks.Parse(JsonNode.Parse(File.ReadAllText(Art("factions.json")), documentOptions: nodeOptions), "factions.json"),
             Styles = styles,
             StyledClips = styled,

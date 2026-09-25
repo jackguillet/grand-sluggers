@@ -1,0 +1,311 @@
+// Night rigs (FD-11-R2; #1156, WD-10 A): the greybox shapes a park stands at night — towers, torches, neon and lanterns — as
+// data. Each piece stands at every bearing it lists (0 is straight out to centre, + toward right), this far from home, this
+// tall and this thick, its body in "color" and its glow in "glow". The glow is an unlit colour, never a light: the play light
+// stays the day's rig at night, the same for every park. Harbor's night is its fireworks (harbor-fireworks), not a rig row.
+{
+  "rigs": [
+    {
+      "park": "crystal-rink",
+      "pieces": [
+        {
+          "kind": "tower",
+          "bearingsDeg": [
+            -40,
+            -15,
+            15,
+            40
+          ],
+          "distanceFt": 330,
+          "heightFt": 70,
+          "sizeFt": 6,
+          "color": "#C8D8E8",
+          "glow": "#B8F0FF"
+        },
+        {
+          "kind": "lantern",
+          "bearingsDeg": [
+            -30,
+            0,
+            30
+          ],
+          "distanceFt": 303,
+          "heightFt": 12,
+          "sizeFt": 3,
+          "color": "#E8F0F8",
+          "glow": "#9CD8FF"
+        }
+      ]
+    },
+    {
+      "park": "funfair-park",
+      "pieces": [
+        {
+          "kind": "neon",
+          "bearingsDeg": [
+            -38,
+            -20,
+            -2,
+            16,
+            34
+          ],
+          "distanceFt": 320,
+          "heightFt": 26,
+          "sizeFt": 4,
+          "color": "#2A1830",
+          "glow": "#FF4FA0"
+        },
+        {
+          "kind": "lantern",
+          "bearingsDeg": [
+            -44,
+            -30,
+            -10,
+            10,
+            30,
+            44
+          ],
+          "distanceFt": 306,
+          "heightFt": 14,
+          "sizeFt": 3,
+          "color": "#F2E6C8",
+          "glow": "#FFD24A"
+        }
+      ]
+    },
+    {
+      "park": "rooftop-city",
+      "pieces": [
+        {
+          "kind": "neon",
+          "bearingsDeg": [
+            -40,
+            -24,
+            -8,
+            8,
+            24,
+            40
+          ],
+          "distanceFt": 350,
+          "heightFt": 40,
+          "sizeFt": 5,
+          "color": "#1E1E28",
+          "glow": "#3AE8F0"
+        },
+        {
+          "kind": "tower",
+          "bearingsDeg": [
+            -30,
+            30
+          ],
+          "distanceFt": 380,
+          "heightFt": 80,
+          "sizeFt": 6,
+          "color": "#2E2E38",
+          "glow": "#FF4FC8"
+        }
+      ]
+    },
+    {
+      "park": "canopy-yard",
+      "pieces": [
+        {
+          "kind": "lantern",
+          "bearingsDeg": [
+            -40,
+            -26,
+            -12,
+            0,
+            12,
+            26,
+            40
+          ],
+          "distanceFt": 300,
+          "heightFt": 16,
+          "sizeFt": 3,
+          "color": "#6A4A28",
+          "glow": "#FFB45A"
+        },
+        {
+          "kind": "torch",
+          "bearingsDeg": [
+            -44,
+            44
+          ],
+          "distanceFt": 297,
+          "heightFt": 10,
+          "sizeFt": 2,
+          "color": "#4A3420",
+          "glow": "#FF8A2A"
+        }
+      ]
+    },
+    {
+      "park": "ember-keep",
+      "pieces": [
+        {
+          "kind": "torch",
+          "bearingsDeg": [
+            -42,
+            -28,
+            -14,
+            0,
+            14,
+            28,
+            42
+          ],
+          "distanceFt": 319,
+          "heightFt": 14,
+          "sizeFt": 3,
+          "color": "#2E2424",
+          "glow": "#FF6A1A"
+        },
+        {
+          "kind": "tower",
+          "bearingsDeg": [
+            -36,
+            36
+          ],
+          "distanceFt": 340,
+          "heightFt": 60,
+          "sizeFt": 7,
+          "color": "#221A1A",
+          "glow": "#FF3A10"
+        }
+      ]
+    },
+    {
+      "park": "stillwater-marsh",
+      "pieces": [
+        {
+          "kind": "lantern",
+          "bearingsDeg": [
+            -40,
+            -24,
+            -8,
+            8,
+            24,
+            40
+          ],
+          "distanceFt": 300.5,
+          "heightFt": 10,
+          "sizeFt": 2.5,
+          "color": "#4A5A38",
+          "glow": "#C8FF7A"
+        },
+        {
+          "kind": "lantern",
+          "bearingsDeg": [
+            -32,
+            -16,
+            0,
+            16,
+            32
+          ],
+          "distanceFt": 300,
+          "heightFt": 18,
+          "sizeFt": 2,
+          "color": "#EDE6CF",
+          "glow": "#FF9CC8"
+        }
+      ]
+    },
+    {
+      "park": "coconut-cove",
+      "pieces": [
+        {
+          "kind": "torch",
+          "bearingsDeg": [
+            -42,
+            -28,
+            -14,
+            0,
+            14,
+            28,
+            42
+          ],
+          "distanceFt": 307.5,
+          "heightFt": 12,
+          "sizeFt": 2.5,
+          "color": "#6A4A2A",
+          "glow": "#FF9A3A"
+        },
+        {
+          "kind": "lantern",
+          "bearingsDeg": [
+            -35,
+            -10,
+            10,
+            35
+          ],
+          "distanceFt": 308,
+          "heightFt": 16,
+          "sizeFt": 3,
+          "color": "#F2E6C8",
+          "glow": "#FFE08A"
+        }
+      ]
+    },
+    {
+      "park": "sunscorch-mesa",
+      "pieces": [
+        {
+          "kind": "lantern",
+          "bearingsDeg": [
+            -40,
+            -20,
+            0,
+            20,
+            40
+          ],
+          "distanceFt": 323,
+          "heightFt": 12,
+          "sizeFt": 3,
+          "color": "#8A5A38",
+          "glow": "#FFC06A"
+        },
+        {
+          "kind": "tower",
+          "bearingsDeg": [
+            -30,
+            30
+          ],
+          "distanceFt": 326,
+          "heightFt": 55,
+          "sizeFt": 6,
+          "color": "#6A4A38",
+          "glow": "#FFE6B0"
+        }
+      ]
+    },
+    {
+      "park": "summit-park",
+      "pieces": [
+        {
+          "kind": "tower",
+          "bearingsDeg": [
+            -40,
+            -14,
+            14,
+            40
+          ],
+          "distanceFt": 332,
+          "heightFt": 70,
+          "sizeFt": 6,
+          "color": "#E8ECF0",
+          "glow": "#F4F8FF"
+        },
+        {
+          "kind": "lantern",
+          "bearingsDeg": [
+            0
+          ],
+          "distanceFt": 331,
+          "heightFt": 90,
+          "sizeFt": 5,
+          "color": "#2E3440",
+          "glow": "#FF3A3A"
+        }
+      ]
+    }
+  ]
+}
