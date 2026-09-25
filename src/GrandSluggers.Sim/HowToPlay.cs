@@ -276,7 +276,7 @@ public static partial class HowToPlay
         new("exhibition", "Stadium and captains",
         [
             "Stadium postcard, with a crowd and padded wall: choose time and hazards, 1 vs CPU or 2 controllers, and P1 HOME / AWAY. Home bats the bottom.",
-            "Choose captains: Left/right browses portraits; South confirms yours, then the CPU captain.",
+            "Choose captains: Left/right browses portraits and their Bat, Pitch, Field and Run bars; South confirms yours, then the CPU captain.",
             "Two controllers: each player confirms their own captain. Confirmed captains are reserved.",
             "East undoes confirmation, then returns to stadium setup. The park does not follow the captain.",
         ]),
