@@ -86,7 +86,7 @@ Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on deman
 
 **Trials (`trials/*`).** No trial is open today; the overlay machinery is kept dormant (spec §16). While a trial is open, a feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more.
 
-**Spec.** A PR that changes behavior updates the affected rule in [gameplay-spec.md](gameplay-spec.md) in the same PR. The rule says what the game does: numbers, units, scenario ids. It does not say who built it. Do not add PR numbers, "✅ Fx (#nnn, PR #nnn)" provenance, or register rows that name PRs. A status tag stays a bare tag (✅ / ⚠️ / ❌). The commit history records who did what. Existing provenance text stays; do not mass-delete it.
+**Spec.** A PR that changes behavior updates the affected rule in its [docs/spec/](spec/) file in the same PR. The rule says what the game does: numbers, units, scenario ids. It does not say who built it or when. Do not add an issue or PR number, "✅ Fx (#nnn, PR #nnn)" provenance, a date, or register rows that name PRs; CI refuses an added spec line that carries one (`tools/spec-provenance.py`). A status tag stays a bare tag (✅ / ⚠️ / ❌). The commit history records who did what; the provenance the spec used to carry is in [archive/spec-provenance.md](archive/spec-provenance.md).
 
 **Registers and ledgers.** A feature PR does not edit `docs/research/*.json` (`implementation_issues`, `validation_evidence`, `history`) or the ledger in a `docs/plan-*-implementation.md`. One batched docs PR updates them at a phase checkpoint or when Jack asks. A decision Jack makes (the answer to an open question) is behavior intent. It is still recorded, in that batched PR. Until then, quote it in the PR body.
 
@@ -125,7 +125,7 @@ A sitting note is still **one GitHub issue per finding** under the epic that own
 
 ### 2.1 Scale and pace decisions (#693)
 
-Before a session changes gameplay distances or clocks, read [gameplay-spec D19](spec/00-decisions.md#02-field-proportions-and-race-calibration--d19-693). [The reference research](research-game-feel-693.md) and [the decision register](plan-game-feel-693.md) are reference: look up the rows the change touches. Compare reference versions explicitly; carry source status, units, uncertainty, and the accepting decision with every target. A proposed or unresolved number cannot become an active default or a verified debug-protocol fix.
+Before a session changes gameplay distances or clocks, read [gameplay-spec D19](spec/00-decisions.md#02-field-proportions-and-race-calibration--d19). [The reference research](research-game-feel-693.md) and [the decision register](plan-game-feel-693.md) are reference: look up the rows the change touches. Compare reference versions explicitly; carry source status, units, uncertainty, and the accepting decision with every target. A proposed or unresolved number cannot become an active default or a verified debug-protocol fix.
 
 Measure full races, not only outcomes: contact, pursuit/possession, command/release, receiver/coverage, runner/tag. Keep field/body proportions separate from camera projection. Use the existing trace/scenario/catalog paths; the versioned #702 extensions and evidence validation are specified in [race-traces.md](race-traces.md); their draft/merge state remains in the #693 plan. Preserve both fixed-input and fixed-tactical fixtures so an inverse carry solver cannot conceal a changed flight.
 

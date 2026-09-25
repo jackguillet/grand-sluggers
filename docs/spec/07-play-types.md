@@ -8,7 +8,7 @@ Common to all live plays:
 - **Forced runners run** on a grounder (they have no choice). Unforced runners hold on the bag until the ball is through or fielded, then go/hold by the send rule (a human) or the margin table (CPU, §9.9). ✅ P3 (`Runner.Forced`, `RunnerAi`); the read step is presentation.
 - **On a fly / liner**, all runners hold on the bag until the catch or the drop (tag-up rule §9.5). ✅ P3 (`FlyState`, per runner).
 - **The throw** goes where the fielder names (human) or where the decision table says (CPU, §8.8). The out is judged when the ball arrives (§10). ✅ for named bags.
-- Camera: `diamond` 45° on the dirt under the ball; a liner sits between that and the fly (`diamond-line`); fly pulls back to `diamond-fly`; a throw does not cut behind the thrower (`data/feel/shots.json`). ✅ #665
+- Camera: `diamond` 45° on the dirt under the ball; a liner sits between that and the fly (`diamond-line`); fly pulls back to `diamond-fly`; a throw does not cut behind the thrower (`data/feel/shots.json`). ✅ 
 - Stamp: OUT / SINGLE / DOUBLE / TRIPLE / HOME RUN / DOUBLE PLAY / TRIPLE PLAY / FOUL / ERROR when the play is dead. ✅ P4: ERROR is the throw that skipped past its cover (`PlayOutcome.Error`, `PlayStamp.Error`); it stamps on the hit it allowed, never on an out.
 
 ## 7.1 Grounder to an infielder (routine)
@@ -28,13 +28,13 @@ Common to all live plays:
 
 ## 7.3 Bunt
 
-- Defense tell: the batter squares at the bunt press (§5.8); 1B and 3B **crash** (charge 25 ft toward the plate), 2B covers 1B, SS covers 2B, P and C charge the triangle. ✅ #625 (`BuntDefense`, `fielding.bunt`):
+- Defense tell: the batter squares at the bunt press (§5.8); 1B and 3B **crash** (charge 25 ft toward the plate), 2B covers 1B, SS covers 2B, P and C charge the triangle. ✅ (`BuntDefense`, `fielding.bunt`):
   the square is the swing's `SquareSec` (the client's West clock for a human, `batting.cpu.sacBuntSquareSec` for the headless CPU, read at SET so a human pitcher sees the squared bat and the corners running in before the pitch);
   `BuntDefense.Spots(held)` is where every body stands after that long on the square — the crash bodies run toward the plate at their own chase speed (§8.1) up to `crashFt`, the covers walk to first and second at the cover speed (§8.7) — and the Unity presenter draws it during SET and the pitch from the same function the live ball seeds its bodies from at contact (`LivePlaySystem.InitGloves`, `Match.PreviewHit(hit, swing)`).
   After contact every charge body converges on the ball to `chargeStopFt` unless a play stands at the bag it covers (the catcher stays home on a squeeze). Hand-offs stay events (§8.9): a human who takes a crashing body with the stick keeps it.
-- **Fields**: earliest of P / C / 1B / 3B. ✅ #625 (`FieldingResolver.BuntPursuitPositions`; the routes start from the square's bodies, so the crashing corner beats the pitcher to a bunt down its line that would have been the pitcher's from the rest spots).
-- **Runners**: batter runs; forced runners go (sac). Runner on 3rd with a squeeze: goes at contact only if the offense sent them (`send 3B`), else holds. ✅ #625 (`BallSituation.Bunt`: the CPU runner from third holds until a glove has the ball; the send is the human's stick).
-- **Throw**: 1B (batter) by default. Lead runner if the bunt is popped or too hard and the margin is makeable. Runner from 3rd on a squeeze → home only if inside 30 ft. ✅ #625 (`LivePlaySystem.CpuDecide`, the bunt rows ahead of §8.8 rule 1: home only from inside `fielding.bunt.squeezeHomeFt`, the lead force only on a bunt at or above `hardExitMph`, else first; a popped bunt is a pop, §5.8, and the doubled-off race is its row). The throw to first lands in the second baseman's glove: the bunt cover map (`BuntDefense.CoverMap`) is the diamond's with the middle behind the crash.
+- **Fields**: earliest of P / C / 1B / 3B. ✅ (`FieldingResolver.BuntPursuitPositions`; the routes start from the square's bodies, so the crashing corner beats the pitcher to a bunt down its line that would have been the pitcher's from the rest spots).
+- **Runners**: batter runs; forced runners go (sac). Runner on 3rd with a squeeze: goes at contact only if the offense sent them (`send 3B`), else holds. ✅ (`BallSituation.Bunt`: the CPU runner from third holds until a glove has the ball; the send is the human's stick).
+- **Throw**: 1B (batter) by default. Lead runner if the bunt is popped or too hard and the margin is makeable. Runner from 3rd on a squeeze → home only if inside 30 ft. ✅ (`LivePlaySystem.CpuDecide`, the bunt rows ahead of §8.8 rule 1: home only from inside `fielding.bunt.squeezeHomeFt`, the lead force only on a bunt at or above `hardExitMph`, else first; a popped bunt is a pop, §5.8, and the doubled-off race is its row). The throw to first lands in the second baseman's glove: the bunt cover map (`BuntDefense.CoverMap`) is the diamond's with the middle behind the crash.
 - Bunt pop-up caught → out; runners who left are doubled off if the fielder throws back (§10.5). ✅ S-49 (`BuntScenarioTests`).
 - Stamp BUNT + SINGLE / OUT. ✅ stamp exists.
 
@@ -54,8 +54,8 @@ Common to all live plays:
 ## 7.6 Line drive
 
 - **Fields**: the infielder or outfielder on the line if a route meets the live ball within the catch-height envelope before the first surface contact. Liners are a **jump or dive** verb inside the window; a straight-at-you liner is a South catch.
-- **Caught**: out. The glove on the live ball before the bounce is the catch, not a scoop at the landing ring (#666). Runners who left the bag are **doubled off** if the fielder throws to that bag (or steps on it) before they return (§10.5). Runners at the read step are safe if they return in time — that is the tension.
-- **Not caught**: it bounces or skids from its actual impact; the outfielder whose route meets the roll earliest chases it (D16, #667), not the body nearest the bounce; runners as §7.5.
+- **Caught**: out. The glove on the live ball before the bounce is the catch, not a scoop at the landing ring. Runners who left the bag are **doubled off** if the fielder throws to that bag (or steps on it) before they return (§10.5). Runners at the read step are safe if they return in time — that is the tension.
+- **Not caught**: it bounces or skids from its actual impact; the outfielder whose route meets the roll earliest chases it (D16), not the body nearest the bounce; runners as §7.5.
 - **One flight clock:** every batted ball uses `flight.timeScale` **1.65**, independent of launch, exit speed or descriptive class. Gravity and velocity produce the different hang times. Neither `linerTimeScale` nor `dirtTimeScale` is a supported rule key. Throws and pitches keep their own clocks.
 
 ## 7.7 Pop-up (infield fly)
@@ -75,11 +75,11 @@ Common to all live plays:
 
 ## 7.9 Wall ball / carom
 
-- A fly or liner that meets the fence below fence height caroms (restitution 0.48, angle mirrored) and drops at the base of the wall. The outfielder plays the carom (route to the first reachable point on the post-carom path). ✅ P2 (`BattedBallClass.Wall`; `LiveEvent.WallCarom` is the thump the client plays; S-58). ✅ The carom's two numbers are the row of the wall material the segment is made of (FD-06, F3-c #856):
-  `walls.json` `padded` (0.48 / 0.82); the same carom off the `padded` row at two values follows each (`GroundReadTests.SF12_…`). ✅ Per span (F2-c #874):
+- A fly or liner that meets the fence below fence height caroms (restitution 0.48, angle mirrored) and drops at the base of the wall. The outfielder plays the carom (route to the first reachable point on the post-carom path). ✅ (`BattedBallClass.Wall`; `LiveEvent.WallCarom` is the thump the client plays; S-58). ✅ The carom's two numbers are the row of the wall material the segment is made of (FD-06):
+  `walls.json` `padded` (0.48 / 0.82); the same carom off the `padded` row at two values follows each (`GroundReadTests.SF12_…`). ✅ Per span:
   `WallMaterial.OfSegment` answers the material of the polyline span the piece lies on (`padded` when the span names none, for the foul rail, and for every park without points), and a ball caroms off that span's own normal — a notch face that is not square to home sends the ball along it (`PolylineFenceTests.SF07_ABallRolledIntoTheNotchCaromsByThatSpansNormal`, `…SF12_EachSpanAsksTheLibraryForItsOwnMaterialsRow`). Below the top means below the span's top where the ball met it.
 - Runners: this is the **double / triple** scene. Batter reads the carom; runner on 1st scores on a carom to the gap with < 2 outs if the margin says so. ✅ P3: the bodies take what the carom and the arm give (S-58 asserts second or third, never a dead double).
-- Rob: in the window at the wall, West (jump) with Super Jump / Clamber / Buddy Jump can catch a ball that would clear the fence by ≤ the ability's rob height (§8.4). ✅ P2 (`FlyCatch.CanRob` against `BattedBall.FenceClearFt`; S-56, S-57). ⚠️ F2-c (#874): `BattedBall` still measures that clearance against the park's `fenceHeightFt`, not the top of the span the ball crossed. No park names points, so nothing plays differently; the first park whose spans stand at other heights (or the child that makes a span robbable) moves that read to the crossing's top.
+- Rob: in the window at the wall, West (jump) with Super Jump / Clamber / Buddy Jump can catch a ball that would clear the fence by ≤ the ability's rob height (§8.4). ✅ (`FlyCatch.CanRob` against `BattedBall.FenceClearFt`; S-56, S-57). ⚠️ `BattedBall` still measures that clearance against the park's `fenceHeightFt`, not the top of the span the ball crossed. No park names points, so nothing plays differently; the first park whose spans stand at other heights (or the child that makes a span robbable) moves that read to the crossing's top.
 
 ## 7.10 Home run
 
@@ -92,7 +92,7 @@ Common to all live plays:
 - Runners return. A caught foul fly is a fly ball for tag-up purposes. ✅ (it is `PlayKind.FlyOut`)
 - **The pop behind the plate** comes from real contact under the ball (§5.4): the catcher is in the foul pool and catches it coming down for a fly out (S-24c); a glove that is not under it lets it land foul, dead, runners return, a strike under two (S-24d).
 - **Off the bat.** No glove takes a batted ball until it has been `catch.offTheBatFt` **10 ft** (3-D) from where it left the bat, or has come down to the ground (`FlyCatch.OffTheBat`, `LivePlaySystem.GloveMayTake`). The catcher stands 15 ft back inside his own catch radius of the plate, so without this a ball straight off the bat would be caught on the contact frame; straight into the mitt is a foul tip, not a catch. A bunt on the dirt in front of the plate is fieldable at once.
-- Stamp FOUL when dead, within the count hold (S-24b). The play never hangs: a foul is a dead-ball result the sim commits itself (#575). ✅ P2
+- Stamp FOUL when dead, within the count hold (S-24b). The play never hangs: a foul is a dead-ball result the sim commits itself. ✅ P2
 
 ## 7.12 Strikeout / walk / HBP with runners
 

@@ -214,7 +214,7 @@ public sealed class DccStagesTests
         Assert.True(start >= 0, "missing ## 6. Stage-save DCC");
         var next = rails.IndexOf("\n## ", start + 10, StringComparison.Ordinal);
         var section = next < 0 ? rails[start..] : rails[start..next];
-        Assert.Contains("✅ **R6 #653", section, StringComparison.Ordinal);
+        Assert.Contains("✅ **R6", section, StringComparison.Ordinal);
         Assert.DoesNotContain("Missing: named stages", section, StringComparison.Ordinal);
         Assert.Contains("data/agent/dcc-stages.json", section, StringComparison.Ordinal);
         Assert.Contains("one-shot", section, StringComparison.OrdinalIgnoreCase);
