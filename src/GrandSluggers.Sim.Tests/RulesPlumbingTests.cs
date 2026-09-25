@@ -60,7 +60,7 @@ public sealed class RulesPlumbingTests
     /// Readers of the process diamond (<see cref="Diamond"/>'s bags, rubber and starts; home is the origin on every table) left in the sim. A reader that holds a
     /// table reads <see cref="DiamondGeometry.Of"/> of it (#1067); this ceiling only goes down, so no new reader joins them.
     /// </summary>
-    const int ProcessDiamondReaders = 56;
+    const int ProcessDiamondReaders = 55;
 
     [Fact]
     public void NoNewReaderTakesTheProcessDiamond()
@@ -69,5 +69,20 @@ public sealed class RulesPlumbingTests
         var n = Code().Where(c => c.File != "Diamond.cs").Sum(c => read.Matches(c.Text).Count);
         Assert.True(n <= ProcessDiamondReaders, $"{n} reads of the process diamond (ceiling {ProcessDiamondReaders}): read DiamondGeometry.Of(rules) instead");
         Assert.True(n >= ProcessDiamondReaders, $"{n} reads of the process diamond: lower {nameof(ProcessDiamondReaders)} to {n}");
+    }
+
+    /// <summary>
+    /// Readers of the process edge (<see cref="ParkBoundary.Default"/>, <see cref="ParkBoundary.For(Park)"/>) left in the sim: the
+    /// drawn wall and its dress. The flight plays <see cref="ParkBoundary.For(Park, RulesTable)"/> (#1067); this ceiling only goes down.
+    /// </summary>
+    const int ProcessEdgeReaders = 2;
+
+    [Fact]
+    public void NoNewReaderTakesTheProcessEdge()
+    {
+        var read = new Regex(@"ParkBoundary\.Default\b|ParkBoundary\.For\(\w+\)");
+        var n = Code().Where(c => c.File != "ParkBoundary.cs").Sum(c => read.Matches(c.Text).Count);
+        Assert.True(n <= ProcessEdgeReaders, $"{n} reads of the process edge (ceiling {ProcessEdgeReaders}): pass the match's table to ParkBoundary.For");
+        Assert.True(n >= ProcessEdgeReaders, $"{n} reads of the process edge: lower {nameof(ProcessEdgeReaders)} to {n}");
     }
 }

@@ -158,7 +158,7 @@ public sealed record BattedBall(
                     if (leavesT is null)
                     {
                         leavesT = s.T;
-                        clear = s.Height - FieldBounds.FoulWallHeightFt;
+                        clear = s.Height - FieldBounds.FoulWallHeightFt(rules);
                         // A ball already fair that bounces into the foul stands is out of play the same way
                         // as one that hops the fence: two bases (§1). Anything else over a foul wall is foul.
                         if (decided && !foul) groundRule = true;
@@ -181,14 +181,14 @@ public sealed record BattedBall(
                     {
                         grounded = true;
                         firstGround = i;
-                        if (FieldBounds.PastTheBags(s.X, s.Z))
+                        if (FieldBounds.PastTheBags(s.X, s.Z, rules))
                             Decide(!FieldBounds.IsFair(s.X, s.Z), s);
                     }
                     else if (secondGround < 0 && prev.Event != SampleEvent.Ground)
                         secondGround = i;
                     break;
             }
-            if (grounded && !decided && !FieldBounds.PastTheBags(prev.X, prev.Z) && FieldBounds.PastTheBags(s.X, s.Z))
+            if (grounded && !decided && !FieldBounds.PastTheBags(prev.X, prev.Z, rules) && FieldBounds.PastTheBags(s.X, s.Z, rules))
                 Decide(!FieldBounds.IsFair(s.X, s.Z), s);
         }
         if (!decided && samples.Count > 0)

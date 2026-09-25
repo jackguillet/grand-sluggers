@@ -86,10 +86,10 @@ public sealed class FieldingReachTests
     public void FielderCanReachALooseBallAgainstTheWall()
     {
         var park = Game.Parks[ParkId.Harbor];
-        var wall = FieldBounds.Of(park).RadiusAt(0);
+        var wall = FieldBounds.Of(park, Rules.Default).RadiusAt(0);
         var at = FieldBounds.ClampFielder(park, 0, wall, Game.Rules);
         Assert.True(Diamond.Dist(0, wall, at.X, at.Z) < Game.Rules.Fielding.Chase.LooseScoopFt);
-        Assert.True(FieldBounds.Of(park).Contains(at.X, at.Z));
+        Assert.True(FieldBounds.Of(park, Rules.Default).Contains(at.X, at.Z));
     }
 
     [Theory]

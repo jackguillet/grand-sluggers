@@ -35,7 +35,7 @@ public sealed class BoundaryTests
         // polyline's, held by PolylineFenceTests (SF-07), not this extraction.
         var park = _content.Parks[id] with { Fence = null };
         var expected = TodaysPolygon(park);
-        var actual = FieldBounds.Of(park).Segments;
+        var actual = FieldBounds.Of(park, Rules.Default).Segments;
 
         Assert.Equal(expected.Count, actual.Count);
         for (var i = 0; i < expected.Count; i++)
@@ -66,8 +66,8 @@ public sealed class BoundaryTests
         Assert.Equal(ParkBoundary.Default.FoulOffsetFt, HarborWall.FoulOffset);
         Assert.Equal(ParkBoundary.Default.BackstopZFt, HarborWall.HomeZ);
         Assert.Equal(ParkBoundary.Default.DugoutPadFt, HarborWall.DugoutPad);
-        Assert.Equal((double)HarborWall.HipHeight, FieldBounds.FoulWallHeightFt);
-        Assert.Equal(ParkBoundary.Default.BackstopZFt, FieldBounds.BackstopZ);
+        Assert.Equal((double)HarborWall.HipHeight, FieldBounds.FoulWallHeightFt(Rules.Default));
+        Assert.Equal(ParkBoundary.Default.BackstopZFt, FieldBounds.BackstopZ(Rules.Default));
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public sealed class BoundaryTests
         Assert.Equal(4.2, ParkBoundary.Default.RailHeightFt);
         Assert.Equal((double)4.2f, ParkBoundary.Default.RailTopFt);
         Assert.NotEqual(4.2, ParkBoundary.Default.RailTopFt);
-        Assert.Equal(ParkBoundary.Default.RailTopFt, FieldBounds.FoulWallHeightFt);
+        Assert.Equal(ParkBoundary.Default.RailTopFt, FieldBounds.FoulWallHeightFt(Rules.Default));
     }
 
     /// <summary>
@@ -96,13 +96,13 @@ public sealed class BoundaryTests
         var shipped = ParkBoundary.Default;
         var wide = shipped with { FoulOffsetFt = shipped.FoulOffsetFt + 10 };
 
-        Assert.Same(FieldBounds.Of(park), FieldBounds.Of(park, shipped));
+        Assert.Same(FieldBounds.Of(park, Rules.Default), FieldBounds.Of(park, shipped));
         var other = FieldBounds.Of(park, wide);
-        Assert.NotSame(FieldBounds.Of(park), other);
+        Assert.NotSame(FieldBounds.Of(park, Rules.Default), other);
         Assert.Same(other, FieldBounds.Of(park, wide));
 
         // And it is a different field, not just a different object: the rail moved into foul.
-        var near = FieldBounds.Of(park).RadiusAt(70);
+        var near = FieldBounds.Of(park, Rules.Default).RadiusAt(70);
         var wider = other.RadiusAt(70);
         Assert.True(wider > near + 1, $"the wider foul area should push the rail out: {near} -> {wider}");
 

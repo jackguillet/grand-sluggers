@@ -48,7 +48,7 @@ public static class BallFlight
     public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules)
     {
         var r = rules;
-        return Integrate(exitMph, launchDeg, sprayDeg, park.WindMph, park.WindDirection, FieldBounds.Of(park), GroundZones.Of(park, r), r);
+        return Integrate(exitMph, launchDeg, sprayDeg, park.WindMph, park.WindDirection, FieldBounds.Of(park, r), GroundZones.Of(park, r), r);
     }
 
     static IReadOnlyList<Sample> Integrate(
@@ -91,7 +91,7 @@ public static class BallFlight
         var y0 = Math.Max(0, y);
         list.Add(new Sample(fromT, Math.Sqrt(x * x + z * z), y0, x, z));
         var rolling = y0 <= 1e-9 && Math.Abs(vy) < 1e-9;
-        Run(list, r, FieldBounds.Of(park), GroundZones.Of(park, r), fromT, x, y0, z, vx * scale, vy * scale, vz * scale, wx, wz, scale, rolling);
+        Run(list, r, FieldBounds.Of(park, r), GroundZones.Of(park, r), fromT, x, y0, z, vx * scale, vy * scale, vz * scale, wx, wz, scale, rolling);
         return list;
     }
 
@@ -239,15 +239,15 @@ public static class BallFlight
     /// deceleration of the row of the zone it is in at the start of the tick, moves the tick's mean speed along its heading,
     /// and stops dead against the park's edge. The ball must be moving; a ball at rest is the caller's to leave where it is.
     /// </summary>
-    public static LooseBallStep OverthrowTick(GroundZones zones, GroundLibrary grounds, double x, double z, double vx, double vz, double dt)
+    public static LooseBallStep OverthrowTick(GroundZones zones, RulesTable rules, double x, double z, double vx, double vz, double dt)
     {
         var speed = Math.Sqrt(vx * vx + vz * vz);
         if (speed <= 0) throw new ArgumentException("a loose ball at rest does not roll; the caller leaves it where it is", nameof(vx));
-        var decel = zones.RowAt(x, z, grounds).Overthrow.DecelFtPerSec2 * dt;
+        var decel = zones.RowAt(x, z, rules.Grounds).Overthrow.DecelFtPerSec2 * dt;
         var next = Math.Max(0, speed - decel);
         var nx = x + vx / speed * (speed + next) * 0.5 * dt;
         var nz = z + vz / speed * (speed + next) * 0.5 * dt;
-        var inside = FieldBounds.Clamp(zones.Park, nx, nz);
+        var inside = FieldBounds.Clamp(zones.Park, nx, nz, rules);
         if (Math.Abs(inside.X - nx) > 1e-6 || Math.Abs(inside.Z - nz) > 1e-6) next = 0;
         return new LooseBallStep(inside.X, 0, inside.Z, vx / speed * next, 0, vz / speed * next, Air: false, Speed: next);
     }
@@ -260,10 +260,10 @@ public static class BallFlight
     /// is in at the start of the tick (FD-05); the spill's own numbers stay the fumble's (<see cref="HandlingRules"/>). The
     /// park's edge stops it.
     /// </summary>
-    public static LooseBallStep LocalBobbleTick(GroundZones zones, GroundLibrary grounds, HandlingRules handling, double gravity,
+    public static LooseBallStep LocalBobbleTick(GroundZones zones, RulesTable rules, HandlingRules handling, double gravity,
         double x, double y, double z, double vx, double vy, double vz, bool air, double dt)
     {
-        var ground = zones.RowAt(x, z, grounds).Bobble;
+        var ground = zones.RowAt(x, z, rules.Grounds).Bobble;
         var h = handling;
         var g = gravity;
         var nx = x + vx * dt;
@@ -295,7 +295,7 @@ public static class BallFlight
             vz = speed > 0 ? vz / speed * next : 0;
             ny = 0;
         }
-        var inside = FieldBounds.Clamp(zones.Park, nx, nz);
+        var inside = FieldBounds.Clamp(zones.Park, nx, nz, rules);
         if (Math.Abs(inside.X - nx) > 1e-6 || Math.Abs(inside.Z - nz) > 1e-6) vx = vz = 0;
         return new LooseBallStep(inside.X, ny, inside.Z, vx, vy, vz, air, Math.Sqrt(vx * vx + vz * vz));
     }

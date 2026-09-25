@@ -91,4 +91,26 @@ public sealed class DiamondGeometryTests
         Assert.Equal(Diamond.First, shipped.Position);
         Assert.NotEqual(shipped.Position, onFirst.Position);
     }
+
+    /// <summary>A grounder is judged at the bag circle of the table it plays (§5.6), not the process table's.</summary>
+    [Fact]
+    public void TheFairFoulBagCircleIsTheTablesBaseline()
+    {
+        var t = Wider();
+        var between = (Table.Infield.BaselineFt + t.Infield.BaselineFt) / 2;
+        var (x, z) = (between * Math.Sin(Math.PI / 4), between * Math.Cos(Math.PI / 4));
+        Assert.True(FieldBounds.PastTheBags(x, z, Table));
+        Assert.False(FieldBounds.PastTheBags(x, z, t));
+    }
+
+    /// <summary>The flight's edge is the table's boundary: a wider foul offset moves the rail the ball meets.</summary>
+    [Fact]
+    public void TheFlightsEdgeIsTheTablesBoundary()
+    {
+        var park = Shipped.Content.MustPark(ParkId.Harbor);
+        var t = Table with { Boundary = Table.Boundary with { FoulOffsetFt = Table.Boundary.FoulOffsetFt + 6 } };
+        Assert.Equal(ParkBoundary.For(park, Table), ParkBoundary.For(park));
+        Assert.NotEqual(ParkBoundary.For(park, Table), ParkBoundary.For(park, t));
+        Assert.NotSame(FieldBounds.Of(park, Table), FieldBounds.Of(park, t));
+    }
 }

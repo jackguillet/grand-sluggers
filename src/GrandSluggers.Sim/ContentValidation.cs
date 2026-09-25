@@ -563,8 +563,8 @@ public static class ContentDataValidator
             errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must be greater than 0; got {p.FenceHeightFt}");
         // The floor is the boundary table's rail, not a park's class (#826, FR-05): every park's
         // fence stands over the rail the ball meets, and no park's name decides another park's rule.
-        else if (p.FenceHeightFt <= ParkBoundary.Default.RailHeightFt)
-            errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must stand over the {ParkBoundary.Default.RailHeightFt} ft foul rail (the drawn wall ramps up to it, D15); got {p.FenceHeightFt}");
+        else if (p.FenceHeightFt <= fence.RailFt)
+            errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must stand over the {fence.RailFt} ft foul rail (the drawn wall ramps up to it, D15); got {p.FenceHeightFt}");
         ValidateParkEnvironment(row.Source, p.Id, p.Environment, errors);
         ValidateParkZones(row.Source, p.Id, p.Zones, grounds, groundsSource, errors);
         ValidateParkFence(row.Source, p, fence, errors);

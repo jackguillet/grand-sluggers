@@ -66,7 +66,7 @@ public sealed class FlightScenarioTests
         var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
         Assert.True(hit.Foul);
         Assert.Equal(BattedBallClass.Foul, ball.Class);
-        Assert.False(FieldBounds.PastTheBags(ball.DecidedX, ball.DecidedZ), "judged before the bag, where it came to rest");
+        Assert.False(FieldBounds.PastTheBags(ball.DecidedX, ball.DecidedZ, Rules.Default), "judged before the bag, where it came to rest");
         Assert.False(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ));
         Assert.Equal(BallFlight.RestTime(ball.Samples), ball.DecidedT, 3);
     }
@@ -79,14 +79,14 @@ public sealed class FlightScenarioTests
         Assert.False(hit.Foul);
         Assert.True(hit.InPlay);
         Assert.True(ball.Shape.OnTheDirt());
-        Assert.True(FieldBounds.PastTheBags(ball.DecidedX, ball.DecidedZ), "judged as it passes the bag");
+        Assert.True(FieldBounds.PastTheBags(ball.DecidedX, ball.DecidedZ, Rules.Default), "judged as it passes the bag");
         Assert.True(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ));
         Assert.True(ball.DecidedT < BallFlight.RestTime(ball.Samples), "the roll after the bag cannot change the call");
 
         // The same slow roller as S-22 inside the line settles fair before the bag.
         var slow = BattedBall.Of(36, 5, 44, Harbor, rules: Rules.Default);
         Assert.False(slow.Foul);
-        Assert.False(FieldBounds.PastTheBags(slow.DecidedX, slow.DecidedZ));
+        Assert.False(FieldBounds.PastTheBags(slow.DecidedX, slow.DecidedZ, Rules.Default));
     }
 
     // ---------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ public sealed class FlightScenarioTests
         Assert.False(hit.InPlay);
         Assert.Equal(BattedBallClass.Pop, hit.Class);
         var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
-        Assert.InRange(ball.LandingZ, FieldBounds.BackstopZ, 0);
+        Assert.InRange(ball.LandingZ, FieldBounds.BackstopZ(Rules.Default), 0);
         Assert.True(ball.Samples.Max(s => s.Height) > 40, "a real pop, not a tip");
 
         var match = Match.Slice(_content, seed: 2);
@@ -374,7 +374,7 @@ public sealed class FlightScenarioTests
         Assert.InRange(ball.FenceClearFt, -Harbor.FenceHeightFt, 0);
         var afterWall = ball.Samples.Where(s => s.T > ball.WallT + 0.3).ToArray();
         Assert.NotEmpty(afterWall);
-        Assert.All(afterWall, s => Assert.True(FieldBounds.InPark(Harbor, s.X, s.Z), "the carom stays on the field"));
+        Assert.All(afterWall, s => Assert.True(FieldBounds.InPark(Harbor, s.X, s.Z, Rules.Default), "the carom stays on the field"));
         Assert.True(afterWall[^1].Dist < Harbor.CenterFenceFt - 5, "it drops and rolls back off the wall");
 
         var match = Match.Slice(_content, seed: 2);
@@ -423,7 +423,7 @@ public sealed class FlightScenarioTests
         Assert.NotNull(underBall.WallT);
         Assert.InRange(underBall.FenceClearFt, -0.8, -0.2);
         Assert.All(underBall.Samples.Where(s => s.T > underBall.WallT + 0.3),
-            s => Assert.True(FieldBounds.InPark(Harbor, s.X, s.Z), "the carom comes back off the wall you see"));
+            s => Assert.True(FieldBounds.InPark(Harbor, s.X, s.Z, Rules.Default), "the carom comes back off the wall you see"));
     }
 
     [Fact]
@@ -488,7 +488,7 @@ public sealed class FlightScenarioTests
                     if (s.T == left)
                     {
                         // Out only over the top: the fence between the poles, or the foul wrap after a fair bounce (two bases either way).
-                        var top = s.Event == SampleEvent.Fence ? park.FenceHeightFt : FieldBounds.FoulWallHeightFt;
+                        var top = s.Event == SampleEvent.Fence ? park.FenceHeightFt : FieldBounds.FoulWallHeightFt(Rules.Default);
                         // The flight judges the top at the crossing, inside the step (BallFlight): the ball's height there lies
                         // between this sample's and the one before, so a ball that clears on a falling step can end the step
                         // a hair under the top. Over the top means the higher of the two stood at it.
@@ -499,7 +499,7 @@ public sealed class FlightScenarioTests
                     }
                     break;
                 }
-                Assert.True(FieldBounds.InPark(park, s.X, s.Z) || NearBoundary(park, s),
+                Assert.True(FieldBounds.InPark(park, s.X, s.Z, Rules.Default) || NearBoundary(park, s),
                     $"{park.Id} {exit}/{launch}@{spray}: sample {s.T:0.00} at ({s.X:0.0},{s.Z:0.0}) h {s.Height:0.0} is outside the park");
             }
         }
@@ -509,7 +509,7 @@ public sealed class FlightScenarioTests
     static bool NearBoundary(Park park, Sample s)
     {
         var r = FieldBounds.DistHome(s.X, s.Z);
-        var edge = FieldBounds.Of(park).RadiusAt(FieldBounds.SprayDeg(s.X, s.Z));
+        var edge = FieldBounds.Of(park, Rules.Default).RadiusAt(FieldBounds.SprayDeg(s.X, s.Z));
         return Math.Abs(r - edge) < 0.6;
     }
 

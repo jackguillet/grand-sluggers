@@ -142,11 +142,11 @@ public static class FieldBounds
     /// <summary>Same pad as <see cref="FlyCatch.WallPlant"/> — warning track, not the crowd.</summary>
     public const double InsideFt = 8;
 
-    /// <summary>The backstop wrap behind the plate (<see cref="ParkBoundary.BackstopZFt"/>).</summary>
-    public static double BackstopZ => ParkBoundary.Default.BackstopZFt;
+    /// <summary>The backstop wrap behind the plate on <paramref name="rules"/> (<see cref="ParkBoundary.BackstopZFt"/>).</summary>
+    public static double BackstopZ(RulesTable rules) => ParkBoundary.From(rules.Boundary).BackstopZFt;
 
-    /// <summary>Hip rail height along the foul wraps (<see cref="ParkBoundary.RailTopFt"/>).</summary>
-    public static double FoulWallHeightFt => ParkBoundary.Default.RailTopFt;
+    /// <summary>Hip rail height along the foul wraps on <paramref name="rules"/> (<see cref="ParkBoundary.RailTopFt"/>).</summary>
+    public static double FoulWallHeightFt(RulesTable rules) => ParkBoundary.From(rules.Boundary).RailTopFt;
 
     /// <summary>
     /// Everything the edge is built from, as one key (map finding 14): the three posts, the fence top
@@ -167,7 +167,8 @@ public static class FieldBounds
     /// <summary>The polygon per park and edge, built once (<see cref="EdgeKey"/>).</summary>
     static readonly System.Collections.Concurrent.ConcurrentDictionary<EdgeKey, Boundary> Cache = new();
 
-    public static Boundary Of(Park park) => Of(park, ParkBoundary.For(park));
+    /// <summary>The edge the flight plays in <paramref name="park"/> on <paramref name="rules"/>.</summary>
+    public static Boundary Of(Park park, RulesTable rules) => Of(park, ParkBoundary.For(park, rules));
 
     public static Boundary Of(Park park, ParkBoundary bounds) =>
         Cache.GetOrAdd(EdgeKey.Of(park, bounds), k => Build(park, k.Bounds));
@@ -283,31 +284,31 @@ public static class FieldBounds
         z >= 0 && Math.Abs(SprayDeg(x, z)) <= AtBatResolver.FoulLineDeg + 1e-9;
 
     /// <summary>A grounder is judged where it passes first or third (§5.6): the bag circle.</summary>
-    public static bool PastTheBags(double x, double z) =>
-        DistHome(x, z) >= Diamond.Baseline;
+    public static bool PastTheBags(double x, double z, RulesTable rules) =>
+        DistHome(x, z) >= DiamondGeometry.Of(rules).Baseline;
 
     /// <summary>Inside the park boundary (fair or foul); the ball is still on the field.</summary>
-    public static bool InPark(Park park, double x, double z) =>
-        Of(park).Contains(x, z);
+    public static bool InPark(Park park, double x, double z, RulesTable rules) =>
+        Of(park, rules).Contains(x, z);
 
     /// <summary>Inside the glove's playable area (the boundary less the warning-track pad).</summary>
-    public static bool Inside(Park park, double x, double z)
+    public static bool Inside(Park park, double x, double z, RulesTable rules)
     {
-        var c = Clamp(park, x, z);
+        var c = Clamp(park, x, z, rules);
         return Diamond.Dist(x, z, c.X, c.Z) < 0.6;
     }
 
     /// <summary>Keep a fielder inside the wall while close enough to recover a loose wall ball.</summary>
     public static (double X, double Z) ClampFielder(Park park, double x, double z, RulesTable rules) =>
-        Clamp(park, x, z, rules.Fielding.Chase.WallClearanceFt);
+        Clamp(park, x, z, rules.Fielding.Chase.WallClearanceFt, rules);
 
-    public static (double X, double Z) Clamp(Park park, double x, double z) => Clamp(park, x, z, InsideFt);
+    public static (double X, double Z) Clamp(Park park, double x, double z, RulesTable rules) => Clamp(park, x, z, InsideFt, rules);
 
-    public static (double X, double Z) Clamp(Park park, double x, double z, double insetFt)
+    public static (double X, double Z) Clamp(Park park, double x, double z, double insetFt, RulesTable rules)
     {
         var dist = DistHome(x, z);
         if (dist < 0.5) return (x, z);
-        var max = Math.Max(12, Of(park).RadiusAt(SprayDeg(x, z)) - insetFt);
+        var max = Math.Max(12, Of(park, rules).RadiusAt(SprayDeg(x, z)) - insetFt);
         if (dist <= max + 1e-6) return (x, z);
         var u = max / dist;
         return (x * u, z * u);

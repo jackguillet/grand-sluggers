@@ -47,7 +47,7 @@ foreach (var (label, drag) in new[] { ("control-drag", controlDrag), ("trial-dra
             var park = new Park("research-c80", "Research C80", "", "grass", fences[0], fences[1], fences[2],
                 0, Array.Empty<Hazard>(), FenceHeightFt: candidates["spatialPolicy"]!["wallHeightFt"]!.GetValue<double>());
             var clipped = BallFlight.Trajectory(exit, launch, spray, park, counterfactual);
-            var boundary = FieldBounds.Of(park);
+            var boundary = FieldBounds.Of(park, Rules.Default);
             object? crossing = null;
             string? outcome = null;
             var grounded = false;

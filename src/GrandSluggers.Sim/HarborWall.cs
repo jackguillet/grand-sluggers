@@ -99,7 +99,7 @@ public static class HarborWall
     /// The whole boundary, once around: left pole to right pole through the park's own
     /// <see cref="AtBatResolver.FenceAt"/> on each side, then each side's foul wrap and the round
     /// backstop from the <see cref="ParkBoundary"/>. Every vertex is a vertex of
-    /// <see cref="FieldBounds.Of(Park)"/>'s polygon, so the wall drawn in left field is the wall a
+    /// <see cref="FieldBounds.Of(Park, RulesTable)"/>'s polygon, so the wall drawn in left field is the wall a
     /// ball hit to left meets (<c>SF-05</c>, D15 as amended by D21, FD-06).
     ///
     /// <para>
@@ -318,7 +318,7 @@ public static class HarborWall
     }
 
     /// <summary>
-    /// The segment of the clip polygon (<see cref="FieldBounds.Of(Park)"/>) that the drawn span from
+    /// The segment of the clip polygon (<see cref="FieldBounds.Of(Park, RulesTable)"/>) that the drawn span from
     /// loop vertex <paramref name="i"/> to <paramref name="i"/> + 1 lies on. Every drawn vertex is a
     /// polygon vertex or a point on one of its straight rail segments (<c>SF-05</c>), so each drawn
     /// span is a piece of exactly one flight segment: its top, its kind (fence or rail) and its

@@ -111,7 +111,7 @@ public sealed class GroundReadTests
                     var (ox, oz, ovx, ovz) = (x0, z0, vx0, vz0);
                     for (var i = 0; i < 600 && Math.Sqrt(vx * vx + vz * vz) > 0; i++, ticks++)
                     {
-                        var step = BallFlight.OverthrowTick(zones, rules.Grounds, x, z, vx, vz, Frame);
+                        var step = BallFlight.OverthrowTick(zones, rules, x, z, vx, vz, Frame);
                         var old = OldLoose.Overthrow(park, ox, oz, ovx, ovz, Frame);
                         Assert.True(Bits(old.X) == Bits(step.X) && Bits(old.Z) == Bits(step.Z) && Bits(old.VX) == Bits(step.VX)
                                     && Bits(old.VZ) == Bits(step.VZ) && Bits(old.Next) == Bits(step.Speed) && step.Y == 0 && !step.Air,
@@ -127,7 +127,7 @@ public sealed class GroundReadTests
                         var o = n;
                         for (var i = 0; i < 600 && (n.Air || n.VX != 0 || n.VZ != 0); i++, ticks++)
                         {
-                            var step = BallFlight.LocalBobbleTick(zones, rules.Grounds, rules.Fielding.Handling, rules.Flight.Gravity,
+                            var step = BallFlight.LocalBobbleTick(zones, rules, rules.Fielding.Handling, rules.Flight.Gravity,
                                 n.X, n.Y, n.Z, n.VX, n.VY, n.VZ, n.Air, Frame);
                             o = OldLoose.Bobble(park, rules.Fielding.Handling, rules.Flight.Gravity, o, Frame);
                             Assert.True(Bits(o.X) == Bits(step.X) && Bits(o.Y) == Bits(step.Y) && Bits(o.Z) == Bits(step.Z)
@@ -284,7 +284,7 @@ public sealed class GroundReadTests
             var inSpeed = Math.Sqrt(inX * inX + inZ * inZ);
             var k = (inSpeed - zones.RowAt(path[hit - 1].X, path[hit - 1].Z, rules.Grounds).Roll.Friction * dt) / inSpeed;
             (inX, inZ) = (inX * k, inZ * k);
-            var crossing = FieldBounds.Of(park).Cross(path[hit - 1].X, path[hit - 1].Z, path[hit - 1].X + inX * dt, path[hit - 1].Z + inZ * dt);
+            var crossing = FieldBounds.Of(park, Rules.Default).Cross(path[hit - 1].X, path[hit - 1].Z, path[hit - 1].X + inX * dt, path[hit - 1].Z + inZ * dt);
             Assert.NotNull(crossing);
             var n = crossing.Value.Segment;
             Assert.Equal(WallMaterial.Padded, WallMaterial.OfSegment(n));
@@ -343,16 +343,16 @@ public sealed class GroundReadTests
             Assert.True(Math.Abs(6 - Speed(batted, 1, dt * scale) - row.Roll.Friction * dt / scale) < 1e-9, $"batted roll at {z:0.00}: {Speed(batted, 1, dt * scale)}");
 
             // The overthrow: the row's deceleration.
-            var thrown = BallFlight.OverthrowTick(zones, rules.Grounds, 0, z, 6, 0, Frame);
+            var thrown = BallFlight.OverthrowTick(zones, rules, 0, z, 6, 0, Frame);
             Assert.Equal(6 - row.Overthrow.DecelFtPerSec2 * Frame, thrown.Speed, 12);
 
             // The local bobble landing: the row's restitution and the roll it keeps; rolling: the row's deceleration.
-            var landing = BallFlight.LocalBobbleTick(zones, rules.Grounds, h, g, 0, 0.05, z, 4, -14.5, 0, true, Frame);
+            var landing = BallFlight.LocalBobbleTick(zones, rules, h, g, 0, 0.05, z, 4, -14.5, 0, true, Frame);
             var down = 14.5 + g * Frame;
             Assert.True(landing.Air, "the rebound clears the settle and stays under the ceiling at both rows");
             Assert.Equal(down * row.Bobble.Restitution, landing.VY, 12);
             Assert.Equal(4 * row.Bobble.GroundRetain, landing.VX, 12);
-            var rolling = BallFlight.LocalBobbleTick(zones, rules.Grounds, h, g, 0, 0, z, 4, 0, 0, false, Frame);
+            var rolling = BallFlight.LocalBobbleTick(zones, rules, h, g, 0, 0, z, 4, 0, 0, false, Frame);
             Assert.Equal(4 - row.Bobble.DecelFtPerSec2 * Frame, rolling.Speed, 12);
         }
 
@@ -402,10 +402,10 @@ public sealed class GroundReadTests
         var (exit, launch, spray) = LipGrounder(Game.Parks[ParkId.Harbor], rules);
         var thrown = Assert.Throws<ArgumentException>(() => BallFlight.Trajectory(exit, launch, spray, mud, rules));
         Assert.Contains("'mud' is not a ground with a row in rules/grounds.json", thrown.Message, StringComparison.Ordinal);
-        Assert.Throws<ArgumentException>(() => BallFlight.OverthrowTick(zones, rules.Grounds, 0, past, 6, 0, Frame));
-        Assert.Throws<ArgumentException>(() => BallFlight.LocalBobbleTick(zones, rules.Grounds, rules.Fielding.Handling, rules.Flight.Gravity, 0, 0, past, 4, 0, 0, false, Frame));
+        Assert.Throws<ArgumentException>(() => BallFlight.OverthrowTick(zones, rules, 0, past, 6, 0, Frame));
+        Assert.Throws<ArgumentException>(() => BallFlight.LocalBobbleTick(zones, rules, rules.Fielding.Handling, rules.Flight.Gravity, 0, 0, past, 4, 0, 0, false, Frame));
         // Inside the lip the ball is on dirt, which has a row: nothing there asks for mud.
-        _ = BallFlight.OverthrowTick(zones, rules.Grounds, 0, 60, 6, 0, Frame);
+        _ = BallFlight.OverthrowTick(zones, rules, 0, 60, 6, 0, Frame);
 
         using var fixture = new UnequalGrounds();
         var park = fixture.Catalog.Parks[ParkId.Harbor];
@@ -570,7 +570,7 @@ public sealed class GroundReadTests
             Integrate(exitMph, launchDeg, 0, windMph, (0, 1), null, rules, g);
 
         public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules, Numbers g) =>
-            Integrate(exitMph, launchDeg, sprayDeg, park.WindMph, park.WindDirection, FieldBounds.Of(park), rules, g);
+            Integrate(exitMph, launchDeg, sprayDeg, park.WindMph, park.WindDirection, FieldBounds.Of(park, Rules.Default), rules, g);
 
         static IReadOnlyList<Sample> Integrate(
             double exitMph, double launchDeg, double sprayDeg, double windMph, (double X, double Z) windDir,
@@ -607,7 +607,7 @@ public sealed class GroundReadTests
             var y0 = Math.Max(0, y);
             list.Add(new Sample(fromT, Math.Sqrt(x * x + z * z), y0, x, z));
             var rolling = y0 <= 1e-9 && Math.Abs(vy) < 1e-9;
-            Run(list, f, g, FieldBounds.Of(park), fromT, x, y0, z, vx * scale, vy * scale, vz * scale, wx, wz, skid, scale, rolling, grounded: true);
+            Run(list, f, g, FieldBounds.Of(park, Rules.Default), fromT, x, y0, z, vx * scale, vy * scale, vz * scale, wx, wz, skid, scale, rolling, grounded: true);
             return list;
         }
 
@@ -748,7 +748,7 @@ public sealed class GroundReadTests
             var next = Math.Max(0, speed - decel);
             var nx = x + vx / speed * (speed + next) * 0.5 * dt;
             var nz = z + vz / speed * (speed + next) * 0.5 * dt;
-            var inside = FieldBounds.Clamp(park, nx, nz);
+            var inside = FieldBounds.Clamp(park, nx, nz, Rules.Default);
             if (Math.Abs(inside.X - nx) > 1e-6 || Math.Abs(inside.Z - nz) > 1e-6) next = 0;
             return (inside.X, inside.Z, speed > 0 ? vx / speed * next : 0, speed > 0 ? vz / speed * next : 0, next);
         }
@@ -785,7 +785,7 @@ public sealed class GroundReadTests
                 looseVZ = speed > 0 ? looseVZ / speed * next : 0;
                 ballY = 0;
             }
-            var inside = FieldBounds.Clamp(park, nx, nz);
+            var inside = FieldBounds.Clamp(park, nx, nz, Rules.Default);
             if (Math.Abs(inside.X - nx) > 1e-6 || Math.Abs(inside.Z - nz) > 1e-6) looseVX = looseVZ = 0;
             return new Ball(inside.X, ballY, inside.Z, looseVX, looseVY, looseVZ, looseAir);
         }

@@ -65,7 +65,7 @@ public sealed class OutfieldStartsTests
         var b = ParkBoundary.For(wide);
         Assert.Equal(30, b.FoulOffsetFt);
         Assert.Equal(ParkBoundary.Default.FlareStartFt, b.FlareStartFt);
-        Assert.False(FieldBounds.Of(harbor).Segments.SequenceEqual(FieldBounds.Of(wide).Segments), "the wider wrap moves the rail");
+        Assert.False(FieldBounds.Of(harbor, Rules.Default).Segments.SequenceEqual(FieldBounds.Of(wide, Rules.Default).Segments), "the wider wrap moves the rail");
         Assert.All(Catalog.Parks.Values, p => Assert.Null(p.Foul));
     }
 }
