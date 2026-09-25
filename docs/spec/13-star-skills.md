@@ -23,7 +23,7 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 | Sidewinder | A fair ball off the swing turns `firstHopKickDeg` (≤ 45°) at its first ground contact, away from the fielder the play sent after it, and runs on the shared ground physics; every chaser re-plans. A ball caught before its hop never turns | |
 | Rockfall | A `float`: the ball rises up to `riseFt` over its ordinary path, highest at `dropFrom` of the flight, then drops back onto it by the plate. The crossing is the ordinary one; only the look of the flight bends. Speed ×0.95 | |
 | Updraft | A star fly (launch 34°, exit ×1.1) whose ball rides the park's wind `windMul` (1.5) times as hard: the same flight as in a wind half again as strong, in every direction the wind blows. At a calm park it is the plain ball. The factor rides on the batted ball, so every continuation of it reads the same wind | |
-| Leapfrog | A `leap`: from `at` of the flight the ball crawls at `holdPace` of its pace for `hold` of the flight, then leaps over the rest of its path to arrive on time. The path, the crossing and the arrival instant are the ordinary pitch's, so the timing window is too | |
+| Leapfrog | A `leap`: from `at` of the flight the ball crawls at `holdPace` of its pace for `holdSpan` of the flight, then leaps over the rest of its path to arrive on time. The path, the crossing and the arrival instant are the ordinary pitch's, so the timing window is too | |
 | Pond Skip | A low star swing (launch 0°, exit ×1.05) whose first hop leaves the ground `firstHopBounceMul` (2.2) times as fast upward: a high chopper for a fast runner. A ball gloved before it springs is an ordinary out | |
 | Role players | Star fastball / change / breaker; star grounder / fly / line | |
 

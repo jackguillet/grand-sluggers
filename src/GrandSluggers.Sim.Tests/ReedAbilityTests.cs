@@ -231,10 +231,10 @@ public sealed class ReedAbilityTests
         using var fixture = new ContentFixture();
         fixture.ChangeObject("abilities/star-skills.json", json =>
         {
-            json["pitches"]!["leapfrog"]!["leap"]!["hold"] = 0.7;
+            json["pitches"]!["leapfrog"]!["leap"]!["holdSpan"] = 0.7;
             json["pitches"]!["fastball"]!["firstHopBounceMul"] = 2;
             json["swings"]!["pond-skip"]!["firstHopBounceMul"] = 5;
-            json["swings"]!["line"]!["leap"] = new JsonObject { ["at"] = 0.3, ["hold"] = 0.2, ["holdPace"] = 0.1 };
+            json["swings"]!["line"]!["leap"] = new JsonObject { ["at"] = 0.3, ["holdSpan"] = 0.2, ["holdPace"] = 0.1 };
         });
         var errors = ContentDataValidator.Validate(fixture.Root);
         Assert.Contains(errors, e => e.Contains("star pitch 'leapfrog' leap needs", StringComparison.Ordinal));

@@ -85,7 +85,7 @@
       "tier": "mid",
       "speedMul": 1.0,
       "staminaCost": 14,
-      "leap": { "at": 0.35, "hold": 0.25, "holdPace": 0.2 }
+      "leap": { "at": 0.35, "holdSpan": 0.25, "holdPace": 0.2 }
     },
     "fastball": { "id": "fastball", "name": "Star Fastball", "kind": "generic", "tier": "low", "speedMul": 1.25, "staminaCost": 10 },
     "changeup": { "id": "changeup", "name": "Star Change", "kind": "generic", "tier": "low", "speedMul": 0.7, "staminaCost": 8 },
