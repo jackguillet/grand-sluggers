@@ -8,7 +8,7 @@ Grand Sluggers is a **complete, polished party baseball game** we will still wan
 2. Read only the spec files your change touches: `docs/spec/NN-*.md`, one per section of `docs/gameplay-spec.md` (the index). Scenarios are `docs/spec/appendix-b-scenarios.md`.
 3. Look up the other docs when the work needs them. Research reports (`docs/research-*.md`, `docs/research/`, for example `docs/research-game-feel-708.md`) and handoffs are reference, not required reading.
 
-Where to look things up. Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. **How agents work: `docs/agent-rails.md`** (when a session and that document disagree, the session is wrong). Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`. Fields: `docs/plan-fields.md` (#814).
+Where to look things up. **What is shipped and open: `docs/status.md`.** Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. **How agents work: `docs/agent-rails.md`** (when a session and that document disagree, the session is wrong). Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`. Fields: `docs/plan-fields.md` (#814).
 
 ## The stack (do this, in order)
 
@@ -17,7 +17,7 @@ Pick work from the top. Do not pick a lower row because it is easier.
 1. **Harbor Exhibition is playable.** Jack finishes a half from Call time How to play, with one pad and then with two pads, no Slack. [#346](https://github.com/jackguillet/grand-sluggers/issues/346) / [#209](https://github.com/jackguillet/grand-sluggers/issues/209). Agents **do not pass** human gates.
 2. **Sitting-found children.** File them. Do not silently patch. Parent is the epic that owns the lie (#342 book, #209 play, #188 toy).
 3. **The toy reads HUD-off.** Six captains name themselves at gameplay distance. Cameras look at the body, not a brim. [#188](https://github.com/jackguillet/grand-sluggers/issues/188).
-4. **Authored sound.** Bat crack, glove pop, crowd bed. Generated tones are not the product. [#223](https://github.com/jackguillet/grand-sluggers/issues/223). After play, not instead of it.
+4. **Authored sound.** Shipped: bat crack, glove pop and crowd bed are authored clips in `data/art/audio.json` slots ([#223](https://github.com/jackguillet/grand-sluggers/issues/223)). Generated tones are not the product; a new sound fills a slot, after play, not instead of it.
 
 **Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit, a second skeleton or a second motion system, a prompt-to-game engine, Unity PhysX or NavMesh as baseball. Every captain is the one rig; unique packages are deferred (`docs/character-package.md`). Extras stay off until they read as toys (#687).
 
@@ -44,7 +44,7 @@ Behavior docs stay. Bookkeeping and balance run on demand. Contract: `docs/agent
 - Never run the full test suite locally; it freezes the shared Mac. Run `tools/test-fast.sh <Classes you touched>`. CI runs the breakage suite on every PR.
 - A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are noted.
 - **Do not balance the game until Jack says he wants to.** Balance means the full test suite (Actions → Full tests, on GitHub too, not only locally), the `Kind=Balance` tests, S-29 and cohort bands, park-factor reports, flight probes and evidence seals. Constant balancing costs too much time. A PR that moves a feel or rule number, even a tuning PR, names the move in its body and stops at the breakage suite. Jack starts a balance pass; then run Full tests (`balance_only` for the balance set only).
-- A feature PR does not reseal the evidence seals, edit a `trials/` twin, or touch a decision register or an implementation ledger. One batched docs PR updates registers and ledgers at a phase checkpoint or when Jack asks.
+- A feature PR does not reseal the evidence seals, edit a `trials/` twin (none is open today), or touch a decision register or an implementation ledger. One batched docs PR updates registers and ledgers at a phase checkpoint or when Jack asks.
 - A behavior change updates its rule in its `docs/spec/` file in the same PR. Keep every spec line at 600 characters or fewer (`SpecLineLengthTests`). Write the rule, not the provenance: no issue or PR numbers, no "✅ (#nnn, PR #nnn)", no dates. CI refuses an added spec line that carries one (`tools/spec-provenance.py`).
 - A debug-protocol row is for a novel failure signature only.
 - There is one diamond: 80-ft basepaths. Its numbers are the defaults in `data/`.

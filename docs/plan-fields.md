@@ -4,7 +4,7 @@ Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814), servi
 
 ## Current state
 
-Research and maps are done. **All 19 directions and refinement FD-08-R1 are accepted (Jack, September 21, 2026). Nothing is implemented. No number is accepted. No human gate has passed.** Jack's brief: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
+Research and maps are done. **All 19 directions and refinement FD-08-R1 are accepted (Jack, September 21, 2026). The code is complete; the human gates are open: see [status.md](status.md) and [plan-fields-implementation.md](plan-fields-implementation.md) §0.** Jack's brief: treat Harbor as the default; give the other fields a unique look, possible hazards, and qualities (size, air density, ground material, slickness); build the rails and the engineering process before the artwork.
 
 This plan follows the #693 and #803 pattern: stable ids, options, a recommendation, a scoped human choice, then evidence. It keeps one lesson from both: **ask about material tradeoffs one at a time, and do not ask Jack to approve routine derivations.**
 

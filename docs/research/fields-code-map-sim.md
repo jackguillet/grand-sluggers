@@ -299,7 +299,7 @@ Seals that a park change would break:
 1. Whether the live grounder route is materially changed by a warp beyond `CoverBallX` and the chase target: read from code, not traced in a run.
 2. "Every chaser is slowed when `Frozen`" is read from the call sites (all pass `Preview.Frozen`); not confirmed with a play trace. Cover walks use `CoverSpeedFt` (`Sim/Fielding.cs:424`) and were not checked for the flag.
 3. How Unity picks its data root and whether it honours `GRAND_SLUGGERS_TRIAL` (`Sim/Content.cs:147` says Unity passes its own root). Out of scope here.
-4. What `RaceEvidence.Validate` (`Sim/RaceEvidence.cs`) checks in `data/race-evidence.json`, and if any of it names a park.
+4. What `RaceEvidence.Validate` (`Sim/RaceEvidence.cs`) checks in `data/agent/race-evidence.json`, and if any of it names a park.
 5. The exact set of `docs/research/*.json` files that store a `PlayTraceIdentity` SHA (three found by name; not grepped exhaustively).
 6. Per-park run and homer rates inside S-29: the gate does not compute them and no run was made (read-only task, no builds).
 7. Whether `GrandSluggers.Play` (raylib viewer) is still built or gated; it has its own park-id literals (`Play/WorldView.cs:13`, `Play/Palette.cs:74`, `Play/Game.cs`).
