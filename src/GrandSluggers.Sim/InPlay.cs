@@ -55,7 +55,7 @@ public static class InPlay
         return (thr?.ReleaseSec ?? t.ReleaseSec) + flight + t.LongThrowLossSec * over * over / pair;
     }
 
-    /// <summary>The thrower's arm (§8.5): <c>armBase + Arm × armPerField</c>. Arm seeds from Field until authored.</summary>
+    /// <summary>The thrower's arm (§8.5): <c>armBase + Arm × armPerField</c>, off the thrower's Arm (throw speed) and never its Velocity.</summary>
     public static double ArmMul(Character who, RulesTable rules) => ArmMul(who.Stats.Arm, rules);
 
     /// <summary>The arm multiplier for a rating: 1.0 at the neutral arm on the shipped table.</summary>
@@ -65,12 +65,12 @@ public static class InPlay
         return Math.Max(0.1, t.ArmBase + arm * t.ArmPerField);
     }
 
-    /// <summary>The CPU fielder's delay between gaining the ball and throwing it (§8.8): <c>throwBaseSec − Field × throwPerFieldSec</c>, × the difficulty's reaction multiplier.</summary>
+    /// <summary>The CPU fielder's delay between gaining the ball and throwing it (§8.8): <c>throwBaseSec − Hands × throwPerFieldSec</c> (the transfer is handling; Arm is the throw's flight), × the difficulty's reaction multiplier.</summary>
     public static double ThrowReactionSec(Character who, RulesTable rules)
     {
         var r = rules;
         var re = r.Fielding.Reaction;
-        return Math.Max(re.ThrowMinSec, re.ThrowBaseSec - who.Stats.Field * re.ThrowPerFieldSec) * r.Cpu.Active.ReactionMul;
+        return Math.Max(re.ThrowMinSec, re.ThrowBaseSec - who.Stats.Hands * re.ThrowPerFieldSec) * r.Cpu.Active.ReactionMul;
     }
 
     /// <summary>A throw is caught when it lands inside the cover radius of its receiver (§8.5, fielding.cover.radiusFt).</summary>

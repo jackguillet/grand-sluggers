@@ -48,7 +48,7 @@ Controller orders have explicit selected-runner or ALL scope. Selection follows 
 
 ## 9.6 Close plays
 
-- A close play is a **geometric** condition: the throw arrives within ±`closeMargin` (0.25 s) of the runner at a tag bag (3B or home; a force is never close-played). Only then does the **mash contest** run: the icon appears, first press after the icon wins, CPU reacts at `0.20 + (10 − stat) × 0.032`. Outside the margin the geometry decides and no icon appears. ✅ P5 (`ClosePlay.WithinMargin`, `running.close.marginSec` 0.25):
+- A close play is a **geometric** condition: the throw arrives within ±`closeMargin` (0.25 s) of the runner at a tag bag (3B or home; a force is never close-played). Only then does the **mash contest** run: the icon appears, first press after the icon wins, CPU reacts at `0.20 + (10 − stat) × 0.032`, where the stat is the runner's Run or the tagger's Hands (§2). Outside the margin the geometry decides and no icon appears. ✅ P5 (`ClosePlay.WithinMargin`, `running.close.marginSec` 0.25):
   the ball on the bag **ahead of the body** by no more than the margin runs the mash; the body **in ahead of the ball** by no more than the margin is safe on the bag (§10.3) and pops the small SAFE, no contest; further out either way the geometry decides silently — the tag at the bag, or the runner in. Once one seat has pressed and the clock is past that press the other seat can only be later, so a seat that never presses loses to the CPU's reaction (S-75).
   The verdict is written once (the out is recorded, or the body is placed on the bag; the caption follows the record; `ClosePlaySafe` is gone).
 - Stamp SAFE (small) / OUT.

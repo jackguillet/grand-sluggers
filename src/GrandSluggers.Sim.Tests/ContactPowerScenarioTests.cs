@@ -8,100 +8,44 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// The Contact / Power split (#837, PH-15-R5), Appendix B.1 rows S-121 … S-123.
 ///
-/// Two rules. <b>S-121</b>: an <b>unauthored</b> roster behaves exactly as it did before the split,
-/// because every trait tracks <c>Bat</c>. <b>S-122</b>: once a trait is authored it moves its own
-/// consumers and nobody else's — the cursor is Contact's, the exit and the loft are Power's, and each
-/// CPU read takes the trait §5.9 names. <b>S-123</b>: the validator accepts the keys as optional and
-/// refuses them outside 1–10 by character and field name.
+/// <b>S-121</b>: every character authors Contact and Power, and the Bat bar is their rounded mean
+/// (CH-07). <b>S-122</b>: each trait moves its own consumers and nobody else's — the cursor is Contact's, the exit and the loft are Power's, and each
+/// CPU read takes the trait §5.9 names. <b>S-123</b>: the validator requires the keys and refuses them
+/// outside 1–10 by character and field name.
 ///
 /// Every row asserts a relationship or an integer identity, never a stored libm double: the values
-/// are Jack's to author later (PH-15-R5 leaves them open) and must be able to move without editing a
-/// test. No data file authors a value in this child.
+/// are balance and must be able to move without editing a test.
 /// </summary>
 public class ContactPowerScenarioTests
 {
     readonly ContentCatalog _content = Shipped.Content;
 
     // ---------------------------------------------------------------------------------
-    // S-121 — unauthored tracks Bat, and stays unauthored
+    // S-121 — every character authors both, and the Bat bar is their rounded mean
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S121_EveryShippedCharacterIsStillSeededFromBat()
+    public void S121_EveryShippedCharacterDerivesBatFromContactAndPower()
     {
-        // The migration authors no ratings, so the whole roster must still track Bat. This holds on
-        // whichever data root the process plays (the trial overlays carry the same character rows).
         Assert.NotEmpty(_content.Characters);
         foreach (var c in _content.Characters.Values)
-        {
-            Assert.Equal(c.Stats.Bat, c.Stats.Contact);
-            Assert.Equal(c.Stats.Bat, c.Stats.Power);
-            Assert.False(c.Stats.ContactAuthored, $"{c.Id} authors contact; P2-a authors none");
-            Assert.False(c.Stats.PowerAuthored, $"{c.Id} authors power; P2-a authors none");
-        }
+            Assert.Equal(Stats.Bar(c.Stats.Contact + c.Stats.Power, 2), c.Stats.Bat);
     }
 
     [Fact]
-    public void S121_NoCharacterFileAuthorsAContactOrPowerKey()
+    public void S121_TheBatBarRoundsHalfUpAndAClampHoldsEachTrait()
     {
-        // Belt and braces for the row above: a key spelled in a file would be an authored value
-        // whoever read it, and authoring one is banned in this child.
-        var root = Shipped.Content.Root.Shipped;
-        foreach (var file in Directory.GetFiles(Path.Combine(root, "characters"), "*.json"))
-        {
-            var node = JsonNode.Parse(File.ReadAllText(file), documentOptions: DataJson.Document)!;
-            foreach (var row in node is JsonArray rows ? rows : [node])
-            {
-                var o = row!.AsObject();
-                Assert.False(o.ContainsKey("contact"), $"{file} authors contact");
-                Assert.False(o.ContainsKey("power"), $"{file} authors power");
-            }
-        }
+        Assert.Equal(8, (Stats.Even(5, 5, 5, 5) with { Contact = 9, Power = 6 }).Bat); // 7.5
+        Assert.Equal(6, (Stats.Even(5, 5, 5, 5) with { Contact = 9, Power = 3 }).Bat); // 6.0
+        Assert.Equal((4, 4), (Stats.Even(5, 5, 5, 5).WithBat(4).Contact, Stats.Even(5, 5, 5, 5).WithBat(4).Power));
+
+        var clamped = (Stats.Even(5, 5, 5, 5) with { Contact = 99, Power = -3 }).Clamp();
+        Assert.Equal((10, 1), (clamped.Contact, clamped.Power));
+        Assert.Equal(6, clamped.Bat); // 5.5 rounds half up
     }
 
     [Fact]
-    public void S121_AnUnauthoredTraitTracksBatAtEveryRating()
-    {
-        for (var bat = 1; bat <= 10; bat++)
-        {
-            var stats = new Stats(5, bat, 5, 5);
-            Assert.Equal(bat, stats.Contact);
-            Assert.Equal(bat, stats.Power);
-            Assert.False(stats.ContactAuthored);
-            Assert.False(stats.PowerAuthored);
-        }
-
-        // Authored is the number itself, and says so.
-        var authored = new Stats(5, 5, 5, 5) { Contact = 9, Power = 2 };
-        Assert.Equal((9, 2), (authored.Contact, authored.Power));
-        Assert.True(authored.ContactAuthored);
-        Assert.True(authored.PowerAuthored);
-        // One authored trait does not author the other.
-        var half = new Stats(5, 4, 5, 5) { Contact = 9 };
-        Assert.Equal((9, 4), (half.Contact, half.Power));
-        Assert.True(half.ContactAuthored);
-        Assert.False(half.PowerAuthored);
-    }
-
-    [Fact]
-    public void S121_AnUnauthoredTraitKeepsTrackingBatThroughAClamp()
-    {
-        var clamped = new Stats(5, 99, 5, 5).Clamp();
-        Assert.Equal(10, clamped.Bat);
-        Assert.Equal(10, clamped.Contact);
-        Assert.Equal(10, clamped.Power);
-        Assert.False(clamped.ContactAuthored);
-        Assert.False(clamped.PowerAuthored);
-
-        var authored = new Stats(5, 5, 5, 5) { Contact = 99, Power = -3 }.Clamp();
-        Assert.Equal(10, authored.Contact);
-        Assert.Equal(5, authored.Power); // -3 is not an authored value: it was never > 0, so it tracks Bat
-        Assert.True(authored.ContactAuthored);
-        Assert.False(authored.PowerAuthored);
-    }
-
-    [Fact]
-    public void S121_StatsRoundTripsThroughJsonWithoutTheAuthoredFlags()
+    public void S121_StatsRoundTripsThroughJson()
     {
         // The flags are bookkeeping about where a number came from, not ratings: emitting them would
         // make Stats unstable across a round trip, because a serialized rating reloads through the
@@ -109,13 +53,12 @@ public class ContactPowerScenarioTests
         // the serialized form PlayTraceIdentity hashes.
         foreach (var stats in new[]
                  {
-                     new Stats(3, 7, 4, 6),
-                     new Stats(3, 7, 4, 6) { Contact = 9, Power = 2 },
-                     new Stats(3, 7, 4, 6) { Arm = 8, Hands = 2, Contact = 2, Power = 9 }
+                     Stats.Even(3, 7, 4, 6),
+                     (Stats.Even(3, 7, 4, 6) with { Contact = 9, Power = 2 }),
+                     (Stats.Even(3, 7, 4, 6) with { Arm = 8, Hands = 2, Contact = 2, Power = 9 })
                  })
         {
             var json = JsonSerializer.Serialize(stats, PlayTrace.Json);
-            Assert.DoesNotContain("Authored", json, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("\"contact\":", json);
             Assert.Contains("\"power\":", json);
 
@@ -149,9 +92,6 @@ public class ContactPowerScenarioTests
     // S-122 — authored in a fixture: each consumer follows its own trait
     // ---------------------------------------------------------------------------------
 
-    /// <summary>Same <c>Bat</c>, opposite traits. Nothing but the fixture ever holds these.</summary>
-    const int SharedBat = 5;
-
     [Fact]
     public void S122_TheJudgedOvalFollowsContactAndNotPower()
     {
@@ -171,8 +111,7 @@ public class ContactPowerScenarioTests
         var sluggerHit = resolver.Resolve(Swing(slugger, x), park, new Random(7));
         Assert.True(sureHit.Quality > sluggerHit.Quality,
             $"the same crossing is {sureHit.Quality} on Contact 9 and {sluggerHit.Quality} on Contact 2");
-        Assert.Equal(SharedBat, sure.Stats.Bat); // and the aggregate they share could not have told them apart
-        Assert.Equal(SharedBat, slugger.Stats.Bat);
+        Assert.Equal(sure.Stats.Bat, slugger.Stats.Bat); // and the bar they share could not have told them apart
     }
 
     [Fact]
@@ -250,8 +189,7 @@ public class ContactPowerScenarioTests
         }
         Assert.Equal(40, sluggerCharges);
         Assert.True(sureCharges < 40, $"Power 2 is not forced: {sureCharges} of 40");
-        Assert.True(_content.Rules.Batting.Cpu.RispChargeBatMin > SharedBat,
-            "the shared Bat could not have forced either of them");
+        // Both carry the same Bat bar (9 and 2 or 2 and 9), so the bar could not have split them.
 
         bool Charged(Character who, int seed, PitchCommand pitch)
         {
@@ -275,14 +213,12 @@ public class ContactPowerScenarioTests
         // The technique gate is Contact and Run: Contact 9 / Run 9 slaps, and the Power 9 twin does not.
         Assert.Equal(a.Technique, CpuBatter.ChargeChance(Hitter(contact: 9, power: 2, run: 9), a));
         Assert.Equal(a.Balanced, CpuBatter.ChargeChance(Hitter(contact: 2, power: 9, run: 9), a));
-        Assert.True(a.TechniqueMin > SharedBat, "the shared Bat could not have reached the gate");
     }
 
     [Fact]
     public void S122_TheCpuSacBuntGateFollowsContact()
     {
         // Runner on first, no outs, a close game (§5.9). The gate is sacBuntBatMax against Contact.
-        Assert.Equal(SharedBat, _content.Rules.Batting.Cpu.SacBuntBatMax);
         var lightSquares = 0;
         var sureSquares = 0;
         for (var seed = 1; seed <= 60; seed++)
@@ -291,7 +227,7 @@ public class ContactPowerScenarioTests
             sureSquares += Squares(Hitter(contact: 9, power: 2), seed) ? 1 : 0;
         }
         Assert.True(lightSquares > 0, "a weak-Contact hitter still gives himself up");
-        // Both share Bat 5, which is the gate's own maximum: only the trait can tell them apart.
+        // Both carry the same Bat bar: only the trait can tell them apart.
         Assert.Equal(0, sureSquares);
 
         bool Squares(Character who, int seed)
@@ -309,22 +245,19 @@ public class ContactPowerScenarioTests
     [Theory]
     [InlineData("contact")]
     [InlineData("power")]
-    public void S123_AnAbsentOrZeroKeyIsUnauthored(string field)
+    public void S123_AnAbsentKeyIsRefusedByCharacterAndField(string field)
     {
         using var fixture = new ContentFixture();
-        Assert.Empty(ContentDataValidator.Validate(fixture.Root)); // absent on every shipped row
-
-        fixture.ChangeObject("characters/rio.json", json => json[field] = 0);
         Assert.Empty(ContentDataValidator.Validate(fixture.Root));
-        var rio = ContentCatalog.Load(fixture.Root).Must("rio");
-        Assert.Equal(rio.Stats.Bat, rio.Stats.Contact);
-        Assert.Equal(rio.Stats.Bat, rio.Stats.Power);
-        Assert.False(rio.Stats.ContactAuthored);
-        Assert.False(rio.Stats.PowerAuthored);
+        fixture.ChangeObject("characters/rio.json", json => json.Remove(field));
+        var error = Assert.Single(ContentDataValidator.Validate(fixture.Root));
+        Assert.Equal($"{fixture.Path("characters/rio.json")}: character 'rio' {field} is required (1–10); every character authors all nine sub-stats",
+            error);
     }
 
     [Theory]
     [InlineData("contact", 11)]
+    [InlineData("contact", 0)]
     [InlineData("contact", -1)]
     [InlineData("power", 11)]
     [InlineData("power", -1)]
@@ -342,7 +275,7 @@ public class ContactPowerScenarioTests
     [Theory]
     [InlineData(1)]
     [InlineData(10)]
-    public void S123_AnInRangeRatingLoadsAsAuthored(int value)
+    public void S123_AnInRangeRatingLoads(int value)
     {
         using var fixture = new ContentFixture();
         fixture.ChangeObject("characters/rio.json", json =>
@@ -354,31 +287,13 @@ public class ContactPowerScenarioTests
 
         var rio = ContentCatalog.Load(fixture.Root).Must("rio");
         Assert.Equal((value, 11 - value), (rio.Stats.Contact, rio.Stats.Power));
-        Assert.True(rio.Stats.ContactAuthored);
-        Assert.True(rio.Stats.PowerAuthored);
-    }
-
-    [Fact]
-    public void S123_BatIsStillRequired()
-    {
-        using var fixture = new ContentFixture();
-        fixture.ChangeObject("characters/rio.json", json =>
-        {
-            json.Remove("bat");
-            json["contact"] = 7;
-            json["power"] = 7;
-        });
-
-        // The traits are not a substitute for the aggregate: the card and Teams.Tools still read it.
-        var error = Assert.Single(ContentDataValidator.Validate(fixture.Root));
-        Assert.Equal($"{fixture.Path("characters/rio.json")}: character 'rio' bat must be between 1 and 10; got 0", error);
     }
 
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// A hitter authored in this fixture and nowhere else: the same <see cref="SharedBat"/> every
-    /// time, so a read that still took the aggregate could not tell two of them apart.
+    /// A hitter authored in this fixture and nowhere else. Contact 9 / Power 2 and Contact 2 / Power 9
+    /// share one Bat bar, so a read that still took the bar could not tell them apart.
     /// </summary>
     Character Hitter(int contact, int power, int run = 5)
     {
@@ -386,7 +301,7 @@ public class ContactPowerScenarioTests
         Assert.False(who.Captain, "the fixture hitter must not arm a star swing");
         return who with
         {
-            Stats = new Stats(who.Stats.Pitch, SharedBat, who.Stats.Field, run) { Contact = contact, Power = power }
+            Stats = who.Stats with { Contact = contact, Power = power, Run = run }
         };
     }
 

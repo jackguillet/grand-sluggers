@@ -230,7 +230,7 @@ public class AtBatTests
     {
         var batter = _content.Must(batterId);
         if (bat is int b)
-            batter = batter with { Stats = batter.Stats with { Bat = b } };
+            batter = batter with { Stats = batter.Stats.WithBat(b) };
 
         var input = new AtBatInput(
             Pitcher: _content.Must("ashlord"),

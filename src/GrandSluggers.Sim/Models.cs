@@ -27,146 +27,144 @@ public enum ContactQuality
 }
 
 /// <summary>
-/// A character's ratings. <see cref="Field"/> is the displayed defensive number; <see cref="Arm"/> and
-/// <see cref="Hands"/> are the explicit traits behind it (F693-02-defensive-trait-mapping). <see cref="Bat"/>
-/// is the displayed batting number; <see cref="Contact"/> and <see cref="Power"/> are the explicit traits
-/// behind it (PH-15-R5). <see cref="Pitch"/> is the displayed pitching number; <see cref="Velocity"/>,
-/// <see cref="Movement"/>, <see cref="Control"/> and <see cref="Endurance"/> are the explicit traits behind
-/// it (PH-15-R6). All eight are <b>seeded from the aggregate</b> until a character authors its own, so a
-/// roster that names none behaves exactly as it did before the split.
+/// A character's ratings (spec §2, CH-07): nine authored sub-stats and the four bars built from them.
+///
+/// The sub-stats are the numbers the sim reads. Each one drives its own verbs and nothing else:
+/// <see cref="Contact"/> and <see cref="Power"/> at the plate; <see cref="Velocity"/> (pitch power),
+/// <see cref="Endurance"/> (stamina), <see cref="Control"/> and <see cref="Movement"/> (break) on the
+/// mound; <see cref="Hands"/> and <see cref="Arm"/> (throw speed) in the field; <see cref="Run"/> on the
+/// bases and in the chase.
+///
+/// The four bars — <see cref="Bat"/>, <see cref="Pitch"/>, <see cref="Field"/>, <see cref="Run"/> — are
+/// <b>derived, never authored</b>: each is <see cref="Bar"/> of its sub-stats. A bar is for the card, the
+/// team sheet and a selection by the displayed number (the swap pick); a verb reads the sub-stat it means.
+///
+/// The property order below is the serialized order of a play trace's <c>stats</c> object.
 /// </summary>
-public sealed record Stats(int Pitch, int Bat, int Field, int Run)
+public sealed record Stats
 {
-    readonly int _arm;
-    readonly int _hands;
-    readonly int _contact;
-    readonly int _power;
-    readonly int _velocity;
-    readonly int _movement;
-    readonly int _control;
-    readonly int _endurance;
-
-    /// <summary>Throwing: speed and accuracy. Unauthored (0) tracks <see cref="Field"/>.</summary>
-    public int Arm
+    /// <param name="contact">Bat: contact.</param>
+    /// <param name="power">Bat: power.</param>
+    /// <param name="velocity">Pitch: power (the pitch's speed).</param>
+    /// <param name="endurance">Pitch: stamina.</param>
+    /// <param name="control">Pitch: control.</param>
+    /// <param name="movement">Pitch: break.</param>
+    /// <param name="hands">Field: hands.</param>
+    /// <param name="arm">Field: throw speed.</param>
+    /// <param name="run">Run: speed.</param>
+    public Stats(int contact, int power, int velocity, int endurance, int control, int movement, int hands, int arm, int run)
     {
-        get => _arm > 0 ? _arm : Field;
-        init => _arm = value;
+        Contact = contact;
+        Power = power;
+        Velocity = velocity;
+        Endurance = endurance;
+        Control = control;
+        Movement = movement;
+        Hands = hands;
+        Arm = arm;
+        Run = run;
     }
 
-    /// <summary>Handling: securing the ball and recovering from it. Unauthored (0) tracks <see cref="Field"/>.</summary>
-    public int Hands
+    /// <summary>
+    /// Every sub-stat at its bar's value, so each derived bar is the number given. For tests and
+    /// fixtures that only care about the four bars; the shipped roster authors all nine (the validator refuses less).
+    /// </summary>
+    public static Stats Even(int pitch, int bat, int field, int run) =>
+        new(bat, bat, pitch, pitch, pitch, pitch, field, field, run);
+
+    /// <summary>These stats with every Bat sub-stat at <paramref name="bat"/>, so the Bat bar is that number.</summary>
+    public Stats WithBat(int bat) => this with { Contact = bat, Power = bat };
+
+    /// <summary>These stats with every Pitch sub-stat at <paramref name="pitch"/>, so the Pitch bar is that number.</summary>
+    public Stats WithPitch(int pitch) => this with { Velocity = pitch, Endurance = pitch, Control = pitch, Movement = pitch };
+
+    /// <summary>These stats with every Field sub-stat at <paramref name="field"/>, so the Field bar is that number.</summary>
+    public Stats WithField(int field) => this with { Hands = field, Arm = field };
+
+    /// <summary>
+    /// The one rounding rule for a bar (CH-07): the mean of its sub-stats, rounded half up.
+    /// Integer arithmetic, so a mean of 7.5 is 8 on every machine; sub-stats are 1–10, so the sum is never negative.
+    /// </summary>
+    public static int Bar(int sum, int count) => (2 * sum + count) / (2 * count);
+
+    /// <summary>A star bar (CH-08): a derived bar at this value or higher.</summary>
+    public const int StarBar = 9;
+
+    /// <summary>The stat budget (CH-08): at most this many star bars per character. The one guard on a do-everything captain.</summary>
+    public const int MaxStarBars = 1;
+
+    /// <summary>The JSON keys of the sub-stats behind a bar's key, for a refusal that names what to author instead.</summary>
+    public static string SubStatsOf(string bar) => bar switch
     {
-        get => _hands > 0 ? _hands : Field;
-        init => _hands = value;
-    }
+        "bat" => "contact and power",
+        "pitch" => "velocity, endurance, control and movement",
+        "field" => "hands and arm",
+        _ => "run"
+    };
+
+    /// <summary>The pitching bar: <see cref="Bar"/> of Velocity, Endurance, Control and Movement.</summary>
+    public int Pitch => Bar(Velocity + Endurance + Control + Movement, 4);
+
+    /// <summary>The batting bar: <see cref="Bar"/> of Contact and Power.</summary>
+    public int Bat => Bar(Contact + Power, 2);
+
+    /// <summary>The fielding bar: <see cref="Bar"/> of Hands and Arm.</summary>
+    public int Field => Bar(Hands + Arm, 2);
+
+    /// <summary>Speed: sprint on the bases and in the chase. The Run bar is this one sub-stat.</summary>
+    public int Run { get; init; }
+
+    /// <summary>Throw speed: how fast a fielder's throw flies, and its accuracy (spec §8.5). It never touches a pitch.</summary>
+    public int Arm { get; init; }
+
+    /// <summary>Hands: securing the ball and recovering from it — bobbles, recoil, dive recovery, the transfer, the tag.</summary>
+    public int Hands { get; init; }
 
     /// <summary>
     /// Contact: spatial forgiveness at the plate (PH-15-R7) — it scales the cursor's barrel, so a
-    /// crossing further from the center still finds the bat. Unauthored (0) tracks <see cref="Bat"/>.
+    /// crossing further from the center still finds the bat.
     ///
     /// It does not widen the timing window (<see cref="AtBatResolver.ContactWindowFrames"/>): the
-    /// barrel is all it does at the plate (#844, spec §2, §5.3). The CPU batter's timing error also
+    /// barrel is all it does at the plate (spec §2, §5.3). The CPU batter's timing error also
     /// reads it, and that is a separate thing: how far off the ball that bat arrives, not how wide
-    /// its window is (§5.9; whether it should read Contact at all is P2-g's).
+    /// its window is (§5.9).
     /// </summary>
-    public int Contact
-    {
-        get => _contact > 0 ? _contact : Bat;
-        init => _contact = value;
-    }
+    public int Contact { get; init; }
 
-    /// <summary>Power: exit velocity and loft off the bat (spec §5.4, §5.5). Unauthored (0) tracks <see cref="Bat"/>.</summary>
-    public int Power
-    {
-        get => _power > 0 ? _power : Bat;
-        init => _power = value;
-    }
+    /// <summary>Power: exit velocity and loft off the bat (spec §5.4, §5.5).</summary>
+    public int Power { get; init; }
 
-    /// <summary>Velocity: pitch speed (spec §4.1, PH-15-R6) — <c>speed.mphPerPitchStat</c>. Unauthored (0) tracks <see cref="Pitch"/>.</summary>
-    public int Velocity
-    {
-        get => _velocity > 0 ? _velocity : Pitch;
-        init => _velocity = value;
-    }
+    /// <summary>Pitch power: pitch speed (spec §4.1), <c>speed.mphPerPitchStat</c>. It never touches a fielding throw.</summary>
+    public int Velocity { get; init; }
 
     /// <summary>
-    /// Movement: natural break (PH-15-R6). No family's authored break reads a rating today (§4.3), so
+    /// Break: natural movement (PH-15-R6). No family's authored break reads a rating today (§4.3), so
     /// its one read is the arm's say over non-perfect contact (<c>batting.pitchFactor</c>, §5.5): the
-    /// ball that is hard to square. Unauthored (0) tracks <see cref="Pitch"/>.
+    /// ball that is hard to square.
     /// </summary>
-    public int Movement
-    {
-        get => _movement > 0 ? _movement : Pitch;
-        init => _movement = value;
-    }
+    public int Movement { get; init; }
 
     /// <summary>
     /// Control: the player's steering correction (PH-15-R6) — how fast a held stick brings the break to
     /// full (<c>flight.breakRatePerPitchStat</c>, <see cref="PitchFlight.BreakStep"/> /
     /// <see cref="PitchFlight.BreakReach"/>) and the CPU arm's scatter on its rubber intent (§4.8).
-    /// Unauthored (0) tracks <see cref="Pitch"/>.
     /// </summary>
-    public int Control
-    {
-        get => _control > 0 ? _control : Pitch;
-        init => _control = value;
-    }
+    public int Control { get; init; }
 
-    /// <summary>Endurance: resistance to fatigue (PH-15-R6) — the stamina pool (§4.7). Unauthored (0) tracks <see cref="Pitch"/>.</summary>
-    public int Endurance
-    {
-        get => _endurance > 0 ? _endurance : Pitch;
-        init => _endurance = value;
-    }
+    /// <summary>Stamina: resistance to fatigue (PH-15-R6), the stamina pool (§4.7).</summary>
+    public int Endurance { get; init; }
 
-    /// <summary>
-    /// True when this rating was authored rather than seeded from <see cref="Field"/>.
-    ///
-    /// Not serialized. It is bookkeeping about where the number came from, not a rating, and a
-    /// play trace records what happened rather than how the roster was written. Emitting it also
-    /// made <see cref="Stats"/> unstable across a JSON round trip: the serialized <c>arm</c> reloads
-    /// through the init setter, which marks the trait authored, so a replayed trace no longer
-    /// matched the live one it replayed.
-    /// </summary>
-    [JsonIgnore] public bool ArmAuthored => _arm > 0;
-
-    /// <inheritdoc cref="ArmAuthored"/>
-    [JsonIgnore] public bool HandsAuthored => _hands > 0;
-
-    /// <inheritdoc cref="ArmAuthored"/>
-    [JsonIgnore] public bool ContactAuthored => _contact > 0;
-
-    /// <inheritdoc cref="ArmAuthored"/>
-    [JsonIgnore] public bool PowerAuthored => _power > 0;
-
-    /// <inheritdoc cref="ArmAuthored"/>
-    [JsonIgnore] public bool VelocityAuthored => _velocity > 0;
-
-    /// <inheritdoc cref="ArmAuthored"/>
-    [JsonIgnore] public bool MovementAuthored => _movement > 0;
-
-    /// <inheritdoc cref="ArmAuthored"/>
-    [JsonIgnore] public bool ControlAuthored => _control > 0;
-
-    /// <inheritdoc cref="ArmAuthored"/>
-    [JsonIgnore] public bool EnduranceAuthored => _endurance > 0;
-
-    // An unauthored trait stays unauthored through a clamp, so it keeps tracking the clamped aggregate.
+    /// <summary>Every sub-stat held to 1–10; the bars follow.</summary>
     public Stats Clamp() => new(
-        Math.Clamp(Pitch, 1, 10),
-        Math.Clamp(Bat, 1, 10),
-        Math.Clamp(Field, 1, 10),
-        Math.Clamp(Run, 1, 10))
-    {
-        Arm = _arm > 0 ? Math.Clamp(_arm, 1, 10) : 0,
-        Hands = _hands > 0 ? Math.Clamp(_hands, 1, 10) : 0,
-        Contact = _contact > 0 ? Math.Clamp(_contact, 1, 10) : 0,
-        Power = _power > 0 ? Math.Clamp(_power, 1, 10) : 0,
-        Velocity = _velocity > 0 ? Math.Clamp(_velocity, 1, 10) : 0,
-        Movement = _movement > 0 ? Math.Clamp(_movement, 1, 10) : 0,
-        Control = _control > 0 ? Math.Clamp(_control, 1, 10) : 0,
-        Endurance = _endurance > 0 ? Math.Clamp(_endurance, 1, 10) : 0
-    };
+        Math.Clamp(Contact, 1, 10),
+        Math.Clamp(Power, 1, 10),
+        Math.Clamp(Velocity, 1, 10),
+        Math.Clamp(Endurance, 1, 10),
+        Math.Clamp(Control, 1, 10),
+        Math.Clamp(Movement, 1, 10),
+        Math.Clamp(Hands, 1, 10),
+        Math.Clamp(Arm, 1, 10),
+        Math.Clamp(Run, 1, 10));
 }
 
 /// <summary>

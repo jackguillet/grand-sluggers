@@ -3355,7 +3355,7 @@ public sealed partial class LivePlaySystem
         var offenseHuman = Seats.Versus ? Seats.HumanBats : Seats.HumanBats && !Seats.PlayerMustField && !PlayerFielding;
         var defenseHuman = PlayerFielding || Seats.HumanPitches || Seats.PlayerMustField;
         if (_close.Decide(offenseHuman, run.SouthDown, runner?.Stats.Run ?? 5,
-                defenseHuman, field.CloseResponse ?? field.SouthDown, fielder.Stats.Field, R) is not { } safe)
+                defenseHuman, field.CloseResponse ?? field.SouthDown, fielder.Stats.Hands, R) is not { } safe)
             return new LivePlayCommandResult(Snapshot);
         if (_close.Runner is { Live: true } body)
         {
