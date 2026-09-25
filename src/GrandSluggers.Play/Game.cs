@@ -251,7 +251,7 @@ public sealed class Game : IDisposable
         _starArmed = false;
         _banner = "";
         _sub = "";
-        _ball = new Vector3(0, 5.4f, (float)Diamond.Mound);
+        _ball = new Vector3(0, 5.4f, (float)DiamondGeometry.Of(_match.Rules).Mound);
         _cam = _match.Top ? WorldView.PitchingCamera() : WorldView.BattingCamera();
     }
 
@@ -306,7 +306,7 @@ public sealed class Game : IDisposable
         _charge = 0;
         _phase = Phase.Flight;
         _phaseT = 0;
-        _ball = new Vector3(0, 5.4f, (float)Diamond.Mound);
+        _ball = new Vector3(0, 5.4f, (float)DiamondGeometry.Of(_match.Rules).Mound);
         _cam = _match.Top ? WorldView.PitchingCamera() : WorldView.BattingCamera();
     }
 
@@ -366,7 +366,7 @@ public sealed class Game : IDisposable
             }
             _pendingHit = hit;
             _preview = _match.PreviewHit(hit);
-            var start = Diamond.Positions[_preview.Position];
+            var start = DiamondGeometry.Of(_match.Rules).Positions[_preview.Position];
             _fx = start.X;
             _fz = start.Z;
             _frozenSlow = _preview.Frozen;
@@ -520,7 +520,7 @@ public sealed class Game : IDisposable
         Raylib.BeginDrawing();
         Raylib.ClearBackground(Palette.SkyOf(_match.Park));
         Raylib.BeginMode3D(_cam);
-        WorldView.DrawPark(_match.Park, _last?.Furnace == true && _phase is Phase.InPlay or Phase.Result);
+        WorldView.DrawPark(_match.Park, DiamondGeometry.Of(_match.Rules), _last?.Furnace == true && _phase is Phase.InPlay or Phase.Result);
         DrawActors();
         Raylib.EndMode3D();
 
@@ -562,7 +562,7 @@ public sealed class Game : IDisposable
         var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
         foreach (var (pos, who) in defense)
         {
-            var p = Diamond.Positions[pos];
+            var p = DiamondGeometry.Of(_match.Rules).Positions[pos];
             var x = p.X;
             var z = p.Z;
             var controlled = _playerFielding && _preview is { } pre && who.Id == pre.Fielder.Id;
@@ -589,9 +589,9 @@ public sealed class Game : IDisposable
         if (_phase == Phase.InPlay) batAngle = 80f;
         WorldView.DrawPerson(1.6, 0.8, batter.Faction, true, false, batAngle, _starArmed && HumanBats);
 
-        if (_match.First is { } r1) WorldView.DrawPerson(Diamond.First.X, Diamond.First.Z, r1.Faction, false, false, 0, false);
-        if (_match.Second is { } r2) WorldView.DrawPerson(Diamond.Second.X, Diamond.Second.Z, r2.Faction, false, false, 0, false);
-        if (_match.Third is { } r3) WorldView.DrawPerson(Diamond.Third.X, Diamond.Third.Z, r3.Faction, false, false, 0, false);
+        if (_match.First is { } r1) WorldView.DrawPerson(DiamondGeometry.Of(_match.Rules).First.X, DiamondGeometry.Of(_match.Rules).First.Z, r1.Faction, false, false, 0, false);
+        if (_match.Second is { } r2) WorldView.DrawPerson(DiamondGeometry.Of(_match.Rules).Second.X, DiamondGeometry.Of(_match.Rules).Second.Z, r2.Faction, false, false, 0, false);
+        if (_match.Third is { } r3) WorldView.DrawPerson(DiamondGeometry.Of(_match.Rules).Third.X, DiamondGeometry.Of(_match.Rules).Third.Z, r3.Faction, false, false, 0, false);
 
         if (_phase is Phase.Flight or Phase.InPlay or Phase.Set)
         {

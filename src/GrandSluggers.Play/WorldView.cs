@@ -6,7 +6,7 @@ namespace GrandSluggers.Play;
 
 public static class WorldView
 {
-    public static void DrawPark(Park park, bool furnace)
+    public static void DrawPark(Park park, DiamondGeometry diamond, bool furnace)
     {
         var ice = park.Surface == "ice";
         var ash = park.Surface == "ash";
@@ -30,10 +30,10 @@ public static class WorldView
             Raylib.DrawCube(new Vector3(0, 0.02f, z), 420, 0.08f, 34, c);
         }
 
-        DrawInfieldDirt();
+        DrawInfieldDirt(diamond);
         DrawFoulLines();
-        DrawBases();
-        DrawMound();
+        DrawBases(diamond);
+        DrawMound(diamond);
         DrawFence(park, furnace || ash);
         DrawStands();
         if (jungle) DrawJungle();
@@ -145,26 +145,26 @@ public static class WorldView
         Projection = CameraProjection.Perspective
     };
 
-    /// <summary>A bag, on the ground, where <see cref="Diamond"/> says it is.</summary>
-    static Vector3 At(int bag, float y = 0)
+    /// <summary>A bag, on the ground, where the match table's diamond says it is.</summary>
+    static Vector3 At(DiamondGeometry diamond, int bag, float y = 0)
     {
-        var (x, z) = Diamond.Bag(bag);
+        var (x, z) = diamond.Bag(bag);
         return new Vector3((float)x, y, (float)z);
     }
 
-    static void DrawInfieldDirt()
+    static void DrawInfieldDirt(DiamondGeometry diamond)
     {
         var h = 0.08f;
-        var home = At(0, h);
-        var first = At(1, h);
-        var second = At(2, h);
-        var third = At(3, h);
+        var home = At(diamond, 0, h);
+        var first = At(diamond, 1, h);
+        var second = At(diamond, 2, h);
+        var third = At(diamond, 3, h);
         Raylib.DrawTriangle3D(home, first, second, Palette.Dirt);
         Raylib.DrawTriangle3D(home, second, third, Palette.Dirt);
-        Raylib.DrawCylinder(At(0), 16, 16, 0.12f, 20, Palette.Dirt);
-        Raylib.DrawCylinder(At(1), 10, 10, 0.12f, 14, Palette.Dirt);
-        Raylib.DrawCylinder(At(3), 10, 10, 0.12f, 14, Palette.Dirt);
-        Raylib.DrawCylinder(At(2), 10, 10, 0.12f, 14, Palette.Dirt);
+        Raylib.DrawCylinder(At(diamond, 0), 16, 16, 0.12f, 20, Palette.Dirt);
+        Raylib.DrawCylinder(At(diamond, 1), 10, 10, 0.12f, 14, Palette.Dirt);
+        Raylib.DrawCylinder(At(diamond, 3), 10, 10, 0.12f, 14, Palette.Dirt);
+        Raylib.DrawCylinder(At(diamond, 2), 10, 10, 0.12f, 14, Palette.Dirt);
     }
 
     static void DrawFoulLines()
@@ -174,19 +174,19 @@ public static class WorldView
         Raylib.DrawCylinder(new Vector3(0, 0.1f, 0), 1.4f, 1.4f, 0.2f, 10, Palette.Chalk);
     }
 
-    static void DrawBases()
+    static void DrawBases(DiamondGeometry diamond)
     {
         void Bag(int bag) =>
-            Raylib.DrawCube(At(bag, 0.25f), 2.2f, 0.4f, 2.2f, Palette.Chalk);
+            Raylib.DrawCube(At(diamond, bag, 0.25f), 2.2f, 0.4f, 2.2f, Palette.Chalk);
         Bag(1);
         Bag(2);
         Bag(3);
         Raylib.DrawCube(new Vector3(0, 0.2f, -0.4f), 2.4f, 0.25f, 2.4f, Palette.Chalk);
     }
 
-    static void DrawMound()
+    static void DrawMound(DiamondGeometry diamond)
     {
-        var mound = (float)Diamond.Mound;
+        var mound = (float)diamond.Mound;
         Raylib.DrawCylinder(new Vector3(0, 0, mound), 9, 9, 1.1f, 16, Palette.Mound);
         Raylib.DrawCube(new Vector3(0, 1.15f, mound), 1.8f, 0.15f, 0.4f, Palette.Chalk);
     }

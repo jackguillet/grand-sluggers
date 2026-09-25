@@ -19,6 +19,8 @@ if (!Directory.Exists(Path.Combine(root, "trials/c80")))
     throw new InvalidOperationException("#730 scale probes compare the full-size root against trials/c80, which 3e promoted into data/; rebuild a full-size root first.");
 var shipped = ContentCatalog.Load(Path.Combine(root, "data"));
 var trial = ContentCatalog.Load(new DataRoot(Path.Combine(root, "data"), Path.Combine(root, "trials/c80")));
+// The shipped table's starts: the spots every reading below is measured from.
+var starts = DiamondGeometry.Of(shipped.Rules).Positions;
 
 string[] parkIds = ["canopy-yard", "crystal-rink", "ember-keep", "funfair-park", "harbor-diamond", "rooftop-city"];
 double[] sprays = [-44.9, -35, -22, -10, 0, 10, 22, 35, 44.9];
@@ -51,7 +53,7 @@ foreach (var (id, ft) in lipOptions)
         fractionOfCompactPole = Math.Round(ft / trial.Parks["harbor-diamond"].LeftFenceFt, 4),
         // Which of the nine start spots the sim would call outfielders.
         outfieldStarts = Diamond.Order
-            .Where(p => FieldingResolver.OutfieldGrass(Diamond.Positions[p].X, Diamond.Positions[p].Z, rules))
+            .Where(p => FieldingResolver.OutfieldGrass(starts[p].X, starts[p].Z, rules))
             .ToArray(),
         // Whether each hazard still sits in the zone its own migration used.
         hazardsInAForeignZone = ForeignZone(ft)
@@ -64,7 +66,7 @@ var shippedShapes = Shapes(shipped, shipped.Rules);
 // radius reclassifies him, so the start spots put a floor under the lip decision.
 var startRadii = new[] { "1B", "2B", "3B", "SS" }.Select(pos =>
 {
-    var (x, z) = Diamond.Positions[pos];
+    var (x, z) = starts[pos];
     return new
     {
         position = pos,
@@ -157,7 +159,7 @@ foreach (var id in parkIds)
 var startRows = new List<object>();
 foreach (var (pos, bag) in new[] { ("1B", 1), ("2B", 2), ("3B", 3), ("SS", 2) })
 {
-    var (fx, fz) = Diamond.Positions[pos];
+    var (fx, fz) = starts[pos];
     startRows.Add(new
     {
         position = pos,
@@ -171,7 +173,7 @@ foreach (var (pos, bag) in new[] { ("1B", 1), ("2B", 2), ("3B", 3), ("SS", 2) })
 var outfieldRows = new List<object>();
 foreach (var pos in new[] { "LF", "CF", "RF" })
 {
-    var (fx, fz) = Diamond.Positions[pos];
+    var (fx, fz) = starts[pos];
     var radius = Math.Sqrt(fx * fx + fz * fz);
     var bearing = Math.Atan2(fx, fz) * 180.0 / Math.PI;
     var harborShipped = AtBatResolver.FenceAt(shipped.Parks["harbor-diamond"], bearing);
