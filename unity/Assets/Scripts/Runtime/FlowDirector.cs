@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
         public void Tick() { _play.TickFlow(); }
     }
 
-    public sealed partial class MatchDirector : IStillHost, ISeatHost
+    public sealed partial class MatchDirector : IStillHost, ISeatHost, IAtBatHost, IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost
     {
         internal void TickFlow()
         {
@@ -780,5 +780,144 @@ namespace GrandSluggers.UnityClient
         bool ISeatHost.Exhibition => _mode == PlayMode.Exhibition;
         bool ISeatHost.Pad1Home => Pad1Home;
         bool ISeatHost.VersusWanted => _versusWanted;
+
+        // ---- The at-bat and the directors it calls on (#1042) ----
+        // The at-bat (#1042): AtBatDirector owns SET → contact and its state; these names forward to it.
+        AtBatDirector _atBat;
+        internal AtBatDirector AtBat => _atBat ??= new AtBatDirector(Scene, Play, Live, Pads, this);
+        internal ChargeButtonState _pitchButton { get => AtBat.PitchButton; set => AtBat.PitchButton = value; }
+
+        /// <summary>
+        /// The batting seat's plate buttons (spec §5.1, §5.8): the swing button, the two bunt triggers and the East / G
+        /// cancel, stepped by the sim (<see cref="PlateButtons.Advance"/>) every frame in the spec's order. It also holds
+        /// the leak guards (PH-13-R1, PH-14-R6): a trigger held for a bunt at contact and a cancel press the plate took
+        /// are spent until they come up. It belongs to one pad (<see cref="_plateSeat"/>); a new batting pad starts at rest.
+        /// </summary>
+        internal PlateButtonsState _plate { get => Play.Plate; set => Play.Plate = value; }
+
+
+        internal StarRequests StarAsks => AtBat.StarAsks;
+
+        /// <summary>The at-bat's verbs, for the flow and the editor gates that drive them.</summary>
+        internal void TickAtBat(float dt) => AtBat.TickAtBat(dt);
+        internal void BeginSet() => AtBat.BeginSet();
+        internal void TickSet(float dt) => AtBat.TickSet(dt);
+        internal void Launch(PitchCommand pitch) => AtBat.Launch(pitch);
+        internal void TickFlight(float dt) => AtBat.TickFlight(dt);
+        internal void StartFly(AtBatResult hit, bool alreadyLive = false) => AtBat.StartFly(hit, alreadyLive);
+        internal string ShownPitchType => AtBat.ShownPitchType;
+        void HoldPitchInHand() => AtBat.HoldPitchInHand();
+        void CaptureReleaseFromHand() => AtBat.CaptureReleaseFromHand();
+
+        TrainingDirector IAtBatHost.Coach => _coach;
+        bool IAtBatHost.TutorialOn => TutorialOn;
+        void IAtBatHost.BindSeats() => BindMatchSeats();
+        Match IAtBatHost.NextTrainingMatch() { Seed++; return _coach.MakeMatch(_content, Seed); }
+        string IAtBatHost.BannerText { set => _banner = value; }
+        string IAtBatHost.Sub { set => _sub = value; }
+        float IAtBatHost.Smash { set => _smash = value; }
+        void IAtBatHost.Banner() => Banner();
+        void IAtBatHost.BeginResult() => BeginResult();
+        InPlayDirector IAtBatHost.InPlay => _inPlay;
+        JuiceDirector IAtBatHost.Juice => _juice;
+        StealDirector IAtBatHost.Steal => Steal;
+        DefenseSwapWindow IAtBatHost.Swap => Swap;
+        ItemToss IAtBatHost.Toss => Toss;
+
+        /// <summary>Whether <paramref name="pad"/>'s <paramref name="trigger"/> may mean any verb on this tick (PH-14-R6).</summary>
+        internal bool TriggerFree(Controls.Pad pad, BuntSide trigger) => Pads.TriggerFree(pad, trigger);
+
+        /// <summary>Whether <paramref name="pad"/>'s East / G may mean a dive, a dash or a skip on this tick (PH-13-R1).</summary>
+        internal bool CancelFree(Controls.Pad pad) => Pads.CancelFree(pad);
+
+        /// <summary>The pickoff (§4.5, D3): a runner on the bag is the beat; a runner who broke is the live runner play.</summary>
+        StealDirector _steal;
+        internal StealDirector Steal => _steal ??= new StealDirector(gameObject, Play, this);
+
+        /// <summary>
+        /// Select opens the defense window. South picks two positions; Select is the pitcher shortcut.
+        /// East cancels a pending pick or closes. All baseball input waits for the window.
+        /// </summary>
+        /// <summary>Call time's Arrange defense: open SET's swap window.</summary>
+        internal bool OpenDefenseSetup() => Swap.TryOpen();
+
+        // The live play (#1042): InPlayDirector owns the play; the pads, the seats, the items and the result beat are the flow's.
+        LiveSeats LiveSeatsNow() => Pads.LiveNow();
+        internal LivePadInput FieldInput() => Pads.FieldInput();
+        LivePadInput RunInput() => Pads.RunInput();
+
+        /// <summary>A frame of the live play, for the editor gates that drive it.</summary>
+        internal void TickLive(float dt) => _inPlay.Tick(dt);
+        internal PlayKind LiveKind() => _inPlay.LiveKind();
+        void StartRunnerPlay(PlayEvent pitch) => _inPlay.StartRunnerPlay(pitch);
+        void SyncFromLive() => _inPlay.SyncFromLive();
+        void AimLive() => _inPlay.AimLive();
+        Character PlayFielder() => _inPlay.PlayFielder();
+        bool BuddySet => _inPlay.BuddySet;
+        (double X, double Z) WallPlant(FieldingPreview pre) => _inPlay.WallPlant(pre);
+
+        LivePadInput IInPlayHost.FieldInput() => FieldInput();
+        LivePadInput IInPlayHost.RunInput() => RunInput();
+        void IInPlayHost.ClearThrowTarget() => FieldPad.ClearThrowTarget();
+        LiveSeats IInPlayHost.LiveSeatsNow() => LiveSeatsNow();
+        JuiceDirector IInPlayHost.Juice => _juice;
+        TutorialSession IInPlayHost.FieldLesson => TutorialOn ? _coach.Tutorial : null;
+        void IInPlayHost.OnFieldResult(FieldingResult result) => _coach?.OnField(result, _match);
+        void IInPlayHost.TickItem(float dt) => Toss.Tick(dt);
+        bool IInPlayHost.ItemFlying => Toss.Flying;
+        void IInPlayHost.ItemSmashed() => Toss.Smashed();
+        void IInPlayHost.Banner() => Banner();
+        void IInPlayHost.BeginResult() => BeginResult();
+        Vector3 IInPlayHost.SmashLook() => AtBat.SmashLook();
+        float IInPlayHost.Smash { get => _smash; set => _smash = value; }
+        string IInPlayHost.Sub { set => _sub = value; }
+        void IInPlayHost.RestartClock() => _t = 0;
+
+        // The bodies (#1042): ActorDirector draws them; the swing clocks it and the at-bat share live in PlayState.
+        internal float _committedSwingT { get => Play.CommittedSwingT; set => Play.CommittedSwingT = value; }
+        /// <summary>Seconds from the press to the committed take's Contact mark (D13); NaN until a swing commits.</summary>
+        float _swingContactSec { get => Play.SwingContactSec; set => Play.SwingContactSec = value; }
+        /// <summary>A frame of the bodies, for the editor gates that draw them.</summary>
+        internal void DrawActors(float dt) => _actors.Draw(dt);
+
+        bool IActorHost.TutorialModal => TutorialModal;
+        bool IActorHost.Turntable => _turntable;
+        bool IActorHost.Replaying => _replaying;
+        bool IActorHost.HumanBats => HumanBats;
+        bool IActorHost.HumanPitches => HumanPitches;
+        bool IActorHost.HumanOwnsThrow => HumanOwnsThrow;
+        bool IActorHost.SquaredNow => AtBat.SquaredNow;
+        bool IActorHost.PlateSwingArmed => _plate.Swing.Armed;
+        float IActorHost.PitchCharge => AtBat.PitchCharge;
+        string IActorHost.ShownPitchType => AtBat.ShownPitchType;
+        ItemToss IActorHost.Toss => Toss;
+        float IActorHost.SwingContactSec(SwingCommand swing) => AtBat.SwingContactSec(swing);
+        void IActorHost.ShowCursor() => AtBat.ShowCursor();
+        void IActorHost.HoldBallInGlove() => HoldBallInGlove();
+        void IActorHost.OnRun() { if (TrainingOn) _coach.OnRun(_match); }
+        StealDirector IActorHost.Steal => Steal;
+        JuiceDirector IActorHost.Juice => _juice;
+        LineupScreens IActorHost.Lineup => _lineup;
+        ExhibitionPick IActorHost.CurrentPick() => CurrentPick();
+        Vector2 IActorHost.FieldStick => new Vector2(FieldPad.StickX, FieldPad.StickY);
+
+        // The on-deck item (#1042): ItemToss owns the pick, the target and the throw; the flow owns the subtitle.
+        ItemToss _toss;
+        internal ItemToss Toss => _toss ??= new ItemToss(Scene, Play, Live, Pads, this);
+        TrainingDirector IItemHost.Coach => _coach;
+        string IItemHost.Sub { set => _sub = value; }
+
+        // SET's Arrange defense window (#1042): DefenseSwapWindow owns the pick and the swaps; the flow resets the pitch selection.
+        DefenseSwapWindow _swap;
+        internal DefenseSwapWindow Swap => _swap ??= new DefenseSwapWindow(Play, Pads, this);
+        TrainingDirector IDefenseSwapHost.Coach => _coach;
+        void IDefenseSwapHost.PitcherChanged() => AtBat.PitchSelect = PitchSelectionState.Reset;
+
+        // The pre-contact runner play (#1042): StealDirector owns the pickoff and the pre-contact clock; the flow owns the result beat.
+        TutorialSession IRunnerPlayHost.Lesson => TutorialOn ? _coach.Tutorial : null;
+        LiveSeats IRunnerPlayHost.LiveSeatsNow() => LiveSeatsNow();
+        void IRunnerPlayHost.StartRunnerPlay() => StartRunnerPlay(null);
+        void IRunnerPlayHost.EndWith(PlayEvent play) { _last = play; Banner(); BeginResult(); }
+        string IRunnerPlayHost.Banner { set => _banner = value; }
     }
 }

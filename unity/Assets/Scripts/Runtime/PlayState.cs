@@ -12,6 +12,9 @@ namespace GrandSluggers.UnityClient
     {
         public Match Match { get; set; }
         public MatchDirector.Phase Phase { get; set; } = MatchDirector.Phase.Title;
+        /// <summary>Seconds in this phase, and the SET pip's pulse clock.</summary>
+        public float T { get; set; }
+        public float Pip { get; set; }
         public PitchCommand Pitch { get; set; }
         public SwingCommand Swing { get; set; }
         public PlayEvent Last { get; set; }

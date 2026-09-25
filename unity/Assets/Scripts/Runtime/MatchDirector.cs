@@ -81,21 +81,13 @@ namespace GrandSluggers.UnityClient
         internal float _squareSec { get => Play.SquareSec; set => Play.SquareSec = value; }
         /// <summary>The bodies are off their spots on the square (crashing in, or walking back after a release).</summary>
         bool Squared => _squareSec > 0f;
-        /// <summary>
-        /// The side the batter shows right now (§5.8, PH-14-R3): a human's held trigger, or the side the CPU batter
-        /// drew with its square at SET. Public on the batter card for both seats.
-        /// </summary>
-        BuntSide ShowingSide => HumanBats ? _buntSide : _match != null ? _match.CpuBatter.BuntSide : BuntSide.None;
-        /// <summary>The batter is squared right now: a bunt trigger held (a human), or the CPU batter's square read at SET.</summary>
-        bool SquaredNow => HumanBats ? _buntSide != BuntSide.None : _match != null && _match.CpuBatter.Squared;
+        BuntSide ShowingSide => AtBat.ShowingSide;
+        bool SquaredNow => AtBat.SquaredNow;
         internal float _charge { get => Play.Charge; set => Play.Charge = value; }
-        float _chargePast { get => AtBat.ChargePast; set => AtBat.ChargePast = value; }
-        float _pitchCharge { get => AtBat.PitchCharge; set => AtBat.PitchCharge = value; }
-        float _pitchPast { get => AtBat.PitchPast; set => AtBat.PitchPast = value; }
         internal float _breakX { get => Play.BreakX; set => Play.BreakX = value; }
         float _dash01 { get => Live.Dash01; set => Live.Dash01 = value; }
-        internal float _t;
-        float _pip;
+        internal float _t { get => Play.T; set => Play.T = value; }
+        float _pip => Play.Pip;
         internal PitchCommand _pitch { get => Play.Pitch; set => Play.Pitch = value; }
         internal SwingCommand _swing { get => Play.Swing; set => Play.Swing = value; }
         internal PlayEvent _last { get => Play.Last; set => Play.Last = value; }
@@ -361,7 +353,7 @@ namespace GrandSluggers.UnityClient
                 _seatStick.DrawReset();
                 return;
             }
-            HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
+            HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, AtBat.PitcherExtra(),
                 StarAsks.PitchShown || StarAsks.SwingShown, _match.StealOn, Toss.Hud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TutorialOn ? HowToPlay.TutorialGoal(_coach.Tutorial.Lesson.Id) : TrainingOn ? _coach.Session.Progress : null,
@@ -650,18 +642,6 @@ namespace GrandSluggers.UnityClient
         string ParkDisplayName(string parkId) =>
             _content != null && _content.Parks.TryGetValue(parkId, out var park) ? park.Name : parkId;
 
-        void NoteTrainingPitch()
-        {
-            if (_coach == null || _pitch == null) return;
-            _coach.OnPitch(_pitch, _match);
-        }
-
-        void NoteTrainingSwing()
-        {
-            if (_coach == null || _swing == null || _last == null) return;
-            _coach.OnSwing(_swing, _last.AtBat);
-        }
-
         void Banner()
         {
             if (TrainingOn && _phase != Phase.Result && _last == null)
@@ -693,7 +673,7 @@ namespace GrandSluggers.UnityClient
             _ring?.Hide();
             // Hits/outs stamp on the live field camera. Next pitch SET is BeginSet (#301).
             if (_last == null || !PlayStamp.HoldsLiveCamera(_last.Kind))
-                _cam.Cut(SetCam.Rest());
+                _cam.Cut(AtBat.SetCam.Rest());
         }
 
         static float Bounce(float t)
@@ -712,33 +692,6 @@ namespace GrandSluggers.UnityClient
             if (!_heroes.TryGetValue(who.Id, out var hero) || hero == null) return;
             var hand = hero.CatchHand;
             if (hand != null) _park.Ball.Hold(hand);
-        }
-
-        void HoldPitchInHand()
-        {
-            var hero = PitcherHero();
-            var hand = hero != null ? hero.ThrowHand : null;
-            if (hand != null) _park.Ball.Hold(hand);
-        }
-
-        void CaptureReleaseFromHand()
-        {
-            var hero = PitcherHero();
-            var hand = hero != null ? hero.ThrowHand : null;
-            if (hand != null)
-                _relFrom = hand.position;
-            else
-            {
-                var rel = PitchFlight.Release(MatchRules, _pitch != null ? _pitch.RubberX : 0);
-                _relFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
-            }
-        }
-
-        HeroActor PitcherHero()
-        {
-            if (_match?.Pitcher == null) return null;
-            _heroes.TryGetValue(_match.Pitcher.Id, out var hero);
-            return hero;
         }
 
         void ConsiderHighlight()
