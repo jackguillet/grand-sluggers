@@ -31,9 +31,10 @@
     "WD-18",
     "WD-19",
     "WD-20",
-    "WD-21"
+    "WD-21",
+    "WD-22"
   ],
-  "next_decision": "WD-20",
+  "next_decision": "WD-22",
   "brief": "Jack, 2026-09-24: expand to 10 stadiums that make up a continent, each in the region that fits it (ice in a cold place, one in a volcano, one on a tropical island), selectable from the menu; define hazards, night lights and other defining features per stadium; grow to 10 captains, each assigned a field; one field is a tropical beach.",
   "decisions": [
     {
@@ -790,7 +791,7 @@
       "id": "WD-20",
       "area": "World",
       "question": "What is Crystal Rink's new, colder name?",
-      "status": "open",
+      "status": "accepted",
       "depends_on": [
         "WD-06"
       ],
@@ -822,17 +823,21 @@
       "blocks": [
         "C1 world data"
       ],
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null
+      "selected_option": "A",
+      "accepted_scope": "Crystal Rink's display name becomes Aurora Rink. It stays in the frozen north with Vale and the Royal Rink; the content id crystal-rink stays (content ids are stable).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-20: A Aurora Rink / B Glacier Garden / C Polar Palace / D Jack's own",
+        "answer_quote": "A"
+      }
     },
     {
       "id": "WD-21",
       "area": "Captains",
       "question": "With Fenn at Coconut Cove, who plays at Stillwater Marsh, and where does Kai go?",
-      "status": "open",
+      "status": "accepted",
       "depends_on": [
         "WD-07",
         "WD-11"
@@ -865,6 +870,48 @@
       "blocks": [
         "C2 captains",
         "C3 park files"
+      ],
+      "selected_option": "B",
+      "accepted_scope": "A new captain who belongs in a marsh founds Stillwater Marsh's faction and plays there at home. Kai is dropped from the ten; Kai may return later as a role player on Fenn's beach team. The new captain's name and identity are WD-22.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-21: A Kai moves to Stillwater Marsh / B A new marsh captain replaces Kai / C Kai joins Fenn at Coconut Cove / D Jack's own",
+        "answer_quote": "B"
+      }
+    },
+    {
+      "id": "WD-22",
+      "area": "Captains",
+      "question": "Who is Stillwater Marsh's new captain?",
+      "status": "open",
+      "depends_on": [
+        "WD-21"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Reed, of the Marsh Hoppers",
+          "tradeoff": "A long-legged frog jumper in green and lotus pink. Speed and range: huge leaps in the field, a quick bat. Fits the lily pads."
+        },
+        {
+          "id": "B",
+          "label": "Heron, of the Reedwalkers",
+          "tradeoff": "A tall, patient wader in slate blue and cream. Glove and arm: a long reach and a spear-straight throw."
+        },
+        {
+          "id": "C",
+          "label": "Jack's own",
+          "tradeoff": ""
+        }
+      ],
+      "recommendation": "A: a frog reads at gameplay distance, and the jumping ties to the marsh's lily pads.",
+      "existing_contract": "WD-21 B; WD-12 A (a new faction); WD-13 A (three role players); WD-14 A (a new body class); WD-15 A (all-new abilities). Original-IP rule: the name is checked.",
+      "acceptance": "A name, a faction, colors and an identity line for the captain.",
+      "blocks": [
+        "C2 captains",
+        "C2b abilities"
       ],
       "selected_option": null,
       "accepted_scope": null,
@@ -921,6 +968,24 @@
       "who": "Jack",
       "quote": "option 1, the Grand Reach",
       "effect": "WD-19 accepted: B."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "A",
+      "effect": "WD-20 accepted: A."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "B",
+      "effect": "WD-21 accepted: B."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "answers are in",
+      "effect": "WD-20 A (Aurora Rink), WD-21 B (a new marsh captain; Kai dropped) from the artifact. WD-22 opened: the marsh captain."
     }
   ]
 }

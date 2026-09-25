@@ -1,6 +1,6 @@
 # Plan: the world — ten stadiums on one continent, ten captains
 
-Status: **planning. Nothing here is built.** Rails, data and greyboxes may be built now; art waits for #346 and each park's greybox sitting (WD-01, WD-02). Accepted decisions are marked in the matrix; the rest are open until Jack answers them, one at a time. Tracker: #1133. Register (canonical, with every option's trade-off): [world-decisions.json](../research/world-decisions.json). Ids: **WD-01 … WD-18**.
+Status: **planning. Nothing here is built.** Rails, data and greyboxes may be built now; art waits for #346 and each park's greybox sitting (WD-01, WD-02). Accepted decisions are marked in the matrix; the rest are open until Jack answers them, one at a time. Tracker: #1133. Register (canonical, with every option's trade-off): [world-decisions.json](../research/world-decisions.json). Ids: **WD-01 … WD-22**.
 
 ## What Jack asked for
 
@@ -26,7 +26,7 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 
 ## Decision matrix
 
-19 decisions are accepted; 2 are open (WD-20, WD-21). The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
+21 decisions are accepted; 1 is open (WD-22). The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
 
 | Id | Area | Question | Options | Recommend | Depends on | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 | WD-08 | World | Hazards per park | A one primary + one night change · B two | **Accepted: A** (Jack, 2026-09-25) | — | C3, C4 |
 | WD-09 | World | New hazard patterns | A surge + drift + fog · B reuse only · C surge + drift, Stillwater reuses | **Accepted: C** (Jack, 2026-09-25) | 06, 08 | C4, C7 |
 | WD-10 | World | Night lights | A themed rig + look · B look only · C darker play light | **Accepted: A** (Jack, 2026-09-25) | — | C5, C9 |
-| WD-11 | Captains | The three new captains | A Kai, Sable, Hollis · B Jack's own | **Accepted: A** (Jack, 2026-09-25) | 06 | C2 |
+| WD-11 | Captains | The three new captains | A Kai, Sable, Hollis · B Jack's own | **Accepted: A**; Kai later replaced by a marsh captain (WD-21) (Jack, 2026-09-25) | 06 | C2 |
 | WD-12 | Captains | New factions? | A one each · B join existing | **Accepted: A** (Jack, 2026-09-25) | 11 | C2 |
 | WD-13 | Captains | Role players | A three each now · B captains first | **Accepted: A** (Jack, 2026-09-25) | 12 | C2 |
 | WD-14 | Captains | Body classes | A a new class each · B reuse | **Accepted: A** (Jack, 2026-09-25) | 11 | C2 |
@@ -49,17 +49,18 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 | WD-17 | Menu | The picker | A continent map · B cycle + postcard · C both | **Accepted: A** (Jack, 2026-09-25) | 05 | C6 |
 | WD-18 | Menu | Map look | A painted 2-D · B 3-D diorama · C greybox first | **Accepted: C** (Jack, 2026-09-25) | 17 | C6, C9 |
 | WD-19 | World | Continent name | A Pennant Isles · B Grand Reach · C Homeplate Isles · D own | **Accepted: B, the Grand Reach** (Jack, 2026-09-25) | 05 | C1, C6 |
-| WD-20 | World | Crystal Rink's colder name | A Aurora Rink · B Glacier Garden · C Polar Palace · D own | **A** | 06 | C1 |
-| WD-21 | Captains | Stillwater Marsh's captain; where Kai goes | A Kai to the marsh · B new marsh captain, Kai dropped · C Kai joins Fenn (11 captains) · D own | **B** | 07, 11 | C2, C3 |
+| WD-20 | World | Crystal Rink's colder name | A Aurora Rink · B Glacier Garden · C Polar Palace · D own | **Accepted: A, Aurora Rink** (Jack, 2026-09-25) | 06 | C1 |
+| WD-21 | Captains | Stillwater Marsh's captain; where Kai goes | A Kai to the marsh · B new marsh captain, Kai dropped · C Kai joins Fenn (11 captains) · D own | **Accepted: B, a new marsh captain** (Jack, 2026-09-25) | 07, 11 | C2, C3 |
+| WD-22 | Captains | Stillwater Marsh's new captain | A Reed (frog jumper, Marsh Hoppers) · B Heron (wader, Reedwalkers) · C own | **A** | 21 | C2 |
 
-Open now: WD-20 (Crystal Rink's name), WD-21 (Stillwater Marsh's captain and Kai). Jack's answers WD-13 A and WD-15 A differ from the recommendations.
+Open now: WD-22 (Stillwater Marsh's new captain). Jack's answers WD-13 A and WD-15 A differ from the recommendations.
 
 ## The continent (WD-05, WD-19)
 
 The continent is **the Grand Reach** (WD-19): one main land, and one island, Coconut Cove, off the south coast. North is cold, south is warm, the west is wild, the east is built up.
 
 ```
-                          ❄ CRYSTAL RINK (new name: WD-20)
+                          ❄ AURORA RINK
                              frozen north
         ⛰ SUMMIT PARK                          ⚙ ROOFTOP CITY
           high peaks                              eastern capital
@@ -83,12 +84,12 @@ Numbers here are **proposals, not decisions**: dimensions, radii and times are t
 | # | Park | Region | Captain · faction | Status | Surface | Fence L / C / R, top | Wind | Air |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Harbor Diamond | South coast | Rio · Spark League | Built, art | Grass | 232 / 280 / 232, 12 ft | 4 mph out to right-centre | Global |
-| 2 | Crystal Rink (rename: WD-20) | Frozen north | Vale · Royal Rink | Built, greybox | Ice | 224 / 270 / 224, 8 ft glass | 2 mph in | Drag × 1.06 (cold) |
+| 2 | Aurora Rink (was Crystal Rink; id `crystal-rink`) | Frozen north | Vale · Royal Rink | Built, greybox | Ice | 224 / 270 / 224, 8 ft glass | 2 mph in | Drag × 1.06 (cold) |
 | 3 | Funfair Park | Central plains | Zig · Carnival Crew | Built, greybox | Grass | 220 / 273 / 238, 8 ft | 6 mph out | Global |
 | 4 | Rooftop City | Eastern capital | Brondo · Goldrush | Built, greybox | Tar (dirt row) | 223 / 272 / 225, 12 ft | 9 mph across | Global |
 | 5 | Canopy Yard | Western rainforest | Konga · Canopy Clan | Built, greybox | Dirt | 218 / 265 / 223, 12 ft | 3 mph in | Global |
 | 6 | Ember Keep | The volcano | Ashlord · Ember Keep | Built, greybox | Ash | 237 / 286 / 237, 10 ft | 1 mph out | Global |
-| 7 | Stillwater Marsh | River delta | Open: WD-21 | **New** | Wet grass (grass row) | 226 / 268 / 226, 8 ft reed wall | 1 mph, calm | Drag × 1.03 (damp) |
+| 7 | Stillwater Marsh | River delta | New marsh captain (WD-21, name WD-22) | **New** | Wet grass (grass row) | 226 / 268 / 226, 8 ft reed wall | 1 mph, calm | Drag × 1.03 (damp) |
 | 8 | Coconut Cove | Tropical island | Elder Fenn · Stillwater (WD-07) | **New** | Sand (**new ground row**) | 222 / 275 / 222, 6 ft rope-and-post | 7 mph sea breeze across | Global |
 | 9 | Sunscorch Mesa | Southern canyon | Sable · Dune Nomads | **New** | Hard-pan (dirt row) | 234 / 290 / 228, 14 ft canyon rock | 5 mph, shifting | Drag × 0.97 (hot, dry) |
 | 10 | Summit Park | High peaks | Hollis · Peak Guard | **New** | Alpine grass (grass row) | 240 / 296 / 240, 10 ft | 6 mph gusts, changes each inning | Drag × 0.9 (thin air) |
@@ -98,7 +99,7 @@ Numbers here are **proposals, not decisions**: dimensions, radii and times are t
 | # | Park | Day hazard (pattern) | What it does | Night change | Night light rig (WD-10) | Backdrop (WD-03) |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Harbor Diamond | None | The control park | Fireworks on homers (look) | Steel light towers | Harbor town and the water (built) |
-| 2 | Crystal Rink | Freezers (status volume) | Touch = 3 s slow (built) | Follow spot on the ball (look) | Chandeliers, ice-crystal pylons | Ice palace, frozen peaks |
+| 2 | Aurora Rink | Freezers (status volume) | Touch = 3 s slow (built) | Follow spot on the ball (look) | Chandeliers, ice-crystal pylons | Ice palace, frozen peaks |
 | 3 | Funfair Park | Warp cans (ball redirect) | A grounder in one can comes out another (built) | Chompers redirect flies (built) | String lights, ride neon | Ferris wheel, big top |
 | 4 | Rooftop City | Star billboards (reward target) | A ball that lands in one = team star (built) | Neon glare (look) | Neon signs, roof floods | Skyline, water towers |
 | 5 | Canopy Yard | Barrel cannons (ball redirect) + climb wall (wall trait) | Redirects grounders; Clamber robs homers (built) | Fireflies (look) | Lanterns in the trees | Canopy, waterfalls |
@@ -131,13 +132,13 @@ Bars are the four derived bars (CF-1): **Pitch / Bat / Field / Run**, at most on
 | Captain | Faction · colors | Home park | Bars P / B / F / R | Baseball identity | Signature ability (WD-15) |
 | --- | --- | --- | --- | --- | --- |
 | Rio | Spark League · red | Harbor Diamond | 6 / 7 / 6 / 7 | Five-tool hero | Heatball, Heat Swing |
-| Vale | Royal Rink · pink / ice blue | Crystal Rink | 9 / 4 / 8 / 5 | Pitching and glove | Charmball, Snap Throw |
+| Vale | Royal Rink · pink / ice blue | Aurora Rink | 9 / 4 / 8 / 5 | Pitching and glove | Charmball, Snap Throw |
 | Zig | Carnival Crew · green / rainbow | Funfair Park | 4 / 4 / 6 / 9 | Speed and range | Prismball, Lick Catch |
 | Brondo | Goldrush · yellow | Rooftop City | 5 / 8 / 3 / 4 | Power, bad glove | Phonyball, Laser |
 | Konga | Canopy Clan · brown | Canopy Yard | 6 / 9 / 3 / 2 | Power and wall climbs | Caskball, Clamber |
 | Ashlord | Ember Keep · black / purple | Ember Keep | 5 / 10 / 3 / 3 | Pure slug | Skullball, Furnace |
 | Elder Fenn | Stillwater · sage / cream | **Coconut Cove** (WD-07: a turtle on the beach) | 7 / 5 / 8 / 3 | Glove and slow fog | Fogball |
-| **Kai** | **Tide Riders** · teal / coral | Open: WD-21 | 5 / 6 / 6 / 9 | Surfer: speed and contact, a wave-riding slide | **Wave Swing**: a low liner that skips once on landing and keeps its speed |
+| **Reed** (draft, WD-22) | **Marsh Hoppers** · green / lotus pink | Stillwater Marsh | 4 / 6 / 7 / 8 | Frog jumper: speed and range, huge leaps in the field | **Lily Leap** (draft): a star jump catch that reaches a fly well over a fielder's head |
 | **Sable** | **Dune Nomads** · sand / rust | Sunscorch Mesa | 8 / 5 / 6 / 5 | Desert trickster: a heavy sinker, sure hands | **Mirage Ball**: the pitch draws a second, fainter ball for its first half that fades before the zone |
 | **Hollis** | **Peak Guard** · navy / white | Summit Park | 6 / 8 / 5 / 4 | Mountain climber: a big arm and high power | **Updraft**: a star swing whose fly rides the wind half again as far |
 
