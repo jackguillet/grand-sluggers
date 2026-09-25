@@ -6,7 +6,7 @@
   "teamName": "Ember Court",
   "signatureBat": "furnace-club",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
-  "proportions": { "height": 1.44, "width": 1.28, "head": 1.48, "arms": 1.18, "torso": 1.38 },
+  "proportions": { "height": 1.17, "width": 1.28, "head": 1.48, "arms": 1.18, "torso": 1.38 },
   // Nine sub-stats (spec §2); the bars are derived, the rounded mean of each group: Bat (contact, power), Pitch (velocity = power, endurance = stamina, control, movement = break), Field (hands, arm = throw speed), Run.
   "contact": 10, "power": 10,
   "velocity": 5, "endurance": 5, "control": 5, "movement": 5,

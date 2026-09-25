@@ -11,7 +11,7 @@ clip="swing"
 print_only=0
 
 usage() {
-  echo "usage: tools/dcc-still.sh body|extras|takes [clip]|harbor|park <park-id> [--print]"
+  echo "usage: tools/dcc-still.sh body|extras|takes [clip]|harbor|park <park-id>|lineup [--print]"
   echo "PR still: $drop/dcc-body.png (etc). In-game pair: tools/still-gate-character.sh."
 }
 
@@ -19,7 +19,7 @@ for arg in "$@"; do
   case "$arg" in
     --print) print_only=1 ;;
     --help|-h) usage; exit 0 ;;
-    body|extras|takes|harbor|harbor-kit)
+    body|extras|takes|harbor|harbor-kit|lineup)
       if [[ -z "$kind" ]]; then kind="$arg"; else clip="$arg"; fi
       ;;
     *)
@@ -43,6 +43,7 @@ fi
 named=""
 case "$kind" in
   body) named="dcc-body.png" ;;
+  lineup) named="dcc-lineup-turnaround.png" ;;
   extras) named="dcc-extras.png" ;;
   takes) named="dcc-${clip}.png" ;;
   harbor-kit) named="dcc-harbor-kit.png" ;;
@@ -83,6 +84,10 @@ case "$kind" in
       --resources "$root/unity/Assets/Resources/Art/Animation/Clips" \
       --sheets "$takes" --only "$clip"
     cp "$takes/${clip}.png" "$drop/$named"
+    ;;
+  lineup)
+    # Every captain side by side: dcc-lineup-turnaround.png, dcc-lineup-gameplay.png, dcc-lineup-gameplay-black.png.
+    "$B" -b --python "$root/tools/blender/hero_lineup.py" -- --out "$drop" --prefix dcc-lineup
     ;;
   harbor-kit)
     "$B" -b --python "$root/tools/blender/harbor_kit.py" -- \

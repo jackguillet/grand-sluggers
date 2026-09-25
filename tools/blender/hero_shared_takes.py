@@ -58,7 +58,8 @@ REFLECT = Matrix(((-1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)))
 #     (+ away from the body), twist (+ same sense on both sides).
 # Terms are converted per side so a left and a right limb read alike and the
 # mirror is a sign flip by construction. assert_conventions() proves the
-# signs on the built rig before any take is baked.
+# signs on the built rig before any take is baked. A crouch `lift` is sized to
+# the rig's legs (revision 3: hip to ankle 1.36); a hop or a bob is air.
 
 def _euler_for(bone: str, terms: dict) -> tuple[float, float, float]:
     flex = terms.get("flex", 0.0)
@@ -191,9 +192,9 @@ IDLE = [
 
 FIELD = [
     (0.00, K(torso=spine(22), head=spine(-6), lUpper=limb(34, 22), rUpper=limb(34, 22), lFore=limb(48), rFore=limb(48),
-             lThigh=limb(26, 10), rThigh=limb(26, 10), lShin=limb(30), rShin=limb(30), lift=-0.12)),
+             lThigh=limb(26, 10), rThigh=limb(26, 10), lShin=limb(30), rShin=limb(30), lift=-0.09)),
     (1.00, K(torso=spine(25), head=spine(-4, 4), lUpper=limb(36, 24), rUpper=limb(36, 24), lFore=limb(50), rFore=limb(50),
-             lThigh=limb(28, 10), rThigh=limb(28, 10), lShin=limb(32), rShin=limb(32), lift=-0.16)),
+             lThigh=limb(28, 10), rThigh=limb(28, 10), lShin=limb(32), rShin=limb(32), lift=-0.12)),
 ]
 
 CHEER = [
@@ -263,22 +264,22 @@ BASEBALL_TAKES = {row["id"]: row for row in BASEBALL["takes"]}
 
 SCOOP = [
     (0.00, K(torso=spine(14, 4), head=spine(10), lUpper=limb(20, 10), rUpper=limb(22, 10), lFore=limb(24), rFore=limb(26),
-             lThigh=limb(28, 8), rThigh=limb(24, 8), lShin=limb(24), rShin=limb(22), lift=-0.10)),
+             lThigh=limb(28, 8), rThigh=limb(24, 8), lShin=limb(24), rShin=limb(22), lift=-0.07)),
     (0.10, K(torso=spine(24, 2), head=spine(16), lUpper=limb(34, 8), rUpper=limb(38, 8), lFore=limb(38), rFore=limb(42),
-             lThigh=limb(42, 10), rThigh=limb(38, 10), lShin=limb(36), rShin=limb(34), lift=-0.30)),
+             lThigh=limb(42, 10), rThigh=limb(38, 10), lShin=limb(36), rShin=limb(34), lift=-0.22)),
     (0.22, K(torso=spine(32, 0), head=spine(18), lUpper=limb(44, 6), rUpper=limb(48, 6), lFore=limb(48), rFore=limb(52),
-             lThigh=limb(50, 12), rThigh=limb(46, 12), lShin=limb(44), rShin=limb(42), lift=-0.45)),
+             lThigh=limb(50, 12), rThigh=limb(46, 12), lShin=limb(44), rShin=limb(42), lift=-0.32)),
     (0.50, K(torso=spine(10, -4), head=spine(6), lUpper=limb(16, 12), rUpper=limb(14, 12), lFore=limb(18), rFore=limb(20),
-             lThigh=limb(20, 4), rThigh=limb(18, 4), lShin=limb(16), rShin=limb(14), lift=-0.04)),
+             lThigh=limb(20, 4), rThigh=limb(18, 4), lShin=limb(16), rShin=limb(14), lift=-0.03)),
 ]
 
 SLIDE = [
     (0.00, K(torso=spine(12), head=spine(4), lUpper=limb(10, 18), rUpper=limb(10, 18), lFore=limb(14), rFore=limb(16),
              lThigh=limb(20), rThigh=limb(12), lShin=limb(18), rShin=limb(14), lift=0.0)),
     (0.18, K(torso=spine(-30, 0, 6), head=spine(20), lUpper=limb(-28, 22), rUpper=limb(-48, 12), lFore=limb(14), rFore=limb(16),
-             lThigh=limb(70, 12), rThigh=limb(84, -8), lShin=limb(58), rShin=limb(66), lift=-0.55)),
+             lThigh=limb(70, 12), rThigh=limb(84, -8), lShin=limb(58), rShin=limb(66), lift=-0.40)),
     (0.40, K(torso=spine(-10, 0, 4), head=spine(12), lUpper=limb(-10, 22), rUpper=limb(-20, 12), lFore=limb(14), rFore=limb(16),
-             lThigh=limb(42, 6), rThigh=limb(30, -4), lShin=limb(38), rShin=limb(42), lift=-0.42)),
+             lThigh=limb(42, 6), rThigh=limb(30, -4), lShin=limb(38), rShin=limb(42), lift=-0.30)),
 ]
 
 CATCH = [
@@ -297,16 +298,16 @@ DIVE = [
 
 CROUCH = [
     (0.00, K(torso=spine(32), head=spine(-10), lUpper=limb(40, 18), rUpper=limb(40, 18), lFore=limb(60), rFore=limb(60),
-             lThigh=limb(68, 12), rThigh=limb(68, 12), lShin=limb(70), rShin=limb(70), lift=-0.35)),
+             lThigh=limb(68, 12), rThigh=limb(68, 12), lShin=limb(70), rShin=limb(70), lift=-0.25)),
     (HOLD, K(torso=spine(33), head=spine(-10), lUpper=limb(40, 18), rUpper=limb(40, 18), lFore=limb(60), rFore=limb(60),
-             lThigh=limb(68, 12), rThigh=limb(68, 12), lShin=limb(70), rShin=limb(70), lift=-0.36)),
+             lThigh=limb(68, 12), rThigh=limb(68, 12), lShin=limb(70), rShin=limb(70), lift=-0.26)),
 ]
 
 STEAL_LEAD = [
     (0.00, K(torso=spine(22, 12), head=spine(0, 14), lUpper=limb(28, 22), rUpper=limb(12, 28), lFore=limb(30), rFore=limb(30),
-             lThigh=limb(42, 10), rThigh=limb(18, 6), lShin=limb(36), rShin=limb(20), lift=-0.35)),
+             lThigh=limb(42, 10), rThigh=limb(18, 6), lShin=limb(36), rShin=limb(20), lift=-0.25)),
     (HOLD, K(torso=spine(24, 12), head=spine(0, 16), lUpper=limb(30, 22), rUpper=limb(14, 28), lFore=limb(30), rFore=limb(30),
-             lThigh=limb(44, 10), rThigh=limb(20, 6), lShin=limb(36), rShin=limb(20), lift=-0.36)),
+             lThigh=limb(44, 10), rThigh=limb(20, 6), lShin=limb(36), rShin=limb(20), lift=-0.26)),
 ]
 
 SPIN = [
@@ -379,8 +380,8 @@ def _interp_table(table, t, times):
 
 ARM_UPPER_LEN = next((Vector(j["tail"]) - Vector(j["head"])).length
                      for j in body.RIG["joints"] if j["name"] == "rUpper")
-# The hand mesh center in the forearm's frame: 0.83 down the bone, 0.10 forward.
-HAND_IN_FORE = Vector((0.0, 2.48 - body.ANATOMY["handCenter"][2], body.ANATOMY["handCenter"][1]))
+# The hand mesh center in the forearm's frame at rest: down the bone from the elbow, and forward.
+HAND_IN_FORE = Vector((0.0, body.joint_z("lFore") - body.ANATOMY["handCenter"][2], body.ANATOMY["handCenter"][1]))
 
 
 def _frame(head: Vector, y_axis: Vector, x_axis: Vector) -> Matrix:
@@ -543,10 +544,14 @@ def validate_swing_frame(arm, t, bats, clip=SWING_SLAP):
     top = "rHand" if lead == "lHand" else "lHand"
     if not 0.0 <= along[lead] < along[top]:
         raise RuntimeError(f"swing {bats}: lead {lead} must hold the knob end at {t:.4f}: {along}")
-    clearance = bat_head_clearance(grip, actual)
-    if clearance < BAT_HEAD_CLEARANCE:
-        raise RuntimeError(f"{clip} {bats}: the bat passes {clearance:+.3f} from the head at {t:.4f}; "
-                           f"it must clear by {BAT_HEAD_CLEARANCE:.2f} (#623)")
+    # Every captain's head, not only the neutral one: the build's biggest head (rig.json build.head.max).
+    for label, scale in (("neutral", 1.0), ("max build", float(body.BUILD["head"]["max"]))):
+        body.set_build({"head": scale})
+        clearance = bat_head_clearance(grip, actual)
+        body.set_build({"head": 1.0})
+        if clearance < BAT_HEAD_CLEARANCE:
+            raise RuntimeError(f"{clip} {bats}: the bat passes {clearance:+.3f} from the {label} head at {t:.4f}; "
+                               f"it must clear by {BAT_HEAD_CLEARANCE:.2f} (#623)")
     batting_stance.validate_visible_stance(t, bats=bats, arm_ob=arm, **STANCE_LANDMARKS)
 
 

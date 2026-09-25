@@ -51,12 +51,12 @@ public static class SwingPresentation
     public const double BesideWoodFrom = 0.35;
 
     /// <summary>
-    /// The shared rig's head mesh at rest, rig units, batter-local (hero_shared_blockout.py HEAD,
-    /// a sphere of radius <see cref="HeadRadius"/>). The crouch in a take's legs lowers it by the
-    /// key's <see cref="Key.Lift"/>.
+    /// The shared rig's neutral head mesh at rest, rig units, batter-local (hero_shared_blockout.py HEAD,
+    /// a sphere of radius <see cref="HeadRadius"/>; <see cref="Silhouette.HeadCenterAtRest"/>). A key's
+    /// <see cref="Key.Lift"/> is the measured rise or drop of the head in that key's stance.
     /// </summary>
-    public static readonly Vec3 HeadCenterAtRest = new(0, 4.36, 0.05);
-    public const double HeadRadius = 0.45;
+    public static readonly Vec3 HeadCenterAtRest = Silhouette.HeadCenterAtRest;
+    public const double HeadRadius = Silhouette.HeadDiameter / 2;
     /// <summary>
     /// How far the head's center can wander from the vertical axis as the stance yaws the root,
     /// torso and head (measured at most 0.08 across both takes). The contract treats the head as
@@ -67,9 +67,10 @@ public static class SwingPresentation
     /// #623: the bat never passes through the head. The smallest surface-to-surface distance, rig
     /// units, between the physical bat and the head on every sample of both takes and the whole
     /// charge-up (data/art/swing-takes.json <c>batHeadClearance</c>). The DCC bake measures it
-    /// exactly on the rendered head; <see cref="HeadClearance"/> is the conservative contract.
-    /// Body proportions scale the bat and the head together, so rig-space clearance holds for
-    /// every captain; the Unity swing matrix measures the drawn result.
+    /// exactly on the rendered head, neutral and at the head build's max; <see cref="HeadClearance(Key)"/>
+    /// is the conservative contract, against the biggest head the build allows
+    /// (<see cref="Silhouette.HeadBuild"/> max). The root scale grows the bat and the head together;
+    /// the Unity swing matrix measures the drawn result.
     /// </summary>
     public const double BatHeadClearance = 0.10;
     /// <summary>The physical bat along its axis from the grip socket, model units: the knob behind, the barrel end ahead.</summary>
@@ -78,11 +79,17 @@ public static class SwingPresentation
 
     /// <summary>
     /// Surface-to-surface distance from the physical bat to the head for one key (negative =
-    /// through the head), with the head grown by <see cref="HeadYawSlack"/>.
+    /// through the head), with the head at the build's max and grown by <see cref="HeadYawSlack"/>.
     /// </summary>
-    public static double HeadClearance(Key key)
+    public static double HeadClearance(Key key) => HeadClearance(key, Silhouette.HeadBuild.Max);
+
+    /// <summary>
+    /// <see cref="HeadClearance(Key)"/> for one head build scale (1 = the neutral head), grown about
+    /// <see cref="Silhouette.HeadPivot"/> as the head shape keys grow it.
+    /// </summary>
+    public static double HeadClearance(Key key, double headScale)
     {
-        var center = new Vec3(0, HeadCenterAtRest.Y + key.Lift, 0);
+        var center = new Vec3(0, Silhouette.HeadCenterAt(headScale).Y + key.Lift, 0);
         var axis = Normalize(key.BarrelDirection);
         var start = Add(key.Grip, Mul(axis, BatStartFromGrip * Silhouette.BatScale));
         var end = Add(key.Grip, Mul(axis, BatEndFromGrip * Silhouette.BatScale));
@@ -90,7 +97,7 @@ public static class SwingPresentation
         var toCenter = new Vec3(center.X - start.X, center.Y - start.Y, center.Z - start.Z);
         var lengthSq = along.X * along.X + along.Y * along.Y + along.Z * along.Z;
         var u = Math.Clamp((toCenter.X * along.X + toCenter.Y * along.Y + toCenter.Z * along.Z) / lengthSq, 0, 1);
-        return Distance(center, Add(start, Mul(along, u))) - HeadRadius - HeadYawSlack - BarrelRadius;
+        return Distance(center, Add(start, Mul(along, u))) - HeadRadius * headScale - HeadYawSlack - BarrelRadius;
     }
 
     /// <summary>
@@ -106,8 +113,9 @@ public static class SwingPresentation
             HomeSet.BatterBodyX(hand) + local.X * scale.X,
             local.Y * scale.Y,
             HomeSet.BatterZ + local.Z * scale.Z);
-        var head = World(new Vec3(0, HeadCenterAtRest.Y + key.Lift, HeadCenterAtRest.Z));
-        var radius = HeadRadius * Math.Max(scale.X, Math.Max(scale.Y, scale.Z));
+        var rest = Silhouette.HeadCenterRig(body);
+        var head = World(new Vec3(0, rest.Y + key.Lift, rest.Z));
+        var radius = Silhouette.HeadRadiusRig(body) * Math.Max(scale.X, Math.Max(scale.Y, scale.Z));
         var cam = shot.Pos;
         var toHead = new Vec3(head.X - cam.X, head.Y - cam.Y, head.Z - cam.Z);
         var distHead = Math.Sqrt(toHead.X * toHead.X + toHead.Y * toHead.Y + toHead.Z * toHead.Z);
@@ -218,23 +226,23 @@ public static class SwingPresentation
     // Generated from data/art/swing-takes.json by tools/blender/sync_swing_contract.py.
     public static readonly IReadOnlyList<Key> SlapKeys =
     [
-        new(0, new(0.6485, 3.1602, -0.5863), new(0.8455, 3.5838, -0.7341), new(0.56, 2.97, -0.52), Unit(0.4021, 0.86451, -0.30157), -0.2),
-        new(0.15, new(0.304, 2.4492, 0.0776), new(0.2551, 2.7526, -0.304), new(0.326, 2.313, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
-        new(0.24, new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695), new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
-        new(0.3, new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937), new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
-        new(0.5, new(-0.0588, 2.9248, -0.2694), new(-0.3234, 3.0914, -0.6467), new(0.06, 2.85, -0.1), Unit(-0.54, 0.34, -0.77), -0.14),
-        new(0.6, new(-0.1359, 3.3252, 0.0464), new(-0.2159, 3.4928, -0.407), new(-0.1, 3.25, 0.25), Unit(-0.1632, 0.342, -0.9254), -0.14),
+        new(0, new(0.6485, 3.1287, -0.5863), new(0.8455, 3.5523, -0.7341), new(0.56, 2.9385, -0.52), Unit(0.4021, 0.86451, -0.30157), 0.04),
+        new(0.15, new(0.304, 2.4353, 0.0776), new(0.2551, 2.7387, -0.304), new(0.326, 2.2991, 0.249), Unit(-0.0999, 0.6191, -0.7789), 0.08),
+        new(0.24, new(0.1439, 1.6912, -0.1275), new(0.3553, 1.6936, -0.5695), new(0.049, 1.6901, 0.071), Unit(0.4315, 0.005, -0.9021), 0.03),
+        new(0.3, new(0.1024, 1.8072, -0.2868), new(0.4841, 1.8206, -0.5937), new(-0.069, 1.8011, -0.149), Unit(0.779, 0.0275, -0.6264), -0.06),
+        new(0.5, new(-0.0588, 2.8533, -0.2694), new(-0.3234, 3.0199, -0.6467), new(0.06, 2.7785, -0.1), Unit(-0.54, 0.34, -0.77), -0.01),
+        new(0.6, new(-0.1359, 3.1024, 0.0464), new(-0.2159, 3.27, -0.407), new(-0.1, 3.0272, 0.25), Unit(-0.1632, 0.342, -0.9254), -0.01),
     ];
 
     public static readonly IReadOnlyList<Key> ChargeKeys =
     [
-        new(0, new(0.7371, 3.3914, -0.4519), new(0.8197, 3.8177, -0.679), new(0.7, 3.2, -0.35), Unit(0.1686, 0.87, -0.4633), -0.2),
-        new(0.075, new(0.6485, 3.1602, -0.5863), new(0.8455, 3.5838, -0.7341), new(0.56, 2.97, -0.52), Unit(0.4021, 0.86451, -0.30157), -0.2),
-        new(0.15, new(0.304, 2.4492, 0.0776), new(0.2551, 2.7526, -0.304), new(0.326, 2.313, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
-        new(0.24, new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695), new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
-        new(0.3, new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937), new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
-        new(0.5, new(-0.1538, 3.1923, -0.2274), new(-0.4963, 3.3978, -0.5112), new(0, 3.1, -0.1), Unit(-0.699, 0.4194, -0.5792), -0.12),
-        new(0.6, new(-0.1118, 3.4, -0.0167), new(-0.0267, 3.4, -0.4992), new(-0.15, 3.4, 0.2), Unit(0.1736, 0, -0.9848), -0.12),
+        new(0, new(0.7371, 3.3734, -0.4519), new(0.8197, 3.7997, -0.679), new(0.7, 3.182, -0.35), Unit(0.1686, 0.87, -0.4633), 0.03),
+        new(0.075, new(0.6485, 3.1287, -0.5863), new(0.8455, 3.5523, -0.7341), new(0.56, 2.9385, -0.52), Unit(0.4021, 0.86451, -0.30157), 0.04),
+        new(0.15, new(0.304, 2.4353, 0.0776), new(0.2551, 2.7387, -0.304), new(0.326, 2.2991, 0.249), Unit(-0.0999, 0.6191, -0.7789), 0.08),
+        new(0.24, new(0.1439, 1.6912, -0.1275), new(0.3553, 1.6936, -0.5695), new(0.049, 1.6901, 0.071), Unit(0.4315, 0.005, -0.9021), 0.03),
+        new(0.3, new(0.1024, 1.8072, -0.2868), new(0.4841, 1.8206, -0.5937), new(-0.069, 1.8011, -0.149), Unit(0.779, 0.0275, -0.6264), -0.06),
+        new(0.5, new(-0.1538, 3.1078, -0.2274), new(-0.4963, 3.3133, -0.5112), new(0, 3.0155, -0.1), Unit(-0.699, 0.4194, -0.5792), -0.02),
+        new(0.6, new(-0.1118, 3.1641, -0.0167), new(-0.0267, 3.1641, -0.4992), new(-0.15, 3.1641, 0.2), Unit(0.1736, 0, -0.9848), -0.02),
     ];
 
     // </swing-keys>

@@ -6,7 +6,7 @@
   "teamName": "Goldrush",
   "signatureBat": "gold-brick",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
-  "proportions": { "height": 0.96, "width": 1.58, "head": 1.16, "arms": 1.28, "torso": 1.48 },
+  "proportions": { "height": 0.97, "width": 1.58, "head": 1.16, "arms": 1.28, "torso": 1.48 },
   // Nine sub-stats (spec §2); the bars are derived, the rounded mean of each group: Bat (contact, power), Pitch (velocity = power, endurance = stamina, control, movement = break), Field (hands, arm = throw speed), Run.
   "contact": 8, "power": 8,
   "velocity": 5, "endurance": 5, "control": 5, "movement": 5,

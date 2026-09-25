@@ -106,8 +106,10 @@ public class StillHarnessTests
         var ashlord = StillPose.CharFraming(Shipped.Content, "ashlord");
         var rioPull = Dist(rio.Pos, new Vec3(StillPose.CharX, rio.Target.Y, StillPose.CharZ));
         var ashPull = Dist(ashlord.Pos, new Vec3(StillPose.CharX, ashlord.Target.Y, StillPose.CharZ));
-        Assert.True(ashPull > rioPull + 2,
-            $"Ashlord must pull back by extra height rio={rioPull:0.00} ash={ashPull:0.00}");
+        // The pullback grows with the extra head height over Rio's, whatever the ladder (CH-03 compressed it).
+        var extra = StillPose.CharHeadTopY(Shipped.Content, "ashlord") - StillPose.CharHeadTopY(Shipped.Content, "rio");
+        Assert.True(extra > 1 && ashPull >= rioPull + 0.9 * extra,
+            $"Ashlord must pull back by extra height {extra:0.00} rio={rioPull:0.00} ash={ashPull:0.00}");
 
         var cropped = new CameraShot(
             "select",

@@ -284,6 +284,12 @@ public sealed class ArtCatalog
             var player = Unity(content.Root, "Assets/Resources/" + Rig.Slot["Assets/".Length..]);
             if (!File.Exists(player) || !SameBytes(rigFbx, player))
                 errors.Add("rig player copy missing or different " + Rig.Slot);
+            // The build (CH-04) is shape keys on the one mesh: a body without them draws every captain neutral.
+            var body = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(rigFbx));
+            foreach (var channel in Silhouette.BuildChannels)
+            foreach (var key in new[] { channel.UpKey, channel.DownKey })
+                if (!body.Contains(key, StringComparison.Ordinal))
+                    errors.Add("rig FBX " + Rig.Slot + " has no build shape key " + key);
         }
 
         // Every take the sim can ask for, both hands where handed, authoring and player copies identical.
@@ -360,6 +366,17 @@ public sealed class ArtCatalog
             if (!skin.BodyType.Equals(id, StringComparison.OrdinalIgnoreCase))
                 errors.Add("skin " + id + " bodyType should be self");
             if (string.IsNullOrWhiteSpace(skin.Portrait)) errors.Add("captain skin " + id + " needs portrait slot");
+            // A build outside the shape keys' range would clamp: the captain would draw smaller than the sim measures.
+            var spec = Silhouette.Proportions(content, id);
+            foreach (var (channel, proportion) in new[]
+            {
+                (Silhouette.HeadBuild, spec.Head), (Silhouette.ArmsBuild, spec.Arms), (Silhouette.TorsoBuild, spec.Torso)
+            })
+            {
+                var scale = channel.ScaleFor(proportion);
+                if (scale < channel.Min - 1e-9 || scale > channel.Max + 1e-9)
+                    errors.Add($"captain {id} {channel.Id} build {scale:0.###} is outside the rig's shape keys [{channel.Min}, {channel.Max}]");
+            }
         }
 
         foreach (var who in content.Characters.Values)
@@ -509,6 +526,8 @@ public sealed class ArtCatalog
         public int Revision { get; set; }
         public JsonElement Joints { get; set; }
         public JsonElement Anatomy { get; set; }
+        /// <summary>The per-captain build channels (shape keys on the one mesh); <see cref="Silhouette.Build"/> mirrors them.</summary>
+        public JsonElement Build { get; set; }
         public string? Notes { get; set; }
     }
 
