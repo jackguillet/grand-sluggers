@@ -168,7 +168,7 @@ namespace GrandSluggers.UnityClient
             _pitchCharge = 0;
             _chargePast = 0;
             _pitchButton = default;
-            _previousSetupBag = 0;
+            Steal.NewPitch();
             // The next pitch (§5.8): the must-release, the spent triggers and a spent cancel carry; a hold must come up.
             _plate = _plate.NextPitch();
             // Fastball, unlocked, at every SET entry (PH-02-R5): nothing on the shared screen marks
@@ -395,6 +395,41 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>The pickoff (§4.5, D3): a runner on the bag is the beat; a runner who broke is the live runner play.</summary>
+        StealDirector _steal;
+        StealDirector Steal => _steal ??= new StealDirector(gameObject);
+
+        /// <summary>A legal base throw in SET (§4.5): the steal director reads the edge; the pickoff begins here.</summary>
+        bool ReadSetupThrow(Controls.Pad pad, bool accepting)
+        {
+            var bag = Steal.SetupThrowBag(pad, accepting, _match);
+            if (bag == 0) return false;
+            BeginPickoff(bag);
+            return true;
+        }
+
+        void CommitPitchSetup()
+        {
+            if (TutorialOn && _coach.Tutorial.Lesson.Objective == "human-pickoff")
+                _coach.Tutorial.BeginPitchCharge();
+            else _match.PitchSetup.BeginCharge();
+        }
+
+        /// <summary>The pre-contact clock (§11): a steal settled before the pitch ends the SET, or the game.</summary>
+        bool AdvanceSetup(float seconds)
+        {
+            // The lesson runner owns its pre-contact clock and recording, once per frame.
+            if (TutorialOn && _coach.Tutorial.IsStealLesson) return false;
+            var play = _match.PitchSetup.Advance(seconds);
+            if (play == null) return false;
+            if (_match.Over)
+            {
+                _last = play; Banner(); BeginResult();
+                return true;
+            }
+            _banner = PlayStamp.Label(play);
+            return false;
+        }
+
         void BeginPickoff(int bag)
         {
             if (TutorialOn && _coach.Tutorial.Pickoff(bag))
@@ -686,7 +721,7 @@ namespace GrandSluggers.UnityClient
                 _match.PitchSetup.ReleaseBall();
                 dt = Mathf.Min(dt, _flight);
             }
-            BufferCatcherInput();
+            StealDirector.BufferCatcherInput(_match, HumanOwnsThrow, FieldInput());
             if (AdvanceSetup(Mathf.Min(dt, Mathf.Max(0, _pitchDur - Mathf.Max(0, previousFlight))))) return;
             var u = Mathf.Clamp01(_flight / _pitchDur);
             // Break is a stick direction after release (spec §4.1): screen-relative from either camera.
