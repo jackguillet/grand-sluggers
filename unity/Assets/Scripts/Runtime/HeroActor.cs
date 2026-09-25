@@ -413,8 +413,9 @@ namespace GrandSluggers.UnityClient
                 Motion.Verb.ChargePitch or Motion.Verb.ThrowPitch or Motion.Verb.Throw
                     or Motion.Verb.Jump or Motion.Verb.Clamber or Motion.Verb.Scoop
                     or Motion.Verb.Catch or Motion.Verb.Field or Motion.Verb.Dive
-                    or Motion.Verb.Crouch or Motion.Verb.Spin => true,
-                Motion.Verb.Slide or Motion.Verb.StealLead or Motion.Verb.Cheer => false,
+                    or Motion.Verb.Crouch or Motion.Verb.Spin or Motion.Verb.CatcherThrow or Motion.Verb.Tag => true,
+                Motion.Verb.Slide or Motion.Verb.SlideHeadFirst or Motion.Verb.TurnBack
+                    or Motion.Verb.StealLead or Motion.Verb.Cheer => false,
                 _ => _heldGlove && !batting
             };
             if (_bat != null) _bat.gameObject.SetActive(batting);

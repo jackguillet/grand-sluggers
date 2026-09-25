@@ -77,6 +77,12 @@ public class ArtCatalogTests
                 var (slot, playerSlot) = ArtCatalog.ClipFiles(clip, hand);
                 var fbx = Path.Combine(repo, "unity", slot.Replace('/', Path.DirectorySeparatorChar));
                 var player = Path.Combine(repo, "unity", playerSlot.Replace('/', Path.DirectorySeparatorChar));
+                // A stand-in slot (#966) has no take yet; the take that fills it drops the stand-in.
+                if (clip.StandIn != null)
+                {
+                    Assert.False(File.Exists(fbx) || File.Exists(player), slot + " has its own take; drop its standIn");
+                    continue;
+                }
                 Assert.True(File.Exists(fbx), fbx);
                 Assert.True(new FileInfo(fbx).Length > 4_096, slot + " is empty");
                 Assert.True(new FileInfo(fbx).Length < 400_000, slot + " carries a mesh; takes are armature-only");

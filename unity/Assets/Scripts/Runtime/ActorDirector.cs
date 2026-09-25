@@ -132,6 +132,10 @@ namespace GrandSluggers.UnityClient
                     else if (_live.JumpT > 0) pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else if ((_live.Caught || _live.Buddy) && !_live.Throwing && CarryingOnTheStick(kv.Key))
                         pose = Motion.Verb.Run;
+                    // The sweep tag (#966): the ball on a bag with a runner coming into it.
+                    else if (_live.Caught && StealPresentation.Tagging(x, z, _play.Match.Runners,
+                                 DiamondGeometry.Of(_play.Match.Rules), _scene.Feel.TagStandFt, _scene.Feel.TagWindowFt))
+                        pose = Motion.Verb.Tag;
                     else if (_live.Caught && _play.Preview != null && _play.Preview.Grounder) pose = Motion.Verb.Scoop;
                     else if (_live.Caught || _live.Buddy) pose = Motion.Verb.Catch;
                     else if (_live.DiveT > 0) pose = Motion.Verb.Dive;
@@ -182,7 +186,7 @@ namespace GrandSluggers.UnityClient
                 if (kv.Key == "C" && _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight)
                     pose = Motion.Verb.Crouch;
                 if (_live.Throwing && kv.Key == _live.ThrowFromPos)
-                    pose = Motion.Verb.Throw;
+                    pose = StealPresentation.ThrowVerb(kv.Key, _play.Phase == MatchDirector.Phase.StealThrow);
                 if (_live.Throwing && !string.IsNullOrEmpty(_live.CoverPos) && kv.Key == _live.CoverPos)
                     pose = Motion.Verb.Catch;
                 // A body paying for the ball shows it whoever holds the ring (#719–#721): the fumbler's stun (never the
@@ -219,8 +223,9 @@ namespace GrandSluggers.UnityClient
                     DefenseFacing(kv.Key, x, z, highlighted && !buddyPartner));
                 if (pose == Motion.Verb.ThrowPitch && _play.Phase == MatchDirector.Phase.Flight)
                     hero.SampleMotion((float)Motion.PitchRelease + _play.Flight, dt);
-                else if (pose == Motion.Verb.Throw && _live.Throwing && kv.Key == _live.ThrowFromPos)
-                    hero.SampleMotion((float)StealPresentation.ThrowSample(_live.ThrowT, _play.Match.LivePlay.ThrowReleaseSec), dt);
+                else if (pose is Motion.Verb.Throw or Motion.Verb.CatcherThrow && _live.Throwing && kv.Key == _live.ThrowFromPos)
+                    hero.SampleMotion((float)StealPresentation.ThrowSample(_live.ThrowT, _play.Match.LivePlay.ThrowReleaseSec,
+                        Motion.Mark(pose, Motion.ClipEvent.Release)), dt);
                 else hero.Tick(dt);
             }
 
@@ -495,9 +500,7 @@ namespace GrandSluggers.UnityClient
             {
                 next = diamond.Bag(state.DestBag >= state.Bag + 1 ? Math.Min(state.Bag + 1, 4) : state.Bag);
                 if (state.Phase == RunnerPhase.Returning) next = diamond.Bag(state.Bag);
-                pose = state.Sliding ? Motion.Verb.Slide
-                    : state.Moving && !state.Held ? Motion.Verb.Run
-                    : Motion.Verb.Idle;
+                pose = StealPresentation.RunnerVerb(state, TurnBackClock(state));
             }
             h.SetPose(pose);
             h.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
@@ -507,6 +510,19 @@ namespace GrandSluggers.UnityClient
             h.Place(new Vector3((float)spot.X, 0, (float)spot.Z),
                 new Vector3((float)(next.X - spot.X), 0, (float)(next.Z - spot.Z)));
             h.Tick(Time.deltaTime);
+        }
+
+        /// <summary>Each runner's last phase and the seconds since it last turned back (-1: not since it appeared), #966.</summary>
+        readonly Dictionary<string, (RunnerPhase Phase, float Since)> _turns = new Dictionary<string, (RunnerPhase, float)>();
+
+        float TurnBackClock(Runner runner)
+        {
+            var since = _turns.TryGetValue(runner.Who.Id, out var last)
+                ? StealPresentation.TurnedBack(last.Phase, runner.Phase) ? 0f
+                : last.Since >= 0 ? last.Since + Time.deltaTime : -1f
+                : -1f;
+            _turns[runner.Who.Id] = (runner.Phase, since);
+            return since;
         }
 
         void PlaceSelectRoster()

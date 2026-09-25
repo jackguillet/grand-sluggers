@@ -171,7 +171,7 @@ public class MotionStyleTests
         Assert.Equal(1.0, konga.Boots);
         // A captain whose build moves the joints owns every take: the shared takes would not reach its hands.
         foreach (var style in Art.Styles)
-            Assert.Equal(style.OwnsEveryClip, Motion.ClipIds.All(style.Owns));
+            Assert.Equal(style.OwnsEveryClip, Motion.Clips.Where(c => c.StandIn == null).All(c => style.Owns(c.Id)));
         var weights = Silhouette.StyleWeights(konga).ToDictionary(w => w.Key, w => w.Weight);
         Assert.True(weights["reach+"] > 0.5 && weights["reach-"] == 0 && weights["boots+"] == 0);
     }

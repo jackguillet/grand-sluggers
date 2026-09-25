@@ -86,6 +86,12 @@ Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`
 | Catch, Dive, Crouch, StealLead, Spin | catch / dive / crouch / stealLead / spin | verb (hold) | no | |
 | Scoop | scoop | verb | no | Contact 0.22 |
 | Slide | slide | verb | no | FootPlant 0.18 |
+| CatcherThrow | catcherThrow (stand-in: throw) | verb, release warped to the sim's preparation | yes | Release 0.30 |
+| Tag | tag (stand-in: catch) | verb (hold) | yes | |
+| SlideHeadFirst | slideHeadFirst (stand-in: slide); reserved, nobody plays it yet | verb | no | FootPlant 0.18, the feet-first slide's clock |
+| TurnBack | turnBack (stand-in: run) | verb, for 0.30 s after a runner reverses | no | |
+
+**Catalog first, then the take.** A clip row may name a `standIn`: an authored clip it plays until its own take lands. The row still states the contract its take must meet (length, marker, hand); until then every file, marker and hold is the stand-in's (`Motion.Played`). `cli art` refuses a stand-in that is not an authored clip, a row whose `standIn` differs from `Motion.Clips`, and a stand-in slot that already has files. The take that fills a slot drops its `standIn` in the same change. No motion style owns a stand-in slot.
 
 A held load samples the one-shot at `LoadSampleAt(charge) = NormalLoadAt · (1 − charge)`: MAX holds the full coil at 0, a tap starts from the half load. The committed verb then samples `LoadedClipTime(poseT, loadAt, eventAt)`, which is monotonic and lands the marker exactly at `eventAt`. One function for pitch and swing.
 
