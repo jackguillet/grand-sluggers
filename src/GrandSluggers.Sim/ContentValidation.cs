@@ -363,6 +363,39 @@ public static class ContentDataValidator
         }
     }
 
+    /// <summary>
+    /// The nine sub-stats and the four bars (spec §2, CH-07, CH-08). Every sub-stat is required and 1–10.
+    /// A bar is derived, so a row that authors one is refused rather than ignored: the loader drops unknown
+    /// keys, and a stale <c>"pitch": 9</c> left beside the sub-stats would otherwise read as if it counted.
+    /// At most <see cref="Stats.MaxStarBars"/> derived bar may reach <see cref="Stats.StarBar"/>.
+    /// </summary>
+    static void ValidateStats(string source, CharacterDto c, List<string> errors)
+    {
+        foreach (var (bar, value) in new[] { ("pitch", c.Pitch), ("bat", c.Bat), ("field", c.Field) })
+            if (value is not null)
+                errors.Add($"{source}: character '{c.Id}' authors the '{bar}' bar; bars are derived from sub-stats "
+                           + $"(spec §2), so author {Stats.SubStatsOf(bar)} instead");
+
+        var missing = false;
+        foreach (var (key, value) in c.SubStats())
+        {
+            if (value is not { } v)
+            {
+                errors.Add($"{source}: character '{c.Id}' {key} is required (1–10); every character authors all nine sub-stats");
+                missing = true;
+            }
+            else Range(source, $"character '{c.Id}' {key}", v, 1, 10, errors);
+        }
+        if (missing) return;
+
+        var stats = c.ToStats();
+        var star = new[] { ("Bat", stats.Bat), ("Pitch", stats.Pitch), ("Field", stats.Field), ("Run", stats.Run) }
+            .Where(b => b.Item2 >= Stats.StarBar).Select(b => $"{b.Item1} {b.Item2}").ToList();
+        if (star.Count > Stats.MaxStarBars)
+            errors.Add($"{source}: character '{c.Id}' has {star.Count} bars at {Stats.StarBar} or higher ({string.Join(", ", star)}); "
+                       + $"at most {Stats.MaxStarBars} may be (CH-08)");
+    }
+
     static void ValidateCharacter(
         Sourced<CharacterDto> row,
         HashSet<string> pitches,
@@ -373,21 +406,7 @@ public static class ContentDataValidator
         Required(row.Source, "character", c.Id, "id", c.Id, errors);
         Required(row.Source, "character", c.Id, "name", c.Name, errors);
         Required(row.Source, "character", c.Id, "faction", c.Faction, errors);
-        Range(row.Source, $"character '{c.Id}' pitch", c.Pitch, 1, 10, errors);
-        Range(row.Source, $"character '{c.Id}' bat", c.Bat, 1, 10, errors);
-        Range(row.Source, $"character '{c.Id}' field", c.Field, 1, 10, errors);
-        Range(row.Source, $"character '{c.Id}' run", c.Run, 1, 10, errors);
-        // Arm, hands and reach are optional: absent means seeded from field / the table's stand-up reach.
-        if (c.Arm != 0) Range(row.Source, $"character '{c.Id}' arm", c.Arm, 1, 10, errors);
-        if (c.Hands != 0) Range(row.Source, $"character '{c.Id}' hands", c.Hands, 1, 10, errors);
-        // Contact and power are optional the same way: absent means seeded from bat (PH-15-R5).
-        if (c.Contact != 0) Range(row.Source, $"character '{c.Id}' contact", c.Contact, 1, 10, errors);
-        if (c.Power != 0) Range(row.Source, $"character '{c.Id}' power", c.Power, 1, 10, errors);
-        // The four pitching ratings are optional the same way: absent means seeded from pitch (PH-15-R6).
-        if (c.Velocity != 0) Range(row.Source, $"character '{c.Id}' velocity", c.Velocity, 1, 10, errors);
-        if (c.Movement != 0) Range(row.Source, $"character '{c.Id}' movement", c.Movement, 1, 10, errors);
-        if (c.Control != 0) Range(row.Source, $"character '{c.Id}' control", c.Control, 1, 10, errors);
-        if (c.Endurance != 0) Range(row.Source, $"character '{c.Id}' endurance", c.Endurance, 1, 10, errors);
+        ValidateStats(row.Source, c, errors);
         if (c.ReachFt is { } reach && reach <= 0)
             errors.Add($"{row.Source}: character '{c.Id}' reachFt must be positive when present");
         Known(row.Source, $"character '{c.Id}' bats", c.Bats, Hands, errors);
@@ -991,34 +1010,57 @@ internal sealed class CharacterDto
     public string Name { get; set; } = "";
     public string Faction { get; set; } = "";
     public bool Captain { get; set; }
-    public int Pitch { get; set; }
-    public int Bat { get; set; }
-    public int Field { get; set; }
-    public int Run { get; set; }
+    /// <summary>A bar is derived (spec §2). Read only so the validator can refuse a row that still authors one.</summary>
+    public int? Pitch { get; set; }
 
-    /// <summary>Explicit throwing rating. Absent seeds from <see cref="Field"/> (F693-02-defensive-trait-mapping).</summary>
-    public int Arm { get; set; }
+    /// <inheritdoc cref="Pitch"/>
+    public int? Bat { get; set; }
 
-    /// <summary>Explicit handling rating. Absent seeds from <see cref="Field"/>.</summary>
-    public int Hands { get; set; }
+    /// <inheritdoc cref="Pitch"/>
+    public int? Field { get; set; }
 
-    /// <summary>Explicit contact rating. Absent seeds from <see cref="Bat"/> (PH-15-R5).</summary>
-    public int Contact { get; set; }
+    /// <summary>Run: speed. The Run bar is this one sub-stat. Required.</summary>
+    public int? Run { get; set; }
 
-    /// <summary>Explicit power rating. Absent seeds from <see cref="Bat"/> (PH-15-R5).</summary>
-    public int Power { get; set; }
+    /// <summary>Field: throw speed. Required.</summary>
+    public int? Arm { get; set; }
 
-    /// <summary>Explicit velocity rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
-    public int Velocity { get; set; }
+    /// <summary>Field: hands. Required.</summary>
+    public int? Hands { get; set; }
 
-    /// <summary>Explicit movement rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
-    public int Movement { get; set; }
+    /// <summary>Bat: contact. Required.</summary>
+    public int? Contact { get; set; }
 
-    /// <summary>Explicit control rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
-    public int Control { get; set; }
+    /// <summary>Bat: power. Required.</summary>
+    public int? Power { get; set; }
 
-    /// <summary>Explicit endurance rating. Absent seeds from <see cref="Pitch"/> (PH-15-R6).</summary>
-    public int Endurance { get; set; }
+    /// <summary>Pitch: power (the pitch's speed). Required.</summary>
+    public int? Velocity { get; set; }
+
+    /// <summary>Pitch: break. Required.</summary>
+    public int? Movement { get; set; }
+
+    /// <summary>Pitch: control. Required.</summary>
+    public int? Control { get; set; }
+
+    /// <summary>Pitch: stamina. Required.</summary>
+    public int? Endurance { get; set; }
+
+    /// <summary>The nine sub-stats by their JSON key, in bar order (Bat, Pitch, Field, Run).</summary>
+    public IEnumerable<(string Key, int? Value)> SubStats() =>
+    [
+        ("contact", Contact), ("power", Power),
+        ("velocity", Velocity), ("endurance", Endurance), ("control", Control), ("movement", Movement),
+        ("hands", Hands), ("arm", Arm),
+        ("run", Run)
+    ];
+
+    /// <summary>Only after <see cref="ContentDataValidator.Load"/> has refused a row that misses a sub-stat.</summary>
+    public Stats ToStats() => new(
+        Need(Contact), Need(Power), Need(Velocity), Need(Endurance), Need(Control), Need(Movement),
+        Need(Hands), Need(Arm), Need(Run));
+
+    int Need(int? value) => value ?? throw new InvalidDataException($"character '{Id}' is missing a sub-stat; the validator should have refused it");
 
     /// <summary>Authored stand-up catch reach in feet. Absent takes the table's <c>standUpReachFt</c>.</summary>
     public double? ReachFt { get; set; }
@@ -1045,8 +1087,7 @@ internal sealed class CharacterDto
 
     public Character ToCharacter() => new(
         Id, Name, Faction, Captain,
-        new Stats(Pitch, Bat, Field, Run) { Arm = Arm, Hands = Hands, Contact = Contact, Power = Power,
-            Velocity = Velocity, Movement = Movement, Control = Control, Endurance = Endurance },
+        ToStats(),
         ParseHand(Bats), ParseHand(Throws),
         StarPitch, StarSwing, FieldAbility, Bio, ReachFt)
     {

@@ -75,24 +75,19 @@ public static class StillPose
     public const double CharFov = 34;
     public const double CharPoseT = Motion.SwingContact;
 
-    /// <summary>Torso joint origin in data/art/rig.json. World chest is this × SharedRootScale.Y.</summary>
-    public const double CharUnscaledChestY = 2.95;
+    /// <summary>The chest landmark in data/art/rig.json (<see cref="Silhouette.ChestY"/>). World chest is this × SharedRootScale.Y.</summary>
+    public const double CharUnscaledChestY = Silhouette.ChestY;
     /// <summary>HEAD.z — same landmark as <see cref="SwingPresentation.HeadCenterAtRest"/>.</summary>
     public static readonly double CharUnscaledHeadCenterY = SwingPresentation.HeadCenterAtRest.Y;
     /// <summary>Same radius as <see cref="SwingPresentation.HeadRadius"/>.</summary>
     public const double CharUnscaledHeadRadius = SwingPresentation.HeadRadius;
 
-    public static double CharChestY(ContentCatalog content, string bodyType)
-    {
-        var spec = Silhouette.Proportions(content, bodyType);
-        return CharUnscaledChestY * Silhouette.SharedRootScale(spec).Y;
-    }
+    public static double CharChestY(ContentCatalog content, string bodyType) =>
+        Silhouette.ChestFt(Silhouette.Proportions(content, bodyType));
 
-    public static double CharHeadTopY(ContentCatalog content, string bodyType)
-    {
-        var spec = Silhouette.Proportions(content, bodyType);
-        return (CharUnscaledHeadCenterY + CharUnscaledHeadRadius) * Silhouette.SharedRootScale(spec).Y;
-    }
+    /// <summary>The top of this captain's head, its head build included (<see cref="Silhouette.HeadTopFt"/>).</summary>
+    public static double CharHeadTopY(ContentCatalog content, string bodyType) =>
+        Silhouette.HeadTopFt(Silhouette.Proportions(content, bodyType));
 
     /// <summary>
     /// 3/4 on this captain. Look is the chest from <see cref="Silhouette.Proportions"/>;

@@ -433,7 +433,7 @@ public sealed class StickShapingScenarioTests
     static Character Arm(ContentCatalog content)
     {
         var arm = content.Must("vale");
-        return arm with { Stats = arm.Stats with { Pitch = 5 } };
+        return arm with { Stats = arm.Stats.WithPitch(5) };
     }
 
     /// <summary>

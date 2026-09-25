@@ -227,7 +227,7 @@ public sealed class StarPitchWindowScenarioTests
     AtBatInput Input(string star, double err, bool useStar)
     {
         var arm = _content.Must("vale");
-        arm = arm with { StarPitch = star, Stats = arm.Stats with { Pitch = 5 } };
+        arm = arm with { StarPitch = star, Stats = arm.Stats.WithPitch(5) };
         return new AtBatInput(
             arm, _content.Must("rio"), null, [],
             ChargePitch: false, ChangeupPitch: false, TimingErrorFrames: err,

@@ -4,7 +4,14 @@ Original characters. Factions exist so chemistry has a graph that a player can l
 
 Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Now in data: **6 captains + 18 role players**. Exhibition auto-fills a 9 from the captain, faction mates, then chemistry, and the lineup is a draft: swap the eight, assign gloves (P, C, IF, OF), and hearts and scribbles show chemistry vs the captain (it pays off in the field; both teams start on the same Stars).
 
-Stats are 1–10. They will move.
+Stats are 1–10. Each character authors nine sub-stats; the four bars on the card are derived, the mean of each group rounded half up (spec §2):
+
+- **Bat** = contact, power
+- **Pitch** = pitch power (`velocity`), stamina (`endurance`), control, break (`movement`)
+- **Field** = hands, throw speed (`arm`)
+- **Run** = speed (`run`)
+
+The bars below are what the derived numbers are today; the sub-stats are in "Sub-stats". The values are balance and will move.
 
 ## Factions
 
@@ -107,10 +114,42 @@ Enough to fill two lineups. Full bios later.
 | moss | Moss | Canopy | 4 | 7 | 4 | 3 | Clamber |
 | basil | Basil | Canopy | 5 | 4 | 7 | 5 | Dive |
 
+## Sub-stats
+
+Authored in `data/characters/`. Every row carries all nine; the bars above are derived from them.
+
+| Id | Contact | Power | Pitch power | Stamina | Control | Break | Hands | Throw speed | Speed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ashlord (C) | 10 | 10 | 5 | 5 | 5 | 5 | 3 | 3 | 3 |
+| brondo (C) | 8 | 8 | 5 | 5 | 5 | 5 | 3 | 3 | 4 |
+| fenn (C) | 5 | 5 | 7 | 7 | 7 | 7 | 8 | 8 | 3 |
+| konga (C) | 9 | 9 | 6 | 6 | 6 | 6 | 3 | 3 | 2 |
+| rio (C) | 7 | 7 | 6 | 6 | 6 | 6 | 6 | 6 | 7 |
+| vale (C) | 4 | 4 | 9 | 9 | 9 | 9 | 8 | 8 | 5 |
+| zig (C) | 4 | 4 | 4 | 4 | 4 | 4 | 6 | 6 | 9 |
+| nico | 5 | 5 | 5 | 5 | 5 | 5 | 7 | 7 | 7 |
+| pip | 3 | 3 | 7 | 7 | 7 | 7 | 5 | 5 | 8 |
+| marlow | 6 | 6 | 4 | 4 | 4 | 4 | 6 | 6 | 6 |
+| frost | 2 | 2 | 8 | 8 | 8 | 8 | 6 | 6 | 6 |
+| lace | 5 | 5 | 6 | 6 | 6 | 6 | 8 | 8 | 4 |
+| dart | 3 | 3 | 3 | 3 | 3 | 3 | 5 | 5 | 9 |
+| boom | 8 | 8 | 4 | 4 | 4 | 4 | 2 | 2 | 5 |
+| vine | 6 | 6 | 3 | 3 | 3 | 3 | 8 | 8 | 4 |
+| cinder | 8 | 8 | 4 | 4 | 4 | 4 | 4 | 4 | 5 |
+| grit | 6 | 6 | 5 | 5 | 5 | 5 | 6 | 6 | 5 |
+| hex | 5 | 5 | 6 | 6 | 6 | 6 | 4 | 4 | 6 |
+| soot | 4 | 4 | 6 | 6 | 6 | 6 | 5 | 5 | 6 |
+| gull | 4 | 4 | 4 | 4 | 4 | 4 | 7 | 7 | 8 |
+| pewter | 3 | 3 | 7 | 7 | 7 | 7 | 7 | 7 | 4 |
+| jester | 5 | 5 | 3 | 3 | 3 | 3 | 5 | 5 | 8 |
+| nugget | 7 | 7 | 5 | 5 | 5 | 5 | 2 | 2 | 5 |
+| moss | 7 | 7 | 4 | 4 | 4 | 4 | 4 | 4 | 3 |
+| basil | 4 | 4 | 5 | 5 | 5 | 5 | 7 | 7 | 5 |
+
 ## Authorship rules
 
 - One defensive verb each.
-- No stat line with three 8+ numbers. Specialization is the joke.
+- At most one bar at 9 or higher per character (CH-08); the validator refuses a second. Specialization is the joke.
 - Color variants (if any) are palette swaps of role players, not new kits.
 - Captains are the only unique Star Pitch/Swing. Do not secretly give role players cutscene specials.
 - Names must pass a 10-second “not a Mario character” test. If it sounds like Luigi, change it.

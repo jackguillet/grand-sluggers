@@ -16,7 +16,7 @@ public class BaseballMotionContractTests
     public void HumanRigSeparatesWristsAnklesAndPelvisAndRemainsSymmetric()
     {
         var rig = Art("rig.json");
-        Assert.Equal(2, rig["revision"]!.GetValue<int>());
+        Assert.Equal(3, rig["revision"]!.GetValue<int>());
         var joints = rig["joints"]!.AsArray().ToDictionary(j => j!["name"]!.GetValue<string>(), j => j!);
         var parents = new Dictionary<string, string>
         {
@@ -43,11 +43,12 @@ public class BaseballMotionContractTests
                 joints["r"+name[1..]][endpoint]![axis]!.GetValue<double>(), 8);
         var anatomy=rig["anatomy"]!;
         var height=anatomy["height"]!.GetValue<double>();
-        Assert.InRange(height / anatomy["headDiameter"]!.GetValue<double>(), 5.0, 6.0);
-        Assert.InRange(joints["pelvis"]["head"]![2]!.GetValue<double>()/height, .42, .50);
+        // The four-head toy (CH-02): short legs under a round body and a big head.
+        Assert.InRange(height / anatomy["headDiameter"]!.GetValue<double>(), 3.8, 4.2);
+        Assert.InRange(joints["pelvis"]["head"]![2]!.GetValue<double>()/height, .30, .38);
         Assert.Equal(SwingPresentation.HeadRadius, anatomy["headDiameter"]!.GetValue<double>()/2, 8);
         Assert.Equal(SwingPresentation.HeadCenterAtRest.Y, anatomy["headCenter"]![2]!.GetValue<double>(), 8);
-        Assert.Equal(StillPose.CharUnscaledChestY, joints["torso"]["head"]![2]!.GetValue<double>(), 8);
+        Assert.Equal(StillPose.CharUnscaledChestY, anatomy["chest"]![2]!.GetValue<double>(), 8);
     }
 
     [Theory]

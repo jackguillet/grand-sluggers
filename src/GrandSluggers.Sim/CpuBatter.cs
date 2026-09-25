@@ -75,7 +75,7 @@ public sealed class CpuBatter
         var power = Batter.Stats.Power;
         // Commit from what can be seen: the read pitch replaces the final one for every decision below.
         pitch = ReadPitch(pitch, breakAtCommit);
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Rules, Pitcher.StarPitch);
+        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Control, Rules, Pitcher.StarPitch);
         var (cx, cy) = PitchFlight.Crossing(pitch, Rules, Pitcher.StarPitch);
         var zone = ZoneClass(cx, cy, inZone, c);
         var take = new SwingCommand(false, 0, 0, false);
@@ -145,7 +145,7 @@ public sealed class CpuBatter
         if (pitch.BreakX == 0) return pitch;
         var airSec = PitchFlight.AirSeconds(PitchSpeedMph(pitch), Rules);
         var commitSec = Math.Max(0, AtBatMotion.CpuDecisionTime(airSec, Rules));
-        var soFar = Math.Min(Math.Abs(pitch.BreakX), PitchFlight.BreakReach(Pitcher.Stats.Pitch, commitSec, Rules));
+        var soFar = Math.Min(Math.Abs(pitch.BreakX), PitchFlight.BreakReach(Pitcher.Stats.Control, commitSec, Rules));
         return pitch with { BreakX = Math.Sign(pitch.BreakX) * soFar };
     }
 

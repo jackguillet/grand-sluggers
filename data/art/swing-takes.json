@@ -1,5 +1,5 @@
 {
-  "notes": "Shared human-proportion default. Shoulder-height ready and finish, measured contact band, independent wrist flex. Data drives the DCC; C# keys mirror the measured bat contract. The ready barrel retains the beside-head lean from #560, with hands and grip raised 0.65 units for the revision-2 body.",
+  "notes": "Shared human-proportion default. Shoulder-height ready and finish, measured contact band, independent wrist flex. Data drives the DCC; C# keys mirror the measured bat contract. The ready barrel retains the beside-head lean from #560, with hands and grip raised 0.65 units for the revision-2 body. Revision 3 (the four-head toy) moves hands and grip rigidly with the posed shoulders and sets each key's lift to the measured head drop.",
   "contactAt": 0.3,
   "finishAt": 0.6,
   "batHeadClearance": 0.1,
@@ -12,17 +12,17 @@
           "t": 0.0,
           "leftHand": [
             0.6485,
-            3.1602,
+            3.1287,
             -0.5863
           ],
           "rightHand": [
             0.8455,
-            3.5838,
+            3.5523,
             -0.7341
           ],
           "grip": [
             0.56,
-            2.97,
+            2.9385,
             -0.52
           ],
           "barrel": [
@@ -51,7 +51,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.2,
+            "lift": 0.04,
             "lWrist": {
               "flex": 8,
               "abduct": 0,
@@ -68,17 +68,17 @@
           "t": 0.15,
           "leftHand": [
             0.304,
-            2.4492,
+            2.4353,
             0.0776
           ],
           "rightHand": [
             0.2551,
-            2.7526,
+            2.7387,
             -0.304
           ],
           "grip": [
             0.326,
-            2.313,
+            2.2991,
             0.249
           ],
           "barrel": [
@@ -107,7 +107,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.2,
+            "lift": 0.08,
             "lWrist": {
               "flex": 8,
               "abduct": 0,
@@ -124,17 +124,17 @@
           "t": 0.24,
           "leftHand": [
             0.1439,
-            1.7621,
+            1.6912,
             -0.1275
           ],
           "rightHand": [
             0.3553,
-            1.7645,
+            1.6936,
             -0.5695
           ],
           "grip": [
             0.049,
-            1.761,
+            1.6901,
             0.071
           ],
           "barrel": [
@@ -163,7 +163,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.18000000000000002,
+            "lift": 0.03,
             "lWrist": {
               "flex": 0,
               "abduct": 0,
@@ -180,17 +180,17 @@
           "t": 0.3,
           "leftHand": [
             0.1024,
-            1.8781,
+            1.8072,
             -0.2868
           ],
           "rightHand": [
             0.4841,
-            1.8915,
+            1.8206,
             -0.5937
           ],
           "grip": [
             -0.069,
-            1.872,
+            1.8011,
             -0.149
           ],
           "barrel": [
@@ -219,7 +219,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.16,
+            "lift": -0.06,
             "lWrist": {
               "flex": 0,
               "abduct": 0,
@@ -236,17 +236,17 @@
           "t": 0.5,
           "leftHand": [
             -0.0588,
-            2.9248,
+            2.8533,
             -0.2694
           ],
           "rightHand": [
             -0.3234,
-            3.0914,
+            3.0199,
             -0.6467
           ],
           "grip": [
             0.06,
-            2.85,
+            2.7785,
             -0.1
           ],
           "barrel": [
@@ -275,7 +275,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.14,
+            "lift": -0.01,
             "lWrist": {
               "flex": 16,
               "abduct": 0,
@@ -292,17 +292,17 @@
           "t": 0.6,
           "leftHand": [
             -0.1359,
-            3.3252,
+            3.1024,
             0.0464
           ],
           "rightHand": [
             -0.2159,
-            3.4928,
+            3.27,
             -0.407
           ],
           "grip": [
             -0.1,
-            3.25,
+            3.0272,
             0.25
           ],
           "barrel": [
@@ -331,7 +331,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.14,
+            "lift": -0.01,
             "lWrist": {
               "flex": 16,
               "abduct": 0,
@@ -354,17 +354,17 @@
           "t": 0.0,
           "leftHand": [
             0.7371,
-            3.3914,
+            3.3734,
             -0.4519
           ],
           "rightHand": [
             0.8197,
-            3.8177,
+            3.7997,
             -0.679
           ],
           "grip": [
             0.7,
-            3.2,
+            3.182,
             -0.35
           ],
           "barrel": [
@@ -393,7 +393,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.2,
+            "lift": 0.03,
             "lWrist": {
               "flex": 8,
               "abduct": 0,
@@ -410,17 +410,17 @@
           "t": 0.075,
           "leftHand": [
             0.6485,
-            3.1602,
+            3.1287,
             -0.5863
           ],
           "rightHand": [
             0.8455,
-            3.5838,
+            3.5523,
             -0.7341
           ],
           "grip": [
             0.56,
-            2.97,
+            2.9385,
             -0.52
           ],
           "barrel": [
@@ -449,7 +449,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.2,
+            "lift": 0.04,
             "lWrist": {
               "flex": 8,
               "abduct": 0,
@@ -466,17 +466,17 @@
           "t": 0.15,
           "leftHand": [
             0.304,
-            2.4492,
+            2.4353,
             0.0776
           ],
           "rightHand": [
             0.2551,
-            2.7526,
+            2.7387,
             -0.304
           ],
           "grip": [
             0.326,
-            2.313,
+            2.2991,
             0.249
           ],
           "barrel": [
@@ -505,7 +505,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.2,
+            "lift": 0.08,
             "lWrist": {
               "flex": 8,
               "abduct": 0,
@@ -522,17 +522,17 @@
           "t": 0.24,
           "leftHand": [
             0.1439,
-            1.7621,
+            1.6912,
             -0.1275
           ],
           "rightHand": [
             0.3553,
-            1.7645,
+            1.6936,
             -0.5695
           ],
           "grip": [
             0.049,
-            1.761,
+            1.6901,
             0.071
           ],
           "barrel": [
@@ -561,7 +561,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.18000000000000002,
+            "lift": 0.03,
             "lWrist": {
               "flex": 0,
               "abduct": 0,
@@ -578,17 +578,17 @@
           "t": 0.3,
           "leftHand": [
             0.1024,
-            1.8781,
+            1.8072,
             -0.2868
           ],
           "rightHand": [
             0.4841,
-            1.8915,
+            1.8206,
             -0.5937
           ],
           "grip": [
             -0.069,
-            1.872,
+            1.8011,
             -0.149
           ],
           "barrel": [
@@ -617,7 +617,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.16,
+            "lift": -0.06,
             "lWrist": {
               "flex": 0,
               "abduct": 0,
@@ -634,17 +634,17 @@
           "t": 0.5,
           "leftHand": [
             -0.1538,
-            3.1923,
+            3.1078,
             -0.2274
           ],
           "rightHand": [
             -0.4963,
-            3.3978,
+            3.3133,
             -0.5112
           ],
           "grip": [
             0.0,
-            3.1,
+            3.0155,
             -0.1
           ],
           "barrel": [
@@ -673,7 +673,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.12000000000000001,
+            "lift": -0.02,
             "lWrist": {
               "flex": 16,
               "abduct": 0,
@@ -690,17 +690,17 @@
           "t": 0.6,
           "leftHand": [
             -0.1118,
-            3.4,
+            3.1641,
             -0.0167
           ],
           "rightHand": [
             -0.0267,
-            3.4,
+            3.1641,
             -0.4992
           ],
           "grip": [
             -0.15,
-            3.4,
+            3.1641,
             0.2
           ],
           "barrel": [
@@ -729,7 +729,7 @@
               "abduct": 0.0,
               "twist": 0.0
             },
-            "lift": -0.12000000000000001,
+            "lift": -0.02,
             "lWrist": {
               "flex": 16,
               "abduct": 0,

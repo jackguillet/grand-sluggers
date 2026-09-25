@@ -144,7 +144,8 @@ namespace GrandSluggers.EditorTools
             imp.avatarSetup = park ? ModelImporterAvatarSetup.CreateFromThisModel : ModelImporterAvatarSetup.NoAvatar;
             imp.importAnimation = clip;
             imp.addCollider = false;
-            imp.importBlendShapes = false;
+            // The body's build (head / arms / torso) is shape keys: SharedRig sets them from Silhouette.BuildWeights.
+            imp.importBlendShapes = rig && !sharedExtras;
             // The common-prop validator measures the imported bat submeshes,
             // including the Resources player copy. Keep this small kit readable
             // so a future FBX origin recenter cannot evade build validation.

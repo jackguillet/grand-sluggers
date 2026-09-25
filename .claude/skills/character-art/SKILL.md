@@ -36,7 +36,7 @@ Art sessions walk named checkpoints. Name the stage, stop at its checkpoint, and
 
 | Wrong thing | Fix in |
 | --- | --- |
-| a body proportion | `Silhouette.Proportions` (root scale) or `tools/blender/hero_shared_blockout.py` |
+| a body proportion | `Silhouette.Proportions` (Height, Width: root scale; Head, Arms, Torso: the build shape keys, `rig.json` `build`) or `tools/blender/hero_shared_blockout.py`. Judge it in `tools/dcc-still.sh lineup` |
 | a face, toe, landmark | `hero_shared_blockout.py` |
 | a captain's hat, snout, cape | catalog slot in `extras.json` / `hero_shared_extras.py`. Do not list it on a skin until it reads as a toy (#687) |
 | a pose or timing | `hero_shared_takes.py` pose table; markers in `Motion.Clips` and `data/art/clips.json` |

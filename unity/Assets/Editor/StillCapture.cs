@@ -16,22 +16,30 @@ namespace GrandSluggers.EditorTools
     /// Consumes <see cref="StillRequest"/> from unity/Temp in the editor's Play mode (#1043). Editor-only: a shipped player
     /// carries no capture and polls nothing. <see cref="StillCaptureHook"/> creates it only when Play starts with a request
     /// file waiting (the Grand Sluggers menu and <c>tools/still-gate*.sh</c> write one). Camera.Render PNGs — world only,
-    /// no OnGUI — so HUD-off stills are honest.
+    /// no OnGUI — so HUD-off stills are honest. It is not a component: Unity attaches only runtime-assembly classes, so it
+    /// steps and runs its coroutine on a <see cref="PlayHost"/>.
     /// </summary>
-    public sealed class StillCapture : MonoBehaviour
+    public sealed class StillCapture
     {
+        readonly PlayHost _host;
         MatchDirector _play;
         StillRequest _req;
         bool _ran;
         string _temp = "";
         string _loadError = "";
 
-        void Start() => _temp = TempDir();
+        public StillCapture(PlayHost host)
+        {
+            _host = host;
+            _temp = TempDir();
+            host.Tick += Update;
+            host.Disabled += OnDisable;
+        }
 
         void Update()
         {
             if (_ran || _req != null) return;
-            if (_play == null) _play = FindAnyObjectByType<MatchDirector>();
+            if (_play == null) _play = UnityEngine.Object.FindAnyObjectByType<MatchDirector>();
             // The director's catalog declares the parks, so the gate waits the
             // frame it takes to load: a park id the catalog does not have is
             // refused by name, not captured at the default park.
@@ -49,7 +57,7 @@ namespace GrandSluggers.EditorTools
                 return;
             }
             _play.CaptureMuteHud = _req.HudOff;
-            StartCoroutine(Run());
+            _host.StartCoroutine(Run());
         }
 
         void OnDisable()
@@ -78,7 +86,7 @@ namespace GrandSluggers.EditorTools
             catch (Exception ex)
             {
                 WriteDone(_temp, outDir, false, files, swingMetrics, park, _req.Night, ex.Message);
-                enabled = false;
+                _host.enabled = false;
                 yield break;
             }
 
@@ -160,7 +168,7 @@ namespace GrandSluggers.EditorTools
                 files, swingMetrics, park, _req.Night, doneError);
             try { File.Delete(StillRequest.RequestPath(_temp)); }
             catch { /* leftover request is ok */ }
-            enabled = false;
+            _host.enabled = false;
         }
 
         static void Capture(Camera cam, string path, int w, int h)
@@ -177,9 +185,9 @@ namespace GrandSluggers.EditorTools
             cam.targetTexture = prev;
             RenderTexture.active = null;
             File.WriteAllBytes(path, ImageConversion.EncodeToPNG(tex));
-            Destroy(tex);
+            UnityEngine.Object.Destroy(tex);
             rt.Release();
-            Destroy(rt);
+            UnityEngine.Object.Destroy(rt);
         }
 
         static void WriteDone(string temp, string outDir, bool ok, List<string> files, List<string> swingMetrics,
@@ -220,7 +228,7 @@ namespace GrandSluggers.EditorTools
             if (state != PlayModeStateChange.EnteredPlayMode) return;
             var temp = System.IO.Path.Combine(System.IO.Directory.GetParent(Application.dataPath)!.FullName, "Temp");
             if (!File.Exists(StillRequest.RequestPath(temp))) return;
-            new GameObject("Still Capture").AddComponent<StillCapture>();
+            _ = new StillCapture(new GameObject("Still Capture").AddComponent<PlayHost>());
         }
     }
 }

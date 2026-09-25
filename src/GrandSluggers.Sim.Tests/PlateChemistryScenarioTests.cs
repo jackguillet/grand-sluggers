@@ -148,7 +148,7 @@ public sealed class PlateChemistryScenarioTests
     Character Hitter(int contact, Hand bats)
     {
         var who = _content.Must("pip");
-        return who with { Bats = bats, Stats = new Stats(who.Stats.Pitch, 5, who.Stats.Field, 5) { Contact = contact } };
+        return who with { Bats = bats, Stats = who.Stats with { Contact = contact, Power = 5, Run = 5 } };
     }
 
     static AtBatInput Swing(Character pitcher, Character batter, BatItem? bat, IReadOnlyList<Character> runners,
