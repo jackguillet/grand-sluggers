@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using GrandSluggers.Sim;
 using GrandSluggers.UnityClient;
 using UnityEditor;
@@ -15,7 +14,6 @@ namespace GrandSluggers.EditorTools
     public static class FieldingPursuitGate
     {
         const string Pending = "GrandSluggers.FieldingPursuitGate";
-        const BindingFlags Hidden = BindingFlags.Instance | BindingFlags.NonPublic;
         const float Dt = 1f / 60f;
         static FieldingPursuitGate() { EditorApplication.update += Update; }
 
@@ -42,7 +40,7 @@ namespace GrandSluggers.EditorTools
             }
             if (!EditorApplication.isPlaying) return;
             var play = UnityEngine.Object.FindAnyObjectByType<MatchDirector>();
-            if (play == null || Get<Match>(play, "_match") == null) return;
+            if (play == null || play._match == null) return;
             SessionState.SetBool(Pending, false);
             var evidence = new Evidence
             {
@@ -83,11 +81,11 @@ namespace GrandSluggers.EditorTools
                 phase = "initializing"
             };
             evidence.activeCase = entry;
-            var content = Get<ContentCatalog>(play, "_content");
+            var content = play._content;
             var match = Match.Slice(content, parkId: "harbor-diamond", innings: 3, seed: 17);
-            Set(play, "_match", match);
-            Invoke(play, "BeginSet");
-            Set(play, "_gateHold", true);
+            play._match = match;
+            play.BeginSet();
+            play._gateHold = true;
 
             var pitch = new PitchCommand("fastball", 0, false);
             var swing = new SwingCommand(true, 0, 0, false);
@@ -107,20 +105,19 @@ namespace GrandSluggers.EditorTools
                     preview.LandingX, preview.LandingZ, false, false)
                 : match.ResolveFielding(hit, preview);
 
-            Set(play, "_pitch", pitch);
-            Set(play, "_swing", swing);
-            Set(play, "_pending", hit);
-            Set(play, "_preview", preview);
-            Set(play, "_cpuField", field);
-            Set(play, "_playerFielding", false);
-            Invoke(play, "InitGloves");
-            Invoke(play, "StartFly", hit);
+            play._pitch = pitch;
+            play._swing = swing;
+            play._pending = hit;
+            play._preview = preview;
+            play._cpuField = field;
+            play._playerFielding = false;
+            play.StartFly(hit);
 
-            var unityPath = Get<Sample[]>(play, "_path");
+            var unityPath = play._path;
             var map = FieldingResolver.Assign(match.Defense, match.Pitcher);
-            var initialPos = Get<string>(play, "_glovePos");
+            var initialPos = play._glovePos;
             var initialWho = map[initialPos];
-            var initialAt = Get<Dictionary<string, (double X, double Z)>>(play, "_gloveAt")[initialPos];
+            var initialAt = ((Dictionary<string, (double X, double Z)>)play._gloveAt)[initialPos];
             var initialSpeed = FieldingResolver.ChaseSpeedFt(initialWho, preview.Frozen, match.Rules);
             var initialRoute = FieldingPursuit.Plan(
                 preview, match.Park, unityPath, 0, initialAt.X, initialAt.Z, initialSpeed, match.Rules);
@@ -148,18 +145,18 @@ namespace GrandSluggers.EditorTools
             var deadline = Math.Max(12, BallFlight.RestTime(unityPath) + 8);
             while (Phase(play) == "InPlay" && elapsed < deadline)
             {
-                var beforeOwner = Get<string>(play, "_glovePos");
+                var beforeOwner = play._glovePos;
                 var beforeAt = new Dictionary<string, (double X, double Z)>(
-                    Get<Dictionary<string, (double X, double Z)>>(play, "_gloveAt"));
-                var beforeCaught = Get<bool>(play, "_caught") || Get<bool>(play, "_buddy");
-                Invoke(play, "TickLive", Dt);
+                    ((Dictionary<string, (double X, double Z)>)play._gloveAt));
+                var beforeCaught = play._caught || play._buddy;
+                play.TickLive(Dt);
                 elapsed += Dt;
                 tick++;
 
-                var afterOwner = Get<string>(play, "_glovePos");
-                var afterX = Get<double>(play, "_fx");
-                var afterZ = Get<double>(play, "_fz");
-                var afterCaught = Get<bool>(play, "_caught") || Get<bool>(play, "_buddy");
+                var afterOwner = play._glovePos;
+                var afterX = play._fx;
+                var afterZ = play._fz;
+                var afterCaught = play._caught || play._buddy;
                 if (!beforeCaught && beforeAt.TryGetValue(afterOwner, out var before))
                 {
                     var step = Diamond.Dist(before.X, before.Z, afterX, afterZ);
@@ -176,16 +173,16 @@ namespace GrandSluggers.EditorTools
                 if (!beforeCaught && afterCaught)
                 {
                     pickedUp = true;
-                    var ball = Get<Vector3>(play, "_ball");
+                    var ball = play._ball;
                     entry.pickupDistance = Diamond.Dist(afterX, afterZ, ball.x, ball.z);
-                    var catchWindow = (double)typeof(MatchDirector).GetMethod("CatchWindow", Hidden)!.Invoke(play, new object[] { map });
+                    var catchWindow = match.LivePlay.CatchWindowFt;
                     Require(entry.pickupDistance <= catchWindow + 0.5,
                         spec.Name + " acquired the ball outside its catch window.");
                 }
 
                 if (tick == 1 || tick % 6 == 0 || afterCaught || Phase(play) != "InPlay")
                 {
-                    var ball = Get<Vector3>(play, "_ball");
+                    var ball = play._ball;
                     var who = map.TryGetValue(afterOwner, out var active) ? active : preview.Fielder;
                     var speed = FieldingResolver.ChaseSpeedFt(who, preview.Frozen, match.Rules);
                     var route = FieldingPursuit.Plan(
@@ -218,7 +215,7 @@ namespace GrandSluggers.EditorTools
             Require(Phase(play) == "Result", spec.Name + " did not reach Result: " + Phase(play));
             if (spec.Ground && initialRoute.Reachable)
                 Require(pickedUp, spec.Name + " reachable grounder never reached a glove.");
-            var result = Get<PlayEvent>(play, "_last");
+            var result = play._last;
             Require(result != null, spec.Name + " produced no play result.");
             entry.result = result.Kind.ToString();
             if (spec.Wall)
@@ -239,10 +236,7 @@ namespace GrandSluggers.EditorTools
             File.WriteAllText(output, JsonUtility.ToJson(evidence, true));
         }
 
-        static string Phase(MatchDirector p) => Get<object>(p, "_phase").ToString();
-        static T Get<T>(MatchDirector p, string name) => (T)typeof(MatchDirector).GetField(name, Hidden)!.GetValue(p);
-        static void Set(MatchDirector p, string name, object value) => typeof(MatchDirector).GetField(name, Hidden)!.SetValue(p, value);
-        static void Invoke(MatchDirector p, string name, params object[] args) => typeof(MatchDirector).GetMethod(name, Hidden)!.Invoke(p, args);
+        static string Phase(MatchDirector p) => p._phase.ToString();
         static void Require(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
 
         readonly struct Spec

@@ -6,7 +6,7 @@ namespace GrandSluggers.UnityClient
     /// <summary>Named shots from data. CameraRig is the motor; this is the shot list.</summary>
     public sealed class CameraDirector : MonoBehaviour
     {
-        CameraRig _rig;
+        internal CameraRig _rig;
         CameraShots _shots;
 
         public string Shot { get; private set; } = "title";

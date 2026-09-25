@@ -55,7 +55,7 @@ namespace GrandSluggers.UnityClient
 
         bool _dressed;
         CameraShots _shots;
-        Park _park;
+        internal Park _park;
         bool _night;
         FieldKit _field;
         Transform _awayTens, _awayOnes, _homeTens, _homeOnes, _innDigit;

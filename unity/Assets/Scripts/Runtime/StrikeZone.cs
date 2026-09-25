@@ -6,7 +6,7 @@ namespace GrandSluggers.UnityClient
     public sealed class StrikeZone : MonoBehaviour
     {
         Transform _root;
-        Transform _target;
+        internal Transform _target;
 
         public void Build(Transform parent)
         {
@@ -71,7 +71,7 @@ namespace GrandSluggers.UnityClient
         }
 
         const float AimTellRadius = 0.2f;
-        Transform _aim;
+        internal Transform _aim;
 
         /// <summary>Place the aim tell at a world crossing on the plate plane, or hide it.</summary>
         public void AimTell(bool on, float x, float y)

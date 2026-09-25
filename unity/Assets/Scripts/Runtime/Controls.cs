@@ -9,6 +9,9 @@ namespace GrandSluggers.UnityClient
     public static class Controls
     {
         static DeviceSeats _devices = new(null, null);
+
+        /// <summary>Seat two known devices directly: the editor input gate's fixture (#1044), never play.</summary>
+        internal static void UseDevices(DeviceSeats seats) => _devices = seats;
         static readonly ControllerInput[] _input = { new(), new() };
         static readonly StickPlay.Pad[] _pads = new StickPlay.Pad[2];
         static float _rumbleT, _rumbleLow, _rumbleHigh;
