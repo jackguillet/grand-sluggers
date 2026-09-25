@@ -309,6 +309,10 @@ and at night before the sitting, with `tools/still-gate.sh --park <id>` and `--n
 | Rooftop City | billboards, the AC unit | a ball under a sign pays a star; a ball into the AC unit bounces off |
 | Canopy Yard | barrels, trees, the climb wall | a grounder into a barrel is fired out of another; balls come off the trees; a Clamber fielder climbs to rob |
 | Ember Keep | lava pits, the breath, the statue | a fielder through a pit or the breath slows for 3 s; the breath reaches farther at night; balls come off the statue |
+| Stillwater Marsh | lily pads drifting on the water, damp air | a roller or a short hop into a pad caroms off it while a fly passes over; the pads drift slowly on the play clock; a fly carries a little less; at night only the mist beyond the fence changes |
+| Coconut Cove | a sand outfield, the tide at both corners, the sea breeze | a grounder rolls shorter and bounces lower on the sand; while the wave is in, a roller in a corner drifts toward the foul line (never across it) and a fly or a body is untouched; the breeze pushes toward right; at night the high tide reaches farther in |
+| Sunscorch Mesa | hard-pan dirt, two dust devils, canyon walls | a fly that passes through a devil is pushed sideways (WHOOSH!) once, while a grounder or a body is untouched; the devils wander on a clock; dry air carries a little farther; at night there are no devils |
+| Summit Park | deep fences, thin air, the turning wind | a fly carries farther yet the deep fences hold it; the wind turns and changes speed each inning (3–14 mph) and the line under the scorebug names it; night gusts are stronger; with no hazards, hazards off changes nothing |
 
 For each park, the sitting answers:
 
