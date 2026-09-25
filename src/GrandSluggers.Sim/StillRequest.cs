@@ -81,11 +81,13 @@ public sealed class StillRequest
         return id;
     }
 
-    public string ResolvedAway()
+    public string ResolvedAway() => OpponentFor(ResolvedHome());
+
+    /// <summary>The captain opposite <paramref name="batter"/>: the request's away, or the one that is not the batter.</summary>
+    public string OpponentFor(string batter)
     {
         var away = string.IsNullOrWhiteSpace(Away) ? "ashlord" : Away.Trim().ToLowerInvariant();
-        var home = ResolvedHome();
-        return away == home ? "brondo" : away;
+        return away == batter ? "brondo" : away;
     }
 
     /// <summary>

@@ -245,7 +245,6 @@ namespace GrandSluggers.UnityClient
             _atBat = new AtBatDirector(this);
             _inPlay = new InPlayDirector(this);
             _actors = new ActorDirector(this);
-            StillCapture.Attach(this);
         }
 
         void Update()
@@ -394,7 +393,7 @@ namespace GrandSluggers.UnityClient
             var stamp = _phase == Phase.Result && _last != null && PlayStamp.ShowsAtTime(_last)
                 ? banner : "";
             if (!string.IsNullOrEmpty(stamp)) banner = "";
-            var mutePlay = _forceMuteHud || StillCapture.ForceMute;
+            var mutePlay = _forceMuteHud || CaptureMuteHud;
             if (_match.Paused && _pauseHowTo)
             {
                 HudView.Pause(_pauseItem, true, _pausePage);
