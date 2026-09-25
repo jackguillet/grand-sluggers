@@ -29,11 +29,11 @@ namespace GrandSluggers.UnityClient
             GUI.matrix = Matrix4x4.Scale(new Vector3(Screen.width / 1280f, Screen.height / 800f, 1));
             Fill(new Rect(0, 0, 1280, 800), Ink);
             var team = lineup.Step == LineupStep.TeamSetup;
-            Label(24, 24, 860, 22, team ? "03  /  CHOOSE YOUR TEAM" : "04  /  SET YOUR LINEUP", _small);
-            Label(24, 54, 1000, 46, team ? "Build your nine" : "Batting order & field positions", _title);
+            Label(24, 24, 860, 22, CarnivalFront.TeamStep(team), _small);
+            Label(24, 54, 1000, 46, CarnivalFront.TeamTitle(team), _title);
             Label(24, 108, 880, 26, lineup.Help, _body);
-            Label(936, 32, 320, 24, match == null ? "EXHIBITION" : match.Park.Name.ToUpperInvariant(), _small);
-            Label(936, 60, 320, 26, "MATCH SETTINGS FOLLOW LINEUP", _small);
+            Label(936, 32, 320, 24, match == null ? CarnivalFront.ExhibitionTag : match.Park.Name.ToUpperInvariant(), _small);
+            Label(936, 60, 320, 26, CarnivalFront.SettingsFollow, _small);
             var p1 = Inspection(lineup, LineupSeat.Pad1);
             var p2 = Inspection(lineup, LineupSeat.Pad2);
             if (team)
@@ -55,20 +55,18 @@ namespace GrandSluggers.UnityClient
             PlayerCard(lineup, true, lineup.HomeSeat == LineupSeat.Pad2 ? p2 : lineup.HomeSeat == LineupSeat.Pad1 ? p1 : lineup.HomeCaptain);
             PlayerCard(lineup, false, lineup.AwaySeat == LineupSeat.Pad2 ? p2 : lineup.AwaySeat == LineupSeat.Pad1 ? p1 : lineup.AwayCaptain);
             Fill(new Rect(24, 716, 1232, 64), FrontBoardStyle.Panel);
-            Button(LineupLayout.BackButton, team ? "East  Captains" : lineup.IsReady(LineupSeat.Pad1) ? "East  Unready"
-                : lineup.HasPick(LineupSeat.Pad1) ? "East  Cancel" : "East  Back", false);
+            Button(LineupLayout.BackButton, CarnivalFront.BackButton(team, lineup.IsReady(LineupSeat.Pad1), lineup.HasPick(LineupSeat.Pad1)), false);
             if (team)
             {
-                Button(LineupLayout.FillButton, "RB  Fill team", false);
+                Button(LineupLayout.FillButton, CarnivalFront.FillButton, false);
                 Label(390, 716, 605, 52, CarnivalFront.LineupTeamHelp, _body);
             }
             else Label(206, 716, 785, 52, CarnivalFront.LineupPositionsHelp, _body);
-            Button(LineupLayout.ContinueButton, team ? "South  Continue" : lineup.IsReady(LineupSeat.Pad1)
-                ? "P1 READY · waiting" : "North  Ready →", team ? lineup.Ready : !lineup.HasPick(LineupSeat.Pad1));
+            Button(LineupLayout.ContinueButton, CarnivalFront.ContinueButton(team, lineup.IsReady(LineupSeat.Pad1)), team ? lineup.Ready : !lineup.HasPick(LineupSeat.Pad1));
             GUI.matrix = old;
         }
 
-        static string SeatName(LineupSeat seat) => seat == LineupSeat.Cpu ? "CPU" : seat == LineupSeat.Pad1 ? "P1" : "P2";
+        static string SeatName(LineupSeat seat) => CarnivalFront.SeatName(seat);
         static Character Inspection(LineupScreens lineup, LineupSeat seat) => lineup.InspectedBy(seat);
         static void TeamLabel(LineupScreens lineup, bool home, float y)
         {
@@ -119,17 +117,17 @@ namespace GrandSluggers.UnityClient
                 if (on) Fill(r, FrontBoardStyle.Raised);
                 if (one || picked) Border(r, picked ? Color.white : Gold, picked ? 4 : 3);
                 if (two) Border(new Rect(r.x + (one ? 4 : 0), r.y + (one ? 4 : 0), r.width - (one ? 8 : 0), r.height - (one ? 8 : 0)), FrontBoardStyle.Blue, 3);
-                var mark = picked ? "PICKED" : order ? (i + 1).ToString("00") : field ? Diamond.Order[i]
-                    : focus == LineupFocus.Pool ? LineupLayout.TeamMark(who) : (i + 1).ToString("00") + (who?.Captain == true ? " · C" : "");
+                var mark = picked ? CarnivalFront.Picked : order ? (i + 1).ToString("00") : field ? Diamond.Order[i]
+                    : focus == LineupFocus.Pool ? LineupLayout.TeamMark(who) : (i + 1).ToString("00") + (who?.Captain == true ? CarnivalFront.CaptainMark : "");
                 Label(r.x, r.y + 1, r.width, 16, mark, _mark);
                 Portrait(who, new Rect(r.x + 6, r.y + 15, r.width - 12, r.height - 37));
                 if (who == null) Label(r.x, r.y + 14, r.width, r.height - 35, "+", _mark);
-                Label(r.x + 2, r.yMax - 22, r.width - 4, 22, who?.Name ?? "OPEN", field ? _fieldName : _mark);
+                Label(r.x + 2, r.yMax - 22, r.width - 4, 22, who?.Name ?? CarnivalFront.OpenSlot, field ? _fieldName : _mark);
                 if (one || two)
                 {
                     var badge = new Rect(r.xMax - 25, r.y + 14, 25, two && one ? 28 : 15);
                     Fill(badge, Ink);
-                    Label(badge.x, badge.y, badge.width, badge.height, one && two ? "P1\nP2" : one ? "P1" : "P2", _mark);
+                    Label(badge.x, badge.y, badge.width, badge.height, CarnivalFront.SeatBadge(one, two), _mark);
                 }
             }
         }
@@ -146,14 +144,14 @@ namespace GrandSluggers.UnityClient
             Label(r.x + 12, r.y, r.width - 24, 30, CarnivalFront.LineupCardCaption(seat, home, ready), _badge);
             if (who == null)
             {
-                Label(r.x + 18, r.y + 88, r.width - 36, 60, "Move to a player\nto inspect their card.", _body);
+                Label(r.x + 18, r.y + 88, r.width - 36, 60, CarnivalFront.InspectHint, _body);
                 return;
             }
             var card = CharacterCard.Of(who);
             Label(r.x + 14, r.y + 39, r.width - 28, 30, card.Name.ToUpperInvariant(), _cardName);
             Portrait(who, new Rect(r.x + 14, r.y + 78, 132, 132));
             var values = new[] { card.Stats.Bat, card.Stats.Pitch, card.Stats.Field, card.Stats.Run };
-            var labels = new[] { "BAT", "PIT", "FLD", "RUN" };
+            var labels = CarnivalFront.RowStats;
             for (var i = 0; i < values.Length; i++)
             {
                 var y = r.y + 81 + i * 30;
@@ -173,7 +171,7 @@ namespace GrandSluggers.UnityClient
             Label(r.x + 125, r.y + 38, r.width - 137, 26, card.Name.ToUpperInvariant(), _heading);
             Label(r.x + 125, r.y + 64, r.width - 137, 22, HowToPlay.CardBatHand(card.Bats), _small);
             var values = new[] { card.Stats.Pitch, card.Stats.Bat, card.Stats.Field, card.Stats.Run };
-            var labels = new[] { "PITCH", "BAT", "FIELD", "RUN" };
+            var labels = CarnivalFront.CardStats;
             for (var i = 0; i < 4; i++)
             {
                 var y = r.y + 91 + i * 21;

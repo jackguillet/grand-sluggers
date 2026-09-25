@@ -46,6 +46,8 @@ public static class PauseMenu
 
     /// <summary>The Reset stick card (#718): the release-stick instruction while each seated controller samples its window.</summary>
     public const string StickResetTitle = "RESET STICK";
+    /// <summary>The pause screen's heading (§0.4, the couch's Time).</summary>
+    public const string CallTimeTitle = "CALL TIME";
 
     public static readonly IReadOnlyList<string> StickResetLines =
     [
