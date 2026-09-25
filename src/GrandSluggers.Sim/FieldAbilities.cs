@@ -13,6 +13,7 @@ public static class FieldAbilityId
     public const string Grow = "grow";
     public const string Laser = "laser";
     public const string LickCatch = "lick-catch";
+    public const string LilyLeap = "lily-leap";
     public const string LongToss = "long-toss";
     public const string SandScoop = "sand-scoop";
     public const string SnapThrow = "snap-throw";
@@ -21,7 +22,7 @@ public static class FieldAbilityId
     public const string Withdraw = "withdraw";
 
     public static readonly IReadOnlyList<string> All =
-        [BallDash, Burrow, Clamber, Dive, Grow, Laser, LickCatch, LongToss, SandScoop, SnapThrow, SpinCheck, SuperJump, Withdraw];
+        [BallDash, Burrow, Clamber, Dive, Grow, Laser, LickCatch, LilyLeap, LongToss, SandScoop, SnapThrow, SpinCheck, SuperJump, Withdraw];
 }
 
 /// <summary>One defensive verb per character — the Sluggers "who you are on defense."</summary>
@@ -107,6 +108,10 @@ public static class FieldAbilities
             _ => kind
         };
     }
+
+    /// <summary>Lily Leap (§8.4): its holder's normal jump rises <c>abilities.lilyLeapRiseFt</c> instead of <c>catch.jumpRiseFt</c>; every other jump is the ordinary one.</summary>
+    public static double JumpRiseFt(Character c, RulesTable rules) =>
+        c.FieldAbility == FieldAbilityId.LilyLeap ? rules.Fielding.Abilities.LilyLeapRiseFt : rules.Fielding.Catch.JumpRiseFt;
 
     /// <summary>Long Toss (§8.5): the feet its holder's comfortable range reaches past the arm's own before a long throw loses pace; 0 for every other thrower.</summary>
     public static double RangeBonusFt(Character c, RulesTable rules) =>

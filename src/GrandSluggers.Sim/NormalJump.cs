@@ -20,6 +20,9 @@ public sealed class NormalJump
     /// <summary>The root rise now, <c>4 H u (1 − u)</c> over the airtime; 0 on the ground.</summary>
     public double HeightFt { get; private set; }
 
+    /// <summary>This jump's peak rise <c>H</c>: <c>catch.jumpRiseFt</c> for every body but a Lily Leap (§8.4), set at takeoff.</summary>
+    public double RiseFt { get; private set; }
+
     /// <summary>A blocked press is remembered, bound to the body it was made on.</summary>
     public bool Pending { get; private set; }
 
@@ -28,6 +31,7 @@ public sealed class NormalJump
         Airborne = false;
         AirT = 0;
         HeightFt = 0;
+        RiseFt = 0;
         Pending = false;
         _age = 0;
         _pos = "";
@@ -40,15 +44,17 @@ public sealed class NormalJump
     /// eligible instant; a press in the air queues nothing, and holding through the landing repeats nothing. A throw or a dive
     /// already committed (<paramref name="committed"/>) prevents the buffer. True on the frame the body takes off.
     /// </summary>
-    public bool Press(bool westDown, string glovePos, bool committed, Func<bool> eligible, double dt, CatchRules rules)
+    public bool Press(bool westDown, string glovePos, bool committed, Func<bool> eligible, double dt, CatchRules rules,
+        double? riseFt = null)
     {
+        var rise = riseFt ?? rules.JumpRiseFt;
         var fresh = westDown && !_westHeld;
         _westHeld = westDown;
         if (Pending && (_pos != glovePos || committed))
             Pending = false;
         if (fresh && !Airborne)
         {
-            if (eligible()) return Takeoff();
+            if (eligible()) return Takeoff(rise);
             if (!committed && rules.JumpBufferSec > 0)
             {
                 Pending = true;
@@ -59,7 +65,7 @@ public sealed class NormalJump
         }
         if (!Pending) return false;
         _age += dt;
-        if (eligible()) { Pending = false; return Takeoff(); }
+        if (eligible()) { Pending = false; return Takeoff(rise); }
         if (_age > rules.JumpBufferSec + 1e-9) Pending = false;
         return false;
     }
@@ -77,15 +83,24 @@ public sealed class NormalJump
             return;
         }
         var u = AirT / rules.JumpAirSec;
-        HeightFt = 4 * rules.JumpRiseFt * u * (1 - u);
+        HeightFt = 4 * RiseFt * u * (1 - u);
     }
 
     /// <summary>Takeoff, with no added startup: the airborne clock starts now.</summary>
-    bool Takeoff()
+    bool Takeoff(double riseFt)
     {
         Airborne = true;
         AirT = 0;
         HeightFt = 0;
+        RiseFt = riseFt;
         return true;
+    }
+
+    /// <summary>The root rise <paramref name="airT"/> seconds into a jump of peak <paramref name="riseFt"/> over <paramref name="airSec"/>.</summary>
+    public static double HeightAt(double airT, double airSec, double riseFt)
+    {
+        if (airT <= 0 || airT >= airSec) return 0;
+        var u = airT / airSec;
+        return 4 * riseFt * u * (1 - u);
     }
 }

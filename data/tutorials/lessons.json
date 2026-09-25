@@ -2094,6 +2094,34 @@
       ]
     },
     {
+      "id": "T-A-lily-leap",
+      "revision": 1,
+      "mechanics": [
+        "ability.lily-leap"
+      ],
+      "title": "Ability reach: lily-leap",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 1151,
+      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [
+        "lily-leap"
+      ],
+      "prerequisites": [],
+      "setup": "T-A-lily-leap",
+      "objective": "human-ability-reach",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Jump"
+      ],
+      "tests": [
+        "TutorialAbilityTests"
+      ]
+    },
+    {
       "id": "T-SP-heatball",
       "revision": 4,
       "mechanics": [
@@ -2394,6 +2422,31 @@
       ]
     },
     {
+      "id": "T-SP-leapfrog",
+      "revision": 4,
+      "mechanics": [
+        "star-pitch.leapfrog"
+      ],
+      "title": "Star pitch: leapfrog",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1151,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-leapfrog",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
       "id": "T-SS-heat-swing",
       "revision": 4,
       "mechanics": [
@@ -2685,6 +2738,31 @@
       "requires": [],
       "prerequisites": [],
       "setup": "T-SS-updraft",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-pond-skip",
+      "revision": 4,
+      "mechanics": [
+        "star-swing.pond-skip"
+      ],
+      "title": "Star swing: pond-skip",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1151,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-pond-skip",
       "objective": "star-swing",
       "controls": [
         "control:batting/Star swing"
@@ -5369,6 +5447,39 @@
       "pitcherId": "hollis"
     },
     {
+      "id": "T-SP-leapfrog",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "reed"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "leapfrog",
+      "pitcherId": "reed"
+    },
+    {
       "id": "T-SS-heat-swing",
       "policy": "cpu-strike",
       "seed": 1,
@@ -5774,6 +5885,40 @@
       "startingStars": 3,
       "skill": "updraft",
       "batterId": "hollis",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-pond-skip",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "reed"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "pond-skip",
+      "batterId": "reed",
       "seat": "offense"
     },
     {
@@ -6541,6 +6686,44 @@
           "sprayDeg": 0
         }
       }
+    },
+    {
+      "id": "T-A-lily-leap",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "reed",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 12,
+          "sprayDeg": -20
+        }
+      },
+      "skill": "lily-leap"
     },
     {
       "id": "T-D06",

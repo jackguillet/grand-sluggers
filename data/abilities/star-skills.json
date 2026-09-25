@@ -78,6 +78,15 @@
       "staminaCost": 16,
       "float": { "riseFt": 2.2, "dropFrom": 0.6 }
     },
+    "leapfrog": {
+      "id": "leapfrog",
+      "name": "Leapfrog",
+      "kind": "pace",
+      "tier": "mid",
+      "speedMul": 1.0,
+      "staminaCost": 14,
+      "leap": { "at": 0.35, "holdSpan": 0.25, "holdPace": 0.2 }
+    },
     "fastball": { "id": "fastball", "name": "Star Fastball", "kind": "generic", "tier": "low", "speedMul": 1.25, "staminaCost": 10 },
     "changeup": { "id": "changeup", "name": "Star Change", "kind": "generic", "tier": "low", "speedMul": 0.7, "staminaCost": 8 },
     "breaker": { "id": "breaker", "name": "Star Breaker", "kind": "generic", "tier": "low", "speedMul": 0.85, "staminaCost": 10, "lateBreak": true }
@@ -92,6 +101,7 @@
     "staff-swing": { "id": "staff-swing", "name": "Staff Swing", "kind": "bounce", "tier": "mid", "exitVeloMul": 1.08, "infieldChaos": true },
     "sidewinder": { "id": "sidewinder", "name": "Sidewinder", "kind": "bounce", "tier": "mid", "exitVeloMul": 1.12, "launchDeg": 4, "firstHopKickDeg": 20 },
     "updraft": { "id": "updraft", "name": "Updraft", "kind": "wind", "tier": "mid", "exitVeloMul": 1.1, "launchDeg": 34, "windMul": 1.5 },
+    "pond-skip": { "id": "pond-skip", "name": "Pond Skip", "kind": "bounce", "tier": "mid", "exitVeloMul": 1.05, "launchDeg": 0, "firstHopBounceMul": 2.2 },
     "ground": { "id": "ground", "name": "Star Grounder", "kind": "generic", "tier": "low", "launchDeg": 8, "exitVeloMul": 1.2 },
     "fly": { "id": "fly", "name": "Star Fly", "kind": "generic", "tier": "low", "launchDeg": 38, "exitVeloMul": 1.2 },
     "line": { "id": "line", "name": "Star Line", "kind": "generic", "tier": "low", "launchDeg": 18, "exitVeloMul": 1.25 }

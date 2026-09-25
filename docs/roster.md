@@ -108,7 +108,7 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Reed — Marsh Hoppers
 
 - Bars: Pitch 4 / Bat 6 / Field 7 / Run 8. Body class `hopper` (borrows Zig's takes until its own style exists).
-- Star abilities: owed (#1151); until then the generic Star Change, Star Grounder and Super Jump.
+- Star abilities: Leapfrog (hangs mid-flight, then leaps to the plate on time), Pond Skip (the first hop springs high) and Lily Leap (the jump rises 4.5 ft, for a liner over his head).
 - Signature bat: Reed Switch. Bats/throws: L/L. Role players: Cattail, Bog, Tad.
 
 ## Role players (slice set)

@@ -65,7 +65,7 @@ public static class FielderTells
             live.Airborne,
             live.JumpAirT,
             rules.Fielding.Catch.JumpAirSec,
-            rules.Fielding.Catch.JumpRiseFt);
+            live.Airborne ? live.JumpRiseFt : rules.Fielding.Catch.JumpRiseFt);
 
         /// <summary>The same debts <paramref name="dt"/> seconds on, with no live ball to extend them: every clock runs out and the jumper lands.</summary>
         public Owed Aged(double dt)
