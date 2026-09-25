@@ -50,9 +50,9 @@ the basepath scale inside the shipped 155-ft lip, the fence scale beyond it) mak
 
 | Park | Row | Shipped before → after | Clear, shipped | `trials/c80` before → after | Clear, trial | Moved | What set the distance |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Crystal Rink | `freeze_volume` [0], r 8 / 5.6 | (40, 70) → (53, 93) | −0.78 → 0.24 ft | (36, 62) → (47, 83) | 0.11 → 1.32 ft | 26.4 ft out | the shipped disc crossed the first–second lane from the infield side; outward, it clears only past the lane |
-| Crystal Rink | `freeze_volume` [1], r 8 / 5.6 | (−45, 90) → (−49, 97) | −7.54 → 0.24 ft | (−40, 80) → (−44, 86) | −5.75 → 1.32 ft | 8.1 ft out | the shipped disc, second–third lane |
-| Crystal Rink | `freeze_volume` [2], r 10 / 7 | (10, 180) → (10, 187) | 31.66 → 38.55 ft | (7, 126) → (7, 131) | −4.36 → 0.18 ft | 7.0 ft out | the trial twin, second base's pad |
+| Aurora Rink | `freeze_volume` [0], r 8 / 5.6 | (40, 70) → (53, 93) | −0.78 → 0.24 ft | (36, 62) → (47, 83) | 0.11 → 1.32 ft | 26.4 ft out | the shipped disc crossed the first–second lane from the infield side; outward, it clears only past the lane |
+| Aurora Rink | `freeze_volume` [1], r 8 / 5.6 | (−45, 90) → (−49, 97) | −7.54 → 0.24 ft | (−40, 80) → (−44, 86) | −5.75 → 1.32 ft | 8.1 ft out | the shipped disc, second–third lane |
+| Aurora Rink | `freeze_volume` [2], r 10 / 7 | (10, 180) → (10, 187) | 31.66 → 38.55 ft | (7, 126) → (7, 131) | −4.36 → 0.18 ft | 7.0 ft out | the trial twin, second base's pad |
 | Ember Keep | `lava_pit` [0], r 10 / 7 | (38, 78) → (49, 100) | −7.02 → 0.36 ft | (34, 69) → (44, 89) | −4.83 → 2.04 ft | 24.6 ft out | the shipped disc crossed the first–second lane from the infield side |
 | Ember Keep | `lava_pit` [1], r 10 / 7 | (−42, 96) → (−45, 104) | −7.42 → 0.36 ft | (−37, 85) → (−40, 92) | −5.74 → 1.34 ft | 8.5 ft out | the shipped disc, second–third lane |
 

@@ -8,11 +8,11 @@ public static partial class HowToPlay
     static TutorialCopy? RemainingTutorial(string id, string profile = "shipped") => id switch
     {
         // The field's lessons (F8-c): one per hazard pattern and per ground that changes the ball, each at its own park.
-        "T-H01" => new("Field on the ice", "Field a ground ball on Crystal's ice outfield.",
-            "At Crystal Rink a grounder runs and skids farther on the ice, and your fielder is slow to stop. Get there early.",
+        "T-H01" => new("Field on the ice", "Field a ground ball on Aurora Rink's ice outfield.",
+            "At Aurora Rink a grounder runs and skids farther on the ice, and your fielder is slow to stop. Get there early.",
             "Steer the fielder to the ball with the stick; slow down early. Position secures it automatically."),
         "T-H02" => new("Go around the freezer", "Catch the fly without running through a freezer.",
-            "At Crystal Rink a fielder who runs through a freezer slows for 3 seconds. Bend your run around it.",
+            "At Aurora Rink a fielder who runs through a freezer slows for 3 seconds. Bend your run around it.",
             "Steer around the frozen disc with the stick, meet the ball as it comes down."),
         "T-H03" => new("Read the warp can", "Take the ball after it comes out of another can.",
             "At Funfair Park a ball that goes into a warp can pops out of another. Wait for it, then go get it.",

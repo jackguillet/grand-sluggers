@@ -18,7 +18,7 @@ The bars below are what the derived numbers are today; the sub-stats are in "Sub
 | Faction | Color | Vibe | Baseball identity | Home park |
 | --- | --- | --- | --- | --- |
 | **Spark League** | Red | All-round heroes, harbor town | 5-tool, fire specials | Harbor Diamond |
-| **Royal Rink** | Pink / ice blue | Pageant, ice, manners with teeth | Pitching + glove, weak bats | Crystal Rink |
+| **Royal Rink** | Pink / ice blue | Pageant, ice, manners with teeth | Pitching + glove, weak bats | Aurora Rink |
 | **Carnival Crew** | Green / rainbow | Fairground speedsters | Run + range, contact, no power | Funfair Park |
 | **Goldrush** | Yellow | Schemers, rooftop industrial | Power + stamina, bad gloves | Rooftop City |
 | **Canopy Clan** | Brown | Jungle family, climbers | Power + wall climbs, slow | Canopy Yard |

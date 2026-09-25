@@ -304,7 +304,7 @@ and at night before the sitting, with `tools/still-gate.sh --park <id>` and `--n
 
 | Park | What it must read as, HUD off | Where to look |
 | --- | --- | --- |
-| Crystal Rink | ice outfield, glass boards, freezers | grounders skid past the outfield; balls come off the glass livelier; flies die a little sooner; a fielder who runs through a freezer slows for 3 s |
+| Aurora Rink | ice outfield, glass boards, freezers | grounders skid past the outfield; balls come off the glass livelier; flies die a little sooner; a fielder who runs through a freezer slows for 3 s |
 | Funfair Park | pipes, the train, the night chompers | a grounder into a can pops out of another; the train slides along the wall; at night a fly into a mouth is spat out |
 | Rooftop City | billboards, the AC unit | a ball under a sign pays a star; a ball into the AC unit bounces off |
 | Canopy Yard | barrels, trees, the climb wall | a grounder into a barrel is fired out of another; balls come off the trees; a Clamber fielder climbs to rob |

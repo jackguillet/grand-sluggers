@@ -21,7 +21,7 @@ public static class Ground
     /// <summary>The infield and the warning track of every park, whatever the park's <c>surface</c> is.</summary>
     public const string Dirt = "dirt";
 
-    /// <summary>Crystal Rink's surface.</summary>
+    /// <summary>Aurora Rink's surface.</summary>
     public const string Ice = "ice";
 
     /// <summary>Ember Keep's surface.</summary>
@@ -47,7 +47,7 @@ public static class WallMaterial
     /// <summary>The padded outfield wall.</summary>
     public const string Padded = "padded";
 
-    /// <summary>Crystal Rink's glass boards (F9-a).</summary>
+    /// <summary>Aurora Rink's glass boards (F9-a).</summary>
     public const string Glass = "glass";
 
     /// <summary>Every material, in library order.</summary>

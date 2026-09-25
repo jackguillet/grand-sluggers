@@ -1,8 +1,9 @@
 {
   "id": "crystal-rink",
-  "name": "Crystal Rink",
+  "name": "Aurora Rink",
   "faction": "royal",
   "pickOrder": 2,
+  "region": "frozen-north",
   "surface": "ice",
   "leftFenceFt": 224,
   "centerFenceFt": 270,

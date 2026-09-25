@@ -3,6 +3,7 @@
   "name": "Canopy Yard",
   "faction": "canopy",
   "pickOrder": 5,
+  "region": "rainforest",
   "surface": "dirt",
   "leftFenceFt": 218,
   "centerFenceFt": 265,

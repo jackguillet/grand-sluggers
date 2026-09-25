@@ -76,6 +76,11 @@ public static class ContentDataValidator
         data.Chemistry = DataJson.Read<ChemistryOverrides>(chemistryPath, data.ReadErrors) ?? new();
         data.ChemistrySource = chemistryPath;
 
+        // The continent the parks stand on (WD-05): read strictly, like every catalog.
+        var worldPath = root.Resolve(WorldMap.Directory, WorldMap.FileName);
+        data.World = DataJson.Read<WorldDto>(worldPath, data.ReadErrors) ?? new();
+        data.WorldSource = worldPath;
+
         var skillsPath = root.Resolve("abilities", "star-skills.json");
         // Read strictly (spec §13): a key no skill declares is a stop, so a retired key such as
         // batterWindowMul (PH-16-R1) cannot sit in the file looking like it still bends a pitch.
@@ -173,6 +178,18 @@ public static class ContentDataValidator
             ValidatePark(row, hazards, grounds, data.GroundsSource, infield, fence, errors);
         UniquePerPark("pickOrder", data.Parks.Where(r => r.Value.PickOrder is not null)
             .Select(r => (r.Value.PickOrder!.Value.ToString(CultureInfo.InvariantCulture), r.Source)), errors);
+        var regions = ValidateWorld(data, errors);
+        foreach (var row in data.Parks)
+        {
+            var p = row.Value;
+            if (string.IsNullOrWhiteSpace(p.Region))
+                errors.Add($"{row.Source}: park '{p.Id}' region must name its place on the map ({data.WorldSource}); got none");
+            else if (!regions.Contains(p.Region))
+                errors.Add($"{row.Source}: park '{p.Id}' region '{p.Region}' is not a region in {data.WorldSource}");
+        }
+        UniquePerPark("region", data.Parks
+            .Where(r => !string.IsNullOrWhiteSpace(r.Value.Region))
+            .Select(r => (r.Value.Region, r.Source)), errors);
         UniquePerPark("faction", data.Parks
             .Where(r => !string.IsNullOrWhiteSpace(r.Value.Faction))
             .Select(r => (r.Value.Faction, r.Source)), errors);
@@ -283,6 +300,42 @@ public static class ContentDataValidator
     /// declared sequence rather than a directory listing, and the faction, so a captain's home park
     /// is one park and never a coin toss between two. Both errors name every file that shares the value.
     /// </summary>
+    /// <summary>
+    /// The world file (WD-05): a continent name, and regions each with a unique id, a name, a place on the unit map and an
+    /// island flag. Returns the region ids the parks may name.
+    /// </summary>
+    static HashSet<string> ValidateWorld(ContentData data, List<string> errors)
+    {
+        var src = data.WorldSource;
+        var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(data.World.Continent))
+            errors.Add($"{src}: continent must name the continent; got none");
+        if (data.World.Regions is not { Count: > 0 } rows)
+        {
+            errors.Add($"{src}: regions must list at least one region");
+            return ids;
+        }
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var at = $"{src}: regions[{i}]";
+            if (rows[i] is not { } r)
+            {
+                errors.Add($"{at} must be an object; got null");
+                continue;
+            }
+            if (string.IsNullOrWhiteSpace(r.Id)) errors.Add($"{at} id must not be empty");
+            else if (!ids.Add(r.Id)) errors.Add($"{at} id '{r.Id}' is declared twice");
+            if (string.IsNullOrWhiteSpace(r.Name)) errors.Add($"{at} '{r.Id}' name must not be empty");
+            foreach (var (axis, v) in new[] { ("x", r.X), ("y", r.Y) })
+            {
+                if (v is not { } n) errors.Add($"{at} '{r.Id}' {axis} must place it on the map; got none");
+                else if (!(n >= 0 && n <= 1)) errors.Add($"{at} '{r.Id}' {axis} must be 0 to 1 on the unit map; got {n.ToString(CultureInfo.InvariantCulture)}");
+            }
+            if (r.Island is null) errors.Add($"{at} '{r.Id}' island must be true or false");
+        }
+        return ids;
+    }
+
     static void UniquePerPark(string field, IEnumerable<(string Value, string Source)> candidates, List<string> errors)
     {
         foreach (var group in candidates
@@ -1023,6 +1076,9 @@ internal sealed class ContentData
     /// <summary>Where match.json was read from — named by a glove the catalog does not have.</summary>
     public string MatchSource { get; set; } = "";
     public List<string> ReadErrors { get; } = [];
+    public WorldDto World { get; set; } = new();
+    /// <summary>Where the world file was read from — named by a park whose region it does not have.</summary>
+    public string WorldSource { get; set; } = "";
 }
 
 internal readonly record struct Sourced<T>(T Value, string Source);
@@ -1185,6 +1241,11 @@ internal sealed class ParkDto
     /// unique: a directory listing is alphabetical, and the pregame cycle is an authored sequence (#820).
     /// </summary>
     public int? PickOrder { get; set; }
+    /// <summary>
+    /// The region of <c>data/world/regions.json</c> this park stands in (WD-05). Required; no two parks share one. Catalog
+    /// data for the map (<see cref="ContentCatalog.World"/>), deliberately off <see cref="Park"/>: no rule of play reads it.
+    /// </summary>
+    public string Region { get; set; } = "";
     public string Surface { get; set; } = "";
     public int LeftFenceFt { get; set; }
     public int CenterFenceFt { get; set; }
