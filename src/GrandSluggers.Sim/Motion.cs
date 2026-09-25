@@ -13,7 +13,7 @@ public static class Motion
         Idle, Field, Cheer, Charm,
         Walk, Run, Jump, Clamber,
         ChargePitch, ThrowPitch, Throw,
-        ChargeSwing, Swing, CheckSwing, Bunt, Miss,
+        ChargeSwing, Swing, CheckSwing, Bunt, Miss, LetGo,
         Catch, Dive, Crouch, StealLead, Spin,
         Scoop, Slide
     }
@@ -45,6 +45,16 @@ public static class Motion
     public const double ScoopContact = 0.22;
     public const double SlidePlant = 0.18;
     public const double HoldDur = 0.20;
+    /// <summary>The squared bunt toward the batter's pull side and toward the other field (PH-14-R3): the barrel shows the held side.</summary>
+    public const string BuntPullClip = "bunt-pull";
+    public const string BuntPushClip = "bunt-push";
+    /// <summary>
+    /// The let-go (PH-13-R1): a cancelled swing load walks back from the full coil to the stance by
+    /// <see cref="LetGoReturnAt"/>, then settles until <see cref="LetGoDur"/> (data/art/baseball-takes.json <c>letGo</c>).
+    /// </summary>
+    public const string LetGoClip = "swing-letgo";
+    public const double LetGoDur = 0.36;
+    public const double LetGoReturnAt = 0.20;
 
     /// <summary>
     /// A held load samples the first part of its one-shot take. MAX holds the
@@ -75,6 +85,9 @@ public static class Motion
         new(SwingChargeClip, false, true, SwingFinish, ClipEvent.Contact, SwingContact, SwingFinish),
         new("checkSwing", false, true, HoldDur),
         new("bunt", false, true, HoldDur),
+        new(BuntPullClip, false, true, HoldDur),
+        new(BuntPushClip, false, true, HoldDur),
+        new(LetGoClip, false, true, LetGoDur),
         new("miss", false, true, HoldDur),
         new("catch", false, false, HoldDur),
         new("dive", false, false, HoldDur),
@@ -129,6 +142,7 @@ public static class Motion
         Verb.Swing => new(charged ? SwingChargeClip : SwingSlapClip, Clock.Verb),
         Verb.CheckSwing => new("checkSwing", Clock.Verb),
         Verb.Bunt => new("bunt", Clock.Verb),
+        Verb.LetGo => new(LetGoClip, Clock.Verb),
         Verb.Miss => new("miss", Clock.Verb),
         Verb.Catch => new("catch", Clock.Verb),
         Verb.Dive => new("dive", Clock.Verb),
@@ -145,7 +159,7 @@ public static class Motion
 
     /// <summary>The hand that picks the file: the batting hand for hitting verbs, the throwing hand otherwise.</summary>
     public static bool UsesBattingHand(Verb verb) =>
-        verb is Verb.ChargeSwing or Verb.Swing or Verb.CheckSwing or Verb.Bunt or Verb.Miss;
+        verb is Verb.ChargeSwing or Verb.Swing or Verb.CheckSwing or Verb.Bunt or Verb.Miss or Verb.LetGo;
 
     public static bool IsHanded(string clipId) => TryClip(clipId, out var clip) && clip.Handed;
 
@@ -163,11 +177,28 @@ public static class Motion
     /// The take file a verb plays for a hand and a motion style (CH-12): <c>{style}/{clip}</c> when the style has its own take
     /// of the clip, else the shared <see cref="ClipFile(string, Hand)"/>. The hand is already the batting or throwing hand.
     /// </summary>
-    public static string ClipFor(Verb verb, Hand hand, MotionStyle? style) =>
-        StyledFile(CueFor(verb).Clip, hand, style);
+    public static string ClipFor(Verb verb, Hand hand, MotionStyle? style, BuntSide bunt = BuntSide.None) =>
+        StyledFile(verb == Verb.Bunt ? BuntClip(bunt, hand) : CueFor(verb).Clip, hand, style);
 
-    public static string ClipFor(Verb verb, Hand hand, MotionStyle? style, double charge01, RulesTable rules) =>
-        StyledFile(CueFor(verb, charge01, rules).Clip, hand, style);
+    public static string ClipFor(Verb verb, Hand hand, MotionStyle? style, double charge01, RulesTable rules, BuntSide bunt = BuntSide.None) =>
+        StyledFile(verb == Verb.Bunt ? BuntClip(bunt, hand) : CueFor(verb, charge01, rules).Clip, hand, style);
+
+    /// <summary>
+    /// The squared take for a held side and the batting hand (PH-14-R3): the pull take when the side is the batter's pull
+    /// field (third for a right-handed batter, first for a left-handed one), the push take for the other field, the
+    /// sideless square when no side is held. The left-handed file is the baked mirror, so the side reads the same.
+    /// </summary>
+    public static string BuntClip(BuntSide side, Hand bats) => side switch
+    {
+        BuntSide.None => "bunt",
+        _ => (side == BuntSide.Third) == (bats == Hand.R) ? BuntPullClip : BuntPushClip
+    };
+
+    /// <summary>
+    /// Where the let-go starts for the load it discards: the full coil at 0, no charge at <see cref="LetGoReturnAt"/>. The
+    /// return is linear in the take, so a partial load starts on its own held pose (<see cref="SwingPresentation.HeldLoadAt"/>).
+    /// </summary>
+    public static double LetGoStartAt(double charge01) => LetGoReturnAt * (1 - Math.Clamp(charge01, 0, 1));
 
     /// <summary>A clip's file for a hand and a style, falling back to the shared take.</summary>
     public static string StyledFile(string clipId, Hand hand, MotionStyle? style)

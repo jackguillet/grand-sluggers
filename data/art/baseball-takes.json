@@ -1564,6 +1564,56 @@
         "twist": 0
       },
       "lift": -0.12
+    },
+    "sides": {
+      "notes": "PH-14-R3: the squared bat shows the held side. yawDeg turns the barrel about the vertical from `barrel`, positive carrying the barrel end toward the pitcher: the face then points at the batter's pull side. pull is toward third for a right-handed batter and first for a left-handed one (the baked mirror); push is the other field. pose is a body-term delta on the square's pose.",
+      "pull": {
+        "yawDeg": 24,
+        "pose": {
+          "torso": {
+            "turn": 6
+          },
+          "head": {
+            "turn": -4
+          }
+        }
+      },
+      "push": {
+        "yawDeg": -24,
+        "pose": {
+          "torso": {
+            "turn": -8
+          },
+          "head": {
+            "turn": 4
+          }
+        }
+      }
+    }
+  },
+  "letGo": {
+    "notes": "PH-13-R1: a cancelled swing load lets go instead of snapping. The take walks the charge take's held load back from the full coil (`fromAt`, SwingPresentation.LoadAt) to the stance at no charge (`toAt`, SwingPresentation.NormalLoadAt) by returnAt, linearly so a partial load starts part-way in (Motion.LetGoStartAt), then settles at the stance: the knees give and the shoulders drop by `settle` and come back by the end.",
+    "source": "swing-charge",
+    "fromAt": 0.0,
+    "toAt": 0.075,
+    "duration": 0.36,
+    "returnAt": 0.2,
+    "settle": {
+      "torso": {
+        "lean": 5
+      },
+      "lThigh": {
+        "flex": 6
+      },
+      "rThigh": {
+        "flex": 6
+      },
+      "lShin": {
+        "flex": 10
+      },
+      "rShin": {
+        "flex": 10
+      }
     }
   }
 }

@@ -33,10 +33,42 @@ public class MotionTests
     }
 
     [Fact]
+    public void TheSquaredTakeShowsTheHeldSideForEitherHand()
+    {
+        // PH-14-R3: third is a right-handed batter's pull field and a left-handed batter's push field; the lefty file is the mirror.
+        Assert.Equal("bunt-pull", Motion.ClipFor(Motion.Verb.Bunt, Hand.R, null, bunt: BuntSide.Third));
+        Assert.Equal("bunt-push", Motion.ClipFor(Motion.Verb.Bunt, Hand.R, null, bunt: BuntSide.First));
+        Assert.Equal("bunt-push-L", Motion.ClipFor(Motion.Verb.Bunt, Hand.L, null, bunt: BuntSide.Third));
+        Assert.Equal("bunt-pull-L", Motion.ClipFor(Motion.Verb.Bunt, Hand.L, null, bunt: BuntSide.First));
+        Assert.Equal("bunt", Motion.ClipFor(Motion.Verb.Bunt, Hand.R, null));
+        // The side only picks the squared take.
+        Assert.Equal("swing-slap", Motion.ClipFor(Motion.Verb.Swing, Hand.R, null, bunt: BuntSide.Third));
+    }
+
+    [Fact]
+    public void TheLetGoStartsOnTheDiscardedLoadAndMatchesItsTake()
+    {
+        // PH-13-R1: a full load lets go from the coil, no load starts on the stance, a partial load part-way in.
+        Assert.Equal(0, Motion.LetGoStartAt(1), 9);
+        Assert.Equal(Motion.LetGoReturnAt, Motion.LetGoStartAt(0), 9);
+        Assert.Equal(Motion.LetGoReturnAt * 0.4, Motion.LetGoStartAt(0.6), 9);
+        Assert.Equal(Motion.Clock.Verb, Motion.CueFor(Motion.Verb.LetGo).Clock);
+        Assert.True(Motion.UsesBattingHand(Motion.Verb.LetGo));
+        // The take's numbers are the data the bake reads: it walks the charge take from its coil to its no-charge stance.
+        var path = Path.Combine(Shipped.Content.Root.Shipped, "art", "baseball-takes.json");
+        var letGo = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path))!["letGo"]!;
+        Assert.Equal(Motion.LetGoDur, letGo["duration"]!.GetValue<double>(), 9);
+        Assert.Equal(Motion.LetGoReturnAt, letGo["returnAt"]!.GetValue<double>(), 9);
+        Assert.Equal(Motion.SwingChargeClip, letGo["source"]!.GetValue<string>());
+        Assert.Equal(SwingPresentation.HeldLoadAt(1), letGo["fromAt"]!.GetValue<double>(), 9);
+        Assert.Equal(SwingPresentation.HeldLoadAt(0), letGo["toAt"]!.GetValue<double>(), 9);
+    }
+
+    [Fact]
     public void HandedTakesAreExactlyTheHittingAndThrowingOnes()
     {
         var handed = Motion.Clips.Where(c => c.Handed).Select(c => c.Id).ToHashSet();
-        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "pitch-charge", "throw", "checkSwing", "bunt", "miss" }, handed);
+        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "pitch-charge", "throw", "checkSwing", "bunt", "bunt-pull", "bunt-push", "swing-letgo", "miss" }, handed);
         foreach (var verb in Motion.Verbs)
         {
             var clip = Motion.CueFor(verb).Clip;

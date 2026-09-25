@@ -82,12 +82,18 @@ Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`
 | Throw | throw | verb | yes | Release 0.18 |
 | ChargeSwing | swing-charge at `SwingPresentation.HeldLoadAt(charge)` | charge | yes | |
 | Swing | swing-slap or swing-charge (the resolver's charge test) at `AtBatMotion.SwingClipTime` | verb | yes | Contact 0.30, held finish 0.60 |
-| CheckSwing, Bunt, Miss | checkSwing / bunt / miss | verb (hold) | yes | |
+| CheckSwing, Bunt, Miss | checkSwing / bunt (bunt-pull, bunt-push by the held side) / miss | verb (hold) | yes | |
+| LetGo | swing-letgo | verb, from `LetGoStartAt(charge)` | yes | |
 | Catch, Dive, Crouch, StealLead, Spin | catch / dive / crouch / stealLead / spin | verb (hold) | no | |
 | Scoop | scoop | verb | no | Contact 0.22 |
 | Slide | slide | verb | no | FootPlant 0.18 |
 
 A held load samples the one-shot at `LoadSampleAt(charge) = NormalLoadAt · (1 − charge)`: MAX holds the full coil at 0, a tap starts from the half load. The committed verb then samples `LoadedClipTime(poseT, loadAt, eventAt)`, which is monotonic and lands the marker exactly at `eventAt`. One function for pitch and swing.
+
+The squared bunt shows its side (PH-14-R3): `data/art/baseball-takes.json` `bunt.sides` turns the barrel about the vertical by `yawDeg` (positive carries the barrel end toward the pitcher, so the face points at the pull field) and adds a body-term delta.
+They are baked as `bunt-pull` and `bunt-push` for both hands, and the bake checks each barrel is its side's.
+
+A cancelled load lets go (PH-13-R1): `letGo` walks the charge take from the full coil (`fromAt`) to the no-charge stance (`toAt`) linearly by `returnAt`, then settles by `settle`, so `Motion.LetGoStartAt(charge)` starts a partial load on its own held pose.
 
 ### Motion styles (CH-12)
 

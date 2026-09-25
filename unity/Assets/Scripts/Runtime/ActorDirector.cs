@@ -270,14 +270,16 @@ namespace GrandSluggers.UnityClient
                 // Use the committed charge after release, including CPU swings.
                 var swingCharge = bPose == Motion.Verb.Swing && _play.Swing != null
                     ? (float)_play.Swing.Charge01
+                    : bPose == Motion.Verb.LetGo ? _host.Batter.LetGoCharge
                     : _host.HumanBats ? _play.Charge : 0f;
+                bHero.SetBuntSide(_host.Batter.ShowingSide);
                 bHero.SetPose(bPose, swingCharge);
                 if (presentingSwing) bHero.SetSwingContact(_play.SwingContactSec);
                 bHero.SetChargeRing((_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) && _host.HumanBats && _host.PlateSwingArmed
                     ? _play.Charge : 0f);
                 bHero.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
                 var batting = bPose is Motion.Verb.ChargeSwing or Motion.Verb.Swing
-                    or Motion.Verb.CheckSwing or Motion.Verb.Bunt or Motion.Verb.Miss;
+                    or Motion.Verb.CheckSwing or Motion.Verb.Bunt or Motion.Verb.Miss or Motion.Verb.LetGo;
                 bHero.SetHeld(batting, false);
                 bHero.SetHighlight(false);
                 if (racing)
@@ -385,7 +387,7 @@ namespace GrandSluggers.UnityClient
                 return Motion.Verb.Swing;
             }
             // (_play.SquareSec > 0f) (§5.8, §7.3): the bat is on the plane before the pitch — the tell the defense and the pitcher read.
-            if (_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) return _host.SquaredNow ? Motion.Verb.Bunt : Motion.Verb.ChargeSwing;
+            if (_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) return _host.Batter.SquaredNow ? Motion.Verb.Bunt : _host.Batter.LettingGo ? Motion.Verb.LetGo : Motion.Verb.ChargeSwing;
             return Motion.Verb.Idle;
         }
 
@@ -577,7 +579,8 @@ namespace GrandSluggers.UnityClient
         bool HumanBats { get; }
         bool HumanPitches { get; }
         bool HumanOwnsThrow { get; }
-        bool SquaredNow { get; }
+        /// <summary>What the batter's body shows at the plate: the square and its side, and a let-go.</summary>
+        IBatterTells Batter { get; }
         bool PlateSwingArmed { get; }
         float PitchCharge { get; }
         string ShownPitchType { get; }
