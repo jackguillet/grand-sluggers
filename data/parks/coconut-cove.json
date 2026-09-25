@@ -1,0 +1,16 @@
+{
+  "id": "coconut-cove",
+  "name": "Coconut Cove",
+  "faction": "fen",
+  "pickOrder": 8,
+  "region": "tropical-island",
+  "surface": "sand",
+  "leftFenceFt": 222,
+  "centerFenceFt": 275,
+  "rightFenceFt": 222,
+  "windMph": 7,
+  "windDeg": 90,
+  "fenceHeightFt": 6,
+  "hazards": [],
+  "notes": "A tropical island, Stillwater's beach. The outfield is sand: a ball rolls shorter and bounces lower. The sea breeze blows across toward right. The tide (a surge across the outfield corners) is a later pattern."
+}

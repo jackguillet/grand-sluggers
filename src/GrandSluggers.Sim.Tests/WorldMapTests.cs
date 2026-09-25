@@ -39,14 +39,18 @@ public sealed class WorldMapTests
             [ParkId.Rooftop] = "eastern-capital",
             [ParkId.Canopy] = "rainforest",
             [ParkId.Ember] = "volcano",
+            [ParkId.Stillwater] = "river-delta",
+            [ParkId.Coconut] = "tropical-island",
+            [ParkId.Sunscorch] = "desert-canyon",
+            [ParkId.Summit] = "high-peaks",
         };
+        Assert.Equal(expected.Keys.Order(), Catalog.Parks.Keys.Order());
         foreach (var park in Catalog.Parks.Keys)
             Assert.Equal(expected[park], Catalog.World.RegionOf(park).Id);
-        Assert.Equal(Catalog.Parks.Count, Catalog.Parks.Keys.Select(p => Catalog.World.RegionOf(p).Id).Distinct().Count());
-        // The four regions that wait for their park files.
-        foreach (var waiting in new[] { "high-peaks", "river-delta", "desert-canyon", "tropical-island" })
-            Assert.Null(Catalog.World.ParkIn(waiting));
+        // Ten parks, ten regions: every region has its park.
+        Assert.All(Catalog.World.Regions, r => Assert.NotNull(Catalog.World.ParkIn(r.Id)));
         Assert.Equal(ParkId.Harbor, Catalog.World.ParkIn("south-coast"));
+        Assert.Equal(ParkId.Coconut, Catalog.World.ParkIn("tropical-island"));
     }
 
     /// <summary>The map's relationships: the cold park is the northernmost, the island the southernmost.</summary>

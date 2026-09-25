@@ -147,5 +147,40 @@
       "slideMul": 1.0,
       "overrunMul": 1.0
     }
+  },
+  // Coconut Cove's beach: a roll dies sooner (more friction, a higher rest speed) and a bounce is lower and
+  // softer than on grass. A body runs as on grass. Proposed, not tuned.
+  "sand": {
+    "roll": {
+      "friction": 32,
+      "restSpeed": 2.0
+    },
+    "bounce": {
+      "restitution": 0.34,
+      "horizontal": 0.72,
+      "minVy": 3.6
+    },
+    "skid": {
+      "impactMinDeg": 14,
+      "impactMaxDeg": 22,
+      "minVy": 2.2,
+      "restitution": 0.2,
+      "horizontal": 0.85
+    },
+    "overthrow": {
+      "decelFtPerSec2": 26
+    },
+    "bobble": {
+      "restitution": 0.35,
+      "groundRetain": 0.90,
+      "decelFtPerSec2": 6
+    },
+    "body": {
+      "startMul": 1.0,
+      "brakeMul": 1.0,
+      "cutMul": 1.0,
+      "slideMul": 1.0,
+      "overrunMul": 1.0
+    }
   }
 }

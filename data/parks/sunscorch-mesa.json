@@ -1,0 +1,19 @@
+{
+  "id": "sunscorch-mesa",
+  "name": "Sunscorch Mesa",
+  "faction": "dune",
+  "pickOrder": 9,
+  "region": "desert-canyon",
+  "surface": "dirt",
+  "leftFenceFt": 234,
+  "centerFenceFt": 290,
+  "rightFenceFt": 228,
+  "windMph": 5,
+  "windDeg": 45,
+  "fenceHeightFt": 14,
+  "environment": {
+    "dragMul": 0.97
+  },
+  "hazards": [],
+  "notes": "A desert canyon, the Dune Nomads' home. Hard-pan outfield, tall canyon-rock walls, hot dry air that carries a little farther. Dust devils (a drifting redirect) are a later pattern."
+}

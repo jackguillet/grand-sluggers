@@ -112,8 +112,9 @@ public sealed class TrialOverlayTests
         // under test moves with it, and every park, character and rules listing reverses unnoticed.
         string[] expected =
         [
-            "canopy-yard.json", "crystal-rink.json", "ember-keep.json",
-            "funfair-park.json", "harbor-diamond.json", "rooftop-city.json"
+            "canopy-yard.json", "coconut-cove.json", "crystal-rink.json", "ember-keep.json",
+            "funfair-park.json", "harbor-diamond.json", "rooftop-city.json", "stillwater-marsh.json",
+            "summit-park.json", "sunscorch-mesa.json"
         ];
         var withTrial = trial.Root.Files("parks", "*.json");
 

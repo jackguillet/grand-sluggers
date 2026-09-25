@@ -782,6 +782,13 @@
       "sources": []
     },
     {
+      "id": "fields.sand",
+      "title": "a grounder on a sand outfield",
+      "category": "fielding",
+      "spec": "gameplay-spec:14",
+      "sources": []
+    },
+    {
       "id": "fields.status-volume",
       "title": "a status volume slows the body that touches it",
       "category": "fielding",

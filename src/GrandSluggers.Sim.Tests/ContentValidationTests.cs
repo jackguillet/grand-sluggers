@@ -132,7 +132,7 @@ public sealed class ContentValidationTests
         // grounds.json as well; what a surface may be is the table's answer now (FD-05, SF-03).
         Assert.Contains(errors, e =>
             e.Contains("surface must be a ground with a row in", StringComparison.Ordinal)
-            && e.Contains("[grass, dirt, ice, ash]", StringComparison.Ordinal)
+            && e.Contains("[grass, dirt, ice, ash, sand]", StringComparison.Ordinal)
             && e.Contains("got 'water'", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("hazard[0] type must be one of", StringComparison.Ordinal)
             && e.Contains("got 'teleporter'", StringComparison.Ordinal));

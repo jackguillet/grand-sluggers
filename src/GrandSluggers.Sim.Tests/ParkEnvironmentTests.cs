@@ -48,9 +48,11 @@ public sealed class ParkEnvironmentTests
     public void SF01_EveryParksResolvedTableIsTheGlobalTable()
     {
         var catalog = Catalog;
-        Assert.Equal(6, catalog.Parks.Count);
-        // Every park that names no air (F9-a: Crystal names its cold air and resolves to a copy, F9A_… below).
-        Assert.Equal([ParkId.Crystal], catalog.Parks.Values.Where(p => p.Environment is not null).Select(p => p.Id));
+        Assert.Equal(ParkId.All.Count, catalog.Parks.Count);
+        // Every park that names no air. Aurora Rink (cold air, F9A_… below), the marsh (damp), the canyon (dry) and the
+        // peaks (thin) name theirs and resolve to a copy.
+        Assert.Equal([ParkId.Crystal, ParkId.Stillwater, ParkId.Summit, ParkId.Sunscorch],
+            catalog.Parks.Values.Where(p => p.Environment is not null).Select(p => p.Id).OrderBy(id => id, StringComparer.Ordinal));
         foreach (var park in catalog.Parks.Values.Where(p => p.Environment is null))
         {
             Assert.Null(park.Environment);

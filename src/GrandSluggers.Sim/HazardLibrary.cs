@@ -51,11 +51,14 @@ public static class HazardType
     /// <summary>Canopy's trees.</summary>
     public const string Tree = "tree";
 
+    /// <summary>Stillwater Marsh's drifting lily pads.</summary>
+    public const string LilyPad = "lily_pad";
+
     /// <summary>Every type, in library order: the acting patterns first, then the decorations.</summary>
     public static IReadOnlyList<string> All { get; } =
     [
         FreezeVolume, LavaPit, FireBreath, WarpPipe, Barrel, Billboard, ClimbWall, Chomper,
-        Statue, Train, AcUnit, Tree
+        Statue, Train, AcUnit, Tree, LilyPad
     ];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);

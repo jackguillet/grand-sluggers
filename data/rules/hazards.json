@@ -119,5 +119,16 @@
     "reachPadFt": 0,
     "heightFt": 20,
     "restitution": 0.35
+  },
+  // Stillwater Marsh's lily pads: a low timed mover. Only a ball under heightFt (a roller or a short hop) meets
+  // one; each drifts travelFt either side of its spot, once out and back per periodSec. Proposed, not tuned.
+  "lilyPad": {
+    "pattern": "timedMover",
+    "nightRadiusMul": 1,
+    "reachPadFt": 0,
+    "heightFt": 1.5,
+    "restitution": 0.4,
+    "periodSec": 16,
+    "travelFt": 18
   }
 }

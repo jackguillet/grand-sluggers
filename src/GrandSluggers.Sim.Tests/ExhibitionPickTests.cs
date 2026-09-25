@@ -34,7 +34,7 @@ public class ExhibitionPickTests
         Assert.Equal(ParkId.Crystal, next.Park);
 
         var wrap = ExhibitionPick.CyclePark(_content, start, -1);
-        Assert.Equal(ParkId.Ember, wrap.Park);
+        Assert.Equal(ParkId.Summit, wrap.Park);
         Assert.Equal("rio", wrap.Home);
     }
 

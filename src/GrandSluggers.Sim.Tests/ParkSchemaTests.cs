@@ -22,7 +22,8 @@ public sealed class ParkSchemaTests
 
     /// <summary>The field-pick cycle as the shipped six-id literal in <c>ExhibitionPick</c> spelled it.</summary>
     static readonly string[] PickOrder =
-        [ParkId.Harbor, ParkId.Crystal, ParkId.Funfair, ParkId.Rooftop, ParkId.Canopy, ParkId.Ember];
+        [ParkId.Harbor, ParkId.Crystal, ParkId.Funfair, ParkId.Rooftop, ParkId.Canopy, ParkId.Ember,
+         ParkId.Stillwater, ParkId.Coconut, ParkId.Sunscorch, ParkId.Summit];
 
     // ---------------------------------------------------------------------------------
     // SF-02  An unknown field, an unknown id or a misspelled key stops the load and names it
@@ -141,8 +142,8 @@ public sealed class ParkSchemaTests
     {
         Assert.Equal(PickOrder, Shipped.ParkPickOrder);
         Assert.Equal(ParkId.Crystal, ExhibitionPick.WrapPark(Shipped, ParkId.Harbor, 1));
-        Assert.Equal(ParkId.Ember, ExhibitionPick.WrapPark(Shipped, ParkId.Harbor, -1));
-        Assert.Equal(ParkId.Harbor, ExhibitionPick.WrapPark(Shipped, ParkId.Ember, 1));
+        Assert.Equal(ParkId.Summit, ExhibitionPick.WrapPark(Shipped, ParkId.Harbor, -1));
+        Assert.Equal(ParkId.Harbor, ExhibitionPick.WrapPark(Shipped, ParkId.Summit, 1));
         // A pick the catalog does not have still cycles, from the first park.
         Assert.Equal(ParkId.Crystal, ExhibitionPick.WrapPark(Shipped, "nope", 1));
 
@@ -157,9 +158,9 @@ public sealed class ParkSchemaTests
     }
 
     /// <summary>
-    /// The map exactly as <c>PresetTeams.HomeParkId</c>'s switch spelled it: vale → crystal, zig →
-    /// funfair, brondo → rooftop, konga → canopy, ashlord → ember, everyone else → Harbor. Rio reaches
-    /// Harbor through his own faction; Fenn reaches it because no park is a fen park.
+    /// Every captain's home park, from the park files' factions: vale → Aurora Rink, zig → funfair, brondo → rooftop,
+    /// konga → canopy, ashlord → ember, rio → Harbor, fenn → Coconut Cove, sable → Sunscorch Mesa, hollis → Summit
+    /// Park, reed → Stillwater Marsh. A name that is no captain plays at Harbor.
     /// </summary>
     [Theory]
     [InlineData("rio", ParkId.Harbor)]
@@ -168,7 +169,10 @@ public sealed class ParkSchemaTests
     [InlineData("brondo", ParkId.Rooftop)]
     [InlineData("konga", ParkId.Canopy)]
     [InlineData("ashlord", ParkId.Ember)]
-    [InlineData("fenn", ParkId.Harbor)]
+    [InlineData("fenn", ParkId.Coconut)]
+    [InlineData("sable", ParkId.Sunscorch)]
+    [InlineData("hollis", ParkId.Summit)]
+    [InlineData("reed", ParkId.Stillwater)]
     [InlineData("nobody-by-that-name", ParkId.Harbor)]
     public void EveryCaptainsHomeParkIsTheOneTheSwitchNamed(string captain, string park)
     {
@@ -183,7 +187,7 @@ public sealed class ParkSchemaTests
     [Fact]
     public void ARosterFactionWithNoParkOfItsOwnPlaysAtTheDefaultPark()
     {
-        Assert.Equal(ExhibitionPick.DefaultPark, Shipped.HomeParkIdOfFaction("fen"));
+        Assert.Equal(ExhibitionPick.DefaultPark, Shipped.HomeParkIdOfFaction("no-such-faction"));
         Assert.Equal(ExhibitionPick.DefaultPark, Shipped.HomeParkIdOfFaction(""));
         foreach (var id in Shipped.ParkPickOrder)
             Assert.Equal(id, Shipped.HomeParkIdOfFaction(Shipped.Parks[id].Faction));

@@ -35,6 +35,8 @@ public sealed class ParkLooksTests
         {
             [ParkId.Harbor] = "harbor", [ParkId.Crystal] = "ice-garden", [ParkId.Funfair] = "carnival",
             [ParkId.Rooftop] = "neon", [ParkId.Canopy] = "canopy", [ParkId.Ember] = "courtyard",
+            // The four new parks borrow a light and a sky until their own are authored with their greyboxes.
+            [ParkId.Stillwater] = "canopy", [ParkId.Coconut] = "harbor", [ParkId.Sunscorch] = "carnival", [ParkId.Summit] = "harbor",
         };
         Assert.Equal(expected.Keys.OrderBy(k => k), Catalog.Parks.Keys.OrderBy(k => k));
         foreach (var (park, look) in expected)
@@ -45,8 +47,9 @@ public sealed class ParkLooksTests
             Assert.NotNull(kit.Palette);
             Assert.Empty(ParkKitSlots.Validate(kit, Looks));
         }
-        Assert.Equal(expected.Values.Order(), Looks.Skies.Keys.Order());
-        Assert.Equal(expected.Values.Order(), Looks.Lights.Keys.Order());
+        // Every row of looks.json is some park's (a park may borrow another's until its own is authored).
+        Assert.Equal(expected.Values.Distinct().Order(), Looks.Skies.Keys.Order());
+        Assert.Equal(expected.Values.Distinct().Order(), Looks.Lights.Keys.Order());
     }
 
     /// <summary>
