@@ -87,9 +87,9 @@ public sealed partial class LivePlaySystem
 
     internal PlayTraceMarkGeometry TraceMarkGeometry()
     {
-        var receiver = ThrowBag is >= 1 and <= 4 ? CoverPos : _cutoffPos;
+        var receiver = ThrowBag is >= 1 and <= 4 ? CoverPos : _support.CutoffPos;
         var hasReceiver = _fielders.TryGetValue(receiver, out var at);
-        var target = ThrowBag is >= 1 and <= 4 ? Diamond.Bag(ThrowBag) : _cutoffSpot ?? (ThrowTo.X, ThrowTo.Z);
+        var target = ThrowBag is >= 1 and <= 4 ? Diamond.Bag(ThrowBag) : _support.CutoffSpot ?? (ThrowTo.X, ThrowTo.Z);
         double? distance = hasReceiver ? Diamond.Dist(at.X, at.Z, target.Item1, target.Item2) : null;
         return new(BallX, BallY, BallZ, GlovePos, GloveX, GloveZ, HoldsBall && !Throwing,
             receiver, hasReceiver ? at.X : null, hasReceiver ? at.Z : null, distance, R.Fielding.Cover.RadiusFt,
@@ -110,7 +110,7 @@ public sealed partial class LivePlaySystem
             var dash = pos == GlovePos && pad.EastHeld;
             return new PlayTraceFielder(pos, kv.Value, at.Item1, at.Item2, ReadyAt(pos), CanMove(pos), pos == GlovePos,
                 HumanGlove(pos), FieldingResolver.ChaseSpeedFt(kv.Value, pos, Preview, R, dash), Preview?.Frozen ?? false,
-                dash, Coasting(pos), pos == _cutoffPos, pos == _backupPos,
+                dash, Coasting(pos), pos == _support.CutoffPos, pos == _support.BackupPos,
                 pos == GlovePos ? DiveT : 0, pos == GlovePos ? JumpT : 0,
                 pos == GlovePos ? RecoilT : 0, pos == GlovePos ? SwapLock : 0, Slowed: IsSlowed(pos) ? true : null);
         }).ToArray();

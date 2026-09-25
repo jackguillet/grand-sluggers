@@ -186,15 +186,12 @@ public sealed partial class LivePlaySystem
 
     // The throw in flight: who threw it, who receives it, who backs it up.
     string _throwerPos = "";
-    string _cutoffPos = "";
+    readonly ThrowSupport _support = new();
     // The human seat's pursuit stick (#718): one model per bound device, read once a frame; the arming outlives the play.
     readonly Dictionary<int, PursuitStick> _sticks = new();
     StickRead _stick = StickRead.Assist;
     int _stickDevice;
     (int Inning, bool Top)? _stickHalf;
-    (double X, double Z)? _cutoffSpot;
-    string _backupPos = "";
-    (double X, double Z) _backupSpot;
     double _lobT;
     int _relayBag;
     /// <summary>The glove holds a ball it received cleanly from a teammate's throw (#723): Snap Throw's eligibility. A pickup, a bobble, a sail or a hand-off clears it.</summary>
@@ -617,10 +614,7 @@ public sealed partial class LivePlaySystem
         _response.Reset();
         _receivedClean = false;
         _throwerPos = "";
-        _cutoffPos = "";
-        _cutoffSpot = null;
-        _backupPos = "";
-        _backupSpot = (0, 0);
+        _support.Reset();
         _lobT = 0;
         _relayBag = 0;
         _cpuClock.Restart();
@@ -1695,7 +1689,7 @@ public sealed partial class LivePlaySystem
         }
         // A bunt (§7.3): the runner from third holds at contact unless the offense sent them. The clock the runner reads
         // (#722) is the defense's own plan from whoever holds the ball next: the receiver of a throw in the air, else the glove.
-        var nextHolder = Throwing ? (ThrowBag is >= 1 and <= 4 ? CoverPos : _cutoffPos) : GlovePos;
+        var nextHolder = Throwing ? (ThrowBag is >= 1 and <= 4 ? CoverPos : _support.CutoffPos) : GlovePos;
         ball = ball with { Bunt = Ball is { Shape: BattedBallClass.Bunt }, ThrowClock = RunnerClock(nextHolder), Fielder = nextHolder };
         var trailing = _match.Inning >= _match.Innings
             ? (_match.Top ? _match.HomeScore - _match.AwayScore : _match.AwayScore - _match.HomeScore)
@@ -1925,7 +1919,7 @@ public sealed partial class LivePlaySystem
         foreach (var kv in map)
         {
             var pos = kv.Value;
-            if (string.IsNullOrEmpty(pos) || pos == onBall || pos == _cutoffPos || pos == _backupPos || Coasting(pos)) continue;
+            if (string.IsNullOrEmpty(pos) || pos == onBall || _support.Supports(pos) || Coasting(pos)) continue;
             // A body already walking on the square keeps walking through the crack (§7.3); the rest wait the cover start.
             var onSquare = squared && BuntDefense.CoverBag(pos, R.Fielding.Bunt) == kv.Key;
             if (!RunnerPlay && !onSquare && ElapsedSeconds < cover.StartSec) continue;
@@ -1953,7 +1947,7 @@ public sealed partial class LivePlaySystem
         foreach (var pos in b.Charge)
         {
             if (!map.TryGetValue(pos, out var who) || !BuntChargeBody(pos, covers) || !CanMove(pos)) continue;
-            if (pos == _cutoffPos || pos == _backupPos) continue;
+            if (_support.Supports(pos)) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             if (Diamond.Dist(at.X, at.Z, BallX, BallZ) <= b.ChargeStopFt) continue;
             var speed = FieldingResolver.ChaseSpeedFt(who, pos, Preview, R);
@@ -1968,12 +1962,12 @@ public sealed partial class LivePlaySystem
         var bodies = Assigned();
         // The cutoff walks to the line while the ball is in the air, YOU ring or not (the ring is handed to
         // the receiver at release, §8.5); once they hold it the spot is cleared.
-        if (!string.IsNullOrEmpty(_cutoffPos) && _cutoffSpot is { } spot && (Throwing || _cutoffPos != GlovePos)
-            && _fielders.TryGetValue(_cutoffPos, out var cutAt) && CanMove(_cutoffPos) && !Coasting(_cutoffPos))
-            _fielders[_cutoffPos] = StepTo(_cutoffPos, cutAt, spot, CoverSpeed(_cutoffPos, bodies), cover.StopFt, dt, flat: true);
-        if (!string.IsNullOrEmpty(_backupPos) && _backupPos != GlovePos
-            && _fielders.TryGetValue(_backupPos, out var backAt) && CanMove(_backupPos) && !Coasting(_backupPos))
-            _fielders[_backupPos] = StepTo(_backupPos, backAt, _backupSpot, CoverSpeed(_backupPos, bodies), cover.StopFt, dt, flat: true);
+        if (!string.IsNullOrEmpty(_support.CutoffPos) && _support.CutoffSpot is { } spot && (Throwing || _support.CutoffPos != GlovePos)
+            && _fielders.TryGetValue(_support.CutoffPos, out var cutAt) && CanMove(_support.CutoffPos) && !Coasting(_support.CutoffPos))
+            _fielders[_support.CutoffPos] = StepTo(_support.CutoffPos, cutAt, spot, CoverSpeed(_support.CutoffPos, bodies), cover.StopFt, dt, flat: true);
+        if (!string.IsNullOrEmpty(_support.BackupPos) && _support.BackupPos != GlovePos
+            && _fielders.TryGetValue(_support.BackupPos, out var backAt) && CanMove(_support.BackupPos) && !Coasting(_support.BackupPos))
+            _fielders[_support.BackupPos] = StepTo(_support.BackupPos, backAt, _support.BackupSpot, CoverSpeed(_support.BackupPos, bodies), cover.StopFt, dt, flat: true);
     }
 
     // ---------------------------------------------------------------------------------
@@ -2687,8 +2681,7 @@ public sealed partial class LivePlaySystem
         var thr = WithCommand(_match.ThrowBetween(from, cutter), from, 0);
         ArmedThrow = thr;
         ArmedCut = cutter;
-        _cutoffPos = cutPos;
-        _cutoffSpot = (lineX, lineZ);
+        _support.Cutoff(cutPos, (lineX, lineZ));
         // The ball goes to where the cutoff will stand: on the line, or where they are if already there.
         var at = _fielders.TryGetValue(cutPos, out var spot) ? spot : Starts[cutPos];
         var onTheLine = Diamond.Dist(at.X, at.Z, lineX, lineZ) < R.Fielding.Cover.RadiusFt;
@@ -2718,8 +2711,8 @@ public sealed partial class LivePlaySystem
         {
             var cover = R.Fielding.Cover;
             var behind = InPlay.BackupSpot(GloveX, GloveZ, targetX, targetZ, cover.BackupFt);
-            _backupSpot = FieldBounds.ClampFielder(Park, behind.X, behind.Z, R);
-            _backupPos = InPlay.BackupPos(bag, _backupSpot.X, _backupSpot.Z, _fielders, GlovePos, receiverPos);
+            var backupSpot = FieldBounds.ClampFielder(Park, behind.X, behind.Z, R);
+            _support.Backup(InPlay.BackupPos(bag, backupSpot.X, backupSpot.Z, _fielders, GlovePos, receiverPos), backupSpot);
         }
         _cpuClock.Restart();
         _cpuWalkBag = 0;
@@ -2750,10 +2743,10 @@ public sealed partial class LivePlaySystem
     {
         result = new LivePlayCommandResult(Snapshot);
         var cover = R.Fielding.Cover;
-        var receiverPos = ThrowBag is >= 1 and <= 4 ? CoverPos : _cutoffPos;
+        var receiverPos = ThrowBag is >= 1 and <= 4 ? CoverPos : _support.CutoffPos;
         (double X, double Z) target;
         if (ThrowBag is >= 1 and <= 4) target = Diamond.Bag(ThrowBag);
-        else if (_cutoffSpot is { } cutSpot) target = cutSpot;
+        else if (_support.CutoffSpot is { } cutSpot) target = cutSpot;
         else target = (ThrowTo.X, ThrowTo.Z);
         var receiverAt = !string.IsNullOrEmpty(receiverPos) && _fielders.TryGetValue(receiverPos, out var at) ? at : target;
         var missed = Diamond.Dist(ThrowTo.X, ThrowTo.Z, target.X, target.Z) > cover.RadiusFt;
@@ -2792,8 +2785,7 @@ public sealed partial class LivePlaySystem
         _fielders[GlovePos] = (GloveX, GloveZ);
         Throwing = false;
         _lobT = 0;
-        _cutoffPos = "";
-        _cutoffSpot = null;
+        _support.ClearCutoff();
         CatchGlove();
         _receivedClean = true;
         if (PlayerFielding || Seats.HumanOwnsThrow)
@@ -2825,8 +2817,7 @@ public sealed partial class LivePlaySystem
         Caught = false;
         Buddy = false;
         _lobT = 0;
-        _cutoffPos = "";
-        _cutoffSpot = null;
+        _support.ClearCutoff();
         var map = Assigned();
         var who = map.TryGetValue(receiverPos, out var r) ? r.Name : "the cover";
         Sub = $"It sails past {who}!";
@@ -2847,8 +2838,7 @@ public sealed partial class LivePlaySystem
         Caught = false;
         Buddy = false;
         _lobT = 0;
-        _cutoffPos = "";
-        _cutoffSpot = null;
+        _support.ClearCutoff();
         SetLoose(ThrowTo.X, ThrowTo.Z, 0, 0);
         TryHandoffLoose(Assigned());
     }
@@ -2979,8 +2969,7 @@ public sealed partial class LivePlaySystem
         var bag = ThrowBag;
         Throwing = false;
         _lobT = 0;
-        _cutoffPos = "";
-        _cutoffSpot = null;
+        _support.ClearCutoff();
         CatchGlove();
         _receivedClean = true;
 
