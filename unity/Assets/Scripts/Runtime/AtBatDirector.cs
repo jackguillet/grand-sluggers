@@ -9,12 +9,29 @@ using UnityEngine;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// Set, pitch, swing, contact (#1042): the at-bat's own state — the mound's charge button and pitch selection, the
-    /// CPU's delivery, the batter's charge and bunt side, the plate's step, the special's requests. Out/safe stay in Sim.
-    /// The SET → contact sequence still runs on <see cref="MatchDirector"/> and moves here next.
+    /// Set, pitch, swing, contact (a real director since #1042). It owns the at-bat's state — the mound's charge button and
+    /// pitch selection, the CPU's delivery, the batter's charge and bunt side, the plate's step, the special's requests —
+    /// SET's camera, and the sequence from SET to the batted ball it hands the live play. Out/safe stay in Sim. The coach,
+    /// the banner, the result beat and the directors it calls on are the flow's (<see cref="IAtBatHost"/>).
     /// </summary>
-    internal sealed class AtBatDirector
+    internal sealed class AtBatDirector : ISetCameraHost
     {
+        readonly MatchScene _scene;
+        readonly PlayState _play;
+        readonly LiveFieldState _live;
+        readonly SeatPads _pads;
+        readonly IAtBatHost _host;
+        SetCamera _setCam;
+
+        public AtBatDirector(MatchScene scene, PlayState play, LiveFieldState live, SeatPads pads, IAtBatHost host)
+        {
+            _scene = scene; _play = play; _live = live; _pads = pads; _host = host;
+        }
+
+        /// <summary>SET's camera and the pitcher's aim it leans toward.</summary>
+        public SetCamera SetCam => _setCam ??= new SetCamera(_scene, _play, _pads, this);
+        float ISetCameraHost.PitchCharge => PitchCharge;
+
         /// <summary>The mound's charge button, its fill and its seconds past full. Fields: the charge step writes them by ref.</summary>
         public ChargeButtonState PitchButton;
         public float PitchCharge;
@@ -64,47 +81,22 @@ namespace GrandSluggers.UnityClient
             StarAsks.NewPitch();
             PitchPast = 0;
         }
-    }
-
-    public sealed partial class MatchDirector : IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost, ISetCameraHost
-    {
-        /// <summary>The at-bat's own state (#1042); these names forward to it.</summary>
-        internal readonly AtBatDirector AtBat = new AtBatDirector();
-        internal ChargeButtonState _pitchButton { get => AtBat.PitchButton; set => AtBat.PitchButton = value; }
 
         /// <summary>
-        /// The batting seat's plate buttons (spec §5.1, §5.8): the swing button, the two bunt triggers and the East / G
-        /// cancel, stepped by the sim (<see cref="PlateButtons.Advance"/>) every frame in the spec's order. It also holds
-        /// the leak guards (PH-13-R1, PH-14-R6): a trigger held for a bunt at contact and a cancel press the plate took
-        /// are spent until they come up. It belongs to one pad (<see cref="_plateSeat"/>); a new batting pad starts at rest.
+        /// The side the batter shows right now (§5.8, PH-14-R3): a human's held trigger, or the side the CPU batter
+        /// drew with its square at SET. Public on the batter card for both seats.
         /// </summary>
-        internal PlateButtonsState _plate { get => Play.Plate; set => Play.Plate = value; }
-        /// <summary>The pad index whose buttons <see cref="_plate"/> holds; -1 for none (a CPU batter).</summary>
-        int _plateSeat { get => Play.PlateSeat; set => Play.PlateSeat = value; }
-        PlateInput _plateInput { get => AtBat.PlateInput; set => AtBat.PlateInput = value; }
-        PlateButtonsStep _plateStep { get => AtBat.PlateStep; set => AtBat.PlateStep = value; }
+        public BuntSide ShowingSide => _pads.HumanBats ? BuntSide : _play.Match != null ? _play.Match.CpuBatter.BuntSide : BuntSide.None;
+        /// <summary>The batter is squared right now: a bunt trigger held (a human), or the CPU batter's square read at SET.</summary>
+        public bool SquaredNow => _pads.HumanBats ? BuntSide != BuntSide.None : _play.Match != null && _play.Match.CpuBatter.Squared;
 
-        PitchSelectionState _pitchSelect { get => AtBat.PitchSelect; set => AtBat.PitchSelect = value; }
-        PitchCommand _cpuPitch { get => AtBat.CpuPitch; set => AtBat.CpuPitch = value; }
-        int _cpuSteer { get => AtBat.CpuSteer; set => AtBat.CpuSteer = value; }
-
-        /// <summary>
-        /// The rubber the <b>body</b> stands on this frame, in rubber units. A hand's is the match's,
-        /// exactly — the stick already walks it. The CPU's walks toward the match's at the same rate
-        /// a hand walks, so its location verb reads as a walk rather than a teleport on the release
-        /// frame. Drawn only: the delivery is built from <c>Match.PitcherOffsetX</c>.
-        /// </summary>
-        float _moundX { get => Play.MoundX; set => Play.MoundX = value; }
-
-        internal StarRequests StarAsks => AtBat.StarAsks;
-
-        internal void TickAtBat(float dt)
+        public void TickAtBat(float dt)
         {
-            if (_phase == Phase.Set) TickSet(dt);
-            else if (_phase == Phase.Flight) TickFlight(dt);
+            if (_play.Phase == MatchDirector.Phase.Set) TickSet(dt);
+            else if (_play.Phase == MatchDirector.Phase.Flight) TickFlight(dt);
             // Off the plate the triggers and East square nothing and cancel nothing, but a spent hold still has to be
             // seen coming up (PH-14-R6, PH-13-R1) before the live ball's readers (after this tick) take it again.
-            else if (HumanBats) TickPlate(dt, accepting: false, commits: false);
+            else if (_pads.HumanBats) TickPlate(dt, accepting: false, commits: false);
         }
 
         /// <summary>
@@ -112,166 +104,157 @@ namespace GrandSluggers.UnityClient
         /// button with the square and East / G as its cancel. A tutorial plate lesson is handed the same input so its
         /// verdict rests on the player's own presses.
         /// </summary>
-        PlateButtonsStep TickPlate(float dt, bool accepting, bool commits)
+        public PlateButtonsStep TickPlate(float dt, bool accepting, bool commits)
         {
-            var pad = BatPad;
-            if (pad.Index != _plateSeat)
+            var pad = _pads.BatPad;
+            if (pad.Index != _play.PlateSeat)
             {
-                _plate = default;
-                _plateSeat = pad.Index;
+                _play.Plate = default;
+                _play.PlateSeat = pad.Index;
             }
-            _plateInput = pad.Plate;
-            _plateStep = PlateButtons.Advance(_plate, _plateInput, dt, _feel.SwingChargeSeconds, accepting, commits);
-            _plate = _plateStep.Next;
-            if (accepting && TutorialOn && _coach.Tutorial.Phase == TutorialPhase.Attempt)
-                _coach.Tutorial.Plate(new TutorialPlateTick(_plateInput, dt, commits));
-            return _plateStep;
+            PlateInput = pad.Plate;
+            PlateStep = PlateButtons.Advance(_play.Plate, PlateInput, dt, _scene.Feel.SwingChargeSeconds, accepting, commits);
+            _play.Plate = PlateStep.Next;
+            if (accepting && _host.TutorialOn && _host.Coach.Tutorial.Phase == TutorialPhase.Attempt)
+                _host.Coach.Tutorial.Plate(new TutorialPlateTick(PlateInput, dt, commits));
+            return PlateStep;
         }
 
-        /// <summary>Whether <paramref name="pad"/>'s <paramref name="trigger"/> may mean any verb on this tick (PH-14-R6).</summary>
-        internal bool TriggerFree(Controls.Pad pad, BuntSide trigger) => Pads.TriggerFree(pad, trigger);
-
-        /// <summary>Whether <paramref name="pad"/>'s East / G may mean a dive, a dash or a skip on this tick (PH-13-R1).</summary>
-        internal bool CancelFree(Controls.Pad pad) => Pads.CancelFree(pad);
-
-        internal void BeginSet()
+        public void BeginSet()
         {
-            BindMatchSeats();
-            if (TrainingOn && (_match == null || _match.Over))
-            {
-                Seed++;
-                _match = _coach.MakeMatch(_content, Seed);
-            }
-            _phase = Phase.Set;
+            _host.BindSeats();
+            if (_pads.TrainingOn && (_play.Match == null || _play.Match.Over))
+                _play.Match = _host.NextTrainingMatch();
+            _play.Phase = MatchDirector.Phase.Set;
             Controls.CatchPlay();
             Controls.ClearTargets();
-            _match?.ControllerRunners.Reset();
-            _t = 0;
-            Play.NewPitch();
-            Live.NewPitch();
-            AtBat.NewPitch();
-            Steal.NewPitch();
+            _play.Match?.ControllerRunners.Reset();
+            _play.T = 0;
+            _play.NewPitch();
+            _live.NewPitch();
+            NewPitch();
+            _host.Steal.NewPitch();
             // The next pitch (§5.8): the must-release, the spent triggers and a spent cancel carry; a hold must come up.
-            _plate = _plate.NextPitch();
-            Swap.Close();
-            if (_match != null) _match.Dash01 = 0;
-            _match?.LivePlay.Apply(LivePlayCommand.Reset());
-            Toss.Reset();
-            _items?.Hide();
-            _banner = _sub = "";
+            _play.Plate = _play.Plate.NextPitch();
+            _host.Swap.Close();
+            if (_play.Match != null) _play.Match.Dash01 = 0;
+            _play.Match?.LivePlay.Apply(LivePlayCommand.Reset());
+            _host.Toss.Reset();
+            _scene.Items?.Hide();
+            _host.BannerText = _host.Sub = "";
             // The body starts this SET where the last pitch left it; the rubber persists (§4.2).
-            _moundX = (float)_match.PitcherOffsetX;
-            var rel = PitchFlight.Release(_match.Rules, _match.PitcherOffsetX);
-            _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
-            _park.Ball.Place(_ball, "", PitchFamily.Fastball, false, false);
+            _play.MoundX = (float)_play.Match.PitcherOffsetX;
+            var rel = PitchFlight.Release(_play.Match.Rules, _play.Match.PitcherOffsetX);
+            _play.Ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
+            _scene.Park.Ball.Place(_play.Ball, "", PitchFamily.Fastball, false, false);
             HoldPitchInHand();
             SetCam.AimAt(0, 0);
-            _smash = 0;
-            _audio?.CrowdBed(true);
+            _host.Smash = 0;
+            _scene.Audio?.CrowdBed(true);
             SetCam.Aim();
             SetCam.Log("begin");
             ShowCursor();
-            if (TrainingOn && _coach != null && _coach.Session != null && _match != null
-                && _coach.Session.Lesson == PracticeLesson.Fielding && _coach.Session.LessonPart >= 2)
-                _coach.Session.SetupTurnTwo(_match);
+            if (_pads.TrainingOn && _host.Coach != null && _host.Coach.Session != null && _play.Match != null
+                && _host.Coach.Session.Lesson == PracticeLesson.Fielding && _host.Coach.Session.LessonPart >= 2)
+                _host.Coach.Session.SetupTurnTwo(_play.Match);
         }
 
-        internal void TickSet(float dt)
+        public void TickSet(float dt)
         {
-            if (_t > 0.2f && _t < 0.28f) SetCam.Log("live");
+            if (_play.T > 0.2f && _play.T < 0.28f) SetCam.Log("live");
             HoldPitchInHand();
-            var mound = PitchPad;
-            var box = BatPad;
+            var mound = _pads.PitchPad;
+            var box = _pads.BatPad;
             var pitchButton = default(ChargeButtonStep);
             var pitchFamily = PitchFamily.Fastball;
-            var wasPicking = Swap.Open;
-            if (HumanPitches && !_match.PitchSetup.Committed) Swap.Tick(dt, mound);
-            if (wasPicking || Swap.Open)
+            var wasPicking = _host.Swap.Open;
+            if (_pads.HumanPitches && !_play.Match.PitchSetup.Committed) _host.Swap.Tick(dt, mound);
+            if (wasPicking || _host.Swap.Open)
             {
                 // The window owns this frame, including its open/close edge. No pickoff,
                 // rubber walk, steal or banked charge can leak through a menu action.
-                TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
-                    ref AtBat.PitchButton, ref AtBat.PitchCharge, ref AtBat.PitchPast, accepting: false);
-                _pitchSelect = _pitchSelect with { Locked = false };
-                if (HumanBats) TickPlate(dt, accepting: false, commits: false);
-                _charge = _chargePast = 0;
-                _buntSide = BuntSide.None;
+                TickChargeButton(dt, _scene.Feel.PitchChargeSeconds, mound,
+                    ref PitchButton, ref PitchCharge, ref PitchPast, accepting: false);
+                PitchSelect = PitchSelect with { Locked = false };
+                if (_pads.HumanBats) TickPlate(dt, accepting: false, commits: false);
+                _play.Charge = ChargePast = 0;
+                BuntSide = BuntSide.None;
                 return;
             }
             // A legal base throw is read before South can begin a pitch charge.
-            if (HumanPitches && Steal.ReadSetupThrow(mound, _t >= (float)_feel.PitcherReadySeconds && !Swap.Open)) return;
+            if (_pads.HumanPitches && _host.Steal.ReadSetupThrow(mound, _play.T >= (float)_scene.Feel.PitcherReadySeconds && !_host.Swap.Open)) return;
             // The arm edge is read from the button as it stood *before* this tick's step (#813).
-            var prevPitchButton = _pitchButton;
-            if (HumanPitches)
-                pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
-                    ref AtBat.PitchButton, ref AtBat.PitchCharge, ref AtBat.PitchPast,
-                    _t >= (float)_feel.PitcherReadySeconds && !Swap.Open);
+            var prevPitchButton = PitchButton;
+            if (_pads.HumanPitches)
+                pitchButton = TickChargeButton(dt, _scene.Feel.PitchChargeSeconds, mound,
+                    ref PitchButton, ref PitchCharge, ref PitchPast,
+                    _play.T >= (float)_scene.Feel.PitcherReadySeconds && !_host.Swap.Open);
             else
-                _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
-            if (HumanPitches && (pitchButton.Next.Armed || pitchButton.Committed) && !_match.PitchSetup.Committed)
-                Steal.CommitCharge();
-            if (HumanPitches)
+                PitchCharge = Mathf.Clamp01(_play.T / Mathf.Max(0.12f, (float)_scene.Feel.PitcherReadySeconds));
+            if (_pads.HumanPitches && (pitchButton.Next.Armed || pitchButton.Committed) && !_play.Match.PitchSetup.Committed)
+                _host.Steal.CommitCharge();
+            if (_pads.HumanPitches)
             {
                 // One SET tick of the cycle (spec §3, PH-02-R3/R4/R5). Cycling is legal before the
                 // pitcher-ready beat — a selection is not a delivery — but not while the swap pick
                 // owns the stick and the button (§4.7), so the gate is the seat, not `accepting`.
-                var selection = _match.SelectPitch(_pitchSelect, mound.CyclePitch,
-                    HumanPitches && !Swap.Open, prevPitchButton, pitchButton);
-                _pitchSelect = selection.Next;
+                var selection = _play.Match.SelectPitch(PitchSelect, mound.CyclePitch,
+                    _pads.HumanPitches && !_host.Swap.Open, prevPitchButton, pitchButton);
+                PitchSelect = selection.Next;
                 // On the commit tick this is the locked family of the delivery leaving the hand;
                 // `Next` has already reset to the fastball for the SET after it.
                 pitchFamily = selection.Family;
             }
-            if (HumanBats)
+            if (_pads.HumanBats)
             {
                 // A press during SET is not a swing (spec §3): the hold builds, the release drops. The triggers
                 // square in SET too (§5.8), and East / G discards a load here as in the flight (§5.1).
                 var plate = TickPlate(dt, accepting: true, commits: false);
-                _charge = (float)_plate.Swing.Fill01;
-                _chargePast = (float)_plate.Swing.SecondsPastFull;
-                _buntSide = plate.Bunt.Showing;
+                _play.Charge = (float)_play.Plate.Swing.Fill01;
+                ChargePast = (float)_play.Plate.Swing.SecondsPastFull;
+                BuntSide = plate.Bunt.Showing;
             }
             else
             {
-                _plateSeat = -1;
-                _plate = default;
+                _play.PlateSeat = -1;
+                _play.Plate = default;
             }
-            _pip += dt * (float)_feel.PipPulseHz;
+            _play.Pip += dt * (float)_scene.Feel.PipPulseHz;
             // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI's steal table runs once per at-bat.
-            if (!HumanPitches && _t < dt) _match.CpuConsidersSwap();
-            if (!HumanBats && _t < dt) _match.CpuBatter.ArmSteal();
+            if (!_pads.HumanPitches && _play.T < dt) _play.Match.CpuConsidersSwap();
+            if (!_pads.HumanBats && _play.T < dt) _play.Match.CpuBatter.ArmSteal();
             // The CPU batter's square is read at SET (§5.9, §7.3) so a human pitcher sees it before the pitch.
-            if (!HumanBats && _t < dt) _match.CpuBatter.SquaresBunt();
+            if (!_pads.HumanBats && _play.T < dt) _play.Match.CpuBatter.SquaresBunt();
             // The CPU decides its delivery at the top of SET, the way a hand decides before it
             // charges (§4.8, PH-18-R1): the rubber the model solves for is then somewhere to walk to
             // during SET instead of a place to appear at on the release frame.
-            if (!HumanPitches && _t < dt && _cpuPitch == null && !TutorialOn)
+            if (!_pads.HumanPitches && _play.T < dt && CpuPitch == null && !_host.TutorialOn)
             {
-                _cpuPitch = _match.CpuPitcher.PitchByInputs(out var cpuPlan);
-                _cpuSteer = Math.Sign(cpuPlan.SteerDir);
+                CpuPitch = _play.Match.CpuPitcher.PitchByInputs(out var cpuPlan);
+                CpuSteer = Math.Sign(cpuPlan.SteerDir);
             }
             // The held special modifier (PH-16-R11): no arming. The card reads STAR while it is down, free and paid for;
             // the release reads it.
-            StarAsks.PitchShown = HumanPitches && StarAsks.Ready(mound) && _match.CanStarPitch;
-            StarAsks.SwingShown = HumanBats && StarAsks.Ready(box) && _match.CanStarSwing;
+            StarAsks.PitchShown = _pads.HumanPitches && StarAsks.Ready(mound) && _play.Match.CanStarPitch;
+            StarAsks.SwingShown = _pads.HumanBats && StarAsks.Ready(box) && _play.Match.CanStarSwing;
             TickBaserunning(dt);
-            if (Steal.Advance(dt)) return;
-            if (HumanBats)
+            if (_host.Steal.Advance(dt)) return;
+            if (_pads.HumanBats)
             {
                 // Down resets the box in SET only (§5.4); in flight the same axis aims launch.
-                if (box.StickY < -(float)_feel.SetResetStick) _match.ResetBatter();
-                else _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
+                if (box.StickY < -(float)_scene.Feel.SetResetStick) _play.Match.ResetBatter();
+                else _play.Match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
             }
             // The square is a clock (§7.3): the defense crashes for as long as it has been held; released, it winds back.
             TickSquare(dt, SquaredNow);
-            if (HumanPitches)
+            if (_pads.HumanPitches)
             {
-                if (Swap.Open || _match.PitchSetup.Committed) { }
-                else if (mound.StickY < -(float)_feel.SetResetStick) _match.ResetPitcher();
-                else _match.WalkPitcher(HomeSet.RubberWalkStep(SetCam.WorldX(mound.StickX), dt));
-                _moundX = (float)_match.PitcherOffsetX;
-                SetCam.AimAt((float)_match.PitcherOffsetX, 0);
-                if (_t >= (float)_feel.PitcherReadySeconds)
+                if (_host.Swap.Open || _play.Match.PitchSetup.Committed) { }
+                else if (mound.StickY < -(float)_scene.Feel.SetResetStick) _play.Match.ResetPitcher();
+                else _play.Match.WalkPitcher(HomeSet.RubberWalkStep(SetCam.WorldX(mound.StickX), dt));
+                _play.MoundX = (float)_play.Match.PitcherOffsetX;
+                SetCam.AimAt((float)_play.Match.PitcherOffsetX, 0);
+                if (_play.T >= (float)_scene.Feel.PitcherReadySeconds)
                 {
                     if (pitchButton.Committed)
                     {
@@ -281,35 +264,28 @@ namespace GrandSluggers.UnityClient
                     }
                 }
             }
-            if (!HumanPitches)
+            if (!_pads.HumanPitches)
                 // The CPU's body walks to the rubber its delivery solved for, at the rate a hand
                 // walks (§4.8). Presentation only: the delivery already carries that rubber, and
                 // with no plan (a tutorial) the body sits on the match's own value.
-                _moundX = _cpuPitch != null
-                    ? Mathf.MoveTowards(_moundX, (float)_match.PitcherOffsetX, (float)HomeSet.RubberWalkStep(1f, dt))
-                    : (float)_match.PitcherOffsetX;
+                _play.MoundX = CpuPitch != null
+                    ? Mathf.MoveTowards(_play.MoundX, (float)_play.Match.PitcherOffsetX, (float)HomeSet.RubberWalkStep(1f, dt))
+                    : (float)_play.Match.PitcherOffsetX;
             ShowCursor();
-            ShowAimTell(HumanPitches ? PreviewPitch(pitchFamily) : null);
+            ShowAimTell(_pads.HumanPitches ? PreviewPitch(pitchFamily) : null);
             SetCam.Aim();
-            if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
+            if (!_pads.HumanPitches && _play.T > (float)_scene.Feel.PitcherReadySeconds)
             {
                 // The CPU pitcher's pickoff read (§4.5, §4.8): a runner who armed in SET is between bags on the motion.
-                var pickoffBag = TutorialOn ? 0 : _match.CpuPitcher.PickoffBag();
+                var pickoffBag = _host.TutorialOn ? 0 : _play.Match.CpuPitcher.PickoffBag();
                 if (pickoffBag > 0)
                 {
-                    Steal.BeginPickoff(pickoffBag);
+                    _host.Steal.BeginPickoff(pickoffBag);
                     return;
                 }
-                Launch(TutorialOn && HumanBats ? _coach.Tutorial.CpuPitch : _cpuPitch ?? _match.CpuPitcher.Pitch());
+                Launch(_host.TutorialOn && _pads.HumanBats ? _host.Coach.Tutorial.CpuPitch : CpuPitch ?? _play.Match.CpuPitcher.Pitch());
             }
         }
-
-        /// <summary>The pickoff (§4.5, D3): a runner on the bag is the beat; a runner who broke is the live runner play.</summary>
-        StealDirector _steal;
-        StealDirector Steal => _steal ??= new StealDirector(gameObject, Play, this);
-        SetCamera _setCam;
-        /// <summary>SET's camera and the pitcher's aim it leans toward (#1042).</summary>
-        internal SetCamera SetCam => _setCam ??= new SetCamera(Scene, Play, Pads, this);
 
         /// <summary>
         /// The pitcher card's verb tells: STAR and the swap pick (spec §4.1, §4.7). No family tell —
@@ -317,35 +293,28 @@ namespace GrandSluggers.UnityClient
         /// the held pitch would hand it to the batter (PH-02-R5). The repertoire row the card shows
         /// instead is <see cref="BroadcastHud.PitcherPitches(Match)"/> and depends on nothing held.
         /// </summary>
-        string PitcherExtra()
+        public string PitcherExtra()
         {
-            if (_match == null) return "";
-            var set = _phase == Phase.Set && HumanPitches;
-            if (set && _match.PitchSetup.Committed) return BroadcastHud.ShortFamily(_match.FamilyAt(_pitchSelect)) + " · " + BroadcastHud.PitchCommitted;
+            if (_play.Match == null) return "";
+            var set = _play.Phase == MatchDirector.Phase.Set && _pads.HumanPitches;
+            if (set && _play.Match.PitchSetup.Committed) return BroadcastHud.ShortFamily(_play.Match.FamilyAt(PitchSelect)) + " · " + BroadcastHud.PitchCommitted;
             return BroadcastHud.PitcherExtra(
-                StarAsks.PitchShown && HumanPitches,
-                set ? BroadcastHud.PitchCycle(BroadcastHud.ShortFamily(_match.FamilyAt(_pitchSelect))) : null,
-                set && !Swap.Open && _match.CanArrangeDefense);
+                StarAsks.PitchShown && _pads.HumanPitches,
+                set ? BroadcastHud.PitchCycle(BroadcastHud.ShortFamily(_play.Match.FamilyAt(PitchSelect))) : null,
+                set && !_host.Swap.Open && _play.Match.CanArrangeDefense);
         }
 
         /// <summary>
         /// The pitcher's shape for the pose and the ball. Family-blind until the delivery exists
         /// (PH-02-R5): in SET the pose is the fastball's whatever is selected, and the real family
-        /// arrives with <c>_pitch</c> at the launch, for the throw itself.
+        /// arrives with <c>_play.Pitch</c> at the launch, for the throw itself.
         /// </summary>
-        internal string ShownPitchType => _pitch != null ? _pitch.Type : PitchFamily.Fastball;
-
-        /// <summary>
-        /// Select opens the defense window. South picks two positions; Select is the pitcher shortcut.
-        /// East cancels a pending pick or closes. All baseball input waits for the window.
-        /// </summary>
-        /// <summary>Call time's Arrange defense: open SET's swap window.</summary>
-        internal bool OpenDefenseSetup() => Swap.TryOpen();
+        public string ShownPitchType => _play.Pitch != null ? _play.Pitch.Type : PitchFamily.Fastball;
 
         /// <summary>The pitch as it stands in SET: the selected family, the rubber, the charge so far. Not committed.</summary>
         PitchCommand PreviewPitch(string family) =>
-            new(family, EffectiveCharge(_pitchCharge, _pitchPast),
-                StarAsks.PitchShown && _match.CanStarPitch, RubberX: _match.PitcherOffsetX);
+            new(family, EffectiveCharge(PitchCharge, PitchPast),
+                StarAsks.PitchShown && _play.Match.CanStarPitch, RubberX: _play.Match.PitcherOffsetX);
 
         /// <summary>
         /// The SET ring (spec §4.4, PH-06, PH-06-R1). Pitching seat only, and in ordinary play it is
@@ -363,28 +332,28 @@ namespace GrandSluggers.UnityClient
         /// <param name="pitch">The pitch as it stands, for the teaching ring; null hides the tell.</param>
         void ShowAimTell(PitchCommand pitch)
         {
-            var teaching = TrainingOn || TutorialOn;
-            if (pitch == null || _match == null
-                || !SetTells.AimTellOn(HumanPitches, _phase == Phase.Set, _phase == Phase.Flight, teaching))
+            var teaching = _pads.TrainingOn || _host.TutorialOn;
+            if (pitch == null || _play.Match == null
+                || !SetTells.AimTellOn(_pads.HumanPitches, _play.Phase == MatchDirector.Phase.Set, _play.Phase == MatchDirector.Phase.Flight, teaching))
             {
-                _zone.AimTell(false, 0, 0);
+                _scene.Zone.AimTell(false, 0, 0);
                 return;
             }
             var (x, y) = teaching
-                ? SetTells.Locator(pitch, _match.BatterZone, _match.Rules, _match.Pitcher.StarPitch)
-                : SetTells.RubberRing(_match.PitcherOffsetX, _match.BatterZone);
-            _zone.AimTell(true, (float)x, (float)y);
+                ? SetTells.Locator(pitch, _play.Match.BatterZone, _play.Match.Rules, _play.Match.Pitcher.StarPitch)
+                : SetTells.RubberRing(_play.Match.PitcherOffsetX, _play.Match.BatterZone);
+            _scene.Zone.AimTell(true, (float)x, (float)y);
         }
 
         /// <summary>
         /// The gold oval follows the batter and shows this swing's barrel (contact, charge):
         /// the sim's own oval (<see cref="SweetSpot.Oval"/>), the one the resolver judges (S-134).
         /// </summary>
-        void ShowCursor()
+        public void ShowCursor()
         {
-            if (_match == null) return;
-            _zone.Show(SweetSpot.Oval(_match.Batter, _match.OffenseBat, EffectiveCharge(_charge, _chargePast),
-                _match.BatterOffsetX, _match.Rules), _match.BatterZone);
+            if (_play.Match == null) return;
+            _scene.Zone.Show(SweetSpot.Oval(_play.Match.Batter, _play.Match.OffenseBat, EffectiveCharge(_play.Charge, ChargePast),
+                _play.Match.BatterOffsetX, _play.Match.Rules), _play.Match.BatterZone);
         }
 
         static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,
@@ -400,7 +369,7 @@ namespace GrandSluggers.UnityClient
         }
 
         float EffectiveCharge(float charge, float past) =>
-            (float)ChargeFeel.Effective01(charge, past, _feel.ChargeMaxHoldSeconds, _feel.ChargeOverchargeDecay);
+            (float)ChargeFeel.Effective01(charge, past, _scene.Feel.ChargeMaxHoldSeconds, _scene.Feel.ChargeOverchargeDecay);
 
         /// <summary>
         /// The human's pitch (spec §4.1 – §4.2, §3): shape from the family the charge locked,
@@ -418,60 +387,60 @@ namespace GrandSluggers.UnityClient
         /// </param>
         PitchCommand PlayerPitch(double fill01, double secondsPastFull, string family, bool starAsked)
         {
-            var nice = ChargeFeel.NiceCopy(true, fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds);
-            if (!string.IsNullOrEmpty(nice)) _banner = nice;
+            var nice = ChargeFeel.NiceCopy(true, fill01, secondsPastFull, _scene.Feel.ChargeMaxHoldSeconds);
+            if (!string.IsNullOrEmpty(nice)) _host.BannerText = nice;
             StarAsks.PitchAsked = starAsked;
-            if (starAsked) StarAsks.Note(_match.PitchStarRequest);
-            StarAsks.PitchShown = starAsked && _match.CanStarPitch;
+            if (starAsked) StarAsks.Note(_play.Match.PitchStarRequest);
+            StarAsks.PitchShown = starAsked && _play.Match.CanStarPitch;
             return new PitchCommand(family,
                 EffectiveCharge((float)fill01, (float)secondsPastFull),
                 StarAsks.PitchShown,
-                RubberX: _match.PitcherOffsetX,
-                Nice: ChargeFeel.NiceRelease(fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds, _match.Rules));
+                RubberX: _play.Match.PitcherOffsetX,
+                Nice: ChargeFeel.NiceRelease(fill01, secondsPastFull, _scene.Feel.ChargeMaxHoldSeconds, _play.Match.Rules));
         }
 
-        internal void Launch(PitchCommand pitch)
+        public void Launch(PitchCommand pitch)
         {
-            Steal.CommitCharge();
-            pitch = _match.PreparePitch(pitch);
-            _pitch = pitch;
-            var mph = _match.PitchSpeedMph(pitch);
-            _pitchDur = (float)PitchFlight.AirSeconds(mph, _match.Rules);
-            _flight = -(float)Motion.PitchRelease;
-            _pitchAir = false;
-            _swung = false;
+            _host.Steal.CommitCharge();
+            pitch = _play.Match.PreparePitch(pitch);
+            _play.Pitch = pitch;
+            var mph = _play.Match.PitchSpeedMph(pitch);
+            _play.PitchDur = (float)PitchFlight.AirSeconds(mph, _play.Match.Rules);
+            _play.Flight = -(float)Motion.PitchRelease;
+            _play.PitchAir = false;
+            _play.Swung = false;
             HoldPitchInHand();
-            _pitchCharge = 0;
-            _pitchPast = 0;
-            _pitchButton = default;
-            if (!HumanBats)
+            PitchCharge = 0;
+            PitchPast = 0;
+            PitchButton = default;
+            if (!_pads.HumanBats)
             {
-                _charge = 0;
-                _chargePast = 0;
-                _plate = default;
-                _plateSeat = -1;
+                _play.Charge = 0;
+                ChargePast = 0;
+                _play.Plate = default;
+                _play.PlateSeat = -1;
                 // The CPU batter decides at the plate plane from the final trajectory (spec §3, S-04): see TickFlight.
-                _swing = null;
+                _play.Swing = null;
             }
-            _phase = Phase.Flight;
-            _t = 0;
-            var rel = PitchFlight.Release(_match.Rules, pitch.RubberX);
-            _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
+            _play.Phase = MatchDirector.Phase.Flight;
+            _play.T = 0;
+            var rel = PitchFlight.Release(_play.Match.Rules, pitch.RubberX);
+            _play.Ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             SetCam.AimAt((float)pitch.AimX, (float)pitch.AimY);
             // A hand's bend starts at nothing and grows for as long as the stick is held (§4.1).
             // A steered CPU delivery carries the whole of that hold in one number
             // (PitchFlight.BreakReach, §4.8), so the drawn ball walks there with the same BreakStep
             // rather than snapping to it at release. Without a plan this is the command, as before.
-            _breakX = _cpuSteer != 0 ? 0f : (float)pitch.BreakX;
+            _play.BreakX = CpuSteer != 0 ? 0f : (float)pitch.BreakX;
             // Body and ball agree from here: both stand on the rubber this delivery was built from.
-            _moundX = (float)pitch.RubberX;
+            _play.MoundX = (float)pitch.RubberX;
             ShowCursor();
-            ShowAimTell(HumanPitches ? pitch : null);
-            _rig.Punch(pitch.Star ? 8f : 4f);
-            _spec.ResetDecoy();
+            ShowAimTell(_pads.HumanPitches ? pitch : null);
+            _scene.Rig.Punch(pitch.Star ? 8f : 4f);
+            _scene.Fx.ResetDecoy();
             if (pitch.Star)
             {
-                _audio?.CaptainVo(_match.Pitcher.Id);
+                _scene.Audio?.CaptainVo(_play.Match.Pitcher.Id);
                 Controls.RumbleStar();
             }
             var hero = PitcherHero();
@@ -479,102 +448,102 @@ namespace GrandSluggers.UnityClient
                 hero.SetPose(Motion.Verb.ThrowPitch, (float)pitch.Charge01, pitch.Type);
             // Cut, do not blend. SET→flight blending looks at dirt while the
             // ball stays in the hand (#301).
-            _cam.Cut(AtBatShots.Pitch);
+            _scene.Cam.Cut(AtBatShots.Pitch);
             SetCam.Aim();
         }
 
-        internal void TickFlight(float dt)
+        public void TickFlight(float dt)
         {
             SetCam.Aim();
-            var previousFlight = _flight;
-            _flight += dt;
+            var previousFlight = _play.Flight;
+            _play.Flight += dt;
             TickBaserunning(dt);
             // Split a render frame at release so the setup and airborne speed clocks agree.
             var heldSeconds = Mathf.Min(dt, Mathf.Max(0, -previousFlight));
-            if (Steal.Advance(heldSeconds)) return;
-            if (HumanPitches && !_pitchAir && Steal.ReadSetupThrow(PitchPad, true)) return;
-            if (HumanBats && !(TutorialOn && _coach.Tutorial.IsStealLesson))
+            if (_host.Steal.Advance(heldSeconds)) return;
+            if (_pads.HumanPitches && !_play.PitchAir && _host.Steal.ReadSetupThrow(_pads.PitchPad, true)) return;
+            if (_pads.HumanBats && !(_host.TutorialOn && _host.Coach.Tutorial.IsStealLesson))
             {
-                var box = BatPad;
+                var box = _pads.BatPad;
                 // Every flight tick, committed or not (§5.8): a committed swing follows through and no trigger squares
                 // (the sim's SwingCommitted), and East stays the plate's until it comes up.
                 var plate = TickPlate(dt, accepting: true, commits: true);
-                _buntSide = plate.Bunt.Showing;
-                if (!_swung)
+                BuntSide = plate.Bunt.Showing;
+                if (!_play.Swung)
                 {
-                    _charge = (float)_plate.Swing.Fill01;
-                    _chargePast = (float)_plate.Swing.SecondsPastFull;
-                    StarAsks.SwingShown = StarAsks.Ready(box) && _match.CanStarSwing;
+                    _play.Charge = (float)_play.Plate.Swing.Fill01;
+                    ChargePast = (float)_play.Plate.Swing.SecondsPastFull;
+                    StarAsks.SwingShown = StarAsks.Ready(box) && _play.Match.CanStarSwing;
                     // Stick U/D never resets the box once the windup starts (§5.4); in flight it aims only a
                     // Star Swing's launch, because an ordinary swing reads no stick at contact (PH-12).
-                    _match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
+                    _play.Match.WalkBatter(HomeSet.BoxWalkStep(box.StickX, dt));
                     ShowCursor();
                     // The held bunt is not a swing (§5.8): a committed release is always the ordinary swing; the
                     // square cancels a load before it can commit (PlateButtons), so the two never share a tick.
                     if (plate.Swing.Committed)
                         CommitSwing(SwingInputIntent.Capture(
-                            plate.Swing, box.StickX, box.StickY, false, _match.BatterOffsetX, _match.Rules), StarAsks.Release(box));
+                            plate.Swing, box.StickX, box.StickY, false, _play.Match.BatterOffsetX, _play.Match.Rules), StarAsks.Release(box));
                 }
             }
             // The held trigger through the pitch keeps the square (§5.8); the CPU's square holds from SET.
             TickSquare(dt, SquaredNow);
-            if (!_pitchAir)
+            if (!_play.PitchAir)
             {
                 HoldPitchInHand();
                 // Authored release even if ThrowPitch never plays. Waiting on
                 // the clip left the ball in the glove while the count ticked.
                 var due = (float)Motion.PitchRelease;
-                if (_flight < 0)
+                if (_play.Flight < 0)
                 {
                     return;
                 }
                 PitcherHero()?.SampleMotion(due);
                 CaptureReleaseFromHand();
-                _park.Ball.Release();
-                _pitchAir = true;
-                _match.PitchSetup.ReleaseBall();
-                dt = Mathf.Min(dt, _flight);
+                _scene.Park.Ball.Release();
+                _play.PitchAir = true;
+                _play.Match.PitchSetup.ReleaseBall();
+                dt = Mathf.Min(dt, _play.Flight);
             }
-            StealDirector.BufferCatcherInput(_match, HumanOwnsThrow, FieldInput());
-            if (Steal.Advance(Mathf.Min(dt, Mathf.Max(0, _pitchDur - Mathf.Max(0, previousFlight))))) return;
-            var u = Mathf.Clamp01(_flight / _pitchDur);
+            StealDirector.BufferCatcherInput(_play.Match, _pads.HumanOwnsThrow, _pads.FieldInput());
+            if (_host.Steal.Advance(Mathf.Min(dt, Mathf.Max(0, _play.PitchDur - Mathf.Max(0, previousFlight))))) return;
+            var u = Mathf.Clamp01(_play.Flight / _play.PitchDur);
             // Break is a stick direction after release (spec §4.1): screen-relative from either camera.
-            if (HumanPitches)
+            if (_pads.HumanPitches)
             {
-                _breakX = (float)PitchFlight.BreakStep(_breakX, SetCam.WorldX(PitchPad.StickX), dt,
-                    _match.Pitcher.Stats.Control, _match.Rules);
+                _play.BreakX = (float)PitchFlight.BreakStep(_play.BreakX, SetCam.WorldX(_pads.PitchPad.StickX), dt,
+                    _play.Match.Pitcher.Stats.Control, _play.Match.Rules);
                 // The stick *is* the human's break, so the command the umpire reads carries it.
-                _pitch = _pitch with { BreakX = _breakX };
+                _play.Pitch = _play.Pitch with { BreakX = _play.BreakX };
             }
-            else if (_cpuSteer != 0)
+            else if (CpuSteer != 0)
                 // Drawn only (§4.8, PH-18-R1): the command already carries the whole reach the sim
                 // judged, and the same per-frame step arrives there over this delivery's air time.
-                _breakX = (float)PitchFlight.BreakStep(_breakX, _cpuSteer, dt,
-                    _match.Pitcher.Stats.Control, _match.Rules);
-            var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
-            var shown = _cpuSteer != 0 ? _pitch with { BreakX = _breakX } : _pitch;
-            var p = PitchFlight.Point(shown, u, _match.Rules, _match.Pitcher.StarPitch, from, _match.Content.StarSkills);
-            _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
-            ShowAimTell(HumanPitches ? _pitch : null);
+                _play.BreakX = (float)PitchFlight.BreakStep(_play.BreakX, CpuSteer, dt,
+                    _play.Match.Pitcher.Stats.Control, _play.Match.Rules);
+            var from = ((double)_play.ReleaseFrom.x, (double)_play.ReleaseFrom.y, (double)_play.ReleaseFrom.z);
+            var shown = CpuSteer != 0 ? _play.Pitch with { BreakX = _play.BreakX } : _play.Pitch;
+            var p = PitchFlight.Point(shown, u, _play.Match.Rules, _play.Match.Pitcher.StarPitch, from, _play.Match.Content.StarSkills);
+            _play.Ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
+            ShowAimTell(_pads.HumanPitches ? _play.Pitch : null);
             // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9):
             // the break it can see is the one drawn so far, never the steer still to come (PH-18).
-            if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
-                _swing = WithSquare(AtBatMotion.CommitCpuSwing(
-                    (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuBatter.Swing(_pitch, _breakX)),
-                    _pitchDur, _match.Rules));
-            if (!HumanBats && _swing != null && _swing.Swing && !_swung
-                && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _match.Rules, _swing.Bunt))
+            if (!_pads.HumanBats && _play.Swing == null && _play.Flight >= AtBatMotion.CpuDecisionTime(_play.PitchDur, _play.Match.Rules))
+                _play.Swing = WithSquare(AtBatMotion.CommitCpuSwing(
+                    (_host.TutorialOn ? new SwingCommand(false, 0, 0, false) : _play.Match.CpuBatter.Swing(_play.Pitch, _play.BreakX)),
+                    _play.PitchDur, _play.Match.Rules));
+            if (!_pads.HumanBats && _play.Swing != null && _play.Swing.Swing && !_play.Swung
+                && _play.Flight >= AtBatMotion.SwingStart(_play.PitchDur, _play.Swing.TimingErrorFrames, _play.Match.Rules, _play.Swing.Bunt))
             {
-                _swung = true;
-                _swingContactSec = SwingContactSec(_swing);
+                _play.Swung = true;
+                _play.SwingContactSec = SwingContactSec(_play.Swing);
             }
-            if (u < 1 || TutorialOn && _coach.Tutorial.IsStealLesson) return;
+            if (u < 1 || _host.TutorialOn && _host.Coach.Tutorial.IsStealLesson) return;
             // At the plate a human's squared bat is the held bunt (§5.8, PH-14-R4): no timed press, its held side.
             // Nothing squared and nothing committed is a take.
-            _swing ??= WithSquare(HumanBats
-                ? PlateButtons.HeldBuntAtPlate(_plateStep, _match.BatterOffsetX, _squareSec)
-                  ?? new SwingCommand(false, _charge, 12, false)
-                : (TutorialOn ? new SwingCommand(false, 0, 0, false) : _match.CpuBatter.Swing(_pitch)));
+            _play.Swing ??= WithSquare(_pads.HumanBats
+                ? PlateButtons.HeldBuntAtPlate(PlateStep, _play.Match.BatterOffsetX, _play.SquareSec)
+                  ?? new SwingCommand(false, _play.Charge, 12, false)
+                : (_host.TutorialOn ? new SwingCommand(false, 0, 0, false) : _play.Match.CpuBatter.Swing(_play.Pitch)));
             Resolve();
         }
 
@@ -582,27 +551,27 @@ namespace GrandSluggers.UnityClient
         /// The square clock (§7.3): held, it counts up and the corners crash; released, it counts back down so the
         /// bodies walk back along the same line instead of snapping to their spots (BuntDefense.Spots is a function of it).
         /// </summary>
-        void TickSquare(float dt, bool squared) => _squareSec = squared ? _squareSec + dt : Mathf.Max(0f, _squareSec - dt);
+        void TickSquare(float dt, bool squared) => _play.SquareSec = squared ? _play.SquareSec + dt : Mathf.Max(0f, _play.SquareSec - dt);
 
         /// <summary>The swing carries how long the batter had been squared (§7.3): this client's clock, for either seat.</summary>
-        SwingCommand WithSquare(SwingCommand swing) => swing.SquareSec == _squareSec ? swing : swing with { SquareSec = _squareSec };
+        SwingCommand WithSquare(SwingCommand swing) => swing.SquareSec == _play.SquareSec ? swing : swing with { SquareSec = _play.SquareSec };
 
         /// <param name="starAsked">The modifier as the accepted release read it: the same rule as the pitch's (PH-16-R11, R12).</param>
         void CommitSwing(SwingInputIntent intent, bool starAsked)
         {
-            if (!intent.Committed || _swung) return;
-            _swung = true;
+            if (!intent.Committed || _play.Swung) return;
+            _play.Swung = true;
             StarAsks.SwingAsked = starAsked;
-            if (starAsked) StarAsks.Note(_match.SwingStarRequest);
-            StarAsks.SwingShown = starAsked && _match.CanStarSwing;
+            if (starAsked) StarAsks.Note(_play.Match.SwingStarRequest);
+            StarAsks.SwingShown = starAsked && _play.Match.CanStarSwing;
             var effective = EffectiveCharge((float)intent.Fill01, (float)intent.SecondsPastFull);
-            _charge = effective;
+            _play.Charge = effective;
             var nice = ChargeFeel.NiceCopy(false, intent.Fill01,
-                intent.SecondsPastFull, _feel.ChargeMaxHoldSeconds);
-            if (!string.IsNullOrEmpty(nice)) _banner = nice;
-            _swing = WithSquare(intent.Resolve(
-                _flight, _pitchDur, effective, StarAsks.SwingShown, _match.Rules));
-            _swingContactSec = SwingContactSec(_swing);
+                intent.SecondsPastFull, _scene.Feel.ChargeMaxHoldSeconds);
+            if (!string.IsNullOrEmpty(nice)) _host.BannerText = nice;
+            _play.Swing = WithSquare(intent.Resolve(
+                _play.Flight, _play.PitchDur, effective, StarAsks.SwingShown, _play.Match.Rules));
+            _play.SwingContactSec = SwingContactSec(_play.Swing);
         }
 
         /// <summary>
@@ -610,154 +579,115 @@ namespace GrandSluggers.UnityClient
         /// plate time inside the window, the take's own mark outside. Read at the press, before the
         /// pitch resolves and the next batter steps in.
         /// </summary>
-        float SwingContactSec(SwingCommand swing) =>
+        public float SwingContactSec(SwingCommand swing) =>
             (float)AtBatMotion.SwingContactSec(swing.TimingErrorFrames,
-                _match.SwingWindowFrames(_pitch), _match.Rules);
+                _play.Match.SwingWindowFrames(_play.Pitch), _play.Match.Rules);
 
         void Resolve()
         {
             var live = ResolveTutorialOrAtBat(out var hit, out var finished);
             // The held bat met the ball (PH-14-R3, PH-14-R6): the side is fixed and every trigger down now is spent,
             // so a held LT is not the item modifier, and squares nothing next pitch, until it comes up and is pressed.
-            if (HumanBats && _swing != null && _swing.Bunt && hit != null && hit.Quality != ContactQuality.Miss)
-                _plate = PlateButtons.Contact(_plate, _plateInput);
+            if (_pads.HumanBats && _play.Swing != null && _play.Swing.Bunt && hit != null && hit.Quality != ContactQuality.Miss)
+                _play.Plate = PlateButtons.Contact(_play.Plate, PlateInput);
             if (!live)
             {
-                _last = finished;
+                _play.Last = finished;
                 NoteTrainingPitch();
                 NoteTrainingSwing();
-                Banner();
-                if (finished != null && _match.StealThrowPending)
+                _host.Banner();
+                if (finished != null && _play.Match.StealThrowPending)
                 {
-                    StartRunnerPlay(finished);
+                    _host.InPlay.StartRunnerPlay(finished);
                     return;
                 }
-                BeginResult();
+                _host.BeginResult();
                 return;
             }
             NoteTrainingPitch();
-            if (HumanBats) _coach?.OnSwing(_swing, hit);
-            _pending = hit;
-            _preview = _match.PreviewHit(hit, _swing);
-            _cpuField = null;
-            var playerStarts = FieldAssist.PlayerStartsOnGlove(PlayerMustField);
-            Toss.Reset(_preview != null ? _preview.Fielder : null);
+            if (_pads.HumanBats) _host.Coach?.OnSwing(_play.Swing, hit);
+            _play.Pending = hit;
+            _play.Preview = _play.Match.PreviewHit(hit, _play.Swing);
+            _live.CpuField = null;
+            var playerStarts = FieldAssist.PlayerStartsOnGlove(_pads.PlayerMustField);
+            _host.Toss.Reset(_play.Preview != null ? _play.Preview.Fielder : null);
             if (!playerStarts)
             {
-                _cpuField = _match.ResolveFielding(hit, _preview);
-                if (!HumanBats)
-                    _cpuField = _match.ApplyOffenseItem(hit, _cpuField, null);
+                _live.CpuField = _play.Match.ResolveFielding(hit, _play.Preview);
+                if (!_pads.HumanBats)
+                    _live.CpuField = _play.Match.ApplyOffenseItem(hit, _live.CpuField, null);
             }
-            _park.Ball.Release();
-            StartFly(hit, alreadyLive: TutorialOn && (_coach.Tutorial.IsItemLesson || _coach.Tutorial.IsGameContactLesson) && _match.LivePlay.Active);
+            _scene.Park.Ball.Release();
+            StartFly(hit, alreadyLive: _host.TutorialOn && (_host.Coach.Tutorial.IsItemLesson || _host.Coach.Tutorial.IsGameContactLesson) && _play.Match.LivePlay.Active);
         }
 
-        internal void StartFly(AtBatResult hit, bool alreadyLive = false)
+        public void StartFly(AtBatResult hit, bool alreadyLive = false)
         {
-            _phase = Phase.InPlay;
-            _inPlay.Began();
-            _t = 0;
-            _path = null;
+            _play.Phase = MatchDirector.Phase.InPlay;
+            _host.InPlay.Began();
+            _play.T = 0;
+            _play.Path = null;
             // Every batted ball — foul territory included (§7.11) — is one live ball the sim plays out.
-            var seat = _match.LivePlay.Source;
-            if (!alreadyLive) _match.LivePlay.Apply(LivePlayCommand.BeginLive(
-                _pitch, _swing, hit, _preview, _cpuField, LiveSeatsNow(), _dash01, seat));
-            SyncFromLive();
+            var seat = _play.Match.LivePlay.Source;
+            if (!alreadyLive) _play.Match.LivePlay.Apply(LivePlayCommand.BeginLive(
+                _play.Pitch, _play.Swing, hit, _play.Preview, _live.CpuField, _pads.LiveNow(), _live.Dash01, seat));
+            _host.InPlay.SyncFromLive();
             // The contact word comes from the typed zone, never from the release (#578).
-            _banner = PlayStamp.ContactTell(hit.Quality);
-            if (hit.HomeRun && _match.Night)
-                _park.BurstFireworks(_ball);
-            if (hit.Quality != ContactQuality.Miss) _audio?.Bat(hit.Quality);
+            _host.BannerText = PlayStamp.ContactTell(hit.Quality);
+            if (hit.HomeRun && _play.Match.Night)
+                _scene.Park.BurstFireworks(_play.Ball);
+            if (hit.Quality != ContactQuality.Miss) _scene.Audio?.Bat(hit.Quality);
             if (hit.StarSwingUsed != null)
             {
-                _audio?.CaptainVo(_match.Batter.Id);
+                _scene.Audio?.CaptainVo(_play.Match.Batter.Id);
                 Controls.RumbleStar();
             }
             else if (hit.Quality != ContactQuality.Miss)
                 Controls.RumbleContact(hit.Quality);
             if (CartoonJuice.DirtPuff(hit.Quality))
-                _park.Ball.ContactPuff(_ball);
+                _scene.Park.Ball.ContactPuff(_play.Ball);
             // The batter's own contact (CH-13): the quality's freeze × its body class, and its settle.
             // The smash beat (§15): a perfect, a star swing, or a home run — smashFreeze + smashHold, the smash cam on the body.
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null || hit.HomeRun)
             {
-                _juice.Contact(_match.Batter, _feel.SmashFreeze, _feel);
-                _smash = (float)_feel.SmashHold;
-                _rig.Punch(CartoonJuice.Punch(hit.Quality));
-                _audio?.Swell();
+                _host.Juice.Contact(_play.Match.Batter, _scene.Feel.SmashFreeze, _scene.Feel);
+                _host.Smash = (float)_scene.Feel.SmashHold;
+                _scene.Rig.Punch(CartoonJuice.Punch(hit.Quality));
+                _scene.Audio?.Swell();
             }
             else if (hit.Quality == ContactQuality.Nice)
             {
-                _juice.Contact(_match.Batter, _feel.SolidFreeze, _feel);
-                _rig.Punch(CartoonJuice.Punch(hit.Quality));
+                _host.Juice.Contact(_play.Match.Batter, _scene.Feel.SolidFreeze, _scene.Feel);
+                _scene.Rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
             else if (hit.Quality == ContactQuality.Sour)
             {
-                _juice.Contact(_match.Batter, CartoonJuice.SourFreeze, _feel);
-                _rig.Punch(CartoonJuice.Punch(hit.Quality));
+                _host.Juice.Contact(_play.Match.Batter, CartoonJuice.SourFreeze, _scene.Feel);
+                _scene.Rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
-            AimLive();
+            _host.InPlay.AimLive();
         }
 
-        Vector3 SmashLook()
+        public Vector3 SmashLook()
         {
-            if (_match?.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var b) && b != null)
+            if (_play.Match?.Batter != null && _scene.Heroes.TryGetValue(_play.Match.Batter.Id, out var b) && b != null)
                 return b.transform.position + Vector3.up * 3.2f;
-            return _ball.sqrMagnitude > 0.4f
-                ? _ball
-                : new Vector3((float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX), (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
+            return _play.Ball.sqrMagnitude > 0.4f
+                ? _play.Ball
+                : new Vector3((float)HomeSet.BatterBodyX(_play.Match.Batter.Bats, _play.Match.BatterOffsetX), (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
         }
 
         bool ResolveTutorialOrAtBat(out AtBatResult hit, out PlayEvent finished)
         {
             // The match settles the special each side asked for at its release (PH-16-R12), so it is handed the request.
-            if (!TutorialOn) return _match.BeginAtBat(StarAsks.AsReleased(_pitch), StarAsks.AsReleased(_swing), out hit, out finished);
-            var run = _coach.Tutorial;
-            if (_coach.PlayerPitches) run.Pitch(StarAsks.AsReleased(_pitch));
-            else run.Swing(StarAsks.AsReleased(_swing));
+            if (!_host.TutorialOn) return _play.Match.BeginAtBat(StarAsks.AsReleased(_play.Pitch), StarAsks.AsReleased(_play.Swing), out hit, out finished);
+            var run = _host.Coach.Tutorial;
+            if (_host.Coach.PlayerPitches) run.Pitch(StarAsks.AsReleased(_play.Pitch));
+            else run.Swing(StarAsks.AsReleased(_play.Swing));
             hit = run.LastHit; finished = run.LastPlay;
             return run.IsGameContactLesson ? run.Match.LivePlay.Active
                 : hit != null && hit.InPlay && finished == null;
         }
-
-        // The live play (#1042): InPlayDirector owns the play; the pads, the seats, the items and the result beat are the flow's.
-        LiveSeats LiveSeatsNow() => Pads.LiveNow();
-        internal LivePadInput FieldInput() => Pads.FieldInput();
-        LivePadInput RunInput() => Pads.RunInput();
-
-        /// <summary>A frame of the live play, for the editor gates that drive it.</summary>
-        internal void TickLive(float dt) => _inPlay.Tick(dt);
-        internal PlayKind LiveKind() => _inPlay.LiveKind();
-        void StartRunnerPlay(PlayEvent pitch) => _inPlay.StartRunnerPlay(pitch);
-        void SyncFromLive() => _inPlay.SyncFromLive();
-        void AimLive() => _inPlay.AimLive();
-        Character PlayFielder() => _inPlay.PlayFielder();
-        bool BuddySet => _inPlay.BuddySet;
-        (double X, double Z) WallPlant(FieldingPreview pre) => _inPlay.WallPlant(pre);
-
-        LivePadInput IInPlayHost.FieldInput() => FieldInput();
-        LivePadInput IInPlayHost.RunInput() => RunInput();
-        void IInPlayHost.ClearThrowTarget() => FieldPad.ClearThrowTarget();
-        LiveSeats IInPlayHost.LiveSeatsNow() => LiveSeatsNow();
-        JuiceDirector IInPlayHost.Juice => _juice;
-        TutorialSession IInPlayHost.FieldLesson => TutorialOn ? _coach.Tutorial : null;
-        void IInPlayHost.OnFieldResult(FieldingResult result) => _coach?.OnField(result, _match);
-        void IInPlayHost.TickItem(float dt) => Toss.Tick(dt);
-        bool IInPlayHost.ItemFlying => Toss.Flying;
-        void IInPlayHost.ItemSmashed() => Toss.Smashed();
-        void IInPlayHost.Banner() => Banner();
-        void IInPlayHost.BeginResult() => BeginResult();
-        Vector3 IInPlayHost.SmashLook() => SmashLook();
-        float IInPlayHost.Smash { get => _smash; set => _smash = value; }
-        string IInPlayHost.Sub { set => _sub = value; }
-        void IInPlayHost.RestartClock() => _t = 0;
-
-        // The bodies (#1042): ActorDirector draws them; the swing clocks it and the at-bat share live in PlayState.
-        internal float _committedSwingT { get => Play.CommittedSwingT; set => Play.CommittedSwingT = value; }
-        /// <summary>Seconds from the press to the committed take's Contact mark (D13); NaN until a swing commits.</summary>
-        float _swingContactSec { get => Play.SwingContactSec; set => Play.SwingContactSec = value; }
-        /// <summary>A frame of the bodies, for the editor gates that draw them.</summary>
-        internal void DrawActors(float dt) => _actors.Draw(dt);
 
         /// <summary>
         /// The offense pad before the pitch (spec §9.2, §11.1): D-pad selects, stick toward the next
@@ -768,54 +698,73 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         void TickBaserunning(float dt)
         {
-            if (_match == null || _match.LeadBag == 0) return;
-            if (!HumanBats || _phase is not (Phase.Set or Phase.Flight)) return;
+            if (_play.Match == null || _play.Match.LeadBag == 0) return;
+            if (!_pads.HumanBats || _play.Phase is not (MatchDirector.Phase.Set or MatchDirector.Phase.Flight)) return;
             // Tutorial UI owns input and evidence before advancing its pre-contact clock.
-            if (TutorialOn && _coach.Tutorial.IsStealLesson) return;
-            _match.PitchSetup.RunnerInput(RunInput());
-            if (TrainingOn) _coach.OnRun(_match);
+            if (_host.TutorialOn && _host.Coach.Tutorial.IsStealLesson) return;
+            _play.Match.PitchSetup.RunnerInput(_pads.RunInput());
+            if (_pads.TrainingOn) _host.Coach.OnRun(_play.Match);
         }
 
-        bool IActorHost.TutorialModal => TutorialModal;
-        bool IActorHost.Turntable => _turntable;
-        bool IActorHost.Replaying => _replaying;
-        bool IActorHost.HumanBats => HumanBats;
-        bool IActorHost.HumanPitches => HumanPitches;
-        bool IActorHost.HumanOwnsThrow => HumanOwnsThrow;
-        bool IActorHost.SquaredNow => SquaredNow;
-        bool IActorHost.PlateSwingArmed => _plate.Swing.Armed;
-        float IActorHost.PitchCharge => _pitchCharge;
-        float ISetCameraHost.PitchCharge => _pitchCharge;
-        HeroActor ISetCameraHost.PitcherHero() => PitcherHero();
-        string IActorHost.ShownPitchType => ShownPitchType;
-        ItemToss IActorHost.Toss => Toss;
-        float IActorHost.SwingContactSec(SwingCommand swing) => SwingContactSec(swing);
-        void IActorHost.ShowCursor() => ShowCursor();
-        void IActorHost.HoldBallInGlove() => HoldBallInGlove();
-        void IActorHost.OnRun() { if (TrainingOn) _coach.OnRun(_match); }
-        StealDirector IActorHost.Steal => Steal;
-        JuiceDirector IActorHost.Juice => _juice;
-        LineupScreens IActorHost.Lineup => _lineup;
-        ExhibitionPick IActorHost.CurrentPick() => CurrentPick();
-        Vector2 IActorHost.FieldStick => new Vector2(FieldPad.StickX, FieldPad.StickY);
+        void NoteTrainingPitch()
+        {
+            if (_host.Coach == null || _play.Pitch == null) return;
+            _host.Coach.OnPitch(_play.Pitch, _play.Match);
+        }
 
-        // The on-deck item (#1042): ItemToss owns the pick, the target and the throw; the flow owns the subtitle.
-        ItemToss _toss;
-        internal ItemToss Toss => _toss ??= new ItemToss(Scene, Play, Live, Pads, this);
-        TrainingDirector IItemHost.Coach => _coach;
-        string IItemHost.Sub { set => _sub = value; }
+        void NoteTrainingSwing()
+        {
+            if (_host.Coach == null || _play.Swing == null || _play.Last == null) return;
+            _host.Coach.OnSwing(_play.Swing, _play.Last.AtBat);
+        }
 
-        // SET's Arrange defense window (#1042): DefenseSwapWindow owns the pick and the swaps; the flow resets the pitch selection.
-        DefenseSwapWindow _swap;
-        internal DefenseSwapWindow Swap => _swap ??= new DefenseSwapWindow(Play, Pads, this);
-        TrainingDirector IDefenseSwapHost.Coach => _coach;
-        void IDefenseSwapHost.PitcherChanged() => _pitchSelect = PitchSelectionState.Reset;
+        public void HoldPitchInHand()
+        {
+            var hero = PitcherHero();
+            var hand = hero != null ? hero.ThrowHand : null;
+            if (hand != null) _scene.Park.Ball.Hold(hand);
+        }
 
-        // The pre-contact runner play (#1042): StealDirector owns the pickoff and the pre-contact clock; the flow owns the result beat.
-        TutorialSession IRunnerPlayHost.Lesson => TutorialOn ? _coach.Tutorial : null;
-        LiveSeats IRunnerPlayHost.LiveSeatsNow() => LiveSeatsNow();
-        void IRunnerPlayHost.StartRunnerPlay() => StartRunnerPlay(null);
-        void IRunnerPlayHost.EndWith(PlayEvent play) { _last = play; Banner(); BeginResult(); }
-        string IRunnerPlayHost.Banner { set => _banner = value; }
+        public void CaptureReleaseFromHand()
+        {
+            var hero = PitcherHero();
+            var hand = hero != null ? hero.ThrowHand : null;
+            if (hand != null)
+                _play.ReleaseFrom = hand.position;
+            else
+            {
+                var rel = PitchFlight.Release(_play.Rules(_scene.Content), _play.Pitch != null ? _play.Pitch.RubberX : 0);
+                _play.ReleaseFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
+            }
+        }
+
+        public HeroActor PitcherHero()
+        {
+            if (_play.Match?.Pitcher == null) return null;
+            _scene.Heroes.TryGetValue(_play.Match.Pitcher.Id, out var hero);
+            return hero;
+        }
+    }
+
+    /// <summary>What <see cref="AtBatDirector"/> reads from the flow: the coach, the banner, the result beat and the directors it calls on.</summary>
+    internal interface IAtBatHost
+    {
+        TrainingDirector Coach { get; }
+        bool TutorialOn { get; }
+        /// <summary>Bind the match's seats to their pads, once per match.</summary>
+        void BindSeats();
+        /// <summary>A practice's next match, on the next seed.</summary>
+        Match NextTrainingMatch();
+        string BannerText { set; }
+        string Sub { set; }
+        float Smash { set; }
+        /// <summary>Name the finished play (or the lesson's caption) on the banner and the subtitle.</summary>
+        void Banner();
+        void BeginResult();
+        InPlayDirector InPlay { get; }
+        JuiceDirector Juice { get; }
+        StealDirector Steal { get; }
+        DefenseSwapWindow Swap { get; }
+        ItemToss Toss { get; }
     }
 }
