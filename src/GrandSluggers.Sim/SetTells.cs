@@ -44,17 +44,17 @@ public static class SetTells
     /// World Y of the torus center at the player's feet. Packed dirt, never chest
     /// or a child of hero lift/grow. Presentation must not parent this to the toy.
     /// </summary>
-    public static double RingWorldY(double feetZ = 0, double heroY = 0, double lift = 0)
+    public static double RingWorldY(DiamondGeometry diamond, double feetZ = 0, double heroY = 0, double lift = 0)
     {
         _ = heroY;
         _ = lift;
-        var dirt = Math.Abs(feetZ - Diamond.Mound) < 12 ? RubberDirtY : BoxDirtY;
+        var dirt = Math.Abs(feetZ - diamond.Mound) < 12 ? RubberDirtY : BoxDirtY;
         return dirt + RingThickFt;
     }
 
     public static (double X, double Y, double Z) RingAt(
-        double feetX, double feetZ, double heroY = 0, double lift = 0) =>
-        (feetX, RingWorldY(feetZ, heroY, lift), feetZ);
+        DiamondGeometry diamond, double feetX, double feetZ, double heroY = 0, double lift = 0) =>
+        (feetX, RingWorldY(diamond, feetZ, heroY, lift), feetZ);
 
     public static bool ZoneOn(bool setOrFlight) => setOrFlight;
 

@@ -68,7 +68,7 @@ public class FeelInfraTests
         Assert.True(StillPose.PlateIsBehindHome(plate.Pos.X, plate.Pos.Z),
             $"plate behind home x={plate.Pos.X} z={plate.Pos.Z}");
         Assert.True(StillPose.PlateCatcherClearsTheLens(
-            plate.Pos.X, plate.Pos.Z, plate.Target.X, plate.Target.Z),
+            plate.Pos.X, plate.Pos.Z, plate.Target.X, plate.Target.Z, DiamondGeometry.Of(Rules.Default)),
             $"plate catcher in the look cone x={plate.Pos.X} z={plate.Pos.Z}");
         Assert.InRange(plate.Pos.Y, 5.0, 7.2);
         Assert.True(plate.Target.Z > 12, $"plate looks into the diamond, target z={plate.Target.Z}");
@@ -117,7 +117,7 @@ public class FeelInfraTests
         // Close 3/4 behind the rubber looking at home. Pitcher large on the
         // right; rubber in the bottom; the box is the look. Distant 3/4 and
         // down-the-pipe are both fails.
-        Assert.True(StillPose.MoundIsPitcherOverShoulder(mound.Pos.X, mound.Pos.Z),
+        Assert.True(StillPose.MoundIsPitcherOverShoulder(mound.Pos.X, mound.Pos.Z, DiamondGeometry.Of(Rules.Default)),
             $"mound over-shoulder 3/4 x={mound.Pos.X} z={mound.Pos.Z}");
         Assert.InRange(mound.Pos.Y, 5.0, 7.0);
         Assert.True(mound.Target.Z < 8, $"mound looks at the box, not CF z={mound.Target.Z}");
@@ -132,7 +132,7 @@ public class FeelInfraTests
         var pitcherDeg = LookDeg(mound.Pos, mound.Target, new Vec3(0, 2.2, Diamond.Mound));
         Assert.True(pitcherDeg < 24, $"pitcher off the mound look {pitcherDeg:0.0} deg");
         Assert.Equal(StillPose.MoundCamX, mound.Pos.X, 1);
-        Assert.Equal(StillPose.MoundCamZ, mound.Pos.Z, 1);
+        Assert.Equal(StillPose.MoundCamZ(DiamondGeometry.Of(Rules.Default)), mound.Pos.Z, 1);
         var rubberVp = PlayCamera.Project(mound, new Vec3(0, 0.2, Diamond.Mound));
         var boxVp = PlayCamera.Project(mound, new Vec3(0, 1.0, 2.4));
         var batterVp = PlayCamera.Project(mound, new Vec3(HomeSet.BatterX, HomeSet.BatterChestY, HomeSet.BatterZ));
@@ -239,8 +239,8 @@ public class FeelInfraTests
         Assert.Equal(ChemistryToy.CamZ, lineup.Pos.Z, 1);
         Assert.Equal(ChemistryToy.LookZ, lineup.Target.Z, 1);
         Assert.Equal(ChemistryToy.Fov, lineup.Fov, 1);
-        var catcher = ChemistryToy.WorldSpot("C");
-        var cf = ChemistryToy.WorldSpot("CF");
+        var catcher = ChemistryToy.WorldSpot("C", DiamondGeometry.Of(Rules.Default));
+        var cf = ChemistryToy.WorldSpot("CF", DiamondGeometry.Of(Rules.Default));
         var catcherDeg = LookDeg(lineup.Pos, lineup.Target, new Vec3(catcher.X, 1.6, catcher.Z));
         var cfDeg = LookDeg(lineup.Pos, lineup.Target, new Vec3(cf.X, 1.6, cf.Z));
         Assert.True(catcherDeg < 28, $"lineup catcher off look {catcherDeg:0.0} deg");
@@ -292,13 +292,13 @@ public class FeelInfraTests
             $"pitching SET must keep Rio in the look cone");
         Assert.True(StillPose.PitchLooksAtTheThrow(pitch.Pos.X, pitch.Pos.Z, pitch.Target.Y, pitch.Target.Z),
             $"pitch looks at dirt/cage x={pitch.Pos.X} z={pitch.Pos.Z} look={pitch.Target.Y},{pitch.Target.Z}");
-        Assert.True(StillPose.PlateCatcherClearsTheLens(pitch.Pos.X, pitch.Pos.Z, pitch.Target.X, pitch.Target.Z),
+        Assert.True(StillPose.PlateCatcherClearsTheLens(pitch.Pos.X, pitch.Pos.Z, pitch.Target.X, pitch.Target.Z, DiamondGeometry.Of(Rules.Default)),
             $"pitch catcher in the look cone x={pitch.Pos.X} z={pitch.Pos.Z}");
         Assert.InRange(pitch.Fov, 28, 40);
         Assert.Equal(StillPose.PitchCamX, pitch.Pos.X, 1);
         Assert.Equal(StillPose.PitchCamZ, pitch.Pos.Z, 1);
         // The pitch look sits just in front of the rubber the infield table names (#909).
-        Assert.Equal(StillPose.PitchLookZ, pitch.Target.Z, 1);
+        Assert.Equal(StillPose.PitchLookZ(DiamondGeometry.Of(Rules.Default)), pitch.Target.Z, 1);
         Assert.True(pitch.Target.Z < Diamond.Mound, $"pitch look past the rubber z={pitch.Target.Z}");
     }
 
@@ -344,16 +344,16 @@ public class FeelInfraTests
     {
         const double chestY = 2.28;
         const double lift = 1.2;
-        var box = SetTells.RingAt(HomeSet.BatterX, HomeSet.BatterZ, chestY, lift);
+        var box = SetTells.RingAt(DiamondGeometry.Of(Rules.Default), HomeSet.BatterX, HomeSet.BatterZ, chestY, lift);
         Assert.Equal(HomeSet.BatterX, box.X);
         Assert.Equal(HomeSet.BatterZ, box.Z);
         Assert.InRange(box.Y, 0.2, 0.8);
         Assert.True(box.Y < 1.0, $"box ring must sit on packed dirt, not chest y={box.Y}");
-        Assert.Equal(SetTells.RingWorldY(2.4), SetTells.RingWorldY(2.4, chestY, lift));
-        var rubber = SetTells.RingAt(0, Diamond.Mound, chestY, lift);
+        Assert.Equal(SetTells.RingWorldY(DiamondGeometry.Of(Rules.Default), 2.4), SetTells.RingWorldY(DiamondGeometry.Of(Rules.Default), 2.4, chestY, lift));
+        var rubber = SetTells.RingAt(DiamondGeometry.Of(Rules.Default), 0, Diamond.Mound, chestY, lift);
         Assert.InRange(rubber.Y, 0.8, 1.4);
         Assert.True(rubber.Y < chestY, $"rubber ring is in the torso y={rubber.Y}");
-        Assert.Equal(SetTells.RingAt(0, Diamond.Mound).Y, rubber.Y);
+        Assert.Equal(SetTells.RingAt(DiamondGeometry.Of(Rules.Default), 0, Diamond.Mound).Y, rubber.Y);
     }
 
     [Fact]

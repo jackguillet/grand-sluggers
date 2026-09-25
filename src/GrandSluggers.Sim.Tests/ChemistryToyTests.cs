@@ -16,11 +16,11 @@ public class ChemistryToyTests
     [Fact]
     public void MiniDiamondPutsCatcherAtHomeAndCfDeep()
     {
-        var c = ChemistryToy.MiniSpot("C");
-        var p = ChemistryToy.MiniSpot("P");
-        var cf = ChemistryToy.MiniSpot("CF");
-        var first = ChemistryToy.MiniSpot("1B");
-        var third = ChemistryToy.MiniSpot("3B");
+        var c = ChemistryToy.MiniSpot("C", DiamondGeometry.Of(Rules.Default));
+        var p = ChemistryToy.MiniSpot("P", DiamondGeometry.Of(Rules.Default));
+        var cf = ChemistryToy.MiniSpot("CF", DiamondGeometry.Of(Rules.Default));
+        var first = ChemistryToy.MiniSpot("1B", DiamondGeometry.Of(Rules.Default));
+        var third = ChemistryToy.MiniSpot("3B", DiamondGeometry.Of(Rules.Default));
         Assert.True(cf.V > p.V, $"CF {cf.V} should be deeper than P {p.V}");
         Assert.True(p.V > c.V, $"P {p.V} should be in front of C {c.V}");
         Assert.True(first.U > 0);
@@ -46,11 +46,11 @@ public class ChemistryToyTests
     [Fact]
     public void CompactDiamondKeepsCatcherInFrontOfCf()
     {
-        var c = ChemistryToy.WorldSpot("C");
-        var p = ChemistryToy.WorldSpot("P");
-        var cf = ChemistryToy.WorldSpot("CF");
-        var first = ChemistryToy.WorldSpot("1B");
-        var third = ChemistryToy.WorldSpot("3B");
+        var c = ChemistryToy.WorldSpot("C", DiamondGeometry.Of(Rules.Default));
+        var p = ChemistryToy.WorldSpot("P", DiamondGeometry.Of(Rules.Default));
+        var cf = ChemistryToy.WorldSpot("CF", DiamondGeometry.Of(Rules.Default));
+        var first = ChemistryToy.WorldSpot("1B", DiamondGeometry.Of(Rules.Default));
+        var third = ChemistryToy.WorldSpot("3B", DiamondGeometry.Of(Rules.Default));
         Assert.True(cf.Z > p.Z, $"CF {cf.Z} should be deeper than P {p.Z}");
         Assert.True(p.Z > c.Z, $"P {p.Z} should be in front of C {c.Z}");
         Assert.True(first.X > 0);
@@ -69,8 +69,8 @@ public class ChemistryToyTests
         Assert.True(ChemistryToy.CameraIsThreeQuarter(
             ChemistryToy.CamX, ChemistryToy.CamY, ChemistryToy.CamZ));
         var cam = (ChemistryToy.CamX, ChemistryToy.CamY, ChemistryToy.CamZ);
-        var c = ChemistryToy.WorldSpot("C");
-        var cf = ChemistryToy.WorldSpot("CF");
+        var c = ChemistryToy.WorldSpot("C", DiamondGeometry.Of(Rules.Default));
+        var cf = ChemistryToy.WorldSpot("CF", DiamondGeometry.Of(Rules.Default));
         var dC = Dist(cam, (c.X, 0, c.Z));
         var dCf = Dist(cam, (cf.X, 0, cf.Z));
         Assert.True(dC < dCf, $"catcher {dC} should be the near toy, CF {dCf}");

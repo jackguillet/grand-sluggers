@@ -286,7 +286,8 @@ namespace GrandSluggers.UnityClient
                     // The batter-runner is a body in the sim (spec §9.1): drawn where it stands, off a bag it shares and does not hold.
                     var body = _play.Match.BatterRunner;
                     var (hx, hz) = body != null ? body.DrawPosition(_scene.Feel.RunnerShareStepFt) : (HomeSet.BatterBodyX(batter.Bats, _play.Match.BatterContactOffsetX), HomeSet.BatterZ);
-                    var next = body != null ? Diamond.Bag(Math.Min(body.NextBag, 3)) : Diamond.First;
+                    var diamond = DiamondGeometry.Of(_play.Match.Rules);
+                    var next = body != null ? diamond.Bag(Math.Min(body.NextBag, 3)) : diamond.First;
                     var look = presentingSwing
                         ? (X: 0.0, Z: 1.0)
                         : (X: next.X - hx, Z: next.Z - hz);
@@ -471,7 +472,7 @@ namespace GrandSluggers.UnityClient
             h.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
             h.SetHeld(false, false);
             h.SetHighlight(false);
-            var rubber = Diamond.Rubber;
+            var rubber = DiamondGeometry.Of(_play.Match.Rules).Rubber;
             h.Place(new Vector3((float)b.X, 0, (float)b.Z),
                 new Vector3((float)(rubber.X - b.X), 0, (float)(rubber.Z - b.Z)));
             h.Tick(Time.deltaTime);
@@ -481,18 +482,19 @@ namespace GrandSluggers.UnityClient
         {
             var who = state.Who;
             var bagNum = state.FromBag;
-            var bag = Diamond.Bag(bagNum);
+            var diamond = DiamondGeometry.Of(_play.Match.Rules);
+            var bag = diamond.Bag(bagNum);
             var live = _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight or MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow;
             // Every phase draws the same body; animation never reconstructs steal distance. A body on a bag another runner
             // holds (§9.1) stands data/feel runnerShareStepFt off it so the two never merge.
             var spot = state != null && live ? state.DrawPosition(_scene.Feel.RunnerShareStepFt) : bag;
-            var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
+            var next = diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
             var pose = Motion.Verb.Idle;
             if (state != null && live)
             {
-                next = Diamond.Bag(state.DestBag >= state.Bag + 1 ? Math.Min(state.Bag + 1, 4) : state.Bag);
-                if (state.Phase == RunnerPhase.Returning) next = Diamond.Bag(state.Bag);
+                next = diamond.Bag(state.DestBag >= state.Bag + 1 ? Math.Min(state.Bag + 1, 4) : state.Bag);
+                if (state.Phase == RunnerPhase.Returning) next = diamond.Bag(state.Bag);
                 pose = state.Sliding ? Motion.Verb.Slide
                     : state.Moving && !state.Held ? Motion.Verb.Run
                     : Motion.Verb.Idle;
@@ -560,7 +562,7 @@ namespace GrandSluggers.UnityClient
                 _scene.Heroes[who.Id] = h;
             }
             h.gameObject.SetActive(true);
-            h.Bind(who);
+            h.Bind(who, DiamondGeometry.Of(_play.Match.Rules));
             h.SetFacing(BodyFacing.Rates.Of(_scene.Content.Feel));
             return h;
         }

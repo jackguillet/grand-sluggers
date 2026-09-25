@@ -306,7 +306,8 @@ namespace GrandSluggers.UnityClient
             var view = new PlayCamera.LiveView(
                 LiveTime, _play.Pending, live.RunnerPlay, _live.ClosePlay, _live.CloseBag,
                 live.InRundown, live.RunnerPlayBag, _host.Smash,
-                new Vec3(_play.Ball.x, _play.Ball.y, _play.Ball.z), new Vec3(batter.x, batter.y, batter.z));
+                new Vec3(_play.Ball.x, _play.Ball.y, _play.Ball.z), new Vec3(batter.x, batter.y, batter.z),
+                DiamondGeometry.Of(_play.Match.Rules));
             var framed = PlayCamera.LiveFraming(_scene.Content.Shots, view, _scene.Feel, _camHold);
             if (framed is { } f) _scene.Cam.Live(f);
         }

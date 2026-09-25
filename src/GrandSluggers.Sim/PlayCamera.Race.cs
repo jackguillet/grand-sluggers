@@ -15,9 +15,9 @@ public sealed record RaceCameraFeel
 
 public static partial class PlayCamera
 {
-    public static Vec3 BagSubject(int bag)
+    public static Vec3 BagSubject(int bag, DiamondGeometry diamond)
     {
-        var p = Diamond.Bag(Math.Clamp(bag, 1, 4));
+        var p = diamond.Bag(Math.Clamp(bag, 1, 4));
         return new Vec3(p.X, 0, p.Z);
     }
 
@@ -25,14 +25,15 @@ public static partial class PlayCamera
     public static IReadOnlyList<Vec3> RaceSubjects(Match match)
     {
         // Keep the catcher end of the race in view as the ball travels upfield.
-        var points = new List<Vec3> { BagSubject(4) };
+        var diamond = DiamondGeometry.Of(match.Rules);
+        var points = new List<Vec3> { BagSubject(4, diamond) };
         var live = match.LivePlay;
         foreach (var runner in match.Runners)
         {
             if (runner.IsBatter || runner.Out || !live.RunnerPlay && !runner.Broke) continue;
-            points.Add(BagSubject(runner.FromBag));
-            points.Add(BagSubject(Math.Min(4, runner.Bag + 1)));
-            points.Add(BagSubject(runner.DestBag));
+            points.Add(BagSubject(runner.FromBag, diamond));
+            points.Add(BagSubject(Math.Min(4, runner.Bag + 1), diamond));
+            points.Add(BagSubject(runner.DestBag, diamond));
             var p = runner.Position;
             points.Add(new Vec3(p.X, 0, p.Z));
         }

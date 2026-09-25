@@ -93,12 +93,6 @@ namespace GrandSluggers.UnityClient
 
         public void Punch(float amount = 10f) => _punch = amount;
 
-        public void FramePitch() =>
-            Cut(
-                new Vector3((float)StillPose.MoundCamX, (float)StillPose.MoundCamY, (float)StillPose.MoundCamZ),
-                new Vector3((float)StillPose.MoundLookX, (float)StillPose.MoundLookY, (float)StillPose.MoundLookZ),
-                (float)StillPose.MoundFov);
-
         /// <summary>Behind home looking at the mound. Plate and chalk boxes read. Not catcher-spine.</summary>
         public void FramePlate() =>
             Cut(

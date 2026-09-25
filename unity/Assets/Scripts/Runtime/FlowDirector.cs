@@ -86,7 +86,7 @@ namespace GrandSluggers.UnityClient
             _mode = PlayMode.Exhibition;
             _match = NewMatch();
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
+            _spec.Build(transform, DiamondGeometry.Of(_match.Rules)); _items.Build(transform); _stars?.Build(transform);
             OpenField();
         }
 
@@ -267,7 +267,7 @@ namespace GrandSluggers.UnityClient
             _coach.Begin(_content, PracticePick);
             _match = _coach.MakeMatch(_content, Seed);
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform);
+            _spec.Build(transform, DiamondGeometry.Of(_match.Rules));
             _items.Build(transform);
             _stars?.Build(transform);
             _clip = null;
@@ -298,7 +298,7 @@ namespace GrandSluggers.UnityClient
             {
                 _match = _campaign.MakeMatch(_content, Innings, Seed);
                 _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-                _spec.Build(transform);
+                _spec.Build(transform, DiamondGeometry.Of(_match.Rules));
                 _items.Build(transform);
                 _stars?.Build(transform);
                 _clip = null;
@@ -308,7 +308,7 @@ namespace GrandSluggers.UnityClient
             }
             _match = NewMatch();
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform);
+            _spec.Build(transform, DiamondGeometry.Of(_match.Rules));
             _items.Build(transform);
             _stars?.Build(transform);
             ReleaseMatchSeats();
@@ -546,7 +546,7 @@ namespace GrandSluggers.UnityClient
             _match = _coach.Tutorial.Match;
             HomeCaptain = _match.Home.Captain.Id; AwayCaptain = _match.Away.Captain.Id;
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
+            _spec.Build(transform, DiamondGeometry.Of(_match.Rules)); _items.Build(transform); _stars?.Build(transform);
             _clip = null; _hlPath = null;
             _lessons.LessonReady();
             BeginSet();
@@ -692,7 +692,7 @@ namespace GrandSluggers.UnityClient
             Controls.CatchPlay();
             if (!_lessons.Guided.StartsOnSet) { OpenField(); return; }
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
+            _spec.Build(transform, DiamondGeometry.Of(_match.Rules)); _items.Build(transform); _stars?.Build(transform);
             _clip = null; _hlPath = null;
             BeginSet();
         }

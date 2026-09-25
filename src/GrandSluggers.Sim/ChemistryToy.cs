@@ -44,10 +44,11 @@ public static class ChemistryToy
     /// toward the middle of a toy diamond that had not moved.
     /// </para>
     /// </summary>
-    public static (double U, double V) MiniSpot(string pos)
+    public static (double U, double V) MiniSpot(string pos, DiamondGeometry diamond)
     {
-        if (!Diamond.Positions.TryGetValue(pos, out var p)) return (0, 0.35);
-        return (p.X / Diamond.Positions["RF"].X, p.Z / Diamond.Positions["CF"].Z);
+        var starts = diamond.Positions;
+        if (!starts.TryGetValue(pos, out var p)) return (0, 0.35);
+        return (p.X / starts["RF"].X, p.Z / starts["CF"].Z);
     }
 
     /// <summary>
@@ -66,9 +67,9 @@ public static class ChemistryToy
     };
 
     /// <summary>World feet on the compact diamond. CF is in front of the real wall.</summary>
-    public static (double X, double Z) WorldSpot(string pos)
+    public static (double X, double Z) WorldSpot(string pos, DiamondGeometry diamond)
     {
-        var uv = MiniSpot(pos);
+        var uv = MiniSpot(pos, diamond);
         return (uv.U * ToySpanX, ToyHomeZ + uv.V * ToySpanZ);
     }
 

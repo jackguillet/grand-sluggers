@@ -65,7 +65,7 @@ public sealed class StealPresentationTests
     public void ThePrePitchInsetKeepsTheRaceVisibleFromInsideTheHomeBoard(int bag)
     {
         var content = Shipped.Content;
-        var subjects = new[] { PlayCamera.BagSubject(4), PlayCamera.BagSubject(1), PlayCamera.BagSubject(2), PlayCamera.BagSubject(bag) };
+        var subjects = new[] { PlayCamera.BagSubject(4, DiamondGeometry.Of(Rules.Default)), PlayCamera.BagSubject(1, DiamondGeometry.Of(Rules.Default)), PlayCamera.BagSubject(2, DiamondGeometry.Of(Rules.Default)), PlayCamera.BagSubject(bag, DiamondGeometry.Of(Rules.Default)) };
         {
             var frame = PlayCamera.RaceFraming(content.Shots, subjects, 16.0 / 9, content.Feel.RaceCamera);
             // Harbor home score face is at Z=-37.3 (front at -36.94). Even a return
@@ -79,7 +79,7 @@ public sealed class StealPresentationTests
             var pitch = Math.Atan2(frame.Pos.Y - frame.Look.Y, frame.Look.Z - frame.Pos.Z) * 180 / Math.PI;
             Assert.InRange(pitch, 16, 20); // below the 45° fly view, above catcher eye level
             var camera = new CameraShot(frame.Shot, "race", frame.Pos, frame.Look, frame.Fov, frame.Blend);
-            var home = PlayCamera.Project(camera, PlayCamera.BagSubject(4), 16.0 / 9);
+            var home = PlayCamera.Project(camera, PlayCamera.BagSubject(4, DiamondGeometry.Of(Rules.Default)), 16.0 / 9);
             var center = PlayCamera.Project(camera, new Vec3(0, 0, 300), 16.0 / 9);
             Assert.NotNull(home); Assert.NotNull(center);
             Assert.Equal(home.Value.X, center.Value.X, 9);
