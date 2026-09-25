@@ -906,5 +906,16 @@ namespace GrandSluggers.UnityClient
                 : new Vector3((float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX), (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
         }
 
+        bool ResolveTutorialOrAtBat(out AtBatResult hit, out PlayEvent finished)
+        {
+            // The match settles the special each side asked for at its release (PH-16-R12), so it is handed the request.
+            if (!TutorialOn) return _match.BeginAtBat(PitchAsReleased, SwingAsReleased, out hit, out finished);
+            var run = _coach.Tutorial;
+            if (_coach.PlayerPitches) run.Pitch(PitchAsReleased);
+            else run.Swing(SwingAsReleased);
+            hit = run.LastHit; finished = run.LastPlay;
+            return run.IsGameContactLesson ? run.Match.LivePlay.Active
+                : hit != null && hit.InPlay && finished == null;
+        }
     }
 }

@@ -386,7 +386,7 @@ namespace GrandSluggers.UnityClient
             if (TrainingOn && _phase != Phase.Result)
             {
                 banner = TutorialOn ? HowToPlay.TutorialAttemptTitle(_coach.Tutorial.Lesson.Id, _coach.Tutorial.Successes) : _coach.Session.Caption;
-                sub = TutorialOn ? HowToPlay.TutorialAttemptHint(_coach.Tutorial.Lesson.Id, _tutorials.Profile, _tutorialPreviousFeedback) : _coach.Session.Verb;
+                sub = TutorialOn ? HowToPlay.TutorialAttemptHint(_coach.Tutorial.Lesson.Id, _lessons.Profile, _lessons.PreviousFeedback) : _coach.Session.Verb;
             }
             var stamp = _phase == Phase.Result && _last != null && PlayStamp.ShowsAtTime(_last)
                 ? banner : "";
@@ -604,7 +604,7 @@ namespace GrandSluggers.UnityClient
                 OpenTutorials();
                 return;
             }
-            _tutorialMenu = false;
+            _lessons.CloseMenu();
             if (TrainingOn) _coach.Stop();
             ReleaseMatchSeats();
             _phase = Phase.Title;
@@ -641,7 +641,7 @@ namespace GrandSluggers.UnityClient
             {
                 _deviceRecovery.WaitFor(missing, _match.Paused);
                 _match.SetPaused(true);
-                _guidedLessons.SeatLost(missing);
+                _lessons.Guided.SeatLost(missing);
                 Controls.TryRecoverMatchSeat(missing);
                 return true;
             }

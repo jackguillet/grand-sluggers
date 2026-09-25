@@ -6,8 +6,14 @@ public static partial class CarnivalFront
 {
     public const string CaptainTitle = "CHOOSE YOUR CAPTAINS";
     public const string CaptainControls = "Left/right  Choose     South  Confirm     East  Undo / back     View  How to play";
-    public static readonly string[] CaptainStats = ["BATTING", "PITCHING", "FIELDING", "RUNNING"];
     public static CaptainPanelRect CaptainPanel(int panel) => new(24 + panel * 624, 92, 608, 402);
+    /// <summary>The team card's four bars (<see cref="StatBars"/>), beside the 274 px portrait, at couch size.</summary>
+    public static readonly StatBarLayout CaptainCardBars = new(Top: 106, Pitch: 40, LabelX: 314, LabelW: 94,
+        BarX: 412, BarW: 136, BarH: 16, ValueX: 556, ValueW: 38, LabelFont: 24, ValueFont: 26);
+    /// <summary>Where the team card's verb lines start: the star pitch, star swing, field verb and bat hand under the bars.</summary>
+    public static float CaptainCardVerbsTop => CaptainCardBars.Bottom + 4;
+    /// <summary>The pitch between the team card's verb lines.</summary>
+    public const float CaptainCardVerbPitch = 28;
     public static CaptainPanelRect CaptainTile(int i, int count)
     {
         var width = (1232f - (count - 1) * 14) / count;

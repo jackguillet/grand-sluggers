@@ -39,8 +39,14 @@ public static partial class CarnivalFront
     public const string Inspect = "INSPECT";
     public const string OpenSlot = "OPEN";
     public const string InspectHint = "Move to a player\nto inspect their card.";
-    /// <summary>The four stats as the lineup rows abbreviate them, and as the player card spells them.</summary>
-    public static readonly IReadOnlyList<string> RowStats = ["BAT", "PIT", "FLD", "RUN"];
+    /// <summary>The four bars every card prints, in order (<see cref="StatBars"/>).</summary>
+    public static readonly IReadOnlyList<string> StatBarLabels = ["BAT", "PITCH", "FIELD", "RUN"];
+    /// <summary>The lineup inspection card's four bars (<see cref="StatBars"/>), beside its 132 px portrait.</summary>
+    public static readonly StatBarLayout LineupCardBars = new(Top: 76, Pitch: 33, LabelX: 156, LabelW: 62,
+        BarX: 220, BarW: 66, BarH: 12, ValueX: 292, ValueW: 30, LabelFont: 18, ValueFont: 20);
+    /// <summary>Where the lineup card's verb lines start, under the bars and the portrait.</summary>
+    public const float LineupCardVerbsTop = 218;
+    /// <summary>The pitcher-pick card's four stats, pitch first.</summary>
     public static readonly IReadOnlyList<string> CardStats = ["PITCH", "BAT", "FIELD", "RUN"];
     /// <summary>The select card's stat rows: pitch, bat, field, run.</summary>
     public const string StatPitch = "PIT", StatBat = "BAT", StatField = "FLD", StatRun = "RUN";

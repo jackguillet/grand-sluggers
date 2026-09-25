@@ -432,7 +432,7 @@
     ]
   },
   "build": {
-    "notes": "Per-captain build on the one mesh. Each channel is a pair of shape keys on every body piece it names: '<channel>+' authored at max and '<channel>-' at min. A captain's scale is 1 + gain * (proportions.<channel> / neutral - 1) and must lie in [min, max]. Silhouette.Build is the one function the sim and Unity read. head scales the head pieces about the neck top (pivot). arms thickens the arm pieces about the bone line and grows the hands about their centers. torso widens the jersey, stripe, neck and hips about the body axis. No channel moves a joint, so every take stays shared. The takes bake checks the bat against the head at max.",
+    "notes": "Per-captain build on the one mesh. Each channel is a pair of shape keys on every body piece it names: '<channel>+' authored at max and '<channel>-' at min. A captain's scale is 1 + gain * (proportions.<channel> / neutral - 1) and must lie in [min, max]. Silhouette.Build is the one function the sim and Unity read. head scales the head pieces about the neck top (pivot). arms thickens the arm pieces about the bone line and grows the hands about their centers. torso widens the jersey, stripe, neck and hips about the body axis. head, arms and torso move no joint, so every take stays shared. The takes bake checks the bat against the head at max. reach and boots are style channels: their scale comes from the motion style (clips.json), not the proportions.",
     "head": {
       "neutral": 1.38,
       "gain": 0.8,
@@ -455,6 +455,18 @@
       "gain": 0.5,
       "min": 0.84,
       "max": 1.32
+    },
+    "reach": {
+      "notes": "A style channel (data/art/clips.json styles, reachScale / bootsScale): the motion style names the scale, not the captain's proportions. Arm length: UpperMesh stretches below the shoulder and ForeMesh below the elbow by the scale. The joints move with it, and only in the style's own takes: every take of a style whose reach is not 1 keys the forearm (0, (reach - 1) x upper length, 0) and the wrist (0, (reach - 1) x forearm length, 0) along the bone, so a style with reach owns every clip (cli art). The bake solves each hand contract at the longer arm.",
+      "style": true,
+      "min": 0.9,
+      "max": 1.3
+    },
+    "boots": {
+      "notes": "A style channel: the shoes grow about the sole center, so the soles stay on the dirt and no take changes.",
+      "style": true,
+      "min": 0.85,
+      "max": 1.4
     }
   }
 }

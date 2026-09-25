@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GrandSluggers.Sim;
@@ -402,5 +403,27 @@ namespace GrandSluggers.UnityClient
         }
 
         void AimStealThrowCam() => AimLive();
+
+        LivePlayCommandResult TickTutorialField(float dt)
+        {
+            var run = _coach.Tutorial;
+            // Both pads are taken, so a press the hit-stop held on the pad a lesson does not read is not delivered later.
+            var field = LiveFieldInput();
+            var running = LiveRunInput();
+            var pad = run.IsOffenseLesson ? running : field;
+            // Preserve simulation time through a long rendering frame without repeating edge-triggered commands.
+            var left = (double)dt;
+            LivePlayCommandResult result = new LivePlayCommandResult(_match.LivePlay.Snapshot);
+            while (left > 0 && run.Phase == TutorialPhase.Attempt)
+            {
+                var step = Math.Min(left, .05);
+                run.Tick(step, pad);
+                result = run.LastTickResult ?? result;
+                left -= step;
+                if (left > 0) PlayLiveCues(result);
+                pad = pad with { SouthDown = false, WestDown = false, EastDown = false, Swap = false, Cancel = false, Cutoff = false };
+            }
+            return result;
+        }
     }
 }

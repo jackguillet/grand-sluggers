@@ -208,5 +208,78 @@
       "slot": "Assets/Art/Animation/Clips/slide",
       "playerSlot": "Assets/Resources/Art/Animation/Clips/slide"
     }
-  ]
+  ],
+  "styles": {
+    "notes": "Motion styles (CH-12, CF-5): one per body class, room for about fifteen. A style owns its own take of each clip in `clips` (run, walk, idle, the batting stance in the two swings, the windup in the two pitches, and cheer, which is the captain's signature beat), baked by tools/blender/hero_shared_takes.py for both hands into `{slot}/{id}/{clip}`. Every other clip is the shared take, except for a style whose reach is not 1: its takes move the elbow and wrist, so it owns every clip. runCycle and walkCycle are rig units of ground per loop (two steps); the loop's phase advances with the distance the body covers (Gait). A body wears the style its body class names (data/rules/body-classes.json `motionStyle`); every style is some class's, or marks itself `reserved` for a class still to come.",
+    "slot": "Assets/Art/Animation/Clips/styles",
+    "playerSlot": "Assets/Resources/Art/Animation/Clips/styles",
+    "clips": [
+      "idle",
+      "walk",
+      "run",
+      "swing-slap",
+      "swing-charge",
+      "pitch",
+      "pitch-charge",
+      "cheer"
+    ],
+    "rows": [
+      {
+        "id": "harbor-kid",
+        "signature": "fist-pump",
+        "runCycle": 6.8,
+        "walkCycle": 3.4,
+        "reachScale": 1.0,
+        "bootsScale": 1.0
+      },
+      {
+        "id": "pageant",
+        "signature": "crowd-wave",
+        "runCycle": 5.6,
+        "walkCycle": 3.0,
+        "reachScale": 1.0,
+        "bootsScale": 1.0
+      },
+      {
+        "id": "speed",
+        "signature": "victory-hops",
+        "runCycle": 7.6,
+        "walkCycle": 3.6,
+        "reachScale": 1.0,
+        "bootsScale": 1.0
+      },
+      {
+        "id": "brick",
+        "signature": "double-flex",
+        "runCycle": 4.9,
+        "walkCycle": 2.8,
+        "reachScale": 1.0,
+        "bootsScale": 1.0
+      },
+      {
+        "id": "ape",
+        "signature": "chest-thump",
+        "runCycle": 4.2,
+        "walkCycle": 2.6,
+        "reachScale": 1.22,
+        "bootsScale": 1.0
+      },
+      {
+        "id": "villain",
+        "signature": "villain-laugh",
+        "runCycle": 5.2,
+        "walkCycle": 3.0,
+        "reachScale": 1.0,
+        "bootsScale": 1.35
+      },
+      {
+        "id": "turtle",
+        "signature": "slow-clap",
+        "runCycle": 5.3,
+        "walkCycle": 2.6,
+        "reachScale": 1.0,
+        "bootsScale": 1.0
+      }
+    ]
+  }
 }
