@@ -26,7 +26,7 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 
 ## Decision matrix
 
-18 decisions are accepted; 3 are open (WD-19 to WD-21). The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
+19 decisions are accepted; 2 are open (WD-20, WD-21). The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
 
 | Id | Area | Question | Options | Recommend | Depends on | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -48,15 +48,15 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 | WD-16 | Captains | Home-field edge | A cosmetic · B small edge | **Accepted: A** (Jack, 2026-09-25) | — | — |
 | WD-17 | Menu | The picker | A continent map · B cycle + postcard · C both | **Accepted: A** (Jack, 2026-09-25) | 05 | C6 |
 | WD-18 | Menu | Map look | A painted 2-D · B 3-D diorama · C greybox first | **Accepted: C** (Jack, 2026-09-25) | 17 | C6, C9 |
-| WD-19 | World | Continent name | A Pennant Isles · B Grand Reach · C Homeplate Isles · D own | **A** | 05 | C1, C6 |
+| WD-19 | World | Continent name | A Pennant Isles · B Grand Reach · C Homeplate Isles · D own | **Accepted: B, the Grand Reach** (Jack, 2026-09-25) | 05 | C1, C6 |
 | WD-20 | World | Crystal Rink's colder name | A Aurora Rink · B Glacier Garden · C Polar Palace · D own | **A** | 06 | C1 |
 | WD-21 | Captains | Stillwater Marsh's captain; where Kai goes | A Kai to the marsh · B new marsh captain, Kai dropped · C Kai joins Fenn (11 captains) · D own | **B** | 07, 11 | C2, C3 |
 
-Open now: WD-19 (continent name), WD-20 (Crystal Rink's name), WD-21 (Stillwater Marsh's captain and Kai). Jack's answers WD-13 A and WD-15 A differ from the recommendations.
+Open now: WD-20 (Crystal Rink's name), WD-21 (Stillwater Marsh's captain and Kai). Jack's answers WD-13 A and WD-15 A differ from the recommendations.
 
 ## The continent (WD-05, WD-19)
 
-The shape is accepted. The name is open (WD-19; "the Diamond Isles" was rejected). North is cold, south is warm, the west is wild, the east is built up. One island lies off the south coast.
+The continent is **the Grand Reach** (WD-19): one main land, and one island, Coconut Cove, off the south coast. North is cold, south is warm, the west is wild, the east is built up.
 
 ```
                           ❄ CRYSTAL RINK (new name: WD-20)

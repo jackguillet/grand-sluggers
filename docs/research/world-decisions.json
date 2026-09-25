@@ -33,7 +33,7 @@
     "WD-20",
     "WD-21"
   ],
-  "next_decision": "WD-19",
+  "next_decision": "WD-20",
   "brief": "Jack, 2026-09-24: expand to 10 stadiums that make up a continent, each in the region that fits it (ice in a cold place, one in a volcano, one on a tropical island), selectable from the menu; define hazards, night lights and other defining features per stadium; grow to 10 captains, each assigned a field; one field is a tropical beach.",
   "decisions": [
     {
@@ -743,7 +743,7 @@
       "id": "WD-19",
       "area": "World",
       "question": "What is the continent called?",
-      "status": "open",
+      "status": "accepted",
       "depends_on": [
         "WD-05"
       ],
@@ -776,11 +776,15 @@
         "C1 world data",
         "C6 picker"
       ],
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null
+      "selected_option": "B",
+      "accepted_scope": "The continent is the Grand Reach: one main land with Coconut Cove as the island off its south coast. Not 'Isles': there is one island, and the map stays the accepted shape (WD-05).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-19: A The Pennant Isles / B The Grand Reach / C Homeplate Isles / D Jack's own",
+        "answer_quote": "option 1, the Grand Reach"
+      }
     },
     {
       "id": "WD-20",
@@ -911,6 +915,12 @@
       "who": "Jack",
       "quote": "answers are in",
       "effect": "WD-05 (shape only), WD-06, WD-07 (Fenn to Coconut Cove), WD-08 to WD-18 accepted from the World Decisions artifact; WD-13 and WD-15 differ from the recommendation. New open decisions: WD-19 continent name, WD-20 Crystal Rink name, WD-21 Stillwater Marsh captain and Kai."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "option 1, the Grand Reach",
+      "effect": "WD-19 accepted: B."
     }
   ]
 }
