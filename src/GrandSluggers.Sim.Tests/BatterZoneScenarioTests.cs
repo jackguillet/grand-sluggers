@@ -128,6 +128,38 @@ public sealed class BatterZoneScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
+    // The zone's plane is the plate's front edge, and the flight ends there
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void TheZoneStandsOverTheFrontOfThePlateWhereTheBallIsJudged()
+    {
+        // The plane is the plate's pitcher-side edge, read from the plate, not a second number.
+        Assert.Equal(HomeSet.PlateFrontZ, StrikeZoneGeometry.PlateZ);
+        Assert.Equal(StrikeZoneGeometry.PlateZ, HomeSet.PlateOutline().Max(p => p.Z), 12);
+        Assert.True(StrikeZoneGeometry.PlateZ > HomeSet.PlatePointZ);
+
+        foreach (var who in Captains)
+        {
+            var match = MatchWith(who.Id);
+            var zone = match.BatterZone;
+            foreach (var family in PitchFamily.All)
+            foreach (var rubber in new[] { -1.0, 0, 0.6 })
+            {
+                var pitch = match.PreparePitch(new PitchCommand(family, 0, false, RubberX: rubber));
+                // The ball is on the plane at the judged sample, and nowhere before it.
+                var at = PitchFlight.Point(pitch, 1, R, match.Pitcher.StarPitch);
+                Assert.Equal(StrikeZoneGeometry.PlateZ, at.Z, 9);
+                Assert.True(PitchFlight.Point(pitch, 0.99, R, match.Pitcher.StarPitch).Z > StrikeZoneGeometry.PlateZ);
+                // The umpire's call is the drawn frame's: the crossing inside the bars on that plane.
+                var drawn = Math.Abs(at.X) <= zone.HalfWidth && at.Y >= zone.Bottom && at.Y <= zone.Top;
+                Assert.Equal(drawn, AtBatResolver.PitchInZone(pitch, 5, R, match.Pitcher.StarPitch));
+                Assert.Equal((at.X, at.Y), SetTells.Locator(pitch, zone, R, match.Pitcher.StarPitch));
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------------------------
     // SC-16  The same pitch aimed middle crosses each batter's own middle
     // ---------------------------------------------------------------------------------
 

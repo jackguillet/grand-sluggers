@@ -67,7 +67,7 @@ public class PitchTests
         Assert.Equal(hand.Item2, start.Y, 3);
         Assert.Equal(hand.Item3, start.Z, 3);
         var plate = PitchFlight.Point("fastball", 1, from: hand, rules: Rules.Default);
-        Assert.InRange(plate.Z, -0.05, 0.05);
+        Assert.Equal(StrikeZoneGeometry.PlateZ, plate.Z, 9); // the flight ends on the zone's plane, the plate's front edge (§4.4)
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class PitchTests
         // The C80 copy's mound is at 8/9 of the distance: halfway is 25.6 ft, inside the same band at 8/9.
         var (lo, hi) = (23.0, 30.0);
         Assert.InRange(mid.Z, lo, hi);
-        Assert.InRange(plate.Z, -0.05, 0.05);
+        Assert.Equal(StrikeZoneGeometry.PlateZ, plate.Z, 9); // the flight ends on the zone's plane, the plate's front edge (§4.4)
         Assert.True(Math.Abs(mid.X - rel.X) > 0.3, "hand offset fades toward the plate");
     }
 

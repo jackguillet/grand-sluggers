@@ -242,7 +242,9 @@ public sealed class PitchFamilyGoldenTests
             {
                 var p = PitchFlight.Point(Delivery, U, r, Star);
                 parts.Add(Bits(p.Y));
-                parts.Add(Bits(p.Z));
+                // The plane-free Z (release toward home plate's rear point), the number the fixture was cut on;
+                // Check adds the zone plane's share (§4.4).
+                parts.Add(Bits(PitchFlight.Release(r, Delivery.RubberX).Z * (1 - Math.Clamp(U, 0, 1))));
             }
             parts.Add(Bits(StoredXBase(r)));
             parts.Add(Damped(r) ? "1" : "0");
@@ -274,9 +276,13 @@ public sealed class PitchFamilyGoldenTests
                 yield return $"Y fixture {token[0]} vs now {Bits(actualY)} ({Readable(token[0])} vs {actualY:R})";
             if (!Crossing)
             {
+                // The flight now ends on the zone's plane, the plate's front edge, not its rear point (§4.4). The
+                // stored Z is the old flight's; the plane's share is added in the order PitchFlight.Point adds it.
                 var actualZ = PitchFlight.Point(Delivery, U, r, Star).Z;
-                if (Bits(actualZ) != token[1])
-                    yield return $"Z fixture {token[1]} vs now {Bits(actualZ)} ({Readable(token[1])} vs {actualZ:R})";
+                var planeZ = BitConverter.Int64BitsToDouble(Convert.ToInt64(token[1], 16))
+                    + StrikeZoneGeometry.PlateZ * Math.Clamp(U, 0, 1);
+                if (Bits(actualZ) != Bits(planeZ))
+                    yield return $"Z fixture {token[1]} + plane vs now {Bits(actualZ)} ({planeZ:R} vs {actualZ:R})";
             }
 
             var baseBits = token[Crossing ? 1 : 2];

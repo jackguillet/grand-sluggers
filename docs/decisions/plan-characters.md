@@ -17,7 +17,7 @@ Directions only. Each line names its decision.
 - **Build (CH-04).** Head, Arms and Torso shape the 3D body on the one rig, from each captain's `proportions`. No second rig, no unique mesh.
 - **Body classes (CH-05, CH-11, CH-12).** A body class is a data row. It names size in play (ground and fly catch reach, contact width), weight (speed-up and braking ramp, knockback), and a motion style. The table is sized for **about fifteen classes**, so role players can have their own class. Seven ship first, one per captain cut.
 - **Size in play (CH-05).** Reach and contact width come from the class row, not measured off the mesh. Grow stays a verb.
-- **Strike zone (CH-06).** The zone runs from the batter's **mid-thigh** to the batter's **chest** (Jack moved the bottom from the knee on 2026-09-25). It scales vertically with the body. Its width over the plate stays fixed (0.92 ft half-width). It is judged at the plate crossing, as today.
+- **Strike zone (CH-06).** The zone runs from the batter's **mid-thigh** to the batter's **chest** (Jack moved the bottom from the knee on 2026-09-25). It stands directly over the front edge of the plate (Jack, 2026-09-25). It scales vertically with the body. Its width over the plate stays fixed (0.92 ft half-width). It is judged at the plate crossing, as today.
 - **Stats (CH-07, CH-08, CH-09).** Four visible bars, each the rounded mean of authored sub-stats:
 
   | Bar | Sub-stats | Code slot today |

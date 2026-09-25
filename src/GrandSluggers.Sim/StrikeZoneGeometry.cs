@@ -30,7 +30,13 @@ public static class StrikeZoneGeometry
 {
     /// <summary>Half the plate: the zone's width is the same for every batter.</summary>
     public const double HalfWidth = 0.92;
-    public const double PlateZ = 0;
+
+    /// <summary>
+    /// The zone's plane (spec §4.4): the plate's front edge, the pitcher's side (<see cref="HomeSet.PlateFrontZ"/>).
+    /// The flight ends here (<see cref="PitchFlight.Point"/> at u = 1), the umpire judges the crossing here, and
+    /// the frame, the aim tell and the cursor are drawn here: the drawn zone is the judged zone.
+    /// </summary>
+    public const double PlateZ = HomeSet.PlateFrontZ;
 
     /// <summary>
     /// The frame the pitch family table is authored in: 1.45 to 3.65 ft. A pitch's heights (<c>dropFt</c>, the vertical

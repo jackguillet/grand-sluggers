@@ -72,7 +72,8 @@ public static class PitchFlight
         tx += rubberX * HomeSet.PitcherWalk;
         ty -= row.DropFt * z0.VerticalScale;
         var rel = from ?? Release(r, rubberX);
-        var z = rel.Z * (1 - u);
+        // Release to the zone's plane, the plate's front edge (§4.4): u = 1 is the crossing the umpire judges.
+        var z = rel.Z * (1 - u) + StrikeZoneGeometry.PlateZ * u;
         var (x, y, zz) = Shape(u, tx, ty, z, rel, row);
         // Shape → sweep → stick → star. The sweep is the family's own movement and the stick's shift
         // is the player's, so they add rather than one scaling the other (PH-15-R6). The add is
