@@ -485,7 +485,11 @@ public sealed class FlightScenarioTests
                     {
                         // Out only over the top: the fence between the poles, or the foul wrap after a fair bounce (two bases either way).
                         var top = s.Event == SampleEvent.Fence ? park.FenceHeightFt : FieldBounds.FoulWallHeightFt;
-                        Assert.True(s.Event is SampleEvent.Fence or SampleEvent.Stands && s.Height >= top - 0.01,
+                        // The flight judges the top at the crossing, inside the step (BallFlight): the ball's height there lies
+                        // between this sample's and the one before, so a ball that clears on a falling step can end the step
+                        // a hair under the top. Over the top means the higher of the two stood at it.
+                        var crossing = Math.Max(s.Height, i > 0 ? samples[i - 1].Height : s.Height);
+                        Assert.True(s.Event is SampleEvent.Fence or SampleEvent.Stands && crossing >= top - 0.01,
                             $"{park.Id} {exit}/{launch}@{spray}: left the park at {s.T:0.00} below the wall ({s.Height:0.0} ft, {s.Event})");
                         Assert.True(ball.HomeRun || ball.GroundRule, "a fair ball that leaves is a homer or two bases");
                     }

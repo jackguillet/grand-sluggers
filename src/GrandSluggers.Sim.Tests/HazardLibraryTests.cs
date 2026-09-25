@@ -53,7 +53,7 @@ public sealed class HazardLibraryTests
     [Fact]
     public void EveryLibraryIdHasOneAuthoredRowAndNoRowIsAnythingElse()
     {
-        Assert.Equal(12, HazardType.All.Count);
+        Assert.Equal(13, HazardType.All.Count);
         Assert.Equal(HazardType.All, Table.Hazards.Authored);
 
         var properties = typeof(HazardRules).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -363,7 +363,7 @@ public sealed class HazardLibraryTests
         Assert.DoesNotContain(HazardType.All, t => Table.Hazards.Of(t).Pattern == HazardPattern.Decoration);
         var bodies = Parks.SelectMany(p => p.Hazards).Where(h => Table.Hazards.Of(h.Type).Pattern is HazardPattern.SolidBody or HazardPattern.TimedMover)
             .Select(h => h.Type).Distinct().OrderBy(t => t, StringComparer.Ordinal).ToList();
-        Assert.Equal([HazardType.AcUnit, HazardType.Statue, HazardType.Train, HazardType.Tree], bodies);
+        Assert.Equal([HazardType.AcUnit, HazardType.LilyPad, HazardType.Statue, HazardType.Train, HazardType.Tree], bodies);
 
         var konga = Content.Must("konga");
         var scenery = new Park(

@@ -287,7 +287,8 @@ public static partial class CarnivalFront
     {
         [Ground.Ice] = "Ice outfield: grounders run and skid; fielders are slow to stop.",
         [Ground.Ash] = "Ash outfield.",
-        [Ground.Dirt] = "Dirt outfield."
+        [Ground.Dirt] = "Dirt outfield.",
+        [Ground.Sand] = "Sand outfield: grounders die early and bounce low."
     };
 
     static readonly Dictionary<string, string> WallLine = new(StringComparer.Ordinal)
@@ -314,6 +315,7 @@ public static partial class CarnivalFront
             HazardType.AcUnit => "An AC unit sits in play: balls bounce off it.",
             HazardType.Tree => "Trees stand in play: balls bounce off them.",
             HazardType.Train => "A train runs along the wall.",
+            HazardType.LilyPad => "Lily pads drift across the outfield: a roller bounces off them.",
             _ => null
         };
     }

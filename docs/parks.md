@@ -53,6 +53,32 @@ The park file is `crystal-rink` (its id); the name a player reads is Aurora Rink
 - Night: fireflies, same play. Presentation only.
 - Why it exists: jungle walls you can clamber, barrels you can see kick a grounder. Trees, vine walls with ledges at fence height, barrel-cannon actors (mouths + tags, not anonymous cylinders). Same diamond kit. Spark lofts, royal palace, and carnival tents stay out.
 
+## Stillwater Marsh
+
+- Faction: Marsh Hoppers (Reed). Region: the river delta.
+- Surface: grass. Air: damp (`dragMul` 1.03), flies die a little early.
+- Gimmick: **lily pads**, three low timed movers (`lily_pad`, pattern `timedMover`) that drift across the outfield on the play clock. Only a ball under the pad's height (a roller or a short hop) meets one and caroms off it; a fly passes over. Nobody is out by a pad.
+- Night: mist over the water past the fence; the pads glow (look only).
+
+## Coconut Cove
+
+- Faction: Stillwater (Elder Fenn). Region: the island.
+- Surface: **sand** (its own ground row): a grounder rolls shorter and bounces lower than on grass; a body runs as on grass; the fumble numbers are grass's.
+- Fence: a low 6-ft rope-and-post wall. Wind: a 7-mph sea breeze across toward right.
+- Gimmick: the tide, a surge across the outfield corners on a timer (a later pattern; not built).
+
+## Sunscorch Mesa
+
+- Faction: Dune Nomads (Sable). Region: the desert canyon.
+- Surface: hard-pan (the dirt row). Tall 14-ft canyon-rock walls. Air: hot and dry (`dragMul` 0.97), flies carry a little.
+- Gimmick: dust devils, a drifting redirect of a ball in flight (a later pattern; not built). Night: clear air, no dust devils.
+
+## Summit Park
+
+- Faction: Peak Guard (Hollis). Region: the high peaks.
+- Surface: grass. Air: thin (`dragMul` 0.9), flies carry, so the fences stand deep (240 / 296 / 240).
+- Gimmick: mountain gusts that turn the wind each inning (a later environment rule; not built). Night: stronger gusts.
+
 ## Haunt Manor
 
 - Unlock. Night only.
@@ -137,5 +163,9 @@ Shipped values:
 | Rooftop City | 318 / 388 / 322 | 12 ft (billboards) | 9 mph toward 90° (crosswind to right) |
 | Canopy Yard | 312 / 378 / 318 | 12 ft (the climb wall) | 3 mph toward 200° (in, slightly left) |
 | Ember Keep | 338 / 408 / 338 | 10 ft (keep wall) | 1 mph toward 0° |
+| Stillwater Marsh | 226 / 268 / 226 | 8 ft (reeds) | 1 mph toward 0° (calm) |
+| Coconut Cove | 222 / 275 / 222 | 6 ft (rope and posts) | 7 mph toward 90° (sea breeze across) |
+| Sunscorch Mesa | 234 / 290 / 228 | 14 ft (canyon rock) | 5 mph toward 45° |
+| Summit Park | 240 / 296 / 240 | 10 ft | 6 mph toward 0° (out) |
 
 **One number (spec D15, amended by D21 / FD-06: once a park lists fence points, the rule is *drawn equals flight on every span*).** `fenceHeightFt` is both the top the flight clips against and the top of the wall Unity draws: Harbor's padded wall (`HarborKit.DressWall`) reads `HarborWall.OutfieldHeight(park)`, which is the park field, and `HarborWallTests` asserts the drawn top equals the flight's fence on every outfield segment. The foul rail around the dugouts and home stays hip-high (4.2 ft) on both sides. A ball that meets the padding you see caroms off it; a homer clears it. The number is Jack's call; Harbor ships at 12 ft (taller than MLB's 8 so a rob and a carom read, far under the old 26-ft dressing). `fenceHeightFt` must stand over the 4.2 ft rail (`cli art` refuses lower).

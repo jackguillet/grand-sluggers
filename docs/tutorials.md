@@ -228,6 +228,7 @@ A setup may name a `park` and `night`. The lesson plays at that park with its ha
 | T-H05 | Funfair Park | the train (timed mover) | planned | |
 | T-H06 | Rooftop City | a billboard star (batting) | planned | |
 | T-H07 | Canopy Yard | the Clamber wall | planned | |
+| T-H08 | Coconut Cove | a grounder on the sand | planned | |
 
 Regression: `HazardLessonTests` earns each implemented lesson with a scripted human pad and fails it with a dead pad; T-H02 also fails the straight run. The mover, reward and wall-trait mechanics are migration debt on #814. The standalone learning gate is Jack's.
 

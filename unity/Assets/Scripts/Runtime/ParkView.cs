@@ -511,8 +511,36 @@ namespace GrandSluggers.UnityClient
                 case HazardActors.MidwayTrain: MidwayTrain(h); break;
                 case HazardActors.AcUnit: AcUnit(h); break;
                 case HazardActors.JungleTree: JungleTree(p, (float)h.Radius); break;
+                case HazardActors.LilyPad: LilyPad(h); break;
                 default: Debug.LogError("ParkView: no hazard toy " + toy); break;
             }
+        }
+
+        /// <summary>
+        /// The marsh's lily pad: a flat pad with a notch and a flower, the size of its disc. A mover (F4-f): the sim places it on
+        /// the play clock and SetPlayClock moves the drawn one to the same place.
+        /// </summary>
+        void LilyPad(Hazard h)
+        {
+            var pad = Look.Lit(new Color(0.24f, 0.56f, 0.26f), smooth: 0.35f);
+            var petal = Look.Lit(new Color(0.96f, 0.62f, 0.78f), smooth: 0.2f);
+            var heart = Look.Lit(Colors.Gold, smooth: 0.3f);
+            var r = Mathf.Max(2.5f, (float)h.Radius);
+            var root = new GameObject("LilyPad").transform;
+            root.SetParent(_root, false);
+            root.position = new Vector3((float)h.X, 0, (float)h.Z);
+            var mover = SolidBodies.Of(Park, _rules).FirstOrDefault(b => b.Moves && Math.Abs(b.X - h.X) < 1e-6 && Math.Abs(b.Z - h.Z) < 1e-6);
+            if (mover != null) _movers.Add((mover, root));
+            Look.Prim(PrimitiveType.Cylinder, "Pad", root, new Vector3(0, 0.25f, 0), new Vector3(r * 2f, 0.12f, r * 2f), pad);
+            var notch = Look.Prim(PrimitiveType.Cube, "Notch", root, new Vector3(r * 0.55f, 0.3f, 0), new Vector3(r * 0.9f, 0.14f, 0.5f), Look.Lit(new Color(0.16f, 0.34f, 0.18f), smooth: 0.2f));
+            notch.transform.localRotation = Quaternion.Euler(0, 20f, 0);
+            for (var i = 0; i < 5; i++)
+            {
+                var a = i * 72f;
+                var petalGo = Look.Prim(PrimitiveType.Sphere, "Petal" + i, root, Quaternion.Euler(0, a, 0) * new Vector3(0, 0.9f, 0.55f), new Vector3(0.6f, 0.35f, 1.1f), petal);
+                petalGo.transform.localRotation = Quaternion.Euler(-25f, a, 0);
+            }
+            Look.Prim(PrimitiveType.Sphere, "Heart", root, new Vector3(0, 1.0f, 0), Vector3.one * 0.5f, heart);
         }
 
         /// <summary>The canopy grove's jungle-tree hazard toy.</summary>

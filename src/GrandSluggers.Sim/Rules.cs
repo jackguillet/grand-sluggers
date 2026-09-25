@@ -1415,6 +1415,12 @@ public sealed record GroundLibrary
     /// <summary>Ember Keep's surface. Its numbers are grass's until F9-a measures a trial.</summary>
     public GroundRules Ash { get; init; } = new();
 
+    /// <summary>
+    /// Coconut Cove's beach outfield: a ball rolls shorter and bounces lower than on grass; a body runs as on grass.
+    /// Proposed numbers, not tuned.
+    /// </summary>
+    public GroundRules Sand { get; init; } = new();
+
     /// <summary>This table's row for a library id, or null for an id the library does not have.</summary>
     GroundRules? Named(string id) => id switch
     {
@@ -1422,6 +1428,7 @@ public sealed record GroundLibrary
         Ground.Dirt => Dirt,
         Ground.Ice => Ice,
         Ground.Ash => Ash,
+        Ground.Sand => Sand,
         _ => null
     };
 
@@ -2314,6 +2321,9 @@ public sealed record HazardRules
     /// <summary>Canopy's trees: solid bodies (F4-f).</summary>
     public HazardTypeRules Tree { get; init; } = new();
 
+    /// <summary>Stillwater Marsh's lily pads: low timed movers that drift across the outfield; a rolling ball caroms off one.</summary>
+    public HazardTypeRules LilyPad { get; init; } = new();
+
     /// <summary>
     /// This table's row for a library id, or null when the data does not author one. Not public:
     /// callers ask <see cref="IsAuthored"/> or take <see cref="Of"/>'s named stop, so an unauthored
@@ -2333,6 +2343,7 @@ public sealed record HazardRules
         HazardType.Train => Train,
         HazardType.AcUnit => AcUnit,
         HazardType.Tree => Tree,
+        HazardType.LilyPad => LilyPad,
         _ => null
     };
 

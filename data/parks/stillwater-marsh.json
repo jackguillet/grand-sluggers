@@ -1,0 +1,38 @@
+{
+  "id": "stillwater-marsh",
+  "name": "Stillwater Marsh",
+  "faction": "marsh",
+  "pickOrder": 7,
+  "region": "river-delta",
+  "surface": "grass",
+  "leftFenceFt": 226,
+  "centerFenceFt": 268,
+  "rightFenceFt": 226,
+  "windMph": 1,
+  "windDeg": 0,
+  "fenceHeightFt": 8,
+  "environment": {
+    "dragMul": 1.03
+  },
+  "hazards": [
+    {
+      "type": "lily_pad",
+      "x": -62,
+      "z": 158,
+      "radius": 5
+    },
+    {
+      "type": "lily_pad",
+      "x": 4,
+      "z": 190,
+      "radius": 5.6
+    },
+    {
+      "type": "lily_pad",
+      "x": 66,
+      "z": 150,
+      "radius": 5
+    }
+  ],
+  "notes": "A misty river delta, the Marsh Hoppers' home. Lily pads drift slowly across the outfield on the play clock; a rolling ball caroms off one, a fly passes over. Damp air carries a little less. Night: mist over the water past the fence (look only)."
+}
