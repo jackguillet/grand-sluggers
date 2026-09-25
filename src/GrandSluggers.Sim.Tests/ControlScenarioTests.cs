@@ -267,7 +267,7 @@ public sealed class ControlScenarioTests
                 Assert.Equal(speed * Frame, StepFt(i), 3);
             var off = Math.Abs((ssAfterCoast.X - ssAtHandoff.X) * vZ - (ssAfterCoast.Z - ssAtHandoff.Z) * vX) / speed;
             Assert.True(off < 0.05, $"SS coasts along its last heading ({off:0.00} ft off the line)");
-            var brakeSec = rules.Fielding.Chase.BrakeSec;
+            var brakeSec = BodyClasses.Ramp(map["SS"], rules).BrakeSec;   // the body class's brake (§8.1)
             var rated = FieldingResolver.ChaseSpeedFt(map["SS"], false, rules);
             for (var k = 1; k <= 24 - coastFrames; k++)
                 Assert.Equal(Math.Max(0, speed - k * Frame * rated / brakeSec) * Frame, StepFt(h + coastFrames + k), 3);
@@ -409,8 +409,8 @@ public sealed class ControlScenarioTests
         var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, cfStart.X, cfStart.Z,
             FieldingResolver.ChaseSpeedFt(cf, "CF", preview, match.Rules), match.Rules,
             match.Rules.Fielding.Reaction.LockoutSec("CF"));
-        var standUp = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(cf, match.Park, match.Rules), false, false, match.Rules);
-        var diveWin = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(cf, match.Park, match.Rules), true, false, match.Rules);
+        var standUp = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(cf, match.Park, match.Rules, air: true), false, false, match.Rules);
+        var diveWin = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(cf, match.Park, match.Rules, air: true), true, false, match.Rules);
         Assert.True(route.MissFt < diveWin, $"the fixture: CF reaches standing or diving (miss {route.MissFt:0.0} < dive {diveWin:0.0}, stand-up {standUp:0.0})");
 
         var catcher = "";

@@ -51,9 +51,9 @@ public sealed class BallDashTests
 
     /// <summary>
     /// The human shortstop takes a grounder, stands, then runs with the ball. dart (Ball Dash) and zig (no ability of the
-    /// feet, the same Run 9) build at the same rate — half the rated speed after six frames, the rated speed after twelve —
-    /// and part only at the cap: dart settles at 1.20 × 22.48 = 26.98 ft/s, zig at 22.48. The rate is the body's, the cap
-    /// is the ability's (F693-02-carry-movement-response).
+    /// feet, the same Run 9 and the same body class) build at the same rate — their class's ramp: half the rated speed half-way
+    /// through it, the rated speed at its end — and part only at the cap: dart settles at 1.20 × the rated speed, zig at it.
+    /// The rate is the body's, the cap is the ability's (F693-02-carry-movement-response).
     /// </summary>
     [Theory]
     [InlineData("dart", 1.20)]
@@ -65,8 +65,11 @@ public sealed class BallDashTests
         double Speed(int k) => Diamond.Dist(track[k].X, track[k].Z, track[k + 1].X, track[k + 1].Z) / Frame;
 
         Assert.Equal(22.48, rated, 9);
-        Assert.InRange(Speed(5), rated * 0.5 * 0.85, rated * 0.5 * 1.15);      // six frames in: half the rated speed, boost or not
-        Assert.InRange(Speed(11), rated * 0.90, rated * 1.10);                 // twelve frames in: the rated speed, boost or not
+        var rampFrames = BodyClasses.Ramp(Game.Must(shortstop), Game.Rules).AccelSec / Frame;
+        var half = (int)Math.Round(rampFrames / 2) - 1;
+        var full = (int)Math.Floor(rampFrames) - 1;
+        Assert.InRange(Speed(half), rated * (half + 1) / rampFrames * 0.85, rated * (half + 1) / rampFrames * 1.15);   // half-way through the ramp, boost or not
+        Assert.InRange(Speed(full), rated * 0.90, rated * 1.10);                                                         // the ramp's end: the rated speed, boost or not
         Assert.InRange(Speed(20), rated * cap * 0.97, rated * cap * 1.03);     // settled: the cap is the ability's
         Assert.InRange(Speed(23), rated * cap * 0.97, rated * cap * 1.03);
     }
@@ -74,9 +77,9 @@ public sealed class BallDashTests
     /// <summary>
     /// The CPU's own carry (F693-02-ball-dash-carrier: "actual ownership for both seats and CPU"). A grounder the first
     /// baseman takes 30-odd feet from the bag with nobody else to cover it: his legs beat any throw, so he walks it there
-    /// himself. dart and zig brake to a stop, wait out the read, then build at the same 1.87 ft/s a frame; zig holds at
-    /// 22.5 ft/s from the twelfth frame and dart parts from him there to settle at 27.0 on the fifteenth. The forecast that
-    /// chose the walk (`CpuWalkSec`) read the same speed.
+    /// himself. dart and zig brake to a stop, wait out the read, then build at the same rate, their class's ramp; zig holds at
+    /// his rated speed from the ramp's end and dart parts from him there to settle at 1.20 × it. The forecast that chose the walk
+    /// (`CpuWalkSec`) read the same speed.
     /// </summary>
     [Theory]
     [InlineData("dart", 1.20)]
@@ -91,6 +94,9 @@ public sealed class BallDashTests
         Assert.Equal("1B", preview.Position);
         var rated = FieldingResolver.ChaseSpeedFt(Game.Must(first), false, match.Rules);
         Assert.Equal(22.48, rated, 9);
+        var rampFrames = BodyClasses.Ramp(Game.Must(first), match.Rules).AccelSec / Frame;
+        var half = (int)Math.Round(rampFrames / 2) - 1;
+        var full = (int)Math.Floor(rampFrames) - 1;
 
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
@@ -117,8 +123,8 @@ public sealed class BallDashTests
         var go = speeds.FindIndex(stopped, v => v > 1e-6);
         Assert.True(go > stopped, "the body never walked to the bag");
         var walk = speeds.Skip(go).ToList();
-        Assert.InRange(walk[5], rated * 0.5 * 0.9, rated * 0.5 * 1.1);           // six frames in: half the rated speed, the body's own rate
-        Assert.InRange(walk[11], rated * 0.95, rated * 1.05);                     // twelve frames in: the rated speed, boost or not
+        Assert.InRange(walk[half], rated * (half + 1) / rampFrames * 0.9, rated * (half + 1) / rampFrames * 1.1);   // half-way: the body's own rate
+        Assert.InRange(walk[full], rated * 0.95, rated * 1.05);                                                    // the ramp's end: the rated speed, boost or not
         Assert.InRange(walk.Max(), rated * cap * 0.98, rated * cap * 1.02);        // the cap is the ability's
         Assert.True(walk.Count(v => v > rated * cap * 0.98) >= 3, "the body never held the cap");
     }

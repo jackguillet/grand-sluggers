@@ -3,6 +3,8 @@
   "name": "Zig",
   "faction": "carnival",
   "captain": true,
+  // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
+  "bodyClass": "speed",
   "teamName": "Carnival Crew",
   "signatureBat": "prism-stick",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.

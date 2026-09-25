@@ -105,7 +105,13 @@ public sealed class ContentCatalog
         foreach (var c in characters.Values.Where(c => !c.Captain).ToList())
         {
             var cap = captainOf[c.Faction];
-            characters[c.Id] = c with { BodyType = cap.BodyType, Proportions = cap.Proportions };
+            // Its body class too (§8.1), unless it names its own.
+            characters[c.Id] = c with
+            {
+                BodyType = cap.BodyType,
+                Proportions = cap.Proportions,
+                BodyClass = string.IsNullOrEmpty(c.BodyClass) ? cap.BodyClass : c.BodyClass
+            };
         }
         var captainIds = data.Teams.Captains!.Select(id => characters[id!].Id).ToList();
         var presets = (data.Teams.Presets ?? []).ToDictionary(

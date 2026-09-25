@@ -76,7 +76,7 @@ public sealed class FieldingResolver
         var freeze = hit.StarSwingUsed == "heart-swing";
         if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < _rules.Fielding.Park.ShellWarpChance)
             warped = true;
-        var radius = CatchRadiusFt(fielder, park, _rules);
+        var radius = CatchRadiusFt(fielder, park, _rules, air: !grounder);
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
         return new FieldingPreview(
@@ -218,9 +218,13 @@ public sealed class FieldingResolver
     public static double RecoilHandsFactor(Character who, RulesTable rules) =>
         Math.Max(0, 1 - rules.Fielding.Recoil.HandsCutPerPoint * (who.Stats.Hands - 1));
 
-    /// <summary>The one weight <c>w = S × F</c> the recovery, the kick and the skid all read (F693-02-recoil-field-shaping: severity bounded first, then the hands).</summary>
+    /// <summary>
+    /// The one weight <c>w = S × F × K</c> the recovery, the kick and the skid all read (F693-02-recoil-field-shaping: severity
+    /// bounded first, then the hands), with <c>K</c> the body class's <c>knockbackMul</c> (§8.1, CH-11): a heavy body is knocked
+    /// back less than a light one by the same ball.
+    /// </summary>
     public static double RecoilWeight(Character who, double incomingFtPerSec, RulesTable rules, bool airborne = false) =>
-        RecoilSeverity(incomingFtPerSec, rules, airborne) * RecoilHandsFactor(who, rules);
+        RecoilSeverity(incomingFtPerSec, rules, airborne) * RecoilHandsFactor(who, rules) * BodyClasses.Of(who, rules).KnockbackMul;
 
     /// <summary>What this take costs these hands: <c>capSec × w</c> — 0.20 / 0.16 / 0.11 s at full severity for Hands 1 / 5 / 10, nothing for a routine arrival, nothing on the shipped table.</summary>
     public static double RecoilSec(Character who, double incomingFtPerSec, RulesTable rules, bool airborne = false) =>
@@ -298,16 +302,14 @@ public sealed class FieldingResolver
         StandUpCatchFt(catchRadius) + rules.Fielding.Catch.DiveReachFt;
 
     /// <summary>
-    /// Base catch radius for a glove (abilities, clamber parks). The stand-up reach is the character's authored
-    /// <see cref="Character.ReachFt"/> when it has one, else the table's <c>standUpReachFt</c> (4.0)
-    /// (F693-02-catch-reach-envelope, F693-02-character-catch-range).
+    /// Base catch radius for a glove (abilities, clamber parks). The stand-up reach is the body class's (§8.1, §8.3): its
+    /// <c>flyReachFt</c> on a ball hit in the air (<paramref name="air"/>), its <c>groundReachFt</c> on a ball hit on the ground —
+    /// authored in data, never measured off the mesh. A character with no class has the table's <c>standUpReachFt</c>.
     /// </summary>
-    public static double CatchRadiusFt(Character fielder, Park? park, RulesTable rules)
+    public static double CatchRadiusFt(Character fielder, Park? park, RulesTable rules, bool air)
     {
         var r = rules;
-        var c = r.Fielding.Catch;
-        var standUp = fielder.ReachFt
-                      ?? c.StandUpReachFt;
+        var standUp = BodyClasses.ReachFt(fielder, air, r);
         var radius = standUp + FieldAbilities.CatchBonus(fielder, r);
         if (park != null && ParkHazards.CanClamber(park, fielder, r))
             radius += r.Fielding.Catch.ClamberRadiusFt;
@@ -526,7 +528,7 @@ public sealed class FieldingResolver
             ? live : OutfieldStarts.Of(park, _rules)[pre.Position];
         var ready = CpuReactionLockouts(_rules, pre.HangTimeSec);
         var own = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z,
-            ChaseSpeedFt(pre.Fielder, pre.Position, pre, _rules), _rules, ready[pre.Position]);
+            ChaseSpeedFt(pre.Fielder, pre.Position, pre, _rules), _rules, ready[pre.Position], body: pre.Fielder);
         if (!own.Reachable) return null;
         var choice = FieldingPursuit.Choose(partners, OutfieldPursuitPositions, pre, park, path, _rules, at, readyAt: ready);
         return choice.Route.Reachable ? choice.Fielder : null;

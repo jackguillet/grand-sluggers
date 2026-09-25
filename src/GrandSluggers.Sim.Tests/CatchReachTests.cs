@@ -4,9 +4,9 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// 3c-3 slice 1 (#719, F693-02-catch-reach-envelope and Jack's air-multiplier addition): the stand-up reach is the authored
-/// 6 ft for every body without its own <c>reachFt</c>, the dirt pad and the dive add to it (6 / 10 / 14), and an outfielder
-/// under a fly runs at the air multiplier.
+/// 3c-3 slice 1 (#719, F693-02-catch-reach-envelope and Jack's air-multiplier addition): the stand-up reach is the body class's
+/// (§8.1) — the table's 4 ft for an unclassed body — the dirt pad and the dive add to it, and an outfielder under a fly runs at
+/// the air multiplier.
 /// </summary>
 public sealed class CatchReachTests
 {
@@ -14,21 +14,21 @@ public sealed class CatchReachTests
 
     [Fact]
     [Trait("Kind", "Balance")]
-    public void TheStandUpReachIsSixFeetAndAnAuthoredReachWins()
+    public void TheStandUpReachIsTheBodyClasses()
     {
         Assert.Equal(4.0, Game.Rules.Fielding.Catch.StandUpReachFt);
 
         var ashlord = Game.Must("ashlord");   // Field 3, spin-check: no catch bonus
         Assert.Equal(3, ashlord.Stats.Field);
-        Assert.Null(ashlord.ReachFt);
-        Assert.Equal(4.0, FieldingResolver.CatchRadiusFt(ashlord, null, Game.Rules), 9);
+        var villain = Game.Rules.BodyClasses.Of(ashlord.BodyClass);
+        Assert.Equal(villain.FlyReachFt, FieldingResolver.CatchRadiusFt(ashlord, null, Game.Rules, air: true), 9);
+        Assert.Equal(villain.GroundReachFt, FieldingResolver.CatchRadiusFt(ashlord, null, Game.Rules, air: false), 9);
 
         var rio = Game.Must("rio");           // Field 6, grow: +6
-        Assert.Equal(4.0 + 6, FieldingResolver.CatchRadiusFt(rio, null, Game.Rules), 9);
+        Assert.Equal(Game.Rules.BodyClasses.Of(rio.BodyClass).FlyReachFt + 6, FieldingResolver.CatchRadiusFt(rio, null, Game.Rules, air: true), 9);
 
-        // An authored reachFt wins over the table.
-        var authored = ashlord with { ReachFt = 7.5 };
-        Assert.Equal(7.5, FieldingResolver.CatchRadiusFt(authored, null, Game.Rules), 9);
+        // An unclassed body has the table's reach.
+        Assert.Equal(4.0, FieldingResolver.CatchRadiusFt(ashlord with { BodyClass = "" }, null, Game.Rules, air: true), 9);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public sealed class CatchReachTests
     public void TheStackIsSixTenFourteen()
     {
         var r = Game.Rules;
-        var standUp = FieldingResolver.CatchRadiusFt(Game.Must("ashlord"), null, r);
+        var standUp = FieldingResolver.CatchRadiusFt(Game.Must("ashlord") with { BodyClass = "" }, null, r, air: true);
         Assert.Equal(4.0, FieldingResolver.StandUpCatchFt(standUp), 9);
         Assert.Equal(10.0, FieldingResolver.CatchWindowFt(standUp, dive: false, jump: false, r), 9);   // the 4-ft dirt pad
         Assert.Equal(14.0, FieldingResolver.DiveCatchFt(standUp, r), 9);                              // the earned dive
@@ -56,7 +56,8 @@ public sealed class CatchReachTests
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
-        Assert.Equal(4.0 + FieldAbilities.CatchBonus(preview.Fielder, match.Rules), preview.CatchRadius, 9);
+        Assert.Equal(BodyClasses.ReachFt(preview.Fielder, air: true, match.Rules) + FieldAbilities.CatchBonus(preview.Fielder, match.Rules),
+            preview.CatchRadius, 9);
         Assert.Equal(preview.CatchRadius, LandingMark.RadiusFt(preview), 9);
     }
 

@@ -107,7 +107,7 @@ public sealed class RecoilTests
         Assert.True(a.Speed >= 75, $"the comebacker arrived at {a.Speed:0.0} ft/s");
         Assert.Equal(0.15, a.Dur, 9);
         Assert.Equal(1, a.Events);
-        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("grit"), a.Speed, Game.Rules), a.Dur, 9);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("grit") with { BodyClass = "" }, a.Speed, Game.Rules), a.Dur, 9);
         Assert.InRange(a.RecoilFrames, 8, 10);   // 0.15 s at 60 Hz
         Assert.InRange(a.Skid, 0.4, FieldingResolver.RecoilSkidFt(a.Dur / Game.Rules.Fielding.Recoil.CapSec, Game.Rules) + .1); // the moving glove brakes while the recoil skids it
         Assert.Equal(PlayKind.GroundOut, a.Play.Kind);
@@ -147,7 +147,7 @@ public sealed class RecoilTests
         Assert.True(on.TakeAt > on.Hang, "the liner landed before the take");
         Assert.InRange(on.Speed, 20.01, 40);
         Assert.Equal(1, on.Events);
-        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("moss"), on.Speed, active.Content.Rules), on.Dur, 9);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("moss") with { BodyClass = "" }, on.Speed, active.Content.Rules), on.Dur, 9);
         Assert.True(on.Dur > 0.05);
     }
 
@@ -201,7 +201,9 @@ public sealed class RecoilTests
     /// <summary>Harbor, vale (Hands 8) on the mound, hex (Hands 4) in right; a contact judged by the flight.</summary>
     static (Match Match, AtBatResult Hit, FieldingPreview Preview) Fixture(ContentCatalog content, double exitMph, double launchDeg, double sprayDeg, ContactQuality quality, int pitcherHands = 0)
     {
-        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
+        // The unclassed defense (§8.1): the full knockback, so the recoil these rows measure is the hands' and the ball's alone.
+        // The body class's share of it is BodyClassScenarioTests.SC14.
+        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex").Unclassed();
         if (pitcherHands > 0)
         {
             var p = home.Captain with { Stats = home.Captain.Stats with { Hands = pitcherHands } };
