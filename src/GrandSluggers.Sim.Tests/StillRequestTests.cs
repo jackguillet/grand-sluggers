@@ -34,6 +34,53 @@ public class StillRequestTests
     }
 
     [Fact]
+    public void CharacterMenuKeepsTheStagedCaptain()
+    {
+        foreach (var id in _content.CaptainIds)
+        {
+            var staged = "{\"shots\":[\"char-rest\",\"char-pose\"],\"home\":\"" + id + "\",\"away\":\"rio\"}";
+            var kept = StillRequest.Parse(StillRequest.CharacterRequestJson(staged));
+            Assert.Equal(id, kept.ResolvedHome());
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("{\"shots\":[\"plate\"],\"home\":\"zig\"}")]
+    [InlineData("{\"shots\":[\"char-rest\",\"plate\"],\"home\":\"zig\"}")]
+    [InlineData("{not json")]
+    [InlineData("{\"shots\":[\"not-a-shot\"]}")]
+    public void CharacterMenuFallsBackToTheDefaultCaptainOnlyWithoutACharacterRequest(string? staged)
+    {
+        var req = StillRequest.Parse(StillRequest.CharacterRequestJson(staged));
+        Assert.Equal(StillRequest.DefaultCharacterHome, req.ResolvedHome());
+        Assert.Equal(new[] { "char-rest", "char-pose" }, req.ResolvedShots());
+    }
+
+    [Fact]
+    public void GateMenuDefaultIsTheDefaultShotsRioAgainstAshlord()
+    {
+        var req = StillRequest.Parse(StillRequest.DefaultGateRequestJson());
+        Assert.Equal(StillRequest.DefaultShots, req.ResolvedShots());
+        Assert.Equal("rio", req.ResolvedHome());
+        Assert.Equal("ashlord", req.ResolvedAway());
+        Assert.True(req.HudOff);
+    }
+
+    [Fact]
+    public void StillMenusHoldNoCaptainLiteral()
+    {
+        // The menu once overwrote the staged request with a hardcoded captain, so
+        // still-gate-character.sh {id} always captured Fenn. Captains come from the request.
+        var root = Path.GetFullPath(Path.Combine(_content.Root.Shipped, ".."));
+        var menu = File.ReadAllText(Path.Combine(root, "unity", "Assets", "Editor", "StillGateMenu.cs"));
+        Assert.DoesNotContain("\\\"home\\\"", menu);
+        foreach (var id in _content.CaptainIds)
+            Assert.DoesNotContain("\\\"" + id + "\\\"", menu);
+    }
+
+    [Fact]
     public void DefaultRequestIsTitlePlateMoundHudOffRio()
     {
         var req = StillRequest.Parse("{}");
