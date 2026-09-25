@@ -175,19 +175,11 @@ public sealed partial class LivePlaySystem
     bool _dropped;
     Character? _firstGlove;
 
-    // The hand-off coast (§8.9): the body the ring left keeps the glove's last velocity for chase.handoffCoastSec, then stops.
-    (string Pos, double X, double Z) _gloveLast = ("", 0, 0);
-    double _lastDt;
-    (double X, double Z) _gloveVel;
-    string _coastPos = "";
-    (double X, double Z) _coastVel;
-    double _coastT;
+    // The hand-off coast (§8.9): the body the ring left keeps the glove's last velocity for chase.handoffCoastSec, then brakes.
+    readonly HandoffCoast _coast = new();
     readonly GloveDive _dive = new();
     /// <summary>Each body's velocity under the response law (#718) and this frame's step record.</summary>
     readonly BodyResponse _response = new();
-    /// <summary>The body braking out of a hand-off coast under the response law (#718), and what the coast's last step left of its frame (-1 on any later frame).</summary>
-    string _coastBrakePos = "";
-    double _coastBrakeLeft = -1;
 
     // A ball on the ground in nobody's glove and off its batted path: a fumble, an overthrow, a drop at an uncovered bag.
     readonly LooseBallMotion _looseMotion = new();
@@ -622,15 +614,8 @@ public sealed partial class LivePlaySystem
         _dropRolled = false;
         _dropped = false;
         _firstGlove = null;
-        _gloveLast = ("", 0, 0);
-        _lastDt = 0;
-        _gloveVel = (0, 0);
-        _coastPos = "";
-        _coastVel = (0, 0);
-        _coastT = 0;
+        _coast.Reset();
         _response.Reset();
-        _coastBrakePos = "";
-        _coastBrakeLeft = -1;
         _receivedClean = false;
         _throwerPos = "";
         _cutoffPos = "";
@@ -682,11 +667,7 @@ public sealed partial class LivePlaySystem
         ReadStatusVolumes();
 
         // The glove's own velocity over the last frame: what the body keeps for chase.handoffCoastSec when the ring leaves it (§8.9).
-        _gloveVel = _gloveLast.Pos == GlovePos && _lastDt > 0
-            ? ((GloveX - _gloveLast.X) / _lastDt, (GloveZ - _gloveLast.Z) / _lastDt)
-            : (0, 0);
-        _gloveLast = (GlovePos, GloveX, GloveZ);
-        _lastDt = dt;
+        _coast.Sample(GlovePos, GloveX, GloveZ, dt);
         // The response law (#718): a body nobody stepped last frame brakes to a stop; then this frame's steps begin.
         TickIdleBrakes(dt);
         // The pursuit stick (#718): one read a frame — the owner and the asked velocity every stick site below shares.
@@ -1831,12 +1812,7 @@ public sealed partial class LivePlaySystem
         // run — and read as a velocity it slid the diver a hundred feet. The dive's arm window on every table, and the
         // recovery the diver still owes after it (#719).
         var down = _dive.Down(GlovePos);
-        if (coast && !down && (_gloveVel.X != 0 || _gloveVel.Z != 0))
-        {
-            _coastPos = GlovePos;
-            _coastVel = _gloveVel;
-            _coastT = R.Fielding.Chase.HandoffCoastSec;
-        }
+        if (coast && !down) _coast.Leave(GlovePos, R.Fielding.Chase.HandoffCoastSec);
         GlovePos = pos;
         if (_fielders.TryGetValue(GlovePos, out var at))
         {
@@ -1857,24 +1833,11 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void TickHandoffCoast(double dt)
     {
-        if (_coastT <= 0) return;
-        if (string.IsNullOrEmpty(_coastPos) || _coastPos == GlovePos || !_fielders.TryGetValue(_coastPos, out var at))
-        {
-            _coastT = 0;
-            return;
-        }
-        var step = Math.Min(dt, _coastT);
-        _fielders[_coastPos] = FieldBounds.ClampFielder(Park, at.X + _coastVel.X * step, at.Z + _coastVel.Z * step, R);
-        _coastT -= dt;
+        if (_coast.Step(dt, GlovePos, _fielders.ContainsKey) is not { } coast) return;
+        var at = _fielders[coast.Pos];
+        _fielders[coast.Pos] = FieldBounds.ClampFielder(Park, at.X + coast.Vel.X * coast.Step, at.Z + coast.Vel.Z * coast.Step, R);
         // The body's velocity is the coast's, so when the coast ends it brakes rather than stopping dead (#718).
-        _response.Carry(_coastPos, _coastVel);
-        if (_coastT <= 1e-9)
-        {
-            // The coast's last step: what it left of the frame is the brake's, and so is every frame after that no walk takes.
-            _coastT = 0;
-            _coastBrakePos = _coastPos;
-            _coastBrakeLeft = dt - step;
-        }
+        _response.Carry(coast.Pos, coast.Vel);
     }
 
     /// <summary>
@@ -1884,22 +1847,19 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void TickCoastBrake(double dt)
     {
-        if (_coastBrakePos.Length == 0) return;
-        var pos = _coastBrakePos;
+        if (_coast.Brake(dt) is not { } brake) return;
+        var pos = brake.Pos;
         // On the coast's last frame the step record is the coast's own mark, and the brake has only what the coast left of the frame.
-        var ending = _coastBrakeLeft >= 0;
-        var left = ending ? _coastBrakeLeft : dt;
-        _coastBrakeLeft = -1;
-        if (pos == GlovePos || !ending && _response.Stepped(pos) || !_response.TryVelocity(pos, out var v)
+        if (pos == GlovePos || !brake.Ending && _response.Stepped(pos) || !_response.TryVelocity(pos, out var v)
             || Math.Abs(v.X) < 1e-9 && Math.Abs(v.Z) < 1e-9 || !_fielders.TryGetValue(pos, out var at))
         {
-            _coastBrakePos = "";
+            _coast.EndBrake();
             return;
         }
-        if (left > 1e-9) BrakeStep(pos, at, v, left);
+        if (brake.Left > 1e-9) BrakeStep(pos, at, v, brake.Left);
     }
 
-    bool Coasting(string pos) => _coastT > 0 && pos == _coastPos;
+    bool Coasting(string pos) => _coast.Coasting(pos);
 
     void ChargeOutfield(double dt)
     {
