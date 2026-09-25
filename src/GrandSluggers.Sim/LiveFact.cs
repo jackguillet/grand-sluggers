@@ -15,3 +15,9 @@ public sealed record ReachBonusTake(string GloveId, string Ability) : LiveFact;
 
 /// <summary>The pursuit assist moved this glove this frame. Braking and coasting are not an assisted route.</summary>
 public sealed record AssistedRouteStep(string GloveId) : LiveFact;
+
+/// <summary>
+/// A star swing's grounder turned at its first hop (§13, <see cref="StarSwingSkill.FirstHopKickDeg"/>): the swing, when and
+/// where, the signed turn in degrees (positive is counter-clockwise from above) and the chasing fielder it turned away from.
+/// </summary>
+public sealed record FirstHopKicked(string SwingId, double T, double X, double Z, double TurnDeg, string AwayFrom) : LiveFact;

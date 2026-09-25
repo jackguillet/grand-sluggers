@@ -157,6 +157,10 @@
     "superJumpCatchBonusFt": 3,
     "superJumpFlyRangeFt": 22,
     "diveGroundRangeFt": 16,
+    // Sand Scoop (Sable, #1149): +8 ft of ground reach for a ball at or below 1 ft (a skipping or rolling ball, below the
+    // six-inch-to-knee hop band's top), and a scoop that low never bobbles. Half Dive's reach, for the low ball only.
+    "sandScoopFt": 8,
+    "sandScoopMaxFt": 1.0,
     // #723: Laser is x1.25 and only on a throw home with a live runner on third or the third-home segment (a cutoff feed never
     // carries it); Snap Throw is a 0.22 s release after a clean received teammate throw at x1.0 flight against the ordinary 0.30.
     "laserMul": 1.25,

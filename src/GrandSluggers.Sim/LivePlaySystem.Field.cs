@@ -501,6 +501,7 @@ public sealed partial class LivePlaySystem
         }
         Ball = Preview?.Ball ?? BattedBall.Of(Hit, Park, R);
         Path = Ball.Samples;
+        BeginFirstHopKick();
         CoverBallX = Preview?.LandingX ?? Ball.LandingX;
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
         var airHang = Ball.Shape.OnTheDirt() ? (double?)null : Hang;
@@ -561,6 +562,7 @@ public sealed partial class LivePlaySystem
         Field = null;
         Path = null;
         Ball = null;
+        _kickAt = null;
         FlightDone = false;
         OffTheBat = false;
         _call = FairFoulCall.Undecided;
@@ -689,6 +691,7 @@ public sealed partial class LivePlaySystem
             (BallX, BallY, BallZ) = p;
             OffTheBat |= FlyCatch.OffTheBat(Path, BallX, BallY, BallZ, R);
             ReadBallHazards(dt);
+            ReadFirstHopKick();
         }
 
         _dive.Tick(dt);
@@ -2247,11 +2250,11 @@ public sealed partial class LivePlaySystem
         var who = map.TryGetValue(GlovePos, out var c) ? c : Preview!.Fielder;
         // The body class's reach for this ball (§8.1): the ground reach on a ball hit on the ground, the fly reach on one hit in the air.
         var radius = FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R, air: Preview is not { Grounder: true });
-        // Abilities widen the reach for their ball (§8.4): Super Jump on a fly, Dive / Burrow on the dirt.
+        // Abilities widen the reach for their ball (§8.4): Super Jump on a fly, Dive / Burrow on the dirt, Sand Scoop on a low one.
         if (Preview is not null && FlyCatch.IsFly(Preview))
             radius += FieldAbilities.FlyRangeBonus(who, R);
         if (Preview is { Grounder: true })
-            radius += FieldAbilities.GroundRangeBonus(who, R);
+            radius += FieldAbilities.GroundRangeBonus(who, R, BallY);
         return radius;
     }
 
@@ -2696,7 +2699,7 @@ public sealed partial class LivePlaySystem
     {
         var h = R.Fielding.Handling;
         var quality = FieldingResolver.HandlingQuality(who, R, _match.DefenseGlove);
-        HandlingChance = FieldingResolver.HandlingErrorChance(HopDifficulty, quality, R);
+        HandlingChance = FieldAbilities.SureScoop(who, R, BallY) ? 0 : FieldingResolver.HandlingErrorChance(HopDifficulty, quality, R);
         if (!_match.RollHandling(HandlingChance)) return false;
         // The outcome is the contact's, never a second roll (F693-02-error-outcome-selection): how squarely the ring met the ball and how
         // much speed the ball keeps. A glancing touch on a ball with pace gets past; anything else drops at the feet.
@@ -2998,7 +3001,7 @@ public sealed partial class LivePlaySystem
         {
             var who = GloveChar();
             var bonus = FieldAbilities.CatchBonus(who, R)
-                + (preview.Grounder ? FieldAbilities.GroundRangeBonus(who, R) : 0);
+                + (preview.Grounder ? FieldAbilities.GroundRangeBonus(who, R, BallY) : 0);
             if (bonus > 0)
             {
                 var ordinary = CatchRadius(Assigned()) - bonus;

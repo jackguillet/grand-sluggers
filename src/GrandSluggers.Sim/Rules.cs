@@ -2108,6 +2108,9 @@ public sealed record FieldAbilityRules
     public double SuperJumpCatchBonusFt { get; init; }
     public double SuperJumpFlyRangeFt { get; init; }
     public double DiveGroundRangeFt { get; init; }
+    /// <summary>Sand Scoop (§8.4): the extra ground reach, only for a ball at or below <see cref="SandScoopMaxFt"/>; a scoop that low never bobbles.</summary>
+    public double SandScoopFt { get; init; }
+    public double SandScoopMaxFt { get; init; }
     [Positive] public double LaserMul { get; init; }
     [Positive] public double SnapThrowMul { get; init; }
     /// <summary>
