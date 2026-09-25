@@ -7,9 +7,10 @@
   "signatureBat": "barrel-bat",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
   "proportions": { "height": 1.13, "width": 1.36, "head": 1.34, "arms": 1.72, "torso": 1.2 },
-  "pitch": 6,
-  "bat": 9,
-  "field": 3,
+  // Nine sub-stats (spec §2); the bars are derived, the rounded mean of each group: Bat (contact, power), Pitch (velocity = power, endurance = stamina, control, movement = break), Field (hands, arm = throw speed), Run.
+  "contact": 9, "power": 9,
+  "velocity": 6, "endurance": 6, "control": 6, "movement": 6,
+  "hands": 3, "arm": 3,
   "run": 2,
   "bats": "L",
   "throws": "R",

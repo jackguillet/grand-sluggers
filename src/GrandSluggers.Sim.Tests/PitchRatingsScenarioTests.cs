@@ -8,17 +8,16 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// The pitching split (#890, PH-15-R6), Appendix B.1 rows S-138 … S-140.
 ///
-/// <b>S-138</b>: an <b>unauthored</b> roster behaves exactly as it did before the split, because
-/// Velocity, Movement, Control and Endurance all track <c>Pitch</c>. <b>S-139</b>: once one rating is
-/// authored it moves its own read and nobody else's — speed is Velocity's, the arm's say over
+/// <b>S-138</b>: every character authors Velocity (pitch power), Endurance (stamina), Control and
+/// Movement (break), and the Pitch bar is their rounded mean (CH-07). <b>S-139</b>: each rating
+/// moves its own read and nobody else's — speed is Velocity's, the arm's say over
 /// non-perfect contact is Movement's, the steer rate and the CPU's scatter are Control's, the stamina
-/// pool is Endurance's — shown on a fixture arm that authors it, beside one that shares its
-/// <c>Pitch</c> and authors nothing. <b>S-140</b>: the validator accepts the keys as optional and
-/// refuses them outside 1–10 by character and field name.
+/// pool is Endurance's — shown on a fixture arm that moves one rating, beside one that does not.
+/// <b>S-140</b>: the validator requires the four keys and refuses them outside 1–10 by character and
+/// field name.
 ///
 /// Every row asserts a relationship or an integer identity, never a stored libm double: the values
-/// are Jack's to author later (PH-15-R6 leaves them open) and must be able to move without editing
-/// a test. No data file authors a value in this child.
+/// are balance and must be able to move without editing a test.
 /// </summary>
 public class PitchRatingsScenarioTests
 {
@@ -27,24 +26,22 @@ public class PitchRatingsScenarioTests
     readonly ContentCatalog _content = Shipped.Content;
 
     // ---------------------------------------------------------------------------------
-    // S-138 — unauthored tracks Pitch, and stays unauthored
+    // S-138 — every character authors the four, and the Pitch bar is their rounded mean
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S138_EveryShippedCharacterIsStillSeededFromPitch()
+    public void S138_EveryShippedCharacterDerivesPitchFromItsFourRatings()
     {
         Assert.NotEmpty(_content.Characters);
         foreach (var c in _content.Characters.Values)
         {
             var s = c.Stats;
-            Assert.Equal((s.Pitch, s.Pitch, s.Pitch, s.Pitch), (s.Velocity, s.Movement, s.Control, s.Endurance));
-            Assert.False(s.VelocityAuthored || s.MovementAuthored || s.ControlAuthored || s.EnduranceAuthored,
-                $"{c.Id} authors a pitching rating; P3-a authors none");
+            Assert.Equal(Stats.Bar(s.Velocity + s.Endurance + s.Control + s.Movement, 4), s.Pitch);
         }
     }
 
     [Fact]
-    public void S138_NoCharacterFileAuthorsAPitchingRatingKey()
+    public void S138_EveryCharacterFileAuthorsTheFourRatingKeys()
     {
         var root = Shipped.Content.Root.Shipped;
         foreach (var file in Directory.GetFiles(Path.Combine(root, "characters"), "*.json"))
@@ -52,46 +49,33 @@ public class PitchRatingsScenarioTests
             var node = JsonNode.Parse(File.ReadAllText(file), documentOptions: DataJson.Document)!;
             foreach (var row in node is JsonArray rows ? rows : [node])
                 foreach (var key in Keys)
-                    Assert.False(row!.AsObject().ContainsKey(key), $"{file} authors {key}");
+                    Assert.True(row!.AsObject().ContainsKey(key), $"{file} does not author {key}");
         }
     }
 
     [Fact]
-    public void S138_AnUnauthoredRatingTracksPitchAtEveryValueAndThroughAClamp()
+    public void S138_ThePitchBarRoundsHalfUpAndAClampHoldsEachRating()
     {
-        for (var pitch = 1; pitch <= 10; pitch++)
-        {
-            var s = new Stats(pitch, 5, 5, 5);
-            Assert.Equal((pitch, pitch, pitch, pitch), (s.Velocity, s.Movement, s.Control, s.Endurance));
-        }
+        Assert.Equal(5, (Stats.Even(5, 5, 5, 5) with { Velocity = 7, Movement = 4, Control = 5, Endurance = 4 }).Pitch); // 5.0
+        Assert.Equal(6, (Stats.Even(5, 5, 5, 5) with { Velocity = 7, Movement = 5, Control = 5, Endurance = 5 }).Pitch); // 5.5
+        Assert.Equal(5, (Stats.Even(5, 5, 5, 5) with { Velocity = 6, Movement = 5, Control = 5, Endurance = 5 }).Pitch); // 5.25
 
-        // One authored rating does not author the others.
-        var one = new Stats(4, 5, 5, 5) { Control = 9 };
-        Assert.Equal((4, 4, 9, 4), (one.Velocity, one.Movement, one.Control, one.Endurance));
-        Assert.True(one.ControlAuthored);
-        Assert.False(one.VelocityAuthored || one.MovementAuthored || one.EnduranceAuthored);
-
-        var clamped = new Stats(99, 5, 5, 5) { Velocity = 99, Movement = -3 }.Clamp();
-        Assert.Equal(10, clamped.Pitch);
-        Assert.Equal(10, clamped.Velocity);
-        Assert.True(clamped.VelocityAuthored);
-        Assert.Equal(10, clamped.Movement); // -3 was never > 0: unauthored, so it tracks the clamped Pitch
-        Assert.False(clamped.MovementAuthored);
-        Assert.Equal((10, 10), (clamped.Control, clamped.Endurance));
+        var clamped = (Stats.Even(5, 5, 5, 5) with { Velocity = 99, Movement = -3 }).Clamp();
+        Assert.Equal((10, 1, 5, 5), (clamped.Velocity, clamped.Movement, clamped.Control, clamped.Endurance));
+        Assert.Equal(5, clamped.Pitch); // 21 / 4 = 5.25
     }
 
     [Fact]
-    public void S138_StatsRoundTripsThroughJsonWithoutTheAuthoredFlags()
+    public void S138_StatsRoundTripsThroughJson()
     {
         foreach (var stats in new[]
                  {
-                     new Stats(3, 7, 4, 6),
-                     new Stats(3, 7, 4, 6) { Velocity = 9, Movement = 2, Control = 8, Endurance = 1 },
-                     new Stats(3, 7, 4, 6) { Arm = 8, Contact = 2, Control = 9 }
+                     Stats.Even(3, 7, 4, 6),
+                     (Stats.Even(3, 7, 4, 6) with { Velocity = 9, Movement = 2, Control = 8, Endurance = 1 }),
+                     (Stats.Even(3, 7, 4, 6) with { Arm = 8, Contact = 2, Control = 9 })
                  })
         {
             var json = JsonSerializer.Serialize(stats, PlayTrace.Json);
-            Assert.DoesNotContain("Authored", json, StringComparison.OrdinalIgnoreCase);
             foreach (var key in Keys) Assert.Contains($"\"{key}\":", json);
 
             var back = JsonSerializer.Deserialize<Stats>(json, PlayTrace.Json)!;
@@ -105,7 +89,7 @@ public class PitchRatingsScenarioTests
     // S-139 — each rating moves its own read and nobody else's
     // ---------------------------------------------------------------------------------
 
-    /// <summary>The <c>Pitch</c> every fixture arm shares, so the aggregate could not tell them apart.</summary>
+    /// <summary>The value every fixture arm's ratings start from; each row moves one.</summary>
     const int SharedPitch = 5;
 
     /// <summary>Every read a pitching rating owns, taken off one arm on one seed.</summary>
@@ -145,14 +129,14 @@ public class PitchRatingsScenarioTests
     [InlineData(10)]
     public void S139_EachRatingMovesOnlyItsOwnRead(int authored)
     {
-        var base_ = ReadsOf(Arm(new Stats(SharedPitch, 5, 5, 5)));
+        var base_ = ReadsOf(Arm(Stats.Even(SharedPitch, 5, 5, 5)));
 
-        var velocity = ReadsOf(Arm(new Stats(SharedPitch, 5, 5, 5) { Velocity = authored }));
+        var velocity = ReadsOf(Arm((Stats.Even(SharedPitch, 5, 5, 5) with { Velocity = authored })));
         Assert.NotEqual(base_.Mph, velocity.Mph);
         Assert.Equal(authored > SharedPitch, velocity.Mph > base_.Mph);
         Assert.Equal(base_ with { Mph = velocity.Mph }, velocity);
 
-        var movement = ReadsOf(Arm(new Stats(SharedPitch, 5, 5, 5) { Movement = authored }));
+        var movement = ReadsOf(Arm((Stats.Even(SharedPitch, 5, 5, 5) with { Movement = authored })));
         if (authored > SharedPitch)
         {
             // pitchFactor damps only above 5: a better-Movement arm takes speed off a Nice ball.
@@ -165,13 +149,13 @@ public class PitchRatingsScenarioTests
             Assert.Equal(base_, movement); // at or below 5 the damp is zero, as it was for Pitch
         }
 
-        var control = ReadsOf(Arm(new Stats(SharedPitch, 5, 5, 5) { Control = authored }));
+        var control = ReadsOf(Arm((Stats.Even(SharedPitch, 5, 5, 5) with { Control = authored })));
         Assert.Equal(authored > SharedPitch, control.SteerStep > base_.SteerStep);
         Assert.NotEqual(base_.SteerStep, control.SteerStep);
         Assert.NotEqual(base_.CpuIntentX, control.CpuIntentX);
         Assert.Equal(base_ with { SteerStep = control.SteerStep, CpuIntentX = control.CpuIntentX }, control);
 
-        var endurance = ReadsOf(Arm(new Stats(SharedPitch, 5, 5, 5) { Endurance = authored }));
+        var endurance = ReadsOf(Arm((Stats.Even(SharedPitch, 5, 5, 5) with { Endurance = authored })));
         var st = _content.Rules.Pitching.Stamina;
         Assert.Equal(st.PoolBase + authored * st.PoolPerPitch, endurance.Pool);
         Assert.Equal(base_ with { Pool = endurance.Pool }, endurance);
@@ -184,9 +168,9 @@ public class PitchRatingsScenarioTests
         // moves off the unscattered one in proportion to (11 − Control) and nothing else.
         for (var seed = 1; seed <= 40; seed++)
         {
-            var i1 = ReadsOf(Arm(new Stats(SharedPitch, 5, 5, 5) { Control = 1 }), seed).CpuIntentX;
-            var i6 = ReadsOf(Arm(new Stats(SharedPitch, 5, 5, 5) { Control = 6 }), seed).CpuIntentX;
-            var i10 = ReadsOf(Arm(new Stats(SharedPitch, 5, 5, 5) { Control = 10 }), seed).CpuIntentX;
+            var i1 = ReadsOf(Arm((Stats.Even(SharedPitch, 5, 5, 5) with { Control = 1 })), seed).CpuIntentX;
+            var i6 = ReadsOf(Arm((Stats.Even(SharedPitch, 5, 5, 5) with { Control = 6 })), seed).CpuIntentX;
+            var i10 = ReadsOf(Arm((Stats.Even(SharedPitch, 5, 5, 5) with { Control = 10 })), seed).CpuIntentX;
             if (Math.Abs(i1 - i10) < 1e-12) continue;
             // (10 − 5) / (5 − 1) = (i1 − i6) / (i6 − i10)
             Assert.Equal(5 / 4.0, (i1 - i6) / (i6 - i10), 9);
@@ -196,11 +180,12 @@ public class PitchRatingsScenarioTests
     [Fact]
     public void S139_ThePitchAggregateStillPicksTheSwapArm()
     {
-        // The swap pick is a selection by the displayed aggregate, not a rating's read (§4.7): an arm
-        // with the better Pitch is picked over one whose authored ratings are all higher.
-        var strong = Arm(new Stats(8, 5, 5, 5), "pewter");
-        var rated = Arm(new Stats(4, 5, 5, 5) { Velocity = 10, Movement = 10, Control = 10, Endurance = 10 }, "lace");
-        var match = MatchAgainst(Arm(new Stats(1, 5, 5, 5)), 7, strong, rated);
+        // The swap pick is a selection by the displayed bar, not a rating's read (§4.7): an arm with
+        // the better Pitch bar is picked over one with the harder fastball.
+        var strong = Arm(Stats.Even(8, 5, 5, 5), "pewter");
+        var rated = Arm((Stats.Even(4, 5, 5, 5) with { Velocity = 10 }), "lace");
+        Assert.True(rated.Stats.Velocity > strong.Stats.Velocity && rated.Stats.Pitch < strong.Stats.Pitch);
+        var match = MatchAgainst(Arm(Stats.Even(1, 5, 5, 5)), 7, strong, rated);
         Assert.True(match.SwapPitcher());
         Assert.Equal(strong.Id, match.Pitcher.Id);
     }
@@ -214,18 +199,18 @@ public class PitchRatingsScenarioTests
     [InlineData("movement")]
     [InlineData("control")]
     [InlineData("endurance")]
-    public void S140_AnAbsentOrZeroKeyIsUnauthored(string field)
+    public void S140_AnAbsentKeyIsRefusedByCharacterAndField(string field)
     {
         using var fixture = new ContentFixture();
-        fixture.ChangeObject("characters/rio.json", json => json[field] = 0);
-        Assert.Empty(ContentDataValidator.Validate(fixture.Root));
-        var s = ContentCatalog.Load(fixture.Root).Must("rio").Stats;
-        Assert.Equal((s.Pitch, s.Pitch, s.Pitch, s.Pitch), (s.Velocity, s.Movement, s.Control, s.Endurance));
-        Assert.False(s.VelocityAuthored || s.MovementAuthored || s.ControlAuthored || s.EnduranceAuthored);
+        fixture.ChangeObject("characters/rio.json", json => json.Remove(field));
+        var error = Assert.Single(ContentDataValidator.Validate(fixture.Root));
+        Assert.Equal($"{fixture.Path("characters/rio.json")}: character 'rio' {field} is required (1–10); every character authors all nine sub-stats",
+            error);
     }
 
     [Theory]
     [InlineData("velocity", 11)]
+    [InlineData("velocity", 0)]
     [InlineData("velocity", -1)]
     [InlineData("movement", 11)]
     [InlineData("movement", -1)]
@@ -247,7 +232,7 @@ public class PitchRatingsScenarioTests
     [Theory]
     [InlineData(1)]
     [InlineData(10)]
-    public void S140_AnInRangeRatingLoadsAsAuthored(int value)
+    public void S140_AnInRangeRatingLoads(int value)
     {
         using var fixture = new ContentFixture();
         fixture.ChangeObject("characters/rio.json", json =>
@@ -261,22 +246,6 @@ public class PitchRatingsScenarioTests
 
         var s = ContentCatalog.Load(fixture.Root).Must("rio").Stats;
         Assert.Equal((value, 11 - value, value, 11 - value), (s.Velocity, s.Movement, s.Control, s.Endurance));
-        Assert.True(s.VelocityAuthored && s.MovementAuthored && s.ControlAuthored && s.EnduranceAuthored);
-    }
-
-    [Fact]
-    public void S140_PitchIsStillRequired()
-    {
-        using var fixture = new ContentFixture();
-        fixture.ChangeObject("characters/rio.json", json =>
-        {
-            json.Remove("pitch");
-            foreach (var key in Keys) json[key] = 7;
-        });
-
-        // The ratings are not a substitute for the aggregate: the card, the swap pick and Teams.Tools read it.
-        var error = Assert.Single(ContentDataValidator.Validate(fixture.Root));
-        Assert.Equal($"{fixture.Path("characters/rio.json")}: character 'rio' pitch must be between 1 and 10; got 0", error);
     }
 
     // ---------------------------------------------------------------------------------

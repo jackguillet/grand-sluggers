@@ -208,7 +208,7 @@ public sealed class SharedWindowScenarioTests
     Character Hitter(int contact, int power)
     {
         var who = _shipped.Must("pip");
-        return who with { Stats = new Stats(who.Stats.Pitch, 5, who.Stats.Field, 5) { Contact = contact, Power = power } };
+        return who with { Stats = who.Stats with { Contact = contact, Power = power, Run = 5 } };
     }
 
     static JsonObject Parse(string path) =>

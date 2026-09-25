@@ -63,8 +63,8 @@ public sealed class ContentValidationTests
         using var fixture = new ContentFixture();
         fixture.ChangeObject("characters/rio.json", json =>
         {
-            json["pitch"] = 0;
-            json["bat"] = 11;
+            json["velocity"] = 0;
+            json["contact"] = 11;
             json["bats"] = "switch";
             json["throws"] = "southpaw";
             json["starPitch"] = "missing-pitch";
@@ -79,8 +79,8 @@ public sealed class ContentValidationTests
         var ex = Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
         var source = fixture.Path("characters/rio.json");
         Assert.Contains(source, ex.Message);
-        Assert.Contains("character 'rio' pitch must be between 1 and 10; got 0", ex.Message);
-        Assert.Contains("character 'rio' bat must be between 1 and 10; got 11", ex.Message);
+        Assert.Contains("character 'rio' velocity must be between 1 and 10; got 0", ex.Message);
+        Assert.Contains("character 'rio' contact must be between 1 and 10; got 11", ex.Message);
         Assert.Contains("character 'rio' bats must be one of [L, R]; got 'switch'", ex.Message);
         Assert.Contains("character 'rio' throws must be one of [L, R]; got 'southpaw'", ex.Message);
         Assert.Contains("character 'rio' starPitch references unknown id 'missing-pitch'", ex.Message);

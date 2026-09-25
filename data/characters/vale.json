@@ -7,9 +7,10 @@
   "signatureBat": "pageant-wand",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
   "proportions": { "height": 1.09, "width": 0.7, "head": 1.24, "arms": 0.88, "torso": 0.74 },
-  "pitch": 9,
-  "bat": 4,
-  "field": 8,
+  // Nine sub-stats (spec §2); the bars are derived, the rounded mean of each group: Bat (contact, power), Pitch (velocity = power, endurance = stamina, control, movement = break), Field (hands, arm = throw speed), Run.
+  "contact": 4, "power": 4,
+  "velocity": 9, "endurance": 9, "control": 9, "movement": 9,
+  "hands": 8, "arm": 8,
   "run": 5,
   "bats": "R",
   "throws": "R",
