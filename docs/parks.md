@@ -90,6 +90,8 @@ Optional later: a point-space minigame park like Sluggers’ Toy Field. Out of s
 
 **Target (spec §0.3, [plan-fields.md](decisions/plan-fields.md)).** Unknown fields refused. A park names only what differs from Harbor: environment, ground zones, a fence polyline with wall materials, foul territory, outfield starts, hazard instances from a closed pattern library, a night block. Positions are written relative to the diamond and the fence so one authoring serves both data roots. One field kit draws every park; a park fills slots; empty slots draw a greybox.
 
+**The look away from Harbor (`data/art/parks.json`).** A park the Harbor kit does not draw is the field kit in its own light, sky and palette. Its stands slot names `kit-bowl`: one bowl of bleachers for every park, laid out by `KitBowl` from the park's own wall loop — a horseshoe in foul territory 14 ft behind the rail and around the plate, and a corner bank behind each outfield wall from the pole in to 20° of centre, starting under the fence's top — so centre field stays open and no park id or literal places a seat. The palette's `stands` block paints it: risers, seat colors by section, fan shirt colors, the share of seats filled, the rail and trim, and a roof over the horseshoe's back rows or none. The palette's optional `track` paints the warning track. The bowl never stands inside the wall (`KitBowlTests`).
+
 ### Fields the flight reads (spec §6.1)
 
 | Field | Meaning |

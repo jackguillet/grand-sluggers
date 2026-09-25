@@ -56,9 +56,9 @@ public readonly record struct ParkKitSlot(
 /// </para>
 ///
 /// <para>
-/// <b>The other parks draw the plain greybox</b> (FR-13; Jack, 2026-09-24, #1045): their stands, backdrop, props and night
-/// slots are empty, and the client draws grey stands in the park's own light, sky and palette. The hand-built per-park
-/// dress is gone; a park's identity comes back only as art, behind #37 and its greybox sitting. <c>hazardActors</c> names
+/// <b>The other parks are the greybox in their own colors</b> (FR-13): their backdrop, props and night slots are empty, and
+/// their stands slot names <see cref="KitBowl"/>, one bowl of bleachers for every park, painted by the <c>stands</c> block of
+/// the park's palette. No park draws hand-built per-park dress. <c>hazardActors</c> names
 /// <see cref="ToyActors"/> (each hazard type's toy, <see cref="HazardActors"/>) or is empty, which draws the pattern
 /// greybox; either way every acting instance draws its ring at the sim's disc.
 /// </para>
@@ -93,6 +93,9 @@ public static class ParkKitSlots
 
     public const string ToyActors = "toy-actors";
 
+    /// <summary>The park-neutral bowl of bleachers: tiered risers, seat sections and crowd, painted by the palette's <c>stands</c> block.</summary>
+    public const string KitBowl = "kit-bowl";
+
     /// <summary>Every slot, in the order <c>cli art</c> prints them.</summary>
     public static IReadOnlyList<string> All { get; } =
         [Lawn, Dugouts, Wall, Scoreboard, Stands, Backdrop, Night, Props, Light, Sky, HazardActors];
@@ -105,7 +108,7 @@ public static class ParkKitSlots
             [Dugouts] = [HarborDugouts],
             [Wall] = [HarborWall],
             [Scoreboard] = [HarborScoreboard],
-            [Stands] = [HarborStands],
+            [Stands] = [HarborStands, KitBowl],
             [Backdrop] = [HarborTown],
             [Night] = [HarborFireworks],
             [Props] = [], // no park names props; a non-Harbor park draws the greybox
@@ -157,6 +160,8 @@ public static class ParkKitSlots
         }
         if (looks is not null && kit.Palette is null)
             errors.Add("park kit " + kit.Id + " names no palette");
+        if (kit.Fills(Stands, KitBowl) && kit.Palette is { Stands: null })
+            errors.Add("park kit " + kit.Id + " slot " + Stands + " names " + KitBowl + ", but its palette names no stands");
         return errors;
     }
 }
