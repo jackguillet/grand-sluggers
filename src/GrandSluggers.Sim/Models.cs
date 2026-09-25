@@ -599,7 +599,9 @@ public sealed record AtBatResult(
     bool Foul = false,
     bool InZone = true,
     /// <summary>The batted ball's shape from the one flight (§6.2: topper … homer, bunt). <see cref="Foul"/> is the chalk.</summary>
-    BattedBallClass Class = BattedBallClass.Fly);
+    BattedBallClass Class = BattedBallClass.Fly,
+    /// <summary>How strongly the park's wind acts on this ball (§6, §13): 1 for every ball but a star swing whose row names <c>windMul</c>.</summary>
+    double WindMul = 1);
 
 /// <summary>
 /// One pitch (spec §4.1 – §4.3). <paramref name="Type"/> is the <b>family id</b> from the shared
@@ -916,4 +918,6 @@ public sealed record ThrowResult(
     double LateralFt = 0,
     int Arm = InPlay.NeutralArm,
     /// <summary>A release for this throw other than the table's (#723): Snap Throw's after a clean received teammate throw. Null is the ordinary release.</summary>
-    double? ReleaseSec = null);
+    double? ReleaseSec = null,
+    /// <summary>Feet added to the arm's comfortable range before the long-throw loss starts (§8.5): Long Toss's; 0 for every other throw.</summary>
+    double RangeBonusFt = 0);

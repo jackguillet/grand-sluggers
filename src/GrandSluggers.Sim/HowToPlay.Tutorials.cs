@@ -198,6 +198,8 @@ public static partial class HowToPlay
         "pickoff-safe" or "pickoff-no-runner" => "Select first for this runner and make the pickoff throw before the opportunity ends.",
         "ball-dash-carried" => "Ball Dash sped up your fielder while you carried the secured ball.",
         "ball-dash-not-carried" => "Collect the ball with the Ball Dash fielder, then steer at full speed while holding it.",
+        "long-toss-home" => "Your Long Toss reached home at full pace from past an ordinary arm's range.",
+        "long-toss-not-used" => "Catch the deep fly with the Long Toss fielder, then command the throw home yourself.",
         "laser-home" => "Your throw used the Laser speed boost toward home.",
         "laser-not-used" => "Collect the ball with the Laser fielder and command a throw home while the runner is on third.",
         "relay-handoff" => "Your cutoff feed and the onward throw completed the relay home.",
