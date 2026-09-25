@@ -407,7 +407,7 @@ namespace GrandSluggers.UnityClient
         bool CarryingOnTheStick(string pos)
         {
             if (FielderTells.Braced(_owed, pos)) return false;
-            if (RadialStick) return _match.LivePlay.PursuitManual;
+            if (_match != null) return _match.LivePlay.PursuitManual;
             return Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY) >= (float)_feel.FieldAssistStick;
         }
 

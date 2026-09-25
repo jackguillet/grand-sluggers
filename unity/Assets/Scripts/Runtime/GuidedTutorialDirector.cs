@@ -100,6 +100,13 @@ namespace GrandSluggers.UnityClient
             _tutorialUiAge = 0; _tutorialSaved = false;
         }
 
+        /// <summary>Call time's Reset stick card closed (<see cref="PursuitSeatDirector"/>); a recalibrated close is T-G06-C's action.</summary>
+        void StickResetClosed(bool recalibrated)
+        {
+            _t = 0;
+            if (recalibrated && GuidedAttempt("T-G06-C")) GuidedObserve(GuidedAction.StickRecalibrated);
+        }
+
         void GuidedObserve(GuidedAction action)
         {
             if (_guided == null || !_guided.Observe(action) || _guided.Phase != TutorialPhase.Feedback) return;

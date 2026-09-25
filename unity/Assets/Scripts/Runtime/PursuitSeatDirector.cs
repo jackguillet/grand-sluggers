@@ -6,117 +6,126 @@ using UnityEngine;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// The pursuit stick at the couch (the Unity pass of #718). The sim keeps each seat's calibration, arming and gates
-    /// (<see cref="PursuitStick"/>); <see cref="PursuitReadiness"/> decides when a released-stick window is sampled. This
-    /// partial feeds it the seated devices once a frame on the unscaled input clock, runs Call time's Reset stick card, and
-    /// draws what a seat is told. Nothing here runs on the shipped table: its stick reads no calibration.
+    /// The pursuit stick at the couch (the Unity pass of #718; a real director since #1042). The sim keeps each seat's
+    /// calibration, arming and gates (<see cref="PursuitStick"/>); <see cref="PursuitReadiness"/> decides when a
+    /// released-stick window is sampled. This director owns that readiness and Call time's Reset stick card: it feeds the
+    /// seated devices once a frame on the unscaled input clock, runs the card, and draws what a seat is told. Everything
+    /// it reads from the match flow is handed in, so it never reaches into <see cref="MatchDirector"/>.
     /// </summary>
-    public sealed partial class MatchDirector
+    public sealed class PursuitSeatDirector
     {
+        /// <summary>Unscaled seconds the card shows STICK RESET before it closes itself.</summary>
+        const float ResetHoldSec = 0.8f;
+
         readonly PursuitReadiness _pursuit = new PursuitReadiness();
-        readonly List<PursuitReadiness.SeatDevice> _pursuitDevices = new List<PursuitReadiness.SeatDevice>(PursuitReadiness.SeatCount);
+        readonly List<PursuitReadiness.SeatDevice> _devices = new List<PursuitReadiness.SeatDevice>(PursuitReadiness.SeatCount);
+        readonly List<(string Text, float Progress)> _resetLines = new List<(string Text, float Progress)>(PursuitReadiness.SeatCount);
+        float _resetShown;
+        // The frame's inputs, handed in by Tick before anything reads or draws.
+        Match _match;
+        bool _bound, _toldBeat, _training;
+        Seats _seats;
+
         /// <summary>Call time's Reset stick card is open.</summary>
-        bool _stickReset;
-        /// <summary>Unscaled seconds the card has shown STICK RESET; it closes itself after <see cref="StickResetHoldSec"/>.</summary>
-        float _stickResetShown;
-        const float StickResetHoldSec = 0.8f;
+        public bool ResetOpen { get; private set; }
 
-        FieldStickRules StickRules => _match.Rules.Fielding.Stick;
+        static FieldStickRules Rules(Match match) => match.Rules.Fielding.Stick;
 
-        /// <summary>The calibrated radial stick is live whenever a match is.</summary>
-        bool RadialStick => _match != null;
-
-        /// <summary>Call time offers Reset stick: the radial stick with a seated controller connected.</summary>
-        bool OffersStickReset => RadialStick && _matchSeats.Bound && PursuitReadiness.Offered(StickRules, PursuitDevices());
+        /// <summary>Call time offers Reset stick: a match with its seats bound and a seated controller connected.</summary>
+        public bool OffersReset => _match != null && _bound && PursuitReadiness.Offered(Rules(_match), Devices());
 
         /// <summary>
-        /// Every frame, before any director: bind the seated devices to their sticks, and sample a window for a seat that owes
-        /// one only outside live baseball and only while the seat is being told to let go — at SET and the result beat
-        /// (<see cref="DrawStickTells"/>) or on Call time's Reset stick card. Never while the ball is live, never unannounced.
+        /// Every frame, before any director: take the frame's match, seats and beat, bind the seated devices to their
+        /// sticks, and sample a window for a seat that owes one only outside live baseball and only while the seat is being
+        /// told to let go — on a <paramref name="toldBeat"/> (SET and the result beat, see <see cref="DrawTells"/>) or on the
+        /// Reset stick card. Never while the ball is live, never unannounced.
         /// </summary>
-        void TickPursuitSeats()
+        public void Tick(Match match, bool seatsBound, bool toldBeat, Seats seats, bool training)
         {
-            if (!RadialStick || !_matchSeats.Bound) return;
-            var told = _stickReset || (!_match.Paused && _phase is Phase.Set or Phase.Result);
-            _pursuit.Tick(_match.LivePlay, StickRules, told, Time.unscaledTimeAsDouble, PursuitDevices());
+            (_match, _bound, _toldBeat, _seats, _training) = (match, seatsBound, toldBeat, seats, training);
+            if (match == null || !seatsBound) return;
+            var told = ResetOpen || (!match.Paused && toldBeat);
+            _pursuit.Tick(match.LivePlay, Rules(match), told, Time.unscaledTimeAsDouble, Devices());
         }
 
-        IReadOnlyList<PursuitReadiness.SeatDevice> PursuitDevices()
+        IReadOnlyList<PursuitReadiness.SeatDevice> Devices()
         {
-            _pursuitDevices.Clear();
-            var seats = LiveSeats;
+            _devices.Clear();
             for (var i = 0; i < PursuitReadiness.SeatCount; i++)
             {
                 var seat = i == 1 ? LineupSeat.Pad2 : LineupSeat.Pad1;
-                var human = TrainingOn ? i == 0 : seats.Home == seat || seats.Away == seat;
+                var human = _training ? i == 0 : _seats.Home == seat || _seats.Away == seat;
                 var pad = i == 1 ? Controls.Pad2 : Controls.Pad1;
-                _pursuitDevices.Add(new PursuitReadiness.SeatDevice(
+                _devices.Add(new PursuitReadiness.SeatDevice(
                     human, Controls.SeatDeviceId(i), pad.Present, pad.PursuitX, pad.PursuitY));
             }
-            return _pursuitDevices;
+            return _devices;
         }
 
-        /// <summary>Call time's Reset stick: every seated controller samples a window while the card says to let go.</summary>
-        void OpenStickReset()
+        /// <summary>Call time's Reset stick: every seated controller samples a window while the card says to let go. False when nothing opened.</summary>
+        public bool OpenReset()
         {
-            if (!_pursuit.Request(_match.LivePlay, StickRules, PursuitDevices())) return;
-            _stickReset = true;
-            _stickResetShown = 0f;
-            _t = 0;
+            if (_match == null || !_pursuit.Request(_match.LivePlay, Rules(_match), Devices())) return false;
+            ResetOpen = true;
+            _resetShown = 0f;
+            return true;
         }
 
-        /// <summary>The card, inside Call time: back out keeps the old centre; a full set of adopted windows closes it.</summary>
-        void TickStickReset()
+        /// <summary>
+        /// The card, inside Call time: <paramref name="dismissed"/> (back out) keeps the old centre; a full set of adopted
+        /// windows closes it after the hold. Null while the card stays open; otherwise whether it closed recalibrated.
+        /// </summary>
+        public bool? TickReset(bool dismissed)
         {
             var calibrated = _pursuit.Recalibrated;
-            if (_pursuit.Recalibrated)
+            if (calibrated)
             {
-                _stickResetShown += Time.unscaledDeltaTime;
-                if (_stickResetShown < StickResetHoldSec) return;
+                _resetShown += Time.unscaledDeltaTime;
+                if (_resetShown < ResetHoldSec) return null;
             }
-            else if (!PauseMenu.Dismiss(_pausePad.EastDown || Controls.CallTime || Controls.HowTo, _t))
-                return;
+            else if (!dismissed)
+                return null;
             _pursuit.Close();
-            _stickReset = false;
-            _t = 0;
-            if (calibrated && GuidedAttempt("T-G06-C")) GuidedObserve(GuidedAction.StickRecalibrated);
+            ResetOpen = false;
+            return calibrated;
         }
 
-        /// <summary>A seat's tell outside live play: let go while it has no profile, at SET and the result beat — where it is sampled.</summary>
-        void DrawStickTells()
+        /// <summary>A seat's tell outside live play: let go while it has no profile, on the told beat — where it is sampled.</summary>
+        public void DrawTells()
         {
-            if (!RadialStick || !_matchSeats.Bound || _match.Paused || _phase is not (Phase.Set or Phase.Result)) return;
-            var two = LiveSeats.Count > 1;
+            var match = _match;
+            if (match == null || !_bound || match.Paused || !_toldBeat) return;
             for (var i = 0; i < PursuitReadiness.SeatCount; i++)
             {
-                var tell = _pursuit.TellFor(i, _match.LivePlay, StickRules);
+                var tell = _pursuit.TellFor(i, match.LivePlay, Rules(match));
                 if (tell != PursuitReadiness.Tell.LetGo) continue;
-                HudView.StickTell(BroadcastHud.StickLine(tell, i, two),
-                    (float)_pursuit.Progress(i, StickRules, Time.unscaledTimeAsDouble));
+                HudView.StickTell(BroadcastHud.StickLine(tell, i, _seats.Count > 1),
+                    (float)_pursuit.Progress(i, Rules(match), Time.unscaledTimeAsDouble));
                 return;
             }
         }
 
         /// <summary>The live ball's tell: the fielding seat has not been seen at rest since it took the field.</summary>
-        void DrawUnreadyTell()
+        public static void DrawUnready(Match match, bool humanFields)
         {
-            if (!RadialStick || !HumanFields || !_match.LivePlay.PursuitUnready) return;
+            if (match == null || !humanFields || !match.LivePlay.PursuitUnready) return;
             HudView.StickTell(BroadcastHud.UnreadyTell, 0f);
         }
 
         /// <summary>Call time's Reset stick card: each seated controller's line and its window's progress.</summary>
-        void DrawStickReset()
+        public void DrawReset()
         {
-            var two = LiveSeats.Count > 1;
-            var lines = new List<(string Text, float Progress)>(PursuitReadiness.SeatCount);
+            var match = _match;
+            _resetLines.Clear();
+            if (match == null) return;
             for (var i = 0; i < PursuitReadiness.SeatCount; i++)
             {
-                var tell = _pursuit.TellFor(i, _match.LivePlay, StickRules);
-                var text = BroadcastHud.StickLine(tell, i, two);
+                var tell = _pursuit.TellFor(i, match.LivePlay, Rules(match));
+                var text = BroadcastHud.StickLine(tell, i, _seats.Count > 1);
                 if (string.IsNullOrEmpty(text)) continue;
-                lines.Add((text, tell == PursuitReadiness.Tell.Reset ? 1f : (float)_pursuit.Progress(i, StickRules, Time.unscaledTimeAsDouble)));
+                _resetLines.Add((text, tell == PursuitReadiness.Tell.Reset ? 1f : (float)_pursuit.Progress(i, Rules(match), Time.unscaledTimeAsDouble)));
             }
-            HudView.StickReset(lines);
+            HudView.StickReset(_resetLines);
         }
     }
 }
