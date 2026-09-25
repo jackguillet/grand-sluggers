@@ -18,6 +18,6 @@ public sealed record AssistedRouteStep(string GloveId) : LiveFact;
 
 /// <summary>
 /// A star swing's grounder turned at its first hop (§13, <see cref="StarSwingSkill.FirstHopKickDeg"/>): the swing, when and
-/// where, the signed turn in degrees (positive is counter-clockwise from above) and the chasing fielder it turned away from.
+/// where, the signed turn in degrees (positive is counter-clockwise from above) and the chasing glove (its position) it turned away from.
 /// </summary>
-public sealed record FirstHopKicked(string SwingId, double T, double X, double Z, double TurnDeg, string AwayFrom) : LiveFact;
+public sealed record FirstHopKicked(string SwingId, double T, double X, double Z, double TurnDeg, string GloveId) : LiveFact;

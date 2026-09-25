@@ -100,7 +100,7 @@ public sealed class SableAbilityTests
         var (fx, fz) = kicked.AwayAt;
         var toChaser = Math.Atan2(fz - kick.Z, fx - kick.X) * 180 / Math.PI;
         Assert.True(Math.Abs(Wrap(kickedHeading - toChaser)) > Math.Abs(Wrap(plainHeading - toChaser)),
-            $"spray {spray}: turned toward {kick.AwayFrom}");
+            $"spray {spray}: turned toward {kick.GloveId}");
         // The play still ends the ordinary way: a glove, a throw, a bag, or the ball through for a hit.
         Assert.NotNull(kicked.Play);
     }
@@ -157,7 +157,7 @@ public sealed class SableAbilityTests
             foreach (var k in live.Facts.OfType<FirstHopKicked>())
             {
                 kicks.Add(k);
-                awayAt = live.Fielders[k.AwayFrom];
+                awayAt = live.Fielders[k.GloveId];
             }
         }
         return (kicks, balls, awayAt, play);
