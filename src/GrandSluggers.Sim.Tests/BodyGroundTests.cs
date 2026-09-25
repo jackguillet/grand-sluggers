@@ -325,15 +325,15 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     /// <summary>
     /// The stick glove's path, frame by frame, on the data with every row at 1.0. The
     /// relation is F3-d's: a zone map that names every zone a 1.0 row is the unzoned path. The pin is the path with the body
-    /// classes' ramps and the CH-10 speed curve; the relation between the two parks is what the test holds.
+    /// classes' ramps; the relation between the two parks is what the test holds.
     /// </summary>
     [Fact]
     public void AtOneTheStickGlovesStepIsThePreChangeBits()
     {
-        Assert.Equal("1319c0003cbf920e9fc2c2c4cdb75249df80122f82a3300e6e9048b4bde987d2",
+        Assert.Equal("b1b517e01c6a61ebb4a25258464e29dcc298319ad452ddac485b9edd9d13bac9",
             Hash(StickRun(Game, Plain(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
         // A zone map that names every zone a 1.0 row is the same path: the read is there, the product is exact.
-        Assert.Equal("1319c0003cbf920e9fc2c2c4cdb75249df80122f82a3300e6e9048b4bde987d2",
+        Assert.Equal("b1b517e01c6a61ebb4a25258464e29dcc298319ad452ddac485b9edd9d13bac9",
             Hash(StickRun(Game, AtOneGround(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
     }
 
