@@ -63,6 +63,7 @@ public sealed class Game : IDisposable
         _awayCaptain = awayCaptain;
         _challengeMode = challenge;
         _content = ContentCatalog.Load();
+        Palette.Factions = _content.Art.Factions;
         Rules.RequireDefaultRoot(_content.Root);
         _pitches = Training.PitchesOf(_content.Rules);
         _match = NewMatch(seed);

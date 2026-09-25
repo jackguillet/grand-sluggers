@@ -1,0 +1,6 @@
+// The continent map's painted art (WD-18): a Resources path the picker loads when `placed` is true. Until then the picker
+// draws the greybox map from data/world/regions.json. Placing it is art work, after Jack's sittings (WD-02).
+{
+  "slot": "Resources/Art/Map/grand-reach",
+  "placed": false
+}

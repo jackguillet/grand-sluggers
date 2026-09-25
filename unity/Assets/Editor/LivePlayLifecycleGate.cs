@@ -126,7 +126,7 @@ namespace GrandSluggers.EditorTools
                 entry.playerFielding = play._playerFielding;
                 entry.pending = play._pending != null;
                 entry.throwing = play._throwing;
-                entry.effect = play._itemFlying;
+                entry.effect = play.Toss.Flying;
                 entry.recoil = play._recoilT;
                 entry.closePlay = play._closePlay;
             }

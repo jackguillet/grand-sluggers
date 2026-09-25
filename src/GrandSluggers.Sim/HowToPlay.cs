@@ -275,7 +275,8 @@ public static partial class HowToPlay
         ]),
         new("exhibition", "Stadium and captains",
         [
-            "Stadium postcard, with a crowd and padded wall: choose time and hazards, 1 vs CPU or 2 controllers, and P1 HOME / AWAY. Home bats the bottom.",
+            "Stadium opens the map of the Grand Reach: the stick moves between parks, South plays there, East keeps yours.",
+            "Back on the stadium postcard, with its crowd, choose time and hazards, 1 vs CPU or 2 controllers, and P1 HOME / AWAY. Home bats the bottom.",
             "Choose captains: Left/right browses portraits and their Bat, Pitch, Field and Run bars; South confirms yours, then the CPU captain.",
             "Two controllers: each player confirms their own captain. Confirmed captains are reserved.",
             "East undoes confirmation, then returns to stadium setup. The park does not follow the captain.",

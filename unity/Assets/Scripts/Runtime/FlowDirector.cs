@@ -177,16 +177,21 @@ namespace GrandSluggers.UnityClient
             _cam.Play("field");
         }
 
+        /// <summary>The continent map on the stadium row (WD-17 A).</summary>
+        readonly MapPicker _map = new MapPicker();
+
         void TickField()
         {
             var dy = _selectY.Tick(Controls.MenuY, Controls.MenuTapY, Time.unscaledDeltaTime);
             var dx = _selectX.Tick(Controls.MenuX, Controls.MenuTapX, Time.unscaledDeltaTime);
+            if (_map.IsOpen) { TickMap(dx, dy); return; }
             if (dy != 0) _fieldFocus = (_fieldFocus + (dy > 0 ? 5 : 1)) % 6;
             if (_t <= .15f) return;
             if (Controls.EastDown) { OpenTitle(); return; }
+            // The stadium row opens the map: a change on it (left, right or South) is a pick on the map.
+            if (_fieldFocus == 0 && (dx != 0 || Controls.SouthDown)) { _map.Open(ParkId); _t = 0; return; }
             if (dx != 0 || Controls.SouthDown)
             {
-                if (_fieldFocus == 0) ApplyPick(ExhibitionPick.CyclePark(_content, CurrentPick(), dx == 0 ? 1 : dx));
                 if (_fieldFocus == 1) Night = !Night;
                 if (_fieldFocus is 0 or 1) GuidedObserve("T-G07", GuidedAction.StadiumChosen);
                 if (_fieldFocus == 2) Hazards = !Hazards;
@@ -196,6 +201,32 @@ namespace GrandSluggers.UnityClient
                 RebuildTitlePark();
             }
             _cam.Play("field");
+        }
+
+        /// <summary>The map is up: the stick moves the cursor and the postcard follows; South plays the park, East keeps yours.</summary>
+        void TickMap(int dx, int dy)
+        {
+            if (_map.Move(_content.World, dx, dy) is { } park) { ApplyPick(CurrentPick() with { Park = park }); RebuildTitlePark(); }
+            if (_t > .15f && Controls.SouthDown)
+            {
+                ApplyPick(CurrentPick() with { Park = _map.Confirm() });
+                GuidedObserve("T-G07", GuidedAction.StadiumChosen);
+                RebuildTitlePark();
+            }
+            else if (_t > .15f && Controls.EastDown)
+            {
+                ApplyPick(CurrentPick() with { Park = _map.Cancel() });
+                RebuildTitlePark();
+            }
+            _cam.Play("field");
+        }
+
+        /// <summary>The stadium screen: the map while it is up, else the postcard's HUD and the setup rows.</summary>
+        void DrawField()
+        {
+            if (_map.IsOpen) { SetupSheet.Map(_content, _map.Park, Night, Hazards); return; }
+            HudView.Field(ParkId, ParkDisplayName(ParkId), Night, Hazards, FieldHazardsLine(), FieldCardLines());
+            SetupSheet.FieldFocus(_fieldFocus, ParkDisplayName(ParkId), Night, Hazards, _versusWanted, Pad1Home);
         }
 
         ExhibitionPick CurrentPick() => new(HomeCaptain, AwayCaptain, ParkId, Pad1Home);

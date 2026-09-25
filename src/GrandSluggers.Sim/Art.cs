@@ -211,6 +211,10 @@ public sealed class ArtCatalog
     public ParkLooks Looks { get; }
     /// <summary>How each hazard type is drawn (F6-d, <c>data/art/hazard-actors.json</c>).</summary>
     public HazardActors Actors { get; }
+    /// <summary>The continent map's painted art (<c>data/art/map.json</c>, WD-18): its Resources slot and whether it is placed.</summary>
+    public MapArtSlot Map { get; init; } = new("", false);
+    /// <summary>Each faction's jersey, accent and skin (<c>data/art/factions.json</c>).</summary>
+    public FactionLooks Factions { get; init; } = null!;
     /// <summary>The character toon's bands and rim (CF-7, <c>data/art/toon.json</c>).</summary>
     public ToonLook Toon { get; init; } = null!;
     public IReadOnlyList<string> Folders { get; }
@@ -453,6 +457,12 @@ public sealed class ArtCatalog
             errors.AddRange(ParkKitSlots.Validate(kitRow, Looks));
         errors.AddRange(Actors.Validate());
         errors.AddRange(ToonLook.Validate(Materials));
+        // Every character's faction has its colors; a faction nobody plays is a stale row.
+        var played = content.Characters.Values.Select(c => c.Faction).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var faction in played.OrderBy(f => f, StringComparer.Ordinal))
+            if (Factions.Of(faction) is null) errors.Add("faction colors missing for " + faction + " in data/art/factions.json");
+        foreach (var faction in Factions.Rows.Keys)
+            if (!played.Contains(faction)) errors.Add("faction colors for " + faction + " name a faction no character plays");
 
         foreach (var need in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "throw", "crowd-bed", "crowd-swell" })
         {
@@ -492,6 +502,11 @@ public sealed class ArtCatalog
         }
 
         if (Folders.Count == 0) errors.Add("art folder list empty");
+        // The map art slot (WD-18): a Resources path; once placed its texture must be there (Assets/<slot>.png).
+        if (!Map.Slot.StartsWith("Resources/", StringComparison.Ordinal))
+            errors.Add("map art slot " + Map.Slot + " must be a Resources path");
+        else if (Map.Placed && !File.Exists(Unity(content.Root, "Assets/" + Map.Slot + ".png")))
+            errors.Add("map art is placed but Assets/" + Map.Slot + ".png is missing");
         return errors;
     }
 
@@ -682,6 +697,8 @@ public sealed class ArtCatalog
         {
             ExtrasSlot = extrasFile.Slot,
             Toon = ToonLook.Parse(JsonNode.Parse(File.ReadAllText(Art("toon.json")), documentOptions: nodeOptions), "toon.json"),
+            Map = DataJson.Require<MapArtSlot>(Art("map.json")),
+            Factions = FactionLooks.Parse(JsonNode.Parse(File.ReadAllText(Art("factions.json")), documentOptions: nodeOptions), "factions.json"),
             Styles = styles,
             StyledClips = styled,
             StyleSlot = styleDto.Slot,
@@ -808,3 +825,6 @@ public sealed class ArtCatalog
 
     sealed class FoldersFile { public List<string>? Folders { get; set; } }
 }
+
+/// <summary>The continent map's painted art (<c>data/art/map.json</c>, WD-18): a Resources slot, and whether the art is there.</summary>
+public sealed record MapArtSlot(string Slot, bool Placed);

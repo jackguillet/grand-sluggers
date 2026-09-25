@@ -1,0 +1,17 @@
+// Each faction's colors (FR-04): the jersey (`body`), the trim and HUD accent (`accent`) and the skin tone every body of the
+// faction wears (`skin`). The HUD's score stripe is the body color. A color is "#RRGGBB" or [r, g, b] in 0-1. Every
+// character's faction has a row; presentation reads a faction's colors here, never from a list in code.
+{
+  "factions": [
+    { "id": "spark",    "body": "#DC302A", "accent": "#FFCC40",          "skin": "#F2C9A4" },
+    { "id": "royal",    "body": "#E878A8", "accent": [0.7, 0.9, 1.0],    "skin": "#F2C9A4" },
+    { "id": "carnival", "body": "#28AA5A", "accent": [1.0, 0.31, 0.63],  "skin": "#F2C9A4" },
+    { "id": "goldrush", "body": "#E8BC28", "accent": "#FF7A20",          "skin": "#F2C9A4" },
+    { "id": "canopy",   "body": "#784E2A", "accent": [0.31, 0.63, 0.27], "skin": [0.35, 0.3, 0.36] },
+    { "id": "ember",    "body": "#2C2034", "accent": "#FF7A20",          "skin": [0.35, 0.3, 0.36] },
+    { "id": "fen",      "body": "#5B8F62", "accent": "#E8DCC0",          "skin": "#7FB57A" },
+    { "id": "dune",     "body": "#B85A2E", "accent": "#E8D2A0",          "skin": "#D9A57A" },
+    { "id": "peak",     "body": "#243A6B", "accent": "#F2F4F8",          "skin": "#F2C9A4" },
+    { "id": "marsh",    "body": "#3E9A48", "accent": "#F08CB4",          "skin": "#8CC76A" }
+  ]
+}

@@ -1127,17 +1127,17 @@ namespace GrandSluggers.EditorTools
             var before = match.Pitcher.Id;
             var select = State().WithButton(GamepadButton.West);
             Require(((bool)play.OpenDefenseSetup()), "Call time could not open Arrange defense.");
-            var pick = play._swapPick;
+            var pick = play.Swap.Pick;
             Require(pick != null, "Select did not open the swap pick.");
             var start = pick.Index;
             Tick(play, play.TickSet, State(), State());
             var cancel = State().WithButton(GamepadButton.East);
             Tick(play, play.TickSet, padTwo ? State() : cancel, padTwo ? cancel : State());
-            Require(play._swapPick == null && match.Pitcher.Id == before && match.CanSwapPitcher,
+            Require(play.Swap.Pick == null && match.Pitcher.Id == before && match.CanSwapPitcher,
                 "Cancelling the window changed or consumed the pitcher swap.");
             Tick(play, play.TickSet, State(), State());
             Require(((bool)play.OpenDefenseSetup()), "Could not reopen Arrange defense.");
-            pick = play._swapPick;
+            pick = play.Swap.Pick;
             Require(pick != null && pick.Index == start, "The cancelled window could not reopen.");
             Tick(play, play.TickSet, State(), State());
             var right = State().WithButton(GamepadButton.DpadRight);
@@ -1153,7 +1153,7 @@ namespace GrandSluggers.EditorTools
             Tick(play, play.TickSet, State(), State());
             var chosen = pick.Current.Who.Id;
             Tick(play, play.TickSet, padTwo ? State() : select, padTwo ? select : State());
-            Require(play._swapPick != null, "Quick pitcher swap should keep defense editing open.");
+            Require(play.Swap.Pick != null, "Quick pitcher swap should keep defense editing open.");
             Require(match.Pitcher.Id == chosen && match.Pitcher.Id != before, "Select again did not put the pick on the mound.");
             Require(Phase(play) == "Set", "The swap left SET.");
             Tick(play, play.TickSet, State(), State());

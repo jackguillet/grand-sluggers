@@ -39,6 +39,38 @@ public sealed class WorldMap
         _regionOfPark.TryGetValue(parkId, out var id) ? _byId[id]
             : throw new KeyNotFoundException($"No park '{parkId}' in the world map");
 
+    /// <summary>
+    /// The park the map cursor moves to from <paramref name="fromPark"/> when the stick points (<paramref name="dx"/>,
+    /// <paramref name="dy"/>) in map terms (x east, y south): the nearest other park inside a 60° cone either side of the
+    /// stick, distance weighted by how far off the stick it lies. No park in the cone keeps the cursor where it is.
+    /// </summary>
+    public string Step(string fromPark, double dx, double dy)
+    {
+        var len = Math.Sqrt(dx * dx + dy * dy);
+        if (len < 1e-9) return fromPark;
+        var (ux, uy) = (dx / len, dy / len);
+        var from = RegionOf(fromPark);
+        string? best = null;
+        var bestScore = double.MaxValue;
+        foreach (var (park, regionId) in _regionOfPark)
+        {
+            if (park.Equals(fromPark, StringComparison.OrdinalIgnoreCase)) continue;
+            var r = _byId[regionId];
+            var (vx, vy) = (r.X - from.X, r.Y - from.Y);
+            var d = Math.Sqrt(vx * vx + vy * vy);
+            if (d < 1e-9) continue;
+            var cos = (vx * ux + vy * uy) / d;
+            if (cos < 0.5) continue; // outside the 60° cone
+            var score = d * (2 - cos);
+            if (score < bestScore || (score == bestScore && string.CompareOrdinal(park, best) < 0))
+            {
+                bestScore = score;
+                best = park;
+            }
+        }
+        return best ?? fromPark;
+    }
+
     /// <summary>The park that stands in a region, or null while the region waits for its park file.</summary>
     public string? ParkIn(string regionId) =>
         _regionOfPark.FirstOrDefault(kv => kv.Value.Equals(regionId, StringComparison.OrdinalIgnoreCase)).Key;
