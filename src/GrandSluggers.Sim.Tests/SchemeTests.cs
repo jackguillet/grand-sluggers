@@ -200,4 +200,13 @@ public class SchemeTests
         Assert.DoesNotContain(allCouchCopy, line => line.Contains("Gamepad 0") || line.Contains("Gamepad 1"));
         Assert.DoesNotContain(allCouchCopy, line => line.Contains("Unplug = CPU"));
     }
+
+    [Fact]
+    public void TheProjectRunsTheInputSystemAlone()
+    {
+        // Gamepad only (#1047): the player reads pads through the Input System, and the old Input Manager is off, so no
+        // code path can read a key or the mouse through it. 0 is the old manager, 1 the Input System, 2 both.
+        var settings = File.ReadAllText(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "ProjectSettings", "ProjectSettings.asset"));
+        Assert.Contains("  activeInputHandler: 1\n", settings.Replace("\r\n", "\n"), StringComparison.Ordinal);
+    }
 }
