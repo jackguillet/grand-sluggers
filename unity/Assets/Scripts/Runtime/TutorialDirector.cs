@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using GrandSluggers.Sim;
 using GrandSluggers.Sim.Front;
@@ -23,7 +24,8 @@ namespace GrandSluggers.UnityClient
         bool _tutorialSaved;
         bool _tutorialWasModal;
         TutorialFeedback _tutorialPreviousFeedback;
-        GuidedTutorialSession _guided;
+        readonly GuidedTutorialDirector _guidedLessons = new GuidedTutorialDirector();
+        GuidedTutorialSession _guided => _guidedLessons.Session;
         bool TutorialOn => _coach != null && _coach.Tutorial != null;
         bool TutorialFeedbackReady => TutorialOn && _coach.Tutorial.Phase == TutorialPhase.Feedback
             && (_coach.Tutorial.IsFieldLesson || !_coach.PlayerBats || _phase == Phase.Result || _coach.Tutorial.Feedback.Code == "timeout");
@@ -39,7 +41,7 @@ namespace GrandSluggers.UnityClient
         void OpenTutorials()
         {
             var selected = _guided?.Lesson.Id ?? (TutorialOn ? _coach.Tutorial.Lesson.Id : null);
-            _guided?.Exit(); _guided = null;
+            _guidedLessons.Exit();
             ReturnGuidedSettings();
             _coach?.Stop();
             ReleaseMatchSeats();
@@ -68,8 +70,8 @@ namespace GrandSluggers.UnityClient
             var lesson = _tutorialAll.First(l => l.Id == id);
             ReturnGuidedSettings();
             SelectTutorialCategory(Array.IndexOf(_tutorialCategories, lesson.Category), id);
-            if (GuidedLesson(id)) { PrepareGuidedTutorial(lesson); return; }
-            _guided?.Exit(); _guided = null;
+            if (GuidedTutorialDirector.IsGuided(id)) { PrepareGuidedTutorial(lesson); return; }
+            _guidedLessons.Exit();
             ReleaseMatchSeats();
             _mode = PlayMode.Training; ParkId = Training.ParkId;
             if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
@@ -255,6 +257,94 @@ namespace GrandSluggers.UnityClient
                 pad = pad with { SouthDown = false, WestDown = false, EastDown = false, Swap = false, Cancel = false, Cutoff = false };
             }
             return result;
+        }
+        // The guided lessons' flow: the state is GuidedTutorialDirector's; building the match and the scene is the flow's.
+        bool GuidedAttempt(string id) => _guidedLessons.Attempt(id);
+
+        void PrepareGuidedTutorial(TutorialLesson lesson)
+        {
+            var pick = _guidedLessons.Start(lesson, _tutorials.Profile, _tutorialProgress,
+                new GuidedTutorialDirector.Pick(HomeCaptain, AwayCaptain, ParkId, Night, Pad1Home, Seed));
+            _coach?.Stop();
+            ReleaseMatchSeats();
+            _mode = PlayMode.Exhibition;
+            _versusWanted = false;
+            (HomeCaptain, AwayCaptain, ParkId, Night, Pad1Home, Seed) = (pick.Home, pick.Away, pick.Park, pick.Night, pick.Pad1Home, pick.Seed);
+            _tutorialSaved = false; _tutorialMenu = false; _tutorialUiAge = 0; _tutorialWasModal = true;
+            _match = NewMatch();
+            _phase = Phase.Title;
+            _cam.Play("title");
+        }
+
+        void BeginGuidedAttempt()
+        {
+            if (!_guidedLessons.CanBegin(Controls.PadCount)) return;
+            _lineup = null; // Every lesson attempt needs a fresh roster, unlike Back during setup.
+            if (_guided.Lesson.Id == "T-G07")
+            {
+                _settings = _guidedLessons.LendSettings(_settings, Innings, Difficulty);
+                Innings = _settings.Innings; Difficulty = _settings.Difficulty;
+            }
+            _guided.Begin();
+            _tutorialUiAge = 0;
+            Controls.CatchPlay();
+            if (!_guidedLessons.StartsOnSet) { OpenField(); return; }
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
+            _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
+            _clip = null; _hlPath = null;
+            BeginSet();
+        }
+
+        void ReturnGuidedSettings()
+        {
+            if (_guidedLessons.ReturnSettings(out var own, out var innings, out var difficulty))
+                (_settings, Innings, Difficulty) = (own, innings, difficulty);
+        }
+
+        /// <summary>A guided observation opened the lesson's feedback: the card starts fresh and the match runs again.</summary>
+        void GuidedFeedbackOpened()
+        {
+            _tutorialUiAge = 0; _tutorialSaved = false;
+            _match.SetPaused(false);
+        }
+
+        void GuidedObserve(string lesson, GuidedAction action)
+        {
+            if (_guidedLessons.Observe(lesson, action)) GuidedFeedbackOpened();
+        }
+
+        void GuidedReadyChanged(LineupSeat seat)
+        {
+            var onSettings = _lineup != null && _lineup.Step == LineupStep.MatchSettings;
+            _guidedLessons.ReadyChanged(seat, onSettings, onSettings && _lineup.IsReady(seat));
+        }
+
+        void GuidedSettingsStart()
+        {
+            var onSettings = _lineup != null && _lineup.Step == LineupStep.MatchSettings;
+            var humans = new List<LineupSeat>();
+            if (onSettings && _lineup.HomeSeat != LineupSeat.Cpu) humans.Add(_lineup.HomeSeat);
+            if (onSettings && _lineup.AwaySeat != LineupSeat.Cpu) humans.Add(_lineup.AwaySeat);
+            if (!_guidedLessons.SettingsStart(onSettings, humans)) return;
+            _tutorialUiAge = 0; _tutorialSaved = false;
+        }
+
+        /// <summary>Call time's Reset stick card closed (<see cref="PursuitSeatDirector"/>); a recalibrated close is T-G06-C's action.</summary>
+        void StickResetClosed(bool recalibrated)
+        {
+            _t = 0;
+            if (recalibrated) GuidedObserve("T-G06-C", GuidedAction.StickRecalibrated);
+        }
+
+        void GuidedSeatRecovered(LineupSeat seat)
+        {
+            if (_guidedLessons.SeatRecovered(seat)) GuidedFeedbackOpened();
+        }
+
+        void GuidedSeatsBound()
+        {
+            if (_guidedLessons.SeatsBound(_matchSeats.Bound, LiveSeats.BothHuman, Controls.SeatDeviceId(0), Controls.SeatDeviceId(1)))
+                GuidedFeedbackOpened();
         }
     }
 }
