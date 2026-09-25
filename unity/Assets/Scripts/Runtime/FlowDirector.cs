@@ -14,15 +14,15 @@ namespace GrandSluggers.UnityClient
         public void Tick() { _play.TickFlow(); }
     }
 
-    public sealed partial class MatchDirector : IStillHost, ISeatHost, ILineupHost, IAtBatHost, IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost
+    public sealed partial class MatchDirector : IStillHost, ISeatHost, IFrontMenusHost, ILineupHost, IAtBatHost, IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost
     {
         internal void TickFlow()
         {
             switch (_phase)
             {
-                case Phase.Title: TickTitle(); break;
-                case Phase.Select: TickSelect(); break;
-                case Phase.Field: TickField(); break;
+                case Phase.Title: Front.TickTitle(); break;
+                case Phase.Select: Front.TickSelect(); break;
+                case Phase.Field: Front.TickField(); break;
                 case Phase.Lineup: TickLineup(); break;
                 case Phase.Result: TickResult(); break;
                 case Phase.GameOver: TickGameOver(); break;
@@ -72,23 +72,15 @@ namespace GrandSluggers.UnityClient
             if (Controls.SouthDown && _t > 0.2f) ConfirmGameOver();
         }
 
-        internal int _titleFocus, _fieldFocus;
-        internal CaptainSelection _captains;
-        void TickTitle()
-        {
-            var dy = _selectY.Tick(Controls.MenuY, Controls.MenuTapY, Time.unscaledDeltaTime);
-            if (dy != 0) _titleFocus = (_titleFocus + (dy > 0 ? 3 : 1)) % 4;
-            _cam.Cut("title");
-            if (!Controls.SouthDown || _t <= .15f) return;
-            if (_titleFocus == 1) { OpenTutorials(); return; }
-            if (_titleFocus == 2) { OpenControlsBook(); return; }
-            if (_titleFocus == 3) { Application.Quit(); return; }
-            _mode = PlayMode.Exhibition;
-            _match = NewMatch();
-            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform, DiamondGeometry.Of(_match.Rules)); _items.Build(transform); _stars?.Build(transform);
-            OpenField();
-        }
+        // The title, the stadium screen and the captain board (#1042): FrontMenus owns them; the pick and the match are the flow's.
+        FrontMenus _front;
+        internal FrontMenus Front => _front ??= new FrontMenus(Scene, Play, this);
+        internal int _fieldFocus => Front.FieldFocus;
+        internal CaptainSelection _captains => Front.Captains;
+        void OpenSelect() => Front.OpenSelect();
+        void OpenField() => Front.OpenField();
+        internal void OpenTitle() => Front.OpenTitle();
+        void RebuildTitlePark() => Front.RebuildTitlePark();
 
         internal void OpenControlsBook()
         {
@@ -97,136 +89,6 @@ namespace GrandSluggers.UnityClient
             _pauseHowTo = _pauseFromHowTo = true;
             _pausePage = 0; _t = 0;
             Controls.CatchPlay();
-        }
-
-        void RebuildTitlePark()
-        {
-            if (_park == null || _content == null) return;
-            if (!_content.Parks.TryGetValue(ParkId, out var park)) return;
-            // The park as this exhibition will play it: tonight's instances, and none with hazards off (FD-10).
-            var hazards = Hazards || _mode != PlayMode.Exhibition;
-            _park.Build(PlayedPark.Of(park, Night, hazards, _content.Rules.Hazards), Night, _content.Rules, _content.Feel);
-            if (_phase == Phase.Title)
-                _cam?.Cut("title");
-        }
-
-        void OpenSelect()
-        {
-            ReleaseMatchSeats();
-            _match = NewMatch();
-            _phase = Phase.Select;
-            _captains = new CaptainSelection(_content, CurrentPick(), _versusWanted);
-            _t = 0;
-            _selectX.Catch(Controls.Pad1.MenuAxisX);
-            _selectY.Catch(Controls.Pad1.MenuAxisY);
-            _selectX2.Catch(Controls.Pad2.MenuAxisX);
-            _clip = null;
-            _hlPath = null;
-            _replaying = false;
-            _cam.Cut("select");
-        }
-
-        void TickSelect()
-        {
-            if (_captains.Versus && !Controls.Pad2.Present)
-                Controls.TryRecoverMatchSeat(LineupSeat.Pad2);
-            var p1 = Controls.Pad1;
-            var p2 = Controls.Pad2;
-            var dt = Time.unscaledDeltaTime;
-            var dx = _selectX.Tick(p1.MenuAxisX, p1.MenuTapX, dt);
-            var dx2 = _selectX2.Tick(p2.MenuAxisX, p2.MenuTapX, dt);
-            _captains.Move(_captains.ActiveOne, dx);
-            if (_captains.Versus && p2.Present) _captains.Move(1, dx2);
-            if (_t <= .15f) return;
-            if (p1.EastDown)
-            {
-                if (_captains.Back(0)) OpenField();
-                return;
-            }
-            if (_captains.Versus && p2.EastDown) _captains.Back(1);
-            if (p1.SouthDown) _captains.Confirm(_captains.ActiveOne);
-            if (_captains.Versus && p2.Present && p2.SouthDown) _captains.Confirm(1);
-            if (!_captains.Complete || (_captains.Versus && !p2.Present)) return;
-            ApplyPick(_captains.ApplyTo(CurrentPick()));
-            BindMatchSeats();
-            GuidedSeatsBound();
-            if (_guided?.Phase != TutorialPhase.Feedback) OpenLineup();
-        }
-
-        void WantVersus(bool versus)
-        {
-            if (_versusWanted == versus) return;
-            _versusWanted = versus;
-            if (versus)
-                _selectX2.Catch(Controls.Pad2.MenuAxisX);
-        }
-
-        void OpenField()
-        {
-            ReleaseMatchSeats();
-            _phase = Phase.Field;
-            _fieldFocus = 0;
-            _selectY.Catch(Controls.MenuY);
-            _t = 0;
-            _selectX.Catch(Controls.MenuX);
-            _clip = null;
-            _hlPath = null;
-            _replaying = false;
-            _match = NewMatch();
-            RebuildTitlePark();
-            _cam.Play("field");
-        }
-
-        /// <summary>The continent map on the stadium row (WD-17 A).</summary>
-        readonly MapPicker _map = new MapPicker();
-
-        void TickField()
-        {
-            var dy = _selectY.Tick(Controls.MenuY, Controls.MenuTapY, Time.unscaledDeltaTime);
-            var dx = _selectX.Tick(Controls.MenuX, Controls.MenuTapX, Time.unscaledDeltaTime);
-            if (_map.IsOpen) { TickMap(dx, dy); return; }
-            if (dy != 0) _fieldFocus = (_fieldFocus + (dy > 0 ? 5 : 1)) % 6;
-            if (_t <= .15f) return;
-            if (Controls.EastDown) { OpenTitle(); return; }
-            // The stadium row opens the map: a change on it (left, right or South) is a pick on the map.
-            if (_fieldFocus == 0 && (dx != 0 || Controls.SouthDown)) { _map.Open(ParkId); _t = 0; return; }
-            if (dx != 0 || Controls.SouthDown)
-            {
-                if (_fieldFocus == 1) Night = !Night;
-                if (_fieldFocus is 0 or 1) GuidedObserve("T-G07", GuidedAction.StadiumChosen);
-                if (_fieldFocus == 2) Hazards = !Hazards;
-                if (_fieldFocus == 3) WantVersus(!_versusWanted);
-                if (_fieldFocus == 4) ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
-                if (_fieldFocus == 5 && Controls.SouthDown) { OpenSelect(); return; }
-                RebuildTitlePark();
-            }
-            _cam.Play("field");
-        }
-
-        /// <summary>The map is up: the stick moves the cursor and the postcard follows; South plays the park, East keeps yours.</summary>
-        void TickMap(int dx, int dy)
-        {
-            if (_map.Move(_content.World, dx, dy) is { } park) { ApplyPick(CurrentPick() with { Park = park }); RebuildTitlePark(); }
-            if (_t > .15f && Controls.SouthDown)
-            {
-                ApplyPick(CurrentPick() with { Park = _map.Confirm() });
-                GuidedObserve("T-G07", GuidedAction.StadiumChosen);
-                RebuildTitlePark();
-            }
-            else if (_t > .15f && Controls.EastDown)
-            {
-                ApplyPick(CurrentPick() with { Park = _map.Cancel() });
-                RebuildTitlePark();
-            }
-            _cam.Play("field");
-        }
-
-        /// <summary>The stadium screen: the map while it is up, else the postcard's HUD and the setup rows.</summary>
-        void DrawField()
-        {
-            if (_map.IsOpen) { SetupSheet.Map(_content, _map.Park, Night, Hazards); return; }
-            HudView.Field(ParkId, ParkDisplayName(ParkId), Night, Hazards, FieldHazardsLine(), FieldCardLines());
-            SetupSheet.FieldFocus(_fieldFocus, ParkDisplayName(ParkId), Night, Hazards, _versusWanted, Pad1Home);
         }
 
         ExhibitionPick CurrentPick() => new(HomeCaptain, AwayCaptain, ParkId, Pad1Home);
@@ -238,23 +100,6 @@ namespace GrandSluggers.UnityClient
             ParkId = pick.Park;
             Pad1Home = pick.Pad1Home;
             _match = NewMatch();
-        }
-
-        internal void OpenTitle()
-        {
-            if (_guided != null)
-            {
-                OpenTutorials();
-                return;
-            }
-            ReleaseMatchSeats();
-            _phase = Phase.Title;
-            _t = 0;
-            _clip = null;
-            _hlPath = null;
-            _replaying = false;
-            RebuildTitlePark();
-            _cam.Cut("title");
         }
 
         void BeginTraining()
@@ -600,6 +445,29 @@ namespace GrandSluggers.UnityClient
             Match.Exhibition(_content, home, away, Innings, Seed, ParkId, Night, Difficulty, Hazards, mercy: _settings.Mercy, stars: _settings.Stars);
         void ILineupHost.OpenSelect() => OpenSelect();
         void ILineupHost.BeginSet() => BeginSet();
+
+        ExhibitionPick IFrontMenusHost.CurrentPick() => CurrentPick();
+        void IFrontMenusHost.ApplyPick(ExhibitionPick pick) => ApplyPick(pick);
+        bool IFrontMenusHost.Night { get => Night; set => Night = value; }
+        bool IFrontMenusHost.Hazards { get => Hazards; set => Hazards = value; }
+        bool IFrontMenusHost.VersusWanted { get => _versusWanted; set => _versusWanted = value; }
+        bool IFrontMenusHost.ExhibitionMode => _mode == PlayMode.Exhibition;
+        void IFrontMenusHost.BeginExhibition()
+        {
+            _mode = PlayMode.Exhibition;
+            _match = NewMatch();
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
+            _spec.Build(transform, DiamondGeometry.Of(_match.Rules)); _items.Build(transform); _stars?.Build(transform);
+        }
+        Match IFrontMenusHost.NewMatch() => NewMatch();
+        void IFrontMenusHost.EndReplay() { _clip = null; _hlPath = null; _replaying = false; }
+        void IFrontMenusHost.ReleaseMatchSeats() => ReleaseMatchSeats();
+        void IFrontMenusHost.SeatsChosen() { BindMatchSeats(); GuidedSeatsBound(); }
+        GuidedTutorialSession IFrontMenusHost.Guided => _guided;
+        void IFrontMenusHost.GuidedObserve(string lesson, GuidedAction action) => GuidedObserve(lesson, action);
+        void IFrontMenusHost.OpenTutorials() => OpenTutorials();
+        void IFrontMenusHost.OpenControlsBook() => OpenControlsBook();
+        void IFrontMenusHost.OpenLineup() => OpenLineup();
 
         TrainingDirector ISeatHost.Coach => _coach;
         bool ISeatHost.Exhibition => _mode == PlayMode.Exhibition;

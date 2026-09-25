@@ -22,9 +22,6 @@ namespace GrandSluggers.UnityClient
         float _pauseStick;
         MenuNav.Gate _menuX;
         MenuNav.Gate _pauseY;
-        MenuNav.Gate _selectX;
-        MenuNav.Gate _selectY;
-        MenuNav.Gate _selectX2;
         [System.NonSerialized] public string ParkId = ExhibitionPick.DefaultPark;
         [System.NonSerialized] public string HomeCaptain = ExhibitionPick.Default.Home;
         [System.NonSerialized] public string AwayCaptain = ExhibitionPick.Default.Away;
@@ -291,7 +288,7 @@ namespace GrandSluggers.UnityClient
             if (_phase == Phase.Select)
                 CaptainSheet.Draw(_captains, _content, Controls.Pad2.Present);
             else if (_phase == Phase.Field)
-                DrawField();
+                Front.DrawField();
             else if (_phase == Phase.Lineup && _lineup != null)
             {
                 if (_lineup.Step == LineupStep.MatchSettings) SetupSheet.Settings(_settings, _lineup, _match);
@@ -358,7 +355,7 @@ namespace GrandSluggers.UnityClient
                 CarnivalFront.ExhibitionTitle,
                 StarAsks.Unavailable, Time.unscaledTime - StarAsks.UnavailableAt,
                 inPlay: _phase is Phase.InPlay or Phase.StealThrow);
-            if (_phase == Phase.Title && !_match.Paused) SetupSheet.TitleMenu(_titleFocus);
+            if (_phase == Phase.Title && !_match.Paused) SetupSheet.TitleMenu(Front.TitleFocus);
             if (!_match.Paused && _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow)
                 SetupSheet.LiveOrders(HumanBats ? RunnerOrderLabel() : null,
                     HumanOwnsThrow && _phase is Phase.InPlay or Phase.StealThrow ? FieldPad.ThrowBag : -1);
@@ -623,19 +620,7 @@ namespace GrandSluggers.UnityClient
                 mercy: _guided != null || _settings.Mercy, stars: _guided != null || _settings.Stars);
         }
 
-        /// <summary>The field card of the park as this exhibition will play it (F8-a): tonight's instances, the hazards switch applied.</summary>
-        System.Collections.Generic.IReadOnlyList<string> FieldCardLines() =>
-            _content != null && _content.Parks.TryGetValue(ParkId, out var park)
-                ? CarnivalFront.FieldCard(PlayedPark.Of(park, Night, Hazards, _content.Rules.Hazards), _content.Rules)
-                : null;
-
-        string FieldHazardsLine() =>
-            _content != null && _content.Parks.TryGetValue(ParkId, out var park)
-                ? CarnivalFront.HazardsOffLine(park, Night, Hazards, _content.Rules.Hazards)
-                : null;
-
-        string ParkDisplayName(string parkId) =>
-            _content != null && _content.Parks.TryGetValue(parkId, out var park) ? park.Name : parkId;
+        string ParkDisplayName(string parkId) => Front.ParkName(parkId);
 
         void Banner()
         {
