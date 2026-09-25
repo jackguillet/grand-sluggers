@@ -17,10 +17,17 @@ public sealed class DebugProtocol
     public static readonly IReadOnlyList<string> Stages =
         ["cli-match", "dcc", "sitting", "sim", "still-gate", "unity-console"];
 
+    /// <summary>The session kind that loads a row (AGENTS.md "Session kind"); <c>any</c> is loaded by every kind.</summary>
+    public static readonly IReadOnlyList<string> Kinds = ["gameplay", "presentation", "art", "any"];
+
+    /// <summary>Once a row is promoted its test is the detail: cause and fix are one line each, at most this long.</summary>
+    public const int PromotedLineMax = 240;
+
     static readonly HashSet<string> StageSet = new(Stages, StringComparer.Ordinal);
+    static readonly HashSet<string> KindSet = new(Kinds, StringComparer.Ordinal);
     static readonly HashSet<string> RowFields = new(StringComparer.Ordinal)
     {
-        "id", "signature", "stage", "cause", "fix", "promoted", "issue", "pr"
+        "id", "signature", "stage", "kind", "cause", "fix", "promoted", "issue", "pr"
     };
 
     public IReadOnlyList<DebugProtocolEntry> Entries { get; }
@@ -71,7 +78,7 @@ public sealed class DebugProtocol
             var dto = rows[i].Deserialize<DebugProtocolEntryDto>(DataJson.Options);
             if (dto is null) continue;
             entries.Add(new DebugProtocolEntry(
-                dto.Id ?? "", dto.Signature ?? "", dto.Stage ?? "",
+                dto.Id ?? "", dto.Signature ?? "", dto.Stage ?? "", dto.Kind ?? "",
                 dto.Cause ?? "", dto.Fix ?? "", dto.Promoted ?? "",
                 dto.Issue ?? "", dto.Pr ?? ""));
         }
@@ -135,8 +142,21 @@ public sealed class DebugProtocol
             Required(where, "stage", stage, errors);
             if (!string.IsNullOrWhiteSpace(stage) && !StageSet.Contains(stage))
                 errors.Add($"{where} stage must be one of [{string.Join(", ", Stages)}]; got '{stage}'");
+            var kind = Text(row, "kind");
+            Required(where, "kind", kind, errors);
+            if (!string.IsNullOrWhiteSpace(kind) && !KindSet.Contains(kind))
+                errors.Add($"{where} kind must be one of [{string.Join(", ", Kinds)}]; got '{kind}'");
             Required(where, "cause", Text(row, "cause"), errors);
             Required(where, "fix", Text(row, "fix"), errors);
+            if (!string.IsNullOrWhiteSpace(Text(row, "promoted")))
+            {
+                foreach (var field in new[] { "cause", "fix" })
+                {
+                    var text = Text(row, field);
+                    if (text.Length > PromotedLineMax || text.Contains('\n'))
+                        errors.Add($"{where} {field} is promoted, so it is one line of at most {PromotedLineMax} characters; got {text.Length} (the test is the detail)");
+                }
+            }
             Required(where, "issue", Text(row, "issue"), errors);
             MustBeString(where, "promoted", row, errors);
             MustBeString(where, "pr", row, errors);
@@ -174,6 +194,7 @@ public sealed class DebugProtocol
         public string? Id { get; set; }
         public string? Signature { get; set; }
         public string? Stage { get; set; }
+        public string? Kind { get; set; }
         public string? Cause { get; set; }
         public string? Fix { get; set; }
         public string? Promoted { get; set; }
@@ -186,8 +207,15 @@ public sealed record DebugProtocolEntry(
     string Id,
     string Signature,
     string Stage,
+    string Kind,
     string Cause,
     string Fix,
     string Promoted,
     string Issue,
-    string Pr);
+    string Pr)
+{
+    public bool IsPromoted => !string.IsNullOrWhiteSpace(Promoted);
+
+    /// <summary>Whether a session of <paramref name="kind"/> loads this row: its own kind, or a row for any kind.</summary>
+    public bool LoadedBy(string kind) => Kind == kind || Kind == "any";
+}
