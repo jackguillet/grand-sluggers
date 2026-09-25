@@ -8,3 +8,4 @@ The decision plans whose accepted rows still bind the game. Each row has a stabl
 | [plan-fields.md](plan-fields.md) | FD-01 … FD-19, FR-* | [fields-decisions.json](../research/fields-decisions.json) |
 | [plan-pitching-hitting.md](plan-pitching-hitting.md) | PH-* | [pitching-hitting-decisions.json](../research/pitching-hitting-decisions.json) |
 | [plan-characters.md](plan-characters.md) | CH-01 … CH-14 | in the research report ([archive](../archive/characters/research-characters.md)) |
+| [plan-world.md](plan-world.md) | WD-01 … WD-18 (open: planning only) | [world-decisions.json](../research/world-decisions.json) |
