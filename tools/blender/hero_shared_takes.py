@@ -617,6 +617,11 @@ def _load_swings():
 SWING_DOC, SWINGS = _load_swings()
 SWING_CONTACT = float(SWING_DOC["contactAt"])
 SWING_FINISH = float(SWING_DOC["finishAt"])
+# The shared Contact key is every style's Contact: the barrel that cuts the zone plane over the
+# plate (SwingPresentation.BarrelCutsZonePlane) must not carry a style's stance.
+if stance_weight(SWING_CONTACT) != 0.0:
+    raise RuntimeError(f"a style's stance must be gone by Contact ({SWING_CONTACT}); stance_weight is "
+                       f"{stance_weight(SWING_CONTACT)}")
 # The follow-through key (Motion.SwingDur); the take goes on to its held finish.
 SWING_DUR = 0.50
 HAND_MESH = {"lFore": "lHand", "rFore": "rHand"}

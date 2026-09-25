@@ -26,6 +26,8 @@ public static class SwingPresentation
     /// the still gate. Not the pitch's crossing height (the middle of the batter's zone, <see cref="StrikeZoneGeometry.For"/>).
     /// </summary>
     public const double PlateBandY = 2.4;
+    /// <summary>Half the height of the contact band around <see cref="PlateBandY"/>.</summary>
+    public const double PlateBandHalf = 1.2;
     public const double FollowThroughAt = Motion.SwingDur;
     /// <summary>The held finish (#583): the takes' last key.</summary>
     public const double FinishAt = Motion.SwingFinish;
@@ -228,8 +230,8 @@ public static class SwingPresentation
     [
         new(0, new(0.6485, 3.1287, -0.5863), new(0.8455, 3.5523, -0.7341), new(0.56, 2.9385, -0.52), Unit(0.4021, 0.86451, -0.30157), 0.04),
         new(0.15, new(0.304, 2.4353, 0.0776), new(0.2551, 2.7387, -0.304), new(0.326, 2.2991, 0.249), Unit(-0.0999, 0.6191, -0.7789), 0.08),
-        new(0.24, new(0.1439, 1.6912, -0.1275), new(0.3553, 1.6936, -0.5695), new(0.049, 1.6901, 0.071), Unit(0.4315, 0.005, -0.9021), 0.03),
-        new(0.3, new(0.1024, 1.8072, -0.2868), new(0.4841, 1.8206, -0.5937), new(-0.069, 1.8011, -0.149), Unit(0.779, 0.0275, -0.6264), -0.06),
+        new(0.24, new(0.1439, 1.6912, 0.4025), new(0.3553, 1.6936, -0.0395), new(0.049, 1.6901, 0.601), Unit(0.4315, 0.005, -0.9021), 0.03),
+        new(0.3, new(0.2118, 1.8165, 0.6426), new(0.6836, 1.8509, 0.5148), new(0, 1.8011, 0.7), Unit(0.9628, 0.0702, -0.2608), -0.06),
         new(0.5, new(-0.0588, 2.8533, -0.2694), new(-0.3234, 3.0199, -0.6467), new(0.06, 2.7785, -0.1), Unit(-0.54, 0.34, -0.77), -0.01),
         new(0.6, new(-0.1359, 3.1024, 0.0464), new(-0.2159, 3.27, -0.407), new(-0.1, 3.0272, 0.25), Unit(-0.1632, 0.342, -0.9254), -0.01),
     ];
@@ -239,8 +241,8 @@ public static class SwingPresentation
         new(0, new(0.7371, 3.3734, -0.4519), new(0.8197, 3.7997, -0.679), new(0.7, 3.182, -0.35), Unit(0.1686, 0.87, -0.4633), 0.03),
         new(0.075, new(0.6485, 3.1287, -0.5863), new(0.8455, 3.5523, -0.7341), new(0.56, 2.9385, -0.52), Unit(0.4021, 0.86451, -0.30157), 0.04),
         new(0.15, new(0.304, 2.4353, 0.0776), new(0.2551, 2.7387, -0.304), new(0.326, 2.2991, 0.249), Unit(-0.0999, 0.6191, -0.7789), 0.08),
-        new(0.24, new(0.1439, 1.6912, -0.1275), new(0.3553, 1.6936, -0.5695), new(0.049, 1.6901, 0.071), Unit(0.4315, 0.005, -0.9021), 0.03),
-        new(0.3, new(0.1024, 1.8072, -0.2868), new(0.4841, 1.8206, -0.5937), new(-0.069, 1.8011, -0.149), Unit(0.779, 0.0275, -0.6264), -0.06),
+        new(0.24, new(0.1439, 1.6912, 0.4025), new(0.3553, 1.6936, -0.0395), new(0.049, 1.6901, 0.601), Unit(0.4315, 0.005, -0.9021), 0.03),
+        new(0.3, new(0.2118, 1.8165, 0.6426), new(0.6836, 1.8509, 0.5148), new(0, 1.8011, 0.7), Unit(0.9628, 0.0702, -0.2608), -0.06),
         new(0.5, new(-0.1538, 3.1078, -0.2274), new(-0.4963, 3.3133, -0.5112), new(0, 3.0155, -0.1), Unit(-0.699, 0.4194, -0.5792), -0.02),
         new(0.6, new(-0.1118, 3.1641, -0.0167), new(-0.0267, 3.1641, -0.4992), new(-0.15, 3.1641, 0.2), Unit(0.1736, 0, -0.9848), -0.02),
     ];
@@ -290,13 +292,42 @@ public static class SwingPresentation
         var barrel = BarrelSegmentWorld(body, hand, poseT, take, worldOffsetX);
         var min = new Vec3(
             -HomeSet.PlateW / 2 - barrel.Radius,
-            PlateBandY - 1.2 - barrel.Radius,
+            PlateBandY - PlateBandHalf - barrel.Radius,
             HomeSet.PlatePointZ - barrel.Radius);
         var max = new Vec3(
             HomeSet.PlateW / 2 + barrel.Radius,
-            PlateBandY + 1.2 + barrel.Radius,
+            PlateBandY + PlateBandHalf + barrel.Radius,
             HomeSet.PlateFrontZ + barrel.Radius);
         return SegmentIntersectsBox(barrel.Start, barrel.End, min, max);
+    }
+
+    /// <summary>
+    /// The barrel meets the ball where the ball is judged: the barrel wood cuts the zone plane
+    /// (<see cref="StrikeZoneGeometry.PlateZ"/>, the plate front) over the plate's width and inside the
+    /// contact band. A barrel that only crosses the plate's footprint behind the front edge fails.
+    /// </summary>
+    public static bool BarrelCutsZonePlane(
+        Silhouette.Spec body, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
+    {
+        var barrel = BarrelSegmentWorld(body, hand, poseT, take, worldOffsetX);
+        return CutsZonePlane(barrel.Start, barrel.End, barrel.Radius);
+    }
+
+    /// <summary>
+    /// <see cref="BarrelCutsZonePlane"/> for a measured barrel segment in world feet (the Unity swing
+    /// matrix passes the drawn bat).
+    /// </summary>
+    public static bool CutsZonePlane(Vec3 start, Vec3 end, double radius)
+    {
+        var dz = end.Z - start.Z;
+        if (Math.Abs(dz) < 1e-9) return false;
+        var u = (StrikeZoneGeometry.PlateZ - start.Z) / dz;
+        if (u < 0 || u > 1) return false;
+        var x = start.X + (end.X - start.X) * u;
+        var y = start.Y + (end.Y - start.Y) * u;
+        return Math.Abs(x) <= HomeSet.PlateW / 2 + radius
+            && y >= PlateBandY - PlateBandHalf - radius
+            && y <= PlateBandY + PlateBandHalf + radius;
     }
 
     public static double HandGap(Key key) => Distance(key.LeftHand, key.RightHand);

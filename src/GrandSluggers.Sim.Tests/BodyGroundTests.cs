@@ -353,7 +353,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     [Fact]
     public void AtOneTheRunnersPathIsThePreChangePath()
     {
-        const string expected = "f8fe94f919d63c22eba1332523b2f52b6b907b46f155741d78b08beb4d21692f";
+        const string expected = "7c9cc7d5981a0615b9e49ff58b3e3d7d85e1be4405b101e6d944ba966493e53f";
         var catalog = Game;
         Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, null)));
         Assert.Equal(expected, Hash(RunnerPath(catalog.Rules, GroundZones.Of(Plain(catalog), catalog.Rules))));

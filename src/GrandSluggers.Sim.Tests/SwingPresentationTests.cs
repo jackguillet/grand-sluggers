@@ -458,15 +458,39 @@ public class SwingPresentationTests
     }
 
     [Fact]
-    public void ContactBarrelCutsThePlateForEverySharedCaptainAndHand()
+    public void ContactBarrelCutsThePlateForEveryCaptainStyleAndHand()
     {
+        // Every captain, including the ones added after the swing was authored, plays its own motion
+        // style. A style's stance delta is gone by Contact (hero_shared_takes.py stance_weight refuses
+        // otherwise), so the shared keys are every style's Contact; the Unity swing matrix measures the
+        // drawn styled take.
+        Assert.True(Shipped.CaptainIds.Count >= 10);
         foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
         foreach (var body in Shipped.CaptainIds)
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
-            Assert.True(SwingPresentation.BarrelCrossesPlate(
-                Silhouette.Proportions(Shipped.Content, body), hand, Motion.SwingContact, take), $"{take} {body} {hand} missed the plate");
+            var spec = Silhouette.Proportions(Shipped.Content, body);
+            var style = Shipped.Content.Art.StyleOf(Shipped.Content.Must(body))?.Id;
+            Assert.NotNull(style);
+            Assert.True(SwingPresentation.BarrelCrossesPlate(spec, hand, Motion.SwingContact, take),
+                $"{take} {body} ({style}) {hand} missed the plate");
+            Assert.True(SwingPresentation.BarrelCutsZonePlane(spec, hand, Motion.SwingContact, take),
+                $"{take} {body} ({style}) {hand}: the barrel does not cut the zone plane over the plate at Contact");
         }
+    }
+
+    [Fact]
+    public void ZonePlaneCutRejectsABarrelBehindThePlateFrontOrWideOfThePlate()
+    {
+        const double r = 0.18;
+        var front = StrikeZoneGeometry.PlateZ;
+        // The pre-#1172 Contact key on Rio at the new batter spot: the whole barrel behind the plate front.
+        Assert.False(SwingPresentation.CutsZonePlane(new Vec3(-2.40, 1.63, 0.77), new Vec3(-0.61, 1.67, -0.66), r));
+        // Cuts the plane, but beside the plate.
+        Assert.False(SwingPresentation.CutsZonePlane(new Vec3(-3.0, 2.0, front + 0.5), new Vec3(-1.5, 2.0, front - 0.5), r));
+        // Cuts the plane over the plate, but under the contact band.
+        Assert.False(SwingPresentation.CutsZonePlane(new Vec3(-1.0, 0.4, front + 0.5), new Vec3(1.0, 0.4, front - 0.5), r));
+        Assert.True(SwingPresentation.CutsZonePlane(new Vec3(-1.5, 2.0, front + 0.5), new Vec3(0.5, 2.0, front - 0.5), r));
     }
 
     [Fact]

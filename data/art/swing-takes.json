@@ -1,5 +1,5 @@
 {
-  "notes": "Shared human-proportion default. Shoulder-height ready and finish, measured contact band, independent wrist flex. Data drives the DCC; C# keys mirror the measured bat contract. The ready barrel retains the beside-head lean from #560, with hands and grip raised 0.65 units for the revision-2 body. Revision 3 (the four-head toy) moves hands and grip rigidly with the posed shoulders and sets each key's lift to the measured head drop.",
+  "notes": "Shared human-proportion default. Shoulder-height ready and finish, measured contact band, independent wrist flex. Data drives the DCC; C# keys mirror the measured bat contract. The ready barrel retains the beside-head lean from #560, with hands and grip raised 0.65 units for the revision-2 body. Revision 3 (the four-head toy) moves hands and grip rigidly with the posed shoulders and sets each key's lift to the measured head drop. Revision 4 (the batter just behind the box middle): the approach and contact keys reach toward the pitcher (grip 0.85 units forward at Contact, the barrel squared to 15 degrees of lag, a longer lead stride) so the Contact barrel cuts the zone plane over the plate.",
   "contactAt": 0.3,
   "finishAt": 0.6,
   "batHeadClearance": 0.1,
@@ -125,17 +125,17 @@
           "leftHand": [
             0.1439,
             1.6912,
-            -0.1275
+            0.4025
           ],
           "rightHand": [
             0.3553,
             1.6936,
-            -0.5695
+            -0.0395
           ],
           "grip": [
             0.049,
             1.6901,
-            0.071
+            0.601
           ],
           "barrel": [
             0.4315,
@@ -145,7 +145,7 @@
           "legs": {
             "lThigh": {
               "flex": 20,
-              "abduct": 14,
+              "abduct": 24.0,
               "twist": 0.0
             },
             "rThigh": {
@@ -179,29 +179,29 @@
         {
           "t": 0.3,
           "leftHand": [
-            0.1024,
-            1.8072,
-            -0.2868
+            0.2118,
+            1.8165,
+            0.6426
           ],
           "rightHand": [
-            0.4841,
-            1.8206,
-            -0.5937
+            0.6836,
+            1.8509,
+            0.5148
           ],
           "grip": [
-            -0.069,
+            0.0,
             1.8011,
-            -0.149
+            0.7
           ],
           "barrel": [
-            0.779,
-            0.0275,
-            -0.6264
+            0.9628,
+            0.0702,
+            -0.2608
           ],
           "legs": {
             "lThigh": {
               "flex": 18,
-              "abduct": 12,
+              "abduct": 22.0,
               "twist": 0.0
             },
             "rThigh": {
@@ -523,17 +523,17 @@
           "leftHand": [
             0.1439,
             1.6912,
-            -0.1275
+            0.4025
           ],
           "rightHand": [
             0.3553,
             1.6936,
-            -0.5695
+            -0.0395
           ],
           "grip": [
             0.049,
             1.6901,
-            0.071
+            0.601
           ],
           "barrel": [
             0.4315,
@@ -543,7 +543,7 @@
           "legs": {
             "lThigh": {
               "flex": 20,
-              "abduct": 14,
+              "abduct": 24.0,
               "twist": 0.0
             },
             "rThigh": {
@@ -577,29 +577,29 @@
         {
           "t": 0.3,
           "leftHand": [
-            0.1024,
-            1.8072,
-            -0.2868
+            0.2118,
+            1.8165,
+            0.6426
           ],
           "rightHand": [
-            0.4841,
-            1.8206,
-            -0.5937
+            0.6836,
+            1.8509,
+            0.5148
           ],
           "grip": [
-            -0.069,
+            0.0,
             1.8011,
-            -0.149
+            0.7
           ],
           "barrel": [
-            0.779,
-            0.0275,
-            -0.6264
+            0.9628,
+            0.0702,
+            -0.2608
           ],
           "legs": {
             "lThigh": {
               "flex": 18,
-              "abduct": 12,
+              "abduct": 22.0,
               "twist": 0.0
             },
             "rThigh": {
