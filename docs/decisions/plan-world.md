@@ -54,7 +54,7 @@ All 22 decisions are accepted. Planning is complete; the children below can be f
 | WD-22 | Captains | Stillwater Marsh's new captain | A Reed (frog jumper, Marsh Hoppers) · B Heron (wader, Reedwalkers) · C own | **Accepted: A, Reed** (Jack, 2026-09-25) | 21 | C2 |
 | WD-23 | Story | The frame | A Rio, a human kid, is carried from his neighborhood field into the Grand Reach, and his friends come with him · B no story | **Accepted: A** (Jack, 2026-09-25) | — | C2, C10 |
 | WD-24 | Captains | Who is human? | A only Rio and his friends (the Spark League role players) · B mixed | **Accepted: A**: every other captain and role player is a human-shaped animal or a made-up creature (Jack, 2026-09-25) | 23 | C2, C10 |
-| WD-25 | World | Harbor Diamond | A becomes Rio's neighborhood field, in his own world · B stays a Grand Reach park | **Accepted: A** (Jack, 2026-09-25). Open: its new name, and whether it stays the calibrated control park with today's dimensions (recommended: yes, only the dressing changes) | 23 | C1, C9 |
+| WD-25 | World | Harbor Diamond | A becomes Rio's neighborhood field, in his own world · B stays a Grand Reach park | **Accepted: A** (Jack, 2026-09-25). It keeps today's dimensions and stays the calibrated control park; only the dressing changes (Jack, 2026-09-25). Its new name is open | 23 | C1, C9 |
 | WD-26 | Menu | The neighborhood field on the map | A drawn apart from the Grand Reach, in another dimension, with a way across · B one of the pins | **Accepted: A** (Jack, 2026-09-25). The look of the crossing is open | 17, 25 | C6 |
 
 Nothing is open. Jack's answers WD-13 A and WD-15 A differ from the recommendations.
