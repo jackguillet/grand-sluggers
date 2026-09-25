@@ -203,8 +203,7 @@ public sealed partial class LivePlaySystem
     readonly ThrowCommands _commands = new();
 
     // The CPU glove's decision clock (§8.8): the throw waits for the reaction, then the table runs once per possession.
-    double _cpuThrowAt = -1;
-    bool _cpuDecided;
+    readonly CpuThrowClock _cpuClock = new();
 
     // Items (§12): one body kept off the ball for a beat, or every ball on the dirt hopping.
     readonly LiveItems _items = new();
@@ -624,8 +623,7 @@ public sealed partial class LivePlaySystem
         _backupSpot = (0, 0);
         _lobT = 0;
         _relayBag = 0;
-        _cpuThrowAt = -1;
-        _cpuDecided = false;
+        _cpuClock.Restart();
         _items.Reset();
         _bodySlows.Begin([]);
         _ballHazards.Clear();
@@ -1099,8 +1097,7 @@ public sealed partial class LivePlaySystem
             if (_cpuWalkBag > 0)
             {
                 _cpuWalkBag = 0;
-                _cpuThrowAt = -1;
-                _cpuDecided = false;
+                _cpuClock.Restart();
             }
             return done;
         }
@@ -1116,8 +1113,7 @@ public sealed partial class LivePlaySystem
             if (!PlayStandsAt(_cpuWalkBag))
             {
                 _cpuWalkBag = 0;
-                _cpuThrowAt = -1;
-                _cpuDecided = false;
+                _cpuClock.Restart();
             }
             return null;
         }
@@ -1299,7 +1295,7 @@ public sealed partial class LivePlaySystem
         // In range it is the rundown; with nothing makeable on the table a stray body anywhere off the bags is
         // run at the same way (a frozen runner cannot be left standing on the path, §9.7, §10.6).
         var inRange = RundownRunner is not null;
-        var target = RundownRunner ?? (_cpuDecided ? StrayRunner() : null);
+        var target = RundownRunner ?? (_cpuClock.Decided ? StrayRunner() : null);
         if (target is null || !target.Live || !HoldsBall || Throwing) return false;
         var bag = target.DestBag > target.Bag ? target.NextBag : target.Bag;
         if (bag is < 1 or > 4) return false;
@@ -1339,13 +1335,7 @@ public sealed partial class LivePlaySystem
     /// <summary>The CPU glove holds the ball: the throw waits for the reaction delay (§8.8), then the table runs once.</summary>
     bool CpuMayThrow()
     {
-        if (_cpuDecided) return false;
-        if (_cpuThrowAt < 0)
-        {
-            _cpuThrowAt = ElapsedSeconds + InPlay.ThrowReactionSec(GloveChar(), R);
-            return false;
-        }
-        return ElapsedSeconds >= _cpuThrowAt;
+        return _cpuClock.MayThrow(ElapsedSeconds, () => InPlay.ThrowReactionSec(GloveChar(), R));
     }
 
     /// <summary>
@@ -1357,7 +1347,7 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void CpuDecide()
     {
-        _cpuDecided = true;
+        _cpuClock.Decide();
         var makeable = R.Cpu.Active.MakeableMarginSec;
         var onGrass = FieldingResolver.OutfieldGrass(GloveX, GloveZ, R);
         double Margin(int bag)
@@ -2731,8 +2721,7 @@ public sealed partial class LivePlaySystem
             _backupSpot = FieldBounds.ClampFielder(Park, behind.X, behind.Z, R);
             _backupPos = InPlay.BackupPos(bag, _backupSpot.X, _backupSpot.Z, _fielders, GlovePos, receiverPos);
         }
-        _cpuThrowAt = -1;
-        _cpuDecided = false;
+        _cpuClock.Restart();
         _cpuWalkBag = 0;
         _heldSince = -1;
         // Preparation holds possession at the thrower. The ring, sound and trace move on release.
@@ -2823,8 +2812,7 @@ public sealed partial class LivePlaySystem
             _relayBag = 0;
             return false;
         }
-        _cpuThrowAt = -1;
-        _cpuDecided = false;
+        _cpuClock.Restart();
         return false;
     }
 
@@ -3032,8 +3020,7 @@ public sealed partial class LivePlaySystem
             return true;
         }
         // The receiver holds the ball: the CPU decides again from here after its reaction (the chain, §8.8 rule 1).
-        _cpuThrowAt = -1;
-        _cpuDecided = false;
+        _cpuClock.Restart();
         result = new LivePlayCommandResult(Snapshot, step);
         return false;
     }
@@ -3176,8 +3163,7 @@ public sealed partial class LivePlaySystem
     {
         _receivedClean = false;
         CatchGlove();
-        _cpuThrowAt = -1;
-        _cpuDecided = false;
+        _cpuClock.Restart();
     }
 
     /// <summary>
@@ -3213,8 +3199,7 @@ public sealed partial class LivePlaySystem
         // sampled on both tables before possession attaches the ball to the glove.
         if (first) _recoil.SampleIncoming(_ballVel);
         CatchGlove();
-        _cpuThrowAt = -1;
-        _cpuDecided = false;
+        _cpuClock.Restart();
         if (!first || Preview is null) return;
         if (_call == FairFoulCall.Undecided && !wasLoose)
         {
@@ -3406,8 +3391,7 @@ public sealed partial class LivePlaySystem
         if (safe && CloseBag != 4) RaiseStamp(PlayStamp.SafeTell(CloseBag));
         _match.CreditClosePlay(safe ? runner : fielder);
         _close.End();
-        _cpuThrowAt = -1;
-        _cpuDecided = false;
+        _cpuClock.Restart();
         // The play goes on from the bag: the other bodies settle and Time ends it (§10.6).
         if (_match.Outs >= 3 || IsTime()) return Commit();
         return new LivePlayCommandResult(Snapshot);
@@ -3487,8 +3471,7 @@ public sealed partial class LivePlaySystem
         }
         var map = Assigned();
         var catcher = map.TryGetValue("C", out var c) ? c : _match.Pitcher;
-        _cpuThrowAt = _match.RollCatcherRelease(catcher);
-        _cpuDecided = false;
+        _cpuClock.ArmAt(_match.RollCatcherRelease(catcher));
         var buffered = _match.PitchSetup.TakeCatcherInput();
         if (seats.HumanOwnsThrow && buffered is { } pad)
         {
