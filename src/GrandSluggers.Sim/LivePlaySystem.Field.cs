@@ -2543,6 +2543,9 @@ public sealed partial class LivePlaySystem
     double CatchWindow(Dictionary<string, Character> map) =>
         FieldingResolver.CatchWindowFt(CatchRadius(map), DiveT > 0, JumpT > 0, R);
 
+    /// <summary>The glove's catch window now (§8.3): how far from the ball a take can happen this frame, dive and jump included.</summary>
+    public double CatchWindowFt => CatchWindow(Assigned());
+
     /// <summary>A human East press lunges sideways toward the ball or its landing point.</summary>
     bool LungeToward(FieldingPreview pre, (double X, double Z) plant)
     {

@@ -18,7 +18,7 @@ namespace GrandSluggers.UnityClient
         Controls.Pad _pausePad = Controls.Pad1;
         bool _pauseHowTo;
         bool _pauseFromHowTo;
-        int _pausePage;
+        internal int _pausePage;
         float _pauseStick;
         MenuNav.Gate _menuX;
         MenuNav.Gate _pauseY;
@@ -32,10 +32,10 @@ namespace GrandSluggers.UnityClient
         /// <summary>The hazards switch (FD-10): on by default; the title and the field toggle it for an exhibition.</summary>
         public bool Hazards = true;
         [System.NonSerialized] public bool Pad1Home = true;
-        bool _versusWanted;
-        readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
+        internal bool _versusWanted;
+        internal readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
         readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
-        LineupScreens _lineup;
+        internal LineupScreens _lineup;
         ExhibitionSettings _settings = new ExhibitionSettings();
         MenuNav.Gate _lineupX;
         MenuNav.Gate _lineupX2;
@@ -44,9 +44,9 @@ namespace GrandSluggers.UnityClient
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
         Challenge _campaign;
-        TrainingDirector _coach;
-        ContentCatalog _content;
-        Match _match;
+        internal TrainingDirector _coach;
+        internal ContentCatalog _content;
+        internal Match _match;
 
         /// <summary>
         /// The table this match plays on (spec §0.3): the catalog's tables at the match's difficulty rung and
@@ -55,10 +55,10 @@ namespace GrandSluggers.UnityClient
         /// environment is read the same here as in the sim (FD-03). Before a match exists it is the catalog's.
         /// </summary>
         RulesTable MatchRules => _match != null ? _match.Rules : _content != null ? _content.Rules : null;
-        ParkView _park;
-        CameraRig _rig;
+        internal ParkView _park;
+        internal CameraRig _rig;
         CameraDirector _cam;
-        FeelTable _feel;
+        internal FeelTable _feel;
         FlowDirector _flow;
         AtBatDirector _atBat;
         InPlayDirector _inPlay;
@@ -66,7 +66,7 @@ namespace GrandSluggers.UnityClient
         SpecialFx _spec;
         ItemView _items;
         LandingRing _ring;
-        StrikeZone _zone;
+        internal StrikeZone _zone;
         AudioBus _audio;
         StarMeter _stars;
         HighlightClip _clip;
@@ -74,26 +74,26 @@ namespace GrandSluggers.UnityClient
         Sample[] _hlPath;
         bool _replaying;
         bool _turntable;
-        readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
+        internal readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
 
-        enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
-        Phase _phase = Phase.Title;
+        internal enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
+        internal Phase _phase = Phase.Title;
         /// <summary>The SET defense arrangement window while open; null otherwise.</summary>
-        DefenseSetupPick _swapPick;
+        internal DefenseSetupPick _swapPick;
         MenuNav.Gate _swapX, _swapY;
         int _itemPick;
         Character _itemTarget;
         bool _itemThrown;
-        bool _itemFlying;
+        internal bool _itemFlying;
         float _itemFly;
         string _itemId = "";
-        bool _starPitch;
+        internal bool _starPitch;
         bool _starSwing;
         /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
-        BuntSide _buntSide;
+        internal BuntSide _buntSide;
         /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
-        float _squareSec;
+        internal float _squareSec;
         /// <summary>The bodies are off their spots on the square (crashing in, or walking back after a release).</summary>
         bool Squared => _squareSec > 0f;
         /// <summary>
@@ -103,55 +103,55 @@ namespace GrandSluggers.UnityClient
         BuntSide ShowingSide => HumanBats ? _buntSide : _match != null ? _match.CpuBatter.BuntSide : BuntSide.None;
         /// <summary>The batter is squared right now: a bunt trigger held (a human), or the CPU batter's square read at SET.</summary>
         bool SquaredNow => HumanBats ? _buntSide != BuntSide.None : _match != null && _match.CpuBatter.Squared;
-        float _charge;
+        internal float _charge;
         float _chargePast;
         float _pitchCharge;
         float _pitchPast;
-        float _breakX;
+        internal float _breakX;
         float _dash01;
-        float _t;
+        internal float _t;
         float _pip;
-        PitchCommand _pitch;
-        SwingCommand _swing;
-        PlayEvent _last;
-        AtBatResult _pending;
-        FieldingPreview _preview;
-        bool _playerFielding;
-        bool _swung;
-        float _flight;
-        float _pitchDur = 0.5f;
-        bool _pitchAir;
-        Vector3 _relFrom;
+        internal PitchCommand _pitch;
+        internal SwingCommand _swing;
+        internal PlayEvent _last;
+        internal AtBatResult _pending;
+        internal FieldingPreview _preview;
+        internal bool _playerFielding;
+        internal bool _swung;
+        internal float _flight;
+        internal float _pitchDur = 0.5f;
+        internal bool _pitchAir;
+        internal Vector3 _relFrom;
         float LiveTime => _match != null ? (float)_match.LivePlay.ElapsedSeconds : 0f;
         float _freeze;
         float _smash;
         bool _showTiming;
         bool _feelDebug;
         bool _forceMuteHud;
-        bool _gateHold;
+        internal bool _gateHold;
         CardToy _card;
         LogoToy _logo;
         ChemToy _chem;
         float _feelSlow = 1f;
         bool _freezeCam;
         float _aimX, _aimY;
-        Sample[] _path;
-        Vector3 _ball;
-        double _fx, _fz;
-        bool _caught, _buddy;
+        internal Sample[] _path;
+        internal Vector3 _ball;
+        internal double _fx, _fz;
+        internal bool _caught, _buddy;
         int _throwBag;
-        readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
+        internal readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
         /// <summary>The typed outcome's bodies at Time (§10.6, #574): the result beat draws these, not the position table.</summary>
         IReadOnlyList<FieldBody> _resultBodies;
-        string _glovePos = "P";
+        internal string _glovePos = "P";
         string _switchPos = "";
         string _throwFromPos = "";
         string _buddyPos = "";
         bool _buddyWindow;
         float _diveT, _jumpT, _swapLock;
-        bool _throwing;
+        internal bool _throwing;
         float _throwT, _throwDur;
-        bool _closePlay;
+        internal bool _closePlay;
         string _bagStamp = "";
         float _bagStampT;
         float _bagStampHold;
@@ -159,9 +159,9 @@ namespace GrandSluggers.UnityClient
         bool _closeIcon;
         int _closeBag;
         string _coverPos = "";
-        float _recoilT;
+        internal float _recoilT;
         bool _bobbling;
-        FieldingResult _cpuField;
+        internal FieldingResult _cpuField;
         ThrowResult _armedThrow;
         Vector3 _throwFrom, _throwTo;
         string _banner, _sub;
@@ -172,7 +172,7 @@ namespace GrandSluggers.UnityClient
                 ? Seats.One
                 : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
         Seats LiveSeats => _matchSeats.Current(SelectedSeats);
-        bool HumanPitches => TrainingOn
+        internal bool HumanPitches => TrainingOn
             ? _coach.PlayerPitches
             : _match != null && LiveSeats.HumanPitches(_match.Top);
         bool HumanBats => TrainingOn

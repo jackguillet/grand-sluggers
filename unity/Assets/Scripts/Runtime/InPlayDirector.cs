@@ -36,7 +36,7 @@ namespace GrandSluggers.UnityClient
             ? new LiveSeats(HumanBats, HumanPitches, PlayerMustField, Versus: false)
             : _match != null ? GrandSluggers.Sim.LiveSeats.For(LiveSeats, _match.Top) : GrandSluggers.Sim.LiveSeats.CpuOnly;
 
-        LivePadInput FieldInput()
+        internal LivePadInput FieldInput()
         {
             var pad = FieldPad;
             // The calibrated radial stick (#718) reads the device coordinate before any dead zone, handed to the sim once.
@@ -342,7 +342,7 @@ namespace GrandSluggers.UnityClient
 
         (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, MatchRules, _match?.Park);
 
-        PlayKind LiveKind() => _match.LivePlay.PlayKind;
+        internal PlayKind LiveKind() => _match.LivePlay.PlayKind;
 
         // ---- The runner play (§11.3, §11.4): the sim runs the catcher's throw or the pickoff; this draws it. ----
 

@@ -18,12 +18,12 @@ namespace GrandSluggers.UnityClient
         SharedRig.Chain _chain;
         Transform _root, _body, _torso, _head, _lArm, _rArm, _lFore, _rFore, _batSocket, _bat, _batModel, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
         Transform _glovePocket;
-        ClipPlayer _player;
+        internal ClipPlayer _player;
         Motion.Verb _verb = Motion.Verb.Idle;
-        float _charge;
+        internal float _charge;
         float _chargeRing;
         string _pitchType = "fastball";
-        float _t;
+        internal float _t;
         float _poseT;
         /// <summary>When the swing take's Contact mark lands after the press (D13); the take's own mark unless warped.</summary>
         float _swingContactSec = (float)Motion.SwingContact;

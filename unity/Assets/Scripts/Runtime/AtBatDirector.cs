@@ -18,7 +18,7 @@ namespace GrandSluggers.UnityClient
 
     public sealed partial class MatchDirector
     {
-        ChargeButtonState _pitchButton;
+        internal ChargeButtonState _pitchButton;
 
         /// <summary>
         /// The batting seat's plate buttons (spec §5.1, §5.8): the swing button, the two bunt triggers and the East / G
@@ -26,7 +26,7 @@ namespace GrandSluggers.UnityClient
         /// the leak guards (PH-13-R1, PH-14-R6): a trigger held for a bunt at contact and a cancel press the plate took
         /// are spent until they come up. It belongs to one pad (<see cref="_plateSeat"/>); a new batting pad starts at rest.
         /// </summary>
-        PlateButtonsState _plate;
+        internal PlateButtonsState _plate;
         /// <summary>The pad index whose buttons <see cref="_plate"/> holds; -1 for none (a CPU batter).</summary>
         int _plateSeat = -1;
         /// <summary>This frame's plate input and step, read at the plate plane and at contact.</summary>
@@ -59,17 +59,17 @@ namespace GrandSluggers.UnityClient
         /// <summary>
         /// Each seat's held special modifier (spec §12, PH-16-R10, R11, R17), by pad index: LT on either controller. The state is the leak guard; the step that moves it is the sim's (<see cref="StarModifier"/>).
         /// </summary>
-        readonly StarModifierState[] _starMods = new StarModifierState[2];
+        internal readonly StarModifierState[] _starMods = new StarModifierState[2];
 
         /// <summary>
         /// The special each side asked for at its accepted release, as the modifier read it. <c>_pitch</c> / <c>_swing</c>
         /// carry what the pool paid for (the flight, the rumble, the card); the match is handed the request itself
         /// (<see cref="PitchAsReleased"/>) so it settles it and records the <see cref="StarRequest"/> (PH-16-R12).
         /// </summary>
-        bool _pitchStarAsked, _swingStarAsked;
+        internal bool _pitchStarAsked, _swingStarAsked;
 
         /// <summary>The "special unavailable" tell (PH-16-R12) and when it began, on the unscaled clock.</summary>
-        BroadcastHud.StarUnavailableTell? _starNo;
+        internal BroadcastHud.StarUnavailableTell? _starNo;
         float _starNoAt = -99f;
 
         /// <summary>One tick of both seats' modifiers, before any reader: a modifier that came up is free again.</summary>
@@ -80,7 +80,7 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>Whether this seat may make a fresh Star request. Runner orders are independent.</summary>
-        bool StarFree(Controls.Pad pad) =>
+        internal bool StarFree(Controls.Pad pad) =>
             pad.Index < 0 || pad.Index >= _starMods.Length || StarModifier.IsFree(_starMods[pad.Index]);
 
         /// <summary>The modifier is down and would ask for the special at a release on this tick.</summary>
@@ -144,14 +144,14 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>Whether <paramref name="pad"/>'s <paramref name="trigger"/> may mean any verb on this tick (PH-14-R6).</summary>
-        bool TriggerFree(Controls.Pad pad, BuntSide trigger) =>
+        internal bool TriggerFree(Controls.Pad pad, BuntSide trigger) =>
             pad.Index < 0 || pad.Index != _plateSeat || BuntHold.IsFree(_plate.Bunt, trigger);
 
         /// <summary>Whether <paramref name="pad"/>'s East / G may mean a dive, a dash or a skip on this tick (PH-13-R1).</summary>
-        bool CancelFree(Controls.Pad pad) =>
+        internal bool CancelFree(Controls.Pad pad) =>
             pad.Index < 0 || pad.Index != _plateSeat || PlateButtons.CancelIsFree(_plate);
 
-        void BeginSet()
+        internal void BeginSet()
         {
             BindMatchSeats();
             if (TrainingOn && (_match == null || _match.Over))
@@ -265,7 +265,7 @@ namespace GrandSluggers.UnityClient
             _cam.Cut(shot);
         }
 
-        void TickSet(float dt)
+        internal void TickSet(float dt)
         {
             if (_t > 0.2f && _t < 0.28f) LogSetCam("live");
             HoldPitchInHand();
@@ -469,13 +469,13 @@ namespace GrandSluggers.UnityClient
         /// (PH-02-R5): in SET the pose is the fastball's whatever is selected, and the real family
         /// arrives with <c>_pitch</c> at the launch, for the throw itself.
         /// </summary>
-        string ShownPitchType => _pitch != null ? _pitch.Type : PitchFamily.Fastball;
+        internal string ShownPitchType => _pitch != null ? _pitch.Type : PitchFamily.Fastball;
 
         /// <summary>
         /// Select opens the defense window. South picks two positions; Select is the pitcher shortcut.
         /// East cancels a pending pick or closes. All baseball input waits for the window.
         /// </summary>
-        bool OpenDefenseSetup()
+        internal bool OpenDefenseSetup()
         {
             if (_phase != Phase.Set || !HumanPitches || _match.PitchSetup.Committed || !_match.CanArrangeDefense) return false;
             _swapPick = new DefenseSetupPick(_match);
@@ -615,7 +615,7 @@ namespace GrandSluggers.UnityClient
                 Nice: ChargeFeel.NiceRelease(fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds, _match.Rules));
         }
 
-        void Launch(PitchCommand pitch)
+        internal void Launch(PitchCommand pitch)
         {
             CommitPitchSetup();
             pitch = _match.PreparePitch(pitch);
@@ -669,7 +669,7 @@ namespace GrandSluggers.UnityClient
             AimSetCamera();
         }
 
-        void TickFlight(float dt)
+        internal void TickFlight(float dt)
         {
             AimSetCamera();
             var previousFlight = _flight;
@@ -850,7 +850,7 @@ namespace GrandSluggers.UnityClient
             StartFly(hit, alreadyLive: TutorialOn && (_coach.Tutorial.IsItemLesson || _coach.Tutorial.IsGameContactLesson) && _match.LivePlay.Active);
         }
 
-        void StartFly(AtBatResult hit, bool alreadyLive = false)
+        internal void StartFly(AtBatResult hit, bool alreadyLive = false)
         {
             _phase = Phase.InPlay;
             _liveBeganFrame = Time.frameCount;

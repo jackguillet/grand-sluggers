@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using GrandSluggers.Sim;
 using GrandSluggers.UnityClient;
 using UnityEditor;
@@ -15,7 +14,6 @@ namespace GrandSluggers.EditorTools
     public static class LivePlayLifecycleGate
     {
         const string Pending = "GrandSluggers.LivePlayLifecycleGate";
-        const BindingFlags Hidden = BindingFlags.Instance | BindingFlags.NonPublic;
         static LivePlayLifecycleGate() { EditorApplication.update += Update; }
 
         [MenuItem("Grand Sluggers/Verify Live Play Lifecycle")]
@@ -41,7 +39,7 @@ namespace GrandSluggers.EditorTools
             }
             if (!EditorApplication.isPlaying) return;
             var play = UnityEngine.Object.FindAnyObjectByType<MatchDirector>();
-            if (play == null || Get<Match>(play, "_match") == null) return;
+            if (play == null || play._match == null) return;
             SessionState.SetBool(Pending, false);
             var evidence = new Evidence { revision = Environment.GetEnvironmentVariable("GS_VALIDATION_REVISION") ?? "",
                 unityVersion = Application.unityVersion };
@@ -76,11 +74,11 @@ namespace GrandSluggers.EditorTools
             var entry = new Case { human = human, loaded = loaded, robbed = robbed, walkoff = walkoff,
                 phase = "initializing" };
             evidence.activeCase = entry;
-            var match = Match.Slice(Get<ContentCatalog>(play, "_content"), innings: walkoff ? 1 : 3, seed: 1);
+            var match = Match.Slice(play._content, innings: walkoff ? 1 : 3, seed: 1);
             if (walkoff) match.SkipToHomeCaptainAtBat();
-            Set(play, "_match", match);
-            Invoke(play, "BeginSet");
-            Set(play, "_gateHold", true);
+            play._match = match;
+            play.BeginSet();
+            play._gateHold = true;
             if (loaded)
                 for (var bag = 1; bag <= 3; bag++)
                     Require(match.StationRunner(bag, match.Offense.Roster[bag]), "Could not load bases.");
@@ -91,16 +89,15 @@ namespace GrandSluggers.EditorTools
             var preview = match.PreviewHit(hit);
             var field = new FieldingResult(PlayKind.HomeRun, null, null, preview.HangTimeSec,
                 preview.LandingX, preview.LandingZ, false, false);
-            Set(play, "_pitch", pitch);
-            Set(play, "_swing", swing);
-            Set(play, "_pending", hit);
-            Set(play, "_preview", preview);
-            Set(play, "_cpuField", human ? null : field);
-            Set(play, "_playerFielding", human);
-            Invoke(play, "InitGloves");
-            Invoke(play, "StartFly", hit);
+            play._pitch = pitch;
+            play._swing = swing;
+            play._pending = hit;
+            play._preview = preview;
+            play._cpuField = human ? null : field;
+            play._playerFielding = human;
+            play.StartFly(hit);
             var batter = match.Batter.Id;
-            var hang = BallFlight.HangTime(Get<Sample[]>(play, "_path"), match.Rules);
+            var hang = BallFlight.HangTime(play._path, match.Rules);
             var elapsed = 0f;
             var caught = false;
             while (Phase(play) == "InPlay" && elapsed < hang + 5)
@@ -110,51 +107,48 @@ namespace GrandSluggers.EditorTools
                 if (robbed && !caught && elapsed >= hang + 0.10)
                 {
                     Require(match.AwayScore == 0, "Homer committed before wall-catch opportunity.");
-                    Set(play, "_caught", true);
-                    Set(play, "_buddy", true);
-                    if (!human) Set(play, "_cpuField", field with { Kind = PlayKind.FlyOut, Fielder = preview.Fielder });
+                    play._caught = true;
+                    play._buddy = true;
+                    if (!human) play._cpuField = field with { Kind = PlayKind.FlyOut, Fielder = preview.Fielder };
                     caught = true;
                 }
-                Invoke(play, "TickLive", 1f / 60f);
+                play.TickLive(1f / 60f);
                 elapsed += 1f / 60f;
                 entry.elapsed = elapsed;
                 entry.phase = Phase(play);
                 entry.score = walkoff ? match.HomeScore : match.AwayScore;
                 entry.liveTime = match.LivePlay.ElapsedSeconds;
-                entry.liveKind = ((PlayKind)typeof(MatchDirector).GetMethod("LiveKind", Hidden)!.Invoke(play, null)).ToString();
-                entry.caught = Get<bool>(play, "_caught");
-                entry.buddy = Get<bool>(play, "_buddy");
+                entry.liveKind = play.LiveKind().ToString();
+                entry.caught = play._caught;
+                entry.buddy = play._buddy;
                 entry.paused = match.Paused;
                 entry.active = match.LivePlay.Active;
-                entry.playerFielding = Get<bool>(play, "_playerFielding");
-                entry.pending = Get<AtBatResult>(play, "_pending") != null;
-                entry.throwing = Get<bool>(play, "_throwing");
-                entry.effect = Get<bool>(play, "_itemFlying");
-                entry.recoil = Get<float>(play, "_recoilT");
-                entry.closePlay = Get<bool>(play, "_closePlay");
+                entry.playerFielding = play._playerFielding;
+                entry.pending = play._pending != null;
+                entry.throwing = play._throwing;
+                entry.effect = play._itemFlying;
+                entry.recoil = play._recoilT;
+                entry.closePlay = play._closePlay;
             }
             Require(Phase(play) == "Result", "Live ball did not reach Result: " + Phase(play));
             if (!robbed) Require(elapsed >= Math.Max(2.4, hang + 0.35), "Ownership bypassed dead-ball deadline.");
-            var result = Get<PlayEvent>(play, "_last");
+            var result = play._last;
             Require(result != null && result.Kind == (robbed ? PlayKind.FlyOut : PlayKind.HomeRun), "Wrong result.");
             var expected = robbed ? 0 : loaded ? 4 : 1;
             Require((walkoff ? match.HomeScore : match.AwayScore) == expected, "Wrong score.");
             Require(match.Batter.Id != batter, "Batter did not advance.");
             var logs = match.Log.Count;
-            for (var i = 0; i < 10; i++) Invoke(play, "TickLive", 1f / 60f);
+            for (var i = 0; i < 10; i++) play.TickLive(1f / 60f);
             Require(match.Log.Count == logs && (walkoff ? match.HomeScore : match.AwayScore) == expected, "Result applied twice.");
-            Set(play, "_t", 100f);
-            Invoke(play, "TickFlow");
+            play._t = 100f;
+            play.TickFlow();
             Require(Phase(play) == (walkoff ? "GameOver" : "Set"), "Result did not reach next SET/game over.");
             Require(match.LivePlay.ElapsedSeconds == 0, "Next SET retained prior clock.");
             return new Case { human = human, loaded = loaded, robbed = robbed, walkoff = walkoff, elapsed = elapsed,
                 kind = result.Kind.ToString(), score = walkoff ? match.HomeScore : match.AwayScore, phase = Phase(play), nextBatter = match.Batter.Id };
         }
 
-        static string Phase(MatchDirector p) => Get<object>(p, "_phase").ToString();
-        static T Get<T>(MatchDirector p, string name) => (T)typeof(MatchDirector).GetField(name, Hidden)!.GetValue(p);
-        static void Set(MatchDirector p, string name, object value) => typeof(MatchDirector).GetField(name, Hidden)!.SetValue(p, value);
-        static void Invoke(MatchDirector p, string name, params object[] args) => typeof(MatchDirector).GetMethod(name, Hidden)!.Invoke(p, args);
+        static string Phase(MatchDirector p) => p._phase.ToString();
         static void Require(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
         [Serializable] sealed class Evidence { public string revision; public string unityVersion; public bool ok; public string error; public Case activeCase; public Case[] cases; }
         [Serializable] sealed class Case { public bool human; public bool loaded; public bool robbed; public bool walkoff; public float elapsed; public string kind; public int score; public string phase; public string nextBatter;

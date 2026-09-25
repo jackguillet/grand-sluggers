@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using GrandSluggers.Sim;
 using Motion = GrandSluggers.Sim.Motion;
 using GrandSluggers.UnityClient;
@@ -19,7 +18,6 @@ namespace GrandSluggers.EditorTools
     public static class SwingOutcomeGate
     {
         const string Pending = "GrandSluggers.SwingOutcomeGate";
-        const BindingFlags Hidden = BindingFlags.Instance | BindingFlags.NonPublic;
         const float Step = 1f / 60f;
         const double LateFrames = 12;
         const double EarlyFrames = -36;
@@ -50,7 +48,7 @@ namespace GrandSluggers.EditorTools
             }
             if (!EditorApplication.isPlaying) return;
             var play = UnityEngine.Object.FindAnyObjectByType<MatchDirector>();
-            if (play == null || Get<Match>(play, "_match") == null) return;
+            if (play == null || play._match == null) return;
 
             SessionState.SetBool(Pending, false);
             var evidence = new Evidence
@@ -111,14 +109,14 @@ namespace GrandSluggers.EditorTools
         {
             var fixture = Setup(play, captain, strikeout);
             var pitch = new PitchCommand("fastball", 0, false);
-            Invoke(play, "Launch", pitch);
-            var pitchDur = Get<float>(play, "_pitchDur");
+            play.Launch(pitch);
+            var pitchDur = play._pitchDur;
             var swing = new SwingCommand(true, charge, timingFrames, false);
-            Set(play, "_swing", swing);
-            Set(play, "_swung", true);
-            Set(play, "_pitchAir", true);
-            Set(play, "_flight", (float)AtBatMotion.SwingStart(pitchDur, timingFrames, Get<Match>(play, "_match").Rules));
-            Invoke(play, "DrawActors", 0f);
+            play._swing = swing;
+            play._swung = true;
+            play._pitchAir = true;
+            play._flight = (float)AtBatMotion.SwingStart(pitchDur, timingFrames, play._match.Rules);
+            play.DrawActors(0f);
 
             var result = new GateCase
             {
@@ -134,7 +132,7 @@ namespace GrandSluggers.EditorTools
             var hero = Hero(play, fixture.Batter.Id);
             Require(hero.Current == Motion.Verb.Swing,
                 result.name + ": committed start did not enter Swing.");
-            var startT = Get<float>(play, "_committedSwingT");
+            var startT = play._committedSwingT;
             Require(Math.Abs(startT) < 0.001f,
                 result.name + ": action did not start at zero: " + startT);
             result.frames.Add(CaptureFrame(play, hero, result.name, "start", frameDir));
@@ -149,10 +147,10 @@ namespace GrandSluggers.EditorTools
             for (var frame = 0; frame < 180; frame++)
             {
                 if (Phase(play) == "Flight")
-                    Invoke(play, "TickFlight", Step);
-                Invoke(play, "DrawActors", Step);
+                    play.TickFlight(Step);
+                play.DrawActors(Step);
                 hero = Hero(play, fixture.Batter.Id);
-                var actionT = Get<float>(play, "_committedSwingT");
+                var actionT = play._committedSwingT;
                 Require(actionT + 0.0001f >= previous,
                     result.name + ": committed action clock moved backward.");
                 previous = actionT;
@@ -191,7 +189,7 @@ namespace GrandSluggers.EditorTools
                     break;
             }
 
-            var last = Get<PlayEvent>(play, "_last");
+            var last = play._last;
             var expected = strikeout ? PlayKind.Strikeout : PlayKind.SwingMiss;
             Require(last != null && last.Kind == expected,
                 result.name + ": expected " + expected + ", got " + last?.Kind);
@@ -205,7 +203,7 @@ namespace GrandSluggers.EditorTools
 
             for (var frame = 0; frame < 6; frame++)
             {
-                Invoke(play, "DrawActors", Step);
+                play.DrawActors(Step);
                 hero = Hero(play, fixture.Batter.Id);
                 Require(hero.Current == Motion.Verb.Swing
                         && Math.Abs(hero.PoseTime - (float)Motion.SwingFinish) < 0.001f,
@@ -215,7 +213,7 @@ namespace GrandSluggers.EditorTools
                 result.name + ": expected the batter to stay in the swing through Result, left it " + leftSwing + " times");
             result.eventKind = last.Kind.ToString();
             result.resultPose = hero.Current.ToString();
-            result.finalActionT = Get<float>(play, "_committedSwingT");
+            result.finalActionT = play._committedSwingT;
             return result;
         }
 
@@ -223,21 +221,21 @@ namespace GrandSluggers.EditorTools
             MatchDirector play, string captain, string rig, string frameDir)
         {
             var fixture = Setup(play, captain, strikeout: true);
-            Invoke(play, "Launch", new PitchCommand("fastball", 0, false));
-            Set(play, "_swing", new SwingCommand(false, 0, 0, false));
-            Set(play, "_swung", false);
-            Set(play, "_pitchAir", true);
-            Set(play, "_flight", Get<float>(play, "_pitchDur") - Step);
-            Invoke(play, "TickFlight", Step);
-            Invoke(play, "DrawActors", Step);
+            play.Launch(new PitchCommand("fastball", 0, false));
+            play._swing = new SwingCommand(false, 0, 0, false);
+            play._swung = false;
+            play._pitchAir = true;
+            play._flight = play._pitchDur - Step;
+            play.TickFlight(Step);
+            play.DrawActors(Step);
 
             var hero = Hero(play, fixture.Batter.Id);
-            var last = Get<PlayEvent>(play, "_last");
+            var last = play._last;
             Require(last != null && last.Kind == PlayKind.Strikeout,
                 captain + " called strikeout did not resolve as Strikeout.");
             Require(hero.Current != Motion.Verb.Swing,
                 captain + " called strikeout entered Swing.");
-            Require(Get<float>(play, "_committedSwingT") == (float)AtBatMotion.SwingNotStarted,
+            Require(play._committedSwingT == (float)AtBatMotion.SwingNotStarted,
                 captain + " called strikeout armed a committed action clock.");
             var result = new GateCase
             {
@@ -249,7 +247,7 @@ namespace GrandSluggers.EditorTools
                 scenario = "called-strikeout",
                 eventKind = last.Kind.ToString(),
                 resultPose = hero.Current.ToString(),
-                finalActionT = Get<float>(play, "_committedSwingT")
+                finalActionT = play._committedSwingT
             };
             result.frames.Add(CaptureFrame(play, hero, result.name, "result", frameDir));
             return result;
@@ -260,7 +258,7 @@ namespace GrandSluggers.EditorTools
         {
             play.HomeCaptain = captain;
             play.AwayCaptain = captain == "ashlord" ? "brondo" : "ashlord";
-            var content = Get<ContentCatalog>(play, "_content");
+            var content = play._content;
             var match = Match.Exhibition(content, play.HomeCaptain, play.AwayCaptain,
                 innings: 3, seed: 548, parkId: "harbor-diamond");
             match.SkipToHomeCaptainAtBat();
@@ -273,10 +271,10 @@ namespace GrandSluggers.EditorTools
                 Require(match.Strikes == 2, captain + ": strikeout fixture did not reach two strikes.");
             }
             var batter = match.Batter;
-            Set(play, "_match", match);
-            Invoke(play, "BeginSet");
-            Set(play, "_gateHold", true);
-            Invoke(play, "DrawActors", 0f);
+            play._match = match;
+            play.BeginSet();
+            play._gateHold = true;
+            play.DrawActors(0f);
             return (match, batter);
         }
 
@@ -284,7 +282,7 @@ namespace GrandSluggers.EditorTools
             MatchDirector play, HeroActor hero, string caseName, string beat, string frameDir)
         {
             var path = Path.Combine(frameDir, caseName + "-" + beat + ".png");
-            var rig = Get<CameraRig>(play, "_rig");
+            var rig = play._rig;
             Capture(rig != null ? rig.Cam : Camera.main, path, 960, 540);
             return new Frame
             {
@@ -292,7 +290,7 @@ namespace GrandSluggers.EditorTools
                 phase = Phase(play),
                 pose = hero.Current.ToString(),
                 poseT = hero.PoseTime,
-                actionT = Get<float>(play, "_committedSwingT"),
+                actionT = play._committedSwingT,
                 png = path.Replace("\\", "/")
             };
         }
@@ -318,7 +316,7 @@ namespace GrandSluggers.EditorTools
 
         static HeroActor Hero(MatchDirector play, string id)
         {
-            var heroes = Get<Dictionary<string, HeroActor>>(play, "_heroes");
+            var heroes = play._heroes;
             Require(heroes.TryGetValue(id, out var hero) && hero != null,
                 "Missing rendered batter " + id + ".");
             return hero;
@@ -335,13 +333,7 @@ namespace GrandSluggers.EditorTools
             File.WriteAllText(output, JsonUtility.ToJson(evidence, true));
         }
 
-        static string Phase(MatchDirector play) => Get<object>(play, "_phase").ToString();
-        static T Get<T>(object owner, string name) =>
-            (T)owner.GetType().GetField(name, Hidden)!.GetValue(owner);
-        static void Set(object owner, string name, object value) =>
-            owner.GetType().GetField(name, Hidden)!.SetValue(owner, value);
-        static void Invoke(object owner, string name, params object[] args) =>
-            owner.GetType().GetMethod(name, Hidden)!.Invoke(owner, args);
+        static string Phase(MatchDirector play) => play._phase.ToString();
         static void Require(bool ok, string message)
         {
             if (!ok) throw new InvalidOperationException(message);
