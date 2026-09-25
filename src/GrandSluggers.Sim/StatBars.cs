@@ -12,8 +12,8 @@ public static class StatBars
 {
     public const int Count = 4;
 
-    /// <summary>The bar labels as every board prints them.</summary>
-    public static readonly IReadOnlyList<string> Labels = ["BAT", "PITCH", "FIELD", "RUN"];
+    /// <summary>The bar labels as every board prints them (couch copy: <see cref="CarnivalFront.StatBarLabels"/>).</summary>
+    public static IReadOnlyList<string> Labels => CarnivalFront.StatBarLabels;
 
     /// <summary>The derived value of bar <paramref name="bar"/> (0 Bat, 1 Pitch, 2 Field, 3 Run). No allocation: boards call it every OnGUI pass.</summary>
     public static int Value(Stats stats, int bar) => bar switch

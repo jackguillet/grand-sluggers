@@ -39,6 +39,8 @@ public static partial class CarnivalFront
     public const string Inspect = "INSPECT";
     public const string OpenSlot = "OPEN";
     public const string InspectHint = "Move to a player\nto inspect their card.";
+    /// <summary>The four bars every card prints, in order (<see cref="StatBars"/>).</summary>
+    public static readonly IReadOnlyList<string> StatBarLabels = ["BAT", "PITCH", "FIELD", "RUN"];
     /// <summary>The lineup inspection card's four bars (<see cref="StatBars"/>), beside its 132 px portrait.</summary>
     public static readonly StatBarLayout LineupCardBars = new(Top: 76, Pitch: 33, LabelX: 156, LabelW: 62,
         BarX: 220, BarW: 66, BarH: 12, ValueX: 292, ValueW: 30, LabelFont: 18, ValueFont: 20);
