@@ -124,7 +124,7 @@ namespace GrandSluggers.UnityClient
         internal bool _pitchAir;
         internal Vector3 _relFrom;
         float LiveTime => _match != null ? (float)_match.LivePlay.ElapsedSeconds : 0f;
-        float _freeze;
+        internal readonly JuiceDirector _juice = new JuiceDirector();
         float _smash;
         bool _showTiming;
         bool _feelDebug;
@@ -268,11 +268,7 @@ namespace GrandSluggers.UnityClient
                 _feelSlow = _feelSlow > 0.9f ? 0.35f : _feelSlow > 0.2f ? 0.12f : 1f;
             if (_feelDebug && Controls.FreezeCam) _freezeCam = !_freezeCam;
             if (_feelDebug && _feelSlow < 0.99f) dt *= _feelSlow;
-            if (_freeze > 0)
-            {
-                _freeze -= Time.unscaledDeltaTime;
-                dt *= 0.12f;
-            }
+            var held = _juice.Frame(Time.unscaledDeltaTime, _feel, ref dt); // the hit-stop (CH-13): the sim does not step
             _t += dt;
             if (!string.IsNullOrEmpty(_bagStamp))
             {
@@ -313,7 +309,8 @@ namespace GrandSluggers.UnityClient
                 if (!_freezeCam) _rig.Tick(dt);
                 return;
             }
-            if (!_gateHold)
+            if (held && !_gateHold && _match.LivePlay.Active) _juice.Latch(FieldInput(), RunInput());
+            else if (!_gateHold && !held)
             {
                 _flow.Tick();
                 _atBat.Tick(dt);

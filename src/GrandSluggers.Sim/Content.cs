@@ -162,6 +162,11 @@ public sealed class ContentCatalog
         foreach (var (id, dto) in data.StarSkills.Swings ?? [])
             if (dto is not null) starSwings[id] = dto.ToSwing();
         var starSkills = new StarSkillTable(starPitches, starSwings);
+        // Juice by weight (CH-13): every body class has its juice row in the feel table, and every row dresses a class.
+        var juiceGaps = feel.WeightJuice.Coverage(rules.BodyClasses);
+        if (juiceGaps.Count > 0)
+            throw new InvalidDataException("Invalid weight juice:" + Environment.NewLine
+                + string.Join(Environment.NewLine, juiceGaps.Select(e => "  - " + e)));
         return new ContentCatalog(root, characters, parks, parkPickOrder, bats, gloves, chemistry, shots, feel, rules, starSkills, art)
         {
             CaptainIds = captainIds,
