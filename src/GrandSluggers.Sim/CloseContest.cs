@@ -66,7 +66,7 @@ public sealed class CloseContest
     /// clock is past it, a side that has not pressed can only be later. Null while nobody has won; true when the offense is safe.
     /// </summary>
     public bool? Decide(bool offenseHuman, bool offensePressed, int offenseRun,
-        bool defenseHuman, bool defensePressed, int defenseField, RulesTable rules)
+        bool defenseHuman, bool defensePressed, int defenseHands, RulesTable rules)
     {
         if (_offenseAt < 0)
         {
@@ -88,7 +88,7 @@ public sealed class CloseContest
             }
             else
             {
-                var cpu = ClosePlay.CpuReactionSec(defenseField, rules);
+                var cpu = ClosePlay.CpuReactionSec(defenseHands, rules);
                 if (_t >= cpu) _defenseAt = cpu;
             }
         }

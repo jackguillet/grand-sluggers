@@ -36,7 +36,7 @@ Art sessions walk named checkpoints. Name the stage, stop at its checkpoint, and
 
 | Wrong thing | Fix in |
 | --- | --- |
-| a body proportion | `Silhouette.Proportions` (root scale) or `tools/blender/hero_shared_blockout.py` |
+| a body proportion | `Silhouette.Proportions` (Height, Width: root scale; Head, Arms, Torso: the build shape keys, `rig.json` `build`) or `tools/blender/hero_shared_blockout.py`. Judge it in `tools/dcc-still.sh lineup` |
 | a face, toe, landmark | `hero_shared_blockout.py` |
 | a captain's hat, snout, cape | catalog slot in `extras.json` / `hero_shared_extras.py`. Do not list it on a skin until it reads as a toy (#687) |
 | a pose or timing | `hero_shared_takes.py` pose table; markers in `Motion.Clips` and `data/art/clips.json` |
@@ -45,7 +45,7 @@ Art sessions walk named checkpoints. Name the stage, stop at its checkpoint, and
 
 ## Distill (from failed stills)
 
-After a sitting or a failed still: **file** the child under the epic that owns the lie, **append** a `data/agent/debug-protocol.json` row in the same PR as the fix, and on the **second** firing **promote** the signature to a validator or a scenario. Do not wait for a third. A procedural lesson (how to look, how to bake) goes here, not only the PR body.
+After a sitting or a failed still: file, append, promote on the second firing — the rule is [agent-rails.md §7](../../../docs/agent-rails.md#7-distill-file-and-remember). A procedural lesson (how to look, how to bake) goes here, not only the PR body. The stills below are the lessons that grew this skill.
 
 ### Bat through the head — `swing-*-max-load` (#623, `bat-through-head`)
 

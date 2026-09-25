@@ -6,10 +6,11 @@
   "teamName": "Carnival Crew",
   "signatureBat": "prism-stick",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
-  "proportions": { "height": 0.56, "width": 1.18, "head": 1.62, "arms": 0.82, "torso": 0.68 },
-  "pitch": 4,
-  "bat": 4,
-  "field": 6,
+  "proportions": { "height": 0.63, "width": 1.18, "head": 1.62, "arms": 0.82, "torso": 0.68 },
+  // Nine sub-stats (spec §2); the bars are derived, the rounded mean of each group: Bat (contact, power), Pitch (velocity = power, endurance = stamina, control, movement = break), Field (hands, arm = throw speed), Run.
+  "contact": 4, "power": 4,
+  "velocity": 4, "endurance": 4, "control": 4, "movement": 4,
+  "hands": 6, "arm": 6,
   "run": 9,
   "bats": "L",
   "throws": "R",

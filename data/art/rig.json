@@ -1,7 +1,7 @@
 {
   "id": "hero-shared",
   "slot": "Assets/Art/Characters/SharedRig/hero-shared.fbx",
-  "notes": "One shared articulated body. Entire clip set must be rebaked with this rest hierarchy.",
+  "notes": "One shared articulated body, about four heads tall (revision 3). Entire clip set must be rebaked with this rest hierarchy.",
   "bones": [
     "root",
     "pelvis",
@@ -35,7 +35,7 @@
     "Release",
     "FootPlant"
   ],
-  "revision": 2,
+  "revision": 3,
   "joints": [
     {
       "name": "root",
@@ -56,12 +56,12 @@
       "head": [
         0,
         0,
-        2.13
+        1.6
       ],
       "tail": [
         0,
         0,
-        2.45
+        1.95
       ],
       "parent": "root"
     },
@@ -70,12 +70,12 @@
       "head": [
         0,
         0,
-        2.45
+        1.95
       ],
       "tail": [
         0,
         0,
-        2.95
+        2.55
       ],
       "parent": "pelvis"
     },
@@ -84,12 +84,12 @@
       "head": [
         0,
         0,
-        2.95
+        2.55
       ],
       "tail": [
         0,
         0,
-        3.65
+        3.54
       ],
       "parent": "spine"
     },
@@ -98,12 +98,12 @@
       "head": [
         0,
         -0.05,
-        3.65
+        3.54
       ],
       "tail": [
         0,
         -0.05,
-        3.99
+        3.68
       ],
       "parent": "torso"
     },
@@ -112,12 +112,12 @@
       "head": [
         0,
         -0.05,
-        3.99
+        3.68
       ],
       "tail": [
         0,
         -0.05,
-        4.65
+        4.48
       ],
       "parent": "neck"
     },
@@ -126,12 +126,12 @@
       "head": [
         0.12,
         0,
-        3.5
+        3.4
       ],
       "tail": [
         0.72,
         0,
-        3.5
+        3.4
       ],
       "parent": "torso"
     },
@@ -140,12 +140,12 @@
       "head": [
         0.72,
         0,
-        3.5
+        3.4
       ],
       "tail": [
         0.72,
         0,
-        2.48
+        2.38
       ],
       "parent": "lClavicle"
     },
@@ -154,12 +154,12 @@
       "head": [
         0.72,
         0,
-        2.48
+        2.38
       ],
       "tail": [
         0.72,
         0,
-        1.6
+        1.5
       ],
       "parent": "lUpper"
     },
@@ -168,12 +168,12 @@
       "head": [
         0.72,
         0,
-        1.6
+        1.5
       ],
       "tail": [
         0.72,
         0,
-        1.35
+        1.25
       ],
       "parent": "lFore"
     },
@@ -182,12 +182,12 @@
       "head": [
         0.36,
         0,
-        2.13
+        1.6
       ],
       "tail": [
         0.36,
         0,
-        1.16
+        0.9
       ],
       "parent": "pelvis"
     },
@@ -196,7 +196,7 @@
       "head": [
         0.36,
         0,
-        1.16
+        0.9
       ],
       "tail": [
         0.36,
@@ -224,12 +224,12 @@
       "head": [
         0.72,
         0,
-        1.6
+        1.5
       ],
       "tail": [
         0.72,
         0,
-        1.35
+        1.25
       ],
       "parent": "lWrist"
     },
@@ -238,12 +238,12 @@
       "head": [
         -0.12,
         0,
-        3.5
+        3.4
       ],
       "tail": [
         -0.72,
         0,
-        3.5
+        3.4
       ],
       "parent": "torso"
     },
@@ -252,12 +252,12 @@
       "head": [
         -0.72,
         0,
-        3.5
+        3.4
       ],
       "tail": [
         -0.72,
         0,
-        2.48
+        2.38
       ],
       "parent": "rClavicle"
     },
@@ -266,12 +266,12 @@
       "head": [
         -0.72,
         0,
-        2.48
+        2.38
       ],
       "tail": [
         -0.72,
         0,
-        1.6
+        1.5
       ],
       "parent": "rUpper"
     },
@@ -280,12 +280,12 @@
       "head": [
         -0.72,
         0,
-        1.6
+        1.5
       ],
       "tail": [
         -0.72,
         0,
-        1.35
+        1.25
       ],
       "parent": "rFore"
     },
@@ -294,12 +294,12 @@
       "head": [
         -0.36,
         0,
-        2.13
+        1.6
       ],
       "tail": [
         -0.36,
         0,
-        1.16
+        0.9
       ],
       "parent": "pelvis"
     },
@@ -308,7 +308,7 @@
       "head": [
         -0.36,
         0,
-        1.16
+        0.9
       ],
       "tail": [
         -0.36,
@@ -336,12 +336,12 @@
       "head": [
         -0.72,
         0,
-        1.6
+        1.5
       ],
       "tail": [
         -0.72,
         0,
-        1.35
+        1.25
       ],
       "parent": "rWrist"
     },
@@ -350,12 +350,12 @@
       "head": [
         0.72,
         -0.08,
-        1.47
+        1.37
       ],
       "tail": [
         0.72,
         -0.08,
-        1.37
+        1.27
       ],
       "parent": "lWrist"
     },
@@ -364,12 +364,12 @@
       "head": [
         -0.72,
         -0.08,
-        1.47
+        1.37
       ],
       "tail": [
         -0.72,
         -0.08,
-        1.37
+        1.27
       ],
       "parent": "rWrist"
     },
@@ -378,12 +378,12 @@
       "head": [
         -0.72,
         -0.08,
-        1.47
+        1.37
       ],
       "tail": [
         -0.72,
         -0.08,
-        0.77
+        0.67
       ],
       "parent": "rWrist"
     },
@@ -392,33 +392,69 @@
       "head": [
         0.72,
         0,
-        1.6
+        1.5
       ],
       "tail": [
         0.72,
         0,
-        1.35
+        1.25
       ],
       "parent": "lWrist"
     }
   ],
   "anatomy": {
-    "height": 4.81,
+    "height": 4.8,
     "headCenter": [
       0,
       -0.05,
-      4.36
+      4.2
     ],
-    "headDiameter": 0.9,
+    "headDiameter": 1.2,
     "handCenter": [
       0.72,
       -0.08,
-      1.47
+      1.37
     ],
     "shoeCenter": [
       0.36,
-      -0.23,
-      0.16
+      -0.25,
+      0.19
+    ],
+    "knee": [
+      0.36,
+      0,
+      0.9
+    ],
+    "chest": [
+      0,
+      0,
+      2.99
     ]
+  },
+  "build": {
+    "notes": "Per-captain build on the one mesh. Each channel is a pair of shape keys on every body piece it names: '<channel>+' authored at max and '<channel>-' at min. A captain's scale is 1 + gain * (proportions.<channel> / neutral - 1) and must lie in [min, max]. Silhouette.Build is the one function the sim and Unity read. head scales the head pieces about the neck top (pivot). arms thickens the arm pieces about the bone line and grows the hands about their centers. torso widens the jersey, stripe, neck and hips about the body axis. No channel moves a joint, so every take stays shared. The takes bake checks the bat against the head at max.",
+    "head": {
+      "neutral": 1.38,
+      "gain": 0.8,
+      "min": 0.86,
+      "max": 1.2,
+      "pivot": [
+        0,
+        -0.05,
+        3.68
+      ]
+    },
+    "arms": {
+      "neutral": 1.02,
+      "gain": 0.6,
+      "min": 0.84,
+      "max": 1.45
+    },
+    "torso": {
+      "neutral": 0.94,
+      "gain": 0.5,
+      "min": 0.84,
+      "max": 1.32
+    }
   }
 }

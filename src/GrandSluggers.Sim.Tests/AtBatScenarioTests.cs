@@ -900,10 +900,10 @@ public sealed class AtBatScenarioTests
         bool changeup = false, Character? pitcher = null, string batId = "harbor-lumber")
     {
         var batter = _content.Must("rio");
-        batter = batter with { Stats = batter.Stats with { Bat = bat } };
+        batter = batter with { Stats = batter.Stats.WithBat(bat) };
         // A Pitch-5 arm so the pitch factor (spec §5.5) is ×1 unless a row asks for it.
         var arm = pitcher ?? _content.Must("vale");
-        arm = arm with { Stats = arm.Stats with { Pitch = 5 } };
+        arm = arm with { Stats = arm.Stats.WithPitch(5) };
         return new AtBatInput(
             arm, batter, null, [],
             ChargePitch: false, ChangeupPitch: changeup, TimingErrorFrames: err,

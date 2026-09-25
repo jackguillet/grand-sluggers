@@ -6,9 +6,9 @@
   "session_kind": "Gameplay research/documentation",
   "baseline_revision": "05471a6038f9e21d66957016df3f7cb3b1b6842a",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/803",
-  "research": "../research-pitching-hitting.md",
+  "research": "../archive/pitching-hitting/research-pitching-hitting.md",
   "next_decision": "PH-16",
-  "source_policy": "Source IDs resolve in docs/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
+  "source_policy": "Source IDs resolve in docs/archive/pitching-hitting/research-pitching-hitting.md. Primary documentation, inherited reports, observations and authored proposals remain distinct.",
   "brief": {
     "author": "Jack",
     "scope": "Research both Mario baseball games and other baseball games, then prepare a tracker for choices we make together.",

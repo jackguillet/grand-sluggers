@@ -107,7 +107,7 @@ namespace GrandSluggers.UnityClient
             // backstop or in the dugout span along either foul line (F6-a2 #881, FieldKitSourceTests).
             // The Harbor kit draws the dress its slots name; every other park's dress is the builders its
             // slots name (F6-d, FD-16-R1), never a method chosen by its id.
-            if (!placed) Dress();
+            if (!placed) Dress(park, kitRow);
             Hazards(park, kitRow);
 
             _ball = gameObject.GetComponent<BallView>();
@@ -116,11 +116,18 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// A park the Harbor kit does not draw is the plain greybox (FR-13, #1045): its stands are grey blocks and crowd
-        /// cards, in the park's own light, sky and palette (data/art/looks.json). Its identity comes back as art, behind #37
-        /// and the park's greybox sitting, never as hand-built Unity dress.
+        /// A park the Harbor kit does not draw is the greybox in its own light, sky and palette (FR-13; data/art/looks.json).
+        /// Its stands are the one park-neutral bowl (<see cref="ParkStands"/>) when its stands slot names the kit bowl, painted
+        /// by its palette's stands block; an empty slot is plain grey blocks and crowd cards. Never hand-built per-park dress.
         /// </summary>
-        void Dress() => GreyboxStands();
+        void Dress(Park park, ParkKitSlot kitRow)
+        {
+            var stands = kitRow.Palette?.Stands;
+            if (kitRow.Fills(ParkKitSlots.Stands, ParkKitSlots.KitBowl) && stands != null)
+                new ParkStands(_root).Build(park, stands);
+            else
+                GreyboxStands();
+        }
 
         /// <summary>
         /// What this park hands the field kit: its dirt, the warning track, and its wall, cap and pole, from the palette of
@@ -137,7 +144,7 @@ namespace GrandSluggers.UnityClient
             {
                 Dirt = dirt,
                 HomeDirt = dirt,
-                Track = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f),
+                Track = palette?.Track != null ? Look.Lit(palette.Track) : Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f),
                 WallFaces = new[] { wallAlt, wall },
                 WallCap = cap,
                 Pole = pole,
@@ -296,9 +303,10 @@ namespace GrandSluggers.UnityClient
             var root = new GameObject("LavaPit").transform;
             root.SetParent(_root, false);
             root.position = new Vector3((float)h.X, 0, (float)h.Z);
-            Look.Prim(PrimitiveType.Cylinder, "Rim", root, new Vector3(0, 0.55f, 0), new Vector3(r * 2.2f, 0.55f, r * 2.2f), stone);
-            Look.Prim(PrimitiveType.Cylinder, "Well", root, new Vector3(0, 0.18f, 0), new Vector3(r * 1.7f, 0.22f, r * 1.7f), lava);
-            Look.Prim(PrimitiveType.Cylinder, "Glow", root, new Vector3(0, 0.42f, 0), new Vector3(r * 1.45f, 0.08f, r * 1.45f), glow);
+            // The rim is a solid disc, so the lava sits on top of it (inside it, it never showed).
+            Look.Prim(PrimitiveType.Cylinder, "Rim", root, new Vector3(0, 0.3f, 0), new Vector3(r * 2.2f, 0.3f, r * 2.2f), stone);
+            Look.Prim(PrimitiveType.Cylinder, "Well", root, new Vector3(0, 0.66f, 0), new Vector3(r * 1.8f, 0.06f, r * 1.8f), lava);
+            Look.Prim(PrimitiveType.Cylinder, "Glow", root, new Vector3(0, 0.74f, 0), new Vector3(r * 1.2f, 0.04f, r * 1.2f), glow);
             Glow("LavaGlow", new Vector3((float)h.X, 1.4f, (float)h.Z), Colors.EmberFire, 1.4f, r * 6f);
         }
 

@@ -192,8 +192,6 @@ public sealed partial class LivePlaySystem
     StickRead _stick = StickRead.Assist;
     int _stickDevice;
     (int Inning, bool Top)? _stickHalf;
-    double _lobT;
-    int _relayBag;
     /// <summary>The glove holds a ball it received cleanly from a teammate's throw (#723): Snap Throw's eligibility. A pickup, a bobble, a sail or a hand-off clears it.</summary>
     bool _receivedClean;
     /// <summary>The human's remembered throw presses (#723): the approach, the relay and the recovery.</summary>
@@ -349,7 +347,7 @@ public sealed partial class LivePlaySystem
     /// <summary>The ball is on the ground in nobody's glove, off its batted path (a fumble, an overthrow, a drop).</summary>
     public bool LooseBall => _looseMotion.Active;
     /// <summary>A throw is hanging at an uncovered bag, waiting for the cover (§8.5).</summary>
-    public bool Lobbing => Throwing && _lobT > 0;
+    public bool Lobbing => Throwing && _flight.LobT > 0;
     /// <summary>A throw missed its cover this play (§8.5): the ERROR.</summary>
     public bool ThrowSailed => _sailed;
     /// <summary>HUD sub-caption for the last live decision. Narrated, never read back.</summary>
@@ -615,8 +613,6 @@ public sealed partial class LivePlaySystem
         _receivedClean = false;
         _throwerPos = "";
         _support.Reset();
-        _lobT = 0;
-        _relayBag = 0;
         _cpuClock.Restart();
         _items.Reset();
         _bodySlows.Begin([]);
@@ -1614,7 +1610,7 @@ public sealed partial class LivePlaySystem
         var plan = PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag);
         if (plan.UseRelay && plan.Cut is { } cut)
         {
-            _relayBag = bag;
+            _support.ArmRelay(bag);
             BeginThrowToCutoff(cut.Pos, cut.X, cut.Z);
             return;
         }
@@ -1633,7 +1629,7 @@ public sealed partial class LivePlaySystem
         var plan = PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag);
         if (plan.UseRelay && plan.Cut is { } cut)
         {
-            _relayBag = 0; // the cutoff decides again from the infield
+            _support.ArmRelay(0); // the cutoff decides again from the infield
             BeginThrowToCutoff(cut.Pos, cut.X, cut.Z);
             return;
         }
@@ -2277,7 +2273,7 @@ public sealed partial class LivePlaySystem
     public bool CanCancelThrow => ThrowQueued || AwaitingRelay;
 
     /// <summary>The bag a queued onward throw would go to — the armed bag, home by default — or 0 when nothing is queued.</summary>
-    public int QueuedThrowBag => _commands.RelayQueued ? (_relayBag is >= 1 and <= 4 ? _relayBag : 4) : 0;
+    public int QueuedThrowBag => _commands.RelayQueued ? _support.RelayTarget : 0;
 
     /// <summary>
     /// While a human's throw flies to the cutoff (F693-03-relay-ownership, -input-buffer, -throw-cancel): a fresh South press is
@@ -2294,7 +2290,7 @@ public sealed partial class LivePlaySystem
         if (t.RelayBufferSec <= 0 || !Seats.HumanOwnsThrow || !relayInFlight) return;
         var stick = field.StickBag > 0 ? field.StickBag : field.ArrowBag;
         var armed = InPlay.ArmedBag(field.KeysBag, stick, false);
-        if (armed > 0) _relayBag = armed;
+        if (armed > 0) _support.ArmRelay(armed);
     }
 
     /// <summary>Whether a throw to <paramref name="bag"/> is the one Laser is for (F693-03-laser-throw): home, with a live runner on third or on the third–home segment.</summary>
@@ -2635,7 +2631,7 @@ public sealed partial class LivePlaySystem
             var cut = InPlay.CutoffFor(GloveX, GloveZ, to.X, to.Z, _fielders, GlovePos, CoverOf(toward), R);
             if (cut is not null)
             {
-                _relayBag = ThrowBag is >= 1 and <= 4 ? ThrowBag : 0;
+                _support.ArmRelay(ThrowBag is >= 1 and <= 4 ? ThrowBag : 0);
                 BeginThrowToCutoff(cut.Value.Pos, cut.Value.X, cut.Value.Z);
                 return null;
             }
@@ -2675,7 +2671,7 @@ public sealed partial class LivePlaySystem
         var from = map.TryGetValue(GlovePos, out var glove) ? glove : PlayFielder();
         if (!map.TryGetValue(cutPos, out var cutter))
         {
-            BeginThrowToBag(Math.Max(1, _relayBag));
+            BeginThrowToBag(Math.Max(1, _support.RelayBag));
             return;
         }
         var thr = WithCommand(_match.ThrowBetween(from, cutter), from, 0);
@@ -2691,7 +2687,7 @@ public sealed partial class LivePlaySystem
     void BeginThrow(ThrowResult thr, int bag, double targetX, double targetZ, string receiverPos)
     {
         Throwing = true;
-        _lobT = 0;
+        _flight.EndLob();
         ThrowBag = bag;
         CoverPos = receiverPos;
         _throwerPos = GlovePos;
@@ -2760,10 +2756,10 @@ public sealed partial class LivePlaySystem
         if (!covered)
         {
             // Nobody at the bag: the ball hangs as a lob for the cover, then drops there, live (§8.5).
-            if (_lobT == 0) _trace?.Mark(PlayTraceMarkKind.UncoveredWait, ElapsedSeconds, receiverPos, ThrowBag);
-            _lobT += dt;
+            var lob = _flight.Hang(dt, R.Fielding.Throw.LobMaxSec);
+            if (lob.First) _trace?.Mark(PlayTraceMarkKind.UncoveredWait, ElapsedSeconds, receiverPos, ThrowBag);
             (BallX, BallY, BallZ) = ThrowTo;
-            if (_lobT < R.Fielding.Throw.LobMaxSec) return false;
+            if (!lob.Drops) return false;
             DropThrowAtBag();
             return false;
         }
@@ -2784,7 +2780,7 @@ public sealed partial class LivePlaySystem
         GloveZ = ThrowTo.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
         Throwing = false;
-        _lobT = 0;
+        _flight.EndLob();
         _support.ClearCutoff();
         CatchGlove();
         _receivedClean = true;
@@ -2794,14 +2790,14 @@ public sealed partial class LivePlaySystem
             // inside fielding.throw.relayBufferSec fires now; otherwise the armed bag stays armed for the next press.
             if (_commands.TakeRelay())
             {
-                var bag = _relayBag is >= 1 and <= 4 ? _relayBag : 4;
-                _relayBag = 0;
+                var bag = _support.RelayTarget;
+                _support.ArmRelay(0);
                 ThrowBag = bag;
                 BeginThrowToBag(bag);
                 return true;
             }
-            if (_relayBag is >= 1 and <= 4) ThrowBag = _relayBag;
-            _relayBag = 0;
+            if (_support.RelayBag is >= 1 and <= 4) ThrowBag = _support.RelayBag;
+            _support.ArmRelay(0);
             return false;
         }
         _cpuClock.Restart();
@@ -2816,7 +2812,7 @@ public sealed partial class LivePlaySystem
         Throwing = false;
         Caught = false;
         Buddy = false;
-        _lobT = 0;
+        _flight.EndLob();
         _support.ClearCutoff();
         var map = Assigned();
         var who = map.TryGetValue(receiverPos, out var r) ? r.Name : "the cover";
@@ -2837,7 +2833,7 @@ public sealed partial class LivePlaySystem
         Throwing = false;
         Caught = false;
         Buddy = false;
-        _lobT = 0;
+        _flight.EndLob();
         _support.ClearCutoff();
         SetLoose(ThrowTo.X, ThrowTo.Z, 0, 0);
         TryHandoffLoose(Assigned());
@@ -2968,7 +2964,7 @@ public sealed partial class LivePlaySystem
     {
         var bag = ThrowBag;
         Throwing = false;
-        _lobT = 0;
+        _flight.EndLob();
         _support.ClearCutoff();
         CatchGlove();
         _receivedClean = true;
@@ -3359,7 +3355,7 @@ public sealed partial class LivePlaySystem
         var offenseHuman = Seats.Versus ? Seats.HumanBats : Seats.HumanBats && !Seats.PlayerMustField && !PlayerFielding;
         var defenseHuman = PlayerFielding || Seats.HumanPitches || Seats.PlayerMustField;
         if (_close.Decide(offenseHuman, run.SouthDown, runner?.Stats.Run ?? 5,
-                defenseHuman, field.CloseResponse ?? field.SouthDown, fielder.Stats.Field, R) is not { } safe)
+                defenseHuman, field.CloseResponse ?? field.SouthDown, fielder.Stats.Hands, R) is not { } safe)
             return new LivePlayCommandResult(Snapshot);
         if (_close.Runner is { Live: true } body)
         {

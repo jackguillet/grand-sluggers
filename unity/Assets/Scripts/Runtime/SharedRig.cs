@@ -28,6 +28,8 @@ namespace GrandSluggers.UnityClient
             public Transform Ring;
             public Animator Animator;
             public Vector3 BaseScale;
+            /// <summary>Head, arms and torso on the one mesh (shape keys), from <see cref="Silhouette.Build"/>.</summary>
+            public Silhouette.BodyBuild Build;
             public bool Placeholder;
         }
 
@@ -45,7 +47,8 @@ namespace GrandSluggers.UnityClient
             var chain = new Chain
             {
                 Body = body,
-                BaseScale = new Vector3((float)scale.X, (float)scale.Y, (float)scale.Z)
+                BaseScale = new Vector3((float)scale.X, (float)scale.Y, (float)scale.Z),
+                Build = Silhouette.Build(spec)
             };
             body.localScale = chain.BaseScale;
 
@@ -117,9 +120,51 @@ namespace GrandSluggers.UnityClient
             chain.Animator = animator;
 
             Paint(go, who.Faction);
+            ApplyBuild(go, Silhouette.Proportions(who));
             HideLookRays(go.transform);
             AttachExtras(chain, who, skin);
             return true;
+        }
+
+        /// <summary>
+        /// The captain's build (CH-04): every body piece carries its channel's two shape keys, and the weights are
+        /// the sim's (<see cref="Silhouette.BuildWeights"/>), so the drawn head, arms and torso are the measured ones.
+        /// No bone moves; the takes stay shared. A body FBX without the keys draws the neutral toy and says so.
+        /// </summary>
+        internal static void ApplyBuild(GameObject go, Silhouette.Spec spec)
+        {
+            var weights = Silhouette.BuildWeights(spec);
+            var found = 0;
+            foreach (var smr in go.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                var mesh = smr.sharedMesh;
+                if (mesh == null || mesh.blendShapeCount == 0) continue;
+                foreach (var (key, weight) in weights)
+                {
+                    var index = BlendShapeIndex(mesh, key);
+                    if (index < 0) continue;
+                    smr.SetBlendShapeWeight(index, (float)(weight * 100.0));
+                    found++;
+                }
+            }
+            if (found == 0 && !_missingBuildReported)
+            {
+                _missingBuildReported = true;
+                Debug.LogError("hero-shared.fbx has no build shape keys; every captain draws the neutral body (cli art names the slot)");
+            }
+        }
+
+        static bool _missingBuildReported;
+
+        /// <summary>The FBX importer may prefix a blend shape with its deformer; match the key name exactly or as a suffix.</summary>
+        static int BlendShapeIndex(Mesh mesh, string key)
+        {
+            var exact = mesh.GetBlendShapeIndex(key);
+            if (exact >= 0) return exact;
+            for (var i = 0; i < mesh.blendShapeCount; i++)
+                if (mesh.GetBlendShapeName(i).EndsWith("." + key, StringComparison.Ordinal))
+                    return i;
+            return -1;
         }
 
         /// <summary>Material names on the FBX are palette roles. Every role paints; nothing stays import-white.</summary>

@@ -144,7 +144,7 @@ Notes to the table above:
 
 ## A.10 Fields audit (#814, code at `d0c6e12c`) — open
 
-Two read-only maps hold every line: [sim](../research/fields-code-map-sim.md), [presentation](../research/fields-code-map-presentation.md). The rows are grouped by the epic that fixes them ([plan-fields.md](../plan-fields.md), [implementation map](../plan-fields-implementation.md)).
+Two read-only maps hold every line: [sim](../research/fields-code-map-sim.md), [presentation](../research/fields-code-map-presentation.md). The rows are grouped by the epic that fixes them ([plan-fields.md](../decisions/plan-fields.md), [implementation map](fields/plan-fields-implementation.md)).
 
 | # | Epic | What | Where | Spec | Status |
 | --- | --- | --- | --- | --- | --- |

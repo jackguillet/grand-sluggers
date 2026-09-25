@@ -12,11 +12,11 @@ Reference index: [Peach pitching gameplay](https://www.youtube.com/watch?v=N4RgZ
 
 ## 2. Body and joints
 
-One `hero-shared` rig, revision 2. `data/art/rig.json` defines every joint, parent and rest endpoint in Blender coordinates: +Z up, −Y forward, +X anatomical left. No runtime mirror or negative root scale. Default stature is 4.81 units, head diameter 0.90 (5.34 heads tall), hips 2.13, knee 1.16, ankle 0.24, shoulder 3.50, elbow 2.48, wrist 1.60. These are art dimensions, not a claim of adult anatomical realism. Legs supply about 44% of height instead of the former short toy legs.
+One `hero-shared` rig, revision 3. `data/art/rig.json` defines every joint, parent and rest endpoint in Blender coordinates: +Z up, −Y forward, +X anatomical left. No runtime mirror or negative root scale. Default stature is 4.80 units, head diameter 1.20 (4.0 heads tall), hips 1.60, knee 0.90, ankle 0.24, shoulder 3.40, elbow 2.38, wrist 1.50. These are toy dimensions: short legs (about a third of height), a long round body and a big head. The arms keep the shared reach so the swing, bunt and pitch hands land where the takes solve them.
 
-The chain separates pelvis, lower spine, chest, neck, clavicles, shoulders, elbows, wrists, hips, knees and ankles. Hands and shoes follow wrists and feet. A torso turn must not drag a planted foot. Wrist articulation must not move the elbow. All existing takes are rebaked against this hierarchy; mixing revision-1 clips and revision-2 bodies is invalid.
+The chain separates pelvis, lower spine, chest, neck, clavicles, shoulders, elbows, wrists, hips, knees and ankles. Hands and shoes follow wrists and feet. A torso turn must not drag a planted foot. Wrist articulation must not move the elbow. All existing takes are rebaked against this hierarchy; mixing clips and bodies of different revisions is invalid.
 
-A captain remains body scale, palette and accessories. Role players share the body and take set. Future style variants start from the default authoring data and must pass the same geometry and handedness gates. No per-captain branch in HeroActor.
+A captain remains body scale, build (head, arms and torso shape keys), palette and accessories. Role players share the body and take set. Future style variants start from the default authoring data and must pass the same geometry and handedness gates. No per-captain branch in HeroActor.
 
 ## 3. Motion phases and clocks
 

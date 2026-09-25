@@ -30,6 +30,18 @@ Builds, logs, and the running revision live under `~/Library/Application Support
 
 If the build fails or times out, the existing game remains open. If the new player exits at launch, previous release apps remain available to reopen. Delivery refuses concurrent runs and any other GUI Unity use. Build evidence and launch-only process evidence stay separate from a rendered-window check and an actual player sitting for human gates; see [validation.md](validation.md).
 
+## Agent rules
+
+This section is the one place these rules live; AGENTS.md links here.
+
+- Jack tests the standalone window. Do not send him to Unity Play as the default test handoff.
+- After your approved changes merge, run `python3 tools/local-player.py`. This update, build and restart is authorized as the normal post-merge delivery step.
+- Never force, reset or stash local `main`, and never merge a human-gated change just to deliver it. Report conflicts or build failures; keep the existing game intact.
+- For an unmerged change Jack needs to try, commit it in its worktree and run `--preview /absolute/path/to/worktree`. Say clearly that the window is a preview; local `main` stays on merged code.
+- When delivery refuses because another session holds the GUI Unity lock, or a window someone else delivered is open, do not break the lock: report it, or ask Jack before `--replace` on a preview or trial window ([Sharing the Mac](#sharing-the-mac)).
+- Confirm the new window renders, state the running revision, and report the human gates that remain. Building or launching alone does not pass a gameplay or look gate.
+- No background polling or restarts while Jack is playing; the working agent runs delivery after a merge or a requested preview.
+
 ## Sharing the Mac
 
 Several sessions share this Mac and its one GUI Unity editor. Delivery holds the machine-wide GUI Unity lock (`tools/unity_gui.py`, see [editor-startup.md](editor-startup.md)) from the start of the run until the new window is launched. While another session captures stills, builds a player or delivers, delivery refuses. The refusal names that session's purpose, PID, worktree and start time. Wait for it to finish, or ask that session.
@@ -44,7 +56,7 @@ The window in this example ran on `trials/pitch5`. That overlay is retired (#883
 
 Re-run with `--replace` when closing that window is yours to do:
 
-- An older `main` on the shipped data, replaced by merged main. This is the normal post-merge step (AGENTS.md "Local standalone delivery").
+- An older `main` on the shipped data, replaced by merged main. This is the normal post-merge step ([Agent rules](#agent-rules)).
 - A window that you delivered in this session.
 
 A preview or a trial window that another session delivered is someone's test. Ask Jack before you replace it.

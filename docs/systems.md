@@ -124,7 +124,7 @@ Each item is JSON: stat mods, a tag that changes a system (`always_full_charge`,
 
 ## Parks
 
-A park JSON lists: dimensions (fences), fence height, wind, surface (`grass` / `dirt` / `ice` / `ash`; a label with no effect on play today), hazards, and an optional night block of night-only hazards (F4-d; the old night number `nightContactWindowMul` is gone, because night keeps the stadium lights, FD-11-R2). Nothing is ticked: each hazard is tested once against the ball's landing point, and four listed types do nothing. What is built is in [gameplay-spec.md](gameplay-spec.md) §14. What parks are being rebuilt to — Harbor plus named differences, a hazard pattern library, a night rule layer — is spec §0.3 and [plan-fields.md](plan-fields.md). Design intent per park: [parks.md](parks.md).
+A park JSON lists: dimensions (fences), fence height, wind, surface (`grass` / `dirt` / `ice` / `ash`; a label with no effect on play today), hazards, and an optional night block of night-only hazards (F4-d; the old night number `nightContactWindowMul` is gone, because night keeps the stadium lights, FD-11-R2). Nothing is ticked: each hazard is tested once against the ball's landing point, and four listed types do nothing. What is built is in [gameplay-spec.md](gameplay-spec.md) §14. What parks are being rebuilt to — Harbor plus named differences, a hazard pattern library, a night rule layer — is spec §0.3 and [plan-fields.md](decisions/plan-fields.md). Design intent per park: [parks.md](parks.md).
 
 ## MVP
 

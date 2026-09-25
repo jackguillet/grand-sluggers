@@ -138,12 +138,36 @@ def build_armature():
     return arm_ob, arm_data
 
 
+JOINT = {j["name"]: j for j in RIG["joints"]}
+
+
+def joint_z(name: str, end: str = "head") -> float:
+    return float(JOINT[name][end][2])
+
+
+# The four-head toy's jersey: a round belly over short legs. Each ring is
+# (z, half-width, half-depth), from the belt to the neck, on the shared bind.
+JERSEY_RINGS = [(1.70, .50, .38), (1.88, .59, .45), (2.12, .65, .49), (2.42, .67, .50),
+                (2.72, .66, .48), (3.02, .63, .45), (3.26, .60, .42), (3.44, .50, .35),
+                (3.58, .20, .20)]
+JERSEY_AXIS_Y = -0.02
+
+
+def _ring_depth(z: float) -> float:
+    rings = JERSEY_RINGS
+    if z <= rings[0][0]:
+        return rings[0][2]
+    for (z0, _, d0), (z1, _, d1) in zip(rings, rings[1:]):
+        if z <= z1:
+            return d0 + (d1 - d0) * (z - z0) / (z1 - z0)
+    return rings[-1][2]
+
+
 def jersey_mesh(material):
     """One continuous tailored jersey; graded spine/chest skin weights replace
     a stack of disconnected torso ellipsoids. Rings are in the shared bind."""
-    rings=[(2.28,.42,.29),(2.42,.44,.30),(2.66,.43,.30),(2.90,.52,.33),
-           (3.15,.61,.345),(3.38,.59,.32),(3.54,.43,.26),(3.66,.19,.18)]
-    vertices=[(rx*math.cos(i*2*math.pi/32),-.02+ry*math.sin(i*2*math.pi/32),z)
+    rings = JERSEY_RINGS
+    vertices=[(rx*math.cos(i*2*math.pi/32),JERSEY_AXIS_Y+ry*math.sin(i*2*math.pi/32),z)
               for z,rx,ry in rings for i in range(32)]
     faces=[(j*32+i,j*32+(i+1)%32,(j+1)*32+(i+1)%32,(j+1)*32+i)
            for j in range(len(rings)-1) for i in range(32)]
@@ -153,6 +177,125 @@ def jersey_mesh(material):
     mesh.materials.append(material)
     for poly in mesh.polygons:poly.use_smooth=True
     return ob
+
+
+def stripe_mesh(material, low: float, high: float, half_width: float = 0.09, thick: float = 0.035):
+    """The gold chest stripe, laid on the jersey's front surface from `low` to
+    `high` so it follows the belly instead of floating off it."""
+    steps = 12
+    vertices = []
+    for i in range(steps + 1):
+        z = low + (high - low) * i / steps
+        front = JERSEY_AXIS_Y - _ring_depth(z) - 0.012
+        for x in (-half_width, half_width):
+            vertices.append((x, front, z))
+            vertices.append((x, front + thick, z))
+    faces = []
+    for i in range(steps):
+        a = i * 4
+        b = a + 4
+        faces += [(a, a + 2, b + 2, b), (a + 1, b + 1, b + 3, a + 3),
+                  (a, b, b + 1, a + 1), (a + 2, a + 3, b + 3, b + 2)]
+    faces += [(0, 1, 3, 2), (steps * 4, steps * 4 + 2, steps * 4 + 3, steps * 4 + 1)]
+    mesh = bpy.data.meshes.new("stripe-surface")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    ob = bpy.data.objects.new("Stripe", mesh)
+    bpy.context.collection.objects.link(ob)
+    mesh.materials.append(material)
+    return ob
+
+
+# ------------------------------------------------------------ build (CH-04)
+#
+# A captain's head, arms and torso are shape keys on this one mesh, never a
+# joint: `<channel>+` is the piece at the channel's max scale, `<channel>-` at
+# its min (data/art/rig.json build). Unity sets the weights from
+# Silhouette.Build; the bones, the takes and the sockets do not move.
+
+BUILD = RIG["build"]
+BUILD_CHANNELS = ("head", "arms", "torso")
+HEAD_PIVOT = Vector(BUILD["head"]["pivot"])
+
+
+def _build_head(world: Vector, s: float, piece: str) -> Vector:
+    return HEAD_PIVOT + (world - HEAD_PIVOT) * s
+
+
+def _build_torso(world: Vector, s: float, piece: str) -> Vector:
+    return Vector((world.x * s, JERSEY_AXIS_Y + (world.y - JERSEY_AXIS_Y) * s, world.z))
+
+
+def _build_arms(world: Vector, s: float, piece: str) -> Vector:
+    x0 = ANATOMY["handCenter"][0] * (1.0 if piece.startswith("l") else -1.0)
+    if piece[1:] in ("Hand", "Thumb"):
+        hand = Vector((x0, ANATOMY["handCenter"][1], ANATOMY["handCenter"][2]))
+        return hand + (world - hand) * s
+    return Vector((x0 + (world.x - x0) * s, world.y * s, world.z))
+
+
+BUILD_SHAPE = {"head": _build_head, "arms": _build_arms, "torso": _build_torso}
+
+
+def build_channel(piece: str, bone: str):
+    """Which build channel shapes a piece: by its bone, so a new piece joins by where it hangs."""
+    if bone == "head":
+        return "head"
+    if bone in ("torso", "spine", "neck", "pelvis"):
+        return "torso"
+    if bone[1:] in ("Upper", "Fore", "Wrist"):
+        return "arms"
+    return None
+
+
+def add_build_keys(ob, channel: str):
+    row = BUILD[channel]
+    shape = BUILD_SHAPE[channel]
+    ob.shape_key_add(name="Basis", from_mix=False)
+    world = ob.matrix_world.copy()
+    inverse = world.inverted()
+    for suffix, s in (("+", float(row["max"])), ("-", float(row["min"]))):
+        key = ob.shape_key_add(name=channel + suffix, from_mix=False)
+        key.slider_min = 0.0
+        key.slider_max = 1.0
+        for i, v in enumerate(ob.data.vertices):
+            key.data[i].co = inverse @ shape(world @ v.co, s, ob.name)
+
+
+def build_weights(scales: dict) -> dict:
+    """Shape-key values for {channel: scale}: the same arithmetic as Silhouette.BuildWeights."""
+    out = {}
+    for channel in BUILD_CHANNELS:
+        row = BUILD[channel]
+        s = float(scales.get(channel, 1.0))
+        up = max(0.0, (s - 1.0) / (float(row["max"]) - 1.0))
+        down = max(0.0, (1.0 - s) / (1.0 - float(row["min"])))
+        out[channel + "+"] = min(1.0, up)
+        out[channel + "-"] = min(1.0, down)
+    return out
+
+
+def build_scale(proportions: dict) -> dict:
+    """{channel: scale} for a captain's proportions: the same arithmetic as Silhouette.Build."""
+    out = {}
+    for channel in BUILD_CHANNELS:
+        row = BUILD[channel]
+        ratio = float(proportions[channel]) / float(row["neutral"])
+        out[channel] = 1.0 + float(row["gain"]) * (ratio - 1.0)
+    return out
+
+
+def set_build(scales: dict):
+    """Pose every body piece's build keys for {channel: scale} (the lineup and the bake's max-head check)."""
+    weights = build_weights(scales)
+    for ob in bpy.data.objects:
+        keys = ob.data.shape_keys if ob.type == "MESH" and ob.data.shape_keys else None
+        if keys is None:
+            continue
+        for block in keys.key_blocks:
+            if block.name in weights:
+                block.value = weights[block.name]
+    bpy.context.view_layer.update()
 
 
 def build_scene():
@@ -173,10 +316,21 @@ def build_scene():
         add(kind, "l" + name, (x, y, z), scale, key, "l" + bone, (rx, -ry, -rz))
         add(kind, "r" + name, (-x, y, z), scale, key, "r" + bone, (rx, -ry, -rz))
 
-    add("uv_sphere", "Hip", (0, 0, 2.13), (1.00, 0.65, 0.62), "slack", "pelvis")
+    hip = joint_z("pelvis")
+    shoulder = joint_z("lUpper")
+    elbow = joint_z("lFore")
+    wrist = joint_z("lWrist")
+    knee = joint_z("lShin")
+    ankle = joint_z("lFoot")
+    neck = joint_z("neck")
+    x_arm = JOINT["lUpper"]["head"][0]
+    x_leg = JOINT["lThigh"]["head"][0]
+    hand = Vector(ANATOMY["handCenter"])
+
+    add("uv_sphere", "Hip", (0, 0, hip + 0.02), (1.12, 0.82, 0.70), "slack", "pelvis")
     pieces.append((jersey_mesh(mats["jersey"]), "torso"))
-    add("cube", "Stripe", (0, -0.365, 3.12), (0.16, 0.04, 0.76), "gold", "torso")
-    add("uv_sphere", "NeckMesh", (0, -0.05, 3.80), (0.36, 0.36, 0.55), "flesh", "neck")
+    pieces.append((stripe_mesh(mats["gold"], joint_z("torso") - 0.15, joint_z("lClavicle") - 0.12), "torso"))
+    add("uv_sphere", "NeckMesh", (0, -0.05, neck + 0.06), (0.46, 0.46, 0.30), "flesh", "neck")
     d = ANATOMY["headDiameter"]
     add("uv_sphere", "headMesh", tuple(HEAD), (d, d, d), "flesh", "head")
     face = d / 1.72
@@ -190,16 +344,18 @@ def build_scene():
     add("uv_sphere", "Mouth", tuple(HEAD + Vector((0,-.80,-.28))*face), tuple(v*face for v in (.42,.16,.18)), "ink", "head")
     # No cap. Sculpted toy segments overlap at the anatomical pivots. Wrists
     # and feet have independent skin groups, so they can articulate naturally.
-    sym("uv_sphere", "Shoulder", (.72,0,3.45), (.46,.46,.46), "jersey", "Upper")
-    sym("uv_sphere", "UpperMesh", (.72,0,2.99), (.40,.42,1.12), "jersey", "Upper")
-    sym("uv_sphere", "Elbow", (.72,0,2.48), (.31,.31,.31), "flesh", "Fore")
-    sym("uv_sphere", "ForeMesh", (.72,0,2.05), (.32,.34,1.02), "flesh", "Fore")
-    sym("uv_sphere", "Hand", tuple(ANATOMY["handCenter"]), (.32,.28,.32), "flesh", "Wrist")
-    sym("uv_sphere", "Thumb", (.57,-.08,1.49), (.14,.17,.22), "flesh", "Wrist")
-    sym("uv_sphere", "ThighMesh", (.36,0,1.65), (.52,.56,1.15), "slack", "Thigh")
-    sym("uv_sphere", "Knee", (.36,0,1.16), (.38,.39,.39), "slack", "Shin")
-    sym("uv_sphere", "ShinMesh", (.36,0,.71), (.36,.40,1.02), "slack", "Shin")
-    sym("uv_sphere", "Shoe", tuple(ANATOMY["shoeCenter"]), (.44,.76,.32), "leather", "Foot")
+    # Toy weight: short thick legs, round mitts, big shoes; the arms keep the
+    # shared reach so every take's hands land where they did.
+    sym("uv_sphere", "Shoulder", (x_arm, 0, shoulder - 0.04), (.52, .52, .52), "jersey", "Upper")
+    sym("uv_sphere", "UpperMesh", (x_arm, 0, (shoulder + elbow) / 2), (.46, .48, (shoulder - elbow) * 1.08), "jersey", "Upper")
+    sym("uv_sphere", "Elbow", (x_arm, 0, elbow), (.35, .35, .35), "flesh", "Fore")
+    sym("uv_sphere", "ForeMesh", (x_arm, 0, (elbow + wrist) / 2), (.37, .39, (elbow - wrist) * 1.14), "flesh", "Fore")
+    sym("uv_sphere", "Hand", tuple(hand), (.40, .35, .40), "flesh", "Wrist")
+    sym("uv_sphere", "Thumb", (hand.x - .18, hand.y, hand.z + .03), (.16, .19, .24), "flesh", "Wrist")
+    sym("uv_sphere", "ThighMesh", (x_leg, 0, (hip + knee) / 2), (.62, .64, (hip - knee) * 1.30), "slack", "Thigh")
+    sym("uv_sphere", "Knee", (x_leg, 0, knee), (.44, .45, .45), "slack", "Shin")
+    sym("uv_sphere", "ShinMesh", (x_leg, 0, (knee + ankle) / 2), (.47, .50, (knee - ankle) * 1.18), "slack", "Shin")
+    sym("uv_sphere", "Shoe", tuple(ANATOMY["shoeCenter"]), (.62, 1.00, .38), "leather", "Foot")
 
     bpy.context.view_layer.objects.active = arm_ob
     bpy.ops.object.mode_set(mode="OBJECT")
@@ -207,10 +363,14 @@ def build_scene():
         skin(ob, arm_ob, bone)
         if ob.name == "torsoMesh":
             chest=ob.vertex_groups["torso"];waist=ob.vertex_groups.new(name="spine")
+            low = joint_z("torso") - 0.25
             for v in ob.data.vertices:
-                weight=max(0.0,min(1.0,(v.co.z-2.65)/.45))
+                weight=max(0.0,min(1.0,(v.co.z-low)/.50))
                 chest.add([v.index],weight,"REPLACE")
                 waist.add([v.index],1-weight,"REPLACE")
+        channel = build_channel(ob.name, bone)
+        if channel is not None:
+            add_build_keys(ob, channel)
 
     missing = [n for n in BONES if n not in arm_data.bones]
     if missing:
@@ -220,6 +380,7 @@ def build_scene():
     if lost:
         raise RuntimeError("missing landmarks: " + ",".join(lost))
     return arm_ob
+
 
 
 FBX_AXES = dict(

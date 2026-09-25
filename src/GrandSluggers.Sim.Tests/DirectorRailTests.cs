@@ -64,6 +64,10 @@ public sealed class DirectorRailTests
         var editor = File.ReadAllText(Path.GetFullPath(Path.Combine(Scripts, "..", "Editor", "StillCapture.cs")));
         Assert.Contains("[InitializeOnLoad]", editor, StringComparison.Ordinal);
         Assert.Contains("File.Exists(StillRequest.RequestPath(temp))", editor, StringComparison.Ordinal);
+        // Unity attaches only runtime-assembly components: the editor capture must not be one, or Play refuses it and the
+        // gate waits forever. It runs on the runtime PlayHost.
+        Assert.DoesNotContain(": MonoBehaviour", editor, StringComparison.Ordinal);
+        Assert.Contains("AddComponent<PlayHost>()", editor, StringComparison.Ordinal);
     }
 
     [Fact]

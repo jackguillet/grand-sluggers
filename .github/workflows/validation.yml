@@ -1,7 +1,9 @@
 name: Validation
 
 on:
+  # labeled / unlabeled re-run the checks when an author adds an override label (book-unchanged).
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
 
@@ -29,6 +31,15 @@ jobs:
       # An added spec line says what the game does, never who built it or when (AGENTS.md).
       - name: Spec provenance
         run: python3 tools/spec-provenance.py
+      # AGENTS.md "Rails, not patches": docs/how-to-play.md and HowToPlay change together (override: book-unchanged).
+      - name: Book pair
+        if: github.event_name == 'pull_request'
+        env:
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: python3 tools/book-pair.py
+      # AGENTS.md "Art": no Nintendo names in data, art, the book or couch copy.
+      - name: Original IP
+        run: python3 tools/original_ip.py
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x

@@ -6,7 +6,7 @@ The bar is *Mario Super Sluggers* (Wii, 2008): a play is decided by **where the 
 
 Authored body/motion/equipment contract: [baseball-motion-spec.md](baseball-motion-spec.md). Animation changes preserve this document’s input, contact, release and outcome rules.
 
-Companion docs: [systems.md](systems.md) (chemistry, stars, gear, parks), [how-to-play.md](how-to-play.md) (couch buttons), [research-sluggers.md](research-sluggers.md) (the reference teardown), [roadmap.md](roadmap.md) (the order we build this in). Feel numbers stay in `data/feel/`. Rule numbers move to `data/rules/` (section 16).
+Companion docs: [systems.md](systems.md) (chemistry, stars, gear, parks), [how-to-play.md](how-to-play.md) (couch buttons), [research-sluggers.md](archive/reference/research-sluggers.md) (the reference teardown), [roadmap.md](roadmap.md) (the order we build this in). Feel numbers stay in `data/feel/`. Rule numbers move to `data/rules/` (section 16).
 
 Status tags used throughout. [Appendix A](archive/gameplay-spec-appendix-a.md), now archived, keeps the original gap-audit rows as the record.
 A rule says what the game does, not who built it: a behavior change updates its rule in the same PR, with a bare tag and no issue or PR number and no date ([agent-rails.md](agent-rails.md) §1.2). CI rejects an added spec line that carries one (`tools/spec-provenance.py`). Commit history keeps who did what; the provenance the spec used to carry is in [archive/spec-provenance.md](archive/spec-provenance.md).

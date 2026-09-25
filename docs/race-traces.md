@@ -1,6 +1,6 @@
 # Race observations for #693 / #702
 
-Session kind: **Gameplay — measurement infrastructure**. This extends `PlayTrace`, the scenario harness, `ContentDataValidator`, and `cli match`. It changes no gameplay coefficient. Jack's accepted directions and unresolved numerical choices remain in [D19](spec/00-decisions.md#02-field-proportions-and-race-calibration--d19) and the [decision register](plan-game-feel-693.md#decision-register).
+Session kind: **Gameplay — measurement infrastructure**. This extends `PlayTrace`, the scenario harness, `ContentDataValidator`, and `cli match`. It changes no gameplay coefficient. Jack's accepted directions and unresolved numerical choices remain in [D19](spec/00-decisions.md#02-field-proportions-and-race-calibration--d19) and the [decision register](decisions/plan-game-feel-693.md#decision-register).
 
 ## Version 2 contract
 
@@ -47,7 +47,7 @@ The initial accepted record preserves F693-06: **1.8–5 mean runs per side**, s
 
 Jack accepted F693-06-H on September 14, 2026: each Harbor cohort now has the same 1.8–5 mean-runs target, separately home and away, in addition to S-29. This is a calibration acceptance target; the baseline has documented misses and does not pass it. Once inspected, a validation cohort is a fixed regression cohort rather than fresh unseen evidence; reserve additional unseen seeds before evaluating future candidates. Reports retain each game's identity, score, outcome counts (including doubles and triples), and multiple-out plays. Those outcome counts do not establish relay opportunity rates or player enjoyment; the live fixtures and subsequent sitting own those questions.
 
-The measured results, verification revisions, and subsequent accepted Harbor scoring decision are in [the #702 report](research-game-feel-702.md); its [dataset](research/game-feel-702-baseline.json) is derived by `tools/race-report.py`.
+The measured results, verification revisions, and subsequent accepted Harbor scoring decision are in [the #702 report](archive/game-feel/research-game-feel-702.md); its [dataset](research/game-feel-702-baseline.json) is derived by `tools/race-report.py`.
 
 ## Reproduce
 

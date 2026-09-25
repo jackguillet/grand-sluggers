@@ -89,7 +89,7 @@ The take is the swing that is judged: a charge (`ChargeFeel.IsCharge`, the same 
 
 - `zone × charge`: the §5.2 table — 0 → the slap column; MAX → the charge column (**×1.25** on a perfect; reference: charge perfect 160–170 vs slap perfect 145–150, with less gravity). Below MAX interpolates; past the band the charge decays and the exit slides back toward the slap column. ✅ P1 (S-11, S-30)
 - **No `buddies` term.** Good-chemistry runners on base used to multiply a charged swing's exit (×1.10 / 1.25 / 1.50, `buddiesOnBase.*Mul`) and widen a slap (§5.2). Jack removed plate-level chemistry (PH-16-R14): runners on base change neither the barrel nor the exit. ✅ (S-144)
-- `pitch` (`batting.pitchFactor`): a charged pitch met with sour contact ×0.6; met with a perfect charge ×1.1 (reference "pitch type impact"). A high-**Movement** arm dampens non-perfect contact per point above 5 (nice ×0.9, sour ×0.75 at Movement 10) — the reference's hidden "cursed ball" made visible as the arm's stuff (Movement tracks Pitch until authored, §2). ✅ P1, P3-a
+- `pitch` (`batting.pitchFactor`): a charged pitch met with sour contact ×0.6; met with a perfect charge ×1.1 (reference "pitch type impact"). A high-**Movement** arm dampens non-perfect contact per point above 5 (nice ×0.9, sour ×0.75 at Movement 10) — the reference's hidden "cursed ball" made visible as the arm's stuff (Movement is the Break sub-stat, §2). ✅ P1, P3-a
 - The Charge Bat gives a manual-MAX charge for free and keeps the narrow charge zones and the charge window off; it is never worse than a manual charge. ✅ (S-30). Its **window** clause is moot — nobody has a charge window to be spared — and its **spatial** clause is the whole item: it keeps the wide slap zones on a MAX charge, which is exactly the half PH-11-R1 says a charge trades. ✅ (S-30, S-125)
 - Pull / push hitters (`data/characters/` optional `hitType`): ×1.05 to the named side, ×0.9 to the other. Optional; default mid.
 
@@ -154,7 +154,7 @@ That is why walking the rubber is a real verb against the CPU. Timing error σ =
 
 Charge vs slap by archetype (reference, `cpu.archetype`): balanced 50%, power 80%, speed 30%, technique 10% — derived from the character's **Power**/Run split (Power − Run ≥ `splitStat` = power, Run − Power ≥ `splitStat` = speed), with the technique gate on **Contact** and Run (both ≥ `techniqueMin`). ✅ P1, retargeted by P2-a
 
-**Which trait each CPU read takes** (PH-15-R5; the rows above name `Bat` because it is the number a reader recognizes, and every trait equals `Bat` until one is authored). ✅ (S-122)
+**Which trait each CPU read takes** (PH-15-R5; the rows above name `Bat` because it is the number a reader recognizes; each read takes a sub-stat, never the derived bar, §2). ✅ (S-122)
 
 | Read | `Match` | Trait | Why |
 | --- | --- | --- | --- |

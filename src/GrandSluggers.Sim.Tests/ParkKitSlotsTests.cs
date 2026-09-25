@@ -35,10 +35,11 @@ public sealed class ParkKitSlotsTests
 
     /// <summary>
     /// Harbor fills the seven pieces <c>HarborKit</c> draws today, and every park names its light and sky (F6-c). The five
-    /// other parks are the plain greybox (FR-13, #1045): every dress slot empty, <c>toy-actors</c> for their hazards.
+    /// other parks are the greybox in their own colors (FR-13): the one park-neutral bowl of bleachers painted by their
+    /// palette's stands block, every other dress slot empty, <c>toy-actors</c> for their hazards.
     /// </summary>
     [Fact]
-    public void FD16_HarborFillsItsKitsSevenPiecesAndTheOtherParksAreTheGreybox()
+    public void FD16_HarborFillsItsKitsSevenPiecesAndTheOtherParksAreTheGreyboxWithTheKitBowl()
     {
         var harbor = Kit(ParkId.Harbor);
         Assert.Equal(ParkKitSlots.HarborLawn, harbor.Filler(ParkKitSlots.Lawn));
@@ -49,20 +50,45 @@ public sealed class ParkKitSlotsTests
         Assert.Equal(ParkKitSlots.HarborTown, harbor.Filler(ParkKitSlots.Backdrop));
         Assert.Equal(ParkKitSlots.HarborFireworks, harbor.Filler(ParkKitSlots.Night));
         Assert.Equal([ParkKitSlots.Props, ParkKitSlots.HazardActors], harbor.Empty);
-        // Every other park is the plain greybox (FR-13, #1045): no dress slot names a builder; light, sky and palette are data.
+        // Every other park: the kit bowl in its own palette; no other dress slot names a builder; light and sky are data.
         string[] greybox = [ParkKitSlots.Lawn, ParkKitSlots.Dugouts, ParkKitSlots.Wall, ParkKitSlots.Scoreboard,
-            ParkKitSlots.Stands, ParkKitSlots.Backdrop, ParkKitSlots.Night, ParkKitSlots.Props];
+            ParkKitSlots.Backdrop, ParkKitSlots.Night, ParkKitSlots.Props];
         foreach (var park in Catalog.Parks.Keys.Where(p => p != ParkId.Harbor))
         {
             Assert.Equal(greybox, Kit(park).Empty);
+            Assert.Equal(ParkKitSlots.KitBowl, Kit(park).Filler(ParkKitSlots.Stands));
+            Assert.NotNull(Kit(park).Palette?.Stands);
+            Assert.NotNull(Kit(park).Palette?.Track);
             Assert.Equal(ParkKitSlots.ToyActors, Kit(park).Filler(ParkKitSlots.HazardActors));
             Assert.NotNull(Kit(park).Filler(ParkKitSlots.Light));
             Assert.NotNull(Kit(park).Filler(ParkKitSlots.Sky));
         }
-        // Only Harbor's kit pieces are builders: no other park can name hand-built dress again.
-        Assert.All(new[] { ParkKitSlots.Stands, ParkKitSlots.Backdrop, ParkKitSlots.Night },
+        // The stands builders are Harbor's bowl and the one park-neutral bowl; no park can name hand-built dress again.
+        Assert.Equal([ParkKitSlots.HarborStands, ParkKitSlots.KitBowl], ParkKitSlots.Builders[ParkKitSlots.Stands]);
+        Assert.All(new[] { ParkKitSlots.Backdrop, ParkKitSlots.Night },
             slot => Assert.Equal(ParkKitSlots.Builders[slot], ParkKitSlots.Builders[slot].Where(b => b.StartsWith("harbor-", StringComparison.Ordinal))));
         Assert.Empty(ParkKitSlots.Builders[ParkKitSlots.Props]);
+    }
+
+    /// <summary>A park that names the kit bowl must say how to paint it; the palette's stands block is read strictly.</summary>
+    [Fact]
+    public void FD16_TheKitBowlNeedsAStandsBlockAndTheBlockIsReadStrictly()
+    {
+        var crystal = Kit(ParkId.Crystal);
+        Assert.Contains("park kit crystal-rink slot stands names kit-bowl, but its palette names no stands",
+            ParkKitSlots.Validate(crystal with { Palette = crystal.Palette! with { Stands = null } }));
+        static System.Text.Json.Nodes.JsonNode Palette(string stands) => System.Text.Json.Nodes.JsonNode.Parse(
+            """{"grass": {"color": "#3EA84E", "smooth": 0.1}, "water": {"color": "#2E7CB0", "smooth": 0.8}, "dirt": {"color": "#C49A60", "smooth": 0.1}, "wall": {"color": "#224422", "smooth": 0.1}, "wallAlt": null, "cap": {"color": "#FFCC40", "smooth": 0.4}, "pole": {"color": "#FFCC40", "smooth": 0.4}, "stands": """ + stands + "}")!;
+        var ok = ParkLooks.ParsePalette(Palette("""{"steps": {"color": "#AAAAAA", "smooth": 0.1}, "seats": ["#FF0000", [0, 0, 1]], "crowd": ["#FFFFFF"], "rail": {"color": "#FFCC40", "smooth": 0.4}, "roof": null, "fill": 0.5}"""), "p");
+        Assert.Equal(2, ok.Stands!.Seats.Count);
+        Assert.Null(ok.Stands.Roof);
+        Assert.Null(ok.Track);
+        Assert.Contains("p.stands.seats must be a list of 1 to 8 colors", Assert.Throws<InvalidDataException>(() => ParkLooks.ParsePalette(
+            Palette("""{"steps": {"color": "#AAAAAA", "smooth": 0.1}, "seats": [], "crowd": ["#FFFFFF"], "rail": {"color": "#FFCC40", "smooth": 0.4}, "roof": null, "fill": 0.5}"""), "p")).Message);
+        Assert.Contains("p.stands.fill must be 0 to 1", Assert.Throws<InvalidDataException>(() => ParkLooks.ParsePalette(
+            Palette("""{"steps": {"color": "#AAAAAA", "smooth": 0.1}, "seats": ["#FF0000"], "crowd": ["#FFFFFF"], "rail": {"color": "#FFCC40", "smooth": 0.4}, "roof": null, "fill": 1.5}"""), "p")).Message);
+        Assert.Contains("p.stands.awning is not a key here", Assert.Throws<InvalidDataException>(() => ParkLooks.ParsePalette(
+            Palette("""{"steps": {"color": "#AAAAAA", "smooth": 0.1}, "seats": ["#FF0000"], "crowd": ["#FFFFFF"], "rail": {"color": "#FFCC40", "smooth": 0.4}, "roof": null, "fill": 1, "awning": 1}"""), "p")).Message);
     }
 
     /// <summary>The validator names each fault: a slot left out, a slot that is not one, a builder that is not the slot's, and a Harbor piece off the Harbor lawn.</summary>

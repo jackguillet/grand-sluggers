@@ -13,7 +13,7 @@ That is not a rail. It is five patches that agree by accident.
 ## The rules
 
 1. **One rig.** `hero-shared` from `tools/blender/hero_shared_blockout.py`. Bone names in `data/art/rig.json` are the contract. There is no second skeleton and no unique package. Every captain, Fenn included, is this rig.
-2. **A captain is data.** Its `proportions` (root scale), `teamName` and `signatureBat` in `data/characters/<id>.json`, read through `Silhouette.Proportions`, and a faction palette. `data/art/extras.json` slots stay; skins list none until extras read as toys (#687). No per-captain geometry in C#.
+2. **A captain is data.** Its `proportions` (Height and Width are the root scale; Head, Arms and Torso are the build: shape keys on the one mesh, `Silhouette.Build`), `teamName` and `signatureBat` in `data/characters/<id>.json`, read through `Silhouette.Proportions`, and a faction palette. `data/art/extras.json` slots stay; skins list none until extras read as toys (#687). No per-captain geometry in C#.
 3. **One motion source: Blender takes.** Every `Motion.Verb` plays an FBX clip baked by `tools/blender/hero_shared_takes.py` from one pose table. C# contains no Euler angles for any body part. `SwingPresentation` and `BattingStance` remain the *contract* the swing take is authored against and measured by; they never drive bones.
 4. **Handedness is baked.** A handed take is authored right-handed and reflected across the sagittal plane in Blender, exactly, into `{clip}-L.fbx`. Both files are validated per frame against the same handed contract. Runtime picks the file by `Character.Bats` or `Character.Throws`. There is no runtime mirroring of any bone, socket, or sample.
 5. **The sim owns the clock.** A clip is sampled at a time the sim computes: world time for loops, verb time for one-shots, `LoadSampleAt(charge)` for a held load. Markers (`Contact`, `Release`, `FootPlant`) are at the same seconds the sim uses. The swing is the one take the sim time-warps (D13, #612): for a press inside the timing window `AtBatMotion.SwingClipTime` compresses load → contact so the `Contact` mark lands on the ball's plate time, then plays the follow-through at the take's own speed; outside the window the take plays at its natural 0.50 s. The warp only changes when a key is shown, never its order or its pose. Presentation never advances a clip on its own.
@@ -46,10 +46,24 @@ the animated grip socket under `rWrist`; the left clip keys it in the other hand
 The legacy `glove` bone stays in the shared chain for file compatibility, while
 equipment attaches to the anatomical wrist sockets.
 
-The neutral body is 4.81 units tall with a 0.90-unit head, longer legs and a
-continuous jersey weighted across spine/chest. Joint names, parents and rest
-endpoints are data. Every clip must contain the revised joints; `cli art`
-rejects old skeleton clips even when their player copies are byte-identical.
+The neutral body (revision 3) is a toy about four heads tall: 4.80 units with a
+1.20-unit head, short legs (hip 1.60, knee 0.90), a long round jersey weighted
+across spine/chest, almost no neck, and arms of the shared reach. Joint names,
+parents and rest endpoints are data. Every clip must contain the revised joints;
+`cli art` rejects old skeleton clips even when their player copies are
+byte-identical. `anatomy.knee` and `anatomy.chest` are the rest landmarks the
+strike zone reads (`Silhouette.KneeFt` / `ChestFt`, world feet per captain).
+
+**Build.** A captain's head, arms and torso are shape keys on the body pieces,
+never a joint, so every take stays shared. `data/art/rig.json` `build` names each
+channel's `neutral`, `gain`, `min` and `max`; the scale is
+`1 + gain · (proportion / neutral − 1)`, and `{channel}+` / `{channel}-` are the
+keys authored at max and min. The head grows about the neck top, the arms thicken
+about the bone line (mitts grow about their centers), the torso widens about the
+body axis. `Silhouette.Build` is the one function: `SharedRig` sets the weights
+from it, and the swing contract, the stills and the ladder measure from it. The
+takes bake checks the bat against the head at the build's max; `cli art` refuses
+a captain whose build falls outside the keys.
 
 Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`,
 `rHand`, `lShoe`, `rShoe`. Hands are weighted to wrists and shoes to feet.

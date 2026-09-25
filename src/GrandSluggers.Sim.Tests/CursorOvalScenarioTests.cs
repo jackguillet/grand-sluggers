@@ -264,7 +264,7 @@ public sealed class CursorOvalScenarioTests
     Character Hitter(int contact, Hand bats)
     {
         var who = _content.Must("pip");
-        return who with { Bats = bats, Stats = new Stats(who.Stats.Pitch, 5, who.Stats.Field, 5) { Contact = contact } };
+        return who with { Bats = bats, Stats = who.Stats with { Contact = contact, Power = 5, Run = 5 } };
     }
 
     /// <summary>Up to three runners with good chemistry with the hitter (a slap widened for them before #891).</summary>
