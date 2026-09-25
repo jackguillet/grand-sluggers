@@ -12,12 +12,11 @@ public sealed class DirectorRailTests
 {
     static readonly string[] StillPartial =
     [
-        "AtBatDirector.cs", "FlowDirector.cs",
-        "MatchDirector.cs",
+        "FlowDirector.cs", "MatchDirector.cs",
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
-    const int MatchDirectorCeiling = 795;
+    const int MatchDirectorCeiling = 745;
 
     static string Scripts => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "Assets", "Scripts"));
 
@@ -55,6 +54,7 @@ public sealed class DirectorRailTests
     [InlineData("ItemToss")]
     [InlineData("DefenseSwapWindow")]
     [InlineData("SetCamera")]
+    [InlineData("AtBatDirector")]
     public void TheDirectorIsARealClass(string director)
     {
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));
@@ -70,10 +70,10 @@ public sealed class DirectorRailTests
     public void TheNewPitchClearsStateOnItsOwners()
     {
         var atBat = File.ReadAllText(Path.Combine(Scripts, "Runtime", "AtBatDirector.cs"));
-        Assert.Contains("Play.NewPitch();", atBat, StringComparison.Ordinal);
-        Assert.Contains("Live.NewPitch();", atBat, StringComparison.Ordinal);
-        Assert.Contains("AtBat.NewPitch();", atBat, StringComparison.Ordinal);
-        foreach (var owned in new[] { "_gloveAt.Clear()", "_resultBodies = null", "_pending = null", "_closeBag = 0", "_cpuSteer = 0" })
+        Assert.Contains("_play.NewPitch();", atBat, StringComparison.Ordinal);
+        Assert.Contains("_live.NewPitch();", atBat, StringComparison.Ordinal);
+        Assert.Matches(@"(?m)^\s+NewPitch\(\);", atBat);
+        foreach (var owned in new[] { "GloveAt.Clear()", "ResultBodies = null", "Pending = null", "CloseBag = 0" })
             Assert.DoesNotContain(owned, atBat, StringComparison.Ordinal);
     }
 
