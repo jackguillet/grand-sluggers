@@ -526,6 +526,77 @@ STYLE_POSES = {
                      lFore=limb(66), rFore=limb(66), lThigh=limb(8, 4), rThigh=limb(8, 4), lShin=limb(14), rShin=limb(14))),
         ], 0.6),
     ),
+    # Sable: the desert trickster. A low sidelong slink, loose arms, the hips swaying; still, the weight rolls hip to hip.
+    "trickster": dict(
+        gait=dict(lean=14, leanAmp=4, spine=4, head=-6, headTurn=14, turn=22, tilt=8, armBase=-6, armFwd=34, armBack=40,
+                  armAbduct=22, foreBase=34, foreFwd=20, foreBack=40, forePass=40, thighFwd=50, thighBack=40, thighPass=10,
+                  kick=58, kickPass=46, shinLead=12, bounce=0.05, bouncePass=0.08, liftBase=-0.04),
+        idle=[
+            (0.00, K(pelvis=spine(0, 0, 6), torso=spine(8, 10, -6), spine=spine(4), head=spine(-4, -16, 6),
+                     lUpper=limb(-8, 20), rUpper=limb(22, 16), lFore=limb(30), rFore=limb(64),
+                     lThigh=limb(4, 2), rThigh=limb(18, -4), lShin=limb(6), rShin=limb(30))),
+            (1.00, K(pelvis=spine(0, 0, -6), torso=spine(8, -10, 6), spine=spine(4), head=spine(-4, 16, -6),
+                     lUpper=limb(22, 16), rUpper=limb(-8, 20), lFore=limb(64), rFore=limb(30),
+                     lThigh=limb(18, -4), rThigh=limb(4, 2), lShin=limb(30), rShin=limb(6))),
+        ],
+        stance=K(torso=spine(8, 6), spine=spine(4), head=spine(-4), lThigh=limb(12, 4), rThigh=limb(12, 4),
+                 lShin=limb(18), rShin=limb(18)),
+        windup=K(torso=spine(12, 8), spine=spine(4), head=spine(-10), lUpper=limb(0, -8)), kick=0.9,
+        # Heat-haze shimmy: the hips shake side to side under a still head, the arms rippling out low like a mirage.
+        signature=([
+            (0.00, K(pelvis=spine(0, 10, 10), torso=spine(4, -8, -10), head=spine(-6, 4, 8), lUpper=limb(30, 70), rUpper=limb(10, 60),
+                     lFore=limb(50), rFore=limb(10), lThigh=limb(12, 6), rThigh=limb(4, 6), lShin=limb(20), rShin=limb(8))),
+            (0.18, K(pelvis=spine(0, -10, -10), torso=spine(4, 8, 10), head=spine(-6, -4, -8), lUpper=limb(10, 60), rUpper=limb(30, 70),
+                     lFore=limb(10), rFore=limb(50), lThigh=limb(4, 6), rThigh=limb(12, 6), lShin=limb(8), rShin=limb(20))),
+        ], 0.36),
+    ),
+    # Hollis: the mountain climber. A heavy uphill drive, knees high, fists pumping; still, a hand shades the eyes for the peak.
+    "climber": dict(
+        gait=dict(lean=18, leanAmp=6, spine=6, head=-14, turn=12, tilt=3, armBase=8, armFwd=46, armBack=34, armAbduct=20,
+                  foreBase=60, foreFwd=24, foreBack=64, forePass=70, thighAbduct=6, thighFwd=70, thighBack=30, thighPass=16,
+                  kick=44, kickPass=40, shinLead=18, bounce=0.04, bouncePass=0.10, liftBase=-0.04),
+        idle=[
+            (0.00, K(torso=spine(-2), spine=spine(-4), head=spine(-10, 10), lUpper=limb(8, 26), rUpper=limb(132, 22, -20),
+                     lFore=limb(40), rFore=limb(96), lThigh=limb(8, 14), rThigh=limb(8, 14), lShin=limb(12), rShin=limb(12))),
+            (1.00, K(torso=spine(-2, 0, 2), spine=spine(-4), head=spine(-12, -14), lUpper=limb(10, 28), rUpper=limb(136, 22, -20),
+                     lFore=limb(44), rFore=limb(100), lThigh=limb(10, 14), rThigh=limb(10, 14), lShin=limb(14), rShin=limb(14))),
+        ],
+        stance=K(torso=spine(6), spine=spine(2), lThigh=limb(10, 10), rThigh=limb(10, 10), lShin=limb(16), rShin=limb(16)),
+        windup=K(torso=spine(-6), spine=spine(-3), head=spine(-6), lUpper=limb(0, 16)), kick=1.1,
+        # Summit plant: both fists raise an unseen flag high, then drive it down into the rock with a bent-knee lunge.
+        signature=([
+            (0.00, K(torso=spine(-8), spine=spine(-6), head=spine(-20), lUpper=limb(168, 12), rUpper=limb(168, 12),
+                     lFore=limb(14), rFore=limb(14), lThigh=limb(4, 10), rThigh=limb(4, 10), lShin=limb(6), rShin=limb(6), hop=0.10)),
+            (0.40, K(torso=spine(22), spine=spine(8), head=spine(-4), lUpper=limb(70, 10), rUpper=limb(70, 10),
+                     lFore=limb(20), rFore=limb(20), lThigh=limb(46, 14), rThigh=limb(10, 14), lShin=limb(52), rShin=limb(20))),
+        ], 0.8),
+    ),
+    # Reed: the frog. A deep knees-out squat and a springing, bounding run; still, the throat pulses and the body bobs.
+    "hopper": dict(
+        gait=dict(lean=20, leanAmp=6, spine=6, head=-18, turn=6, gallop=True, armBase=10, armFwd=40, armBack=46,
+                  armAbduct=22, foreBase=20, foreFwd=14, foreBack=24, forePass=26, thighAbduct=22, thighBase=14,
+                  thighFwd=64, thighBack=40, thighPass=26, shinLead=26, shinBase=24, kick=70, kickPass=66,
+                  bounce=0.20, bouncePass=0.06, liftBase=-0.10),
+        idle=[
+            (0.00, K(torso=spine(22), spine=spine(8), head=spine(-26), lUpper=limb(34, 20), rUpper=limb(34, 20), lFore=limb(24),
+                     rFore=limb(24), lThigh=limb(74, 42), rThigh=limb(74, 42), lShin=limb(112), rShin=limb(112))),
+            (0.40, K(torso=spine(18), spine=spine(6), head=spine(-30, 6), lUpper=limb(30, 20), rUpper=limb(30, 20), lFore=limb(20),
+                     rFore=limb(20), lThigh=limb(66, 42), rThigh=limb(66, 42), lShin=limb(98), rShin=limb(98))),
+            (1.00, K(torso=spine(22), spine=spine(8), head=spine(-26), lUpper=limb(34, 20), rUpper=limb(34, 20), lFore=limb(24),
+                     rFore=limb(24), lThigh=limb(74, 42), rThigh=limb(74, 42), lShin=limb(112), rShin=limb(112))),
+            (1.40, K(torso=spine(18), spine=spine(6), head=spine(-30, -6), lUpper=limb(30, 20), rUpper=limb(30, 20), lFore=limb(20),
+                     rFore=limb(20), lThigh=limb(66, 42), rThigh=limb(66, 42), lShin=limb(98), rShin=limb(98))),
+        ],
+        stance=K(torso=spine(2), lThigh=limb(20, 12), rThigh=limb(20, 12), lShin=limb(32), rShin=limb(32)),
+        windup=K(torso=spine(10), head=spine(-8), lThigh=limb(0, 8)), kick=0.8,
+        # Crouch and spring: down into the squat, arms back, then a big spring with the arms flung high and the legs straight.
+        signature=([
+            (0.00, K(torso=spine(28), spine=spine(8), head=spine(-30), lUpper=limb(-40, 20), rUpper=limb(-40, 20),
+                     lFore=limb(20), rFore=limb(20), lThigh=limb(80, 42), rThigh=limb(80, 42), lShin=limb(120), rShin=limb(120))),
+            (0.30, K(torso=spine(-6), spine=spine(-4), head=spine(-16), lUpper=limb(166, 30), rUpper=limb(166, 30),
+                     lFore=limb(8), rFore=limb(8), lThigh=limb(0, 16), rThigh=limb(0, 16), lShin=limb(4), rShin=limb(4), hop=0.55)),
+        ], 0.7),
+    ),
 }
 
 # Named default motion data; both hands are baked from this one source.

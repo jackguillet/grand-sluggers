@@ -19,11 +19,9 @@
     { "id": "ape",        "motionStyle": "ape",        "groundReachFt": 4.4, "flyReachFt": 4.6, "contactWidthMul": 1.10, "accelSec": 0.26, "brakeSec": 0.13, "knockbackMul": 0.60 },
     { "id": "villain",    "motionStyle": "villain",    "groundReachFt": 4.2, "flyReachFt": 4.2, "contactWidthMul": 1.05, "accelSec": 0.30, "brakeSec": 0.15, "knockbackMul": 0.50 },
     { "id": "turtle",     "motionStyle": "turtle",     "groundReachFt": 4.4, "flyReachFt": 4.0, "contactWidthMul": 1.00, "accelSec": 0.26, "brakeSec": 0.13, "knockbackMul": 0.60 },
-    // The three new captains' classes (WD-14 A). Each borrows an existing class's takes until its own style is authored
-    // (art): trickster moves as pageant, climber as brick, hopper as speed. `owedStyle` names the style each will own; the
-    // link check refuses the borrow once that style exists.
-    { "id": "trickster",  "motionStyle": "pageant",    "owedStyle": "trickster", "groundReachFt": 4.0, "flyReachFt": 3.8, "contactWidthMul": 1.00, "accelSec": 0.18, "brakeSec": 0.09, "knockbackMul": 0.85 },
-    { "id": "climber",    "motionStyle": "brick",      "owedStyle": "climber", "groundReachFt": 4.2, "flyReachFt": 4.2, "contactWidthMul": 1.05, "accelSec": 0.24, "brakeSec": 0.12, "knockbackMul": 0.65 },
-    { "id": "hopper",     "motionStyle": "speed",      "owedStyle": "hopper", "groundReachFt": 3.8, "flyReachFt": 4.6, "contactWidthMul": 1.00, "accelSec": 0.14, "brakeSec": 0.07, "knockbackMul": 0.95 }
+    // The three new captains' classes (WD-14 A), each in its own style (#1164).
+    { "id": "trickster",  "motionStyle": "trickster", "groundReachFt": 4.0, "flyReachFt": 3.8, "contactWidthMul": 1.00, "accelSec": 0.18, "brakeSec": 0.09, "knockbackMul": 0.85 },
+    { "id": "climber",    "motionStyle": "climber",   "groundReachFt": 4.2, "flyReachFt": 4.2, "contactWidthMul": 1.05, "accelSec": 0.24, "brakeSec": 0.12, "knockbackMul": 0.65 },
+    { "id": "hopper",     "motionStyle": "hopper",    "groundReachFt": 3.8, "flyReachFt": 4.6, "contactWidthMul": 1.00, "accelSec": 0.14, "brakeSec": 0.07, "knockbackMul": 0.95 }
   ]
 }
