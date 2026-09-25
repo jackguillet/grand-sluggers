@@ -77,9 +77,6 @@ namespace GrandSluggers.UnityClient
 
         internal enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         internal Phase _phase { get => Play.Phase; set => Play.Phase = value; }
-        /// <summary>The SET defense arrangement window while open; null otherwise.</summary>
-        internal DefenseSetupPick _swapPick;
-        MenuNav.Gate _swapX, _swapY;
         /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
         internal BuntSide _buntSide;
         /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
@@ -399,9 +396,9 @@ namespace GrandSluggers.UnityClient
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, _seatStick.OffersReset, DataProfile.Label);
                 return;
             }
-            if (_phase == Phase.Set && _swapPick != null)
+            if (_phase == Phase.Set && Swap.Open)
             {
-                TeamSheet.DrawPitcherPick(_match, _swapPick, PitchPad.Index);
+                TeamSheet.DrawPitcherPick(_match, Swap.Pick, PitchPad.Index);
                 return;
             }
             if (!mutePlay) _seatStick.DrawTells();
