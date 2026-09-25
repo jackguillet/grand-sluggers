@@ -271,12 +271,18 @@ namespace GrandSluggers.EditorTools
             for (var i = 0; i < 8; i++) Press(GamepadButton.West);
             Require(!lineup.HomeFull, "Removing roster players did not expose open team slots.");
             shot = Capture("team-one-empty"); while (shot.MoveNext()) yield return shot.Current;
+            // SC-24 stills: the inspection card's four bars for every pool captain, the seat's own captain and one role player.
+            var role = false;
             for (var i = 0; i < lineup.Pool.Count; i++)
             {
-                if (!lineup.Pool[i].Captain) continue;
+                if (!lineup.Pool[i].Captain && role) continue;
+                role |= !lineup.Pool[i].Captain;
                 lineup.FocusCell(LineupSeat.Pad1, LineupFocus.Pool, i);
-                shot = Capture("team-card-" + lineup.Pool[i].Id); while (shot.MoveNext()) yield return shot.Current;
+                shot = Capture((lineup.Pool[i].Captain ? "team-card-" : "team-card-role-") + lineup.Pool[i].Id);
+                while (shot.MoveNext()) yield return shot.Current;
             }
+            lineup.FocusCell(LineupSeat.Pad1, LineupFocus.HomeRow, 0);
+            shot = Capture("team-card-" + lineup.HomeCaptain.Id); while (shot.MoveNext()) yield return shot.Current;
             lineup.FocusCell(LineupSeat.Pad1, LineupFocus.HomeRow, 0);
             Press(GamepadButton.RightShoulder);
             Require(lineup.HomeFull, "RB did not fill P1 from roster focus.");
@@ -314,6 +320,14 @@ namespace GrandSluggers.EditorTools
             Require(!play._match.Paused, "Unbound P2 loss blocked returning to setup.");
             Controls.UseDevices(new DeviceSeats(_pad1.deviceId, _pad2.deviceId));
             Controls.CatchPlay(); Press(GamepadButton.East);
+            // SC-24 stills: both pads on the same captain, every captain; both team cards must show the same four bars.
+            while (board.Id(1) != board.Id(0)) Press(GamepadButton.DpadRight, true);
+            for (var i = 0; i < _content.CaptainIds.Count; i++)
+            {
+                Require(board.Id(0) == board.Id(1) && !board.Ready(0) && !board.Ready(1), "Both pads could not browse the same captain.");
+                shot = Capture("captain-2p-" + board.Id(0)); while (shot.MoveNext()) yield return shot.Current;
+                Press(GamepadButton.DpadRight); Press(GamepadButton.DpadRight, true);
+            }
             var start = board.Id(1);
             Press(GamepadButton.DpadRight, true);
             Require(start != board.Id(1), "P2 cannot move its own cursor.");
@@ -332,6 +346,23 @@ namespace GrandSluggers.EditorTools
             lineup.FocusCell(LineupSeat.Pad2, LineupFocus.HomeRow, 8);
             for (var i = 0; i < 8; i++) { Press(GamepadButton.West); Press(GamepadButton.West, true); }
             shot = Capture("team-two-empty"); while (shot.MoveNext()) yield return shot.Current;
+            // SC-24 stills: both seats inspect the same pool player, every pool captain and one role player.
+            role = false;
+            for (var i = 0; i < lineup.Pool.Count; i++)
+            {
+                if (!lineup.Pool[i].Captain && role) continue;
+                role |= !lineup.Pool[i].Captain;
+                lineup.FocusCell(LineupSeat.Pad1, LineupFocus.Pool, i);
+                lineup.FocusCell(LineupSeat.Pad2, LineupFocus.Pool, i);
+                Require(lineup.InspectedBy(LineupSeat.Pad1) == lineup.InspectedBy(LineupSeat.Pad2), "Both seats should inspect one pool player.");
+                shot = Capture((lineup.Pool[i].Captain ? "team-card-2p-" : "team-card-2p-role-") + lineup.Pool[i].Id);
+                while (shot.MoveNext()) yield return shot.Current;
+            }
+            lineup.FocusCell(LineupSeat.Pad1, LineupFocus.AwayRow, 0);
+            lineup.FocusCell(LineupSeat.Pad2, LineupFocus.HomeRow, 0);
+            shot = Capture("team-card-2p-own"); while (shot.MoveNext()) yield return shot.Current;
+            lineup.FocusCell(LineupSeat.Pad1, LineupFocus.AwayRow, 8);
+            lineup.FocusCell(LineupSeat.Pad2, LineupFocus.HomeRow, 8);
             Press(GamepadButton.RightShoulder); Press(GamepadButton.RightShoulder, true);
             Require(lineup.HomeFull && lineup.AwayFull, "Both controllers cannot fill their teams.");
             shot = Capture("lineup-two-filled"); while (shot.MoveNext()) yield return shot.Current;

@@ -9,7 +9,7 @@ namespace GrandSluggers.UnityClient
     public static partial class TeamSheet
     {
         static GUIStyle _title, _heading, _body, _small, _name, _mark, _badge, _cardName, _fieldName;
-        static GUIStyle _note;
+        static GUIStyle _note, _barLabel, _barValue;
         static Texture2D _white, _field;
         static readonly Color Ink = FrontBoardStyle.Ink;
         static readonly Color Muted = FrontBoardStyle.Muted;
@@ -151,18 +151,20 @@ namespace GrandSluggers.UnityClient
             var card = CharacterCard.Of(who);
             Label(r.x + 14, r.y + 39, r.width - 28, 30, card.Name.ToUpperInvariant(), _cardName);
             Portrait(who, new Rect(r.x + 14, r.y + 78, 132, 132));
-            var values = new[] { card.Stats.Bat, card.Stats.Pitch, card.Stats.Field, card.Stats.Run };
-            var labels = CarnivalFront.RowStats;
-            for (var i = 0; i < values.Length; i++)
+            // The four derived bars (StatBars), laid out by CarnivalFront.LineupCardBars. Either seat draws the same rows.
+            var bars = CarnivalFront.LineupCardBars;
+            for (var i = 0; i < StatBars.Count; i++)
             {
-                var y = r.y + 81 + i * 30;
-                Label(r.x + 159, y, 42, 23, labels[i], _small);
-                Fill(new Rect(r.x + 202, y + 8, 78, 9), FrontBoardStyle.Raised);
-                Fill(new Rect(r.x + 202, y + 8, 78 * (float)CharacterCard.BarFill(values[i]), 9), accent);
-                Label(r.x + 289, y, 28, 23, values[i].ToString(), _small);
+                var y = r.y + bars.RowY(i);
+                var barY = r.y + bars.BarY(i);
+                Label(r.x + bars.LabelX, y, bars.LabelW, bars.Pitch, StatBars.Labels[i], _barLabel);
+                Fill(new Rect(r.x + bars.BarX, barY, bars.BarW, bars.BarH), FrontBoardStyle.Raised);
+                Fill(new Rect(r.x + bars.BarX, barY, bars.BarW * (float)StatBars.Fill(card.Stats, i), bars.BarH), accent);
+                Label(r.x + bars.ValueX, y, bars.ValueW, bars.Pitch, StatBars.ValueText(card.Stats, i), _barValue);
             }
-            Label(r.x + 14, r.y + 218, r.width - 28, 22, card.StarPitch + " / " + card.StarSwing, _body);
-            Label(r.x + 14, r.y + 245, r.width - 28, 23, card.FieldVerb + " · " + HowToPlay.CardBatHand(card.Bats), _small);
+            var verbs = r.y + CarnivalFront.LineupCardVerbsTop;
+            Label(r.x + 14, verbs, r.width - 28, 22, card.StarPitch + " / " + card.StarSwing, _body);
+            Label(r.x + 14, verbs + 27, r.width - 28, 23, card.FieldVerb + " · " + HowToPlay.CardBatHand(card.Bats), _small);
         }
 
         static void CardDetails(Character who, Rect r)
@@ -220,6 +222,9 @@ namespace GrandSluggers.UnityClient
             _body = Style(15, new Color(.88f, .92f, .94f), FontStyle.Bold);
             _small = Style(13, Muted, FontStyle.Bold);
             _name = Style(13, Color.white, FontStyle.Bold); _name.wordWrap = true;
+            _barLabel = Style(CarnivalFront.LineupCardBars.LabelFont, Color.white, FontStyle.Bold);
+            _barValue = Style(CarnivalFront.LineupCardBars.ValueFont, Color.white, FontStyle.Bold);
+            _barValue.alignment = TextAnchor.MiddleRight;
             _mark = Style(12, Color.white, FontStyle.Bold); _mark.alignment = TextAnchor.MiddleCenter;
             _mark.wordWrap = false;
             _fieldName = new GUIStyle(_mark) { fontSize = 10 };

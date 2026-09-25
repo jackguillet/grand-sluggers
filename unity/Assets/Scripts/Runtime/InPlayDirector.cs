@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GrandSluggers.Sim;
@@ -61,6 +62,10 @@ namespace GrandSluggers.UnityClient
                 WestDown: pad.WestDown && TriggerFree(pad, BuntSide.Third), Orders: pad.RunnerOrders);
         }
 
+        /// <summary>The pads for a live step: this frame's, with any press the hit-stop held folded in (CH-13).</summary>
+        LivePadInput LiveFieldInput() => _juice.Field(FieldInput());
+        LivePadInput LiveRunInput() => _juice.Run(RunInput());
+
         void TickInPlay(float dt)
         {
             var live = _match.LivePlay;
@@ -68,7 +73,7 @@ namespace GrandSluggers.UnityClient
             TickItem(dt);
             var result = TutorialOn && (_coach.Tutorial.IsFieldLesson || _coach.Tutorial.IsItemLesson || _coach.Tutorial.IsGameContactLesson)
                 ? TickTutorialField(dt)
-                : live.Apply(LivePlayCommand.Tick(dt, FieldInput(), RunInput(), _itemFlying, live.Source));
+                : live.Apply(LivePlayCommand.Tick(dt, LiveFieldInput(), LiveRunInput(), _itemFlying, live.Source));
             SyncFromLive();
             PlayLiveCues(result);
             if (_smash > 0) _smash -= dt;
@@ -189,6 +194,8 @@ namespace GrandSluggers.UnityClient
                 {
                     case LiveEvent.Glove:
                         _audio?.Glove();
+                        // The body's own catch (CH-13): its class's hold and its settle.
+                        if (_match.DefenseMap.TryGetValue(live.GlovePos, out var gloved)) _juice.Catch(gloved, _feel);
                         break;
                     case LiveEvent.ThrowPop:
                         _park.Ball.Release();
@@ -376,7 +383,7 @@ namespace GrandSluggers.UnityClient
         {
             var live = _match.LivePlay;
             var result = TutorialOn ? TickTutorialField(dt)
-                : live.Apply(LivePlayCommand.Tick(dt, FieldInput(), RunInput(), false, live.Source));
+                : live.Apply(LivePlayCommand.Tick(dt, LiveFieldInput(), LiveRunInput(), false, live.Source));
             SyncFromLive();
             PlayLiveCues(result);
             AimLive();
@@ -396,5 +403,27 @@ namespace GrandSluggers.UnityClient
         }
 
         void AimStealThrowCam() => AimLive();
+
+        LivePlayCommandResult TickTutorialField(float dt)
+        {
+            var run = _coach.Tutorial;
+            // Both pads are taken, so a press the hit-stop held on the pad a lesson does not read is not delivered later.
+            var field = LiveFieldInput();
+            var running = LiveRunInput();
+            var pad = run.IsOffenseLesson ? running : field;
+            // Preserve simulation time through a long rendering frame without repeating edge-triggered commands.
+            var left = (double)dt;
+            LivePlayCommandResult result = new LivePlayCommandResult(_match.LivePlay.Snapshot);
+            while (left > 0 && run.Phase == TutorialPhase.Attempt)
+            {
+                var step = Math.Min(left, .05);
+                run.Tick(step, pad);
+                result = run.LastTickResult ?? result;
+                left -= step;
+                if (left > 0) PlayLiveCues(result);
+                pad = pad with { SouthDown = false, WestDown = false, EastDown = false, Swap = false, Cancel = false, Cutoff = false };
+            }
+            return result;
+        }
     }
 }

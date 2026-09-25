@@ -151,6 +151,10 @@ public sealed class ContentCatalog
         var shots = CameraShots.Load(root);
         var feel = FeelTable.Load(root);
         var art = ArtCatalog.Load(root);
+        // The walk / run take reads the body's own pursuit profile (#1111): the rules' chase speeds and the feel share.
+        art.Gait = new GaitProfile(rules, feel.GaitRunOfPursuit);
+        // A body moves in the style its body class names (data/rules/body-classes.json motionStyle).
+        art.Classes = rules.BodyClasses;
         var starPitches = new Dictionary<string, StarPitchSkill>(StringComparer.OrdinalIgnoreCase);
         foreach (var (id, dto) in data.StarSkills.Pitches ?? [])
             if (dto is not null) starPitches[id] = dto.ToPitch();
@@ -158,6 +162,11 @@ public sealed class ContentCatalog
         foreach (var (id, dto) in data.StarSkills.Swings ?? [])
             if (dto is not null) starSwings[id] = dto.ToSwing();
         var starSkills = new StarSkillTable(starPitches, starSwings);
+        // Juice by weight (CH-13): every body class has its juice row in the feel table, and every row dresses a class.
+        var juiceGaps = feel.WeightJuice.Coverage(rules.BodyClasses);
+        if (juiceGaps.Count > 0)
+            throw new InvalidDataException("Invalid weight juice:" + Environment.NewLine
+                + string.Join(Environment.NewLine, juiceGaps.Select(e => "  - " + e)));
         return new ContentCatalog(root, characters, parks, parkPickOrder, bats, gloves, chemistry, shots, feel, rules, starSkills, art)
         {
             CaptainIds = captainIds,

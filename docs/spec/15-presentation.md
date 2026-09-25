@@ -37,6 +37,12 @@ The charge begins on the accepted pitch-button press. A pre-charge right-stick t
 | Throw that sails | the follow stays on the loose ball | — | ERROR (small, mid-play at the sail); no second ERROR card at Time |
 | Star | skill VFX; HUD follows the current plate/live phase | — | — |
 
+**Juice by weight (CH-13).** Anticipation, hit-stop, squash and settle scale by the body's class: one row per body class in `feel.weightJuice.classes` (`table.json`), keyed by the class id, never by its `knockbackMul`. Every class in `body-classes.json` has a row; the content load refuses a class without one or a row without a class. An unclassed body wears `harbor-kid`, which is the juice every body had before classes.
+The freeze in the table above is the batter's own hit-stop: the quality's freeze × the batter's `hitStopMul`. A body's own catch (the glove's first touch of a batted ball) holds for its `catchStopSec`. When two holds overlap, the longer one runs. A heavier class never winds up, holds or settles shorter than a lighter one, and never stretches more.
+A hit-stop is presentation only. It holds the sim for whole frames: the sim is not stepped, so its clock, its trace and its plays are the same with any table. The drawn clocks (poses, camera shake, effects) creep at `hitStopCreepMul`. A press made during the hold reaches the sim on its first step after the hold, at the same sim moment.
+The load and the settle are scale on the body's presentation wrapper, never a bone. The load sinks the wrapper by `anticipationSquash` over the last `anticipationSec` before a release: the swing's contact mark, or a throw's release. The settle starts at `settleSquash` on the body's own contact or catch and comes to rest over `settleSec` through `settleHalfCycles` half-cycles; each stretch half-cycle is × `settleStretch`.
+Heavy reads as a long wind-up, a low flat squash and a slow settle. Light reads as a short wind-up and a fast, tall overshoot. One presentation for 1P and 1v1, every seat and every play type.
+
 **The SET card names the selected family.** West cycles before charge; the card marks the selection as locked during charge. The rubber ring, body and ball keep their existing tells:
 
 | SET element | What it shows | What it may not show |

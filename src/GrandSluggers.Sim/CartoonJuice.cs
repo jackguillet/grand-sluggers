@@ -11,7 +11,6 @@ public static class CartoonJuice
     public const float SourPunch = 6f;
     public const double RunFromBallFt = 12;
     public const double WalkFtPerSec = 3.5;
-    public const double RunFtPerSec = 14;
 
     public static bool DirtPuff(ContactQuality quality) =>
         quality is ContactQuality.Sour or ContactQuality.Nice or ContactQuality.Perfect;

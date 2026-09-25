@@ -23,6 +23,8 @@ Pick work from the top. Do not pick a lower row because it is easier.
 
 **Fields: rails and greyboxes are allowed; park art is not.** The fields rails are code-complete ([status](docs/status.md)). A non-Harbor park gets no mesh, texture or authored light rig before its rules are green and Jack has sat its greybox (#37). What a park hazard may and may not decide is principle 2 in `docs/spec/00-decisions.md`; the accepted directions are `docs/decisions/plan-fields.md` (FD-01 … FD-19).
 
+**World: ten parks and ten captains may be built as rails, data and greyboxes now; their art waits for #346.** WD-01 B (#1133): the world data, the new captains in data, the new park files, new hazard patterns, greyboxes and the map picker are allowed; no park art, backdrop art or map art before Jack passes #346, and a park's art still waits for its greybox sitting. Each child waits for the decisions it names in `docs/decisions/plan-world.md` (WD-01 … WD-18).
+
 ## Done means you played it
 
 Unit tests are necessary and not sufficient. When Jack names a thing (a batter's box, a dirt shape, a camera, a HUD), **exact** is the bar; similar is a fail. Your job is to not hand Jack a cousin of what he asked for.

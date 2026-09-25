@@ -875,22 +875,23 @@ namespace GrandSluggers.UnityClient
                 Controls.RumbleContact(hit.Quality);
             if (CartoonJuice.DirtPuff(hit.Quality))
                 _park.Ball.ContactPuff(_ball);
+            // The batter's own contact (CH-13): the quality's freeze × its body class, and its settle.
             // The smash beat (§15): a perfect, a star swing, or a home run — smashFreeze + smashHold, the smash cam on the body.
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null || hit.HomeRun)
             {
-                _freeze = (float)_feel.SmashFreeze;
+                _juice.Contact(_match.Batter, _feel.SmashFreeze, _feel);
                 _smash = (float)_feel.SmashHold;
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
                 _audio?.Swell();
             }
             else if (hit.Quality == ContactQuality.Nice)
             {
-                _freeze = (float)_feel.SolidFreeze;
+                _juice.Contact(_match.Batter, _feel.SolidFreeze, _feel);
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
             else if (hit.Quality == ContactQuality.Sour)
             {
-                _freeze = (float)CartoonJuice.SourFreeze;
+                _juice.Contact(_match.Batter, CartoonJuice.SourFreeze, _feel);
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
             AimLive();
@@ -905,5 +906,16 @@ namespace GrandSluggers.UnityClient
                 : new Vector3((float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX), (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
         }
 
+        bool ResolveTutorialOrAtBat(out AtBatResult hit, out PlayEvent finished)
+        {
+            // The match settles the special each side asked for at its release (PH-16-R12), so it is handed the request.
+            if (!TutorialOn) return _match.BeginAtBat(PitchAsReleased, SwingAsReleased, out hit, out finished);
+            var run = _coach.Tutorial;
+            if (_coach.PlayerPitches) run.Pitch(PitchAsReleased);
+            else run.Swing(SwingAsReleased);
+            hit = run.LastHit; finished = run.LastPlay;
+            return run.IsGameContactLesson ? run.Match.LivePlay.Active
+                : hit != null && hit.InPlay && finished == null;
+        }
     }
 }

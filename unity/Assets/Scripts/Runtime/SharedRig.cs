@@ -38,7 +38,7 @@ namespace GrandSluggers.UnityClient
 
         static bool _missingReported;
 
-        public static Chain Spawn(Transform parent, Character who, SkinSlot skin)
+        public static Chain Spawn(Transform parent, Character who, SkinSlot skin, MotionStyle style = null)
         {
             var spec = Silhouette.Proportions(who);
             var scale = Silhouette.SharedRootScale(spec);
@@ -53,13 +53,13 @@ namespace GrandSluggers.UnityClient
             body.localScale = chain.BaseScale;
 
             var prefab = ArtBinder.LoadSharedRigPrefab();
-            if (prefab == null || !TryBind(chain, prefab, who, skin))
+            if (prefab == null || !TryBind(chain, prefab, who, skin, style))
                 BuildPlaceholder(chain, who);
             AttachRing(chain);
             return chain;
         }
 
-        static bool TryBind(Chain chain, GameObject prefab, Character who, SkinSlot skin)
+        static bool TryBind(Chain chain, GameObject prefab, Character who, SkinSlot skin, MotionStyle style)
         {
             var go = UnityEngine.Object.Instantiate(prefab, chain.Body, false);
             go.name = "rig";
@@ -120,7 +120,7 @@ namespace GrandSluggers.UnityClient
             chain.Animator = animator;
 
             Paint(go, who.Faction);
-            ApplyBuild(go, Silhouette.Proportions(who));
+            ApplyBuild(go, Silhouette.Proportions(who), style);
             HideLookRays(go.transform);
             AttachExtras(chain, who, skin);
             return true;
@@ -131,9 +131,11 @@ namespace GrandSluggers.UnityClient
         /// the sim's (<see cref="Silhouette.BuildWeights"/>), so the drawn head, arms and torso are the measured ones.
         /// No bone moves; the takes stay shared. A body FBX without the keys draws the neutral toy and says so.
         /// </summary>
-        internal static void ApplyBuild(GameObject go, Silhouette.Spec spec)
+        internal static void ApplyBuild(GameObject go, Silhouette.Spec spec, MotionStyle style = null)
         {
-            var weights = Silhouette.BuildWeights(spec);
+            // The style channels (reach, boots) come from the motion style; its takes move the joints to meet reach.
+            var weights = new List<(string, double)>(Silhouette.BuildWeights(spec));
+            weights.AddRange(Silhouette.StyleWeights(style));
             var found = 0;
             foreach (var smr in go.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
@@ -201,9 +203,9 @@ namespace GrandSluggers.UnityClient
 
         static Material MaterialFor(string role, string faction) => role switch
         {
-            "jersey" => Look.Toon(Colors.Body(faction)),
-            "trim" => Look.Toon(Colors.Accent(faction)),
-            "flesh" => Look.Toon(Colors.SkinTone(faction)),
+            "jersey" => Look.Body(Colors.Body(faction)),
+            "trim" => Look.Body(Colors.Accent(faction)),
+            "flesh" => Look.Body(Colors.SkinTone(faction)),
             "slack" => Look.Lit(Color.Lerp(Color.white, Colors.Body(faction), 0.12f), smooth: 0.28f),
             "leather" => Look.Lit(Color.Lerp(Colors.Body(faction), Color.black, 0.38f), smooth: 0.18f),
             "gold" => Look.Lit(Colors.Gold, smooth: 0.4f),
@@ -301,8 +303,8 @@ namespace GrandSluggers.UnityClient
             var root = new GameObject("rig").transform;
             root.SetParent(chain.Body, false);
             chain.Root = root;
-            var jersey = Look.Toon(Colors.Body(who.Faction));
-            var flesh = Look.Toon(Colors.SkinTone(who.Faction));
+            var jersey = Look.Body(Colors.Body(who.Faction));
+            var flesh = Look.Body(Colors.SkinTone(who.Faction));
             chain.Torso = Look.Prim(PrimitiveType.Capsule, "torso", root, new Vector3(0, 2.0f, 0), new Vector3(1.4f, 1.2f, 1.0f), jersey).transform;
             chain.Head = Look.Prim(PrimitiveType.Sphere, "head", root, new Vector3(0, 4.05f, 0), Vector3.one * 1.7f, flesh).transform;
             chain.LUpper = EnsureBone(chain.Torso, "lUpper", new Vector3(-0.95f, 0.2f, 0));

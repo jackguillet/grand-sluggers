@@ -212,10 +212,19 @@ def stripe_mesh(material, low: float, high: float, half_width: float = 0.09, thi
 # joint: `<channel>+` is the piece at the channel's max scale, `<channel>-` at
 # its min (data/art/rig.json build). Unity sets the weights from
 # Silhouette.Build; the bones, the takes and the sockets do not move.
+#
+# reach and boots are style channels (CH-12, SC-08): the motion style in
+# data/art/clips.json names their scale. boots moves no joint. reach stretches
+# the arm pieces, and the style's own takes move the elbow and the wrist down
+# the bone by reach_offsets(), so the stretched meshes and the moved joints meet.
 
 BUILD = RIG["build"]
 BUILD_CHANNELS = ("head", "arms", "torso")
+STYLE_CHANNELS = ("reach", "boots")
+ALL_CHANNELS = BUILD_CHANNELS + STYLE_CHANNELS
 HEAD_PIVOT = Vector(BUILD["head"]["pivot"])
+# The build the scene is posed at: {channel: scale}. set_build merges into it.
+CURRENT_BUILD = {channel: 1.0 for channel in ALL_CHANNELS}
 
 
 def _build_head(world: Vector, s: float, piece: str) -> Vector:
@@ -234,38 +243,64 @@ def _build_arms(world: Vector, s: float, piece: str) -> Vector:
     return Vector((x0 + (world.x - x0) * s, world.y * s, world.z))
 
 
-BUILD_SHAPE = {"head": _build_head, "arms": _build_arms, "torso": _build_torso}
+def _build_reach(world: Vector, s: float, piece: str) -> Vector:
+    """The upper arm stretches below the shoulder, the forearm below the elbow (rest space: the arm hangs along -Z)."""
+    pivot = joint_z("lUpper") if piece[1:] == "UpperMesh" else joint_z("lFore")
+    if world.z >= pivot:
+        return world.copy()
+    return Vector((world.x, world.y, pivot - (pivot - world.z) * s))
 
 
-def build_channel(piece: str, bone: str):
-    """Which build channel shapes a piece: by its bone, so a new piece joins by where it hangs."""
+def _build_boots(world: Vector, s: float, piece: str) -> Vector:
+    """The shoe grows about its sole center: the sole stays on the dirt."""
+    shoe = ANATOMY["shoeCenter"]
+    pivot = Vector((shoe[0] * (1.0 if piece.startswith("l") else -1.0), shoe[1], 0.0))
+    return pivot + (world - pivot) * s
+
+
+BUILD_SHAPE = {"head": _build_head, "arms": _build_arms, "torso": _build_torso,
+               "reach": _build_reach, "boots": _build_boots}
+
+
+def reach_offsets(s: float) -> tuple[float, float]:
+    """How far a reach style's takes move the elbow (down the upper arm) and the wrist (down the forearm)."""
+    upper = joint_z("lUpper") - joint_z("lFore")
+    fore = joint_z("lFore") - joint_z("lWrist")
+    return (s - 1.0) * upper, (s - 1.0) * fore
+
+
+def build_channels(piece: str, bone: str) -> list:
+    """Which build channels shape a piece: by its bone, so a new piece joins by where it hangs."""
     if bone == "head":
-        return "head"
+        return ["head"]
     if bone in ("torso", "spine", "neck", "pelvis"):
-        return "torso"
+        return ["torso"]
     if bone[1:] in ("Upper", "Fore", "Wrist"):
-        return "arms"
-    return None
+        return ["arms", "reach"] if piece[1:] in ("UpperMesh", "ForeMesh") else ["arms"]
+    if bone[1:] == "Foot":
+        return ["boots"]
+    return []
 
 
-def add_build_keys(ob, channel: str):
-    row = BUILD[channel]
-    shape = BUILD_SHAPE[channel]
+def add_build_keys(ob, channels: list):
     ob.shape_key_add(name="Basis", from_mix=False)
     world = ob.matrix_world.copy()
     inverse = world.inverted()
-    for suffix, s in (("+", float(row["max"])), ("-", float(row["min"]))):
-        key = ob.shape_key_add(name=channel + suffix, from_mix=False)
-        key.slider_min = 0.0
-        key.slider_max = 1.0
-        for i, v in enumerate(ob.data.vertices):
-            key.data[i].co = inverse @ shape(world @ v.co, s, ob.name)
+    for channel in channels:
+        row = BUILD[channel]
+        shape = BUILD_SHAPE[channel]
+        for suffix, s in (("+", float(row["max"])), ("-", float(row["min"]))):
+            key = ob.shape_key_add(name=channel + suffix, from_mix=False)
+            key.slider_min = 0.0
+            key.slider_max = 1.0
+            for i, v in enumerate(ob.data.vertices):
+                key.data[i].co = inverse @ shape(world @ v.co, s, ob.name)
 
 
 def build_weights(scales: dict) -> dict:
-    """Shape-key values for {channel: scale}: the same arithmetic as Silhouette.BuildWeights."""
+    """Shape-key values for {channel: scale}: the same arithmetic as Silhouette.BuildWeights / StyleWeights."""
     out = {}
-    for channel in BUILD_CHANNELS:
+    for channel in ALL_CHANNELS:
         row = BUILD[channel]
         s = float(scales.get(channel, 1.0))
         up = max(0.0, (s - 1.0) / (float(row["max"]) - 1.0))
@@ -285,9 +320,13 @@ def build_scale(proportions: dict) -> dict:
     return out
 
 
-def set_build(scales: dict):
-    """Pose every body piece's build keys for {channel: scale} (the lineup and the bake's max-head check)."""
-    weights = build_weights(scales)
+def set_build(scales: dict, *, reset: bool = False):
+    """Pose every body piece's build keys. Channels not named keep their current scale unless `reset`."""
+    if reset:
+        for channel in ALL_CHANNELS:
+            CURRENT_BUILD[channel] = 1.0
+    CURRENT_BUILD.update({k: float(v) for k, v in scales.items()})
+    weights = build_weights(CURRENT_BUILD)
     for ob in bpy.data.objects:
         keys = ob.data.shape_keys if ob.type == "MESH" and ob.data.shape_keys else None
         if keys is None:
@@ -368,9 +407,9 @@ def build_scene():
                 weight=max(0.0,min(1.0,(v.co.z-low)/.50))
                 chest.add([v.index],weight,"REPLACE")
                 waist.add([v.index],1-weight,"REPLACE")
-        channel = build_channel(ob.name, bone)
-        if channel is not None:
-            add_build_keys(ob, channel)
+        channels = build_channels(ob.name, bone)
+        if channels:
+            add_build_keys(ob, channels)
 
     missing = [n for n in BONES if n not in arm_data.bones]
     if missing:
