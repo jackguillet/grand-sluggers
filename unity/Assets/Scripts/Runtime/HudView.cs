@@ -1085,8 +1085,11 @@ namespace GrandSluggers.UnityClient
                 // This arm's ordinary pitches, in repertoire order, on both seats' screen and in
                 // every phase: no highlight, no cursor, no press count (PH-02-R5, #825).
                 BroadcastHud.PitcherPitches(match));
+            // The ARM bar drains with the pool and warms with the fade (#1012): BroadcastHud.ArmColor.
+            var arm = BroadcastHud.ArmColor(match.PitcherStamina, match.Rules);
             Bar(Px(lay.PitcherCard).x + 16, Px(lay.PitcherCard).y + Px(lay.PitcherCard).height - 22,
-                Px(lay.PitcherCard).width - 32, Mathf.Clamp01(match.PitcherStamina / (float)match.PitcherStaminaMax));
+                Px(lay.PitcherCard).width - 32, Mathf.Clamp01(match.PitcherStamina / (float)match.PitcherStaminaMax),
+                new Color((float)arm.R, (float)arm.G, (float)arm.B, 1f));
             if (!showTiming) return;
             var box = humanPitches ? Px(lay.PitcherCard) : Px(lay.BatterCard);
             GUI.DrawTexture(new Rect(box.x + 16, box.y + box.height - 12, 160, 6), _dotOff);
@@ -1147,6 +1150,16 @@ namespace GrandSluggers.UnityClient
         {
             GUI.DrawTexture(new Rect(x, y, w, 8), _dotOff);
             GUI.DrawTexture(new Rect(x, y, w * Mathf.Clamp01(u), 8), _bar);
+        }
+
+        /// <summary>A bar in <paramref name="tint"/>: the white fill, tinted.</summary>
+        static void Bar(float x, float y, float w, float u, Color tint)
+        {
+            GUI.DrawTexture(new Rect(x, y, w, 8), _dotOff);
+            var prev = GUI.color;
+            GUI.color = tint;
+            GUI.DrawTexture(new Rect(x, y, w * Mathf.Clamp01(u), 8), _white);
+            GUI.color = prev;
         }
 
         static string Short(Team t) => BroadcastHud.BugName(t.Captain.Name);

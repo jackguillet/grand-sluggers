@@ -447,6 +447,31 @@ public static partial class BroadcastHud
     public static string ArmLine(int stamina, RulesTable rules) =>
         PoorArm(stamina, rules) ? $"ARM  {stamina}  ·  TIRED" : $"ARM  {stamina}";
 
+    /// <summary>The ARM bar while the arm is fresh (a pool at <c>pitching.stamina.fadeFrom</c> or more).</summary>
+    public static readonly (double R, double G, double B) ArmFresh = (1.0, 1.0, 1.0);
+
+    /// <summary>The ARM bar just before TIRED: the color the fade warms toward.</summary>
+    public static readonly (double R, double G, double B) ArmFading = (1.0, 0.66, 0.18);
+
+    /// <summary>The ARM bar at TIRED (below <c>pitching.stamina.tiredBelow</c>), with the TIRED word and the sweat.</summary>
+    public static readonly (double R, double G, double B) ArmTired = (0.95, 0.24, 0.2);
+
+    /// <summary>
+    /// The ARM bar's color (§4.7, #1012): the tell grows with the fade the arm pays. Fresh at <c>fadeFrom</c> or more; from there it
+    /// warms toward <see cref="ArmFading"/> as the pool falls to <c>tiredBelow</c>, along the same <see cref="StaminaRules.Fade"/> the
+    /// mph and the break lose; below <c>tiredBelow</c> it is <see cref="ArmTired"/>, where the TIRED word and the swap read.
+    /// </summary>
+    public static (double R, double G, double B) ArmColor(int stamina, RulesTable rules)
+    {
+        var s = rules.Pitching.Stamina;
+        if (PoorArm(stamina, rules)) return ArmTired;
+        var atTired = s.Fade(s.TiredBelow);
+        var u = atTired > 0 ? Math.Clamp(s.Fade(stamina) / atTired, 0, 1) : 0;
+        return (ArmFresh.R * (1 - u) + ArmFading.R * u,
+            ArmFresh.G * (1 - u) + ArmFading.G * u,
+            ArmFresh.B * (1 - u) + ArmFading.B * u);
+    }
+
     public static string ControlDisplay(bool hasGlove, string pos, string name, bool jump = false, bool dive = false)
     {
         if (!hasGlove || string.IsNullOrWhiteSpace(pos)) return "";
