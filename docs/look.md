@@ -2,7 +2,7 @@
 
 Grand Sluggers should **feel and look like Mario Super Sluggers** — party baseball, oversized toys, readable at ten feet — with a **different cast**. We steal weight, cameras, juice, and the “real diamond plus gimmick parks” shape. We do not steal faces, names, mushrooms, or Nintendo set dressing.
 
-Identity stills and proportions: `docs/silhouette-bible.md`. Character contract: `docs/character-package.md`. Slots and drop rules: `docs/art-rails.md`. Systems teardown: `docs/research-sluggers.md`. Style lock (Rio, three views): `tools/blender/style-lock/`.
+Identity stills and proportions: `docs/silhouette-bible.md`. Character contract: `docs/character-package.md`. Slots and drop rules: `docs/art-rails.md`. Systems teardown: `docs/archive/reference/research-sluggers.md`. Style lock (Rio, three views): `tools/blender/style-lock/`.
 
 ## What “like Sluggers” means here
 

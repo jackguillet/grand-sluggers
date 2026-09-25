@@ -1,8 +1,10 @@
 # Research: character feel — builds, size, speed, motion, first art
 
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [character-motion.md](../../character-motion.md), [character-package.md](../../character-package.md) and [the decision plan](../../decisions/plan-characters.md). Where they disagree, the contract is right.
+
 September 24, 2026. Research and decisions only. No runtime value changes. Jack picked all fourteen rows of the decision register (CH-01 … CH-14) on September 24. The next step is a plan whose epics own the work.
 
-Sources are cited inline. Community reverse-engineering (mariobaseball.miraheze.org) covers the GameCube game only. Nobody has published the same data for Wii *Sluggers*. **UNVERIFIED** marks a claim without a primary source. Earlier packets that this builds on: [research-sluggers.md](research-sluggers.md), [research-game-feel-701-proportions.md](research-game-feel-701-proportions.md), [research-game-feel-701-movement.md](research-game-feel-701-movement.md), [silhouette-bible.md](silhouette-bible.md).
+Sources are cited inline. Community reverse-engineering (mariobaseball.miraheze.org) covers the GameCube game only. Nobody has published the same data for Wii *Sluggers*. **UNVERIFIED** marks a claim without a primary source. Earlier packets that this builds on: [research-sluggers.md](../reference/research-sluggers.md), [research-game-feel-701-proportions.md](../game-feel/research-game-feel-701-proportions.md), [research-game-feel-701-movement.md](../game-feel/research-game-feel-701-movement.md), [silhouette-bible.md](../../silhouette-bible.md).
 
 ## 1. What ships today
 
@@ -96,7 +98,7 @@ Each row was a choice for Jack. **Rec** was the recommendation. **Pick** is Jack
 
 Jack's notes on the picks:
 
-- **CH-06, the strike zone scales vertically only.** "It should vertically scale, but horizontally the same." Jack set the landmarks on September 24: the zone runs from the batter's **knee** to the batter's **chest**. Its width over the plate stays fixed. The worked numbers and the aim rule are in [plan-characters.md](plan-characters.md).
+- **CH-06, the strike zone scales vertically only.** "It should vertically scale, but horizontally the same." Jack set the landmarks on September 24: the zone runs from the batter's **knee** to the batter's **chest**. Its width over the plate stays fixed. The worked numbers and the aim rule are in [plan-characters.md](../../decisions/plan-characters.md).
 - **CH-07, four bars, built from sub-stats.** Settled with Jack on September 24. He first chose five bars with a separate Arm bar, then took it back: "pitching is very different than fielding." Each bar is the rounded mean of its sub-stats. The sub-stats are the hidden numbers that CH-09 authors per character. Every sub-stat already exists as a code slot, so no new stat is needed.
 
   | Bar | Sub-stats | Code slot today |
@@ -123,5 +125,5 @@ Rationale for the recommendations:
 
 ## 5. Next steps
 
-1. The plan is [plan-characters.md](plan-characters.md): epics CF-1 … CF-7 with scenarios SC-01 … SC-25.
+1. The plan is [plan-characters.md](../../decisions/plan-characters.md): epics CF-1 … CF-7 with scenarios SC-01 … SC-25.
 2. First look sitting: dual stills of the seven captains at the new head ratio and ladder, in flat black and in palette.

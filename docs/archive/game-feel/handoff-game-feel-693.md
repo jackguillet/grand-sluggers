@@ -1,5 +1,7 @@
 # Game feel research handoff — #693 / #708
 
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §0.2 (D19)](../../spec/00-decisions.md) and [the decision plan](../../decisions/plan-game-feel-693.md). Where they disagree, the contract is right.
+
 Prepared September 15, 2026 because Jack is nearly out of session usage. **Continue the existing work; do not restart the decision interview.** Session kind: **Gameplay research/documentation**. Last design commit at preparation: `59baf8c` (`docs: simplify fielding to arcade range and visual glove motion`); see the September 15 update in [Next work](#next-work--parity-first-explicit-prototype-dependencies) for the current state.
 
 ## Start here
@@ -10,7 +12,7 @@ Prepared September 15, 2026 because Jack is nearly out of session usage. **Conti
 - Work is stacked after the #702 measurement work at `59f3762` / draft [#707](https://github.com/jackguillet/grand-sluggers/pull/707). Do not flatten, merge, close or pass human gates as part of resuming research.
 - **No compact profile has been simulated or played. No runtime tuning or art changes are authorized by this packet.** Accepted numbers are authored calibration trials, not Nintendo measurements or approved shipping defaults.
 
-Start from "Start here" in `AGENTS.md`. For this research line, the current direction at the top of [the #708 report](research-game-feel-708.md#current-direction--simple-arcade-fielding) is the one part to read; the rest of that report, [the decision plan](plan-game-feel-693.md) and [agent rails](agent-rails.md) are reference. Read the [gameplay spec](gameplay-spec.md) sections the work touches. Load `data/agent/debug-protocol.json` for the session; it contains comments, so a bare Python `json.loads` is not its loader.
+Start from "Start here" in `AGENTS.md`. For this research line, the current direction at the top of [the #708 report](research-game-feel-708.md#current-direction--simple-arcade-fielding) is the one part to read; the rest of that report, [the decision plan](../../decisions/plan-game-feel-693.md) and [agent rails](../../agent-rails.md) are reference. Read the [gameplay spec](../../gameplay-spec.md) sections the work touches. Load `data/agent/debug-protocol.json` for the session; it contains comments, so a bare Python `json.loads` is not its loader.
 
 ## Jack's objective and review preferences
 
@@ -41,12 +43,12 @@ Some historical section prose and queue question wording describe an earlier pro
 ## Where the complete decisions live
 
 - [#708 report](research-game-feel-708.md): rationale, accepted scope, corrections, research limitations and historical decisions.
-- [Candidate JSON](research/game-feel-708-candidates.json): exact decision IDs, acceptance evidence, trial values, amendments and `decisionQueue`. This is the detailed handoff; do not reconstruct values from chat fragments.
-- [Derived JSON](research/game-feel-708-derived.json): generated arithmetic, not simulation evidence.
-- [Reproduction/checker](../tools/compact-field-report.py): regenerates and checks the dataset.
-- [#693 plan](plan-game-feel-693.md) and [gameplay spec](gameplay-spec.md): broader status and governing design.
-- [Original #693 research](research-game-feel-693.md), [#701 comparison](research-game-feel-701-comparison.md), [geometry](research-game-feel-701-geometry.md), [proportions](research-game-feel-701-proportions.md), and [race traces](race-traces.md): evidence and validation procedure.
-- Immutable history: [#693 tracker archive](research/game-feel-693-tracker-history.md) and [#708 tracker archive](research/game-feel-708-tracker-history.md). Do not rewrite these to hide corrections.
+- [Candidate JSON](../../research/game-feel-708-candidates.json): exact decision IDs, acceptance evidence, trial values, amendments and `decisionQueue`. This is the detailed handoff; do not reconstruct values from chat fragments.
+- [Derived JSON](../../research/game-feel-708-derived.json): generated arithmetic, not simulation evidence.
+- [Reproduction/checker](../../../tools/compact-field-report.py): regenerates and checks the dataset.
+- [#693 plan](../../decisions/plan-game-feel-693.md) and [gameplay spec](../../gameplay-spec.md): broader status and governing design.
+- [Original #693 research](research-game-feel-693.md), [#701 comparison](research-game-feel-701-comparison.md), [geometry](research-game-feel-701-geometry.md), [proportions](research-game-feel-701-proportions.md), and [race traces](../../race-traces.md): evidence and validation procedure.
+- Immutable history: [#693 tracker archive](../../research/game-feel-693-tracker-history.md) and [#708 tracker archive](../../research/game-feel-708-tracker-history.md). Do not rewrite these to hide corrections.
 
 ## Accepted anchors to preserve
 
@@ -71,13 +73,13 @@ This is orientation, not a substitute for the detailed scope and exceptions in t
 
 The parity slice is next and may proceed at current values. Arm/Fielding and independent reach are seeded from the current rules; no third independent defensive-quality stat or roster rebalance is introduced. Existing expectations must remain unchanged. Geometry moves into its shared data owner at current values first. Reuse this child worktree only for the research; implementation follows the plan's one-child/one-worktree discipline.
 
-**The compact contract is not complete.** The [sequenced plan](plan-game-feel-693.md#implementation-plan--sequenced-september-15-2026) and candidate `implementationReadiness` name four open mappings: awkward-hop difficulty D, normalized Fielding quality H, local-versus-continuing failed handling, and continuing speed/direction. Implement simple reproducible trial rules and representative scenarios before declaring prototype completion. No glove geometry or new severity roll. Routine choices do not need another microscopic approval interview; material gameplay tradeoffs still go to Jack one at a time.
+**The compact contract is not complete.** The [sequenced plan](../../decisions/plan-game-feel-693.md#implementation-plan--sequenced-september-15-2026) and candidate `implementationReadiness` name four open mappings: awkward-hop difficulty D, normalized Fielding quality H, local-versus-continuing failed handling, and continuing speed/direction. Implement simple reproducible trial rules and representative scenarios before declaring prototype completion. No glove geometry or new severity roll. Routine choices do not need another microscopic approval interview; material gameplay tradeoffs still go to Jack one at a time.
 
 Other dependencies remain visible: retained-ball recoil trigger speeds, ordinary bounce/roll/wall calibration, per-character reach, and applicable status/special/throw-before-cover behavior. Deferral can bound a prototype; it does not waive complete-contract validation. Separate parity migration, prototype completion, whole-race validation, presentation/kit alignment, human acceptance and explicit default promotion.
 
 **Corrected evidence:** drag is not neutral to grounders. In the production model, the 80-mph, 8-degree example reaches 100 feet at 1.566 s versus 1.752 s, with first bounce at 115.8 versus 102.3 ft. P5 Heat Swing carries about 282 ft but hits the 12-foot center wall at about 3 ft high. Keep the approved .0040 trial and star power; evaluate actual fence crossings and coupled grounder races. No all-fly-caught, increased-doubles or globally-homerless conclusion is established by these probes.
 
-**Reproduction:** `dotnet run --project tools/game-feel-flight-probes -- --check` verifies source-tagged production-model evidence from [fixed inputs](research/game-feel-708-flight-inputs.json), with [results](research/game-feel-708-flight-derived.json). `--write` regenerates after review. The Python arithmetic check is separate and does not execute trajectories. No whole compact game or human gate has been validated.
+**Reproduction:** `dotnet run --project tools/game-feel-flight-probes -- --check` verifies source-tagged production-model evidence from [fixed inputs](../../research/game-feel-708-flight-inputs.json), with [results](../../research/game-feel-708-flight-derived.json). `--write` regenerates after review. The Python arithmetic check is separate and does not execute trajectories. No whole compact game or human gate has been validated.
 
 The governing gameplay spec now records the new approvals and labels the conflicting summary-only architecture historical. Candidate approval evidence and immutable tracker history remain preserved. `F693-02-error-response-mapping` is implementation-design work; zero human questions are pending.
 

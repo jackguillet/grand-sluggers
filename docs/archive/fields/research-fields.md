@@ -1,10 +1,12 @@
 # Fields: a reference-informed design discussion
 
-Research date: September 21, 2026 (America/Los_Angeles). Session kind: **Gameplay research/documentation**. Inspected revision: `d0c6e12c`. This report accompanies the [decision register](plan-fields.md). It changes no runtime rule and accepts no mechanic or number.
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §0.3 and §14](../../spec/14-parks.md) and [the decision plan](../../decisions/plan-fields.md). Where they disagree, the contract is right.
+
+Research date: September 21, 2026 (America/Los_Angeles). Session kind: **Gameplay research/documentation**. Inspected revision: `d0c6e12c`. This report accompanies the [decision register](../../decisions/plan-fields.md). It changes no runtime rule and accepts no mechanic or number.
 
 Jack's brief: treat Harbor as the default. Give the other fields a unique look, possible hazards, and qualities such as size, air density, ground material and slickness. **Build the rails and the engineering process before the artwork.**
 
-Companion records: the [sim code map](research/fields-code-map-sim.md), the [presentation code map](research/fields-code-map-presentation.md), and the [measured per-park baseline](research/fields-park-baseline.json).
+Companion records: the [sim code map](../../research/fields-code-map-sim.md), the [presentation code map](../../research/fields-code-map-presentation.md), and the [measured per-park baseline](../../research/fields-park-baseline.json).
 
 ## Evidence and limits
 
@@ -145,7 +147,7 @@ These are **author recommendations**, pending Jack's decisions.
 
 ## Harbor baseline
 
-The [sim map](research/fields-code-map-sim.md) and the [presentation map](research/fields-code-map-presentation.md) hold the `file:line` detail. This is a snapshot of existing behavior, **not an endorsement of it**.
+The [sim map](../../research/fields-code-map-sim.md) and the [presentation map](../../research/fields-code-map-presentation.md) hold the `file:line` detail. This is a snapshot of existing behavior, **not an endorsement of it**.
 
 **What a park can change today.** Three fence posts, `fenceHeightFt`, `windMph`, `windDeg`, `nightContactWindowMul`, and `hazards` (`Models.cs:186-211`). `surface` is read only by the validator and by presentation. `notes`, `nightOnly`, `dayOnly` and the train's `periodSec` are in no C# type and are dropped with no warning, while the rule tables refuse an unknown field. #713's three claims are all verified.
 
@@ -223,4 +225,4 @@ Press and analysis (R)
 - **FG-FOUL** [FanGraphs, shrinking playing surfaces](https://blogs.fangraphs.com/ballpark-playing-surfaces-are-shrinking-in-a-surprising-way/) · **FG-FOULHFA** [FanGraphs, foul ground](https://blogs.fangraphs.com/foul-ground-home-field-advantage/) · **THT-TWI** [The twilight strike zone](https://tht.fangraphs.com/the-twilight-strike-zone/) · **SI-WALLS** [SI, outfield walls](https://www.si.com/mlb/2021/03/24/mlb-outfield-walls-ranked-fenway-park-yankee-stadium)
 - **SMB-TG** [TheGamer, SMB3 stadiums](https://www.thegamer.com/super-mega-baseball-3-best-stadiums/) · **BYB-OS** [Operation Sports, Backyard Baseball 2026 stadiums](https://www.operationsports.com/all-stadiums-in-backyard-baseball-2026-which-ones-are-best/)
 - **MPT** Mario Power Tennis reviews via [Metacritic](https://www.metacritic.com/game/mario-power-tennis/critic-reviews/?platform=gamecube) (SNIPPET) · **MSBL** [Nintendo Life, Battle League review](https://www.nintendolife.com/reviews/nintendo-switch/mario-strikers-battle-league) (SNIPPET)
-- **Legacy:** [research-sluggers.md](research-sluggers.md). Its park table is corrected above; this report does not renew its other claims.
+- **Legacy:** [research-sluggers.md](../reference/research-sluggers.md). Its park table is corrected above; this report does not renew its other claims.

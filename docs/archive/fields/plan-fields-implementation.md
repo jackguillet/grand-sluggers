@@ -1,6 +1,8 @@
 # Fields — implementation map and ledger
 
-Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814). Design: [plan](plan-fields.md), [register](research/fields-decisions.json), [research](research-fields.md). Contract: [gameplay-spec.md](gameplay-spec.md) §0.3 (D21), §14, Appendix A.10, Appendix B.9. Audit baseline: `d0c6e12c` ([sim map](research/fields-code-map-sim.md), [presentation map](research/fields-code-map-presentation.md)).
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §0.3 and §14](../../spec/14-parks.md) and [the decision plan](../../decisions/plan-fields.md). Where they disagree, the contract is right.
+
+Tracker: [#814](https://github.com/jackguillet/grand-sluggers/issues/814). Design: [plan](../../decisions/plan-fields.md), [register](../../research/fields-decisions.json), [research](research-fields.md). Contract: [gameplay-spec.md](../../gameplay-spec.md) §0.3 (D21), §14, Appendix A.10, Appendix B.9. Audit baseline: `d0c6e12c` ([sim map](../../research/fields-code-map-sim.md), [presentation map](../../research/fields-code-map-presentation.md)).
 
 This file orders the work. It does not reopen a decision and it selects no number. The register stays the record of what Jack accepted. A child issue is filed only when its contract is ready (plan rule 6); the rows below are a map, not thirty filed tasks.
 
@@ -138,13 +140,13 @@ This file orders the work. It does not reopen a decision and it selects no numbe
 
 ## 2. Rails every child carries
 
-What a PR owes is [agent-rails.md](agent-rails.md) §1.2 (2026-09-22). Where a rail below asks for more, §1.2 wins: no local full suite, no reseal, no `trials/c80` twin, no register or ledger edit in a feature child. Balance runs on demand.
+What a PR owes is [agent-rails.md](../../agent-rails.md) §1.2 (2026-09-22). Where a rail below asks for more, §1.2 wins: no local full suite, no reseal, no `trials/c80` twin, no register or ledger edit in a feature child. Balance runs on demand.
 
 - **Parity first (FR-06).** A rail child changes no behavior. It shows `cli match --seed 7` unchanged and the CI breakage suite green. S-29, the Harbor cohorts and the seals run on demand (Actions → Full tests), not in the child.
 - **Evidence seals (FR-16).** The seals hash `Models.cs`, `Rules.cs`, `FieldBounds.cs`, `HarborWall.cs`, `BallFlight.cs`, `BattedBall.cs`, `AtBatResolver.cs`, `Fielding.cs`, `FlyCatch.cs`, `ParkDiamond.cs`, `Match.cs`, `LivePlaySystem.Field.cs`, `ContentValidation.cs`, `data/parks/harbor-diamond.json`, `flight.json`, `fielding.json`, `running.json`. A feature child does not reseal. A tuning PR or an evidence packet reseals, in this order: `dotnet run --project tools/game-feel-flight-probes -- --write`, then `python3 tools/compact-field-report.py`, then both `--check`.
 - **Trace identity.** `PlayTraceIdentity` serialises the whole `Park` record. A new `Park` member, or a change to a rules table's shape, moves every fresh identity SHA. Say so in the PR and do not hide the member from the identity. The SHAs stored in `docs/research/game-feel-3d-race-*.json` and `game-feel-702-baseline.json` are a pinned record of the #715 / #702 runs at their builds: do not regenerate them in a child (finding 22; a full re-export is the packet owner's, #853).
 - **`Park` is built positionally** in `tools/game-feel-flight-probes/Program.cs:44`. A new member has a default and goes last.
-- **c80 parity.** On demand. A shipped park edit does not owe its `trials/c80` twin; parity is restored when the trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more. Freeze, promote or retire C80 is open for Jack ([agent-rails.md](agent-rails.md) §1.3).
+- **c80 parity.** On demand. A shipped park edit does not owe its `trials/c80` twin; parity is restored when the trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more. Freeze, promote or retire C80 is open for Jack ([agent-rails.md](../../agent-rails.md) §1.3).
 - **#730 / #732 numbers are banned** until those issues close: hazard radii, `pipeReachPadFt`, `emberNightFireMul`, `HarborWall.FoulOffset`, `flareStart`, `infieldLipFt`, the fielder starts. A fields child may move one into data at its current value. It may not change one.
 - **Rules tables use named properties.** A `Dictionary` or a `List` bypasses the reflective validator and the JSON = code parity test. Ground, wall-material and hazard-type rows are named properties.
 - **One seeded stream.** A child that changes the count or order of `_rng` draws reseeds every `AutoPlay` game. It says so in the PR body and never tunes; S-29 is re-reported on demand.
@@ -330,7 +332,7 @@ One at a time, in the order they start to block. **None blocks F1-a, F2-a, F3-a,
 
 ## 6. Ledger
 
-Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by each child ([agent-rails.md](agent-rails.md) §1.2).
+Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by each child ([agent-rails.md](../../agent-rails.md) §1.2).
 
 | Child | Issue | PR | Merged | Tested revision | Human gate |
 | --- | --- | --- | --- | --- | --- |
