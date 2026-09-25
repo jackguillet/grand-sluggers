@@ -439,6 +439,8 @@ public sealed partial class LivePlaySystem
         PlayerFielding || Seats.HumanOwnsThrow ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu;
 
     RulesTable R => _match.Rules;
+    /// <summary>The match table's diamond: its bags, rubber and starts (#1067).</summary>
+    DiamondGeometry Geometry => DiamondGeometry.Of(R);
     Park Park => _match.Park;
     FeelTable Feel => _match.Content.Feel;
     /// <summary>The play's own defense map, read once per live ball: the gloves that started it stay its gloves through the third out and the flip.</summary>
@@ -538,8 +540,8 @@ public sealed partial class LivePlaySystem
         if (Preview is null)
         {
             GlovePos = "P";
-            GloveX = Diamond.Rubber.X;
-            GloveZ = Diamond.Rubber.Z;
+            GloveX = Geometry.Rubber.X;
+            GloveZ = Geometry.Rubber.Z;
             return;
         }
         // Preview owns the trajectory-planned first glove for CPU and dead-stick defense alike.
@@ -569,8 +571,8 @@ public sealed partial class LivePlaySystem
         _readyAt.Clear();
         _readyHuman.Clear();
         GlovePos = "P";
-        GloveX = Diamond.Rubber.X;
-        GloveZ = Diamond.Rubber.Z;
+        GloveX = Geometry.Rubber.X;
+        GloveZ = Geometry.Rubber.Z;
         PlayerFielding = false;
         Caught = false;
         Buddy = false;
@@ -1099,7 +1101,7 @@ public sealed partial class LivePlaySystem
         // Walking to the bag to step on it or to wait for the body bound there (§10.3, §10.4, S-41).
         if (_cpuWalkBag > 0)
         {
-            WalkGloveTo(Diamond.Bag(_cpuWalkBag), dt);
+            WalkGloveTo(Geometry.Bag(_cpuWalkBag), dt);
             if (!PlayStandsAt(_cpuWalkBag))
             {
                 _cpuWalkBag = 0;
@@ -1353,7 +1355,7 @@ public sealed partial class LivePlaySystem
     /// <summary>Seconds for this glove to carry the ball to <paramref name="bag"/> at its carry speed (§8.1; Ball Dash's boost included, #718).</summary>
     double CpuWalkSec(int bag)
     {
-        var at = Diamond.Bag(bag);
+        var at = Geometry.Bag(bag);
         var speed = CarrySpeed(GloveChar(), FieldingResolver.ChaseSpeedFt(GloveChar(), Preview?.Frozen ?? false, R));
         return Diamond.Dist(GloveX, GloveZ, at.X, at.Z) / Math.Max(1, speed);
     }
@@ -1365,7 +1367,7 @@ public sealed partial class LivePlaySystem
         if (string.IsNullOrEmpty(coverPos) || coverPos == GlovePos || !_fielders.TryGetValue(coverPos, out var coverAt))
             return double.PositiveInfinity;
         var cover = R.Fielding.Cover;
-        var at = Diamond.Bag(bag);
+        var at = Geometry.Bag(bag);
         var walk = Math.Max(0, Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) - cover.RadiusFt) / Math.Max(1, CoverSpeed(coverPos, Assigned()));
         return Math.Max(CpuThrowArrivalSec(bag), walk);
     }
@@ -1386,7 +1388,7 @@ public sealed partial class LivePlaySystem
     ThrowPlan PlanThrow(double fromX, double fromZ, Character thrower, string throwerPos, int bag)
     {
         var level = R.Cpu.Active;
-        var to = Diamond.Bag(bag);
+        var to = Geometry.Bag(bag);
         var map = Assigned();
         var coverPos = CoverOf(bag);
         var cover = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
@@ -1442,7 +1444,7 @@ public sealed partial class LivePlaySystem
     {
         if (thrower is null) return InPlay.ThrowArrivalSec(fromX, fromZ, bag, null, R);
         var level = R.Cpu.Active;
-        var to = Diamond.Bag(bag);
+        var to = Geometry.Bag(bag);
         var map = Assigned();
         var coverPos = CoverOf(bag);
         var cover = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
@@ -1519,7 +1521,7 @@ public sealed partial class LivePlaySystem
         var carry = Hit?.CarryFt ?? 0;
         if (Throwing && ThrowBag is >= 1 and <= 4)
         {
-            var to = Diamond.Bag(ThrowBag);
+            var to = Geometry.Bag(ThrowBag);
             ball = new BallSituation(false, true, ThrowBag, ElapsedSeconds + Math.Max(0, ThrowDur - ThrowT), to.X, to.Z,
                 ElapsedSeconds, FieldingResolver.OutfieldGrass(GloveX, GloveZ, R), BallX, BallZ, carry);
         }
@@ -1749,7 +1751,7 @@ public sealed partial class LivePlaySystem
             // A charge body converges on the bunt instead of covering an idle bag (ChargeBunt).
             if (!HoldsBall && !Throwing && !LooseBall && BuntChargeBody(pos, map)) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
-            var goal = Diamond.Bag(kv.Key);
+            var goal = Geometry.Bag(kv.Key);
             _fielders[pos] = StepTo(pos, at, goal, CoverSpeed(pos, bodies), cover.StopFt, dt, flat: true);
         }
     }
@@ -2457,7 +2459,7 @@ public sealed partial class LivePlaySystem
         if (pad.Cutoff && (ThrowBag <= 0 || !hopperCaught))
         {
             var toward = ThrowBag is >= 1 and <= 4 ? ThrowBag : RunnerPlay && def > 0 ? def : 4;
-            var to = Diamond.Bag(toward);
+            var to = Geometry.Bag(toward);
             var cut = InPlay.CutoffFor(GloveX, GloveZ, to.X, to.Z, _fielders, GlovePos, CoverOf(toward), R);
             if (cut is not null)
             {
@@ -2490,7 +2492,7 @@ public sealed partial class LivePlaySystem
         if (speedMul < 1) thr = thr with { SpeedMul = thr.SpeedMul * speedMul };
         ArmedThrow = thr;
         ArmedCut = cut;
-        var to = Diamond.Bag(bag);
+        var to = Geometry.Bag(bag);
         BeginThrow(thr, bag, to.X, to.Z, coverPos);
     }
 
@@ -2571,7 +2573,7 @@ public sealed partial class LivePlaySystem
         var cover = R.Fielding.Cover;
         var receiverPos = ThrowBag is >= 1 and <= 4 ? CoverPos : _support.CutoffPos;
         (double X, double Z) target;
-        if (ThrowBag is >= 1 and <= 4) target = Diamond.Bag(ThrowBag);
+        if (ThrowBag is >= 1 and <= 4) target = Geometry.Bag(ThrowBag);
         else if (_support.CutoffSpot is { } cutSpot) target = cutSpot;
         else target = (ThrowTo.X, ThrowTo.Z);
         var receiverAt = !string.IsNullOrEmpty(receiverPos) && _fielders.TryGetValue(receiverPos, out var at) ? at : target;
@@ -2853,7 +2855,7 @@ public sealed partial class LivePlaySystem
         if (target.Bag >= bag) return (true, true);
         var forced = Forces.At(bag) && target.FromBag == bag - 1;
         if (forced) return (true, false);
-        var at = Diamond.Bag(bag);
+        var at = Geometry.Bag(bag);
         var (x, z) = target.Position;
         var bags = R.Running.Bags;
         // On the bag is safe only when the bag is theirs (§9.1): a body arriving on a bag another runner holds is tagged there.
@@ -3310,7 +3312,7 @@ public sealed partial class LivePlaySystem
             _fielders[kv.Key] = Starts[kv.Key];
         SwapLock = 0;
         GlovePos = pickoffBag > 0 ? "P" : "C";
-        var spot = pickoffBag > 0 ? Diamond.Rubber : StealThrow.CatcherSpot(R);
+        var spot = pickoffBag > 0 ? Geometry.Rubber : StealThrow.CatcherSpot(R);
         GloveX = spot.X;
         GloveZ = spot.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -3326,7 +3328,7 @@ public sealed partial class LivePlaySystem
             if (FieldAssist.CoverKey(bag) == GlovePos) continue;
             var pos = CoverOf(bag);
             if (string.IsNullOrEmpty(pos) || pos == GlovePos) continue;
-            _fielders[pos] = Diamond.Bag(bag);
+            _fielders[pos] = Geometry.Bag(bag);
         }
         var runnerOnThird = Runners.Any(r => r.Live && !r.Broke && r.IsOn(3));
         if (pickoffBag == 0 && runnerOnThird && bags.Contains(2))
@@ -3335,7 +3337,7 @@ public sealed partial class LivePlaySystem
             var free = cover == "SS" ? "2B" : cover == "2B" ? "SS" : "";
             if (!string.IsNullOrEmpty(free) && free != GlovePos && _fielders.ContainsKey(free))
             {
-                var second = Diamond.Bag(2);
+                var second = Geometry.Bag(2);
                 var len = Math.Max(1, Diamond.Dist(Diamond.Home.X, Diamond.Home.Z, second.X, second.Z));
                 var cut = R.Running.Steal.CutInFrontFt;
                 _fielders[free] = (second.X - (second.X - Diamond.Home.X) / len * cut, second.Z - (second.Z - Diamond.Home.Z) / len * cut);

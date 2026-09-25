@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim;
 ///
 /// The process-wide diamond: <see cref="DiamondGeometry"/> of <see cref="Rules.Default"/>. A reader that holds a match's
 /// table reads <see cref="DiamondGeometry.Of"/> of that table instead; these members are the readers not yet moved onto it
-/// (#1067). <see cref="Dist"/> and <see cref="Order"/> read no table.
+/// (#1067). <see cref="Dist"/>, <see cref="Order"/> and <see cref="Home"/> (the origin) read no table.
 /// </summary>
 public static class Diamond
 {

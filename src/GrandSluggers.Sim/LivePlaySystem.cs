@@ -250,7 +250,7 @@ public sealed partial class LivePlaySystem
     internal Character? FielderAt(string position) => Assigned().GetValueOrDefault(position);
     /// <summary>A pickoff throw was received clean by the first-base cover, on the bag.</summary>
     internal bool PickoffReceivedAtFirst => _receivedClean && HoldsBall && GlovePos == CoverPos
-        && Diamond.Dist(GloveX, GloveZ, Diamond.First.X, Diamond.First.Z) <= R.Fielding.Cover.RadiusFt;
+        && Diamond.Dist(GloveX, GloveZ, Geometry.First.X, Geometry.First.Z) <= R.Fielding.Cover.RadiusFt;
 
     /// <summary>
     /// Opt-in geometry dump. Off by default so S-29 and the scenario harness allocate nothing extra.
@@ -534,7 +534,7 @@ public sealed partial class LivePlaySystem
     /// <summary>A throw armed to the bag, or a glove with the ball close to it: the runner slides in (§9.4).</summary>
     bool TagThreatAt(int bag)
     {
-        var at = Diamond.Bag(bag);
+        var at = Geometry.Bag(bag);
         if (Throwing && ThrowBag == bag) return true;
         if (HasBall && !Throwing && Diamond.Dist(GloveX, GloveZ, at.X, at.Z) <= _match.Rules.Running.Bags.SlideThreatFt) return true;
         return false;

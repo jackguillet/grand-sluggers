@@ -192,7 +192,7 @@ public static class InPlay
     /// <summary>Seconds until a throw released now from (x, z) lands at <paramref name="bag"/>: <see cref="ThrowSec"/> over that distance.</summary>
     public static double ThrowArrivalSec(double fromX, double fromZ, int bag, ThrowResult? thr, RulesTable rules)
     {
-        var to = Diamond.Bag(bag);
+        var to = DiamondGeometry.Of(rules).Bag(bag);
         return ThrowSec(Diamond.Dist(fromX, fromZ, to.X, to.Z), thr, rules);
     }
 
@@ -583,9 +583,10 @@ public static class InPlay
     {
         var r = radius ?? rules.Running.Bags.OccupyRadiusFt;
         if (Diamond.Dist(x, z, 0, 0) <= r) return true;
+        var diamond = DiamondGeometry.Of(rules);
         for (var bag = 1; bag <= 3; bag++)
         {
-            var p = Diamond.Bag(bag);
+            var p = diamond.Bag(bag);
             if (Diamond.Dist(x, z, p.X, p.Z) <= r) return true;
         }
         return false;
@@ -595,7 +596,7 @@ public static class InPlay
     public static bool OnThisBag(int bag, double x, double z, RulesTable rules, double? radius = null)
     {
         if (bag is < 1 or > 4) return false;
-        var p = Diamond.Bag(bag);
+        var p = DiamondGeometry.Of(rules).Bag(bag);
         return Diamond.Dist(x, z, p.X, p.Z) <= (radius ?? rules.Running.Bags.OccupyRadiusFt);
     }
 

@@ -65,7 +65,7 @@ public static class RunnerAi
         if (ball.Throwing)
         {
             var lands = Math.Max(0, ball.ThrowArrivesAt - elapsed);
-            var landing = Diamond.Bag(ball.ThrowBag);
+            var landing = DiamondGeometry.Of(r).Bag(ball.ThrowBag);
             return ball.ThrowBag == bag ? lands : lands + reaction + Clock(landing.X, landing.Z);
         }
         var meet = ball.Held ? 0 : Math.Max(0, ball.MeetAt - elapsed);
