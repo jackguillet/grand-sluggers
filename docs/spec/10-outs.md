@@ -40,7 +40,7 @@ The classic turn: force at second, throw to first. Each leg is its own throw wit
 | Runners on 1st and 2nd, grounder to 3B near the bag | 3B | step on 3B | 1B (or 2B if the batter is slow — the CPU picks the best makeable margin) | 5-3 / 5-4-3 around-the-horn | S-46 |
 | Bases loaded, grounder to an infielder inside 60 ft | fielder | home (force) | 1B | 2-3 / 6-2-3; the catcher is the cover at home | S-47 |
 | Bases loaded, grounder to 1B on the bag | 1B | step on 1B (batter out) | home — now a **tag** at the plate | 3-2 tag; the runner from 3rd can hold | S-48 |
-| Runner on 1st, bunt popped up | C / P | catch | 1B (double off) | S-49 ✅ #625 (`BuntScenarioTests`: the squared bunt popped 29 ft out is the catcher's; the throw back to first lands in 2B's glove, the bunt cover) |
+| Runner on 1st, bunt popped up | C / P | catch | 1B (double off) | S-49 ✅  (`BuntScenarioTests`: the squared bunt popped 29 ft out is the catcher's; the throw back to first lands in 2B's glove, the bunt cover) |
 | Runner on 1st, 2 outs | any | the **first makeable out** ends the inning; the CPU prefers the shorter throw | — | No DP attempt with 2 outs | S-50 |
 
 Rules that fall out of geometry, and must not be tabled:
@@ -57,7 +57,7 @@ Rules that fall out of geometry, and must not be tabled:
 - Liner or fly caught with a runner off the bag: the fielder throws to (or steps on) that bag; if the ball arrives before the runner returns, the runner is out. This is an **appeal-less force back**. Works at every bag. S-51..S-53.
 - Fly ball, runner tags and goes, throw beats them: **tag** at the next bag (never a force). S-54 (sac fly thrown out at home).
 - Pop-up dropped on purpose with runners on: no infield fly rule; forced runners must go. CPU runners stay on the bag, so the drop is a force at the lead bag only. S-55.
-- **A firm catch is firm.** Once the batted ball is caught in the air it stays caught for the rest of the play. A glove that loses the ball afterwards — a throw that sails, a lob nobody covers, an item that knocks it loose — is possession changing, not the batted ball coming down. The retouch is owed only by a body that was off the bag **at the catch** (§9.5), and is judged **once**, on that catch. S-55b. ✅ P5 (`LivePlaySystem.UpdateFly`; #692).
+- **A firm catch is firm.** Once the batted ball is caught in the air it stays caught for the rest of the play. A glove that loses the ball afterwards — a throw that sails, a lob nobody covers, an item that knocks it loose — is possession changing, not the batted ball coming down. The retouch is owed only by a body that was off the bag **at the catch** (§9.5), and is judged **once**, on that catch. S-55b. ✅ (`LivePlaySystem.UpdateFly`).
   Note the rule is about a ball that reached the glove: a fly an out is awarded on *without* a glove (the chomper, §14) does not enter the caught state at all, and is not covered here.
 
 ✅ P5: the CPU reads the doubled-off race ahead of its table (`RunnerSystem.ReturnSec` against the throw to the start bag, or a walk onto it inside `fielding.throw.unassistedFt`); a human sends a runner into the doubled-off risk with the stick on that runner (LB on a ball in the air is tag-and-go, §9.5). A body owing a retouch is not settled: Time waits for it (§10.6).

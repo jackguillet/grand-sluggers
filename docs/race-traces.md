@@ -1,6 +1,6 @@
 # Race observations for #693 / #702
 
-Session kind: **Gameplay — measurement infrastructure**. This extends `PlayTrace`, the scenario harness, `ContentDataValidator`, and `cli match`. It changes no gameplay coefficient. Jack's accepted directions and unresolved numerical choices remain in [D19](spec/00-decisions.md#02-field-proportions-and-race-calibration--d19-693) and the [decision register](plan-game-feel-693.md#decision-register).
+Session kind: **Gameplay — measurement infrastructure**. This extends `PlayTrace`, the scenario harness, `ContentDataValidator`, and `cli match`. It changes no gameplay coefficient. Jack's accepted directions and unresolved numerical choices remain in [D19](spec/00-decisions.md#02-field-proportions-and-race-calibration--d19) and the [decision register](plan-game-feel-693.md#decision-register).
 
 ## Version 2 contract
 

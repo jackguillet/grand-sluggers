@@ -156,7 +156,7 @@ public sealed class DistillTests
     {
         var rails = File.ReadAllText(Path.Combine(Repo, "docs/agent-rails.md"));
         var section = Section(rails, "## 7. Distill");
-        Assert.Contains("✅ **R7 #654", section, StringComparison.Ordinal);
+        Assert.Contains("✅ **R7", section, StringComparison.Ordinal);
         Assert.DoesNotContain("Missing: the finding also lands", section, StringComparison.Ordinal);
         Assert.Contains("swing-*-max-load", section, StringComparison.Ordinal);
         Assert.Contains("R7 ✅", rails, StringComparison.Ordinal);
