@@ -13,6 +13,7 @@ sealed class ArtCommand : Command
         var art = content.Art;
         Console.WriteLine($"RIG    {art.Rig.Id}  bones {art.Rig.Bones.Count}  events {string.Join(",", art.Rig.Events)}");
         Console.WriteLine($"CLIPS  {art.Clips.Count}  {string.Join(" ", art.Clips.Select(c => c.Id))}");
+        Console.WriteLine($"STYLES {art.Styles.Count}  {string.Join(" ", art.Styles.Select(s => s.Id + "(" + s.Clips.Count + (s.OwnsEveryClip ? " all" : "") + ")"))}  styled: {string.Join(" ", art.StyledClips)}  receipt {art.Receipt.Count} takes");
         Console.WriteLine($"SKINS  {art.Skins.Count} captains authored, role players inherit body type");
         Console.WriteLine($"VFX    {art.Vfx.Count} events");
         Console.WriteLine($"AUDIO  {art.Audio.Count} events ({art.Audio.Count(e => e.Authored)} authored)");

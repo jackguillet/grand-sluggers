@@ -75,7 +75,7 @@ Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`
 | Verb | Clip | Clock | Handed | Marker |
 | --- | --- | --- | --- | --- |
 | Idle, Field, Cheer, Charm | idle / field / cheer / charm | world (loop) | no | |
-| Walk, Run | walk / run | world (loop) | no | FootPlant 0; the root yaw is `BodyFacing` (gameplay-spec §8.2): the run while moving, the walk take on the backpedal |
+| Walk, Run | walk / run | ground (loop): the phase advances with distance covered, `Gait.Advance` | no | FootPlant 0; the root yaw is `BodyFacing` (gameplay-spec §8.2); run at or above the body's run floor (`Gait.RunFloorFt`), the walk take below it and on the backpedal |
 | Jump, Clamber | jump | verb | no | FootPlant 0.55 |
 | ChargePitch | pitch-charge at `LoadSampleAt(charge)` | charge | yes | |
 | ThrowPitch | pitch or pitch-charge at `LoadedClipTime` | verb | yes | Release 0.42 |
@@ -88,6 +88,18 @@ Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`
 | Slide | slide | verb | no | FootPlant 0.18 |
 
 A held load samples the one-shot at `LoadSampleAt(charge) = NormalLoadAt · (1 − charge)`: MAX holds the full coil at 0, a tap starts from the half load. The committed verb then samples `LoadedClipTime(poseT, loadAt, eventAt)`, which is monotonic and lands the marker exactly at `eventAt`. One function for pitch and swing.
+
+### Motion styles (CH-12)
+
+A body class moves in its own **motion style**. A style is a dimension of the one pose table in `hero_shared_takes.py` (`STYLE_POSES`), not a second motion system. Rows live in `data/art/clips.json` `styles`. The table has room for about fifteen styles, so role players can get their own later.
+
+- **Styled clips.** `styles.clips` lists them: `idle`, `walk`, `run`, `swing-slap` and `swing-charge` (the batting stance), `pitch` and `pitch-charge` (the windup), and `cheer`. A style's `cheer` is its captain's **signature beat**, played on the existing Cheer path (a home run, the win). Every other clip is the shared take.
+- **Files.** The bake writes each style's takes to `Clips/styles/{id}/{clip}[-L].fbx`, for both hands, with the same per-frame contracts. `Motion.ClipFor(verb, hand, style)` returns `{id}/{file}` when the style owns the clip. Otherwise it returns the shared file.
+- **Stance and windup.** These are deltas on the shared swing and pitch keys. The stance delta is whole through the ready and load keys and gone by Contact. The windup delta, including the leg-kick height, is whole through the leg lift and gone by Release. So every hand, bat, head-clearance and release contract still holds, and the bake refuses a style that breaks one.
+- **Build channels.** `reach` (arm length) and `boots` (shoe size) are style channels in `rig.json` `build`. Their scale comes from the style (`reachScale`, `bootsScale`), not from the proportions. `boots` moves no joint. `reach` stretches the arm pieces, and **the style's takes move the elbow and the wrist down the bone** (`reach_offsets`). So a style with reach owns every clip: the bake solves each swing, bunt, throw and catch hand contract at the longer arm, and a socket contract (glove on the wrist, release on the palm) runs on every frame of every take.
+- **Receipt.** The bake writes `data/art/takes-receipt.json`: one row per file, with its SHA-256, frame count and the contracts it passed. `cli art` refuses a take whose bytes no row vouches for, and a style take that passed fewer contracts than its shared take.
+- **Who wears which.** A body moves in the style its body class names (`data/rules/body-classes.json` `motionStyle`, read through `ArtCatalog.StyleOf`). A role player plays its captain's class unless it names its own. `cli art` refuses a class whose `motionStyle` is not a style row, and a style no class plays unless the row marks it `reserved`. A body with no class plays the shared takes.
+- **Stride.** `runCycle` and `walkCycle` are rig units of ground per loop. `Gait.CycleFt` scales them by the body's root height. The loop's phase advances with the ground the body covers on the sim's positions, so stride rate follows ground speed (SC-21).
 
 ### The two swings (#613)
 

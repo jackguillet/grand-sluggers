@@ -21,6 +21,10 @@
   "headingSmoothSec": 0.08,
   "headingTeleportFtPerSec": 90,
   "backpedalFt": 12,
+  // CF-5 (#1111): a body plays the run take once it moves faster than this share of its own slowest full-effort pursuit
+  // speed (the ground chase x the smallest air multiplier, Gait.RunFloorFt); slower than that and faster than
+  // CartoonJuice.WalkFtPerSec it walks. Presentation only.
+  "gaitRunOfPursuit": 0.75,
   "faceBallMinFt": 3,
   "swingFinishStepFt": 2.5,
   "runnerShareStepFt": 6,

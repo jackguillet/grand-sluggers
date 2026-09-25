@@ -150,6 +150,20 @@ public static class Motion
     public static string ClipFile(Verb verb, Hand bats, Hand throws, double charge01 = 0) =>
         ClipFile(CueFor(verb, charge01).Clip, UsesBattingHand(verb) ? bats : throws);
 
+    /// <summary>
+    /// The take file a verb plays for a hand and a motion style (CH-12): <c>{style}/{clip}</c> when the style has its own take
+    /// of the clip, else the shared <see cref="ClipFile(string, Hand)"/>. The hand is already the batting or throwing hand.
+    /// </summary>
+    public static string ClipFor(Verb verb, Hand hand, MotionStyle? style, double charge01 = 0) =>
+        StyledFile(CueFor(verb, charge01).Clip, hand, style);
+
+    /// <summary>A clip's file for a hand and a style, falling back to the shared take.</summary>
+    public static string StyledFile(string clipId, Hand hand, MotionStyle? style)
+    {
+        var file = ClipFile(clipId, hand);
+        return style is not null && style.Owns(clipId) ? style.Id + "/" + file : file;
+    }
+
     public static double Mark(Verb verb, ClipEvent ev)
     {
         if (!TryClip(CueFor(verb).Clip, out var clip) || clip.Mark != ev) return 0;

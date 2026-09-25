@@ -97,14 +97,25 @@ namespace GrandSluggers.UnityClient
             return Resources.Load<Texture2D>("Art/" + id + "-hero");
         }
 
-        /// <summary>Catalog slot for a take file id: a clip id or its baked mirror <c>{clip}-L</c>.</summary>
+        /// <summary>
+        /// Catalog slot for a take file id: a clip id or its baked mirror <c>{clip}-L</c>, optionally a motion style's own
+        /// take <c>{style}/{clip}[-L]</c> (<see cref="Motion.ClipFor"/>).
+        /// </summary>
         public static string ClipPath(string fileId, bool player = false)
         {
             if (_art == null || string.IsNullOrWhiteSpace(fileId)) return "";
-            var left = fileId.EndsWith("-L", StringComparison.OrdinalIgnoreCase);
-            var clipId = left ? fileId.Substring(0, fileId.Length - 2) : fileId;
+            MotionStyle style = null;
+            var slash = fileId.IndexOf('/');
+            var file = fileId;
+            if (slash > 0)
+            {
+                if (!_art.TryStyle(fileId.Substring(0, slash), out style)) return "";
+                file = fileId.Substring(slash + 1);
+            }
+            var left = file.EndsWith("-L", StringComparison.OrdinalIgnoreCase);
+            var clipId = left ? file.Substring(0, file.Length - 2) : file;
             if (!_art.TryClip(clipId, out var clip)) return "";
-            var (slot, playerSlot) = ArtCatalog.ClipFiles(clip, left ? Hand.L : Hand.R);
+            var (slot, playerSlot) = _art.ClipFiles(clip, left ? Hand.L : Hand.R, style);
             return player ? playerSlot : slot;
         }
 
@@ -122,7 +133,7 @@ namespace GrandSluggers.UnityClient
                 return null;
             }
             var key = ResourceKey(ClipPath(fileId, player: true));
-            var loaded = LoadExactResourceClip(key, fileId);
+            var loaded = LoadExactResourceClip(key, fileId.Substring(fileId.LastIndexOf('/') + 1));
             if (loaded == null)
                 loaded = Resources.Load<AnimationClip>(key);
             if (loaded == null && EditorLoadClip != null)

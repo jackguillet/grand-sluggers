@@ -86,8 +86,12 @@ case "$kind" in
     cp "$takes/${clip}.png" "$drop/$named"
     ;;
   lineup)
-    # Every captain side by side: dcc-lineup-turnaround.png, dcc-lineup-gameplay.png, dcc-lineup-gameplay-black.png.
+    # Every captain side by side: dcc-lineup-turnaround.png, dcc-lineup-gameplay.png, dcc-lineup-gameplay-black.png,
+    # then each motion-style beat (dcc-lineup-{run,stance,windup,signature}-*.png).
     "$B" -b --python "$root/tools/blender/hero_lineup.py" -- --out "$drop" --prefix dcc-lineup
+    for beat in run stance windup signature; do
+      "$B" -b --python "$root/tools/blender/hero_lineup.py" -- --out "$drop" --prefix "dcc-lineup-$beat" --beat "$beat"
+    done
     ;;
   harbor-kit)
     "$B" -b --python "$root/tools/blender/harbor_kit.py" -- \
