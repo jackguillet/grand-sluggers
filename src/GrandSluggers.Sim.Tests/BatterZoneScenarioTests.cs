@@ -53,7 +53,9 @@ public sealed class BatterZoneScenarioTests
     [Fact]
     public void SC15_EveryCaptainsZoneRunsFromMidThighToTheChestAtTheFixedWidth()
     {
-        Assert.Equal(7, Captains.Count());
+        // Every captain the catalog names, the next one included: no count lives here.
+        Assert.Equal(_content.CaptainIds.Count, Captains.Count());
+        Assert.NotEmpty(Captains);
         var z = R.Pitching.Zone;
         foreach (var who in Captains)
         {
