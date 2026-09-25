@@ -55,4 +55,19 @@ public sealed class RulesPlumbingTests
             .ToList();
         Assert.True(offenders.Count == 0, "pass the match's table instead of Rules.Default: " + string.Join(", ", offenders));
     }
+
+    /// <summary>
+    /// Readers of the process diamond (<see cref="Diamond"/>'s bags, rubber and starts) left in the sim. A reader that holds a
+    /// table reads <see cref="DiamondGeometry.Of"/> of it (#1067); this ceiling only goes down, so no new reader joins them.
+    /// </summary>
+    const int ProcessDiamondReaders = 165;
+
+    [Fact]
+    public void NoNewReaderTakesTheProcessDiamond()
+    {
+        var read = new Regex(@"(?<![\w.])Diamond\.(Baseline|Mound|Home|First|Second|Third|Rubber|Positions|Bag)\b");
+        var n = Code().Where(c => c.File != "Diamond.cs").Sum(c => read.Matches(c.Text).Count);
+        Assert.True(n <= ProcessDiamondReaders, $"{n} reads of the process diamond (ceiling {ProcessDiamondReaders}): read DiamondGeometry.Of(rules) instead");
+        Assert.True(n >= ProcessDiamondReaders, $"{n} reads of the process diamond: lower {nameof(ProcessDiamondReaders)} to {n}");
+    }
 }

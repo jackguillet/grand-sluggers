@@ -2,21 +2,23 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Where a park's fielders start (§8, FD-07 C, F2-d; <c>SF-09</c>): the infield, the pitcher and the catcher are the global
-/// set (<see cref="Diamond.Positions"/>) in every park. Each outfielder is the park's named start
+/// set (<see cref="DiamondGeometry.Positions"/>) in every park. Each outfielder is the park's named start
 /// (<see cref="Park.OutfieldStarts"/>), or by default the global start's bearing from home at its fraction of the fence it
 /// was authored against (<c>fielders.authoredFence</c>), on this park's fence at that bearing. A park whose fence at that
 /// bearing is the authored one keeps the global start to the bit.
 /// </summary>
 public static class OutfieldStarts
 {
-    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Park, IReadOnlyDictionary<string, (double X, double Z)>> Cache = new();
+    // Per table, then per park: a second table's starts are its own, never the first table's cached for the same park.
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<RulesTable,
+        System.Runtime.CompilerServices.ConditionalWeakTable<Park, IReadOnlyDictionary<string, (double X, double Z)>>> Cache = new();
 
     public static IReadOnlyDictionary<string, (double X, double Z)> Of(Park park, RulesTable rules) =>
-        Cache.GetValue(park, p => Build(p, rules));
+        Cache.GetValue(rules, _ => new()).GetValue(park, p => Build(p, rules));
 
     static IReadOnlyDictionary<string, (double X, double Z)> Build(Park park, RulesTable rules)
     {
-        var starts = new Dictionary<string, (double X, double Z)>(Diamond.Positions, StringComparer.Ordinal);
+        var starts = new Dictionary<string, (double X, double Z)>(DiamondGeometry.Of(rules).Positions, StringComparer.Ordinal);
         var a = rules.Fielders.AuthoredFence;
         var authored = park with
         {
