@@ -16,7 +16,7 @@ namespace GrandSluggers.UnityClient
         public void Tick(float dt) { _play.TickAtBat(dt); }
     }
 
-    public sealed partial class MatchDirector : IInPlayHost, IActorHost, IItemHost
+    public sealed partial class MatchDirector : IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost
     {
         internal ChargeButtonState _pitchButton;
 
@@ -120,7 +120,7 @@ namespace GrandSluggers.UnityClient
             _pitchSelect = PitchSelectionState.Reset;
             _cpuPitch = null;
             _cpuSteer = 0;
-            _swapPick = null;
+            Swap.Close();
             _breakX = 0;
             _dash01 = 0;
             if (_match != null) _match.Dash01 = 0;
@@ -210,9 +210,9 @@ namespace GrandSluggers.UnityClient
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
             var pitchFamily = PitchFamily.Fastball;
-            var wasPicking = _swapPick != null;
-            if (HumanPitches && !_match.PitchSetup.Committed) TickSwapPick(dt, mound);
-            if (wasPicking || _swapPick != null)
+            var wasPicking = Swap.Open;
+            if (HumanPitches && !_match.PitchSetup.Committed) Swap.Tick(dt, mound);
+            if (wasPicking || Swap.Open)
             {
                 // The window owns this frame, including its open/close edge. No pickoff,
                 // rubber walk, steal or banked charge can leak through a menu action.
@@ -225,13 +225,13 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             // A legal base throw is read before South can begin a pitch charge.
-            if (HumanPitches && ReadSetupThrow(mound, _t >= (float)_feel.PitcherReadySeconds && _swapPick == null)) return;
+            if (HumanPitches && ReadSetupThrow(mound, _t >= (float)_feel.PitcherReadySeconds && !Swap.Open)) return;
             // The arm edge is read from the button as it stood *before* this tick's step (#813).
             var prevPitchButton = _pitchButton;
             if (HumanPitches)
                 pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
                     ref _pitchButton, ref _pitchCharge, ref _pitchPast,
-                    _t >= (float)_feel.PitcherReadySeconds && _swapPick == null);
+                    _t >= (float)_feel.PitcherReadySeconds && !Swap.Open);
             else
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
             if (HumanPitches && (pitchButton.Next.Armed || pitchButton.Committed) && !_match.PitchSetup.Committed)
@@ -242,7 +242,7 @@ namespace GrandSluggers.UnityClient
                 // pitcher-ready beat — a selection is not a delivery — but not while the swap pick
                 // owns the stick and the button (§4.7), so the gate is the seat, not `accepting`.
                 var selection = _match.SelectPitch(_pitchSelect, mound.CyclePitch,
-                    HumanPitches && _swapPick == null, prevPitchButton, pitchButton);
+                    HumanPitches && !Swap.Open, prevPitchButton, pitchButton);
                 _pitchSelect = selection.Next;
                 // On the commit tick this is the locked family of the delivery leaving the hand;
                 // `Next` has already reset to the fastball for the SET after it.
@@ -292,7 +292,7 @@ namespace GrandSluggers.UnityClient
             TickSquare(dt, SquaredNow);
             if (HumanPitches)
             {
-                if (_swapPick != null || _match.PitchSetup.Committed) { }
+                if (Swap.Open || _match.PitchSetup.Committed) { }
                 else if (mound.StickY < -(float)_feel.SetResetStick) _match.ResetPitcher();
                 else _match.WalkPitcher(HomeSet.RubberWalkStep(PitchWorldX(mound.StickX), dt));
                 _moundX = (float)_match.PitcherOffsetX;
@@ -398,7 +398,7 @@ namespace GrandSluggers.UnityClient
             return BroadcastHud.PitcherExtra(
                 StarAsks.PitchShown && HumanPitches,
                 set ? BroadcastHud.PitchCycle(BroadcastHud.ShortFamily(_match.FamilyAt(_pitchSelect))) : null,
-                set && _swapPick == null && _match.CanArrangeDefense);
+                set && !Swap.Open && _match.CanArrangeDefense);
         }
 
         /// <summary>
@@ -412,57 +412,8 @@ namespace GrandSluggers.UnityClient
         /// Select opens the defense window. South picks two positions; Select is the pitcher shortcut.
         /// East cancels a pending pick or closes. All baseball input waits for the window.
         /// </summary>
-        internal bool OpenDefenseSetup()
-        {
-            if (_phase != Phase.Set || !HumanPitches || _match.PitchSetup.Committed || !_match.CanArrangeDefense) return false;
-            _swapPick = new DefenseSetupPick(_match);
-            _swapX.Catch(FieldPad.MenuAxisX); _swapY.Catch(FieldPad.MenuAxisY);
-            _match.SetPaused(false);
-            Controls.CatchPlay();
-            return true;
-        }
-
-        void TickSwapPick(float dt, Controls.Pad mound)
-        {
-            if (_swapPick == null) return;
-            if (mound.EastDown)
-            {
-                if (_swapPick.PickedPosition != null) _swapPick.CancelPick();
-                else _swapPick = null;
-                return;
-            }
-            var dx = _swapX.Tick(mound.MenuAxisX, mound.MenuTapX, dt);
-            var dy = _swapY.Tick(mound.MenuAxisY, mound.MenuTapY, dt);
-            if (dx != 0 || dy != 0) _swapPick.Move(dx, dy);
-            // The Arrange defense lesson owns every trade, the mound included, so a pitcher change is its typed failure.
-            System.Func<Character, bool> pitcherSwap = TutorialOn && _coach.Tutorial.IsDefenseSwapLesson ? null : WindowPitcherSwap;
-            if (mound.WestDown)
-                _swapPick.QuickPitcher(_match, pitcherSwap, WindowPositionSwap);
-            else if (mound.SouthDown)
-                _swapPick.PickOrSwap(_match, pitcherSwap, WindowPositionSwap);
-        }
-
-        bool WindowPositionSwap(string from, string to)
-        {
-            bool changed;
-            if (TutorialOn && _coach.Tutorial.IsDefenseSwapLesson) _coach.Tutorial.SwapPositions(from, to, out changed);
-            else changed = _match.SwapDefensePositions(from, to);
-            if (changed && (from == "P" || to == "P")) _pitchSelect = PitchSelectionState.Reset;
-            return changed;
-        }
-
-        bool WindowPitcherSwap(Character who)
-        {
-            bool changed;
-            if (TutorialOn && _coach.Tutorial.SwapPitcher(who.Id)) changed = _match.Pitcher.Id == who.Id;
-            else
-            {
-                var candidate = _swapPick.Candidates.First(c => c.Who.Id == who.Id);
-                changed = _match.SwapDefensePositions("P", candidate.Pos);
-            }
-            if (changed) _pitchSelect = PitchSelectionState.Reset;
-            return changed;
-        }
+        /// <summary>Call time's Arrange defense: open SET's swap window.</summary>
+        internal bool OpenDefenseSetup() => Swap.TryOpen();
 
         /// <summary>The pitch as it stands in SET: the selected family, the rubber, the charge so far. Not committed.</summary>
         PitchCommand PreviewPitch(string family) =>
@@ -932,5 +883,11 @@ namespace GrandSluggers.UnityClient
         internal ItemToss Toss => _toss ??= new ItemToss(Scene, Play, Live, Pads, this);
         TrainingDirector IItemHost.Coach => _coach;
         string IItemHost.Sub { set => _sub = value; }
+
+        // SET's Arrange defense window (#1042): DefenseSwapWindow owns the pick and the swaps; the flow resets the pitch selection.
+        DefenseSwapWindow _swap;
+        internal DefenseSwapWindow Swap => _swap ??= new DefenseSwapWindow(Play, Pads, this);
+        TrainingDirector IDefenseSwapHost.Coach => _coach;
+        void IDefenseSwapHost.PitcherChanged() => _pitchSelect = PitchSelectionState.Reset;
     }
 }
