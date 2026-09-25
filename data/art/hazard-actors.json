@@ -15,13 +15,15 @@
     "train": "midway-train",
     "acUnit": "ac-unit",
     "tree": "jungle-tree",
-    "lilyPad": "lily-pad"
+    "lilyPad": "lily-pad",
+    "tide": "tide-wave"
   },
   "rings": {
     "statusVolume": "#1A1A22",
     "ballRedirect": "#FFCC40",
     "rewardTarget": "#FFCC40",
     "solidBody": "#3A3A40",
-    "timedMover": "#E83850"
+    "timedMover": "#E83850",
+    "surge": "#38B8E8"
   }
 }

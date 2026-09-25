@@ -3253,6 +3253,31 @@
       "tests": [
         "HazardLessonTests"
       ]
+    },
+    {
+      "id": "T-H09",
+      "revision": 1,
+      "mechanics": [
+        "fields.surge"
+      ],
+      "title": "ride the tide",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 1153,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H09",
+      "objective": "hazard-surge-take",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
     }
   ],
   "setups": [
@@ -7319,6 +7344,44 @@
         }
       },
       "park": "canopy-yard"
+    },
+    {
+      "id": "T-H09",
+      "policy": "liner",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 90,
+          "launchDeg": 12,
+          "sprayDeg": 36
+        }
+      },
+      "park": "coconut-cove"
     }
   ]
 }

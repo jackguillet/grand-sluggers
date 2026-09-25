@@ -71,7 +71,7 @@ public sealed class HazardPlacementTests
             }
         }
         // Every hazard of every park was measured, not just the ones FD-19-R1 moved (the marsh's three lily pads too).
-        Assert.Equal(29, measured);
+        Assert.Equal(31, measured);
 
         // Finding 31, measured: the breath at its night disc.
         var breath = Game.Parks[ParkId.Ember].Hazards.Single(h => h.Type == HazardType.FireBreath);

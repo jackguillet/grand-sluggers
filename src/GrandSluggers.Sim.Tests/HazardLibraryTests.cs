@@ -53,7 +53,7 @@ public sealed class HazardLibraryTests
     [Fact]
     public void EveryLibraryIdHasOneAuthoredRowAndNoRowIsAnythingElse()
     {
-        Assert.Equal(13, HazardType.All.Count);
+        Assert.Equal(14, HazardType.All.Count);
         Assert.Equal(HazardType.All, Table.Hazards.Authored);
 
         var properties = typeof(HazardRules).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -102,12 +102,12 @@ public sealed class HazardLibraryTests
         Assert.Equal(1.0, rules.Stars.Gains.Billboard);
         Assert.Equal(0.6, rules.Fielding.Park.ShellWarpChance);
 
-        // Only a status volume widens at night, only a redirect has a pad, and only a status volume slows a body for a
+        // Only a status volume or a surge (the high tide) widens at night, only a redirect has a pad, and only a status volume slows a body for a
         // time (F4-b, FD-08-R2: 3.0 s).
         foreach (var type in HazardType.All)
         {
             var row = hazards.Of(type);
-            Assert.True(row.NightRadiusMul == 1 || row.Pattern == HazardPattern.StatusVolume, type);
+            Assert.True(row.NightRadiusMul == 1 || row.Pattern is HazardPattern.StatusVolume or HazardPattern.Surge, type);
             Assert.True(row.ReachPadFt == 0 || row.Pattern == HazardPattern.BallRedirect, type);
             Assert.Equal(row.Pattern == HazardPattern.StatusVolume ? (double?)3.0 : null, row.SlowSec);
         }
@@ -213,7 +213,7 @@ public sealed class HazardLibraryTests
 
         var errors = RulesTable.Validate(fixture.Root());
         Assert.Contains(errors, e => e.Contains(
-            "hazards.tree.nightRadiusMul is 1.4, but only a statusVolume widens at night", StringComparison.Ordinal));
+            "hazards.tree.nightRadiusMul is 1.4, but only a statusVolume or a surge widens at night", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains(
             "hazards.statue.reachPadFt is 3, but only a ballRedirect has a reach pad", StringComparison.Ordinal));
     }

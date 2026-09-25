@@ -11,6 +11,9 @@
   "windMph": 7,
   "windDeg": 90,
   "fenceHeightFt": 6,
-  "hazards": [],
-  "notes": "A tropical island, Stillwater's beach. The outfield is sand: a ball rolls shorter and bounces lower. The sea breeze blows across toward right. The tide (a surge across the outfield corners) is a later pattern."
+  "hazards": [
+    { "type": "tide", "x": -114.6, "z": 157.8, "radius": 18 },
+    { "type": "tide", "x": 114.6, "z": 157.8, "radius": 18 }
+  ],
+  "notes": "A tropical island, Stillwater's beach. The outfield is sand: a ball rolls shorter and bounces lower. The sea breeze blows across toward right. The tide washes both outfield corners on a clock and carries a roller toward the line."
 }

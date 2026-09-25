@@ -54,16 +54,19 @@ public static class HazardType
     /// <summary>Stillwater Marsh's drifting lily pads.</summary>
     public const string LilyPad = "lily_pad";
 
+    /// <summary>Coconut Cove's tide: a surge band at a foul-side outfield corner.</summary>
+    public const string Tide = "tide";
+
     /// <summary>Every type, in library order: the acting patterns first, then the decorations.</summary>
     public static IReadOnlyList<string> All { get; } =
     [
         FreezeVolume, LavaPit, FireBreath, WarpPipe, Barrel, Billboard, ClimbWall, Chomper,
-        Statue, Train, AcUnit, Tree, LilyPad
+        Statue, Train, AcUnit, Tree, LilyPad, Tide
     ];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);
 
-    /// <summary>True for one of the twelve library ids, spelled the way the library spells it.</summary>
+    /// <summary>True for one of the library ids, spelled the way the library spells it.</summary>
     public static bool IsKnown(string? type) => type is not null && KnownIds.Contains(type);
 
     /// <summary>
@@ -110,6 +113,12 @@ public static class HazardPattern
     /// <summary>A solid body that moves along the fence on the play clock (<c>train</c>; F4-f).</summary>
     public const string TimedMover = "timedMover";
 
+    /// <summary>
+    /// A band that, while its wave is in on a seeded period, carries a rolling ball inside it toward the nearer foul line
+    /// (<c>tide</c>): never a ball in the air, never a body, never across the line.
+    /// </summary>
+    public const string Surge = "surge";
+
     /// <summary>A property of the wall a fielder works at (<c>climb_wall</c>).</summary>
     public const string WallTrait = "wallTrait";
 
@@ -118,11 +127,11 @@ public static class HazardPattern
 
     /// <summary>Every pattern, in the order §14 lists them.</summary>
     public static IReadOnlyList<string> All { get; } =
-        [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover, WallTrait, Decoration];
+        [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover, Surge, WallTrait, Decoration];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);
 
-    /// <summary>True for one of the seven patterns the sim implements (the catch stealer retired into the redirect, FD-09-R2).</summary>
+    /// <summary>True for one of the patterns the sim implements (the catch stealer retired into the redirect, FD-09-R2).</summary>
     public static bool IsKnown(string? pattern) => pattern is not null && KnownIds.Contains(pattern);
 
     /// <summary>
@@ -139,7 +148,7 @@ public static class HazardPattern
     /// 2026).
     /// </para>
     /// </summary>
-    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover];
+    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover, Surge];
 
     static readonly HashSet<string> HazardIds = new(Hazards, StringComparer.Ordinal);
 

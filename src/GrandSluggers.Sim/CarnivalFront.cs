@@ -316,6 +316,8 @@ public static partial class CarnivalFront
             HazardType.Tree => "Trees stand in play: balls bounce off them.",
             HazardType.Train => "A train runs along the wall.",
             HazardType.LilyPad => "Lily pads drift across the outfield: a roller bounces off them.",
+            HazardType.Tide => $"The tide washes the outfield corners every {row.PeriodSec ?? 0:0.#} s: a roller drifts toward the line"
+                + (row.NightRadiusMul > 1 ? ", farther in at night." : "."),
             _ => null
         };
     }
