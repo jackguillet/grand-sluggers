@@ -37,21 +37,21 @@ public static class StillPose
     public const double PitchLookY = 5.1;
     /// <summary>The pitch look sits this far in front of the rubber (57 on the 60.5-ft mound).</summary>
     public const double PitchLookShortOfRubberFt = 3.5;
-    /// <summary>The look follows the rubber the infield table names (<see cref="Diamond.Mound"/>).</summary>
-    public static double PitchLookZ => Diamond.Mound - PitchLookShortOfRubberFt;
+    /// <summary>The look follows the rubber the infield table names (<see cref="DiamondGeometry.Mound"/>).</summary>
+    public static double PitchLookZ(DiamondGeometry d) => d.Mound - PitchLookShortOfRubberFt;
     public const double PitchFov = 34;
 
     /// <summary>
     /// First-base 3/4 behind the rubber. Pitcher sits right of the look;
     /// rubber in the bottom; the box at home is the look, not CF or brim.
     /// The camera stands <see cref="MoundCamBehindRubberFt"/> behind the rubber the infield table
-    /// names (<see cref="Diamond.Mound"/>), so a smaller diamond moves the shot with the mound.
+    /// names (<see cref="DiamondGeometry.Mound"/>), so a smaller diamond moves the shot with the mound.
     /// </summary>
     public const double MoundCamX = 5.0;
     public const double MoundCamY = 5.4;
     /// <summary>Behind the rubber: 72 on the 60.5-ft mound, the middle of the 8-16 ft over-shoulder window.</summary>
     public const double MoundCamBehindRubberFt = 11.5;
-    public static double MoundCamZ => Diamond.Mound + MoundCamBehindRubberFt;
+    public static double MoundCamZ(DiamondGeometry d) => d.Mound + MoundCamBehindRubberFt;
     public const double MoundLookX = 0.4;
     public const double MoundLookY = 1.2;
     public const double MoundLookZ = 6.0;
@@ -148,14 +148,14 @@ public static class StillPose
     }
 
     /// <summary>Throwing hand must be on the rubber. Home-plate from was a beach ball in the lens.</summary>
-    public static bool PitchReleaseIsOnTheMound(double z) =>
-        z > Diamond.Mound - 16 && z < Diamond.Mound + 8;
+    public static bool PitchReleaseIsOnTheMound(double z, DiamondGeometry d) =>
+        z > d.Mound - 16 && z < d.Mound + 8;
 
-    public static bool PitchBallIsOffTheHand(double ballZ) =>
-        ballZ > 40 && ballZ < Diamond.Mound;
+    public static bool PitchBallIsOffTheHand(double ballZ, DiamondGeometry d) =>
+        ballZ > 40 && ballZ < d.Mound;
 
-    public static bool ScoopIsNotTheMound(double x, double z) =>
-        Diamond.Dist(x, z, 0, Diamond.Mound) > 20;
+    public static bool ScoopIsNotTheMound(double x, double z, DiamondGeometry d) =>
+        Diamond.Dist(x, z, 0, d.Mound) > 20;
 
     public static bool CameraClearsTheDugout(double x, double z) =>
         HarborDugout.CameraClears(x, z);
@@ -164,24 +164,24 @@ public static class StillPose
         Math.Abs(camZ - scoopZ) > 8 && Math.Abs(camX - scoopX) > 8;
 
     /// <summary>Runner is toward first and in front of the camera, not a sliver behind the lens.</summary>
-    public static bool RunnerLeavesInFrame(double camX, double camZ, double scoopX, double scoopZ, double runX, double runZ) =>
+    public static bool RunnerLeavesInFrame(double camX, double camZ, double scoopX, double scoopZ, double runX, double runZ, DiamondGeometry d) =>
         runX > scoopX && runZ > scoopZ
-        && runX < Diamond.First.X && runZ < Diamond.First.Z
+        && runX < d.First.X && runZ < d.First.Z
         && (runX - camX) + (runZ - camZ) > 12;
 
     public static bool PlateIsBehindHome(double x, double z) =>
         HomeSet.CameraIsBehindHome(x, z);
 
-    public static bool MoundIsPitcherOverShoulder(double x, double z) =>
-        x > 4 && z > Diamond.Mound + 8 && z < Diamond.Mound + 16;
+    public static bool MoundIsPitcherOverShoulder(double x, double z, DiamondGeometry d) =>
+        x > 4 && z > d.Mound + 8 && z < d.Mound + 16;
 
     /// <summary>
     /// Catcher crouches behind the batting SET (<see cref="HomeSet.CatcherZ"/>).
     /// A catcher at z=−4 sat in the look cone and owned the foreground.
     /// </summary>
-    public static bool PlateCatcherClearsTheLens(double camX, double camZ, double lookX, double lookZ)
+    public static bool PlateCatcherClearsTheLens(double camX, double camZ, double lookX, double lookZ, DiamondGeometry d)
     {
-        var (cx, cz) = Diamond.Positions["C"];
+        var (cx, cz) = d.Positions["C"];
         var ldx = lookX - camX;
         var ldz = lookZ - camZ;
         var cdx = cx - camX;

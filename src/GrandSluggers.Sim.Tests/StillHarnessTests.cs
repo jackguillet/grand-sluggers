@@ -43,8 +43,8 @@ public class StillHarnessTests
     public void ScoopPoseIsTheFirstBaseHoleNotTheMound()
     {
         Assert.True(StillPose.PlateCatcherClearsTheLens(
-            StillPose.PlateCamX, StillPose.PlateCamZ, StillPose.PlateLookX, StillPose.PlateLookZ));
-        Assert.True(StillPose.ScoopIsNotTheMound(StillPose.ScoopX, StillPose.ScoopZ));
+            StillPose.PlateCamX, StillPose.PlateCamZ, StillPose.PlateLookX, StillPose.PlateLookZ, DiamondGeometry.Of(Rules.Default)));
+        Assert.True(StillPose.ScoopIsNotTheMound(StillPose.ScoopX, StillPose.ScoopZ, DiamondGeometry.Of(Rules.Default)));
         Assert.True(StillPose.ScoopZ < Diamond.Mound - 16);
         Assert.True(StillPose.ScoopX > 12);
         Assert.InRange(StillPose.ScoopPoseT, 0.18, 0.26);
@@ -58,14 +58,14 @@ public class StillHarnessTests
         Assert.True(StillPose.RunnerX > StillPose.ScoopX);
         Assert.True(StillPose.RunnerLeavesInFrame(
             StillPose.CamX, StillPose.CamZ, StillPose.ScoopX, StillPose.ScoopZ,
-            StillPose.RunnerX, StillPose.RunnerZ),
+            StillPose.RunnerX, StillPose.RunnerZ, DiamondGeometry.Of(Rules.Default)),
             "14:16 PNG put the runner behind the camera");
         var rel = PitchFlight.Release(rules: Rules.Default);
-        Assert.True(StillPose.PitchReleaseIsOnTheMound(rel.Z), $"release z={rel.Z}");
+        Assert.True(StillPose.PitchReleaseIsOnTheMound(rel.Z, DiamondGeometry.Of(Rules.Default)), $"release z={rel.Z}");
         var ball = PitchFlight.Point(PitchFamily.Fastball, StillPose.PitchBallU, Rules.Default, 0, 0, 0, 0, rel);
-        Assert.True(StillPose.PitchBallIsOffTheHand(ball.Z),
+        Assert.True(StillPose.PitchBallIsOffTheHand(ball.Z, DiamondGeometry.Of(Rules.Default)),
             $"pitch still was a beach ball in the lens z={ball.Z}");
-        Assert.False(StillPose.PitchReleaseIsOnTheMound(2), "home-plate from is not the hand");
+        Assert.False(StillPose.PitchReleaseIsOnTheMound(2, DiamondGeometry.Of(Rules.Default)), "home-plate from is not the hand");
         var defense = FieldingResolver.Assign(
             Match.Exhibition(_content, "rio", "ashlord", seed: 7).Away.Roster,
             _content.Must("ashlord"));

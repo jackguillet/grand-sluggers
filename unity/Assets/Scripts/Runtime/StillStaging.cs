@@ -675,7 +675,7 @@ namespace GrandSluggers.UnityClient
                     ph.SnapTick((float)Motion.PitchRelease);
                 _play.Pitch ??= new PitchCommand("fastball", 1, false);
                 _host.CaptureReleaseFromHand();
-                if (!StillPose.PitchReleaseIsOnTheMound(_play.ReleaseFrom.z))
+                if (!StillPose.PitchReleaseIsOnTheMound(_play.ReleaseFrom.z, DiamondGeometry.Of(_play.Match.Rules)))
                 {
                     var rel = PitchFlight.Release(_play.Match.Rules, _play.Pitch.RubberX);
                     _play.ReleaseFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
@@ -687,7 +687,7 @@ namespace GrandSluggers.UnityClient
                 _scene.Park.Ball.Place(_host.Ball, "", "fastball", false, true);
                 _scene.Cam.CutRaw("pitch",
                     new Vector3((float)StillPose.PitchCamX, (float)StillPose.PitchCamY, (float)StillPose.PitchCamZ),
-                    new Vector3((float)StillPose.PitchLookX, (float)StillPose.PitchLookY, (float)StillPose.PitchLookZ),
+                    new Vector3((float)StillPose.PitchLookX, (float)StillPose.PitchLookY, (float)StillPose.PitchLookZ(DiamondGeometry.Of(_play.Match.Rules))),
                     (float)StillPose.PitchFov);
                 return;
             }
@@ -703,7 +703,8 @@ namespace GrandSluggers.UnityClient
                 {
                     run.gameObject.SetActive(true);
                     var runAt = new Vector3((float)StillPose.RunnerX, 0f, (float)StillPose.RunnerZ);
-                    run.PlaceStill(runAt, runAt + new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
+                    var first = DiamondGeometry.Of(_play.Match.Rules).First;
+                    run.PlaceStill(runAt, runAt + new Vector3((float)first.X, 0f, (float)first.Z));
                 }
                 var defense = _play.Match.DefenseMap;
                 Character scoopWho = null;
@@ -819,7 +820,7 @@ namespace GrandSluggers.UnityClient
                 _scene.Heroes[who.Id] = h;
             }
             h.gameObject.SetActive(true);
-            h.Bind(who);
+            h.Bind(who, DiamondGeometry.Of(_play.Match.Rules));
             return h;
         }
 
@@ -846,7 +847,7 @@ namespace GrandSluggers.UnityClient
             p.SetChargeRing(ring ? charge : 0);
             p.SetHeld(false, false);
             p.Place(
-                new Vector3(0f, 0f, (float)Diamond.Mound),
+                new Vector3(0f, 0f, (float)DiamondGeometry.Of(_play.Match.Rules).Mound),
                 new Vector3(0f, 0f, -1f));
             p.SnapTick(pose == Motion.Verb.ThrowPitch ? (float)Motion.PitchRelease : 0.08f);
         }

@@ -65,8 +65,12 @@ namespace GrandSluggers.UnityClient
         /// <summary>Which heading the body is turning toward this frame (spec §8.2, <see cref="BodyFacing"/>).</summary>
         public BodyFacing.Source Facing => _heading.Source;
 
-        public void Bind(Character who)
+        /// <summary>The diamond this body stands on (the match table's): the ring picks the rubber's dirt by its mound.</summary>
+        DiamondGeometry _diamond;
+
+        public void Bind(Character who, DiamondGeometry diamond)
         {
+            _diamond = diamond;
             if (who.Id == _id && _root != null) return;
             _id = who.Id;
             Teardown();
@@ -234,7 +238,7 @@ namespace GrandSluggers.UnityClient
             var pulse = s + 0.08f * Mathf.Sin(_t * 7f);
             var feetX = _hasGround ? _ground.x : transform.position.x;
             var feetZ = _hasGround ? _ground.z : transform.position.z;
-            var at = SetTells.RingAt(feetX, feetZ, transform.position.y, 0f);
+            var at = SetTells.RingAt(_diamond, feetX, feetZ, transform.position.y, 0f);
             _ring.SetPositionAndRotation(
                 new Vector3((float)at.X, (float)at.Y, (float)at.Z),
                 Quaternion.identity);

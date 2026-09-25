@@ -105,7 +105,7 @@ public class PlayCameraTests
         bool closePlay = false, int closeBag = 0, bool rundown = false,
         int playBag = 0, double smashLeft = 0) =>
         new(t, hit ?? Hopper, runnerPlay, closePlay, closeBag, rundown, playBag, smashLeft,
-            new Vec3(40, 3, 90), new Vec3(1, 3.2, 0));
+            new Vec3(40, 3, 90), new Vec3(1, 3.2, 0), DiamondGeometry.Of(Rules.Default));
 
     [Fact]
     public void LiveBeatIsDecidedFromTypedStateInSection15Order()
@@ -253,7 +253,7 @@ public class PlayCameraTests
         for (var i = 0; i < 60 * 30 && play is null; i++)
         {
             var view = new PlayCamera.LiveView(live.ElapsedSeconds, hit, live.RunnerPlay, live.InClosePlay, live.CloseBag,
-                live.InRundown, live.RunnerPlayBag, 0, new Vec3(live.BallX, live.BallY, live.BallZ), new Vec3(0, 3, 0));
+                live.InRundown, live.RunnerPlayBag, 0, new Vec3(live.BallX, live.BallY, live.BallZ), new Vec3(0, 3, 0), DiamondGeometry.Of(Rules.Default));
             var framed = PlayCamera.LiveFraming(content.Shots, view, content.Feel, hold);
             if (beats.Count == 0 || beats[^1] != hold.Beat) beats.Add(hold.Beat);
             if (framed is { } f)
@@ -293,7 +293,7 @@ public class PlayCameraTests
         for (var i = 0; i < 60 * 30 && play is null && live.Active; i++)
         {
             var view = new PlayCamera.LiveView(live.ElapsedSeconds, null, live.RunnerPlay, live.InClosePlay, live.CloseBag,
-                live.InRundown, live.RunnerPlayBag, 0, new Vec3(live.BallX, live.BallY, live.BallZ), new Vec3(0, 3, 0));
+                live.InRundown, live.RunnerPlayBag, 0, new Vec3(live.BallX, live.BallY, live.BallZ), new Vec3(0, 3, 0), DiamondGeometry.Of(Rules.Default));
             var framed = PlayCamera.LiveFraming(content.Shots, view, content.Feel, hold);
             Assert.NotNull(framed);
             // The same possession/throw state has exactly the same framing as ordinary fielding.
@@ -320,7 +320,7 @@ public class PlayCameraTests
         // A tag-up race home: the follow through the catch and the relay, then the bag cam at the plate inside the margin.
         var ball = new Vec3(-120, 6, 200);
         PlayCamera.LiveView At(double t, bool close) =>
-            new(t, Hopper with { Class = BattedBallClass.Fly }, false, close, close ? 4 : 0, false, 0, 0, ball, new Vec3(0, 3, 0));
+            new(t, Hopper with { Class = BattedBallClass.Fly }, false, close, close ? 4 : 0, false, 0, 0, ball, new Vec3(0, 3, 0), DiamondGeometry.Of(Rules.Default));
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.LiveFraming(shots, At(0.5, false), feel, hold)!.Value.Shot);
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.LiveFraming(shots, At(3.0, false), feel, hold)!.Value.Shot);
         var tag = PlayCamera.LiveFraming(shots, At(5.0, true), feel, hold)!.Value;

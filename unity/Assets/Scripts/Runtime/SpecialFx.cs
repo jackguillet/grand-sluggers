@@ -65,8 +65,12 @@ namespace GrandSluggers.UnityClient
         Vector3 _decoyPos;
         Vector3 _lastBall;
 
-        public void Build(Transform parent)
+        /// <summary>The diamond the decoy leaves from (the match table's rubber).</summary>
+        DiamondGeometry _diamond;
+
+        public void Build(Transform parent, DiamondGeometry diamond)
         {
+            _diamond = diamond;
             if (_root != null) Destroy(_root.gameObject);
             _root = new GameObject("SpecialFx").transform;
             _root.SetParent(parent, false);
@@ -275,7 +279,7 @@ namespace GrandSluggers.UnityClient
             if (decoy == null) return;
             decoy.gameObject.SetActive(on);
             if (!on) return;
-            if (_decoyPos.sqrMagnitude < 0.01f) _decoyPos = new Vector3(0, 5.4f, (float)Diamond.Mound);
+            if (_decoyPos.sqrMagnitude < 0.01f) _decoyPos = new Vector3(0, 5.4f, (float)_diamond.Mound);
             _decoyPos = Vector3.Lerp(_decoyPos, new Vector3(-1.6f, 2.6f, 4f), 1f - Mathf.Exp(-1.8f * dt));
             decoy.position = _decoyPos;
             decoy.localScale = Vector3.one * (1.35f + 0.12f * Mathf.Sin(_t * 9f));

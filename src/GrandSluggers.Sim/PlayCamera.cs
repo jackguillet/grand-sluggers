@@ -94,7 +94,8 @@ public static partial class PlayCamera
         int PlayBag,
         double SmashLeft,
         Vec3 Ball,
-        Vec3 Batter);
+        Vec3 Batter,
+        DiamondGeometry Diamond);
 
     /// <summary>
     /// Which beat the live ball is in (§15, D14). Priority: a home run
@@ -153,7 +154,7 @@ public static partial class PlayCamera
         var shot = shots.Must(Shot(beat));
         if (IsBagBeat(beat) && bag > 0)
         {
-            var at = Diamond.Bag(bag);
+            var at = v.Diamond.Bag(bag);
             return FollowBag(shot, at.X, at.Z);
         }
         if (beat == Beat.Smash) return Smash(shot, v.Batter);

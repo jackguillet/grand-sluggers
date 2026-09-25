@@ -172,7 +172,7 @@ namespace GrandSluggers.UnityClient
             _park = gameObject.AddComponent<ParkView>();
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec = gameObject.AddComponent<SpecialFx>();
-            _spec.Build(transform);
+            _spec.Build(transform, DiamondGeometry.Of(MatchRules));
             _items = gameObject.AddComponent<ItemView>();
             _items.Build(transform);
             _zone = gameObject.AddComponent<StrikeZone>();
@@ -537,7 +537,7 @@ namespace GrandSluggers.UnityClient
             if (!GuidedAttempt("T-G06")) Seed++;
             _match = NewMatch();
             _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform);
+            _spec.Build(transform, DiamondGeometry.Of(MatchRules));
             _items.Build(transform);
             _stars?.Build(transform);
             _clip = null;
