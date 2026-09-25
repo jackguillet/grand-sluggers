@@ -308,4 +308,52 @@ public class BroadcastHudTests
         Assert.Equal("", BroadcastHud.ItemPointer(true, ""));
         Assert.Equal("ITEM  →  Vale", BroadcastHud.ItemPointer(true, "Vale"));
     }
+
+    /// <summary>
+    /// The ARM bar's color grows with the fade (§4.7, #1012): fresh at fadeFrom or more, warming step by step toward amber as the
+    /// pool falls to tiredBelow, and red at the same pool the TIRED word appears. Never a single switch across the whole fade.
+    /// </summary>
+    [Fact]
+    public void TheArmBarWarmsWithTheFadeAndTurnsRedAtTired()
+    {
+        var rules = _content.Rules;
+        var s = rules.Pitching.Stamina;
+        Assert.Equal(BroadcastHud.ArmFresh, BroadcastHud.ArmColor(s.FadeFrom, rules));
+        Assert.Equal(BroadcastHud.ArmFresh, BroadcastHud.ArmColor(s.FadeFrom + 20, rules));
+        var prev = BroadcastHud.ArmColor(s.FadeFrom, rules);
+        var distinct = 1;
+        for (var pool = s.FadeFrom - 1; pool >= s.TiredBelow; pool--)
+        {
+            var c = BroadcastHud.ArmColor(pool, rules);
+            Assert.True(c.G <= prev.G && c.B <= prev.B, $"the bar warms as the pool falls ({pool})");
+            if (c != prev) distinct++;
+            Assert.DoesNotContain("TIRED", BroadcastHud.ArmLine(pool, rules));
+            prev = c;
+        }
+        Assert.Equal(BroadcastHud.ArmFading, BroadcastHud.ArmColor(s.TiredBelow, rules));
+        Assert.True(distinct >= s.FadeFrom - s.TiredBelow, "a tone per pool across the fade, not a switch");
+        foreach (var pool in new[] { s.TiredBelow - 1, 0, -3 })
+        {
+            Assert.Equal(BroadcastHud.ArmTired, BroadcastHud.ArmColor(pool, rules));
+            Assert.Contains("TIRED", BroadcastHud.ArmLine(pool, rules));
+        }
+    }
+
+    /// <summary>The ramp is the table's: a longer fade and a later TIRED move the colors with them.</summary>
+    [Fact]
+    public void TheArmBarReadsTheTablesFade()
+    {
+        var shipped = _content.Rules;
+        var longer = shipped with
+        {
+            Pitching = shipped.Pitching with
+            {
+                Stamina = shipped.Pitching.Stamina with { FadeFrom = 80, TiredBelow = 40 }
+            }
+        };
+        Assert.Equal(BroadcastHud.ArmFresh, BroadcastHud.ArmColor(50, shipped));
+        Assert.NotEqual(BroadcastHud.ArmFresh, BroadcastHud.ArmColor(50, longer));
+        Assert.Equal(BroadcastHud.ArmTired, BroadcastHud.ArmColor(39, longer));
+        Assert.Equal(BroadcastHud.ArmFading, BroadcastHud.ArmColor(40, longer));
+    }
 }
