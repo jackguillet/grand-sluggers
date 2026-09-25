@@ -4,7 +4,7 @@ Research and decisions: [research-characters.md](research-characters.md) (CH-01 
 
 ## Current state
 
-All fourteen directions are accepted. **Nothing is implemented. No number is accepted. No human gate has passed.** The one defect found by the research is filed as [#1111](https://github.com/jackguillet/grand-sluggers/issues/1111) (fly chases play the walk clip). It is not part of this plan and can land first.
+All fourteen directions are accepted. **Epics are filed (#1114 … #1120). Nothing is implemented. No number is accepted. No human gate has passed.** The one defect found by the research is filed as [#1111](https://github.com/jackguillet/grand-sluggers/issues/1111) (fly chases play the walk clip). It is not part of this plan and can land first.
 
 Numbers in this file are **derived** (arithmetic on shipped data) or **proposed** (a starting point for a trial). A proposed number becomes a target only when Jack accepts a trial of it. Balance work (S-29, cohorts, seals) stays off until Jack starts a balance pass. Each epic names its moves in the PR body and stops at the breakage suite.
 
@@ -65,7 +65,7 @@ CF-2 toy body (Art) ──┬─▶ CF-3 body classes + speed (Gameplay) ─▶ 
                       └─▶ CF-7 toon + rim (Art)
 ```
 
-### CF-1 · Four bars from sub-stats (Gameplay) · CH-07, CH-08, CH-09
+### CF-1 · [#1114](https://github.com/jackguillet/grand-sluggers/issues/1114) · Four bars from sub-stats (Gameplay) · CH-07, CH-08, CH-09
 
 - **Observable.** Every character file authors nine sub-stats. The four bars are derived, never authored. Changing a sub-stat moves only its own verb: Pitch power moves the fastball, Field throw speed moves a throw, and neither moves the other.
 - **Files.** `data/characters/*.json` (all nine sub-stats, captains and role players), `Models.cs` (the bars become derived; the fallback to the bar retires once every file authors its slots), `ContentValidation.cs` (all slots required, the one-bar-at-9+ cap), `docs/roster.md` stat tables.
@@ -73,7 +73,7 @@ CF-2 toy body (Art) ──┬─▶ CF-3 body classes + speed (Gameplay) ─▶ 
 - **Also owes.** The stats section of gameplay-spec (bars are derived). The authored values are balance: name them in the PR body and stop at the breakage suite.
 - **Banned.** Bars stored in data. A new stat slot. Any move to S-29, cohorts or seals.
 
-### CF-2 · Toy body (Art) · CH-01 … CH-04
+### CF-2 · [#1115](https://github.com/jackguillet/grand-sluggers/issues/1115) · Toy body (Art) · CH-01 … CH-04
 
 - **Observable.** The shared body is about 4 heads tall. The ladder fits the CH-03 cap and floor. Konga's arms, Brondo's torso and Fenn's head read from their data. The rig gains `anatomy.knee` and `anatomy.chest`.
 - **Files.** `tools/blender/hero_shared_blockout.py`, `data/art/rig.json`, `data/characters/*.json` `proportions`, `Silhouette.cs` (head, arms and torso become body scale, not portrait only), `SharedRig.cs`. Takes stay shared and must still pass `cli art` for every captain.
@@ -81,7 +81,7 @@ CF-2 toy body (Art) ──┬─▶ CF-3 body classes + speed (Gameplay) ─▶ 
 - **Human gate.** Dual stills of all seven, side by side, in palette and in flat black, at the turnaround camera and at gameplay distance. Jack passes it.
 - **Banned.** A second rig. A unique mesh. Shrinking a body to save a camera (tune the shot). Extras on.
 
-### CF-3 · Body classes, size in play, speed and weight (Gameplay) · CH-05, CH-10, CH-11
+### CF-3 · [#1116](https://github.com/jackguillet/grand-sluggers/issues/1116) · Body classes, size in play, speed and weight (Gameplay) · CH-05, CH-10, CH-11
 
 - **Observable.** A body-class table with room for about fifteen rows. Each captain names a class; role players default to their captain's class and may name their own. The class sets ground and fly catch reach, contact width, the speed-up and braking ramp, and knockback. The top-speed gap is about 1.25×.
 - **Files.** New `data/rules/body-classes.json` (or a block in an existing rules file), `Content.cs`, `BodyResponse.cs` (per-class ramp through the one velocity primitive), `Fielding.cs`, `FlyCatch.cs`, `Runner.cs`, `AtBatFeel.cs` (contact width), `data/rules/fielding.json` and `running.json` (the speed curves).
@@ -89,7 +89,7 @@ CF-2 toy body (Art) ──┬─▶ CF-3 body classes + speed (Gameplay) ─▶ 
 - **Also owes.** gameplay-spec §8.1, §8.2 and the running section. Keep the pursuit consistency rule (F693-02): one movement profile per body, across hit classes and positions.
 - **Banned.** Reach read from the mesh. A per-captain `switch`. A second movement system.
 
-### CF-4 · Knee-to-chest zone (Gameplay) · CH-06
+### CF-4 · [#1117](https://github.com/jackguillet/grand-sluggers/issues/1117) · Knee-to-chest zone (Gameplay) · CH-06
 
 - **Observable.** The zone for each batter runs from the knee to the chest landmark, at the fixed width. Aim, the CPU pitcher, the ring, the cursor and the sweet-spot oval follow the batter's zone.
 - **Files.** `StrikeZoneGeometry.cs` (a batter-aware zone; the static fixed zone retires), `PitchFlight.cs` (the aim center), `SetTells.cs`, `SweetSpot.cs`, `AtBatResolver.cs`, the CPU pitcher and batter, the HUD zone draw (reads the sim zone, no own numbers).
@@ -97,7 +97,7 @@ CF-2 toy body (Art) ──┬─▶ CF-3 body classes + speed (Gameplay) ─▶ 
 - **Also owes.** gameplay-spec §4.4 rewritten; `docs/how-to-play.md` and `HowToPlay.cs` if the zone copy changes; the strike-zone lesson in `docs/tutorials.md`.
 - **Banned.** A zone that moves with the animation. A per-seat or per-pad zone.
 
-### CF-5 · Motion styles and signature beats (Art) · CH-12
+### CF-5 · [#1118](https://github.com/jackguillet/grand-sluggers/issues/1118) · Motion styles and signature beats (Art) · CH-12
 
 - **Observable.** Seven styles, one per captain cut, for run, idle, batting stance and windup. One signature beat per captain (for example an idle fidget or a home-run trot). The run loop's stride rate follows ground speed on the sim clock.
 - **Files.** `tools/blender/hero_shared_takes.py` (style as a pose-table dimension), `data/art/clips.json` (style id), `Motion.ClipFor(verb, hand, style)`, `HeroActor.cs`, the class row's style id from CF-3.
@@ -105,14 +105,14 @@ CF-2 toy body (Art) ──┬─▶ CF-3 body classes + speed (Gameplay) ─▶ 
 - **Human gate.** A motion still set: the seven runs side by side, the seven stances, the seven windups. Jack passes it.
 - **Banned.** Poses in C#. A second motion system. Runtime mirroring.
 
-### CF-6 · Juice by weight and four bars on screen (Presentation) · CH-07, CH-13
+### CF-6 · [#1119](https://github.com/jackguillet/grand-sluggers/issues/1119) · Juice by weight and four bars on screen (Presentation) · CH-07, CH-13
 
 - **Observable.** Captain select and the lineup show the four bars. Anticipation, hit-stop, squash and settle scale by weight class from a `data/feel/` table.
 - **Files.** `data/feel/table.json` (per weight class), the squash wrapper, the select and lineup cards, `CarnivalFront`, `HowToPlay.cs` and `docs/how-to-play.md` where the bars are explained.
 - **Tests.** SC-23, SC-24.
 - **Human gate.** Be the select screen as a player: every captain, both pads.
 
-### CF-7 · Toon and rim light (Art) · CH-14
+### CF-7 · [#1120](https://github.com/jackguillet/grand-sluggers/issues/1120) · Toon and rim light (Art) · CH-14
 
 - **Observable.** Characters use a real toon shader with a rim light, and still sort correctly against the grass (the reason `Look.Toon` fell back to Lit). Extras stay off.
 - **Files.** `Look.cs`, the toon shader, `SharedRig.cs` material roles.
