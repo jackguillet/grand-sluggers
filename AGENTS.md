@@ -8,7 +8,7 @@ Grand Sluggers is a **complete, polished party baseball game** we will still wan
 2. Read only the spec files your change touches: `docs/spec/NN-*.md`, one per section of `docs/gameplay-spec.md` (the index). Scenarios are `docs/spec/appendix-b-scenarios.md`.
 3. Look up the other docs when the work needs them. Accepted decision plans are in `docs/decisions/`. Finished research reports, ledgers and handoffs are history in `docs/archive/` (index: `docs/archive/README.md`), and sealed evidence is in `docs/research/`; they are reference, not required reading, and never the source of a rule.
 
-Where to look things up. **What is shipped and open: `docs/status.md`.** Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. **How agents work: `docs/agent-rails.md`** (when a session and that document disagree, the session is wrong). Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`. Fields: `docs/decisions/plan-fields.md` (#814).
+Where to look things up. **What is shipped and open: `docs/status.md`.** **Contract** (a rule lives in exactly one of these): rules of play `docs/gameplay-spec.md` (when code and spec disagree, the code is wrong); how agents work `docs/agent-rails.md` (when a session and that document disagree, the session is wrong); couch map `docs/how-to-play.md`; tutorials `docs/tutorials.md`; look `docs/look.md`, silhouettes `docs/silhouette-bible.md`, art slots `docs/art-rails.md`, characters and motion `docs/character-motion.md`, stills `docs/screenshot-gate.md`; validation `docs/validation.md`; delivery `docs/local-player.md`. **Direction:** vision `docs/vision.md`, sequence `docs/roadmap.md`, how a phase runs `docs/playbook.md`, accepted decisions `docs/decisions/`. **History, never a rule:** `docs/archive/`.
 
 ## The stack (do this, in order)
 
@@ -19,9 +19,9 @@ Pick work from the top. Do not pick a lower row because it is easier.
 3. **The toy reads HUD-off.** Six captains name themselves at gameplay distance. Cameras look at the body, not a brim. [#188](https://github.com/jackguillet/grand-sluggers/issues/188).
 4. **Authored sound.** Shipped: bat crack, glove pop and crowd bed are authored clips in `data/art/audio.json` slots ([#223](https://github.com/jackguillet/grand-sluggers/issues/223)). Generated tones are not the product; a new sound fills a slot, after play, not instead of it.
 
-**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit, a second skeleton or a second motion system, a prompt-to-game engine, Unity PhysX or NavMesh as baseball. Every captain is the one rig; unique packages are deferred (`docs/character-package.md`). Extras stay off until they read as toys (#687).
+**Do not start** (the one list; the roadmap and agent-rails link here): Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, Toy Field, live ops, licensed music, 40-man, full-screen blinds (#38), Nintendo IP, a second player-facing client, a second input toolkit, a second skeleton or a second motion system, a prompt-to-game engine, Unity PhysX or NavMesh as baseball. Every captain is the one rig; unique packages are deferred (`docs/character-package.md`). Extras stay off until they read as toys (#687).
 
-**Fields (#814, FD-01): rails and greyboxes are allowed; park art is not.** Allowed: the park schema, the geometry owner, the per-park environment table, the hazard runtime, park factors, the one field kit, the look gates, and a data-driven greybox, proven on one second park first and then one park at a time. Every rail lands at Harbor parity. A park hazard may surprise (FD-08): it may draw from the match's seeded stream to decide what the hazard *does* (when it fires, which exit it picks, where it sends the ball), as a typed live event. It never awards an out, a hit, a drop or a catch; the ball and the bodies still decide the play. Still banned: a mesh, a texture or an authored light rig for a non-Harbor park before that park's rules are green and Jack has sat its greybox (#37). Contract, decisions and epics: `docs/decisions/plan-fields.md`. A child names its FD ids, FR ids and banned files.
+**Fields: rails and greyboxes are allowed; park art is not.** The fields rails are code-complete ([status](docs/status.md)). A non-Harbor park gets no mesh, texture or authored light rig before its rules are green and Jack has sat its greybox (#37). What a park hazard may and may not decide is principle 2 in `docs/spec/00-decisions.md`; the accepted directions are `docs/decisions/plan-fields.md` (FD-01 … FD-19).
 
 ## Done means you played it
 
@@ -39,15 +39,7 @@ Unit tests are necessary and not sufficient. When Jack names a thing (a batter's
 
 ## What a PR owes
 
-Behavior docs stay. Bookkeeping and balance run on demand. Contract: `docs/agent-rails.md` §1.2.
-
-- Never run the full test suite locally; it freezes the shared Mac. Run `tools/test-fast.sh <Classes you touched>`. CI runs the breakage suite on every PR.
-- A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are noted.
-- **Do not balance the game until Jack says he wants to.** Balance means the full test suite (Actions → Full tests, on GitHub too, not only locally), the `Kind=Balance` tests, S-29 and cohort bands, park-factor reports, flight probes and evidence seals. Constant balancing costs too much time. A PR that moves a feel or rule number, even a tuning PR, names the move in its body and stops at the breakage suite. Jack starts a balance pass; then run Full tests (`balance_only` for the balance set only).
-- A feature PR does not reseal the evidence seals, edit a `trials/` twin (none is open today), or touch a decision register or an implementation ledger. One batched docs PR updates registers and ledgers at a phase checkpoint or when Jack asks.
-- A behavior change updates its rule in its `docs/spec/` file in the same PR. Keep every spec line at 600 characters or fewer (`SpecLineLengthTests`). Write the rule, not the provenance: no issue or PR numbers, no "✅ (#nnn, PR #nnn)", no dates. CI refuses an added spec line that carries one (`tools/spec-provenance.py`).
-- A debug-protocol row is for a novel failure signature only.
-- There is one diamond: 80-ft basepaths. Its numbers are the defaults in `data/`.
+The rule is `docs/agent-rails.md` §1.2, in one place: tests (`tools/test-fast.sh <Classes you touched>`, never the full suite locally; CI runs the breakage suite), when a PR is done, balance (only when Jack asks), evidence seals, trials, the spec rule (no provenance, 600-character lines), registers and ledgers, and the debug protocol. There is one diamond: 80-ft basepaths; its numbers are the defaults in `data/`.
 
 ## Rails, not patches
 
@@ -79,13 +71,13 @@ Every player-facing mechanic needs a playable tutorial, including repeatable set
 
 ## Session kind
 
-Declare one kind per session. Mixing them is a patch (shrinking a mesh to save a camera, putting an out in Unity, posing in C#). Contract: `docs/agent-rails.md` §1. Tracker: #647.
+Declare one kind per session, in the prompt and on the issue. Mixing them is a patch (shrinking a mesh to save a camera, putting an out in Unity, posing in C#) and a review fail. This table is the one list of owners and bans. Tracker: #647.
 
 | Kind | Owns | Banned |
 | --- | --- | --- |
-| **Gameplay** | `data/rules/`, `trials/`, Sim, scenario ids, `cli match` | Blender, extras (except a clip marker the sim already reads), still PNGs, Unity presentation |
-| **Presentation** | cameras, HUD, `HowToPlay` / `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
-| **Art** | one `data/art/` slot, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
+| **Gameplay** | `data/rules/`, `trials/`, `src/GrandSluggers.Sim/`, scenario ids, `cli match` | `tools/blender/`, `data/art/extras.json` (except a clip marker the sim already reads), still PNGs, Unity presentation directors, cameras |
+| **Presentation** | `data/feel/` cameras and timing, HUD, `HowToPlay.cs`, `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
+| **Art** | one catalog slot in `data/art/`, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
 
 End the session with the artifact of its kind: gameplay → `tools/test-fast.sh <Classes you touched>` + `cli match`; presentation → named shot or book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the `.app` as proof of look.
 
@@ -106,7 +98,7 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 ## Operating
 
 - One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`. In Claude Code, `tools/bash_guard.py` (wired in `.claude/settings.json`) refuses `git add -A` / `git add .` and `dotnet test` without `--filter`; other agents follow the rule by hand.
-- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix; a repeat or a PR name is not a row. If the signature has fired twice, promote it to a validator or a scenario. If the lesson is procedural, grow `.claude/skills/character-art/` or `docs/agent-rails.md`. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`) and `data/agent/dcc-stages.json` (`cli stages`) and walk the stages: blocking → fill → motion → export → still. One-shotting a captain extra or a kit mesh is a patch.
+- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). After a sitting or a failed still: file, append, promote on the second firing — the rule is `docs/agent-rails.md` §7.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
 - The game is gamepad only. Pad 1 is player 1; pad 2 is a second gamepad (player 2). There is no keyboard or mouse scheme.
 - Couch copy lives in `HowToPlay` / `CarnivalFront` / `BroadcastHud`, not scattered strings.
@@ -116,10 +108,4 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 
 ## Local standalone delivery (Jack's default)
 
-- Jack tests the Mac standalone game in its own window. Do not send him to Unity Play as the default test handoff.
-- After your approved changes merge, run `python3 tools/local-player.py`. It fetches origin, fast-forwards the primary checkout's `main`, builds in a dedicated worktree with the installed GUI Unity editor, packages the matching data, and restarts the standalone window after a successful build.
-- This update/build/restart is authorized as the normal post-merge delivery step. Never force/reset/stash local main or merge a human-gated change just to deliver it. Report conflicts or build failures; keep the existing game intact.
-- For an unmerged change Jack needs to try, commit it in its worktree and run `python3 tools/local-player.py --preview /absolute/path/to/worktree`. Say clearly that the window is a preview; local main stays on merged code.
-- Sessions share this Mac. Delivery holds the machine-wide GUI Unity lock, and it refuses, naming the holder, while another session captures, builds or delivers. If a delivered window is open, delivery names that window's revision and trial and stops before it builds. Add `--replace` when closing that window is yours to do. An older `main` on the shipped data is the normal post-merge replacement. A preview or a trial window is someone's test: ask Jack before you replace it.
-- Confirm the new standalone window renders, state the running revision, and report remaining human gates. Building or launching alone does not pass a gameplay/look gate.
-- Details and diagnostics: `docs/local-player.md`. No background polling/restarts while Jack is playing; the working agent runs delivery after a merge or requested preview.
+Jack tests the Mac standalone game in its own window, not Unity Play. After your approved changes merge, run `python3 tools/local-player.py`; this update, build and restart is authorized as the normal post-merge step. The rules — previews, `--replace`, the shared GUI Unity lock, what to report — are in `docs/local-player.md` ("Agent rules").

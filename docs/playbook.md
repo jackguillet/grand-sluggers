@@ -61,11 +61,7 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 - Agents do not pass human gates. Each PR body ends with "what a sitting should check". The phase ends with a consolidated checklist on the parent epic (#209) that says what each block closes.
 - A sitting note or a failed still becomes **one issue per finding** with observed / likely cause (from the code map) / observable when fixed / files / tests, filed under the epic that owns the lie. Ten such children were filed from one sitting and routed to P1, P2, P4, P8, and the rig epic; three were closed by the epics without a dedicated PR.
 - "Do not silently patch" held: every sitting finding has an issue number and a PR number.
-- File *and* remember (R7 #654). After a sitting or a failed still:
-  1. **File** the child issue under the epic that owns the lie (#342 book, #209 play, #188 toy).
-  2. **Append** a row to `data/agent/debug-protocol.json` for a novel signature, in the same PR as the fix, or in the sitting-child PR. A repeat or a PR name is not a row. GitHub children stay; they are not the memory (`cli protocol`).
-  3. **Promote on the second firing** to a validator or a scenario (`BagIsInsideTheFoulLine` shape). Do not wait for a third. The protocol `promoted` field names the test that would catch the *next* captain or play, not only the screenshot that found it.
-  4. If the lesson is procedural (how to look, how to bake), add it to `.claude/skills/character-art/` or [agent-rails.md](agent-rails.md), not only the PR body. character-art grew from `swing-*-max-load` (#623 / `bat-through-head`).
+- File *and* remember: file one issue per finding, append a protocol row for a novel signature, promote on the second firing. The rule is [agent-rails.md §7](agent-rails.md#7-distill-file-and-remember); character-art grew from `swing-*-max-load`.
 
 ## What it produced
 

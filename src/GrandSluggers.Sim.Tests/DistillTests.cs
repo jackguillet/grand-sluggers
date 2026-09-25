@@ -7,7 +7,7 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// R7 #654: file the sitting child, append a protocol row, promote on the
-/// second firing. character-art grows from one real failed still.
+/// second firing (docs/agent-rails.md §7, the one home). character-art grows from one real failed still.
 /// </summary>
 public sealed class DistillTests
 {
@@ -15,28 +15,35 @@ public sealed class DistillTests
     string Repo => Path.GetFullPath(Path.Combine(_root.Shipped, ".."));
 
     [Fact]
-    public void PlaybookSectionFiveNamesTheThreeSteps()
+    public void AgentRailsSectionSevenIsTheOneHomeOfTheThreeSteps()
     {
-        var section = Section(File.ReadAllText(Path.Combine(Repo, "docs/playbook.md")), "## 5. Sittings are the exit");
+        var section = Section(File.ReadAllText(Path.Combine(Repo, "docs/agent-rails.md")), "## 7. Distill");
         Assert.Contains("one issue per finding", section, StringComparison.Ordinal);
         Assert.Contains("data/agent/debug-protocol.json", section, StringComparison.Ordinal);
         Assert.Contains("second firing", section, StringComparison.Ordinal);
         Assert.Contains("promoted", section, StringComparison.Ordinal);
         Assert.Contains(".claude/skills/character-art/", section, StringComparison.Ordinal);
         Assert.Contains("swing-*-max-load", section, StringComparison.Ordinal);
-        Assert.DoesNotContain("When R2 (#649) ships", section, StringComparison.Ordinal);
+    }
+
+    /// <summary>#1055: the rule lives once. The playbook, the skill and AGENTS.md link to §7 and do not restate it.</summary>
+    [Theory]
+    [InlineData("docs/playbook.md")]
+    [InlineData(".claude/skills/character-art/SKILL.md")]
+    [InlineData("AGENTS.md")]
+    public void TheOtherDocsLinkToSectionSeven(string path)
+    {
+        var doc = File.ReadAllText(Path.Combine(Repo, path));
+        Assert.Contains("agent-rails.md", doc, StringComparison.Ordinal);
+        Assert.Contains("§7", doc, StringComparison.Ordinal);
+        Assert.DoesNotContain("Do not wait for a third", doc, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void CharacterArtSkillNamesTheThreeSteps()
+    public void CharacterArtSkillKeepsItsDistillSection()
     {
         var skill = File.ReadAllText(Path.Combine(Repo, ".claude/skills/character-art/SKILL.md"));
         Assert.Contains("## Distill", skill, StringComparison.Ordinal);
-        Assert.Contains("data/agent/debug-protocol.json", skill, StringComparison.Ordinal);
-        Assert.Contains("second", skill, StringComparison.Ordinal);
-        Assert.Contains("promote", skill, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("file", skill, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("append", skill, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

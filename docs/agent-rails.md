@@ -54,17 +54,9 @@ Agents do not relitigate these. Sources (Paper Route / @builtbysketch via @zekea
 
 ## 1. Session split
 
-A session declares its kind in the prompt and on the issue. File owners and the banned list come from this table, not from taste.
+The session kinds, what each owns and what each may not touch are the table in [AGENTS.md](../AGENTS.md) "Session kind", the one list.
 
-| Kind | Owns | Banned |
-| --- | --- | --- |
-| **Gameplay** | `data/rules/`, `trials/`, `src/GrandSluggers.Sim/`, scenario ids, `cli match` | `tools/blender/`, `data/art/extras.json` (except a clip marker the sim already reads), still PNGs, Unity presentation directors, cameras |
-| **Presentation** | `data/feel/` cameras and timing, HUD, `HowToPlay.cs`, `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
-| **Art** | one catalog slot in `data/art/`, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
-
-✅ **R1 #648 / #655.** Standing order in [AGENTS.md](../AGENTS.md). A mixed-session change is a review fail.
-
-End each session with a playable artifact of its kind before the next prompt: gameplay → `tools/test-fast.sh <Classes you touched>` + `cli match`; presentation → named shot / book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the Mac player as proof of look.
+✅ **R1 #648 / #655.**
 
 ---
 
@@ -76,7 +68,7 @@ Gameplay children own reusable sim setup, controlled CPU commands, objective eva
 
 ## 1.2 What a PR owes
 
-Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on demand. When an older section, plan or issue asks a PR for more than this, this section wins.
+Behavior docs stay. Bookkeeping and balance run on demand. This section is the one place these rules live; AGENTS.md links here. When an older section, plan or issue asks a PR for more than this, this section wins.
 
 **Tests.** Never run the full test suite locally. It freezes the shared Mac. Run `tools/test-fast.sh <Class> [<Class> ...]` for the classes you touched; it runs `Kind!=Balance`, narrowed to those classes. CI runs the breakage suite on every PR (the `portable` job; a ruleset on `main` requires it, so a PR merges only when it is green). A PR that changes Unity code runs `tools/unity-compile.sh` and names the result in its body; CI has no Unity job ([validation.md](validation.md)). A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are named in the PR body.
 
@@ -86,7 +78,7 @@ Rules added 2026-09-22. Behavior docs stay. Bookkeeping and balance run on deman
 
 **Trials (`trials/*`).** No trial is open today; the overlay machinery is kept dormant (spec §16). While a trial is open, a feature PR does not owe twin edits or a report on both roots. Parity is restored on demand, when that trial is next used. If a breakage-suite test fails on a missing trial key, add that key and nothing more.
 
-**Spec.** A PR that changes behavior updates the affected rule in its [docs/spec/](spec/) file in the same PR. The rule says what the game does: numbers, units, scenario ids. It does not say who built it or when. Do not add an issue or PR number, "✅ Fx (#nnn, PR #nnn)" provenance, a date, or register rows that name PRs; CI refuses an added spec line that carries one (`tools/spec-provenance.py`). A status tag stays a bare tag (✅ / ⚠️ / ❌). The commit history records who did what; the provenance the spec used to carry is in [archive/spec-provenance.md](archive/spec-provenance.md).
+**Spec.** A PR that changes behavior updates the affected rule in its [docs/spec/](spec/) file in the same PR, with every line at 600 characters or fewer (`SpecLineLengthTests`). The rule says what the game does: numbers, units, scenario ids. It does not say who built it or when. Do not add an issue or PR number, "✅ Fx (#nnn, PR #nnn)" provenance, a date, or register rows that name PRs; CI refuses an added spec line that carries one (`tools/spec-provenance.py`). A status tag stays a bare tag (✅ / ⚠️ / ❌). The commit history records who did what; the provenance the spec used to carry is in [archive/spec-provenance.md](archive/spec-provenance.md).
 
 **Registers and ledgers.** A feature PR does not edit `docs/research/*.json` (`implementation_issues`, `validation_evidence`, `history`) or the ledger in a `docs/plan-*-implementation.md`. One batched docs PR updates them at a phase checkpoint or when Jack asks. A decision Jack makes (the answer to an open question) is behavior intent. It is still recorded, in that batched PR. Until then, quote it in the PR body.
 
@@ -117,9 +109,7 @@ Jack decided on September 22, 2026: **promote** it. The compact-field copy's ord
 
 Seed from existing sitting children and `exact-work` / screenshot-gate fail rows. Recurring signatures **promote** to a test (`BagIsInsideTheFoulLine` shape): the protocol is the memory, the test is the gate.
 
-Agents **load** the protocol at session start for the kind they are in. They **append** a new signature when they repair a novel failure, in the same PR as the fix. They do not keep this only in the PR body. A repeat of a known signature is not a new row, and neither is a row whose only news is a PR number.
-
-A sitting note is still **one GitHub issue per finding** under the epic that owns the lie (#342 / #209 / #188). The protocol does not replace issues. Issues that repeat become `promoted` rows.
+Agents **load** the protocol at session start for the kind they are in. When to file, append and promote is §7, the one place that rule lives. The protocol does not replace issues.
 
 ---
 
@@ -203,13 +193,13 @@ Save after each stage (the script edit + the still). The next prompt names the s
 
 ## 7. Distill (file *and* remember)
 
-✅ **R7 #654 / #660.** Cousin: playbook §5 (one issue per sitting finding). The finding also lands in the debug protocol (R2) and, when it repeats, in a skill or test. character-art grew from one real failed still: `swing-*-max-load` (#623 / `bat-through-head`).
+✅ **R7 #654 / #660.** The one place this rule lives; AGENTS.md, playbook §5 and the character-art skill link here. character-art grew from one real failed still: `swing-*-max-load` (#623 / `bat-through-head`).
 
 After a sitting or a failed still:
 
-1. File the child issue under the epic that owns the lie.
-2. If the signature is novel, append a protocol row (R2) in the same PR as the fix, or in the sitting-child PR.
-3. If the signature has fired twice, promote it to a validator or a scenario. Do not wait for a third.
+1. **File** one issue per finding — observed / likely cause (from the code map) / observable when fixed / files / tests — under the epic that owns the lie (#342 book, #209 play, #188 toy). Do not silently patch.
+2. **Append** a row to `data/agent/debug-protocol.json` for a novel signature, in the same PR as the fix or in the sitting-child PR. A repeat of a known signature, or a row whose only news is a PR number, is not a row. GitHub children stay; they are not the memory (`cli protocol`).
+3. **Promote on the second firing** to a validator or a scenario (`BagIsInsideTheFoulLine` shape). Do not wait for a third. The row's `promoted` field names the test that would catch the *next* captain or play, not only the screenshot that found it.
 4. If the lesson is procedural (how to look, how to bake), add it to `.claude/skills/character-art/` or this document, not only the PR body.
 
 Grow `character-art` from failed stills. Do not add a second art skill.
@@ -248,7 +238,7 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 | Id | Gap | Today | Child |
 | --- | --- | --- | --- |
 | G1 | Session kind is not a fail condition | Standing order in AGENTS.md (#648 / #655) | R1 ✅ |
-| G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 is file + append + promote-on-second | R2 ✅, R7 ✅ |
+| G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; §7 is file + append + promote-on-second (playbook §5 links it) | R2 ✅, R7 ✅ |
 | G3 | No loadable `(signature, cause, fix)` catalog | `data/agent/debug-protocol.json` + `DebugProtocol.Validate` / `cli protocol` | R2 ✅ |
 | G4 | Agents cannot grep a play's geometry | `cli match --trace`, `PlayTrace` per tick | R3 ✅ |
 | G5 | DCC still is not a PR falsifier | `tools/dcc-still.sh` → `scratchpad/stills/dcc-*.png` | R4 ✅ |
@@ -271,11 +261,11 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | **R4. Dual stills** #651 | §4, G5, G6 | ✅ #659. `data/agent/dual-stills.json` + `tools/dcc-still.sh` + look-critic. DCC still + in-game still required in the PR. Critic files, does not pass. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
 | **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. `data/agent/dcc-stages.json` + `cli stages`. | #188 | With or after R4 |
-| **R7. Distill** #654 | §7, G2, G9 | ✅ #660. Playbook §5 is file + append + promote-on-second. character-art grew from `swing-*-max-load` (#623). Promoted signatures name a real test. | #209, #188 | After R2 |
+| **R7. Distill** #654 | §7, G2, G9 | ✅ #660. §7 is file + append + promote-on-second; playbook §5 links it. character-art grew from `swing-*-max-load` (#623). Promoted signatures name a real test. | #209, #188 | After R2 |
 
 ### Banned on every child
 
-Prompt-to-game engines, Meshy / unique meshes / a second skeleton, new captains, new parks as products, Challenge, online, motion, a second input toolkit, Unity PhysX or NavMesh as baseball, an adversarial judge that can pass #188, shrinking a mesh to save a camera, growing `MatchDirector`, `git add -A`, passing a human gate.
+Everything in AGENTS.md "Do not start" and "Rails, not patches", plus: Meshy, new captains, an adversarial judge that can pass #188, `git add -A`, passing a human gate.
 
 ### What a sitting should check (parent)
 
