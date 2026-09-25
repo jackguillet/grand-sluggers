@@ -20,6 +20,8 @@ namespace GrandSluggers.UnityClient
         Transform _glovePocket;
         internal ClipPlayer _player;
         Motion.Verb _verb = Motion.Verb.Idle;
+        // The held bunt side the squared take shows (PH-14-R3); the sim's, never a bone turned here.
+        BuntSide _buntSide;
         internal float _charge;
         float _chargeRing;
         string _pitchType = "fastball";
@@ -105,6 +107,9 @@ namespace GrandSluggers.UnityClient
             _charge = Mathf.Clamp01(charge);
             if (!string.IsNullOrEmpty(pitchType)) _pitchType = pitchType;
         }
+
+        /// <summary>The side a squared bat shows: it picks the bunt take (<see cref="Motion.BuntClip"/>).</summary>
+        public void SetBuntSide(BuntSide side) => _buntSide = side;
 
         public void SetHeld(bool bat, bool glove)
         {
@@ -362,7 +367,7 @@ namespace GrandSluggers.UnityClient
                 ? (_batsLeft ? Hand.L : Hand.R)
                 : (_throwsLeft ? Hand.L : Hand.R);
             // The body's style's own take when it has one (CH-12), else the shared take.
-            var file = Motion.ClipFor(verb, hand, _style, _charge);
+            var file = Motion.ClipFor(verb, hand, _style, _charge, _buntSide);
             // A moving loop's time is its ground phase (SC-21); a still is cut at its pose time.
             var gaitPhase = verb == Motion.Verb.Run ? _runPhase : verb == Motion.Verb.Walk ? _walkPhase : -1.0;
             var time = cue.Clock switch
@@ -373,6 +378,8 @@ namespace GrandSluggers.UnityClient
                 {
                     Motion.Verb.Swing => AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec),
                     Motion.Verb.ThrowPitch => AtBatMotion.PitchClipTime(_poseT, _charge),
+                    // The let-go starts on the load it discards (PH-13-R1).
+                    Motion.Verb.LetGo => Motion.LetGoStartAt(_charge) + _poseT,
                     _ => (double)_poseT
                 }
             };

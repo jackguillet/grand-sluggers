@@ -14,7 +14,19 @@ namespace GrandSluggers.UnityClient
     /// SET's camera, and the sequence from SET to the batted ball it hands the live play. Out/safe stay in Sim. The coach,
     /// the banner, the result beat and the directors it calls on are the flow's (<see cref="IAtBatHost"/>).
     /// </summary>
-    internal sealed class AtBatDirector : ISetCameraHost
+    /// <summary>
+    /// What the batter's body shows at the plate, for the actor: the square and its side (§5.8, PH-14-R3), and a let-go
+    /// of a cancelled load (PH-13-R1) with the load it discarded.
+    /// </summary>
+    internal interface IBatterTells
+    {
+        bool SquaredNow { get; }
+        BuntSide ShowingSide { get; }
+        bool LettingGo { get; }
+        float LetGoCharge { get; }
+    }
+
+    internal sealed class AtBatDirector : ISetCameraHost, IBatterTells
     {
         readonly MatchScene _scene;
         readonly PlayState _play;
@@ -61,6 +73,16 @@ namespace GrandSluggers.UnityClient
         /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
         public BuntSide BuntSide;
 
+        /// <summary>
+        /// The let-go (PH-13-R1): the load a cancel discarded (East / G, not a square: a square shows the bunt) and the
+        /// seconds since. <see cref="LetGoSec"/> is negative when no let-go plays.
+        /// </summary>
+        public float LetGoCharge { get; private set; }
+        public float LetGoSec = -1f;
+
+        /// <summary>The batter's body lets a discarded load go until its take is back on the stance and settled.</summary>
+        public bool LettingGo => LetGoSec >= 0f && LetGoSec < Motion.LetGoDur - Motion.LetGoStartAt(LetGoCharge);
+
         /// <summary>The special's modifier, the requests and the unavailable tell (spec §12).</summary>
         public readonly StarRequests StarAsks = new StarRequests();
 
@@ -78,6 +100,7 @@ namespace GrandSluggers.UnityClient
             CpuPitch = null;
             CpuSteer = 0;
             BuntSide = BuntSide.None;
+            LetGoSec = -1f;
             StarAsks.NewPitch();
             PitchPast = 0;
         }
@@ -113,8 +136,17 @@ namespace GrandSluggers.UnityClient
                 _play.PlateSeat = pad.Index;
             }
             PlateInput = pad.Plate;
+            var held = _play.Plate.Swing;
             PlateStep = PlateButtons.Advance(_play.Plate, PlateInput, dt, _scene.Feel.SwingChargeSeconds, accepting, commits);
             _play.Plate = PlateStep.Next;
+            // A discarded load lets go (PH-13-R1); a square shows the bunt instead, and a fresh load ends it.
+            if (LetGoSec >= 0f) LetGoSec += dt;
+            if (PlateStep.Swing.Cancelled && held.Armed && held.Fill01 > 0 && PlateStep.Bunt.Showing == BuntSide.None)
+            {
+                LetGoCharge = (float)held.Fill01;
+                LetGoSec = 0f;
+            }
+            else if (PlateStep.Next.Swing.Armed || PlateStep.Bunt.Showing != BuntSide.None) LetGoSec = -1f;
             if (accepting && _host.TutorialOn && _host.Coach.Tutorial.Phase == TutorialPhase.Attempt)
                 _host.Coach.Tutorial.Plate(new TutorialPlateTick(PlateInput, dt, commits));
             return PlateStep;

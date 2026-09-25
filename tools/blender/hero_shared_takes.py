@@ -853,7 +853,7 @@ def ground_support(arm):
     root.matrix=matrix;bpy.context.view_layer.update()
 
 
-def pose_swing_frame(arm, t, clip=SWING_SLAP):
+def pose_swing_frame(arm, t, clip=SWING_SLAP, extra=None, extra_w=0.0):
     swing = SWINGS[clip]
     times = swing["times"]
     keys = [(k, swing["legs"][k]) for k in times]
@@ -861,6 +861,9 @@ def pose_swing_frame(arm, t, clip=SWING_SLAP):
     stance = STYLE_POSES[ACTIVE["style"]]["stance"] if ACTIVE["style"] else {}
     if stance:
         keys = [(k, add_terms(pose, stance, stance_weight(k))) for k, pose in keys]
+    # A take built on this one (the let-go) adds its own body-term delta to every key; the hands still solve to the bat.
+    if extra and extra_w:
+        keys = [(k, add_terms(pose, extra, extra_w)) for k, pose in keys]
     apply_pose(arm, pose_at(keys, t, ease=False, loop=False, duration=SWING_FINISH))
     ground_support(arm)
     batting_stance.author_visible_stance(arm, t, bats=batting_stance.BATS_RIGHT, **STANCE_LANDMARKS)
@@ -1235,12 +1238,34 @@ def miss_frame(arm, t):
     bpy.context.view_layer.update()
 
 
-def bunt_frame(arm, t):
+BUNT_CLIPS = {"bunt": None, "bunt-pull": "pull", "bunt-push": "push"}
+
+
+def bunt_axis(side):
+    """The squared barrel in Unity batter axes (+Z pitcher): the row's barrel, turned about the vertical by the side's
+    yaw so a positive yaw carries the barrel end toward the pitcher and the face toward the pull side (PH-14-R3)."""
     row = BASEBALL["bunt"]
-    apply_pose(arm, row["pose"])
+    axis = Vector(row["barrel"]).normalized()
+    if side:
+        yaw = math.radians(row["sides"][side]["yawDeg"])
+        axis = Vector((axis.x * math.cos(yaw) - axis.z * math.sin(yaw), axis.y,
+                       axis.x * math.sin(yaw) + axis.z * math.cos(yaw))).normalized()
+    return axis
+
+
+def bunt_frame(side):
+    def custom(arm, t):
+        pose_bunt_frame(arm, side)
+    return custom
+
+
+def pose_bunt_frame(arm, side):
+    row = BASEBALL["bunt"]
+    pose = add_terms(row["pose"], row["sides"][side]["pose"]) if side else row["pose"]
+    apply_pose(arm, pose)
     ground_support(arm)
     batting_stance.author_visible_stance(arm, 0.0, bats=batting_stance.BATS_RIGHT, **STANCE_LANDMARKS)
-    axis = Vector(row["barrel"]).normalized()
+    axis = bunt_axis(side)
     grip = Vector(row["grip"])
     targets = {"lFore": batting_stance.unity_to_dcc(grip + axis*row["leadAlong"], normalize=False),
                "rFore": batting_stance.unity_to_dcc(grip + axis*row["topAlong"], normalize=False)}
@@ -1250,14 +1275,41 @@ def bunt_frame(arm, t):
     aim_bat(arm, axis, grip)
 
 
-def bunt_validate(arm, t, bats):
-    row=BASEBALL["bunt"]; bat=arm.pose.bones["bat"]
-    axis=-(bat.matrix.to_3x3() @ Vector((0,1,0))).normalized()
-    lead,top=("lHand","rHand") if bats==batting_stance.BATS_RIGHT else ("rHand","lHand")
-    for hand,along in ((lead,row["leadAlong"]),(top,row["topAlong"])):
-        miss=(center(hand)-(bat.head+axis*along)).length
-        if miss > .02: raise RuntimeError(f"bunt {bats} {hand} misses bat by {miss:.3f}")
-    if abs(axis.z) > .02: raise RuntimeError("bunt barrel must be level")
+def bunt_validate(side):
+    def validate(arm, t, bats):
+        row=BASEBALL["bunt"]; bat=arm.pose.bones["bat"]
+        axis=-(bat.matrix.to_3x3() @ Vector((0,1,0))).normalized()
+        lead,top=("lHand","rHand") if bats==batting_stance.BATS_RIGHT else ("rHand","lHand")
+        for hand,along in ((lead,row["leadAlong"]),(top,row["topAlong"])):
+            miss=(center(hand)-(bat.head+axis*along)).length
+            if miss > .02: raise RuntimeError(f"bunt {bats} {hand} misses bat by {miss:.3f}")
+        if abs(axis.z) > .02: raise RuntimeError("bunt barrel must be level")
+        # The side reads in the barrel (PH-14-R3): the barrel is the side's, reflected for a left-handed batter.
+        want = bunt_axis(side)
+        if bats == batting_stance.BATS_LEFT:
+            want.x = -want.x
+        if axis.dot(batting_stance.unity_to_dcc(tuple(want))) < 0.999:
+            raise RuntimeError(f"bunt {side} {bats}: the barrel is not the side's ({tuple(axis)})")
+    return validate
+
+
+LET_GO = BASEBALL["letGo"]
+
+
+def let_go_frame(arm, t):
+    """PH-13-R1: the held load walks back to the stance by returnAt, linearly (a partial load starts part-way in), then
+    the stance settles: the knees give and the shoulders drop by `settle` and come back by the end."""
+    ret = float(LET_GO["returnAt"])
+    u = min(1.0, t / ret)
+    source = float(LET_GO["fromAt"]) + (float(LET_GO["toAt"]) - float(LET_GO["fromAt"])) * u
+    w = math.sin(math.pi * (t - ret) / (float(LET_GO["duration"]) - ret)) if t > ret else 0.0
+    pose_swing_frame(arm, source, LET_GO["source"], extra=LET_GO["settle"], extra_w=max(0.0, w))
+
+
+def let_go_validate(arm, t, bats):
+    ret = float(LET_GO["returnAt"])
+    source = float(LET_GO["fromAt"]) + (float(LET_GO["toAt"]) - float(LET_GO["fromAt"])) * min(1.0, t / ret)
+    validate_swing_frame(arm, source, bats, LET_GO["source"])
 
 
 def solve_leg(arm, side, ankle):
@@ -1355,8 +1407,12 @@ def all_takes(style: str | None = None):
           for clip in (SWING_SLAP, SWING_CHARGE)],
         Take("checkSwing", None, view="three-quarter-right", duration=HOLD, handed=True, custom=held_swing_frame(0.20), validate=None,
              sheet_times=[0.0], sink=0.2),
-        Take("bunt", None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame, validate=bunt_validate,
-             sheet_times=[0.0], sink=0.6, contracts=("bunt",)),
+        *[Take(clip, None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame(side),
+               validate=bunt_validate(side), sheet_times=[0.0], sink=0.6, contracts=("bunt",))
+          for clip, side in BUNT_CLIPS.items()],
+        Take("swing-letgo", None, view="three-quarter-right", duration=float(LET_GO["duration"]), handed=True, ease=False,
+             custom=let_go_frame, validate=let_go_validate, sink=0.2, contracts=("swing",),
+             sheet_times=[0.0, float(LET_GO["returnAt"]) * 0.5, float(LET_GO["returnAt"]), float(LET_GO["duration"]) * 0.8]),
         Take("miss", None, view="three-quarter-right", duration=HOLD, handed=True, custom=miss_frame, sheet_times=[0.0], sink=0.2),
         Take("catch", CATCH, duration=HOLD, validate=catch_validate, contracts=("catch",)),
         Take("dive", DIVE, duration=HOLD, sink=1.0),
@@ -1410,7 +1466,7 @@ def add_review_equipment(arm):
 
 
 def review_equipment(clip, left=False):
-    batting=clip.startswith("swing-") or clip in ("bunt","checkSwing","miss")
+    batting=clip.startswith(("swing-","bunt")) or clip in ("checkSwing","miss")
     for name in ("bat-wood","glove-brown","glove-brown-R"):
         ob=bpy.data.objects.get(name)
         if ob:

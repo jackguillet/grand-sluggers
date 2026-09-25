@@ -21,7 +21,7 @@ Charge at MAX is a *charge* tell (rings line up; the swing shows MAX, the pitch 
 **Conversion** (PH-13-R1). A bunt press during an uncommitted load is this cancel: the load and its charge are discarded and the bat squares toward the pressed side, with no separate cancel press. The plate's tick order for the swing and the bunt together is §5.8's.
 
 **The cancel button** is **East** on the batting seat's own pad (controller seats are independent). The client steps `PlateButtons.Advance` every SET and flight tick with RT, the two bunt buttons and East. A cancel press while the plate accepts is the plate's verb whether or not a load was there: it is spent (`PlateButtonsState.CancelSpent`) until the button comes up, and no reader may take it as a dive, a dash or a Training skip meanwhile (`PlateButtons.CancelIsFree`; S-170).
-A cancelled load returns the body to the charge take's rest at zero charge; an authored let-go take is Art. Lesson T-B10 teaches it.
+A load cancelled by East / G lets go: the `swing-letgo` take walks the held load back to the stance and settles, starting on the load it discards (`Motion.LetGoStartAt`); a load a square replaces shows the square instead. Lesson T-B10 teaches it.
 
 ✅ Sim (S-150 … S-152, S-160 … S-163, S-186). ✅ P4-c client: the East input, the bunt button inputs and the lessons. ⚠️ Human gate: sitting 4.
 
@@ -125,7 +125,8 @@ The bunt is a **held side** (PH-14-R2 … R6). Two face buttons square the bat: 
 - **The CPU sac bunt holds a side** (§5.9): the side is drawn once at SET with the square (`batting.cpu.sacBuntFirstSideChance` 0.5, first-base side, else third; `CpuBatter.BuntSide`), so the bat angle is a tell before the pitch. In the zone it is the held bunt toward that side; out of the zone it pulls the bat back and takes. (S-166)
 - Bunt fielding: P, C, 1B, 3B charge (§7.3). Runner rules: sac bunt is a live play, not a table. ✅: the square is a typed fact on the swing (`SwingCommand.SquareSec`, how long the bat had been squared at the plate time); the defense reads it before the pitch (§7.3). No CPU fielder yet moves by the side.
 
-**Client** (P4-c). West square toward third, North toward first, at the Input System's bunt button press point, on each seat's own pad; West no longer bunts. At the plate a squared bat is `PlateButtons.HeldBuntAtPlate`. The batter card names the held side (`BUNT 3B` / `BUNT 1B`, `BroadcastHud.BuntTell`) for a human and for the CPU. The bat does not yet angle toward the side: the one `bunt` take has no side, so the bat-angle cue is Art. Lessons T-B07 (either side, two strikes) and T-B11 (first-base side, runner on first).
+**Client** (P4-c). West square toward third, North toward first, at the Input System's bunt button press point, on each seat's own pad; West no longer bunts. At the plate a squared bat is `PlateButtons.HeldBuntAtPlate`. The batter card names the held side (`BUNT 3B` / `BUNT 1B`, `BroadcastHud.BuntTell`) for a human and for the CPU.
+The bat angles toward the held side: the squared take is `bunt-pull` when the side is the batter's pull field (third for a right-handed batter, first for a left-handed one) and `bunt-push` for the other field (`Motion.BuntClip`), so the defense reads the side in the barrel (PH-14-R3). Lessons T-B07 (either side, two strikes) and T-B11 (first-base side, runner on first).
 
 ✅ Sim. ✅ client: bindings, leak guards, editor gates (compiled; not run: Personal Unity cannot batchmode), book pair, lessons. ⚠️ The bat-angle cue. ⚠️ Human gate: sitting 4.
 
