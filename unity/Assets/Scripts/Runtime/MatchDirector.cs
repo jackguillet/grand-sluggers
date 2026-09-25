@@ -121,7 +121,6 @@ namespace GrandSluggers.UnityClient
         ChemToy _chem { get => Scene.Chem; set => Scene.Chem = value; }
         float _feelSlow = 1f;
         bool _freezeCam;
-        float _aimX, _aimY;
         internal Sample[] _path { get => Play.Path; set => Play.Path = value; }
         internal Vector3 _ball { get => Play.Ball; set => Play.Ball = value; }
         // The live play as the client mirrors it (LiveFieldState); these names forward to it (#1042).
@@ -697,7 +696,7 @@ namespace GrandSluggers.UnityClient
             _ring?.Hide();
             // Hits/outs stamp on the live field camera. Next pitch SET is BeginSet (#301).
             if (_last == null || !PlayStamp.HoldsLiveCamera(_last.Kind))
-                _cam.Cut(AtBatShots.SetShot(HumanPitches, false, 0, 0, 0, TrainingOn, LiveSeats.Count));
+                _cam.Cut(SetCam.Rest());
         }
 
         static float Bounce(float t)

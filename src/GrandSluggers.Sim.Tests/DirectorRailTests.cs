@@ -17,7 +17,7 @@ public sealed class DirectorRailTests
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
-    const int MatchDirectorCeiling = 796;
+    const int MatchDirectorCeiling = 795;
 
     static string Scripts => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "Assets", "Scripts"));
 
@@ -50,6 +50,11 @@ public sealed class DirectorRailTests
     [InlineData("StillStaging")]
     [InlineData("InPlayDirector")]
     [InlineData("ActorDirector")]
+    [InlineData("SeatPads")]
+    [InlineData("StarRequests")]
+    [InlineData("ItemToss")]
+    [InlineData("DefenseSwapWindow")]
+    [InlineData("SetCamera")]
     public void TheDirectorIsARealClass(string director)
     {
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));

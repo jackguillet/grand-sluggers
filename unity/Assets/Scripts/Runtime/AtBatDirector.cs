@@ -16,7 +16,7 @@ namespace GrandSluggers.UnityClient
         public void Tick(float dt) { _play.TickAtBat(dt); }
     }
 
-    public sealed partial class MatchDirector : IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost
+    public sealed partial class MatchDirector : IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost, ISetCameraHost
     {
         internal ChargeButtonState _pitchButton;
 
@@ -162,49 +162,20 @@ namespace GrandSluggers.UnityClient
             _park.Ball.Place(_ball, "", PitchFamily.Fastball, false, false);
             _pitchAir = false;
             HoldPitchInHand();
-            _aimX = _aimY = 0;
+            SetCam.AimAt(0, 0);
             _smash = 0;
             _audio?.CrowdBed(true);
-            AimSetCamera();
-            LogSetCam("begin");
+            SetCam.Aim();
+            SetCam.Log("begin");
             ShowCursor();
             if (TrainingOn && _coach != null && _coach.Session != null && _match != null
                 && _coach.Session.Lesson == PracticeLesson.Fielding && _coach.Session.LessonPart >= 2)
                 _coach.Session.SetupTurnTwo(_match);
         }
 
-        void LogSetCam(string tag)
-        {
-            var live = Camera.main;
-            var rio = PitcherHero();
-            var rp = rio != null ? rio.transform.position.ToString("F1") : "null";
-            var vp = rio != null && live != null
-                ? live.WorldToViewportPoint(rio.transform.position + Vector3.up * 2.2f).ToString("F2")
-                : "-";
-            Debug.Log("GS SET " + tag
-                + " shot=" + (_cam != null ? _cam.Shot : "?")
-                + " pos=" + (live != null ? live.transform.position.ToString("F1") : "null")
-                + " fwd=" + (live != null ? live.transform.forward.ToString("F2") : "-")
-                + " fov=" + (live != null ? live.fieldOfView.ToString("F1") : "-")
-                + " fl=" + (live != null ? live.focalLength.ToString("F1") : "-")
-                + " phys=" + (live != null && live.usePhysicalProperties)
-                + " px=" + (live != null ? live.pixelWidth + "x" + live.pixelHeight : "-")
-                + " cams=" + Camera.allCamerasCount
-                + " rio=" + rp + " vp=" + vp);
-        }
-
-        void AimSetCamera()
-        {
-            var shot = AtBatShots.SetShot(HumanPitches, _phase == Phase.Flight,
-                HumanPitches ? _pitchCharge : _charge, _aimX, _aimY, TrainingOn, LiveSeats.Count);
-            // Snap. Blending SET→flight keeps looking at the dirt while the ball
-            // leaves the hand, so looking strikes land with no baseball (#305).
-            _cam.Cut(shot);
-        }
-
         internal void TickSet(float dt)
         {
-            if (_t > 0.2f && _t < 0.28f) LogSetCam("live");
+            if (_t > 0.2f && _t < 0.28f) SetCam.Log("live");
             HoldPitchInHand();
             var mound = PitchPad;
             var box = BatPad;
@@ -294,10 +265,9 @@ namespace GrandSluggers.UnityClient
             {
                 if (Swap.Open || _match.PitchSetup.Committed) { }
                 else if (mound.StickY < -(float)_feel.SetResetStick) _match.ResetPitcher();
-                else _match.WalkPitcher(HomeSet.RubberWalkStep(PitchWorldX(mound.StickX), dt));
+                else _match.WalkPitcher(HomeSet.RubberWalkStep(SetCam.WorldX(mound.StickX), dt));
                 _moundX = (float)_match.PitcherOffsetX;
-                _aimX = (float)_match.PitcherOffsetX;
-                _aimY = 0;
+                SetCam.AimAt((float)_match.PitcherOffsetX, 0);
                 if (_t >= (float)_feel.PitcherReadySeconds)
                 {
                     if (pitchButton.Committed)
@@ -317,7 +287,7 @@ namespace GrandSluggers.UnityClient
                     : (float)_match.PitcherOffsetX;
             ShowCursor();
             ShowAimTell(HumanPitches ? PreviewPitch(pitchFamily) : null);
-            AimSetCamera();
+            SetCam.Aim();
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
             {
                 // The CPU pitcher's pickoff read (§4.5, §4.8): a runner who armed in SET is between bags on the motion.
@@ -334,6 +304,9 @@ namespace GrandSluggers.UnityClient
         /// <summary>The pickoff (§4.5, D3): a runner on the bag is the beat; a runner who broke is the live runner play.</summary>
         StealDirector _steal;
         StealDirector Steal => _steal ??= new StealDirector(gameObject, Play, this);
+        SetCamera _setCam;
+        /// <summary>SET's camera and the pitcher's aim it leans toward (#1042).</summary>
+        internal SetCamera SetCam => _setCam ??= new SetCamera(Scene, Play, Pads, this);
 
         /// <summary>
         /// The pitcher card's verb tells: STAR and the swap pick (spec §4.1, §4.7). No family tell —
@@ -481,8 +454,7 @@ namespace GrandSluggers.UnityClient
             _t = 0;
             var rel = PitchFlight.Release(_match.Rules, pitch.RubberX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
-            _aimX = (float)pitch.AimX;
-            _aimY = (float)pitch.AimY;
+            SetCam.AimAt((float)pitch.AimX, (float)pitch.AimY);
             // A hand's bend starts at nothing and grows for as long as the stick is held (§4.1).
             // A steered CPU delivery carries the whole of that hold in one number
             // (PitchFlight.BreakReach, §4.8), so the drawn ball walks there with the same BreakStep
@@ -505,12 +477,12 @@ namespace GrandSluggers.UnityClient
             // Cut, do not blend. SET→flight blending looks at dirt while the
             // ball stays in the hand (#301).
             _cam.Cut(AtBatShots.Pitch);
-            AimSetCamera();
+            SetCam.Aim();
         }
 
         internal void TickFlight(float dt)
         {
-            AimSetCamera();
+            SetCam.Aim();
             var previousFlight = _flight;
             _flight += dt;
             TickBaserunning(dt);
@@ -566,7 +538,7 @@ namespace GrandSluggers.UnityClient
             // Break is a stick direction after release (spec §4.1): screen-relative from either camera.
             if (HumanPitches)
             {
-                _breakX = (float)PitchFlight.BreakStep(_breakX, PitchWorldX(PitchPad.StickX), dt,
+                _breakX = (float)PitchFlight.BreakStep(_breakX, SetCam.WorldX(PitchPad.StickX), dt,
                     _match.Pitcher.Stats.Control, _match.Rules);
                 // The stick *is* the human's break, so the command the umpire reads carries it.
                 _pitch = _pitch with { BreakX = _breakX };
@@ -638,13 +610,6 @@ namespace GrandSluggers.UnityClient
         float SwingContactSec(SwingCommand swing) =>
             (float)AtBatMotion.SwingContactSec(swing.TimingErrorFrames,
                 _match.SwingWindowFrames(_pitch), _match.Rules);
-
-        float PitchWorldX(float screenX)
-        {
-            var shotId = AtBatShots.SetShot(HumanPitches, _phase == Phase.Flight,
-                HumanPitches ? _pitchCharge : _charge, _aimX, _aimY, TrainingOn, LiveSeats.Count);
-            return (float)AtBatControl.WorldHorizontal(screenX, _content.Shots.Must(shotId));
-        }
 
         void Resolve()
         {
@@ -817,6 +782,8 @@ namespace GrandSluggers.UnityClient
         bool IActorHost.SquaredNow => SquaredNow;
         bool IActorHost.PlateSwingArmed => _plate.Swing.Armed;
         float IActorHost.PitchCharge => _pitchCharge;
+        float ISetCameraHost.PitchCharge => _pitchCharge;
+        HeroActor ISetCameraHost.PitcherHero() => PitcherHero();
         string IActorHost.ShownPitchType => ShownPitchType;
         ItemToss IActorHost.Toss => Toss;
         float IActorHost.SwingContactSec(SwingCommand swing) => SwingContactSec(swing);
