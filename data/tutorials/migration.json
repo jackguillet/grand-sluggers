@@ -103,6 +103,7 @@
     "fields.mover": 814,
     "fields.reward": 814,
     "fields.wall-trait": 814,
-    "fields.sand": 1133
+    "fields.sand": 1133,
+    "fields.wind-schedule": 1133
   }
 }

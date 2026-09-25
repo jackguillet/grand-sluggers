@@ -380,7 +380,7 @@ public sealed class ParkEnvironmentTests
         var errors = ContentDataValidator.Validate(fixture.Root);
         Assert.Contains(errors, e =>
             e.Contains("environment.dragMultiplier is not a key this file declares", StringComparison.Ordinal)
-            && e.Contains("[dragMul, windMul]", StringComparison.Ordinal));
+            && e.Contains("[dragMul, windMul, windSchedule]", StringComparison.Ordinal));
         Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
     }
 

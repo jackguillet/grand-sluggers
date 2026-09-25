@@ -128,6 +128,7 @@ public sealed class MatchStreams
         Contact = SimRandom.Stream(seed, "contact");
         Handling = SimRandom.Stream(seed, "handling");
         Hazard = SimRandom.Stream(seed, "hazard");
+        Wind = SimRandom.Stream(seed, "wind");
     }
 
     /// <summary>The CPU defense's reads: the pitch, the pickoff, the catcher's release (spec §4.8, §11).</summary>
@@ -145,6 +146,9 @@ public sealed class MatchStreams
     /// <summary>What a park hazard does (FD-08): which exit it picks, where it sends the ball.</summary>
     public SimRandom Hazard { get; }
 
+    /// <summary>A park's wind schedule (§6.1): each inning's speed and bearing. Drawn only at a park that names one.</summary>
+    public SimRandom Wind { get; }
+
     /// <summary>Every draw on every stream so far.</summary>
-    public long Draws => PitchAi.Draws + BatAi.Draws + Contact.Draws + Handling.Draws + Hazard.Draws;
+    public long Draws => PitchAi.Draws + BatAi.Draws + Contact.Draws + Handling.Draws + Hazard.Draws + Wind.Draws;
 }

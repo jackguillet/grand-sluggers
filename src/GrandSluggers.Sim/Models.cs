@@ -381,10 +381,26 @@ public sealed record Park(
 /// Replaces <c>flight.windMul</c>, how much of the flag reading the ball feels at field level. 0 is a park
 /// the wind does not reach; the flag still reads <see cref="Park.WindMph"/>.
 /// </param>
-public sealed record ParkEnvironment(double? DragMul = null, double? WindMul = null)
+public sealed record ParkEnvironment(double? DragMul = null, double? WindMul = null, WindSchedule? WindSchedule = null)
 {
-    /// <summary>True when the park names at least one override. A park that names none plays the global table, by reference.</summary>
+    /// <summary>
+    /// True when the park names at least one override of the flight table. A park that names none plays the global table, by
+    /// reference. A wind schedule is not an override of the table: it sets the park's own wind, inning by inning.
+    /// </summary>
     public bool Names => DragMul is not null || WindMul is not null;
+}
+
+/// <summary>
+/// A park's wind schedule (§6.1): each inning, before its first pitch, the wind turns to a new direction (any bearing) and a
+/// speed between <see cref="MinMph"/> and <see cref="MaxMph"/>, drawn from the match's wind stream; at night the speed is
+/// <see cref="NightMul"/> times as strong. The wind never changes inside an inning, let alone a play. Absent is the park's
+/// fixed <c>windMph</c> / <c>windDeg</c>, and nothing is drawn.
+/// </summary>
+public sealed record WindSchedule(double MinMph, double MaxMph, double NightMul)
+{
+    /// <summary>The inning's wind from two draws in [0, 1): the speed across the band (stronger at night) and the bearing.</summary>
+    public (double Mph, double Deg) Turn(double speed01, double bearing01, bool night) =>
+        (Math.Round((MinMph + speed01 * (MaxMph - MinMph)) * (night ? NightMul : 1), 1), Math.Round(bearing01 * 360 - 180));
 }
 
 /// <summary>

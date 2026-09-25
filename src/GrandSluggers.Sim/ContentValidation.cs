@@ -753,7 +753,18 @@ public static class ContentDataValidator
             errors.Add($"{source}: park '{id}' environment.dragMul must be greater than 0 and at most {MaxParkDragMul}; got {drag}");
         if (env.WindMul is { } wind)
             FiniteRange(source, $"park '{id}' environment.windMul", wind, 0, 1, errors);
+        if (env.WindSchedule is { } s)
+        {
+            if (s.MinMph is not { } lo || s.MaxMph is not { } hi || !(lo >= 0 && lo <= hi && hi <= MaxScheduleMph))
+                errors.Add($"{source}: park '{id}' environment.windSchedule needs 0 <= minMph <= maxMph <= {MaxScheduleMph}; "
+                    + $"got {s.MinMph?.ToString(CultureInfo.InvariantCulture) ?? "null"} / {s.MaxMph?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
+            if (s.NightMul is { } n && !(n >= 1 && n <= 2))
+                errors.Add($"{source}: park '{id}' environment.windSchedule.nightMul must be between 1 and 2; got {n}");
+        }
     }
+
+    /// <summary>The strongest scheduled wind a park may name: a gust, not a gale.</summary>
+    const double MaxScheduleMph = 25;
 
     /// <summary>
     /// The park's ground (§6.1, FD-05, <c>SF-03</c>): the block and each of its four zones are
@@ -1484,8 +1495,19 @@ internal sealed class ParkEnvironmentDto
     public double? DragMul { get; set; }
     /// <summary>Replaces <c>flight.windMul</c>.</summary>
     public double? WindMul { get; set; }
+    /// <summary>The park's wind turns each inning (<see cref="Sim.WindSchedule"/>); absent is the fixed wind.</summary>
+    public WindScheduleDto? WindSchedule { get; set; }
 
-    public ParkEnvironment ToEnvironment() => new(DragMul, WindMul);
+    public ParkEnvironment ToEnvironment() => new(DragMul, WindMul,
+        WindSchedule is { } w ? new WindSchedule(w.MinMph ?? 0, w.MaxMph ?? 0, w.NightMul ?? 1) : null);
+}
+
+internal sealed class WindScheduleDto
+{
+    public double? MinMph { get; set; }
+    public double? MaxMph { get; set; }
+    /// <summary>The night gusts, as a multiple of the day's speed (1 or more).</summary>
+    public double? NightMul { get; set; }
 }
 
 internal sealed class HazardDto

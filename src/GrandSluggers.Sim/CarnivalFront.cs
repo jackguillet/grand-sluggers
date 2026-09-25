@@ -277,6 +277,9 @@ public static partial class CarnivalFront
             lines.Add(w);
         if (played.Environment?.DragMul is { } drag && drag != 1)
             lines.Add(drag > 1 ? "Heavy air: flies die a little early." : "Thin air: flies carry.");
+        if (played.Environment?.WindSchedule is { } gusts)
+            lines.Add($"Mountain gusts: the wind turns every inning, {gusts.MinMph:0}–{gusts.MaxMph:0} mph"
+                + (gusts.NightMul > 1 ? ", stronger at night." : "."));
         foreach (var type in played.Hazards.Select(h => h.Type).Distinct())
             if (HazardLine(type, rules) is { } line) lines.Add(line);
         if (lines.Count == 0) lines.Add("A true field: no hazards, the real diamond.");
@@ -295,6 +298,24 @@ public static partial class CarnivalFront
     {
         [WallMaterial.Glass] = "Glass boards: balls come off them hot."
     };
+
+    /// <summary>
+    /// The wind as the couch reads it (§6.1): its speed and which way it blows, in the field's own words — out to centre, out to
+    /// left or right, across, or in. <see cref="Park.WindDeg"/> 0 blows out to centre, 90 toward the right-field line.
+    /// </summary>
+    public static string WindLine(Park played)
+    {
+        if (played.WindMph < 0.5) return "No wind.";
+        var deg = ((played.WindDeg % 360) + 540) % 360 - 180;
+        var a = Math.Abs(deg);
+        var side = deg >= 0 ? "right" : "left";
+        var way = a <= 22.5 ? "out to center"
+            : a <= 67.5 ? "out to " + side
+            : a <= 112.5 ? "across to " + side
+            : a <= 157.5 ? "in from " + (deg >= 0 ? "left" : "right")
+            : "in from center";
+        return $"Wind {played.WindMph:0} mph, {way}.";
+    }
 
     /// <summary>One hazard type's line (F8-a), with its row's own numbers where they matter to a player.</summary>
     public static string? HazardLine(string type, RulesTable rules)

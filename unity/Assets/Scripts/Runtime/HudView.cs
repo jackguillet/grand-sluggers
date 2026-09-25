@@ -1007,7 +1007,15 @@ namespace GrandSluggers.UnityClient
         // A rejected swing request still needs its tell when contact has already changed the layout.
         static void StarUnavailableLine(BroadcastHud.Scorebug bug, BroadcastHud.PlayLayout lay)
         {
-            if (!bug.StarsEnabled || !_starNo.HasValue || !BroadcastHud.StarUnavailableShows(_starNoAge)) return;
+            if (!bug.StarsEnabled || !_starNo.HasValue || !BroadcastHud.StarUnavailableShows(_starNoAge))
+            {
+                // The line under the bug is the wind's while no star tell needs it: a park whose wind turns each inning (§6.1).
+                if (bug.Wind.Length == 0) return;
+                var wind = Px(BroadcastHud.StarUnavailableLine(lay.Score));
+                GUI.DrawTexture(wind, _panel);
+                GUI.Label(new Rect(wind.x + 12, wind.y + 2, wind.width - 24, wind.height - 4), bug.Wind, _tiny);
+                return;
+            }
             var line = Px(BroadcastHud.StarUnavailableLine(lay.Score));
             GUI.DrawTexture(line, _panel);
             var prev = GUI.color;
