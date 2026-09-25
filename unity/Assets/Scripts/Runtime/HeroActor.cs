@@ -69,10 +69,14 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>The diamond this body stands on (the match table's): the ring picks the rubber's dirt by its mound.</summary>
         DiamondGeometry _diamond;
+        /// <summary>The match's table: its charge line picks the slap or the charge take (§5.1).</summary>
+        RulesTable _rules;
 
-        public void Bind(Character who, DiamondGeometry diamond)
+        /// <summary>Stand this body for <paramref name="who"/> on the match's table: its diamond and its charge line.</summary>
+        public void Bind(Character who, RulesTable rules)
         {
-            _diamond = diamond;
+            _rules = rules;
+            _diamond = DiamondGeometry.Of(rules);
             if (who.Id == _id && _root != null) return;
             _id = who.Id;
             Teardown();
@@ -219,7 +223,7 @@ namespace GrandSluggers.UnityClient
                 var squash = Vector3.one;
                 if (_verb == Motion.Verb.Swing)
                 {
-                    var s = SwingPresentation.RootSquash(AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec));
+                    var s = SwingPresentation.RootSquash(AtBatMotion.SwingClipTime(_poseT, _charge, _rules, _swingContactSec));
                     squash = new Vector3((float)s.X, (float)s.Y, (float)s.Z);
                 }
                 var want = Vector3.Scale(Vector3.Scale(_baseScale * g, squash), _brace);
@@ -362,22 +366,22 @@ namespace GrandSluggers.UnityClient
         {
             var verb = Locomotion(_verb);
             // The committed swing plays the slap or the charge take by its charge (#613).
-            var cue = Motion.CueFor(verb, _charge);
+            var cue = Motion.CueFor(verb, _charge, _rules);
             var hand = Motion.UsesBattingHand(verb)
                 ? (_batsLeft ? Hand.L : Hand.R)
                 : (_throwsLeft ? Hand.L : Hand.R);
             // The body's style's own take when it has one (CH-12), else the shared take.
-            var file = Motion.ClipFor(verb, hand, _style, _charge, _buntSide);
+            var file = Motion.ClipFor(verb, hand, _style, _charge, _rules, _buntSide);
             // A moving loop's time is its ground phase (SC-21); a still is cut at its pose time.
             var gaitPhase = verb == Motion.Verb.Run ? _runPhase : verb == Motion.Verb.Walk ? _walkPhase : -1.0;
             var time = cue.Clock switch
             {
                 Motion.Clock.World => (double)_t,
-                Motion.Clock.Charge => Motion.LoadAtFor(verb, _charge),
+                Motion.Clock.Charge => Motion.LoadAtFor(verb, _charge, _rules),
                 _ => verb switch
                 {
-                    Motion.Verb.Swing => AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec),
-                    Motion.Verb.ThrowPitch => AtBatMotion.PitchClipTime(_poseT, _charge),
+                    Motion.Verb.Swing => AtBatMotion.SwingClipTime(_poseT, _charge, _rules, _swingContactSec),
+                    Motion.Verb.ThrowPitch => AtBatMotion.PitchClipTime(_poseT, _charge, _rules),
                     // The let-go starts on the load it discards (PH-13-R1).
                     Motion.Verb.LetGo => Motion.LetGoStartAt(_charge) + _poseT,
                     _ => (double)_poseT

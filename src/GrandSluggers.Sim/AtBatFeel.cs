@@ -5,15 +5,16 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class ChargeFeel
 {
-    public const double SlapBelow = 0.2;
-    public const double ChargeAt = 0.55;
-
-    public static double Effective01(double fill01, double secondsPastFull, double maxHold, double decayPerSec)
+    /// <summary>
+    /// The charge a release carries: the fill, or past the MAX hold a decay that never falls under the tap line
+    /// (<c>match.charge.slapBelow</c>).
+    /// </summary>
+    public static double Effective01(double fill01, double secondsPastFull, double maxHold, double decayPerSec, RulesTable rules)
     {
         fill01 = Math.Clamp(fill01, 0, 1);
         if (fill01 < 1) return fill01;
         if (secondsPastFull <= maxHold) return 1;
-        return Math.Clamp(1 - (secondsPastFull - maxHold) * decayPerSec, SlapBelow, 1);
+        return Math.Clamp(1 - (secondsPastFull - maxHold) * decayPerSec, rules.Match.Charge.SlapBelow, 1);
     }
 
     public static bool AtMax(double fill01, double secondsPastFull, double maxHold) =>
@@ -23,9 +24,11 @@ public static class ChargeFeel
     public static bool NiceRelease(double fill01, double secondsPastFull, double maxHold, RulesTable rules) =>
         AtMax(fill01, secondsPastFull, maxHold) && secondsPastFull <= rules.Pitching.Release.NiceBandSec;
 
-    public static bool IsSlap(double effective01) => effective01 < SlapBelow;
+    /// <summary>A tap: under <c>match.charge.slapBelow</c>.</summary>
+    public static bool IsSlap(double effective01, RulesTable rules) => effective01 < rules.Match.Charge.SlapBelow;
 
-    public static bool IsCharge(double effective01) => effective01 >= ChargeAt;
+    /// <summary>A charge: at or above <c>match.charge.chargeAt</c> (§4.1, §5.1).</summary>
+    public static bool IsCharge(double effective01, RulesTable rules) => effective01 >= rules.Match.Charge.ChargeAt;
 
     /// <summary>
     /// The release tell (spec §4.1, §5.1; #578): MAX inside the band says the charge landed and
@@ -462,7 +465,7 @@ public static class SweetSpot
     {
         var contact = Math.Clamp(batter.Stats.Contact + (bat?.ContactMod ?? 0), 1, 10);
         var chargeBat = bat?.ChargeAlwaysFull == true;
-        var charged = ChargeFeel.IsCharge(chargeBat ? 1.0 : Math.Clamp(charge01, 0, 1));
+        var charged = ChargeFeel.IsCharge(chargeBat ? 1.0 : Math.Clamp(charge01, 0, 1), rules);
         // The body class's contact width (§8.1, CH-05): size in play, from the class row and never from the mesh.
         return BarrelScale(contact, charged, chargeBat, rules) * BodyClasses.Of(batter, rules).ContactWidthMul;
     }
@@ -648,12 +651,12 @@ public static class AtBatMotion
     /// follow-through and finish play at the take's own speed. Monotonic for every span, so the
     /// authored keys keep their order and the take never plays backward.
     /// </summary>
-    public static double SwingClipTime(double poseTime, double charge01, double contactSec = Motion.SwingContact)
+    public static double SwingClipTime(double poseTime, double charge01, RulesTable rules, double contactSec = Motion.SwingContact)
     {
         if (poseTime >= contactSec)
             return Motion.SwingContact + (poseTime - Math.Max(0, contactSec));
         var u = contactSec <= 0 ? 0 : Math.Max(0, poseTime) / contactSec;
-        return LoadedClipTime(u * Motion.SwingContact, SwingPresentation.CommittedLoadAt(charge01), Motion.SwingContact);
+        return LoadedClipTime(u * Motion.SwingContact, SwingPresentation.CommittedLoadAt(charge01, rules), Motion.SwingContact);
     }
 
     /// <summary>
@@ -681,8 +684,8 @@ public static class AtBatMotion
     public static bool PresentsSwing(double actionTime, double takeSec, bool contact, double runnerFromBoxFt, double stepFt) =>
         actionTime >= 0 && (actionTime <= takeSec || !contact || runnerFromBoxFt < stepFt);
 
-    public static double PitchClipTime(double poseTime, double charge01) =>
-        LoadedClipTime(poseTime, Motion.LoadAtFor(Motion.Verb.ThrowPitch, charge01), Motion.PitchRelease);
+    public static double PitchClipTime(double poseTime, double charge01, RulesTable rules) =>
+        LoadedClipTime(poseTime, Motion.LoadAtFor(Motion.Verb.ThrowPitch, charge01, rules), Motion.PitchRelease);
 
     /// <summary>
     /// The press against the square press, the ball's plate time less batting.window.leadSec (D13),

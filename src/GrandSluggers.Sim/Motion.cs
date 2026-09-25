@@ -113,14 +113,20 @@ public static class Motion
     /// The committed swing's take: the resolver's charge test picks it (ChargeFeel.IsCharge, spec
     /// §5.1), so the narrow charge window and the charge take are always the same swing.
     /// </summary>
-    public static string SwingClipFor(double charge01) =>
-        SwingPresentation.TakeFor(charge01) == SwingTake.Charge ? SwingChargeClip : SwingSlapClip;
+    public static string SwingClipFor(double charge01, RulesTable rules) =>
+        SwingPresentation.TakeFor(charge01, rules) == SwingTake.Charge ? SwingChargeClip : SwingSlapClip;
+
+    /// <summary>Which take a verb plays uncharged: a committed swing is the slap, a thrown pitch the ordinary pitch.</summary>
+    public static Cue CueFor(Verb verb) => CueOf(verb, charged: false);
 
     /// <summary>
     /// Which take a verb plays. A held swing load is the charge take's windup; a committed swing
-    /// is the slap or the charge take by <paramref name="charge01"/>.
+    /// is the slap or the charge take by <paramref name="charge01"/> against the match's charge line.
     /// </summary>
-    public static Cue CueFor(Verb verb, double charge01 = 0) => verb switch
+    public static Cue CueFor(Verb verb, double charge01, RulesTable rules) =>
+        CueOf(verb, ChargeFeel.IsCharge(Math.Clamp(charge01, 0, 1), rules));
+
+    static Cue CueOf(Verb verb, bool charged) => verb switch
     {
         Verb.Idle => new("idle", Clock.World),
         Verb.Field => new("field", Clock.World),
@@ -130,10 +136,10 @@ public static class Motion
         Verb.Run => new("run", Clock.World),
         Verb.Jump or Verb.Clamber => new("jump", Clock.Verb),
         Verb.ChargePitch => new("pitch-charge", Clock.Charge),
-        Verb.ThrowPitch => new(ChargeFeel.IsCharge(charge01) ? "pitch-charge" : "pitch", Clock.Verb),
+        Verb.ThrowPitch => new(charged ? "pitch-charge" : "pitch", Clock.Verb),
         Verb.Throw => new("throw", Clock.Verb),
         Verb.ChargeSwing => new(SwingChargeClip, Clock.Charge),
-        Verb.Swing => new(SwingClipFor(charge01), Clock.Verb),
+        Verb.Swing => new(charged ? SwingChargeClip : SwingSlapClip, Clock.Verb),
         Verb.CheckSwing => new("checkSwing", Clock.Verb),
         Verb.Bunt => new("bunt", Clock.Verb),
         Verb.LetGo => new(LetGoClip, Clock.Verb),
@@ -161,15 +167,21 @@ public static class Motion
     public static string ClipFile(string clipId, Hand hand) =>
         IsHanded(clipId) && hand == Hand.L ? clipId + "-L" : clipId;
 
-    public static string ClipFile(Verb verb, Hand bats, Hand throws, double charge01 = 0) =>
-        ClipFile(CueFor(verb, charge01).Clip, UsesBattingHand(verb) ? bats : throws);
+    public static string ClipFile(Verb verb, Hand bats, Hand throws) =>
+        ClipFile(CueFor(verb).Clip, UsesBattingHand(verb) ? bats : throws);
+
+    public static string ClipFile(Verb verb, Hand bats, Hand throws, double charge01, RulesTable rules) =>
+        ClipFile(CueFor(verb, charge01, rules).Clip, UsesBattingHand(verb) ? bats : throws);
 
     /// <summary>
     /// The take file a verb plays for a hand and a motion style (CH-12): <c>{style}/{clip}</c> when the style has its own take
     /// of the clip, else the shared <see cref="ClipFile(string, Hand)"/>. The hand is already the batting or throwing hand.
     /// </summary>
-    public static string ClipFor(Verb verb, Hand hand, MotionStyle? style, double charge01 = 0, BuntSide bunt = BuntSide.None) =>
-        StyledFile(verb == Verb.Bunt ? BuntClip(bunt, hand) : CueFor(verb, charge01).Clip, hand, style);
+    public static string ClipFor(Verb verb, Hand hand, MotionStyle? style, BuntSide bunt = BuntSide.None) =>
+        StyledFile(verb == Verb.Bunt ? BuntClip(bunt, hand) : CueFor(verb).Clip, hand, style);
+
+    public static string ClipFor(Verb verb, Hand hand, MotionStyle? style, double charge01, RulesTable rules, BuntSide bunt = BuntSide.None) =>
+        StyledFile(verb == Verb.Bunt ? BuntClip(bunt, hand) : CueFor(verb, charge01, rules).Clip, hand, style);
 
     /// <summary>
     /// The squared take for a held side and the batting hand (PH-14-R3): the pull take when the side is the batter's pull
@@ -208,12 +220,12 @@ public static class Motion
     public static double PitchLoadSampleAt(double charge01) => LoadSampleAt(PitchNormalLoadAt, charge01);
 
     /// <summary>The verb's clip time when it was loaded, by charge, before it committed.</summary>
-    public static double LoadAtFor(Verb verb, double charge01) => verb switch
+    public static double LoadAtFor(Verb verb, double charge01, RulesTable rules) => verb switch
     {
         Verb.ChargeSwing => SwingPresentation.HeldLoadAt(charge01),
-        Verb.Swing => SwingPresentation.CommittedLoadAt(charge01),
+        Verb.Swing => SwingPresentation.CommittedLoadAt(charge01, rules),
         Verb.ChargePitch => PitchLoadSampleAt(charge01),
-        Verb.ThrowPitch => ChargeFeel.IsCharge(charge01) ? PitchLoadSampleAt(charge01) : 0,
+        Verb.ThrowPitch => ChargeFeel.IsCharge(charge01, rules) ? PitchLoadSampleAt(charge01) : 0,
         _ => 0
     };
 

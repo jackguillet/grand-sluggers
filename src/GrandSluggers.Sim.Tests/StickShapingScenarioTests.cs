@@ -383,7 +383,7 @@ public sealed class StickShapingScenarioTests
         Assert.Equal((0, 0, 0), (match.Balls, match.Strikes, match.Outs));
         Assert.False(match.RubberMovedSinceLastPitch);
         Assert.False(match.Rules.Pitching.Families.Of(Middle.Type).OffSpeed);
-        Assert.False(ChargeFeel.IsCharge(Middle.Charge01));
+        Assert.False(ChargeFeel.IsCharge(Middle.Charge01, match.Rules));
     }
 
     /// <summary>

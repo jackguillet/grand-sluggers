@@ -62,7 +62,7 @@ public class BaseballMotionContractTests
         foreach (var bats in new[] { Hand.R, Hand.L })
         {
             Assert.Equal(Motion.ClipFile("throw", throws), Motion.ClipFile(Motion.Verb.Throw, bats, throws));
-            Assert.Equal(Motion.ClipFile("pitch-charge", throws), Motion.ClipFile(Motion.Verb.ThrowPitch, bats, throws, 1));
+            Assert.Equal(Motion.ClipFile("pitch-charge", throws), Motion.ClipFile(Motion.Verb.ThrowPitch, bats, throws, 1, Shipped.Content.Rules));
         }
     }
 
@@ -83,8 +83,8 @@ public class BaseballMotionContractTests
         for (var i=0;i<=100;i++)
         {
             double charge=i/100.0;
-            Assert.Equal(Motion.LoadAtFor(Motion.Verb.ThrowPitch,charge),AtBatMotion.PitchClipTime(0,charge),8);
-            Assert.Equal(Motion.PitchRelease,AtBatMotion.PitchClipTime(Motion.PitchRelease,charge),8);
+            Assert.Equal(Motion.LoadAtFor(Motion.Verb.ThrowPitch,charge, Shipped.Content.Rules),AtBatMotion.PitchClipTime(0,charge, Shipped.Content.Rules),8);
+            Assert.Equal(Motion.PitchRelease,AtBatMotion.PitchClipTime(Motion.PitchRelease,charge, Shipped.Content.Rules),8);
         }
         var normal=takes.First(t=>t!["id"]!.GetValue<string>()=="pitch")!;
         var charged=takes.First(t=>t!["id"]!.GetValue<string>()=="pitch-charge")!;

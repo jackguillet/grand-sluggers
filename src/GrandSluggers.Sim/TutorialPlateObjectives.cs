@@ -7,7 +7,7 @@ public static class TutorialPlateObjectives
     public static readonly string[] SwingIds = ["slap-fair", "perfect-slap-fair", "max-swing-fair", "bunt-fair", "bunt-first-fair", "take-ball", "cancel-take", "pull-fair", "push-fair", "box-perfect-fair"];
     static TutorialFeedback Fail(string code, string detail) => new(false, code, detail);
 
-    public static TutorialFeedback Pitch(string objective, TutorialSetup setup, PitchCommand command, PlayEvent? play)
+    public static TutorialFeedback Pitch(string objective, TutorialSetup setup, PitchCommand command, PlayEvent? play, RulesTable rules)
     {
         if (objective == "called-ball")
             return play?.Kind == PlayKind.TakeBall
@@ -21,7 +21,7 @@ public static class TutorialPlateObjectives
             return Fail("use-third-pitch", "Press the pitch cycle twice to select your third pitch, then put it in the strike zone.");
         if (objective == "max-pitch-strike" && (command.Charge01 < 1 || command.Star || command.Type == PitchFamily.Changeup))
             return Fail("use-max-pitch", "Release an ordinary pitch at full charge, then put it in the zone.");
-        if (objective == "break-strike" && (Math.Abs(command.BreakX) < setup.MinMovement01 || command.Star || command.Type == PitchFamily.Changeup || ChargeFeel.IsCharge(command.Charge01)))
+        if (objective == "break-strike" && (Math.Abs(command.BreakX) < setup.MinMovement01 || command.Star || command.Type == PitchFamily.Changeup || ChargeFeel.IsCharge(command.Charge01, rules)))
             return Fail("use-break", "Use a normal pitch and hold a direction after release to bend it.");
         if (objective == "rubber-strike" && (Math.Abs(command.RubberX) < setup.MinMovement01 || command.Star))
             return Fail("move-rubber", "Move a little off the middle of the rubber before throwing a strike.");
@@ -30,7 +30,7 @@ public static class TutorialPlateObjectives
             : Fail("outside-zone", "The pitch missed the strike zone. Adjust its location and retry.");
     }
 
-    public static TutorialFeedback Swing(string objective, TutorialSetup setup, Hand bats, SwingCommand command, AtBatResult hit, PlayEvent? play)
+    public static TutorialFeedback Swing(string objective, TutorialSetup setup, Hand bats, SwingCommand command, AtBatResult hit, PlayEvent? play, RulesTable rules)
     {
         if (objective == "take-ball")
             return !command.Swing && !command.Bunt && play?.Kind == PlayKind.TakeBall
@@ -38,7 +38,7 @@ public static class TutorialPlateObjectives
                 : Fail("chased-ball", "Let the high pitch pass without swinging or squaring to bunt.");
         if (objective is "slap-fair" or "perfect-slap-fair" or "pull-fair" or "push-fair" or "box-perfect-fair")
         {
-            if (command.Bunt || command.Star || ChargeFeel.IsCharge(command.Charge01))
+            if (command.Bunt || command.Star || ChargeFeel.IsCharge(command.Charge01, rules))
                 return Fail("use-slap", "Use an ordinary uncharged swing for this lesson.");
         }
         if (objective == "max-swing-fair" && (command.Charge01 < 1 || command.Bunt || command.Star))

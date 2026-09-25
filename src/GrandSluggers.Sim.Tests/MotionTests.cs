@@ -24,8 +24,8 @@ public class MotionTests
     public void HeldLoadsShareTheirCommittedTake()
     {
         // The held windup is the charge take a MAX release continues (#613).
-        Assert.Equal(Motion.CueFor(Motion.Verb.ChargeSwing).Clip, Motion.CueFor(Motion.Verb.Swing, 1).Clip);
-        Assert.Equal(Motion.CueFor(Motion.Verb.ChargePitch).Clip, Motion.CueFor(Motion.Verb.ThrowPitch, 1).Clip);
+        Assert.Equal(Motion.CueFor(Motion.Verb.ChargeSwing).Clip, Motion.CueFor(Motion.Verb.Swing, 1, Shipped.Content.Rules).Clip);
+        Assert.Equal(Motion.CueFor(Motion.Verb.ChargePitch).Clip, Motion.CueFor(Motion.Verb.ThrowPitch, 1, Shipped.Content.Rules).Clip);
         Assert.Equal(Motion.Clock.Charge, Motion.CueFor(Motion.Verb.ChargeSwing).Clock);
         Assert.Equal(Motion.Clock.Charge, Motion.CueFor(Motion.Verb.ChargePitch).Clock);
         Assert.Equal(Motion.Clock.Verb, Motion.CueFor(Motion.Verb.Swing).Clock);
@@ -82,7 +82,7 @@ public class MotionTests
     {
         Assert.Equal("swing-slap-L", Motion.ClipFile(Motion.Verb.Swing, Hand.L, Hand.R));
         Assert.Equal("swing-slap", Motion.ClipFile(Motion.Verb.Swing, Hand.R, Hand.L));
-        Assert.Equal("swing-charge-L", Motion.ClipFile(Motion.Verb.Swing, Hand.L, Hand.R, charge01: 1));
+        Assert.Equal("swing-charge-L", Motion.ClipFile(Motion.Verb.Swing, Hand.L, Hand.R, 1, Shipped.Content.Rules));
         Assert.Equal("swing-charge", Motion.ClipFile(Motion.Verb.ChargeSwing, Hand.R, Hand.L));
         Assert.Equal("pitch-L", Motion.ClipFile(Motion.Verb.ThrowPitch, Hand.R, Hand.L));
         Assert.Equal("pitch-charge", Motion.ClipFile(Motion.Verb.ChargePitch, Hand.L, Hand.R));

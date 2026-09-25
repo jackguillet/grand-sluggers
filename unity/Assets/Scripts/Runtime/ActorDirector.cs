@@ -564,7 +564,7 @@ namespace GrandSluggers.UnityClient
                 _scene.Heroes[who.Id] = h;
             }
             h.gameObject.SetActive(true);
-            h.Bind(who, DiamondGeometry.Of(_play.Match.Rules));
+            h.Bind(who, _play.Match.Rules);
             h.SetFacing(BodyFacing.Rates.Of(_scene.Content.Feel));
             return h;
         }

@@ -181,8 +181,8 @@ public static class SwingPresentation
         (ModelCenterFromGrip + BarrelFromModelCenter) * Silhouette.BatScale;
 
     /// <summary>The take a committed swing plays: the resolver's charge test (spec §5.1).</summary>
-    public static SwingTake TakeFor(double charge01) =>
-        ChargeFeel.IsCharge(Math.Clamp(charge01, 0, 1)) ? SwingTake.Charge : SwingTake.Slap;
+    public static SwingTake TakeFor(double charge01, RulesTable rules) =>
+        ChargeFeel.IsCharge(Math.Clamp(charge01, 0, 1), rules) ? SwingTake.Charge : SwingTake.Slap;
 
     /// <summary>
     /// The held load samples the charge take: no charge holds its ready key, MAX its windup.
@@ -195,8 +195,8 @@ public static class SwingPresentation
     /// Where a committed swing starts in its take: a charge continues from the held windup; a
     /// slap has no windup and starts on its ready key.
     /// </summary>
-    public static double CommittedLoadAt(double charge01) =>
-        TakeFor(charge01) == SwingTake.Charge ? HeldLoadAt(charge01) : LoadAt;
+    public static double CommittedLoadAt(double charge01, RulesTable rules) =>
+        TakeFor(charge01, rules) == SwingTake.Charge ? HeldLoadAt(charge01) : LoadAt;
 
     public static IReadOnlyList<Key> KeysFor(SwingTake take) => take == SwingTake.Charge ? ChargeKeys : SlapKeys;
 

@@ -115,7 +115,7 @@ public sealed class PitchSelectionScenarioTests
         Assert.True(commit.Committed);
         Assert.Equal(rep.Third, commit.Family);
         Assert.Equal(PitchSelectionState.Reset, commit.Next);
-        Assert.True(ChargeFeel.IsCharge(mound.LastButton.CommitFill01) == maxRelease);
+        Assert.True(ChargeFeel.IsCharge(mound.LastButton.CommitFill01, Shipped.Content.Rules) == maxRelease);
     }
 
     // ---------------------------------------------------------------------------------

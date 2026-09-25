@@ -71,6 +71,33 @@ public sealed class RulesTests
         Assert.Contains("tagReachFeet", thrown.Message);
     }
 
+    /// <summary>The charge line (§4.1, §5.1): a tap and a charge are both reachable, so 0 &lt; slapBelow &lt; chargeAt ≤ 1.</summary>
+    [Theory]
+    [InlineData(0.0, 0.55, "match.charge.slapBelow must be above 0")]
+    [InlineData(0.6, 0.55, "match.charge.slapBelow must be below match.charge.chargeAt")]
+    [InlineData(0.55, 0.55, "match.charge.slapBelow must be below match.charge.chargeAt")]
+    [InlineData(0.2, 1.2, "match.charge.chargeAt")]
+    public void AnUnreachableChargeLineIsRefusedByName(double slapBelow, double chargeAt, string expected)
+    {
+        using var fixture = new RulesFixture();
+        fixture.Change("match.json", json =>
+        {
+            json["charge"]!["slapBelow"] = slapBelow;
+            json["charge"]!["chargeAt"] = chargeAt;
+        });
+
+        Assert.Contains(RulesTable.Validate(fixture.Root), e => e.Contains(expected, StringComparison.Ordinal)
+                                                               && e.Contains(fixture.Path("match.json"), StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TheShippedChargeLineIsTheOneThePlayWasTunedOn()
+    {
+        var charge = Shipped.Content.Rules.Match.Charge;
+        Assert.Equal(0.2, charge.SlapBelow);
+        Assert.Equal(0.55, charge.ChargeAt);
+    }
+
     [Fact]
     public void AMissingFieldIsAnErrorNotACodeDefault()
     {
