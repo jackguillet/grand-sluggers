@@ -26,7 +26,7 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 
 ## Decision matrix
 
-4 decisions are accepted; 14 are open. The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
+18 decisions are accepted; 3 are open (WD-19 to WD-21). The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
 
 | Id | Area | Question | Options | Recommend | Depends on | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -34,29 +34,32 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 | WD-02 | Gating | Park art order | A keep FD-17 (greybox sittings first) · B art as built | **Accepted: A** (Jack, 2026-09-24) | 01 | C9 |
 | WD-03 | Gating | Backdrops come back? | A kit art · B data greybox now, art later · C none | **Accepted: A, rough blockout is enough** (Jack, 2026-09-25) | 01 | C5, C9 |
 | WD-04 | Gating | Unlocks | A all open · B unlock by play · C open in Exhibition, unlocks in Challenge | **Accepted: C** (Jack, 2026-09-25) | — | C6 |
-| WD-05 | World | Continent shape and name | A the draft (the Diamond Isles) · B Jack's own | **A** | — | C1, C6 |
-| WD-06 | World | Which ten parks | A the draft ten · B swap in a deferred park · C Jack's list | **A** | 05 | C3 |
-| WD-07 | World | Fenn's home | A Stillwater Marsh · B keep Harbor, fourth new captain | **A** | 06 | C1, C3 |
-| WD-08 | World | Hazards per park | A one primary + one night change · B two | **A** | — | C3, C4 |
-| WD-09 | World | New hazard patterns | A surge + drift + fog · B reuse only · C surge + drift, Stillwater reuses | **C** | 06, 08 | C4, C7 |
-| WD-10 | World | Night lights | A themed rig + look · B look only · C darker play light | **A** | — | C5, C9 |
-| WD-11 | Captains | The three new captains | A Kai, Sable, Hollis · B Jack's own | **A** | 06 | C2 |
-| WD-12 | Captains | New factions? | A one each · B join existing | **A** | 11 | C2 |
-| WD-13 | Captains | Role players | A three each now · B captains first | **B** | 12 | C2 |
-| WD-14 | Captains | Body classes | A a new class each · B reuse | **A** (after #1116) | 11 | C2 |
-| WD-15 | Captains | Star abilities | A all new · B reuse · C one signature each | **C** | 11 | C2, C7 |
-| WD-16 | Captains | Home-field edge | A cosmetic · B small edge | **A** | — | — |
-| WD-17 | Menu | The picker | A continent map · B cycle + postcard · C both | **A** | 05 | C6 |
-| WD-18 | Menu | Map look | A painted 2-D · B 3-D diorama · C greybox first | **C, then A** | 17 | C6, C9 |
+| WD-05 | World | Continent shape and name | A the draft (the Diamond Isles) · B Jack's own | **Accepted: A, shape only; name is WD-19** (Jack, 2026-09-25) | — | C1, C6 |
+| WD-06 | World | Which ten parks | A the draft ten · B swap in a deferred park · C Jack's list | **Accepted: A** (Jack, 2026-09-25) | 05 | C3 |
+| WD-07 | World | Fenn's home | A Stillwater Marsh · B keep Harbor, fourth new captain | **Accepted: Fenn → Coconut Cove** (Jack, 2026-09-25) | 06 | C1, C3 |
+| WD-08 | World | Hazards per park | A one primary + one night change · B two | **Accepted: A** (Jack, 2026-09-25) | — | C3, C4 |
+| WD-09 | World | New hazard patterns | A surge + drift + fog · B reuse only · C surge + drift, Stillwater reuses | **Accepted: C** (Jack, 2026-09-25) | 06, 08 | C4, C7 |
+| WD-10 | World | Night lights | A themed rig + look · B look only · C darker play light | **Accepted: A** (Jack, 2026-09-25) | — | C5, C9 |
+| WD-11 | Captains | The three new captains | A Kai, Sable, Hollis · B Jack's own | **Accepted: A** (Jack, 2026-09-25) | 06 | C2 |
+| WD-12 | Captains | New factions? | A one each · B join existing | **Accepted: A** (Jack, 2026-09-25) | 11 | C2 |
+| WD-13 | Captains | Role players | A three each now · B captains first | **Accepted: A** (Jack, 2026-09-25) | 12 | C2 |
+| WD-14 | Captains | Body classes | A a new class each · B reuse | **Accepted: A** (Jack, 2026-09-25) | 11 | C2 |
+| WD-15 | Captains | Star abilities | A all new · B reuse · C one signature each | **Accepted: A** (Jack, 2026-09-25) | 11 | C2, C7 |
+| WD-16 | Captains | Home-field edge | A cosmetic · B small edge | **Accepted: A** (Jack, 2026-09-25) | — | — |
+| WD-17 | Menu | The picker | A continent map · B cycle + postcard · C both | **Accepted: A** (Jack, 2026-09-25) | 05 | C6 |
+| WD-18 | Menu | Map look | A painted 2-D · B 3-D diorama · C greybox first | **Accepted: C** (Jack, 2026-09-25) | 17 | C6, C9 |
+| WD-19 | World | Continent name | A Pennant Isles · B Grand Reach · C Homeplate Isles · D own | **A** | 05 | C1, C6 |
+| WD-20 | World | Crystal Rink's colder name | A Aurora Rink · B Glacier Garden · C Polar Palace · D own | **A** | 06 | C1 |
+| WD-21 | Captains | Stillwater Marsh's captain; where Kai goes | A Kai to the marsh · B new marsh captain, Kai dropped · C Kai joins Fenn (11 captains) · D own | **B** | 07, 11 | C2, C3 |
 
-Suggested answer order: WD-01, then the world (05–10), then the captains (11–16), then the menu (17–18).
+Open now: WD-19 (continent name), WD-20 (Crystal Rink's name), WD-21 (Stillwater Marsh's captain and Kai). Jack's answers WD-13 A and WD-15 A differ from the recommendations.
 
-## The continent (WD-05)
+## The continent (WD-05, WD-19)
 
-Working name: **the Diamond Isles**. North is cold, south is warm, the west is wild, the east is built up. One island lies off the south coast.
+The shape is accepted. The name is open (WD-19; "the Diamond Isles" was rejected). North is cold, south is warm, the west is wild, the east is built up. One island lies off the south coast.
 
 ```
-                          ❄ CRYSTAL RINK
+                          ❄ CRYSTAL RINK (new name: WD-20)
                              frozen north
         ⛰ SUMMIT PARK                          ⚙ ROOFTOP CITY
           high peaks                              eastern capital
@@ -80,13 +83,13 @@ Numbers here are **proposals, not decisions**: dimensions, radii and times are t
 | # | Park | Region | Captain · faction | Status | Surface | Fence L / C / R, top | Wind | Air |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Harbor Diamond | South coast | Rio · Spark League | Built, art | Grass | 232 / 280 / 232, 12 ft | 4 mph out to right-centre | Global |
-| 2 | Crystal Rink | Frozen north | Vale · Royal Rink | Built, greybox | Ice | 224 / 270 / 224, 8 ft glass | 2 mph in | Drag × 1.06 (cold) |
+| 2 | Crystal Rink (rename: WD-20) | Frozen north | Vale · Royal Rink | Built, greybox | Ice | 224 / 270 / 224, 8 ft glass | 2 mph in | Drag × 1.06 (cold) |
 | 3 | Funfair Park | Central plains | Zig · Carnival Crew | Built, greybox | Grass | 220 / 273 / 238, 8 ft | 6 mph out | Global |
 | 4 | Rooftop City | Eastern capital | Brondo · Goldrush | Built, greybox | Tar (dirt row) | 223 / 272 / 225, 12 ft | 9 mph across | Global |
 | 5 | Canopy Yard | Western rainforest | Konga · Canopy Clan | Built, greybox | Dirt | 218 / 265 / 223, 12 ft | 3 mph in | Global |
 | 6 | Ember Keep | The volcano | Ashlord · Ember Keep | Built, greybox | Ash | 237 / 286 / 237, 10 ft | 1 mph out | Global |
-| 7 | Stillwater Marsh | River delta | Elder Fenn · Stillwater | **New** | Wet grass (grass row) | 226 / 268 / 226, 8 ft reed wall | 1 mph, calm | Drag × 1.03 (damp) |
-| 8 | Coconut Cove | Tropical island | Kai · Tide Riders | **New** | Sand (**new ground row**) | 222 / 275 / 222, 6 ft rope-and-post | 7 mph sea breeze across | Global |
+| 7 | Stillwater Marsh | River delta | Open: WD-21 | **New** | Wet grass (grass row) | 226 / 268 / 226, 8 ft reed wall | 1 mph, calm | Drag × 1.03 (damp) |
+| 8 | Coconut Cove | Tropical island | Elder Fenn · Stillwater (WD-07) | **New** | Sand (**new ground row**) | 222 / 275 / 222, 6 ft rope-and-post | 7 mph sea breeze across | Global |
 | 9 | Sunscorch Mesa | Southern canyon | Sable · Dune Nomads | **New** | Hard-pan (dirt row) | 234 / 290 / 228, 14 ft canyon rock | 5 mph, shifting | Drag × 0.97 (hot, dry) |
 | 10 | Summit Park | High peaks | Hollis · Peak Guard | **New** | Alpine grass (grass row) | 240 / 296 / 240, 10 ft | 6 mph gusts, changes each inning | Drag × 0.9 (thin air) |
 
@@ -107,7 +110,7 @@ Numbers here are **proposals, not decisions**: dimensions, radii and times are t
 
 Why the new parks' hazards look like this:
 
-- **Stillwater Marsh** uses existing patterns (WD-09 C). A fog that hides the ball from the player would not hide it from the CPU, which reads the park (FD-14). That is unfair, so fog is only a look past the fence. Fenn's Fogball already carries the fog theme.
+- **Stillwater Marsh** uses existing patterns (WD-09 C). A fog that hides the ball from the player would not hide it from the CPU, which reads the park (FD-14). That is unfair, so fog is only a look past the fence.
 - **Coconut Cove's tide** is new. It is a timed band that moves a rolling ball; the train (a timed mover) is the nearest existing pattern, but it blocks rather than carries. The wave never touches a ball in the air or a fielder.
 - **Sunscorch Mesa's dust devils** are a redirect that moves and acts on a ball in flight. Today's redirects are fixed and act on the ground. The push is a fixed amount, not a roll (FD-08).
 - **Summit Park** needs no hazard pattern: thin air is the existing `environment.dragMul` rail, and the wind schedule is a small new environment row. Its identity is "the ball flies here".
@@ -133,12 +136,12 @@ Bars are the four derived bars (CF-1): **Pitch / Bat / Field / Run**, at most on
 | Brondo | Goldrush · yellow | Rooftop City | 5 / 8 / 3 / 4 | Power, bad glove | Phonyball, Laser |
 | Konga | Canopy Clan · brown | Canopy Yard | 6 / 9 / 3 / 2 | Power and wall climbs | Caskball, Clamber |
 | Ashlord | Ember Keep · black / purple | Ember Keep | 5 / 10 / 3 / 3 | Pure slug | Skullball, Furnace |
-| Elder Fenn | Stillwater · sage / cream | **Stillwater Marsh** (WD-07) | 7 / 5 / 8 / 3 | Glove and slow fog | Fogball |
-| **Kai** | **Tide Riders** · teal / coral | Coconut Cove | 5 / 6 / 6 / 9 | Surfer: speed and contact, a wave-riding slide | **Wave Swing**: a low liner that skips once on landing and keeps its speed |
+| Elder Fenn | Stillwater · sage / cream | **Coconut Cove** (WD-07: a turtle on the beach) | 7 / 5 / 8 / 3 | Glove and slow fog | Fogball |
+| **Kai** | **Tide Riders** · teal / coral | Open: WD-21 | 5 / 6 / 6 / 9 | Surfer: speed and contact, a wave-riding slide | **Wave Swing**: a low liner that skips once on landing and keeps its speed |
 | **Sable** | **Dune Nomads** · sand / rust | Sunscorch Mesa | 8 / 5 / 6 / 5 | Desert trickster: a heavy sinker, sure hands | **Mirage Ball**: the pitch draws a second, fainter ball for its first half that fades before the zone |
 | **Hollis** | **Peak Guard** · navy / white | Summit Park | 6 / 8 / 5 / 4 | Mountain climber: a big arm and high power | **Updraft**: a star swing whose fly rides the wind half again as far |
 
-Each new captain founds a faction (WD-12), borrows role players until its own exist (WD-13), and gets a body class row once the class table lands (WD-14, #1116). Names are drafts and were checked against the original-IP rule.
+Each new captain founds a faction (WD-12) with three role players of its own (WD-13 A), gets a body class row once the class table lands (WD-14, #1116), and brings all-new star abilities: a star pitch, a star swing and a field ability, each with a lesson (WD-15 A). The signature lines above are the first of the three. Names were checked against the original-IP rule.
 
 ## The menu (WD-17, WD-18)
 
@@ -156,7 +159,8 @@ Children after the decisions. One issue and one worktree each. The session kind 
 | Child | Kind | What | Needs |
 | --- | --- | --- | --- |
 | C1 World data rail | Gameplay | A `regions` catalog (id, name, map position, backdrop row); a park's `region`; ten `pickOrder` places | WD-01, 05, 07 |
-| C2 New captains in data | Gameplay | Three captains and factions, sub-stats, abilities (reused plus one signature each), chemistry rows, body classes | WD-11 to 15, #1116 |
+| C2 New captains in data | Gameplay | Three captains and factions, nine role players, sub-stats, chemistry rows, body classes | WD-11 to 14, WD-21, #1116 |
+| C2b New star abilities | Gameplay | Three new abilities per new captain (star pitch, star swing, field), one child per captain, each with its lesson | WD-15 |
 | C3 Four new park files | Gameplay | Dimensions, fence, surface, wind, air, hazards from existing patterns; the sand ground row; at Harbor parity; off the base paths | WD-06 to 08 |
 | C4 New patterns | Gameplay | One child each: surge (tide), drifting redirect (dust devils), wind schedule (gusts) | WD-09 |
 | C5 Greyboxes | Presentation + Art | The four new parks in the field kit and the kit bowl; palettes, night looks, night rig rows; a rough Blender blockout backdrop per park, all ten (WD-03 A: rough is enough) | WD-03, 10 |
