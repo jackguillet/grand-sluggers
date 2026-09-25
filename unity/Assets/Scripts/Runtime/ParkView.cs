@@ -10,7 +10,6 @@ namespace GrandSluggers.UnityClient
         Transform _root;
         BallView _ball;
         bool _night;
-        Light _followSpot;
 
         public BallView Ball => _ball;
         readonly System.Collections.Generic.List<(SolidBody Body, Transform Actor)> _movers = new();
@@ -48,7 +47,6 @@ namespace GrandSluggers.UnityClient
             _root = new GameObject("Park").transform;
             _root.SetParent(transform, false);
             _night = night;
-            _followSpot = null;
             _freezePose = 0;
             _movers.Clear();
             // The park as it plays tonight (PlayedPark.Of): a played park resolves to itself, so this only matters for a
@@ -104,7 +102,7 @@ namespace GrandSluggers.UnityClient
             // backstop or in the dugout span along either foul line (F6-a2 #881, FieldKitSourceTests).
             // The Harbor kit draws the dress its slots name; every other park's dress is the builders its
             // slots name (F6-d, FD-16-R1), never a method chosen by its id.
-            if (!placed) Dress(kitRow, park);
+            if (!placed) Dress();
             Hazards(park, kitRow);
 
             _ball = gameObject.GetComponent<BallView>();
@@ -113,49 +111,11 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// The dress of a park the Harbor kit does not draw (FD-16, FD-16-R1, FR-04; F6-d): the builder each of its stands,
-        /// props, backdrop and night slots names (data/art/parks.json). The builders are the old per-park dress, kept as
-        /// greybox and picked by data. An empty stands slot draws the plain greybox stands; an empty prop, backdrop or night
-        /// slot draws nothing.
+        /// A park the Harbor kit does not draw is the plain greybox (FR-13, #1045): its stands are grey blocks and crowd
+        /// cards, in the park's own light, sky and palette (data/art/looks.json). Its identity comes back as art, behind #37
+        /// and the park's greybox sitting, never as hand-built Unity dress.
         /// </summary>
-        void Dress(ParkKitSlot kitRow, Park park)
-        {
-            var stands = kitRow.Filler(ParkKitSlots.Stands);
-            if (stands == null) GreyboxStands();
-            else DressBy(stands, park);
-            foreach (var slot in new[] { ParkKitSlots.Props, ParkKitSlots.Backdrop, ParkKitSlots.Night })
-            {
-                var builder = kitRow.Filler(slot);
-                if (builder != null) DressBy(builder, park);
-            }
-        }
-
-        /// <summary>One named dress builder. A name the catalog validator allows but this view cannot draw is an error, not a shrug.</summary>
-        void DressBy(string builder, Park park)
-        {
-            switch (builder)
-            {
-                case ParkKitSlots.IcePavilions: IcePavilions(); break;
-                case ParkKitSlots.CircusTents: CircusTents(); break;
-                case ParkKitSlots.RoofStands: RoofStands(); break;
-                case ParkKitSlots.GroveStands: GroveStands(); break;
-                case ParkKitSlots.KeepBattlements: KeepBattlements(); break;
-                case ParkKitSlots.IceGardenProps: IceGardenProps(park); break;
-                case ParkKitSlots.Midway: Midway(); break;
-                case ParkKitSlots.VineWalls: VineWalls(); break;
-                case ParkKitSlots.CourtyardBraziers: CourtyardBraziers(); break;
-                case ParkKitSlots.RoyalPalace: RoyalPalace(); break;
-                case ParkKitSlots.FerrisWheel: FerrisWheel(); break;
-                case ParkKitSlots.Skyline: RooftopSkyline(); break;
-                case ParkKitSlots.TreeLine: TreeLine(); break;
-                case ParkKitSlots.KeepCastle: KeepCastle(); break;
-                case ParkKitSlots.FollowSpot: FollowSpot(); break;
-                case ParkKitSlots.NeonGlare: NeonGlare(); break;
-                case ParkKitSlots.Fireflies: Fireflies(); break;
-                case ParkKitSlots.NightBraziers: NightBraziers(); break;
-                default: Debug.LogError("ParkView: no dress builder " + builder); break;
-            }
-        }
+        void Dress() => GreyboxStands();
 
         /// <summary>
         /// What this park hands the field kit: its dirt, the warning track, and its wall, cap and pole, from the palette of
@@ -206,12 +166,6 @@ namespace GrandSluggers.UnityClient
 
         public void Tick(Vector3 ball, float dt)
         {
-            if (_followSpot != null && _followSpot.gameObject.activeInHierarchy)
-            {
-                var t = _followSpot.transform;
-                t.position = ball + new Vector3(0f, 26f, -8f);
-                t.LookAt(ball);
-            }
             var kit = HarborKit.Instance;
             if (kit != null && kit.OwnsDiamond) kit.Tick(ball, dt);
         }
@@ -221,208 +175,6 @@ namespace GrandSluggers.UnityClient
         {
             var kit = HarborKit.Instance;
             if (kit != null && kit.OwnsDiamond) kit.BurstFireworks(at);
-        }
-
-        /// <summary>Stands: ice pavilions with a royal-pink roof behind home, and two along the lines.</summary>
-        void IcePavilions()
-        {
-            var ice = Look.Lit(new Color(0.84f, 0.93f, 0.98f), smooth: 0.72f);
-            var pink = Look.Lit(Colors.Royal, smooth: 0.32f);
-            Cube("HomePavilion", new Vector3(0, 10, -62), new Vector3(80, 18, 16), ice);
-            Cube("HomeRoof", new Vector3(0, 20.2f, -62), new Vector3(86, 2.2f, 20), pink);
-            Cube("LeftPavilion", new Vector3(-118, 12, 40), new Vector3(16, 20, 90), ice);
-            Cube("RightPavilion", new Vector3(118, 12, 40), new Vector3(16, 20, 90), ice);
-            CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(74, 12, 1));
-            CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 80));
-            CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 80));
-        }
-
-        /// <summary>Props: the glass boards inside the wall and the frozen fountain behind home.</summary>
-        void IceGardenProps(Park park)
-        {
-            var ice = Look.Lit(new Color(0.84f, 0.93f, 0.98f), smooth: 0.72f);
-            var glass = Look.Lit(new Color(0.70f, 0.88f, 0.98f), smooth: 0.88f);
-            var pink = Look.Lit(Colors.Royal, smooth: 0.32f);
-            var stone = Look.Lit(new Color(0.76f, 0.82f, 0.88f), smooth: 0.28f);
-            CrystalBoards(park, glass, pink);
-            FrozenFountain(ice, stone);
-        }
-
-        void CrystalBoards(Park park, Material glass, Material kick)
-        {
-            for (var i = -18; i <= 18; i++)
-            {
-                var spray = i / 18f * 48f;
-                var fence = (float)AtBatResolver.FenceAt(park, spray) - 7f;
-                var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * fence, 2.5f, Mathf.Cos(rad) * fence);
-                Cube("Board" + i, p, new Vector3(14, 4.6f, 0.55f), glass);
-                Cube("Kick" + i, p + new Vector3(0, -1.7f, 0), new Vector3(14, 1.2f, 0.8f), kick);
-            }
-        }
-
-        void FrozenFountain(Material ice, Material stone)
-        {
-            Cube("FountainBase", new Vector3(0, 1.1f, -48), new Vector3(20, 2.2f, 20), stone);
-            Cylinder("FountainBowl", new Vector3(0, 2.8f, -48), 8.5f, 1.2f, ice);
-            Cylinder("Jet", new Vector3(0, 6.4f, -48), 1.2f, 7.2f, ice);
-            for (var i = 0; i < 6; i++)
-            {
-                var a = i / 6f * Mathf.PI * 2f;
-                Cylinder("Spray" + i, new Vector3(Mathf.Cos(a) * 5.2f, 4.6f, -48 + Mathf.Sin(a) * 5.2f), 0.55f, 4.8f, ice);
-            }
-            Cylinder("IceGlobe", new Vector3(0, 11.2f, -48), 1.6f, 1.6f, ice);
-        }
-
-        /// <summary>Backdrop: the ice palace past center field.</summary>
-        void RoyalPalace()
-        {
-            var ice = Look.Lit(new Color(0.84f, 0.93f, 0.98f), smooth: 0.72f);
-            var pink = Look.Lit(Colors.Royal, smooth: 0.32f);
-            var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
-            Cube("Palace", new Vector3(0, 28, 502), new Vector3(88, 56, 34), ice);
-            Cube("PalaceRoof", new Vector3(0, 58, 502), new Vector3(96, 8, 40), pink);
-            Cylinder("SpireL", new Vector3(-46, 0, 502), 6.5f, 86f, ice);
-            Cylinder("SpireR", new Vector3(46, 0, 502), 6.5f, 86f, ice);
-            Cube("CrownL", new Vector3(-46, 88, 502), new Vector3(10, 8, 10), gold);
-            Cube("CrownR", new Vector3(46, 88, 502), new Vector3(10, 8, 10), gold);
-            Cube("WingL", new Vector3(-92, 18, 488), new Vector3(42, 36, 22), ice);
-            Cube("WingR", new Vector3(92, 18, 488), new Vector3(42, 36, 22), ice);
-            Cube("Gate", new Vector3(0, 14, 480), new Vector3(26, 28, 8), pink);
-            Cube("GateCrown", new Vector3(0, 30, 480), new Vector3(18, 4, 6), gold);
-        }
-
-        /// <summary>Night: the follow spot that tracks the ball.</summary>
-        void FollowSpot()
-        {
-            var go = new GameObject("FollowSpot");
-            go.transform.SetParent(_root, false);
-            go.transform.position = new Vector3(0, 52, 36);
-            go.transform.rotation = Quaternion.Euler(55f, 0f, 0f);
-            var light = go.AddComponent<Light>();
-            light.type = LightType.Spot;
-            light.color = new Color(0.92f, 0.96f, 1f);
-            light.intensity = _night ? 7.2f : 0f;
-            light.range = 280f;
-            light.spotAngle = 26f;
-            go.SetActive(_night);
-            _followSpot = light;
-        }
-
-        /// <summary>Stands: three striped circus tents.</summary>
-        void CircusTents()
-        {
-            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.18f);
-            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.16f);
-            var yellow = Look.Lit(Colors.Gold, smooth: 0.4f);
-            var pink = Look.Lit(new Color(1f, 0.31f, 0.63f), smooth: 0.28f);
-            var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
-
-            Tent("HomeTent", new Vector3(0, 0, -62), 72, 22, 20, red, cream, wood);
-            Tent("LeftTent", new Vector3(-118, 0, 38), 22, 84, 18, pink, cream, wood);
-            Tent("RightTent", new Vector3(118, 0, 38), 22, 84, 18, yellow, red, wood);
-            CrowdCard("CrowdH", new Vector3(0, 12, -72), new Vector3(64, 12, 1));
-            CrowdCard("CrowdL", new Vector3(-128, 12, 38), new Vector3(1, 12, 72));
-            CrowdCard("CrowdR", new Vector3(128, 12, 38), new Vector3(1, 12, 72));
-        }
-
-        /// <summary>Props: the striped poles and the booths along the back of the midway.</summary>
-        void Midway()
-        {
-            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.18f);
-            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.16f);
-            var yellow = Look.Lit(Colors.Gold, smooth: 0.4f);
-            var pink = Look.Lit(new Color(1f, 0.31f, 0.63f), smooth: 0.28f);
-            var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
-            StripedPoles();
-            FunfairBooths(wood, red, cream, yellow, pink);
-        }
-
-        void Tent(string name, Vector3 pos, float w, float d, float h, Material a, Material b, Material pole)
-        {
-            var root = new GameObject(name).transform;
-            root.SetParent(_root, false);
-            root.position = pos;
-            Look.Prim(PrimitiveType.Cylinder, "Mast", root, new Vector3(0, h * 0.55f, 0), new Vector3(1.1f, h * 0.55f, 1.1f), pole);
-            Look.Prim(PrimitiveType.Cube, "Wall", root, new Vector3(0, h * 0.38f, 0), new Vector3(w * 0.82f, h * 0.72f, d * 0.82f), a);
-            Look.Prim(PrimitiveType.Cube, "Roof", root, new Vector3(0, h * 0.92f, 0), new Vector3(w, 1.6f, d), b);
-            Look.Prim(PrimitiveType.Cube, "Peak", root, new Vector3(0, h * 1.12f, 0), new Vector3(w * 0.42f, 3.2f, d * 0.42f), a);
-            Look.Prim(PrimitiveType.Cube, "Stripe", root, new Vector3(0, h * 0.92f, 0), new Vector3(w * 1.02f, 0.45f, d * 1.02f), a);
-            Look.Prim(PrimitiveType.Cylinder, "Flagpole", root, new Vector3(0, h * 1.32f, 0), new Vector3(0.28f, 2.4f, 0.28f), pole);
-            Look.Prim(PrimitiveType.Cube, "Pennant", root, new Vector3(1.8f, h * 1.42f, 0), new Vector3(3.6f, 1.2f, 0.18f), b);
-        }
-
-        void StripedPoles()
-        {
-            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.2f);
-            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.2f);
-            var spots = new[]
-            {
-                new Vector3(-86, 0, 210), new Vector3(86, 0, 210),
-                new Vector3(-70, 0, 320), new Vector3(70, 0, 320),
-                new Vector3(-48, 0, 430), new Vector3(48, 0, 430),
-                new Vector3(-140, 0, 80), new Vector3(140, 0, 80)
-            };
-            for (var p = 0; p < spots.Length; p++)
-            {
-                const int bands = 8;
-                const float h = 4.2f;
-                for (var i = 0; i < bands; i++)
-                    Cylinder("Pole" + p + i, spots[p] + new Vector3(0, i * h, 0), 1.15f, h, i % 2 == 0 ? red : cream);
-            }
-        }
-
-        void FerrisWheel()
-        {
-            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.22f);
-            var yellow = Look.Lit(Colors.Gold, smooth: 0.42f);
-            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.18f);
-            var pink = Look.Lit(new Color(1f, 0.31f, 0.63f), smooth: 0.28f);
-            var steel = Look.Lit(new Color(0.55f, 0.52f, 0.50f), smooth: 0.3f);
-
-            var root = new GameObject("FerrisWheel").transform;
-            root.SetParent(_root, false);
-            root.position = new Vector3(0, 0, 508);
-
-            Look.Prim(PrimitiveType.Cube, "Base", root, new Vector3(0, 2.2f, 0), new Vector3(30, 4.4f, 16), steel);
-            var legL = Look.Prim(PrimitiveType.Cube, "LegL", root, new Vector3(-11, 20, 0), new Vector3(3.4f, 38, 3.4f), steel);
-            legL.transform.localRotation = Quaternion.Euler(0, 0, 16f);
-            var legR = Look.Prim(PrimitiveType.Cube, "LegR", root, new Vector3(11, 20, 0), new Vector3(3.4f, 38, 3.4f), steel);
-            legR.transform.localRotation = Quaternion.Euler(0, 0, -16f);
-
-            var wheel = new GameObject("Rim").transform;
-            wheel.SetParent(root, false);
-            wheel.localPosition = new Vector3(0, 40, 0);
-            Look.Prim(PrimitiveType.Cylinder, "Hub", wheel, Vector3.zero, new Vector3(7.2f, 2.4f, 7.2f), yellow);
-            var axle = Look.Prim(PrimitiveType.Cylinder, "Axle", wheel, Vector3.zero, new Vector3(2.4f, 5.5f, 2.4f), steel);
-            axle.transform.localRotation = Quaternion.Euler(0, 0, 90f);
-            for (var i = 0; i < 12; i++)
-            {
-                var a = i / 12f * 360f;
-                var rad = a * Mathf.Deg2Rad;
-                var x = Mathf.Cos(rad) * 22f;
-                var y = Mathf.Sin(rad) * 22f;
-                var spoke = Look.Prim(PrimitiveType.Cube, "Spoke" + i, wheel, new Vector3(x * 0.5f, y * 0.5f, 0), new Vector3(1.15f, 22.5f, 1.15f), i % 2 == 0 ? red : yellow);
-                spoke.transform.localRotation = Quaternion.Euler(0, 0, a - 90f);
-                Look.Prim(PrimitiveType.Cube, "Gondola" + i, wheel, new Vector3(x, y - 2.5f, 0), new Vector3(4.4f, 3.6f, 3.8f), i % 2 == 0 ? pink : cream);
-            }
-        }
-
-        void FunfairBooths(Material wood, Material red, Material cream, Material yellow, Material pink)
-        {
-            var colors = new[] { red, cream, yellow, pink, red, cream, yellow };
-            for (var i = -3; i <= 3; i++)
-            {
-                if (i == 0) continue;
-                var x = i * 30f;
-                var root = new GameObject("Booth" + i).transform;
-                root.SetParent(_root, false);
-                root.position = new Vector3(x, 0, 478);
-                var cloth = colors[i + 3];
-                Look.Prim(PrimitiveType.Cube, "Counter", root, new Vector3(0, 3.2f, 0), new Vector3(16, 6.4f, 10), wood);
-                Look.Prim(PrimitiveType.Cube, "Awning", root, new Vector3(0, 7.4f, 2.2f), new Vector3(18, 0.7f, 14), cloth);
-                Look.Prim(PrimitiveType.Cube, "Sign", root, new Vector3(0, 9.2f, 0), new Vector3(12, 2.4f, 0.6f), cream);
-            }
         }
 
         /// <summary>
@@ -483,96 +235,6 @@ namespace GrandSluggers.UnityClient
             Glow("ChompGlow", new Vector3((float)h.X, 9f, (float)h.Z), new Color(0.7f, 0.12f, 0.18f), 1.1f, 28f);
         }
 
-        /// <summary>Stands: tar roof stands with a gold neon strip behind home.</summary>
-        void RoofStands()
-        {
-            var tar = Look.Lit(new Color(0.28f, 0.28f, 0.30f), smooth: 0.12f);
-            var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
-
-            Cube("HomeRoofStand", new Vector3(0, 10, -62), new Vector3(76, 16, 14), tar);
-            Cube("HomeNeon", new Vector3(0, 18.6f, -62), new Vector3(80, 0.5f, 16), gold);
-            Cube("LeftRoof", new Vector3(-118, 12, 40), new Vector3(16, 18, 86), tar);
-            Cube("RightRoof", new Vector3(118, 12, 40), new Vector3(16, 18, 86), tar);
-            CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(70, 12, 1));
-            CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 76));
-            CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 76));
-        }
-
-        /// <summary>Backdrop: the city skyline past center field.</summary>
-        void RooftopSkyline()
-        {
-            var tar = Look.Lit(new Color(0.28f, 0.28f, 0.30f), smooth: 0.12f);
-            var steel = Look.Lit(new Color(0.48f, 0.50f, 0.54f), smooth: 0.32f);
-            var neon = Look.Unlit(new Color(0.22f, 0.82f, 1f));
-            var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
-            var magenta = Look.Unlit(new Color(1f, 0.28f, 0.72f));
-            var brick = Look.Lit(new Color(0.42f, 0.22f, 0.18f), smooth: 0.1f);
-            var glass = Look.Lit(new Color(0.22f, 0.32f, 0.48f), smooth: 0.62f);
-            Building("LoftGold", new Vector3(-70, 0, 498), 28, 22, 52, brick, gold);
-            Building("TowerCyan", new Vector3(-18, 0, 512), 20, 18, 72, glass, neon);
-            Building("TowerMag", new Vector3(48, 0, 505), 24, 20, 64, tar, magenta);
-            Building("BlockR", new Vector3(110, 0, 488), 36, 18, 40, steel, gold);
-            Building("BlockL", new Vector3(-130, 0, 470), 30, 16, 36, brick, neon);
-            Cylinder("WaterTower", new Vector3(0, 0, 528), 6.5f, 18f, steel);
-            Cube("TowerTank", new Vector3(0, 22, 528), new Vector3(14, 8, 14), steel);
-            Cube("SkySign", new Vector3(0, 48, 512), new Vector3(22, 10, 1.4f), gold);
-            Cube("SkyStar", new Vector3(0, 48, 511.2f), new Vector3(6.5f, 6.5f, 0.6f), Look.Unlit(Colors.Gold));
-            Glow("NeonFill", new Vector3(0, 28, 420), new Color(0.35f, 0.7f, 1f), 1.6f, 220f);
-        }
-
-        void Building(string name, Vector3 pos, float w, float d, float h, Material body, Material accent)
-        {
-            var root = new GameObject(name).transform;
-            root.SetParent(_root, false);
-            root.position = pos;
-            Look.Prim(PrimitiveType.Cube, "Body", root, new Vector3(0, h * 0.5f, 0), new Vector3(w, h, d), body);
-            Look.Prim(PrimitiveType.Cube, "Crown", root, new Vector3(0, h + 1.4f, 0), new Vector3(w * 0.7f, 2.8f, d * 0.7f), accent);
-            Look.Prim(PrimitiveType.Cube, "Band", root, new Vector3(0, h * 0.62f, d * 0.52f), new Vector3(w * 0.82f, 1.6f, 0.4f), accent);
-        }
-
-        /// <summary>Night: the neon glare over the field.</summary>
-        void NeonGlare()
-        {
-            var go = new GameObject("NeonGlare");
-            go.transform.SetParent(_root, false);
-            go.transform.position = new Vector3(0, 36, 240);
-            if (_night)
-                Glow("GlareFill", new Vector3(0, 28, 240), new Color(0.4f, 0.8f, 1f), 2.2f, 260f);
-            go.SetActive(_night);
-        }
-
-        /// <summary>Stands: bark groves under a leaf canopy.</summary>
-        void GroveStands()
-        {
-            var bark = Look.Lit(new Color(0.36f, 0.21f, 0.11f), smooth: 0.08f);
-            var leaf = Look.Lit(new Color(0.12f, 0.4f, 0.18f), smooth: 0.1f);
-            var vine = Look.Lit(new Color(0.22f, 0.48f, 0.18f), smooth: 0.12f);
-
-            Cube("HomeGrove", new Vector3(0, 10, -62), new Vector3(72, 16, 14), bark);
-            Cube("HomeCanopy", new Vector3(0, 19.2f, -62), new Vector3(80, 4, 18), leaf);
-            Cube("LeftGrove", new Vector3(-118, 12, 40), new Vector3(16, 18, 86), bark);
-            Cube("RightGrove", new Vector3(118, 12, 40), new Vector3(16, 18, 86), bark);
-            CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(64, 12, 1));
-            CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 76));
-            CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 76));
-        }
-
-        /// <summary>Props: the two vine walls along the lines.</summary>
-        void VineWalls()
-        {
-            var bark = Look.Lit(new Color(0.36f, 0.21f, 0.11f), smooth: 0.08f);
-            var vine = Look.Lit(new Color(0.22f, 0.48f, 0.18f), smooth: 0.12f);
-            VineWall("ClimbL", new Vector3(-96, 0, 210), 18, 36, 14, bark, vine);
-            VineWall("ClimbR", new Vector3(96, 0, 210), 18, 36, 14, bark, vine);
-        }
-
-        /// <summary>Backdrop: a line of jungle trees past center field.</summary>
-        void TreeLine()
-        {
-            for (var i = -3; i <= 3; i++)
-                JungleTree(new Vector3(i * 36f, 0, 448), 10f + (i & 1) * 2f);
-        }
-
         void VineWall(string name, Vector3 pos, float w, float h, float d, Material bark, Material vine)
         {
             var root = new GameObject(name).transform;
@@ -583,22 +245,6 @@ namespace GrandSluggers.UnityClient
             Look.Prim(PrimitiveType.Cube, "LedgeClamber", root, new Vector3(0, 4.2f, d * 0.42f), new Vector3(w * 0.92f, 0.45f, 1.8f), bark);
             Look.Prim(PrimitiveType.Cube, "LedgeHigh", root, new Vector3(0, 6.4f, d * 0.42f), new Vector3(w * 0.92f, 0.45f, 1.6f), bark);
             Look.Prim(PrimitiveType.Cube, "Vines", root, new Vector3(0, h * 0.55f, d * 0.52f), new Vector3(w * 0.7f, h * 0.9f, 0.35f), vine);
-        }
-
-        void JungleTree(Vector3 p, float radius)
-        {
-            var bark = Look.Lit(new Color(0.36f, 0.21f, 0.11f), smooth: 0.08f);
-            var leaf = Look.Lit(new Color(0.12f, 0.4f, 0.18f), smooth: 0.1f);
-            var moss = Look.Lit(new Color(0.22f, 0.48f, 0.18f), smooth: 0.1f);
-            var root = new GameObject("Tree").transform;
-            root.SetParent(_root, false);
-            root.position = p;
-            var h = Mathf.Clamp(radius * 1.6f, 10f, 22f);
-            Look.Prim(PrimitiveType.Cylinder, "Trunk", root, new Vector3(0, h * 0.5f, 0), new Vector3(radius * 0.42f, h * 0.5f, radius * 0.42f), bark);
-            Look.Prim(PrimitiveType.Sphere, "Canopy", root, new Vector3(0, h + radius * 0.35f, 0), Vector3.one * radius * 1.6f, leaf);
-            Look.Prim(PrimitiveType.Sphere, "Canopy2", root, new Vector3(radius * 0.45f, h + radius * 0.1f, radius * 0.2f), Vector3.one * radius * 1.1f, moss);
-            Look.Prim(PrimitiveType.Cube, "RootL", root, new Vector3(-radius * 0.4f, 0.4f, 0), new Vector3(radius * 0.7f, 0.7f, 0.7f), bark);
-            Look.Prim(PrimitiveType.Cube, "RootR", root, new Vector3(radius * 0.4f, 0.4f, 0), new Vector3(radius * 0.7f, 0.7f, 0.7f), bark);
         }
 
         void ClimbWall(Hazard h)
@@ -636,98 +282,6 @@ namespace GrandSluggers.UnityClient
                 var x = (i - (n - 1) * 0.5f) * (r * 0.28f);
                 Look.Prim(PrimitiveType.Cube, "Pip" + i, root, new Vector3(x, r * 0.9f, r * 0.92f), new Vector3(r * 0.16f, r * 0.16f, 0.12f), pip);
             }
-        }
-
-        /// <summary>Night: fireflies over the outfield.</summary>
-        void Fireflies()
-        {
-            var go = new GameObject("Fireflies");
-            go.transform.SetParent(_root, false);
-            go.transform.position = new Vector3(0, 8, 240);
-            if (_night)
-            {
-                var gold = Look.Unlit(new Color(0.92f, 1f, 0.42f));
-                for (var i = 0; i < 12; i++)
-                {
-                    var a = i / 12f * Mathf.PI * 2f;
-                    Look.Prim(PrimitiveType.Sphere, "Fly" + i, go.transform,
-                        new Vector3(Mathf.Cos(a) * 40f, 4f + (i % 4), Mathf.Sin(a) * 30f),
-                        Vector3.one * 0.55f, gold);
-                }
-            }
-            go.SetActive(_night);
-        }
-
-        /// <summary>Stands: the keep behind home and battlements along the lines.</summary>
-        void KeepBattlements()
-        {
-            var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
-            var iron = Look.Lit(new Color(0.28f, 0.22f, 0.22f), smooth: 0.28f);
-
-            Cube("HomeKeep", new Vector3(0, 10, -62), new Vector3(76, 18, 16), stone);
-            Cube("HomeCrenel", new Vector3(0, 20.2f, -62), new Vector3(82, 2.4f, 18), iron);
-            Cube("LeftBattlement", new Vector3(-118, 12, 40), new Vector3(16, 20, 90), stone);
-            Cube("RightBattlement", new Vector3(118, 12, 40), new Vector3(16, 20, 90), stone);
-            CrowdCard("CrowdH", new Vector3(0, 12, -70), new Vector3(68, 12, 1));
-            CrowdCard("CrowdL", new Vector3(-126, 14, 40), new Vector3(1, 14, 80));
-            CrowdCard("CrowdR", new Vector3(126, 14, 40), new Vector3(1, 14, 80));
-        }
-
-        /// <summary>Props: two braziers behind home and the courtyard's fire glow.</summary>
-        void CourtyardBraziers()
-        {
-            var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
-            var fire = Look.Unlit(Colors.EmberFire);
-            Brazier(new Vector3(-36, 0, -40), fire, stone);
-            Brazier(new Vector3(36, 0, -40), fire, stone);
-            Glow("CourtyardGlow", new Vector3(0, 10, 180), Colors.EmberFire, 1.8f, 260f);
-        }
-
-        /// <summary>Backdrop: the castle keep past center field.</summary>
-        void KeepCastle()
-        {
-            var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
-            var iron = Look.Lit(new Color(0.28f, 0.22f, 0.22f), smooth: 0.28f);
-            var fire = Look.Unlit(Colors.EmberFire);
-            var gold = Look.Lit(Colors.Gold, smooth: 0.45f);
-            Cube("KeepHall", new Vector3(0, 28, 500), new Vector3(78, 56, 32), stone);
-            Cube("KeepRoof", new Vector3(0, 58, 500), new Vector3(86, 6, 36), iron);
-            for (var i = -3; i <= 3; i++)
-                Cube("Merlon" + i, new Vector3(i * 11f, 63.5f, 500), new Vector3(6, 5, 8), stone);
-            Tower("TowerL", new Vector3(-52, 0, 500), stone, iron, gold);
-            Tower("TowerR", new Vector3(52, 0, 500), stone, iron, gold);
-            Cube("Gate", new Vector3(0, 14, 480), new Vector3(22, 28, 8), iron);
-            Cube("GateArch", new Vector3(0, 30, 480), new Vector3(26, 6, 8), gold);
-            Cube("Portcullis", new Vector3(0, 10, 476), new Vector3(14, 18, 1.2f), fire);
-            Cube("WingL", new Vector3(-96, 16, 488), new Vector3(36, 32, 18), stone);
-            Cube("WingR", new Vector3(96, 16, 488), new Vector3(36, 32, 18), stone);
-        }
-
-        void Tower(string name, Vector3 pos, Material stone, Material iron, Material gold)
-        {
-            var root = new GameObject(name).transform;
-            root.SetParent(_root, false);
-            root.position = pos;
-            Look.Prim(PrimitiveType.Cube, "Shaft", root, new Vector3(0, 42, 0), new Vector3(18, 84, 18), stone);
-            Look.Prim(PrimitiveType.Cube, "Crown", root, new Vector3(0, 86, 0), new Vector3(22, 4, 22), iron);
-            for (var i = 0; i < 4; i++)
-            {
-                var x = (i % 2 == 0 ? -7f : 7f);
-                var z = i < 2 ? -7f : 7f;
-                Look.Prim(PrimitiveType.Cube, "Tooth" + i, root, new Vector3(x, 90, z), new Vector3(5, 5, 5), stone);
-            }
-            Look.Prim(PrimitiveType.Cube, "Banner", root, new Vector3(0, 70, 9.2f), new Vector3(6, 10, 0.3f), gold);
-        }
-
-        void Brazier(Vector3 p, Material fire, Material stone)
-        {
-            var root = new GameObject("Brazier").transform;
-            root.SetParent(_root, false);
-            root.position = p;
-            Look.Prim(PrimitiveType.Cylinder, "Bowl", root, new Vector3(0, 2.4f, 0), new Vector3(3.6f, 0.7f, 3.6f), stone);
-            Look.Prim(PrimitiveType.Cylinder, "Stem", root, new Vector3(0, 1.2f, 0), new Vector3(1.1f, 1.2f, 1.1f), stone);
-            Look.Prim(PrimitiveType.Sphere, "Flame", root, new Vector3(0, 3.6f, 0), Vector3.one * 1.8f, fire);
-            Glow("BrazierGlow", p + new Vector3(0, 4.2f, 0), Colors.EmberFire, 1.2f, 40f);
         }
 
         void LavaPit(Hazard h)
@@ -782,25 +336,6 @@ namespace GrandSluggers.UnityClient
             {
                 Look.Prim(PrimitiveType.Cube, "Sash", root, new Vector3(0.2f, 5.2f, 0.65f), new Vector3(0.8f, 0.2f, 0.1f), gold);
             }
-        }
-
-        /// <summary>Night: four more braziers down the lines and a fire fill.</summary>
-        void NightBraziers()
-        {
-            var fire = Look.Unlit(Colors.EmberFire);
-            var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
-            var go = new GameObject("NightBraziers");
-            go.transform.SetParent(_root, false);
-            go.transform.position = Vector3.zero;
-            if (_night)
-            {
-                Brazier(new Vector3(-88, 0, 120), fire, stone);
-                Brazier(new Vector3(88, 0, 120), fire, stone);
-                Brazier(new Vector3(-70, 0, 280), fire, stone);
-                Brazier(new Vector3(70, 0, 280), fire, stone);
-                Glow("NightFire", new Vector3(0, 14, 220), Colors.EmberFire, 3.4f, 380f);
-            }
-            go.SetActive(_night);
         }
 
         void StarBillboard(Hazard h)
@@ -967,6 +502,23 @@ namespace GrandSluggers.UnityClient
                 case HazardActors.JungleTree: JungleTree(p, (float)h.Radius); break;
                 default: Debug.LogError("ParkView: no hazard toy " + toy); break;
             }
+        }
+
+        /// <summary>The canopy grove's jungle-tree hazard toy.</summary>
+        void JungleTree(Vector3 p, float radius)
+        {
+            var bark = Look.Lit(new Color(0.36f, 0.21f, 0.11f), smooth: 0.08f);
+            var leaf = Look.Lit(new Color(0.12f, 0.4f, 0.18f), smooth: 0.1f);
+            var moss = Look.Lit(new Color(0.22f, 0.48f, 0.18f), smooth: 0.1f);
+            var root = new GameObject("Tree").transform;
+            root.SetParent(_root, false);
+            root.position = p;
+            var h = Mathf.Clamp(radius * 1.6f, 10f, 22f);
+            Look.Prim(PrimitiveType.Cylinder, "Trunk", root, new Vector3(0, h * 0.5f, 0), new Vector3(radius * 0.42f, h * 0.5f, radius * 0.42f), bark);
+            Look.Prim(PrimitiveType.Sphere, "Canopy", root, new Vector3(0, h + radius * 0.35f, 0), Vector3.one * radius * 1.6f, leaf);
+            Look.Prim(PrimitiveType.Sphere, "Canopy2", root, new Vector3(radius * 0.45f, h + radius * 0.1f, radius * 0.2f), Vector3.one * radius * 1.1f, moss);
+            Look.Prim(PrimitiveType.Cube, "RootL", root, new Vector3(-radius * 0.4f, 0.4f, 0), new Vector3(radius * 0.7f, 0.7f, 0.7f), bark);
+            Look.Prim(PrimitiveType.Cube, "RootR", root, new Vector3(radius * 0.4f, 0.4f, 0), new Vector3(radius * 0.7f, 0.7f, 0.7f), bark);
         }
 
         /// <summary>The greybox of a hazard whose park names no toys: a post in its pattern's ring color (white for a pattern that does not act).</summary>

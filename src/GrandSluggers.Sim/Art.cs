@@ -56,10 +56,11 @@ public readonly record struct ParkKitSlot(
 /// </para>
 ///
 /// <para>
-/// <b>The other parks' dress</b> (F6-d, FD-16-R1): the stands, the backdrop, the props and the night dress of the five
-/// greybox parks are named builders too — the old per-park methods, kept as greybox and picked by the park's slots, never
-/// by its id. <c>hazardActors</c> names <see cref="ToyActors"/> (each hazard type's toy, <see cref="HazardActors"/>) or
-/// is empty, which draws the pattern greybox; either way every acting instance draws its ring at the sim's disc.
+/// <b>The other parks draw the plain greybox</b> (FR-13; Jack, 2026-09-24, #1045): their stands, backdrop, props and night
+/// slots are empty, and the client draws grey stands in the park's own light, sky and palette. The hand-built per-park
+/// dress is gone; a park's identity comes back only as art, behind #37 and its greybox sitting. <c>hazardActors</c> names
+/// <see cref="ToyActors"/> (each hazard type's toy, <see cref="HazardActors"/>) or is empty, which draws the pattern
+/// greybox; either way every acting instance draws its ring at the sim's disc.
 /// </para>
 ///
 /// <para>
@@ -90,24 +91,6 @@ public static class ParkKitSlots
     public const string HarborTown = "harbor-town";
     public const string HarborFireworks = "harbor-fireworks";
 
-    public const string IcePavilions = "ice-pavilions";
-    public const string CircusTents = "circus-tents";
-    public const string RoofStands = "roof-stands";
-    public const string GroveStands = "grove-stands";
-    public const string KeepBattlements = "keep-battlements";
-    public const string RoyalPalace = "royal-palace";
-    public const string FerrisWheel = "ferris-wheel";
-    public const string Skyline = "skyline";
-    public const string TreeLine = "tree-line";
-    public const string KeepCastle = "keep-castle";
-    public const string FollowSpot = "follow-spot";
-    public const string NeonGlare = "neon-glare";
-    public const string Fireflies = "fireflies";
-    public const string NightBraziers = "night-braziers";
-    public const string IceGardenProps = "ice-garden";
-    public const string Midway = "midway";
-    public const string VineWalls = "vine-walls";
-    public const string CourtyardBraziers = "courtyard-braziers";
     public const string ToyActors = "toy-actors";
 
     /// <summary>Every slot, in the order <c>cli art</c> prints them.</summary>
@@ -122,10 +105,10 @@ public static class ParkKitSlots
             [Dugouts] = [HarborDugouts],
             [Wall] = [HarborWall],
             [Scoreboard] = [HarborScoreboard],
-            [Stands] = [HarborStands, IcePavilions, CircusTents, RoofStands, GroveStands, KeepBattlements],
-            [Backdrop] = [HarborTown, RoyalPalace, FerrisWheel, Skyline, TreeLine, KeepCastle],
-            [Night] = [HarborFireworks, FollowSpot, NeonGlare, Fireflies, NightBraziers],
-            [Props] = [IceGardenProps, Midway, VineWalls, CourtyardBraziers],
+            [Stands] = [HarborStands],
+            [Backdrop] = [HarborTown],
+            [Night] = [HarborFireworks],
+            [Props] = [], // no park names props; a non-Harbor park draws the greybox
             [Light] = [], // rows of data/art/looks.json, checked against the catalog's looks
             [Sky] = [],
             [HazardActors] = [ToyActors],
