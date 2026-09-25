@@ -120,7 +120,7 @@ public sealed partial class TutorialSession
             else Match.GiveDefenseStars(_setup.StartingStars);
         }
         if (_setup.OpponentStars > 0) Match.GiveOffenseStars(_setup.OpponentStars);
-        if (_setup.PoolStars is { } pool) Match.SetDefenseStarsForLesson(pool);
+        if (_setup.PoolStars is { } pool) Match.SetDefenseStars(pool);
         if (_setup.Bottom) PrepareBottomHalf();
         if (!Match.SetOuts(_setup.Outs)) throw new InvalidDataException("Cannot stage tutorial outs.");
         if (_setup.Policy == "game-half") PrepareGameHalf();

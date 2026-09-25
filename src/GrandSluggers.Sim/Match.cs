@@ -283,10 +283,10 @@ public sealed partial class Match
 
     /// <summary>
     /// A lesson's short pool (§12, PH-16-R12): the defense's Stars set to exactly <paramref name="n"/>, so the Star
-    /// Pitch it asks for can be unaffordable. Only a tutorial setup that names <c>poolStars</c> calls it; a match's
-    /// pools start on the one reserve and move only by gains and prices.
+    /// Pitch it asks for can be unaffordable. Only a tutorial setup that names <c>poolStars</c>, and the editor at-bat gate's
+    /// fixture, call it; a match's pools start on the one reserve and move only by gains and prices.
     /// </summary>
-    internal void SetDefenseStarsForLesson(double n)
+    public void SetDefenseStars(double n)
     {
         if (!StarsEnabled) return;
         n = Math.Clamp(n, 0, Rules.Stars.MeterMax);
@@ -338,6 +338,8 @@ public sealed partial class Match
     readonly List<RunnerMove> _movesThisPlay = [];
     /// <summary>The specials released on the current pitch, as settled (§12, PH-16-R12). Emit stamps them on the outcome.</summary>
     readonly List<StarRequest> _starRequestsThisPlay = [];
+    /// <summary>The specials released on the current pitch so far, before the play stamps them.</summary>
+    public IReadOnlyList<StarRequest> StarRequestsThisPlay => _starRequestsThisPlay;
     int _outsOnCurrentPlay => _outsThisPlay.Count;
     public double PitcherOffsetX { get; internal set; }
     public double BatterOffsetX { get; private set; }

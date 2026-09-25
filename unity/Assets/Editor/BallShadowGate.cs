@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using GrandSluggers.Sim;
 using GrandSluggers.UnityClient;
 using UnityEditor;
@@ -14,7 +13,6 @@ namespace GrandSluggers.EditorTools
     public static class BallShadowGate
     {
         const string Pending = "GrandSluggers.BallShadowGate";
-        const BindingFlags Hidden = BindingFlags.Instance | BindingFlags.NonPublic;
         static BallShadowGate() { EditorApplication.update += Update; }
 
         [MenuItem("Grand Sluggers/Verify Ball Shadow")]
@@ -40,15 +38,15 @@ namespace GrandSluggers.EditorTools
             }
             if (!EditorApplication.isPlaying) return;
             var play = UnityEngine.Object.FindAnyObjectByType<MatchDirector>();
-            if (play == null || Get<Match>(play, "_match") == null) return;
+            if (play == null || play._match == null) return;
             SessionState.SetBool(Pending, false);
             try
             {
                 // Real contact, sim flight, actors and gameplay camera; no screenshot-only ball/camera placement.
-                var content = Get<ContentCatalog>(play, "_content");
-                var match = Get<Match>(play, "_match");
-                Invoke(play, "BeginSet");
-                Set(play, "_gateHold", true);
+                var content = play._content;
+                var match = play._match;
+                play.BeginSet();
+                play._gateHold = true;
                 var pitch = new PitchCommand("fastball", 0, false);
                 var swing = new SwingCommand(true, 0, 0, false);
                 Require(match.BeginAtBat(pitch, swing, out _, out _), "Could not start at-bat");
@@ -56,27 +54,27 @@ namespace GrandSluggers.EditorTools
                 var hit = new AtBatResult(ContactQuality.Nice, true, false, 88, 32, flight.LandingDist,
                     flight.HomeRun, false, null, null, SprayDeg: -18, Class: flight.Class);
                 var preview = match.PreviewHit(hit);
-                Set(play, "_pitch", pitch);
-                Set(play, "_swing", swing);
-                Set(play, "_pending", hit);
-                Set(play, "_preview", preview);
-                Set(play, "_cpuField", match.ResolveFielding(hit, preview));
-                var ball = Get<ParkView>(play, "_park").Ball;
+                play._pitch = pitch;
+                play._swing = swing;
+                play._pending = hit;
+                play._preview = preview;
+                play._cpuField = match.ResolveFielding(hit, preview);
+                var ball = play._park.Ball;
                 ball.Release();
-                Invoke(play, "StartFly", hit);
+                play.StartFly(hit);
                 var elapsed = 0f;
                 foreach (var time in new[] { 1f, 2.5f, 4f })
                 {
                     while (elapsed < time)
                     {
-                        Invoke(play, "TickLive", 1f / 60);
-                        Invoke(play, "DrawActors", 1f / 60);
-                        Get<CameraRig>(play, "_rig").Tick(1f / 60);
+                        play.TickLive(1f / 60);
+                        play.DrawActors(1f / 60);
+                        play._rig.Tick(1f / 60);
                         elapsed += 1f / 60;
                     }
-                    var shadow = Get<Transform>(ball, "_shadow");
+                    var shadow = ball._shadow;
                     Require(shadow.gameObject.activeSelf, "Airborne ball lost its shadow");
-                    var p = Get<Vector3>(play, "_ball");
+                    var p = play._ball;
                     var center = shadow.TransformPoint(shadow.GetComponent<MeshFilter>().sharedMesh.vertices[0]);
                     Require(Mathf.Abs(center.x - p.x) < 0.001f && Mathf.Abs(center.z - p.z) < 0.001f,
                         "Shadow left live ball X/Z");
@@ -85,12 +83,12 @@ namespace GrandSluggers.EditorTools
                 }
                 var hold = new GameObject("ShadowGateGlove").transform;
                 ball.Hold(hold);
-                Require(!Get<Transform>(ball, "_shadow").gameObject.activeSelf, "Held shadow stayed visible");
+                Require(!ball._shadow.gameObject.activeSelf, "Held shadow stayed visible");
                 ball.Release();
                 ball.Place(new Vector3(30, 12, 220), "", "fastball", false, true, true);
-                Require(Get<Transform>(ball, "_shadow").gameObject.activeSelf, "Release lost shadow");
+                Require(ball._shadow.gameObject.activeSelf, "Release lost shadow");
                 ball.Hide();
-                Require(!Get<Transform>(ball, "_shadow").gameObject.activeSelf, "Hidden shadow stayed visible");
+                Require(!ball._shadow.gameObject.activeSelf, "Hidden shadow stayed visible");
                 UnityEngine.Object.Destroy(hold.gameObject);
                 File.WriteAllText(Path.Combine(folder, "result.txt"), "PASS: live flight projection, render captures, hold/release/hide. Human look gate remains open.");
             }
@@ -120,9 +118,6 @@ namespace GrandSluggers.EditorTools
             UnityEngine.Object.Destroy(texture);
         }
 
-        static T Get<T>(object owner, string name) => (T)owner.GetType().GetField(name, Hidden).GetValue(owner);
-        static void Set(object owner, string name, object value) => owner.GetType().GetField(name, Hidden).SetValue(owner, value);
-        static void Invoke(object owner, string name, params object[] args) => owner.GetType().GetMethod(name, Hidden).Invoke(owner, args);
         static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
     }
 }

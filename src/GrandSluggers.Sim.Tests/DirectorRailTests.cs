@@ -65,4 +65,19 @@ public sealed class DirectorRailTests
         Assert.Contains("[InitializeOnLoad]", editor, StringComparison.Ordinal);
         Assert.Contains("File.Exists(StillRequest.RequestPath(temp))", editor, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void EditorGatesReachTheDirectorsThroughCompiledMembersNotReflection()
+    {
+        // #1044: a gate that reads a private field by name compiles after a rename and breaks only when it runs. The
+        // editor assembly sees the Runtime's internals (InternalsVisibleTo), so a gate names the member itself.
+        var editor = Path.GetFullPath(Path.Combine(Scripts, "..", "Editor"));
+        var reflective = new[] { "BindingFlags.NonPublic", ".GetField(", ".GetMethod(", ".GetProperty(" };
+        var offenders = Directory.GetFiles(editor, "*.cs")
+            .SelectMany(f => File.ReadAllLines(f).Select((line, i) => (File: Path.GetFileName(f), Line: line, At: i + 1)))
+            .Where(x => reflective.Any(r => x.Line.Contains(r, StringComparison.Ordinal)))
+            .Select(x => $"{x.File}:{x.At}: {x.Line.Trim()}")
+            .ToList();
+        Assert.Empty(offenders);
+    }
 }

@@ -17,7 +17,7 @@ namespace GrandSluggers.UnityClient
 
     public sealed partial class MatchDirector
     {
-        float _committedSwingT = (float)AtBatMotion.SwingNotStarted;
+        internal float _committedSwingT = (float)AtBatMotion.SwingNotStarted;
         /// <summary>
         /// What the live ball owes each body this frame (#719–#721): the stun, the dive's recovery, the brace, the jump's
         /// airtime. Mirrored while the ball is live and aged through the result beat, since the completing frame resets the field.
@@ -28,7 +28,7 @@ namespace GrandSluggers.UnityClient
 
         internal void DrawBodies(float dt) => DrawActors(dt);
 
-        void DrawActors(float dt)
+        internal void DrawActors(float dt)
         {
             Steal.UpdateInset(_match != null && !_match.Paused && !TutorialModal && !_turntable
                 && (_phase is Phase.Set or Phase.Flight), _match, _content, _feel);

@@ -13,7 +13,7 @@ namespace GrandSluggers.UnityClient
         Transform _rocket;
         Transform _pow;
         Transform _pointer;
-        float _t;
+        internal float _t;
 
         public void Build(Transform parent)
         {

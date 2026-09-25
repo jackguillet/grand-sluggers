@@ -8,12 +8,12 @@ namespace GrandSluggers.UnityClient
     public sealed class BallView : MonoBehaviour
     {
         Transform _home;
-        Transform _root;
-        GameObject _ball;
+        internal Transform _root;
+        internal GameObject _ball;
         GameObject _halo;
         TrailRenderer _trail;
         Light _glow;
-        Transform _shadow;
+        internal Transform _shadow;
         Mesh _shadowMesh;
         Material _shadowMaterial;
         BallShadowFeel _shadowFeel;

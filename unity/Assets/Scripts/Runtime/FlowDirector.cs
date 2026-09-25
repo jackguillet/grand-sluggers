@@ -71,8 +71,8 @@ namespace GrandSluggers.UnityClient
             if (Controls.SouthDown && _t > 0.2f) ConfirmGameOver();
         }
 
-        int _titleFocus, _fieldFocus;
-        CaptainSelection _captains;
+        internal int _titleFocus, _fieldFocus;
+        internal CaptainSelection _captains;
         void TickTitle()
         {
             var dy = _selectY.Tick(Controls.MenuY, Controls.MenuTapY, Time.unscaledDeltaTime);
@@ -89,7 +89,7 @@ namespace GrandSluggers.UnityClient
             OpenField();
         }
 
-        void OpenControlsBook()
+        internal void OpenControlsBook()
         {
             _pausePad = Controls.Pad1;
             _match.SetPaused(true);
@@ -208,7 +208,7 @@ namespace GrandSluggers.UnityClient
             _match = NewMatch();
         }
 
-        void OpenTitle()
+        internal void OpenTitle()
         {
             if (_guided != null)
             {
@@ -287,7 +287,7 @@ namespace GrandSluggers.UnityClient
             _cam.Play("replay");
         }
 
-        void OpenLineup()
+        internal void OpenLineup()
         {
             if (_mode == PlayMode.Exhibition)
             {
@@ -315,7 +315,7 @@ namespace GrandSluggers.UnityClient
             _cam.Play("lineup");
         }
 
-        void TickLineup()
+        internal void TickLineup()
         {
             if (_lineup == null)
             {
