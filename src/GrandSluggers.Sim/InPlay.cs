@@ -545,7 +545,7 @@ public static class InPlay
             var gz = glovePrev.Z + (gloveNow.Z - glovePrev.Z) * u;
             var rx = runnerPrev.X + (runnerNow.X - runnerPrev.X) * u;
             var rz = runnerPrev.Z + (runnerNow.Z - runnerPrev.Z) * u;
-            var bag = BagUnder(rx, rz, safe, homeIsABag);
+            var bag = BagUnder(rx, rz, safe, rules, homeIsABag);
             if (bag != 0 && (protects?.Invoke(bag) ?? true)) return -1;
             if (Diamond.Dist(gx, gz, rx, rz) < reachFt) return u;
         }
@@ -556,26 +556,16 @@ public static class InPlay
     /// The bag (1–3, home 4) whose <paramref name="radius"/> the point is inside, or 0. The plate is skipped when
     /// <paramref name="homeIsABag"/> is false (the batter leaving the box, §10.3).
     /// </summary>
-    public static int BagUnder(double x, double z, double radius, bool homeIsABag = true)
+    public static int BagUnder(double x, double z, double radius, RulesTable rules, bool homeIsABag = true)
     {
+        var diamond = DiamondGeometry.Of(rules);
         for (var bag = 1; bag <= 3; bag++)
         {
-            var p = Diamond.Bag(bag);
+            var p = diamond.Bag(bag);
             if (Diamond.Dist(x, z, p.X, p.Z) <= radius) return bag;
         }
         if (homeIsABag && Diamond.Dist(x, z, Diamond.Home.X, Diamond.Home.Z) <= radius) return 4;
         return 0;
-    }
-
-    /// <summary>Inside a bag's safe radius of first, second, or third; the plate is not a bag for the batter leaving the box (§10.3).</summary>
-    public static bool OccupyingNonHomeBag(double x, double z, double radius)
-    {
-        for (var bag = 1; bag <= 3; bag++)
-        {
-            var p = Diamond.Bag(bag);
-            if (Diamond.Dist(x, z, p.X, p.Z) <= radius) return true;
-        }
-        return false;
     }
 
     /// <summary>Inside a bag's occupy radius (running.bags.occupyRadiusFt) of home or any bag.</summary>
@@ -641,20 +631,21 @@ public static class InPlay
     public static (double X, double Z) TowardBag(
         int fromBag, int destBag, double feet, RulesTable rules, double homeX = 0, double homeZ = 0)
     {
+        var diamond = DiamondGeometry.Of(rules);
         if (destBag <= fromBag)
-            return fromBag <= 0 ? (homeX, homeZ) : Diamond.Bag(fromBag);
-        var cap = (destBag - fromBag) * Diamond.Baseline;
+            return fromBag <= 0 ? (homeX, homeZ) : diamond.Bag(fromBag);
+        var cap = (destBag - fromBag) * diamond.Baseline;
         feet = Math.Clamp(feet, 0, cap);
         if (feet >= cap - rules.Running.Bags.SnapFt)
         {
-            var end = destBag >= 4 ? Diamond.Home : Diamond.Bag(destBag);
+            var end = destBag >= 4 ? Diamond.Home : diamond.Bag(destBag);
             return (end.X, end.Z);
         }
-        var seg = (int)(feet / Diamond.Baseline);
-        var u = (feet - seg * Diamond.Baseline) / Diamond.Baseline;
+        var seg = (int)(feet / diamond.Baseline);
+        var u = (feet - seg * diamond.Baseline) / diamond.Baseline;
         var a = fromBag + seg;
-        var from = a <= 0 ? (X: homeX, Z: homeZ) : Diamond.Bag(a);
-        var to = Diamond.Bag(a + 1);
+        var from = a <= 0 ? (X: homeX, Z: homeZ) : diamond.Bag(a);
+        var to = diamond.Bag(a + 1);
         return (from.X + (to.X - from.X) * u, from.Z + (to.Z - from.Z) * u);
     }
 

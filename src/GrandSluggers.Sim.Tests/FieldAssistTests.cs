@@ -46,11 +46,11 @@ public class FieldAssistTests
     [Fact]
     public void CoverSpotsAreTheBagsNotTheDirtPads()
     {
-        Assert.Equal(Diamond.First, FieldAssist.CoverSpot("1B"));
-        Assert.Equal(Diamond.Second, FieldAssist.CoverSpot("2B"));
-        Assert.Equal(Diamond.Third, FieldAssist.CoverSpot("3B"));
-        Assert.Equal(Diamond.Home, FieldAssist.CoverSpot("C"));
-        Assert.Equal(Diamond.Rubber, FieldAssist.CoverSpot("P"));
+        Assert.Equal(Diamond.First, FieldAssist.CoverSpot("1B", Rules.Default));
+        Assert.Equal(Diamond.Second, FieldAssist.CoverSpot("2B", Rules.Default));
+        Assert.Equal(Diamond.Third, FieldAssist.CoverSpot("3B", Rules.Default));
+        Assert.Equal(Diamond.Home, FieldAssist.CoverSpot("C", Rules.Default));
+        Assert.Equal(Diamond.Rubber, FieldAssist.CoverSpot("P", Rules.Default));
     }
 
     [Fact]
@@ -141,14 +141,14 @@ public class FieldAssistTests
         };
         var ball = Diamond.Positions["SS"];
         var take = _content.Feel.FieldAssistStick;
-        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 1, 0, take));
-        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, -1, 0, take));
-        Assert.Equal("1B", FieldAssist.SwapGlove("P", at, ball.X, ball.Z, 1, -0.4, take));
+        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 1, 0, take, Rules.Default));
+        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, -1, 0, take, Rules.Default));
+        Assert.Equal("1B", FieldAssist.SwapGlove("P", at, ball.X, ball.Z, 1, -0.4, take, Rules.Default));
         var nearSecond = (Diamond.Positions["2B"].X, Diamond.Positions["2B"].Z + 4);
-        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take));
-        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 0, 0, take));
+        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take, Rules.Default));
+        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 0, 0, take, Rules.Default));
         Assert.Equal(
-            FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take),
-            FieldAssist.SwitchHint("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take));
+            FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take, Rules.Default),
+            FieldAssist.SwitchHint("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take, Rules.Default));
     }
 }

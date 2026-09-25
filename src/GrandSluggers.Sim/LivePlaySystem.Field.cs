@@ -440,7 +440,7 @@ public sealed partial class LivePlaySystem
 
     RulesTable R => _match.Rules;
     /// <summary>The match table's diamond: its bags, rubber and starts (#1067).</summary>
-    DiamondGeometry Geometry => DiamondGeometry.Of(R);
+    internal DiamondGeometry Geometry => DiamondGeometry.Of(R);
     Park Park => _match.Park;
     FeelTable Feel => _match.Content.Feel;
     /// <summary>The play's own defense map, read once per live ball: the gloves that started it stay its gloves through the third out and the flip.</summary>
@@ -2205,7 +2205,7 @@ public sealed partial class LivePlaySystem
         }
         var spots = LiveSpots(map);
         var aim = SwitchAim(pre);
-        SwitchPos = FieldAssist.SwitchHint(GlovePos, spots, aim.X, aim.Z, pad.StickX, pad.StickY, Feel.FieldAssistStick);
+        SwitchPos = FieldAssist.SwitchHint(GlovePos, spots, aim.X, aim.Z, pad.StickX, pad.StickY, Feel.FieldAssistStick, R);
         if (!map.ContainsKey(SwitchPos) || SwitchPos == GlovePos)
             SwitchPos = "";
     }
@@ -2237,7 +2237,7 @@ public sealed partial class LivePlaySystem
     {
         var spots = LiveSpots(map);
         var aim = SwitchAim(Preview);
-        var next = FieldAssist.SwapGlove(GlovePos, spots, aim.X, aim.Z, pad.StickX, pad.StickY, Feel.FieldAssistStick);
+        var next = FieldAssist.SwapGlove(GlovePos, spots, aim.X, aim.Z, pad.StickX, pad.StickY, Feel.FieldAssistStick, R);
         if (!map.ContainsKey(next)) next = "P";
         HandGloveTo(next);
     }

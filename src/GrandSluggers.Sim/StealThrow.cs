@@ -21,7 +21,7 @@ public static class StealThrow
         if (bag is < 1 or > 4)
             throw new ArgumentOutOfRangeException(nameof(bag), "Catcher throws go to a bag.");
         var c = CatcherSpot(rules);
-        var dest = Diamond.Bag(bag);
+        var dest = DiamondGeometry.Of(rules).Bag(bag);
         return InPlay.ThrowSec(Diamond.Dist(c.X, c.Z, dest.X, dest.Z), thr, rules);
     }
 

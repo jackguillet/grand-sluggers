@@ -149,15 +149,17 @@ public sealed class FieldingResolver
 
     /// <summary>Closest glove to (x, z) among all nine. Pass live spots when fielders have moved.</summary>
     public static (Character Fielder, string Pos) NearestGlove(
-        IReadOnlyList<Character> defense, Character pitcher, double x, double z) =>
-        NearestGlove(Assign(defense, pitcher), x, z);
+        IReadOnlyList<Character> defense, Character pitcher, double x, double z, RulesTable rules) =>
+        NearestGlove(Assign(defense, pitcher), x, z, rules);
 
     public static (Character Fielder, string Pos) NearestGlove(
         IReadOnlyDictionary<string, Character> assigned,
         double x,
         double z,
+        RulesTable rules,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null)
     {
+        var starts = DiamondGeometry.Of(rules).Positions;
         Character? best = null;
         var bestPos = "P";
         var bestD = double.MaxValue;
@@ -165,7 +167,7 @@ public sealed class FieldingResolver
         {
             var p = at != null && at.TryGetValue(kv.Key, out var live)
                 ? live
-                : Diamond.Positions[kv.Key];
+                : starts[kv.Key];
             var d = Diamond.Dist(p.X, p.Z, x, z);
             if (d < bestD)
             {
@@ -381,15 +383,16 @@ public sealed class FieldingResolver
         RulesTable rules,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null) =>
         OutfieldGrass(ballX, ballZ, rules)
-            ? NearestIn(assigned, OutfieldPursuitPositions, ballX, ballZ, at)
-            : NearestIn(assigned, InfieldPursuitPositions, ballX, ballZ, at);
+            ? NearestIn(assigned, OutfieldPursuitPositions, ballX, ballZ, rules, at)
+            : NearestIn(assigned, InfieldPursuitPositions, ballX, ballZ, rules, at);
 
     public static (Character Fielder, string Pos) NearestOutfielder(
         IReadOnlyDictionary<string, Character> assigned,
         double x,
         double z,
+        RulesTable rules,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null) =>
-        NearestIn(assigned, OutfieldPursuitPositions, x, z, at);
+        NearestIn(assigned, OutfieldPursuitPositions, x, z, rules, at);
 
     public static bool HandoffToOutfield(string currentPos, string playPos) =>
         !IsOutfield(currentPos) && IsOutfield(playPos);
@@ -490,8 +493,10 @@ public sealed class FieldingResolver
         IReadOnlyList<string> pool,
         double x,
         double z,
+        RulesTable rules,
         IReadOnlyDictionary<string, (double X, double Z)>? at)
     {
+        var starts = DiamondGeometry.Of(rules).Positions;
         Character? best = null;
         var bestPos = pool[0];
         var bestD = double.MaxValue;
@@ -500,7 +505,7 @@ public sealed class FieldingResolver
             if (!keyed.TryGetValue(pos, out var c)) continue;
             var p = at != null && at.TryGetValue(pos, out var live)
                 ? live
-                : Diamond.Positions[pos];
+                : starts[pos];
             var d = Diamond.Dist(p.X, p.Z, x, z);
             if (d < bestD)
             {

@@ -438,7 +438,7 @@ public sealed class StealScenarioTests
                         // The first loose frame: the ring is the nearest body's; Select points at another one.
                         pressed = true;
                         before = live.GlovePos;
-                        expected = FieldAssist.NearestInDirection(before, live.Fielders, atPitcher.StickX, atPitcher.StickY);
+                        expected = FieldAssist.NearestInDirection(before, live.Fielders, atPitcher.StickX, atPitcher.StickY, match.Rules);
                         return atPitcher;
                     }
                     return LivePadInput.Dead;

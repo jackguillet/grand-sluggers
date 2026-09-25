@@ -135,7 +135,7 @@ public sealed class TeamBuilder
     public bool SetGlove(string pos, string whoId)
     {
         pos = NormalizePos(pos);
-        if (!Diamond.Positions.ContainsKey(pos)) return false;
+        if (!Diamond.Order.Contains(pos)) return false;
         var who = _order.FirstOrDefault(c => c.Id.Equals(whoId, StringComparison.OrdinalIgnoreCase));
         if (who is null) return false;
         var current = PosOf(whoId);

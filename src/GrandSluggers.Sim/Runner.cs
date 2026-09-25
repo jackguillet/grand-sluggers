@@ -454,7 +454,7 @@ public static class RunnerSystem
     public static double SpeedFtPerSec(Character who, RulesTable rules, double dash01 = 0)
     {
         var s = rules.Running.BagSec;
-        return Diamond.Baseline / BagSec(who, rules) * (1 + s.DashMul * Math.Clamp(dash01, 0, 1));
+        return DiamondGeometry.Of(rules).Baseline / BagSec(who, rules) * (1 + s.DashMul * Math.Clamp(dash01, 0, 1));
     }
 
     /// <summary>
@@ -495,7 +495,7 @@ public static class RunnerSystem
         var r = rules;
         var feet = r.Running.Bags.SlideFt;
         if (zones is not { } z) return feet;
-        var at = Diamond.Bag(bag);
+        var at = DiamondGeometry.Of(r).Bag(bag);
         return feet * z.RowAt(at.X, at.Z, r.Grounds).Body.SlideMul;
     }
 
@@ -509,7 +509,7 @@ public static class RunnerSystem
         var r = rules;
         var feet = r.Running.Bags.OverrunFt;
         if (zones is not { } z) return feet;
-        var at = Diamond.Bag(bag);
+        var at = DiamondGeometry.Of(r).Bag(bag);
         return feet * z.RowAt(at.X, at.Z, r.Grounds).Body.OverrunMul;
     }
 
@@ -524,6 +524,7 @@ public static class RunnerSystem
         var r = rules;
         var bagRules = r.Running.Bags;
         var speedRules = r.Running.BagSec;
+        var diamond = DiamondGeometry.Of(r);
         // Leaders move first so a trailer can be held behind them (no passing, §9.1).
         var ordered = runners.Where(x => x.Live).OrderByDescending(x => x.Progress).ToList();
         Runner? ahead = null;
@@ -607,9 +608,9 @@ public static class RunnerSystem
                 if (ahead is not null && ahead.Live)
                 {
                     var limit = StandsOnABag(ahead) ? ahead.Progress : ahead.Progress - speedRules.NoPassFt;
-                    var scale = Diamond.Baseline / runner.SegmentFt;
+                    var scale = diamond.Baseline / runner.SegmentFt;
                     var maxProgress = Math.Max(before, limit);
-                    var maxFeet = (maxProgress - runner.Bag * Diamond.Baseline) / scale;
+                    var maxFeet = (maxProgress - runner.Bag * diamond.Baseline) / scale;
                     if (feet > maxFeet) feet = Math.Max(runner.Feet, maxFeet);
                 }
                 // A lone runner cannot cross home on a fly with fewer than two outs until it resolves (§9.5).

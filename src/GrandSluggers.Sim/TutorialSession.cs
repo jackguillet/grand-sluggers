@@ -470,7 +470,7 @@ public sealed partial class TutorialSession
                 Finish(false, "wrong-bag", "That throw went to a different bag. Arm the named bag, then throw.");
                 return;
             }
-            var at = Diamond.Bag(namedBag);
+            var at = live.Geometry.Bag(namedBag);
             var received = _throws.Count == 1 && live.FirstThrowBag == namedBag && live.ThrowBag == namedBag
                 && !live.Throwing && live.HoldsBall && live.GlovePos == live.CoverPos
                 && Diamond.Dist(live.GloveX, live.GloveZ, at.X, at.Z) <= Match.Rules.Fielding.Cover.RadiusFt;

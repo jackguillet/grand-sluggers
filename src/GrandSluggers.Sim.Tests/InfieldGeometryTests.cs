@@ -108,12 +108,18 @@ public sealed class InfieldGeometryTests
         Assert.Equal(b, Diamond.Dist(Diamond.Third.X, Diamond.Third.Z, Diamond.Second.X, Diamond.Second.Z), 2);
     }
 
-    /// <summary>The rubber is one number, so the plate frame must forward to it rather than keep a compile-time copy.</summary>
+    /// <summary>The rubber is one number: the release comes off the rubber the table names, on any table.</summary>
     [Fact]
     public void ThePlateFrameReadsTheSameRubber()
     {
-        Assert.Equal(Diamond.Mound, PitchFlight.MoundZ);
-        Assert.Equal(Diamond.Rubber.Z, PitchFlight.MoundZ);
+        var shipped = Rules.Default;
+        var deeper = shipped with { Infield = shipped.Infield with { MoundFt = shipped.Infield.MoundFt + 4 } };
+        foreach (var t in new[] { shipped, deeper })
+        {
+            var d = DiamondGeometry.Of(t);
+            Assert.Equal(d.Rubber.Z, d.Mound);
+            Assert.Equal(d.Mound - t.Pitching.Flight.ReleaseTowardPlate, PitchFlight.Release(t).Z);
+        }
     }
 
     /// <summary>The pitcher stands on the rubber the table names, not on a spot of his own.</summary>

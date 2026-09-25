@@ -794,7 +794,7 @@ namespace GrandSluggers.UnityClient
             }
             var x = RunPad.StickX * 160;
             var z = 30 + (RunPad.StickY * 0.5f + 0.5f) * 300;
-            var pick = FieldingResolver.NearestGlove(map, x, z, _gloveAt);
+            var pick = FieldingResolver.NearestGlove(map, x, z, MatchRules, _gloveAt);
             _itemTarget = pick.Fielder;
         }
 

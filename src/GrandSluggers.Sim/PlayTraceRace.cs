@@ -89,7 +89,7 @@ public sealed partial class LivePlaySystem
     {
         var receiver = ThrowBag is >= 1 and <= 4 ? CoverPos : _support.CutoffPos;
         var hasReceiver = _fielders.TryGetValue(receiver, out var at);
-        var target = ThrowBag is >= 1 and <= 4 ? Diamond.Bag(ThrowBag) : _support.CutoffSpot ?? (ThrowTo.X, ThrowTo.Z);
+        var target = ThrowBag is >= 1 and <= 4 ? Geometry.Bag(ThrowBag) : _support.CutoffSpot ?? (ThrowTo.X, ThrowTo.Z);
         double? distance = hasReceiver ? Diamond.Dist(at.X, at.Z, target.Item1, target.Item2) : null;
         return new(BallX, BallY, BallZ, GlovePos, GloveX, GloveZ, HoldsBall && !Throwing,
             receiver, hasReceiver ? at.X : null, hasReceiver ? at.Z : null, distance, R.Fielding.Cover.RadiusFt,
@@ -121,7 +121,7 @@ public sealed partial class LivePlaySystem
         return Enumerable.Range(1, 4).Select(bag =>
         {
             var pos = CoverOf(bag);
-            var goal = Diamond.Bag(bag);
+            var goal = Geometry.Bag(bag);
             var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : goal;
             var dist = Diamond.Dist(at.Item1, at.Item2, goal.X, goal.Z);
             var reachable = !string.IsNullOrEmpty(pos) && _fielders.ContainsKey(pos) && dist <= R.Fielding.Cover.RadiusFt;

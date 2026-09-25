@@ -60,7 +60,7 @@ public sealed class RulesPlumbingTests
     /// Readers of the process diamond (<see cref="Diamond"/>'s bags, rubber and starts; home is the origin on every table) left in the sim. A reader that holds a
     /// table reads <see cref="DiamondGeometry.Of"/> of it (#1067); this ceiling only goes down, so no new reader joins them.
     /// </summary>
-    const int ProcessDiamondReaders = 115;
+    const int ProcessDiamondReaders = 72;
 
     [Fact]
     public void NoNewReaderTakesTheProcessDiamond()

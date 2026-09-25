@@ -52,11 +52,12 @@ public static class BuntDefense
         var b = r.Fielding.Bunt;
         var cover = r.Fielding.Cover;
         var held = Math.Max(0, squareSec);
+        var diamond = DiamondGeometry.Of(r);
         var spots = new Dictionary<string, (double X, double Z)>(StringComparer.OrdinalIgnoreCase);
         foreach (var kv in assigned)
         {
             var pos = kv.Key;
-            var at = rest is not null && rest.TryGetValue(pos, out var live) ? live : Diamond.Positions[pos];
+            var at = rest is not null && rest.TryGetValue(pos, out var live) ? live : diamond.Positions[pos];
             if (held > 0 && Crashes(pos, b))
             {
                 var speed = FieldingResolver.ChaseSpeedFt(kv.Value, false, r);
@@ -64,7 +65,7 @@ public static class BuntDefense
             }
             else if (held > 0 && CoverBag(pos, b) is > 0 and var bag)
             {
-                var goal = Diamond.Bag(bag);
+                var goal = diamond.Bag(bag);
                 var dist = Diamond.Dist(at.X, at.Z, goal.X, goal.Z);
                 at = Toward(at, goal, Math.Min(Math.Max(0, dist - cover.StopFt), FieldingResolver.CoverSpeedFt(kv.Value, r) * held));
             }
