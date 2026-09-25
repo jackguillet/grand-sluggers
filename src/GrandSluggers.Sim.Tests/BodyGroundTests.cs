@@ -120,9 +120,9 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     public void SF13_StartBrakeAndCutBackDifferOnTwoGrounds()
     {
         var catalog = _roots.Slick;
-        var chase = catalog.Rules.Fielding.Chase;
-        var plain = Velocities(StickRun(catalog, Plain(catalog), Script, out var rated));
-        var iced = Velocities(StickRun(catalog, Iced(catalog), Script, out var ratedOnIce));
+        // The body's own ramp: its body class's (§8.1), which the ground's multipliers scale.
+        var plain = Velocities(StickRun(catalog, Plain(catalog), Script, out var rated, out var chase));
+        var iced = Velocities(StickRun(catalog, Iced(catalog), Script, out var ratedOnIce, out _));
         Assert.Equal(rated, ratedOnIce);
 
         var top = Speed(plain[CutFrom]);
@@ -324,15 +324,16 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
 
     /// <summary>
     /// The stick glove's path, frame by frame, on the data with every row at 1.0. The
-    /// relation is F3-d's: a zone map that names every zone a 1.0 row is the unzoned path.
+    /// relation is F3-d's: a zone map that names every zone a 1.0 row is the unzoned path. The pin is the path with the body
+    /// classes' ramps; the relation between the two parks is what the test holds.
     /// </summary>
     [Fact]
     public void AtOneTheStickGlovesStepIsThePreChangeBits()
     {
-        Assert.Equal("048730fc3eb307df268818a40fa5102d45907d447632957fcdee82518c4c3fad",
+        Assert.Equal("b1b517e01c6a61ebb4a25258464e29dcc298319ad452ddac485b9edd9d13bac9",
             Hash(StickRun(Game, Plain(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
         // A zone map that names every zone a 1.0 row is the same path: the read is there, the product is exact.
-        Assert.Equal("048730fc3eb307df268818a40fa5102d45907d447632957fcdee82518c4c3fad",
+        Assert.Equal("b1b517e01c6a61ebb4a25258464e29dcc298319ad452ddac485b9edd9d13bac9",
             Hash(StickRun(Game, AtOneGround(Game), Script).SelectMany(p => new[] { p.X, p.Z })));
     }
 
@@ -368,10 +369,12 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
 
     /// <summary>A human centre fielder on a high fly to left-centre, steered by the script; the glove's position every frame.</summary>
     static List<(double X, double Z)> StickRun(ContentCatalog catalog, Park park, (int Frames, double X, double Y)[] script) =>
-        StickRun(catalog, park, script, out _);
+        StickRun(catalog, park, script, out _, out _);
 
     /// <param name="rated">The glove's rated speed, the one the response rates are measured against (§8.1, #718).</param>
-    static List<(double X, double Z)> StickRun(ContentCatalog catalog, Park park, (int Frames, double X, double Y)[] script, out double rated)
+    /// <param name="ramp">The glove's ramp: its body class's (§8.1).</param>
+    static List<(double X, double Z)> StickRun(ContentCatalog catalog, Park park, (int Frames, double X, double Y)[] script, out double rated,
+        out (double AccelSec, double BrakeSec) ramp)
     {
         var home = catalog.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
         var away = catalog.Team("Offense", "zig", "boom", "jester", "grit", "soot", "nugget", "pip", "gull", "marlow");
@@ -380,6 +383,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
         rated = FieldingResolver.ChaseSpeedFt(preview.Fielder, false, match.Rules);
+        ramp = BodyClasses.Ramp(preview.Fielder, match.Rules);
         var seats = new LiveSeats(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, seats, 0, LivePlayCommandSource.Human)).Snapshot.Active);

@@ -30,7 +30,7 @@ public sealed class TutorialAbilityTests
                 var bonus = FieldAbilities.CatchBonus(who, run.Match.Rules)
                     + (live.Preview.Grounder ? FieldAbilities.GroundRangeBonus(who, run.Match.Rules)
                         : FieldAbilities.FlyRangeBonus(who, run.Match.Rules));
-                var ordinary = FieldingResolver.CatchRadiusFt(who, run.Match.Park, run.Match.Rules)
+                var ordinary = FieldingResolver.CatchRadiusFt(who, run.Match.Park, run.Match.Rules, air: !live.Preview.Grounder)
                     - FieldAbilities.CatchBonus(who, run.Match.Rules);
                 target.Item1 += ordinary + bonus * .5;
                 var dx = target.Item1 - live.GloveX;

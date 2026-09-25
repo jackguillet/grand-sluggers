@@ -15,7 +15,7 @@ public sealed record RulesTable
     public const string Directory = "rules";
 
     public static readonly IReadOnlyList<string> Files =
-        ["match", "pitching", "batting", "flight", "grounds", "walls", "infield", "boundary", "fielders", "fielding", "hazards", "running", "stars", "cpu"];
+        ["match", "pitching", "batting", "flight", "grounds", "walls", "infield", "boundary", "fielders", "fielding", "hazards", "running", "stars", "cpu", "body-classes"];
 
     public MatchRules Match { get; init; } = new();
 
@@ -40,6 +40,9 @@ public sealed record RulesTable
     public RunningRules Running { get; init; } = new();
     public StarRules Stars { get; init; } = new();
     public CpuRules Cpu { get; init; } = new();
+
+    /// <summary>The body-class table (§8.1, CH-05, CH-11): one row per class, what size and weight mean in play.</summary>
+    public BodyClassLibrary BodyClasses { get; init; } = new();
 
     /// <summary>
     /// The same tables played at another difficulty rung (§16 <c>cpu.json</c>): every section is shared,
@@ -97,7 +100,8 @@ public sealed record RulesTable
             Hazards = Read<HazardRules>(dataRoot, "hazards", json, errors),
             Running = Read<RunningRules>(dataRoot, "running", json, errors),
             Stars = Read<StarRules>(dataRoot, "stars", json, errors),
-            Cpu = Read<CpuRules>(dataRoot, "cpu", json, errors)
+            Cpu = Read<CpuRules>(dataRoot, "cpu", json, errors),
+            BodyClasses = Read<BodyClassLibrary>(dataRoot, "body-classes", json, errors)
         };
         // A missing field reads as zero. The range and cross-field checks of that file would judge a
         // number the data never wrote, so they wait until the file is whole.
@@ -253,6 +257,8 @@ public static class RulesValidation
         Walk(table.Running, RulesTable.PathFor(root, "running"), "running", errors);
         Walk(table.Stars, RulesTable.PathFor(root, "stars"), "stars", errors);
         Walk(table.Cpu, RulesTable.PathFor(root, "cpu"), "cpu", errors);
+        Walk(table.BodyClasses, RulesTable.PathFor(root, "body-classes"), "body-classes", errors);
+        table.BodyClasses.Validate(RulesTable.PathFor(root, "body-classes"), errors);
         table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
         table.Stars.Validate(RulesTable.PathFor(root, "stars"), errors);
         table.Flight.Validate(RulesTable.PathFor(root, "flight"), errors);
@@ -306,7 +312,27 @@ public static class RulesValidation
             if (p.PropertyType.IsClass && p.PropertyType.Namespace == typeof(RulesTable).Namespace
                 && !typeof(System.Collections.IEnumerable).IsAssignableFrom(p.PropertyType))
                 Walk(value, source, name, errors);
+            else if (RowType(p.PropertyType) is not null && value is System.Collections.IEnumerable rows)
+            {
+                var i = 0;
+                foreach (var row in rows)
+                {
+                    if (row is not null) Walk(row, source, $"{name}[{i}]", errors);
+                    i++;
+                }
+            }
         }
+    }
+
+    /// <summary>
+    /// The row type of a table's list of rows (<c>IReadOnlyList&lt;T&gt;</c> of a rules record, such as
+    /// <see cref="BodyClassLibrary.Classes"/>): each row is held to the same strict read as a nested table. Null for anything else.
+    /// </summary>
+    static Type? RowType(Type type)
+    {
+        if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(IReadOnlyList<>)) return null;
+        var row = type.GetGenericArguments()[0];
+        return row.IsClass && row != typeof(string) && row.Namespace == typeof(RulesTable).Namespace ? row : null;
     }
 
     /// <summary>A field the table does not declare is a typo, not a silent fallback.</summary>
@@ -338,6 +364,16 @@ public static class RulesValidation
                 && p.PropertyType.Namespace == typeof(RulesTable).Namespace
                 && !typeof(System.Collections.IEnumerable).IsAssignableFrom(p.PropertyType))
                 UnknownFields(field.Value, p.PropertyType, path + "." + field.Name, source, errors);
+            else if (RowType(p.PropertyType) is { } row && field.Value.ValueKind == JsonValueKind.Array)
+            {
+                var i = 0;
+                foreach (var item in field.Value.EnumerateArray())
+                {
+                    UnknownFields(item, row, $"{path}.{field.Name}[{i}]", source, errors);
+                    MissingFields(item, row, $"{path}.{field.Name}[{i}]", source, errors);
+                    i++;
+                }
+            }
         }
     }
 
@@ -1914,7 +1950,7 @@ public sealed record ChaseRules
     [Positive] public double InfieldAirMul { get; init; }
     /// <summary>
     /// The response law (#718, F693-02-carry-movement-response): seconds from rest to the body's rated speed, a linear ramp.
-    /// 0.20 s. The pursuit planner charges half of it to a route.
+    /// 0.20 s for a body with no body class; every data character ramps at its class's <see cref="BodyClassRow.AccelSec"/> (§8.1).
     /// </summary>
     [Positive] public double AccelSec { get; init; }
     /// <summary>Seconds from the rated speed to rest, a constant deceleration; a reversal is this brake and then the ramp. 0.10 s.</summary>
@@ -1929,9 +1965,9 @@ public sealed record ChaseRules
 public sealed record CatchRules
 {
     /// <summary>
-    /// The authored stand-up reach every body without its own <see cref="Character.ReachFt"/> gets (F693-02-catch-reach-envelope,
-    /// #719): roughly what the visible glove covers from a planted stance, independent of ratings; the game plays 4.0. A
-    /// character's authored <c>reachFt</c> wins over it, and the ability bonuses add to whichever applies.
+    /// The stand-up reach of a body with no body class (F693-02-catch-reach-envelope, #719): roughly what the visible glove
+    /// covers from a planted stance, independent of ratings; 4.0. Every data character reaches its class's
+    /// <see cref="BodyClassRow.GroundReachFt"/> / <see cref="BodyClassRow.FlyReachFt"/> instead (§8.1); the ability bonuses add to whichever applies.
     /// </summary>
     [Positive] public double StandUpReachFt { get; init; }
     public double ClamberRadiusFt { get; init; }

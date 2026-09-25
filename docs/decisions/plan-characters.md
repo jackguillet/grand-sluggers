@@ -158,7 +158,7 @@ Headless unless the row says still. Each names the reason, not only the result.
 | Head ratio | 4.0 heads, judged in the CF-2 still | CF-2 |
 | Chest landmark | rig z 3.20 on the torso bone | CF-2, CF-4 |
 | Zone height clamp | safety net only; set after CF-2 | CF-4 |
-| Top-speed band | 1.20–1.30× | CF-3 |
+| Top-speed band | 1.20–1.30×. Waits for Jack's balance pass; the curves stay at today's (1.54× field, 1.34× bases). Known constraint: the buddy jump at the wall (a Run-9 pair reaching the plant, T-F12) | CF-3, balance pass |
 | Ramp by weight | light about 0.12 s, heavy about 0.30 s to top speed (today 0.20 s for all) | CF-3 |
 | Sub-stat values | each character's nine slots, starting from its current bar | CF-1 |
 | Knockback by weight | Sluggers' 1.0 → 0.5 ladder as the start | CF-3 |

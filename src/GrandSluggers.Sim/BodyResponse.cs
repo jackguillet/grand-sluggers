@@ -19,18 +19,19 @@ public sealed class BodyResponse
 
     /// <summary>
     /// One frame of a body's velocity toward <paramref name="want"/>: the component along its heading builds at the ramp rate and
-    /// dies at the brake rate; the component across it builds at the ramp rate. Rest to <paramref name="top"/> takes
-    /// <c>chase.accelSec</c> × the ground's <c>startMul</c>; <paramref name="top"/> to rest takes <c>chase.brakeSec</c> × its
-    /// <c>brakeMul</c>; the cut-back takes <c>chase.accelSec</c> × its <c>cutMul</c>. <paramref name="rate"/> scales all three (the
-    /// airborne body's fraction). The body is marked stepped this frame.
+    /// dies at the brake rate; the component across it builds at the ramp rate. Rest to <paramref name="top"/> takes the body's
+    /// <paramref name="ramp"/> <c>AccelSec</c> (its body class's, §8.1; <see cref="BodyClasses.Ramp"/>) × the ground's
+    /// <c>startMul</c>; <paramref name="top"/> to rest takes its <c>BrakeSec</c> × the ground's <c>brakeMul</c>; the cut-back takes
+    /// <c>AccelSec</c> × its <c>cutMul</c>. <paramref name="rate"/> scales all three (the airborne body's fraction). The body is
+    /// marked stepped this frame.
     /// </summary>
     public (double X, double Z) Respond(string pos, (double X, double Z) want, double top, double rate, GroundBodyRules ground,
-        ChaseRules c, double dt)
+        (double AccelSec, double BrakeSec) ramp, double dt)
     {
-        var accel = top / (c.AccelSec * ground.StartMul) * rate;
-        var brake = top / (c.BrakeSec * ground.BrakeMul) * rate;
+        var accel = top / (ramp.AccelSec * ground.StartMul) * rate;
+        var brake = top / (ramp.BrakeSec * ground.BrakeMul) * rate;
         // The cut-back: the component across the heading is corrected at the ramp rate, over the ground's own time for it.
-        var cut = top / (c.AccelSec * ground.CutMul) * rate;
+        var cut = top / (ramp.AccelSec * ground.CutMul) * rate;
         var v = _vel.TryGetValue(pos, out var cur) ? cur : (X: 0.0, Z: 0.0);
         var dvx = want.X - v.X;
         var dvz = want.Z - v.Z;

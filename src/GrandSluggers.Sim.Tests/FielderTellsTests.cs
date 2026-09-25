@@ -227,9 +227,11 @@ public sealed class FielderTellsTests
             braced.Add(brace.Y);
             dur = live.RecoilDur;
         }
-        Assert.Equal(0.15, dur, 9);
-        Assert.InRange(braced.Count, 8, 10);
-        Assert.Equal(1 - 0.16 * 0.75, braced[0], 9);   // the take: the full squash at this ball's weight
+        // The ball's weight 0.75 × the shortstop's body-class knockback (§8.1): the recovery, the frames and the squash follow it.
+        var knock = BodyClasses.Of(FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves)["SS"], match.Rules).KnockbackMul;
+        Assert.Equal(0.20 * 0.75 * knock, dur, 9);
+        Assert.InRange(braced.Count, (int)Math.Floor(dur / Frame) - 1, (int)Math.Ceiling(dur / Frame) + 1);
+        Assert.Equal(1 - 0.16 * 0.75 * knock, braced[0], 9);   // the take: the full squash at this ball's weight
         Assert.True(braced.Zip(braced.Skip(1)).All(p => p.Second > p.First), "the brace eases out, never deepens");
 
         // The routine grounder: nobody braces on any frame.

@@ -454,7 +454,7 @@ public static class SweetSpot
     /// <summary>
     /// The barrel scale of one swing from what the plate knows (spec §5.2): the hitter's Contact
     /// plus the bat's <c>contactMod</c>, clamped 1–10 (PH-15-R7); the charge as it stands, where the
-    /// Charge Bat is a MAX charge (§5.5). The resolver judges
+    /// Charge Bat is a MAX charge (§5.5); × the batter's body-class <c>contactWidthMul</c> (§8.1). The resolver judges
     /// with this and <see cref="Oval"/> draws with it, so the two cannot drift (P2-d, #889).
     /// </summary>
     /// <param name="charge01">The effective charge (after overcharge decay), 0–1.</param>
@@ -463,7 +463,8 @@ public static class SweetSpot
         var contact = Math.Clamp(batter.Stats.Contact + (bat?.ContactMod ?? 0), 1, 10);
         var chargeBat = bat?.ChargeAlwaysFull == true;
         var charged = ChargeFeel.IsCharge(chargeBat ? 1.0 : Math.Clamp(charge01, 0, 1));
-        return BarrelScale(contact, charged, chargeBat, rules);
+        // The body class's contact width (§8.1, CH-05): size in play, from the class row and never from the mesh.
+        return BarrelScale(contact, charged, chargeBat, rules) * BodyClasses.Of(batter, rules).ContactWidthMul;
     }
 
     /// <summary>

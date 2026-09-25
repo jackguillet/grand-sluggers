@@ -1548,7 +1548,7 @@ public sealed partial class LivePlaySystem
             var who = GloveChar();
             var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
             var route = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-                !FieldingResolver.IsOutfield(GlovePos));
+                !FieldingResolver.IsOutfield(GlovePos), GloveChar());
             var meetAt = route.Reachable ? route.MeetTimeSec : Math.Max(Rest, ElapsedSeconds + route.TravelTimeSec);
             ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
                 FieldingResolver.OutfieldGrass(route.X, route.Z, R), Preview.LandingX, Preview.LandingZ, carry);
@@ -1598,7 +1598,7 @@ public sealed partial class LivePlaySystem
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
         var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-            !FieldingResolver.IsOutfield(GlovePos));
+            !FieldingResolver.IsOutfield(GlovePos), GloveChar());
         var next = StepTo(GlovePos, (GloveX, GloveZ), (route.X, route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         if (Diamond.Dist(GloveX, GloveZ, next.X, next.Z) > 1e-6)
             _facts.Add(new AssistedRouteStep(who.Id));
@@ -1631,7 +1631,7 @@ public sealed partial class LivePlaySystem
         var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
         var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-            !FieldingResolver.IsOutfield(GlovePos));
+            !FieldingResolver.IsOutfield(GlovePos), GloveChar());
         // A scoopable ball inside the glove's reach is a route of zero feet: the touch (§8.3) is this frame's play, whatever the planner says of the next sample.
         var inReach = !airborne && FlyCatch.TouchScoop(Preview, Park, BallX, BallZ, BallY, ElapsedSeconds, Hang,
             Diamond.Dist(GloveX, GloveZ, BallX, BallZ), CatchWindow(map), R);
@@ -2050,7 +2050,7 @@ public sealed partial class LivePlaySystem
     /// One frame of a body's velocity toward what it wants (#718): the component along its heading builds at the ramp rate
     /// and dies at the brake rate; the component across it builds at the ramp rate. So a reversal is the brake and then the
     /// ramp, a stop is the brake, and an angled turn is continuous correction through the same two rates. Rest to the rated
-    /// speed takes <c>chase.accelSec</c>; the rated speed to rest takes <c>chase.brakeSec</c>.
+    /// speed takes the body class's <c>accelSec</c>; the rated speed to rest takes its <c>brakeSec</c> (§8.1, <see cref="BodyClasses.Ramp"/>).
     /// <para>
     /// The ground under the body (FD-04 B, FD-05, F3-d) scales those times: the row of the zone at <paramref name="at"/>, read
     /// every step, multiplies the ramp by <c>body.startMul</c>, the brake by <c>body.brakeMul</c> and the across-heading
@@ -2065,7 +2065,9 @@ public sealed partial class LivePlaySystem
         var top = RatedSpeed(pos, asked);
         // Airborne on a normal jump the body answers at a fraction of its ground rates (#719, F693-02-normal-jump-air-response-trial).
         var rate = Airborne && pos == GlovePos ? R.Fielding.Catch.JumpAirResponseMul : 1.0;
-        return _response.Respond(pos, want, top, rate, ground, R.Fielding.Chase, dt);
+        // The ramp is the body's class's (§8.1, CH-11): a light body gets to speed and stops sooner than a heavy one.
+        var ramp = BodyClasses.Ramp(Assigned().TryGetValue(pos, out var who) ? who : null, R);
+        return _response.Respond(pos, want, top, rate, ground, ramp, dt);
     }
 
     /// <summary>
@@ -2229,7 +2231,7 @@ public sealed partial class LivePlaySystem
             var who = map.TryGetValue(GlovePos, out var fielder) ? fielder : pre.Fielder;
             var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
             var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-                !FieldingResolver.IsOutfield(GlovePos));
+                !FieldingResolver.IsOutfield(GlovePos), GloveChar());
             return (route.X, route.Z);
         }
         return (BallX, BallZ);
@@ -2284,7 +2286,8 @@ public sealed partial class LivePlaySystem
     double CatchRadius(Dictionary<string, Character> map)
     {
         var who = map.TryGetValue(GlovePos, out var c) ? c : Preview!.Fielder;
-        var radius = FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R);
+        // The body class's reach for this ball (§8.1): the ground reach on a ball hit on the ground, the fly reach on one hit in the air.
+        var radius = FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R, air: Preview is not { Grounder: true });
         // Abilities widen the reach for their ball (§8.4): Super Jump on a fly, Dive / Burrow on the dirt.
         if (Preview is not null && FlyCatch.IsFly(Preview))
             radius += FieldAbilities.FlyRangeBonus(who, R);

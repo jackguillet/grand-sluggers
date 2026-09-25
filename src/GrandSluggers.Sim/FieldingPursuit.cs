@@ -39,12 +39,13 @@ public static class FieldingPursuit
         double speedFtPerSec,
         RulesTable rules,
         double readySec = 0,
-        bool cutOff = false)
+        bool cutOff = false,
+        Character? body = null)
     {
         var r = rules;
         var hang = BallFlight.HangTime(path, r);
         var startSec = Math.Max(nowSec, readySec);
-        var ramp = RampSec(park, fromX, fromZ, r);
+        var ramp = RampSec(park, fromX, fromZ, body, r);
         if (nowSec < hang)
         {
             if (FlyCatch.NeedsJump(preview))
@@ -109,12 +110,13 @@ public static class FieldingPursuit
     }
 
     /// <summary>
-    /// The seconds a route loses getting to speed (#718): half the ramp, charged once. The ramp is <c>chase.accelSec</c> on the
-    /// ground the body starts on — × that zone's <c>body.startMul</c> (FD-04 B, F3-d), the row the body's own step reads there —
-    /// so the plan and the body agree about the ramp. 0 on the shipped table, whatever the ground.
+    /// The seconds a route loses getting to speed (#718): half the ramp, charged once. The ramp is the body's class's
+    /// <c>accelSec</c> (§8.1, <see cref="BodyClasses.Ramp"/>; the unclassed body's <c>chase.accelSec</c> when no body is named) on
+    /// the ground the body starts on — × that zone's <c>body.startMul</c> (FD-04 B, F3-d), the row the body's own step reads
+    /// there — so the plan and the body agree about the ramp.
     /// </summary>
-    static double RampSec(Park park, double fromX, double fromZ, RulesTable rules) =>
-        rules.Fielding.Chase.AccelSec * GroundZones.Of(park, rules).RowAt(fromX, fromZ, rules.Grounds).Body.StartMul / 2;
+    static double RampSec(Park park, double fromX, double fromZ, Character? body, RulesTable rules) =>
+        BodyClasses.Ramp(body, rules).AccelSec * GroundZones.Of(park, rules).RowAt(fromX, fromZ, rules.Grounds).Body.StartMul / 2;
 
     /// <param name="readyAt">Per position, the play seconds each body may start moving (the reaction lockout, §8.2).</param>
     public static Choice Choose(
@@ -137,7 +139,7 @@ public static class FieldingPursuit
                 : OutfieldStarts.Of(park, rules)[position];
             var speed = FieldingResolver.ChaseSpeedFt(fielder, position, preview, rules);
             var ready = readyAt != null && readyAt.TryGetValue(position, out var r0) ? r0 : 0;
-            var route = Plan(preview, park, path, nowSec, start.X, start.Z, speed, rules, ready, !FieldingResolver.IsOutfield(position));
+            var route = Plan(preview, park, path, nowSec, start.X, start.Z, speed, rules, ready, !FieldingResolver.IsOutfield(position), fielder);
             var candidate = new Choice(fielder, position, route);
             if (best is null || Better(candidate.Route, best.Value.Route))
                 best = candidate;

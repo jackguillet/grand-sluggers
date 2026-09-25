@@ -3,6 +3,8 @@
   "name": "Rio Sparks",
   "faction": "spark",
   "captain": true,
+  // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
+  "bodyClass": "harbor-kid",
   "teamName": "Spark All-Stars",
   "signatureBat": "harbor-lumber",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.

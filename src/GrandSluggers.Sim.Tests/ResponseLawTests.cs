@@ -64,8 +64,10 @@ public sealed class ResponseLawTests
         }
         double Speed(int frame) => Diamond.Dist(track[frame].X, track[frame].Z, track[frame + 1].X, track[frame + 1].Z) / Frame;
 
-        // The build-up: a linear ramp over accelSec, so two frames in the body is at two twelfths of its rated speed.
-        var ramp = match.Rules.Fielding.Chase.AccelSec;
+        // The build-up: a linear ramp over the body's class's accelSec (§8.1), so two frames in the body is at 2 × frame / ramp of its rated speed.
+        var body = BodyClasses.Ramp(FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves)["1B"], match.Rules);
+        rated = FieldingResolver.ChaseSpeedFt(FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves)["1B"], false, match.Rules);
+        var ramp = body.AccelSec;
         Assert.InRange(Speed(1), rated * (2 * Frame / ramp) * 0.7, rated * (2 * Frame / ramp) * 1.3);
         Assert.True(Speed(1) < Speed(4) && Speed(4) < Speed(8), "the speed builds frame over frame");
         var atSpeed = (int)Math.Ceiling(ramp / Frame) + 2;
@@ -73,7 +75,7 @@ public sealed class ResponseLawTests
 
         // The stop: within the cover stop radius plus the brake's overshoot, and at rest by the end.
         var stop = match.Rules.Fielding.Cover.StopFt;
-        var brake = match.Rules.Fielding.Chase.BrakeSec;
+        var brake = body.BrakeSec;
         var overshoot = rated * brake / 2;   // v² / (2 a) with a = v / brakeSec
         var rest = track[^1];
         Assert.InRange(Diamond.Dist(rest.X, rest.Z, first.X, first.Z), 0, stop + overshoot + 0.05);
@@ -102,6 +104,7 @@ public sealed class ResponseLawTests
         var hit = FlightFixtures.Hit(match.Park, 90, 10, -8, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         var chase = match.Rules.Fielding.Chase;
+        var ssBrake = BodyClasses.Ramp(FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves)["SS"], match.Rules).BrakeSec;
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
         Assert.Equal("SS", live.GlovePos);
@@ -119,7 +122,7 @@ public sealed class ResponseLawTests
         Assert.True(v > 10, $"SS was running when the ring left ({v:0.0} ft/s)");
         Assert.Equal(0, Speed(h), 6);   // the hand-off frame: nobody steps the body the ring left (§8.9, as shipped)
 
-        var window = (int)Math.Ceiling((chase.HandoffCoastSec + chase.BrakeSec) / dt) + 8;
+        var window = (int)Math.Ceiling((chase.HandoffCoastSec + ssBrake) / dt) + 8;
         var speeds = Enumerable.Range(h + 1, window).Select(Speed).ToList();
         Assert.All(speeds, s => Assert.True(s <= v * 1.001, $"a frame at {s:0.0} ft/s inside a {v:0.0} ft/s coast"));
         var coastFrames = (int)Math.Floor(chase.HandoffCoastSec / dt + 1e-9);
@@ -132,7 +135,7 @@ public sealed class ResponseLawTests
 
         // The whole slide: the coast, plus the brake's v² / (2 a) less at most the one frame a stepped brake gives up.
         var slid = Diamond.Dist(track[h].At.X, track[h].At.Z, track[h + window].At.X, track[h + window].At.Z);
-        var ideal = v * chase.HandoffCoastSec + v * chase.BrakeSec / 2;
+        var ideal = v * chase.HandoffCoastSec + v * ssBrake / 2;
         Assert.InRange(slid, ideal - v * dt, ideal + 0.01);
     }
 
