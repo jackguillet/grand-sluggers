@@ -77,9 +77,9 @@ namespace GrandSluggers.UnityClient
             // The result beat draws the play's own bodies (§10.6, #574): the defense that made the play,
             // where each glove stood at Time, whatever the match flipped to after the third out.
             var resultBodies = _phase == Phase.Result ? _resultBodies : null;
-            var defense = resultBodies != null
+            IReadOnlyDictionary<string, Character> defense = resultBodies != null
                 ? ResultDefense(resultBodies)
-                : FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
+                : _match.DefenseMap;
             var litId = "";
             if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var litWho))
                 litId = litWho.Id;

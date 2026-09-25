@@ -55,7 +55,7 @@ namespace GrandSluggers.UnityClient
         public static void HoldPreparingThrow(Match match, string throwFromPos, IReadOnlyDictionary<string, HeroActor> heroes, ParkView park)
         {
             if (!match.LivePlay.ThrowPreparing) return;
-            var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
+            var map = match.DefenseMap;
             if (map.TryGetValue(throwFromPos, out var who) && heroes.TryGetValue(who.Id, out var hero) && hero.ThrowHand != null)
                 park.Ball.Hold(hero.ThrowHand);
         }

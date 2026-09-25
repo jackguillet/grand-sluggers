@@ -300,6 +300,32 @@ public sealed partial class Match
     public Character Pitcher => Top ? _homePitcher : _awayPitcher;
     /// <summary>The defense in glove order: <see cref="FieldingResolver.Assign"/> reads it, the swap reorders it.</summary>
     public IReadOnlyList<Character> DefenseRoster => Top ? _homeDefense : _awayDefense;
+
+    IReadOnlyDictionary<string, Character>? _defenseMap;
+    (bool Top, Character? Pitcher, IReadOnlyDictionary<string, Character>? Gloves, IReadOnlyList<Character>? Roster, int Count) _defenseKey;
+
+    /// <summary>
+    /// Who plays where right now (§8.1; <see cref="FieldingResolver.Assign(IReadOnlyList{Character}, Character, IReadOnlyDictionary{string, Character}?)"/>).
+    /// Built once and rebuilt only when the half, the pitcher, the gloves or the roster change, so a view that asks every
+    /// frame allocates nothing. Read-only: the map is shared.
+    /// </summary>
+    public IReadOnlyDictionary<string, Character> DefenseMap
+    {
+        get
+        {
+            var roster = DefenseRoster;
+            var gloves = Defense.Gloves;
+            var pitcher = Pitcher;
+            if (_defenseMap is null || _defenseKey.Top != Top || !ReferenceEquals(_defenseKey.Pitcher, pitcher)
+                || !ReferenceEquals(_defenseKey.Gloves, gloves) || !ReferenceEquals(_defenseKey.Roster, roster)
+                || _defenseKey.Count != roster.Count)
+            {
+                _defenseMap = FieldingResolver.Assign(roster, pitcher, gloves);
+                _defenseKey = (Top, pitcher, gloves, roster, roster.Count);
+            }
+            return _defenseMap;
+        }
+    }
     /// <summary>The pitcher's own arm (spec §4.7). Can go below zero: exhausted.</summary>
     public int PitcherStamina => StaminaOf(Pitcher);
     public int PitcherStaminaMax => StaminaPool(Pitcher);

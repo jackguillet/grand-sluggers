@@ -9,6 +9,7 @@ namespace GrandSluggers.UnityClient
     public static partial class TeamSheet
     {
         static GUIStyle _title, _heading, _body, _small, _name, _mark, _badge, _cardName, _fieldName;
+        static GUIStyle _note;
         static Texture2D _white, _field;
         static readonly Color Ink = FrontBoardStyle.Ink;
         static readonly Color Muted = FrontBoardStyle.Muted;
@@ -222,6 +223,7 @@ namespace GrandSluggers.UnityClient
             _mark = Style(12, Color.white, FontStyle.Bold); _mark.alignment = TextAnchor.MiddleCenter;
             _mark.wordWrap = false;
             _fieldName = new GUIStyle(_mark) { fontSize = 10 };
+            _note = null;
             _field = FieldTexture();
         }
         // IMGUI writes directly to the linear player target; palette values are authored in sRGB.
