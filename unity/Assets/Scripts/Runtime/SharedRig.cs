@@ -201,9 +201,9 @@ namespace GrandSluggers.UnityClient
 
         static Material MaterialFor(string role, string faction) => role switch
         {
-            "jersey" => Look.Toon(Colors.Body(faction)),
-            "trim" => Look.Toon(Colors.Accent(faction)),
-            "flesh" => Look.Toon(Colors.SkinTone(faction)),
+            "jersey" => Look.Body(Colors.Body(faction)),
+            "trim" => Look.Body(Colors.Accent(faction)),
+            "flesh" => Look.Body(Colors.SkinTone(faction)),
             "slack" => Look.Lit(Color.Lerp(Color.white, Colors.Body(faction), 0.12f), smooth: 0.28f),
             "leather" => Look.Lit(Color.Lerp(Colors.Body(faction), Color.black, 0.38f), smooth: 0.18f),
             "gold" => Look.Lit(Colors.Gold, smooth: 0.4f),
@@ -301,8 +301,8 @@ namespace GrandSluggers.UnityClient
             var root = new GameObject("rig").transform;
             root.SetParent(chain.Body, false);
             chain.Root = root;
-            var jersey = Look.Toon(Colors.Body(who.Faction));
-            var flesh = Look.Toon(Colors.SkinTone(who.Faction));
+            var jersey = Look.Body(Colors.Body(who.Faction));
+            var flesh = Look.Body(Colors.SkinTone(who.Faction));
             chain.Torso = Look.Prim(PrimitiveType.Capsule, "torso", root, new Vector3(0, 2.0f, 0), new Vector3(1.4f, 1.2f, 1.0f), jersey).transform;
             chain.Head = Look.Prim(PrimitiveType.Sphere, "head", root, new Vector3(0, 4.05f, 0), Vector3.one * 1.7f, flesh).transform;
             chain.LUpper = EnsureBone(chain.Torso, "lUpper", new Vector3(-0.95f, 0.2f, 0));
