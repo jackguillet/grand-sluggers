@@ -498,7 +498,12 @@ public sealed record FencePoint(double BearingDeg, double FenceFrac, double Heig
 /// </para>
 /// </summary>
 /// <param name="Hazards">The instances that exist only at night, in the order the file lists them. Played after the day's.</param>
-public sealed record ParkNight(IReadOnlyList<Hazard> Hazards);
+/// <summary>A park's night block: the night-only instances, and the day types night clears (<see cref="Without"/>).</summary>
+public sealed record ParkNight(IReadOnlyList<Hazard> Hazards, IReadOnlyList<string>? WithoutTypes = null)
+{
+    /// <summary>The hazard types the night clears from the day's instances; empty when it clears nothing.</summary>
+    public IReadOnlyList<string> Without => WithoutTypes ?? [];
+}
 
 /// <summary>
 /// The fence where the ray from home at one bearing meets it (§6.1; FD-06): how far out it stands, how

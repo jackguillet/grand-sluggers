@@ -24,8 +24,9 @@ namespace GrandSluggers.UnityClient
         /// The play clock (F4-f): every drawn mover stands where the sim places it at this second, so the train the player sees
         /// is the train the ball meets. Outside a live play the clock is 0 and each mover is at its spot.
         /// </summary>
-        public void SetPlayClock(double t, double surgePhaseSec = 0)
+        public void SetPlayClock(double t, LivePlaySystem live = null)
         {
+            var surgePhaseSec = live?.SurgePhaseSec ?? 0;
             foreach (var (body, actor) in _movers)
             {
                 if (actor == null) continue;
@@ -40,7 +41,22 @@ namespace GrandSluggers.UnityClient
                 var swell = band.In(t, surgePhaseSec) ? 1f : Mathf.Clamp01(1f - until / 3f) * 0.5f;
                 water.localScale = new Vector3(1f, 0.2f + 2.8f * swell, 1f);
             }
+            // The dust devils (§14): each drawn devil stands where the sim's disc stands on this play's seeded path, and spins.
+            var discs = live?.DriftDiscs;
+            foreach (var (hazard, devil) in _devils)
+            {
+                if (devil == null) continue;
+                var disc = discs?.FirstOrDefault(d => d.Hazard == hazard);
+                if (disc != null)
+                {
+                    var (x, z) = disc.At(t);
+                    devil.position = new Vector3((float)x, devil.position.y, (float)z);
+                }
+                devil.localRotation = Quaternion.Euler(0, (float)(t * 540.0 % 360.0), 0);
+            }
         }
+
+        readonly System.Collections.Generic.List<(int Hazard, Transform Devil)> _devils = new();
 
         readonly System.Collections.Generic.List<(SurgeBand Band, Transform Water)> _tides = new();
         public bool Night => _night;
@@ -69,6 +85,7 @@ namespace GrandSluggers.UnityClient
             _freezePose = 0;
             _movers.Clear();
             _tides.Clear();
+            _devils.Clear();
             // The park as it plays tonight (PlayedPark.Of): a played park resolves to itself, so this only matters for a
             // caller that hands the catalog's park, whose night instances would otherwise be missing at night.
             park = PlayedPark.Of(park, night, hazards: true, _rules.Hazards);
@@ -527,6 +544,7 @@ namespace GrandSluggers.UnityClient
                 case HazardActors.JungleTree: JungleTree(p, (float)h.Radius); break;
                 case HazardActors.LilyPad: LilyPad(h); break;
                 case HazardActors.TideWave: TideWave(h); break;
+                case HazardActors.DustDevil: DustDevil(h); break;
                 default: Debug.LogError("ParkView: no hazard toy " + toy); break;
             }
         }
@@ -581,6 +599,28 @@ namespace GrandSluggers.UnityClient
             }
             var band = Surges.Of(Park, _rules, _night).FirstOrDefault(b => Math.Abs(b.X - h.X) < 1e-6 && Math.Abs(b.Z - h.Z) < 1e-6);
             if (band != null) _tides.Add((band, water));
+        }
+
+        /// <summary>
+        /// The mesa's dust devil: a spinning funnel of sand-coloured rings, wide at the top, the size of its disc. SetPlayClock
+        /// walks it along the sim's seeded path for the play, so the devil the player reads is the disc the ball meets.
+        /// </summary>
+        void DustDevil(Hazard h)
+        {
+            var dust = Look.Lit(new Color(0.84f, 0.66f, 0.44f), smooth: 0.1f);
+            var r = Mathf.Max(3f, (float)h.Radius);
+            var root = new GameObject("DustDevil").transform;
+            root.SetParent(_root, false);
+            root.position = new Vector3((float)h.X, 0, (float)h.Z);
+            for (var i = 0; i < 7; i++)
+            {
+                var w = r * (0.25f + 0.13f * i);
+                var ring = Look.Prim(PrimitiveType.Cylinder, "Ring" + i, root, new Vector3(0.6f * Mathf.Sin(i * 1.3f), 1.5f + i * 4f, 0.6f * Mathf.Cos(i * 1.3f)),
+                    new Vector3(w * 2f, 1.2f, w * 2f), dust);
+                ring.transform.localRotation = Quaternion.Euler(6f * Mathf.Sin(i), 0, 6f * Mathf.Cos(i));
+            }
+            var index = Park.Hazards.ToList().FindIndex(x => ReferenceEquals(x, h));
+            _devils.Add((index, root));
         }
 
         /// <summary>The canopy grove's jungle-tree hazard toy.</summary>

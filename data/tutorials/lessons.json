@@ -3278,6 +3278,31 @@
       "tests": [
         "HazardLessonTests"
       ]
+    },
+    {
+      "id": "T-H10",
+      "revision": 1,
+      "mechanics": [
+        "fields.drift"
+      ],
+      "title": "read the dust devil",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 1154,
+      "reason": "Headless lesson; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H10",
+      "objective": "hazard-push-take",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
     }
   ],
   "setups": [
@@ -7382,6 +7407,44 @@
         }
       },
       "park": "coconut-cove"
+    },
+    {
+      "id": "T-H10",
+      "policy": "airborne",
+      "seed": 3,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 94,
+          "launchDeg": 32,
+          "sprayDeg": 18
+        }
+      },
+      "park": "sunscorch-mesa"
     }
   ]
 }

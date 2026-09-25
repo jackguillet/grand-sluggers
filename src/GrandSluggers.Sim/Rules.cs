@@ -2367,6 +2367,9 @@ public sealed record HazardRules
     /// <summary>Coconut Cove's tide: a surge band at a foul-side corner that carries a rolling ball toward the line; high tide reaches farther.</summary>
     public HazardTypeRules Tide { get; init; } = new();
 
+    /// <summary>Sunscorch Mesa's dust devils: drifting discs that push a fly through them sideways; gone in the clear night air.</summary>
+    public HazardTypeRules DustDevil { get; init; } = new();
+
     /// <summary>
     /// This table's row for a library id, or null when the data does not author one. Not public:
     /// callers ask <see cref="IsAuthored"/> or take <see cref="Of"/>'s named stop, so an unauthored
@@ -2388,6 +2391,7 @@ public sealed record HazardRules
         HazardType.Tree => Tree,
         HazardType.LilyPad => LilyPad,
         HazardType.Tide => Tide,
+        HazardType.DustDevil => DustDevil,
         _ => null
     };
 
@@ -2484,10 +2488,14 @@ public sealed record HazardRules
             // one wave carries a ball (carryFt).
             var solid = row.Pattern is HazardPattern.SolidBody or HazardPattern.TimedMover;
             var mover = row.Pattern == HazardPattern.TimedMover;
+            // A drift (the dust devil) says how low and how high it takes a fly (floorFt, topFt), its wander (periodSec, travelFt)
+            // and its push (pushFt, over pushSec).
             var surge = row.Pattern == HazardPattern.Surge;
+            var drift = row.Pattern == HazardPattern.Drift;
             foreach (var (name, value, needed) in new[] { ("heightFt", row.HeightFt, solid || surge), ("restitution", row.Restitution, solid),
-                         ("periodSec", row.PeriodSec, mover || surge), ("travelFt", row.TravelFt, mover),
-                         ("surgeSec", row.SurgeSec, surge), ("carryFt", row.CarryFt, surge) })
+                         ("periodSec", row.PeriodSec, mover || surge || drift), ("travelFt", row.TravelFt, mover || drift),
+                         ("surgeSec", row.SurgeSec, surge), ("carryFt", row.CarryFt, surge),
+                         ("floorFt", row.FloorFt, drift), ("pushFt", row.PushFt, drift), ("pushSec", row.PushSec, drift) })
             {
                 if (needed && value is null)
                     errors.Add($"{source}: {key} is a {row.Pattern} and must author {name} (F4-f)");
@@ -2498,11 +2506,14 @@ public sealed record HazardRules
                 errors.Add($"{source}: {key}.surgeSec is {inSec}, but the wave must go out again inside its periodSec {period}");
             if (row.Restitution is > 1)
                 errors.Add($"{source}: {key}.restitution must be between 0 and 1; got {row.Restitution}");
-            if (row.Pattern == HazardPattern.RewardTarget && row.TopFt is null)
-                errors.Add($"{source}: {key} is a {HazardPattern.RewardTarget} and must author topFt, the top of the sign (F4-c)");
-            if (row.TopFt is { } top && row.Pattern != HazardPattern.RewardTarget)
-                errors.Add($"{source}: {key}.topFt is {top}, but only a {HazardPattern.RewardTarget} reads it; "
+            var topped = row.Pattern is HazardPattern.RewardTarget or HazardPattern.Drift;
+            if (topped && row.TopFt is null)
+                errors.Add($"{source}: {key} is a {row.Pattern} and must author topFt, the top of what it reaches (F4-c)");
+            if (row.TopFt is { } top && !topped)
+                errors.Add($"{source}: {key}.topFt is {top}, but only a {HazardPattern.RewardTarget} or a {HazardPattern.Drift} reads it; "
                            + "give the row that pattern or leave topFt out");
+            if (drift && row.FloorFt is { } floor2 && row.TopFt is { } top2 && floor2 >= top2)
+                errors.Add($"{source}: {key}.floorFt is {floor2}, but it must stand below topFt {top2}");
         }
     }
 }
@@ -2573,6 +2584,15 @@ public sealed record HazardTypeRules
 
     /// <summary>A <c>surge</c>: how far one wave carries a rolling ball toward the nearer foul line (never across it).</summary>
     [Optional, Positive] public double? CarryFt { get; init; }
+
+    /// <summary>A <c>drift</c>: a ball below this height passes under it (a grounder is never pushed).</summary>
+    [Optional, Positive] public double? FloorFt { get; init; }
+
+    /// <summary>A <c>drift</c>: how far it pushes a ball in flight sideways, once a play.</summary>
+    [Optional, Positive] public double? PushFt { get; init; }
+
+    /// <summary>A <c>drift</c>: the seconds the push is spread over, so the ball bends rather than jumps.</summary>
+    [Optional, Positive] public double? PushSec { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------

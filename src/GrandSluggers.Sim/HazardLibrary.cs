@@ -57,11 +57,14 @@ public static class HazardType
     /// <summary>Coconut Cove's tide: a surge band at a foul-side outfield corner.</summary>
     public const string Tide = "tide";
 
+    /// <summary>Sunscorch Mesa's dust devils: drifting discs that push a fly sideways.</summary>
+    public const string DustDevil = "dust_devil";
+
     /// <summary>Every type, in library order: the acting patterns first, then the decorations.</summary>
     public static IReadOnlyList<string> All { get; } =
     [
         FreezeVolume, LavaPit, FireBreath, WarpPipe, Barrel, Billboard, ClimbWall, Chomper,
-        Statue, Train, AcUnit, Tree, LilyPad, Tide
+        Statue, Train, AcUnit, Tree, LilyPad, Tide, DustDevil
     ];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);
@@ -119,6 +122,12 @@ public static class HazardPattern
     /// </summary>
     public const string Surge = "surge";
 
+    /// <summary>
+    /// A disc that wanders the outfield on a seeded path and pushes a ball in flight through it sideways by a fixed amount
+    /// (<c>dust_devil</c>): never a ball on the ground, never a body.
+    /// </summary>
+    public const string Drift = "drift";
+
     /// <summary>A property of the wall a fielder works at (<c>climb_wall</c>).</summary>
     public const string WallTrait = "wallTrait";
 
@@ -127,7 +136,7 @@ public static class HazardPattern
 
     /// <summary>Every pattern, in the order §14 lists them.</summary>
     public static IReadOnlyList<string> All { get; } =
-        [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover, Surge, WallTrait, Decoration];
+        [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover, Surge, Drift, WallTrait, Decoration];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);
 
@@ -148,7 +157,7 @@ public static class HazardPattern
     /// 2026).
     /// </para>
     /// </summary>
-    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover, Surge];
+    public static IReadOnlyList<string> Hazards { get; } = [StatusVolume, BallRedirect, RewardTarget, SolidBody, TimedMover, Surge, Drift];
 
     static readonly HashSet<string> HazardIds = new(Hazards, StringComparer.Ordinal);
 
@@ -206,9 +215,14 @@ public static class PlayedPark
     /// </summary>
     public static Park Of(Park park, bool night, bool hazards, HazardRules library)
     {
+        // At night the block's instances join the day's, and the types it clears (the dust devils in clear night air) leave.
         var tonight = park.Night is not { } block
             ? park
-            : park with { Hazards = night ? [.. park.Hazards, .. block.Hazards] : park.Hazards, Night = null };
+            : park with
+            {
+                Hazards = night ? [.. park.Hazards.Where(h => !block.Without.Contains(h.Type)), .. block.Hazards] : park.Hazards,
+                Night = null
+            };
         return hazards ? tonight : HazardPattern.HazardsOff(tonight, library);
     }
 }

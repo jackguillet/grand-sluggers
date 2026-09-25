@@ -41,7 +41,7 @@ public sealed class TutorialCatalog
     public static readonly string[] Objectives = [.. TutorialPlateObjectives.PitchIds, .. TutorialPlateObjectives.SwingIds, "human-defense-swap",
         "manual-ground-possession", "manual-takeover", "throw-bag-1", "throw-bag-2", "throw-bag-3", "throw-bag-4",
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
-        "hazard-dodge-catch", "hazard-redirect-take", "hazard-carom-take", "hazard-surge-take",
+        "hazard-dodge-catch", "hazard-redirect-take", "hazard-carom-take", "hazard-surge-take", "hazard-push-take",
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide", "human-tag-up", "human-double-off",
         "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-long-toss", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
@@ -171,6 +171,7 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "grounder" && l.Objective == "hazard-redirect-take" && setup.Park.Length > 0)
                 || (setup.Policy is "grounder" or "liner" && l.Objective == "hazard-carom-take" && setup.Park.Length > 0)
                 || (setup.Policy is "grounder" or "liner" && l.Objective == "hazard-surge-take" && setup.Park.Length > 0)
+                || (setup.Policy is "airborne" or "liner" && l.Objective == "hazard-push-take" && setup.Park.Length > 0)
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
                     or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-long-toss" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw" or "human-tag-up" or "human-double-off" or "human-loose-recovery" or "human-ability-reach" or "human-triple-off" or "human-corner-dash" or "human-early-fly-return" or "human-give-back"), l.Id + " setup/objective mismatch");
             if (l.Objective is "game-count-sequence" or "game-half-change" or "game-foul-fair")

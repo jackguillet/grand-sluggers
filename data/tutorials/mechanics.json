@@ -917,6 +917,13 @@
       "category": "fielding",
       "spec": "gameplay-spec:14",
       "sources": []
+    },
+    {
+      "id": "fields.drift",
+      "title": "a dust devil pushes a fly sideways",
+      "category": "fielding",
+      "spec": "gameplay-spec:14",
+      "sources": []
     }
   ]
 }

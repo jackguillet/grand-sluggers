@@ -14,6 +14,12 @@
   "environment": {
     "dragMul": 0.97
   },
-  "hazards": [],
-  "notes": "A desert canyon, the Dune Nomads' home. Hard-pan outfield, tall canyon-rock walls, hot dry air that carries a little farther. Dust devils (a drifting redirect) are a later pattern."
+  "hazards": [
+    { "type": "dust_devil", "x": -60, "z": 200, "radius": 10 },
+    { "type": "dust_devil", "x": 70, "z": 195, "radius": 10 }
+  ],
+  "night": {
+    "without": ["dust_devil"]
+  },
+  "notes": "A desert canyon, the Dune Nomads' home. Hard-pan outfield, tall canyon-rock walls, hot dry air that carries a little farther. Two dust devils wander the outfield by day and push a fly sideways; the clear night air has none."
 }
