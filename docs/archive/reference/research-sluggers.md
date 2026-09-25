@@ -1,16 +1,18 @@
 # Research: Mario Super Sluggers
 
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec.md](../../gameplay-spec.md). Where they disagree, the contract is right.
+
 *Mario Super Sluggers* (Wii, 2008) is the second *Super Mario Stadium* baseball game, after *Mario Superstar Baseball* (GameCube, 2005). Nintendo has not shipped a third. As of 2026 the series is a 17-year gap, and coverage still treats a Switch 2 sequel as an obvious hole.
 
 This doc is a systems teardown so Grand Sluggers can steal the *shape* of the game, not the IP.
 
-For the September 20 pitching/hitting design discussion, use the [new primary-source comparison](research-pitching-hitting.md) and [decision register](plan-pitching-hitting.md). They separate Wii and GameCube evidence, compare other baseball games, and preserve existing rules until Jack explicitly selects changes.
+For the September 20 pitching/hitting design discussion, use the [new primary-source comparison](../pitching-hitting/research-pitching-hitting.md) and [decision register](../../decisions/plan-pitching-hitting.md). They separate Wii and GameCube evidence, compare other baseball games, and preserve existing rules until Jack explicitly selects changes.
 
 Sources: Super Mario Wiki (game, Chemistry, Star Skill, stadium pages), instruction booklet summaries, contemporary and retrospective reviews.
 
 ## Scale and pace provenance (#693)
 
-For field dimensions, body proportions, flight, throws, and runner timing, read [the #693 research](research-game-feel-693.md) and [decision register](plan-game-feel-693.md). The teardown below combines Wii booklet behavior and GameCube community research; those are different evidence sources. Its raw exit/throw values are not Harbor mph, and GameCube numbers are not measured Wii numbers. The community sources retain unresolved units, formulas, and estimated frame ranges. Jack's current direction is to compare both games before choosing a numeric reference. New scale/pace targets require explicit provenance and whole-race validation under gameplay-spec D19.
+For field dimensions, body proportions, flight, throws, and runner timing, read [the #693 research](../game-feel/research-game-feel-693.md) and [decision register](../../decisions/plan-game-feel-693.md). The teardown below combines Wii booklet behavior and GameCube community research; those are different evidence sources. Its raw exit/throw values are not Harbor mph, and GameCube numbers are not measured Wii numbers. The community sources retain unresolved units, formulas, and estimated frame ranges. Jack's current direction is to compare both games before choosing a numeric reference. New scale/pace targets require explicit provenance and whole-race validation under gameplay-spec D19.
 
 ## What made it feel like itself
 
@@ -135,7 +137,7 @@ Nine (+ Toy Field). Each captain (almost) has a home park. Day/night on most. Ni
 | Daisy Cruiser | Ship. Day: breakable tables, short walls (ground-rule doubles). Night: Cheep Cheeps, and near mid-game Gooper Blooper tilts the deck. |
 | Toy Field | Not a baseball game — party point-space minigame. |
 
-The full stadium teardown, with sources, the GameCube per-park numbers and the real-park physics, is in [research-fields.md](research-fields.md) (September 21, 2026). One more correction from it: stars for hitting park features are documented for the GameCube game only, not for Sluggers.
+The full stadium teardown, with sources, the GameCube per-park numbers and the real-park physics, is in [research-fields.md](../fields/research-fields.md) (September 21, 2026). One more correction from it: stars for hitting park features are documented for the GameCube game only, not for Sluggers.
 
 **Steal this.** One clean diamond as the tutorial park. Every other park has *one primary gimmick* and a night variant. Unlock parks through play, not a shop full of DLC.
 
@@ -179,7 +181,7 @@ Hated / mixed: motion throwing in the outfield, some specials that steal agency 
 
 ## Mechanics teardown (2026-09-12)
 
-What the two games actually do moment to moment, gathered for [gameplay-spec.md](gameplay-spec.md). MSS = *Mario Super Sluggers* (Wii, 2008). MSB = *Mario Superstar Baseball* (GameCube, 2005). MSS has no public frame data; where only MSB numbers exist they are used as the proxy, since reviewers and the wiki call the games near-identical in play. Source keys are at the end. "UNVERIFIED" is recollection with no source found.
+What the two games actually do moment to moment, gathered for [gameplay-spec.md](../../gameplay-spec.md). MSS = *Mario Super Sluggers* (Wii, 2008). MSB = *Mario Superstar Baseball* (GameCube, 2005). MSS has no public frame data; where only MSB numbers exist they are used as the proxy, since reviewers and the wiki call the games near-identical in play. Source keys are at the end. "UNVERIFIED" is recollection with no source found.
 
 ### Batting
 

@@ -1,6 +1,8 @@
 # Pitching and hitting — implementation map and ledger
 
-Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803). Design: [plan](plan-pitching-hitting.md), [register](research/pitching-hitting-decisions.json), [research](research-pitching-hitting.md). Foundation PR #805 merged as `a9204a8c` on September 21, 2026. Audit baseline: `a9204a8c`.
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §4 and §5](../../spec/04-pitching.md) and [the decision plan](../../decisions/plan-pitching-hitting.md). Where they disagree, the contract is right.
+
+Tracker: [#803](https://github.com/jackguillet/grand-sluggers/issues/803). Design: [plan](../../decisions/plan-pitching-hitting.md), [register](../../research/pitching-hitting-decisions.json), [research](research-pitching-hitting.md). Foundation PR #805 merged as `a9204a8c` on September 21, 2026. Audit baseline: `a9204a8c`.
 
 This file orders the work. It does not reopen a decision and it selects no number. The register stays the record of what Jack accepted. A child issue is filed only when its contract is ready (plan rule 6); the rows below are a map, not twenty filed tasks.
 
@@ -25,12 +27,12 @@ Three read-only maps (pitching code, batting / fatigue / Star code, spec and tea
 
 ## 2. Rails every child carries
 
-What a PR owes is [agent-rails.md](agent-rails.md) §1.2 (2026-09-22). Where a rail below asks for more, §1.2 wins: no local full suite, no reseal, no `trials/` twin, no register or ledger edit in a feature child. Balance runs on demand.
+What a PR owes is [agent-rails.md](../../agent-rails.md) §1.2 (2026-09-22). Where a rail below asks for more, §1.2 wins: no local full suite, no reseal, no `trials/` twin, no register or ledger edit in a feature child. Balance runs on demand.
 
 - **Evidence seals.** The seals hash `Match.cs`, `Rules.cs`, `Models.cs`, `AtBatFeel.cs`, `AtBatResolver.cs`, `ContentValidation.cs`, `StarSkillTable.cs`, `role-players.json`, `vale.json`, `brondo.json`, `star-skills.json`, `batting.json`, `table.json`, Unity `Controls.cs`, `AtBatDirector.cs`, `MatchDirector.cs`. A feature child does not reseal. A tuning PR or an evidence packet reseals, in this order: `dotnet run --project tools/game-feel-flight-probes -- --write`, then `python3 tools/compact-field-report.py`, then both `--check`.
 - **One seeded stream.** Any change to the count or order of `_rng` draws in `CpuPitch` / `CpuSwing` reseeds every `AutoPlay` game. That child says so in the PR body and never tunes to pass. S-29 and S-27 are re-reported on demand (Actions → Full tests).
 - **Rules tables use named properties.** A `Dictionary` or `List` bypasses the reflective validator and the JSON = code parity tests (`Rules.cs:239-268`, `RulesTests.cs:36,48`).
-- **c80 parity.** On demand. `trials/c80` overlays whole files, so a new required field in `role-players.json` or a rules file is missing there until the trial is next used. If a breakage-suite test fails on the missing field, add that row and nothing more. Freeze, promote or retire C80 is open for Jack ([agent-rails.md](agent-rails.md) §1.3).
+- **c80 parity.** On demand. `trials/c80` overlays whole files, so a new required field in `role-players.json` or a rules file is missing there until the trial is next used. If a breakage-suite test fails on the missing field, add that row and nothing more. Freeze, promote or retire C80 is open for Jack ([agent-rails.md](../../agent-rails.md) §1.3).
 - **Tutorial validator coupling.** `RoleTables` rows, `mechanics.json` and `lessons.json` move together or `cli tutorials` fails. A mechanic with no `RoleTables` row is invisible to the gate, so a new verb needs a row.
 - **Second client.** `src/GrandSluggers.Play` compiles against the sim. A signature change must keep it building.
 - **`unity/` is not in the solution.** `dotnet build` and the test suite cannot see a Unity call site. Only `tools/unity-compile.sh` does, and a positional argument hides from a grep for the parameter name (#811, `StillCapture.cs`).
@@ -203,7 +205,7 @@ Consequences for the map:
 
 ## 6. Ledger
 
-Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by each child ([agent-rails.md](agent-rails.md) §1.2).
+Updated in one batched docs PR at a phase checkpoint or when Jack asks, not by each child ([agent-rails.md](../../agent-rails.md) §1.2).
 
 | Child | Issue | PR | Merged | Tested revision | Human gate |
 | --- | --- | --- | --- | --- | --- |

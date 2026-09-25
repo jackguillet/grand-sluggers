@@ -1,5 +1,7 @@
 # What scales when the diamond shrinks — research packet (#730)
 
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §0.2 (D19)](../../spec/00-decisions.md) and [the decision plan](../../decisions/plan-game-feel-693.md). Where they disagree, the contract is right.
+
 **Phase 1 of #730. Research and options only. No decision is made here, no rule is changed, and no runtime edit is proposed.**
 
 Subjects: #725 (fielder start spots), #728 (the infield lip), #729 (ground dress), #732 (three absolute distances), and the hazard-radius question raised on PR #731.

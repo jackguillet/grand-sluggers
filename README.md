@@ -71,7 +71,7 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 | [AGENTS.md](AGENTS.md) | Standing order: stack, sitting, rails, original-IP toy look |
 | [docs/vision.md](docs/vision.md) | What we are building and what we are not |
 | [docs/look.md](docs/look.md) | Super Sluggers weight, original toys — what to draw |
-| [docs/research-sluggers.md](docs/research-sluggers.md) | How Mario Super Sluggers actually works |
+| [docs/archive/reference/research-sluggers.md](docs/archive/reference/research-sluggers.md) | How Mario Super Sluggers actually works |
 | [docs/how-to-play.md](docs/how-to-play.md) | Controls and how to play (living spec) |
 | [docs/screenshot-gate.md](docs/screenshot-gate.md) | Plate / scoop / star stills; agent capture without -batchmode |
 | [unity/README.md](unity/README.md) | Unity editor, scene, license |

@@ -1,6 +1,8 @@
 # Pitching and hitting: a reference-informed design discussion
 
-Research date: September 20, 2026 (America/Los_Angeles). Session kind: **Gameplay research/documentation**. Inspected Harbor revision: `05471a6038f9e21d66957016df3f7cb3b1b6842a`. This report accompanies the [decision register](plan-pitching-hitting.md); it changes no runtime rule and accepts no new mechanic.
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §4 and §5](../../spec/04-pitching.md) and [the decision plan](../../decisions/plan-pitching-hitting.md). Where they disagree, the contract is right.
+
+Research date: September 20, 2026 (America/Los_Angeles). Session kind: **Gameplay research/documentation**. Inspected Harbor revision: `05471a6038f9e21d66957016df3f7cb3b1b6842a`. This report accompanies the [decision register](../../decisions/plan-pitching-hitting.md); it changes no runtime rule and accepts no new mechanic.
 
 Jack's brief: preserve what he loves about Mario Super Sluggers while considering a more robust pitching/hitting system. “More robust” could mean richer tactical choices, more precise execution, or more consistent and understandable outcomes. Those are different investments. PH-01 asks which should lead.
 
@@ -8,7 +10,7 @@ Jack's brief: preserve what he loves about Mario Super Sluggers while considerin
 
 **Primary documentation** below establishes advertised controls and behavior, not measured frame windows or hidden formulas. Nintendo booklets hosted by archival sites remain Nintendo-authored primary sources. The Show comparison deliberately names the **2025 edition**; this is not a claim about the latest edition. Super Mega Baseball: Extra Innings supplies its documented mechanics; SMB4 supplies separately verified difficulty/practice features. Do not silently transfer edition-specific details.
 
-No new reference play session, annotated video measurement, or Harbor standalone sitting was performed for this report. Community datamine pages failed to load during this session. Earlier community numbers in [research-sluggers.md](research-sluggers.md) remain inherited research, not freshly verified evidence. In particular, do not assign GameCube's reported 9/7-frame windows, curve coefficients, or inferred flight times to Wii Super Sluggers.
+No new reference play session, annotated video measurement, or Harbor standalone sitting was performed for this report. Community datamine pages failed to load during this session. Earlier community numbers in [research-sluggers.md](../reference/research-sluggers.md) remain inherited research, not freshly verified evidence. In particular, do not assign GameCube's reported 9/7-frame windows, curve coefficients, or inferred flight times to Wii Super Sluggers.
 
 ## Mario Superstar Baseball — GameCube, 2005
 
@@ -64,7 +66,7 @@ These are **author recommendations**, pending Jack's decisions:
 
 ## Harbor baseline and existing decisions
 
-The current [spec](gameplay-spec.md) is the authority. This is a snapshot of existing rules/data, **not a new endorsement of their tuning**:
+The current [spec](../../gameplay-spec.md) is the authority. This is a snapshot of existing rules/data, **not a new endorsement of their tuning**:
 
 - **D4:** cursor/contact position primarily determines quality; timing determines direction inside the contact window and a miss outside it. Code additionally demotes quality one tier at the outer timing rim; PH-10 retains that nuance for review. **D13:** judged input timing and rendered bat contact share an authored lead/warp contract.
 - **D7:** pitch pace remains on hold until the named re-sit. `pitching.flight` currently clamps air time to **0.78–1.28 s**, with `arcadeScale = 2.05`. These are Harbor values, not measured Wii timings.
@@ -104,4 +106,4 @@ Measure Harbor on a named standalone revision with pad, keyboard/mouse, and two 
 - **SHOW-H:** [MLB The Show 25 official manual: hitting](https://mlb25.manual.theshow.com/en/controls-hitting.html).
 - **SHOW-P:** [MLB The Show 25 official manual: pitching](https://mlb25.manual.theshow.com/en/controls-pitching.html).
 - **SPORTS:** [Nintendo, Wii Sports booklet](https://csassets.nintendo.com/noaext/image/private/t_KA_PDF/Wii_Wii_Sports?_a=DATC1RAAZAA0), printed p. 10 (PDF sheet 5).
-- **Legacy only:** [prior Mario teardown](research-sluggers.md) and [#693 decision register](plan-game-feel-693.md). Community pages linked there could not be re-read; this report does not renew their numerical claims.
+- **Legacy only:** [prior Mario teardown](../reference/research-sluggers.md) and [#693 decision register](../../decisions/plan-game-feel-693.md). Community pages linked there could not be re-read; this report does not renew their numerical claims.

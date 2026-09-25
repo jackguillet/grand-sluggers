@@ -6,15 +6,15 @@
   "session_kind": "Gameplay research/documentation",
   "baseline_revision": "d0c6e12c",
   "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/814",
-  "research": "../research-fields.md",
-  "plan": "../plan-fields.md",
+  "research": "../archive/fields/research-fields.md",
+  "plan": "../decisions/plan-fields.md",
   "code_maps": [
     "fields-code-map-sim.md",
     "fields-code-map-presentation.md"
   ],
   "measured_baseline": "fields-park-baseline.json",
   "next_decision": null,
-  "source_policy": "Source IDs resolve in docs/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
+  "source_policy": "Source IDs resolve in docs/archive/fields/research-fields.md. Primary documentation, community datamines, press, snippets and authored proposals remain distinct. Code facts resolve in the two code maps at the baseline revision.",
   "brief": {
     "author": "Jack",
     "date": "2026-09-21",
@@ -885,7 +885,7 @@
       "affects_standing_orders": [
         "AGENTS.md 'Done means you played it': a play is decided by geometry, never by a roll or a caption",
         "docs/roadmap.md Phase P ban: any Random that produces a PlayEvent",
-        "docs/plan-fields.md FR-07"
+        "docs/decisions/plan-fields.md FR-07"
       ],
       "refinements": [
         {
@@ -2626,6 +2626,6 @@
       "event": "Jack's answers: FD-13-R3 (Crystal's numbers ship in data/, not a trial; C80's promotion removed trials/c80) and FD-11-R3 (Crystal's night look left for now), 'b. this is fine for now.' Merged: ledger #926 (2d9c52ab), F9-a #929 (fc2b7380; Crystal's ice row, glass wall and fence, dragMul 1.06, proposed not tuned; only Crystal changes). No decision's human_acceptance is written. Findings 68-72 recorded in the implementation map. Workstream paused at F9-b (Crystal greybox playable, then Jack's sitting)."
     }
   ],
-  "implementation_map": "../plan-fields-implementation.md",
+  "implementation_map": "../archive/fields/plan-fields-implementation.md",
   "shipping_contract": "../spec/00-decisions.md#03-fields--d21"
 }

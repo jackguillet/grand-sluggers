@@ -1,6 +1,6 @@
 # Character feel plan
 
-Research and decisions: [research-characters.md](research-characters.md) (CH-01 … CH-14, Jack's picks of September 24, 2026). Parents: [#188](https://github.com/jackguillet/grand-sluggers/issues/188) for the toy (body, motion, shading) and [#209](https://github.com/jackguillet/grand-sluggers/issues/209) for play (stats, size, speed, zone). Baseline: `be5c395a`.
+Research and decisions: [research-characters.md](../archive/characters/research-characters.md) (CH-01 … CH-14, Jack's picks of September 24, 2026). Parents: [#188](https://github.com/jackguillet/grand-sluggers/issues/188) for the toy (body, motion, shading) and [#209](https://github.com/jackguillet/grand-sluggers/issues/209) for play (stats, size, speed, zone). Baseline: `be5c395a`.
 
 ## Current state
 
@@ -36,7 +36,7 @@ Directions only. Each line names its decision.
 
 ## The strike zone, worked through
 
-The rest rig ([rig.json](../data/art/rig.json)) puts the knee (thigh → shin) at z 1.16 and the torso bone from z 2.95 to 3.65. Proposed chest mark: **z 3.20** on the torso bone, a new `anatomy.chest` landmark beside `anatomy.knee`. World height is rig z × `ToyScale` 1.18 × the captain's height, plus the CH-04 leg and torso scale once CF-2 lands.
+The rest rig ([rig.json](../../data/art/rig.json)) puts the knee (thigh → shin) at z 1.16 and the torso bone from z 2.95 to 3.65. Proposed chest mark: **z 3.20** on the torso bone, a new `anatomy.chest` landmark beside `anatomy.knee`. World height is rig z × `ToyScale` 1.18 × the captain's height, plus the CH-04 leg and torso scale once CF-2 lands.
 
 | Batter | Scale today | Knee (ft) | Chest (ft) | Zone height (ft) |
 | --- | --- | --- | --- | --- |

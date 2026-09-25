@@ -1,6 +1,6 @@
 # Issue #693 tracker history through 9ca738e
 
-Captured September 14, 2026, before condensing the parent issue description near its size limit. The body below is preserved verbatim. Historical proposals and pending statuses are superseded by later decisions in the [current register](../plan-game-feel-693.md) and [#708 report](../research-game-feel-708.md). This archive is provenance, not a new acceptance or runtime contract.
+Captured September 14, 2026, before condensing the parent issue description near its size limit. The body below is preserved verbatim. Historical proposals and pending statuses are superseded by later decisions in the [current register](../decisions/plan-game-feel-693.md) and [#708 report](../archive/game-feel/research-game-feel-708.md). This archive is provenance, not a new acceptance or runtime contract.
 
 ---
 

@@ -15,7 +15,7 @@ docs/research/fields-park-baseline.json: that evidence was measured with it at `
 not re-measured. It still answers one question the cohort does not — a wide seed sweep of a single
 matchup, run as parallel processes — so an operator who wants fifty seeds in a hurry can use it.
 
-Research tool for docs/research-fields.md (tracker: docs/plan-fields.md, FD-02 / FD-13).
+Research tool for docs/archive/fields/research-fields.md (tracker: docs/decisions/plan-fields.md, FD-02 / FD-13).
 It changes no rule and passes no gate. It runs `cli match --park <id> --seed <n>` for every
 park on one data root and tallies the printed play kinds.
 

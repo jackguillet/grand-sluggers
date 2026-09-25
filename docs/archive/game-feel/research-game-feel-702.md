@@ -1,6 +1,8 @@
 # Measured race baseline — #702, September 14, 2026
 
-The [version-2 trace contract](race-traces.md) is implemented in the #702 draft stack. The [machine-readable report](research/game-feel-702-baseline.json) contains 11 fixture observations and all 150 cohort games with effective-input identities. [tools/race-report.py](../tools/race-report.py) validates those identities and derives the report from exported traces and cohort logs. No gameplay or feel coefficient changed. No human gate passed.
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §0.2 (D19)](../../spec/00-decisions.md) and [the decision plan](../../decisions/plan-game-feel-693.md). Where they disagree, the contract is right.
+
+The [version-2 trace contract](../../race-traces.md) is implemented in the #702 draft stack. The [machine-readable report](../../research/game-feel-702-baseline.json) contains 11 fixture observations and all 150 cohort games with effective-input identities. [tools/race-report.py](../../../tools/race-report.py) validates those identities and derives the report from exported traces and cohort logs. No gameplay or feel coefficient changed. No human gate passed.
 
 ## What the measurements establish
 
@@ -46,7 +48,7 @@ Geometry, running, release/travel, and visual numerical targets remain open. The
 - Final catalog: **18 evidence/content tests passed** with the Harbor proposal still pending. The CLI rejects cohort overrides; regenerating the report from its raw exports produces identical output.
 - Version-2 JSON round-trips; serialized commands replay the same fixture geometry; traced/untraced full-match outcomes agree. Source hashes and effective-input digests are preserved in the report.
 
-Use the commands in [race-traces.md](race-traces.md#reproduce), then:
+Use the commands in [race-traces.md](../../race-traces.md#reproduce), then:
 
 ```sh
 python3 tools/race-report.py --traces /tmp/gs702-traces \
