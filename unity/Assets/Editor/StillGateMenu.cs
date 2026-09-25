@@ -43,8 +43,7 @@ namespace GrandSluggers.EditorTools
             var path = StillRequest.RequestPath(temp);
             if (!File.Exists(path))
             {
-                File.WriteAllText(path,
-                    "{\"shots\":[\"title\",\"select\",\"lineup\",\"plate\",\"pitch\",\"mound\",\"diamond-grounder\",\"smash\"],\"home\":\"rio\",\"away\":\"ashlord\",\"hudOff\":true,\"charge01\":1}");
+                File.WriteAllText(path, StillRequest.DefaultGateRequestJson());
             }
             try { File.Delete(StillRequest.DonePath(temp)); }
             catch { /* first run */ }
@@ -67,8 +66,10 @@ namespace GrandSluggers.EditorTools
         {
             var temp = Path.Combine(Directory.GetParent(Application.dataPath)!.FullName, "Temp");
             Directory.CreateDirectory(temp);
-            File.WriteAllText(StillRequest.RequestPath(temp),
-                "{\"shots\":[\"char-rest\",\"char-pose\"],\"home\":\"fenn\",\"away\":\"rio\",\"hudOff\":true,\"width\":1920,\"height\":1080}");
+            // Keep a staged character request (still-gate-character.sh {id}); else the default captain.
+            var path = StillRequest.RequestPath(temp);
+            var staged = File.Exists(path) ? File.ReadAllText(path) : null;
+            File.WriteAllText(path, StillRequest.CharacterRequestJson(staged));
             Capture();
         }
 
