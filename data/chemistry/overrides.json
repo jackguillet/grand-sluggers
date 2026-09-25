@@ -12,7 +12,13 @@
     ["pip", "dart"],
     ["nico", "lace"],
     ["gull", "pip"],
-    ["basil", "dart"]
+    ["basil", "dart"],
+    ["fenn", "reed"],
+    ["reed", "konga"],
+    ["hollis", "vale"],
+    ["hollis", "flint"],
+    ["sable", "brondo"],
+    ["tumble", "dart"]
   ],
   "rivals": [
     ["rio", "ashlord"],
@@ -24,6 +30,12 @@
     ["fenn", "ashlord"],
     ["pip", "cinder"],
     ["frost", "boom"],
-    ["moss", "cinder"]
+    ["moss", "cinder"],
+    ["sable", "zig"],
+    ["sable", "vale"],
+    ["hollis", "ashlord"],
+    ["reed", "brondo"],
+    ["cattail", "soot"],
+    ["scree", "boom"]
   ]
 }

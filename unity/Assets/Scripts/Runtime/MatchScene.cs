@@ -23,6 +23,7 @@ namespace GrandSluggers.UnityClient
         public StarMeter Stars { get; set; }
         public CardToy Card { get; set; }
         public LogoToy Logo { get; set; }
+        public ChemToy Chem { get; set; }
         /// <summary>Every body on the field, by character id.</summary>
         public Dictionary<string, HeroActor> Heroes { get; } = new Dictionary<string, HeroActor>();
     }

@@ -7,103 +7,106 @@ using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
-    /// <summary>Applies bones/clips from gameplay events. Captains are skins.</summary>
+    /// <summary>
+    /// The bodies on screen (a real director since #1042): every glove, the batter, the runners and the menu captains
+    /// posed and placed each frame from the sim's state; the ball, its trail and the special effects drawn; the item
+    /// toss presented. Captains are skins. It reads <see cref="MatchScene"/>, <see cref="PlayState"/> and
+    /// <see cref="LiveFieldState"/>, and asks the flow for seats, menus and at-bat tells through <see cref="IActorHost"/>.
+    /// </summary>
     public sealed class ActorDirector
     {
-        readonly MatchDirector _play;
-        public ActorDirector(MatchDirector play) { _play = play; }
-        public void Draw(float dt) { _play.DrawBodies(dt); }
-    }
+        readonly MatchScene _scene;
+        readonly PlayState _play;
+        readonly LiveFieldState _live;
+        readonly InPlayDirector _inPlay;
+        readonly IActorHost _host;
+        readonly Transform _root;
+        /// <summary>The heroes drawn this frame; the rest are hidden.</summary>
+        readonly HashSet<string> _used = new HashSet<string>();
 
-    public sealed partial class MatchDirector
-    {
-        internal float _committedSwingT = (float)AtBatMotion.SwingNotStarted;
-        /// <summary>
-        /// What the live ball owes each body this frame (#719–#721): the stun, the dive's recovery, the brace, the jump's
-        /// airtime. Mirrored while the ball is live and aged through the result beat, since the completing frame resets the field.
-        /// </summary>
-        FielderTells.Owed _owed = FielderTells.Owed.None;
-        /// <summary>Seconds from the press to the committed take's Contact mark (D13); NaN until a swing commits.</summary>
-        float _swingContactSec = float.NaN;
-
-        internal void DrawBodies(float dt) => DrawActors(dt);
-
-        internal void DrawActors(float dt)
+        internal ActorDirector(MatchScene scene, PlayState play, LiveFieldState live, InPlayDirector inPlay, IActorHost host, Transform root)
         {
-            Steal.UpdateInset(_match != null && !_match.Paused && !TutorialModal && !_turntable
-                && (_phase is Phase.Set or Phase.Flight), _match, _content, _feel);
-            if (_turntable) return;
-            _juice.Age(dt);
+            _scene = scene; _play = play; _live = live; _inPlay = inPlay; _host = host; _root = root;
+        }
+
+        float LiveTime => _play.Match != null ? (float)_play.Match.LivePlay.ElapsedSeconds : 0f;
+
+        public void Draw(float dt)
+        {
+            _host.Steal.UpdateInset(_play.Match != null && !_play.Match.Paused && !_host.TutorialModal && !_host.Turntable
+                && (_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight), _play.Match, _scene.Content, _scene.Feel);
+            if (_host.Turntable) return;
+            _host.Juice.Age(dt);
             _used.Clear();
-            if (_phase is Phase.Title or Phase.Select)
+            if (_play.Phase is MatchDirector.Phase.Title or MatchDirector.Phase.Select)
             {
-                _chem?.Hide();
-                if (_phase == Phase.Title) PlaceSelectRoster();
-                else { _logo?.Hide(); _card?.Hide(); }
-                foreach (var kv in _heroes)
+                _scene.Chem?.Hide();
+                if (_play.Phase == MatchDirector.Phase.Title) PlaceSelectRoster();
+                else { _scene.Logo?.Hide(); _scene.Card?.Hide(); }
+                foreach (var kv in _scene.Heroes)
                     if (!_used.Contains(kv.Key) && kv.Value != null)
                         kv.Value.gameObject.SetActive(false);
-                _park.Ball.Hide();
-                _zone.Hide();
-                _ring?.Hide();
+                _scene.Park.Ball.Hide();
+                _scene.Zone.Hide();
+                _scene.Ring?.Hide();
                 return;
             }
-            _card?.Hide();
-            _logo?.Hide();
-            if (_phase == Phase.Field)
+            _scene.Card?.Hide();
+            _scene.Logo?.Hide();
+            if (_play.Phase == MatchDirector.Phase.Field)
             {
-                _chem?.Hide();
-                foreach (var kv in _heroes)
+                _scene.Chem?.Hide();
+                foreach (var kv in _scene.Heroes)
                     if (kv.Value != null)
                         kv.Value.gameObject.SetActive(false);
-                _park.Ball.Hide();
-                _zone.Hide();
-                _ring?.Hide();
+                _scene.Park.Ball.Hide();
+                _scene.Zone.Hide();
+                _scene.Ring?.Hide();
                 return;
             }
-            if (_phase == Phase.Lineup && _lineup != null)
+            if (_play.Phase == MatchDirector.Phase.Lineup && _host.Lineup != null)
             {
                 PlaceLineupBoard();
-                foreach (var kv in _heroes)
+                foreach (var kv in _scene.Heroes)
                     if (kv.Value != null)
                         kv.Value.gameObject.SetActive(false);
-                _park.Ball.Hide();
-                _zone.Hide();
-                _ring?.Hide();
+                _scene.Park.Ball.Hide();
+                _scene.Zone.Hide();
+                _scene.Ring?.Hide();
                 return;
             }
-            _chem?.Hide();
+            _scene.Chem?.Hide();
             // A debt the play ended on runs out in the result beat: the diver gets up, the jumper lands, the fumbler recovers.
-            if (_phase == Phase.Result) _owed = _owed.Aged(dt);
+            if (_play.Phase == MatchDirector.Phase.Result) _live.Owed = _live.Owed.Aged(dt);
             // The result beat draws the play's own bodies (§10.6, #574): the defense that made the play,
             // where each glove stood at Time, whatever the match flipped to after the third out.
-            var resultBodies = _phase == Phase.Result ? _resultBodies : null;
+            var resultBodies = _play.Phase == MatchDirector.Phase.Result ? _live.ResultBodies : null;
             IReadOnlyDictionary<string, Character> defense = resultBodies != null
                 ? ResultDefense(resultBodies)
-                : _match.DefenseMap;
+                : _play.Match.DefenseMap;
             var litId = "";
-            if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var litWho))
+            if ((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && defense.TryGetValue(_live.GlovePos, out var litWho))
                 litId = litWho.Id;
-            var itemLit = ItemOffered && _itemTarget != null ? _itemTarget.Id : "";
-            var boxBatter = _phase == Phase.Result && _last != null
-                ? PlayStamp.BoxBatter(_last, _match)
-                : _match.Batter;
+            var itemLit = _host.ItemOffered && _play.ItemTarget != null ? _play.ItemTarget.Id : "";
+            var boxBatter = _play.Phase == MatchDirector.Phase.Result && _play.Last != null
+                ? PlayStamp.BoxBatter(_play.Last, _play.Match)
+                : _play.Match.Batter;
             // The bunt tell (§7.3): while the batter is squared through SET and the pitch, the corners crash and the
             // middle covers, drawn from the function the live ball seeds from at contact (BuntDefense.Spots).
-            var squareSpots = _phase is Phase.Set or Phase.Flight && Squared
-                ? BuntDefense.Spots(defense, _squareSec, _match.Rules)
+            var squareSpots = _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight && (_play.SquareSec > 0f)
+                ? BuntDefense.Spots(defense, _play.SquareSec, _play.Match.Rules)
                 : null;
             var squareWas = squareSpots != null
-                ? BuntDefense.Spots(defense, Mathf.Max(0f, _squareSec - dt), _match.Rules)
+                ? BuntDefense.Spots(defense, Mathf.Max(0f, _play.SquareSec - dt), _play.Match.Rules)
                 : null;
             foreach (var kv in defense)
             {
                 var who = kv.Value;
-                if (_phase == Phase.Result && boxBatter != null && who.Id == boxBatter.Id)
+                if (_play.Phase == MatchDirector.Phase.Result && boxBatter != null && who.Id == boxBatter.Id)
                     continue;
-                var pos = OutfieldStarts.Of(_match.Park, _match.Rules)[kv.Key]; // the park's starts (F2-d)
+                var pos = OutfieldStarts.Of(_play.Match.Park, _play.Match.Rules)[kv.Key]; // the park's starts (F2-d)
                 double x = pos.X, z = pos.Z;
-                if (_gloveAt.TryGetValue(kv.Key, out var live))
+                if (_live.GloveAt.TryGetValue(kv.Key, out var live))
                 {
                     x = live.X;
                     z = live.Z;
@@ -117,107 +120,107 @@ namespace GrandSluggers.UnityClient
                                && Diamond.Dist(was.X, was.Z, squareAt.X, squareAt.Z) > 1e-3;
                 }
                 var pose = Motion.Verb.Idle;
-                var buddyPartner = _phase == Phase.InPlay && BuddySet && _preview.Buddy != null && who.Id == _preview.Buddy.Id;
-                var highlighted = (_phase is Phase.InPlay or Phase.StealThrow) && (who.Id == itemLit || who.Id == litId || (buddyPartner && !_buddy));
+                var buddyPartner = _play.Phase == MatchDirector.Phase.InPlay && _inPlay.BuddySet && _play.Preview.Buddy != null && who.Id == _play.Preview.Buddy.Id;
+                var highlighted = (_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && (who.Id == itemLit || who.Id == litId || (buddyPartner && !_live.Buddy));
                 if (highlighted && !buddyPartner)
                 {
-                    x = _fx;
-                    z = _fz;
-                    if (_throwing) pose = Motion.Verb.Catch;
+                    x = _live.GloveX;
+                    z = _live.GloveZ;
+                    if (_live.Throwing) pose = Motion.Verb.Catch;
                     // The shipped knockback lays the body down; the ordinary impact recoil (#720) is a brace on the take's own pose.
-                    else if (_recoilT > 0 && !_owed.Bracing) pose = Motion.Verb.Dive;
-                    else if (_jumpT > 0) pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
-                    else if ((_caught || _buddy) && !_throwing && CarryingOnTheStick(kv.Key))
+                    else if (_live.RecoilT > 0 && !_live.Owed.Bracing) pose = Motion.Verb.Dive;
+                    else if (_live.JumpT > 0) pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
+                    else if ((_live.Caught || _live.Buddy) && !_live.Throwing && CarryingOnTheStick(kv.Key))
                         pose = Motion.Verb.Run;
-                    else if (_caught && _preview != null && _preview.Grounder) pose = Motion.Verb.Scoop;
-                    else if (_caught || _buddy) pose = Motion.Verb.Catch;
-                    else if (_diveT > 0) pose = Motion.Verb.Dive;
-                    else if (_preview != null && _path != null)
+                    else if (_live.Caught && _play.Preview != null && _play.Preview.Grounder) pose = Motion.Verb.Scoop;
+                    else if (_live.Caught || _live.Buddy) pose = Motion.Verb.Catch;
+                    else if (_live.DiveT > 0) pose = Motion.Verb.Dive;
+                    else if (_play.Preview != null && _play.Path != null)
                     {
                         var fromX = x;
                         var fromZ = z;
-                        if (_heroes.TryGetValue(who.Id, out var moving) && moving != null)
+                        if (_scene.Heroes.TryGetValue(who.Id, out var moving) && moving != null)
                         {
                             fromX = moving.transform.position.x;
                             fromZ = moving.transform.position.z;
                         }
-                        var speed = FieldingResolver.ChaseSpeedFt(who, _glovePos, _preview, _match.Rules);
+                        var speed = FieldingResolver.ChaseSpeedFt(who, _live.GlovePos, _play.Preview, _play.Match.Rules);
                         var route = FieldingPursuit.Plan(
-                            _preview, _match.Park, _path,
-                            LiveTime, fromX, fromZ, speed, _match.Rules, cutOff: !FieldingResolver.IsOutfield(_glovePos));
+                            _play.Preview, _play.Match.Park, _play.Path,
+                            LiveTime, fromX, fromZ, speed, _play.Match.Rules, cutOff: !FieldingResolver.IsOutfield(_live.GlovePos));
                         if (CartoonJuice.ChaseIsARun(
-                                _caught || _buddy,
+                                _live.Caught || _live.Buddy,
                                 Diamond.Dist(fromX, fromZ, route.X, route.Z)))
                             pose = Motion.Verb.Run;
                         else
-                            pose = FieldPose(who, _preview, false);
+                            pose = FieldPose(who, _play.Preview, false);
                     }
                     else pose = Motion.Verb.Field;
                 }
                 else if (buddyPartner)
                 {
-                    var atWall = Diamond.Dist(x, z, WallPlant(_preview).X, WallPlant(_preview).Z) < 18;
-                    if (_throwing) pose = Motion.Verb.Field;
+                    var atWall = Diamond.Dist(x, z, _inPlay.WallPlant(_play.Preview).X, _inPlay.WallPlant(_play.Preview).Z) < 18;
+                    if (_live.Throwing) pose = Motion.Verb.Field;
                     else if (atWall) pose = Motion.Verb.Crouch;
                     else pose = Motion.Verb.Field;
                 }
-                else if (_phase == Phase.InPlay && _preview != null && who.Id == _preview.Fielder.Id)
+                else if (_play.Phase == MatchDirector.Phase.InPlay && _play.Preview != null && who.Id == _play.Preview.Fielder.Id)
                 {
-                    if (_buddy && _jumpT > 0)
+                    if (_live.Buddy && _live.JumpT > 0)
                         pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else
-                        pose = FieldPose(who, _preview, _caught || _buddy);
+                        pose = FieldPose(who, _play.Preview, _live.Caught || _live.Buddy);
                 }
-                else if ((_phase is Phase.InPlay or Phase.StealThrow) && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
+                else if ((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
                     pose = Motion.Verb.Run;
                 else if (crashing)
                     pose = Motion.Verb.Run;
                 else if (squareSpots != null && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
                     pose = Motion.Verb.Field;
-                if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
-                    pose = _phase == Phase.Flight ? Motion.Verb.ThrowPitch : Motion.Verb.ChargePitch;
-                if (kv.Key == "C" && _phase is Phase.Set or Phase.Flight)
+                if (kv.Key == "P" && _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight)
+                    pose = _play.Phase == MatchDirector.Phase.Flight ? Motion.Verb.ThrowPitch : Motion.Verb.ChargePitch;
+                if (kv.Key == "C" && _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight)
                     pose = Motion.Verb.Crouch;
-                if (_throwing && kv.Key == _throwFromPos)
+                if (_live.Throwing && kv.Key == _live.ThrowFromPos)
                     pose = Motion.Verb.Throw;
-                if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
+                if (_live.Throwing && !string.IsNullOrEmpty(_live.CoverPos) && kv.Key == _live.CoverPos)
                     pose = Motion.Verb.Catch;
                 // A body paying for the ball shows it whoever holds the ring (#719–#721): the fumbler's stun (never the
                 // batter's miss, which carries the bat), the diver down then up, the jumper reaching while the root rises.
-                if (_phase is Phase.InPlay or Phase.StealThrow or Phase.Result
-                    && FielderTells.Verb(_owed, kv.Key, _feel.FieldTells) is { } owedVerb)
+                if (_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow or MatchDirector.Phase.Result
+                    && FielderTells.Verb(_live.Owed, kv.Key, _scene.Feel.FieldTells) is { } owedVerb)
                     pose = owedVerb;
                 var hero = Hero(who);
-                var holdBall = _caught || _buddy;
+                var holdBall = _live.Caught || _live.Buddy;
                 hero.SetGrow(BodyScale.GrowOn(who.FieldAbility, playGlove: who.Id == litId, holdBall: holdBall));
                 hero.SetHighlight(highlighted);
-                hero.SetYou((_phase is Phase.InPlay or Phase.StealThrow) && who.Id == litId && HumanOwnsThrow);
-                hero.SetHint((_phase is Phase.InPlay or Phase.StealThrow) && kv.Key == _switchPos && kv.Key != _glovePos && !(_caught || _buddy));
-                if (_pending != null && _pending.StarSwingUsed == "heart-swing" && highlighted)
+                hero.SetYou((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && who.Id == litId && _host.HumanOwnsThrow);
+                hero.SetHint((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && kv.Key == _live.SwitchPos && kv.Key != _live.GlovePos && !(_live.Caught || _live.Buddy));
+                if (_play.Pending != null && _play.Pending.StarSwingUsed == "heart-swing" && highlighted)
                     pose = Motion.Verb.Charm;
-                var pType = ShownPitchType;
-                var motionCharge = pose == Motion.Verb.ThrowPitch && _pitch != null
-                    ? (float)_pitch.Charge01 : _pitchCharge;
+                var pType = _host.ShownPitchType;
+                var motionCharge = pose == Motion.Verb.ThrowPitch && _play.Pitch != null
+                    ? (float)_play.Pitch.Charge01 : _host.PitchCharge;
                 hero.SetPose(pose, kv.Key == "P" ? motionCharge : 0, kv.Key == "P" ? pType : null);
-                hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _pitchCharge : 0f);
-                hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                hero.SetChargeRing(kv.Key == "P" && (_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) && _host.HumanPitches ? _host.PitchCharge : 0f);
+                hero.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
                 hero.SetHeld(false, true);
-                var brace = FielderTells.Brace(_owed, kv.Key, _match.Rules.Fielding.Recoil.CapSec, _feel.FieldTells);
+                var brace = FielderTells.Brace(_live.Owed, kv.Key, _play.Match.Rules.Fielding.Recoil.CapSec, _scene.Feel.FieldTells);
                 // Juice by weight (CH-13): the thrower's load before the release, the catcher's settle after the glove.
-                var toRelease = _throwing && kv.Key == _throwFromPos ? _match.LivePlay.ThrowReleaseSec - _throwT : double.NaN;
-                hero.SetBrace(Vector3.Scale(new Vector3((float)brace.X, (float)brace.Y, (float)brace.Z), _juice.Wrapper(who, toRelease, _feel)));
-                if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
+                var toRelease = _live.Throwing && kv.Key == _live.ThrowFromPos ? _play.Match.LivePlay.ThrowReleaseSec - _live.ThrowT : double.NaN;
+                hero.SetBrace(Vector3.Scale(new Vector3((float)brace.X, (float)brace.Y, (float)brace.Z), _host.Juice.Wrapper(who, toRelease, _scene.Feel)));
+                if (kv.Key == "P" && _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight)
                     // The drawn rubber, not the match's: a hand's is the match's exactly, and the
                     // CPU's walks to it over SET instead of teleporting on the release frame (§4.8).
-                    x += _moundX * HomeSet.PitcherWalk;
+                    x += _play.MoundX * HomeSet.PitcherWalk;
                 // The normal jump's root rise is the sim's (#719): two feet over the airtime, the ring left on the dirt.
-                var rise = (float)FielderTells.RiseFt(_owed, kv.Key);
+                var rise = (float)FielderTells.RiseFt(_live.Owed, kv.Key);
                 hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z) + rise, (float)z),
                     DefenseFacing(kv.Key, x, z, highlighted && !buddyPartner));
-                if (pose == Motion.Verb.ThrowPitch && _phase == Phase.Flight)
-                    hero.SampleMotion((float)Motion.PitchRelease + _flight, dt);
-                else if (pose == Motion.Verb.Throw && _throwing && kv.Key == _throwFromPos)
-                    hero.SampleMotion((float)StealPresentation.ThrowSample(_throwT, _match.LivePlay.ThrowReleaseSec), dt);
+                if (pose == Motion.Verb.ThrowPitch && _play.Phase == MatchDirector.Phase.Flight)
+                    hero.SampleMotion((float)Motion.PitchRelease + _play.Flight, dt);
+                else if (pose == Motion.Verb.Throw && _live.Throwing && kv.Key == _live.ThrowFromPos)
+                    hero.SampleMotion((float)StealPresentation.ThrowSample(_live.ThrowT, _play.Match.LivePlay.ThrowReleaseSec), dt);
                 else hero.Tick(dt);
             }
 
@@ -225,64 +228,64 @@ namespace GrandSluggers.UnityClient
             if (batter != null)
             {
                 var bHero = Hero(batter);
-                var racing = _phase == Phase.InPlay && _pending != null;
-                var committedSwing = _swung && _swing != null && _swing.Swing && !_swing.Bunt;
+                var racing = _play.Phase == MatchDirector.Phase.InPlay && _play.Pending != null;
+                var committedSwing = _play.Swung && _play.Swing != null && _play.Swing.Swing && !_play.Swing.Bunt;
                 if (committedSwing)
                 {
                     // A swing staged without a press (a gate, a replay) reads its warp here, once.
-                    if (float.IsNaN(_swingContactSec)) _swingContactSec = SwingContactSec(_swing);
-                    _committedSwingT = (float)AtBatMotion.AdvanceCommittedSwing(
-                        _committedSwingT,
-                        _flight,
-                        AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, rules: _match.Rules),
+                    if (float.IsNaN(_play.SwingContactSec)) _play.SwingContactSec = _host.SwingContactSec(_play.Swing);
+                    _play.CommittedSwingT = (float)AtBatMotion.AdvanceCommittedSwing(
+                        _play.CommittedSwingT,
+                        _play.Flight,
+                        AtBatMotion.SwingStart(_play.PitchDur, _play.Swing.TimingErrorFrames, rules: _play.Match.Rules),
                         dt,
-                        AtBatMotion.SwingTakeSeconds(_swingContactSec));
+                        AtBatMotion.SwingTakeSeconds(_play.SwingContactSec));
                 }
                 else
                 {
-                    _committedSwingT = (float)AtBatMotion.SwingNotStarted;
-                    _swingContactSec = float.NaN;
+                    _play.CommittedSwingT = (float)AtBatMotion.SwingNotStarted;
+                    _play.SwingContactSec = float.NaN;
                 }
                 var swingTakeSec = AtBatMotion.SwingTakeSeconds(
-                    float.IsNaN(_swingContactSec) ? Motion.SwingContact : _swingContactSec);
+                    float.IsNaN(_play.SwingContactSec) ? Motion.SwingContact : _play.SwingContactSec);
                 // The held finish (#583): a dead ball holds it until SET, contact until the runner's first step.
-                var swingContact = _pending != null
-                    || (_last?.AtBat != null && _last.AtBat.Quality != ContactQuality.Miss);
+                var swingContact = _play.Pending != null
+                    || (_play.Last?.AtBat != null && _play.Last.AtBat.Quality != ContactQuality.Miss);
                 var runnerFromBoxFt = 0.0;
                 if (committedSwing && swingContact)
                 {
-                    var runner = _match.BatterRunner;
-                    var boxX = HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX);
+                    var runner = _play.Match.BatterRunner;
+                    var boxX = HomeSet.BatterBodyX(batter.Bats, _play.Match.BatterContactOffsetX);
                     runnerFromBoxFt = racing && runner != null
                         ? Math.Sqrt((runner.Position.X - boxX) * (runner.Position.X - boxX)
                             + (runner.Position.Z - HomeSet.BatterZ) * (runner.Position.Z - HomeSet.BatterZ))
                         : double.PositiveInfinity;
                 }
                 var presentingSwing = committedSwing
-                    && AtBatMotion.PresentsSwing(_committedSwingT, swingTakeSec, swingContact,
-                        runnerFromBoxFt, _feel.SwingFinishStepFt);
+                    && AtBatMotion.PresentsSwing(_play.CommittedSwingT, swingTakeSec, swingContact,
+                        runnerFromBoxFt, _scene.Feel.SwingFinishStepFt);
                 var bPose = presentingSwing
                     ? Motion.Verb.Swing
                     : racing ? Motion.Verb.Run : BatterPose();
                 // Use the committed charge after release, including CPU swings.
-                var swingCharge = bPose == Motion.Verb.Swing && _swing != null
-                    ? (float)_swing.Charge01
-                    : HumanBats ? _charge : 0f;
+                var swingCharge = bPose == Motion.Verb.Swing && _play.Swing != null
+                    ? (float)_play.Swing.Charge01
+                    : _host.HumanBats ? _play.Charge : 0f;
                 bHero.SetPose(bPose, swingCharge);
-                if (presentingSwing) bHero.SetSwingContact(_swingContactSec);
-                bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats && _plate.Swing.Armed
-                    ? _charge : 0f);
-                bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                if (presentingSwing) bHero.SetSwingContact(_play.SwingContactSec);
+                bHero.SetChargeRing((_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) && _host.HumanBats && _host.PlateSwingArmed
+                    ? _play.Charge : 0f);
+                bHero.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
                 var batting = bPose is Motion.Verb.ChargeSwing or Motion.Verb.Swing
                     or Motion.Verb.CheckSwing or Motion.Verb.Bunt or Motion.Verb.Miss;
                 bHero.SetHeld(batting, false);
                 bHero.SetHighlight(false);
                 if (racing)
                 {
-                    if (TrainingOn) _coach.OnRun(_match);
+                    _host.OnRun();
                     // The batter-runner is a body in the sim (spec §9.1): drawn where it stands, off a bag it shares and does not hold.
-                    var body = _match.BatterRunner;
-                    var (hx, hz) = body != null ? body.DrawPosition(_feel.RunnerShareStepFt) : (HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
+                    var body = _play.Match.BatterRunner;
+                    var (hx, hz) = body != null ? body.DrawPosition(_scene.Feel.RunnerShareStepFt) : (HomeSet.BatterBodyX(batter.Bats, _play.Match.BatterContactOffsetX), HomeSet.BatterZ);
                     var next = body != null ? Diamond.Bag(Math.Min(body.NextBag, 3)) : Diamond.First;
                     var look = presentingSwing
                         ? (X: 0.0, Z: 1.0)
@@ -294,14 +297,14 @@ namespace GrandSluggers.UnityClient
                 }
                 else
                     bHero.Place(new Vector3(
-                        (float)HomeSet.BatterBodyX(batter.Bats, _match.BatterOffsetX),
+                        (float)HomeSet.BatterBodyX(batter.Bats, _play.Match.BatterOffsetX),
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1), pinned: true);
                 // Juice by weight (CH-13): the load before the swing's contact mark, the settle after the contact.
-                var toContact = presentingSwing && !float.IsNaN(_swingContactSec) ? _swingContactSec - _committedSwingT : double.NaN;
-                bHero.SetBrace(_juice.Wrapper(batter, toContact, _feel));
+                var toContact = presentingSwing && !float.IsNaN(_play.SwingContactSec) ? _play.SwingContactSec - _play.CommittedSwingT : double.NaN;
+                bHero.SetBrace(_host.Juice.Wrapper(batter, toContact, _scene.Feel));
                 if (bPose == Motion.Verb.Swing && presentingSwing)
-                    bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT, swingTakeSec), dt);
+                    bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_play.CommittedSwingT, swingTakeSec), dt);
                 else bHero.Tick(dt);
             }
 
@@ -313,78 +316,78 @@ namespace GrandSluggers.UnityClient
             }
             else
             {
-                foreach (var runner in _match.Runners)
+                foreach (var runner in _play.Match.Runners)
                     if (!runner.IsBatter && !runner.Out) PlaceRunner(runner);
             }
 
-            foreach (var kv in _heroes)
+            foreach (var kv in _scene.Heroes)
                 if (!_used.Contains(kv.Key) && kv.Value != null)
                     kv.Value.gameObject.SetActive(false);
 
-            var starPitch = _pitch != null && _pitch.Star ? _match.Pitcher.StarPitch : _spec.ActivePitch;
-            var starSwing = _pending != null ? _pending.StarSwingUsed
-                : _last != null ? _last.AtBat.StarSwingUsed : null;
+            var starPitch = _play.Pitch != null && _play.Pitch.Star ? _play.Match.Pitcher.StarPitch : _scene.Fx.ActivePitch;
+            var starSwing = _play.Pending != null ? _play.Pending.StarSwingUsed
+                : _play.Last != null ? _play.Last.AtBat.StarSwingUsed : null;
             // The ball is tinted by family only once it is out of the hand (PH-02-R5): in SET, and
             // through the windup, it is the fastball's colour whatever was selected (BallView:290).
-            var ptype = _pitchAir && _pitch != null ? _pitch.Type : PitchFamily.Fastball;
-            var heat = _last != null && _last.Heatball;
-            if ((_caught || _buddy) && !_throwing && _phase is Phase.InPlay or Phase.StealThrow)
-                HoldBallInGlove();
-            if (_throwing && _phase is Phase.InPlay or Phase.StealThrow) StealDirector.HoldPreparingThrow(_match, _throwFromPos, _heroes, _park);
-            var inFlight = _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow;
-            var inPlay = _phase is Phase.InPlay or Phase.StealThrow;
-            if (_replaying || inFlight || _phase is Phase.Set || _spec.Active)
-                _park.Ball.Place(_ball, starPitch, ptype, heat, inFlight, inPlay);
+            var ptype = _play.PitchAir && _play.Pitch != null ? _play.Pitch.Type : PitchFamily.Fastball;
+            var heat = _play.Last != null && _play.Last.Heatball;
+            if ((_live.Caught || _live.Buddy) && !_live.Throwing && _play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow)
+                _host.HoldBallInGlove();
+            if (_live.Throwing && _play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) StealDirector.HoldPreparingThrow(_play.Match, _live.ThrowFromPos, _scene.Heroes, _scene.Park);
+            var inFlight = _play.Phase is MatchDirector.Phase.Flight or MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow;
+            var inPlay = _play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow;
+            if (_host.Replaying || inFlight || _play.Phase is MatchDirector.Phase.Set || _scene.Fx.Active)
+                _scene.Park.Ball.Place(_play.Ball, starPitch, ptype, heat, inFlight, inPlay);
             else
-                _park.Ball.Hide();
-            if (_throwing && _armedThrow != null)
-                _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
+                _scene.Park.Ball.Hide();
+            if (_live.Throwing && _live.ArmedThrow != null)
+                _scene.Park.Ball.SetTrailColor(SpecialFx.ThrowColor(_live.ArmedThrow.Relation));
 
-            var setOrFlight = _phase is Phase.Set or Phase.Flight;
-            if (SetTells.ZoneOn(setOrFlight)) ShowCursor();
-            else _zone.Hide();
-            _park.Ball.EmitTrail(SetTells.TrailOn(_phase is Phase.Flight or Phase.InPlay or Phase.StealThrow));
+            var setOrFlight = _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight;
+            if (SetTells.ZoneOn(setOrFlight)) _host.ShowCursor();
+            else _scene.Zone.Hide();
+            _scene.Park.Ball.EmitTrail(SetTells.TrailOn(_play.Phase is MatchDirector.Phase.Flight or MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow));
 
             var burn = starSwing == "furnace" || starSwing == "heat-swing";
             var frags = starSwing == "cask-swing" || starSwing == "shell-swing";
             var swingAt = Vector3.zero;
-            if (!string.IsNullOrEmpty(starSwing) && _match?.Batter != null
-                && _heroes.TryGetValue(_match.Batter.Id, out var bat) && bat != null)
+            if (!string.IsNullOrEmpty(starSwing) && _play.Match?.Batter != null
+                && _scene.Heroes.TryGetValue(_play.Match.Batter.Id, out var bat) && bat != null)
                 swingAt = bat.transform.position + Vector3.up * 3.2f;
-            _spec.Tick(dt, _ball, _phase == Phase.Flight, _phase == Phase.InPlay,
-                _pitch != null && _pitch.Star, starPitch, starSwing ?? "", burn, frags, swingAt);
-            var flash = _phase == Phase.InPlay && BuddySet && !_buddy && !_throwing;
+            _scene.Fx.Tick(dt, _play.Ball, _play.Phase == MatchDirector.Phase.Flight, _play.Phase == MatchDirector.Phase.InPlay,
+                _play.Pitch != null && _play.Pitch.Star, starPitch, starSwing ?? "", burn, frags, swingAt);
+            var flash = _play.Phase == MatchDirector.Phase.InPlay && _inPlay.BuddySet && !_live.Buddy && !_live.Throwing;
             var flashAt = Vector3.zero;
-            if (flash && !string.IsNullOrEmpty(_buddyPos) && _gloveAt.TryGetValue(_buddyPos, out var planted))
+            if (flash && !string.IsNullOrEmpty(_live.BuddyPos) && _live.GloveAt.TryGetValue(_live.BuddyPos, out var planted))
                 flashAt = new Vector3((float)planted.X, 0f, (float)planted.Z);
-            _spec.BuddyTell(flash, flashAt, _buddyWindow);
-            var itemTargetPos = ItemTargetWorld();
-            var showThrow = _itemFlying || (_itemThrown && _phase == Phase.InPlay);
-            var flyU = !_itemFlying && _itemThrown ? 1f
-                : _itemFlying ? Mathf.Clamp01(_itemFly / (float)_content.Rules.Batting.Items.FlySec) : 0f;
-            _items?.Present(dt, ItemOffered, _itemPick, itemTargetPos, showThrow, _itemId, flyU);
+            _scene.Fx.BuddyTell(flash, flashAt, _live.BuddyWindow);
+            var itemTargetPos = _host.ItemTargetWorld();
+            var showThrow = _play.ItemFlying || (_play.ItemThrown && _play.Phase == MatchDirector.Phase.InPlay);
+            var flyU = !_play.ItemFlying && _play.ItemThrown ? 1f
+                : _play.ItemFlying ? Mathf.Clamp01(_play.ItemFly / (float)_scene.Content.Rules.Batting.Items.FlySec) : 0f;
+            _scene.Items?.Present(dt, _host.ItemOffered, _play.ItemPick, itemTargetPos, showThrow, _play.ItemId, flyU);
         }
 
         Motion.Verb BatterPose()
         {
-            if (_phase == Phase.Result && _last != null)
+            if (_play.Phase == MatchDirector.Phase.Result && _play.Last != null)
             {
-                if (_last.Kind == PlayKind.SwingMiss) return Motion.Verb.Miss;
-                if (_last.Kind == PlayKind.Strikeout)
-                    return _swing != null && _swing.Swing ? Motion.Verb.Miss : Motion.Verb.Idle;
-                if (_last.Kind == PlayKind.HomeRun) return Motion.Verb.Cheer;
-                if (_swing != null && _swing.Bunt) return Motion.Verb.Bunt;
+                if (_play.Last.Kind == PlayKind.SwingMiss) return Motion.Verb.Miss;
+                if (_play.Last.Kind == PlayKind.Strikeout)
+                    return _play.Swing != null && _play.Swing.Swing ? Motion.Verb.Miss : Motion.Verb.Idle;
+                if (_play.Last.Kind == PlayKind.HomeRun) return Motion.Verb.Cheer;
+                if (_play.Swing != null && _play.Swing.Bunt) return Motion.Verb.Bunt;
                 return Motion.Verb.Idle;
             }
-            if (_phase == Phase.GameOver)
-                return _match.HomeScore >= _match.AwayScore ? Motion.Verb.Cheer : Motion.Verb.Idle;
-            if (_phase == Phase.Flight && _swung)
+            if (_play.Phase == MatchDirector.Phase.GameOver)
+                return _play.Match.HomeScore >= _play.Match.AwayScore ? Motion.Verb.Cheer : Motion.Verb.Idle;
+            if (_play.Phase == MatchDirector.Phase.Flight && _play.Swung)
             {
-                if (_swing != null && _swing.Bunt) return Motion.Verb.Bunt;
+                if (_play.Swing != null && _play.Swing.Bunt) return Motion.Verb.Bunt;
                 return Motion.Verb.Swing;
             }
-            // Squared (§5.8, §7.3): the bat is on the plane before the pitch — the tell the defense and the pitcher read.
-            if (_phase is Phase.Set or Phase.Flight) return SquaredNow ? Motion.Verb.Bunt : Motion.Verb.ChargeSwing;
+            // (_play.SquareSec > 0f) (§5.8, §7.3): the bat is on the plane before the pitch — the tell the defense and the pitcher read.
+            if (_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) return _host.SquaredNow ? Motion.Verb.Bunt : Motion.Verb.ChargeSwing;
             return Motion.Verb.Idle;
         }
 
@@ -394,16 +397,16 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         BodyFacing.Facts DefenseFacing(string pos, double x, double z, bool onBall)
         {
-            if (_phase is not (Phase.InPlay or Phase.StealThrow))
+            if (_play.Phase is not (MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow))
                 return pos == "P"
                     ? new BodyFacing.Facts(0, -1, Pinned: true)
                     : new BodyFacing.Facts(-x, -z + 8, Pinned: true);
-            var releasing = _throwing && pos == _throwFromPos;
-            var fly = onBall && _preview != null && !(_caught || _buddy)
-                      && FieldingResolver.InAir(_preview, _ball.y, LiveTime, _match.Rules, _preview.HangTimeSec);
-            var plant = fly ? FlyCatch.ChaseTarget(_preview, _match.Rules, _match.Park) : default;
-            return BodyFacing.Fielder(x, z, _ball.x, _ball.z, releasing, _throwTo.x, _throwTo.z,
-                fly, plant.X, plant.Z, BodyFacing.Rates.Of(_content.Feel));
+            var releasing = _live.Throwing && pos == _live.ThrowFromPos;
+            var fly = onBall && _play.Preview != null && !(_live.Caught || _live.Buddy)
+                      && FieldingResolver.InAir(_play.Preview, _play.Ball.y, LiveTime, _play.Match.Rules, _play.Preview.HangTimeSec);
+            var plant = fly ? FlyCatch.ChaseTarget(_play.Preview, _play.Match.Rules, _play.Match.Park) : default;
+            return BodyFacing.Fielder(x, z, _play.Ball.x, _play.Ball.z, releasing, _live.ThrowTo.x, _live.ThrowTo.z,
+                fly, plant.X, plant.Z, BodyFacing.Rates.Of(_scene.Content.Feel));
         }
 
         /// <summary>
@@ -412,9 +415,10 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         bool CarryingOnTheStick(string pos)
         {
-            if (FielderTells.Braced(_owed, pos)) return false;
-            if (_match != null) return _match.LivePlay.PursuitManual;
-            return Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY) >= (float)_feel.FieldAssistStick;
+            if (FielderTells.Braced(_live.Owed, pos)) return false;
+            if (_play.Match != null) return _play.Match.LivePlay.PursuitManual;
+            var stick = _host.FieldStick;
+            return Mathf.Abs(stick.x) + Mathf.Abs(stick.y) >= (float)_scene.Feel.FieldAssistStick;
         }
 
         static Motion.Verb FieldPose(Character who, FieldingPreview pre, bool caught)
@@ -441,7 +445,7 @@ namespace GrandSluggers.UnityClient
         {
             var h = Hero(b.Who);
             h.SetPose(Motion.Verb.Idle);
-            h.SetGear(_match.OffenseBat, _match.DefenseGlove);
+            h.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
             h.SetHeld(false, false);
             h.SetHighlight(false);
             var rubber = Diamond.Rubber;
@@ -455,10 +459,10 @@ namespace GrandSluggers.UnityClient
             var who = state.Who;
             var bagNum = state.FromBag;
             var bag = Diamond.Bag(bagNum);
-            var live = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow;
+            var live = _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight or MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow;
             // Every phase draws the same body; animation never reconstructs steal distance. A body on a bag another runner
             // holds (§9.1) stands data/feel runnerShareStepFt off it so the two never merge.
-            var spot = state != null && live ? state.DrawPosition(_feel.RunnerShareStepFt) : bag;
+            var spot = state != null && live ? state.DrawPosition(_scene.Feel.RunnerShareStepFt) : bag;
             var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
             var pose = Motion.Verb.Idle;
@@ -471,43 +475,26 @@ namespace GrandSluggers.UnityClient
                     : Motion.Verb.Idle;
             }
             h.SetPose(pose);
-            h.SetGear(_match.OffenseBat, _match.DefenseGlove);
+            h.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
             h.SetHeld(false, false);
-            var selected = _match.SelectedRunner ?? _match.LeadRunner;
-            h.SetHighlight(HumanBats && selected != null && who.Id == selected.Id && _phase is Phase.Set or Phase.Flight);
+            var selected = _play.Match.SelectedRunner ?? _play.Match.LeadRunner;
+            h.SetHighlight(_host.HumanBats && selected != null && who.Id == selected.Id && _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight);
             h.Place(new Vector3((float)spot.X, 0, (float)spot.Z),
                 new Vector3((float)(next.X - spot.X), 0, (float)(next.Z - spot.Z)));
             h.Tick(Time.deltaTime);
         }
 
-        /// <summary>
-        /// The offense pad before the pitch (spec §9.2, §11.1): D-pad selects, stick toward the next
-        /// bag or L3 starts the steal, stick back returns, RB returns, LB + RB halts. LB is not
-        /// all-advance here: during SET and the flight it is the held special modifier (PH-16-R17), and
-        /// all-advance (tag-and-go on a fly included) is a live-ball verb, read through the sim's Tick
-        /// (RunInput) once the ball is in play.
-        /// </summary>
-        void TickBaserunning(float dt)
-        {
-            if (_match == null || _match.LeadBag == 0) return;
-            if (!HumanBats || _phase is not (Phase.Set or Phase.Flight)) return;
-            // Tutorial UI owns input and evidence before advancing its pre-contact clock.
-            if (TutorialOn && _coach.Tutorial.IsStealLesson) return;
-            _match.PitchSetup.RunnerInput(RunInput());
-            if (TrainingOn) _coach.OnRun(_match);
-        }
-
         void PlaceSelectRoster()
         {
-            var ids = _content.CaptainIds;
-            var pick = _phase == Phase.Select;
+            var ids = _scene.Content.CaptainIds;
+            var pick = _play.Phase == MatchDirector.Phase.Select;
             if (!CarnivalFront.TitlePlacesBody(pick))
             {
                 // Title is wordmark + dirt. Unused heroes go inactive in DrawActors (#685).
-                _card?.Hide();
-                if (_logo == null) _logo = LogoToy.Attach(transform);
-                var titleShot = _content.Shots.Must("title");
-                _logo.Show(
+                _scene.Card?.Hide();
+                if (_scene.Logo == null) _scene.Logo = LogoToy.Attach(_root);
+                var titleShot = _scene.Content.Shots.Must("title");
+                _scene.Logo.Show(
                     CarnivalFront.Logo,
                     new Vector3(CarnivalFront.LogoX, CarnivalFront.LogoY, CarnivalFront.LogoZ),
                     new Vector3((float)titleShot.Pos.X, (float)titleShot.Pos.Y, (float)titleShot.Pos.Z));
@@ -515,45 +502,72 @@ namespace GrandSluggers.UnityClient
             }
             for (var i = 0; i < ids.Count; i++)
             {
-                var who = _content.Must(ids[i]);
+                var who = _scene.Content.Must(ids[i]);
                 var hero = Hero(who);
-                var yours = ids[i] == CurrentPick().Yours;
-                var theirs = ids[i] == CurrentPick().Theirs;
+                var yours = ids[i] == _host.CurrentPick().Yours;
+                var theirs = ids[i] == _host.CurrentPick().Theirs;
                 var spot = CarnivalFront.CaptainSpot(i, ids.Count, pick, yours);
                 hero.SetPose(CarnivalFront.SelectPose(yours, theirs));
                 hero.SetHighlight(yours);
                 hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
                 hero.SetHeld(false, false);
-                hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                hero.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
                 hero.Place(
                     new Vector3(spot.X, CarnivalFront.SelectDirtY, spot.Z),
                     new Vector3(0f, 0f, -1f), pinned: true);
                 hero.Tick(Time.deltaTime);
             }
-            _logo?.Hide();
+            _scene.Logo?.Hide();
             // HUD is the select card. World placard covered the toys (#354).
-            _card?.Hide();
+            _scene.Card?.Hide();
         }
 
         void PlaceLineupBoard()
         {
-            TeamSheet.Place(_lineup, transform, _chem, _card);
+            TeamSheet.Place(_host.Lineup, _root, _scene.Chem, _scene.Card);
         }
 
         HeroActor Hero(Character who)
         {
             _used.Add(who.Id);
-            if (!_heroes.TryGetValue(who.Id, out var h) || h == null)
+            if (!_scene.Heroes.TryGetValue(who.Id, out var h) || h == null)
             {
                 var go = new GameObject("Hero-" + who.Id);
                 h = go.AddComponent<HeroActor>();
-                _heroes[who.Id] = h;
+                _scene.Heroes[who.Id] = h;
             }
             h.gameObject.SetActive(true);
             h.Bind(who);
-            h.SetFacing(BodyFacing.Rates.Of(_content.Feel));
+            h.SetFacing(BodyFacing.Rates.Of(_scene.Content.Feel));
             return h;
         }
+    }
 
+    /// <summary>What drawing the bodies asks of the match flow: seats and menus, the at-bat tells and the item offer.</summary>
+    internal interface IActorHost
+    {
+        bool TutorialModal { get; }
+        bool Turntable { get; }
+        bool Replaying { get; }
+        bool HumanBats { get; }
+        bool HumanPitches { get; }
+        bool HumanOwnsThrow { get; }
+        bool SquaredNow { get; }
+        bool PlateSwingArmed { get; }
+        float PitchCharge { get; }
+        string ShownPitchType { get; }
+        bool ItemOffered { get; }
+        Vector3 ItemTargetWorld();
+        float SwingContactSec(SwingCommand swing);
+        void ShowCursor();
+        void HoldBallInGlove();
+        /// <summary>The batter-runner's first step, for a training drill.</summary>
+        void OnRun();
+        StealDirector Steal { get; }
+        JuiceDirector Juice { get; }
+        LineupScreens Lineup { get; }
+        ExhibitionPick CurrentPick();
+        /// <summary>The fielding pad's stick, for the shipped carry gate.</summary>
+        Vector2 FieldStick { get; }
     }
 }

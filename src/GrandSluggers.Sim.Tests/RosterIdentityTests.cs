@@ -34,6 +34,9 @@ public class RosterIdentityTests
         Assert.Equal("konga", Silhouette.BodyType(_content.Must("vine")));
         Assert.Equal("ashlord", Silhouette.BodyType(_content.Must("cinder")));
         Assert.Equal("fenn", Silhouette.BodyType(_content.Must("fenn")));
+        Assert.Equal("sable", Silhouette.BodyType(_content.Must("tumble")));
+        Assert.Equal("hollis", Silhouette.BodyType(_content.Must("cairn")));
+        Assert.Equal("reed", Silhouette.BodyType(_content.Must("tad")));
         Assert.Equal(Silhouette.BodyType(_content.Must("jester")), Silhouette.PortraitId(_content.Must("jester")));
         Assert.Equal("zig", Silhouette.PortraitId(_content.Must("jester")));
     }

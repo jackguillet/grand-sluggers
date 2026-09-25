@@ -80,7 +80,7 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | `infield.json` | See note *infield.json, Sections* below. |
 | `boundary.json` | See note *boundary.json, Sections* below. |
 | `fielders.json` | See note *fielders.json, Sections* below. |
-| `body-classes.json` | `classes`: one row per body class, room for fifteen (§8.1) — `id`, `motionStyle`, `groundReachFt`, `flyReachFt`, `contactWidthMul`, `accelSec`, `brakeSec`, `knockbackMul`. Each row is read as strictly as a nested table: a missing or unknown key is refused by name, an id twice is refused, `knockbackMul` is at most 1. |
+| `body-classes.json` | `classes`: one row per body class, room for fifteen (§8.1) — `id`, `motionStyle`, optional `owedStyle`, `groundReachFt`, `flyReachFt`, `contactWidthMul`, `accelSec`, `brakeSec`, `knockbackMul`. Each row is read as strictly as a nested table: a missing or unknown key is refused by name, an id twice is refused, `knockbackMul` is at most 1. |
 
 Notes to the table above:
 

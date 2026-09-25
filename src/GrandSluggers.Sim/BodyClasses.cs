@@ -14,6 +14,16 @@ public sealed record BodyClassRow
     /// <summary>The class's motion style id in <c>data/art/clips.json</c> (CH-12).</summary>
     public string MotionStyle { get; init; } = "";
 
+    /// <summary>
+    /// The style this class will own, when it plays another class's for now (CH-12 owed). A new class may borrow a style
+    /// until its own takes are authored; it names the owed style here so the debt is data, and the day that style exists
+    /// the link check refuses the borrow. Absent for a class that plays its own style.
+    /// </summary>
+    [Optional] public string? OwedStyle { get; init; }
+
+    /// <summary>True when this class plays a borrowed style and owes its own (<see cref="OwedStyle"/>).</summary>
+    public bool BorrowsStyle => !string.IsNullOrEmpty(OwedStyle);
+
     /// <summary>The stand-up reach on a ball hit on the ground (a grounder or a bunt), in feet: the ring a take happens inside before the dirt pad.</summary>
     [Positive] public double GroundReachFt { get; init; }
 
@@ -74,6 +84,10 @@ public sealed record BodyClassLibrary
                 errors.Add($"{source}: {name}.id '{row.Id}' is named twice");
             if (!IsId(row.MotionStyle))
                 errors.Add($"{source}: {name}.motionStyle must be a lowercase kebab style id; got '{row.MotionStyle}'");
+            if (row.OwedStyle is not null && !IsId(row.OwedStyle))
+                errors.Add($"{source}: {name}.owedStyle must be a lowercase kebab style id; got '{row.OwedStyle}'");
+            else if (row.BorrowsStyle && row.OwedStyle!.Equals(row.MotionStyle, StringComparison.OrdinalIgnoreCase))
+                errors.Add($"{source}: {name}.owedStyle '{row.OwedStyle}' is the style it already plays; leave owedStyle out");
             if (row.KnockbackMul > 1)
                 errors.Add($"{source}: {name}.knockbackMul must be at most 1 (1 is the full knockback); got {row.KnockbackMul}");
         }

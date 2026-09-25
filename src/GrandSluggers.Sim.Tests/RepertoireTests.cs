@@ -135,12 +135,16 @@ public class RepertoireTests
         var accepted = AcceptedAssignments();
         Assert.Equal(25, accepted.Count);
 
+        // Every character the register assigned is shipped with that assignment. The world's new characters (WD-11,
+        // WD-13 A, WD-22) carry proposed repertoires until Jack accepts them; each is named here, so a character that is
+        // neither assigned nor proposed is still a failure.
+        Assert.All(accepted.Keys, id => Assert.Contains(id, Shipped.Characters.Keys));
         Assert.Equal(
-            accepted.Keys.OrderBy(id => id, StringComparer.Ordinal),
+            accepted.Keys.Concat(ProposedWorldCharacters).OrderBy(id => id, StringComparer.Ordinal),
             Shipped.Characters.Keys.OrderBy(id => id, StringComparer.Ordinal));
 
         foreach (var (id, character) in Shipped.Characters.OrderBy(c => c.Key, StringComparer.Ordinal))
-            Assert.Equal(accepted[id], character.Repertoire.Ordinary);
+            if (accepted.TryGetValue(id, out var pitches)) Assert.Equal(pitches, character.Repertoire.Ordinary);
     }
 
     // ---- the validator -----------------------------------------------------------------------
@@ -217,6 +221,10 @@ public class RepertoireTests
     /// they name. The register spells the pitches in prose case ("Fastball"); the data rail spells
     /// ids lowercase, and the leading Fastball is asserted rather than assumed (PH-15-R1).
     /// </summary>
+    /// <summary>The world's new captains and role players, whose repertoires are proposals (#1148), not register rows yet.</summary>
+    static readonly string[] ProposedWorldCharacters =
+        ["sable", "sirocco", "tumble", "adobe", "hollis", "flint", "cairn", "scree", "reed", "cattail", "bog", "tad"];
+
     static Dictionary<string, string[]> AcceptedAssignments()
     {
         var path = Path.Combine(Repo, "docs", "research", "pitching-hitting-decisions.json");

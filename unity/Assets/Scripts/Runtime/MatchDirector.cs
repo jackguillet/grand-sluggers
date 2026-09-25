@@ -74,25 +74,24 @@ namespace GrandSluggers.UnityClient
         bool _replaying;
         bool _turntable;
         internal Dictionary<string, HeroActor> _heroes => Scene.Heroes;
-        readonly HashSet<string> _used = new HashSet<string>();
 
         internal enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         internal Phase _phase { get => Play.Phase; set => Play.Phase = value; }
         /// <summary>The SET defense arrangement window while open; null otherwise.</summary>
         internal DefenseSetupPick _swapPick;
         MenuNav.Gate _swapX, _swapY;
-        int _itemPick;
-        Character _itemTarget;
-        bool _itemThrown;
-        internal bool _itemFlying;
-        float _itemFly;
-        string _itemId = "";
+        int _itemPick { get => Play.ItemPick; set => Play.ItemPick = value; }
+        Character _itemTarget { get => Play.ItemTarget; set => Play.ItemTarget = value; }
+        bool _itemThrown { get => Play.ItemThrown; set => Play.ItemThrown = value; }
+        internal bool _itemFlying { get => Play.ItemFlying; set => Play.ItemFlying = value; }
+        float _itemFly { get => Play.ItemFly; set => Play.ItemFly = value; }
+        string _itemId { get => Play.ItemId; set => Play.ItemId = value; }
         internal bool _starPitch;
         bool _starSwing;
         /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
         internal BuntSide _buntSide;
         /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
-        internal float _squareSec;
+        internal float _squareSec { get => Play.SquareSec; set => Play.SquareSec = value; }
         /// <summary>The bodies are off their spots on the square (crashing in, or walking back after a release).</summary>
         bool Squared => _squareSec > 0f;
         /// <summary>
@@ -107,7 +106,7 @@ namespace GrandSluggers.UnityClient
         float _pitchCharge;
         float _pitchPast;
         internal float _breakX { get => Play.BreakX; set => Play.BreakX = value; }
-        float _dash01;
+        float _dash01 { get => Live.Dash01; set => Live.Dash01 = value; }
         internal float _t;
         float _pip;
         internal PitchCommand _pitch { get => Play.Pitch; set => Play.Pitch = value; }
@@ -115,8 +114,8 @@ namespace GrandSluggers.UnityClient
         internal PlayEvent _last { get => Play.Last; set => Play.Last = value; }
         internal AtBatResult _pending { get => Play.Pending; set => Play.Pending = value; }
         internal FieldingPreview _preview { get => Play.Preview; set => Play.Preview = value; }
-        internal bool _playerFielding;
-        internal bool _swung;
+        internal bool _playerFielding { get => Live.PlayerFielding; set => Live.PlayerFielding = value; }
+        internal bool _swung { get => Play.Swung; set => Play.Swung = value; }
         internal float _flight { get => Play.Flight; set => Play.Flight = value; }
         internal float _pitchDur { get => Play.PitchDur; set => Play.PitchDur = value; }
         internal bool _pitchAir { get => Play.PitchAir; set => Play.PitchAir = value; }
@@ -130,39 +129,40 @@ namespace GrandSluggers.UnityClient
         internal bool _gateHold;
         CardToy _card { get => Scene.Card; set => Scene.Card = value; }
         LogoToy _logo { get => Scene.Logo; set => Scene.Logo = value; }
-        ChemToy _chem;
+        ChemToy _chem { get => Scene.Chem; set => Scene.Chem = value; }
         float _feelSlow = 1f;
         bool _freezeCam;
         float _aimX, _aimY;
         internal Sample[] _path { get => Play.Path; set => Play.Path = value; }
-        internal Vector3 _ball;
-        internal double _fx, _fz;
-        internal bool _caught, _buddy;
-        int _throwBag;
-        internal readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
-        /// <summary>The typed outcome's bodies at Time (§10.6, #574): the result beat draws these, not the position table.</summary>
-        IReadOnlyList<FieldBody> _resultBodies;
-        internal string _glovePos = "P";
-        string _switchPos = "";
-        string _throwFromPos = "";
-        string _buddyPos = "";
-        bool _buddyWindow;
-        float _diveT, _jumpT, _swapLock;
-        internal bool _throwing;
-        float _throwT, _throwDur;
-        internal bool _closePlay;
-        string _bagStamp = "";
-        float _bagStampT;
-        float _bagStampHold;
-        StampAnchor _bagStampAnchor = StampAnchor.Dirt;
-        bool _closeIcon;
-        int _closeBag;
-        string _coverPos = "";
-        internal float _recoilT;
-        bool _bobbling;
-        internal FieldingResult _cpuField;
-        ThrowResult _armedThrow;
-        Vector3 _throwFrom, _throwTo;
+        internal Vector3 _ball { get => Play.Ball; set => Play.Ball = value; }
+        // The live play as the client mirrors it (LiveFieldState); these names forward to it (#1042).
+        internal readonly LiveFieldState Live = new LiveFieldState();
+        internal double _fx { get => Live.GloveX; set => Live.GloveX = value; } internal double _fz { get => Live.GloveZ; set => Live.GloveZ = value; }
+        internal bool _caught { get => Live.Caught; set => Live.Caught = value; } internal bool _buddy { get => Live.Buddy; set => Live.Buddy = value; }
+        int _throwBag { get => Live.ThrowBag; set => Live.ThrowBag = value; }
+        internal Dictionary<string, (double X, double Z)> _gloveAt => Live.GloveAt;
+        IReadOnlyList<FieldBody> _resultBodies { get => Live.ResultBodies; set => Live.ResultBodies = value; }
+        internal string _glovePos { get => Live.GlovePos; set => Live.GlovePos = value; }
+        string _switchPos { get => Live.SwitchPos; set => Live.SwitchPos = value; }
+        string _throwFromPos { get => Live.ThrowFromPos; set => Live.ThrowFromPos = value; }
+        string _buddyPos { get => Live.BuddyPos; set => Live.BuddyPos = value; }
+        bool _buddyWindow { get => Live.BuddyWindow; set => Live.BuddyWindow = value; }
+        float _diveT { get => Live.DiveT; set => Live.DiveT = value; } float _jumpT { get => Live.JumpT; set => Live.JumpT = value; } float _swapLock { get => Live.SwapLock; set => Live.SwapLock = value; }
+        internal bool _throwing { get => Live.Throwing; set => Live.Throwing = value; }
+        float _throwT { get => Live.ThrowT; set => Live.ThrowT = value; } float _throwDur { get => Live.ThrowDur; set => Live.ThrowDur = value; }
+        internal bool _closePlay { get => Live.ClosePlay; set => Live.ClosePlay = value; }
+        string _bagStamp { get => Live.BagStamp; set => Live.BagStamp = value; }
+        float _bagStampT { get => Live.BagStampT; set => Live.BagStampT = value; }
+        float _bagStampHold { get => Live.BagStampHold; set => Live.BagStampHold = value; }
+        StampAnchor _bagStampAnchor { get => Live.BagStampAnchor; set => Live.BagStampAnchor = value; }
+        bool _closeIcon { get => Live.CloseIcon; set => Live.CloseIcon = value; }
+        int _closeBag { get => Live.CloseBag; set => Live.CloseBag = value; }
+        string _coverPos { get => Live.CoverPos; set => Live.CoverPos = value; }
+        internal float _recoilT { get => Live.RecoilT; set => Live.RecoilT = value; }
+        bool _bobbling { get => Live.Bobbling; set => Live.Bobbling = value; }
+        internal FieldingResult _cpuField { get => Live.CpuField; set => Live.CpuField = value; }
+        ThrowResult _armedThrow { get => Live.ArmedThrow; set => Live.ArmedThrow = value; }
+        Vector3 _throwFrom { get => Live.ThrowFrom; set => Live.ThrowFrom = value; } Vector3 _throwTo { get => Live.ThrowTo; set => Live.ThrowTo = value; }
         string _banner, _sub;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
@@ -242,8 +242,8 @@ namespace GrandSluggers.UnityClient
             _cam.Cut("title");
             _flow = new FlowDirector(this);
             _atBat = new AtBatDirector(this);
-            _inPlay = new InPlayDirector(this);
-            _actors = new ActorDirector(this);
+            _inPlay = new InPlayDirector(Scene, Play, Live, this, transform);
+            _actors = new ActorDirector(Scene, Play, Live, _inPlay, this, transform);
         }
 
         void Update()

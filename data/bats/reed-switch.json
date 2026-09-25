@@ -1,0 +1,9 @@
+{
+  // Reed's default stat loadout. Contact first; a light marsh-reed bat.
+  "id": "reed-switch",
+  "name": "Reed Switch",
+  "contactMod": 1,
+  "powerMod": -1,
+  "chargeAlwaysFull": false,
+  "visual": "bat-reed"
+}

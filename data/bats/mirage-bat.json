@@ -1,0 +1,9 @@
+{
+  // Sable's default stat loadout. Contact first; the heat-haze bat.
+  "id": "mirage-bat",
+  "name": "Mirage Bat",
+  "contactMod": 1,
+  "powerMod": -1,
+  "chargeAlwaysFull": false,
+  "visual": "bat-mirage"
+}

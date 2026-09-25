@@ -7,90 +7,71 @@ using UnityEngine;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// The live ball, presented. The sim (<see cref="LivePlaySystem"/>) owns the gloves, the
-    /// catch, the throws, the relay chain, the close-play race, the bobble and the runner play (steals, pickoffs);
-    /// this partial translates the pads into one command per frame, mirrors the sim's state
-    /// into the director's fields for the actors and HUD, and plays the cues it raises.
+    /// The live ball, presented (a real director since #1042). The sim (<see cref="LivePlaySystem"/>) owns the gloves, the
+    /// catch, the throws, the relay chain, the close-play race, the bobble and the runner play (steals, pickoffs); this
+    /// director turns the pads into one command per frame, mirrors the sim's state into <see cref="LiveFieldState"/> for the
+    /// actors and the HUD, plays the cues it raises and aims the live camera. It owns the frame its live play began, the
+    /// frost rings and the camera hold; the pads, the items and the result beat are the flow's (<see cref="IInPlayHost"/>).
     /// </summary>
     public sealed class InPlayDirector
     {
-        readonly MatchDirector _play;
-        public InPlayDirector(MatchDirector play) { _play = play; }
-        public void Tick(float dt) { _play.TickLive(dt); }
-    }
-
-    public sealed partial class MatchDirector
-    {
+        readonly MatchScene _scene;
+        readonly PlayState _play;
+        readonly LiveFieldState _live;
+        readonly IInPlayHost _host;
+        readonly Transform _root;
         int _liveBeganFrame = -1;
 
-        internal void TickLive(float dt)
+        internal InPlayDirector(MatchScene scene, PlayState play, LiveFieldState live, IInPlayHost host, Transform root)
+        {
+            _scene = scene; _play = play; _live = live; _host = host; _root = root;
+        }
+
+        /// <summary>A live play began on this frame's pre-contact tick: this frame's live tick is already spent.</summary>
+        public void Began() => _liveBeganFrame = Time.frameCount;
+
+        float LiveTime => _play.Match != null ? (float)_play.Match.LivePlay.ElapsedSeconds : 0f;
+
+
+        public void Tick(float dt)
         {
             // A pre-contact tick already consumed this frame before handing off to live play.
             if (_liveBeganFrame == Time.frameCount) return;
-            if (_phase == Phase.InPlay)
+            if (_play.Phase == MatchDirector.Phase.InPlay)
                 TickInPlay(dt);
-            else if (_phase == Phase.StealThrow) TickStealThrow(dt);
-        }
-
-        /// <summary>The sim's seat table for this half. Training seats come from the coach; a match derives them from (half, home/away, pads).</summary>
-        LiveSeats LiveSeatsNow() => TrainingOn
-            ? new LiveSeats(HumanBats, HumanPitches, PlayerMustField, Versus: false)
-            : _match != null ? GrandSluggers.Sim.LiveSeats.For(LiveSeats, _match.Top) : GrandSluggers.Sim.LiveSeats.CpuOnly;
-
-        internal LivePadInput FieldInput()
-        {
-            var pad = FieldPad;
-            // The calibrated radial stick (#718) reads the device coordinate before any dead zone, handed to the sim once.
-            var radial = _match != null;
-            var eastFree = CancelFree(pad);
-            var cancel = eastFree && pad.EastDown && (_phase == Phase.Flight || _match.LivePlay.CanCancelThrow);
-            if (cancel) pad.ClearThrowTarget();
-            return new LivePadInput(
-                radial ? pad.PursuitX : pad.StickX, radial ? pad.PursuitY : pad.StickY,
-                SouthDown: pad.BallDown && pad.ThrowBag > 0, WestDown: pad.JumpDown && TriggerFree(pad, BuntSide.First),
-                EastDown: pad.EastDown && eastFree && !cancel, EastHeld: pad.EastHeld && eastFree && !cancel,
-                Cutoff: pad.Cutoff, Swap: pad.SwapPitcher,
-                Attack: pad.Attack && TriggerFree(pad, BuntSide.Third), KeysBag: pad.ThrowBag,
-                Cancel: cancel, Device: pad.Index, ExplicitTarget: true, CloseResponse: pad.SouthDown);
-        }
-
-        /// <summary>Selection is a right-stick flick; the movement stick never issues a runner order.</summary>
-        LivePadInput RunInput()
-        {
-            var pad = RunPad;
-            return new LivePadInput(SouthDown: pad.SouthDown,
-                WestDown: pad.WestDown && TriggerFree(pad, BuntSide.Third), Orders: pad.RunnerOrders);
+            else if (_play.Phase == MatchDirector.Phase.StealThrow) TickStealThrow(dt);
         }
 
         /// <summary>The pads for a live step: this frame's, with any press the hit-stop held folded in (CH-13).</summary>
-        LivePadInput LiveFieldInput() => _juice.Field(FieldInput());
-        LivePadInput LiveRunInput() => _juice.Run(RunInput());
+        LivePadInput LiveFieldInput() => _host.Juice.Field(_host.FieldInput());
+        LivePadInput LiveRunInput() => _host.Juice.Run(_host.RunInput());
 
         void TickInPlay(float dt)
         {
-            var live = _match.LivePlay;
-            if (_path == null || _path.Length == 0) { BeginResult(); return; }
-            TickItem(dt);
-            var result = TutorialOn && (_coach.Tutorial.IsFieldLesson || _coach.Tutorial.IsItemLesson || _coach.Tutorial.IsGameContactLesson)
+            var live = _play.Match.LivePlay;
+            if (_play.Path == null || _play.Path.Length == 0) { _host.BeginResult(); return; }
+            _host.TickItem(dt);
+            var lesson = _host.FieldLesson;
+            var result = lesson != null && (lesson.IsFieldLesson || lesson.IsItemLesson || lesson.IsGameContactLesson)
                 ? TickTutorialField(dt)
-                : live.Apply(LivePlayCommand.Tick(dt, LiveFieldInput(), LiveRunInput(), _itemFlying, live.Source));
+                : live.Apply(LivePlayCommand.Tick(dt, LiveFieldInput(), LiveRunInput(), _host.ItemFlying, live.Source));
             SyncFromLive();
             PlayLiveCues(result);
-            if (_smash > 0) _smash -= dt;
+            if (_host.Smash > 0) _host.Smash -= dt;
             AimLive();
 
-            if (_ring != null && _preview != null)
+            if (_scene.Ring != null && _play.Preview != null)
             {
-                var hang = _path != null ? BallFlight.HangTime(_path, MatchRules) : _preview.HangTimeSec;
-                if (LandingMark.On(_preview, _ball.y, LiveTime, _caught, _buddy, _match.Rules, hang))
+                var hang = _play.Path != null ? BallFlight.HangTime(_play.Path, _play.Rules(_scene.Content)) : _play.Preview.HangTimeSec;
+                if (LandingMark.On(_play.Preview, _play.Ball.y, LiveTime, _live.Caught, _live.Buddy, _play.Match.Rules, hang))
                 {
-                    var plant = LandingMark.At(_preview, _match.Rules, _match.Park);
+                    var plant = LandingMark.At(_play.Preview, _play.Match.Rules, _play.Match.Park);
                     var who = PlayFielder();
-                    _ring.Show(plant.X, plant.Z, (float)LandingMark.RadiusFt(_preview),
-                        LandingMark.Hot(LiveTime, hang, _match.Rules, who, _match.Park));
+                    _scene.Ring.Show(plant.X, plant.Z, (float)LandingMark.RadiusFt(_play.Preview),
+                        LandingMark.Hot(LiveTime, hang, _play.Match.Rules, who, _play.Match.Park));
                 }
                 else
-                    _ring.Hide();
+                    _scene.Ring.Hide();
             }
 
             if (result.CompletedPlay != null)
@@ -100,64 +81,66 @@ namespace GrandSluggers.UnityClient
             }
             // The sim commits every live ball itself, fouls included (#575). FlightDone is only a ball
             // with nothing to play (no path); it must never stand in for a result.
-            if (result.FlightDone && !_itemFlying) BeginResult();
+            if (result.FlightDone && !_host.ItemFlying) _host.BeginResult();
         }
 
         /// <summary>The sim's state, mirrored for the actor, HUD, and still partials.</summary>
-        void SyncFromLive()
+        public void SyncFromLive()
         {
-            var live = _match.LivePlay;
-            if (live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag > 0 || live.Events.Contains(LiveEvent.ThrowQueueCleared)) FieldPad.ClearThrowTarget();
-            _ball = new Vector3((float)live.BallX, (float)live.BallY, (float)live.BallZ);
-            _gloveAt.Clear();
-            foreach (var kv in live.Fielders) _gloveAt[kv.Key] = kv.Value;
-            _glovePos = live.GlovePos;
-            _fx = live.GloveX;
-            _fz = live.GloveZ;
-            _playerFielding = live.PlayerFielding;
-            _caught = live.Caught;
-            _buddy = live.Buddy;
-            _throwing = live.Throwing;
-            _throwT = (float)live.ThrowT;
-            _throwDur = (float)live.ThrowDur;
-            _throwFrom = new Vector3((float)live.ThrowFrom.X, (float)live.ThrowFrom.Y, (float)live.ThrowFrom.Z);
-            _throwTo = new Vector3((float)live.ThrowTo.X, (float)live.ThrowTo.Y, (float)live.ThrowTo.Z);
-            _throwBag = live.ThrowBag;
-            _armedThrow = live.ArmedThrow;
-            _coverPos = live.CoverPos;
-            _throwFromPos = live.ThrowFromPos;
-            _switchPos = live.SwitchPos;
-            _buddyPos = live.BuddyPos;
-            _buddyWindow = live.BuddyWindow;
-            _diveT = (float)live.DiveT;
-            _jumpT = (float)live.JumpT;
-            _swapLock = (float)live.SwapLock;
-            _recoilT = (float)live.RecoilT;
-            _bobbling = live.Bobbling;
+            var live = _play.Match.LivePlay;
+            if (live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag > 0 || live.Events.Contains(LiveEvent.ThrowQueueCleared)) _host.ClearThrowTarget();
+            _play.Ball = new Vector3((float)live.BallX, (float)live.BallY, (float)live.BallZ);
+            _live.GloveAt.Clear();
+            foreach (var kv in live.Fielders) _live.GloveAt[kv.Key] = kv.Value;
+            _live.GlovePos = live.GlovePos;
+            _live.GloveX = live.GloveX;
+            _live.GloveZ = live.GloveZ;
+            _live.PlayerFielding = live.PlayerFielding;
+            _live.Caught = live.Caught;
+            _live.Buddy = live.Buddy;
+            _live.Throwing = live.Throwing;
+            _live.ThrowT = (float)live.ThrowT;
+            _live.ThrowDur = (float)live.ThrowDur;
+            _live.ThrowFrom = new Vector3((float)live.ThrowFrom.X, (float)live.ThrowFrom.Y, (float)live.ThrowFrom.Z);
+            _live.ThrowTo = new Vector3((float)live.ThrowTo.X, (float)live.ThrowTo.Y, (float)live.ThrowTo.Z);
+            _live.ThrowBag = live.ThrowBag;
+            _live.ArmedThrow = live.ArmedThrow;
+            _live.CoverPos = live.CoverPos;
+            _live.ThrowFromPos = live.ThrowFromPos;
+            _live.SwitchPos = live.SwitchPos;
+            _live.BuddyPos = live.BuddyPos;
+            _live.BuddyWindow = live.BuddyWindow;
+            _live.DiveT = (float)live.DiveT;
+            _live.JumpT = (float)live.JumpT;
+            _live.SwapLock = (float)live.SwapLock;
+            _live.RecoilT = (float)live.RecoilT;
+            _live.Bobbling = live.Bobbling;
             // What each body owes (#719–#721), while the ball is live; the completing frame resets the field, so the last
             // live frame's debts carry into the result beat and run out there (ActorDirector ages them).
-            if (live.Active) _owed = FielderTells.Owed.Of(live, _match.Rules);
-            _closePlay = live.InClosePlay;
-            _closeBag = live.CloseBag;
-            _closeIcon = live.CloseIcon;
-            _dash01 = (float)live.Dash01;
-            if (live.Field != null) _cpuField = live.Field;
-            if (live.Preview != null) _preview = live.Preview;
-            if (live.Hit != null) _pending = live.Hit;
-            if (live.Path != null && (_path == null || _path.Length != live.Path.Count))
+            if (live.Active) _live.Owed = FielderTells.Owed.Of(live, _play.Match.Rules);
+            _live.ClosePlay = live.InClosePlay;
+            _live.CloseBag = live.CloseBag;
+            _live.CloseIcon = live.CloseIcon;
+            _live.Dash01 = (float)live.Dash01;
+            if (live.Field != null) _live.CpuField = live.Field;
+            if (live.Preview != null) _play.Preview = live.Preview;
+            if (live.Hit != null) _play.Pending = live.Hit;
+            if (live.Path != null && (_play.Path == null || _play.Path.Length != live.Path.Count))
             {
-                _path = new Sample[live.Path.Count];
-                for (var i = 0; i < _path.Length; i++) _path[i] = live.Path[i];
+                _play.Path = new Sample[live.Path.Count];
+                for (var i = 0; i < _play.Path.Length; i++) _play.Path[i] = live.Path[i];
             }
-            if (_throwing && _armedThrow != null)
+            if (_live.Throwing && _live.ArmedThrow != null)
             {
                 // The arc is presentation; the sim flies the ball flat at the receiver's glove height.
-                var u = Mathf.Clamp01(_throwT / Mathf.Max(0.05f, _throwDur));
-                var arc = _armedThrow.Relation == Chemistry.Good ? 5.2f
-                    : _armedThrow.Relation == Chemistry.Bad ? 1.6f : 3.2f;
-                _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
+                var u = Mathf.Clamp01(_live.ThrowT / Mathf.Max(0.05f, _live.ThrowDur));
+                var arc = _live.ArmedThrow.Relation == Chemistry.Good ? 5.2f
+                    : _live.ArmedThrow.Relation == Chemistry.Bad ? 1.6f : 3.2f;
+                var ball = _play.Ball;
+                ball.y += Mathf.Sin(u * Mathf.PI) * arc;
+                _play.Ball = ball;
             }
-            if (!string.IsNullOrEmpty(live.Sub)) _sub = live.Sub;
+            if (!string.IsNullOrEmpty(live.Sub)) _host.Sub = live.Sub;
             ShowSlowRings(live);
         }
 
@@ -169,13 +152,13 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         void ShowSlowRings(LivePlaySystem live)
         {
-            foreach (var kv in _gloveAt)
+            foreach (var kv in _live.GloveAt)
             {
                 var slowed = live.Active && live.IsSlowed(kv.Key);
                 if (!_slowRings.TryGetValue(kv.Key, out var ring))
                 {
                     if (!slowed) continue;
-                    ring = Look.Torus("SlowRing-" + kv.Key, transform, 2.2f, 0.18f, Look.Unlit(new Color(0.62f, 0.88f, 1f)), seg: 28, sides: 6);
+                    ring = Look.Torus("SlowRing-" + kv.Key, _root, 2.2f, 0.18f, Look.Unlit(new Color(0.62f, 0.88f, 1f)), seg: 28, sides: 6);
                     _slowRings[kv.Key] = ring;
                 }
                 ring.SetActive(slowed);
@@ -185,7 +168,7 @@ namespace GrandSluggers.UnityClient
 
         void PlayLiveCues(LivePlayCommandResult result)
         {
-            var live = _match.LivePlay;
+            var live = _play.Match.LivePlay;
             foreach (var tell in live.Stamps)
                 StampSmall(tell);
             foreach (var cue in live.Events)
@@ -193,53 +176,51 @@ namespace GrandSluggers.UnityClient
                 switch (cue)
                 {
                     case LiveEvent.Glove:
-                        _audio?.Glove();
+                        _scene.Audio?.Glove();
                         // The body's own catch (CH-13): its class's hold and its settle.
-                        if (_match.DefenseMap.TryGetValue(live.GlovePos, out var gloved)) _juice.Catch(gloved, _feel);
+                        if (_play.Match.DefenseMap.TryGetValue(live.GlovePos, out var gloved)) _host.Juice.Catch(gloved, _scene.Feel);
                         break;
                     case LiveEvent.ThrowPop:
-                        _park.Ball.Release();
-                        _audio?.ThrowPop();
+                        _scene.Park.Ball.Release();
+                        _scene.Audio?.ThrowPop();
                         break;
                     case LiveEvent.ItemSmashed:
-                        _itemFlying = false;
-                        _itemId = "";
-                        _items?.Hide();
+                        _host.ItemSmashed();
                         break;
                     // The hazards' tells (FD-15, F8-b): the word where it happened and a puff, from the typed events.
                     case LiveEvent.BodySlowed:
-                        if (live.Slows.Any(s => s.Pos == _glovePos)) StampSmall(PlayStamp.HazardTell(cue));
+                        if (live.Slows.Any(s => s.Pos == _live.GlovePos)) StampSmall(PlayStamp.HazardTell(cue));
                         break;
                     case LiveEvent.BallRedirected:
                         StampSmall(PlayStamp.HazardTell(cue, live.RedirectsThisPlay.Count > 0 ? live.RedirectsThisPlay[^1].Type : null));
-                        _park.Ball.ContactPuff(_ball);
+                        _scene.Park.Ball.ContactPuff(_play.Ball);
                         break;
                     case LiveEvent.RewardHit:
                         StampSmall(PlayStamp.HazardTell(cue));
-                        _audio?.Swell();
+                        _scene.Audio?.Swell();
                         break;
                     case LiveEvent.BodyCarom:
                         StampSmall(PlayStamp.HazardTell(cue));
-                        _park.Ball.ContactPuff(_ball);
-                        _audio?.Glove();
+                        _scene.Park.Ball.ContactPuff(_play.Ball);
+                        _scene.Audio?.Glove();
                         break;
                     case LiveEvent.WallCarom:
                         // The ball met the fence below its top (§7.9): a thump and dust at the wall; the sim plays the carom.
-                        _park.Ball.ContactPuff(_ball);
-                        _audio?.Glove();
+                        _scene.Park.Ball.ContactPuff(_play.Ball);
+                        _scene.Audio?.Glove();
                         break;
                     case LiveEvent.ThrowSailed:
                         // The throw skipped past its cover (§8.5, §8.6): the ball is loose; the ERROR tell
                         // is the live stamp at Dirt, not a second card at Time.
-                        _park.Ball.Release();
-                        _park.Ball.ContactPuff(_ball);
+                        _scene.Park.Ball.Release();
+                        _scene.Park.Ball.ContactPuff(_play.Ball);
                         break;
                     case LiveEvent.Bobble:
                         // The fumble (§8.6): the ball scatters on the dirt; the glove chases it. A ball that got past (#721)
                         // kicks the dirt at the fumbler's feet instead and carries on as a batted ball, its trail on.
-                        _park.Ball.Release();
+                        _scene.Park.Ball.Release();
                         if (live.Deflected) DustAt(live.StunPos);
-                        else _park.Ball.ContactPuff(_ball);
+                        else _scene.Park.Ball.ContactPuff(_play.Ball);
                         break;
                     case LiveEvent.JumpTakeoff:
                         // The normal jump leaves the ground this frame (#719): dirt at the feet; the rise is the sim's arc.
@@ -256,58 +237,58 @@ namespace GrandSluggers.UnityClient
                 }
             }
             if (result.Throw is { } step && !string.IsNullOrEmpty(step.Caption))
-                _sub = step.Caption;
-            if (_bobbling) _park.Ball.Release();
+                _host.Sub = step.Caption;
+            if (_live.Bobbling) _scene.Park.Ball.Release();
         }
 
         /// <summary>A kick of dirt at a body's feet (#719–#721): the live glove where the ring is, else the body's own spot.</summary>
         void DustAt(string pos)
         {
-            var at = pos == _glovePos ? (X: _fx, Z: _fz)
-                : !string.IsNullOrEmpty(pos) && _gloveAt.TryGetValue(pos, out var body) ? body
-                : (X: _fx, Z: _fz);
-            _park.Ball.ContactPuff(new Vector3((float)at.X, 0f, (float)at.Z));
+            var at = pos == _live.GlovePos ? (X: _live.GloveX, Z: _live.GloveZ)
+                : !string.IsNullOrEmpty(pos) && _live.GloveAt.TryGetValue(pos, out var body) ? body
+                : (X: _live.GloveX, Z: _live.GloveZ);
+            _scene.Park.Ball.ContactPuff(new Vector3((float)at.X, 0f, (float)at.Z));
         }
 
         void FinishLive(PlayEvent play, FieldingResult fieldResult)
         {
             foreach (var ring in _slowRings.Values) if (ring != null) ring.SetActive(false);
-            _last = play;
+            _play.Last = play;
             MirrorBodiesAtTime(play);
-            if (fieldResult != null) _coach?.OnField(fieldResult, _match);
-            Banner();
-            if (_last != null && _last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double)
-                _audio?.Swell();
-            _playerFielding = false;
-            _cpuField = null;
-            _throwing = false;
-            _closePlay = false;
-            _closeIcon = false;
-            _coverPos = "";
-            _throwFromPos = "";
-            _bobbling = false;
-            _recoilT = 0;
+            if (fieldResult != null) _host.OnFieldResult(fieldResult);
+            _host.Banner();
+            if (_play.Last != null && _play.Last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double)
+                _scene.Audio?.Swell();
+            _live.PlayerFielding = false;
+            _live.CpuField = null;
+            _live.Throwing = false;
+            _live.ClosePlay = false;
+            _live.CloseIcon = false;
+            _live.CoverPos = "";
+            _live.ThrowFromPos = "";
+            _live.Bobbling = false;
+            _live.RecoilT = 0;
             _camHold.Reset();
-            _park.Ball.Release();
-            if (_last != null && !PlayStamp.ShowsAtTime(_last) && !string.IsNullOrEmpty(_bagStamp))
-                _bagStampHold = (float)PlayStamp.HoldSeconds(_last.Kind, _feel);
-            BeginResult();
+            _scene.Park.Ball.Release();
+            if (_play.Last != null && !PlayStamp.ShowsAtTime(_play.Last) && !string.IsNullOrEmpty(_live.BagStamp))
+                _live.BagStampHold = (float)PlayStamp.HoldSeconds(_play.Last.Kind, _scene.Feel);
+            _host.BeginResult();
         }
 
         /// <summary>A live tell at its named anchor (OUT at the glove, SCORE at the plate, SAFE / ERROR on the dirt).</summary>
         void StampSmall(LiveStamp tell)
         {
             if (tell == null || string.IsNullOrEmpty(tell.Word)) return;
-            _bagStamp = tell.Word;
-            _bagStampAnchor = tell.Anchor;
-            _bagStampT = 0;
-            _bagStampHold = (float)PlayStamp.SafeHoldSeconds(_feel);
+            _live.BagStamp = tell.Word;
+            _live.BagStampAnchor = tell.Anchor;
+            _live.BagStampT = 0;
+            _live.BagStampHold = (float)PlayStamp.SafeHoldSeconds(_scene.Feel);
         }
 
-        Character PlayFielder()
+        public Character PlayFielder()
         {
-            if (_cpuField != null && _cpuField.Fielder != null) return _cpuField.Fielder;
-            return _preview != null ? _preview.Fielder : _match.Pitcher;
+            if (_live.CpuField != null && _live.CpuField.Fielder != null) return _live.CpuField.Fielder;
+            return _play.Preview != null ? _play.Preview.Fielder : _play.Match.Pitcher;
         }
 
         /// <summary>The live camera's target hysteresis (D14): one per director, reset when a play ends.</summary>
@@ -318,16 +299,16 @@ namespace GrandSluggers.UnityClient
         /// hold. Null while the SET shot still holds after the crack (<c>contactCutSeconds</c>); the smash rides
         /// the batter; an ordinary throw keeps the follow on the ball.
         /// </summary>
-        void AimLive()
+        public void AimLive()
         {
-            var live = _match.LivePlay;
-            var batter = SmashLook();
+            var live = _play.Match.LivePlay;
+            var batter = _host.SmashLook();
             var view = new PlayCamera.LiveView(
-                LiveTime, _pending, live.RunnerPlay, _closePlay, _closeBag,
-                live.InRundown, live.RunnerPlayBag, _smash,
-                new Vec3(_ball.x, _ball.y, _ball.z), new Vec3(batter.x, batter.y, batter.z));
-            var framed = PlayCamera.LiveFraming(_content.Shots, view, _feel, _camHold);
-            if (framed is { } f) _cam.Live(f);
+                LiveTime, _play.Pending, live.RunnerPlay, _live.ClosePlay, _live.CloseBag,
+                live.InRundown, live.RunnerPlayBag, _host.Smash,
+                new Vec3(_play.Ball.x, _play.Ball.y, _play.Ball.z), new Vec3(batter.x, batter.y, batter.z));
+            var framed = PlayCamera.LiveFraming(_scene.Content.Shots, view, _scene.Feel, _camHold);
+            if (framed is { } f) _scene.Cam.Live(f);
         }
 
         /// <summary>
@@ -338,42 +319,42 @@ namespace GrandSluggers.UnityClient
         void MirrorBodiesAtTime(PlayEvent play)
         {
             var bodies = play?.Outcome?.BodiesAtTime;
-            if (bodies == null || bodies.Count == 0) { _resultBodies = null; return; }
-            _resultBodies = bodies;
-            _gloveAt.Clear();
+            if (bodies == null || bodies.Count == 0) { _live.ResultBodies = null; return; }
+            _live.ResultBodies = bodies;
+            _live.GloveAt.Clear();
             foreach (var b in bodies)
-                if (!b.IsRunner) _gloveAt[b.Pos] = (b.X, b.Z);
+                if (!b.IsRunner) _live.GloveAt[b.Pos] = (b.X, b.Z);
         }
 
-        bool BuddySet => _preview != null && FieldingResolver.BuddyJumpOffered(_preview);
+        public bool BuddySet => _play.Preview != null && FieldingResolver.BuddyJumpOffered(_play.Preview);
 
-        (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, MatchRules, _match?.Park);
+        public (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, _play.Rules(_scene.Content), _play.Match?.Park);
 
-        internal PlayKind LiveKind() => _match.LivePlay.PlayKind;
+        public PlayKind LiveKind() => _play.Match.LivePlay.PlayKind;
 
         // ---- The runner play (§11.3, §11.4): the sim runs the catcher's throw or the pickoff; this draws it. ----
 
         /// <summary>After a take or a miss with a runner who broke (<paramref name="pitch"/>), or a pickoff already begun in the sim (null).</summary>
-        void StartRunnerPlay(PlayEvent pitch)
+        public void StartRunnerPlay(PlayEvent pitch)
         {
-            if (pitch != null) _last = pitch;
-            _phase = Phase.StealThrow;
+            if (pitch != null) _play.Last = pitch;
+            _play.Phase = MatchDirector.Phase.StealThrow;
             _liveBeganFrame = Time.frameCount;
-            _t = 0;
+            _host.RestartClock();
             _camHold.Reset();
-            _pending = null;
-            _preview = null;
-            _cpuField = null;
-            _path = null;
-            _park.Ball.Release();
+            _play.Pending = null;
+            _play.Preview = null;
+            _live.CpuField = null;
+            _play.Path = null;
+            _scene.Park.Ball.Release();
             if (pitch != null)
-                _match.LivePlay.Apply(LivePlayCommand.BeginSteal(pitch, LiveSeatsNow(), _match.LivePlay.Source));
+                _play.Match.LivePlay.Apply(LivePlayCommand.BeginSteal(pitch, _host.LiveSeatsNow(), _play.Match.LivePlay.Source));
             SyncFromLive();
-            PlayLiveCues(new LivePlayCommandResult(_match.LivePlay.Snapshot));
-            if (!_match.LivePlay.Active)
+            PlayLiveCues(new LivePlayCommandResult(_play.Match.LivePlay.Snapshot));
+            if (!_play.Match.LivePlay.Active)
             {
                 // Nobody to play on (every armed runner was entitled by the walk): the pitch stands.
-                BeginResult();
+                _host.BeginResult();
                 return;
             }
             AimStealThrowCam();
@@ -381,24 +362,24 @@ namespace GrandSluggers.UnityClient
 
         void TickStealThrow(float dt)
         {
-            var live = _match.LivePlay;
-            var result = TutorialOn ? TickTutorialField(dt)
+            var live = _play.Match.LivePlay;
+            var result = _host.FieldLesson != null ? TickTutorialField(dt)
                 : live.Apply(LivePlayCommand.Tick(dt, LiveFieldInput(), LiveRunInput(), false, live.Source));
             SyncFromLive();
             PlayLiveCues(result);
             AimLive();
             if (result.CompletedPlay != null)
             {
-                _last = result.CompletedPlay;
-                MirrorBodiesAtTime(_last);
-                Banner();
-                _throwing = false;
-                _caught = false;
-                _coverPos = "";
-                _throwFromPos = "";
-                _playerFielding = false;
-                _park.Ball.Release();
-                BeginResult();
+                _play.Last = result.CompletedPlay;
+                MirrorBodiesAtTime(_play.Last);
+                _host.Banner();
+                _live.Throwing = false;
+                _live.Caught = false;
+                _live.CoverPos = "";
+                _live.ThrowFromPos = "";
+                _live.PlayerFielding = false;
+                _scene.Park.Ball.Release();
+                _host.BeginResult();
             }
         }
 
@@ -406,14 +387,14 @@ namespace GrandSluggers.UnityClient
 
         LivePlayCommandResult TickTutorialField(float dt)
         {
-            var run = _coach.Tutorial;
+            var run = _host.FieldLesson;
             // Both pads are taken, so a press the hit-stop held on the pad a lesson does not read is not delivered later.
             var field = LiveFieldInput();
             var running = LiveRunInput();
             var pad = run.IsOffenseLesson ? running : field;
             // Preserve simulation time through a long rendering frame without repeating edge-triggered commands.
             var left = (double)dt;
-            LivePlayCommandResult result = new LivePlayCommandResult(_match.LivePlay.Snapshot);
+            LivePlayCommandResult result = new LivePlayCommandResult(_play.Match.LivePlay.Snapshot);
             while (left > 0 && run.Phase == TutorialPhase.Attempt)
             {
                 var step = Math.Min(left, .05);
@@ -425,5 +406,28 @@ namespace GrandSluggers.UnityClient
             }
             return result;
         }
+    }
+
+    /// <summary>What the live play asks of the match flow: the pads and seats, the lesson in play, the items, the juice and the result beat.</summary>
+    internal interface IInPlayHost
+    {
+        LivePadInput FieldInput();
+        LivePadInput RunInput();
+        void ClearThrowTarget();
+        LiveSeats LiveSeatsNow();
+        JuiceDirector Juice { get; }
+        /// <summary>The tutorial lesson in play, or null.</summary>
+        TutorialSession FieldLesson { get; }
+        void OnFieldResult(FieldingResult result);
+        void TickItem(float dt);
+        bool ItemFlying { get; }
+        void ItemSmashed();
+        void Banner();
+        void BeginResult();
+        Vector3 SmashLook();
+        float Smash { get; set; }
+        string Sub { set; }
+        /// <summary>The phase clock starts again (a new beat).</summary>
+        void RestartClock();
     }
 }

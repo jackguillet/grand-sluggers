@@ -53,7 +53,7 @@ public class ToyBodyTests
             Assert.Equal(top, StillPose.CharHeadTopY(Content, id), 9);
         }
         // The ladder keeps its order and each cut's read (silhouette bible).
-        var order = new[] { "zig", "fenn", "rio", "brondo", "vale", "konga", "ashlord" };
+        var order = new[] { "zig", "reed", "fenn", "rio", "brondo", "sable", "vale", "hollis", "konga", "ashlord" };
         for (var i = 1; i < order.Length; i++)
             Assert.True(tops[order[i]] > tops[order[i - 1]], $"{order[i]} must stand taller than {order[i - 1]}");
         Assert.Equal(order.OrderBy(x => x), Shipped.CaptainIds.OrderBy(x => x));

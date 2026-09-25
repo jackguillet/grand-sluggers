@@ -73,10 +73,12 @@ public class ContactPowerScenarioTests
     [Fact]
     public void S121_TheCpuArchetypeIsUnchangedForEveryShippedCharacter()
     {
-        // CpuChargeChance now reads Contact for the technique gate and Power for the split. While
-        // nothing is authored that has to be the same answer the Bat/Run formula gave.
+        // CpuChargeChance now reads Contact for the technique gate and Power for the split. For a
+        // character whose contact and power are one number that has to be the answer the Bat/Run
+        // formula gave; a character authored with the two apart (the world's new ones) reads each.
         var a = _content.Rules.Batting.Cpu.Archetype;
-        foreach (var c in _content.Characters.Values)
+        Assert.Contains(_content.Characters.Values, c => c.Stats.Contact != c.Stats.Power);
+        foreach (var c in _content.Characters.Values.Where(c => c.Stats.Contact == c.Stats.Power))
         {
             var bat = c.Stats.Bat;
             var run = c.Stats.Run;

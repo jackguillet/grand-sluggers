@@ -12,12 +12,12 @@ public sealed class DirectorRailTests
 {
     static readonly string[] StillPartial =
     [
-        "ActorDirector.cs", "AtBatDirector.cs", "FlowDirector.cs", "InPlayDirector.cs",
+        "AtBatDirector.cs", "FlowDirector.cs",
         "MatchDirector.cs",
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
-    const int MatchDirectorCeiling = 913;
+    const int MatchDirectorCeiling = 910;
 
     static string Scripts => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "Assets", "Scripts"));
 
@@ -48,6 +48,8 @@ public sealed class DirectorRailTests
     [InlineData("GuidedTutorialDirector")]
     [InlineData("TutorialDirector")]
     [InlineData("StillStaging")]
+    [InlineData("InPlayDirector")]
+    [InlineData("ActorDirector")]
     public void TheDirectorIsARealClass(string director)
     {
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));
@@ -69,6 +71,9 @@ public sealed class DirectorRailTests
             Assert.Matches(@"\s" + forwarded + @" (\{ get => Scene\.|=> Scene\.)", director);
         foreach (var forwarded in new[] { "_match", "_phase", "_pitch", "_swing", "_pending", "_preview", "_path" })
             Assert.Matches(@"\s" + forwarded + @" \{ get => Play\.", director);
+        Assert.Contains("internal readonly LiveFieldState Live = new LiveFieldState();", director, StringComparison.Ordinal);
+        foreach (var forwarded in new[] { "_glovePos", "_throwing", "_closePlay", "_caught", "_cpuField", "_bagStamp" })
+            Assert.Matches(@"\s" + forwarded + @" \{ get => Live\.", director);
     }
 
     [Fact]

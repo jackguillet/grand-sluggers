@@ -28,6 +28,22 @@ namespace GrandSluggers.UnityClient
         public bool PitchAir { get; set; }
         /// <summary>Seconds since contact.</summary>
         public float Flight { get; set; }
+        /// <summary>The batter swung at this pitch; the square clock (§7.3) while the batter shows bunt; the drawn rubber offset.</summary>
+        public bool Swung { get; set; }
+        public float SquareSec { get; set; }
+        public float MoundX { get; set; }
+        /// <summary>The committed swing's clock, and seconds from the press to its take's Contact mark (D13); NaN until a swing commits.</summary>
+        public float CommittedSwingT { get; set; } = (float)AtBatMotion.SwingNotStarted;
+        public float SwingContactSec { get; set; } = float.NaN;
+        /// <summary>The on-deck item (§12): the pick, its target, and the throw in flight.</summary>
+        public int ItemPick { get; set; }
+        public Character ItemTarget { get; set; }
+        public bool ItemThrown { get; set; }
+        public bool ItemFlying { get; set; }
+        public float ItemFly { get; set; }
+        public string ItemId { get; set; } = "";
+        /// <summary>Where the ball is drawn this frame.</summary>
+        public Vector3 Ball { get; set; }
         /// <summary>Where the ball left the pitcher's hand.</summary>
         public Vector3 ReleaseFrom { get; set; }
 
